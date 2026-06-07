@@ -1,4 +1,5 @@
 import pLimitCompat from "../../async/pLimitCompat.js";
+import { updateShownFilesList } from "../../rendering/components/shownFilesListUpdater.js";
 import { setState } from "../../state/core/stateManager.js";
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
@@ -33,7 +34,6 @@ export type LoadedFitFileEntry = {
 type LoadOverlayGlobal = typeof globalThis & {
     globalData?: OverlayFitData | null;
     loadedFitFiles?: LoadedFitFileEntry[];
-    updateShownFilesList?: () => void;
 };
 
 const PATH_SEPARATOR_REGEX = /[/\\]+/g;
@@ -161,9 +161,7 @@ export async function loadOverlayFiles(
 
         syncLoadedFitFilesState();
         await refreshOverlayMap();
-        if (typeof appGlobal.updateShownFilesList === "function") {
-            appGlobal.updateShownFilesList();
-        }
+        updateShownFilesList();
 
         // Restore the original tab if it was changed
         if (currentTabButton && currentTabId) {

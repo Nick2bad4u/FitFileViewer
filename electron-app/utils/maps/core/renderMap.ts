@@ -13,6 +13,7 @@ import { sanitizeFilenameComponent } from "../../files/sanitizeFilename.js";
 import { formatTooltipData } from "../../formatting/display/formatTooltipData.js";
 import { createTables } from "../../rendering/components/createTables.js";
 import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
+import { updateShownFilesList } from "../../rendering/components/shownFilesListUpdater.js";
 import { renderSummary } from "../../rendering/core/renderSummary.js";
 import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { getState, setState } from "../../state/core/stateManager.js";
@@ -152,7 +153,6 @@ type WindowExtensions = typeof globalThis & {
     setupActiveFileNameMapActions?: () => void;
     setupOverlayFileNameMapActions?: () => void;
     updateOverlayHighlights?: () => void;
-    updateShownFilesList?: () => void;
 };
 
 type ShownFilesListElement = Element & {
@@ -1085,9 +1085,7 @@ export function renderMap(): void {
             if (!didReset && currentGlobalData?.recordMesgs) {
                 mapDrawLapsWrapper("all");
             }
-            if (typeof windowExt.updateShownFilesList === "function") {
-                windowExt.updateShownFilesList();
-            }
+            updateShownFilesList();
             console.log(
                 `[renderMap] Map metric filter change handled, action=${action}`
             );
@@ -1125,9 +1123,7 @@ export function renderMap(): void {
             onAfterApply: () => {
                 // Redraw map so tooltips/points pick up the updated estimated power values.
                 mapDrawLapsWrapper("all");
-                if (typeof windowExt.updateShownFilesList === "function") {
-                    windowExt.updateShownFilesList();
-                }
+                updateShownFilesList();
 
                 void refreshChartsAfterEstimatedPowerUpdate();
 
@@ -1173,9 +1169,7 @@ export function renderMap(): void {
                 if (!didReset && currentGlobalData?.recordMesgs) {
                     mapDrawLapsWrapper("all");
                 }
-                if (windowExt.updateShownFilesList) {
-                    windowExt.updateShownFilesList();
-                }
+                updateShownFilesList();
             })
         );
 
@@ -1192,9 +1186,7 @@ export function renderMap(): void {
             if (secondaryControls) {
                 secondaryControls.append(shownFilesList);
             }
-            if (windowExt.updateShownFilesList) {
-                windowExt.updateShownFilesList();
-            }
+            updateShownFilesList();
         }
     }
 
@@ -1677,22 +1669,20 @@ export function renderMap(): void {
         );
         windowExt.updateOverlayHighlights();
     }
-    if (windowExt.updateShownFilesList) {
+    console.log(
+        "[FFV] [renderMap] Calling updateShownFilesList after overlays drawn"
+    );
+    updateShownFilesList();
+    if (windowExt.setupOverlayFileNameMapActions) {
         console.log(
-            "[FFV] [renderMap] Calling updateShownFilesList after overlays drawn"
+            "[FFV] [renderMap] Calling setupOverlayFileNameMapActions after updateShownFilesList"
         );
-        windowExt.updateShownFilesList();
-        if (windowExt.setupOverlayFileNameMapActions) {
+        windowExt.setupOverlayFileNameMapActions();
+        if (windowExt.setupActiveFileNameMapActions) {
             console.log(
-                "[FFV] [renderMap] Calling setupOverlayFileNameMapActions after updateShownFilesList"
+                "[FFV] [renderMap] Calling setupActiveFileNameMapActions after overlays drawn"
             );
-            windowExt.setupOverlayFileNameMapActions();
-            if (windowExt.setupActiveFileNameMapActions) {
-                console.log(
-                    "[FFV] [renderMap] Calling setupActiveFileNameMapActions after overlays drawn"
-                );
-                windowExt.setupActiveFileNameMapActions();
-            }
+            windowExt.setupActiveFileNameMapActions();
         }
     }
     // Enable/disable lap selector based on number of loaded files

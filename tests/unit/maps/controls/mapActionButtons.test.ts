@@ -27,7 +27,6 @@ type MapActionButtonTestGlobal = typeof globalThis & {
     _mainPolyline?: MapPolyline;
     _setupActiveFileNameMapActions?: () => void;
     updateOverlayHighlights?: () => void;
-    updateShownFilesList?: (...args: unknown[]) => unknown;
 };
 
 type ActiveFileNameElement = HTMLElement & {
@@ -50,7 +49,6 @@ function resetMapActionFixture(): void {
     delete testGlobal._mainPolyline;
     delete testGlobal._setupActiveFileNameMapActions;
     delete testGlobal.updateOverlayHighlights;
-    delete testGlobal.updateShownFilesList;
 }
 
 function mountMapActionDom(): {
@@ -89,9 +87,6 @@ function installMapGlobals(): {
     >;
     polylineBringToFront: ReturnType<typeof vi.fn<() => void>>;
     updateOverlayHighlights: ReturnType<typeof vi.fn<() => void>>;
-    updateShownFilesList: ReturnType<
-        typeof vi.fn<(...args: unknown[]) => void>
-    >;
 } {
     const bounds: MapBounds = {
         isValid: () => true,
@@ -103,7 +98,6 @@ function installMapGlobals(): {
             (bounds: MapBounds, options: { padding: [number, number] }) => void
         >();
     const updateOverlayHighlights = vi.fn<() => void>();
-    const updateShownFilesList = vi.fn<(...args: unknown[]) => void>();
 
     Object.assign(getTestGlobal(), {
         _leafletMapInstance: {
@@ -118,7 +112,6 @@ function installMapGlobals(): {
             options: { color: "#1976d2" },
         },
         updateOverlayHighlights,
-        updateShownFilesList,
     });
 
     return {
@@ -126,7 +119,6 @@ function installMapGlobals(): {
         fitBounds,
         polylineBringToFront,
         updateOverlayHighlights,
-        updateShownFilesList,
     };
 }
 
@@ -145,10 +137,17 @@ describe("mapActionButtons", () => {
                 fitBounds,
                 polylineBringToFront,
                 updateOverlayHighlights,
-                updateShownFilesList,
             } = installMapGlobals();
 
             await import("../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+            const {
+                setShownFilesListUpdater,
+                updateShownFilesList,
+            } = await import(
+                "../../../../electron-app/utils/rendering/components/shownFilesListUpdater.js"
+            );
+            const listUpdater = vi.fn<() => void>();
+            const disposeListUpdater = setShownFilesListUpdater(listUpdater);
 
             expect(activeFileName.style.cursor).toBe("pointer");
             expect(activeFileName.title).toBe(
@@ -199,9 +198,10 @@ describe("mapActionButtons", () => {
             expect(tabClicks).toHaveBeenCalledTimes(2);
             expect(polylineBringToFront).toHaveBeenCalledTimes(2);
 
-            getTestGlobal().updateShownFilesList?.("activity.fit");
+            updateShownFilesList();
 
-            expect(updateShownFilesList).toHaveBeenCalledWith("activity.fit");
+            expect(listUpdater).toHaveBeenCalledOnce();
+            disposeListUpdater();
         } finally {
             resetMapActionFixture();
             vi.runOnlyPendingTimers();

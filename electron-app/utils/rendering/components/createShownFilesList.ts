@@ -2,6 +2,10 @@ import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColor
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { setState } from "../../state/core/stateManager.js";
 import { attachOverlayListItemHandlers } from "./shownFilesListItemHandlers.js";
+import {
+    setShownFilesListUpdater,
+    updateShownFilesList,
+} from "./shownFilesListUpdater.js";
 
 type LoadedFitFile = {
     readonly data?: unknown;
@@ -208,6 +212,8 @@ export function createShownFilesList(): HTMLElement {
         signal: lifecycle.signal,
     });
 
+    let disposeShownFilesListUpdater: (() => void) | null = null;
+
     /**
      * Cleanup hook used by renderMap when it tears down the old map DOM. This
      * prevents accumulating document/body listeners and any hovered-tooltip
@@ -227,6 +233,8 @@ export function createShownFilesList(): HTMLElement {
         }
 
         removeOverlayFilenameTooltips();
+        disposeShownFilesListUpdater?.();
+        disposeShownFilesListUpdater = null;
     };
 
     let pendingStateSync = false;
@@ -379,7 +387,7 @@ export function createShownFilesList(): HTMLElement {
         { signal: lifecycle.signal }
     );
 
-    overlayGlobal.updateShownFilesList = (): void => {
+    const updateShownFilesListForContainer = (): void => {
         const shownFilesList = container.querySelector("#shown-files-ul");
         if (!(shownFilesList instanceof HTMLUListElement)) {
             return;
@@ -534,7 +542,7 @@ export function createShownFilesList(): HTMLElement {
                     assignKeyboardFocus(-1);
                     scheduleOverlayStateSync();
                     overlayGlobal.renderMap?.();
-                    overlayGlobal.updateShownFilesList?.();
+                    updateShownFilesList();
                     queueMicrotask(removeOverlayFilenameTooltips);
                 },
                 { signal: lifecycle.signal }
@@ -544,6 +552,10 @@ export function createShownFilesList(): HTMLElement {
 
         container.style.display = "";
     };
+    disposeShownFilesListUpdater = setShownFilesListUpdater(
+        updateShownFilesListForContainer
+    );
+    overlayGlobal.updateShownFilesList = updateShownFilesList;
 
     if (
         !overlayGlobal.loadedFitFiles ||

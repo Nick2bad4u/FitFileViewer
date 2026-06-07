@@ -7,7 +7,6 @@ type FitBoundsFn = (
 type GetCenterFn = () => { lat: number; lng: number };
 type GetZoomFn = () => number;
 type NotificationFn = (message: string, type: string) => void;
-type UpdateShownFilesListFn = (root?: HTMLElement) => void;
 type VoidFn = () => void;
 
 vi.mock(
@@ -197,43 +196,52 @@ describe("mapActionButtons", () => {
     it("reapplies setup after updateShownFilesList is called", async () => {
         expect.assertions(4);
 
-        (window as any).updateShownFilesList = () => undefined;
-        vi.spyOn(
-            window as any,
-            "updateShownFilesList"
-        ).mockImplementation<UpdateShownFilesListFn>(() => {
+        const {
+            setShownFilesListUpdater,
+            updateShownFilesList,
+        } = await import(
+            "../../../../../electron-app/utils/rendering/components/shownFilesListUpdater.js"
+        );
+        const disposeShownFilesListUpdater = setShownFilesListUpdater(() => {
             const activeFileName = document.getElementById("activeFileName");
             if (activeFileName) {
                 activeFileName.textContent = "changed.fit";
             }
         });
-        await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
 
-        (window as any).updateShownFilesList();
+        try {
+            await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
 
-        const fitBounds = vi.fn<FitBoundsFn>();
-        const bounds = { isValid: () => true };
-        (window as any)._leafletMapInstance = {
-            fitBounds,
-            getCenter: vi.fn<GetCenterFn>(),
-            getZoom: vi.fn<GetZoomFn>(),
-        };
-        (window as any)._mainPolylineOriginalBounds = bounds;
-        (window as any)._overlayPolylines = [
-            {
-                options: { color: "#1976d2" },
-                getBounds: () => bounds,
-                getElement: () => ({ style: {} }),
-            },
-        ];
-        const name = getActiveFileName();
+            updateShownFilesList();
 
-        expect(name.textContent).toBe("changed.fit");
-        expect(name.style.cursor).toBe("pointer");
+            const fitBounds = vi.fn<FitBoundsFn>();
+            const bounds = { isValid: () => true };
+            (window as any)._leafletMapInstance = {
+                fitBounds,
+                getCenter: vi.fn<GetCenterFn>(),
+                getZoom: vi.fn<GetZoomFn>(),
+            };
+            (window as any)._mainPolylineOriginalBounds = bounds;
+            (window as any)._overlayPolylines = [
+                {
+                    options: { color: "#1976d2" },
+                    getBounds: () => bounds,
+                    getElement: () => ({ style: {} }),
+                },
+            ];
+            const name = getActiveFileName();
 
-        name.dispatchEvent(new Event("click"));
-        await vi.advanceTimersByTimeAsync(100);
+            expect(name.textContent).toBe("changed.fit");
+            expect(name.style.cursor).toBe("pointer");
 
-        expect(fitBounds).toHaveBeenCalledWith(bounds, { padding: [20, 20] });
+            name.dispatchEvent(new Event("click"));
+            await vi.advanceTimersByTimeAsync(100);
+
+            expect(fitBounds).toHaveBeenCalledWith(bounds, {
+                padding: [20, 20],
+            });
+        } finally {
+            disposeShownFilesListUpdater();
+        }
     });
 });

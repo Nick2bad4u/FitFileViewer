@@ -1,3 +1,5 @@
+import { updateShownFilesList } from "./shownFilesListUpdater.js";
+
 type OverlayListItem = HTMLLIElement & {
     _overlayListItemCleanup?: (() => void) | null;
     _tooltipRemover?: (() => void) | null;
@@ -54,7 +56,6 @@ type OverlayGlobal = typeof globalThis & {
     loadedFitFiles?: unknown[];
     renderMap?: () => void;
     updateOverlayHighlights?: () => void;
-    updateShownFilesList?: () => void;
 };
 
 function getOverlayGlobal(): OverlayGlobal {
@@ -273,7 +274,7 @@ export function attachOverlayListItemHandlers({
                 const nextFocusIndex = overlayIndex > 1 ? overlayIndex - 1 : -1;
                 assignKeyboardFocus(nextFocusIndex);
                 overlayGlobal.renderMap?.();
-                overlayGlobal.updateShownFilesList?.();
+                updateShownFilesList();
                 scheduleManagedTooltipCleanup();
             }
         },

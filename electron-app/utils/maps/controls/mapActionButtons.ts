@@ -17,6 +17,7 @@
  * architecture.
  */
 
+import { registerShownFilesListAfterUpdate } from "../../rendering/components/shownFilesListUpdater.js";
 import { createMapThemeToggle as createMapThemeToggleImplementation } from "../../theming/specific/createMapThemeToggle.js";
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
@@ -73,7 +74,6 @@ type MapActionButtonsGlobal = typeof globalThis & {
         CircleMarker?: CircleMarkerConstructor;
     };
     updateOverlayHighlights?: () => void;
-    updateShownFilesList?: (...args: unknown[]) => unknown;
 };
 
 type ActiveFileNameElement = HTMLElement & {
@@ -533,38 +533,12 @@ function setupActiveFileNameMapActions(): void {
 getMapActionButtonsGlobal()._setupActiveFileNameMapActions =
     setupActiveFileNameMapActions;
 
-// Patch updateShownFilesList to always maintain active filename functionality
-(function patchUpdateShownFilesList(): void {
-    try {
-        const w = getMapActionButtonsGlobal(),
-            origUpdateShownFilesList = w.updateShownFilesList;
-
-        w.updateShownFilesList = function updateShownFilesList(
-            this: unknown,
-            ...args: unknown[]
-        ): void {
-            try {
-                if (typeof origUpdateShownFilesList === "function") {
-                    Reflect.apply(origUpdateShownFilesList, this, args);
-                }
-                console.log(
-                    "[mapActionButtons] Files list updated, reapplying active filename setup"
-                );
-                setupActiveFileNameMapActions();
-            } catch (error) {
-                console.error(
-                    "[mapActionButtons] Error in patched updateShownFilesList:",
-                    error
-                );
-            }
-        };
-    } catch (error) {
-        console.error(
-            "[mapActionButtons] Error patching updateShownFilesList:",
-            error
-        );
-    }
-})();
+registerShownFilesListAfterUpdate(() => {
+    console.log(
+        "[mapActionButtons] Files list updated, reapplying active filename setup"
+    );
+    setupActiveFileNameMapActions();
+});
 
 /**
  * Creates the map theme toggle control used by the map toolbar.

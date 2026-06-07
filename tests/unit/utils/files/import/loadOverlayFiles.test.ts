@@ -22,7 +22,6 @@ type LoadedFitFileEntry = {
 type LoadOverlayTestGlobal = typeof globalThis & {
     globalData?: OverlayFitData | null;
     loadedFitFiles?: LoadedFitFileEntry[];
-    updateShownFilesList?: () => void;
 };
 
 type LoadSingleOverlayResult = {
@@ -45,6 +44,7 @@ const mocks = vi.hoisted(() => ({
     setState:
         vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
     showNotification: vi.fn<(message: string, type?: string) => void>(),
+    updateShownFilesList: vi.fn<() => void>(),
 }));
 
 vi.mock(
@@ -58,6 +58,15 @@ vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
         setState: mocks.setState,
+    })
+);
+
+vi.mock(
+    import(
+        "../../../../../electron-app/utils/rendering/components/shownFilesListUpdater.js"
+    ),
+    () => ({
+        updateShownFilesList: mocks.updateShownFilesList,
     })
 );
 
@@ -100,7 +109,6 @@ const appGlobal = globalThis as LoadOverlayTestGlobal;
 function cleanupGlobals() {
     delete appGlobal.globalData;
     delete appGlobal.loadedFitFiles;
-    delete appGlobal.updateShownFilesList;
     document.body.replaceChildren();
     vi.clearAllMocks();
 }
@@ -121,11 +129,9 @@ describe(loadOverlayFiles, () => {
             name: "overlay.fit",
             path: String.raw`C:\rides\overlay.fit`,
         };
-        const updateShownFilesList = vi.fn<() => void>();
 
         try {
             appGlobal.globalData = primaryData;
-            appGlobal.updateShownFilesList = updateShownFilesList;
             mocks.loadSingleOverlayFile.mockResolvedValue({
                 data: overlayData,
                 success: true,
@@ -157,7 +163,7 @@ describe(loadOverlayFiles, () => {
                 { source: "loadOverlayFiles" }
             );
             expect(mocks.renderMap).toHaveBeenCalledOnce();
-            expect(updateShownFilesList).toHaveBeenCalledOnce();
+            expect(mocks.updateShownFilesList).toHaveBeenCalledOnce();
             expect(mocks.loadingHide).toHaveBeenCalledOnce();
             expect(mocks.showNotification).toHaveBeenCalledWith(
                 "Successfully loaded 1 files",

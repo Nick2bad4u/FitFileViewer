@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
     getThemeColors: vi.fn<() => Record<string, string>>(),
     showNotification: vi.fn<(message: string, type: string) => void>(),
+    updateShownFilesList: vi.fn<() => void>(),
 }));
 
 vi.mock(
@@ -19,11 +20,19 @@ vi.mock(
     })
 );
 
+vi.mock(
+    import(
+        "../../../../../electron-app/utils/rendering/components/shownFilesListUpdater.js"
+    ),
+    () => ({
+        updateShownFilesList: mocks.updateShownFilesList,
+    })
+);
+
 import { createMarkerCountSelector } from "../../../../../electron-app/utils/ui/controls/createMarkerCountSelector.js";
 
 type MarkerCountGlobal = typeof globalThis & {
     mapMarkerCount?: number;
-    updateShownFilesList?: () => void;
 };
 
 function getGlobal(): MarkerCountGlobal {
@@ -35,7 +44,6 @@ function resetFixture(): void {
     vi.clearAllMocks();
     document.body.replaceChildren();
     delete getGlobal().mapMarkerCount;
-    delete getGlobal().updateShownFilesList;
     mocks.getThemeColors.mockReturnValue({
         primary: "#2563eb",
         surface: "#ffffff",
@@ -212,8 +220,6 @@ describe(createMarkerCountSelector, () => {
 
         resetFixture();
         const onChange = vi.fn<(count: number) => void>();
-        const updateShownFilesList = vi.fn<() => void>();
-        getGlobal().updateShownFilesList = updateShownFilesList;
 
         try {
             const select = getSelect(createMarkerCountSelector(onChange));
@@ -223,7 +229,7 @@ describe(createMarkerCountSelector, () => {
 
             expect(getGlobal().mapMarkerCount).toBe(200);
             expect(onChange).toHaveBeenCalledExactlyOnceWith(200);
-            expect(updateShownFilesList).toHaveBeenCalledOnce();
+            expect(mocks.updateShownFilesList).toHaveBeenCalledOnce();
 
             select.value = "all";
             dispatchChange(select);

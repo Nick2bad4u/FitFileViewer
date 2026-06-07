@@ -1,4 +1,5 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
+import { updateShownFilesList } from "../../rendering/components/shownFilesListUpdater.js";
 import { showNotification } from "../notifications/showNotification.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -23,7 +24,6 @@ type ThemeColors = ReturnType<typeof getThemeColors>;
 
 type MarkerCountGlobal = typeof globalThis & {
     mapMarkerCount?: number;
-    updateShownFilesList?: () => void;
 };
 
 function createMarkerCountIcon(themeColors: ThemeColors): SVGSVGElement {
@@ -154,7 +154,7 @@ function handleMarkerCountChange(
             select.value === "all" ? 0 : Number.parseInt(select.value, 10);
 
         onChange?.(globalRef.mapMarkerCount);
-        globalRef.updateShownFilesList?.();
+        updateShownFilesList();
     } catch (error) {
         console.error(
             "[mapActionButtons] Error in marker count change:",
