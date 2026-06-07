@@ -55,7 +55,7 @@ function getRootScripts(): Record<string, string> {
 
 describe("vitest root config", () => {
     it("uses the repository root for cache, setup, and test script paths", async () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const { default: config } = await importVitestConfig();
         const testConfig = getRequiredVitestTestConfig(config);
@@ -75,6 +75,9 @@ describe("vitest root config", () => {
         );
         expect(getRootScripts()["test:tabs"]).toBe(
             "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --run --reporter=verbose tests/unit/tabs --maxWorkers 1"
+        );
+        expect(getRootScripts()["test:playwright"]).toBe(
+            "npm run build:runtime-ts && cross-env PW_DISABLE_TS_ESM=1 playwright test --config playwright.config.ts"
         );
     });
 
