@@ -50,6 +50,10 @@ import {
     getRendererErrorMessage,
 } from "./renderer/errorHandling.js";
 import {
+    createRendererLifecycleCleanup,
+    type RendererLifecycleAppState,
+} from "./renderer/lifecycleCleanup.js";
+import {
     createDelegatedFileInputChangeHandler,
     handleImmediateFileInputChange,
     registerDelegatedFileInputChangeListener,
@@ -71,11 +75,6 @@ import { getState, subscribe } from "./utils/state/core/stateManager.js";
 import { querySelectorByIdFlexible } from "./utils/ui/dom/elementIdUtils.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
 
-interface LegacyRendererAppState {
-    isInitialized: boolean;
-    isOpeningFile: boolean;
-    startTime: number | undefined;
-}
 type ListenForThemeChange = (onThemeChange: (theme: string) => void) => void;
 type LogRendererLevel = "error" | "group" | "groupEnd" | "log" | "warn";
 interface RendererCoreModules {
@@ -596,9 +595,9 @@ const onDelegatedFileInputChange = createDelegatedFileInputChangeHandler(
 /**
  * Legacy state reference for backward compatibility
  *
- * @type {LegacyRendererAppState | null}
+ * @type {RendererLifecycleAppState | null}
  */
-let appState: LegacyRendererAppState | null = null;
+let appState: RendererLifecycleAppState | null = null;
 
 /**
  * Reference object for tracking file opening state (legacy compatibility)
@@ -1073,65 +1072,14 @@ logRenderer("groupEnd");
 // Application Lifecycle
 // ==========================================
 
-/**
- * Cleanup function called before page unload
- */
-function cleanup(): void {
-    try {
-        logRenderer("log", "[Renderer] Performing cleanup...");
-
-        const resetLegacyOpeningState = (): void => {
-            if (appState !== null) {
-                appState.isInitialized = false;
-                appState.isOpeningFile = false;
-            }
-            isOpeningFileRef.value = false;
-        };
-
-        const cleanupStateManagerState = async (): Promise<void> => {
-            try {
-                const { AppActions, masterStateManager } =
-                    await ensureCoreModules();
-                const masterStateManagerRecord =
-                    toModuleRecord(masterStateManager);
-                if (masterStateManagerRecord["isInitialized"] === true) {
-                    const appActions = toModuleRecord(AppActions);
-                    callBooleanAppAction(appActions, "setInitialized", false);
-                    callBooleanAppAction(appActions, "setFileOpening", false);
-
-                    const cleanupStateManager =
-                        masterStateManagerRecord["cleanup"];
-                    if (typeof cleanupStateManager === "function") {
-                        const cleanupStateManagerFn =
-                            /** @type {(this: unknown) => unknown} */ cleanupStateManager;
-                        cleanupStateManagerFn.call(masterStateManager);
-                    }
-                } else {
-                    resetLegacyOpeningState();
-                }
-            } catch {
-                resetLegacyOpeningState();
-            }
-        };
-
-        // Remove global event listeners
-        globalThis.removeEventListener(
-            "unhandledrejection",
-            rendererErrorHandlers.onUnhandledRejectionEvent
-        );
-        globalThis.removeEventListener(
-            "error",
-            rendererErrorHandlers.onUncaughtErrorEvent
-        );
-
-        // Reset application state using state manager
-        void cleanupStateManagerState();
-
-        logRenderer("log", "[Renderer] Cleanup completed");
-    } catch (error) {
-        logRenderer("error", "[Renderer] Cleanup failed:", error);
-    }
-}
+const cleanup = createRendererLifecycleCleanup({
+    errorHandlers: rendererErrorHandlers,
+    getAppState: () => appState,
+    getCoreModules: ensureCoreModules,
+    isOpeningFileRef,
+    logRenderer,
+    removeEventListener: globalThis.removeEventListener.bind(globalThis),
+});
 
 // ==========================================
 // Event Listeners & Startup
