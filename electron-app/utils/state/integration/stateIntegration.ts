@@ -172,7 +172,7 @@ export function integrateWithRendererUtils(): void {
     const originalSetGlobalData = rendererUtils.setGlobalData;
     if (typeof originalSetGlobalData === "function") {
         rendererUtils.setGlobalData = (data: unknown) => {
-            setState("globalData", data, {
+            setGlobalData(data, {
                 source: "rendererUtils.setGlobalData",
             });
             return originalSetGlobalData.call(rendererUtils, data);
@@ -422,7 +422,7 @@ function setupBackwardCompatibility(): void {
                 return getState("globalData");
             },
             set globalData(value: unknown) {
-                setState("globalData", value, {
+                setGlobalData(value, {
                     source: "AppState.globalData",
                 });
             },
