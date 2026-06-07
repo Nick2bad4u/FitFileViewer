@@ -17,6 +17,12 @@ vi.mock(
     import("../../../../../electron-app/utils/app/initialization/rendererUtils.js"),
     () => ({
         initializeRendererUtils: staticModuleMocks.initializeRendererUtils,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/ui/notifications/syncRendererNotifications.js"),
+    () => ({
         showNotification: staticModuleMocks.showNotification,
     })
 );

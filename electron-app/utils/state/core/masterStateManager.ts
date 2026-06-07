@@ -5,10 +5,7 @@ import type * as NodePath from "node:path";
  * Initializes and coordinates the renderer state management components.
  */
 
-import {
-    initializeRendererUtils,
-    showNotification,
-} from "../../app/initialization/rendererUtils.js";
+import { initializeRendererUtils } from "../../app/initialization/rendererUtils.js";
 import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
 import {
     cleanupStateDevTools,
@@ -16,6 +13,7 @@ import {
 } from "../../debug/stateDevTools.js";
 import { initializeControlsState } from "../../rendering/helpers/updateControlsState.js";
 import { initializeTabButtonState } from "../../ui/controls/enableTabButtons.js";
+import { showNotification } from "../../ui/notifications/syncRendererNotifications.js";
 import { initializeActiveTabState } from "../../ui/tabs/updateActiveTab.js";
 import { initializeTabVisibilityState } from "../../ui/tabs/updateTabVisibility.js";
 import type { ElectronAPIWithDevFlags } from "../../../shared/preloadApi.js";
@@ -1155,18 +1153,14 @@ function getNodeModuleCache(): ModuleCache | null {
 // Dynamic module resolvers: prefer require.cache-injected mocks (used by tests), fallback to static imports
 function getRendererUtilsModule(): {
     initializeRendererUtils: typeof initializeRendererUtils;
-    showNotification: typeof showNotification;
 } {
     const mocked = getModuleExportsFromCache(
         "/utils/app/initialization/rendererutils.js"
     );
     if (hasFunction(mocked, "initializeRendererUtils")) {
-        return mocked as {
-            initializeRendererUtils: typeof initializeRendererUtils;
-            showNotification: typeof showNotification;
-        };
+        return mocked;
     }
-    return { initializeRendererUtils, showNotification };
+    return { initializeRendererUtils };
 }
 
 function getSettingsStateModule(): {
