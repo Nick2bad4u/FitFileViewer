@@ -60,6 +60,7 @@ type FitFileStateManagerLike = {
         data: FitDataObject,
         context: { filePath: null | string }
     ) => void;
+    isLoading?: () => boolean;
     startFileLoading?: (filePath: string) => void;
 };
 
@@ -402,7 +403,14 @@ function integrateFitState(data: FitDataObject, filePath?: string): void {
         const manager = resolveFitFileStateManager();
 
         if (manager && typeof manager.handleFileLoaded === "function") {
-            if (filePath && typeof manager.startFileLoading === "function") {
+            const isAlreadyLoading =
+                typeof manager.isLoading === "function" &&
+                manager.isLoading();
+            if (
+                filePath &&
+                typeof manager.startFileLoading === "function" &&
+                !isAlreadyLoading
+            ) {
                 try {
                     manager.startFileLoading(filePath);
                 } catch (error) {

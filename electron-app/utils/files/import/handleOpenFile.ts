@@ -20,6 +20,7 @@ import {
 import { getFitFileBufferValidationError } from "./fitFileValidation.js";
 import type { FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
 
 const __TEST_ONLY_exposedStateManager = stateManager;
 
@@ -70,6 +71,17 @@ type FileOpenRendererGlobal = typeof globalThis & {
 
 type FitFileStateManagerFacade = {
     handleFileLoadingError: (error: Error) => void;
+    startFileLoading?: (filePath: string) => void;
+    transitionLoadingPhase?: (
+        phase: FitFileLoadingPhase,
+        options?: {
+            error?: null | string;
+            filePath?: null | string;
+            progress?: number;
+            source?: string;
+        }
+    ) => boolean;
+    updateLoadingProgress?: (progress: number) => void;
 };
 
 // Constants for better maintainability
@@ -196,6 +208,10 @@ async function handleOpenFile(
 
     try {
         AppActions.setFileOpening(true);
+        notifyFileLoadPhase("selecting", {
+            progress: 5,
+            source: "handleOpenFile.selecting",
+        });
         updateUIState(uiElements, true, true);
 
         const electronAPI = getValidatedElectronAPI();
@@ -205,6 +221,10 @@ async function handleOpenFile(
                 "error",
                 FILE_OPEN_CONSTANTS.ERROR_TIMEOUTS.CRITICAL
             );
+            notifyFileLoadPhase("error", {
+                error: "Electron API not available. Please restart the app.",
+                source: "handleOpenFile.electronApiUnavailable",
+            });
             updateUIState(uiElements, false, false);
             return false;
         }
@@ -222,18 +242,28 @@ async function handleOpenFile(
                 showNotification,
                 `Unable to open the file dialog. Please try again. Error details: ${message}`
             );
+            notifyFileLoadPhase("error", {
+                error: message,
+                source: "handleOpenFile.dialogError",
+            });
             updateUIState(uiElements, false, false);
             return false;
         }
 
         if (!filePath) {
             log("info", "File dialog cancelled by user");
+            notifyFileLoadPhase("idle", {
+                source: "handleOpenFile.cancelled",
+            });
             updateUIState(uiElements, false, false);
             return false;
         }
 
         const filePathString = Array.isArray(filePath) ? filePath[0] : filePath;
         log("info", "File selected", { filePath: filePathString });
+        if (filePathString) {
+            notifyFileLoadStarted(filePathString);
+        }
 
         let arrayBuffer: ArrayBuffer;
         try {
@@ -263,6 +293,11 @@ async function handleOpenFile(
                 enforceMaxSize: config.validateFileSize,
             }
         );
+        notifyFileLoadPhase("validating", {
+            filePath: filePathString,
+            progress: 45,
+            source: "handleOpenFile.validating",
+        });
         if (bufferValidationError) {
             const message = bufferValidationError;
             log("error", message, { filePath: filePathString });
@@ -278,6 +313,11 @@ async function handleOpenFile(
 
         let result: FileParseResult;
         try {
+            notifyFileLoadPhase("parsing", {
+                filePath: filePathString,
+                progress: 65,
+                source: "handleOpenFile.parsing",
+            });
             result = await electronAPI.parseFitFile(arrayBuffer);
         } catch (error) {
             const message =
@@ -317,6 +357,11 @@ async function handleOpenFile(
         }
 
         try {
+            notifyFileLoadPhase("rendering", {
+                filePath: filePathString,
+                progress: 90,
+                source: "handleOpenFile.rendering",
+            });
             const { showFitData } = getFileOpenGlobal();
             if (typeof showFitData === "function") {
                 showFitData(fitData, filePathString);
@@ -360,6 +405,60 @@ async function handleOpenFile(
         } catch {
             /* ignore */
         }
+    }
+}
+
+function notifyFileLoadPhase(
+    phase: FitFileLoadingPhase,
+    options: {
+        error?: null | string;
+        filePath?: null | string;
+        progress?: number;
+        source?: string;
+    } = {}
+): boolean {
+    try {
+        const manager = resolveFitFileStateManager();
+        if (
+            !manager ||
+            typeof manager.transitionLoadingPhase !== "function"
+        ) {
+            return false;
+        }
+
+        return manager.transitionLoadingPhase(phase, options);
+    } catch (error) {
+        log("warn", "Failed to update file loading phase", {
+            error: error instanceof Error ? error.message : String(error),
+            phase,
+        });
+        return false;
+    }
+}
+
+function notifyFileLoadStarted(filePath: string): boolean {
+    try {
+        const manager = resolveFitFileStateManager();
+        if (!manager) {
+            return false;
+        }
+
+        if (typeof manager.startFileLoading === "function") {
+            manager.startFileLoading(filePath);
+            return true;
+        }
+
+        return notifyFileLoadPhase("reading", {
+            filePath,
+            progress: 0,
+            source: "handleOpenFile.reading",
+        });
+    } catch (error) {
+        log("warn", "Failed to propagate file loading start", {
+            error: error instanceof Error ? error.message : String(error),
+            filePath,
+        });
+        return false;
     }
 }
 

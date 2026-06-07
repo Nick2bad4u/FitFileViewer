@@ -12,6 +12,15 @@ type TestElectronAPI = {
     parseFitFile?: (arrayBuffer: ArrayBuffer) => Promise<unknown>;
     readFile?: (filePath: string) => Promise<ArrayBuffer>;
 };
+type LoadingPhase =
+    | "error"
+    | "idle"
+    | "loaded"
+    | "parsing"
+    | "reading"
+    | "rendering"
+    | "selecting"
+    | "validating";
 
 type OpenFitFileFromPathTestGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
@@ -74,7 +83,7 @@ describe(openFitFileFromPath, () => {
     });
 
     it("reads, parses, renders, forwards, and notifies for a valid FIT file path", async () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         cleanupFixture();
 
@@ -97,6 +106,17 @@ describe(openFitFileFromPath, () => {
             const sendFitFileToAltFitReader =
                 vi.fn<(arrayBuffer: ArrayBuffer) => void>();
             const showNotification = vi.fn<ShowNotification>();
+            const startFileLoading = vi.fn<(path: string) => void>();
+            const transitionLoadingPhase = vi.fn<
+                (
+                    phase: LoadingPhase,
+                    options?: {
+                        filePath?: null | string;
+                        progress?: number;
+                        source?: string;
+                    }
+                ) => boolean
+            >(() => true);
             const openFileBtn = document.createElement("button");
             const filePath = "C:\\activities\\ride.fit";
 
@@ -106,6 +126,11 @@ describe(openFitFileFromPath, () => {
                 notifyFitFileLoaded,
                 parseFitFile,
                 readFile,
+            };
+            appGlobal.__FFV_fitFileStateManager = {
+                handleFileLoadingError: vi.fn<(error: Error) => void>(),
+                startFileLoading,
+                transitionLoadingPhase,
             };
             appGlobal.sendFitFileToAltFitReader = sendFitFileToAltFitReader;
             appGlobal.showFitData = showFitData;
@@ -118,6 +143,30 @@ describe(openFitFileFromPath, () => {
 
             expect({ result }).toStrictEqual({ result: true });
             expect(readFile).toHaveBeenCalledWith(filePath);
+            expect(startFileLoading).toHaveBeenCalledWith(filePath);
+            expect(transitionLoadingPhase.mock.calls).toEqual([
+                [
+                    "validating",
+                    expect.objectContaining({
+                        filePath,
+                        progress: 45,
+                    }),
+                ],
+                [
+                    "parsing",
+                    expect.objectContaining({
+                        filePath,
+                        progress: 65,
+                    }),
+                ],
+                [
+                    "rendering",
+                    expect.objectContaining({
+                        filePath,
+                        progress: 90,
+                    }),
+                ],
+            ]);
             expect(parseFitFile).toHaveBeenCalledWith(fitBuffer);
             expect(showFitData).toHaveBeenCalledWith(fitData, filePath);
             expect(sendFitFileToAltFitReader).toHaveBeenCalledWith(fitBuffer);

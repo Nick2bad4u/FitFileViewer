@@ -8,6 +8,7 @@ import {
     resolveFieldDescriptionMessages,
 } from "../../data/processing/auxHeartRateUtils.js";
 import * as stateCore from "../core/stateManager.js";
+import type { FitFileLoadingPhase } from "../core/stateManagerDefaults.js";
 
 type DataRecord = Record<string, unknown>;
 type Unsubscribe = () => void;
@@ -125,11 +126,58 @@ type HandleFileLoadedOptions = {
     filePath?: string | null;
 };
 
+type LoadingPhaseTransitionOptions = {
+    error?: null | string;
+    filePath?: null | string;
+    progress?: number;
+    source?: string;
+};
+
 type FitFileGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: FitFileStateManager;
 };
 
 const SOURCE_CLEAR_FILE_STATE = "FitFileStateManager.clearFileState";
+const FIT_FILE_LOADING_PHASES = [
+    "idle",
+    "selecting",
+    "reading",
+    "validating",
+    "parsing",
+    "rendering",
+    "loaded",
+    "error",
+] as const satisfies readonly FitFileLoadingPhase[];
+const ACTIVE_LOADING_PHASES = new Set<FitFileLoadingPhase>([
+    "parsing",
+    "reading",
+    "rendering",
+    "selecting",
+    "validating",
+]);
+const DEFAULT_PHASE_PROGRESS: Record<FitFileLoadingPhase, number> = {
+    error: 0,
+    idle: 0,
+    loaded: 100,
+    parsing: 65,
+    reading: 15,
+    rendering: 90,
+    selecting: 5,
+    validating: 45,
+};
+const ALLOWED_PHASE_TRANSITIONS: Record<
+    FitFileLoadingPhase,
+    readonly FitFileLoadingPhase[]
+> = {
+    error: ["idle", "selecting", "reading"],
+    idle: ["selecting", "reading", "parsing", "rendering", "loaded", "error"],
+    loaded: ["idle", "selecting", "reading"],
+    parsing: ["rendering", "loaded", "error", "idle"],
+    reading: ["validating", "parsing", "rendering", "loaded", "error", "idle"],
+    rendering: ["loaded", "error", "idle"],
+    selecting: ["reading", "error", "idle"],
+    validating: ["parsing", "rendering", "loaded", "error", "idle"],
+};
 
 function emptyUnsubscribe(): void {
     // No-op fallback when the state manager API is unavailable in a test mock.
@@ -161,6 +209,24 @@ function getErrorMessage(error: unknown): string {
     }
 
     return "Unknown error";
+}
+
+function clampProgress(value: unknown): number {
+    const numeric = Number(value);
+
+    if (!Number.isFinite(numeric)) {
+        return 0;
+    }
+
+    return Math.max(0, Math.min(100, Math.round(numeric)));
+}
+
+function getCurrentLoadingPhase(): FitFileLoadingPhase {
+    const phase = stateCore.getState("fitFile.loadingPhase");
+    return typeof phase === "string" &&
+        (FIT_FILE_LOADING_PHASES as readonly string[]).includes(phase)
+        ? (phase as FitFileLoadingPhase)
+        : "idle";
 }
 
 function isRawFitData(value: unknown): value is RawFitData {
@@ -285,6 +351,11 @@ export class FitFileStateManager {
      * Clear all file-related state.
      */
     public clearFileState(): void {
+        this.transitionLoadingPhase("idle", {
+            filePath: null,
+            progress: 0,
+            source: SOURCE_CLEAR_FILE_STATE,
+        });
         stateCore.setState("fitFile.isLoading", false, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
@@ -307,6 +378,9 @@ export class FitFileStateManager {
             source: SOURCE_CLEAR_FILE_STATE,
         });
         stateCore.setState("fitFile.processingError", null, {
+            source: SOURCE_CLEAR_FILE_STATE,
+        });
+        stateCore.setState("fitFile.loaded", null, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
 
@@ -427,9 +501,15 @@ export class FitFileStateManager {
             providedPath ??
             (typeof currentFile === "string" ? currentFile : null);
 
+        this.transitionLoadingPhase("loaded", {
+            filePath: resolvedPath,
+            progress: 100,
+            source,
+        });
         stateCore.setState("globalData", safeData, { source });
         stateCore.setState("currentFile", resolvedPath, { source });
         stateCore.setState("fitFile.currentFile", resolvedPath, { source });
+        stateCore.setState("fitFile.loaded", safeData, { source });
 
         stateCore.setState("charts.isRendered", false, { source });
         stateCore.setState("map.isRendered", false, { source });
@@ -466,6 +546,10 @@ export class FitFileStateManager {
                 source: "FitFileStateManager.handleFileLoadingError",
             });
         }
+        this.transitionLoadingPhase("error", {
+            error: message,
+            source: "FitFileStateManager.handleFileLoadingError",
+        });
 
         showNotification(`Failed to load FIT file: ${message}`, "error", 5000);
         console.error(
@@ -483,6 +567,13 @@ export class FitFileStateManager {
         this.setupValidationListeners();
 
         console.log("[FitFileState] Initialized");
+    }
+
+    /**
+     * Whether a FIT file load is currently in an active phase.
+     */
+    public isLoading(): boolean {
+        return FitFileSelectors.isLoading();
     }
 
     /**
@@ -568,6 +659,11 @@ export class FitFileStateManager {
      */
     public startFileLoading(filePath: string): void {
         const source = "FitFileStateManager.startFileLoading";
+        this.transitionLoadingPhase("reading", {
+            filePath,
+            progress: 0,
+            source,
+        });
         stateCore.setState("fitFile.isLoading", true, { source });
         stateCore.setState("isLoading", true, { source });
         stateCore.setState("fitFile.currentFile", filePath, { source });
@@ -575,6 +671,73 @@ export class FitFileStateManager {
         stateCore.setState("fitFile.loadingError", null, { source });
 
         console.log(`[FitFileState] Started loading: ${filePath}`);
+    }
+
+    /**
+     * Transition the FIT-file loading lifecycle through its explicit phases.
+     */
+    public transitionLoadingPhase(
+        phase: FitFileLoadingPhase,
+        options: LoadingPhaseTransitionOptions = {}
+    ): boolean {
+        const currentPhase = getCurrentLoadingPhase();
+        if (
+            currentPhase !== phase &&
+            !ALLOWED_PHASE_TRANSITIONS[currentPhase].includes(phase)
+        ) {
+            console.warn(
+                `[FitFileState] Ignoring invalid loading phase transition: ${currentPhase} -> ${phase}`
+            );
+            return false;
+        }
+
+        const source =
+            options.source ?? "FitFileStateManager.transitionLoadingPhase";
+        const isLoading = ACTIVE_LOADING_PHASES.has(phase);
+        const previousState = stateCore.getState("fitFile.loadingState");
+        const previous =
+            previousState !== null &&
+            typeof previousState === "object" &&
+            !Array.isArray(previousState)
+                ? (previousState as {
+                      filePath?: unknown;
+                      startedAt?: unknown;
+                  })
+                : {};
+        const previousPath =
+            typeof previous.filePath === "string" ? previous.filePath : null;
+        const filePath =
+            options.filePath === undefined ? previousPath : options.filePath;
+        const progress = clampProgress(
+            options.progress ?? DEFAULT_PHASE_PROGRESS[phase]
+        );
+        const now = Date.now();
+        const startedAt =
+            phase === "idle"
+                ? null
+                : typeof previous.startedAt === "number"
+                  ? previous.startedAt
+                  : now;
+        const error = phase === "error" ? (options.error ?? null) : null;
+
+        stateCore.setState("fitFile.loadingPhase", phase, { source });
+        stateCore.setState(
+            "fitFile.loadingState",
+            {
+                error,
+                filePath,
+                phase,
+                progress,
+                startedAt,
+                updatedAt: now,
+            },
+            { source }
+        );
+        stateCore.setState("fitFile.loadingProgress", progress, { source });
+        stateCore.setState("fitFile.isLoading", isLoading, { source });
+        stateCore.setState("isLoading", isLoading, { source });
+
+        return true;
     }
 
     /**
@@ -694,6 +857,68 @@ export const FitFileSelectors = {
     getLoadingProgress(): number {
         const loadingProgress = stateCore.getState("fitFile.loadingProgress");
         return typeof loadingProgress === "number" ? loadingProgress : 0;
+    },
+
+    getLoadingPhase(): FitFileLoadingPhase {
+        return getCurrentLoadingPhase();
+    },
+
+    getLoadingState(): {
+        error: null | string;
+        filePath: null | string;
+        phase: FitFileLoadingPhase;
+        progress: number;
+        startedAt: null | number;
+        updatedAt: null | number;
+    } {
+        const loadingState = stateCore.getState("fitFile.loadingState");
+        if (
+            loadingState !== null &&
+            typeof loadingState === "object" &&
+            !Array.isArray(loadingState)
+        ) {
+            const state = loadingState as {
+                error?: unknown;
+                filePath?: unknown;
+                phase?: unknown;
+                progress?: unknown;
+                startedAt?: unknown;
+                updatedAt?: unknown;
+            };
+            return {
+                error:
+                    typeof state.error === "string" ? state.error : null,
+                filePath:
+                    typeof state.filePath === "string"
+                        ? state.filePath
+                        : null,
+                phase:
+                    typeof state.phase === "string" &&
+                    (FIT_FILE_LOADING_PHASES as readonly string[]).includes(
+                        state.phase
+                    )
+                        ? (state.phase as FitFileLoadingPhase)
+                        : "idle",
+                progress: clampProgress(state.progress),
+                startedAt:
+                    typeof state.startedAt === "number"
+                        ? state.startedAt
+                        : null,
+                updatedAt:
+                    typeof state.updatedAt === "number"
+                        ? state.updatedAt
+                        : null,
+            };
+        }
+
+        return {
+            error: null,
+            filePath: null,
+            phase: "idle",
+            progress: 0,
+            startedAt: null,
+            updatedAt: null,
+        };
     },
 
     getMetrics(): FileMetrics | null {

@@ -3,6 +3,15 @@ import { describe, expect, it, vi } from "vitest";
 import { handleOpenFile } from "../../../../electron-app/utils/files/import/handleOpenFile.js";
 
 type HandleFileLoadingError = (error: Error) => void;
+type LoadingPhase =
+    | "error"
+    | "idle"
+    | "loaded"
+    | "parsing"
+    | "reading"
+    | "rendering"
+    | "selecting"
+    | "validating";
 type OpenFile = () => Promise<string>;
 type ParseFitFile = (arrayBuffer: ArrayBuffer) => Promise<unknown>;
 type ReadFile = (filePath: string) => Promise<ArrayBuffer>;
@@ -20,6 +29,20 @@ type Harness = {
     setLoading: ReturnType<typeof vi.fn<SetLoading>>;
     showFitData: ReturnType<typeof vi.fn<ShowFitData>>;
     showNotification: ReturnType<typeof vi.fn<ShowNotification>>;
+    startFileLoading: ReturnType<typeof vi.fn<(filePath: string) => void>>;
+    transitionLoadingPhase: ReturnType<
+        typeof vi.fn<
+            (
+                phase: LoadingPhase,
+                options?: {
+                    error?: null | string;
+                    filePath?: null | string;
+                    progress?: number;
+                    source?: string;
+                }
+            ) => boolean
+        >
+    >;
 };
 
 function createHarness(): Harness {
@@ -31,6 +54,18 @@ function createHarness(): Harness {
         setLoading: vi.fn<SetLoading>(),
         showFitData: vi.fn<ShowFitData>(),
         showNotification: vi.fn<ShowNotification>(),
+        startFileLoading: vi.fn<(filePath: string) => void>(),
+        transitionLoadingPhase: vi.fn<
+            (
+                phase: LoadingPhase,
+                options?: {
+                    error?: null | string;
+                    filePath?: null | string;
+                    progress?: number;
+                    source?: string;
+                }
+            ) => boolean
+        >(() => true),
     };
 }
 
@@ -60,6 +95,8 @@ async function withHandleOpenFileHarness(
     globalThis.showFitData = harness.showFitData;
     globalThis.__FFV_fitFileStateManager = {
         handleFileLoadingError: harness.handleFileLoadingError,
+        startFileLoading: harness.startFileLoading,
+        transitionLoadingPhase: harness.transitionLoadingPhase,
     };
 
     try {
@@ -74,7 +111,7 @@ async function withHandleOpenFileHarness(
 
 describe(handleOpenFile, () => {
     it("reports wrapped FIT decode error payloads without displaying them", async () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         await withHandleOpenFileHarness(async (harness) => {
             harness.openFile.mockResolvedValue("C:\\activities\\bad.fit");
@@ -97,6 +134,31 @@ describe(handleOpenFile, () => {
 
             expect({ result }).toStrictEqual({ result: false });
             expect(harness.showFitData).not.toHaveBeenCalled();
+            expect(harness.startFileLoading).toHaveBeenCalledWith(
+                "C:\\activities\\bad.fit"
+            );
+            expect(harness.transitionLoadingPhase.mock.calls).toEqual([
+                [
+                    "selecting",
+                    expect.objectContaining({
+                        progress: 5,
+                    }),
+                ],
+                [
+                    "validating",
+                    expect.objectContaining({
+                        filePath: "C:\\activities\\bad.fit",
+                        progress: 45,
+                    }),
+                ],
+                [
+                    "parsing",
+                    expect.objectContaining({
+                        filePath: "C:\\activities\\bad.fit",
+                        progress: 65,
+                    }),
+                ],
+            ]);
             expect(harness.showNotification).toHaveBeenCalledWith(
                 "Error: FIT decode failed\ninvalid CRC",
                 "error"

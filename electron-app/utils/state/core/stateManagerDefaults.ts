@@ -116,12 +116,56 @@ export type AppLifecycleState = {
 };
 
 /**
+ * Explicit FIT-file load lifecycle phase.
+ */
+export type FitFileLoadingPhase =
+    | "error"
+    | "idle"
+    | "loaded"
+    | "parsing"
+    | "reading"
+    | "rendering"
+    | "selecting"
+    | "validating";
+
+/**
+ * Detailed FIT-file load lifecycle metadata.
+ */
+export type FitFileLoadingState = {
+    error: null | string;
+    filePath: null | string;
+    phase: FitFileLoadingPhase;
+    progress: number;
+    startedAt: null | number;
+    updatedAt: null | number;
+};
+
+/**
+ * FIT-file domain state branch.
+ */
+export type FitFileState = {
+    currentFile: null | string;
+    isLoading: boolean;
+    loaded: unknown;
+    loadingError: null | string;
+    loadingPhase: FitFileLoadingPhase;
+    loadingProgress: number;
+    loadingState: FitFileLoadingState;
+    metrics: unknown;
+    processedData: unknown;
+    processingError: null | string;
+    rawData: unknown;
+    validation: unknown;
+};
+
+/**
  * Root application state shape managed by the state manager.
  */
 export type AppStateShape = {
     app: AppLifecycleState;
     charts: ChartsState;
     currentFile: unknown;
+    fitFile: FitFileState;
     globalData: unknown;
     isLoading: boolean;
     map: MapState;
@@ -178,6 +222,27 @@ export function createDefaultAppState(): AppStateShape {
             zoomLevel: 1,
         },
         currentFile: null,
+        fitFile: {
+            currentFile: null,
+            isLoading: false,
+            loaded: null,
+            loadingError: null,
+            loadingPhase: "idle",
+            loadingProgress: 0,
+            loadingState: {
+                error: null,
+                filePath: null,
+                phase: "idle",
+                progress: 0,
+                startedAt: null,
+                updatedAt: null,
+            },
+            metrics: null,
+            processedData: null,
+            processingError: null,
+            rawData: null,
+            validation: null,
+        },
         globalData: null,
         isLoading: false,
         map: {

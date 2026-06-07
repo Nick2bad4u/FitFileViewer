@@ -12,9 +12,20 @@ import {
 } from "./fitParsePayload.js";
 import type { FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
 
 type FitFileStateManagerLike = {
     handleFileLoadingError: (error: Error) => void;
+    startFileLoading?: (filePath: string) => void;
+    transitionLoadingPhase?: (
+        phase: FitFileLoadingPhase,
+        options?: {
+            error?: null | string;
+            filePath?: null | string;
+            progress?: number;
+            source?: string;
+        }
+    ) => boolean;
 };
 
 type FitFileElectronAPI = Pick<ElectronAPI, "readFile"> &
@@ -80,14 +91,25 @@ export async function openFitFileFromPath({
 
     try {
         disableBtn();
+        notifyFileLoadStarted(filePath);
 
         const arrayBuffer = await api.readFile(filePath);
+        notifyFileLoadPhase("validating", {
+            filePath,
+            progress: 45,
+            source: "openFitFileFromPath.validating",
+        });
         const bufferValidationError =
             getFitFileBufferValidationError(arrayBuffer);
         if (bufferValidationError) {
             throw new Error(bufferValidationError);
         }
 
+        notifyFileLoadPhase("parsing", {
+            filePath,
+            progress: 65,
+            source: "openFitFileFromPath.parsing",
+        });
         const data = unwrapFitParseMessages(
             await api.parseFitFile(arrayBuffer)
         );
@@ -96,6 +118,11 @@ export async function openFitFileFromPath({
             throw new TypeError("showFitData is not available");
         }
 
+        notifyFileLoadPhase("rendering", {
+            filePath,
+            progress: 90,
+            source: "openFitFileFromPath.rendering",
+        });
         appGlobal.showFitData(data, filePath);
 
         if (typeof appGlobal.sendFitFileToAltFitReader === "function") {
@@ -172,4 +199,47 @@ function resolveFitFileStateManager(): FitFileStateManagerLike | undefined {
     }
 
     return candidate as FitFileStateManagerLike;
+}
+
+function notifyFileLoadPhase(
+    phase: FitFileLoadingPhase,
+    options: {
+        error?: null | string;
+        filePath?: null | string;
+        progress?: number;
+        source?: string;
+    } = {}
+): boolean {
+    const mgr = resolveFitFileStateManager();
+    if (!mgr || typeof mgr.transitionLoadingPhase !== "function") {
+        return false;
+    }
+
+    try {
+        return mgr.transitionLoadingPhase(phase, options);
+    } catch {
+        return false;
+    }
+}
+
+function notifyFileLoadStarted(filePath: string): boolean {
+    const mgr = resolveFitFileStateManager();
+    if (!mgr) {
+        return false;
+    }
+
+    try {
+        if (typeof mgr.startFileLoading === "function") {
+            mgr.startFileLoading(filePath);
+            return true;
+        }
+
+        return notifyFileLoadPhase("reading", {
+            filePath,
+            progress: 0,
+            source: "openFitFileFromPath.reading",
+        });
+    } catch {
+        return false;
+    }
 }

@@ -221,23 +221,18 @@ describe("fitFileStateManager - domain logic and selectors", () => {
 
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
-        const gs = vi
-            .spyOn(stateManager, "getState")
-            .mockImplementation((key: string) => {
-                if (key === "fitFile.currentFile") {
-                    return "existing.fit";
-                }
-                return undefined;
-            });
         const notif = vi
             .spyOn(rendererUtils, "showNotification")
             .mockImplementation(() => {});
+
+        stateManager.setState("fitFile.currentFile", "existing.fit", {
+            source: "test",
+        });
 
         const data = { recordMesgs: [{}] };
         mgr.handleFileLoaded(data as any, {
             filePath: "C:/demo.fit",
         });
-        gs.mockRestore();
 
         expect(ss).toHaveBeenCalledWith(
             "fitFile.isLoading",
@@ -302,8 +297,10 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             fitFileCurrentFile: stateManager.getState("fitFile.currentFile"),
             globalData: stateManager.getState("globalData"),
             isLoading: stateManager.getState("fitFile.isLoading"),
+            loadingPhase: stateManager.getState("fitFile.loadingPhase"),
             loadingError: stateManager.getState("fitFile.loadingError"),
             loadingProgress: stateManager.getState("fitFile.loadingProgress"),
+            loadingState: stateManager.getState("fitFile.loadingState"),
             mapRendered: stateManager.getState("map.isRendered"),
             rawData: stateManager.getState("fitFile.rawData"),
             tablesRendered: stateManager.getState("tables.isRendered"),
@@ -313,8 +310,15 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             fitFileCurrentFile: "C:/demo.fit",
             globalData: data,
             isLoading: false,
+            loadingPhase: "loaded",
             loadingError: null,
             loadingProgress: 100,
+            loadingState: expect.objectContaining({
+                error: null,
+                filePath: "C:/demo.fit",
+                phase: "loaded",
+                progress: 100,
+            }),
             mapRendered: false,
             rawData: data,
             tablesRendered: false,
@@ -368,7 +372,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         expect(ss).not.toHaveBeenCalled();
         expect(notif).not.toHaveBeenCalled();
         expect(consoleSpy).not.toHaveBeenCalled();
-        expect(stateManager.getState("fitFile.loadingError")).toBeUndefined();
+        expect(stateManager.getState("fitFile.loadingError")).toBeNull();
 
         // Seed state with an existing normalized message and ensure duplicate notifications are skipped.
         stateManager.setState("fitFile.loadingError", "dupe", {
@@ -547,6 +551,55 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         });
     });
 
+    it("transitionLoadingPhase enforces the FIT-file loading state machine", () => {
+        expect.assertions(8);
+
+        const mgr = new FitFileStateManager();
+
+        expect(
+            mgr.transitionLoadingPhase("selecting", {
+                filePath: null,
+                source: "test.selecting",
+            })
+        ).toBe(true);
+        expect(
+            mgr.transitionLoadingPhase("reading", {
+                filePath: "C:/ride.fit",
+                progress: 12,
+                source: "test.reading",
+            })
+        ).toBe(true);
+        expect(
+            mgr.transitionLoadingPhase("parsing", {
+                filePath: "C:/ride.fit",
+                source: "test.parsing",
+            })
+        ).toBe(true);
+        expect(
+            mgr.transitionLoadingPhase("selecting", {
+                source: "test.invalid",
+            })
+        ).toBe(false);
+        expect(FitFileSelectors.getLoadingPhase()).toBe("parsing");
+        expect(FitFileSelectors.isLoading()).toBe(true);
+        expect(FitFileSelectors.getLoadingState()).toEqual(
+            expect.objectContaining({
+                error: null,
+                filePath: "C:/ride.fit",
+                phase: "parsing",
+                progress: 65,
+            })
+        );
+
+        mgr.handleFileLoadingError(new Error("bad parse"));
+        expect(FitFileSelectors.getLoadingState()).toEqual(
+            expect.objectContaining({
+                error: "bad parse",
+                phase: "error",
+            })
+        );
+    });
+
     it("validateFileData sets validation, shows error/warning/happy notifications", () => {
         expect.assertions(6);
 
@@ -640,6 +693,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         expect({
             currentFile: FitFileSelectors.getCurrentFile(),
             loadingError: FitFileSelectors.getLoadingError(),
+            loadingPhase: FitFileSelectors.getLoadingPhase(),
             loadingProgress: FitFileSelectors.getLoadingProgress(),
             metrics: FitFileSelectors.getMetrics(),
             processedData: FitFileSelectors.getProcessedData(),
@@ -647,6 +701,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         }).toEqual({
             currentFile: "A",
             loadingError: "ERR",
+            loadingPhase: "idle",
             loadingProgress: 42,
             metrics: { recordCount: 1 },
             processedData: {
