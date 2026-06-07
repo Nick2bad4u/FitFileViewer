@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { renderFileBrowserTab } from "../../../../../electron-app/utils/ui/browser/fileBrowserTab.js";
+import {
+    __resetStateManagerForTests,
+    getState,
+} from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type BrowserTabTestGlobal = typeof globalThis & {
     electronAPI?: unknown;
@@ -22,6 +26,7 @@ function getRequiredElement<T extends Element>(
 afterEach(() => {
     document.body.replaceChildren();
     delete getTestGlobal().electronAPI;
+    __resetStateManagerForTests();
 });
 
 describe("fileBrowserTab accessibility", () => {
@@ -69,7 +74,7 @@ describe("fileBrowserTab accessibility", () => {
     });
 
     it("shows a loaded folder status after the files view refreshes", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const container = document.createElement("div");
         container.id = "content_browser";
@@ -105,5 +110,15 @@ describe("fileBrowserTab accessibility", () => {
         expect(
             document.querySelector("#fit-browser-status")?.textContent
         ).toMatch(/^Loaded 2 items from root .* \(1 file, 1 folder\)\.$/u);
+        expect(getState("browser.listing")).toStrictEqual({
+            error: null,
+            fileCount: 1,
+            folderCount: 1,
+            itemCount: 2,
+            loadedAt: expect.any(Number),
+            relPath: "",
+            root: "C:\\rides",
+            status: "loaded",
+        });
     });
 });

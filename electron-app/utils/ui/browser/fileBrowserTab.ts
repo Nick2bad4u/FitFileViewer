@@ -27,6 +27,25 @@ import { showNotification as showRendererNotification } from "../notifications/s
 
 type BrowserView = "calendar" | "files" | "library";
 
+type BrowserListingStatus =
+    | "empty"
+    | "error"
+    | "idle"
+    | "loaded"
+    | "loading"
+    | "unselected";
+
+type BrowserListingStateUpdate = {
+    readonly error?: null | string;
+    readonly fileCount?: number;
+    readonly folderCount?: number;
+    readonly itemCount?: number;
+    readonly loadedAt?: null | number;
+    readonly relPath?: string;
+    readonly root?: null | string;
+    readonly status: BrowserListingStatus;
+};
+
 type CalendarState = {
     monthStart: Date;
     selectedDayKey: string;
@@ -107,6 +126,7 @@ type SportBadgeCount = SportBadge & {
 
 const TAB_STATE_PATH_REL = "browser.relPath";
 const TAB_STATE_VIEW = "browser.view";
+const TAB_STATE_LISTING = "browser.listing";
 
 const LIB_PREFS_LAST_DAYS_KEY = "fitLibrary.lastDays";
 const LIB_PREFS_UNIT_KEY = "fitLibrary.unit";
@@ -382,6 +402,23 @@ function setBrowserStatus(message: string, loading = false): void {
         statusEl.classList.toggle("file-browser__status--loading", loading);
         statusEl.textContent = message;
     }
+}
+
+function setBrowserListingState(update: BrowserListingStateUpdate): void {
+    setState(
+        TAB_STATE_LISTING,
+        {
+            error: update.error ?? null,
+            fileCount: update.fileCount ?? 0,
+            folderCount: update.folderCount ?? 0,
+            itemCount: update.itemCount ?? 0,
+            loadedAt: update.loadedAt ?? null,
+            relPath: update.relPath ?? "",
+            root: update.root ?? null,
+            status: update.status,
+        },
+        { source: "fileBrowser.listing" }
+    );
 }
 
 function addMonths(monthStart: Date, deltaMonths: number): Date {
@@ -1076,11 +1113,16 @@ async function refreshListing(): Promise<void> {
     ) {
         pathEl.textContent = "Browser unavailable (Electron API missing)";
         setBrowserStatus("Browser unavailable.");
+        setBrowserListingState({
+            error: "Electron Browser API is unavailable.",
+            status: "error",
+        });
         listEl.replaceChildren();
         return;
     }
 
     setBrowserStatus("Loading folder...", true);
+    setBrowserListingState({ status: "loading" });
 
     const root = await api.getFitBrowserFolder();
     const rel =
@@ -1091,6 +1133,7 @@ async function refreshListing(): Promise<void> {
     if (!root) {
         pathEl.textContent = "No folder selected";
         setBrowserStatus("No folder selected.");
+        setBrowserListingState({ status: "unselected" });
         listEl.replaceChildren(
             createEmptyMessage("Choose a folder to browse .fit files.")
         );
@@ -1101,6 +1144,12 @@ async function refreshListing(): Promise<void> {
     if (!isFitBrowserListResponse(responseRaw)) {
         pathEl.textContent = root;
         setBrowserStatus("Folder could not be loaded.");
+        setBrowserListingState({
+            error: "Folder could not be loaded.",
+            relPath: rel,
+            root,
+            status: "error",
+        });
         listEl.replaceChildren(createEmptyMessage("Unable to list folder."));
         return;
     }
@@ -1118,9 +1167,19 @@ async function refreshListing(): Promise<void> {
     const fileCount = entries.filter((entry) => entry.kind === "file").length;
     const folderCount = entries.length - fileCount;
     const locationLabel = relPath ? relPath.replaceAll("/", " / ") : "root";
+    const loadedAt = Date.now();
     setBrowserStatus(
         `Loaded ${entries.length} item${entries.length === 1 ? "" : "s"} from ${locationLabel} at ${formatLoadedAt()} (${fileCount} file${fileCount === 1 ? "" : "s"}, ${folderCount} folder${folderCount === 1 ? "" : "s"}).`
     );
+    setBrowserListingState({
+        fileCount,
+        folderCount,
+        itemCount: entries.length,
+        loadedAt,
+        relPath,
+        root,
+        status: entries.length === 0 ? "empty" : "loaded",
+    });
 
     if (relPath) {
         const up = createBrowserItemButton("dir", "arrowLeft", "..");

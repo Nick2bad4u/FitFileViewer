@@ -585,7 +585,7 @@ describe("state manager core", () => {
     });
 
     it("returns the root state for empty getState paths", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         resetStateManager();
 
@@ -598,6 +598,16 @@ describe("state manager core", () => {
             error: null,
             status: "idle",
             updatedAt: null,
+        });
+        expect(fullState.browser.listing).toStrictEqual({
+            error: null,
+            fileCount: 0,
+            folderCount: 0,
+            itemCount: 0,
+            loadedAt: null,
+            relPath: "",
+            root: null,
+            status: "idle",
         });
     });
 

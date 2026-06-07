@@ -108,6 +108,40 @@ export type TablesState = {
 };
 
 /**
+ * Browser folder listing lifecycle phase.
+ */
+export type BrowserListingStatus =
+    | "empty"
+    | "error"
+    | "idle"
+    | "loaded"
+    | "loading"
+    | "unselected";
+
+/**
+ * Folder listing metadata for the Browser tab.
+ */
+export type BrowserListingState = {
+    error: null | string;
+    fileCount: number;
+    folderCount: number;
+    itemCount: number;
+    loadedAt: null | number;
+    relPath: string;
+    root: null | string;
+    status: BrowserListingStatus;
+};
+
+/**
+ * Folder Browser tab state branch.
+ */
+export type BrowserState = {
+    listing: BrowserListingState;
+    relPath: string;
+    view: "calendar" | "files" | "library";
+};
+
+/**
  * Runtime performance metrics state branch.
  */
 export type PerformanceMetricsState = {
@@ -183,6 +217,7 @@ export type FitFileState = {
  */
 export type AppStateShape = {
     app: AppLifecycleState;
+    browser: BrowserState;
     charts: ChartsState;
     currentFile: unknown;
     fitFile: FitFileState;
@@ -232,6 +267,20 @@ export function createDefaultAppState(): AppStateShape {
             initialized: false,
             isOpeningFile: false,
             startTime: getStartTime(),
+        },
+        browser: {
+            listing: {
+                error: null,
+                fileCount: 0,
+                folderCount: 0,
+                itemCount: 0,
+                loadedAt: null,
+                relPath: "",
+                root: null,
+                status: "idle",
+            },
+            relPath: "",
+            view: "files",
         },
         charts: {
             chartData: null,
