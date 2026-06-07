@@ -52,6 +52,7 @@ const allowedLegacyUtilityFiles = new Set([
     "electron-app/utils/legacy/globalUtilityTheming.ts",
     "electron-app/utils/legacy/globalUtilityUi.ts",
 ]);
+const allowedLegacyUtilityImporterFiles = new Set(["electron-app/utils.ts"]);
 
 const migratedGlobalDataReaderFiles = [
     "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
@@ -205,6 +206,25 @@ function resolvesIntoRendererUtils(
     );
 }
 
+function resolvesIntoLegacyUtilities(
+    importerPath: string,
+    specifier: string
+): boolean {
+    if (!specifier.startsWith(".")) {
+        return false;
+    }
+
+    const importerDirectory = path.posix.dirname(importerPath);
+    const resolvedPath = path.posix.normalize(
+        path.posix.join(importerDirectory, specifier)
+    );
+
+    return (
+        resolvedPath === "electron-app/utils/legacy" ||
+        resolvedPath.startsWith("electron-app/utils/legacy/")
+    );
+}
+
 function hasRepositoryFile(relativePath: string): boolean {
     return existsSync(path.join(process.cwd(), relativePath));
 }
@@ -337,6 +357,28 @@ describe("architecture boundaries", () => {
                 getImportSpecifiers(readRepositoryFile(relativeFile))
                     .filter((specifier) =>
                         resolvesIntoRendererUtils(relativeFile, specifier)
+                    )
+                    .map((specifier) => `${relativeFile}: ${specifier}`)
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps legacy utility imports quarantined to compatibility bridges", () => {
+        expect.assertions(1);
+
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    !relativeFile.startsWith("electron-app/utils/legacy/") &&
+                    !allowedLegacyUtilityImporterFiles.has(relativeFile)
+            )
+            .flatMap((relativeFile) =>
+                getImportSpecifiers(readRepositoryFile(relativeFile))
+                    .filter((specifier) =>
+                        resolvesIntoLegacyUtilities(relativeFile, specifier)
                     )
                     .map((specifier) => `${relativeFile}: ${specifier}`)
             )
