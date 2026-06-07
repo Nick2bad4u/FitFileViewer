@@ -234,6 +234,7 @@
         "release:rename-squirrel-win32-assets": "node scripts/rename-squirrel-win32-release-assets.mjs",
         "release:rename-windows-latest-yml": "node scripts/rename-windows-latest-yml.mjs",
         "release:summary": "node scripts/update-release-job-summary.mjs",
+        "release:verify": "npm run verify:release",
         "start": "node scripts/start-electron.mjs --inspect=9229 --remote-debugging-port=9222",
         "start:prod": "node scripts/start-electron.mjs --electron-is-dev 0",
         "sync:node-version-files": "node scripts/sync-node-version-files.mjs",
@@ -252,7 +253,10 @@
         "test:watch:changed": "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --watch --changed",
         "typecheck": "tsc --project tsconfig.app.json --noEmit",
         "types:build": "tsc --project tsconfig.app.json --declaration --emitDeclarationOnly --declarationMap false --outDir ./types",
-        "update-deps": "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files"
+        "update-deps": "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",
+        "verify:fast": "npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
+        "verify:full": "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package",
+        "verify:release": "npm run verify:full"
     },
     "overrides": {
         "remark-lint-frontmatter-schema": {

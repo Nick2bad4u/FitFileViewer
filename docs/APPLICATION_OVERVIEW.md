@@ -158,6 +158,7 @@ set of channels and event names.
 - **Coverage:** `npm run test:coverage` generates coverage data.
 - **Strict regression suites:** Under `tests/unit/strictTests/` to guard tricky DOM/Electron edge cases.
 - **Type checking & linting:** `typecheck`, `lint`, `lint:fix`, `prettier`, and associated `format:*` scripts.
+- **Release readiness:** `npm run release:verify` is the canonical full gate for formatting, linting, CSS linting, docs checks, audits, Vitest, Electron Playwright smoke tests, and an unpacked package build.
 
 ## Build & Distribution
 

@@ -64,6 +64,9 @@ npm run lint:fix          # Fix auto-fixable lint issues
 npm run lint:css           # Run Stylelint on CSS
 npm run lint:css:fix       # Fix Stylelint issues
 npm run typecheck         # TypeScript type checking
+npm run verify:fast       # Fast local readiness gate
+npm run verify:release    # Full release readiness gate
+npm run release:verify    # Alias used by release automation
 
 # Build & Package
 npm run build             # Build for current platform

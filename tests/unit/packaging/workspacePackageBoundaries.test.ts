@@ -253,10 +253,16 @@ const expectedRootToolingScripts = {
         'secretlint "*.md" "docs/**/*.md" "docusaurus/docs/**/*.{md,mdx}" "docusaurus/blog/**/*.{md,mdx}" --secretlintrc .secretlintrc.cjs',
     "prepare:electron": "node scripts/ensure-electron-binary.mjs",
     pretest: "npm run prepare:electron && npm run build:runtime-ts",
+    "release:verify": "npm run verify:release",
     "test:ui":
         "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --ui",
     "update-deps":
         "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",
+    "verify:fast":
+        "npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
+    "verify:full":
+        "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package",
+    "verify:release": "npm run verify:full",
 } as const;
 
 const disallowedRootDevDependencyNamePatterns = [
@@ -435,9 +441,13 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps app release versioning rooted at the repository package", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
+        const releaseWorkflow = readFileSync(
+            path.join(process.cwd(), ".github/workflows/Build.yml"),
+            "utf8"
+        );
         const releaseVersioningFilesWithWorkspaceFlags =
             rootManagedReleaseVersioningPaths
                 .filter((relativePath) =>
@@ -451,6 +461,10 @@ describe("workspace package boundaries", () => {
         expect(rootPackage.scripts?.["release:bump-version"]).toBe(
             "node scripts/bump-app-version.mjs"
         );
+        expect(rootPackage.scripts?.["release:verify"]).toBe(
+            "npm run verify:release"
+        );
+        expect(releaseWorkflow).toContain("xvfb-run -a npm run release:verify");
         expect(releaseVersioningFilesWithWorkspaceFlags).toStrictEqual([]);
     });
 
