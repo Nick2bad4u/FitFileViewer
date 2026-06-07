@@ -46,7 +46,6 @@ type StateIntegrationTestGlobal = typeof globalThis & {
     __state_debug?: StateDebugApi;
     AppState?: {
         eventListeners: unknown;
-        globalData: unknown;
         isChartRendered: unknown;
     };
     chartControlsState?: ChartControlsState;
@@ -335,7 +334,7 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("initializes compatibility globals and development debug utilities", () => {
-        expect.assertions(5);
+        expect.assertions(6);
         resetTestEnvironment();
 
         const testGlobal = globalThis as StateIntegrationTestGlobal;
@@ -348,15 +347,18 @@ describe("stateIntegration.js - Essential Coverage", () => {
 
         expect({
             appStateChartRendered: testGlobal.AppState?.isChartRendered,
-            appStateGlobalData: testGlobal.AppState?.globalData,
+            appStateKeys: Object.keys(testGlobal.AppState ?? {}).sort(),
             chartRenderedState: getState("charts.isRendered"),
             globalDataState: getState("globalData"),
         }).toStrictEqual({
             appStateChartRendered: true,
-            appStateGlobalData: { loaded: true },
+            appStateKeys: ["eventListeners", "isChartRendered"],
             chartRenderedState: true,
             globalDataState: { loaded: true },
         });
+        expect(
+            Object.hasOwn(testGlobal.AppState ?? {}, "globalData")
+        ).toBe(false);
         expect(testGlobal.__state_debug?.logState).toBeTypeOf("function");
         expect(testGlobal.__state_debug?.setState).toBe(setState);
         expect(testGlobal.__state_debug?.triggerAction("missingAction")).toBe(

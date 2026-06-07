@@ -23,16 +23,16 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 
 - Temporary surface: `AppState.globalData`
 - Current owner: `electron-app/utils/state/integration/stateIntegration.ts`
-- Compatibility callers: legacy renderer state integration paths that still expose AppState-like accessors
-- Current status: active test-covered bridge; state integration still exposes `AppState.globalData` for legacy callers while the renderer migration continues
-- Next removal step: move remaining `AppState.globalData` tests and callers to `getState("globalData")`, `setState("globalData", ...)`, or `globalDataStore`
+- Compatibility callers: none for FIT data; the legacy global `AppState` object only keeps non-FIT state accessors for older event-listener and chart-rendered checks
+- Current status: removed for FIT data; state integration no longer exposes `AppState.globalData`, and architecture tests block reintroducing that runtime access path
+- Next removal step: retire the remaining non-FIT `AppState` event-listener and chart-rendered accessors after callers move to `getState(...)`/`setState(...)`
 - Verification gates:
   - `npm test -- tests/unit/utils/state/integration/stateIntegration.simple.test.ts tests/unit/utils/state/integration/stateIntegration.comprehensive.test.ts`
   - `npm test -- tests/unit/packaging/architectureBoundaries.test.ts`
 - Exit criteria:
   - Renderer modules use `getState`, `setState`, `getGlobalData`, `setGlobalData`, or typed domain services directly.
   - No runtime module writes global data through `AppState.globalData`.
-  - The compatibility accessor can be removed without changing UI behavior or smoke tests.
+  - The FIT data compatibility accessor stays removed without changing UI behavior or smoke tests.
 
 ## Renderer Utility Globals
 

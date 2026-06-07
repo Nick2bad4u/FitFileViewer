@@ -792,7 +792,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
 
         it("should set up AppState compatibility layer (smoke)", async () => {
-            expect.assertions(6);
+            expect.assertions(4);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -809,31 +809,15 @@ describe("stateIntegration comprehensive coverage", () => {
 
             expect(Object.keys(globalThis.AppState).sort()).toEqual([
                 "eventListeners",
-                "globalData",
                 "isChartRendered",
             ]);
 
-            // Check if globalData is a getter
+            // FIT data no longer flows through the legacy AppState global.
             const descriptor = Object.getOwnPropertyDescriptor(
                 globalThis.AppState,
                 "globalData"
             );
-            expect(descriptor).toMatchObject({
-                get: expect.any(Function),
-                set: expect.any(Function),
-            });
-
-            expect(globalThis.AppState.globalData).toEqual({
-                test: "appstate",
-            });
-
-            // Test AppState.globalData setter
-            globalThis.AppState.globalData = { appstate: "test" };
-            expect(mockStateManager.setState).toHaveBeenCalledWith(
-                "globalData",
-                { appstate: "test" },
-                { source: "AppState.globalData" }
-            );
+            expect(descriptor).toBeUndefined();
 
             // Test AppState.eventListeners
             const mockMap = new Map();

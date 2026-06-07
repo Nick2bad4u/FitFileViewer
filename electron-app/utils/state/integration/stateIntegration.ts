@@ -27,7 +27,6 @@ type ChartControlsState = {
 
 type LegacyAppState = {
     eventListeners: unknown;
-    globalData: unknown;
     isChartRendered: unknown;
 };
 
@@ -370,7 +369,7 @@ function setupBackwardCompatibility(): void {
         });
     }
 
-    // Create compatibility layer for existing AppState usage
+    // Create compatibility layer for existing non-FIT AppState usage
     if (!integrationGlobal.AppState) {
         integrationGlobal.AppState = {
             get eventListeners() {
@@ -379,14 +378,6 @@ function setupBackwardCompatibility(): void {
             set eventListeners(value: unknown) {
                 setState("eventListeners", value, {
                     source: "AppState.eventListeners",
-                });
-            },
-            get globalData() {
-                return getState("globalData");
-            },
-            set globalData(value: unknown) {
-                setGlobalData(value, {
-                    source: "AppState.globalData",
                 });
             },
             get isChartRendered() {

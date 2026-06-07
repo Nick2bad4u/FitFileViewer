@@ -93,6 +93,7 @@ const directGlobalDataWritePattern =
     /(?:\b(?:window|globalThis)\.globalData|\(\s*(?:window|globalThis)\s+as\b[^\n]*?\)\.globalData)\s*=/u;
 const directGlobalDataReadPattern =
     /\b(?:window|globalThis)\.globalData\b|\.globalData\b/u;
+const legacyAppStateGlobalDataPattern = /\bAppState\.globalData\b/u;
 const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
@@ -511,7 +512,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -526,6 +527,13 @@ describe("architecture boundaries", () => {
         const directRendererUtilsGlobals = scannedFiles
             .filter((relativeFile) =>
                 directRendererUtilsGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const legacyAppStateGlobalDataUsages = scannedFiles
+            .filter((relativeFile) =>
+                legacyAppStateGlobalDataPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -559,6 +567,7 @@ describe("architecture boundaries", () => {
 
         expect(directGlobalDataWrites).toStrictEqual([]);
         expect(directRendererUtilsGlobals).toStrictEqual([]);
+        expect(legacyAppStateGlobalDataUsages).toStrictEqual([]);
         expect(unexpectedLegacyUtilityFiles).toStrictEqual([]);
         expect(migratedGlobalDataReaderViolations).toStrictEqual([]);
         expect(rendererUtilsFreeViolations).toStrictEqual([]);
