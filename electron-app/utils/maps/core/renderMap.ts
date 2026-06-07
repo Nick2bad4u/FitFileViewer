@@ -11,7 +11,9 @@ import { createExportGPXButton } from "../../files/export/createExportGPXButton.
 import { createPrintButton } from "../../files/export/createPrintButton.js";
 import { sanitizeFilenameComponent } from "../../files/sanitizeFilename.js";
 import { formatTooltipData } from "../../formatting/display/formatTooltipData.js";
+import { createTables } from "../../rendering/components/createTables.js";
 import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
+import { renderSummary } from "../../rendering/core/renderSummary.js";
 import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import {
@@ -145,13 +147,10 @@ type WindowExtensions = typeof globalThis & {
     _measureControl?: DisposableControl | null;
     _miniMapControl?: DisposableControl | null;
     _overlayPolylines?: Record<string, OverlayPolyline> | null;
-    createTables?: (data: GlobalData) => void;
     invalidateChartRenderCache?: (reason: string) => void;
     loadedFitFiles?: FitFileEntry[];
     mapMarkerCount?: number;
     renderChartJS?: () => void;
-    renderMap?: () => void;
-    renderSummary?: (data: GlobalData) => void;
     setupActiveFileNameMapActions?: () => void;
     setupOverlayFileNameMapActions?: () => void;
     updateOverlayHighlights?: () => void;
@@ -1157,11 +1156,8 @@ export function renderMap(): void {
 
                 try {
                     const currentGlobalData = getGlobalData<GlobalData>();
-                    if (
-                        typeof windowExt.renderSummary === "function" &&
-                        currentGlobalData
-                    ) {
-                        windowExt.renderSummary(currentGlobalData);
+                    if (currentGlobalData) {
+                        renderSummary(currentGlobalData);
                     }
                 } catch {
                     /* ignore */
@@ -1169,11 +1165,8 @@ export function renderMap(): void {
 
                 try {
                     const currentGlobalData = getGlobalData<GlobalData>();
-                    if (
-                        typeof windowExt.createTables === "function" &&
-                        currentGlobalData
-                    ) {
-                        windowExt.createTables(currentGlobalData);
+                    if (currentGlobalData) {
+                        createTables(currentGlobalData);
                     }
                 } catch {
                     /* ignore */

@@ -38,6 +38,11 @@ type LeafletGlobalStub = {
     tileLayer: Mock<() => LeafletLayerStub>;
 };
 
+type PowerEstimationButtonOptions = {
+    getData: () => unknown;
+    onAfterApply: () => void;
+};
+
 type BaseLayerLeafletStub = {
     maplibreGL: Mock<() => Record<string, never>>;
     tileLayer: Mock<() => Record<string, never>>;
@@ -46,9 +51,21 @@ type BaseLayerLeafletStub = {
 type RenderMapWindow = Window & {
     _leafletMapInstance: LeafletMapStub | null;
     _overlayPolylines: Record<string, unknown>;
-    globalData: { recordMesgs: unknown[] };
+    globalData: { recordMesgs: unknown[]; sessionMesgs?: unknown[] };
     loadedFitFiles: unknown[];
 };
+
+const {
+    mockCreateTables,
+    mockPowerEstimationButtonOptions,
+    mockRenderSummary,
+} = vi.hoisted(() => ({
+    mockCreateTables: vi.fn<(data: Record<string, unknown>) => void>(),
+    mockPowerEstimationButtonOptions: {
+        current: null as null | PowerEstimationButtonOptions,
+    },
+    mockRenderSummary: vi.fn<(data: Record<string, unknown>) => void>(),
+}));
 
 function createButton(id: string): HTMLButtonElement {
     const el = document.createElement("button");
@@ -140,6 +157,18 @@ vi.mock(
     })
 );
 vi.mock(
+    import("../../../../../electron-app/utils/rendering/components/createTables.js"),
+    () => ({
+        createTables: mockCreateTables,
+    })
+);
+vi.mock(
+    import("../../../../../electron-app/utils/rendering/core/renderSummary.js"),
+    () => ({
+        renderSummary: mockRenderSummary,
+    })
+);
+vi.mock(
     import("../../../../../electron-app/utils/ui/controls/createAddFitFileToMapButton.js"),
     () => ({
         createAddFitFileToMapButton: vi.fn<DomFactory>(() =>
@@ -167,6 +196,17 @@ vi.mock(
         createElevationProfileButton: vi.fn<DomFactory>(() =>
             createButton("mock-elev-profile")
         ),
+    })
+);
+vi.mock(
+    import("../../../../../electron-app/utils/ui/controls/createPowerEstimationButton.js"),
+    () => ({
+        createPowerEstimationButton: vi.fn<
+            (options: PowerEstimationButtonOptions) => HTMLButtonElement
+        >((options) => {
+            mockPowerEstimationButtonOptions.current = options;
+            return createButton("mock-power");
+        }),
     })
 );
 vi.mock(
@@ -244,6 +284,9 @@ describe("renderMap core", () => {
         w._overlayPolylines = {};
         w._leafletMapInstance = null;
         w.loadedFitFiles = [];
+        mockCreateTables.mockReset();
+        mockRenderSummary.mockReset();
+        mockPowerEstimationButtonOptions.current = null;
     });
 
     it("returns early when no content-map container", async () => {
@@ -355,5 +398,32 @@ describe("renderMap core", () => {
         expect(previousMap.remove).toHaveBeenCalledOnce();
         expect((window as RenderMapWindow)._leafletMapInstance).toBe(map);
         expect((container.firstChild as HTMLElement).id).toBe("leaflet-map");
+    });
+
+    it("refreshes summary and tables through typed imports after estimated power changes", async () => {
+        expect.assertions(4);
+
+        const { L } = makeLeafletStub();
+        (globalThis as typeof globalThis & { L?: LeafletGlobalStub }).L = L;
+        const data = {
+            recordMesgs: [{ enhancedSpeed: 6, timestamp: 1 }],
+            sessionMesgs: [{ sport: "cycling" }],
+        };
+        (window as RenderMapWindow).globalData = data;
+
+        const { renderMap } = await importSUT();
+        renderMap();
+
+        expect(mockPowerEstimationButtonOptions.current).not.toBeNull();
+        expect(mockPowerEstimationButtonOptions.current?.getData()).toEqual({
+            loadedFitFiles: [],
+            recordMesgs: data.recordMesgs,
+            sessionMesgs: data.sessionMesgs,
+        });
+
+        mockPowerEstimationButtonOptions.current?.onAfterApply();
+
+        expect(mockRenderSummary).toHaveBeenCalledWith(data);
+        expect(mockCreateTables).toHaveBeenCalledWith(data);
     });
 });

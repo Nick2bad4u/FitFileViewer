@@ -79,6 +79,7 @@ const rendererUtilsFreeFiles = [
     "electron-app/utils/state/integration/stateIntegration.ts",
 ] as const;
 const migratedRendererUtilityCallerFiles = [
+    "electron-app/utils/maps/core/renderMap.ts",
     "electron-app/utils/rendering/core/showFitData.ts",
     "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts",
 ] as const;
