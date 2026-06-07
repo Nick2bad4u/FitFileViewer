@@ -18,6 +18,7 @@ import {
     getProcessEnvironmentValue,
     isDevelopmentEnvironment,
 } from "../../runtime/processEnvironment.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { registerChartResizeListener } from "./listenersResize.js";
@@ -114,7 +115,6 @@ type LifecycleGlobal = typeof globalThis & {
     __ffvLifecycleListenersCleanup?: () => void;
     copyTableAsCSV?: (options: { container: Element; data: FitData }) => string;
     electronAPI?: LifecycleElectronAPI;
-    globalData?: FitData | null;
     loadedFitFiles?: LoadedFitFileDescriptor[];
     renderChart?: () => unknown;
     renderChartJS?: () => unknown;
@@ -259,7 +259,7 @@ function handleExportFileRequest(
     filePath: unknown,
     { registerCleanupTimer, showNotification }: ExportFileDependencies
 ): void {
-    const data = lifecycleGlobal.globalData;
+    const data = getGlobalData<FitData>();
     if (!data) {
         return;
     }
@@ -280,7 +280,7 @@ async function reloadCachedFitFileAfterDecoderOptionsChange({
     setLoading,
     showNotification,
 }: DecoderReloadDependencies): Promise<void> {
-    const filePath = lifecycleGlobal.globalData?.cachedFilePath;
+    const filePath = getGlobalData<FitData>()?.cachedFilePath;
     if (!filePath) {
         return;
     }
