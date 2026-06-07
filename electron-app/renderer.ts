@@ -66,7 +66,7 @@ import {
     registerTestDOMContentLoadedSetupListener,
     registerTestWindowLoadThemeSetupListener,
 } from "./renderer/testOnlyBootstrap.js";
-import { setLoading } from "./utils/app/initialization/rendererUtils.js";
+import { setLoading } from "./utils/ui/loading/syncRendererLoading.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
 // Avoid static import of AppActions because tests sometimes mock the module

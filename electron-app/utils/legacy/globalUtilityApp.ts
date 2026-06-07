@@ -1,4 +1,4 @@
-import { setLoading } from "../app/initialization/rendererUtils.js";
+import { setLoading } from "../ui/loading/syncRendererLoading.js";
 
 /** Legacy app lifecycle utilities exposed through the global utility bridge. */
 export const appUtilityExports = Object.freeze({

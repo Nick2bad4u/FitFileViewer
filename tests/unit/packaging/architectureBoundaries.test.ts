@@ -29,6 +29,7 @@ const preloadRoots = [
 ] as const;
 
 const stateDomainRoots = ["electron-app/utils/state/domain"] as const;
+const rendererEntrypointFiles = ["electron-app/renderer.ts"] as const;
 
 const sourceExtensions = new Set([
     ".cjs",
@@ -286,6 +287,22 @@ describe("architecture boundaries", () => {
 
         const violations = stateDomainRoots
             .flatMap(collectSourceFiles)
+            .flatMap((relativeFile) =>
+                getImportSpecifiers(readRepositoryFile(relativeFile))
+                    .filter((specifier) =>
+                        resolvesIntoRendererUtils(relativeFile, specifier)
+                    )
+                    .map((specifier) => `${relativeFile}: ${specifier}`)
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps renderer entrypoints on focused bootstrap helpers", () => {
+        expect.assertions(1);
+
+        const violations = rendererEntrypointFiles
             .flatMap((relativeFile) =>
                 getImportSpecifiers(readRepositoryFile(relativeFile))
                     .filter((specifier) =>
