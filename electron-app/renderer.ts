@@ -46,6 +46,10 @@ import {
 } from "./renderer/electronApiStartupHooks.js";
 import { installRendererElectronApiRegistration } from "./renderer/electronApiRegistration.js";
 import {
+    createRendererErrorEventHandlers,
+    getRendererErrorMessage,
+} from "./renderer/errorHandling.js";
+import {
     createDelegatedFileInputChangeHandler,
     handleImmediateFileInputChange,
     registerDelegatedFileInputChangeListener,
@@ -336,19 +340,6 @@ async function ensureCoreModules(): Promise<RendererCoreModules> {
 }
 
 /**
- * @param {unknown} errorLike
- *
- * @returns {string}
- */
-function getErrorMessage(errorLike: unknown): string {
-    const message = toModuleRecord(errorLike)["message"];
-
-    return typeof message === "string" && message.length > 0
-        ? message
-        : "Unknown error";
-}
-
-/**
  * @param {unknown} masterStateManager
  * @param {string} key
  *
@@ -440,24 +431,6 @@ async function importRendererModule(realPath: string): Promise<unknown> {
  */
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
-}
-
-/**
- * @param {Event} event
- *
- * @returns {void}
- */
-function onUncaughtErrorEvent(event: Event): void {
-    void handleUncaughtError(event as ErrorEvent);
-}
-
-/**
- * @param {Event} event
- *
- * @returns {void}
- */
-function onUnhandledRejectionEvent(event: Event): void {
-    void handleUnhandledRejection(event as PromiseRejectionEvent);
 }
 
 /**
@@ -652,78 +625,14 @@ const onTestWindowLoadSetupTheme = createTestWindowLoadThemeSetupHandler(
     testOnlyBootstrapOptions
 );
 
-/**
- * Global error handler for uncaught exceptions
- *
- * @param {ErrorEvent} event - The error event
- */
-async function handleUncaughtError(event: ErrorEvent): Promise<void> {
-    logRenderer("error", "[Renderer] Uncaught error:", event.error);
-
-    try {
-        const coreModules = await ensureCoreModules();
-        const showNotification = coreModules.showNotification;
-
-        if (typeof showNotification === "function") {
-            const notify =
-                /** @type {UnknownRendererFunction} */ showNotification;
-            notify(
-                `Critical error: ${getErrorMessage(event.error)}`,
-                "error",
-                7000
-            );
-        }
-    } catch (notifyError) {
-        logRenderer(
-            "error",
-            "[Renderer] Failed to show error notification:",
-            notifyError
-        );
-    }
-}
-
 // ==========================================
 // Error Handling
 // ==========================================
 
-/**
- * Global error handler for unhandled promise rejections
- *
- * @param {PromiseRejectionEvent} event - The unhandled rejection event
- */
-async function handleUnhandledRejection(
-    event: PromiseRejectionEvent
-): Promise<void> {
-    logRenderer(
-        "error",
-        "[Renderer] Unhandled promise rejection:",
-        event.reason
-    );
-
-    try {
-        const coreModules = await ensureCoreModules();
-        const showNotification = coreModules.showNotification;
-
-        if (typeof showNotification === "function") {
-            const notify =
-                /** @type {UnknownRendererFunction} */ showNotification;
-            notify(
-                `Application error: ${getErrorMessage(event.reason)}`,
-                "error",
-                5000
-            );
-        }
-    } catch (notifyError) {
-        logRenderer(
-            "error",
-            "[Renderer] Failed to show error notification:",
-            notifyError
-        );
-    }
-
-    // Prevent default browser behavior
-    event.preventDefault();
-}
+const rendererErrorHandlers = createRendererErrorEventHandlers({
+    getCoreModules: ensureCoreModules,
+    logRenderer,
+});
 
 // ==========================================
 // Performance Monitoring
@@ -770,9 +679,12 @@ async function initializeApplication(): Promise<void> {
         // Setup global error handlers
         globalThis.addEventListener(
             "unhandledrejection",
-            onUnhandledRejectionEvent
+            rendererErrorHandlers.onUnhandledRejectionEvent
         );
-        globalThis.addEventListener("error", onUncaughtErrorEvent);
+        globalThis.addEventListener(
+            "error",
+            rendererErrorHandlers.onUncaughtErrorEvent
+        );
 
         // Create dependencies object for setup functions
         const coreModules = await ensureCoreModules();
@@ -870,7 +782,7 @@ async function initializeApplication(): Promise<void> {
             const { showNotification } = coreModules;
             if (showNotification !== undefined) {
                 showNotification(
-                    `Initialization failed: ${getErrorMessage(error)}`,
+                    `Initialization failed: ${getRendererErrorMessage(error)}`,
                     "error",
                     10_000
                 );
@@ -1205,9 +1117,12 @@ function cleanup(): void {
         // Remove global event listeners
         globalThis.removeEventListener(
             "unhandledrejection",
-            onUnhandledRejectionEvent
+            rendererErrorHandlers.onUnhandledRejectionEvent
         );
-        globalThis.removeEventListener("error", onUncaughtErrorEvent);
+        globalThis.removeEventListener(
+            "error",
+            rendererErrorHandlers.onUncaughtErrorEvent
+        );
 
         // Reset application state using state manager
         void cleanupStateManagerState();
