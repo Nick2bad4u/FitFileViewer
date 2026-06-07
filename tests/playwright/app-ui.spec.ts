@@ -126,6 +126,8 @@ const mapTileHosts = new Set([
     "tile.thunderforest.com",
 ]);
 
+const ignorableAbortedHosts = new Set(["zwiftmap.com"]);
+
 function isIgnorableFailedRequest(url: string, errorText: string): boolean {
     if (!errorText.includes("ERR_ABORTED")) {
         return false;
@@ -134,6 +136,7 @@ function isIgnorableFailedRequest(url: string, errorText: string): boolean {
     try {
         const { hostname } = new URL(url);
         return (
+            ignorableAbortedHosts.has(hostname) ||
             mapTileHosts.has(hostname) ||
             Array.from(mapTileHosts).some((host) =>
                 hostname.endsWith(`.${host}`)
@@ -544,6 +547,74 @@ test.describe("FitFileViewer Electron UI", () => {
             });
     }
 
+    async function armFitBrowserStatusRecorder(): Promise<void> {
+        await page.evaluate(() => {
+            const globalWindow = window as Window & {
+                __ffvPlaywrightFitBrowserStatusCleanup?: () => void;
+                __ffvPlaywrightFitBrowserStatusSnapshots?: string[];
+            };
+            globalWindow.__ffvPlaywrightFitBrowserStatusCleanup?.();
+            globalWindow.__ffvPlaywrightFitBrowserStatusSnapshots = [];
+
+            let statusObserver: MutationObserver | undefined;
+            const recordStatus = () => {
+                const status = document.querySelector("#fit-browser-status");
+                globalWindow.__ffvPlaywrightFitBrowserStatusSnapshots?.push(
+                    status instanceof HTMLElement
+                        ? `${status.textContent ?? ""}|${status.className}`
+                        : ""
+                );
+            };
+            const attachStatusObserver = () => {
+                const status = document.querySelector("#fit-browser-status");
+                if (!(status instanceof HTMLElement) || statusObserver) {
+                    return;
+                }
+                statusObserver = new MutationObserver(recordStatus);
+                statusObserver.observe(status, {
+                    attributes: true,
+                    characterData: true,
+                    childList: true,
+                    subtree: true,
+                });
+                recordStatus();
+            };
+            const bodyObserver = new MutationObserver(attachStatusObserver);
+            bodyObserver.observe(document.body, {
+                childList: true,
+                subtree: true,
+            });
+            attachStatusObserver();
+
+            globalWindow.__ffvPlaywrightFitBrowserStatusCleanup = () => {
+                bodyObserver.disconnect();
+                statusObserver?.disconnect();
+            };
+        });
+    }
+
+    async function getFitBrowserStatusSnapshots(): Promise<string[]> {
+        return page.evaluate(() => {
+            const globalWindow = window as Window & {
+                __ffvPlaywrightFitBrowserStatusSnapshots?: string[];
+            };
+
+            return globalWindow.__ffvPlaywrightFitBrowserStatusSnapshots ?? [];
+        });
+    }
+
+    async function stopFitBrowserStatusRecorder(): Promise<void> {
+        await page.evaluate(() => {
+            const globalWindow = window as Window & {
+                __ffvPlaywrightFitBrowserStatusCleanup?: () => void;
+                __ffvPlaywrightFitBrowserStatusSnapshots?: string[];
+            };
+            globalWindow.__ffvPlaywrightFitBrowserStatusCleanup?.();
+            delete globalWindow.__ffvPlaywrightFitBrowserStatusCleanup;
+            delete globalWindow.__ffvPlaywrightFitBrowserStatusSnapshots;
+        });
+    }
+
     async function openSampleFitThroughDialog(): Promise<ActivityUiState> {
         await mockOpenFileDialog({
             canceled: false,
@@ -754,6 +825,95 @@ test.describe("FitFileViewer Electron UI", () => {
             sampleFitActivityState
         );
         await expectAltFitIframeLoadedActivity();
+    });
+
+    test("auto-renders the selected FIT file in the Raw Data tab", async () => {
+        await expect(openSampleFitThroughDialog()).resolves.toStrictEqual(
+            sampleFitActivityState
+        );
+
+        await page.locator("#tab_data").click();
+        await expect(page.locator("#tab_data")).toHaveClass(/active/u);
+
+        const firstTableHeader = page
+            .locator("#content_data .table-header")
+            .first();
+        await expect(firstTableHeader).toBeVisible();
+        await expect(firstTableHeader).toContainText(/record/iu);
+        await firstTableHeader.click();
+        await expect(
+            page.locator("#content_data table.dataTable").first()
+        ).toBeVisible();
+        await expect(
+            page.locator("#content_data .dt-container").first()
+        ).toBeVisible();
+    });
+
+    test("loads the Zwift map iframe when the Zwift tab is selected", async () => {
+        try {
+            await page.locator("#tab_zwift").click();
+            await expect(page.locator("#tab_zwift")).toHaveClass(/active/u);
+
+            const zwiftFrame = page.locator(
+                '#content_zwift.active iframe#zwift_iframe[src="https://zwiftmap.com/"]'
+            );
+            await expect(zwiftFrame).toBeVisible();
+            await expect(zwiftFrame).toHaveAttribute("allow", "geolocation");
+            await expect(zwiftFrame).toHaveClass(/fullsize-container/u);
+        } finally {
+            await page.evaluate(() => {
+                document.querySelector("#zwift_iframe")?.remove();
+            });
+            await page.locator("#tab_map").click();
+        }
+    });
+
+    test("shows loading and loaded states for an empty Browser folder", async () => {
+        const emptyBrowserFolder = path.join(
+            repositoryRoot,
+            "tests",
+            "fixtures"
+        );
+        await armFitBrowserStatusRecorder();
+        await mockOpenFileDialog({
+            canceled: false,
+            filePaths: [emptyBrowserFolder],
+        });
+
+        try {
+            await page.locator("#tab_browser").click();
+            await expect(page.locator("#tab_browser")).toHaveClass(/active/u);
+            await expect(
+                page.locator("#fit-browser-pick-folder")
+            ).toBeVisible();
+            await page.locator("#fit-browser-pick-folder").click();
+            await expect.poll(getOpenFileDialogCallCount).toBe(1);
+
+            await expect(page.locator("#fit-browser-view-files")).toBeVisible();
+            await page.locator("#fit-browser-view-files").click();
+
+            const browserStatus = page.locator("#fit-browser-status");
+            await expect(browserStatus).toBeVisible();
+
+            await expect(browserStatus).toContainText(
+                /Loaded 0 items from root/u
+            );
+            await expect(browserStatus).not.toHaveClass(
+                /file-browser__status--loading/u
+            );
+            await expect(page.locator("#fit-browser-list")).toContainText(
+                "No .fit files found in this folder."
+            );
+            expect(await getFitBrowserStatusSnapshots()).toContainEqual(
+                expect.stringMatching(
+                    /Loading folder\.\.\.\|.*file-browser__status--loading/u
+                )
+            );
+        } finally {
+            await restoreOpenFileDialog();
+            await stopFitBrowserStatusRecorder();
+            await page.locator("#tab_map").click();
+        }
     });
 
     test("unloads a loaded FIT file through the unload button", async () => {
