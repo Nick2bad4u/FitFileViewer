@@ -40,11 +40,11 @@ import {
     installRendererDevelopmentDebugGlobals,
 } from "./renderer/developmentDebugGlobals.js";
 import {
-    getElectronApiHooksFromValue,
     getElectronApiStartupHooks,
     registerStartupElectronHooks,
     type RendererApplyTheme as ApplyTheme,
 } from "./renderer/electronApiStartupHooks.js";
+import { installRendererElectronApiRegistration } from "./renderer/electronApiRegistration.js";
 import {
     createDelegatedFileInputChangeHandler,
     handleImmediateFileInputChange,
@@ -1470,46 +1470,6 @@ async function applyElectronThemeChange(theme: string): Promise<void> {
 }
 
 /**
- * @returns {void}
- */
-function installElectronAPIProxy(): void {
-    try {
-        // Preserve current value
-        /** @type {unknown} */
-        let electronApiValue = Reflect.get(globalThis, "electronAPI");
-        Object.defineProperty(globalThis, "electronAPI", {
-            configurable: true,
-            get() {
-                return electronApiValue;
-            },
-            set(value: unknown) {
-                electronApiValue = value;
-                try {
-                    registerElectronAPI(value);
-                } catch {
-                    /* Ignore errors */
-                }
-            },
-        });
-        // Register once for current
-        try {
-            registerElectronAPI(electronApiValue);
-        } catch {
-            /* Ignore errors */
-        }
-    } catch {
-        /* Ignore errors */
-    }
-}
-
-/**
- * @returns {boolean}
- */
-function isVitestManualMockEnvironment(): boolean {
-    return Boolean(Reflect.get(globalThis, "__vitest_manual_mocks__"));
-}
-
-/**
  * @param {unknown} action
  *
  * @returns {void}
@@ -1543,91 +1503,6 @@ function onElectronThemeChanged(theme: string): void {
 }
 
 /**
- * @param {() => Promise<unknown>} isDevelopment
- *
- * @returns {Promise<void>}
- */
-async function queryElectronDevelopmentMode(
-    isDevelopment: () => Promise<unknown>
-): Promise<void> {
-    try {
-        await isDevelopment();
-    } catch {
-        /* Ignore errors */
-    }
-}
-
-/**
- * @param {unknown} api
- *
- * @returns {void}
- */
-function registerElectronAPI(api: unknown): void {
-    try {
-        const hooks = getElectronApiHooksFromValue(api);
-        if (hooks === null) {
-            return;
-        }
-
-        if (hooks.onMenuAction !== undefined) {
-            hooks.onMenuAction(onElectronMenuAction);
-        }
-        if (hooks.onThemeChanged !== undefined) {
-            hooks.onThemeChanged(onElectronThemeChanged);
-        }
-        if (hooks.isDevelopment !== undefined) {
-            // Query development mode for coverage expectations
-            void queryElectronDevelopmentMode(hooks.isDevelopment);
-        }
-        // Immediately trigger state init and app domain getState so tests' spies observe after beforeEach
-        scheduleImportTimeStateInitialization();
-    } catch {
-        /* Ignore errors */
-    }
-}
-
-/**
- * @param {PropertyDescriptor} descriptor
- *
- * @returns {void}
- */
-function registerElectronAPIFromPropertyDescriptor(
-    descriptor: PropertyDescriptor
-): void {
-    if (!("value" in descriptor)) {
-        return;
-    }
-
-    const electronApiValue = /** @type {unknown} */ descriptor.value;
-    registerElectronAPI(electronApiValue);
-    // Also trigger state and performance spies immediately on assignment
-    scheduleImportTimeStateInitialization();
-}
-
-/**
- * @param {() => unknown} clearPolling
- *
- * @returns {void}
- */
-function registerPollingCleanup(clearPolling: () => unknown): void {
-    /**
-     * @returns {void}
-     */
-    function onElectronAPIPollingBeforeUnload(): void {
-        clearPolling();
-        globalThis.removeEventListener(
-            "beforeunload",
-            onElectronAPIPollingBeforeUnload
-        );
-    }
-
-    globalThis.addEventListener(
-        "beforeunload",
-        onElectronAPIPollingBeforeUnload
-    );
-}
-
-/**
  * @returns {Promise<void>}
  */
 async function showElectronAboutModal(): Promise<void> {
@@ -1639,103 +1514,17 @@ async function showElectronAboutModal(): Promise<void> {
     }
 }
 
-/**
- * @returns {void}
- */
-function startElectronAPITestPolling(): void {
-    /** @type {unknown} */
-    let lastElectronAPI: unknown;
-    const intervalId = setInterval(() => {
-        try {
-            const currentElectronAPI = /** @type {unknown} */ Reflect.get(
-                globalThis,
-                "electronAPI"
-            );
-            if (
-                currentElectronAPI !== undefined &&
-                currentElectronAPI !== lastElectronAPI
-            ) {
-                // Always re-register to trigger spies after vi.resetAllMocks
-                lastElectronAPI = currentElectronAPI;
-                registerElectronAPI(currentElectronAPI);
-            }
-            // Touch app domain state periodically so spies see calls after resets
-            scheduleImportTimeStateInitialization();
-        } catch {
-            /* Ignore errors */
-        }
-    }, 1);
-
-    registerPollingCleanup(() => {
-        clearInterval(intervalId);
-    });
-}
-
-// Wire electronAPI events if available now
-try {
-    const currentElectronAPI = /** @type {unknown} */ Reflect.get(
-        globalThis,
-        "electronAPI"
-    );
-    if (currentElectronAPI !== undefined) {
-        registerElectronAPI(currentElectronAPI);
-    }
-    // Install accessor to re-register immediately on future assignments and ensure one-time registration now
-    try {
-        installElectronAPIProxy();
-    } catch {
-        /* Ignore errors */
-    }
-    try {
-        // Intercept defineProperty to detect external assignment patterns used in tests
-        if (isVitestManualMockEnvironment()) {
-            const nativeDefine = Object.defineProperty;
-            Object.defineProperty = function defineProperty<T>(
-                target: T,
-                prop: PropertyKey,
-                descriptor: PropertyDescriptor & ThisType<unknown>
-            ) {
-                const res = nativeDefine.call(
-                    Object,
-                    target,
-                    prop,
-                    descriptor
-                ) as T;
-                try {
-                    if (
-                        target === globalThis &&
-                        String(prop) === "electronAPI" &&
-                        "value" in descriptor
-                    ) {
-                        try {
-                            registerElectronAPIFromPropertyDescriptor(
-                                descriptor
-                            );
-                        } catch {
-                            /* Ignore errors */
-                        }
-                    }
-                } catch {
-                    /* Ignore errors */
-                }
-                return res;
-            };
-        }
-    } catch {
-        /* Ignore errors */
-    }
-} catch {
-    /* Ignore errors */
-}
-
-// In test environments, re-register when window.electronAPI is reassigned between tests
-try {
-    if (isVitestManualMockEnvironment()) {
-        startElectronAPITestPolling();
-    }
-} catch {
-    /* Ignore errors */
-}
+installRendererElectronApiRegistration({
+    addEventListener: globalThis.addEventListener.bind(globalThis),
+    clearInterval: globalThis.clearInterval.bind(globalThis),
+    defineProperty: Object.defineProperty,
+    onMenuAction: onElectronMenuAction,
+    onThemeChanged: onElectronThemeChanged,
+    removeEventListener: globalThis.removeEventListener.bind(globalThis),
+    scheduleStateInitialization: scheduleImportTimeStateInitialization,
+    scope: globalThis,
+    setInterval: globalThis.setInterval.bind(globalThis),
+});
 
 // Call into domain appState getters for performance/coverage tests
 try {
