@@ -12,9 +12,15 @@ import {
 import { applyEstimatedPowerToRecords } from "../../data/processing/estimateCyclingPower.js";
 import { getPowerEstimationSettings } from "../../data/processing/powerEstimationSettings.js";
 import { createRendererLogger } from "../../logging/rendererLogger.js";
+import { renderMap } from "../../maps/core/renderMap.js";
 import { setGlobalData } from "../../state/core/globalDataStore.js";
 import { setState } from "../../state/core/stateManager.js";
+import { setTabButtonsEnabled } from "../../ui/controls/enableTabButtons.js";
+import { updateActiveTab } from "../../ui/tabs/updateActiveTab.js";
+import { updateTabVisibility } from "../../ui/tabs/updateTabVisibility.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import { createTables } from "../components/createTables.js";
+import { renderSummary } from "./renderSummary.js";
 
 // Constants for better maintainability
 const DISPLAY_CONSTANTS = {
@@ -31,13 +37,10 @@ const DISPLAY_CONSTANTS = {
         FILE_NAME_CONTAINER: "active_file_name_container",
         UNLOAD_BUTTON: "unload_file_btn",
     },
-    MAP_RENDER_RETRY_DELAY_MS: 50,
-    MAP_RENDER_RETRY_LIMIT: 200,
     TITLE_PREFIX: "Fit File Viewer",
 } as const;
 
 const log = createRendererLogger(DISPLAY_CONSTANTS.LOG_PREFIX);
-let pendingMapRenderRetryTimerId: ReturnType<typeof setTimeout> | undefined;
 
 type FitRecord = Record<string, unknown>;
 
@@ -69,15 +72,9 @@ type EstimatedPowerInput = Parameters<typeof applyEstimatedPowerToRecords>[0];
 
 type ShowFitDataGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
-    createTables?: (data: FitDataObject) => void;
     electronAPI?: ElectronApiLike;
     globalData?: FitDataObject;
     isMapRendered?: boolean;
-    renderMap?: () => void;
-    renderSummary?: (data: FitDataObject) => void;
-    setTabButtonsEnabled?: (enabled: boolean) => void;
-    updateActiveTab?: (tabId: string) => void;
-    updateTabVisibility?: (contentId: string) => void;
 };
 
 function getShowFitDataGlobal(): ShowFitDataGlobal {
@@ -233,18 +230,11 @@ export function showFitData(
         }
     }
 
-    // Create tables if available
-    const showFitGlobal = getShowFitDataGlobal();
-
-    if (showFitGlobal.createTables) {
-        showFitGlobal.createTables(data);
-    }
+    createTables(data);
 
     // Pre-render summary data so it's ready when user switches to summary tab
     // This ensures all tabs have their data ready, even though we default to map
-    if (showFitGlobal.renderSummary) {
-        showFitGlobal.renderSummary(data);
-    }
+    renderSummary(data);
 
     // Charts are rendered on-demand when the user activates the Charts tab.
     // Background pre-rendering was removed because it can freeze the UI.
@@ -259,76 +249,29 @@ export function showFitData(
 function switchToMapTabOnLoad(): void {
     const windowExt = getShowFitDataGlobal();
 
-    if (!windowExt.updateTabVisibility || !windowExt.updateActiveTab) {
-        return;
-    }
+    updateTabVisibility("content_map");
+    updateActiveTab("tab_map");
 
-    windowExt.updateTabVisibility("content_map");
-    windowExt.updateActiveTab("tab_map");
-
-    // Manually trigger map rendering since we're programmatically switching tabs
-    if (!renderMapIfReady(windowExt)) {
-        retryMapRenderWhenReady(1);
-    }
+    renderMapIfReady(windowExt);
 }
 
-function renderMapIfReady(windowExt: ShowFitDataGlobal): boolean {
+function renderMapIfReady(windowExt: ShowFitDataGlobal): void {
     if (windowExt.isMapRendered) {
-        clearPendingMapRenderRetryTimer();
-        return true;
-    }
-
-    const renderMap = windowExt.renderMap;
-    if (typeof renderMap !== "function") {
-        return false;
+        return;
     }
 
     renderMap();
     windowExt.isMapRendered = true;
-    clearPendingMapRenderRetryTimer();
-    return true;
-}
-
-function retryMapRenderWhenReady(attempt: number): void {
-    const windowExt = getShowFitDataGlobal();
-
-    if (renderMapIfReady(windowExt)) {
-        return;
-    }
-
-    if (attempt >= DISPLAY_CONSTANTS.MAP_RENDER_RETRY_LIMIT) {
-        log("warn", "Map render skipped because renderMap was unavailable", {
-            attempts: attempt,
-        });
-        return;
-    }
-
-    clearPendingMapRenderRetryTimer();
-    pendingMapRenderRetryTimerId = globalThis.setTimeout(() => {
-        pendingMapRenderRetryTimerId = undefined;
-        retryMapRenderWhenReady(attempt + 1);
-    }, DISPLAY_CONSTANTS.MAP_RENDER_RETRY_DELAY_MS);
-}
-
-function clearPendingMapRenderRetryTimer(): void {
-    if (pendingMapRenderRetryTimerId === undefined) {
-        return;
-    }
-
-    clearTimeout(pendingMapRenderRetryTimerId);
-    pendingMapRenderRetryTimerId = undefined;
 }
 
 /** Enables tab buttons and notifies the main process. */
 function enableTabsAndNotify(filePath: string): void {
     try {
         // Enable tab buttons when a file is loaded
-        const showFitGlobal = getShowFitDataGlobal();
-        if (showFitGlobal.setTabButtonsEnabled) {
-            showFitGlobal.setTabButtonsEnabled(true);
-        }
+        setTabButtonsEnabled(true);
 
         // Notify main process via IPC
+        const showFitGlobal = getShowFitDataGlobal();
         if (showFitGlobal.electronAPI?.notifyFitFileLoaded) {
             showFitGlobal.electronAPI.notifyFitFileLoaded(filePath);
         }

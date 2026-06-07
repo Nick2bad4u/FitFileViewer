@@ -27,20 +27,65 @@ vi.mock(
     })
 );
 
+const rendererDependencyMocks = vi.hoisted(() => ({
+    createTables: vi.fn<(data: Record<string, unknown>) => void>(),
+    renderMap: vi.fn<() => void>(),
+    renderSummary: vi.fn<(data: Record<string, unknown>) => void>(),
+    setTabButtonsEnabled: vi.fn<(enabled: boolean) => void>(),
+    updateActiveTab: vi.fn<(tabId: string) => void>(),
+    updateTabVisibility: vi.fn<(contentId: string) => void>(),
+}));
+
+vi.mock(
+    import("../../../../../electron-app/utils/maps/core/renderMap.js"),
+    () => ({
+        renderMap: rendererDependencyMocks.renderMap,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/rendering/components/createTables.js"),
+    () => ({
+        createTables: rendererDependencyMocks.createTables,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/rendering/core/renderSummary.js"),
+    () => ({
+        renderSummary: rendererDependencyMocks.renderSummary,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/ui/controls/enableTabButtons.js"),
+    () => ({
+        setTabButtonsEnabled: rendererDependencyMocks.setTabButtonsEnabled,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/ui/tabs/updateActiveTab.js"),
+    () => ({
+        updateActiveTab: rendererDependencyMocks.updateActiveTab,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/ui/tabs/updateTabVisibility.js"),
+    () => ({
+        updateTabVisibility: rendererDependencyMocks.updateTabVisibility,
+    })
+);
+
 import { setState } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type ShowFitDataTestGlobal = typeof globalThis & {
-    createTables?: (data: Record<string, unknown>) => void;
     electronAPI?: {
         notifyFitFileLoaded: Mock<(filePath: string) => void>;
     };
     globalData?: Record<string, unknown>;
     isMapRendered?: boolean;
-    renderMap?: () => void;
-    renderSummary?: (data: Record<string, unknown>) => void;
-    setTabButtonsEnabled?: (enabled: boolean) => void;
-    updateActiveTab?: (tabId: string) => void;
-    updateTabVisibility?: (contentId: string) => void;
 };
 
 async function loadModule() {
@@ -69,22 +114,12 @@ describe("showFitData", () => {
             notifyFitFileLoaded: vi.fn<(filePath: string) => void>(),
         };
         showFitGlobal.isMapRendered = false;
-        showFitGlobal.setTabButtonsEnabled = () => undefined;
-        showFitGlobal.createTables = () => undefined;
-        showFitGlobal.renderSummary = () => undefined;
-        showFitGlobal.updateTabVisibility = () => undefined;
-        showFitGlobal.updateActiveTab = () => undefined;
-        showFitGlobal.renderMap = () => undefined;
-        vi.spyOn(showFitGlobal, "setTabButtonsEnabled").mockReturnValue(
-            undefined
-        );
-        vi.spyOn(showFitGlobal, "createTables").mockReturnValue(undefined);
-        vi.spyOn(showFitGlobal, "renderSummary").mockReturnValue(undefined);
-        vi.spyOn(showFitGlobal, "updateTabVisibility").mockReturnValue(
-            undefined
-        );
-        vi.spyOn(showFitGlobal, "updateActiveTab").mockReturnValue(undefined);
-        vi.spyOn(showFitGlobal, "renderMap").mockReturnValue(undefined);
+        rendererDependencyMocks.createTables.mockClear();
+        rendererDependencyMocks.renderMap.mockClear();
+        rendererDependencyMocks.renderSummary.mockClear();
+        rendererDependencyMocks.setTabButtonsEnabled.mockClear();
+        rendererDependencyMocks.updateActiveTab.mockClear();
+        rendererDependencyMocks.updateTabVisibility.mockClear();
         vi.useFakeTimers();
     });
     afterEach(() => {
@@ -95,12 +130,6 @@ describe("showFitData", () => {
         delete showFitGlobal.electronAPI;
         delete showFitGlobal.globalData;
         delete showFitGlobal.isMapRendered;
-        delete showFitGlobal.setTabButtonsEnabled;
-        delete showFitGlobal.createTables;
-        delete showFitGlobal.renderSummary;
-        delete showFitGlobal.updateTabVisibility;
-        delete showFitGlobal.updateActiveTab;
-        delete showFitGlobal.renderMap;
         vi.clearAllMocks();
     });
 
@@ -120,19 +149,23 @@ describe("showFitData", () => {
             cachedFileName: "file.fit",
             cachedFilePath: filePath,
         });
-        expect(showFitGlobal.setTabButtonsEnabled).toHaveBeenCalledWith(true);
+        expect(
+            rendererDependencyMocks.setTabButtonsEnabled
+        ).toHaveBeenCalledWith(true);
 
-        // setTimeout branch for tab visibility and map render
-        vi.runAllTimers();
-        expect(showFitGlobal.updateTabVisibility).toHaveBeenCalledWith(
+        expect(rendererDependencyMocks.updateTabVisibility).toHaveBeenCalledWith(
             "content_map"
         );
-        expect(showFitGlobal.updateActiveTab).toHaveBeenCalledWith("tab_map");
-        expect(showFitGlobal.renderMap).toHaveBeenCalledWith();
+        expect(rendererDependencyMocks.updateActiveTab).toHaveBeenCalledWith(
+            "tab_map"
+        );
+        expect(rendererDependencyMocks.renderMap).toHaveBeenCalledWith();
 
         // Should have called createTables and renderSummary
-        expect(showFitGlobal.createTables).toHaveBeenCalledWith(data);
-        expect(showFitGlobal.renderSummary).toHaveBeenCalledWith(data);
+        expect(rendererDependencyMocks.createTables).toHaveBeenCalledWith(data);
+        expect(rendererDependencyMocks.renderSummary).toHaveBeenCalledWith(
+            data
+        );
 
         // IPC send
         expect(
@@ -140,29 +173,25 @@ describe("showFitData", () => {
         ).toHaveBeenCalledWith(filePath);
     });
 
-    it("retries map rendering when renderMap attaches after file load", async () => {
-        expect.assertions(5);
+    it("does not render the map again when it is already rendered", async () => {
+        expect.assertions(4);
 
         const { showFitData } = await loadModule();
         const data: Record<string, unknown> = {};
         const filePath = "C:/tmp/file.fit";
         const showFitGlobal = getShowFitDataTestGlobal();
-        delete showFitGlobal.renderMap;
+        showFitGlobal.isMapRendered = true;
 
         showFitData(data, filePath);
 
-        expect(showFitGlobal.updateTabVisibility).toHaveBeenCalledWith(
+        expect(rendererDependencyMocks.updateTabVisibility).toHaveBeenCalledWith(
             "content_map"
         );
-        expect(showFitGlobal.updateActiveTab).toHaveBeenCalledWith("tab_map");
-        expect(showFitGlobal.isMapRendered).toBe(false);
-
-        const renderMap = vi.fn<() => void>();
-        showFitGlobal.renderMap = renderMap;
-        vi.runOnlyPendingTimers();
-
-        expect(renderMap).toHaveBeenCalledWith();
+        expect(rendererDependencyMocks.updateActiveTab).toHaveBeenCalledWith(
+            "tab_map"
+        );
         expect(showFitGlobal.isMapRendered).toBe(true);
+        expect(rendererDependencyMocks.renderMap).not.toHaveBeenCalled();
     });
 
     it("throws on invalid data and writes error state", async () => {

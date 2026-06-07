@@ -39,7 +39,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Temporary surface: `rendererUtils` and broad renderer utility global registration
 - Current owners: `electron-app/utils/legacy/`
 - Compatibility callers: old bootstrap and test helpers that still expect a global utility bag
-- Current status: shrinking; renderer bootstrap now has focused modules for file input startup, development debug globals, Electron API registration, error handling, lifecycle cleanup, notifications, loading, and renderer state bindings; the compatibility-only `rendererUtils` barrel, global `setLoading` bridge, and formatting utility globals have been removed, state domain/core modules and state integration are guarded against importing broad renderer utilities, and `renderer.ts` now uses the focused loading helper directly
+- Current status: shrinking; renderer bootstrap now has focused modules for file input startup, development debug globals, Electron API registration, error handling, lifecycle cleanup, notifications, loading, and renderer state bindings; the compatibility-only `rendererUtils` barrel, global `setLoading` bridge, and formatting utility globals have been removed; `showFitData` now imports tab/rendering helpers directly instead of waiting for utility globals; state domain/core modules and state integration are guarded against importing broad renderer utilities; and `renderer.ts` now uses the focused loading helper directly
 - Next removal step: replace remaining global utility-bag registration with typed bootstrap services, starting with tab and rendering handlers that still look up functions on `window`
 - Verification gates:
   - `npm run lint:app`

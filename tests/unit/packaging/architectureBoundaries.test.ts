@@ -77,6 +77,9 @@ const rendererUtilsFreeFiles = [
     "electron-app/utils/app/initialization/index.ts",
     "electron-app/utils/state/integration/stateIntegration.ts",
 ] as const;
+const migratedRendererUtilityCallerFiles = [
+    "electron-app/utils/rendering/core/showFitData.ts",
+] as const;
 
 const importSpecifierPattern =
     /\b(?:import\s+(?:[^'"]+\s+from\s+)?|export\s+[^'"]+\s+from\s+|require\()\s*["'](?<specifier>[^"']+)["']/gu;
@@ -87,6 +90,8 @@ const directGlobalDataReadPattern =
 const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
+const migratedRendererUtilityGlobalLookupPattern =
+    /\b(?:window|globalThis|showFitGlobal|windowExt)\.(?:createTables|renderMap|renderSummary|setTabButtonsEnabled|updateActiveTab|updateTabVisibility)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -342,7 +347,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -378,6 +383,12 @@ describe("architecture boundaries", () => {
                     stripComments(readRepositoryFile(relativeFile))
                 )
         );
+        const migratedRendererUtilityCallerViolations =
+            migratedRendererUtilityCallerFiles.filter((relativeFile) =>
+                migratedRendererUtilityGlobalLookupPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            );
         const deletedCompatibilityFiles = [
             "electron-app/utils/app/initialization/rendererUtils.ts",
         ].filter(hasRepositoryFile);
@@ -387,6 +398,7 @@ describe("architecture boundaries", () => {
         expect(unexpectedLegacyUtilityFiles).toStrictEqual([]);
         expect(migratedGlobalDataReaderViolations).toStrictEqual([]);
         expect(rendererUtilsFreeViolations).toStrictEqual([]);
+        expect(migratedRendererUtilityCallerViolations).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });
