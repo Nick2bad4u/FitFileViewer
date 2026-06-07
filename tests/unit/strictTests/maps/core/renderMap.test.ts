@@ -57,13 +57,19 @@ type RenderMapWindow = Window & {
 
 const {
     mockCreateTables,
+    mockInvalidateChartRenderCache,
     mockPowerEstimationButtonOptions,
+    mockRenderChartJS,
     mockRenderSummary,
 } = vi.hoisted(() => ({
     mockCreateTables: vi.fn<(data: Record<string, unknown>) => void>(),
+    mockInvalidateChartRenderCache: vi.fn<(reason: string) => void>(),
     mockPowerEstimationButtonOptions: {
         current: null as null | PowerEstimationButtonOptions,
     },
+    mockRenderChartJS: vi.fn<() => Promise<boolean>>(() =>
+        Promise.resolve(true)
+    ),
     mockRenderSummary: vi.fn<(data: Record<string, unknown>) => void>(),
 }));
 
@@ -77,6 +83,19 @@ function createDiv(className: string): HTMLDivElement {
     const el = document.createElement("div");
     el.className = className;
     return el;
+}
+
+async function waitForMockCall(
+    mock: Mock<(...args: unknown[]) => unknown>,
+    timeoutMs = 1000
+): Promise<void> {
+    const start = Date.now();
+    while (mock.mock.calls.length === 0) {
+        if (Date.now() - start > timeoutMs) {
+            throw new Error("Timed out waiting for mock call");
+        }
+        await new Promise((resolve) => setTimeout(resolve, 0));
+    }
 }
 
 // Mock heavy dependencies used inside renderMap
@@ -166,6 +185,13 @@ vi.mock(
     import("../../../../../electron-app/utils/rendering/core/renderSummary.js"),
     () => ({
         renderSummary: mockRenderSummary,
+    })
+);
+vi.mock(
+    import("../../../../../electron-app/utils/charts/core/renderChartJS.js"),
+    () => ({
+        invalidateChartRenderCache: mockInvalidateChartRenderCache,
+        renderChartJS: mockRenderChartJS,
     })
 );
 vi.mock(
@@ -285,6 +311,9 @@ describe("renderMap core", () => {
         w._leafletMapInstance = null;
         w.loadedFitFiles = [];
         mockCreateTables.mockReset();
+        mockInvalidateChartRenderCache.mockReset();
+        mockRenderChartJS.mockReset();
+        mockRenderChartJS.mockResolvedValue(true);
         mockRenderSummary.mockReset();
         mockPowerEstimationButtonOptions.current = null;
     });
@@ -400,8 +429,8 @@ describe("renderMap core", () => {
         expect((container.firstChild as HTMLElement).id).toBe("leaflet-map");
     });
 
-    it("refreshes summary and tables through typed imports after estimated power changes", async () => {
-        expect.assertions(4);
+    it("refreshes charts, summary, and tables through typed imports after estimated power changes", async () => {
+        expect.assertions(6);
 
         const { L } = makeLeafletStub();
         (globalThis as typeof globalThis & { L?: LeafletGlobalStub }).L = L;
@@ -423,6 +452,11 @@ describe("renderMap core", () => {
 
         mockPowerEstimationButtonOptions.current?.onAfterApply();
 
+        await waitForMockCall(mockInvalidateChartRenderCache);
+        expect(mockInvalidateChartRenderCache).toHaveBeenCalledWith(
+            "estimated-power-updated"
+        );
+        expect(mockRenderChartJS).toHaveBeenCalledWith();
         expect(mockRenderSummary).toHaveBeenCalledWith(data);
         expect(mockCreateTables).toHaveBeenCalledWith(data);
     });

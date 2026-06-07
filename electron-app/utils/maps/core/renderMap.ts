@@ -147,10 +147,8 @@ type WindowExtensions = typeof globalThis & {
     _measureControl?: DisposableControl | null;
     _miniMapControl?: DisposableControl | null;
     _overlayPolylines?: Record<string, OverlayPolyline> | null;
-    invalidateChartRenderCache?: (reason: string) => void;
     loadedFitFiles?: FitFileEntry[];
     mapMarkerCount?: number;
-    renderChartJS?: () => void;
     setupActiveFileNameMapActions?: () => void;
     setupOverlayFileNameMapActions?: () => void;
     updateOverlayHighlights?: () => void;
@@ -1131,28 +1129,7 @@ export function renderMap(): void {
                     windowExt.updateShownFilesList();
                 }
 
-                // Estimated power changes are data-changing for charts/summary/tables.
-                // Invalidate chart caches so the new series is recalculated.
-                try {
-                    if (
-                        typeof windowExt.invalidateChartRenderCache ===
-                        "function"
-                    ) {
-                        windowExt.invalidateChartRenderCache(
-                            "estimated-power-updated"
-                        );
-                    }
-                } catch {
-                    /* ignore */
-                }
-
-                try {
-                    if (typeof windowExt.renderChartJS === "function") {
-                        windowExt.renderChartJS();
-                    }
-                } catch {
-                    /* ignore */
-                }
+                void refreshChartsAfterEstimatedPowerUpdate();
 
                 try {
                     const currentGlobalData = getGlobalData<GlobalData>();
@@ -1762,5 +1739,17 @@ export function renderMap(): void {
     if (document.querySelector("#leaflet-map")) {
         installUpdateMapThemeListeners();
         updateMapTheme();
+    }
+}
+
+async function refreshChartsAfterEstimatedPowerUpdate(): Promise<void> {
+    try {
+        const { invalidateChartRenderCache, renderChartJS } = await import(
+            "../../charts/core/renderChartJS.js"
+        );
+        invalidateChartRenderCache("estimated-power-updated");
+        await renderChartJS();
+    } catch {
+        /* ignore */
     }
 }

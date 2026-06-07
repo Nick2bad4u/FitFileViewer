@@ -95,7 +95,7 @@ const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
 const migratedRendererUtilityGlobalLookupPattern =
-    /\b(?:appGlobal|window|globalThis|showFitGlobal|windowExt)\.(?:createTables|renderMap|renderSummary|setTabButtonsEnabled|updateActiveTab|updateTabVisibility)\b/u;
+    /\b(?:appGlobal|window|globalThis|showFitGlobal|windowExt)\.(?:createTables|invalidateChartRenderCache|renderChartJS|renderMap|renderSummary|setTabButtonsEnabled|updateActiveTab|updateTabVisibility)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
