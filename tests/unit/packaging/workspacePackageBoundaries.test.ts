@@ -252,6 +252,7 @@ const expectedRootToolingScripts = {
     "lint:secretlint":
         'secretlint "*.md" "docs/**/*.md" "docusaurus/docs/**/*.{md,mdx}" "docusaurus/blog/**/*.{md,mdx}" --secretlintrc .secretlintrc.cjs',
     "prepare:electron": "node scripts/ensure-electron-binary.mjs",
+    "release:check-signing": "node scripts/check-signing-env.mjs",
     pretest: "npm run prepare:electron && npm run build:runtime-ts",
     "release:verify": "npm run verify:release",
     "test:ui":
@@ -441,7 +442,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps app release versioning rooted at the repository package", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseWorkflow = readFileSync(
@@ -465,6 +466,7 @@ describe("workspace package boundaries", () => {
             "npm run verify:release"
         );
         expect(releaseWorkflow).toContain("xvfb-run -a npm run release:verify");
+        expect(releaseWorkflow).toContain("npm run release:check-signing");
         expect(releaseVersioningFilesWithWorkspaceFlags).toStrictEqual([]);
     });
 

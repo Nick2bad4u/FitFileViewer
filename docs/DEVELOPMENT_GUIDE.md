@@ -423,6 +423,25 @@ npm run build:win7
 # Triggered by creating a new release tag
 ```
 
+### Signing Preflight
+
+Use `npm run release:check-signing` before signed packaging when
+`REQUIRE_CODE_SIGNING=true`. The command fails before electron-builder starts
+and lists each missing variable.
+
+- Windows signed builds require `WIN_CSC_LINK` or `CSC_LINK`, plus
+  `CSC_KEY_PASSWORD`.
+- macOS signed builds require `CSC_LINK`, `CSC_KEY_PASSWORD`,
+  `CSC_INSTALLER_LINK`, and `CSC_INSTALLER_KEY_PASSWORD`.
+- macOS notarization requires one credential set:
+  `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID`,
+  `APPLE_API_KEY`/`APPLE_API_KEY_ID`/`APPLE_API_ISSUER`, or
+  `APPLE_KEYCHAIN_PROFILE`.
+- Linux builds do not require signing variables, even when the release matrix
+  sets `REQUIRE_CODE_SIGNING=true`.
+- Windows 7 compatibility builds stay isolated in `build-win7.yml` and do not
+  share the primary signed release path.
+
 ### Windows 7 Compatibility Builds
 
 - `npm run build:win7` calls `scripts/build-win7.mjs`, forcing an Electron 22, ia32 portable build whose output is stored under `release-dist/win7`. Use this script when you need to verify behavior on legacy Windows 7 hardware.

@@ -162,31 +162,35 @@ Check GitHub Releases for:
 
 ## Code Signing
 
+Run `npm run release:check-signing` before signed packaging when
+`REQUIRE_CODE_SIGNING=true`. The command reports missing variables before
+electron-builder starts.
+
 ### Windows
 
-Requires certificate:
+Signed Windows builds require:
 
-```json
-{
- "win": {
-  "certificateFile": "cert.pfx",
-  "certificatePassword": "${CSC_KEY_PASSWORD}"
- }
-}
-```
+- `WIN_CSC_LINK` or `CSC_LINK`
+- `CSC_KEY_PASSWORD`
 
 ### macOS
 
-Requires Apple Developer ID:
+Signed macOS builds require:
 
-```json
-{
- "mac": {
-  "hardenedRuntime": true,
-  "gatekeeperAssess": true
- }
-}
-```
+- `CSC_LINK`
+- `CSC_KEY_PASSWORD`
+- `CSC_INSTALLER_LINK`
+- `CSC_INSTALLER_KEY_PASSWORD`
+
+Notarization also requires one of these credential sets:
+
+- `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, and `APPLE_TEAM_ID`
+- `APPLE_API_KEY`, `APPLE_API_KEY_ID`, and `APPLE_API_ISSUER`
+- `APPLE_KEYCHAIN_PROFILE`
+
+Linux release builds do not require signing variables. Windows 7 compatibility
+artifacts are built through `build-win7.yml` and stay outside the primary signed
+release matrix.
 
 ## Troubleshooting Builds
 

@@ -195,6 +195,26 @@ jobs:
               shell: bash
               run: npm run build:macos-deps
 
+            - name: Check signing environment
+              id: check_signing_environment
+              shell: bash
+              run: npm run release:check-signing -- --runner-os "$RUNNER_OS"
+              env:
+                  REQUIRE_CODE_SIGNING: true
+                  RUNNER_OS: ${{ runner.os }}
+                  APPLE_API_ISSUER: ${{ runner.os == 'macOS' && secrets.APPLE_API_ISSUER || '' }}
+                  APPLE_API_KEY: ${{ runner.os == 'macOS' && secrets.APPLE_API_KEY || '' }}
+                  APPLE_API_KEY_ID: ${{ runner.os == 'macOS' && secrets.APPLE_API_KEY_ID || '' }}
+                  APPLE_APP_SPECIFIC_PASSWORD: ${{ runner.os == 'macOS' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+                  APPLE_ID: ${{ runner.os == 'macOS' && secrets.APPLE_ID || '' }}
+                  APPLE_KEYCHAIN_PROFILE: ${{ runner.os == 'macOS' && secrets.APPLE_KEYCHAIN_PROFILE || '' }}
+                  APPLE_TEAM_ID: ${{ runner.os == 'macOS' && secrets.APPLE_TEAM_ID || '' }}
+                  CSC_INSTALLER_KEY_PASSWORD: ${{ runner.os == 'macOS' && secrets.MACOS_CSC_INSTALLER_KEY_PASSWORD || '' }}
+                  CSC_INSTALLER_LINK: ${{ runner.os == 'macOS' && secrets.MACOS_CSC_INSTALLER_LINK || '' }}
+                  CSC_KEY_PASSWORD: ${{ runner.os == 'macOS' && secrets.MACOS_CSC_KEY_PASSWORD || runner.os == 'Windows' && secrets.WINDOWS_CSC_KEY_PASSWORD || '' }}
+                  CSC_LINK: ${{ runner.os == 'macOS' && secrets.MACOS_CSC_LINK || '' }}
+                  WIN_CSC_LINK: ${{ runner.os == 'Windows' && secrets.WINDOWS_CSC_LINK || '' }}
+
             - name: Build Electron app (debug)
               id: build_app
               shell: bash
