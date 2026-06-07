@@ -1,64 +1,134 @@
-1. Retire the legacy renderer/global bridge
+# Recommended Next Steps
 
-   This is the biggest long-term win. The repo still has a lot of compatibility plumbing around window.\*, globalData,
-   legacy appState, and renderer utility globals in places like electron-app/main-ui.ts, electron-app/renderer.ts,
-   electron-app/utils.ts, and electron-app/utils/ui/mainUiGlobals.ts.
+## 1. Make `renderer.ts` stop being the gravity well
 
-   Bluntly: continuing to fix UI regressions one by one without shrinking that bridge will keep producing weird "this
-   tab stopped loading" style bugs. Move toward typed imports, explicit services, and centralized state paths.
+The global bridge is smaller now, but `electron-app/renderer.ts` is still too large and too central. Split it into real bootstrap modules, such as:
 
-2. Add one real release/readiness gate
+- app startup
+- tab wiring
+- file input wiring
+- debug hooks
+- drag-and-drop
+- menu listeners
+- test-only helpers
 
-   The repo has useful scripts, but no single obvious release:verify style command. Add something like:
+This will make UI bugs easier to isolate and reduce the blast radius of renderer changes.
 
-   npm run verify:release
+---
 
-   That should run the real pre-release gates in order: formatting, linting, CSS linting, docs typecheck/build, audit,
-   Vitest, Playwright, packaging/build checks, and signing checks where applicable.
+## 2. Add an architecture boundary test
 
-3. Finish the renderer dependency migration
+Add tests that fail if new code reintroduces problematic dependencies. For example:
 
-   docs/RENDERER_DEPENDENCY_INVENTORY.md already treats the current renderer dependency setup as a migration baseline.
-   Next step is reducing compatibility globals from vendorGlobals.ts and moving more browser libraries to normal typed
-   imports where practical.
+- renderer modules importing main-process-only modules
+- preload modules reaching into renderer state
+- new direct `window.globalData` writes
+- new broad `rendererUtils` globals
+- new files added under old loose utility/global patterns
 
-   This matters most around map/chart/DataTables code because those areas are user-visible and regression-prone.
+This is a cheap safeguard that will help prevent the repo from sliding backward.
 
-4. Split the preload/main-process API surface by domain
+---
 
-   electron-app/preload.ts is doing too much. Move toward small typed preload modules for file access, exports,
-   Gyazo auth, app state, dev tools, etc., with preload.ts composing and exposing the final API.
+## 3. Finish deleting compatibility globals, not just routing around them
 
-   That makes security review, signing readiness, and test coverage much easier.
+`globalDataStore` is now the right temporary center, but the end goal should be removing the need for:
 
-5. Make signing and release packaging boring
+- `window.globalData`
+- legacy `AppState.globalData`
+- renderer utility globals
 
-   Since signing has already come up, make it explicit and testable:
-   - document required signing env vars/secrets by platform
-   - make unsigned local packaging and signed release packaging separate paths
-   - fail with a direct error when signing is required but unavailable
-   - keep the Windows 7 legacy build path isolated so it does not contaminate the normal release path
+A good way to finish this is:
 
-   The recent regressions are exactly the kind that unit tests miss. Add smoke coverage for:
-   - selected FIT file auto-loads into the Data tab
-   - Zwift tab loads or shows a clear fallback
-   - file browser shows loading/loaded/empty states
-   - map measurement clear removes distance and area measurements
-   - AltFit handoff still works
-   - tab switching preserves expected loaded state
+- create a migration checklist
+- remove remaining direct usages incrementally
+- add a final lint rule or test that blocks new direct usage
 
-6. Make app state more explicit
+---
 
-   FIT file loading, tab readiness, chart readiness, map readiness, and file-browser selection should behave like a
-   small state machine, not scattered DOM side effects. This would reduce the "it is on the main URL but the selected
-   file did not load" class of problems.
+## 4. Shrink and split the renderer bundle
 
-7. Keep dependency risk under control
+The renderer vendor bundle is still large. Review heavy dependencies such as:
 
-   Electron, Playwright, TypeScript, and renderer libraries can break quietly. Add a scheduled dependency
-   validation workflow that runs the full release gate and package build, then only merge updates when the app-level
-   smoke tests pass.
+- Leaflet
+- Chart.js
+- DataTables
+- related plugins
 
-Current tree looked clean when inspected, and these recommendations are based on the current checkout plus the recent
-release/tooling cleanup context. The main strategic point: stop letting legacy renderer compatibility be the center of
-gravity. That is the debt most likely to keep costing you time.
+Load tab-specific dependencies only when the relevant tab is opened. This should improve startup time and make blank-tab regressions easier to detect.
+
+---
+
+## 5. Build a release rehearsal workflow
+
+Separate from normal CI, add a manual `workflow_dispatch` release rehearsal that:
+
+- runs `npm run release:verify`
+- builds unsigned artifacts
+- checks signing availability without publishing
+- uploads artifacts
+- proves the packaged app starts
+
+This gives you a safe “are we ready to tag?” button.
+
+---
+
+## 6. Add performance baselines for real FIT files
+
+Use representative fixture sizes and track:
+
+- parse time
+- render time
+- map route render time
+- chart render time
+- memory usage after loading and unloading
+
+FIT viewers can silently get slower as features accumulate, so baseline coverage will help catch regressions early.
+
+### Related follow-up
+
+The preload split helped. The next step is stricter IPC schema validation and clearer domain ownership. In particular:
+
+- file access
+- external links
+- browser folder listing
+- app state
+- dev tools
+
+Each should have narrow, validated payloads and tests for invalid input.
+
+---
+
+## 7. Make packaged-app smoke tests closer to release reality
+
+Current Playwright coverage is useful. The next step is to add smoke tests against the packaged or unpacked app after `npm run package`, not just the dev/runtime build path.
+
+This will help catch packaging-only asset and preload failures.
+
+---
+
+## 8. Create a deprecation ledger
+
+Keep a small document listing temporary bridges and their exit criteria, such as:
+
+- `window.globalData`
+- legacy `AppState`
+- `rendererUtils`
+- `vendorGlobals`
+- old runtime CommonJS compatibility pieces
+
+Whenever one of these shrinks, update the ledger. Otherwise, "temporary" tends to become permanent.
+
+---
+
+## Overall assessment
+
+The biggest remaining technical risk is still renderer complexity.
+
+The release gate is now in much better shape, and the next serious win is making it harder for one tab's old global/state behavior to break another tab.
+
+If you want, I can also turn this into:
+
+- a **GitHub review comment**
+- a **polished engineering memo**
+- or a **prioritized action plan with impact/effort labels**.
