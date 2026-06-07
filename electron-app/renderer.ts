@@ -44,6 +44,7 @@ import {
     registerStartupElectronHooks,
     type RendererApplyTheme as ApplyTheme,
 } from "./renderer/electronApiStartupHooks.js";
+import { createRendererElectronMenuActionHandlers } from "./renderer/electronMenuActionHandlers.js";
 import { installRendererElectronApiRegistration } from "./renderer/electronApiRegistration.js";
 import {
     createRendererErrorEventHandlers,
@@ -1311,71 +1312,23 @@ try {
     /* Ignore errors */
 }
 
-/**
- * @param {string} theme
- *
- * @returns {Promise<void>}
- */
-async function applyElectronThemeChange(theme: string): Promise<void> {
-    try {
-        const { applyTheme: applyThemeFn } = await ensureCoreModules();
-        callUnknownFunction(applyThemeFn, [theme]);
-    } catch (error) {
-        logRenderer("warn", "[Renderer] Failed to apply theme:", error);
-    }
-}
-
-/**
- * @param {unknown} action
- *
- * @returns {void}
- */
-function onElectronMenuAction(action: unknown): void {
-    try {
-        if (action === "open-file") {
-            // Could trigger file input if needed
-            const input = querySelectorByIdFlexible(
-                document,
-                "#file_input"
-            ) as HTMLInputElement | null;
-            if (input !== null) {
-                input.click();
-            }
-        } else if (action === "about") {
-            void showElectronAboutModal();
-        }
-    } catch {
-        /* Ignore errors */
-    }
-}
-
-/**
- * @param {string} theme
- *
- * @returns {void}
- */
-function onElectronThemeChanged(theme: string): void {
-    void applyElectronThemeChange(theme);
-}
-
-/**
- * @returns {Promise<void>}
- */
-async function showElectronAboutModal(): Promise<void> {
-    try {
-        const { showAboutModal: showAboutModalFn } = await ensureCoreModules();
-        callUnknownFunction(showAboutModalFn);
-    } catch (error) {
-        logRenderer("warn", "[Renderer] Failed to show about modal:", error);
-    }
-}
+const electronMenuActionHandlers = createRendererElectronMenuActionHandlers({
+    callUnknownFunction,
+    ensureCoreModules,
+    getFileInput: () =>
+        querySelectorByIdFlexible(
+            document,
+            "#file_input"
+        ) as HTMLInputElement | null,
+    logRenderer,
+});
 
 installRendererElectronApiRegistration({
     addEventListener: globalThis.addEventListener.bind(globalThis),
     clearInterval: globalThis.clearInterval.bind(globalThis),
     defineProperty: Object.defineProperty,
-    onMenuAction: onElectronMenuAction,
-    onThemeChanged: onElectronThemeChanged,
+    onMenuAction: electronMenuActionHandlers.onMenuAction,
+    onThemeChanged: electronMenuActionHandlers.onThemeChanged,
     removeEventListener: globalThis.removeEventListener.bind(globalThis),
     scheduleStateInitialization: scheduleImportTimeStateInitialization,
     scope: globalThis,
