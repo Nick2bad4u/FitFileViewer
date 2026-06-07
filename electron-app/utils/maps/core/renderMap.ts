@@ -12,6 +12,7 @@ import { createPrintButton } from "../../files/export/createPrintButton.js";
 import { sanitizeFilenameComponent } from "../../files/sanitizeFilename.js";
 import { formatTooltipData } from "../../formatting/display/formatTooltipData.js";
 import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import {
     installUpdateMapThemeListeners,
@@ -145,7 +146,6 @@ type WindowExtensions = typeof globalThis & {
     _miniMapControl?: DisposableControl | null;
     _overlayPolylines?: Record<string, OverlayPolyline> | null;
     createTables?: (data: GlobalData) => void;
-    globalData?: GlobalData;
     invalidateChartRenderCache?: (reason: string) => void;
     loadedFitFiles?: FitFileEntry[];
     mapMarkerCount?: number;
@@ -1084,11 +1084,8 @@ export function renderMap(): void {
         primaryControls.append(createElevationProfileButton());
         filterControl = createDataPointFilterControl(({ action }) => {
             const didReset = resetLapSelectorSelection();
-            if (
-                !didReset &&
-                windowExt.globalData &&
-                windowExt.globalData.recordMesgs
-            ) {
+            const currentGlobalData = getGlobalData<GlobalData>();
+            if (!didReset && currentGlobalData?.recordMesgs) {
                 mapDrawLapsWrapper("all");
             }
             if (typeof windowExt.updateShownFilesList === "function") {
@@ -1115,11 +1112,7 @@ export function renderMap(): void {
         // Estimated power (virtual power) settings
         const estPowerBtn = createPowerEstimationButton({
             getData: () => {
-                const data =
-                    windowExt.globalData &&
-                    typeof windowExt.globalData === "object"
-                        ? windowExt.globalData
-                        : null;
+                const data = getGlobalData<GlobalData>() ?? null;
                 const fitData = {
                     loadedFitFiles: Array.isArray(windowExt.loadedFitFiles)
                         ? windowExt.loadedFitFiles
@@ -1163,22 +1156,24 @@ export function renderMap(): void {
                 }
 
                 try {
+                    const currentGlobalData = getGlobalData<GlobalData>();
                     if (
                         typeof windowExt.renderSummary === "function" &&
-                        windowExt.globalData
+                        currentGlobalData
                     ) {
-                        windowExt.renderSummary(windowExt.globalData);
+                        windowExt.renderSummary(currentGlobalData);
                     }
                 } catch {
                     /* ignore */
                 }
 
                 try {
+                    const currentGlobalData = getGlobalData<GlobalData>();
                     if (
                         typeof windowExt.createTables === "function" &&
-                        windowExt.globalData
+                        currentGlobalData
                     ) {
-                        windowExt.createTables(windowExt.globalData);
+                        windowExt.createTables(currentGlobalData);
                     }
                 } catch {
                     /* ignore */
@@ -1187,11 +1182,10 @@ export function renderMap(): void {
         });
 
         try {
-            const recs =
-                windowExt.globalData &&
-                Array.isArray(windowExt.globalData.recordMesgs)
-                    ? windowExt.globalData.recordMesgs
-                    : [];
+            const currentGlobalData = getGlobalData<GlobalData>();
+            const recs = Array.isArray(currentGlobalData?.recordMesgs)
+                ? currentGlobalData.recordMesgs
+                : [];
             if (hasPowerData(recs)) {
                 estPowerBtn.title =
                     "This file has real power data. Configure estimation defaults for other files.";
@@ -1205,11 +1199,8 @@ export function renderMap(): void {
             createMarkerCountSelector(() => {
                 // Redraw map with new marker count
                 const didReset = resetLapSelectorSelection();
-                if (
-                    !didReset &&
-                    windowExt.globalData &&
-                    windowExt.globalData.recordMesgs
-                ) {
+                const currentGlobalData = getGlobalData<GlobalData>();
+                if (!didReset && currentGlobalData?.recordMesgs) {
                     mapDrawLapsWrapper("all");
                 }
                 if (windowExt.updateShownFilesList) {
@@ -1586,23 +1577,19 @@ export function renderMap(): void {
     // Apply estimated power before drawing any tracks/markers so tooltips have access.
     // Only applies to files without real power.
     try {
-        if (
-            windowExt.globalData &&
-            Array.isArray(windowExt.globalData.recordMesgs)
-        ) {
-            const sessionMesgs = Array.isArray(
-                windowExt.globalData.sessionMesgs
-            )
-                ? windowExt.globalData.sessionMesgs
+        const currentGlobalData = getGlobalData<GlobalData>();
+        if (Array.isArray(currentGlobalData?.recordMesgs)) {
+            const sessionMesgs = Array.isArray(currentGlobalData.sessionMesgs)
+                ? currentGlobalData.sessionMesgs
                 : undefined;
             applyEstimatedPowerToRecords(
                 sessionMesgs === undefined
                     ? {
-                          recordMesgs: windowExt.globalData.recordMesgs,
+                          recordMesgs: currentGlobalData.recordMesgs,
                           settings: getPowerEstimationSettings(),
                       }
                     : {
-                          recordMesgs: windowExt.globalData.recordMesgs,
+                          recordMesgs: currentGlobalData.recordMesgs,
                           sessionMesgs,
                           settings: getPowerEstimationSettings(),
                       }
@@ -1705,7 +1692,7 @@ export function renderMap(): void {
         );
         // --- Always call mapDrawLapsWrapper('all') to ensure correct zoom/fitBounds logic ---
         mapDrawLapsWrapper("all");
-    } else if (windowExt.globalData && windowExt.globalData.recordMesgs) {
+    } else if (getGlobalData<GlobalData>()?.recordMesgs) {
         console.log(
             '[renderMap] No overlays, calling mapDrawLapsWrapper("all")'
         );

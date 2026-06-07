@@ -7,8 +7,8 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Temporary surface: `window.globalData`, `globalThis.globalData`
 - Current owner: `electron-app/utils/state/core/globalDataStore.ts`
 - Compatibility callers: legacy chart status bridge, map, remaining lifecycle/UI control helpers, and Playwright smoke paths that still read the global while renderer state migration continues
-- Current status: active compatibility bridge; new runtime writes should go through `setGlobalData`, `setState("globalData", ...)`, or a typed domain service; AppActions clear/load paths now write through `globalDataStore`, and lifecycle export/reload handlers, summary storage-key, column-modal preference lookup, user/device info, field-toggle metrics, data-point filter statistics, event-message charts, lap-zone charts, chart availability counts, chart settings rerender guards, map lap selector controls, and map lap drawing now read loaded FIT data through `globalDataStore`
-- Next removal step: replace the remaining read-only `window.globalData` consumers in map core rendering, chart status compatibility, and Playwright smoke assertions with state-backed selectors or app-facing test APIs
+- Current status: active compatibility bridge; new runtime writes should go through `setGlobalData`, `setState("globalData", ...)`, or a typed domain service; AppActions clear/load paths now write through `globalDataStore`, and lifecycle export/reload handlers, summary storage-key, column-modal preference lookup, user/device info, field-toggle metrics, data-point filter statistics, event-message charts, lap-zone charts, chart availability counts, chart settings rerender guards, map lap selector controls, map lap drawing, and map core rendering now read loaded FIT data through `globalDataStore`
+- Next removal step: replace the remaining read-only `window.globalData` consumers in chart status compatibility and Playwright smoke assertions with state-backed selectors or app-facing test APIs
 - Verification gates:
   - `npm run lint:app`
   - `npm test -- tests/unit/packaging/architectureBoundaries.test.ts`
