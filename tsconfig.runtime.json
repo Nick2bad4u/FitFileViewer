@@ -163,7 +163,6 @@
         "electron-app/utils/debug/debugSensorInfo.ts",
         "electron-app/utils/debug/stateDevTools.ts",
         "electron-app/utils/debug/index.ts",
-        "electron-app/utils/legacy/globalUtilityApp.ts",
         "electron-app/utils/legacy/globalUtilityData.ts",
         "electron-app/utils/legacy/globalUtilityFormatting.ts",
         "electron-app/utils/legacy/globalUtilityRendering.ts",

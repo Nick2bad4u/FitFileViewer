@@ -47,7 +47,6 @@ const allowedLegacyGlobalDataBridgeFiles = new Set([
 ]);
 
 const allowedLegacyUtilityFiles = new Set([
-    "electron-app/utils/legacy/globalUtilityApp.ts",
     "electron-app/utils/legacy/globalUtilityData.ts",
     "electron-app/utils/legacy/globalUtilityFormatting.ts",
     "electron-app/utils/legacy/globalUtilityRegistry.ts",

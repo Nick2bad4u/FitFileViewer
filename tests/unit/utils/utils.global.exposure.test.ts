@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const EXPECTED_AVAILABLE_UTILS = [
-    "setLoading",
     "copyTableAsCSV",
     "patchSummaryFields",
     "formatArray",
