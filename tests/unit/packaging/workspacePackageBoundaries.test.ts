@@ -641,11 +641,18 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps dependency update configuration rooted at the app package", () => {
-        expect.assertions(3);
+        expect.assertions(6);
 
         const ncuConfig = JSON.parse(
             readFileSync(path.join(process.cwd(), rootNcuConfigPath), "utf8")
         ) as Record<string, unknown>;
+        const dependencyValidationWorkflow = readFileSync(
+            path.join(
+                process.cwd(),
+                ".github/workflows/dependency-validation.yml"
+            ),
+            "utf8"
+        );
 
         expect(ncuConfig).toMatchObject({
             cache: true,
@@ -681,6 +688,11 @@ describe("workspace package boundaries", () => {
                 (configPath) => String(configPath).startsWith("electron-app/")
             )
         ).toStrictEqual([]);
+        expect(dependencyValidationWorkflow).toContain("schedule:");
+        expect(dependencyValidationWorkflow).toContain("node-version: 24");
+        expect(dependencyValidationWorkflow).toContain(
+            "xvfb-run -a npm run release:verify"
+        );
     });
 
     it("keeps Docusaurus setup guidance in maintained docs pages", () => {
