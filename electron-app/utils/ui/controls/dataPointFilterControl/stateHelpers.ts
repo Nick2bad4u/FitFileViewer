@@ -4,14 +4,16 @@ import {
     type MetricRecord,
     type MetricStatistics,
 } from "../../../maps/filters/mapMetricFilter.js";
+import { getGlobalData as readGlobalData } from "../../../state/core/globalDataStore.js";
 
 type DataPointFilterGlobal = typeof globalThis & {
-    globalData?: {
-        recordMesgs?: unknown;
-    };
     mapDataPointFilter?:
         | Partial<MapDataPointFilterConfig>
         | ResolvedDataPointFilterConfig;
+};
+
+type DataPointFilterGlobalData = {
+    readonly recordMesgs?: unknown;
 };
 
 type RangeValues = {
@@ -160,10 +162,10 @@ export function formatPercent(value: number): string {
     return formatter.format(value);
 }
 
-/** Reads FIT record messages from the renderer global state. */
+/** Reads FIT record messages from the state-backed global data bridge. */
 export function getGlobalRecords(): MetricRecord[] {
-    const win = globalThis as DataPointFilterGlobal;
-    const records = win.globalData?.recordMesgs;
+    const records =
+        readGlobalData<DataPointFilterGlobalData>()?.recordMesgs;
     return Array.isArray(records) ? (records as MetricRecord[]) : [];
 }
 

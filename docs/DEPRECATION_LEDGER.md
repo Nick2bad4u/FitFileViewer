@@ -7,8 +7,8 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Temporary surface: `window.globalData`, `globalThis.globalData`
 - Current owner: `electron-app/utils/state/core/globalDataStore.ts`
 - Compatibility callers: legacy chart, map, remaining lifecycle/UI control helpers, and Playwright smoke paths that still read the global while renderer state migration continues
-- Current status: active compatibility bridge; new runtime writes should go through `setGlobalData`, `setState("globalData", ...)`, or a typed domain service; summary storage-key, column-modal preference lookup, user/device info, and field-toggle metrics now read loaded FIT data through `globalDataStore`
-- Next removal step: replace the remaining read-only `window.globalData` consumers in lifecycle listeners, chart/map helpers, data-point filters, and Playwright smoke assertions with state-backed selectors or app-facing test APIs
+- Current status: active compatibility bridge; new runtime writes should go through `setGlobalData`, `setState("globalData", ...)`, or a typed domain service; summary storage-key, column-modal preference lookup, user/device info, field-toggle metrics, and data-point filter statistics now read loaded FIT data through `globalDataStore`
+- Next removal step: replace the remaining read-only `window.globalData` consumers in lifecycle listeners, chart/map helpers, chart settings renderers, and Playwright smoke assertions with state-backed selectors or app-facing test APIs
 - Verification gates:
   - `npm run lint:app`
   - `npm test -- tests/unit/packaging/architectureBoundaries.test.ts`
