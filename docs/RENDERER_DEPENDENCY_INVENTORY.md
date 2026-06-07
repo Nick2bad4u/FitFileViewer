@@ -20,8 +20,11 @@ compatibility bundle:
   package file list.
 - Renderer modules consume browser libraries through globals such as
   `Chart`, `L`, `JSZip`, `DOMPurify`, `screenfull`, and DataTables/jQuery.
-- `electron-app/renderer/vendorGlobals.ts` imports migrated renderer packages
-  from npm and exposes compatibility globals.
+- `electron-app/renderer/vendorGlobalsCore.ts` imports migrated renderer
+  packages from npm and installs compatibility globals through
+  `installRendererVendorGlobals()`.
+- `electron-app/renderer/vendorGlobals.ts` keeps Leaflet plugin side-effect
+  imports in the compatibility bundle entry.
 - `prepare-runtime-dist.mjs` rejects direct `node_modules` and repository
   `vendor/` references in copied runtime text assets; production should not
   load browser code directly from `node_modules` or repository vendor trees.

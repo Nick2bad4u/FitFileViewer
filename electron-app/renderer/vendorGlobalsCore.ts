@@ -104,44 +104,51 @@ function isChartPluginRegistered(pluginId: string): boolean {
     }
 }
 
-if (globalThis.document?.documentElement) {
-    const minimapToggleIconUrlValue: unknown = minimapToggleIconUrl;
-    const minimapToggleIconUrlString =
-        typeof minimapToggleIconUrlValue === "string"
-            ? minimapToggleIconUrlValue
-            : "";
-    const escapedMinimapToggleIconUrl = minimapToggleIconUrlString.replaceAll(
-        /["\\]/gu,
-        String.raw`\$&`
-    );
+/** Installs the temporary vendor globals required by legacy renderer modules. */
+export function installRendererVendorGlobals(): void {
+    if (globalThis.document?.documentElement) {
+        const minimapToggleIconUrlValue: unknown = minimapToggleIconUrl;
+        const minimapToggleIconUrlString =
+            typeof minimapToggleIconUrlValue === "string"
+                ? minimapToggleIconUrlValue
+                : "";
+        const escapedMinimapToggleIconUrl =
+            minimapToggleIconUrlString.replaceAll(/["\\]/gu, String.raw`\$&`);
 
-    globalThis.document.documentElement.style.setProperty(
-        "--ffv-minimap-toggle-icon",
-        `url("${escapedMinimapToggleIconUrl}")`
-    );
+        globalThis.document.documentElement.style.setProperty(
+            "--ffv-minimap-toggle-icon",
+            `url("${escapedMinimapToggleIconUrl}")`
+        );
+    }
+
+    if (!isChartPluginRegistered(zoomPlugin.id)) {
+        Chart.register(zoomPlugin);
+    }
+
+    leafletGlobal.Control.FullScreen = FullScreen;
+    leafletGlobal.Control.Locate = LocateControl;
+    leafletGlobal.control.fullscreen = (options) => new FullScreen(options);
+    leafletGlobal.control.locate = (options) => new LocateControl(options);
+
+    defineMissingGlobal("L", Leaflet);
+    defineMissingGlobal("Leaflet", Leaflet);
+    defineMissingGlobal("maplibregl", maplibregl);
+    defineMissingGlobal("DOMPurify", DOMPurify);
+    defineMissingGlobal("JSZip", JSZip);
+    defineMissingGlobal("aq", arquero);
+    defineMissingGlobal("arquero", arquero);
+    defineMissingGlobal("screenfull", screenfull);
+    defineMissingGlobal("Chart", Chart);
+    defineMissingGlobal("ChartZoom", zoomPlugin);
+    defineMissingGlobal("chartjsPluginZoom", zoomPlugin);
+    defineMissingGlobal("Hammer", Hammer);
+    defineMissingGlobal("$", $);
+    defineMissingGlobal("jQuery", $);
+    defineMissingGlobal("DataTable", DataTable);
+    vendorGlobal.__FFV_RENDERER_VENDOR_BUNDLE__ = {
+        loaded: true,
+        source: "npm-bundle",
+    };
 }
 
-if (!isChartPluginRegistered(zoomPlugin.id)) {
-    Chart.register(zoomPlugin);
-}
-
-leafletGlobal.Control.FullScreen = FullScreen;
-leafletGlobal.Control.Locate = LocateControl;
-leafletGlobal.control.fullscreen = (options) => new FullScreen(options);
-leafletGlobal.control.locate = (options) => new LocateControl(options);
-
-defineMissingGlobal("L", Leaflet);
-defineMissingGlobal("Leaflet", Leaflet);
-defineMissingGlobal("maplibregl", maplibregl);
-defineMissingGlobal("DOMPurify", DOMPurify);
-defineMissingGlobal("JSZip", JSZip);
-defineMissingGlobal("aq", arquero);
-defineMissingGlobal("arquero", arquero);
-defineMissingGlobal("screenfull", screenfull);
-defineMissingGlobal("Chart", Chart);
-defineMissingGlobal("ChartZoom", zoomPlugin);
-defineMissingGlobal("chartjsPluginZoom", zoomPlugin);
-defineMissingGlobal("Hammer", Hammer);
-defineMissingGlobal("$", $);
-defineMissingGlobal("jQuery", $);
-defineMissingGlobal("DataTable", DataTable);
+installRendererVendorGlobals();
