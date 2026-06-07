@@ -146,6 +146,37 @@ interface PreloadRequire {
             preloadLog: PreloadLog;
         }) => Pick<ElectronAPI, "getChannelInfo" | "validateAPI">;
     };
+    (moduleId: "./preload/appInfoApi.js"): {
+        createAppInfoApi: (options: {
+            channels: Pick<
+                PreloadChannels,
+                | "APP_VERSION"
+                | "CHROME_VERSION"
+                | "ELECTRON_VERSION"
+                | "LICENSE_INFO"
+                | "NODE_VERSION"
+                | "PLATFORM_INFO"
+            >;
+            createSafeInvokeHandler: (
+                channel:
+                    | "getAppVersion"
+                    | "getChromeVersion"
+                    | "getElectronVersion"
+                    | "getLicenseInfo"
+                    | "getNodeVersion"
+                    | "getPlatformInfo",
+                methodName: string
+            ) => (...args: unknown[]) => Promise<unknown>;
+        }) => Pick<
+            ElectronAPI,
+            | "getAppVersion"
+            | "getChromeVersion"
+            | "getElectronVersion"
+            | "getLicenseInfo"
+            | "getNodeVersion"
+            | "getPlatformInfo"
+        >;
+    };
     (moduleId: "./preload/beforeExitHandler.js"): {
         registerPreloadBeforeExitHandler: (options: {
             globalScope?: typeof globalThis;
@@ -247,6 +278,114 @@ interface PreloadRequire {
             | "readFile"
             | "recentFiles"
         >;
+    };
+    (moduleId: "./preload/externalApi.js"): {
+        createExternalApi: (options: {
+            channels: Pick<
+                PreloadChannels & PreloadEvents,
+                | "GYAZO_OAUTH_CALLBACK"
+                | "GYAZO_SERVER_START"
+                | "GYAZO_SERVER_STOP"
+                | "SHELL_OPEN_EXTERNAL"
+            >;
+            createSafeEventHandler: <Callback>(
+                channel: string,
+                methodName: string
+            ) => (callback: Callback) => () => void;
+            createSafeInvokeHandler: <
+                Channel extends
+                    | "gyazo:server:start"
+                    | "gyazo:server:stop"
+                    | "shell:openExternal",
+            >(
+                channel: Channel,
+                methodName: string
+            ) => (
+                ...args: InvokeRequestArgs<Channel>
+            ) => Promise<InvokeResponsePayloadForChannel<Channel>>;
+        }) => Pick<
+            ElectronAPI,
+            | "onGyazoOAuthCallback"
+            | "openExternal"
+            | "startGyazoServer"
+            | "stopGyazoServer"
+        >;
+    };
+    (moduleId: "./preload/menuEventApi.js"): {
+        createMenuEventApi: (options: {
+            channels: Pick<
+                PreloadChannels & PreloadEvents,
+                | "DECODER_OPTIONS_CHANGED"
+                | "EXPORT_FILE"
+                | "INSTALL_UPDATE"
+                | "MENU_ABOUT"
+                | "MENU_CHECK_FOR_UPDATES"
+                | "MENU_EXPORT"
+                | "MENU_KEYBOARD_SHORTCUTS"
+                | "MENU_OPEN_FILE"
+                | "MENU_OPEN_OVERLAY"
+                | "MENU_PRINT"
+                | "MENU_RESTART_UPDATE"
+                | "MENU_SAVE_AS"
+                | "OPEN_ACCENT_COLOR_PICKER"
+                | "OPEN_RECENT_FILE"
+                | "OPEN_SUMMARY_COLUMN_SELECTOR"
+                | "SET_FONT_SIZE"
+                | "SET_FULLSCREEN"
+                | "SET_HIGH_CONTRAST"
+                | "SET_THEME"
+                | "SHOW_NOTIFICATION"
+                | "THEME_CHANGED"
+                | "UNLOAD_FIT_FILE"
+            >;
+            createSafeEventHandler: <Callback>(
+                channel: string,
+                methodName: string,
+                transform?: (
+                    ...args: IpcResponsePayload[]
+                ) => IpcResponsePayload | null
+            ) => (callback: Callback) => () => void;
+            createSafeSendHandler: (
+                channel: GenericSendChannel,
+                methodName: string
+            ) => (...args: IpcRequestPayload[]) => void;
+        }) => Pick<
+            ElectronAPI,
+            | "checkForUpdates"
+            | "installUpdate"
+            | "onDecoderOptionsChanged"
+            | "onExportFile"
+            | "onMenuAbout"
+            | "onMenuCheckForUpdates"
+            | "onMenuExport"
+            | "onMenuKeyboardShortcuts"
+            | "onMenuOpenFile"
+            | "onMenuOpenOverlay"
+            | "onMenuPrint"
+            | "onMenuRestartUpdate"
+            | "onMenuSaveAs"
+            | "onOpenAccentColorPicker"
+            | "onOpenRecentFile"
+            | "onOpenSummaryColumnSelector"
+            | "onSetFontSize"
+            | "onSetHighContrast"
+            | "onSetTheme"
+            | "onShowNotification"
+            | "onUnloadFitFile"
+            | "requestExport"
+            | "requestSaveAs"
+            | "sendThemeChanged"
+            | "setFullScreen"
+        >;
+    };
+    (moduleId: "./preload/themeApi.js"): {
+        createThemeApi: (options: {
+            channels: Pick<PreloadChannels, "THEME_GET">;
+            createSafeInvokeHandler: (
+                channel: "theme:get",
+                methodName: string
+            ) => (...args: unknown[]) => Promise<unknown>;
+        }) => Pick<ElectronAPI, "getTheme">;
     };
     (moduleId: "./preload/validators.js"): {
         createPreloadValidators: (preloadLog: PreloadLog) => {
@@ -428,6 +567,9 @@ const preloadRequire = require as PreloadRequire;
 const { createApiDiagnostics } = (require as PreloadRequire)(
     "./preload/apiDiagnostics.js"
 );
+const { createAppInfoApi } = (require as PreloadRequire)(
+    "./preload/appInfoApi.js"
+);
 const { registerPreloadBeforeExitHandler } = (require as PreloadRequire)(
     "./preload/beforeExitHandler.js"
 );
@@ -441,6 +583,15 @@ const { createFitBrowserApi } = (require as PreloadRequire)(
     "./preload/fitBrowserApi.js"
 );
 const { createFileApi } = (require as PreloadRequire)("./preload/fileApi.js");
+const { createExternalApi } = (require as PreloadRequire)(
+    "./preload/externalApi.js"
+);
+const { createMenuEventApi } = (require as PreloadRequire)(
+    "./preload/menuEventApi.js"
+);
+const { createThemeApi } = (require as PreloadRequire)(
+    "./preload/themeApi.js"
+);
 const { createPreloadValidators } = (require as PreloadRequire)(
     "./preload/validators.js"
 );
@@ -639,6 +790,62 @@ const fileApi = createFileApi({
         methodName: string
     ) => (...args: unknown[]) => Promise<unknown>,
 });
+const appInfoApi = createAppInfoApi({
+    channels: {
+        APP_VERSION: CONSTANTS.CHANNELS.APP_VERSION,
+        CHROME_VERSION: CONSTANTS.CHANNELS.CHROME_VERSION,
+        ELECTRON_VERSION: CONSTANTS.CHANNELS.ELECTRON_VERSION,
+        LICENSE_INFO: CONSTANTS.CHANNELS.LICENSE_INFO,
+        NODE_VERSION: CONSTANTS.CHANNELS.NODE_VERSION,
+        PLATFORM_INFO: CONSTANTS.CHANNELS.PLATFORM_INFO,
+    },
+    createSafeInvokeHandler,
+});
+const externalApi = createExternalApi({
+    channels: {
+        GYAZO_OAUTH_CALLBACK: CONSTANTS.EVENTS.GYAZO_OAUTH_CALLBACK,
+        GYAZO_SERVER_START: CONSTANTS.CHANNELS.GYAZO_SERVER_START,
+        GYAZO_SERVER_STOP: CONSTANTS.CHANNELS.GYAZO_SERVER_STOP,
+        SHELL_OPEN_EXTERNAL: CONSTANTS.CHANNELS.SHELL_OPEN_EXTERNAL,
+    },
+    createSafeEventHandler,
+    createSafeInvokeHandler,
+});
+const menuEventApi = createMenuEventApi({
+    channels: {
+        DECODER_OPTIONS_CHANGED: CONSTANTS.EVENTS.DECODER_OPTIONS_CHANGED,
+        EXPORT_FILE: CONSTANTS.EVENTS.EXPORT_FILE,
+        INSTALL_UPDATE: CONSTANTS.EVENTS.INSTALL_UPDATE,
+        MENU_ABOUT: CONSTANTS.EVENTS.MENU_ABOUT,
+        MENU_CHECK_FOR_UPDATES: CONSTANTS.EVENTS.MENU_CHECK_FOR_UPDATES,
+        MENU_EXPORT: CONSTANTS.EVENTS.MENU_EXPORT,
+        MENU_KEYBOARD_SHORTCUTS: CONSTANTS.EVENTS.MENU_KEYBOARD_SHORTCUTS,
+        MENU_OPEN_FILE: CONSTANTS.EVENTS.MENU_OPEN_FILE,
+        MENU_OPEN_OVERLAY: CONSTANTS.EVENTS.MENU_OPEN_OVERLAY,
+        MENU_PRINT: CONSTANTS.EVENTS.MENU_PRINT,
+        MENU_RESTART_UPDATE: CONSTANTS.EVENTS.MENU_RESTART_UPDATE,
+        MENU_SAVE_AS: CONSTANTS.EVENTS.MENU_SAVE_AS,
+        OPEN_ACCENT_COLOR_PICKER: CONSTANTS.EVENTS.OPEN_ACCENT_COLOR_PICKER,
+        OPEN_RECENT_FILE: CONSTANTS.EVENTS.OPEN_RECENT_FILE,
+        OPEN_SUMMARY_COLUMN_SELECTOR:
+            CONSTANTS.EVENTS.OPEN_SUMMARY_COLUMN_SELECTOR,
+        SET_FONT_SIZE: CONSTANTS.EVENTS.SET_FONT_SIZE,
+        SET_FULLSCREEN: CONSTANTS.EVENTS.SET_FULLSCREEN,
+        SET_HIGH_CONTRAST: CONSTANTS.EVENTS.SET_HIGH_CONTRAST,
+        SET_THEME: CONSTANTS.EVENTS.SET_THEME,
+        SHOW_NOTIFICATION: CONSTANTS.EVENTS.SHOW_NOTIFICATION,
+        THEME_CHANGED: CONSTANTS.EVENTS.THEME_CHANGED,
+        UNLOAD_FIT_FILE: CONSTANTS.EVENTS.UNLOAD_FIT_FILE,
+    },
+    createSafeEventHandler,
+    createSafeSendHandler,
+});
+const themeApi = createThemeApi({
+    channels: {
+        THEME_GET: CONSTANTS.CHANNELS.THEME_GET,
+    },
+    createSafeInvokeHandler,
+});
 
 // Main API object
 const electronAPI: ElectronAPI = {
@@ -665,10 +872,7 @@ const electronAPI: ElectronAPI = {
     /**
      * Trigger a check for updates (menu or manual).
      */
-    checkForUpdates: createSafeSendHandler(
-        CONSTANTS.EVENTS.MENU_CHECK_FOR_UPDATES,
-        "checkForUpdates"
-    ),
+    checkForUpdates: menuEventApi.checkForUpdates,
 
     /**
      * Decodes a FIT file from an ArrayBuffer and returns the parsed data.
@@ -685,10 +889,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<string>}
      */
-    getAppVersion: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.APP_VERSION,
-        "getAppVersion"
-    ),
+    getAppVersion: appInfoApi.getAppVersion,
 
     // Development and Debugging Helpers
     /**
@@ -704,20 +905,14 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<string>}
      */
-    getChromeVersion: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.CHROME_VERSION,
-        "getChromeVersion"
-    ),
+    getChromeVersion: appInfoApi.getChromeVersion,
 
     /**
      * Gets the Electron version.
      *
      * @returns {Promise<string>}
      */
-    getElectronVersion: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.ELECTRON_VERSION,
-        "getElectronVersion"
-    ),
+    getElectronVersion: appInfoApi.getElectronVersion,
 
     /**
      * Gets recent errors from the main process.
@@ -735,10 +930,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<string>}
      */
-    getLicenseInfo: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.LICENSE_INFO,
-        "getLicenseInfo"
-    ),
+    getLicenseInfo: appInfoApi.getLicenseInfo,
 
     // Main Process State Management Functions
     /**
@@ -764,10 +956,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<string>}
      */
-    getNodeVersion: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.NODE_VERSION,
-        "getNodeVersion"
-    ),
+    getNodeVersion: appInfoApi.getNodeVersion,
 
     /**
      * Gets the status of a specific operation from the main process.
@@ -785,10 +974,7 @@ const electronAPI: ElectronAPI = {
      */
     getOperations: mainStateApi.getOperations,
 
-    getPlatformInfo: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.PLATFORM_INFO,
-        "getPlatformInfo"
-    ),
+    getPlatformInfo: appInfoApi.getPlatformInfo,
 
     // Theme Management
     /**
@@ -796,7 +982,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<string>}
      */
-    getTheme: createSafeInvokeHandler(CONSTANTS.CHANNELS.THEME_GET, "getTheme"),
+    getTheme: themeApi.getTheme,
     // Development Tools
     /**
      * Manually inject/reset the menu from the renderer (DevTools or app code).
@@ -811,40 +997,28 @@ const electronAPI: ElectronAPI = {
     /**
      * Trigger install of a downloaded update.
      */
-    installUpdate: createSafeSendHandler(
-        CONSTANTS.EVENTS.INSTALL_UPDATE,
-        "installUpdate"
-    ),
+    installUpdate: menuEventApi.installUpdate,
 
     /**
      * Registers a handler for Gyazo OAuth callback payloads.
      *
      * @param {(data: IpcResponsePayload) => void} callback
      */
-    onGyazoOAuthCallback: createSafeEventHandler(
-        CONSTANTS.EVENTS.GYAZO_OAUTH_CALLBACK,
-        "onGyazoOAuthCallback"
-    ),
+    onGyazoOAuthCallback: externalApi.onGyazoOAuthCallback,
 
     /**
      * Registers a handler for decoder option changes from the app menu.
      *
      * @param {(options: IpcResponsePayload) => void} callback
      */
-    onDecoderOptionsChanged: createSafeEventHandler(
-        CONSTANTS.EVENTS.DECODER_OPTIONS_CHANGED,
-        "onDecoderOptionsChanged"
-    ),
+    onDecoderOptionsChanged: menuEventApi.onDecoderOptionsChanged,
 
     /**
      * Registers a handler for export-file requests from the main process.
      *
      * @param {(filePath: IpcResponsePayload) => void} callback
      */
-    onExportFile: createSafeEventHandler(
-        CONSTANTS.EVENTS.EXPORT_FILE,
-        "onExportFile"
-    ),
+    onExportFile: menuEventApi.onExportFile,
 
     /**
      * Expose ipcRenderer.invoke for direct use with error handling.
@@ -902,172 +1076,119 @@ const electronAPI: ElectronAPI = {
      *
      * @param {() => void} callback
      */
-    onMenuOpenFile: createSafeEventHandler(
-        CONSTANTS.EVENTS.MENU_OPEN_FILE,
-        "onMenuOpenFile"
-    ),
+    onMenuOpenFile: menuEventApi.onMenuOpenFile,
 
     /**
      * Registers a handler for the 'menu-open-overlay' event.
      *
      * @param {() => void} callback
      */
-    onMenuOpenOverlay: createSafeEventHandler(
-        CONSTANTS.EVENTS.MENU_OPEN_OVERLAY,
-        "onMenuOpenOverlay"
-    ),
+    onMenuOpenOverlay: menuEventApi.onMenuOpenOverlay,
 
     /**
      * Registers a handler for the 'menu-print' event.
      *
      * @param {() => void} callback
      */
-    onMenuPrint: createSafeEventHandler(
-        CONSTANTS.EVENTS.MENU_PRINT,
-        "onMenuPrint"
-    ),
+    onMenuPrint: menuEventApi.onMenuPrint,
 
     /**
      * Registers a handler for the 'open-recent-file' event.
      *
      * @param {(filePath: IpcResponsePayload) => void} callback
      */
-    onOpenRecentFile: createSafeEventHandler(
-        CONSTANTS.EVENTS.OPEN_RECENT_FILE,
-        "onOpenRecentFile",
-        (filePath: IpcResponsePayload) => filePath // Transform to extract just the filePath
-    ),
+    onOpenRecentFile: menuEventApi.onOpenRecentFile,
 
     /**
      * Registers a handler for the 'menu-about' event.
      *
      * @param {() => void} callback
      */
-    onMenuAbout: createSafeEventHandler(
-        CONSTANTS.EVENTS.MENU_ABOUT,
-        "onMenuAbout"
-    ),
+    onMenuAbout: menuEventApi.onMenuAbout,
 
     /**
      * Registers a handler for the 'menu-export' event.
      *
      * @param {() => void} callback
      */
-    onMenuExport: createSafeEventHandler(
-        CONSTANTS.EVENTS.MENU_EXPORT,
-        "onMenuExport"
-    ),
+    onMenuExport: menuEventApi.onMenuExport,
 
     /**
      * Registers a handler for the 'menu-keyboard-shortcuts' event.
      *
      * @param {() => void} callback
      */
-    onMenuKeyboardShortcuts: createSafeEventHandler(
-        CONSTANTS.EVENTS.MENU_KEYBOARD_SHORTCUTS,
-        "onMenuKeyboardShortcuts"
-    ),
+    onMenuKeyboardShortcuts: menuEventApi.onMenuKeyboardShortcuts,
 
     /**
      * Registers a handler for the 'menu-check-for-updates' event.
      *
      * @param {() => void} callback
      */
-    onMenuCheckForUpdates: createSafeEventHandler(
-        CONSTANTS.EVENTS.MENU_CHECK_FOR_UPDATES,
-        "onMenuCheckForUpdates"
-    ),
+    onMenuCheckForUpdates: menuEventApi.onMenuCheckForUpdates,
 
     /**
      * Registers a handler for the 'menu-restart-update' event.
      *
      * @param {() => void} callback
      */
-    onMenuRestartUpdate: createSafeEventHandler(
-        CONSTANTS.EVENTS.MENU_RESTART_UPDATE,
-        "onMenuRestartUpdate"
-    ),
+    onMenuRestartUpdate: menuEventApi.onMenuRestartUpdate,
 
     /**
      * Registers a handler for the 'menu-save-as' event.
      *
      * @param {() => void} callback
      */
-    onMenuSaveAs: createSafeEventHandler(
-        CONSTANTS.EVENTS.MENU_SAVE_AS,
-        "onMenuSaveAs"
-    ),
+    onMenuSaveAs: menuEventApi.onMenuSaveAs,
 
     /**
      * Registers a handler for the 'open-accent-color-picker' event.
      *
      * @param {() => void} callback
      */
-    onOpenAccentColorPicker: createSafeEventHandler(
-        CONSTANTS.EVENTS.OPEN_ACCENT_COLOR_PICKER,
-        "onOpenAccentColorPicker"
-    ),
+    onOpenAccentColorPicker: menuEventApi.onOpenAccentColorPicker,
 
     /**
      * Registers a handler for the 'open-summary-column-selector' event.
      *
      * @param {() => void} callback
      */
-    onOpenSummaryColumnSelector: createSafeEventHandler(
-        CONSTANTS.EVENTS.OPEN_SUMMARY_COLUMN_SELECTOR,
-        "onOpenSummaryColumnSelector"
-    ),
+    onOpenSummaryColumnSelector: menuEventApi.onOpenSummaryColumnSelector,
 
     /**
      * Registers a handler for renderer font-size changes.
      *
      * @param {(size: IpcResponsePayload) => void} callback
      */
-    onSetFontSize: createSafeEventHandler(
-        CONSTANTS.EVENTS.SET_FONT_SIZE,
-        "onSetFontSize"
-    ),
+    onSetFontSize: menuEventApi.onSetFontSize,
 
     /**
      * Registers a handler for renderer high-contrast mode changes.
      *
      * @param {(mode: IpcResponsePayload) => void} callback
      */
-    onSetHighContrast: createSafeEventHandler(
-        CONSTANTS.EVENTS.SET_HIGH_CONTRAST,
-        "onSetHighContrast"
-    ),
+    onSetHighContrast: menuEventApi.onSetHighContrast,
 
     /**
      * Registers a handler for the 'unload-fit-file' event.
      *
      * @param {() => void} callback
      */
-    onUnloadFitFile: createSafeEventHandler(
-        CONSTANTS.EVENTS.UNLOAD_FIT_FILE,
-        "onUnloadFitFile"
-    ),
+    onUnloadFitFile: menuEventApi.onUnloadFitFile,
 
     /**
      * Registers a handler for the 'set-theme' event.
      *
      * @param {(theme: IpcResponsePayload) => void} callback
      */
-    onSetTheme: createSafeEventHandler(
-        CONSTANTS.EVENTS.SET_THEME,
-        "onSetTheme",
-        (theme: IpcResponsePayload) => theme // Transform to extract just the theme
-    ),
+    onSetTheme: menuEventApi.onSetTheme,
 
     /**
      * Registers a handler for notification requests from the main process.
      *
      * @param {(...args: IpcResponsePayload[]) => void} callback
      */
-    onShowNotification: createSafeEventHandler(
-        CONSTANTS.EVENTS.SHOW_NOTIFICATION,
-        "onShowNotification"
-    ),
+    onShowNotification: menuEventApi.onShowNotification,
 
     // Auto-Updater Functions with enhanced error handling
     /**
@@ -1082,18 +1203,12 @@ const electronAPI: ElectronAPI = {
     /**
      * Requests the main process Export As flow.
      */
-    requestExport: createSafeSendHandler(
-        CONSTANTS.EVENTS.MENU_EXPORT,
-        "requestExport"
-    ),
+    requestExport: menuEventApi.requestExport,
 
     /**
      * Requests the main process Save As flow.
      */
-    requestSaveAs: createSafeSendHandler(
-        CONSTANTS.EVENTS.MENU_SAVE_AS,
-        "requestSaveAs"
-    ),
+    requestSaveAs: menuEventApi.requestSaveAs,
 
     /**
      * Opens a URL in the user's default external browser.
@@ -1102,10 +1217,7 @@ const electronAPI: ElectronAPI = {
      *
      * @returns {Promise<boolean>}
      */
-    openExternal: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.SHELL_OPEN_EXTERNAL,
-        "openExternal"
-    ),
+    openExternal: externalApi.openExternal,
 
     // File Operations
     /**
@@ -1182,10 +1294,7 @@ const electronAPI: ElectronAPI = {
      *
      * @param {string} theme
      */
-    sendThemeChanged: createSafeSendHandler(
-        CONSTANTS.EVENTS.THEME_CHANGED,
-        "sendThemeChanged"
-    ),
+    sendThemeChanged: menuEventApi.sendThemeChanged,
 
     setFitBrowserEnabled: fitBrowserApi.setFitBrowserEnabled,
     setFitBrowserFolder: fitBrowserApi.setFitBrowserFolder,
@@ -1195,10 +1304,7 @@ const electronAPI: ElectronAPI = {
      *
      * @param {boolean} flag - Whether to enable fullscreen
      */
-    setFullScreen: createSafeSendHandler(
-        CONSTANTS.EVENTS.SET_FULLSCREEN,
-        "setFullScreen"
-    ),
+    setFullScreen: menuEventApi.setFullScreen,
 
     /**
      * Sets a value in the main process state (restricted to allowed paths).
@@ -1227,20 +1333,14 @@ const electronAPI: ElectronAPI = {
      *     message?: string;
      * }>}
      */
-    startGyazoServer: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.GYAZO_SERVER_START,
-        "startGyazoServer"
-    ),
+    startGyazoServer: externalApi.startGyazoServer,
 
     /**
      * Stops the temporary Gyazo OAuth callback server.
      *
      * @returns {Promise<{ success: boolean; message?: string }>}
      */
-    stopGyazoServer: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.GYAZO_SERVER_STOP,
-        "stopGyazoServer"
-    ),
+    stopGyazoServer: externalApi.stopGyazoServer,
 
     /**
      * Subscribe to main state changes and get an unsubscribe function.
