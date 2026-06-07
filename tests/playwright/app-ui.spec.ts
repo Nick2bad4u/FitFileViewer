@@ -739,6 +739,8 @@ test.describe("FitFileViewer Electron UI", () => {
                         undefined,
                 vendorBundleSource:
                     globalWindow.__FFV_RENDERER_VENDOR_BUNDLE__?.source,
+                vendorSplitEntries:
+                    globalWindow.__FFV_RENDERER_VENDOR_BUNDLE__?.splitEntries,
             };
         });
 
@@ -753,6 +755,11 @@ test.describe("FitFileViewer Electron UI", () => {
             hasScreenfull: true,
             isChartZoomRegistered: true,
             vendorBundleSource: "npm-bundle",
+            vendorSplitEntries: [
+                "chart-data",
+                "core",
+                "map",
+            ],
         });
     });
 

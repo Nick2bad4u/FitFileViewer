@@ -203,11 +203,24 @@ export const appRendererVendorGlobalsCoreEntryPath = appSourceRepositoryPath(
     "renderer",
     "vendorGlobalsCore.ts"
 );
+export const appRendererVendorGlobalsChartDataEntryPath =
+    appSourceRepositoryPath("renderer", "vendorGlobalsChartData.ts");
 export const appRendererVendorGlobalsEntryPath = appSourceRepositoryPath(
     "renderer",
     "vendorGlobals.ts"
 );
+export const appRendererVendorGlobalsMapEntryPath = appSourceRepositoryPath(
+    "renderer",
+    "vendorGlobalsMap.ts"
+);
 export const rendererVendorGlobalsBundleName = "vendor-globals";
+export const rendererVendorGlobalsChartDataBundleName =
+    "vendor-globals-chart-data";
+export const rendererVendorGlobalsCoreBundleName = "vendor-globals-core";
+export const rendererVendorGlobalsMapBundleName = "vendor-globals-map";
+export const rendererVendorGlobalsChartDataScriptFileName = `${rendererVendorGlobalsChartDataBundleName}.js`;
+export const rendererVendorGlobalsCoreScriptFileName = `${rendererVendorGlobalsCoreBundleName}.js`;
+export const rendererVendorGlobalsMapScriptFileName = `${rendererVendorGlobalsMapBundleName}.js`;
 export const rendererVendorGlobalsScriptFileName = `${rendererVendorGlobalsBundleName}.js`;
 export const rendererVendorGlobalsStyleFileName = `${rendererVendorGlobalsBundleName}.css`;
 export const appStyleCssPath = "style.css";

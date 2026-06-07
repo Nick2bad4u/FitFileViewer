@@ -21,12 +21,21 @@ type LeafletControlStub = {
     addTo: Mock<() => void>;
 };
 
+type LeafletLayerStub = {
+    addTo: Mock<() => LeafletLayerStub>;
+    on: Mock<() => LeafletLayerStub>;
+    options: Record<string, unknown>;
+};
+
 type LeafletGlobalStub = {
+    Layer: new () => LeafletLayerStub;
     control: {
         layers: Mock<() => LeafletControlStub>;
         scale: Mock<() => LeafletControlStub>;
     };
+    maplibreGL: Mock<() => LeafletLayerStub>;
     map: Mock<() => LeafletMapStub>;
+    tileLayer: Mock<() => LeafletLayerStub>;
 };
 
 type BaseLayerLeafletStub = {
@@ -179,6 +188,12 @@ const importSUT = async () => {
 };
 
 function makeLeafletStub() {
+    class Layer implements LeafletLayerStub {
+        addTo = vi.fn<() => LeafletLayerStub>(() => this);
+        on = vi.fn<() => LeafletLayerStub>(() => this);
+        options: Record<string, unknown> = {};
+    }
+
     // minimal event hub for map.on(...)
     const handlers: Record<string, EventHandler[]> = {};
     const map: LeafletMapStub = {
@@ -204,8 +219,11 @@ function makeLeafletStub() {
         })),
     };
     const L: LeafletGlobalStub = {
-        map: vi.fn<() => LeafletMapStub>(() => map),
+        Layer,
         control,
+        maplibreGL: vi.fn<() => LeafletLayerStub>(() => new Layer()),
+        map: vi.fn<() => LeafletMapStub>(() => map),
+        tileLayer: vi.fn<() => LeafletLayerStub>(() => new Layer()),
     };
     return { L, map, handlers };
 }

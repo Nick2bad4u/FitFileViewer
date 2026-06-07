@@ -73,11 +73,21 @@
             href="style.css"
             rel="stylesheet"
         />
-        <!-- Renderer dependency bundle. Keep compatibility globals here while migrating away from vendor scripts. -->
+        <!-- Renderer dependency bundles. Keep compatibility globals here while migrating away from vendor scripts. -->
         <script
             type="module"
             defer
-            src="renderer/vendor-globals.js"
+            src="renderer/vendor-globals-core.js"
+        ></script>
+        <script
+            type="module"
+            defer
+            src="renderer/vendor-globals-chart-data.js"
+        ></script>
+        <script
+            type="module"
+            defer
+            src="renderer/vendor-globals-map.js"
         ></script>
         <!-- utils.js depends on jQuery, DataTables, Arquero, and Chart.js. Load it after these libraries using defer to maintain order. -->
         <script

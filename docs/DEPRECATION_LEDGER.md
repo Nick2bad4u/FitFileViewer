@@ -34,8 +34,8 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 
 ## Vendor Globals
 
-- Temporary surface: browser libraries exposed from `electron-app/renderer/vendorGlobals.ts`
-- Current owner: `electron-app/renderer/vendorGlobalsCore.ts`
+- Temporary surface: browser libraries exposed from renderer `vendorGlobals*` entries
+- Current owners: `electron-app/renderer/vendorGlobalsCore.ts`, `electron-app/renderer/vendorGlobalsChartData.ts`, `electron-app/renderer/vendorGlobalsMap.ts`
 - Compatibility callers: map, chart, DataTables, and plugin integrations that still expect library globals
 - Exit criteria:
   - Heavy libraries are loaded by the tab or feature that needs them.

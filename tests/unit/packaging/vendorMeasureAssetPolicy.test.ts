@@ -5,8 +5,10 @@ import { describe, expect, it } from "vitest";
 
 import {
     appLeafletMeasureLitePath,
+    appRendererVendorGlobalsChartDataEntryPath,
     appRendererVendorGlobalsCoreEntryPath,
     appRendererVendorGlobalsEntryPath,
+    appRendererVendorGlobalsMapEntryPath,
     appSourceRepositoryPath,
     rootAppIndexHtmlPath,
     rootDocsPath,
@@ -49,6 +51,7 @@ const rendererDependencyInventoryPath = path.posix.join(
 const fromImportSpecifierPattern =
     /^\s*import\s+[^"\n].*?\s+from\s+"([^"]+)";/gmu;
 const sideEffectImportSpecifierPattern = /^\s*import\s+"([^"]+)";/gmu;
+const dynamicImportSpecifierPattern = /\bimport\("([^"]+)"\)/gmu;
 const staleRepositoryVendorPaths = [
     appSourceRepositoryPath("renderer", "vendor"),
     appSourceRepositoryPath("vendor"),
@@ -90,6 +93,7 @@ function getImportedBrowserPackages(source: string): Set<string> {
     const importSpecifiers = [
         ...source.matchAll(fromImportSpecifierPattern),
         ...source.matchAll(sideEffectImportSpecifierPattern),
+        ...source.matchAll(dynamicImportSpecifierPattern),
     ].map((match) => match[1]);
 
     for (const importSpecifier of importSpecifiers) {
@@ -121,7 +125,7 @@ function getDocumentedBrowserPackages(markdown: string): string[] {
 
 describe("renderer vendor asset policy", () => {
     it("keeps renderer browser libraries npm-managed and bundled through the renderer entry", () => {
-        expect.assertions(7);
+        expect.assertions(10);
 
         const rootPackage = JSON.parse(
             readWorkspaceFile(rootPackageRepositoryPath)
@@ -131,8 +135,10 @@ describe("renderer vendor asset policy", () => {
             rendererDependencyInventoryPath
         );
         const vendorBundleSource = [
+            readWorkspaceFile(appRendererVendorGlobalsChartDataEntryPath),
             readWorkspaceFile(appRendererVendorGlobalsCoreEntryPath),
             readWorkspaceFile(appRendererVendorGlobalsEntryPath),
+            readWorkspaceFile(appRendererVendorGlobalsMapEntryPath),
         ].join("\n");
         const browserPackagesInProductionDependencies =
             rendererManagedBrowserPackages.filter(
@@ -170,7 +176,18 @@ describe("renderer vendor asset policy", () => {
         expect(getDocumentedBrowserPackages(dependencyInventory)).toStrictEqual(
             [...rendererManagedBrowserPackages].sort()
         );
-        expect(staticAppIndex).toContain('src="renderer/vendor-globals.js"');
+        expect(staticAppIndex).toContain(
+            'src="renderer/vendor-globals-core.js"'
+        );
+        expect(staticAppIndex).toContain(
+            'src="renderer/vendor-globals-chart-data.js"'
+        );
+        expect(staticAppIndex).toContain(
+            'src="renderer/vendor-globals-map.js"'
+        );
+        expect(staticAppIndex).not.toContain(
+            'src="renderer/vendor-globals.js"'
+        );
     });
 
     it("does not keep package-sourced browser assets in repository vendor trees", () => {
@@ -199,8 +216,8 @@ describe("renderer vendor asset policy", () => {
         ) as {
             devDependencies?: Record<string, string>;
         };
-        const vendorGlobalsCore = readWorkspaceFile(
-            appRendererVendorGlobalsCoreEntryPath
+        const vendorGlobalsMap = readWorkspaceFile(
+            appRendererVendorGlobalsMapEntryPath
         );
         const vendorGlobals = readWorkspaceFile(
             appRendererVendorGlobalsEntryPath
@@ -213,10 +230,12 @@ describe("renderer vendor asset policy", () => {
                 "devDependencies"
             )["leaflet-measure"]
         ).toStrictEqual(expect.stringMatching(/\S/u));
-        expect(vendorGlobalsCore).toContain(
+        expect(vendorGlobalsMap).toContain(
             'import "leaflet-measure/dist/leaflet-measure.css";'
         );
-        expect(vendorGlobals).toContain('import "./leafletMeasureLite.js";');
+        expect(vendorGlobalsMap).toContain(
+            'await import("./leafletMeasureLite.js");'
+        );
         expect(vendorGlobals).not.toContain(
             'import "leaflet-measure/dist/leaflet-measure.js";'
         );

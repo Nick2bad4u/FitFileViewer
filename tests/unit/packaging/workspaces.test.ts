@@ -12,8 +12,10 @@ type WorkspacesModule = {
     appLeafletMeasureLitePath: string;
     appPreloadBundleAbsolutePath: string;
     appPreloadSourceAbsolutePath: string;
+    appRendererVendorGlobalsChartDataEntryPath: string;
     appRendererVendorGlobalsCoreEntryPath: string;
     appRendererVendorGlobalsEntryPath: string;
+    appRendererVendorGlobalsMapEntryPath: string;
     appStyleCssPath: string;
     appSourceAbsolutePath: (...segments: string[]) => string;
     appSourceDirectoryName: string;
@@ -66,7 +68,13 @@ type WorkspacesModule = {
     repositoryRoot: string;
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
+    rendererVendorGlobalsChartDataBundleName: string;
+    rendererVendorGlobalsChartDataScriptFileName: string;
     rendererVendorGlobalsBundleName: string;
+    rendererVendorGlobalsCoreBundleName: string;
+    rendererVendorGlobalsCoreScriptFileName: string;
+    rendererVendorGlobalsMapBundleName: string;
+    rendererVendorGlobalsMapScriptFileName: string;
     rendererVendorGlobalsScriptFileName: string;
     rendererVendorGlobalsStyleFileName: string;
     rootAgentsPath: string;
@@ -264,7 +272,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset paths", async () => {
-        expect.assertions(13);
+        expect.assertions(21);
 
         const workspaces = await importWorkspaces();
 
@@ -282,14 +290,38 @@ describe("workspace path helpers", () => {
             bundle: path.join(process.cwd(), "dist", "preload.js"),
             source: path.join(process.cwd(), "electron-app", "preload.ts"),
         });
+        expect(workspaces.appRendererVendorGlobalsChartDataEntryPath).toBe(
+            "electron-app/renderer/vendorGlobalsChartData.ts"
+        );
         expect(workspaces.appRendererVendorGlobalsCoreEntryPath).toBe(
             "electron-app/renderer/vendorGlobalsCore.ts"
         );
         expect(workspaces.appRendererVendorGlobalsEntryPath).toBe(
             "electron-app/renderer/vendorGlobals.ts"
         );
+        expect(workspaces.appRendererVendorGlobalsMapEntryPath).toBe(
+            "electron-app/renderer/vendorGlobalsMap.ts"
+        );
         expect(workspaces.rendererVendorGlobalsBundleName).toBe(
             "vendor-globals"
+        );
+        expect(workspaces.rendererVendorGlobalsChartDataBundleName).toBe(
+            "vendor-globals-chart-data"
+        );
+        expect(workspaces.rendererVendorGlobalsChartDataScriptFileName).toBe(
+            "vendor-globals-chart-data.js"
+        );
+        expect(workspaces.rendererVendorGlobalsCoreBundleName).toBe(
+            "vendor-globals-core"
+        );
+        expect(workspaces.rendererVendorGlobalsCoreScriptFileName).toBe(
+            "vendor-globals-core.js"
+        );
+        expect(workspaces.rendererVendorGlobalsMapBundleName).toBe(
+            "vendor-globals-map"
+        );
+        expect(workspaces.rendererVendorGlobalsMapScriptFileName).toBe(
+            "vendor-globals-map.js"
         );
         expect(workspaces.rendererVendorGlobalsScriptFileName).toBe(
             "vendor-globals.js"

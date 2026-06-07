@@ -27,7 +27,7 @@ import { createMapThemeToggle } from "../controls/mapActionButtons.js";
 import { addFullscreenControl } from "../controls/mapFullscreenControl.js";
 import { addLapSelector } from "../controls/mapLapSelector.js";
 import { addSimpleMeasureTool } from "../controls/mapMeasureTool.js";
-import { baseLayers } from "../layers/mapBaseLayers.js";
+import { baseLayers, createBaseLayers } from "../layers/mapBaseLayers.js";
 import { drawOverlayForFitFile, mapDrawLaps } from "../layers/mapDrawLaps.js";
 import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
 import { getLapColor } from "./mapColors.js";
@@ -280,10 +280,7 @@ function restoreDrawnLayer({
 }): void {
     try {
         L.geoJSON(item.geoJSON, {
-            onEachFeature: (
-                _feature: unknown,
-                createdLayer: Leaflet.Layer
-            ) => {
+            onEachFeature: (_feature: unknown, createdLayer: Leaflet.Layer) => {
                 drawnItems.addLayer(createdLayer);
             },
             pointToLayer: (
@@ -311,6 +308,7 @@ export function renderMap(): void {
         return;
     }
     const L = LeafletLib;
+    const runtimeBaseLayers = createBaseLayers(LeafletLib);
     windowExt._overlayPolylines = {};
     windowExt.__ffvRenderMapAbortController?.abort();
     const renderAbortController = new AbortController();
@@ -330,22 +328,23 @@ export function renderMap(): void {
         cleanupTimers.add(timeout);
         return timeout;
     };
-    renderAbortController.signal.addEventListener("abort", () => {
-        for (const timeout of cleanupTimers) {
-            clearTimeout(timeout);
-        }
-        cleanupTimers.clear();
-    }, { once: true, signal: renderAbortController.signal });
+    renderAbortController.signal.addEventListener(
+        "abort",
+        () => {
+            for (const timeout of cleanupTimers) {
+                clearTimeout(timeout);
+            }
+            cleanupTimers.clear();
+        },
+        { once: true, signal: renderAbortController.signal }
+    );
 
     const scheduleMicrotask =
         typeof queueMicrotask === "function"
             ? queueMicrotask
             : (callback: () => void) => Promise.resolve().then(callback);
 
-    const mapContainer = querySelectorByIdFlexible(
-        document,
-        "#content_map"
-    );
+    const mapContainer = querySelectorByIdFlexible(document, "#content_map");
     if (!mapContainer) {
         return;
     }
@@ -462,9 +461,10 @@ export function renderMap(): void {
 
     // If an old shown-files list exists, invoke its cleanup hook before removing DOM.
     try {
-        const oldShownFilesList = mapContainer.querySelector<ShownFilesListElement>(
-            ".shown-files-list"
-        );
+        const oldShownFilesList =
+            mapContainer.querySelector<ShownFilesListElement>(
+                ".shown-files-list"
+            );
         if (
             oldShownFilesList &&
             typeof oldShownFilesList._dispose === "function"
@@ -494,8 +494,8 @@ export function renderMap(): void {
     mapControlsDiv.append(primaryControlsContainer);
     mapContainer.append(mapControlsDiv);
 
-    const layerEntries = Object.keys(baseLayers)
-        .filter((k) => Object.hasOwn(baseLayers, k))
+    const layerEntries = Object.keys(runtimeBaseLayers)
+        .filter((k) => Object.hasOwn(runtimeBaseLayers, k))
         .map((k) => ({
             key: k,
             label: formatBaseLayerLabel(k),
@@ -540,7 +540,7 @@ export function renderMap(): void {
         const byLabel = labelToKey.get(trimmed);
         if (byLabel) return byLabel;
 
-        if (Object.hasOwn(baseLayers, trimmed)) {
+        if (Object.hasOwn(runtimeBaseLayers, trimmed)) {
             return trimmed;
         }
 
@@ -558,7 +558,7 @@ export function renderMap(): void {
         )
             return "OSM_DE";
 
-        const found = Object.keys(baseLayers).find(
+        const found = Object.keys(runtimeBaseLayers).find(
             (k) => k.toLowerCase() === lower
         );
         return found ?? "OpenStreetMap";
@@ -568,28 +568,35 @@ export function renderMap(): void {
     // This intentionally includes the full catalogue; layoutLayersControl() will constrain it.
     const baseLayersForControl = Object.fromEntries(
         layerEntries
-            .map((entry) => [entry.label, baseLayers[entry.key]] as const)
+            .map(
+                (entry) => [entry.label, runtimeBaseLayers[entry.key]] as const
+            )
             .filter((entry): entry is readonly [string, Leaflet.Layer] =>
-                Boolean(entry[1])
+                isLeafletLayer(LeafletLib, entry[1])
             )
     );
 
     const persistedBaseLayerKey = resolveBaseLayerKey(
         getState("map.baseLayer")
     );
-    const initialBaseLayer =
-        baseLayers[persistedBaseLayerKey] ?? baseLayers["OpenStreetMap"];
-    if (!initialBaseLayer) {
+    const persistedBaseLayer = runtimeBaseLayers[persistedBaseLayerKey];
+    const openStreetMapLayer = runtimeBaseLayers["OpenStreetMap"];
+    const initialBaseLayer = isLeafletLayer(LeafletLib, persistedBaseLayer)
+        ? persistedBaseLayer
+        : openStreetMapLayer;
+    if (!isLeafletLayer(LeafletLib, initialBaseLayer)) {
         console.warn("[renderMap] No valid Leaflet base layer available.");
         return;
     }
 
-    const map = LeafletLib.map("leaflet-map", {
+    const mapOptions: Leaflet.MapOptions & { fullscreenControl: boolean } = {
         center: [0, 0],
         fullscreenControl: true,
         layers: [initialBaseLayer],
         zoom: 2,
-    } as Leaflet.MapOptions & { fullscreenControl: boolean });
+    };
+
+    const map = LeafletLib.map("leaflet-map", mapOptions);
     windowExt._leafletMapInstance = map;
 
     LeafletLib.control

@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
-    appRendererVendorGlobalsEntryPath,
-    rendererVendorGlobalsScriptFileName,
+    appRendererVendorGlobalsChartDataEntryPath,
+    appRendererVendorGlobalsCoreEntryPath,
+    appRendererVendorGlobalsMapEntryPath,
+    rendererVendorGlobalsChartDataBundleName,
+    rendererVendorGlobalsCoreBundleName,
+    rendererVendorGlobalsMapBundleName,
     repositoryRoot,
     rootRuntimeRendererRepositoryPath,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -40,15 +44,25 @@ describe("renderer Vite config", () => {
         expect({
             emptyOutDir: config.build?.emptyOutDir,
             entry: config.build?.lib?.entry,
-            fileName: config.build?.lib?.fileName?.(),
+            fileName:
+                typeof config.build?.lib?.fileName === "function"
+                    ? config.build.lib.fileName("es", "example-entry")
+                    : undefined,
             outDir: config.build?.outDir,
             publicDir: config.publicDir,
             resolveAlias: config.resolve?.alias,
             root: config.root,
         }).toStrictEqual({
             emptyOutDir: false,
-            entry: appRendererVendorGlobalsEntryPath,
-            fileName: rendererVendorGlobalsScriptFileName,
+            entry: {
+                [rendererVendorGlobalsChartDataBundleName]:
+                    appRendererVendorGlobalsChartDataEntryPath,
+                [rendererVendorGlobalsCoreBundleName]:
+                    appRendererVendorGlobalsCoreEntryPath,
+                [rendererVendorGlobalsMapBundleName]:
+                    appRendererVendorGlobalsMapEntryPath,
+            },
+            fileName: "example-entry.js",
             outDir: rootRuntimeRendererRepositoryPath,
             publicDir: false,
             resolveAlias: undefined,
