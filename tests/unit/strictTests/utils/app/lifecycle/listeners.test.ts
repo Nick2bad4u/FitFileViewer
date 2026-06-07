@@ -14,7 +14,6 @@ type BlobMock = (
     parts: any[];
     type: string;
 };
-type CopyTableAsCsvMock = () => string;
 type CreateExportGpxButtonMock = () => boolean;
 type CreateObjectUrlMock = (object: Blob | MediaSource) => string;
 type CreateTestAnchorMock = (tagName: string) => HTMLAnchorElement;
@@ -41,6 +40,10 @@ const dependencyMocks = vi.hoisted(() => ({
     openFileSelector: vi.fn<OpenFileSelectorMock>(),
 }));
 
+const csvExportMocks = vi.hoisted(() => ({
+    serializeTableToCSV: vi.fn<(table: unknown) => string>(),
+}));
+
 vi.mock(
     import("../../../../../../electron-app/utils/files/import/openFileSelector.js"),
     () => ({
@@ -52,6 +55,14 @@ vi.mock(
     import("../../../../../../electron-app/utils/ui/modals/keyboardShortcutsModal.js"),
     () => ({
         showKeyboardShortcutsModal: dependencyMocks.keyboardShortcutsModal,
+    })
+);
+
+vi.mock(
+    import("../../../../../../electron-app/utils/files/export/copyTableAsCSV.js"),
+    () => ({
+        copyTableAsCSV: vi.fn<() => Promise<void>>(),
+        serializeTableToCSV: csvExportMocks.serializeTableToCSV,
     })
 );
 
@@ -215,6 +226,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         showUpdateNotification = vi.fn<ShowUpdateNotificationMock>();
         showAboutModal = vi.fn<ShowAboutModalMock>();
         ensureContainers();
+        csvExportMocks.serializeTableToCSV.mockReset();
+        csvExportMocks.serializeTableToCSV.mockReturnValue("a,b\n1,2");
     });
 
     afterEach(() => {
@@ -540,12 +553,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         installURLMocks();
         const csv = "a,b\n1,2";
-        const copyTableAsCsv = vi.fn<CopyTableAsCsvMock>(() => csv);
-        Object.defineProperty(window, "copyTableAsCSV", {
-            configurable: true,
-            value: copyTableAsCsv,
-            writable: true,
-        });
+        csvExportMocks.serializeTableToCSV.mockReturnValueOnce(csv);
 
         setupListeners({
             openFileBtn,
@@ -569,14 +577,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             return el;
         });
 
-        window.globalData = { foo: "bar" } as any;
+        window.globalData = { recordMesgs: [{ a: 1, b: 2 }] } as any;
 
         await window.electronAPI.emit("export-file", "C:/tmp/out.csv");
 
-        expect(copyTableAsCsv).toHaveBeenCalledExactlyOnceWith({
-            container: expect.any(HTMLDivElement),
-            data: window.globalData,
-        });
+        expect(csvExportMocks.serializeTableToCSV).toHaveBeenCalledWith([
+            { a: 1, b: 2 },
+        ]);
         expect(clickSpy).toHaveBeenCalledOnce();
         expect(document.querySelector("a[download]")).toBeInstanceOf(
             HTMLAnchorElement
@@ -1362,7 +1369,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(showNotification).not.toHaveBeenCalled();
     });
 
-    it("export-file: csv without copyTableAsCSV function", async () => {
+    it("export-file: csv without exportable rows", async () => {
         expect.hasAssertions();
 
         setupListeners({
@@ -1376,11 +1383,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         window.globalData = { some: "data" } as any;
-        (window as any).copyTableAsCSV = undefined;
 
         await electronAPI.emit("export-file", "C:/tmp/out.csv");
 
-        // Should not create download link without copyTableAsCSV
+        // Should not create a blank download link without exportable rows.
         const links = document.querySelectorAll("a");
         expect(links).toHaveLength(0);
     });
@@ -1399,11 +1405,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         window.globalData = { some: "data" } as any;
-        Object.defineProperty(window, "copyTableAsCSV", {
-            configurable: true,
-            value: vi.fn<CopyTableAsCsvMock>(() => "a,b\n1,2"),
-            writable: true,
-        });
 
         // Remove summary container
         document.querySelector("#content-summary")?.remove();
@@ -2030,7 +2031,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(openFileBtn.disabled).toBe(false);
     });
 
-    it("export-file: csv without copyTableAsCSV function (lines 317-318)", async () => {
+    it("export-file: csv without rows (lines 317-318)", async () => {
         expect.hasAssertions();
 
         setupListeners({
@@ -2050,9 +2051,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const summaryContainer = document.createElement("div");
         summaryContainer.id = "content-summary";
         document.body.appendChild(summaryContainer);
-
-        // Explicitly don't mock copyTableAsCSV function so it's undefined
-        delete (window as any).copyTableAsCSV;
 
         electronAPI.emit("export-file", "test.csv");
 
@@ -2467,7 +2465,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(openFileBtn.disabled).toBe(false);
     });
 
-    it("export CSV: missing copyTableAsCSV function (lines 317-318)", async () => {
+    it("export CSV: no rows available (lines 317-318)", async () => {
         expect.hasAssertions();
 
         setupListeners({
@@ -2488,15 +2486,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         summaryContainer.id = "content-summary";
         document.body.appendChild(summaryContainer);
 
-        // Remove copyTableAsCSV function to trigger fallback
-        delete (globalThis as any).copyTableAsCSV;
-
         electronAPI.emit("export-file", "test-file.csv");
 
         await Promise.resolve();
 
-        // Since there's no error message in the actual code for missing copyTableAsCSV,
-        // we verify that nothing happens (no download link created)
+        // No exportable rows means no blank download is created.
         const downloadLink = document.querySelector("a[download]");
         expect(downloadLink).toBeNull();
     });

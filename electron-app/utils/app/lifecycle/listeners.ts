@@ -1,4 +1,7 @@
 import {
+    serializeTableToCSV,
+} from "../../files/export/copyTableAsCSV.js";
+import {
     buildGpxFromRecords,
     resolveTrackNameFromLoadedFiles,
     type GpxRecord,
@@ -113,7 +116,6 @@ type LifecycleElectronAPI = Partial<
 type LifecycleGlobal = typeof globalThis & {
     ChartUpdater?: { updateCharts?: (reason?: string) => unknown };
     __ffvLifecycleListenersCleanup?: () => void;
-    copyTableAsCSV?: (options: { container: Element; data: FitData }) => string;
     electronAPI?: LifecycleElectronAPI;
     loadedFitFiles?: LoadedFitFileDescriptor[];
     renderChart?: () => unknown;
@@ -205,17 +207,61 @@ function exportCsvFile(
     dependencies: ExportDownloadDependencies
 ): void {
     const container = querySelectorByIdFlexible(document, "#content_summary");
-    if (
-        typeof lifecycleGlobal.copyTableAsCSV !== "function" ||
-        !container
-    ) {
+    if (!container) {
         return;
     }
 
-    const csv = lifecycleGlobal.copyTableAsCSV({ container, data });
+    const csvRows = getCsvExportRows(container, data);
+    if (csvRows.length === 0) {
+        return;
+    }
+
+    const csv = serializeTableToCSV(csvRows);
     downloadBlob(new Blob([csv], { type: "text/csv" }), dependencies, {
         defaultExtension: "csv",
         fallbackBase: "export",
+    });
+}
+
+function getCsvExportRows(
+    container: Element,
+    data: FitData
+): unknown[] {
+    const table = container.querySelector("table");
+    if (table) {
+        const tableRows = getHtmlTableRows(table);
+        if (tableRows.length > 0) {
+            return tableRows;
+        }
+    }
+
+    return Array.isArray(data.recordMesgs) ? data.recordMesgs : [];
+}
+
+function getHtmlTableRows(table: HTMLTableElement): Record<string, unknown>[] {
+    const allRows = [...table.querySelectorAll("tr")];
+    if (allRows.length === 0) {
+        return [];
+    }
+
+    const headerRow = allRows[0];
+    if (!headerRow) {
+        return [];
+    }
+
+    const headerCells = [...headerRow.children];
+    const headers = headerCells.map((cell, index) => {
+        const text = cell.textContent?.trim();
+        return text && text.length > 0 ? text : `column_${index + 1}`;
+    });
+
+    return allRows.slice(1).map((row) => {
+        const values: Record<string, unknown> = {};
+        const cells = [...row.children];
+        for (const [index, header] of headers.entries()) {
+            values[header] = cells[index]?.textContent?.trim() ?? "";
+        }
+        return values;
     });
 }
 

@@ -49,38 +49,8 @@ type CopyCsvGlobal = typeof globalThis & {
  * @throws When the input table cannot be normalized or clipboard copying fails.
  */
 export async function copyTableAsCSV(table: unknown): Promise<void> {
-    let rows: TableRow[] | null = null;
-
-    if (isTableRowArray(table)) {
-        rows = table;
-    } else if (isRowsTable(table)) {
-        rows = table.rows;
-    } else if (isObjectsTable(table)) {
-        // Back-compat ONLY. Note: Arquero's objects() can violate CSP (unsafe-eval).
-        try {
-            rows = table.objects();
-        } catch (error) {
-            console.error("[copyTableAsCSV] Failed to copy table:", error);
-            throw error;
-        }
-    }
-
-    if (!rows) {
-        console.error(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.INVALID_TABLE}`);
-        throw new Error(CSV_CONFIG.MESSAGES.INVALID_TABLE);
-    }
-
     try {
-        // Serialize table data with object handling.
-        // IMPORTANT: Do not use Arquero's `toCSV()` here.
-        // Arquero's CSV implementation can rely on runtime function generation in some builds,
-        // which violates FitFileViewer's strict CSP (no `unsafe-eval`).
-        const processedRows = processTableRows(rows);
-
-        // Convert to CSV format (CSP-safe).
-        const csvString = buildCsvString(processedRows, {
-            includeHeader: CSV_CONFIG.HEADER_ENABLED,
-        });
+        const csvString = serializeTableToCSV(table);
 
         // Attempt clipboard copy
         await copyToClipboard(csvString);
@@ -88,6 +58,28 @@ export async function copyTableAsCSV(table: unknown): Promise<void> {
         console.error("[copyTableAsCSV] Failed to copy table:", error);
         throw error;
     }
+}
+
+/**
+ * Serializes table-like row data to a CSV string without touching the clipboard.
+ *
+ * IMPORTANT: Do not use Arquero's `toCSV()` here. Arquero's CSV implementation
+ * can rely on runtime function generation in some builds, which violates
+ * FitFileViewer's strict CSP (`unsafe-eval` is not allowed).
+ *
+ * @param table - Table-like rows to serialize.
+ *
+ * @returns CSV text suitable for clipboard or file export.
+ *
+ * @throws When the input table cannot be normalized.
+ */
+export function serializeTableToCSV(table: unknown): string {
+    const rows = normalizeTableRows(table);
+    const processedRows = processTableRows(rows);
+
+    return buildCsvString(processedRows, {
+        includeHeader: CSV_CONFIG.HEADER_ENABLED,
+    });
 }
 
 /**
@@ -278,6 +270,29 @@ function processTableRows(rows: TableRow[]): TableRow[] {
 
 function getCopyCsvGlobal(): CopyCsvGlobal {
     return globalThis;
+}
+
+function normalizeTableRows(table: unknown): TableRow[] {
+    if (isTableRowArray(table)) {
+        return table;
+    }
+
+    if (isRowsTable(table)) {
+        return table.rows;
+    }
+
+    if (isObjectsTable(table)) {
+        // Back-compat ONLY. Note: Arquero's objects() can violate CSP (unsafe-eval).
+        try {
+            return table.objects();
+        } catch (error) {
+            console.error("[copyTableAsCSV] Failed to copy table:", error);
+            throw error;
+        }
+    }
+
+    console.error(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.INVALID_TABLE}`);
+    throw new Error(CSV_CONFIG.MESSAGES.INVALID_TABLE);
 }
 
 function isRowsTable(table: unknown): table is RowsTable {

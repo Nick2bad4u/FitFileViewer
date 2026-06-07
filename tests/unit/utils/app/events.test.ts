@@ -1,7 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { setupListeners } from "../../../../electron-app/utils/app/events.js";
 import type { SetupListenersOptions } from "../../../../electron-app/utils/app/lifecycle/listeners.js";
+
+const csvExportMocks = vi.hoisted(() => ({
+    serializeTableToCSV: vi.fn<(table: unknown) => string>(),
+}));
+
+vi.mock(
+    import("../../../../electron-app/utils/files/export/copyTableAsCSV.js"),
+    () => ({
+        copyTableAsCSV: vi.fn<() => Promise<void>>(),
+        serializeTableToCSV: csvExportMocks.serializeTableToCSV,
+    })
+);
+
+import { setupListeners } from "../../../../electron-app/utils/app/events.js";
 
 const keyboardShortcutsModalMock = vi.hoisted(() => ({
     showKeyboardShortcutsModal: vi.fn<() => void>(),
@@ -15,10 +28,6 @@ vi.mock(
     })
 );
 
-type CopyTableAsCsv = (options: {
-    container: Element;
-    data: unknown;
-}) => string;
 type IpcHandler = (...args: unknown[]) => unknown;
 type LoadingCallback = SetupListenersOptions["setLoading"];
 type NotificationCallback = SetupListenersOptions["showNotification"];
@@ -88,7 +97,6 @@ type TestGlobals = typeof globalThis & {
     ChartUpdater?: {
         updateCharts: ReturnType<typeof vi.fn<(reason?: string) => unknown>>;
     };
-    copyTableAsCSV?: ReturnType<typeof vi.fn<CopyTableAsCsv>>;
     electronAPI?: TestElectronAPI;
     globalData?: unknown;
     loadedFitFiles?: unknown[];
@@ -261,11 +269,12 @@ describe(setupListeners, () => {
             "sendFitFileToAltFitReader",
             vi.fn<(arrayBuffer: ArrayBuffer) => unknown>()
         );
-        defineGlobalValue("copyTableAsCSV", vi.fn<CopyTableAsCsv>());
         defineGlobalValue("ChartUpdater", {
             updateCharts: vi.fn<(reason?: string) => unknown>(),
         });
         defineGlobalValue("globalData", { recordMesgs: [] });
+        csvExportMocks.serializeTableToCSV.mockReset();
+        csvExportMocks.serializeTableToCSV.mockReturnValue("header\nvalue");
         keyboardShortcutsModalMock.showKeyboardShortcutsModal.mockReset();
         defineGlobalValue("loadedFitFiles", []);
 
@@ -287,7 +296,6 @@ describe(setupListeners, () => {
         globalAny.electronAPI = undefined;
         delete globalAny.showFitData;
         delete globalAny.sendFitFileToAltFitReader;
-        delete globalAny.copyTableAsCSV;
         delete globalAny.ChartUpdater;
         delete globalAny.globalData;
         delete globalAny.loadedFitFiles;
@@ -526,12 +534,14 @@ describe(setupListeners, () => {
         );
     });
 
-    it("exports CSV files using copyTableAsCSV", async () => {
+    it("exports CSV files using serialized summary data", async () => {
         expect.assertions(7);
         vi.useFakeTimers();
         const csv = "header\nvalue";
-        const copyTableAsCSV = vi.fn<CopyTableAsCsv>(() => csv);
-        defineGlobalValue("copyTableAsCSV", copyTableAsCSV);
+        csvExportMocks.serializeTableToCSV.mockReturnValueOnce(csv);
+        defineGlobalValue("globalData", {
+            recordMesgs: [{ header: "value" }],
+        });
         const summaryContainer = requireElement(
             document.getElementById("content-summary"),
             "Content summary"
@@ -550,10 +560,9 @@ describe(setupListeners, () => {
         );
         await exportHandler("export.csv");
 
-        expect(globalAny.copyTableAsCSV).toHaveBeenCalledWith({
-            container: summaryContainer,
-            data: globalAny.globalData,
-        });
+        expect(csvExportMocks.serializeTableToCSV).toHaveBeenCalledWith([
+            { header: "value" },
+        ]);
         const csvBlob = getCreatedBlob(createObjectURLSpy);
         expect(csvBlob.type).toBe("text/csv");
         await expect(csvBlob.text()).resolves.toBe(csv);
