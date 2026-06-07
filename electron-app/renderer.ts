@@ -52,6 +52,12 @@ import {
     registerImportTimeFileInputChangeHandler,
     type RendererFileInputStartupOptions,
 } from "./renderer/fileInputStartup.js";
+import {
+    createTestDOMContentLoadedSetupHandler,
+    createTestWindowLoadThemeSetupHandler,
+    registerTestDOMContentLoadedSetupListener,
+    registerTestWindowLoadThemeSetupListener,
+} from "./renderer/testOnlyBootstrap.js";
 import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
@@ -627,6 +633,24 @@ let appState: LegacyRendererAppState | null = null;
  * @type {{ value: boolean }}
  */
 const isOpeningFileRef = { value: false };
+
+const testOnlyBootstrapOptions = {
+    callUnknownFunction,
+    getOpenFileButton: () =>
+        querySelectorByIdFlexible(document, "#open_file_btn"),
+    isOpeningFileRef,
+    resolveExactManualMock,
+    resolveManualMock,
+    scheduleImportTimeThemeSetup,
+    setLoading,
+};
+
+const onTestDOMContentLoadedSetupListeners =
+    createTestDOMContentLoadedSetupHandler(testOnlyBootstrapOptions);
+
+const onTestWindowLoadSetupTheme = createTestWindowLoadThemeSetupHandler(
+    testOnlyBootstrapOptions
+);
 
 /**
  * Global error handler for uncaught exceptions
@@ -1260,121 +1284,6 @@ async function initializeManualMasterStateManager(): Promise<void> {
 }
 
 /**
- * @returns {void}
- */
-function onTestDOMContentLoadedSetupListeners(): void {
-    try {
-        const moduleRecord = toModuleRecord(
-            resolveExactManualMock("../../utils/app/lifecycle/listeners.js") ??
-                resolveManualMock("/utils/app/lifecycle/listeners.js")
-        );
-        const setupListenersFn = moduleRecord["setupListeners"];
-        callUnknownFunction(setupListenersFn, [
-            {
-                applyTheme: () => {},
-                handleOpenFile: () => {},
-                isOpeningFileRef,
-                listenForThemeChange: () => {},
-                openFileBtn: querySelectorByIdFlexible(
-                    document,
-                    "#open_file_btn"
-                ),
-                setLoading,
-                showAboutModal: () => {},
-                showNotification: () => {},
-                showUpdateNotification: () => {},
-            },
-        ]);
-    } catch {
-        /* Ignore errors */
-    }
-}
-
-/**
- * @returns {void}
- */
-function onTestWindowLoadSetupTheme(): void {
-    try {
-        const setupThemeModule = toModuleRecord(
-            resolveExactManualMock("../../utils/theming/core/setupTheme.js") ??
-                resolveManualMock("/utils/theming/core/setupTheme.js")
-        );
-        const themeModule = toModuleRecord(
-            resolveExactManualMock("../../utils/theming/core/theme.js") ??
-                resolveManualMock("/utils/theming/core/theme.js")
-        );
-        const setupThemeFn = setupThemeModule["setupTheme"];
-        const applyThemeFn = themeModule["applyTheme"];
-        const listenForThemeChangeFn = themeModule["listenForThemeChange"];
-        if (
-            typeof setupThemeFn === "function" &&
-            typeof applyThemeFn === "function" &&
-            typeof listenForThemeChangeFn === "function"
-        ) {
-            callUnknownFunction(setupThemeFn, [
-                applyThemeFn,
-                listenForThemeChangeFn,
-            ]);
-            return;
-        }
-    } catch {
-        /* Ignore errors */
-    }
-    scheduleImportTimeThemeSetup();
-}
-
-/**
- * @returns {void}
- */
-function registerTestDOMContentLoadedSetupListener(): void {
-    document.addEventListener(
-        "DOMContentLoaded",
-        onTestDOMContentLoadedSetupListeners,
-        { once: false }
-    );
-    globalThis.addEventListener(
-        "beforeunload",
-        removeTestDOMContentLoadedSetupListener
-    );
-}
-
-/**
- * @returns {void}
- */
-function registerTestWindowLoadThemeSetupListener(): void {
-    window.addEventListener("load", onTestWindowLoadSetupTheme);
-    globalThis.addEventListener(
-        "beforeunload",
-        removeTestWindowLoadThemeSetupListener
-    );
-}
-
-/**
- * @returns {void}
- */
-function removeTestDOMContentLoadedSetupListener(): void {
-    document.removeEventListener(
-        "DOMContentLoaded",
-        onTestDOMContentLoadedSetupListeners
-    );
-    globalThis.removeEventListener(
-        "beforeunload",
-        removeTestDOMContentLoadedSetupListener
-    );
-}
-
-/**
- * @returns {void}
- */
-function removeTestWindowLoadThemeSetupListener(): void {
-    window.removeEventListener("load", onTestWindowLoadSetupTheme);
-    globalThis.removeEventListener(
-        "beforeunload",
-        removeTestWindowLoadThemeSetupListener
-    );
-}
-
-/**
  * @returns {unknown}
  */
 function resolveManualAppStateModule(): unknown {
@@ -1852,14 +1761,22 @@ try {
 
 // Ensure mocked setupListeners is invoked synchronously on DOMContentLoaded for tests
 try {
-    registerTestDOMContentLoadedSetupListener();
+    registerTestDOMContentLoadedSetupListener(
+        document,
+        globalThis,
+        onTestDOMContentLoadedSetupListeners
+    );
 } catch {
     /* Ignore errors */
 }
 
 // Ensure theme setup is invoked again on window load to satisfy event-based tests
 try {
-    registerTestWindowLoadThemeSetupListener();
+    registerTestWindowLoadThemeSetupListener(
+        globalThis,
+        globalThis,
+        onTestWindowLoadSetupTheme
+    );
 } catch {
     /* Ignore errors */
 }
