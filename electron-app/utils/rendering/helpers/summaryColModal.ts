@@ -13,6 +13,7 @@ import {
     orderSummaryColumnsNamedFirst,
     saveColPrefs,
 } from "./renderSummaryHelpers.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { createModalFocusTrap } from "../../ui/modals/modalFocusTrap.js";
 
 type SummaryColModalParams = {
@@ -32,8 +33,7 @@ type BadgeOptions = {
 };
 
 type SummaryGlobal = typeof globalThis & {
-    globalData?: unknown;
-    window?: (Window & typeof globalThis & { globalData?: unknown }) | null;
+    window?: (Window & typeof globalThis) | null;
 };
 
 function getSummaryGlobal(): SummaryGlobal {
@@ -45,6 +45,7 @@ function getSummaryGlobal(): SummaryGlobal {
  */
 export function showColModal({
     allKeys,
+    data,
     renderTable: reRenderTable,
     setVisibleColumns,
     visibleColumns: initialVisibleColumns,
@@ -106,9 +107,8 @@ export function showColModal({
     modal.append(header);
 
     const summaryGlobal = getSummaryGlobal();
-    const globalData =
-        summaryGlobal.window?.globalData ?? summaryGlobal.globalData ?? {};
-    const prefsKeyForFile = getStorageKey(globalData, allKeys);
+    const globalData = getGlobalData<FitSummaryData>(summaryGlobal);
+    const prefsKeyForFile = getStorageKey(globalData ?? data, allKeys);
     const prefsKeyGlobal = getGlobalStorageKey();
 
     const updateVisibleColumns = (cols: string[]): void => {

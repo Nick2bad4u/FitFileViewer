@@ -54,6 +54,7 @@ const allowedLegacyUtilityFiles = new Set([
 
 const migratedGlobalDataReaderFiles = [
     "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
+    "electron-app/utils/rendering/helpers/summaryColModal.ts",
 ] as const;
 
 const importSpecifierPattern =
