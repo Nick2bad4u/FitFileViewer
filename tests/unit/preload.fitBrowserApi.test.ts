@@ -1,0 +1,173 @@
+import { createRequire } from "node:module";
+
+import { describe, expect, it, vi } from "vitest";
+
+import type { FitBrowserInvokeChannel } from "../../electron-app/shared/ipc";
+import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
+
+interface FitBrowserApiModule {
+    createFitBrowserApi: (options: {
+        channels: {
+            FIT_BROWSER_ENABLED_CHANGED: string;
+            FIT_BROWSER_GET_FOLDER: "browser:getFolder";
+            FIT_BROWSER_IS_ENABLED: "browser:isEnabled";
+            FIT_BROWSER_LIST_FOLDER: "browser:listFolder";
+            FIT_BROWSER_SET_ENABLED: "browser:setEnabled";
+            FIT_BROWSER_SET_FOLDER: "browser:setFolder";
+        };
+        createSafeEventHandler: (
+            channel: string,
+            methodName: string,
+            transform?: (...args: unknown[]) => boolean
+        ) => (callback: (...args: unknown[]) => unknown) => () => void;
+        createSafeInvokeHandler: (
+            channel: FitBrowserInvokeChannel,
+            methodName: string
+        ) => (...args: unknown[]) => Promise<unknown>;
+    }) => Pick<
+        ElectronAPI,
+        | "getFitBrowserFolder"
+        | "isFitBrowserEnabled"
+        | "listFitBrowserFolder"
+        | "onFitBrowserEnabledChanged"
+        | "setFitBrowserEnabled"
+        | "setFitBrowserFolder"
+    >;
+}
+
+const requireFromTest = createRequire(import.meta.url);
+const { createFitBrowserApi } = requireFromTest(
+    "../../electron-app/preload/fitBrowserApi.js"
+) as FitBrowserApiModule;
+
+function createApi() {
+    const invokeCalls: Array<{
+        args: unknown[];
+        channel: FitBrowserInvokeChannel;
+        methodName: string;
+    }> = [];
+    const eventHandlers: Array<{
+        channel: string;
+        methodName: string;
+        transform?: (...args: unknown[]) => boolean;
+    }> = [];
+    const createSafeInvokeHandler = vi.fn(
+        (channel: FitBrowserInvokeChannel, methodName: string) =>
+            async (...args: unknown[]) => {
+                invokeCalls.push({ args, channel, methodName });
+                return `${methodName}:result`;
+            }
+    );
+    const createSafeEventHandler = vi.fn(
+        (
+            channel: string,
+            methodName: string,
+            transform?: (...args: unknown[]) => boolean
+        ) =>
+            (_callback: (...args: unknown[]) => unknown) => {
+                eventHandlers.push({ channel, methodName, transform });
+                return () => undefined;
+            }
+    );
+
+    return {
+        api: createFitBrowserApi({
+            channels: {
+                FIT_BROWSER_ENABLED_CHANGED: "fit-browser-enabled-changed",
+                FIT_BROWSER_GET_FOLDER: "browser:getFolder",
+                FIT_BROWSER_IS_ENABLED: "browser:isEnabled",
+                FIT_BROWSER_LIST_FOLDER: "browser:listFolder",
+                FIT_BROWSER_SET_ENABLED: "browser:setEnabled",
+                FIT_BROWSER_SET_FOLDER: "browser:setFolder",
+            },
+            createSafeEventHandler,
+            createSafeInvokeHandler,
+        }),
+        createSafeEventHandler,
+        createSafeInvokeHandler,
+        eventHandlers,
+        invokeCalls,
+    };
+}
+
+describe("preload FIT browser API", () => {
+    it("routes Browser tab invoke methods through the expected IPC channels", async () => {
+        expect.assertions(4);
+
+        const { api, createSafeInvokeHandler, invokeCalls } = createApi();
+
+        await expect(api.getFitBrowserFolder()).resolves.toBe(
+            "getFitBrowserFolder:result"
+        );
+        await expect(api.isFitBrowserEnabled()).resolves.toBe(
+            "isFitBrowserEnabled:result"
+        );
+        await api.listFitBrowserFolder();
+        await api.listFitBrowserFolder("2026");
+        await api.setFitBrowserEnabled(true);
+        await api.setFitBrowserFolder("C:/rides");
+
+        expect(createSafeInvokeHandler.mock.calls).toStrictEqual([
+            ["browser:listFolder", "listFitBrowserFolder"],
+            ["browser:getFolder", "getFitBrowserFolder"],
+            ["browser:isEnabled", "isFitBrowserEnabled"],
+            ["browser:setEnabled", "setFitBrowserEnabled"],
+            ["browser:setFolder", "setFitBrowserFolder"],
+        ]);
+        expect(invokeCalls).toStrictEqual([
+            {
+                args: [],
+                channel: "browser:getFolder",
+                methodName: "getFitBrowserFolder",
+            },
+            {
+                args: [],
+                channel: "browser:isEnabled",
+                methodName: "isFitBrowserEnabled",
+            },
+            {
+                args: [""],
+                channel: "browser:listFolder",
+                methodName: "listFitBrowserFolder",
+            },
+            {
+                args: ["2026"],
+                channel: "browser:listFolder",
+                methodName: "listFitBrowserFolder",
+            },
+            {
+                args: [true],
+                channel: "browser:setEnabled",
+                methodName: "setFitBrowserEnabled",
+            },
+            {
+                args: ["C:/rides"],
+                channel: "browser:setFolder",
+                methodName: "setFitBrowserFolder",
+            },
+        ]);
+    });
+
+    it("coerces Browser enabled events to a strict boolean", () => {
+        expect.assertions(3);
+
+        const { api, eventHandlers } = createApi();
+
+        api.onFitBrowserEnabledChanged(vi.fn());
+
+        expect(eventHandlers).toHaveLength(1);
+        expect(eventHandlers[0]).toMatchObject({
+            channel: "fit-browser-enabled-changed",
+            methodName: "onFitBrowserEnabledChanged",
+        });
+        expect({
+            falseValue: eventHandlers[0]?.transform?.(false),
+            truthyString: eventHandlers[0]?.transform?.("true"),
+            trueValue: eventHandlers[0]?.transform?.(true),
+        }).toStrictEqual({
+            falseValue: false,
+            truthyString: false,
+            trueValue: true,
+        });
+    });
+});

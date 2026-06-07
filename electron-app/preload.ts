@@ -31,14 +31,8 @@ type PreloadLog = (
     ...details: unknown[]
 ) => void;
 type UnknownCallback = (...args: unknown[]) => unknown;
-type IpcEventListener = (
-    event: object,
-    ...args: IpcResponsePayload[]
-) => void;
-type MainStateEventListener = (
-    event: object,
-    change: MainStateChange
-) => void;
+type IpcEventListener = (event: object, ...args: IpcResponsePayload[]) => void;
+type MainStateEventListener = (event: object, change: MainStateChange) => void;
 
 interface PreloadContextBridge {
     exposeInMainWorld?: (key: string, api: unknown) => void;
@@ -180,6 +174,41 @@ interface PreloadRequire {
                 methodName: string
             ) => null | string | undefined;
         }) => Pick<ElectronAPI, "injectMenu">;
+    };
+    (moduleId: "./preload/fitBrowserApi.js"): {
+        createFitBrowserApi: (options: {
+            channels: Pick<
+                PreloadChannels & PreloadEvents,
+                | "FIT_BROWSER_ENABLED_CHANGED"
+                | "FIT_BROWSER_GET_FOLDER"
+                | "FIT_BROWSER_IS_ENABLED"
+                | "FIT_BROWSER_LIST_FOLDER"
+                | "FIT_BROWSER_SET_ENABLED"
+                | "FIT_BROWSER_SET_FOLDER"
+            >;
+            createSafeEventHandler: (
+                channel: string,
+                methodName: string,
+                transform?: (...args: IpcResponsePayload[]) => boolean
+            ) => (callback: UnknownCallback) => () => void;
+            createSafeInvokeHandler: (
+                channel:
+                    | "browser:getFolder"
+                    | "browser:isEnabled"
+                    | "browser:listFolder"
+                    | "browser:setEnabled"
+                    | "browser:setFolder",
+                methodName: string
+            ) => (...args: unknown[]) => Promise<unknown>;
+        }) => Pick<
+            ElectronAPI,
+            | "getFitBrowserFolder"
+            | "isFitBrowserEnabled"
+            | "listFitBrowserFolder"
+            | "onFitBrowserEnabledChanged"
+            | "setFitBrowserEnabled"
+            | "setFitBrowserFolder"
+        >;
     };
     (moduleId: "./preload/validators.js"): {
         createPreloadValidators: (preloadLog: PreloadLog) => {
@@ -370,6 +399,9 @@ const { createClipboardBridge } = (require as PreloadRequire)(
 const { createDevtoolsMenuApi } = (require as PreloadRequire)(
     "./preload/devtoolsMenuApi.js"
 );
+const { createFitBrowserApi } = (require as PreloadRequire)(
+    "./preload/fitBrowserApi.js"
+);
 const { createPreloadValidators } = (require as PreloadRequire)(
     "./preload/validators.js"
 );
@@ -522,6 +554,27 @@ const genericIpcApi = createGenericIpcApi({
     validateCallback,
     validateChannelName,
 });
+const fitBrowserApi = createFitBrowserApi({
+    channels: {
+        FIT_BROWSER_ENABLED_CHANGED:
+            CONSTANTS.EVENTS.FIT_BROWSER_ENABLED_CHANGED,
+        FIT_BROWSER_GET_FOLDER: CONSTANTS.CHANNELS.FIT_BROWSER_GET_FOLDER,
+        FIT_BROWSER_IS_ENABLED: CONSTANTS.CHANNELS.FIT_BROWSER_IS_ENABLED,
+        FIT_BROWSER_LIST_FOLDER: CONSTANTS.CHANNELS.FIT_BROWSER_LIST_FOLDER,
+        FIT_BROWSER_SET_ENABLED: CONSTANTS.CHANNELS.FIT_BROWSER_SET_ENABLED,
+        FIT_BROWSER_SET_FOLDER: CONSTANTS.CHANNELS.FIT_BROWSER_SET_FOLDER,
+    },
+    createSafeEventHandler,
+    createSafeInvokeHandler: createSafeInvokeHandler as (
+        channel:
+            | "browser:getFolder"
+            | "browser:isEnabled"
+            | "browser:listFolder"
+            | "browser:setEnabled"
+            | "browser:setFolder",
+        methodName: string
+    ) => (...args: unknown[]) => Promise<unknown>,
+});
 
 // Main API object
 const electronAPI: ElectronAPI = {
@@ -539,7 +592,8 @@ const electronAPI: ElectronAPI = {
 
     /**
      * Legacy compatibility method. Renderer-originated recent-file approval is
-     * denied by the main process; trusted menu actions grant read access in main.
+     * denied by the main process; trusted menu actions grant read access in
+     * main.
      *
      * @param {string} filePath
      *
@@ -620,15 +674,7 @@ const electronAPI: ElectronAPI = {
      */
     getErrors: mainStateApi.getErrors,
 
-    /**
-     * Gets the persisted FIT browser folder (main process setting).
-     *
-     * @returns {Promise<string | null>}
-     */
-    getFitBrowserFolder: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_BROWSER_GET_FOLDER,
-        "getFitBrowserFolder"
-    ),
+    getFitBrowserFolder: fitBrowserApi.getFitBrowserFolder,
     /**
      * Gets the license info from the main process.
      *
@@ -755,26 +801,8 @@ const electronAPI: ElectronAPI = {
      */
     invoke: genericIpcApi.invoke,
 
-    /**
-     * Whether the experimental Browser tab is enabled.
-     *
-     * @returns {Promise<boolean>}
-     */
-    isFitBrowserEnabled: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_BROWSER_IS_ENABLED,
-        "isFitBrowserEnabled"
-    ),
-
-    /**
-     * Registers a handler for Browser tab enabled-state changes.
-     *
-     * @param {(enabled: boolean) => void} callback
-     */
-    onFitBrowserEnabledChanged: createSafeEventHandler(
-        CONSTANTS.EVENTS.FIT_BROWSER_ENABLED_CHANGED,
-        "onFitBrowserEnabledChanged",
-        (enabled: IpcResponsePayload) => enabled === true
-    ),
+    isFitBrowserEnabled: fitBrowserApi.isFitBrowserEnabled,
+    onFitBrowserEnabledChanged: fitBrowserApi.onFitBrowserEnabledChanged,
 
     /**
      * Listens for changes to a specific path in the main process state.
@@ -787,17 +815,7 @@ const electronAPI: ElectronAPI = {
      */
     listenToMainState: mainStateApi.listenToMainState,
 
-    /**
-     * Lists the current directory under the persisted FIT browser folder.
-     *
-     * @param {string} [relPath]
-     *
-     * @returns {Promise<IpcSerializable>}
-     */
-    listFitBrowserFolder: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_BROWSER_LIST_FOLDER,
-        "listFitBrowserFolder"
-    ) as ElectronAPI["listFitBrowserFolder"],
+    listFitBrowserFolder: fitBrowserApi.listFitBrowserFolder,
 
     /**
      * Notify the main process that a file has been loaded (or unloaded).
@@ -1129,29 +1147,8 @@ const electronAPI: ElectronAPI = {
         "sendThemeChanged"
     ),
 
-    /**
-     * Enable/disable the experimental Browser tab.
-     *
-     * @param {boolean} enabled
-     *
-     * @returns {Promise<boolean>}
-     */
-    setFitBrowserEnabled: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_BROWSER_SET_ENABLED,
-        "setFitBrowserEnabled"
-    ),
-
-    /**
-     * Persist the Browser root folder.
-     *
-     * @param {string} folderPath
-     *
-     * @returns {Promise<boolean>}
-     */
-    setFitBrowserFolder: createSafeInvokeHandler(
-        CONSTANTS.CHANNELS.FIT_BROWSER_SET_FOLDER,
-        "setFitBrowserFolder"
-    ),
+    setFitBrowserEnabled: fitBrowserApi.setFitBrowserEnabled,
+    setFitBrowserFolder: fitBrowserApi.setFitBrowserFolder,
 
     /**
      * Sets the full screen mode.
