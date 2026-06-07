@@ -22,7 +22,6 @@ type LoadedFitFileEntry = {
 type LoadOverlayTestGlobal = typeof globalThis & {
     globalData?: OverlayFitData | null;
     loadedFitFiles?: LoadedFitFileEntry[];
-    renderMap?: () => void;
     updateShownFilesList?: () => void;
 };
 
@@ -42,6 +41,7 @@ const mocks = vi.hoisted(() => ({
     loadSingleOverlayFile:
         vi.fn<(file: OverlayInputFile) => Promise<LoadSingleOverlayResult>>(),
     pLimitCompat: vi.fn<LimitFactory>((_concurrency) => async (task) => task()),
+    renderMap: vi.fn<() => void>(),
     setState:
         vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
     showNotification: vi.fn<(message: string, type?: string) => void>(),
@@ -85,6 +85,13 @@ vi.mock(
     })
 );
 
+vi.mock(
+    import("../../../../../electron-app/utils/maps/core/renderMap.js"),
+    () => ({
+        renderMap: mocks.renderMap,
+    })
+);
+
 const { loadOverlayFiles } =
     await import("../../../../../electron-app/utils/files/import/loadOverlayFiles.js");
 
@@ -93,7 +100,6 @@ const appGlobal = globalThis as LoadOverlayTestGlobal;
 function cleanupGlobals() {
     delete appGlobal.globalData;
     delete appGlobal.loadedFitFiles;
-    delete appGlobal.renderMap;
     delete appGlobal.updateShownFilesList;
     document.body.replaceChildren();
     vi.clearAllMocks();
@@ -115,12 +121,10 @@ describe(loadOverlayFiles, () => {
             name: "overlay.fit",
             path: String.raw`C:\rides\overlay.fit`,
         };
-        const renderMap = vi.fn<() => void>();
         const updateShownFilesList = vi.fn<() => void>();
 
         try {
             appGlobal.globalData = primaryData;
-            appGlobal.renderMap = renderMap;
             appGlobal.updateShownFilesList = updateShownFilesList;
             mocks.loadSingleOverlayFile.mockResolvedValue({
                 data: overlayData,
@@ -152,7 +156,7 @@ describe(loadOverlayFiles, () => {
                 appGlobal.loadedFitFiles,
                 { source: "loadOverlayFiles" }
             );
-            expect(renderMap).toHaveBeenCalledOnce();
+            expect(mocks.renderMap).toHaveBeenCalledOnce();
             expect(updateShownFilesList).toHaveBeenCalledOnce();
             expect(mocks.loadingHide).toHaveBeenCalledOnce();
             expect(mocks.showNotification).toHaveBeenCalledWith(

@@ -79,6 +79,7 @@ const rendererUtilsFreeFiles = [
     "electron-app/utils/state/integration/stateIntegration.ts",
 ] as const;
 const migratedRendererUtilityCallerFiles = [
+    "electron-app/utils/files/import/loadOverlayFiles.ts",
     "electron-app/utils/maps/core/renderMap.ts",
     "electron-app/utils/rendering/core/showFitData.ts",
     "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts",
@@ -94,7 +95,7 @@ const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
 const migratedRendererUtilityGlobalLookupPattern =
-    /\b(?:window|globalThis|showFitGlobal|windowExt)\.(?:createTables|renderMap|renderSummary|setTabButtonsEnabled|updateActiveTab|updateTabVisibility)\b/u;
+    /\b(?:appGlobal|window|globalThis|showFitGlobal|windowExt)\.(?:createTables|renderMap|renderSummary|setTabButtonsEnabled|updateActiveTab|updateTabVisibility)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");

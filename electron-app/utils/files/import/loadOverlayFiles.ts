@@ -33,7 +33,6 @@ export type LoadedFitFileEntry = {
 type LoadOverlayGlobal = typeof globalThis & {
     globalData?: OverlayFitData | null;
     loadedFitFiles?: LoadedFitFileEntry[];
-    renderMap?: () => void;
     updateShownFilesList?: () => void;
 };
 
@@ -161,9 +160,7 @@ export async function loadOverlayFiles(
         const currentTabId = currentTabButton?.id ?? "";
 
         syncLoadedFitFilesState();
-        if (typeof appGlobal.renderMap === "function") {
-            appGlobal.renderMap();
-        }
+        await refreshOverlayMap();
         if (typeof appGlobal.updateShownFilesList === "function") {
             appGlobal.updateShownFilesList();
         }
@@ -223,6 +220,15 @@ function syncLoadedFitFilesState(): void {
             "[loadOverlayFiles] Failed to sync loadedFitFiles state:",
             error
         );
+    }
+}
+
+async function refreshOverlayMap(): Promise<void> {
+    try {
+        const { renderMap } = await import("../../maps/core/renderMap.js");
+        renderMap();
+    } catch (error) {
+        console.error("[loadOverlayFiles] Failed to refresh overlay map:", error);
     }
 }
 
