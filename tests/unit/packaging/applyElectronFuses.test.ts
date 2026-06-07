@@ -18,8 +18,8 @@ describe("apply-electron-fuses script", () => {
             [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
             [FuseV1Options.EnableNodeCliInspectArguments]: false,
             [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
-            [FuseV1Options.GrantFileProtocolExtraPrivileges]: false,
-            [FuseV1Options.LoadBrowserProcessSpecificV8Snapshot]: true,
+            [FuseV1Options.GrantFileProtocolExtraPrivileges]: true,
+            [FuseV1Options.LoadBrowserProcessSpecificV8Snapshot]: false,
             [FuseV1Options.OnlyLoadAppFromAsar]: true,
             [FuseV1Options.RunAsNode]: false,
             [FuseV1Options.WasmTrapHandlers]: true,
@@ -33,9 +33,9 @@ describe("apply-electron-fuses script", () => {
             [FuseV1Options.EnableNodeCliInspectArguments]: FuseState.DISABLE,
             [FuseV1Options.EnableNodeOptionsEnvironmentVariable]:
                 FuseState.DISABLE,
-            [FuseV1Options.GrantFileProtocolExtraPrivileges]: FuseState.DISABLE,
+            [FuseV1Options.GrantFileProtocolExtraPrivileges]: FuseState.ENABLE,
             [FuseV1Options.LoadBrowserProcessSpecificV8Snapshot]:
-                FuseState.ENABLE,
+                FuseState.DISABLE,
             [FuseV1Options.OnlyLoadAppFromAsar]: FuseState.ENABLE,
             [FuseV1Options.RunAsNode]: FuseState.DISABLE,
             [FuseV1Options.WasmTrapHandlers]: FuseState.ENABLE,

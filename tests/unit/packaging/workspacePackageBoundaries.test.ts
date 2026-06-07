@@ -255,14 +255,17 @@ const expectedRootToolingScripts = {
     "release:check-signing": "node scripts/check-signing-env.mjs",
     pretest: "npm run prepare:electron && npm run build:runtime-ts",
     "release:verify": "npm run verify:release",
+    "test:packaged": "node scripts/run-packaged-smoke.mjs",
     "test:ui":
         "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --ui",
+    "test:playwright":
+        "npm run build:runtime-ts && cross-env PW_DISABLE_TS_ESM=1 playwright test tests/playwright/app-ui.spec.ts --config playwright.config.ts",
     "update-deps":
         "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",
     "verify:fast":
         "npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
     "verify:full":
-        "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package",
+        "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package && npm run test:packaged",
     "verify:release": "npm run verify:full",
 } as const;
 

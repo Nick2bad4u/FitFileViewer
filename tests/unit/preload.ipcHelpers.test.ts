@@ -123,10 +123,16 @@ describe("preload IPC helpers", () => {
         ipcRenderer.invoke.mockRejectedValueOnce(invokeError);
 
         await expect(
-            helpers.createSafeInvokeHandler("app:test", "testInvoke")("payload")
+            helpers.createSafeInvokeHandler(
+                "clipboard:writeText",
+                "testInvoke"
+            )("payload")
         ).rejects.toThrow("invoke failed");
 
-        expect(ipcRenderer.invoke).toHaveBeenCalledWith("app:test", "payload");
+        expect(ipcRenderer.invoke).toHaveBeenCalledWith(
+            "clipboard:writeText",
+            "payload"
+        );
         expect(preloadLog).toHaveBeenCalledWith(
             "error",
             "[preload.js] Error in testInvoke:",
@@ -171,6 +177,56 @@ describe("preload IPC helpers", () => {
             ["file:read", "coded-missing.fit"],
         ]);
         expect(preloadLog).not.toHaveBeenCalled();
+    });
+
+    it("rejects invalid invoke payloads before reaching IPC", async () => {
+        expect.assertions(9);
+
+        const { helpers, ipcRenderer, preloadLog } = createHelpers();
+
+        await expect(
+            helpers.createSafeInvokeHandler("file:read", "readFile")(null)
+        ).rejects.toThrow("file:read: expected one non-empty string argument");
+        await expect(
+            helpers.createSafeInvokeHandler(
+                "browser:setEnabled",
+                "setFitBrowserEnabled"
+            )("true")
+        ).rejects.toThrow("browser:setEnabled: expected one boolean argument");
+        await expect(
+            helpers.createSafeInvokeHandler(
+                "fit:parse",
+                "parseFitFile"
+            )("bytes")
+        ).rejects.toThrow("fit:parse: expected one ArrayBuffer argument");
+        await expect(
+            helpers.createSafeInvokeHandler(
+                "gyazo:server:start",
+                "startGyazoServer"
+            )(70_000)
+        ).rejects.toThrow("gyazo:server:start: expected one TCP port number");
+        await expect(
+            helpers.createSafeInvokeHandler("main-state:set", "setMainState")(
+                "ui.theme",
+                () => "dark"
+            )
+        ).rejects.toThrow(
+            "main-state:set: expected a state path, serializable value, and optional serializable options"
+        );
+        await expect(
+            helpers.createSafeInvokeHandler("main-state:set", "setMainState")(
+                "fit.bytes",
+                new ArrayBuffer(8)
+            )
+        ).rejects.toThrow(
+            "main-state:set: expected a state path, serializable value, and optional serializable options"
+        );
+        await expect(
+            helpers.createSafeInvokeHandler("unknown:invoke", "unknownInvoke")()
+        ).rejects.toThrow("unknown:invoke: is not an allowed invoke channel");
+
+        expect(ipcRenderer.invoke).not.toHaveBeenCalled();
+        expect(preloadLog).toHaveBeenCalledTimes(7);
     });
 
     it("sends IPC and logs send failures without throwing", () => {

@@ -246,7 +246,8 @@
         "test:coverage": "node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --coverage --run --reporter=dot --silent --maxWorkers 1",
         "test:coverage:changed": "node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --coverage --changed --run --reporter=dot --silent --maxWorkers 1",
         "test:integration": "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --run tests/integration --maxWorkers 1",
-        "test:playwright": "npm run build:runtime-ts && cross-env PW_DISABLE_TS_ESM=1 playwright test --config playwright.config.ts",
+        "test:packaged": "node scripts/run-packaged-smoke.mjs",
+        "test:playwright": "npm run build:runtime-ts && cross-env PW_DISABLE_TS_ESM=1 playwright test tests/playwright/app-ui.spec.ts --config playwright.config.ts",
         "test:tabs": "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --run --reporter=verbose tests/unit/tabs --maxWorkers 1",
         "test:ui": "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --ui",
         "test:unit": "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --run tests/unit --maxWorkers 1",
@@ -256,7 +257,7 @@
         "types:build": "tsc --project tsconfig.app.json --declaration --emitDeclarationOnly --declarationMap false --outDir ./types",
         "update-deps": "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",
         "verify:fast": "npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
-        "verify:full": "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package",
+        "verify:full": "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package && npm run test:packaged",
         "verify:release": "npm run verify:full"
     },
     "overrides": {

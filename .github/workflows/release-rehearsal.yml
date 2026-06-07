@@ -1,0 +1,74 @@
+name: Release Rehearsal
+run-name: Release Rehearsal (${{ github.ref_name }})
+
+concurrency:
+    group: release-rehearsal-${{ github.ref }}
+    cancel-in-progress: true
+
+on:
+    workflow_dispatch:
+        inputs:
+            require-code-signing:
+                description: "Fail if the configured signing environment is incomplete"
+                required: true
+                default: "false"
+                type: choice
+                options:
+                    - "false"
+                    - "true"
+
+permissions:
+    contents: read
+
+jobs:
+    release-rehearsal:
+        name: Verify Unsigned Release Package
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        env:
+            CI: true
+            NODE_OPTIONS: --max_old_space_size=8192
+        defaults:
+            run:
+                shell: bash
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+              with:
+                  egress-policy: audit
+
+            - name: Checkout Repo code
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node.js environment (v24)
+              uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+              with:
+                  node-version: 24
+
+            - name: Install app and docs dependencies
+              run: |
+                  npm ci --no-audit --no-fund
+                  npm ci --prefix docusaurus --no-audit --no-fund
+
+            - name: Check signing environment
+              run: npm run release:check-signing -- --runner-os "$RUNNER_OS"
+              env:
+                  REQUIRE_CODE_SIGNING: ${{ inputs.require-code-signing }}
+                  RUNNER_OS: ${{ runner.os }}
+
+            - name: Run release verification and packaged smoke
+              run: xvfb-run -a npm run release:verify
+              env:
+                  REQUIRE_CODE_SIGNING: "false"
+                  RUNNER_OS: ${{ runner.os }}
+
+            - name: Upload rehearsal artifacts
+              if: always()
+              uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+              with:
+                  name: release-rehearsal-${{ runner.os }}
+                  path: release-dist/**
+                  if-no-files-found: error
+                  include-hidden-files: true

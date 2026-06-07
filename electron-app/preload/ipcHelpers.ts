@@ -80,6 +80,221 @@
         return noopUnsubscribe;
     }
 
+    function createInvokeValidationError(
+        channel: string,
+        message: string
+    ): TypeError {
+        return new TypeError(`${channel}: ${message}`);
+    }
+
+    function isNonEmptyString(value: unknown): value is string {
+        return typeof value === "string" && value.trim().length > 0;
+    }
+
+    function isSerializableMainStateValue(value: unknown): boolean {
+        if (value === null || value === undefined) {
+            return true;
+        }
+
+        if (
+            [
+                "boolean",
+                "number",
+                "string",
+            ].includes(typeof value)
+        ) {
+            return true;
+        }
+
+        if (Array.isArray(value)) {
+            return value.every(isSerializableMainStateValue);
+        }
+
+        if (typeof value !== "object") {
+            return false;
+        }
+
+        const prototype = Object.getPrototypeOf(value);
+        if (prototype !== null && prototype !== Object.prototype) {
+            return false;
+        }
+
+        return Object.values(value as Record<string, unknown>).every(
+            isSerializableMainStateValue
+        );
+    }
+
+    function validateNoArgs(channel: string, args: readonly unknown[]): void {
+        if (args.length > 0) {
+            throw createInvokeValidationError(channel, "expected no arguments");
+        }
+    }
+
+    function validateSingleStringArg(
+        channel: string,
+        args: readonly unknown[]
+    ): void {
+        if (args.length !== 1 || !isNonEmptyString(args[0])) {
+            throw createInvokeValidationError(
+                channel,
+                "expected one non-empty string argument"
+            );
+        }
+    }
+
+    function validateInvokeArgs(
+        channel: string,
+        args: readonly unknown[]
+    ): void {
+        switch (channel) {
+            case "browser:getFolder":
+            case "browser:isEnabled":
+            case "dialog:openFile":
+            case "dialog:openFolder":
+            case "dialog:openOverlayFiles":
+            case "getAppVersion":
+            case "getChromeVersion":
+            case "getElectronVersion":
+            case "getLicenseInfo":
+            case "getNodeVersion":
+            case "getPlatformInfo":
+            case "gyazo:server:stop":
+            case "map-tab:get":
+            case "recentFiles:get":
+            case "theme:get": {
+                validateNoArgs(channel, args);
+                return;
+            }
+
+            case "browser:listFolder":
+            case "browser:setFolder":
+            case "clipboard:writePngDataUrl":
+            case "clipboard:writeText":
+            case "file:read":
+            case "main-state:listen":
+            case "main-state:operation":
+            case "main-state:unlisten":
+            case "recentFiles:add":
+            case "recentFiles:approve":
+            case "shell:openExternal": {
+                validateSingleStringArg(channel, args);
+                return;
+            }
+
+            case "browser:setEnabled": {
+                if (args.length !== 1 || typeof args[0] !== "boolean") {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected one boolean argument"
+                    );
+                }
+                return;
+            }
+
+            case "devtools-inject-menu": {
+                if (
+                    args.length > 2 ||
+                    args.some(
+                        (arg) =>
+                            arg !== undefined &&
+                            arg !== null &&
+                            !isNonEmptyString(arg)
+                    )
+                ) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected optional theme and FIT file path strings"
+                    );
+                }
+                return;
+            }
+
+            case "fit:decode":
+            case "fit:parse": {
+                if (args.length !== 1 || !(args[0] instanceof ArrayBuffer)) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected one ArrayBuffer argument"
+                    );
+                }
+                return;
+            }
+
+            case "gyazo:server:start": {
+                if (
+                    args.length !== 1 ||
+                    typeof args[0] !== "number" ||
+                    !Number.isInteger(args[0]) ||
+                    args[0] < 1 ||
+                    args[0] > 65_535
+                ) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected one TCP port number"
+                    );
+                }
+                return;
+            }
+
+            case "main-state:errors": {
+                if (
+                    args.length > 1 ||
+                    (args[0] !== undefined &&
+                        (typeof args[0] !== "number" ||
+                            !Number.isInteger(args[0]) ||
+                            args[0] < 0))
+                ) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected an optional non-negative integer limit"
+                    );
+                }
+                return;
+            }
+
+            case "main-state:get": {
+                if (
+                    args.length > 1 ||
+                    (args[0] !== undefined && !isNonEmptyString(args[0]))
+                ) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected an optional non-empty state path"
+                    );
+                }
+                return;
+            }
+
+            case "main-state:metrics":
+            case "main-state:operations": {
+                validateNoArgs(channel, args);
+                return;
+            }
+
+            case "main-state:set": {
+                if (
+                    args.length < 2 ||
+                    args.length > 3 ||
+                    !isNonEmptyString(args[0]) ||
+                    !isSerializableMainStateValue(args[1]) ||
+                    (args[2] !== undefined &&
+                        !isSerializableMainStateValue(args[2]))
+                ) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected a state path, serializable value, and optional serializable options"
+                    );
+                }
+                return;
+            }
+        }
+
+        throw createInvokeValidationError(
+            channel,
+            "is not an allowed invoke channel"
+        );
+    }
+
     function createPreloadIpcHelpers({
         ipcRenderer,
         preloadLog,
@@ -145,6 +360,7 @@
         ) => Promise<InvokeResponsePayloadForChannel<Channel>> {
             return async (...args) => {
                 try {
+                    validateInvokeArgs(channel, args);
                     return (await ipcRenderer.invoke(
                         channel,
                         ...args
