@@ -179,8 +179,34 @@ describe("preload IPC helpers", () => {
         expect(preloadLog).not.toHaveBeenCalled();
     });
 
+    it("allows browser root folder listings with an empty relative path", async () => {
+        expect.assertions(3);
+
+        const { helpers, ipcRenderer, preloadLog } = createHelpers();
+        ipcRenderer.invoke.mockResolvedValueOnce({
+            entries: [],
+            root: "C:\\fit-files",
+        });
+
+        await expect(
+            helpers.createSafeInvokeHandler(
+                "browser:listFolder",
+                "listFitBrowserFolder"
+            )("")
+        ).resolves.toStrictEqual({
+            entries: [],
+            root: "C:\\fit-files",
+        });
+
+        expect(ipcRenderer.invoke).toHaveBeenCalledWith(
+            "browser:listFolder",
+            ""
+        );
+        expect(preloadLog).not.toHaveBeenCalled();
+    });
+
     it("rejects invalid invoke payloads before reaching IPC", async () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const { helpers, ipcRenderer, preloadLog } = createHelpers();
 
@@ -193,6 +219,12 @@ describe("preload IPC helpers", () => {
                 "setFitBrowserEnabled"
             )("true")
         ).rejects.toThrow("browser:setEnabled: expected one boolean argument");
+        await expect(
+            helpers.createSafeInvokeHandler(
+                "browser:listFolder",
+                "listFitBrowserFolder"
+            )(null)
+        ).rejects.toThrow("browser:listFolder: expected one string argument");
         await expect(
             helpers.createSafeInvokeHandler(
                 "fit:parse",
@@ -226,7 +258,7 @@ describe("preload IPC helpers", () => {
         ).rejects.toThrow("unknown:invoke: is not an allowed invoke channel");
 
         expect(ipcRenderer.invoke).not.toHaveBeenCalled();
-        expect(preloadLog).toHaveBeenCalledTimes(7);
+        expect(preloadLog).toHaveBeenCalledTimes(8);
     });
 
     it("sends IPC and logs send failures without throwing", () => {

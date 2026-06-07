@@ -142,6 +142,18 @@
         }
     }
 
+    function validateSingleStringArgAllowingEmpty(
+        channel: string,
+        args: readonly unknown[]
+    ): void {
+        if (args.length !== 1 || typeof args[0] !== "string") {
+            throw createInvokeValidationError(
+                channel,
+                "expected one string argument"
+            );
+        }
+    }
+
     function validateInvokeArgs(
         channel: string,
         args: readonly unknown[]
@@ -166,7 +178,21 @@
                 return;
             }
 
-            case "browser:listFolder":
+            case "browser:listFolder": {
+                validateSingleStringArgAllowingEmpty(channel, args);
+                return;
+            }
+
+            case "browser:setEnabled": {
+                if (args.length !== 1 || typeof args[0] !== "boolean") {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected one boolean argument"
+                    );
+                }
+                return;
+            }
+
             case "browser:setFolder":
             case "clipboard:writePngDataUrl":
             case "clipboard:writeText":
@@ -178,16 +204,6 @@
             case "recentFiles:approve":
             case "shell:openExternal": {
                 validateSingleStringArg(channel, args);
-                return;
-            }
-
-            case "browser:setEnabled": {
-                if (args.length !== 1 || typeof args[0] !== "boolean") {
-                    throw createInvokeValidationError(
-                        channel,
-                        "expected one boolean argument"
-                    );
-                }
                 return;
             }
 
