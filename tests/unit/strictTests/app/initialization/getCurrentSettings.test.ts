@@ -11,6 +11,7 @@ type ChartTestGlobal = typeof globalThis & {
 const mocks = vi.hoisted(() => ({
     debouncedRender: vi.fn<(reason: string) => void>(),
     destroyChart: vi.fn<() => void>(),
+    getState: vi.fn<(path: string) => unknown>(),
     setState:
         vi.fn<
             (
@@ -89,6 +90,7 @@ vi.mock(
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
+        getState: mocks.getState,
         setState: mocks.setState,
         subscribe: vi.fn<(path: string, callback: () => void) => () => void>(
             () => () => {
@@ -270,6 +272,9 @@ function resetTestState(): void {
     const testGlobal = globalThis as ChartTestGlobal;
     testGlobal._chartjsInstances = [];
     testGlobal.globalData = { recordMesgs: [{}] };
+    mocks.getState.mockImplementation((path) =>
+        path === "globalData" ? testGlobal.globalData : undefined
+    );
 }
 
 function createSelectSetting(labelText: string, selectId: string): HTMLElement {

@@ -1,6 +1,7 @@
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { getChartRenderContainer } from "../../charts/dom/chartDomUtils.js";
 import { queryAll } from "../../dom/index.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { setState } from "../../state/core/stateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
@@ -21,8 +22,11 @@ type ChartSettingsGlobal = typeof globalThis & {
     _chartjsInstances?: unknown;
     chartActions?: unknown;
     chartStateManager?: unknown;
-    globalData?: null | { recordMesgs?: unknown };
     renderChartJS?: (target?: Element | null) => unknown;
+};
+
+type ChartSettingsGlobalData = {
+    readonly recordMesgs?: unknown;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -61,6 +65,10 @@ const LOG_PREFIX = "[ChartSettings]";
 
 function getChartSettingsGlobal(): ChartSettingsGlobal {
     return globalThis;
+}
+
+function hasChartData(): boolean {
+    return Boolean(getGlobalData<ChartSettingsGlobalData>()?.recordMesgs);
 }
 
 function isChartActionsLike(value: unknown): value is ChartActionsLike {
@@ -227,7 +235,7 @@ export function reRenderChartsAfterSettingChange(
     try {
         const chartGlobal = getChartSettingsGlobal();
         // Check if chart data is available
-        if (!chartGlobal.globalData || !chartGlobal.globalData.recordMesgs) {
+        if (!hasChartData()) {
             console.log(
                 `${LOG_PREFIX} No chart data available for re-rendering after ${settingName} change`
             );
@@ -290,7 +298,7 @@ export function reRenderChartsAfterReset(): void {
     try {
         const chartGlobal = getChartSettingsGlobal();
         // Check if chart data is available
-        if (!chartGlobal.globalData || !chartGlobal.globalData.recordMesgs) {
+        if (!hasChartData()) {
             console.log(
                 `${LOG_PREFIX} No chart data available for re-rendering`
             );
