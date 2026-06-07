@@ -35,6 +35,12 @@ import {
     createRendererPerformanceMonitor,
     type RendererPerformanceMonitor,
 } from "./renderer/startupPerformanceMonitor.js";
+import {
+    getElectronApiHooksFromValue,
+    getElectronApiStartupHooks,
+    registerStartupElectronHooks,
+    type RendererApplyTheme as ApplyTheme,
+} from "./renderer/electronApiStartupHooks.js";
 import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
@@ -44,26 +50,12 @@ import { getState, subscribe } from "./utils/state/core/stateManager.js";
 import { querySelectorByIdFlexible } from "./utils/ui/dom/elementIdUtils.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
 
-type ApplyTheme = (theme: string, withTransition?: boolean) => void;
-interface ElectronApiStartupHooks {
-    checkForUpdates: (() => unknown) | undefined;
-    isDevelopment: (() => Promise<unknown>) | undefined;
-    onMenuAction:
-        | ((callback: (action: unknown) => void) => unknown)
-        | undefined;
-    onThemeChanged:
-        | ((callback: (theme: string) => void) => unknown)
-        | undefined;
-    recentFiles: (() => Promise<unknown>) | undefined;
-}
 interface LegacyRendererAppState {
     isInitialized: boolean;
     isOpeningFile: boolean;
     startTime: number | undefined;
 }
-type ListenForThemeChange = (
-    onThemeChange: (theme: string) => void
-) => void;
+type ListenForThemeChange = (onThemeChange: (theme: string) => void) => void;
 type LogRendererLevel = "error" | "group" | "groupEnd" | "log" | "warn";
 interface RendererCoreModules {
     [exportName: string]: unknown;
@@ -128,7 +120,7 @@ function callBooleanAppAction(
 ): void {
     const action = appActions[actionName];
     if (typeof action === "function") {
-        const actionFn = /** @type {(value: boolean) => unknown} */ (action);
+        const actionFn = /** @type {(value: boolean) => unknown} */ action;
         actionFn(value);
     }
 }
@@ -193,7 +185,10 @@ function toUnknownRendererFunction(
  *
  * @type {{ promise: Promise<void> | null; initialized: boolean }}
  */
-const stateInitTracker: { initialized: boolean; promise: null | Promise<void> } = {
+const stateInitTracker: {
+    initialized: boolean;
+    promise: null | Promise<void>;
+} = {
     initialized: false,
     promise: null,
 };
@@ -216,7 +211,7 @@ function callRecordMethod(
     }
 
     const methodFn =
-        /** @type {(this: unknown, ...args: unknown[]) => unknown} */ (method);
+        /** @type {(this: unknown, ...args: unknown[]) => unknown} */ method;
     return methodFn.apply(target, args);
 }
 
@@ -234,7 +229,7 @@ function callUnknownFunction(
         return undefined;
     }
 
-    const callable = /** @type {(...args: unknown[]) => unknown} */ (candidate);
+    const callable = /** @type {(...args: unknown[]) => unknown} */ candidate;
     return callable(...args);
 }
 
@@ -297,7 +292,9 @@ async function ensureCoreModules(): Promise<RendererCoreModules> {
         getAppDomainState: toUnknownRendererFunction(
             resolveDefaultableExport(appDomainMod, "getState")
         ),
-        handleOpenFile: toUnknownRendererFunction(openFileMod["handleOpenFile"]),
+        handleOpenFile: toUnknownRendererFunction(
+            openFileMod["handleOpenFile"]
+        ),
         listenForThemeChange: toListenForThemeChange(
             themeMod["listenForThemeChange"]
         ),
@@ -319,60 +316,6 @@ async function ensureCoreModules(): Promise<RendererCoreModules> {
             resolveDefaultableExport(uiStateMod, "uiStateManager") ??
             uiStateMod,
     };
-}
-
-/**
- * @param {unknown} apiValue
- *
- * @returns {ElectronApiStartupHooks | null}
- */
-function getElectronApiHooksFromValue(
-    apiValue: unknown
-): ElectronApiStartupHooks | null {
-    const api = toModuleRecord(apiValue);
-    if (Object.keys(api).length === 0) {
-        return null;
-    }
-
-    const isDevelopment = api["isDevelopment"];
-    const onMenuAction = api["onMenuAction"];
-    const onThemeChanged = api["onThemeChanged"];
-    const recentFiles = api["recentFiles"];
-    const checkForUpdates = api["checkForUpdates"];
-
-    return {
-        checkForUpdates:
-            typeof checkForUpdates === "function"
-                ? (checkForUpdates as () => unknown)
-                : undefined,
-        isDevelopment:
-            typeof isDevelopment === "function"
-                ? (isDevelopment as () => Promise<unknown>)
-                : undefined,
-        onMenuAction:
-            typeof onMenuAction === "function"
-                ? (onMenuAction as (
-                      callback: (action: unknown) => void
-                  ) => unknown)
-                : undefined,
-        onThemeChanged:
-            typeof onThemeChanged === "function"
-                ? (onThemeChanged as (
-                      callback: (theme: string) => void
-                  ) => unknown)
-                : undefined,
-        recentFiles:
-            typeof recentFiles === "function"
-                ? (recentFiles as () => Promise<unknown>)
-                : undefined,
-    };
-}
-
-/**
- * @returns {ElectronApiStartupHooks | null}
- */
-function getElectronApiStartupHooks(): ElectronApiStartupHooks | null {
-    return getElectronApiHooksFromValue(Reflect.get(globalThis, "electronAPI"));
 }
 
 /**
@@ -400,7 +343,7 @@ function getMasterAppFlag(masterStateManager: unknown, key: string): boolean {
         return false;
     }
 
-    const getStateFn = /** @type {() => unknown} */ (getStateMember);
+    const getStateFn = /** @type {() => unknown} */ getStateMember;
     const state = toModuleRecord(getStateFn());
     const app = toModuleRecord(state["app"]);
 
@@ -461,8 +404,9 @@ function getStateStartTime(): number | undefined {
  * @returns {Map<string, unknown> | null}
  */
 function getVitestManualMockRegistry(): Map<string, unknown> | null {
-    const registry = /** @type {unknown} */ (
-        Reflect.get(globalThis, "__vitest_manual_mocks__")
+    const registry = /** @type {unknown} */ Reflect.get(
+        globalThis,
+        "__vitest_manual_mocks__"
     );
 
     return registry instanceof Map ? registry : null;
@@ -476,59 +420,37 @@ function getVitestManualMockRegistry(): Map<string, unknown> | null {
 async function importRendererModule(realPath: string): Promise<unknown> {
     switch (realPath) {
         case "./utils/app/lifecycle/appActions.js": {
-            return /** @type {Promise<unknown>} */ (
-                import("./utils/app/lifecycle/appActions.js")
-            );
+            return /** @type {Promise<unknown>} */ import("./utils/app/lifecycle/appActions.js");
         }
         case "./utils/app/lifecycle/listeners.js": {
-            return /** @type {Promise<unknown>} */ (
-                import("./utils/app/lifecycle/listeners.js")
-            );
+            return /** @type {Promise<unknown>} */ import("./utils/app/lifecycle/listeners.js");
         }
         case "./utils/files/import/handleOpenFile.js": {
-            return /** @type {Promise<unknown>} */ (
-                import("./utils/files/import/handleOpenFile.js")
-            );
+            return /** @type {Promise<unknown>} */ import("./utils/files/import/handleOpenFile.js");
         }
         case "./utils/state/core/masterStateManager.js": {
-            return /** @type {Promise<unknown>} */ (
-                import("./utils/state/core/masterStateManager.js")
-            );
+            return /** @type {Promise<unknown>} */ import("./utils/state/core/masterStateManager.js");
         }
         case "./utils/state/domain/appState.js": {
-            return /** @type {Promise<unknown>} */ (
-                import("./utils/state/domain/appState.js")
-            );
+            return /** @type {Promise<unknown>} */ import("./utils/state/domain/appState.js");
         }
         case "./utils/state/domain/uiStateManager.js": {
-            return /** @type {Promise<unknown>} */ (
-                import("./utils/state/domain/uiStateManager.js")
-            );
+            return /** @type {Promise<unknown>} */ import("./utils/state/domain/uiStateManager.js");
         }
         case "./utils/theming/core/setupTheme.js": {
-            return /** @type {Promise<unknown>} */ (
-                import("./utils/theming/core/setupTheme.js")
-            );
+            return /** @type {Promise<unknown>} */ import("./utils/theming/core/setupTheme.js");
         }
         case "./utils/theming/core/theme.js": {
-            return /** @type {Promise<unknown>} */ (
-                import("./utils/theming/core/theme.js")
-            );
+            return /** @type {Promise<unknown>} */ import("./utils/theming/core/theme.js");
         }
         case "./utils/ui/modals/aboutModal.js": {
-            return /** @type {Promise<unknown>} */ (
-                import("./utils/ui/modals/aboutModal.js")
-            );
+            return /** @type {Promise<unknown>} */ import("./utils/ui/modals/aboutModal.js");
         }
         case "./utils/ui/notifications/showNotification.js": {
-            return /** @type {Promise<unknown>} */ (
-                import("./utils/ui/notifications/showNotification.js")
-            );
+            return /** @type {Promise<unknown>} */ import("./utils/ui/notifications/showNotification.js");
         }
         case "./utils/ui/notifications/showUpdateNotification.js": {
-            return /** @type {Promise<unknown>} */ (
-                import("./utils/ui/notifications/showUpdateNotification.js")
-            );
+            return /** @type {Promise<unknown>} */ import("./utils/ui/notifications/showUpdateNotification.js");
         }
         default: {
             throw new Error(`Unsupported renderer module import: ${realPath}`);
@@ -561,66 +483,6 @@ function onUncaughtErrorEvent(event: Event): void {
  */
 function onUnhandledRejectionEvent(event: Event): void {
     void handleUnhandledRejection(event as PromiseRejectionEvent);
-}
-
-/**
- * @param {ElectronApiStartupHooks} apiHooks
- *
- * @returns {void}
- */
-function probeDevelopmentMode(apiHooks: ElectronApiStartupHooks): void {
-    if (apiHooks.isDevelopment === undefined) {
-        return;
-    }
-
-    void (async () => {
-        try {
-            await apiHooks.isDevelopment?.();
-        } catch {
-            /* Ignore optional startup probe errors */
-        }
-    })();
-}
-
-/**
- * @param {ElectronApiStartupHooks} apiHooks
- * @param {HTMLElement | null} openFileBtn
- * @param {((html?: string) => void) | undefined} showAboutModal
- * @param {((theme: string, withTransition?: boolean) => void) | undefined} applyTheme
- *
- * @returns {void}
- */
-function registerStartupElectronHooks(
-    apiHooks: ElectronApiStartupHooks,
-    openFileBtn: HTMLElement | null,
-    showAboutModal: ((html?: string) => void) | undefined,
-    applyTheme: ApplyTheme | undefined
-): void {
-    try {
-        apiHooks.onMenuAction?.((action) => {
-            if (action === "open-file" && openFileBtn !== null) {
-                openFileBtn.click();
-            } else if (action === "about") {
-                try {
-                    showAboutModal?.();
-                } catch {
-                    /* Ignore errors */
-                }
-            }
-        });
-
-        apiHooks.onThemeChanged?.((theme) => {
-            try {
-                applyTheme?.(theme);
-            } catch {
-                /* Ignore errors */
-            }
-        });
-
-        probeDevelopmentMode(apiHooks);
-    } catch {
-        /* Ignore errors */
-    }
 }
 
 /**
@@ -782,9 +644,8 @@ async function handleUncaughtError(event: ErrorEvent): Promise<void> {
         const showNotification = coreModules.showNotification;
 
         if (typeof showNotification === "function") {
-            const notify = /** @type {UnknownRendererFunction} */ (
-                showNotification
-            );
+            const notify =
+                /** @type {UnknownRendererFunction} */ showNotification;
             notify(
                 `Critical error: ${getErrorMessage(event.error)}`,
                 "error",
@@ -823,9 +684,8 @@ async function handleUnhandledRejection(
         const showNotification = coreModules.showNotification;
 
         if (typeof showNotification === "function") {
-            const notify = /** @type {UnknownRendererFunction} */ (
-                showNotification
-            );
+            const notify =
+                /** @type {UnknownRendererFunction} */ showNotification;
             notify(
                 `Application error: ${getErrorMessage(event.reason)}`,
                 "error",
@@ -958,9 +818,7 @@ async function initializeApplication(): Promise<void> {
         const setInitialized = appActions["setInitialized"];
         if (typeof setInitialized === "function") {
             const setInitializedFn =
-                /** @type {(initialized: boolean) => unknown} */ (
-                    setInitialized
-                );
+                /** @type {(initialized: boolean) => unknown} */ setInitialized;
             setInitializedFn(true);
         }
 
@@ -1164,9 +1022,7 @@ async function initializeStateManager(): Promise<void> {
 
             // Initialize the master state manager (ensure spy in tests is triggered)
             const initializeFn =
-                /** @type {(this: unknown) => Promise<unknown> | unknown} */ (
-                    initialize
-                );
+                /** @type {(this: unknown) => Promise<unknown> | unknown} */ initialize;
             await initializeFn.call(masterStateManager);
 
             // Create legacy compatibility object
@@ -1362,9 +1218,7 @@ if (isDevelopmentMode()) {
     };
 
     /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const handleOpenFileDebug = async (
-        ...args: unknown[]
-    ): Promise<unknown> =>
+    const handleOpenFileDebug = async (...args: unknown[]): Promise<unknown> =>
         callDebugCoreFunction("handleOpenFile", args);
 
     /** @type {(...args: unknown[]) => Promise<unknown>} */
@@ -1372,16 +1226,13 @@ if (isDevelopmentMode()) {
         callDebugCoreFunction("setupTheme", args);
 
     /** @type {(...args: unknown[]) => Promise<unknown>} */
-    const showAboutModalDebug = async (
-        ...args: unknown[]
-    ): Promise<unknown> =>
+    const showAboutModalDebug = async (...args: unknown[]): Promise<unknown> =>
         callDebugCoreFunction("showAboutModal", args);
 
     /** @type {(...args: unknown[]) => Promise<unknown>} */
     const showNotificationDebug = async (
         ...args: unknown[]
-    ): Promise<unknown> =>
-        callDebugCoreFunction("showNotification", args);
+    ): Promise<unknown> => callDebugCoreFunction("showNotification", args);
 
     /** @type {(...args: unknown[]) => Promise<unknown>} */
     const showUpdateNotificationDebug = async (
@@ -1457,9 +1308,7 @@ function cleanup(): void {
                         masterStateManagerRecord["cleanup"];
                     if (typeof cleanupStateManager === "function") {
                         const cleanupStateManagerFn =
-                            /** @type {(this: unknown) => unknown} */ (
-                                cleanupStateManager
-                            );
+                            /** @type {(this: unknown) => unknown} */ cleanupStateManager;
                         cleanupStateManagerFn.call(masterStateManager);
                     }
                 } else {
@@ -1702,7 +1551,7 @@ if (isDevelopmentMode()) {
      *
      * @global
      */
-    const rendererDevTools = /** @type {Record<string, unknown>} */ ({
+    const rendererDevTools = /** @type {Record<string, unknown>} */ {
         APP_INFO,
         // Legacy state for compatibility
         appState,
@@ -1748,7 +1597,7 @@ if (isDevelopmentMode()) {
             return getRendererStateManagerForDev();
         },
         validateDOM: validateDOMElements,
-    });
+    };
 
     Reflect.set(globalThis, "__renderer_dev", rendererDevTools);
 
@@ -1863,9 +1712,9 @@ function onDelegatedFileInputChange(event: Event): void {
                             "/utils/files/import/handleOpenFile.js"
                         )
                 );
-        const handleOpenFileFn =
-            moduleRecord["handleOpenFile"] ??
-            toModuleRecord(moduleRecord["default"])["handleOpenFile"];
+                const handleOpenFileFn =
+                    moduleRecord["handleOpenFile"] ??
+                    toModuleRecord(moduleRecord["default"])["handleOpenFile"];
                 if (typeof handleOpenFileFn === "function") {
                     callUnknownFunction(handleOpenFileFn, [firstFile]);
                     return;
@@ -2362,7 +2211,7 @@ function registerElectronAPIFromPropertyDescriptor(
         return;
     }
 
-    const electronApiValue = /** @type {unknown} */ (descriptor.value);
+    const electronApiValue = /** @type {unknown} */ descriptor.value;
     registerElectronAPI(electronApiValue);
     // Also trigger state and performance spies immediately on assignment
     scheduleImportTimeStateInitialization();
@@ -2411,8 +2260,9 @@ function startElectronAPITestPolling(): void {
     let lastElectronAPI: unknown;
     const intervalId = setInterval(() => {
         try {
-            const currentElectronAPI = /** @type {unknown} */ (
-                Reflect.get(globalThis, "electronAPI")
+            const currentElectronAPI = /** @type {unknown} */ Reflect.get(
+                globalThis,
+                "electronAPI"
             );
             if (
                 currentElectronAPI !== undefined &&
@@ -2436,8 +2286,9 @@ function startElectronAPITestPolling(): void {
 
 // Wire electronAPI events if available now
 try {
-    const currentElectronAPI = /** @type {unknown} */ (
-        Reflect.get(globalThis, "electronAPI")
+    const currentElectronAPI = /** @type {unknown} */ Reflect.get(
+        globalThis,
+        "electronAPI"
     );
     if (currentElectronAPI !== undefined) {
         registerElectronAPI(currentElectronAPI);
