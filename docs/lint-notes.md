@@ -15,7 +15,7 @@ across the workspace:
   directory with the root `eslint.config.mjs`.
 - `npm run prettier` checks the root-owned Prettier target list.
 - `npm run prettier -- README.md` checks a specific path through the root
-  Prettier wrapper; use `npm run prettier:fix -- <path>` to write fixes.
+  Prettier npm script; use `npm run prettier:fix -- <path>` to write fixes.
 
 ## Pre-commit linting
 
@@ -38,7 +38,7 @@ Run Docusaurus linting from the repository root:
 
 Docusaurus remains an npm workspace for its dependency graph only. Do not add
 Docusaurus-local ESLint, Prettier, Stylelint, Remark, Secretlint,
-Markdownlint, or dependency-update config files; root wrappers own those
-concerns for the whole repository. Use `npm run docs:*` and
-`npm run lint:docusaurus*` from the repository root instead of adding scripts to
-`docusaurus/package.json`.
+Markdownlint, or dependency-update config files; root npm scripts and shared
+root config own those concerns for the whole repository. Use `npm run docs:*`
+and `npm run lint:docusaurus*` from the repository root instead of adding
+scripts to `docusaurus/package.json`.

@@ -758,7 +758,7 @@ describe("workspace package boundaries", () => {
         ).toStrictEqual([]);
     });
 
-    it("keeps Docusaurus lint and format tooling delegated to root wrappers", () => {
+    it("keeps Docusaurus lint and format tooling delegated to root scripts", () => {
         expect.assertions(5);
 
         const docusaurusPackage = readPackageJson(
@@ -788,7 +788,7 @@ describe("workspace package boundaries", () => {
             /Do not add\s+Docusaurus-local ESLint, Prettier, Stylelint, Remark, Secretlint,\s+Markdownlint, or dependency-update config files/u
         );
         expect(lintNotes).toMatch(
-            /`npm run docs:\*` and\s+`npm run lint:docusaurus\*`/u
+            /`npm run docs:\*`\s+and `npm run lint:docusaurus\*`/u
         );
     });
 
