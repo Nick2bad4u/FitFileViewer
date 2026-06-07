@@ -48,6 +48,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Exit criteria:
   - Renderer bootstrap modules import the specific utility they need.
   - Tests mock typed module imports instead of mutating a shared utility object.
+  - Renderer-adjacent import graphs stay out of main-process-only modules.
   - No new files are added under `electron-app/utils/legacy/`.
 
 ## Vendor Globals

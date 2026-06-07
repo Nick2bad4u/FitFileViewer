@@ -136,6 +136,47 @@ function getImportSpecifiers(source: string): string[] {
         .filter((specifier): specifier is string => Boolean(specifier));
 }
 
+function getSourceImportTarget(
+    importerPath: string,
+    specifier: string,
+    knownSourceFiles: ReadonlySet<string>
+): null | string {
+    if (specifier === "electron" || specifier.startsWith("node:")) {
+        return specifier;
+    }
+
+    if (!specifier.startsWith(".")) {
+        return null;
+    }
+
+    const importerDirectory = path.posix.dirname(importerPath);
+    const resolvedPath = path.posix.normalize(
+        path.posix.join(importerDirectory, specifier)
+    );
+    const candidates = [
+        resolvedPath,
+        ...[...sourceExtensions].map(
+            (extension) => `${resolvedPath}${extension}`
+        ),
+        ...[...sourceExtensions].map(
+            (extension) => `${resolvedPath}/index${extension}`
+        ),
+    ];
+
+    return (
+        candidates.find((candidate) => knownSourceFiles.has(candidate)) ?? null
+    );
+}
+
+function isMainProcessImportTarget(importTarget: string): boolean {
+    return (
+        importTarget === "electron" ||
+        importTarget.startsWith("node:") ||
+        importTarget === "electron-app/main" ||
+        importTarget.startsWith("electron-app/main/")
+    );
+}
+
 function stripComments(source: string): string {
     return source
         .replaceAll(/\/\*[\S\s]*?\*\//gu, "")
@@ -230,6 +271,72 @@ function hasRepositoryFile(relativePath: string): boolean {
     return existsSync(path.join(process.cwd(), relativePath));
 }
 
+function collectTransitiveMainProcessImportViolations(
+    startFiles: readonly string[]
+): string[] {
+    const knownSourceFiles = new Set(collectSourceFiles("electron-app"));
+    const importGraph = new Map(
+        [...knownSourceFiles].map((relativeFile) => [
+            relativeFile,
+            getImportSpecifiers(readRepositoryFile(relativeFile))
+                .map((specifier) => ({
+                    specifier,
+                    target: getSourceImportTarget(
+                        relativeFile,
+                        specifier,
+                        knownSourceFiles
+                    ),
+                }))
+                .filter(
+                    (
+                        edge
+                    ): edge is {
+                        specifier: string;
+                        target: string;
+                    } => edge.target !== null
+                ),
+        ])
+    );
+    const violations: string[] = [];
+
+    for (const startFile of startFiles) {
+        const visitedFiles = new Set<string>();
+        const stack = [{ chain: [startFile], file: startFile }];
+
+        while (stack.length > 0) {
+            const current = stack.pop();
+            if (!current || visitedFiles.has(current.file)) {
+                continue;
+            }
+            visitedFiles.add(current.file);
+
+            for (const edge of importGraph.get(current.file) ?? []) {
+                if (isMainProcessImportTarget(edge.target)) {
+                    violations.push(
+                        [
+                            ...current.chain,
+                            `${edge.specifier} -> ${edge.target}`,
+                        ].join(" => ")
+                    );
+                    continue;
+                }
+
+                if (
+                    edge.target.startsWith("electron-app/") &&
+                    knownSourceFiles.has(edge.target)
+                ) {
+                    stack.push({
+                        chain: [...current.chain, edge.target],
+                        file: edge.target,
+                    });
+                }
+            }
+        }
+    }
+
+    return violations.sort();
+}
+
 describe("architecture boundaries", () => {
     it("keeps the temporary compatibility ledger explicit", () => {
         expect.assertions(2);
@@ -295,6 +402,16 @@ describe("architecture boundaries", () => {
                     .map((specifier) => `${relativeFile}: ${specifier}`)
             )
             .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps renderer-adjacent import graphs out of main-process-only modules", () => {
+        expect.assertions(1);
+
+        const violations = collectTransitiveMainProcessImportViolations(
+            rendererAdjacentRoots.flatMap(collectSourceFiles)
+        );
 
         expect(violations).toStrictEqual([]);
     });
