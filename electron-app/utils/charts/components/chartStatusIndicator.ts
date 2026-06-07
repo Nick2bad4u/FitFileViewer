@@ -1,4 +1,5 @@
 import { subscribeToChartSettings } from "../../state/domain/settingsStateManager.js";
+import { subscribe } from "../../state/core/stateManager.js";
 import { getChartCounts } from "../core/getChartCounts.js";
 import { createChartStatusIndicator } from "./createChartStatusIndicator.js";
 import {
@@ -11,13 +12,8 @@ import {
     createGlobalChartStatusIndicatorFromCounts,
 } from "./createGlobalChartStatusIndicatorFromCounts.js";
 
-interface ChartStatusGlobal {
-    ___ffv_globalData?: unknown;
-    globalData?: unknown;
-}
-
-const chartStatusGlobal = globalThis as typeof globalThis & ChartStatusGlobal;
 const pendingStatusTimeouts = new Set<ReturnType<typeof setTimeout>>();
+const setupSubscriptions = new Set<() => void>();
 
 let setupController: AbortController | null = null;
 
@@ -26,6 +22,23 @@ function clearPendingStatusTimeouts(): void {
         clearTimeout(timeoutId);
     }
     pendingStatusTimeouts.clear();
+}
+
+function clearSetupSubscriptions(): void {
+    for (const unsubscribe of setupSubscriptions) {
+        try {
+            unsubscribe();
+        } catch {
+            /* ignore */
+        }
+    }
+    setupSubscriptions.clear();
+}
+
+function trackSetupSubscription(unsubscribe: unknown): void {
+    if (typeof unsubscribe === "function") {
+        setupSubscriptions.add(unsubscribe as () => void);
+    }
 }
 
 function scheduleChartStatusWork(
@@ -82,45 +95,6 @@ function replaceIndicator(
     return true;
 }
 
-function setupGlobalDataObserver(): void {
-    const existingDescriptor = Object.getOwnPropertyDescriptor(
-        globalThis,
-        "globalData"
-    );
-
-    if (existingDescriptor?.set && existingDescriptor.configurable !== true) {
-        return;
-    }
-
-    try {
-        const currentValue = chartStatusGlobal.globalData;
-
-        Object.defineProperty(globalThis, "globalData", {
-            configurable: true,
-            enumerable: true,
-            get() {
-                return chartStatusGlobal.___ffv_globalData ?? currentValue;
-            },
-            set(value: unknown) {
-                chartStatusGlobal.___ffv_globalData = value;
-                scheduleIndicatorRefresh(
-                    "[ChartStatus] Error in globalData setter:",
-                    100
-                );
-            },
-        });
-
-        if (currentValue !== undefined) {
-            chartStatusGlobal.___ffv_globalData = currentValue;
-        }
-    } catch (propertyError) {
-        console.warn(
-            "[ChartStatus] Could not redefine globalData property, using fallback approach:",
-            propertyError
-        );
-    }
-}
-
 /**
  * Set up automatic chart status indicator updates.
  */
@@ -128,14 +102,25 @@ export function setupChartStatusUpdates(): void {
     try {
         setupController?.abort();
         clearPendingStatusTimeouts();
+        clearSetupSubscriptions();
         setupController = new AbortController();
         const { signal } = setupController;
 
-        subscribeToChartSettings(() => {
-            scheduleIndicatorRefresh(
-                "[ChartStatus] Error in chart settings handler:"
-            );
-        });
+        trackSetupSubscription(
+            subscribeToChartSettings(() => {
+                scheduleIndicatorRefresh(
+                    "[ChartStatus] Error in chart settings handler:"
+                );
+            })
+        );
+        trackSetupSubscription(
+            subscribe("globalData", () => {
+                scheduleIndicatorRefresh(
+                    "[ChartStatus] Error in globalData state handler:",
+                    100
+                );
+            })
+        );
 
         globalThis.addEventListener(
             "fieldToggleChanged",
@@ -156,8 +141,6 @@ export function setupChartStatusUpdates(): void {
             },
             { signal }
         );
-
-        setupGlobalDataObserver();
 
         scheduleChartStatusWork(
             100,

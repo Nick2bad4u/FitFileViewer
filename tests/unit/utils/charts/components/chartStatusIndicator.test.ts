@@ -18,12 +18,15 @@ type GetChartCounts = () => {
     visible: number;
 };
 type SetTimeoutMock = typeof setTimeout;
+type StateSubscribe = (
+    path: string,
+    listener: (...args: unknown[]) => void
+) => () => void;
 type SubscribeToChartSettings = (listener: () => void) => () => void;
 type TestGlobal = typeof globalThis & {
     addEventListener: AddEventListener;
     customElements: CustomElementRegistry;
     document: Document;
-    globalData?: unknown;
     HTMLElement: typeof HTMLElement;
     setTimeout: SetTimeoutMock;
     window: Window & typeof globalThis;
@@ -128,6 +131,13 @@ vi.mock(
     })
 );
 
+vi.mock(
+    import("../../../../../electron-app/utils/state/core/stateManager.js"),
+    () => ({
+        subscribe: vi.fn<StateSubscribe>(() => noop),
+    })
+);
+
 function getFirstElementId(parent: ParentNode): string {
     const element = parent.firstElementChild;
 
@@ -177,6 +187,8 @@ describe("chartStatusIndicator.js", () => {
         testGlobal.window = dom.window as Window & typeof globalThis;
         testGlobal.HTMLElement = dom.window.HTMLElement;
         testGlobal.customElements = dom.window.customElements;
+        Reflect.deleteProperty(testGlobal, "globalData");
+        Reflect.deleteProperty(testGlobal.window, "globalData");
 
         // Save original functions
         originalAddEventListener = window.addEventListener;
@@ -209,27 +221,9 @@ describe("chartStatusIndicator.js", () => {
             writable: true,
         });
 
-        // Synchronize Object.defineProperty behavior for globalData property
-        originalDefineProperty = Object.defineProperty;
         Object.defineProperty = vi.fn<DefineProperty>(
-            (obj, prop, descriptor) => {
-                const result = originalDefineProperty.call(
-                    Object,
-                    obj,
-                    prop,
-                    descriptor
-                );
-                // When defineProperty is called on globalThis for globalData, also apply it to window
-                if (obj === globalThis && prop === "globalData") {
-                    originalDefineProperty.call(
-                        Object,
-                        window,
-                        prop,
-                        descriptor
-                    );
-                }
-                return result;
-            }
+            (obj, prop, descriptor) =>
+                originalDefineProperty.call(Object, obj, prop, descriptor)
         ) as DefineProperty;
     });
 
@@ -449,7 +443,7 @@ describe("chartStatusIndicator.js", () => {
 
     describe("setupChartStatusUpdates", () => {
         it("should register all required event listeners", async () => {
-            expect.assertions(4);
+            expect.assertions(6);
 
             // Import the module
             const { setupChartStatusUpdates } =
@@ -473,32 +467,27 @@ describe("chartStatusIndicator.js", () => {
             // Assert that global indicator was created
             const globalIndicatorModule =
                 await import("../../../../../electron-app/utils/charts/components/createGlobalChartStatusIndicator.js");
+            const settingsStateManager =
+                await import("../../../../../electron-app/utils/state/domain/settingsStateManager.js");
+            const stateManager =
+                await import("../../../../../electron-app/utils/state/core/stateManager.js");
             expect(
                 vi.mocked(
                     globalIndicatorModule.createGlobalChartStatusIndicator
                 )
             ).toHaveBeenCalledWith();
-
-            // Verify globalData property was modified
-            const descriptor = Object.getOwnPropertyDescriptor(
-                window,
-                "globalData"
+            expect(
+                vi.mocked(settingsStateManager.subscribeToChartSettings)
+            ).toHaveBeenCalledWith(expect.any(Function));
+            expect(vi.mocked(stateManager.subscribe)).toHaveBeenCalledWith(
+                "globalData",
+                expect.any(Function)
             );
-            expect({
-                configurable: descriptor?.configurable,
-                enumerable: descriptor?.enumerable,
-                hasGetter: typeof descriptor?.get,
-                hasSetter: typeof descriptor?.set,
-            }).toStrictEqual({
-                configurable: true,
-                enumerable: true,
-                hasGetter: "function",
-                hasSetter: "function",
-            });
+            expect(Object.hasOwn(globalThis, "globalData")).toBe(false);
         });
 
         it("should handle event listener callbacks correctly", async () => {
-            expect.assertions(3);
+            expect.assertions(4);
 
             // Since we're getting weird spying issues, let's just test the event registration
             // without spying on the internal function call
@@ -520,9 +509,15 @@ describe("chartStatusIndicator.js", () => {
             );
             const settingsStateManager =
                 await import("../../../../../electron-app/utils/state/domain/settingsStateManager.js");
+            const stateManager =
+                await import("../../../../../electron-app/utils/state/core/stateManager.js");
             expect(
                 vi.mocked(settingsStateManager.subscribeToChartSettings)
             ).toHaveBeenCalledWith(expect.any(Function));
+            expect(vi.mocked(stateManager.subscribe)).toHaveBeenCalledWith(
+                "globalData",
+                expect.any(Function)
+            );
 
             // Test that the event handlers can be called without errors
             fieldToggleHandler({} as Event);
