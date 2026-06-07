@@ -23,6 +23,7 @@ import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../../ui/events/eventListenerManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { updateOverlayHighlights } from "../layers/mapDrawLaps.js";
 
 type MapBounds = {
     isValid?: () => boolean;
@@ -73,7 +74,6 @@ type MapActionButtonsGlobal = typeof globalThis & {
     L?: {
         CircleMarker?: CircleMarkerConstructor;
     };
-    updateOverlayHighlights?: () => void;
 };
 
 type ActiveFileNameElement = HTMLElement & {
@@ -438,9 +438,7 @@ function setupActiveFileNameMapActions(): void {
                     activeFileName.classList.add("highlighted");
                     const w = getMapActionButtonsGlobal();
                     w._highlightedOverlayIdx = 0;
-                    if (w.updateOverlayHighlights) {
-                        w.updateOverlayHighlights();
-                    }
+                    updateOverlayHighlights();
                 } catch (error) {
                     console.error(
                         "[mapActionButtons] Error in mouseenter:",
@@ -455,9 +453,7 @@ function setupActiveFileNameMapActions(): void {
                     activeFileName.classList.remove("highlighted");
                     const w = getMapActionButtonsGlobal();
                     w._highlightedOverlayIdx = null;
-                    if (w.updateOverlayHighlights) {
-                        w.updateOverlayHighlights();
-                    }
+                    updateOverlayHighlights();
                 } catch (error) {
                     console.error(
                         "[mapActionButtons] Error in mouseleave:",

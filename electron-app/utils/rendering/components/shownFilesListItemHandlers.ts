@@ -1,3 +1,4 @@
+import { updateOverlayHighlights } from "../../maps/layers/mapDrawLaps.js";
 import { updateShownFilesList } from "./shownFilesListUpdater.js";
 
 type OverlayListItem = HTMLLIElement & {
@@ -55,7 +56,6 @@ type OverlayGlobal = typeof globalThis & {
     _overlayTooltipTimeout?: null | ReturnType<typeof setTimeout>;
     loadedFitFiles?: unknown[];
     renderMap?: () => void;
-    updateOverlayHighlights?: () => void;
 };
 
 function getOverlayGlobal(): OverlayGlobal {
@@ -81,10 +81,6 @@ function clearOverlayTooltipTimeout(): void {
         clearTimeout(overlayGlobal._overlayTooltipTimeout);
         overlayGlobal._overlayTooltipTimeout = null;
     }
-}
-
-function updateOverlayHighlights(): void {
-    getOverlayGlobal().updateOverlayHighlights?.();
 }
 
 function getOverlayPolyline(overlayIndex: number): OverlayPolyline | undefined {

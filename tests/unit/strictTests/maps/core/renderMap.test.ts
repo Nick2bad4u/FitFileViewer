@@ -116,6 +116,7 @@ vi.mock(
     () => ({
         drawOverlayForFitFile: vi.fn<() => void>(),
         mapDrawLaps: vi.fn<() => void>(),
+        updateOverlayHighlights: vi.fn<() => void>(),
     })
 );
 vi.mock(

@@ -26,6 +26,7 @@ const defaultMockChartOverlayColorPalette = [
     "#d32f2f",
 ];
 const mockChartOverlayColorPalette = [...defaultMockChartOverlayColorPalette];
+const mockUpdateOverlayHighlights = vi.fn<() => void>();
 
 vi.mock(
     import("../../../../electron-app/utils/charts/theming/getThemeColors.js"),
@@ -38,6 +39,13 @@ vi.mock(
     import("../../../../electron-app/utils/charts/theming/chartOverlayColorPalette.js"),
     () => ({
         chartOverlayColorPalette: mockChartOverlayColorPalette,
+    })
+);
+
+vi.mock(
+    import("../../../../electron-app/utils/maps/layers/mapDrawLaps.js"),
+    () => ({
+        updateOverlayHighlights: mockUpdateOverlayHighlights,
     })
 );
 
@@ -276,7 +284,7 @@ describe("createShownFilesList", () => {
         windowMock._overlayTooltipTimeout = null;
         Object.assign(windowMock, {
             renderMap: vi.fn<() => void>(),
-            updateOverlayHighlights: vi.fn<() => void>(),
+            updateOverlayHighlights: mockUpdateOverlayHighlights,
             updateShownFilesList: vi.fn<() => void>(),
         });
         windowMock.L = {

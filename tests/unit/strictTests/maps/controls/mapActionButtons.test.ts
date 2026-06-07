@@ -46,7 +46,6 @@ describe("mapActionButtons", () => {
             _overlayPolylines: [],
             _leafletMapInstance: null,
             _mainPolylineOriginalBounds: null,
-            updateOverlayHighlights: undefined,
         });
         (window as any).L = undefined;
         vi.resetModules();

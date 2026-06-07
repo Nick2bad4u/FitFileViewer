@@ -1,6 +1,17 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
+const mocks = vi.hoisted(() => ({
+    updateOverlayHighlights: vi.fn<() => void>(),
+}));
+
+vi.mock(
+    import("../../../../electron-app/utils/maps/layers/mapDrawLaps.js"),
+    () => ({
+        updateOverlayHighlights: mocks.updateOverlayHighlights,
+    })
+);
+
 type MapBounds = {
     isValid: () => boolean;
 };
@@ -26,7 +37,6 @@ type MapActionButtonTestGlobal = typeof globalThis & {
     };
     _mainPolyline?: MapPolyline;
     _setupActiveFileNameMapActions?: () => void;
-    updateOverlayHighlights?: () => void;
 };
 
 type ActiveFileNameElement = HTMLElement & {
@@ -48,7 +58,7 @@ function resetMapActionFixture(): void {
     delete testGlobal._leafletMapInstance;
     delete testGlobal._mainPolyline;
     delete testGlobal._setupActiveFileNameMapActions;
-    delete testGlobal.updateOverlayHighlights;
+    vi.clearAllMocks();
 }
 
 function mountMapActionDom(): {
@@ -86,7 +96,6 @@ function installMapGlobals(): {
         >
     >;
     polylineBringToFront: ReturnType<typeof vi.fn<() => void>>;
-    updateOverlayHighlights: ReturnType<typeof vi.fn<() => void>>;
 } {
     const bounds: MapBounds = {
         isValid: () => true,
@@ -97,7 +106,6 @@ function installMapGlobals(): {
         vi.fn<
             (bounds: MapBounds, options: { padding: [number, number] }) => void
         >();
-    const updateOverlayHighlights = vi.fn<() => void>();
 
     Object.assign(getTestGlobal(), {
         _leafletMapInstance: {
@@ -111,14 +119,12 @@ function installMapGlobals(): {
             getElement: () => polylineElement,
             options: { color: "#1976d2" },
         },
-        updateOverlayHighlights,
     });
 
     return {
         bounds,
         fitBounds,
         polylineBringToFront,
-        updateOverlayHighlights,
     };
 }
 
@@ -136,7 +142,6 @@ describe("mapActionButtons", () => {
                 bounds,
                 fitBounds,
                 polylineBringToFront,
-                updateOverlayHighlights,
             } = installMapGlobals();
 
             await import("../../../../electron-app/utils/maps/controls/mapActionButtons.js");
@@ -172,14 +177,14 @@ describe("mapActionButtons", () => {
 
             getTestGlobal()._setupActiveFileNameMapActions?.();
             getTestGlobal()._setupActiveFileNameMapActions?.();
-            updateOverlayHighlights.mockClear();
+            mocks.updateOverlayHighlights.mockClear();
             activeFileName.dispatchEvent(new MouseEvent("mouseleave"));
 
             expect(activeFileName.classList.contains("highlighted")).toBe(
                 false
             );
             expect(getTestGlobal()._highlightedOverlayIdx).toBeNull();
-            expect(updateOverlayHighlights).toHaveBeenCalledOnce();
+            expect(mocks.updateOverlayHighlights).toHaveBeenCalledOnce();
 
             activeFileName.click();
             vi.advanceTimersByTime(100);

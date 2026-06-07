@@ -1956,9 +1956,19 @@ function updateTrackHighlights(highlightedIdx = getWin()._highlightedOverlayIdx)
     applyMainPolylineHighlight(highlightedIdx);
 }
 
+let userAssignedOverlayHighlightStub:
+    | ((...args: unknown[]) => unknown)
+    | undefined;
+
 // Add global function to update overlay highlights without redrawing the map.
 function __realUpdateOverlayHighlights(): void {
     updateTrackHighlights();
+}
+
+export function updateOverlayHighlights(...args: unknown[]): unknown {
+    getWin().__realUpdateOverlayHighlights?.();
+
+    return callOverlayHighlightStub(userAssignedOverlayHighlightStub, args);
 }
 
 // Install a stable reference that won't be replaced accidentally.
@@ -1967,21 +1977,14 @@ getWin().__realUpdateOverlayHighlights = __realUpdateOverlayHighlights;
 // Public shim accessor that preserves any assigned stub but always invokes the real implementation first
 (() => {
     try {
-        let userAssigned: ((...args: unknown[]) => unknown) | undefined;
         Object.defineProperty(getWin(), "updateOverlayHighlights", {
             configurable: true,
             enumerable: true,
             get() {
-                // Return a wrapper that calls real first, then user stub if present
-                return function updateOverlayHighlightsWrapper(
-                    ...args: unknown[]
-                ): unknown {
-                    getWin().__realUpdateOverlayHighlights?.();
-                    return callOverlayHighlightStub(userAssigned, args);
-                };
+                return updateOverlayHighlights;
             },
             set(v: ((...args: unknown[]) => unknown) | undefined) {
-                userAssigned = v;
+                userAssignedOverlayHighlightStub = v;
             },
         });
     } catch {

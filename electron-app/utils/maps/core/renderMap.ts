@@ -32,7 +32,11 @@ import { addFullscreenControl } from "../controls/mapFullscreenControl.js";
 import { addLapSelector } from "../controls/mapLapSelector.js";
 import { addSimpleMeasureTool } from "../controls/mapMeasureTool.js";
 import { baseLayers, createBaseLayers } from "../layers/mapBaseLayers.js";
-import { drawOverlayForFitFile, mapDrawLaps } from "../layers/mapDrawLaps.js";
+import {
+    drawOverlayForFitFile,
+    mapDrawLaps,
+    updateOverlayHighlights,
+} from "../layers/mapDrawLaps.js";
 import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
 import { getLapColor } from "./mapColors.js";
 import { ensureMapDocumentListenersInstalled } from "./mapDocumentListeners.js";
@@ -152,7 +156,6 @@ type WindowExtensions = typeof globalThis & {
     mapMarkerCount?: number;
     setupActiveFileNameMapActions?: () => void;
     setupOverlayFileNameMapActions?: () => void;
-    updateOverlayHighlights?: () => void;
 };
 
 type ShownFilesListElement = Element & {
@@ -1662,13 +1665,11 @@ export function renderMap(): void {
     }
 
     // Restore highlight after overlays are drawn, if any
-    if (windowExt.updateOverlayHighlights) {
-        console.log(
-            "[FFV] [renderMap] Calling updateOverlayHighlights, highlightedOverlayIdx:",
-            windowExt._highlightedOverlayIdx
-        );
-        windowExt.updateOverlayHighlights();
-    }
+    console.log(
+        "[FFV] [renderMap] Calling updateOverlayHighlights, highlightedOverlayIdx:",
+        windowExt._highlightedOverlayIdx
+    );
+    updateOverlayHighlights();
     console.log(
         "[FFV] [renderMap] Calling updateShownFilesList after overlays drawn"
     );
