@@ -3,7 +3,7 @@
  */
 
 import { convertArrayBufferToBase64 } from "../formatting/converters/convertArrayBufferToBase64.js";
-import { getState, setState } from "../state/core/stateManager.js";
+import { defineLegacyGlobalDataBridge } from "../state/core/globalDataStore.js";
 
 type ShowFitData = (fitData: unknown, filePath: string) => void;
 type RenderChartJS = (
@@ -44,29 +44,7 @@ function getAltFitTargetOrigin(): string {
  * Define window.globalData to bridge legacy code to state-managed data.
  */
 export function defineGlobalDataProperty(): void {
-    try {
-        const existing = Object.getOwnPropertyDescriptor(
-            globalThis,
-            "globalData"
-        );
-        if (!existing || existing.configurable) {
-            Object.defineProperty(globalThis, "globalData", {
-                configurable: true,
-                enumerable: true,
-                get(): unknown {
-                    return getState("globalData");
-                },
-                set(value: unknown) {
-                    setState("globalData", value, {
-                        silent: false,
-                        source: "main-ui.js",
-                    });
-                },
-            });
-        }
-    } catch {
-        /* Ignore redefinition issues */
-    }
+    defineLegacyGlobalDataBridge({ silent: false, source: "main-ui.js" });
 }
 
 /**

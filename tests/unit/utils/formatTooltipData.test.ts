@@ -6,6 +6,7 @@ vi.mock(
     import("../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
         getState: vi.fn<(path?: string) => unknown>(),
+        setState: vi.fn(),
     })
 );
 

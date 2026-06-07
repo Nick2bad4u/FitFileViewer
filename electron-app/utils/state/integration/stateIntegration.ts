@@ -5,6 +5,7 @@
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import type { ElectronAPIWithDevFlags } from "../../../shared/preloadApi.js";
+import { defineLegacyGlobalDataBridge } from "../core/globalDataStore.js";
 import {
     getState,
     initializeStateManager,
@@ -378,17 +379,7 @@ function setupBackwardCompatibility(): void {
     const integrationGlobal = getIntegrationGlobal();
 
     // Make sure window.globalData is reactive
-    if (!Object.getOwnPropertyDescriptor(globalThis, "globalData")) {
-        Object.defineProperty(globalThis, "globalData", {
-            configurable: true,
-            get() {
-                return getState("globalData");
-            },
-            set(value: unknown) {
-                setState("globalData", value, { source: "window.globalData" });
-            },
-        });
-    }
+    defineLegacyGlobalDataBridge({ source: "window.globalData" });
 
     // Make sure window.isChartRendered is reactive
     if (!Object.getOwnPropertyDescriptor(globalThis, "isChartRendered")) {
