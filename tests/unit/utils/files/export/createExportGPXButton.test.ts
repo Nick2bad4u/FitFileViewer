@@ -1,7 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { showNotification } from "../../../../../electron-app/utils/ui/notifications/showNotification.js";
 import { createExportGPXButton } from "../../../../../electron-app/utils/files/export/createExportGPXButton.js";
+import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 vi.mock(
     import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
@@ -33,6 +35,7 @@ const showNotificationMock = vi.mocked(showNotification);
 function cleanupTestGlobals(): void {
     delete appGlobal.globalData;
     delete appGlobal.loadedFitFiles;
+    __resetStateManagerForTests();
     document.body.replaceChildren();
     vi.useRealTimers();
     vi.unstubAllGlobals();
@@ -50,6 +53,11 @@ function queryRequiredAnchor(selector: string): HTMLAnchorElement {
 }
 
 describe(createExportGPXButton, () => {
+    beforeEach(() => {
+        cleanupTestGlobals();
+        showNotificationMock.mockClear();
+    });
+
     it("notifies when no record data is available", () => {
         expect.assertions(4);
 
@@ -88,7 +96,8 @@ describe(createExportGPXButton, () => {
                 createObjectURL,
                 revokeObjectURL,
             });
-            appGlobal.globalData = {
+            setGlobalData({
+                loadedFitFiles: [{ displayName: "Morning Ride" }],
                 recordMesgs: [
                     {
                         enhancedAltitude: 10,
@@ -97,8 +106,7 @@ describe(createExportGPXButton, () => {
                         timestamp: "2026-05-20T12:00:00.000Z",
                     },
                 ],
-            };
-            appGlobal.loadedFitFiles = [{ displayName: "Morning Ride" }];
+            });
             const button = createExportGPXButton();
 
             button.click();

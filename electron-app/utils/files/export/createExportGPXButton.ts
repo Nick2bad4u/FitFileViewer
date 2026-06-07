@@ -1,5 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
+import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { buildDownloadFilename } from "../sanitizeFilename.js";
 import {
@@ -10,8 +11,12 @@ import {
 } from "./gpxExport.js";
 
 type GpxExportGlobal = typeof globalThis & {
-    globalData?: { recordMesgs?: GpxRecord[] };
     loadedFitFiles?: LoadedFitFileDescriptor[];
+};
+
+type GpxExportData = {
+    readonly loadedFitFiles?: LoadedFitFileDescriptor[];
+    readonly recordMesgs?: GpxRecord[];
 };
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
@@ -22,6 +27,10 @@ const downloadCleanupTimers = new WeakMap<
 
 function getGpxExportGlobal(): GpxExportGlobal {
     return globalThis;
+}
+
+function getGpxExportData(): GpxExportData | null | undefined {
+    return getGlobalData<GpxExportData>();
 }
 
 function createExportIcon(primary: string): SVGSVGElement {
@@ -69,8 +78,9 @@ export function createExportGPXButton(): HTMLButtonElement {
         "click",
         () => {
             const windowCtx = getGpxExportGlobal();
-            const records = Array.isArray(windowCtx?.globalData?.recordMesgs)
-                ? windowCtx.globalData.recordMesgs
+            const fitData = getGpxExportData();
+            const records = Array.isArray(fitData?.recordMesgs)
+                ? fitData.recordMesgs
                 : null;
 
             if (!records || records.length === 0) {
@@ -83,7 +93,7 @@ export function createExportGPXButton(): HTMLButtonElement {
             }
 
             const trackName = resolveTrackNameFromLoadedFiles(
-                windowCtx?.loadedFitFiles
+                fitData?.loadedFitFiles ?? windowCtx?.loadedFitFiles
             );
             const gpx = buildGpxFromRecords(records, { trackName });
             if (!gpx) {
