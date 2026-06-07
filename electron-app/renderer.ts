@@ -41,6 +41,13 @@ import {
     registerStartupElectronHooks,
     type RendererApplyTheme as ApplyTheme,
 } from "./renderer/electronApiStartupHooks.js";
+import {
+    createDelegatedFileInputChangeHandler,
+    handleImmediateFileInputChange,
+    registerDelegatedFileInputChangeListener,
+    registerImportTimeFileInputChangeHandler,
+    type RendererFileInputStartupOptions,
+} from "./renderer/fileInputStartup.js";
 import { setLoading } from "./utils/app/initialization/rendererUtils.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
@@ -609,6 +616,34 @@ function toModuleRecord(value: unknown): Record<string, unknown> {
     return isRecord(value) ? value : {};
 }
 
+function resolveManualHandleOpenFile(): unknown {
+    const moduleRecord = toModuleRecord(
+        resolveExactManualMock("../../utils/files/import/handleOpenFile.js") ??
+            resolveManualMock("/utils/files/import/handleOpenFile.js")
+    );
+
+    return (
+        moduleRecord["handleOpenFile"] ??
+        toModuleRecord(moduleRecord["default"])["handleOpenFile"]
+    );
+}
+
+async function getFileInputHandleOpenFile(): Promise<unknown> {
+    const { handleOpenFile } = await ensureCoreModules();
+    return handleOpenFile;
+}
+
+const fileInputStartupOptions: RendererFileInputStartupOptions = {
+    callUnknownFunction,
+    getHandleOpenFile: getFileInputHandleOpenFile,
+    getManualHandleOpenFile: resolveManualHandleOpenFile,
+    logRenderer,
+};
+
+const onDelegatedFileInputChange = createDelegatedFileInputChangeHandler(
+    fileInputStartupOptions
+);
+
 // ==========================================
 // Environment Detection
 // ==========================================
@@ -784,12 +819,11 @@ async function initializeApplication(): Promise<void> {
         // Explicitly wire file input change -> handleOpenFile for tests that only expose #fileInput
         if (fileInput !== null && typeof handleOpenFile === "function") {
             fileInput.addEventListener("change", () => {
-                const { files } = fileInput;
-                const selectedFile = files?.item(0);
-                if (selectedFile !== null && selectedFile !== undefined) {
-                    // Call mocked handleOpenFile with first file for coverage test visibility
-                    handleOpenFile(selectedFile);
-                }
+                handleImmediateFileInputChange(
+                    fileInput,
+                    handleOpenFile,
+                    callUnknownFunction
+                );
             });
         }
 
@@ -1620,53 +1654,6 @@ if (isDevelopmentMode()) {
 // ==========================================
 
 /**
- * @param file - Selected file object from the file input.
- *
- * @returns {Promise<void>}
- */
-async function handleDelegatedFileInputChange(file: unknown): Promise<void> {
-    try {
-        const { handleOpenFile: handleOpenFileFn } = await ensureCoreModules();
-        callUnknownFunction(handleOpenFileFn, [file]);
-    } catch {
-        /* Ignore errors */
-    }
-}
-
-/**
- * @param {HTMLInputElement} fileInput
- *
- * @returns {Promise<void>}
- */
-async function handleImportTimeFileInputChange(
-    fileInput: HTMLInputElement
-): Promise<void> {
-    try {
-        const file = fileInput.files?.[0];
-        if (file !== undefined) {
-            // Use dynamically resolved handleOpenFile so test spies observe
-            try {
-                const { handleOpenFile: handleOpenFileFn } =
-                    await ensureCoreModules();
-                callUnknownFunction(handleOpenFileFn, [file]);
-            } catch (error) {
-                logRenderer(
-                    "warn",
-                    "[Renderer] Failed to handle file open:",
-                    error
-                );
-            }
-        }
-    } catch (error) {
-        logRenderer(
-            "warn",
-            "[Renderer] File input change handling failed:",
-            error
-        );
-    }
-}
-
-/**
  * @returns {Promise<void>}
  */
 async function initializeImportTimeStateManager(): Promise<void> {
@@ -1686,48 +1673,6 @@ async function initializeImportTimeStateManager(): Promise<void> {
  */
 async function initializeManualMasterStateManager(): Promise<void> {
     await callRecordMethod(resolveManualMasterStateManager(), "initialize");
-}
-
-/**
- * @param {Event} event
- *
- * @returns {void}
- */
-function onDelegatedFileInputChange(event: Event): void {
-    try {
-        const target =
-            typeof HTMLInputElement === "function" &&
-            event.target instanceof HTMLInputElement
-                ? event.target
-                : null;
-        const firstFile = target?.files?.[0];
-        if (target?.id === "fileInput" && firstFile !== undefined) {
-            // Try manual mock first for immediate spy calls.
-            try {
-                const moduleRecord = toModuleRecord(
-                    resolveExactManualMock(
-                        "../../utils/files/import/handleOpenFile.js"
-                    ) ??
-                        resolveManualMock(
-                            "/utils/files/import/handleOpenFile.js"
-                        )
-                );
-                const handleOpenFileFn =
-                    moduleRecord["handleOpenFile"] ??
-                    toModuleRecord(moduleRecord["default"])["handleOpenFile"];
-                if (typeof handleOpenFileFn === "function") {
-                    callUnknownFunction(handleOpenFileFn, [firstFile]);
-                    return;
-                }
-            } catch {
-                /* Ignore errors */
-            }
-            // Fallback to async resolution.
-            void handleDelegatedFileInputChange(firstFile);
-        }
-    } catch {
-        /* Ignore errors */
-    }
 }
 
 /**
@@ -1797,50 +1742,6 @@ function onTestWindowLoadSetupTheme(): void {
 /**
  * @returns {void}
  */
-function registerDelegatedFileInputChangeListener(): void {
-    document.addEventListener("change", onDelegatedFileInputChange, true);
-    globalThis.addEventListener(
-        "beforeunload",
-        removeDelegatedFileInputChangeListener
-    );
-}
-
-/**
- * @param {HTMLInputElement} fileInput
- *
- * @returns {void}
- */
-function registerImportTimeFileInputChangeHandler(
-    fileInput: HTMLInputElement
-): void {
-    /**
-     * @returns {void}
-     */
-    function onImportTimeFileInputChange(): void {
-        void handleImportTimeFileInputChange(fileInput);
-    }
-
-    /**
-     * @returns {void}
-     */
-    function removeImportTimeFileInputChangeHandler(): void {
-        fileInput.removeEventListener("change", onImportTimeFileInputChange);
-        window.removeEventListener(
-            "beforeunload",
-            removeImportTimeFileInputChangeHandler
-        );
-    }
-
-    fileInput.addEventListener("change", onImportTimeFileInputChange);
-    window.addEventListener(
-        "beforeunload",
-        removeImportTimeFileInputChangeHandler
-    );
-}
-
-/**
- * @returns {void}
- */
 function registerTestDOMContentLoadedSetupListener(): void {
     document.addEventListener(
         "DOMContentLoaded",
@@ -1861,17 +1762,6 @@ function registerTestWindowLoadThemeSetupListener(): void {
     globalThis.addEventListener(
         "beforeunload",
         removeTestWindowLoadThemeSetupListener
-    );
-}
-
-/**
- * @returns {void}
- */
-function removeDelegatedFileInputChangeListener(): void {
-    document.removeEventListener("change", onDelegatedFileInputChange, true);
-    globalThis.removeEventListener(
-        "beforeunload",
-        removeDelegatedFileInputChangeListener
     );
 }
 
@@ -2062,7 +1952,11 @@ try {
         "#file_input"
     ) as HTMLInputElement | null;
     if (fileInput && typeof fileInput.addEventListener === "function") {
-        registerImportTimeFileInputChangeHandler(fileInput);
+        registerImportTimeFileInputChangeHandler(
+            fileInput,
+            globalThis,
+            fileInputStartupOptions
+        );
     }
 } catch {
     /* Ignore errors */
@@ -2388,7 +2282,11 @@ try {
 
 // Delegated change listener for dynamically created/replaced file input across tests
 try {
-    registerDelegatedFileInputChangeListener();
+    registerDelegatedFileInputChangeListener(
+        document,
+        globalThis,
+        onDelegatedFileInputChange
+    );
 } catch {
     /* Ignore errors */
 }
