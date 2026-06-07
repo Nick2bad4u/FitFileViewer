@@ -258,21 +258,15 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
             await expect(noNodeEnvPage.locator("#tab_map")).toHaveClass(
                 /active/u
             );
-            await noNodeEnvPage.waitForFunction(() => {
-                const map = document.querySelector("#leaflet-map");
-                const themeToggle = document.querySelector(
-                    "#content_map.active #map-controls .map-theme-toggle"
-                );
-
-                return (
-                    map instanceof HTMLElement &&
-                    themeToggle instanceof HTMLElement &&
-                    themeToggle.getClientRects().length > 0
-                );
-            });
             const noNodeEnvMapThemeToggle = noNodeEnvPage.locator(
                 "#content_map.active #map-controls .map-theme-toggle"
             );
+            await expect(noNodeEnvPage.locator("#leaflet-map")).toBeVisible({
+                timeout: 60_000,
+            });
+            await expect(noNodeEnvMapThemeToggle).toBeVisible({
+                timeout: 60_000,
+            });
             await expect(noNodeEnvMapThemeToggle).toHaveAttribute(
                 "aria-label",
                 "Toggle map theme"
@@ -283,7 +277,6 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
                     name: /toggle map theme/iu,
                 })
             ).toBeVisible();
-            await expect(noNodeEnvPage.locator("#leaflet-map")).toBeVisible();
 
             const initialMapThemeState = await noNodeEnvPage.evaluate(() => {
                 const button = document.querySelector(".map-theme-toggle");
