@@ -7,7 +7,6 @@ declare global {
     var isChartRendered: any;
     var AppState: any;
     var chartControlsState: any;
-    var rendererUtils: any;
     var __state_debug: any;
     var __persistenceTimeout: any;
     var __performanceMonitoringInterval: any;
@@ -141,7 +140,6 @@ describe("stateIntegration comprehensive coverage", () => {
         delete globalThis.isChartRendered;
         delete globalThis.AppState;
         delete globalThis.chartControlsState;
-        delete globalThis.rendererUtils;
         delete globalThis.__state_debug;
         delete globalThis.__persistenceTimeout;
         delete globalThis.__performanceMonitoringInterval;
@@ -159,7 +157,6 @@ describe("stateIntegration comprehensive coverage", () => {
         delete globalThis.isChartRendered;
         delete globalThis.AppState;
         delete globalThis.chartControlsState;
-        delete globalThis.rendererUtils;
         delete globalThis.__state_debug;
         delete globalThis.__persistenceTimeout;
         delete globalThis.__performanceMonitoringInterval;
@@ -356,72 +353,6 @@ describe("stateIntegration comprehensive coverage", () => {
     });
 
     describe("integration functions", () => {
-        it("should integrate with rendererUtils when available (smoke)", async () => {
-            expect.assertions(6);
-
-            const { integrateWithRendererUtils } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            const mockSetGlobalData = vi.fn<(data: unknown) => void>();
-            const mockGetGlobalData = vi
-                .fn<() => unknown>()
-                .mockReturnValue({ test: "data" });
-
-            globalThis.rendererUtils = {
-                setGlobalData: mockSetGlobalData,
-                getGlobalData: mockGetGlobalData,
-            };
-
-            const consoleSpy = vi
-                .spyOn(console, "log")
-                .mockImplementation(() => {});
-
-            integrateWithRendererUtils();
-
-            expect(consoleSpy).toHaveBeenCalledWith(
-                "[StateIntegration] Integrating with rendererUtils..."
-            );
-            expect(consoleSpy).toHaveBeenCalledWith(
-                "[StateIntegration] rendererUtils integration completed"
-            );
-
-            // Test wrapped setGlobalData
-            const testData = { test: "value" };
-            globalThis.rendererUtils.setGlobalData(testData);
-
-            expect(mockStateManager.setState).toHaveBeenCalledWith(
-                "globalData",
-                testData,
-                {
-                    source: "rendererUtils.setGlobalData",
-                }
-            );
-            expect(mockSetGlobalData).toHaveBeenCalledWith(testData);
-
-            // Test wrapped getGlobalData
-            mockStateManager.getState.mockReturnValue({ test: "fromState" });
-            const result = globalThis.rendererUtils.getGlobalData();
-
-            expect(mockStateManager.getState).toHaveBeenCalledWith(
-                "globalData"
-            );
-            expect(result).toEqual({ test: "fromState" });
-
-            consoleSpy.mockRestore();
-        });
-
-        it("should handle missing rendererUtils gracefully", async () => {
-            expect.assertions(3);
-
-            const { integrateWithRendererUtils } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            expect(() => integrateWithRendererUtils()).not.toThrow();
-
-            expect(globalThis.rendererUtils).toBeUndefined();
-            expect(mockStateManager.setState).not.toHaveBeenCalled();
-        });
-
         it("should migrate chartControlsState when available (smoke)", async () => {
             expect.assertions(5);
 

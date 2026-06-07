@@ -32,11 +32,6 @@ type PerformanceMemory = {
     usedJSHeapSize: number;
 };
 
-type RendererUtils = {
-    getGlobalData?: () => unknown;
-    setGlobalData?: (data: unknown) => unknown;
-};
-
 type StateDebugApi = {
     logState: (path?: string) => unknown;
     setState: typeof setState;
@@ -55,7 +50,6 @@ type StateIntegrationTestGlobal = typeof globalThis & {
         isChartRendered: unknown;
     };
     chartControlsState?: ChartControlsState;
-    rendererUtils?: RendererUtils;
 };
 
 type StorageFixture = {
@@ -101,7 +95,6 @@ function deleteIntegrationGlobals(): void {
     Reflect.deleteProperty(testGlobal, "chartControlsState");
     Reflect.deleteProperty(testGlobal, "globalData");
     Reflect.deleteProperty(testGlobal, "isChartRendered");
-    Reflect.deleteProperty(testGlobal, "rendererUtils");
 }
 
 function installLocalStorage(storage: Storage): void {
@@ -171,15 +164,12 @@ function restorePerformanceMemory(): void {
 
 describe("stateIntegration.js - Essential Coverage", () => {
     it("exports the state integration public API", () => {
-        expect.assertions(7);
+        expect.assertions(6);
         resetTestEnvironment();
 
         expect(stateIntegration.StateMigrationHelper).toBeTypeOf("function");
         expect(stateIntegration.initializeAppState).toBeTypeOf("function");
         expect(stateIntegration.initializeCompleteStateSystem).toBeTypeOf(
-            "function"
-        );
-        expect(stateIntegration.integrateWithRendererUtils).toBeTypeOf(
             "function"
         );
         expect(stateIntegration.migrateChartControlsState).toBeTypeOf(
@@ -254,35 +244,6 @@ describe("stateIntegration.js - Essential Coverage", () => {
         expect({
             legacyVisible: testGlobal.chartControlsState.isVisible,
         }).toStrictEqual({ legacyVisible: true });
-
-        resetTestEnvironment();
-    });
-
-    it("wraps rendererUtils global-data access through the state manager", () => {
-        expect.assertions(4);
-        resetTestEnvironment();
-
-        const originalSetGlobalData = vi.fn<(data: unknown) => string>(
-            () => "stored"
-        );
-        const testGlobal = globalThis as StateIntegrationTestGlobal;
-        testGlobal.rendererUtils = {
-            getGlobalData: vi.fn<() => unknown>(() => ({ stale: true })),
-            setGlobalData: originalSetGlobalData,
-        };
-
-        stateIntegration.integrateWithRendererUtils();
-
-        const firstData = { activityId: "activity-1" };
-        expect(testGlobal.rendererUtils.setGlobalData?.(firstData)).toBe(
-            "stored"
-        );
-        expect(originalSetGlobalData).toHaveBeenCalledWith(firstData);
-        expect(getState("globalData")).toEqual(firstData);
-
-        const secondData = { activityId: "activity-2" };
-        setState("globalData", secondData);
-        expect(testGlobal.rendererUtils.getGlobalData?.()).toEqual(secondData);
 
         resetTestEnvironment();
     });
@@ -409,18 +370,12 @@ describe("stateIntegration.js - Essential Coverage", () => {
     });
 
     it("returns without side effects when optional integration globals are missing", () => {
-        expect.assertions(3);
+        expect.assertions(1);
         resetTestEnvironment();
 
         expect(() =>
-            stateIntegration.integrateWithRendererUtils()
-        ).not.toThrow();
-        expect(() =>
             stateIntegration.migrateChartControlsState()
         ).not.toThrow();
-        expect((globalThis as StateIntegrationTestGlobal).rendererUtils).toBe(
-            undefined
-        );
 
         resetTestEnvironment();
     });

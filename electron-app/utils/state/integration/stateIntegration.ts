@@ -31,11 +31,6 @@ type LegacyAppState = {
     isChartRendered: unknown;
 };
 
-type RendererUtils = Record<string, unknown> & {
-    getGlobalData?: () => unknown;
-    setGlobalData?: (data: unknown) => unknown;
-};
-
 type PerformanceMemory = {
     jsHeapSizeLimit: number;
     totalJSHeapSize: number;
@@ -64,7 +59,6 @@ type StateIntegrationGlobal = typeof globalThis & {
     AppState?: LegacyAppState;
     chartControlsState?: ChartControlsState;
     electronAPI?: Partial<Pick<ElectronAPIWithDevFlags, "__devMode">>;
-    rendererUtils?: RendererUtils;
 };
 
 const PERSISTED_STATE_KEY = "fitFileViewer_uiState";
@@ -149,41 +143,10 @@ export function initializeAppState(): void {
 export function initializeCompleteStateSystem(): void {
     initializeAppState();
     migrateChartControlsState();
-    integrateWithRendererUtils();
     setupStatePersistence();
     setupStatePerformanceMonitoring();
 
     console.log("[StateIntegration] Complete state system initialized");
-}
-
-/**
- * Helper to integrate with existing renderer utilities
- */
-export function integrateWithRendererUtils(): void {
-    const integrationGlobal = getIntegrationGlobal(),
-        rendererUtils = integrationGlobal.rendererUtils;
-
-    if (!rendererUtils) {
-        return;
-    }
-
-    console.log("[StateIntegration] Integrating with rendererUtils...");
-
-    const originalSetGlobalData = rendererUtils.setGlobalData;
-    if (typeof originalSetGlobalData === "function") {
-        rendererUtils.setGlobalData = (data: unknown) => {
-            setGlobalData(data, {
-                source: "rendererUtils.setGlobalData",
-            });
-            return originalSetGlobalData.call(rendererUtils, data);
-        };
-    }
-
-    if (typeof rendererUtils.getGlobalData === "function") {
-        rendererUtils.getGlobalData = () => getState("globalData");
-    }
-
-    console.log("[StateIntegration] rendererUtils integration completed");
 }
 
 /**
