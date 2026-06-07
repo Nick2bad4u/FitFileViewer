@@ -251,6 +251,8 @@ const expectedRootToolingScripts = {
         'remark docs docusaurus/docs docusaurus/blog docusaurus/src --quiet --frail --rc-path .remarkrc.mjs --ignore-pattern "docusaurus/docs/api/**"',
     "lint:secretlint":
         'secretlint "*.md" "docs/**/*.md" "docusaurus/docs/**/*.{md,mdx}" "docusaurus/blog/**/*.{md,mdx}" --secretlintrc .secretlintrc.cjs',
+    "perf:baseline":
+        "npm run build:runtime-ts && node scripts/run-performance-baseline.mjs",
     "prepare:electron": "node scripts/ensure-electron-binary.mjs",
     "release:check-signing": "node scripts/check-signing-env.mjs",
     pretest: "npm run prepare:electron && npm run build:runtime-ts",

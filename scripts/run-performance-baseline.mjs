@@ -1,0 +1,381 @@
+import { _electron as electron } from "@playwright/test";
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { pathToFileURL } from "node:url";
+
+import { repositoryRoot, rootArtifactsPath } from "./lib/workspaces.mjs";
+
+const defaultOutputPath = path.join(
+    repositoryRoot,
+    rootArtifactsPath,
+    "performance-baseline.json"
+);
+const defaultTimeoutMs = 60_000;
+const defaultFixtureNames = [
+    "_Fenton_Michigan_Afternoon_Ride_5_27_miles.fit",
+    "Virtual_Zwift_Climb_Portal_Cauberg_at_100_Elevation_in_Watopia_12_miles.fit",
+    "_Fenton_Michigan_Saturday_Afternoon_Ride_25_45_miles.fit",
+];
+
+export function parseArgs(argv = []) {
+    const fixturePaths = [];
+    let outputPath = defaultOutputPath;
+    let timeoutMs = defaultTimeoutMs;
+
+    for (let index = 0; index < argv.length; index += 1) {
+        const arg = argv[index];
+
+        if (arg === "--fixture") {
+            const fixturePath = argv[index + 1];
+            if (!fixturePath || fixturePath.startsWith("-")) {
+                throw new Error("--fixture requires a value");
+            }
+            fixturePaths.push(path.resolve(fixturePath));
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--fixture=")) {
+            const fixturePath = arg.slice("--fixture=".length);
+            if (!fixturePath) {
+                throw new Error("--fixture must not be empty");
+            }
+            fixturePaths.push(path.resolve(fixturePath));
+            continue;
+        }
+
+        if (arg === "--output") {
+            const nextOutputPath = argv[index + 1];
+            if (!nextOutputPath || nextOutputPath.startsWith("-")) {
+                throw new Error("--output requires a value");
+            }
+            outputPath = path.resolve(nextOutputPath);
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--output=")) {
+            const nextOutputPath = arg.slice("--output=".length);
+            if (!nextOutputPath) {
+                throw new Error("--output must not be empty");
+            }
+            outputPath = path.resolve(nextOutputPath);
+            continue;
+        }
+
+        if (arg === "--timeout-ms") {
+            timeoutMs = parseTimeoutMs(argv[index + 1]);
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--timeout-ms=")) {
+            timeoutMs = parseTimeoutMs(arg.slice("--timeout-ms=".length));
+            continue;
+        }
+
+        throw new Error(`Unknown argument: ${arg}`);
+    }
+
+    return {
+        fixturePaths:
+            fixturePaths.length > 0 ? fixturePaths : getDefaultFixturePaths(),
+        outputPath,
+        timeoutMs,
+    };
+}
+
+export function getDefaultFixturePaths() {
+    return defaultFixtureNames.map((fixtureName) =>
+        path.join(repositoryRoot, "fit-test-files", fixtureName)
+    );
+}
+
+export async function runPerformanceBaseline(
+    argv = process.argv.slice(2),
+    environment = process.env,
+    logger = console.log
+) {
+    const { fixturePaths, outputPath, timeoutMs } = parseArgs(argv);
+    assertFixturesExist(fixturePaths);
+
+    const electronApp = await electron.launch({
+        args: [repositoryRoot, "--disable-http-cache"],
+        cwd: repositoryRoot,
+        env: createElectronLaunchEnv(environment),
+        timeout: timeoutMs,
+    });
+
+    const page = await electronApp.firstWindow();
+    const pageErrors = [];
+    const rendererErrors = [];
+    function handleConsoleMessage(message) {
+        if (message.type() === "error") {
+            rendererErrors.push(message.text());
+        }
+    }
+    function handlePageError(error) {
+        pageErrors.push(error.message);
+    }
+    page.on("console", handleConsoleMessage);
+    page.on("pageerror", handlePageError);
+    await page.waitForLoadState("domcontentloaded");
+
+    try {
+        const fixtures = [];
+        for (const fixturePath of fixturePaths) {
+            logger(`[perf] Measuring ${path.basename(fixturePath)}`);
+            fixtures.push(
+                await measureFixture(page, {
+                    fixturePath,
+                    timeoutMs,
+                })
+            );
+        }
+
+        const baseline = {
+            app: {
+                electron: await electronApp.evaluate(
+                    () => process.versions.electron
+                ),
+                node: await electronApp.evaluate(() => process.versions.node),
+                platform: process.platform,
+            },
+            generatedAt: new Date().toISOString(),
+            pageErrors,
+            rendererErrors,
+            fixtures,
+        };
+
+        fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+        fs.writeFileSync(outputPath, `${JSON.stringify(baseline, null, 2)}\n`);
+        logger(`[perf] Wrote ${outputPath}`);
+
+        if (pageErrors.length > 0 || rendererErrors.length > 0) {
+            throw new Error(
+                `Performance baseline completed with renderer errors: ${[
+                    ...pageErrors,
+                    ...rendererErrors,
+                ].join("; ")}`
+            );
+        }
+
+        return baseline;
+    } finally {
+        page.off("console", handleConsoleMessage);
+        page.off("pageerror", handlePageError);
+        await electronApp.close();
+    }
+}
+
+async function measureFixture(page, { fixturePath, timeoutMs }) {
+    const bytes = [...fs.readFileSync(fixturePath)];
+    const fileStats = fs.statSync(fixturePath);
+    const loadMetrics = await page.evaluate(
+        async ({ fixtureBytes, filePath }) => {
+            const getHeapBytes = () => {
+                const memory = performance.memory;
+                return typeof memory?.usedJSHeapSize === "number"
+                    ? memory.usedJSHeapSize
+                    : null;
+            };
+            const api = globalThis.electronAPI;
+            if (!api?.parseFitFile) {
+                throw new TypeError(
+                    "globalThis.electronAPI.parseFitFile is missing"
+                );
+            }
+            if (typeof globalThis.showFitData !== "function") {
+                throw new TypeError("globalThis.showFitData is missing");
+            }
+
+            const memoryBeforeLoad = getHeapBytes();
+            const parseStart = performance.now();
+            const data = await api.parseFitFile(
+                new Uint8Array(fixtureBytes).buffer
+            );
+            const parseMs = performance.now() - parseStart;
+
+            const renderStart = performance.now();
+            globalThis.showFitData(data, filePath);
+            const renderMs = performance.now() - renderStart;
+
+            return {
+                activeFileName:
+                    document
+                        .querySelector("#active_file_name")
+                        ?.textContent?.trim() ?? "",
+                memoryBeforeLoad,
+                memoryAfterLoad: getHeapBytes(),
+                parseMs,
+                recordCount: globalThis.globalData?.recordMesgs?.length ?? 0,
+                renderMs,
+                sessionCount: globalThis.globalData?.sessionMesgs?.length ?? 0,
+                title: document.title,
+            };
+        },
+        { filePath: fixturePath, fixtureBytes: bytes }
+    );
+
+    const mapMetrics = await measureTabRender(page, {
+        activeTabSelector: "#tab_map.active",
+        metricName: "mapRouteRenderMs",
+        readyExpression: () =>
+            document.querySelectorAll(
+                ".leaflet-marker-icon, .leaflet-interactive"
+            ).length > 0,
+        resultExpression: () => ({
+            routeElementCount: document.querySelectorAll(
+                ".leaflet-marker-icon, .leaflet-interactive"
+            ).length,
+        }),
+        tabSelector: "#tab_map",
+        timeoutMs,
+    });
+
+    const chartMetrics = await measureTabRender(page, {
+        activeTabSelector: "#tab_chartjs.active",
+        metricName: "chartRenderMs",
+        readyExpression: () => {
+            const chartInstances = Reflect.get(globalThis, "_chartjsInstances");
+            return (
+                document.querySelectorAll(
+                    "#chartjs_chart_container canvas.chart-canvas"
+                ).length > 0 &&
+                Array.isArray(chartInstances) &&
+                chartInstances.length > 0
+            );
+        },
+        resultExpression: () => {
+            const chartInstances = Reflect.get(globalThis, "_chartjsInstances");
+            return {
+                canvasCount: document.querySelectorAll(
+                    "#chartjs_chart_container canvas.chart-canvas"
+                ).length,
+                chartInstanceCount: Array.isArray(chartInstances)
+                    ? chartInstances.length
+                    : 0,
+            };
+        },
+        tabSelector: "#tab_chartjs",
+        timeoutMs,
+    });
+
+    const unloadMetrics = await unloadCurrentFixture(page, timeoutMs);
+
+    return {
+        byteLength: fileStats.size,
+        fixturePath: path.relative(repositoryRoot, fixturePath),
+        name: path.basename(fixturePath),
+        ...loadMetrics,
+        ...mapMetrics,
+        ...chartMetrics,
+        ...unloadMetrics,
+    };
+}
+
+async function measureTabRender(
+    page,
+    {
+        activeTabSelector,
+        metricName,
+        readyExpression,
+        resultExpression,
+        tabSelector,
+        timeoutMs,
+    }
+) {
+    const start = await page.evaluate(() => performance.now());
+    await page.locator(tabSelector).click({ timeout: timeoutMs });
+    await page.waitForFunction(readyExpression, undefined, {
+        timeout: timeoutMs,
+    });
+    await page.waitForSelector(activeTabSelector, { timeout: timeoutMs });
+    const tabResult = await page.evaluate(resultExpression);
+
+    return {
+        [metricName]: (await page.evaluate(() => performance.now())) - start,
+        ...tabResult,
+    };
+}
+
+async function unloadCurrentFixture(page, timeoutMs) {
+    const unloadStart = await page.evaluate(() => performance.now());
+    const unloadButton = page.locator("#unload_file_btn");
+    if (await unloadButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await unloadButton.click({ timeout: timeoutMs });
+    } else {
+        throw new Error("Unload button was not visible after FIT load");
+    }
+
+    await page.waitForFunction(
+        () => {
+            const activeFileName =
+                document
+                    .querySelector("#active_file_name")
+                    ?.textContent?.trim() ?? "";
+            const unloadElement = document.querySelector("#unload_file_btn");
+            return (
+                activeFileName === "" &&
+                (!(unloadElement instanceof HTMLElement) ||
+                    unloadElement.hidden ||
+                    getComputedStyle(unloadElement).display === "none")
+            );
+        },
+        undefined,
+        { timeout: timeoutMs }
+    );
+
+    return page.evaluate((startTime) => {
+        const memory = performance.memory;
+        return {
+            activeFileNameAfterUnload:
+                document
+                    .querySelector("#active_file_name")
+                    ?.textContent?.trim() ?? "",
+            memoryAfterUnload:
+                typeof memory?.usedJSHeapSize === "number"
+                    ? memory.usedJSHeapSize
+                    : null,
+            unloadMs: performance.now() - startTime,
+        };
+    }, unloadStart);
+}
+
+function assertFixturesExist(fixturePaths) {
+    for (const fixturePath of fixturePaths) {
+        if (!fs.existsSync(fixturePath)) {
+            throw new Error(`FIT fixture not found: ${fixturePath}`);
+        }
+    }
+}
+
+function createElectronLaunchEnv(environment) {
+    return {
+        ...environment,
+        ELECTRON_IS_DEV: "0",
+        FFV_DISABLE_WEB_SECURITY: "false",
+        NODE_ENV: "production",
+    };
+}
+
+function parseTimeoutMs(value) {
+    if (!value) {
+        throw new Error("--timeout-ms requires a value");
+    }
+
+    const parsed = Number.parseInt(value, 10);
+    if (!Number.isSafeInteger(parsed) || parsed < 1000) {
+        throw new Error("--timeout-ms must be an integer >= 1000");
+    }
+
+    return parsed;
+}
+
+if (
+    process.argv[1] &&
+    import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+    await runPerformanceBaseline();
+}
