@@ -5,7 +5,6 @@ import type * as NodePath from "node:path";
  * Initializes and coordinates the renderer state management components.
  */
 
-import { initializeRendererUtils } from "../../app/initialization/rendererUtils.js";
 import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
 import {
     cleanupStateDevTools,
@@ -14,6 +13,7 @@ import {
 import { initializeControlsState } from "../../rendering/helpers/updateControlsState.js";
 import { initializeTabButtonState } from "../../ui/controls/enableTabButtons.js";
 import { showNotification } from "../../ui/notifications/syncRendererNotifications.js";
+import { initializeRendererStateBindings } from "../../ui/rendererStateBindings.js";
 import { initializeActiveTabState } from "../../ui/tabs/updateActiveTab.js";
 import { initializeTabVisibilityState } from "../../ui/tabs/updateTabVisibility.js";
 import type { ElectronAPIWithDevFlags } from "../../../shared/preloadApi.js";
@@ -587,8 +587,8 @@ export class MasterStateManager {
      * Initialize renderer components
      */
     initializeRendererComponents() {
-        const { initializeRendererUtils: dynInitRenderer } =
-            getRendererUtilsModule();
+        const { initializeRendererStateBindings: dynInitRenderer } =
+            getRendererStateBindingsModule();
         dynInitRenderer();
     }
 
@@ -1151,16 +1151,16 @@ function getNodeModuleCache(): ModuleCache | null {
 }
 
 // Dynamic module resolvers: prefer require.cache-injected mocks (used by tests), fallback to static imports
-function getRendererUtilsModule(): {
-    initializeRendererUtils: typeof initializeRendererUtils;
+function getRendererStateBindingsModule(): {
+    initializeRendererStateBindings: typeof initializeRendererStateBindings;
 } {
     const mocked = getModuleExportsFromCache(
-        "/utils/app/initialization/rendererutils.js"
+        "/utils/ui/rendererstatebindings.js"
     );
-    if (hasFunction(mocked, "initializeRendererUtils")) {
+    if (hasFunction(mocked, "initializeRendererStateBindings")) {
         return mocked;
     }
-    return { initializeRendererUtils };
+    return { initializeRendererStateBindings };
 }
 
 function getSettingsStateModule(): {

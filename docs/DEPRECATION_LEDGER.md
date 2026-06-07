@@ -39,8 +39,8 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Temporary surface: `rendererUtils` and broad renderer utility global registration
 - Current owners: `electron-app/utils/app/initialization/rendererUtils.ts`, `electron-app/utils/legacy/`
 - Compatibility callers: old bootstrap and test helpers that still expect a global utility bag
-- Current status: shrinking; renderer bootstrap now has focused modules for file input startup, development debug globals, Electron API registration, error handling, and lifecycle cleanup; sync renderer notifications and loading now live in focused UI modules that `rendererUtils` re-exports for compatibility, state domain modules are guarded against importing broad renderer utilities, and `renderer.ts` now uses the focused loading helper directly
-- Next removal step: replace remaining direct `rendererUtils` imports from state/core initialization code with narrower renderer initialization services
+- Current status: shrinking; renderer bootstrap now has focused modules for file input startup, development debug globals, Electron API registration, error handling, and lifecycle cleanup; sync renderer notifications, loading, and renderer state bindings now live in focused UI modules that `rendererUtils` re-exports for compatibility, state domain/core modules are guarded against importing broad renderer utilities, and `renderer.ts` now uses the focused loading helper directly
+- Next removal step: remove compatibility-only `rendererUtils` barrel exports and migrate the remaining explicit legacy bridge integration to typed state services
 - Verification gates:
   - `npm run lint:app`
   - `npm test -- tests/unit/packaging/architectureBoundaries.test.ts`

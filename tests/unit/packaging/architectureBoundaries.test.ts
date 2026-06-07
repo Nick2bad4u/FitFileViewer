@@ -29,6 +29,7 @@ const preloadRoots = [
 ] as const;
 
 const stateDomainRoots = ["electron-app/utils/state/domain"] as const;
+const stateCoreRoots = ["electron-app/utils/state/core"] as const;
 const rendererEntrypointFiles = ["electron-app/renderer.ts"] as const;
 
 const sourceExtensions = new Set([
@@ -286,6 +287,23 @@ describe("architecture boundaries", () => {
         expect.assertions(1);
 
         const violations = stateDomainRoots
+            .flatMap(collectSourceFiles)
+            .flatMap((relativeFile) =>
+                getImportSpecifiers(readRepositoryFile(relativeFile))
+                    .filter((specifier) =>
+                        resolvesIntoRendererUtils(relativeFile, specifier)
+                    )
+                    .map((specifier) => `${relativeFile}: ${specifier}`)
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps state core modules out of broad renderer utilities", () => {
+        expect.assertions(1);
+
+        const violations = stateCoreRoots
             .flatMap(collectSourceFiles)
             .flatMap((relativeFile) =>
                 getImportSpecifiers(readRepositoryFile(relativeFile))

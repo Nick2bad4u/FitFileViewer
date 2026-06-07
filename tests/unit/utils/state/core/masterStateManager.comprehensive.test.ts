@@ -9,14 +9,15 @@ const staticModuleMocks = vi.hoisted(() => ({
     AppSelectors: {
         hasData: vi.fn<() => boolean>().mockReturnValue(true),
     },
-    initializeRendererUtils: vi.fn<() => void>(),
+    initializeRendererStateBindings: vi.fn<() => void>(),
     showNotification: vi.fn<(message: string, kind: string) => void>(),
 }));
 
 vi.mock(
-    import("../../../../../electron-app/utils/app/initialization/rendererUtils.js"),
+    import("../../../../../electron-app/utils/ui/rendererStateBindings.js"),
     () => ({
-        initializeRendererUtils: staticModuleMocks.initializeRendererUtils,
+        initializeRendererStateBindings:
+            staticModuleMocks.initializeRendererStateBindings,
     })
 );
 
@@ -86,11 +87,8 @@ type HarnessMocks = {
             initialize: ReturnType<typeof vi.fn<() => Promise<void>>>;
         };
     };
-    rendererUtils: {
-        initializeRendererUtils: ReturnType<typeof vi.fn<() => void>>;
-        showNotification: ReturnType<
-            typeof vi.fn<(message: string, kind: string) => void>
-        >;
+    rendererStateBindings: {
+        initializeRendererStateBindings: ReturnType<typeof vi.fn<() => void>>;
     };
     settingsStateManager: {
         settingsStateManager: {
@@ -257,7 +255,7 @@ describe("masterStateManager comprehensive behavior", () => {
                     mocks.settingsStateManager.settingsStateManager.initialize
                 ).toHaveBeenCalledOnce();
                 expect(
-                    mocks.rendererUtils.initializeRendererUtils
+                    mocks.rendererStateBindings.initializeRendererStateBindings
                 ).toHaveBeenCalledOnce();
                 expect(
                     mocks.enableTabButtons.initializeTabButtonState
@@ -681,9 +679,8 @@ function createHarnessMocks(): HarnessMocks {
                 initialize: vi.fn<() => Promise<void>>().mockResolvedValue(),
             },
         },
-        rendererUtils: {
-            initializeRendererUtils: vi.fn<() => void>(),
-            showNotification: vi.fn<(message: string, kind: string) => void>(),
+        rendererStateBindings: {
+            initializeRendererStateBindings: vi.fn<() => void>(),
         },
         settingsStateManager: {
             settingsStateManager: {
@@ -754,7 +751,8 @@ function createKeyboardEvent(key: string): KeyboardEvent {
 
 function createModuleMocks(mocks: HarnessMocks): Record<string, unknown> {
     return {
-        "C:/fit/utils/app/initialization/rendererUtils.js": mocks.rendererUtils,
+        "C:/fit/utils/ui/rendererStateBindings.js":
+            mocks.rendererStateBindings,
         "C:/fit/utils/app/lifecycle/appActions.js": mocks.appActions,
         "C:/fit/utils/debug/stateDevTools.js": mocks.stateDevTools,
         "C:/fit/utils/rendering/helpers/updateControlsState.js":
@@ -854,7 +852,7 @@ async function withMasterStateHarness(
     vi.spyOn(console, "warn").mockReturnValue(undefined);
     staticModuleMocks.AppActions.switchTab.mockClear();
     staticModuleMocks.AppSelectors.hasData.mockReturnValue(true);
-    staticModuleMocks.initializeRendererUtils.mockClear();
+    staticModuleMocks.initializeRendererStateBindings.mockClear();
     staticModuleMocks.showNotification.mockClear();
 
     const documentMock = {
