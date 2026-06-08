@@ -446,7 +446,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps app release versioning rooted at the repository package", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseWorkflow = readFileSync(
@@ -469,8 +469,14 @@ describe("workspace package boundaries", () => {
         expect(rootPackage.scripts?.["release:verify"]).toBe(
             "npm run verify:release"
         );
+        expect(rootPackage.scripts?.["release:verify-signing-artifacts"]).toBe(
+            "node scripts/verify-signed-artifacts.mjs"
+        );
         expect(releaseWorkflow).toContain("xvfb-run -a npm run release:verify");
         expect(releaseWorkflow).toContain("npm run release:check-signing");
+        expect(releaseWorkflow).toContain(
+            "npm run release:verify-signing-artifacts"
+        );
         expect(releaseWorkflow).toContain("npm run test:packaged");
         expect(releaseVersioningFilesWithWorkspaceFlags).toStrictEqual([]);
     });
@@ -683,7 +689,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps dependency update configuration rooted at the app package", () => {
-        expect.assertions(6);
+        expect.assertions(9);
 
         const ncuConfig = JSON.parse(
             readFileSync(path.join(process.cwd(), rootNcuConfigPath), "utf8")
@@ -734,6 +740,15 @@ describe("workspace package boundaries", () => {
         expect(dependencyValidationWorkflow).toContain("node-version: 24");
         expect(dependencyValidationWorkflow).toContain(
             "xvfb-run -a npm run release:verify"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "Collect dependency validation diagnostics"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "dependency-validation-diagnostics"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f"
         );
     });
 

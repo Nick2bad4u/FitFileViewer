@@ -22,3 +22,15 @@ The default fixtures cover small, medium, and large real FIT files from
 - renderer console and page errors
 
 For release work, compare the generated baseline against the latest trusted baseline from the same machine or CI runner. Large regressions should be explained or fixed before tagging.
+
+Use comparison mode when you have a trusted prior baseline from the same runner:
+
+```powershell
+npm run perf:baseline -- --compare artifacts/performance-baseline.previous.json --threshold-percent 25
+```
+
+The comparison checks `parseMs`, `renderMs`, `mapRouteRenderMs`,
+`chartRenderMs`, and `dataTableRenderMs` for matching fixture names. The
+default regression threshold is 25 percent. Regressions above the configured
+threshold fail the command after writing the current JSON, including a
+`comparison` section with skipped fixtures and failing metrics.

@@ -237,6 +237,7 @@
         "release:rename-windows-latest-yml": "node scripts/rename-windows-latest-yml.mjs",
         "release:summary": "node scripts/update-release-job-summary.mjs",
         "release:verify": "npm run verify:release",
+        "release:verify-signing-artifacts": "node scripts/verify-signed-artifacts.mjs",
         "start": "node scripts/start-electron.mjs --inspect=9229 --remote-debugging-port=9222",
         "start:prod": "node scripts/start-electron.mjs --electron-is-dev 0",
         "sync:node-version-files": "node scripts/sync-node-version-files.mjs",

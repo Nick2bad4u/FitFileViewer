@@ -445,6 +445,12 @@ and lists each missing variable.
 - Windows 7 compatibility builds stay isolated in `build-win7.yml` and do not
   share the primary signed release path.
 
+After signed Windows or macOS packaging completes, use
+`npm run release:verify-signing-artifacts` to verify the produced artifacts.
+The release matrix runs this automatically after `build:ci-matrix`: Windows
+artifacts are checked with `Get-AuthenticodeSignature`, and macOS `.app`
+bundles are checked with `codesign --verify --deep --strict`.
+
 ### Release Rehearsal
 
 Before tagging a release, run the manual GitHub Actions workflow **Release

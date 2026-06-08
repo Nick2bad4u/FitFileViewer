@@ -46,3 +46,29 @@ jobs:
 
             - name: Run release verification gate
               run: xvfb-run -a npm run release:verify
+
+            - name: Collect dependency validation diagnostics
+              if: always()
+              run: |
+                  mkdir -p artifacts/dependency-validation
+                  git status --short > artifacts/dependency-validation/git-status.txt
+                  npm ls --all > artifacts/dependency-validation/npm-ls.txt 2>&1 || true
+                  npm --prefix docusaurus ls --all > artifacts/dependency-validation/docusaurus-npm-ls.txt 2>&1 || true
+                  if [ -d release-dist ]; then
+                    npm run release:list-release-dist-files > artifacts/dependency-validation/release-dist-files.txt 2>&1 || true
+                  fi
+                  if [ -d test-results ]; then
+                    cp -R test-results artifacts/dependency-validation/test-results
+                  fi
+                  if [ -d playwright-report ]; then
+                    cp -R playwright-report artifacts/dependency-validation/playwright-report
+                  fi
+
+            - name: Upload dependency validation diagnostics
+              if: failure()
+              uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+              with:
+                  name: dependency-validation-diagnostics
+                  path: artifacts/dependency-validation/**
+                  if-no-files-found: error
+                  include-hidden-files: true

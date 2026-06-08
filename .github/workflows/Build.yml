@@ -241,6 +241,15 @@ jobs:
                   CSC_LINK: ${{ runner.os == 'macOS' && secrets.MACOS_CSC_LINK || '' }}
                   WIN_CSC_LINK: ${{ runner.os == 'Windows' && secrets.WINDOWS_CSC_LINK || '' }}
 
+            - name: Verify signed release artifacts
+              id: verify_signed_artifacts
+              if: runner.os == 'Windows' || runner.os == 'macOS'
+              shell: bash
+              run: npm run release:verify-signing-artifacts -- --runner-os "$RUNNER_OS"
+              env:
+                  REQUIRE_CODE_SIGNING: true
+                  RUNNER_OS: ${{ runner.os }}
+
             - name: Smoke test packaged build
               id: smoke_packaged_app
               shell: bash

@@ -12,6 +12,14 @@ const defaultOutputPath = path.join(
     "performance-baseline.json"
 );
 const defaultTimeoutMs = 60_000;
+const defaultThresholdPercent = 25;
+const performanceTrendMetricNames = [
+    "parseMs",
+    "renderMs",
+    "mapRouteRenderMs",
+    "chartRenderMs",
+    "dataTableRenderMs",
+];
 const defaultFixtureNames = [
     "_Fenton_Michigan_Afternoon_Ride_5_27_miles.fit",
     "Virtual_Zwift_Climb_Portal_Cauberg_at_100_Elevation_in_Watopia_12_miles.fit",
@@ -20,11 +28,32 @@ const defaultFixtureNames = [
 
 export function parseArgs(argv = []) {
     const fixturePaths = [];
+    let comparePath = null;
     let outputPath = defaultOutputPath;
+    let thresholdPercent = defaultThresholdPercent;
     let timeoutMs = defaultTimeoutMs;
 
     for (let index = 0; index < argv.length; index += 1) {
         const arg = argv[index];
+
+        if (arg === "--compare") {
+            const nextComparePath = argv[index + 1];
+            if (!nextComparePath || nextComparePath.startsWith("-")) {
+                throw new Error("--compare requires a value");
+            }
+            comparePath = path.resolve(nextComparePath);
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--compare=")) {
+            const nextComparePath = arg.slice("--compare=".length);
+            if (!nextComparePath) {
+                throw new Error("--compare must not be empty");
+            }
+            comparePath = path.resolve(nextComparePath);
+            continue;
+        }
 
         if (arg === "--fixture") {
             const fixturePath = argv[index + 1];
@@ -64,6 +93,19 @@ export function parseArgs(argv = []) {
             continue;
         }
 
+        if (arg === "--threshold-percent") {
+            thresholdPercent = parseThresholdPercent(argv[index + 1]);
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--threshold-percent=")) {
+            thresholdPercent = parseThresholdPercent(
+                arg.slice("--threshold-percent=".length)
+            );
+            continue;
+        }
+
         if (arg === "--timeout-ms") {
             timeoutMs = parseTimeoutMs(argv[index + 1]);
             index += 1;
@@ -79,9 +121,11 @@ export function parseArgs(argv = []) {
     }
 
     return {
+        comparePath,
         fixturePaths:
             fixturePaths.length > 0 ? fixturePaths : getDefaultFixturePaths(),
         outputPath,
+        thresholdPercent,
         timeoutMs,
     };
 }
@@ -97,7 +141,13 @@ export async function runPerformanceBaseline(
     environment = process.env,
     logger = console.log
 ) {
-    const { fixturePaths, outputPath, timeoutMs } = parseArgs(argv);
+    const {
+        comparePath,
+        fixturePaths,
+        outputPath,
+        thresholdPercent,
+        timeoutMs,
+    } = parseArgs(argv);
     assertFixturesExist(fixturePaths);
 
     const electronApp = await electron.launch({
@@ -147,6 +197,13 @@ export async function runPerformanceBaseline(
             rendererErrors,
             fixtures,
         };
+        if (comparePath) {
+            baseline.comparison = comparePerformanceBaselines(
+                baseline,
+                readBaseline(comparePath),
+                thresholdPercent
+            );
+        }
 
         fs.mkdirSync(path.dirname(outputPath), { recursive: true });
         fs.writeFileSync(outputPath, `${JSON.stringify(baseline, null, 2)}\n`);
@@ -160,6 +217,8 @@ export async function runPerformanceBaseline(
                 ].join("; ")}`
             );
         }
+
+        assertNoPerformanceRegressions(baseline.comparison);
 
         return baseline;
     } finally {
@@ -307,6 +366,95 @@ export function classifyFixtureSize(byteLength) {
     }
 
     return "large";
+}
+
+export function comparePerformanceBaselines(
+    currentBaseline,
+    previousBaseline,
+    thresholdPercent = defaultThresholdPercent
+) {
+    const previousFixtures = new Map(
+        getBaselineFixtures(previousBaseline).map((fixture) => [
+            getFixtureComparisonKey(fixture),
+            fixture,
+        ])
+    );
+    const regressions = [];
+    const skippedFixtures = [];
+    let comparedFixtureCount = 0;
+
+    for (const currentFixture of getBaselineFixtures(currentBaseline)) {
+        const fixtureKey = getFixtureComparisonKey(currentFixture);
+        const previousFixture = previousFixtures.get(fixtureKey);
+        if (!previousFixture) {
+            skippedFixtures.push({
+                fixture: fixtureKey,
+                reason: "missing previous fixture",
+            });
+            continue;
+        }
+
+        let fixtureHadComparableMetric = false;
+        for (const metricName of performanceTrendMetricNames) {
+            const currentValue = currentFixture[metricName];
+            const previousValue = previousFixture[metricName];
+            if (
+                !Number.isFinite(currentValue) ||
+                !Number.isFinite(previousValue) ||
+                previousValue <= 0
+            ) {
+                continue;
+            }
+
+            fixtureHadComparableMetric = true;
+            const changePercent =
+                ((currentValue - previousValue) / previousValue) * 100;
+            if (changePercent > thresholdPercent) {
+                regressions.push({
+                    changePercent: roundMetricValue(changePercent),
+                    current: roundMetricValue(currentValue),
+                    fixture: fixtureKey,
+                    metric: metricName,
+                    previous: roundMetricValue(previousValue),
+                    thresholdPercent,
+                });
+            }
+        }
+
+        if (fixtureHadComparableMetric) {
+            comparedFixtureCount += 1;
+        } else {
+            skippedFixtures.push({
+                fixture: fixtureKey,
+                reason: "no comparable metrics",
+            });
+        }
+    }
+
+    return {
+        comparedFixtureCount,
+        metricNames: performanceTrendMetricNames,
+        regressions,
+        skippedFixtures,
+        thresholdPercent,
+    };
+}
+
+export function assertNoPerformanceRegressions(comparison) {
+    if (!comparison || comparison.regressions.length === 0) {
+        return;
+    }
+
+    const regressionSummary = comparison.regressions
+        .slice(0, 5)
+        .map(
+            (regression) =>
+                `${regression.fixture} ${regression.metric} +${regression.changePercent}%`
+        )
+        .join("; ");
+    throw new Error(
+        `Performance baseline exceeded ${comparison.thresholdPercent}% regression threshold: ${regressionSummary}`
+    );
 }
 
 async function measureDataTableRender(page, { timeoutMs }) {
@@ -484,6 +632,41 @@ function parseTimeoutMs(value) {
     }
 
     return parsed;
+}
+
+function parseThresholdPercent(value) {
+    if (!value) {
+        throw new Error("--threshold-percent requires a value");
+    }
+
+    const parsed = Number.parseFloat(value);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+        throw new Error("--threshold-percent must be a number >= 0");
+    }
+
+    return parsed;
+}
+
+function readBaseline(baselinePath) {
+    if (!fs.existsSync(baselinePath)) {
+        throw new Error(
+            `Performance comparison baseline not found: ${baselinePath}`
+        );
+    }
+
+    return JSON.parse(fs.readFileSync(baselinePath, "utf8"));
+}
+
+function getBaselineFixtures(baseline) {
+    return Array.isArray(baseline?.fixtures) ? baseline.fixtures : [];
+}
+
+function getFixtureComparisonKey(fixture) {
+    return String(fixture.name ?? fixture.fixturePath ?? "");
+}
+
+function roundMetricValue(value) {
+    return Math.round(value * 100) / 100;
 }
 
 if (
