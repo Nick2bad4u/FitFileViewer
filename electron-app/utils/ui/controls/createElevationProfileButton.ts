@@ -1,6 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
+import { FitFileSelectors } from "../../state/domain/fitFileState.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -284,7 +284,7 @@ function getElevationFitFiles(): ElevationFitFile[] {
         return loadedFitFiles.filter(isElevationFitFile);
     }
 
-    const globalData = getGlobalData<ElevationFitData | null>();
+    const globalData = FitFileSelectors.getRawData();
     if (
         isElevationFitData(globalData) &&
         Array.isArray(globalData.recordMesgs)

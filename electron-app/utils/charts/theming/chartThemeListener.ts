@@ -1,7 +1,6 @@
 import { chartStateManager as importedChartStateManager } from "../core/chartStateManager.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
-import type { FitDecodeResult } from "../../../shared/fit";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
+import { FitFileSelectors } from "../../state/domain/fitFileState.js";
 
 interface ChartUpdateAdapter {
     updateAll(reason: string): void;
@@ -14,7 +13,6 @@ interface ThemeChangeDetail {
 interface LegacyChartWindow extends Window {
     ChartUpdater?: unknown;
     chartUpdater?: unknown;
-    globalData?: FitDecodeResult | null;
 }
 
 type ThemeChangeHandler = ((event: Event) => void) & {
@@ -74,8 +72,7 @@ function updateChartsForTheme(
 }
 
 function hasChartData(): boolean {
-    const fitData = getGlobalData<FitDecodeResult | null>();
-    return fitData !== undefined && fitData !== null;
+    return FitFileSelectors.getRawData() !== null;
 }
 
 /**
