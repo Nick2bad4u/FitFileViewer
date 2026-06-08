@@ -474,6 +474,41 @@ describe("workspace package boundaries", () => {
         expect(releaseVersioningFilesWithWorkspaceFlags).toStrictEqual([]);
     });
 
+    it("keeps release rehearsal manual and unsigned", () => {
+        expect.assertions(10);
+
+        const rootPackage = readPackageJson(rootPackageRepositoryPath);
+        const releaseRehearsalWorkflow = readFileSync(
+            path.join(process.cwd(), ".github/workflows/release-rehearsal.yml"),
+            "utf8"
+        );
+        const developmentGuide = readFileSync(
+            path.join(process.cwd(), "docs/DEVELOPMENT_GUIDE.md"),
+            "utf8"
+        );
+
+        expect(releaseRehearsalWorkflow).toContain("workflow_dispatch:");
+        expect(releaseRehearsalWorkflow).toContain("require-code-signing:");
+        expect(releaseRehearsalWorkflow).toContain(
+            "npm run release:check-signing"
+        );
+        expect(releaseRehearsalWorkflow).toContain("npm run release:verify");
+        expect(releaseRehearsalWorkflow).toContain(
+            'CSC_IDENTITY_AUTO_DISCOVERY: "false"'
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            'FFV_FORCE_UNSIGNED_PACKAGE: "true"'
+        );
+        expect(releaseRehearsalWorkflow).toContain(
+            "npm run release:list-release-dist-files"
+        );
+        expect(releaseRehearsalWorkflow).toContain("actions/upload-artifact@");
+        expect(rootPackage.scripts?.["verify:full"]).toContain(
+            "npm run test:packaged"
+        );
+        expect(developmentGuide).toContain("### Release Rehearsal");
+    });
+
     it("keeps agent guidance aligned with the root-managed workspace", () => {
         expect.assertions(4);
 
