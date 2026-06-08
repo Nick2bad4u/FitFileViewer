@@ -691,7 +691,13 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         stateManager.setState("fitFile.isLoading", true, { source: "test" });
         stateManager.setState(
             "globalData",
-            { recordMesgs: [{ timestamp: 1 }] },
+            {
+                eventMesgs: [{ event: "start" }],
+                lapMesgs: [{ total_elapsed_time: 120 }],
+                recordMesgs: [{ timestamp: 1 }],
+                sessionMesgs: [{ sport: "cycling" }],
+                timeInZoneMesgs: [{ referenceMesg: "lap" }],
+            },
             { source: "test" }
         );
 
@@ -701,6 +707,13 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             loadingPhase: FitFileSelectors.getLoadingPhase(),
             loadingProgress: FitFileSelectors.getLoadingProgress(),
             metrics: FitFileSelectors.getMetrics(),
+            messageArrays: {
+                event: FitFileSelectors.getEventMessages(),
+                lap: FitFileSelectors.getLapMessages(),
+                record: FitFileSelectors.getRecordMessages(),
+                session: FitFileSelectors.getSessionMessages(),
+                timeInZone: FitFileSelectors.getTimeInZoneMessages(),
+            },
             processedData: FitFileSelectors.getProcessedData(),
             rawData: FitFileSelectors.getRawData(),
             validation: FitFileSelectors.getValidation(),
@@ -709,6 +722,13 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             loadingError: "ERR",
             loadingPhase: "idle",
             loadingProgress: 42,
+            messageArrays: {
+                event: [{ event: "start" }],
+                lap: [{ total_elapsed_time: 120 }],
+                record: [{ timestamp: 1 }],
+                session: [{ sport: "cycling" }],
+                timeInZone: [{ referenceMesg: "lap" }],
+            },
             metrics: { recordCount: 1 },
             processedData: {
                 dataQuality: {
@@ -717,7 +737,13 @@ describe("fitFileStateManager - domain logic and selectors", () => {
                     hasPower: true,
                 },
             },
-            rawData: { recordMesgs: [{ timestamp: 1 }] },
+            rawData: {
+                eventMesgs: [{ event: "start" }],
+                lapMesgs: [{ total_elapsed_time: 120 }],
+                recordMesgs: [{ timestamp: 1 }],
+                sessionMesgs: [{ sport: "cycling" }],
+                timeInZoneMesgs: [{ referenceMesg: "lap" }],
+            },
             validation: { isValid: true },
         });
         expect({

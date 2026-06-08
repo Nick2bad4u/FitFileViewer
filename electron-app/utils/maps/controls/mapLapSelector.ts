@@ -1,6 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
+import { FitFileSelectors } from "../../state/domain/fitFileState.js";
 import {
     createAppIconElement,
     type AppIconName,
@@ -8,10 +8,6 @@ import {
 
 type LapSelection = "all" | string[];
 type MapDrawLaps = (selection: LapSelection) => void;
-
-type GlobalData = {
-    lapMesgs?: unknown[];
-};
 
 type MapLapSelectorGlobal = typeof globalThis & {
     __ffvLapSelectorMouseupHandler?: (event: MouseEvent) => void;
@@ -48,8 +44,8 @@ export function addLapSelector(
     mapDrawLaps: MapDrawLaps
 ): void {
     const windowWithData = getLapSelectorGlobal();
-    const lapMesgs = getGlobalData<GlobalData>()?.lapMesgs;
-    if (!Array.isArray(lapMesgs) || lapMesgs.length === 0) {
+    const lapMesgs = FitFileSelectors.getLapMessages();
+    if (lapMesgs.length === 0) {
         return;
     }
     const availableLapMesgs = lapMesgs;
@@ -395,14 +391,15 @@ export function addLapSelector(
             if (
                 multiSelectMode &&
                 dragSelecting &&
-                target instanceof HTMLOptionElement
-             && target.value !== "all") {
-                    target.selected = Boolean(dragSelectValue);
-                    if (lapSelectEl.options[0]) {
-                        lapSelectEl.options[0].selected = false;
-                    }
-                    lapSelectEl.dispatchEvent(new Event("change"));
+                target instanceof HTMLOptionElement &&
+                target.value !== "all"
+            ) {
+                target.selected = Boolean(dragSelectValue);
+                if (lapSelectEl.options[0]) {
+                    lapSelectEl.options[0].selected = false;
                 }
+                lapSelectEl.dispatchEvent(new Event("change"));
+            }
         },
         { signal }
     );

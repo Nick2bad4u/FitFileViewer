@@ -12,6 +12,12 @@ import type { FitFileLoadingPhase } from "../core/stateManagerDefaults.js";
 
 type DataRecord = Record<string, unknown>;
 type Unsubscribe = () => void;
+type RawFitDataArrayKey =
+    | "eventMesgs"
+    | "lapMesgs"
+    | "recordMesgs"
+    | "sessionMesgs"
+    | "timeInZoneMesgs";
 
 type RecordMessage = DataRecord & {
     altitude?: number;
@@ -50,9 +56,12 @@ type ActivityMessage = DataRecord & {
 export type RawFitData = DataRecord & {
     activities?: ActivityMessage[];
     device_infos?: DeviceInfoMessage[];
+    eventMesgs?: DataRecord[];
     fileIdMesgs?: DataRecord[];
+    lapMesgs?: DataRecord[];
     recordMesgs?: RecordMessage[];
     sessionMesgs?: SessionMessage[];
+    timeInZoneMesgs?: DataRecord[];
 };
 
 type SessionInfo = {
@@ -278,6 +287,17 @@ function hasRecords(data: RawFitData | null | undefined): data is RawFitData & {
     recordMesgs: RecordMessage[];
 } {
     return isRawFitData(data) && Array.isArray(data.recordMesgs);
+}
+
+function getRawMessageArray<T extends DataRecord = DataRecord>(
+    key: RawFitDataArrayKey
+): T[] {
+    const rawData = stateCore.getState("globalData");
+    if (!isRawFitData(rawData)) {
+        return [];
+    }
+    const messages = rawData?.[key];
+    return Array.isArray(messages) ? (messages as T[]) : [];
 }
 
 /**
@@ -981,6 +1001,26 @@ export const FitFileSelectors = {
     getRawData(): RawFitData | null {
         const rawData = stateCore.getState("globalData");
         return isRawFitData(rawData) ? rawData : null;
+    },
+
+    getEventMessages<T extends DataRecord = DataRecord>(): T[] {
+        return getRawMessageArray<T>("eventMesgs");
+    },
+
+    getLapMessages<T extends DataRecord = DataRecord>(): T[] {
+        return getRawMessageArray<T>("lapMesgs");
+    },
+
+    getRecordMessages<T extends DataRecord = DataRecord>(): T[] {
+        return getRawMessageArray<T>("recordMesgs");
+    },
+
+    getSessionMessages<T extends DataRecord = DataRecord>(): T[] {
+        return getRawMessageArray<T>("sessionMesgs");
+    },
+
+    getTimeInZoneMessages<T extends DataRecord = DataRecord>(): T[] {
+        return getRawMessageArray<T>("timeInZoneMesgs");
     },
 
     getValidation(): ValidationResult | null {

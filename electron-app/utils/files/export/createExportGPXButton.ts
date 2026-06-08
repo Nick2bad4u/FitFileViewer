@@ -1,6 +1,6 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
+import { FitFileSelectors } from "../../state/domain/fitFileState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { buildDownloadFilename } from "../sanitizeFilename.js";
 import {
@@ -30,7 +30,7 @@ function getGpxExportGlobal(): GpxExportGlobal {
 }
 
 function getGpxExportData(): GpxExportData | null | undefined {
-    return getGlobalData<GpxExportData>();
+    return FitFileSelectors.getRawData();
 }
 
 function createExportIcon(primary: string): SVGSVGElement {
@@ -79,11 +79,9 @@ export function createExportGPXButton(): HTMLButtonElement {
         () => {
             const windowCtx = getGpxExportGlobal();
             const fitData = getGpxExportData();
-            const records = Array.isArray(fitData?.recordMesgs)
-                ? fitData.recordMesgs
-                : null;
+            const records = FitFileSelectors.getRecordMessages<GpxRecord>();
 
-            if (!records || records.length === 0) {
+            if (records.length === 0) {
                 showNotification(
                     "No data available for GPX export.",
                     "info",
