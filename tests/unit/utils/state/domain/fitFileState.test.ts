@@ -760,4 +760,38 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             isLoading: true,
         });
     });
+
+    it("fitFileSelectors prefer domain raw data over compatibility global data", () => {
+        expect.assertions(1);
+
+        stateManager.setState(
+            "globalData",
+            {
+                recordMesgs: [{ timestamp: 1 }],
+                sessionMesgs: [{ sport: "running" }],
+            },
+            { source: "test" }
+        );
+        stateManager.setState(
+            "fitFile.rawData",
+            {
+                recordMesgs: [{ timestamp: 2 }],
+                sessionMesgs: [{ sport: "cycling" }],
+            },
+            { source: "test" }
+        );
+
+        expect({
+            rawData: FitFileSelectors.getRawData(),
+            records: FitFileSelectors.getRecordMessages(),
+            sessions: FitFileSelectors.getSessionMessages(),
+        }).toStrictEqual({
+            rawData: {
+                recordMesgs: [{ timestamp: 2 }],
+                sessionMesgs: [{ sport: "cycling" }],
+            },
+            records: [{ timestamp: 2 }],
+            sessions: [{ sport: "cycling" }],
+        });
+    });
 });

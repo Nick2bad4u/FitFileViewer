@@ -292,12 +292,22 @@ function hasRecords(data: RawFitData | null | undefined): data is RawFitData & {
 function getRawMessageArray<T extends DataRecord = DataRecord>(
     key: RawFitDataArrayKey
 ): T[] {
-    const rawData = stateCore.getState("globalData");
+    const rawData = getStoredRawFitData();
     if (!isRawFitData(rawData)) {
         return [];
     }
     const messages = rawData?.[key];
     return Array.isArray(messages) ? (messages as T[]) : [];
+}
+
+function getStoredRawFitData(): RawFitData | null {
+    const domainRawData = stateCore.getState("fitFile.rawData");
+    if (isRawFitData(domainRawData)) {
+        return domainRawData;
+    }
+
+    const compatibilityRawData = stateCore.getState("globalData");
+    return isRawFitData(compatibilityRawData) ? compatibilityRawData : null;
 }
 
 /**
@@ -999,8 +1009,7 @@ export const FitFileSelectors = {
     },
 
     getRawData(): RawFitData | null {
-        const rawData = stateCore.getState("globalData");
-        return isRawFitData(rawData) ? rawData : null;
+        return getStoredRawFitData();
     },
 
     getEventMessages<T extends DataRecord = DataRecord>(): T[] {
