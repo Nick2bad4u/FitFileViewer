@@ -22,7 +22,11 @@ if (
 }
 
 export function createBuildMatrixSummaryRow(options) {
-    const status = resolveBuildStatus(options.jobStatus, options.buildOutcome);
+    const status = resolveBuildStatus(
+        options.jobStatus,
+        options.buildOutcome,
+        options.packagedSmokeOutcome
+    );
 
     return `| ${options.version} | ${options.matrixOs} | ${options.arch} | Build Status: ${status} |`;
 }
@@ -35,6 +39,7 @@ export function parseArgs(args, environment = process.env) {
         help: false,
         jobStatus: environment.JOB_STATUS,
         matrixOs: environment.MATRIX_OS,
+        packagedSmokeOutcome: environment.PACKAGED_SMOKE_OUTCOME,
         version: environment.BUILD_VERSION,
     };
 
@@ -104,6 +109,24 @@ export function parseArgs(args, environment = process.env) {
             continue;
         }
 
+        if (arg === "--packaged-smoke-outcome") {
+            options.packagedSmokeOutcome = readOptionValue(
+                args,
+                index,
+                "--packaged-smoke-outcome"
+            );
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--packaged-smoke-outcome=")) {
+            options.packagedSmokeOutcome = readInlineOptionValue(
+                arg,
+                "--packaged-smoke-outcome"
+            );
+            continue;
+        }
+
         if (arg === "--matrix-os") {
             options.matrixOs = readOptionValue(args, index, "--matrix-os");
             index += 1;
@@ -140,12 +163,20 @@ export function parseArgs(args, environment = process.env) {
     return options;
 }
 
-export function resolveBuildStatus(jobStatus, buildOutcome) {
+export function resolveBuildStatus(
+    jobStatus,
+    buildOutcome,
+    packagedSmokeOutcome
+) {
     if (buildOutcome === "failure") {
         return "failure";
     }
 
-    if (buildOutcome === "success") {
+    if (packagedSmokeOutcome === "failure") {
+        return "failure";
+    }
+
+    if (buildOutcome === "success" && packagedSmokeOutcome === "success") {
         return "success";
     }
 
@@ -168,6 +199,8 @@ Options:
   --arch <name>                    Matrix arch. Defaults to MATRIX_ARCH.
   --job-status <status>            Job status. Defaults to JOB_STATUS.
   --build-outcome <outcome>        Build step outcome. Defaults to BUILD_APP_OUTCOME.
+  --packaged-smoke-outcome <outcome>
+                                   Packaged smoke step outcome. Defaults to PACKAGED_SMOKE_OUTCOME.
   --github-step-summary <path>     Summary file. Defaults to GITHUB_STEP_SUMMARY.
   -h, --help                       Show this help text.`);
 }

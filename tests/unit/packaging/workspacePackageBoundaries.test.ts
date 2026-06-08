@@ -446,7 +446,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps app release versioning rooted at the repository package", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseWorkflow = readFileSync(
@@ -471,6 +471,7 @@ describe("workspace package boundaries", () => {
         );
         expect(releaseWorkflow).toContain("xvfb-run -a npm run release:verify");
         expect(releaseWorkflow).toContain("npm run release:check-signing");
+        expect(releaseWorkflow).toContain("npm run test:packaged");
         expect(releaseVersioningFilesWithWorkspaceFlags).toStrictEqual([]);
     });
 

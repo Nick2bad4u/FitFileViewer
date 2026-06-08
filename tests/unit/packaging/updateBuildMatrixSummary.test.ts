@@ -10,6 +10,7 @@ type UpdateBuildMatrixSummaryModule = {
         buildOutcome?: string;
         jobStatus: string;
         matrixOs: string;
+        packagedSmokeOutcome?: string;
         version: string;
     }) => string;
     parseArgs: (
@@ -22,15 +23,21 @@ type UpdateBuildMatrixSummaryModule = {
         help: boolean;
         jobStatus: string;
         matrixOs: string;
+        packagedSmokeOutcome?: string;
         version: string;
     };
-    resolveBuildStatus: (jobStatus: string, buildOutcome?: string) => string;
+    resolveBuildStatus: (
+        jobStatus: string,
+        buildOutcome?: string,
+        packagedSmokeOutcome?: string
+    ) => string;
     updateBuildMatrixSummary: (options: {
         arch: string;
         buildOutcome?: string;
         githubStepSummary: string;
         jobStatus: string;
         matrixOs: string;
+        packagedSmokeOutcome?: string;
         version: string;
     }) => void;
 };
@@ -59,13 +66,22 @@ afterEach(() => {
 
 describe("update-build-matrix-summary script", () => {
     it("normalizes the build status from the build step outcome", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const { resolveBuildStatus } = await importUpdateBuildMatrixSummary();
 
-        expect(resolveBuildStatus("cancelled", "failure")).toBe("failure");
-        expect(resolveBuildStatus("failure", "success")).toBe("success");
-        expect(resolveBuildStatus("cancelled", "skipped")).toBe("cancelled");
+        expect(resolveBuildStatus("cancelled", "failure", "success")).toBe(
+            "failure"
+        );
+        expect(resolveBuildStatus("failure", "success", "failure")).toBe(
+            "failure"
+        );
+        expect(resolveBuildStatus("failure", "success", "success")).toBe(
+            "success"
+        );
+        expect(resolveBuildStatus("cancelled", "skipped", "skipped")).toBe(
+            "cancelled"
+        );
     });
 
     it("creates the build matrix summary row", async () => {
@@ -80,6 +96,7 @@ describe("update-build-matrix-summary script", () => {
                 buildOutcome: "success",
                 jobStatus: "failure",
                 matrixOs: "windows-latest",
+                packagedSmokeOutcome: "success",
                 version: "30.0.0",
             })
         ).toBe("| 30.0.0 | windows-latest | x64 | Build Status: success |");
@@ -98,6 +115,7 @@ describe("update-build-matrix-summary script", () => {
             githubStepSummary: summaryPath,
             jobStatus: "success",
             matrixOs: "macos-15",
+            packagedSmokeOutcome: "success",
             version: "30.0.0",
         });
 
@@ -119,6 +137,7 @@ describe("update-build-matrix-summary script", () => {
                 JOB_STATUS: "failure",
                 MATRIX_ARCH: "x64",
                 MATRIX_OS: "windows-latest",
+                PACKAGED_SMOKE_OUTCOME: "success",
             })
         ).toStrictEqual({
             arch: "x64",
@@ -127,6 +146,7 @@ describe("update-build-matrix-summary script", () => {
             help: false,
             jobStatus: "failure",
             matrixOs: "windows-latest",
+            packagedSmokeOutcome: "success",
             version: "30.0.0",
         });
         expect(
@@ -139,6 +159,8 @@ describe("update-build-matrix-summary script", () => {
                     "--job-status",
                     "success",
                     "--build-outcome=failure",
+                    "--packaged-smoke-outcome",
+                    "success",
                     "--github-step-summary",
                     "tmp/summary.md",
                 ],
@@ -151,6 +173,7 @@ describe("update-build-matrix-summary script", () => {
             help: false,
             jobStatus: "success",
             matrixOs: "ubuntu-latest",
+            packagedSmokeOutcome: "success",
             version: "31.0.0",
         });
     });

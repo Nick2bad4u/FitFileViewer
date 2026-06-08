@@ -241,6 +241,19 @@ jobs:
                   CSC_LINK: ${{ runner.os == 'macOS' && secrets.MACOS_CSC_LINK || '' }}
                   WIN_CSC_LINK: ${{ runner.os == 'Windows' && secrets.WINDOWS_CSC_LINK || '' }}
 
+            - name: Smoke test packaged build
+              id: smoke_packaged_app
+              shell: bash
+              run: |
+                  if [ "$RUNNER_OS" = "Linux" ]; then
+                      xvfb-run -a npm run test:packaged
+                  else
+                      npm run test:packaged
+                  fi
+              env:
+                  FFV_PACKAGED_SMOKE_TIMEOUT_MS: "15000"
+                  RUNNER_OS: ${{ runner.os }}
+
             - name: Print distributable hashes (debug)
               id: print_hashes
               shell: bash
@@ -269,6 +282,7 @@ jobs:
                   JOB_STATUS: ${{ job.status }}
                   MATRIX_ARCH: ${{ matrix.arch }}
                   MATRIX_OS: ${{ matrix.os }}
+                  PACKAGED_SMOKE_OUTCOME: ${{ steps.smoke_packaged_app.outcome }}
 
     release:
         name: Create Release
