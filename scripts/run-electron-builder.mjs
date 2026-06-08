@@ -133,7 +133,10 @@ export function getElectronBuilderEnvironment(
     environment = process.env,
     platform = process.platform
 ) {
-    if (isEnvironmentFlagEnabled(environment.FFV_FORCE_UNSIGNED_PACKAGE)) {
+    if (
+        environment.REQUIRE_CODE_SIGNING !== "true" ||
+        isEnvironmentFlagEnabled(environment.FFV_FORCE_UNSIGNED_PACKAGE)
+    ) {
         return getUnsignedElectronBuilderEnvironment(environment);
     }
 
@@ -146,17 +149,6 @@ export function getElectronBuilderEnvironment(
                 ...signingErrors.map((error) => `- ${error}`),
             ].join("\n")
         );
-    }
-
-    if (
-        environment.CSC_IDENTITY_AUTO_DISCOVERY === undefined &&
-        environment.REQUIRE_CODE_SIGNING !== "true" &&
-        !hasAnySigningEnvironment(environment)
-    ) {
-        return {
-            ...environment,
-            CSC_IDENTITY_AUTO_DISCOVERY: "false",
-        };
     }
 
     return environment;
@@ -210,12 +202,6 @@ export function runElectronBuilder(
     }
 
     return result.status ?? 1;
-}
-
-function hasAnySigningEnvironment(environment) {
-    return signingEnvironmentNames.some((name) =>
-        hasEnvironmentValue(environment, name)
-    );
 }
 
 function isEnvironmentFlagEnabled(value) {

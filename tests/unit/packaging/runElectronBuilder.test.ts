@@ -137,6 +137,7 @@ describe("run-electron-builder script", () => {
                     CSC_IDENTITY_AUTO_DISCOVERY: "false",
                     FFV_TEST_ENV: "1",
                     NODE_ENV: "production",
+                    REQUIRE_CODE_SIGNING: "false",
                 },
                 stdio: "inherit",
             },
@@ -185,12 +186,13 @@ describe("run-electron-builder script", () => {
             env: {
                 CSC_IDENTITY_AUTO_DISCOVERY: "false",
                 FFV_TEST_ENV: "1",
+                REQUIRE_CODE_SIGNING: "false",
             },
             stdio: "inherit",
         });
     });
 
-    it("disables code signing auto-discovery for local unsigned packages", async () => {
+    it("strips signing variables for local unsigned packages", async () => {
         expect.assertions(2);
 
         const { getElectronBuilderEnvironment } =
@@ -201,18 +203,22 @@ describe("run-electron-builder script", () => {
         ).toStrictEqual({
             CSC_IDENTITY_AUTO_DISCOVERY: "false",
             FFV_TEST_ENV: "1",
+            REQUIRE_CODE_SIGNING: "false",
         });
         expect(
             getElectronBuilderEnvironment(
                 {
+                    CSC_KEY_PASSWORD: "password",
                     CSC_IDENTITY_AUTO_DISCOVERY: "true",
+                    CSC_LINK: "certificate.p12",
                     FFV_TEST_ENV: "1",
                 },
                 "win32"
             )
         ).toStrictEqual({
-            CSC_IDENTITY_AUTO_DISCOVERY: "true",
+            CSC_IDENTITY_AUTO_DISCOVERY: "false",
             FFV_TEST_ENV: "1",
+            REQUIRE_CODE_SIGNING: "false",
         });
     });
 

@@ -28,6 +28,7 @@ type ElectronBuilderConfig = {
     productName: string;
     win: {
         icon: string;
+        signAndEditExecutable: boolean;
     };
 };
 
@@ -45,7 +46,7 @@ describe("electron-builder config", () => {
     }
 
     it("uses the root app package as the app identity source", () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const appPackage = require("../../../package.json") as AppPackage;
         const previousValue = process.env.REQUIRE_CODE_SIGNING;
@@ -74,11 +75,12 @@ describe("electron-builder config", () => {
             `${maintainer.name} <${maintainer.email}>`
         );
         expect(builderConfig.forceCodeSigning).toBe(false);
+        expect(builderConfig.win.signAndEditExecutable).toBe(false);
         expect(builderConfig.productName).not.toBe("FitFileViewer");
     });
 
     it("requires code signing when the release build environment enables it", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const previousValue = process.env.REQUIRE_CODE_SIGNING;
 
@@ -86,6 +88,7 @@ describe("electron-builder config", () => {
 
         try {
             expect(loadBuilderConfig().forceCodeSigning).toBe(true);
+            expect(loadBuilderConfig().win.signAndEditExecutable).toBe(true);
         } finally {
             if (previousValue === undefined) {
                 delete process.env.REQUIRE_CODE_SIGNING;

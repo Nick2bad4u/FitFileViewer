@@ -23,6 +23,7 @@ const { version: electronVersion } = require("electron/package.json");
 const appPackage = /** @type {AppPackage} */ (require("./package.json"));
 
 const rootPackageFiles = ["dist/**", "package.json"];
+const shouldCodeSign = isEnvironmentFlagEnabled(process.env.REQUIRE_CODE_SIGNING);
 
 /**
  * @param {string} exportName
@@ -75,9 +76,7 @@ module.exports = {
     appId: appPackage.appid,
     productName: appPackage.productName,
     copyright: appPackage.copyright,
-    forceCodeSigning: isEnvironmentFlagEnabled(
-        process.env.REQUIRE_CODE_SIGNING
-    ),
+    forceCodeSigning: shouldCodeSign,
     artifactName: "Fit-File-Viewer-${platform}-${arch}-${version}.${ext}",
     asar: true,
     publish: [
@@ -89,6 +88,7 @@ module.exports = {
     ],
     win: {
         icon: appPackageExportPath("./icons/favicon-256x256.ico"),
+        signAndEditExecutable: shouldCodeSign,
         target: [
             "nsis",
             "nsis-web",
