@@ -1,5 +1,5 @@
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
+import { FitFileSelectors } from "../../state/domain/fitFileState.js";
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 import {
@@ -32,12 +32,6 @@ export interface ChartCounts {
 }
 
 type ChartDataRow = ChartDataRecord;
-
-type ChartGlobalData = ChartDataRecord & {
-    readonly eventMesgs?: unknown;
-    readonly recordMesgs?: unknown;
-    readonly timeInZoneMesgs?: unknown;
-};
 
 type RenderedChartInstance = {
     readonly canvas?: {
@@ -75,8 +69,9 @@ const ZONE_CHART_TYPES = ["hr_zone_doughnut", "power_zone_doughnut"] as const;
 export function getChartCounts(): ChartCounts {
     const counts = createEmptyChartCounts(),
         chartGlobal = globalThis as ChartCountsGlobal,
-        globalData = getGlobalData<ChartGlobalData>() ?? undefined,
-        recordRows = getRecordRows(globalData);
+        eventRows = FitFileSelectors.getEventMessages(),
+        recordRows = getRecordRows(),
+        timeInZoneRows = getTimeInZoneRows();
 
     if (recordRows.length === 0) {
         return counts;
@@ -87,8 +82,8 @@ export function getChartCounts(): ChartCounts {
         countGpsChart(counts, recordRows);
         countAnalysisCharts(counts, recordRows);
         countZoneCharts(counts, recordRows);
-        countEventMessagesChart(counts, globalData);
-        countLapZoneCharts(counts, globalData);
+        countEventMessagesChart(counts, eventRows);
+        countLapZoneCharts(counts, timeInZoneRows);
         countDeveloperFieldCharts(counts, recordRows);
     } catch (error) {
         console.error("[ChartStatus] Error counting charts:", error);
@@ -169,12 +164,9 @@ function countDeveloperFieldCharts(
 
 function countEventMessagesChart(
     counts: ChartCounts,
-    globalData: ChartGlobalData | undefined
+    eventRows: readonly unknown[]
 ): void {
-    if (
-        Array.isArray(globalData?.eventMesgs) &&
-        globalData.eventMesgs.length > 0
-    ) {
+    if (eventRows.length > 0) {
         addAvailableChart(counts, "analysis", "event_messages");
     }
 }
@@ -196,9 +188,9 @@ function countGpsChart(
 
 function countLapZoneCharts(
     counts: ChartCounts,
-    globalData: ChartGlobalData | undefined
+    timeInZoneRows: readonly ChartDataRow[]
 ): void {
-    const lapZoneMessages = getTimeInZoneRows(globalData).filter(
+    const lapZoneMessages = timeInZoneRows.filter(
         (message) => message["referenceMesg"] === "lap"
     );
 
@@ -293,20 +285,16 @@ function createEmptyChartCounts(): ChartCounts {
     };
 }
 
-function getRecordRows(
-    globalData: ChartGlobalData | undefined
-): ChartDataRow[] {
-    return globalData ? (getRecordMessages(globalData) ?? []) : [];
+function getRecordRows(): ChartDataRow[] {
+    return (
+        getRecordMessages({
+            recordMesgs: FitFileSelectors.getRecordMessages(),
+        }) ?? []
+    );
 }
 
-function getTimeInZoneRows(
-    globalData: ChartGlobalData | undefined
-): ChartDataRow[] {
-    if (!Array.isArray(globalData?.timeInZoneMesgs)) {
-        return [];
-    }
-
-    return globalData.timeInZoneMesgs.filter(isObjectRecord);
+function getTimeInZoneRows(): ChartDataRow[] {
+    return FitFileSelectors.getTimeInZoneMessages().filter(isObjectRecord);
 }
 
 function hasAnalysisChartData(
