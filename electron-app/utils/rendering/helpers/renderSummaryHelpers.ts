@@ -1,7 +1,7 @@
 import { hasPowerData } from "../../data/processing/estimateCyclingPower.js";
 import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
+import { getState } from "../../state/core/stateManager.js";
 
 /** Generic row shape used by summary and lap table renderers. */
 export type SummaryRecord = Record<string, unknown>;
@@ -130,7 +130,7 @@ export function getStorageKey(
     try {
         const summaryGlobal = globalThis as SummaryGlobal;
         const windowGlobal = summaryGlobal.window;
-        const globalData = getGlobalData<FitSummaryData & SummaryRecord>();
+        const globalData = getManagedGlobalData();
         if (globalData?.cachedFilePath) {
             fpath = globalData.cachedFilePath;
         } else if (
@@ -149,6 +149,16 @@ export function getStorageKey(
         return `summaryColSel_${encodeURIComponent(String(fpath))}`;
     }
     return "summaryColSel_default";
+}
+
+function getManagedGlobalData():
+    | (FitSummaryData & SummaryRecord)
+    | null
+    | undefined {
+    const globalData = getState("globalData");
+    return globalData !== null && typeof globalData === "object"
+        ? (globalData as FitSummaryData & SummaryRecord)
+        : null;
 }
 
 /**

@@ -4,7 +4,7 @@ import { formatHeight } from "../../formatting/formatters/formatHeight.js";
 import { formatManufacturer } from "../../formatting/formatters/formatManufacturer.js";
 import { formatSensorName } from "../../formatting/formatters/formatSensorName.js";
 import { formatWeight } from "../../formatting/formatters/formatWeight.js";
-import { getGlobalData as readGlobalData } from "../../state/core/globalDataStore.js";
+import { getState } from "../../state/core/stateManager.js";
 import {
     getThemeConfig,
     type ThemeColorMap,
@@ -156,8 +156,11 @@ function getInfoBoxThemeColors(colors: ThemeColorMap): InfoBoxThemeColors {
     };
 }
 
-function getGlobalData(): FitGlobalData {
-    return readGlobalData<FitGlobalData>() ?? {};
+function getManagedGlobalData(): FitGlobalData {
+    const globalData = getState("globalData");
+    return globalData !== null && typeof globalData === "object"
+        ? globalData
+        : {};
 }
 
 function sanitizeInfoBoxHtml(html: string): DocumentFragment {
@@ -175,7 +178,7 @@ function sanitizeInfoBoxHtml(html: string): DocumentFragment {
  */
 export function createUserDeviceInfoBox(container: HTMLElement): void {
     try {
-        const globalData = getGlobalData(),
+        const globalData = getManagedGlobalData(),
             deviceInfos = Array.isArray(globalData.deviceInfoMesgs)
                 ? globalData.deviceInfoMesgs
                 : [],

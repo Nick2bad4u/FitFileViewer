@@ -13,7 +13,7 @@ import {
     orderSummaryColumnsNamedFirst,
     saveColPrefs,
 } from "./renderSummaryHelpers.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
+import { getState } from "../../state/core/stateManager.js";
 import { createModalFocusTrap } from "../../ui/modals/modalFocusTrap.js";
 
 type SummaryColModalParams = {
@@ -98,7 +98,7 @@ export function showColModal({
     header.append(title, closeBtn);
     modal.append(header);
 
-    const globalData = getGlobalData<FitSummaryData>();
+    const globalData = getManagedGlobalData();
     const prefsKeyForFile = getStorageKey(globalData ?? data, allKeys);
     const prefsKeyGlobal = getGlobalStorageKey();
 
@@ -677,4 +677,11 @@ export function showColModal({
     overlay.append(modal);
     document.body.append(overlay);
     focusTrapCleanup = createModalFocusTrap(modal, searchInput);
+}
+
+function getManagedGlobalData(): FitSummaryData | null {
+    const globalData = getState("globalData");
+    return globalData !== null && typeof globalData === "object"
+        ? globalData
+        : null;
 }
