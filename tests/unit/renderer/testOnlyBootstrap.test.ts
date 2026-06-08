@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     createTestDOMContentLoadedSetupHandler,
     createTestWindowLoadThemeSetupHandler,
+    registerRendererTestOnlyBootstrap,
     registerTestDOMContentLoadedSetupListener,
     registerTestWindowLoadThemeSetupListener,
 } from "../../../electron-app/renderer/testOnlyBootstrap.js";
@@ -131,5 +132,50 @@ describe("renderer test-only bootstrap wiring", () => {
 
         expect(calls.contentLoaded).toBe(1);
         expect(calls.load).toBe(1);
+    });
+
+    it("registers the combined renderer test-only bootstrap listeners", () => {
+        expect.assertions(3);
+
+        const { exactMocks, options } = createOptions();
+        const applyTheme = vi.fn();
+        const listenForThemeChange = vi.fn();
+        const setupListeners = vi.fn();
+        const setupTheme = vi.fn();
+        exactMocks.set("../../utils/app/lifecycle/listeners.js", {
+            setupListeners,
+        });
+        exactMocks.set("../../utils/theming/core/setupTheme.js", {
+            setupTheme,
+        });
+        exactMocks.set("../../utils/theming/core/theme.js", {
+            applyTheme,
+            listenForThemeChange,
+        });
+
+        registerRendererTestOnlyBootstrap(options, {
+            documentTarget: document,
+            unloadTarget: globalThis,
+            windowTarget: globalThis,
+        });
+
+        document.dispatchEvent(new Event("DOMContentLoaded"));
+        globalThis.dispatchEvent(new Event("load"));
+
+        expect(setupListeners).toHaveBeenCalledOnce();
+        expect(setupTheme).toHaveBeenCalledExactlyOnceWith(
+            applyTheme,
+            listenForThemeChange
+        );
+
+        globalThis.dispatchEvent(new Event("beforeunload"));
+        setupListeners.mockClear();
+        setupTheme.mockClear();
+        document.dispatchEvent(new Event("DOMContentLoaded"));
+        globalThis.dispatchEvent(new Event("load"));
+
+        expect(
+            [setupListeners, setupTheme].map((mock) => mock.mock.calls)
+        ).toStrictEqual([[], []]);
     });
 });

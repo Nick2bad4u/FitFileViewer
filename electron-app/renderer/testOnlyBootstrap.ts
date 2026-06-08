@@ -132,6 +132,31 @@ export function registerTestWindowLoadThemeSetupListener(
     );
 }
 
+export function registerRendererTestOnlyBootstrap(
+    options: RendererTestOnlyBootstrapOptions,
+    targets: {
+        readonly documentTarget: Document;
+        readonly unloadTarget: EventTarget;
+        readonly windowTarget: EventTarget;
+    }
+): void {
+    const onTestDOMContentLoadedSetupListeners =
+        createTestDOMContentLoadedSetupHandler(options);
+    const onTestWindowLoadSetupTheme =
+        createTestWindowLoadThemeSetupHandler(options);
+
+    registerTestDOMContentLoadedSetupListener(
+        targets.documentTarget,
+        targets.unloadTarget,
+        onTestDOMContentLoadedSetupListeners
+    );
+    registerTestWindowLoadThemeSetupListener(
+        targets.windowTarget,
+        targets.unloadTarget,
+        onTestWindowLoadSetupTheme
+    );
+}
+
 function toModuleRecord(value: unknown): Record<string, unknown> {
     return typeof value === "object" && value !== null
         ? (value as Record<string, unknown>)

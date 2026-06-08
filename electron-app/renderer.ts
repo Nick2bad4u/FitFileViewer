@@ -58,12 +58,7 @@ import {
     logRendererStartupInfo,
 } from "./renderer/globalApiExposure.js";
 import { createRendererFileInputWiring } from "./renderer/fileInputWiring.js";
-import {
-    createTestDOMContentLoadedSetupHandler,
-    createTestWindowLoadThemeSetupHandler,
-    registerTestDOMContentLoadedSetupListener,
-    registerTestWindowLoadThemeSetupListener,
-} from "./renderer/testOnlyBootstrap.js";
+import { registerRendererTestOnlyBootstrap } from "./renderer/testOnlyBootstrap.js";
 import { setLoading } from "./utils/ui/loading/syncRendererLoading.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
@@ -178,13 +173,6 @@ const testOnlyBootstrapOptions = {
     scheduleImportTimeThemeSetup,
     setLoading,
 };
-
-const onTestDOMContentLoadedSetupListeners =
-    createTestDOMContentLoadedSetupHandler(testOnlyBootstrapOptions);
-
-const onTestWindowLoadSetupTheme = createTestWindowLoadThemeSetupHandler(
-    testOnlyBootstrapOptions
-);
 
 // ==========================================
 // Error Handling
@@ -395,24 +383,13 @@ try {
     /* Ignore errors */
 }
 
-// Ensure mocked setupListeners is invoked synchronously on DOMContentLoaded for tests
+// Ensure mocked setupListeners and theme setup are invoked for event-based tests
 try {
-    registerTestDOMContentLoadedSetupListener(
-        document,
-        globalThis,
-        onTestDOMContentLoadedSetupListeners
-    );
-} catch {
-    /* Ignore errors */
-}
-
-// Ensure theme setup is invoked again on window load to satisfy event-based tests
-try {
-    registerTestWindowLoadThemeSetupListener(
-        globalThis,
-        globalThis,
-        onTestWindowLoadSetupTheme
-    );
+    registerRendererTestOnlyBootstrap(testOnlyBootstrapOptions, {
+        documentTarget: document,
+        unloadTarget: globalThis,
+        windowTarget: globalThis,
+    });
 } catch {
     /* Ignore errors */
 }
