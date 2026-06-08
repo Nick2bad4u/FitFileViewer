@@ -1,14 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as getThemeColorsModule from "../../../../../electron-app/utils/charts/theming/getThemeColors.js";
 
-const { mockEnsureRendererVendorBundle } = vi.hoisted(() => ({
-    mockEnsureRendererVendorBundle: vi.fn(() => Promise.resolve()),
-}));
-
-vi.mock("../../../../../electron-app/renderer/vendorBundleLoader.js", () => ({
-    ensureRendererVendorBundle: mockEnsureRendererVendorBundle,
-}));
-
 import { createElevationProfileButton } from "../../../../../electron-app/utils/ui/controls/createElevationProfileButton.js";
 import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
 import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
@@ -104,12 +96,8 @@ const clickElevationButton = async (
 ): Promise<void> => {
     button.click();
     await vi.waitFor(() => {
-        if (
-            !mockEnsureRendererVendorBundle.mock.calls.some(
-                ([entryName]) => entryName === "chart-data"
-            )
-        ) {
-            throw new Error("Expected chart-data vendor bundle request");
+        if (openSpy.mock.calls.length === 0) {
+            throw new Error("Expected elevation profile popup to open");
         }
     });
 };
@@ -145,8 +133,6 @@ describe(createElevationProfileButton, () => {
 
         chartMock = vi.fn<ChartMockImplementation>(function MockChart() {});
         (window as any).Chart = chartMock;
-        mockEnsureRendererVendorBundle.mockReset();
-        mockEnsureRendererVendorBundle.mockResolvedValue(undefined);
 
         // Setup window.open spy
         openSpy = vi.spyOn(window, "open").mockImplementation(() => {
@@ -193,16 +179,13 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should open a window with no files when clicked and no fit files are loaded", async () => {
-        expect.assertions(8);
+        expect.assertions(7);
 
         // Create the button and click it
         const button = createElevationProfileButton();
         await clickElevationButton(button);
 
         // Verify window.open was called with correct parameters
-        expect(mockEnsureRendererVendorBundle).toHaveBeenCalledWith(
-            "chart-data"
-        );
         expect(openSpy).toHaveBeenCalledWith(
             "",
             "Elevation Profile",

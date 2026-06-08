@@ -1,6 +1,5 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
-import { ensureRendererVendorBundle } from "../../../renderer/vendorBundleLoader.js";
 import { getGlobalData } from "../../state/core/globalDataStore.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -27,6 +26,7 @@ interface ElevationProfileFileModel {
 }
 
 interface ElevationPopupOptions {
+    readonly chartConstructor: ElevationChartConstructor | undefined;
     readonly fitFilesModel: ElevationProfileFileModel[];
     readonly isDark: boolean;
     readonly safeThemeColors: ElevationPopupThemeColors;
@@ -197,8 +197,6 @@ export function createElevationProfileButton(): HTMLButtonElement {
 }
 
 async function openElevationProfilePopup(): Promise<void> {
-    await ensureRendererVendorBundle("chart-data");
-
     const fitFiles = getElevationFitFiles();
     const chartWin = window.open(
             "",
@@ -211,6 +209,7 @@ async function openElevationProfilePopup(): Promise<void> {
         return;
     }
 
+    const chartConstructor = await resolveElevationChartConstructor();
     const fitFilesModel = fitFiles.map(createElevationProfileFileModel);
 
     // Sanitize the theme colors used in template-string CSS.
@@ -255,6 +254,7 @@ async function openElevationProfilePopup(): Promise<void> {
     };
 
     buildElevationProfilePopup(chartWin, {
+        chartConstructor,
         fitFilesModel,
         isDark,
         safeThemeColors,
@@ -302,6 +302,22 @@ function getElevationFitFiles(): ElevationFitFile[] {
 
 function getElevationGlobal(): ElevationGlobal {
     return globalThis;
+}
+
+async function resolveElevationChartConstructor(): Promise<
+    ElevationChartConstructor | undefined
+> {
+    const { Chart } = getElevationGlobal();
+    if (isElevationChartConstructor(Chart)) {
+        return Chart;
+    }
+
+    const chartModule = (await import("chart.js/auto")) as {
+        default?: unknown;
+    };
+    return isElevationChartConstructor(chartModule.default)
+        ? chartModule.default
+        : undefined;
 }
 
 function getElevationPoints(file: ElevationFitFile): ElevationPoint[] {
@@ -375,7 +391,12 @@ function isElevationChartConstructor(
 
 function buildElevationProfilePopup(
     chartWin: Window,
-    { fitFilesModel, isDark, safeThemeColors }: ElevationPopupOptions
+    {
+        chartConstructor,
+        fitFilesModel,
+        isDark,
+        safeThemeColors,
+    }: ElevationPopupOptions
 ): void {
     const chartDoc = chartWin.document;
 
@@ -415,7 +436,7 @@ function buildElevationProfilePopup(
     chartDoc.body.append(header, container);
 
     const elevationChartWindow = chartWin as ElevationChartWindow;
-    elevationChartWindow.Chart ??= (globalThis as ElevationGlobal).Chart;
+    elevationChartWindow.Chart ??= chartConstructor;
 
     renderElevationCharts(
         elevationChartWindow,

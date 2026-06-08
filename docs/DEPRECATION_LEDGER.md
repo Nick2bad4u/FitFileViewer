@@ -57,7 +57,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Temporary surface: browser libraries exposed from renderer `vendorGlobals*` entries
 - Current owners: `electron-app/renderer/vendorGlobalsCore.ts`, `electron-app/renderer/vendorGlobalsChartData.ts`, `electron-app/renderer/vendorGlobalsMap.ts`
 - Compatibility callers: map, chart, DataTables, and plugin integrations that still expect library globals
-- Current status: split by broad runtime domain; the core compatibility bundle remains shell-loaded, while the chart/data and map compatibility bundles now load through `electron-app/renderer/vendorBundleLoader.ts` when the related tab renders
+- Current status: split by broad runtime domain; the core compatibility bundle remains shell-loaded, while the chart/data and map compatibility bundles now load through `electron-app/renderer/vendorBundleLoader.ts` when the related tab renders; the elevation profile popup now uses a typed lazy `chart.js/auto` import fallback instead of loading the full chart/data compatibility bundle
 - Next removal step: move one feature stack at a time, starting with chart/data-table consumers or map consumers, to lazy typed imports triggered by tab activation
 - Verification gates:
   - `npm run build:runtime-ts`
