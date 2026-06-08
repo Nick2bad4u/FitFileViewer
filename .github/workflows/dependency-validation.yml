@@ -45,7 +45,10 @@ jobs:
                   npm ci --prefix docusaurus --no-audit --no-fund
 
             - name: Run release verification gate
-              run: xvfb-run -a npm run release:verify
+              run: |
+                  mkdir -p artifacts/dependency-validation
+                  set -o pipefail
+                  xvfb-run -a npm run release:verify 2>&1 | tee artifacts/dependency-validation/release-verify.log
 
             - name: Collect dependency validation diagnostics
               if: always()
