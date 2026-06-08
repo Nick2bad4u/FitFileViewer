@@ -22,7 +22,7 @@ import {
     isDevelopmentEnvironment,
 } from "../../runtime/processEnvironment.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
+import { getState } from "../../state/core/stateManager.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { registerChartResizeListener } from "./listenersResize.js";
@@ -305,7 +305,7 @@ function handleExportFileRequest(
     filePath: unknown,
     { registerCleanupTimer, showNotification }: ExportFileDependencies
 ): void {
-    const data = getGlobalData<FitData>();
+    const data = getManagedFitData();
     if (!data) {
         return;
     }
@@ -326,7 +326,7 @@ async function reloadCachedFitFileAfterDecoderOptionsChange({
     setLoading,
     showNotification,
 }: DecoderReloadDependencies): Promise<void> {
-    const filePath = getGlobalData<FitData>()?.cachedFilePath;
+    const filePath = getManagedFitData()?.cachedFilePath;
     if (!filePath) {
         return;
     }
@@ -358,6 +358,11 @@ async function reloadCachedFitFileAfterDecoderOptionsChange({
     } finally {
         setLoading(false);
     }
+}
+
+function getManagedFitData(): FitData | null {
+    const data = getState("globalData");
+    return data !== null && typeof data === "object" ? (data as FitData) : null;
 }
 
 function getUpdateDownloadPercent(progress: unknown): number | null {
