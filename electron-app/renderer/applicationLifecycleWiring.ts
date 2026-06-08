@@ -1,0 +1,41 @@
+type RendererApplicationLifecycleDocument = Pick<
+    Document,
+    "addEventListener" | "readyState"
+>;
+
+type RendererApplicationLifecycleWindow = Pick<EventTarget, "addEventListener">;
+
+type RendererApplicationLifecycleOptions = {
+    readonly cleanup: () => void;
+    readonly documentTarget: RendererApplicationLifecycleDocument;
+    readonly initializeApplication: () => Promise<void>;
+    readonly setTimeout: typeof globalThis.setTimeout;
+    readonly windowTarget: RendererApplicationLifecycleWindow;
+};
+
+export function registerRendererApplicationLifecycle(
+    options: RendererApplicationLifecycleOptions
+): void {
+    const abortController = new AbortController();
+    const { signal } = abortController;
+    const onBeforeUnload = (): void => {
+        options.cleanup();
+        abortController.abort();
+    };
+
+    const onApplicationReady = (): void => {
+        void options.initializeApplication();
+    };
+
+    options.windowTarget.addEventListener("beforeunload", onBeforeUnload, {
+        signal,
+    });
+    options.documentTarget.addEventListener(
+        "DOMContentLoaded",
+        onApplicationReady,
+        { signal }
+    );
+    if (options.documentTarget.readyState !== "loading") {
+        options.setTimeout(onApplicationReady, 0);
+    }
+}

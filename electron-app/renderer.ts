@@ -52,6 +52,7 @@ import { createRendererErrorEventHandlers } from "./renderer/errorHandling.js";
 import { createRendererLifecycleCleanup } from "./renderer/lifecycleCleanup.js";
 import { createRendererStateStartup } from "./renderer/stateManagerStartup.js";
 import { createRendererApplicationStartup } from "./renderer/applicationStartup.js";
+import { registerRendererApplicationLifecycle } from "./renderer/applicationLifecycleWiring.js";
 import {
     createRendererImportTimeBootstrap,
     runRendererImportTimeBootstrap,
@@ -261,31 +262,13 @@ const cleanup = createRendererLifecycleCleanup({
     removeEventListener: globalThis.removeEventListener.bind(globalThis),
 });
 
-// ==========================================
-// Event Listeners & Startup
-// ==========================================
-
-// Setup page lifecycle events
-window.addEventListener("beforeunload", cleanup);
-
-/**
- * Starts the application from event APIs that require void-returning callbacks.
- *
- * @returns {void}
- */
-function onApplicationReady(): void {
-    void initializeApplication();
-}
-
-// Start application when DOM is ready
-// Always listen for DOMContentLoaded (even if it already fired in a previous test run)
-document.addEventListener("DOMContentLoaded", onApplicationReady);
-if (document.readyState === "loading") {
-    // Will run when DOM becomes ready
-} else {
-    // DOM already loaded
-    setTimeout(onApplicationReady, 0);
-}
+registerRendererApplicationLifecycle({
+    cleanup,
+    documentTarget: document,
+    initializeApplication,
+    setTimeout: globalThis.setTimeout.bind(globalThis),
+    windowTarget: globalThis,
+});
 
 installRendererDevelopmentDebugGlobals({
     appState: getAppState(),
