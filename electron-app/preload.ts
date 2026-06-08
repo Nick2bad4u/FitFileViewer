@@ -33,6 +33,10 @@ type PreloadLog = (
 type UnknownCallback = (...args: unknown[]) => unknown;
 type IpcEventListener = (event: object, ...args: IpcResponsePayload[]) => void;
 type MainStateEventListener = (event: object, change: MainStateChange) => void;
+type PreloadApiFactory<Keys extends keyof ElectronAPI> = (
+    options: Record<string, unknown>
+) => Pick<ElectronAPI, Keys>;
+type PreloadModuleRequire = (moduleId: string) => unknown;
 
 interface PreloadContextBridge {
     exposeInMainWorld?: (key: string, api: unknown) => void;
@@ -572,68 +576,189 @@ interface PreloadRequire {
     (moduleId: string): unknown;
 }
 
+interface PreloadModuleRegistry {
+    createApiDiagnostics: PreloadApiFactory<
+        "getChannelInfo" | "validateAPI"
+    >;
+    createAppInfoApi: PreloadApiFactory<
+        | "getAppVersion"
+        | "getChromeVersion"
+        | "getElectronVersion"
+        | "getLicenseInfo"
+        | "getNodeVersion"
+        | "getPlatformInfo"
+    >;
+    createClipboardBridge: PreloadApiFactory<
+        "writeClipboardPngDataUrl" | "writeClipboardText"
+    >;
+    createDevtoolsMenuApi: PreloadApiFactory<"injectMenu">;
+    createExternalApi: PreloadApiFactory<
+        | "onGyazoOAuthCallback"
+        | "openExternal"
+        | "startGyazoServer"
+        | "stopGyazoServer"
+    >;
+    createFileApi: PreloadApiFactory<
+        | "addRecentFile"
+        | "approveRecentFile"
+        | "decodeFitFile"
+        | "openFile"
+        | "openFileDialog"
+        | "openOverlayDialog"
+        | "parseFitFile"
+        | "readFile"
+        | "recentFiles"
+    >;
+    createFitBrowserApi: PreloadApiFactory<
+        | "getFitBrowserFolder"
+        | "isFitBrowserEnabled"
+        | "listFitBrowserFolder"
+        | "onFitBrowserEnabledChanged"
+        | "setFitBrowserEnabled"
+        | "setFitBrowserFolder"
+    >;
+    createGenericIpcApi: PreloadApiFactory<
+        "invoke" | "notifyFitFileLoaded" | "onIpc" | "onUpdateEvent" | "send"
+    >;
+    createMainStateApi: PreloadApiFactory<
+        | "getErrors"
+        | "getMainState"
+        | "getMetrics"
+        | "getOperation"
+        | "getOperations"
+        | "listenToMainState"
+        | "setMainState"
+        | "subscribeToMainState"
+        | "unlistenFromMainState"
+    >;
+    createMainStateBridge: (options: Record<string, unknown>) => {
+        listenToMainState: (
+            path: string,
+            callback: (change: MainStateChange) => void
+        ) => Promise<boolean>;
+        unlistenFromMainState: (
+            path: string,
+            callback: (change: MainStateChange) => void
+        ) => Promise<boolean>;
+    };
+    createMenuEventApi: PreloadApiFactory<
+        | "checkForUpdates"
+        | "installUpdate"
+        | "onDecoderOptionsChanged"
+        | "onExportFile"
+        | "onMenuAbout"
+        | "onMenuCheckForUpdates"
+        | "onMenuExport"
+        | "onMenuKeyboardShortcuts"
+        | "onMenuOpenFile"
+        | "onMenuOpenOverlay"
+        | "onMenuPrint"
+        | "onMenuRestartUpdate"
+        | "onMenuSaveAs"
+        | "onOpenAccentColorPicker"
+        | "onOpenRecentFile"
+        | "onOpenSummaryColumnSelector"
+        | "onSetFontSize"
+        | "onSetHighContrast"
+        | "onSetTheme"
+        | "onShowNotification"
+        | "onUnloadFitFile"
+        | "requestExport"
+        | "requestSaveAs"
+        | "sendThemeChanged"
+        | "setFullScreen"
+    >;
+    createPreloadIpcHelpers: (options: Record<string, unknown>) => {
+        createSafeEventHandler: <Callback>(
+            channel: string,
+            methodName: string,
+            transform?: (...args: IpcResponsePayload[]) => unknown
+        ) => (callback: Callback) => () => void;
+        createSafeInvokeHandler: (
+            channel: string,
+            methodName: string
+        ) => (...args: unknown[]) => Promise<unknown>;
+        createSafeSendHandler: (
+            channel: GenericSendChannel,
+            methodName: string
+        ) => (...args: IpcRequestPayload[]) => void;
+        removeIpcListener: (
+            channel: string,
+            handler: IpcEventListener
+        ) => void;
+    };
+    createPreloadLogger: (consoleRef?: Console) => PreloadLog;
+    createPreloadValidators: (preloadLog: PreloadLog) => {
+        validateCallback: (
+            callback: unknown,
+            methodName: string
+        ) => callback is UnknownCallback;
+        validateChannelName: (
+            value: unknown,
+            paramName: string,
+            methodName: string
+        ) => value is string;
+        validateOptionalNonEmptyString: (
+            value: unknown,
+            paramName: string,
+            methodName: string
+        ) => null | string | undefined;
+        validateRequiredNonEmptyString: (
+            value: unknown,
+            paramName: string,
+            methodName: string
+        ) => value is string;
+    };
+    createThemeApi: PreloadApiFactory<"getTheme">;
+    exposeDevelopmentToolsGlobal: (options: Record<string, unknown>) => boolean;
+    exposeElectronApi: (options: Record<string, unknown>) => boolean;
+    ipcBridgeCatalog: IpcBridgeCatalog;
+    isPreloadDevelopmentMode: (processRef?: NodeJS.Process) => boolean;
+    registerPreloadBeforeExitHandler: (options: Record<string, unknown>) => void;
+    resolvePreloadElectronBridge: (options: {
+        globalScope?: object;
+        requireModule: PreloadModuleRequire;
+    }) => {
+        contextBridge: null | PreloadContextBridge | undefined;
+        ipcRenderer: null | PreloadIpcRenderer | undefined;
+    };
+    shouldAllowGenericIpcBridge: (processRef?: NodeJS.Process) => boolean;
+    shouldEnforceGenericIpcAllowlist: (
+        processRef?: NodeJS.Process
+    ) => boolean;
+}
+
 const preloadRequire = require as PreloadRequire;
-const { createApiDiagnostics } = (require as PreloadRequire)(
-    "./preload/apiDiagnostics.js"
-);
-const { createAppInfoApi } = (require as PreloadRequire)(
-    "./preload/appInfoApi.js"
-);
-const { registerPreloadBeforeExitHandler } = (require as PreloadRequire)(
-    "./preload/beforeExitHandler.js"
-);
-const { createClipboardBridge } = (require as PreloadRequire)(
-    "./preload/clipboardBridge.js"
-);
-const { createDevtoolsMenuApi } = (require as PreloadRequire)(
-    "./preload/devtoolsMenuApi.js"
-);
-const { exposeDevelopmentToolsGlobal } = (require as PreloadRequire)(
-    "./preload/developmentToolsGlobal.js"
-);
-const { createFitBrowserApi } = (require as PreloadRequire)(
-    "./preload/fitBrowserApi.js"
-);
-const { createFileApi } = (require as PreloadRequire)("./preload/fileApi.js");
-const { createExternalApi } = (require as PreloadRequire)(
-    "./preload/externalApi.js"
-);
-const { createMenuEventApi } = (require as PreloadRequire)(
-    "./preload/menuEventApi.js"
-);
-const { createThemeApi } = (require as PreloadRequire)("./preload/themeApi.js");
-const { createPreloadValidators } = (require as PreloadRequire)(
-    "./preload/validators.js"
-);
+const { loadPreloadModules } = require(
+    "./preload/preloadModuleLoader.js"
+) as {
+    loadPreloadModules: () => PreloadModuleRegistry;
+};
 const {
+    createApiDiagnostics,
+    createAppInfoApi,
+    createClipboardBridge,
+    createDevtoolsMenuApi,
+    createExternalApi,
+    createFileApi,
+    createFitBrowserApi,
+    createGenericIpcApi,
+    createMainStateApi,
+    createMainStateBridge,
+    createMenuEventApi,
+    createPreloadIpcHelpers,
+    createPreloadLogger,
+    createPreloadValidators,
+    createThemeApi,
+    exposeDevelopmentToolsGlobal,
+    exposeElectronApi,
+    ipcBridgeCatalog,
     isPreloadDevelopmentMode,
+    registerPreloadBeforeExitHandler,
+    resolvePreloadElectronBridge,
     shouldAllowGenericIpcBridge,
     shouldEnforceGenericIpcAllowlist,
-} = (require as PreloadRequire)("./preload/environment.js");
-const { createGenericIpcApi } = (require as PreloadRequire)(
-    "./preload/genericIpcApi.js"
-);
-const { resolvePreloadElectronBridge } = (require as PreloadRequire)(
-    "./preload/electronBridge.js"
-);
-const { exposeElectronApi } = (require as PreloadRequire)(
-    "./preload/electronApiExposure.js"
-);
-const { createMainStateBridge } = (require as PreloadRequire)(
-    "./preload/mainStateBridge.js"
-);
-const { createPreloadIpcHelpers } = (require as PreloadRequire)(
-    "./preload/ipcHelpers.js"
-);
-const { createPreloadLogger } = (require as PreloadRequire)(
-    "./preload/logger.js"
-);
-const { createMainStateApi } = (require as PreloadRequire)(
-    "./preload/mainStateApi.js"
-);
-const ipcBridgeCatalog = (require as PreloadRequire)(
-    "./preload/ipcBridgeCatalog.js"
-);
+} = loadPreloadModules();
 
 const {
     isAllowedGenericInvokeChannel,
@@ -706,10 +831,7 @@ const SHOULD_ALLOW_GENERIC_IPC_BRIDGE =
 const mainStateBridge = createMainStateBridge({
     ipcRenderer,
     preloadLog,
-    removeIpcListener: removeIpcListener as unknown as (
-        channel: string,
-        handler: MainStateEventListener
-    ) => void,
+    removeIpcListener,
 });
 const clipboardBridge = createClipboardBridge({
     channels: CONSTANTS.CHANNELS,
@@ -764,15 +886,7 @@ const fitBrowserApi = createFitBrowserApi({
         FIT_BROWSER_SET_FOLDER: CONSTANTS.CHANNELS.FIT_BROWSER_SET_FOLDER,
     },
     createSafeEventHandler,
-    createSafeInvokeHandler: createSafeInvokeHandler as (
-        channel:
-            | "browser:getFolder"
-            | "browser:isEnabled"
-            | "browser:listFolder"
-            | "browser:setEnabled"
-            | "browser:setFolder",
-        methodName: string
-    ) => (...args: unknown[]) => Promise<unknown>,
+    createSafeInvokeHandler,
 });
 const fileApi = createFileApi({
     channels: {
@@ -785,18 +899,7 @@ const fileApi = createFileApi({
         RECENT_FILES_APPROVE: CONSTANTS.CHANNELS.RECENT_FILES_APPROVE,
         RECENT_FILES_GET: CONSTANTS.CHANNELS.RECENT_FILES_GET,
     },
-    createSafeInvokeHandler: createSafeInvokeHandler as (
-        channel:
-            | "dialog:openFile"
-            | "dialog:openOverlayFiles"
-            | "file:read"
-            | "fit:decode"
-            | "fit:parse"
-            | "recentFiles:add"
-            | "recentFiles:approve"
-            | "recentFiles:get",
-        methodName: string
-    ) => (...args: unknown[]) => Promise<unknown>,
+    createSafeInvokeHandler,
 });
 const appInfoApi = createAppInfoApi({
     channels: {
@@ -1252,7 +1355,7 @@ const electronAPI: ElectronAPI = {
     openFolderDialog: createSafeInvokeHandler(
         CONSTANTS.CHANNELS.DIALOG_OPEN_FOLDER,
         "openFolderDialog"
-    ),
+    ) as ElectronAPI["openFolderDialog"],
 
     /**
      * Opens the overlay file dialog with multi-selection support.
