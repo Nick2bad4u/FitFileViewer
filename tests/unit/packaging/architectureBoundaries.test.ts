@@ -86,6 +86,8 @@ const directGlobalDataReactivePropertyPattern =
 const legacyAppStateGlobalDataPattern = /\bAppState\.globalData\b/u;
 const legacyGlobalDataBridgeFunctionPattern =
     /\bdefineLegacyGlobalDataBridge\b/u;
+const globalDataStoreReaderImportPattern =
+    /\bimport\s*\{[^}]*\bgetGlobalData\b[^}]*\}\s*from\s*["'][^"']*globalDataStore\.js["']/u;
 const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const directShowFitDataGlobalPattern =
@@ -461,6 +463,26 @@ describe("architecture boundaries", () => {
                         resolvesIntoRendererUtils(relativeFile, specifier)
                     )
                     .map((specifier) => `${relativeFile}: ${specifier}`)
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps globalData reader imports quarantined to state core compatibility", () => {
+        expect.assertions(1);
+
+        const allowedReaderImportFiles = new Set([
+            "electron-app/utils/state/core/unifiedStateManager.ts",
+        ]);
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    !allowedReaderImportFiles.has(relativeFile) &&
+                    globalDataStoreReaderImportPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
             )
             .sort();
 

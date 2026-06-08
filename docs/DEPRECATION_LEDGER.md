@@ -17,6 +17,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
   - Runtime source reads loaded FIT data through typed imports or state selectors.
   - Playwright smoke tests assert state through app APIs instead of `window.globalData`.
   - Architecture tests block direct runtime writes, direct `globalData` property definitions, reactive `globalData` property creation, and bridge installer calls.
+  - Architecture tests block `getGlobalData` reader imports outside state core compatibility.
   - Migrated rendering helpers stay free of direct `window.globalData` reads.
   - `getGlobalData` reads only managed state.
 
