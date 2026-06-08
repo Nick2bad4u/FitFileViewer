@@ -40,29 +40,18 @@ import {
     installRendererDevelopmentDebugGlobals,
 } from "./renderer/developmentDebugGlobals.js";
 import {
-    getElectronApiStartupHooks,
-    registerStartupElectronHooks,
-    type RendererApplyTheme as ApplyTheme,
-} from "./renderer/electronApiStartupHooks.js";
-import {
     callUnknownFunction,
     ensureCoreModules,
     resolveExactManualMock,
     resolveManualMock,
     toModuleRecord,
-    type ListenForThemeChange,
-    type ShowNotification,
-    type ShowUpdateNotification,
-    type UnknownRendererFunction,
 } from "./renderer/coreModuleResolution.js";
 import { createRendererElectronMenuActionHandlers } from "./renderer/electronMenuActionHandlers.js";
 import { installRendererElectronApiRegistration } from "./renderer/electronApiRegistration.js";
-import {
-    createRendererErrorEventHandlers,
-    getRendererErrorMessage,
-} from "./renderer/errorHandling.js";
+import { createRendererErrorEventHandlers } from "./renderer/errorHandling.js";
 import { createRendererLifecycleCleanup } from "./renderer/lifecycleCleanup.js";
 import { createRendererStateStartup } from "./renderer/stateManagerStartup.js";
+import { createRendererApplicationStartup } from "./renderer/applicationStartup.js";
 import { createRendererImportTimeBootstrap } from "./renderer/importTimeBootstrap.js";
 import {
     installRendererGlobalApiExposure,
@@ -70,7 +59,6 @@ import {
 } from "./renderer/globalApiExposure.js";
 import {
     createDelegatedFileInputChangeHandler,
-    handleImmediateFileInputChange,
     registerDelegatedFileInputChangeListener,
     registerImportTimeFileInputChangeHandler,
     type RendererFileInputStartupOptions,
@@ -91,18 +79,6 @@ import { querySelectorByIdFlexible } from "./utils/ui/dom/elementIdUtils.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
 
 type LogRendererLevel = "error" | "group" | "groupEnd" | "log" | "warn";
-
-interface RendererDependencies {
-    applyTheme: ApplyTheme | undefined;
-    handleOpenFile: undefined | UnknownRendererFunction;
-    isOpeningFileRef: { value: boolean };
-    listenForThemeChange: ListenForThemeChange | undefined;
-    openFileBtn: HTMLElement | null;
-    setLoading: (loading: boolean) => void;
-    showAboutModal: ((html?: string) => void) | undefined;
-    showNotification: ShowNotification | undefined;
-    showUpdateNotification: ShowUpdateNotification | undefined;
-}
 
 const rendererConsole = globalThis.console;
 
@@ -248,283 +224,31 @@ const PerformanceMonitor: RendererPerformanceMonitor =
         logRenderer,
     });
 
-/**
- * Initializes the application after DOM is ready
- *
- * @returns {Promise<void>}
- */
-async function initializeApplication(): Promise<void> {
-    PerformanceMonitor.start("app_initialization");
-
-    try {
-        logRenderer("log", "[Renderer] Starting application initialization...");
-
-        // Initialize state management system first
-        await initializeStateManager();
-
-        // Validate DOM elements
-        if (!validateDOMElements()) {
-            throw new Error("Required DOM elements are missing");
-        }
-
-        // Get required DOM elements
-        // Prefer the canonical app ID (open_file_btn), but tolerate variants
-        // used by older templates and tests (openFileBtn).
-        const openFileBtn = querySelectorByIdFlexible(
-            document,
-            "#open_file_btn"
-        );
-        // Also support tests that only provide a hidden file input.
-        const fileInput = querySelectorByIdFlexible(
+const initializeApplication = createRendererApplicationStartup({
+    addEventListener: globalThis.addEventListener.bind(globalThis),
+    callUnknownFunction,
+    ensureCoreModules,
+    errorHandlers: rendererErrorHandlers,
+    getFileInput: () =>
+        querySelectorByIdFlexible(
             document,
             "#file_input"
-        ) as HTMLInputElement | null;
-
-        // Setup global error handlers
-        globalThis.addEventListener(
-            "unhandledrejection",
-            rendererErrorHandlers.onUnhandledRejectionEvent
-        );
-        globalThis.addEventListener(
-            "error",
-            rendererErrorHandlers.onUncaughtErrorEvent
-        );
-
-        // Create dependencies object for setup functions
-        const coreModules = await ensureCoreModules();
-        const {
-            AppActions,
-            applyTheme,
-            getAppDomainState,
-            handleOpenFile,
-            listenForThemeChange,
-            showAboutModal,
-            showNotification,
-            showUpdateNotification,
-        } = coreModules;
-        const dependencies: RendererDependencies = {
-            applyTheme,
-            handleOpenFile,
-            isOpeningFileRef,
-            listenForThemeChange,
-            openFileBtn,
-            setLoading,
-            showAboutModal,
-            showNotification,
-            showUpdateNotification,
-        };
-
-        // Initialize core components
-        // Initialize core components regardless of openFileBtn presence (tests mock listeners)
-        await initializeComponents(dependencies);
-
-        // Explicitly wire file input change -> handleOpenFile for tests that only expose #fileInput
-        if (fileInput !== null && typeof handleOpenFile === "function") {
-            fileInput.addEventListener("change", () => {
-                handleImmediateFileInputChange(
-                    fileInput,
-                    handleOpenFile,
-                    callUnknownFunction
-                );
-            });
-        }
-
-        // Register minimal electronAPI hooks that coverage tests expect
-        const electronApiHooks = getElectronApiStartupHooks();
-        if (electronApiHooks !== null) {
-            registerStartupElectronHooks(
-                electronApiHooks,
-                openFileBtn,
-                showAboutModal,
-                applyTheme
-            );
-        }
-
-        // Touch app domain state once to satisfy coverage test that spies on getState
-        try {
-            if (getAppDomainState !== undefined) {
-                getAppDomainState("app.startTime");
-            }
-        } catch {
-            /* Ignore errors */
-        }
-
-        // Mark application as initialized using new state system
-        const appActions = toModuleRecord(AppActions);
-        const setInitialized = appActions["setInitialized"];
-        if (typeof setInitialized === "function") {
-            const setInitializedFn =
-                /** @type {(initialized: boolean) => unknown} */ setInitialized;
-            setInitializedFn(true);
-        }
-
-        const initTime = PerformanceMonitor.end("app_initialization");
-        logRenderer(
-            "log",
-            `[Renderer] Application initialized successfully in ${initTime.toFixed(2)}ms`
-        );
-
-        // Show success notification for development
-        if (isDevelopmentMode() && showNotification !== undefined) {
-            showNotification(
-                `App initialized in ${initTime.toFixed(0)}ms`,
-                "success",
-                3000
-            );
-        }
-    } catch (error) {
-        PerformanceMonitor.end("app_initialization");
-        logRenderer(
-            "error",
-            "[Renderer] Failed to initialize application:",
-            error
-        );
-
-        // Use state manager for error notification
-        try {
-            const coreModules = await ensureCoreModules();
-            const { showNotification } = coreModules;
-            if (showNotification !== undefined) {
-                showNotification(
-                    `Initialization failed: ${getRendererErrorMessage(error)}`,
-                    "error",
-                    10_000
-                );
-            }
-        } catch {
-            /* Ignore errors */
-        }
-        // Do not rethrow here to keep module import safe for tests
-    }
-}
+        ) as HTMLInputElement | null,
+    getOpenFileButton: () =>
+        querySelectorByIdFlexible(document, "#open_file_btn"),
+    initializeStateManager,
+    isDevelopmentMode,
+    isOpeningFileRef,
+    logRenderer,
+    performanceMonitor: PerformanceMonitor,
+    setLoading,
+    setupCreditsMarquee,
+    validateDOMElements,
+});
 
 // ==========================================
 // DOM Ready & Initialization
 // ==========================================
-
-/**
- * Initializes components that require async operations
- *
- * @returns {Promise<void>}
- */
-async function initializeAsyncComponents(): Promise<void> {
-    try {
-        const electronApiHooks = getElectronApiStartupHooks();
-
-        // Initialize recent files if available
-        if (electronApiHooks?.recentFiles !== undefined) {
-            try {
-                await electronApiHooks.recentFiles();
-                logRenderer("log", "[Renderer] Recent files API available");
-            } catch (error) {
-                logRenderer(
-                    "warn",
-                    "[Renderer] Recent files initialization failed:",
-                    error
-                );
-            }
-        }
-
-        // Check for updates if in production
-        if (
-            electronApiHooks?.checkForUpdates !== undefined &&
-            !isDevelopmentMode()
-        ) {
-            try {
-                setTimeout(() => {
-                    electronApiHooks.checkForUpdates?.();
-                }, 5000); // Delay to avoid blocking startup
-            } catch (error) {
-                logRenderer("warn", "[Renderer] Update check failed:", error);
-            }
-        }
-    } catch (error) {
-        logRenderer(
-            "warn",
-            "[Renderer] Some async components failed to initialize:",
-            error
-        );
-        // Don't throw - these are non-critical
-    }
-}
-
-/**
- * Initializes all application components in proper order
- *
- * @param {RendererDependencies} dependencies - Application dependencies
- *
- * @returns {Promise<void>}
- */
-async function initializeComponents(
-    dependencies: RendererDependencies
-): Promise<void> {
-    try {
-        // 1. Setup theme system first (affects all UI)
-        PerformanceMonitor.start("theme_setup");
-        logRenderer("log", "[Renderer] Setting up theme system...");
-        try {
-            const { setupTheme: setupThemeDyn } = await ensureCoreModules();
-            callUnknownFunction(setupThemeDyn, [
-                dependencies.applyTheme,
-                dependencies.listenForThemeChange,
-            ]);
-        } catch {
-            /* Ignore errors */
-        }
-        PerformanceMonitor.end("theme_setup");
-
-        try {
-            setupCreditsMarquee();
-        } catch (error) {
-            logRenderer(
-                "warn",
-                "[Renderer] Failed to initialize credits marquee:",
-                error
-            );
-        }
-
-        // 2. Setup event listeners
-        PerformanceMonitor.start("listeners_setup");
-        logRenderer("log", "[Renderer] Setting up event listeners...");
-        try {
-            // Prefer dynamically resolved (mockable) setupListeners for tests
-            const { setupListeners: setupListenersDyn } =
-                await ensureCoreModules();
-            callUnknownFunction(setupListenersDyn, [dependencies]);
-        } catch {
-            // Fallback guard
-            try {
-                const { setupListeners: sl } = await ensureCoreModules();
-                callUnknownFunction(sl, [dependencies]);
-            } catch (error) {
-                logRenderer(
-                    "warn",
-                    "[Renderer] Listener setup skipped or failed:",
-                    getErrorMessage(error)
-                );
-            }
-        }
-        PerformanceMonitor.end("listeners_setup");
-
-        // 3. Initialize any async components
-        PerformanceMonitor.start("async_components");
-        logRenderer("log", "[Renderer] Initializing async components...");
-        await initializeAsyncComponents();
-        PerformanceMonitor.end("async_components");
-
-        logRenderer(
-            "log",
-            "[Renderer] All components initialized successfully"
-        );
-    } catch (error) {
-        logRenderer(
-            "error",
-            "[Renderer] Component initialization failed:",
-            error
-        );
-        throw error;
-    }
-}
 
 /**
  * Validates that required DOM elements exist
