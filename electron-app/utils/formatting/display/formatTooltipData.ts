@@ -2,7 +2,6 @@ import {
     getAuxHeartRateValue,
     resolveFieldDescriptionMessages,
 } from "../../data/processing/auxHeartRateUtils.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { getState } from "../../state/core/stateManager.js";
 
 interface RecordMessage extends Record<string, unknown> {
@@ -63,7 +62,7 @@ export function formatTooltipData(
         const recordMesgs =
             recordMesgsOverride ??
             getRecordMessagesFromState() ??
-            getRecordMessagesFromGlobal();
+            getRecordMessagesFromManagedGlobalData();
         const globalData = getTooltipGlobalData();
         const fieldDescriptionMesgs =
             resolveFieldDescriptionMessages(globalData);
@@ -254,8 +253,8 @@ function formatSpeed(speed: unknown): string {
     return `${speedKmh.toFixed(SPEED)} km/h / ${speedMph.toFixed(SPEED)} mph`;
 }
 
-function getRecordMessagesFromGlobal(): RecordMessage[] | undefined {
-    const globalData = getGlobalData();
+function getRecordMessagesFromManagedGlobalData(): RecordMessage[] | undefined {
+    const globalData = getManagedGlobalData();
     if (!isRecord(globalData)) {
         return undefined;
     }
@@ -268,8 +267,12 @@ function getRecordMessagesFromState(): RecordMessage[] | undefined {
 }
 
 function getTooltipGlobalData(): Record<string, unknown> | undefined {
-    const globalData = getGlobalData();
+    const globalData = getManagedGlobalData();
     return isRecord(globalData) ? globalData : undefined;
+}
+
+function getManagedGlobalData(): unknown {
+    return getState("globalData");
 }
 
 function isFiniteNumber(value: unknown): value is number {

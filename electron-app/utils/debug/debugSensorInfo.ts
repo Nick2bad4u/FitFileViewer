@@ -9,7 +9,7 @@ import {
 import { formatManufacturer } from "../formatting/formatters/formatManufacturer.js";
 import { formatProduct } from "../formatting/formatters/formatProduct.js";
 import { formatSensorName } from "../formatting/formatters/formatSensorName.js";
-import { getGlobalData } from "../state/core/globalDataStore.js";
+import { FitFileSelectors } from "../state/domain/fitFileState.js";
 
 type SensorEntry = Record<string, unknown> & {
     readonly device_index?: unknown;
@@ -63,7 +63,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function getLoadedFitData(): FitGlobalData | null {
-    const data = getGlobalData<unknown>();
+    const data = FitFileSelectors.getRawData();
     return isRecord(data) ? data : null;
 }
 
