@@ -186,9 +186,18 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
                     "globalThis.electronAPI.parseFitFile is missing"
                 );
             }
-            if (typeof globalThis.showFitData !== "function") {
-                throw new TypeError("globalThis.showFitData is missing");
-            }
+            const renderModuleUrl = new URL(
+                "utils/rendering/core/loadShowFitData.js",
+                globalThis.location.href
+            ).href;
+            const stateModuleUrl = new URL(
+                "utils/state/core/stateManager.js",
+                globalThis.location.href
+            ).href;
+            // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used by the performance baseline runner.
+            const { renderDecodedFitData } = await import(renderModuleUrl);
+            // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used by the performance baseline runner.
+            const { getState } = await import(stateModuleUrl);
 
             const memoryBeforeLoad = getHeapBytes();
             const parseStart = performance.now();
@@ -198,8 +207,9 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
             const parseMs = performance.now() - parseStart;
 
             const renderStart = performance.now();
-            globalThis.showFitData(data, filePath);
+            await renderDecodedFitData(data, filePath);
             const renderMs = performance.now() - renderStart;
+            const activityData = getState("globalData");
 
             return {
                 activeFileName:
@@ -209,9 +219,13 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
                 memoryBeforeLoad,
                 memoryAfterLoad: getHeapBytes(),
                 parseMs,
-                recordCount: globalThis.globalData?.recordMesgs?.length ?? 0,
+                recordCount: Array.isArray(activityData?.recordMesgs)
+                    ? activityData.recordMesgs.length
+                    : 0,
                 renderMs,
-                sessionCount: globalThis.globalData?.sessionMesgs?.length ?? 0,
+                sessionCount: Array.isArray(activityData?.sessionMesgs)
+                    ? activityData.sessionMesgs.length
+                    : 0,
                 title: document.title,
             };
         },
