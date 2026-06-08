@@ -15,7 +15,6 @@ import { createTables } from "../../rendering/components/createTables.js";
 import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
 import { updateShownFilesList } from "../../rendering/components/shownFilesListUpdater.js";
 import { renderSummary } from "../../rendering/core/renderSummary.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import {
     installUpdateMapThemeListeners,
@@ -221,6 +220,11 @@ function formatBaseLayerLabel(key: string): string {
 
 function isDrawnLayer(layer: Leaflet.Layer): layer is DrawnLayer {
     return typeof layer === "object" && layer !== null;
+}
+
+function getManagedGlobalData(): GlobalData | null {
+    const data = getState("globalData");
+    return data !== null && typeof data === "object" ? (data as GlobalData) : null;
 }
 
 function isLeafletLayer(
@@ -1082,7 +1086,7 @@ export function renderMap(): void {
         primaryControls.append(createElevationProfileButton());
         filterControl = createDataPointFilterControl(({ action }) => {
             const didReset = resetLapSelectorSelection();
-            const currentGlobalData = getGlobalData<GlobalData>();
+            const currentGlobalData = getManagedGlobalData();
             if (!didReset && currentGlobalData?.recordMesgs) {
                 mapDrawLapsWrapper("all");
             }
@@ -1108,7 +1112,7 @@ export function renderMap(): void {
         // Estimated power (virtual power) settings
         const estPowerBtn = createPowerEstimationButton({
             getData: () => {
-                const data = getGlobalData<GlobalData>() ?? null;
+                const data = getManagedGlobalData();
                 const fitData = {
                     loadedFitFiles: Array.isArray(windowExt.loadedFitFiles)
                         ? windowExt.loadedFitFiles
@@ -1129,7 +1133,7 @@ export function renderMap(): void {
                 void refreshChartsAfterEstimatedPowerUpdate();
 
                 try {
-                    const currentGlobalData = getGlobalData<GlobalData>();
+                    const currentGlobalData = getManagedGlobalData();
                     if (currentGlobalData) {
                         renderSummary(currentGlobalData);
                     }
@@ -1138,7 +1142,7 @@ export function renderMap(): void {
                 }
 
                 try {
-                    const currentGlobalData = getGlobalData<GlobalData>();
+                    const currentGlobalData = getManagedGlobalData();
                     if (currentGlobalData) {
                         createTables(currentGlobalData);
                     }
@@ -1149,7 +1153,7 @@ export function renderMap(): void {
         });
 
         try {
-            const currentGlobalData = getGlobalData<GlobalData>();
+            const currentGlobalData = getManagedGlobalData();
             const recs = Array.isArray(currentGlobalData?.recordMesgs)
                 ? currentGlobalData.recordMesgs
                 : [];
@@ -1166,7 +1170,7 @@ export function renderMap(): void {
             createMarkerCountSelector(() => {
                 // Redraw map with new marker count
                 const didReset = resetLapSelectorSelection();
-                const currentGlobalData = getGlobalData<GlobalData>();
+                const currentGlobalData = getManagedGlobalData();
                 if (!didReset && currentGlobalData?.recordMesgs) {
                     mapDrawLapsWrapper("all");
                 }
@@ -1540,7 +1544,7 @@ export function renderMap(): void {
     // Apply estimated power before drawing any tracks/markers so tooltips have access.
     // Only applies to files without real power.
     try {
-        const currentGlobalData = getGlobalData<GlobalData>();
+        const currentGlobalData = getManagedGlobalData();
         if (Array.isArray(currentGlobalData?.recordMesgs)) {
             const sessionMesgs = Array.isArray(currentGlobalData.sessionMesgs)
                 ? currentGlobalData.sessionMesgs
@@ -1655,7 +1659,7 @@ export function renderMap(): void {
         );
         // --- Always call mapDrawLapsWrapper('all') to ensure correct zoom/fitBounds logic ---
         mapDrawLapsWrapper("all");
-    } else if (getGlobalData<GlobalData>()?.recordMesgs) {
+    } else if (getManagedGlobalData()?.recordMesgs) {
         console.log(
             '[renderMap] No overlays, calling mapDrawLapsWrapper("all")'
         );
