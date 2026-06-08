@@ -29,6 +29,7 @@
         "electron-app/preload/clipboardBridge.ts",
         "electron-app/preload/devtoolsMenuApi.ts",
         "electron-app/preload/electronBridge.ts",
+        "electron-app/preload/electronApiFactory.ts",
         "electron-app/preload/environment.ts",
         "electron-app/preload/genericIpcApi.ts",
         "electron-app/preload/ipcHelpers.ts",
