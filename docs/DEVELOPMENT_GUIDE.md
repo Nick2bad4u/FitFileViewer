@@ -449,7 +449,13 @@ After signed Windows or macOS packaging completes, use
 `npm run release:verify-signing-artifacts` to verify the produced artifacts.
 The release matrix runs this automatically after `build:ci-matrix`: Windows
 artifacts are checked with `Get-AuthenticodeSignature`, and macOS `.app`
-bundles are checked with `codesign --verify --deep --strict`.
+bundles are checked with `codesign --verify --deep --strict`. The verifier
+writes `release-dist/signing-verification-report.json`, and the release
+workflow uploads that report with the platform artifacts so the signed files,
+status, platform, verifier command, sanitized verifier arguments, and per-file
+verification outcome are visible after the job completes. In GitHub Actions,
+the verifier also appends the same status, artifact list, and verifier command
+results to the job summary through `GITHUB_STEP_SUMMARY`.
 
 ### Release Rehearsal
 

@@ -42,7 +42,7 @@ Launcher → main.ts → BrowserWindow preload:dist/preload.js → renderer dist
 ```
 
 1. **Main process (`main.ts`)** builds application state, creates the BrowserWindow via `windowStateUtils`, instantiates menus, registers IPC handlers, and configures auto updates.
-2. **Preload (`preload.ts`)** is bundled by the root build into `dist/preload.js` and exposes a typed `electronAPI` surface (file dialogs, version info, recent files, FIT parsing, update events, theme events, etc.) using context isolation.
+2. **Preload (`preload.ts`)** is emitted by the root build as `dist/preload.js`, delegates to compiled modules under `dist/preload/`, and exposes a typed `electronAPI` surface (file dialogs, version info, recent files, FIT parsing, update events, theme events, etc.) using context isolation.
 3. **Renderer (`renderer.ts`)** is compiled by the root runtime build, lazily resolves modules through `ensureCoreModules()`, initializes the master state manager, wires legacy compatibility proxies, registers DOM listeners, and orchestrates charts, maps, and notifications.
 4. **State management** is centralized in `utils/state/core/stateManager.js`, while domain-specific managers (e.g., `fitFileStateManager`, `uiStateManager`, `settingsStateManager`) sit under `utils/state/domain/`.
 
@@ -99,7 +99,7 @@ runtime renderer output:
 1. **File selection:** Renderer triggers `electronAPI.openFile()`; main process updates recent files and reconstitutes menus.
 2. **Binary read:** `file:read` returns an ArrayBuffer via IPC.
 3. **Decode:** `fitParser.ts` loads Garmin's FIT SDK (`@garmin/fitsdk`), validates integrity, tracks progress via `fitFileStateManager`, and records metadata.
-4. **State updates:** Successful decodes update `globalData`, propagate to charts/maps/tables (`showFitData.ts`), and notify the main menu.
+4. **State updates:** Successful decodes update the `fitFile.rawData` domain state, propagate to charts/maps/tables (`showFitData.ts`), and notify the main menu.
 5. **Overlays:** `loadOverlayFiles.ts` allows additional FIT files to be displayed side-by-side, reusing the decode pipeline and maintaining `loadedFitFiles`.
 
 ## UI Systems

@@ -51,7 +51,7 @@ electron-app/
 │   ├── Global event handlers
 │   └── Performance monitoring
 │
-├── preload.ts                        # Security bridge source bundled into dist/preload.js
+├── preload.ts                        # Security bridge root emitted as dist/preload.js
 │   ├── Context bridge setup
 │   ├── IPC API exposure
 │   ├── Security validation

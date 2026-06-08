@@ -182,13 +182,14 @@ import { addComputed, getComputed } from "./utils/computedStateManager.js";
 const cleanup = addComputed(
  "hasValidData",
  (state) => {
+  const rawFitData = state.fitFile?.rawData;
   return (
-   state.globalData &&
-   state.globalData.recordMesgs &&
-   state.globalData.recordMesgs.length > 0
+   rawFitData &&
+   rawFitData.recordMesgs &&
+   rawFitData.recordMesgs.length > 0
   );
  },
- ["globalData.recordMesgs"]
+ ["fitFile.rawData.recordMesgs"]
 );
 
 // Use computed value
