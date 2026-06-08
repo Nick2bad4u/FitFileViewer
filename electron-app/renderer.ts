@@ -26,19 +26,12 @@
 // Utility Imports & Fallbacks
 // ==========================================
 
-import {
-    getEnvironment,
-    isDevelopmentMode,
-} from "./utils/app/initialization/rendererEnvironment.js";
+import { isDevelopmentMode } from "./utils/app/initialization/rendererEnvironment.js";
 import { validateRendererDomElements } from "./renderer/domStartupValidation.js";
 import {
     createRendererPerformanceMonitor,
     type RendererPerformanceMonitor,
 } from "./renderer/startupPerformanceMonitor.js";
-import {
-    APP_INFO,
-    installRendererDevelopmentDebugGlobals,
-} from "./renderer/developmentDebugGlobals.js";
 import {
     callUnknownFunction,
     ensureCoreModules,
@@ -56,15 +49,10 @@ import {
     createRendererImportTimeBootstrap,
     runRendererImportTimeBootstrap,
 } from "./renderer/importTimeBootstrap.js";
-import {
-    installRendererGlobalApiExposure,
-    logRendererStartupInfo,
-} from "./renderer/globalApiExposure.js";
+import { installRendererGlobalSurfaces } from "./renderer/globalSurfacesWiring.js";
 import { createRendererFileInputWiring } from "./renderer/fileInputWiring.js";
 import { registerRendererTestOnlyBootstrap } from "./renderer/testOnlyBootstrap.js";
 import { setLoading } from "./utils/ui/loading/syncRendererLoading.js";
-// Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
-import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
 // Avoid static import of AppActions because tests sometimes mock the module
 // without exporting the named symbol. Always resolve via ensureCoreModules().
 import { getState, subscribe } from "./utils/state/core/stateManager.js";
@@ -210,23 +198,6 @@ function validateDOMElements(): boolean {
  * @namespace PerformanceMonitor
  */
 // ==========================================
-// Global API Exposure
-// ==========================================
-
-installRendererGlobalApiExposure({
-    appInfo: APP_INFO,
-    createExportGPXButton,
-    resetStateInitializationForTests,
-});
-
-// Log application startup information
-logRendererStartupInfo({
-    appInfo: APP_INFO,
-    environment: getEnvironment(),
-    logRenderer,
-});
-
-// ==========================================
 // Application Lifecycle
 // ==========================================
 
@@ -247,15 +218,15 @@ registerRendererApplicationLifecycle({
     windowTarget: globalThis,
 });
 
-installRendererDevelopmentDebugGlobals({
+installRendererGlobalSurfaces({
     appState: getAppState(),
     cleanup,
     ensureCoreModules,
     initializeApplication,
-    isDevelopmentMode,
     isOpeningFileRef,
     logRenderer,
     performanceMonitor: PerformanceMonitor,
+    resetStateInitializationForTests,
     validateDOMElements,
 });
 
