@@ -2,8 +2,7 @@ import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColor
 import type * as Leaflet from "leaflet";
 import { escapeHtml } from "../../dom/index.js";
 import { getOverlayFileName } from "../../files/import/getOverlayFileName.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
-import { setState } from "../../state/core/stateManager.js";
+import { getState, setState } from "../../state/core/stateManager.js";
 import {
     createMetricFilter,
     getMetricDefinition,
@@ -534,7 +533,7 @@ export function mapDrawLaps(
     );
 
     let coords: CoordTuple[];
-    const currentFitData = getGlobalData<FitDataLike>();
+    const currentFitData = getManagedFitData();
     const lapMesgs = asLapMesgs(currentFitData?.lapMesgs),
         recordMesgs = asRecordMesgs(currentFitData?.recordMesgs);
 
@@ -1656,6 +1655,11 @@ function getLeaflet(): LeafletRuntimeLike {
 function getLoadedFitFiles(): LoadedFitFileLike[] {
     const loadedFitFiles = getWin().loadedFitFiles;
     return Array.isArray(loadedFitFiles) ? loadedFitFiles : [];
+}
+
+function getManagedFitData(): FitDataLike | null {
+    const data = getState("globalData");
+    return data !== null && typeof data === "object" ? data : null;
 }
 
 function getMarkerLimit(): number {
