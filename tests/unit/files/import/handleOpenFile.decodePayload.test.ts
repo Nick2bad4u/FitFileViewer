@@ -1,5 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
+const renderDecodedFitDataMock = vi.hoisted(() =>
+    vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
+);
+
+vi.mock(
+    "../../../../electron-app/utils/rendering/core/loadShowFitData.js",
+    () => ({ renderDecodedFitData: renderDecodedFitDataMock })
+);
+
 import { handleOpenFile } from "../../../../electron-app/utils/files/import/handleOpenFile.js";
 
 type HandleFileLoadingError = (error: Error) => void;
@@ -16,7 +25,6 @@ type OpenFile = () => Promise<string>;
 type ParseFitFile = (arrayBuffer: ArrayBuffer) => Promise<unknown>;
 type ReadFile = (filePath: string) => Promise<ArrayBuffer>;
 type SetLoading = (isLoading: boolean) => void;
-type ShowFitData = (data: unknown, filePath?: string) => void;
 type ShowNotification = Parameters<
     typeof handleOpenFile
 >[0]["showNotification"];
@@ -27,7 +35,6 @@ type Harness = {
     parseFitFile: ReturnType<typeof vi.fn<ParseFitFile>>;
     readFile: ReturnType<typeof vi.fn<ReadFile>>;
     setLoading: ReturnType<typeof vi.fn<SetLoading>>;
-    showFitData: ReturnType<typeof vi.fn<ShowFitData>>;
     showNotification: ReturnType<typeof vi.fn<ShowNotification>>;
     startFileLoading: ReturnType<typeof vi.fn<(filePath: string) => void>>;
     transitionLoadingPhase: ReturnType<
@@ -52,7 +59,6 @@ function createHarness(): Harness {
         parseFitFile: vi.fn<ParseFitFile>(),
         readFile: vi.fn<ReadFile>(),
         setLoading: vi.fn<SetLoading>(),
-        showFitData: vi.fn<ShowFitData>(),
         showNotification: vi.fn<ShowNotification>(),
         startFileLoading: vi.fn<(filePath: string) => void>(),
         transitionLoadingPhase: vi.fn<
@@ -84,15 +90,15 @@ async function withHandleOpenFileHarness(
 ): Promise<void> {
     const originalElectronAPI = globalThis.electronAPI;
     const originalFitFileStateManager = globalThis.__FFV_fitFileStateManager;
-    const originalShowFitData = globalThis.showFitData;
     const harness = createHarness();
 
+    renderDecodedFitDataMock.mockReset();
+    renderDecodedFitDataMock.mockResolvedValue(undefined);
     globalThis.electronAPI = {
         openFile: harness.openFile,
         parseFitFile: harness.parseFitFile,
         readFile: harness.readFile,
     } as typeof globalThis.electronAPI;
-    globalThis.showFitData = harness.showFitData;
     globalThis.__FFV_fitFileStateManager = {
         handleFileLoadingError: harness.handleFileLoadingError,
         startFileLoading: harness.startFileLoading,
@@ -103,7 +109,6 @@ async function withHandleOpenFileHarness(
         await runTest(harness);
     } finally {
         globalThis.electronAPI = originalElectronAPI;
-        globalThis.showFitData = originalShowFitData;
         globalThis.__FFV_fitFileStateManager = originalFitFileStateManager;
         vi.restoreAllMocks();
     }
@@ -133,7 +138,7 @@ describe(handleOpenFile, () => {
             });
 
             expect({ result }).toStrictEqual({ result: false });
-            expect(harness.showFitData).not.toHaveBeenCalled();
+            expect(renderDecodedFitDataMock).not.toHaveBeenCalled();
             expect(harness.startFileLoading).toHaveBeenCalledWith(
                 "C:\\activities\\bad.fit"
             );

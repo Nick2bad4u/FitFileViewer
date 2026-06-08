@@ -9,7 +9,6 @@ import { chartTabIntegration } from "./utils/charts/core/chartTabIntegration.js"
 import { renderChartJS } from "./utils/charts/core/renderChartJS.js";
 import { FILE_CONSTANTS, UI_CONSTANTS } from "./utils/config/constants.js";
 import { performanceMonitor } from "./utils/debug/stateDevTools.js";
-import { showFitData } from "./utils/rendering/core/showFitData.js";
 import {
     isDevelopmentEnvironment,
     isTestEnvironment,
@@ -51,8 +50,6 @@ interface PerformanceMonitorLike {
     readonly startTimer?: (operationId: string) => void;
 }
 
-type ShowFitDataInput = Parameters<typeof showFitData>[0];
-
 const mainUiConsole = globalThis.console;
 
 function getElectronAPI(): ElectronAPIWithDevFlags | undefined {
@@ -70,10 +67,6 @@ function isPerformanceMonitorEnabled(monitor: PerformanceMonitorLike): boolean {
     return typeof monitor.isEnabled === "function"
         ? monitor.isEnabled()
         : Boolean(monitor.isEnabled);
-}
-
-function isShowFitDataInput(value: unknown): value is ShowFitDataInput {
-    return typeof value === "object" && value !== null;
 }
 
 function logMainUi(
@@ -208,17 +201,6 @@ registerLegacyGlobals({
     constants: CONSTANTS,
     renderChartJS: (targetContainer) => {
         void renderChartJS(targetContainer);
-    },
-    showFitData: (fitData, filePath) => {
-        if (!isShowFitDataInput(fitData)) {
-            logMainUi(
-                "error",
-                "[main-ui] Ignoring invalid FIT data passed to legacy showFitData global"
-            );
-            return;
-        }
-
-        showFitData(fitData, filePath);
     },
     validateElement,
 });

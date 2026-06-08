@@ -10,7 +10,6 @@ type LegacyGlobals = typeof globalThis & {
         options?: unknown
     ) => void;
     sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => Promise<void>;
-    showFitData?: (fitData: unknown, filePath: string) => void;
 };
 
 const IFRAME_ID = "alt-fit-iframe";
@@ -22,7 +21,6 @@ function resetTestState(): void {
     Reflect.deleteProperty(legacyGlobal, "cleanupEventListeners");
     Reflect.deleteProperty(legacyGlobal, "renderChartJS");
     Reflect.deleteProperty(legacyGlobal, "sendFitFileToAltFitReader");
-    Reflect.deleteProperty(legacyGlobal, "showFitData");
     vi.restoreAllMocks();
 }
 
@@ -39,7 +37,6 @@ function createDependencies(
             vi.fn<
                 (data: unknown, filePath: string, options?: unknown) => void
             >(),
-        showFitData: vi.fn<(fitData: unknown, filePath: string) => void>(),
         validateElement:
             vi.fn<(id: string) => HTMLElement | null>(validateElement),
     };
@@ -55,7 +52,7 @@ function getRequiredFitFileSender(): (
 
 describe("mainUiGlobals", () => {
     it("registers renderer compatibility globals", () => {
-        expect.assertions(3);
+        expect.assertions(2);
 
         resetTestState();
 
@@ -64,7 +61,6 @@ describe("mainUiGlobals", () => {
 
         const legacyGlobal = globalThis as LegacyGlobals;
 
-        expect(legacyGlobal.showFitData).toBe(dependencies.showFitData);
         expect(legacyGlobal.renderChartJS).toBe(dependencies.renderChartJS);
         expect(legacyGlobal.cleanupEventListeners).toBe(
             dependencies.cleanupEventListeners

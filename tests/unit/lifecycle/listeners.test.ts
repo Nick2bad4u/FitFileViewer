@@ -37,7 +37,6 @@ type TestGlobal = typeof globalThis & {
     __ffvMenuForwardRegistry?: unknown;
     electronAPI?: TestElectronAPI;
     renderChartJS?: unknown;
-    showFitData?: unknown;
 };
 
 function getTestGlobal(): TestGlobal {
@@ -77,14 +76,12 @@ describe("utils/app/lifecycle/listeners.js", () => {
         // Clean any previous window properties
         Object.assign(getTestWindow(), {
             electronAPI: undefined,
-            showFitData: undefined,
             ChartUpdater: undefined,
             renderChartJS: undefined,
         });
         Object.assign(getTestGlobal(), {
             __ffvMenuForwardRegistry: undefined,
             electronAPI: undefined,
-            showFitData: undefined,
             ChartUpdater: undefined,
             renderChartJS: undefined,
         });

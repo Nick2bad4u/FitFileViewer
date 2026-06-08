@@ -4,7 +4,6 @@
 
 import { convertArrayBufferToBase64 } from "../formatting/converters/convertArrayBufferToBase64.js";
 
-type ShowFitData = (fitData: unknown, filePath: string) => void;
 type RenderChartJS = (
     targetContainer?: Element | null | string,
     options?: unknown
@@ -14,7 +13,6 @@ type LegacyRendererGlobal = typeof globalThis & {
     cleanupEventListeners?: () => void;
     renderChartJS?: RenderChartJS;
     sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
-    showFitData?: ShowFitData;
 };
 
 type RegisterLegacyGlobalsDependencies = {
@@ -24,7 +22,6 @@ type RegisterLegacyGlobalsDependencies = {
         IFRAME_PATHS: { ALT_FIT: string };
     };
     renderChartJS: RenderChartJS;
-    showFitData: ShowFitData;
     validateElement: (id: string) => HTMLElement | null;
 };
 
@@ -42,7 +39,6 @@ function getAltFitTargetOrigin(): string {
  * Register legacy globals expected by older renderers/scripts.
  */
 export function registerLegacyGlobals({
-    showFitData,
     renderChartJS,
     cleanupEventListeners,
     validateElement,
@@ -51,7 +47,6 @@ export function registerLegacyGlobals({
     const legacyGlobal = getLegacyRendererGlobal();
 
     // Expose essential functions to window for backward compatibility
-    legacyGlobal.showFitData = showFitData;
     legacyGlobal.renderChartJS = renderChartJS;
     legacyGlobal.cleanupEventListeners = cleanupEventListeners;
 

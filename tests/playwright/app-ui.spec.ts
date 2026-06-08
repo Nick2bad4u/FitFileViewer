@@ -118,6 +118,48 @@ function getFitFixtureFileState(filePath: string): FitFixtureFileState {
     };
 }
 
+async function mockOpenFileDialogForApp(
+    electronApp: ElectronApplication,
+    dialogResult: {
+        canceled: boolean;
+        filePaths: string[];
+    }
+): Promise<void> {
+    await electronApp.evaluate(({ dialog }, result) => {
+        const mainGlobal = globalThis as typeof globalThis & {
+            __ffvPlaywrightOpenFileDialogCalls?: number;
+            __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
+        };
+
+        mainGlobal.__ffvPlaywrightOriginalShowOpenDialog ??=
+            dialog.showOpenDialog;
+        mainGlobal.__ffvPlaywrightOpenFileDialogCalls = 0;
+        dialog.showOpenDialog = async () => {
+            mainGlobal.__ffvPlaywrightOpenFileDialogCalls =
+                (mainGlobal.__ffvPlaywrightOpenFileDialogCalls ?? 0) + 1;
+            return result;
+        };
+    }, dialogResult);
+}
+
+async function restoreOpenFileDialogForApp(
+    electronApp: ElectronApplication
+): Promise<void> {
+    await electronApp.evaluate(({ dialog }) => {
+        const mainGlobal = globalThis as typeof globalThis & {
+            __ffvPlaywrightOpenFileDialogCalls?: number;
+            __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
+        };
+
+        if (mainGlobal.__ffvPlaywrightOriginalShowOpenDialog) {
+            dialog.showOpenDialog =
+                mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
+            delete mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
+        }
+        delete mainGlobal.__ffvPlaywrightOpenFileDialogCalls;
+    });
+}
+
 const mapTileHosts = new Set([
     "basemaps.cartocdn.com",
     "server.arcgisonline.com",
@@ -259,38 +301,44 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
             const mainNodeEnvironment = await noNodeEnvApp.evaluate(
                 () => process.env.NODE_ENV ?? null
             );
-            const fitBytes = Array.from(fs.readFileSync(sampleFitPath));
-            const loadedState = await noNodeEnvPage.evaluate(
-                async ({ bytes, filePath }) => {
-                    const rendererGlobal = globalThis as typeof globalThis & {
-                        process?: { env?: Record<string, string | undefined> };
-                    };
-                    const api = window.electronAPI;
-                    if (!api?.parseFitFile) {
-                        throw new Error(
-                            "window.electronAPI.parseFitFile is not available"
-                        );
-                    }
-                    if (typeof window.showFitData !== "function") {
-                        throw new Error("window.showFitData is not available");
-                    }
+            await mockOpenFileDialogForApp(noNodeEnvApp, {
+                canceled: false,
+                filePaths: [sampleFitPath],
+            });
+            await noNodeEnvPage.waitForFunction(() => {
+                const openButton = document.querySelector(
+                    "#open_file_btn"
+                ) as
+                    | (HTMLButtonElement & {
+                          __ffvLifecycleListenersCleanup?: unknown;
+                      })
+                    | null;
 
-                    const data = await api.parseFitFile(
-                        new Uint8Array(bytes).buffer
-                    );
-                    window.showFitData(data, filePath);
+                return (
+                    openButton !== null &&
+                    !openButton.disabled &&
+                    typeof openButton.__ffvLifecycleListenersCleanup ===
+                        "function"
+                );
+            });
+            await noNodeEnvPage.locator("#open_file_btn").click();
+            await expect(
+                noNodeEnvPage.locator("#active_file_name")
+            ).toContainText(sampleFitFileName);
+            const loadedState = await noNodeEnvPage.evaluate(() => {
+                const rendererGlobal = globalThis as typeof globalThis & {
+                    process?: { env?: Record<string, string | undefined> };
+                };
 
-                    return {
-                        activeFileName:
-                            document
-                                .querySelector("#active_file_name")
-                                ?.textContent?.trim() ?? "",
-                        rendererNodeEnvironment:
-                            rendererGlobal.process?.env?.NODE_ENV ?? null,
-                    };
-                },
-                { bytes: fitBytes, filePath: sampleFitPath }
-            );
+                return {
+                    activeFileName:
+                        document
+                            .querySelector("#active_file_name")
+                            ?.textContent?.trim() ?? "",
+                    rendererNodeEnvironment:
+                        rendererGlobal.process?.env?.NODE_ENV ?? null,
+                };
+            });
             const {
                 recordCount: loadedRecordCount,
                 sessionCount: loadedSessionCount,
@@ -393,6 +441,7 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
             );
             expectNoCollectedEntries("NODE_ENV-unset page errors", pageErrors);
         } finally {
+            await restoreOpenFileDialogForApp(noNodeEnvApp);
             await noNodeEnvApp.close();
         }
     });
@@ -432,37 +481,11 @@ test.describe("FitFileViewer Electron UI", () => {
         canceled: boolean;
         filePaths: string[];
     }): Promise<void> {
-        await electronApp.evaluate(({ dialog }, result) => {
-            const mainGlobal = globalThis as typeof globalThis & {
-                __ffvPlaywrightOpenFileDialogCalls?: number;
-                __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
-            };
-
-            mainGlobal.__ffvPlaywrightOriginalShowOpenDialog ??=
-                dialog.showOpenDialog;
-            mainGlobal.__ffvPlaywrightOpenFileDialogCalls = 0;
-            dialog.showOpenDialog = async () => {
-                mainGlobal.__ffvPlaywrightOpenFileDialogCalls =
-                    (mainGlobal.__ffvPlaywrightOpenFileDialogCalls ?? 0) + 1;
-                return result;
-            };
-        }, dialogResult);
+        await mockOpenFileDialogForApp(electronApp, dialogResult);
     }
 
     async function restoreOpenFileDialog(): Promise<void> {
-        await electronApp.evaluate(({ dialog }) => {
-            const mainGlobal = globalThis as typeof globalThis & {
-                __ffvPlaywrightOpenFileDialogCalls?: number;
-                __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
-            };
-
-            if (mainGlobal.__ffvPlaywrightOriginalShowOpenDialog) {
-                dialog.showOpenDialog =
-                    mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
-                delete mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
-            }
-            delete mainGlobal.__ffvPlaywrightOpenFileDialogCalls;
-        });
+        await restoreOpenFileDialogForApp(electronApp);
     }
 
     async function getOpenFileDialogCallCount(): Promise<number> {
@@ -1004,54 +1027,13 @@ test.describe("FitFileViewer Electron UI", () => {
     });
 
     test("renders a real FIT file across map, charts, data, and summary tabs", async () => {
-        const fitBytes = Array.from(fs.readFileSync(sampleFitPath));
-
-        const loadResult = await page.evaluate(
-            async ({ filePath, bytes }) => {
-                const api = window.electronAPI;
-                if (!api?.parseFitFile) {
-                    throw new Error(
-                        "window.electronAPI.parseFitFile is not available"
-                    );
-                }
-                if (typeof window.showFitData !== "function") {
-                    throw new Error("window.showFitData is not available");
-                }
-
-                const data = await api.parseFitFile(
-                    new Uint8Array(bytes).buffer
-                );
-                window.showFitData(data, filePath);
-
-                return {
-                    activeFileName: document
-                        .querySelector("#active_file_name")
-                        ?.textContent?.trim(),
-                    mapTabActive:
-                        document
-                            .querySelector("#tab_map")
-                            ?.classList.contains("active") ?? false,
-                    title: document.title,
-                };
-            },
-            { bytes: fitBytes, filePath: sampleFitPath }
-        );
-        const {
-            recordCount: loadedRecordCount,
-            sessionCount: loadedSessionCount,
-        } = await getRendererActivityDataCounts(page);
+        const loadResult = await openSampleFitThroughDialog();
 
         expect(loadResult).toStrictEqual({
             activeFileName: sampleFitActivityState.activeFileName,
-            mapTabActive: true,
-            title: sampleFitActivityState.title,
-        });
-        expect({
-            recordCount: loadedRecordCount,
-            sessionCount: loadedSessionCount,
-        }).toStrictEqual({
             recordCount: sampleFitActivityState.recordCount,
             sessionCount: sampleFitActivityState.sessionCount,
+            title: sampleFitActivityState.title,
         });
         expect(loadResult.activeFileName).not.toBe("");
 

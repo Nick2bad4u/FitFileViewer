@@ -27,7 +27,6 @@ type MainUiTestGlobal = typeof globalThis & {
         >
     >;
     renderChartJS?: (target: HTMLElement) => void;
-    showFitData?: (fitData: unknown, filePath?: string) => void;
 };
 
 const mocks = vi.hoisted(() => ({
@@ -290,8 +289,8 @@ describe("main-ui.js - UI Controller and State Management", () => {
         Reflect.deleteProperty(globalThis, "cleanupEventListeners");
     });
 
-    it("registers legacy globals and rejects invalid legacy FIT data", async () => {
-        expect.assertions(5);
+    it("registers the remaining legacy globals", async () => {
+        expect.assertions(4);
 
         await import("../../electron-app/main-ui.js");
         const { addEventListenerWithCleanup } =
@@ -299,13 +298,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
         const mainUiGlobal = getMainUiTestGlobal();
 
         expect(document.querySelectorAll(".tab-button")).toHaveLength(3);
-
-        mainUiGlobal.showFitData?.(null);
-        expect(mocks.showFitData).not.toHaveBeenCalled();
-
-        const fitData = { records: [] };
-        mainUiGlobal.showFitData?.(fitData, "activity.fit");
-        expect(mocks.showFitData).toHaveBeenCalledWith(fitData, "activity.fit");
+        expect("showFitData" in mainUiGlobal).toBe(false);
 
         const targetContainer = createElement("div", { id: "chart-target" });
         mainUiGlobal.renderChartJS?.(targetContainer);

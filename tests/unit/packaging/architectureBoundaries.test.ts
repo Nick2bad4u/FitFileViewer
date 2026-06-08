@@ -88,6 +88,8 @@ const legacyGlobalDataBridgeFunctionPattern =
     /\bdefineLegacyGlobalDataBridge\b/u;
 const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
+const directShowFitDataGlobalPattern =
+    /\b(?:window|globalThis)\.showFitData\s*=/u;
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
 const migratedRendererUtilityGlobalLookupPattern =
     /\b(?:appGlobal|window|globalThis|showFitGlobal|windowExt)\.(?:createTables|invalidateChartRenderCache|renderChartJS|renderMap|renderSummary|setTabButtonsEnabled|setupActiveFileNameMapActions|setupOverlayFileNameMapActions|updateActiveTab|updateOverlayHighlights|updateShownFilesList|updateTabVisibility)\b/u;
@@ -503,7 +505,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -518,6 +520,13 @@ describe("architecture boundaries", () => {
         const directRendererUtilsGlobals = scannedFiles
             .filter((relativeFile) =>
                 directRendererUtilsGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const directShowFitDataGlobals = scannedFiles
+            .filter((relativeFile) =>
+                directShowFitDataGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -570,6 +579,7 @@ describe("architecture boundaries", () => {
 
         expect(directGlobalDataWrites).toStrictEqual([]);
         expect(directRendererUtilsGlobals).toStrictEqual([]);
+        expect(directShowFitDataGlobals).toStrictEqual([]);
         expect(legacyAppStateGlobalDataUsages).toStrictEqual([]);
         expect(legacyGlobalDataBridgeFunctionUsages).toStrictEqual([]);
         expect(unexpectedLegacyUtilityFiles).toStrictEqual([]);
