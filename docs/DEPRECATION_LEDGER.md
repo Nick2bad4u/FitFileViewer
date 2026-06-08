@@ -6,9 +6,9 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 
 - Temporary surface: `window.globalData`, `globalThis.globalData`
 - Current owner: `electron-app/utils/state/core/globalDataStore.ts`
-- Compatibility callers: no automatic runtime installers and no state-backed bridge helper remain; only passive reads of pre-existing plain `globalData` values remain for startup handoff compatibility
-- Current status: no automatic runtime bridge install; new runtime writes go through `setGlobalData`, `setState("globalData", ...)`, or a typed domain service; AppActions clear/load paths and unified state facade globalData routing now go through `globalDataStore`, chart status refreshes subscribe to state, Playwright smoke assertions read activity counts through renderer state APIs, and lifecycle export/reload handlers, summary storage-key, column-modal preference lookup, user/device info, field-toggle metrics, data-point filter statistics, event-message charts, lap-zone charts, chart availability counts, chart settings rerender guards, map lap selector controls, map lap drawing, map core rendering, elevation profile fallback data, and sensor debug utilities now read loaded FIT data through `globalDataStore`; `mainUiGlobals`, `main-ui.ts`, state integration startup, core state-manager startup, and the legacy app-state domain no longer own bridge installers
-- Next removal step: remove the passive plain-value `globalData` fallback after remaining tests and startup handoffs seed state through `setGlobalData` or an app-facing test API
+- Compatibility callers: none; runtime FIT-data reads and writes use managed state APIs
+- Current status: removed; no automatic runtime bridge install, no state-backed bridge helper, and no passive plain-value global fallback remain; new runtime writes go through `setGlobalData`, `setState("globalData", ...)`, or a typed domain service; AppActions clear/load paths and unified state facade globalData routing now go through `globalDataStore`, chart status refreshes subscribe to state, Playwright smoke assertions read activity counts through renderer state APIs, and lifecycle export/reload handlers, summary storage-key, column-modal preference lookup, user/device info, field-toggle metrics, data-point filter statistics, event-message charts, lap-zone charts, chart availability counts, chart settings rerender guards, map lap selector controls, map lap drawing, map core rendering, elevation profile fallback data, and sensor debug utilities now read loaded FIT data through managed state; `mainUiGlobals`, `main-ui.ts`, state integration startup, core state-manager startup, and the legacy app-state domain no longer own bridge installers
+- Next removal step: migrate remaining tests that still seed `window.globalData` for non-runtime fixture convenience to `setGlobalData` or app-facing test APIs
 - Verification gates:
   - `npm run lint:app`
   - `npm test -- tests/unit/packaging/architectureBoundaries.test.ts`
@@ -18,6 +18,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
   - Playwright smoke tests assert state through app APIs instead of `window.globalData`.
   - Architecture tests block direct runtime writes, direct `globalData` property definitions, reactive `globalData` property creation, and bridge installer calls.
   - Migrated rendering helpers stay free of direct `window.globalData` reads.
+  - `getGlobalData` reads only managed state.
 
 ## Legacy AppState Global
 

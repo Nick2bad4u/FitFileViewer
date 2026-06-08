@@ -130,9 +130,7 @@ export function getStorageKey(
     try {
         const summaryGlobal = globalThis as SummaryGlobal;
         const windowGlobal = summaryGlobal.window;
-        const globalData = getGlobalData<FitSummaryData & SummaryRecord>(
-            summaryGlobal
-        );
+        const globalData = getGlobalData<FitSummaryData & SummaryRecord>();
         if (globalData?.cachedFilePath) {
             fpath = globalData.cachedFilePath;
         } else if (

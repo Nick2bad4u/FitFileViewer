@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 const hiddenFields = vi.hoisted(() => new Set<string>());
 
@@ -14,15 +16,14 @@ import { getChartCounts } from "../../../../../electron-app/utils/charts/core/ge
 
 type ChartCountsTestGlobal = typeof globalThis & {
     _chartjsInstances?: Array<{ canvas?: { id?: string } }>;
-    globalData?: unknown;
 };
 
 const testGlobal = globalThis as ChartCountsTestGlobal;
 
 function resetGlobals(): void {
+    __resetStateManagerForTests();
     hiddenFields.clear();
     delete testGlobal._chartjsInstances;
-    delete testGlobal.globalData;
 }
 
 describe(getChartCounts, () => {
@@ -48,13 +49,13 @@ describe(getChartCounts, () => {
         expect.assertions(1);
 
         resetGlobals();
-        testGlobal.globalData = {
+        setGlobalData({
             recordMesgs: [
                 null,
                 ["bad"],
                 "bad",
             ],
-        };
+        }, { source: "test" });
 
         expect(getChartCounts()).toStrictEqual({
             available: 0,
@@ -78,7 +79,7 @@ describe(getChartCounts, () => {
         hiddenFields.add("power_lap_zone_individual");
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-        testGlobal.globalData = {
+        setGlobalData({
             eventMesgs: [{ event: "start" }],
             recordMesgs: [
                 null,
@@ -105,7 +106,7 @@ describe(getChartCounts, () => {
                     timeInPowerZone: [3],
                 },
             ],
-        };
+        }, { source: "test" });
 
         const counts = getChartCounts();
 
@@ -154,13 +155,13 @@ describe(getChartCounts, () => {
                 .spyOn(console, "error")
                 .mockImplementation(() => {}),
             logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        testGlobal.globalData = {
+        setGlobalData({
             recordMesgs: [
                 undefined,
                 "bad row",
                 { custom_field: "text", developer_signal: "NaN" },
             ],
-        };
+        }, { source: "test" });
 
         const counts = getChartCounts();
 

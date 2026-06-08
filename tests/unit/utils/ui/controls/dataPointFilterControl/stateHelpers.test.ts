@@ -10,6 +10,8 @@ import {
     toSliderString,
     updateGlobalFilter,
 } from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.js";
+import { setGlobalData } from "../../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../../electron-app/utils/state/core/stateManager.js";
 
 type DataPointFilterConfig = {
     enabled: boolean;
@@ -27,9 +29,6 @@ type MetricStats = {
 };
 
 type StateHelpersTestGlobal = typeof globalThis & {
-    globalData?: {
-        recordMesgs: Array<Record<string, number>>;
-    };
     mapDataPointFilter?: DataPointFilterConfig;
 };
 
@@ -38,16 +37,17 @@ const testGlobal = globalThis as StateHelpersTestGlobal;
 
 describe("stateHelpers", () => {
     beforeEach(() => {
+        __resetStateManagerForTests();
         vi.restoreAllMocks();
         console.error = originalConsoleError;
         Reflect.deleteProperty(testGlobal, "mapDataPointFilter");
-        testGlobal.globalData = { recordMesgs: [] };
+        setGlobalData({ recordMesgs: [] }, { source: "test" });
     });
 
     afterEach(() => {
+        __resetStateManagerForTests();
         vi.restoreAllMocks();
         console.error = originalConsoleError;
-        Reflect.deleteProperty(testGlobal, "globalData");
         Reflect.deleteProperty(testGlobal, "mapDataPointFilter");
     });
 
@@ -95,13 +95,13 @@ describe("stateHelpers", () => {
     it("computeRangeState returns normalized stats and slider strings for available data", () => {
         expect.hasAssertions();
 
-        testGlobal.globalData = {
+        setGlobalData({
             recordMesgs: [
                 { speed: 10 },
                 { speed: 30.25 },
                 { speed: 25.5 },
             ],
-        };
+        }, { source: "test" });
 
         const { stats, rangeValues, sliderValues } = computeRangeState(
             "speed",

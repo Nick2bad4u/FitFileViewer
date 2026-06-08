@@ -10,10 +10,6 @@ import {
     getState,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
-type GlobalDataTestScope = typeof globalThis & {
-    globalData?: unknown;
-};
-
 const GLOBAL_DATA_PROPERTY = "globalData";
 
 function resetGlobalDataStoreTestState(): void {
@@ -29,18 +25,17 @@ describe("globalDataStore", () => {
     it("reads and writes global data through the managed state store", () => {
         expect.assertions(3);
 
-        const testGlobal = globalThis as GlobalDataTestScope;
         const data = { recordMesgs: [{ distance: 1000 }] };
 
         setGlobalData(data, { source: "test" });
 
         expect(getState("globalData")).toBe(data);
         expect(getGlobalData()).toBe(data);
-        expect(Object.hasOwn(testGlobal, GLOBAL_DATA_PROPERTY)).toBe(false);
+        expect(Object.hasOwn(globalThis, GLOBAL_DATA_PROPERTY)).toBe(false);
     });
 
-    it("falls back to a plain legacy globalData value before the bridge is installed", () => {
-        expect.assertions(1);
+    it("ignores plain legacy globalData values", () => {
+        expect.assertions(2);
 
         const data = { legacy: true };
         Object.defineProperty(globalThis, GLOBAL_DATA_PROPERTY, {
@@ -50,7 +45,8 @@ describe("globalDataStore", () => {
             writable: true,
         });
 
-        expect(getGlobalData()).toBe(data);
+        expect(getGlobalData()).toBeNull();
+        expect(getState("globalData")).toBeNull();
     });
 
     it("does not synchronize existing legacy globalData accessors on managed writes", () => {
@@ -82,7 +78,7 @@ describe("globalDataStore", () => {
         ).toHaveProperty("set");
     });
 
-    it("reads a non-configurable plain legacy globalData property", () => {
+    it("ignores non-configurable plain legacy globalData properties", () => {
         expect.assertions(1);
 
         const data = { locked: true };
@@ -94,6 +90,6 @@ describe("globalDataStore", () => {
             writable: true,
         });
 
-        expect(getGlobalData(scope as GlobalDataTestScope)).toBe(data);
+        expect(getGlobalData()).toBeNull();
     });
 });

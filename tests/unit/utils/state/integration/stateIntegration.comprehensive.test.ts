@@ -735,7 +735,7 @@ describe("stateIntegration comprehensive coverage", () => {
     });
 
     describe("backward compatibility", () => {
-        it("should preserve existing plain globalData without installing an accessor", async () => {
+        it("should ignore existing plain globalData without installing an accessor", async () => {
             expect.assertions(2);
 
             const { initializeAppState } =
@@ -744,13 +744,11 @@ describe("stateIntegration comprehensive coverage", () => {
             globalThis.globalData = { test: "data" };
             initializeAppState();
 
-            expect(mockStateManager.setState).toHaveBeenCalledWith(
-                "globalData",
-                { test: "data" },
-                {
-                    source: "StateIntegration.preserveExistingGlobalData",
-                }
-            );
+            expect(
+                mockStateManager.setState.mock.calls.filter(
+                    ([path]) => path === "globalData"
+                )
+            ).toStrictEqual([]);
             expect(
                 Object.getOwnPropertyDescriptor(globalThis, "globalData")
             ).toMatchObject({
@@ -758,6 +756,28 @@ describe("stateIntegration comprehensive coverage", () => {
                 value: { test: "data" },
                 writable: true,
             });
+        });
+
+        it("should not override existing properties", async () => {
+            expect.assertions(2);
+
+            // Set existing properties
+            globalThis.globalData = { existing: "data" };
+            globalThis.AppState = { existing: "appstate" };
+
+            const { initializeAppState } =
+                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
+
+            initializeAppState();
+
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "globalData")
+            ).toMatchObject({
+                configurable: true,
+                value: { existing: "data" },
+                writable: true,
+            });
+            expect(globalThis.AppState).toEqual({ existing: "appstate" });
         });
 
         it("should set up isChartRendered property correctly (smoke)", async () => {
@@ -830,22 +850,6 @@ describe("stateIntegration comprehensive coverage", () => {
             );
         });
 
-        it("should not override existing properties", async () => {
-            expect.assertions(2);
-
-            // Set existing properties
-            globalThis.globalData = { existing: "data" };
-            globalThis.AppState = { existing: "appstate" };
-
-            const { initializeAppState } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            initializeAppState();
-
-            // Should not override existing globalData
-            expect(globalThis.globalData).toEqual({ existing: "data" });
-            expect(globalThis.AppState).toEqual({ existing: "appstate" });
-        });
     });
 
     describe("debug utilities", () => {

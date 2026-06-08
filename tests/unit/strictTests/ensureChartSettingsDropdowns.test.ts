@@ -16,7 +16,6 @@ interface ChartInstanceMock {
 type EnsureDropdownsTestWindow = Window &
     typeof globalThis & {
         _chartjsInstances?: ChartInstanceMock[];
-        globalData?: unknown;
     };
 type MockVoidFn = (...args: unknown[]) => void;
 
@@ -294,7 +293,7 @@ function queryRequiredElement<TElement extends Element>(
 }
 
 function seedGlobalData() {
-    getTestWindow().globalData = {
+    state["globalData"] = {
         recordMesgs: [
             {
                 speed: 1.2,
@@ -390,7 +389,7 @@ beforeEach(() => {
         localStorage.clear();
     }
     delete getTestWindow()._chartjsInstances;
-    delete getTestWindow().globalData;
+    delete state["globalData"];
 });
 
 afterEach(() => {

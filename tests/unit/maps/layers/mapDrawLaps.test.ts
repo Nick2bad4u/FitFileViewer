@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { setGlobalData } from "../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
 
 type MockFunction = (...args: any[]) => any;
 
@@ -65,6 +67,7 @@ describe("mapDrawLaps", () => {
     let mockGetLapNumForIdx: any;
 
     beforeEach(() => {
+        __resetStateManagerForTests();
         // Reset global state
         (globalThis as any).window = globalThis;
 
@@ -566,10 +569,10 @@ describe("mapDrawLaps", () => {
             ];
 
             // Setup global data
-            (globalThis as any).globalData = {
+            setGlobalData({
                 recordMesgs: mockRecordMesgs,
                 lapMesgs: mockLapMesgs,
-            };
+            }, { source: "test" });
             (globalThis as any).mapMarkerCount = 10;
 
             // Setup map container
@@ -642,10 +645,10 @@ describe("mapDrawLaps", () => {
         it("should render a no-location message when every record lacks valid coordinates", () => {
             expect.assertions(5);
 
-            (globalThis as any).globalData = {
+            setGlobalData({
                 recordMesgs: [{ altitude: 101 }, { positionLat: "invalid" }],
                 lapMesgs: [{ end_index: 1, start_index: 0 }],
-            };
+            }, { source: "test" });
             (globalThis as any).mapMarkerCount = 0;
 
             const mapContainer = document.createElement("div");
@@ -712,10 +715,10 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            (globalThis as any).globalData = {
+            setGlobalData({
                 recordMesgs: mockRecordMesgs,
                 lapMesgs: mockLapMesgs,
-            };
+            }, { source: "test" });
             (globalThis as any).mapMarkerCount = 5;
 
             const mapContainer = document.createElement("div");
@@ -803,10 +806,10 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            (globalThis as any).globalData = {
+            setGlobalData({
                 recordMesgs: mockRecordMesgs,
                 lapMesgs: mockLapMesgs,
-            };
+            }, { source: "test" });
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;
@@ -853,10 +856,10 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            (globalThis as any).globalData = {
+            setGlobalData({
                 recordMesgs: mockRecordMesgs,
                 lapMesgs: [],
-            };
+            }, { source: "test" });
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;
@@ -895,7 +898,7 @@ describe("mapDrawLaps", () => {
             expect.assertions(5);
 
             // Setup main file data
-            (globalThis as any).globalData = {
+            setGlobalData({
                 recordMesgs: [
                     {
                         positionLat: 429496729,
@@ -907,7 +910,7 @@ describe("mapDrawLaps", () => {
                     },
                 ],
                 lapMesgs: [],
-            };
+            }, { source: "test" });
 
             // Setup overlay files
             (globalThis as any).loadedFitFiles = [
@@ -965,7 +968,7 @@ describe("mapDrawLaps", () => {
         it("should handle invalid lap index gracefully", () => {
             expect.assertions(4);
 
-            (globalThis as any).globalData = {
+            setGlobalData({
                 recordMesgs: [
                     {
                         positionLat: 429496729,
@@ -977,7 +980,7 @@ describe("mapDrawLaps", () => {
                     },
                 ],
                 lapMesgs: [],
-            };
+            }, { source: "test" });
 
             const mapContainer = document.createElement("div");
 
@@ -1009,7 +1012,7 @@ describe("mapDrawLaps", () => {
         it("should handle missing position data in records", () => {
             expect.assertions(4);
 
-            (globalThis as any).globalData = {
+            setGlobalData({
                 recordMesgs: [
                     {
                         timestamp: 1000,
@@ -1027,7 +1030,7 @@ describe("mapDrawLaps", () => {
                     },
                 ],
                 lapMesgs: [],
-            };
+            }, { source: "test" });
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;

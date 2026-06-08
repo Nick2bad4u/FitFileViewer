@@ -10,6 +10,8 @@ vi.mock("../../../../../electron-app/renderer/vendorBundleLoader.js", () => ({
 }));
 
 import { createElevationProfileButton } from "../../../../../electron-app/utils/ui/controls/createElevationProfileButton.js";
+import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type ElevationProfilePoint = { x: number; y: number };
 type ElevationProfileFileModel = {
@@ -118,6 +120,7 @@ describe(createElevationProfileButton, () => {
 
     // eslint-disable-next-line vitest/no-hooks -- Shared DOM/window setup keeps popup state isolated across cases.
     beforeEach(() => {
+        __resetStateManagerForTests();
         // Store original window properties
         originalWindow = { ...window };
 
@@ -159,6 +162,7 @@ describe(createElevationProfileButton, () => {
 
     // eslint-disable-next-line vitest/no-hooks -- Restores mocked browser globals after each popup scenario.
     afterEach(() => {
+        __resetStateManagerForTests();
         vi.restoreAllMocks();
         // Reset window properties
         Object.keys(window).forEach((key) => {
@@ -259,14 +263,16 @@ describe(createElevationProfileButton, () => {
     it("should handle globalData when no loadedFitFiles available", async () => {
         expect.assertions(4);
 
-        // Mock window.globalData with test data
-        (window as any).globalData = {
-            cachedFilePath: "global-test.fit",
-            recordMesgs: [
-                { positionLat: 5, positionLong: 6, altitude: 300 },
-                { positionLat: 7, positionLong: 8, altitude: 400 },
-            ],
-        };
+        setGlobalData(
+            {
+                cachedFilePath: "global-test.fit",
+                recordMesgs: [
+                    { positionLat: 5, positionLong: 6, altitude: 300 },
+                    { positionLat: 7, positionLong: 8, altitude: 400 },
+                ],
+            },
+            { source: "test" }
+        );
 
         // Create the button and click it
         const button = createElevationProfileButton();
@@ -288,11 +294,13 @@ describe(createElevationProfileButton, () => {
     it("should handle globalData without recordMesgs", async () => {
         expect.assertions(3);
 
-        // Mock window.globalData without recordMesgs array
-        (window as any).globalData = {
-            cachedFilePath: "incomplete-data.fit",
-            // No recordMesgs array
-        };
+        setGlobalData(
+            {
+                cachedFilePath: "incomplete-data.fit",
+                // No recordMesgs array
+            },
+            { source: "test" }
+        );
 
         // Create the button and click it
         const button = createElevationProfileButton();

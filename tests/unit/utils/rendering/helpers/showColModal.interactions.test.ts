@@ -5,6 +5,8 @@ import {
     getStorageKey,
     loadColPrefs,
 } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js";
+import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type Cleanup = () => void;
 
@@ -21,19 +23,17 @@ function setupDomTest(): Cleanup {
         .fn<(text: string) => Promise<void>>()
         .mockResolvedValue(undefined);
 
+    __resetStateManagerForTests();
     document.body.replaceChildren();
     localStorage.clear();
-    Object.defineProperty(windowWithGlobalData, "globalData", {
-        configurable: true,
-        value: { cachedFilePath: "/tmp/file.fit" },
-        writable: true,
-    });
+    setGlobalData({ cachedFilePath: "/tmp/file.fit" }, { source: "test" });
     Object.defineProperty(globalThis.navigator, "clipboard", {
         configurable: true,
         value: { writeText },
     });
 
     return () => {
+        __resetStateManagerForTests();
         document.body.replaceChildren();
         localStorage.clear();
         if (hadGlobalData) {

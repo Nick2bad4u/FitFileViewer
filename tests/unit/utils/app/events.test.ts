@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SetupListenersOptions } from "../../../../electron-app/utils/app/lifecycle/listeners.js";
+import { setGlobalData } from "../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
 
 const csvExportMocks = vi.hoisted(() => ({
     serializeTableToCSV: vi.fn<(table: unknown) => string>(),
@@ -186,6 +188,7 @@ describe(setupListeners, () => {
     let updateHandlers: Map<string, IpcHandler>;
 
     beforeEach(() => {
+        __resetStateManagerForTests();
         vi.useRealTimers();
         const open = document.createElement("button");
         open.id = "open";
@@ -280,7 +283,7 @@ describe(setupListeners, () => {
         defineGlobalValue("ChartUpdater", {
             updateCharts: vi.fn<(reason?: string) => unknown>(),
         });
-        defineGlobalValue("globalData", { recordMesgs: [] });
+        setGlobalData({ recordMesgs: [] }, { source: "test" });
         csvExportMocks.serializeTableToCSV.mockReset();
         csvExportMocks.serializeTableToCSV.mockReturnValue("header\nvalue");
         fitDataRendererMocks.renderDecodedFitData.mockReset();
@@ -300,6 +303,7 @@ describe(setupListeners, () => {
     });
 
     afterEach(() => {
+        __resetStateManagerForTests();
         vi.restoreAllMocks();
         vi.useRealTimers();
         document.body.replaceChildren();
@@ -549,9 +553,12 @@ describe(setupListeners, () => {
         vi.useFakeTimers();
         const csv = "header\nvalue";
         csvExportMocks.serializeTableToCSV.mockReturnValueOnce(csv);
-        defineGlobalValue("globalData", {
-            recordMesgs: [{ header: "value" }],
-        });
+        setGlobalData(
+            {
+                recordMesgs: [{ header: "value" }],
+            },
+            { source: "test" }
+        );
         const summaryContainer = requireElement(
             document.getElementById("content-summary"),
             "Content summary"
@@ -600,7 +607,7 @@ describe(setupListeners, () => {
             ipcHandlers.get("export-file"),
             "export-file"
         );
-        globalAny.globalData = { recordMesgs: [] };
+        setGlobalData({ recordMesgs: [] }, { source: "test" });
         await exportHandler("activity.gpx");
         expect(showNotification).toHaveBeenCalledWith(
             "No data available for GPX export.",
@@ -622,7 +629,7 @@ describe(setupListeners, () => {
             ipcHandlers.get("export-file"),
             "export-file"
         );
-        globalAny.globalData = {
+        setGlobalData({
             recordMesgs: [
                 {
                     positionLat: 1000,
@@ -631,7 +638,7 @@ describe(setupListeners, () => {
                     enhancedAltitude: 5,
                 },
             ],
-        };
+        }, { source: "test" });
         globalAny.loadedFitFiles = [{ displayName: "Demo Ride" }];
 
         const createObjectURLSpy = vi

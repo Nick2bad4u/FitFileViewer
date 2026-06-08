@@ -1,5 +1,7 @@
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type DomFactory = () => HTMLElement;
 type EventHandler = () => void;
@@ -297,6 +299,7 @@ function makeLeafletStub() {
 
 describe("renderMap core", () => {
     beforeEach(() => {
+        __resetStateManagerForTests();
         vi.restoreAllMocks();
         document.body.replaceChildren();
 
@@ -307,7 +310,7 @@ describe("renderMap core", () => {
 
         // Reset window extensions used by the module
         const w = window as RenderMapWindow;
-        w.globalData = { recordMesgs: [] };
+        setGlobalData({ recordMesgs: [] }, { source: "test" });
         w._overlayPolylines = {};
         w._leafletMapInstance = null;
         w.loadedFitFiles = [];
@@ -439,7 +442,7 @@ describe("renderMap core", () => {
             recordMesgs: [{ enhancedSpeed: 6, timestamp: 1 }],
             sessionMesgs: [{ sport: "cycling" }],
         };
-        (window as RenderMapWindow).globalData = data;
+        setGlobalData(data, { source: "test" });
 
         const { renderMap } = await importSUT();
         renderMap();

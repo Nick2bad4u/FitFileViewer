@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type LapSelection = "all" | string[];
 type DrawLapsFn = (selection: LapSelection) => void;
@@ -9,16 +11,11 @@ async function loadModule() {
 
 describe("mapLapSelector", () => {
     beforeEach(() => {
+        __resetStateManagerForTests();
         const container = document.createElement("div");
         container.id = "container";
         document.body.replaceChildren(container);
-        (window as any).globalData = {
-            lapMesgs: [
-                {},
-                {},
-                {},
-            ],
-        };
+        setGlobalData({ lapMesgs: [{}, {}, {}] }, { source: "test" });
     });
 
     it("adds control and handles single vs multi select changes", async () => {
@@ -75,7 +72,7 @@ describe("mapLapSelector", () => {
         const container = document.getElementById("container")!;
         const drawFn = vi.fn<DrawLapsFn>();
 
-        delete (window as any).globalData;
+        setGlobalData(null, { source: "test.clear" });
 
         addLapSelector(null as any, container, drawFn);
 

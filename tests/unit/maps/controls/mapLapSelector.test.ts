@@ -1,17 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { addLapSelector } from "../../../../electron-app/utils/maps/controls/mapLapSelector.js";
-
-type LapSelectorGlobal = typeof globalThis & {
-    globalData?: { lapMesgs: unknown[] };
-};
+import { setGlobalData } from "../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
 
 type LapSelection = "all" | string[];
 type DrawLaps = (selection: LapSelection) => void;
-
-function getTestGlobal(): LapSelectorGlobal {
-    return globalThis as LapSelectorGlobal;
-}
 
 function createContainer(): HTMLElement {
     const container = document.createElement("div");
@@ -21,7 +15,7 @@ function createContainer(): HTMLElement {
 
 function removeContainer(container: HTMLElement): void {
     container.remove();
-    delete getTestGlobal().globalData;
+    __resetStateManagerForTests();
 }
 
 function getRequiredSelect(container: HTMLElement): HTMLSelectElement {
@@ -76,13 +70,7 @@ describe("mapLapSelector", () => {
     it("renders a selector option for each lap plus the all option", () => {
         expect.assertions(5);
 
-        getTestGlobal().globalData = {
-            lapMesgs: [
-                {},
-                {},
-                {},
-            ],
-        };
+        setGlobalData({ lapMesgs: [{}, {}, {}] }, { source: "test" });
         const container = createContainer();
 
         addLapSelector({}, container, vi.fn<DrawLaps>());
@@ -119,13 +107,7 @@ describe("mapLapSelector", () => {
     it("calls mapDrawLaps with selected single and multi-lap values", () => {
         expect.assertions(11);
 
-        getTestGlobal().globalData = {
-            lapMesgs: [
-                {},
-                {},
-                {},
-            ],
-        };
+        setGlobalData({ lapMesgs: [{}, {}, {}] }, { source: "test" });
         const container = createContainer();
         const mapDrawLaps = vi.fn<DrawLaps>();
 

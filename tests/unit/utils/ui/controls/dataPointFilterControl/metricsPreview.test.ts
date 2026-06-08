@@ -1,18 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
     buildSummaryText,
     previewFilterResult,
 } from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/metricsPreview.js";
 import type { MetricFilterResult } from "../../../../../../electron-app/utils/maps/filters/mapMetricFilter.js";
-
-type MutableMetricsPreviewGlobal = typeof globalThis & {
-    globalData?: {
-        recordMesgs?: unknown[];
-    };
-};
-
-const testGlobal = globalThis as MutableMetricsPreviewGlobal;
+import { setGlobalData } from "../../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../../electron-app/utils/state/core/stateManager.js";
 
 function createMetricFilterResult(
     overrides: Partial<MetricFilterResult> = {}
@@ -38,6 +32,14 @@ function createMetricFilterResult(
 }
 
 describe("metricsPreview", () => {
+    beforeEach(() => {
+        __resetStateManagerForTests();
+    });
+
+    afterEach(() => {
+        __resetStateManagerForTests();
+    });
+
     it("returns null for missing, inactive, or rejected results", () => {
         expect.assertions(3);
 
@@ -90,32 +92,28 @@ describe("metricsPreview", () => {
     it("previews filters from global FIT records", () => {
         expect.assertions(2);
 
-        try {
-            testGlobal.globalData = {
+        setGlobalData(
+            {
                 recordMesgs: [
                     { speed: 10 },
                     { speed: 30 },
                     { speed: 20 },
                 ],
-            };
+            },
+            { source: "test" }
+        );
 
-            const result = previewFilterResult({
-                enabled: true,
-                metric: "speed",
-                percent: 34,
-            });
+        const result = previewFilterResult({
+            enabled: true,
+            metric: "speed",
+            percent: 34,
+        });
 
-            expect(result).toMatchObject({
-                isActive: true,
-                selectedCount: 2,
-                threshold: 20,
-            });
-            expect(Array.from(result?.allowedIndices ?? [])).toStrictEqual([
-                1,
-                2,
-            ]);
-        } finally {
-            Reflect.deleteProperty(testGlobal, "globalData");
-        }
+        expect(result).toMatchObject({
+            isActive: true,
+            selectedCount: 2,
+            threshold: 20,
+        });
+        expect(Array.from(result?.allowedIndices ?? [])).toStrictEqual([1, 2]);
     });
 });

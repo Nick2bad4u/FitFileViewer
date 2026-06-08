@@ -6,13 +6,12 @@ import {
     loadColPrefs,
     saveColPrefs,
 } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js";
+import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type SummaryWindow = Window &
     typeof globalThis & {
         activeFitFileName?: string;
-        globalData?: {
-            cachedFilePath?: string;
-        };
     };
 
 function getSummaryWindow(): SummaryWindow {
@@ -20,9 +19,9 @@ function getSummaryWindow(): SummaryWindow {
 }
 
 function resetSummaryFixture(): void {
+    __resetStateManagerForTests();
     localStorage.clear();
     delete getSummaryWindow().activeFitFileName;
-    delete getSummaryWindow().globalData;
 }
 
 describe("renderSummaryHelpers core functions", () => {
@@ -42,9 +41,10 @@ describe("renderSummaryHelpers core functions", () => {
         try {
             const preferredFilePath = "C:/Users/Me/My Activity.fit";
             getSummaryWindow().activeFitFileName = "IgnoredName.fit";
-            getSummaryWindow().globalData = {
-                cachedFilePath: preferredFilePath,
-            };
+            setGlobalData(
+                { cachedFilePath: preferredFilePath },
+                { source: "test" }
+            );
 
             const key = getStorageKey(
                 { cachedFilePath: "/tmp/ignored.fit" },
@@ -69,7 +69,7 @@ describe("renderSummaryHelpers core functions", () => {
         try {
             const dataFilePath = "/tmp/äctivity file.fit";
             getSummaryWindow().activeFitFileName = "IgnoredName.fit";
-            getSummaryWindow().globalData = {};
+            setGlobalData({}, { source: "test" });
 
             const key = getStorageKey({ cachedFilePath: dataFilePath });
 

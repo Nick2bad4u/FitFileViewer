@@ -1,20 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
-type GpxTestGlobal = typeof globalThis & {
-    globalData?: {
-        recordMesgs?: {
-            positionLat?: number;
-            positionLong?: number;
-        }[];
-    };
-};
 type NotificationFn = (
     message: string,
     type?: string,
     duration?: number
 ) => Promise<undefined>;
-
-const gpxGlobal = globalThis as GpxTestGlobal;
 
 function ensureObjectUrlApi(): void {
     if (typeof URL.createObjectURL !== "function") {
@@ -68,15 +60,15 @@ vi.mock(
 
 describe("export/print buttons", () => {
     beforeEach(() => {
+        __resetStateManagerForTests();
         vi.clearAllMocks();
         document.body.replaceChildren();
-        delete gpxGlobal.globalData;
     });
 
     afterEach(() => {
+        __resetStateManagerForTests();
         vi.useRealTimers();
         vi.restoreAllMocks();
-        delete gpxGlobal.globalData;
     });
 
     it("createPrintButton returns a button and handles click errors gracefully", async () => {
@@ -155,12 +147,15 @@ describe("export/print buttons", () => {
         const create = vi
             .spyOn(URL, "createObjectURL")
             .mockReturnValue("blob:url");
-        gpxGlobal.globalData = {
-            recordMesgs: [
-                { positionLat: 0, positionLong: 0 },
-                { positionLat: 1073741824, positionLong: -1073741824 },
-            ],
-        };
+        setGlobalData(
+            {
+                recordMesgs: [
+                    { positionLat: 0, positionLong: 0 },
+                    { positionLat: 1073741824, positionLong: -1073741824 },
+                ],
+            },
+            { source: "test" }
+        );
         const btn = createExportGPXButton();
         expect(btn.classList.contains("map-action-btn")).toBe(true);
         expect(getRequiredButtonIcon(btn).getAttribute("viewBox")).toBe(

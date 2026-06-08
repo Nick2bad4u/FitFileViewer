@@ -32,14 +32,6 @@ type BadgeOptions = {
     variant: BadgeVariant;
 };
 
-type SummaryGlobal = typeof globalThis & {
-    window?: (Window & typeof globalThis) | null;
-};
-
-function getSummaryGlobal(): SummaryGlobal {
-    return globalThis;
-}
-
 /**
  * Show the Summary table column selector modal.
  */
@@ -106,8 +98,7 @@ export function showColModal({
     header.append(title, closeBtn);
     modal.append(header);
 
-    const summaryGlobal = getSummaryGlobal();
-    const globalData = getGlobalData<FitSummaryData>(summaryGlobal);
+    const globalData = getGlobalData<FitSummaryData>();
     const prefsKeyForFile = getStorageKey(globalData ?? data, allKeys);
     const prefsKeyGlobal = getGlobalStorageKey();
 

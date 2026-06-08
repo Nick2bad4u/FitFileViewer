@@ -104,6 +104,10 @@ vi.mock(
 );
 
 import { createUserDeviceInfoBox } from "../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBox.js";
+import {
+    setGlobalData as setManagedGlobalData,
+} from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 function getTestWindow(): TestWindow {
     return window as TestWindow;
@@ -117,7 +121,7 @@ function makeContainer(): HTMLDivElement {
 }
 
 function setGlobalData(globalData: unknown): void {
-    getTestWindow().globalData = globalData;
+    setManagedGlobalData(globalData, { source: "test" });
 }
 
 function getInfoBoxElement(container: HTMLElement): HTMLDivElement {
@@ -194,6 +198,7 @@ function getLabeledValue(container: ParentNode, label: string): string {
 
 describe(createUserDeviceInfoBox, () => {
     beforeEach(() => {
+        __resetStateManagerForTests();
         vi.clearAllMocks();
         // reset DOM and globals
         document.body.replaceChildren();

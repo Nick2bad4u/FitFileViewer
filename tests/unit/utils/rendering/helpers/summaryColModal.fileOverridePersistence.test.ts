@@ -1,11 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-type TestWindowGlobal = Window &
-    typeof globalThis & {
-        globalData?: {
-            cachedFilePath: string;
-        };
-    };
+type ResetStateManager = () => void;
+
+let resetStateManager: ResetStateManager | undefined;
 
 function requireElement<T extends Element>(
     element: Element | null,
@@ -33,21 +30,29 @@ function findButton(
 }
 
 describe("summaryColModal - file override persistence", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         document.body.replaceChildren();
         localStorage.clear();
         vi.resetModules();
         vi.restoreAllMocks();
-        // Provide a stable file path for getStorageKey
-        (globalThis.window as TestWindowGlobal).globalData = {
-            cachedFilePath: "C:/tmp/activity.fit",
-        };
+        const stateManager = await import(
+            "../../../../../electron-app/utils/state/core/stateManager.js"
+        );
+        resetStateManager = stateManager.__resetStateManagerForTests;
+        resetStateManager();
+        const { setGlobalData } = await import(
+            "../../../../../electron-app/utils/state/core/globalDataStore.js"
+        );
+        setGlobalData(
+            { cachedFilePath: "C:/tmp/activity.fit" },
+            { source: "test" }
+        );
     });
 
     afterEach(() => {
+        resetStateManager?.();
         document.body.replaceChildren();
         localStorage.clear();
-        (globalThis.window as TestWindowGlobal).globalData = undefined;
     });
 
     it("clears per-file override when reset to default", async () => {
@@ -70,10 +75,7 @@ describe("summaryColModal - file override persistence", () => {
             "HeartRate",
         ];
 
-        const fileKey = getStorageKey(
-            (globalThis.window as TestWindowGlobal).globalData,
-            allKeys
-        );
+        const fileKey = getStorageKey({}, allKeys);
         const globalKey = getGlobalStorageKey();
 
         // Global default differs from file override.

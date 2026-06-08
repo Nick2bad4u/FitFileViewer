@@ -9,6 +9,8 @@
 import type { Mock } from "vitest";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { renderEventMessagesChart } from "../../../electron-app/utils/charts/rendering/renderEventMessagesChart.js";
+import { setGlobalData } from "../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../electron-app/utils/state/core/stateManager.js";
 import { getChartSetting } from "../../../electron-app/utils/state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../../electron-app/utils/theming/core/theme.js";
 
@@ -97,6 +99,12 @@ function getEventMessagesGlobal(): EventMessagesGlobal {
 
 function getEventMessagesWindow(): EventMessagesWindow {
     return window as EventMessagesWindow;
+}
+
+function setEventMessagesGlobalData(
+    data: EventMessagesGlobalData | null
+): void {
+    setGlobalData(data, { source: "test" });
 }
 
 function getLatestChartConfig(): ChartConfig {
@@ -226,6 +234,7 @@ vi.mock(
 );
 
 beforeEach(() => {
+    __resetStateManagerForTests();
     // Reset DOM
     document.body.replaceChildren();
 
@@ -243,24 +252,24 @@ beforeEach(() => {
             return mockChart;
         }),
         _chartjsInstances: [],
-        globalData: {
-            eventMesgs: [
-                {
-                    timestamp: new Date("2023-01-01T10:00:00Z"),
-                    event: "Start Event",
-                    message: "Activity started",
-                },
-                {
-                    timestamp: new Date("2023-01-01T10:05:00Z"),
-                    event: "Lap Event",
-                    eventType: "lap",
-                },
-                {
-                    timestamp: 1672570800, // Unix timestamp in seconds
-                    event: "Timer Event",
-                },
-            ],
-        },
+    });
+    setEventMessagesGlobalData({
+        eventMesgs: [
+            {
+                timestamp: new Date("2023-01-01T10:00:00Z"),
+                event: "Start Event",
+                message: "Activity started",
+            },
+            {
+                timestamp: new Date("2023-01-01T10:05:00Z"),
+                event: "Lap Event",
+                eventType: "lap",
+            },
+            {
+                timestamp: 1672570800, // Unix timestamp in seconds
+                event: "Timer Event",
+            },
+        ],
     });
 
     // Ensure global.window references the same object as window
@@ -276,6 +285,7 @@ beforeEach(() => {
     // color is provided by getChartSetting mock above.
 });
 afterEach(() => {
+    __resetStateManagerForTests();
     vi.clearAllMocks();
     mockConsoleError.mockRestore();
     delete window.Chart;
@@ -288,7 +298,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should return early when eventMesgs is not available", () => {
             expect.assertions(2);
 
-            getEventMessagesWindow().globalData = null;
+            setEventMessagesGlobalData(null);
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -303,7 +313,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should return early when eventMesgs is not an array", () => {
             expect.assertions(2);
 
-            getEventMessagesWindow().globalData = { eventMesgs: "invalid" };
+            setEventMessagesGlobalData({ eventMesgs: "invalid" });
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -318,7 +328,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should return early when eventMesgs array is empty", () => {
             expect.assertions(2);
 
-            window.globalData = { eventMesgs: [] };
+            setEventMessagesGlobalData({ eventMesgs: [] });
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -347,7 +357,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle missing globalData gracefully", () => {
             expect.assertions(2);
 
-            delete window.globalData;
+            setEventMessagesGlobalData(null);
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -362,7 +372,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should extract event names from different fields", () => {
             expect.assertions(4);
 
-            window.globalData = {
+            setEventMessagesGlobalData({
                 eventMesgs: [
                     {
                         timestamp: new Date("2023-01-01T10:00:00Z"),
@@ -378,7 +388,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                     },
                     { timestamp: new Date("2023-01-01T10:03:00Z") }, // Default
                 ],
-            };
+            });
             const container = document.createElement("div");
             const startTime = new Date("2023-01-01T10:00:00Z");
 
@@ -417,12 +427,12 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle number timestamps in seconds", () => {
             expect.assertions(1);
 
-            window.globalData = {
+            setEventMessagesGlobalData({
                 eventMesgs: [
                     { timestamp: 1672570800, event: "Event 1" }, // Unix timestamp in seconds
                     { timestamp: 1672571100, event: "Event 2" }, // 5 minutes later
                 ],
-            };
+            });
             const container = document.createElement("div");
             const startTime = 1672570800; // Start time in seconds
 
@@ -442,12 +452,12 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle number timestamps in milliseconds", () => {
             expect.assertions(1);
 
-            window.globalData = {
+            setEventMessagesGlobalData({
                 eventMesgs: [
                     { timestamp: 1672570800000, event: "Event 1" }, // Unix timestamp in milliseconds
                     { timestamp: 1672571100000, event: "Event 2" }, // 5 minutes later
                 ],
-            };
+            });
             const container = document.createElement("div");
             const startTime = 1672570800000; // Start time in milliseconds
 
@@ -467,7 +477,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle mixed timestamp formats", () => {
             expect.assertions(1);
 
-            window.globalData = {
+            setEventMessagesGlobalData({
                 eventMesgs: [
                     {
                         timestamp: new Date("2023-01-01T10:00:00Z"),
@@ -476,7 +486,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                     { timestamp: 1672570800, event: "Event 2" },
                     { timestamp: 1672570800000, event: "Event 3" },
                 ],
-            };
+            });
             const container = document.createElement("div");
             const startTime = new Date("2023-01-01T10:00:00Z");
 
@@ -497,13 +507,13 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should fallback to x:0 for invalid timestamp formats", () => {
             expect.assertions(1);
 
-            window.globalData = {
+            setEventMessagesGlobalData({
                 eventMesgs: [
                     { timestamp: "invalid", event: "Event 1" },
                     { timestamp: null, event: "Event 2" },
                     { event: "Event 3" }, // No timestamp
                 ],
-            };
+            });
             const container = document.createElement("div");
             const startTime = new Date("2023-01-01T10:00:00Z");
 
@@ -983,7 +993,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle empty event messages array", () => {
             expect.assertions(2);
 
-            window.globalData = { eventMesgs: [] };
+            setEventMessagesGlobalData({ eventMesgs: [] });
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -1025,7 +1035,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle events with all timestamp variations", () => {
             expect.assertions(1);
 
-            window.globalData = {
+            setEventMessagesGlobalData({
                 eventMesgs: [
                     {
                         time: new Date("2023-01-01T10:00:00Z"),
@@ -1034,7 +1044,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                     { timestamp: 1672570800, event: "Event 2" },
                     { event: "Event 3" }, // No timestamp
                 ],
-            };
+            });
             const container = document.createElement("div");
             const startTime = new Date("2023-01-01T10:00:00Z");
 
@@ -1086,7 +1096,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle very large timestamp values", () => {
             expect.assertions(1);
 
-            window.globalData = {
+            setEventMessagesGlobalData({
                 eventMesgs: [
                     {
                         timestamp: Number.MAX_SAFE_INTEGER,
@@ -1097,7 +1107,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                         event: "Negative Event",
                     },
                 ],
-            };
+            });
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());

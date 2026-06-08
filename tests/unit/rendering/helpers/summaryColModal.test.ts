@@ -2,22 +2,14 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { showColModal } from "../../../../electron-app/utils/rendering/helpers/summaryColModal.js";
-
-type SummaryWindow = Window &
-    typeof globalThis & {
-        globalData?: {
-            cachedFilePath?: string;
-        };
-    };
-
-function getSummaryWindow(): SummaryWindow {
-    return window as SummaryWindow;
-}
+import { setGlobalData } from "../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
 
 function resetSummaryModalFixture(): void {
+    __resetStateManagerForTests();
     document.body.replaceChildren();
     localStorage.clear();
-    delete getSummaryWindow().globalData;
+    Reflect.deleteProperty(globalThis, "globalData");
 }
 
 function getRequiredElement<TElement extends Element>(
@@ -63,9 +55,10 @@ describe("summaryColModal", () => {
         resetSummaryModalFixture();
 
         try {
-            getSummaryWindow().globalData = {
-                cachedFilePath: "C:\\Activities\\ride.fit",
-            };
+            setGlobalData(
+                { cachedFilePath: "C:\\Activities\\ride.fit" },
+                { source: "test" }
+            );
             const fileStorageKey = `summaryColSel_${encodeURIComponent(
                 "C:\\Activities\\ride.fit"
             )}`;

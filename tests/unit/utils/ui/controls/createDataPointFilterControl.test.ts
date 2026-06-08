@@ -78,6 +78,8 @@ vi.mock(
 );
 
 import { createDataPointFilterControl } from "../../../../../electron-app/utils/ui/controls/createDataPointFilterControl.js";
+import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 import { showNotification } from "../../../../../electron-app/utils/ui/notifications/showNotification.js";
 import {
     computeRangeState,
@@ -111,6 +113,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+    __resetStateManagerForTests();
     vi.clearAllMocks();
     resolveInitialConfig.mockImplementation(
         actualStateHelpers.resolveInitialConfig
@@ -126,7 +129,7 @@ beforeEach(() => {
     document.body.replaceChildren();
     globalThis.mapDataPointFilter = undefined;
     globalThis.mapDataPointFilterLastResult = undefined;
-    globalThis.globalData = {
+    setGlobalData({
         recordMesgs: [
             {
                 speed: 6.5,
@@ -143,7 +146,7 @@ beforeEach(() => {
                 altitude: 128,
             },
         ],
-    };
+    }, { source: "test" });
     originalQueueMicrotask = globalThis.queueMicrotask;
 
     originalRAF = globalThis.requestAnimationFrame;
@@ -162,6 +165,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    __resetStateManagerForTests();
     globalThis.requestAnimationFrame = originalRAF;
     globalThis.cancelAnimationFrame = originalCancelRAF;
     globalThis.queueMicrotask = originalQueueMicrotask;

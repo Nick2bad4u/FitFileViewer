@@ -8,6 +8,8 @@ import {
     type Mock,
 } from "vitest";
 import { renderLapZoneCharts } from "../../../electron-app/utils/charts/rendering/renderLapZoneCharts.js";
+import { setGlobalData } from "../../../electron-app/utils/state/core/globalDataStore.js";
+import { __resetStateManagerForTests } from "../../../electron-app/utils/state/core/stateManager.js";
 
 // Mock dependencies
 vi.mock(import("../../../electron-app/utils/theming/core/theme.js"), () => ({
@@ -57,6 +59,9 @@ type ChartRenderFunction = (
     options: { title: string }
 ) => unknown;
 type ChartRenderMock = Mock<ChartRenderFunction>;
+type LapZoneGlobalData = {
+    timeInZoneMesgs?: unknown[] | null;
+};
 
 const getThemeConfigMock = getThemeConfig as unknown as ThemeConfigMock;
 const getZoneColorMock = getZoneColor as unknown as GetZoneColorMock;
@@ -68,19 +73,20 @@ const renderSinglePowerZoneBarMock =
 
 describe(renderLapZoneCharts, () => {
     let container: HTMLElement;
+    let lapZoneGlobalData: LapZoneGlobalData;
     let mockConsoleLog: ReturnType<typeof vi.spyOn>;
     let mockConsoleError: ReturnType<typeof vi.spyOn>;
     let mockShowNotification: Mock<(message: string, type: string) => void>;
 
     beforeEach(() => {
+        __resetStateManagerForTests();
         // Setup DOM
         container = document.createElement("div");
         document.body.appendChild(container);
 
         // Setup global data
-        window.globalData = {
-            timeInZoneMesgs: [],
-        };
+        lapZoneGlobalData = { timeInZoneMesgs: [] };
+        setGlobalData(lapZoneGlobalData, { source: "test" });
 
         // Setup zone data globals
         window.heartRateZones = [];
@@ -102,9 +108,15 @@ describe(renderLapZoneCharts, () => {
     });
 
     afterEach(() => {
+        __resetStateManagerForTests();
         document.body.removeChild(container);
         vi.restoreAllMocks();
     });
+
+    const setLapZoneGlobalData = (data: LapZoneGlobalData | null): void => {
+        lapZoneGlobalData = data ?? {};
+        setGlobalData(data, { source: "test" });
+    };
 
     const getCanvasIds = (): string[] =>
         [...container.querySelectorAll("canvas")].map((canvas) => canvas.id);
@@ -208,10 +220,10 @@ describe(renderLapZoneCharts, () => {
     });
 
     describe("global data validation", () => {
-        it("should return early when window.globalData is missing", () => {
+        it("should return early when managed globalData is missing", () => {
             expect.assertions(2);
 
-            delete window.globalData;
+            setLapZoneGlobalData(null);
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No timeInZoneMesgs available for lap zone charts"
@@ -228,7 +240,7 @@ describe(renderLapZoneCharts, () => {
         it("should return early when timeInZoneMesgs is missing", () => {
             expect.assertions(2);
 
-            window.globalData = {};
+            setLapZoneGlobalData({});
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No timeInZoneMesgs available for lap zone charts"
@@ -245,7 +257,7 @@ describe(renderLapZoneCharts, () => {
         it("should return early when timeInZoneMesgs is null", () => {
             expect.assertions(2);
 
-            window.globalData = { timeInZoneMesgs: null };
+            setLapZoneGlobalData({ timeInZoneMesgs: null });
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No timeInZoneMesgs available for lap zone charts"
@@ -262,7 +274,7 @@ describe(renderLapZoneCharts, () => {
         it("should return early when timeInZoneMesgs is empty array", () => {
             expect.assertions(3);
 
-            window.globalData = { timeInZoneMesgs: [] };
+            setLapZoneGlobalData({ timeInZoneMesgs: [] });
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] Found timeInZoneMesgs:",
@@ -289,7 +301,7 @@ describe(renderLapZoneCharts, () => {
                 { referenceMesg: "lap", timeInHrZone: "[0,15,25]" },
                 { referenceMesg: "lap", timeInPowerZone: "[0,5,15]" },
             ];
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 { referenceMesg: "session", timeInHrZone: "[0,10,20]" },
                 ...expectedLapZoneData,
                 { referenceMesg: "activity", timeInHrZone: "[0,8,12]" },
@@ -318,7 +330,7 @@ describe(renderLapZoneCharts, () => {
         it("should return early when no lap-specific zone data found", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 { referenceMesg: "session", timeInHrZone: "[0,10,20]" },
                 { referenceMesg: "activity", timeInHrZone: "[0,8,12]" },
             ];
@@ -343,7 +355,7 @@ describe(renderLapZoneCharts, () => {
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20,30]",
@@ -373,7 +385,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle array inputs directly", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: [
@@ -397,7 +409,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle null values", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: null, referenceIndex: 1 },
             ];
 
@@ -415,7 +427,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle invalid JSON strings", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "invalid json",
@@ -437,7 +449,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle non-string non-array values", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: 123, referenceIndex: 1 },
             ];
 
@@ -463,7 +475,7 @@ describe(renderLapZoneCharts, () => {
         it("should process HR zone data correctly", () => {
             expect.assertions(3);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20,30]",
@@ -490,7 +502,7 @@ describe(renderLapZoneCharts, () => {
         it("should process Power zone data correctly", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInPowerZone: "[0,5,15,25]",
@@ -516,7 +528,7 @@ describe(renderLapZoneCharts, () => {
         it("should skip zone 0 (rest zone) in processing", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[50,10,20,30]",
@@ -543,7 +555,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle multiple laps", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,0,30]",
@@ -576,7 +588,7 @@ describe(renderLapZoneCharts, () => {
         it("should filter out zones with zero values across all laps", () => {
             expect.assertions(3);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,0,0]",
@@ -605,7 +617,7 @@ describe(renderLapZoneCharts, () => {
         it("should include zones with data from any lap", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,0,30]",
@@ -636,7 +648,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle empty zone data after filtering", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,0,0,0]",
@@ -669,7 +681,7 @@ describe(renderLapZoneCharts, () => {
                 },
             });
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -710,7 +722,7 @@ describe(renderLapZoneCharts, () => {
         it("should create canvas for Power stacked chart", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInPowerZone: "[0,5,15]",
@@ -740,7 +752,7 @@ describe(renderLapZoneCharts, () => {
         it("should create canvas for Power individual chart", () => {
             expect.assertions(2);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInPowerZone: "[0,5,15]",
@@ -772,7 +784,7 @@ describe(renderLapZoneCharts, () => {
                 id: "mock-power-bar",
             });
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -897,7 +909,7 @@ describe(renderLapZoneCharts, () => {
                 id: "mock-hr-bar",
             });
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -957,7 +969,7 @@ describe(renderLapZoneCharts, () => {
                 throw themeConfigError;
             });
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -986,7 +998,7 @@ describe(renderLapZoneCharts, () => {
                 throw new Error("Test error");
             });
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1017,7 +1029,7 @@ describe(renderLapZoneCharts, () => {
                 throw testError;
             });
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1047,7 +1059,7 @@ describe(renderLapZoneCharts, () => {
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1112,7 +1124,7 @@ describe(renderLapZoneCharts, () => {
         it("should skip charts when no data available", () => {
             expect.assertions(1);
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,0,0]",
@@ -1128,7 +1140,7 @@ describe(renderLapZoneCharts, () => {
 
     describe("theme integration", () => {
         beforeEach(() => {
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1223,7 +1235,7 @@ describe(renderLapZoneCharts, () => {
                 { label: "Zone 2", value: 200, color: "blue" },
             ];
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1247,7 +1259,7 @@ describe(renderLapZoneCharts, () => {
                 { label: "Zone 2", time: 200, color: "blue" },
             ];
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1285,7 +1297,7 @@ describe(renderLapZoneCharts, () => {
                 (type: string, index: number) => `${type}-zone-${index}`
             );
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,0]",
@@ -1333,7 +1345,7 @@ describe(renderLapZoneCharts, () => {
                 { label: "Zone 2", value: 150, color: "yellow" },
             ];
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInPowerZone: "[0,5,15]",
@@ -1357,7 +1369,7 @@ describe(renderLapZoneCharts, () => {
                 (type: string, index: number) => `${type}-zone-${index}`
             );
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInPowerZone: "[0,5,0]",
@@ -1422,7 +1434,7 @@ describe(renderLapZoneCharts, () => {
                 { label: "Power Zone 2", value: 180, color: "#ffff00" },
             ];
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,30,45]",
@@ -1467,7 +1479,7 @@ describe(renderLapZoneCharts, () => {
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
-            window.globalData.timeInZoneMesgs = [
+            lapZoneGlobalData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10]",
