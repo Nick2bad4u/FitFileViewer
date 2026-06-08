@@ -9,11 +9,6 @@ type DevelopmentCoreModuleResolver = () => Promise<Record<string, unknown>>;
 
 interface RendererDevelopmentDebugGlobalsOptions {
     appState: unknown;
-    callRecordMethod: (
-        target: unknown,
-        methodName: string,
-        args?: unknown[]
-    ) => unknown;
     cleanup: () => void;
     ensureCoreModules: DevelopmentCoreModuleResolver;
     initializeApplication: () => Promise<void>;
@@ -145,10 +140,7 @@ async function getRendererStateRecord(
 ): Promise<unknown> {
     try {
         const coreModules = await options.ensureCoreModules();
-        return options.callRecordMethod(
-            coreModules["masterStateManager"],
-            methodName
-        );
+        return callRecordMethod(coreModules["masterStateManager"], methodName);
     } catch {
         /* Ignore state access errors */
     }
@@ -217,23 +209,17 @@ async function logRendererDebugState(
         options.logRenderer(
             "log",
             "Current State:",
-            options.callRecordMethod(
-                coreModules["masterStateManager"],
-                "getState"
-            )
+            callRecordMethod(coreModules["masterStateManager"], "getState")
         );
         options.logRenderer(
             "log",
             "State History:",
-            options.callRecordMethod(
-                coreModules["masterStateManager"],
-                "getHistory"
-            )
+            callRecordMethod(coreModules["masterStateManager"], "getHistory")
         );
         options.logRenderer(
             "log",
             "Active Subscriptions:",
-            options.callRecordMethod(
+            callRecordMethod(
                 coreModules["masterStateManager"],
                 "getSubscriptions"
             )
@@ -241,6 +227,20 @@ async function logRendererDebugState(
     } catch {
         /* Ignore errors */
     }
+}
+
+function callRecordMethod(
+    target: unknown,
+    methodName: string,
+    args: unknown[] = []
+): unknown {
+    const method = toModuleRecord(target)[methodName];
+    if (typeof method !== "function") {
+        return undefined;
+    }
+
+    const methodFn = method as (this: unknown, ...args: unknown[]) => unknown;
+    return methodFn.apply(target, args);
 }
 
 function getDebugErrorMessage(errorLike: unknown): string {

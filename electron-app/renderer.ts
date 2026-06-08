@@ -89,28 +89,6 @@ function logRenderer(level: LogRendererLevel, ...args: unknown[]): void {
     }
 }
 
-/**
- * @param {unknown} target
- * @param {string} methodName
- * @param {unknown[]} [args]
- *
- * @returns {unknown}
- */
-function callRecordMethod(
-    target: unknown,
-    methodName: string,
-    args: unknown[] = []
-): unknown {
-    const method = toModuleRecord(target)[methodName];
-    if (typeof method !== "function") {
-        return undefined;
-    }
-
-    const methodFn =
-        /** @type {(this: unknown, ...args: unknown[]) => unknown} */ method;
-    return methodFn.apply(target, args);
-}
-
 // ==========================================
 // Environment Detection
 // ==========================================
@@ -272,7 +250,6 @@ registerRendererApplicationLifecycle({
 
 installRendererDevelopmentDebugGlobals({
     appState: getAppState(),
-    callRecordMethod,
     cleanup,
     ensureCoreModules,
     initializeApplication,

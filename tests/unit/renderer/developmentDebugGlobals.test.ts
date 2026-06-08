@@ -47,7 +47,6 @@ describe("renderer development debug globals", () => {
         expect(
             installRendererDevelopmentDebugGlobals({
                 appState: null,
-                callRecordMethod: vi.fn(),
                 cleanup: vi.fn(),
                 ensureCoreModules: async () => ({}),
                 initializeApplication: async () => {},
@@ -62,7 +61,7 @@ describe("renderer development debug globals", () => {
     });
 
     it("installs renderer dev/debug globals and resolves core debug functions", async () => {
-        expect.assertions(9);
+        expect.assertions(12);
 
         const handleOpenFile = vi.fn<(...args: unknown[]) => string>(
             () => "opened"
@@ -72,15 +71,11 @@ describe("renderer development debug globals", () => {
             getState: vi.fn(() => ({ app: { initialized: true } })),
             getSubscriptions: vi.fn(() => ["subscription"]),
         };
-        const callRecordMethod = vi.fn((target: unknown, methodName: string) =>
-            (target as Record<string, () => unknown>)[methodName]?.()
-        );
         const performanceMonitor = createPerformanceMonitor();
         const logRenderer = vi.fn();
 
         installRendererDevelopmentDebugGlobals({
             appState: null,
-            callRecordMethod,
             cleanup: vi.fn(),
             ensureCoreModules: async () => ({
                 AppActions: { setInitialized: vi.fn() },
@@ -128,6 +123,9 @@ describe("renderer development debug globals", () => {
             masterStateManager
         );
         expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith("fit-file");
+        expect(masterStateManager.getState).toHaveBeenCalled();
+        expect(masterStateManager.getHistory).toHaveBeenCalled();
+        expect(masterStateManager.getSubscriptions).toHaveBeenCalled();
         expect(Reflect.get(globalThis, "__sensorDebug")).toMatchObject({
             checkDataAvailability: expect.any(Function),
         });
