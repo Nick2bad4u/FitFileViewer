@@ -269,6 +269,7 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
     return {
         byteLength: fileStats.size,
         fixturePath: path.relative(repositoryRoot, fixturePath),
+        fixtureSizeClass: classifyFixtureSize(fileStats.size),
         name: path.basename(fixturePath),
         ...loadMetrics,
         ...mapMetrics,
@@ -276,6 +277,22 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
         ...dataTableMetrics,
         ...unloadMetrics,
     };
+}
+
+export function classifyFixtureSize(byteLength) {
+    if (!Number.isSafeInteger(byteLength) || byteLength < 0) {
+        throw new Error("Fixture byte length must be a non-negative integer");
+    }
+
+    if (byteLength < 250_000) {
+        return "small";
+    }
+
+    if (byteLength < 600_000) {
+        return "medium";
+    }
+
+    return "large";
 }
 
 async function measureDataTableRender(page, { timeoutMs }) {

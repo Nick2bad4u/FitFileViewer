@@ -8,9 +8,10 @@ npm run perf:baseline
 
 The command builds the runtime app, launches Electron through Playwright, loads representative files from `fit-test-files/`, and writes `artifacts/performance-baseline.json`. The `artifacts/` directory is ignored because baseline numbers are machine-dependent.
 
-The JSON records:
+The default fixtures cover small, medium, and large real FIT files from
+`fit-test-files/`. The JSON records:
 
-- FIT file byte size and name
+- FIT file byte size, size class, and name
 - parse time
 - initial renderer handoff time
 - map route render time
