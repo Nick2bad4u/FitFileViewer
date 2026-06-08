@@ -15,7 +15,6 @@ const SCANNED_SOURCE_PATHS = [
     "electron-app/renderer",
     "electron-app/renderer.ts",
     "electron-app/ui",
-    "electron-app/utils.ts",
     "electron-app/utils",
 ];
 
@@ -88,7 +87,6 @@ describe("renderer process environment policy", () => {
             "electron-app/renderer/vendorGlobalsShared.ts",
             "electron-app/renderer/vendorGlobals.ts",
             "electron-app/ui/modals/accentColorPicker.ts",
-            "electron-app/utils.ts",
             "electron-app/utils/charts/core/renderChartRuntimeHelpers.ts",
         ];
         const directProcessEnvAccesses = scannedSourceFiles

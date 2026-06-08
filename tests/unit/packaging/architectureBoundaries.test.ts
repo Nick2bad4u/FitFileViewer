@@ -13,7 +13,6 @@ const sourceRoots = [
     "electron-app/shared",
     "electron-app/ui",
     "electron-app/utils",
-    "electron-app/utils.ts",
 ] as const;
 
 const rendererAdjacentRoots = [
@@ -44,14 +43,6 @@ const allowedLegacyGlobalDataBridgeFiles = new Set([
     "electron-app/utils/state/domain/appState.ts",
     "electron-app/utils/state/integration/stateIntegration.ts",
 ]);
-
-const allowedLegacyUtilityFiles = new Set([
-    "electron-app/utils/legacy/globalUtilityRegistry.ts",
-    "electron-app/utils/legacy/globalUtilityRendering.ts",
-    "electron-app/utils/legacy/globalUtilityTheming.ts",
-    "electron-app/utils/legacy/globalUtilityUi.ts",
-]);
-const allowedLegacyUtilityImporterFiles = new Set(["electron-app/utils.ts"]);
 
 const migratedGlobalDataReaderFiles = [
     "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
@@ -497,8 +488,7 @@ describe("architecture boundaries", () => {
             .flatMap(collectSourceFiles)
             .filter(
                 (relativeFile) =>
-                    !relativeFile.startsWith("electron-app/utils/legacy/") &&
-                    !allowedLegacyUtilityImporterFiles.has(relativeFile)
+                    !relativeFile.startsWith("electron-app/utils/legacy/")
             )
             .flatMap((relativeFile) =>
                 getImportSpecifiers(readRepositoryFile(relativeFile))
@@ -550,8 +540,6 @@ describe("architecture boundaries", () => {
             .sort();
         const unexpectedLegacyUtilityFiles = collectSourceFiles(
             "electron-app/utils/legacy"
-        ).filter(
-            (relativeFile) => !allowedLegacyUtilityFiles.has(relativeFile)
         );
         const migratedGlobalDataReaderViolations =
             migratedGlobalDataReaderFiles.filter((relativeFile) =>
@@ -572,7 +560,12 @@ describe("architecture boundaries", () => {
                 )
             );
         const deletedCompatibilityFiles = [
+            "electron-app/utils.ts",
             "electron-app/utils/app/initialization/rendererUtils.ts",
+            "electron-app/utils/legacy/globalUtilityRegistry.ts",
+            "electron-app/utils/legacy/globalUtilityRendering.ts",
+            "electron-app/utils/legacy/globalUtilityTheming.ts",
+            "electron-app/utils/legacy/globalUtilityUi.ts",
         ].filter(hasRepositoryFile);
 
         expect(directGlobalDataWrites).toStrictEqual([]);

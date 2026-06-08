@@ -80,7 +80,6 @@
         "electron-app/renderer/**/*.ts",
         "electron-app/ui/**/*.ts",
         "electron-app/windowStateUtils.ts",
-        "electron-app/utils.ts",
         "electron-app/utils/**/*.ts",
         "vite/client"
     ],

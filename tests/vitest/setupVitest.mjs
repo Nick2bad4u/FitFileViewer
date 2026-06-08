@@ -28,7 +28,6 @@ const generatedRuntimeRootFiles = new Set([
     "main.js",
     "preload.js",
     "renderer.js",
-    "utils.js",
     "windowStateUtils.js",
 ]);
 

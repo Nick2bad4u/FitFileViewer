@@ -79,12 +79,6 @@
             defer
             src="renderer/vendor-globals-core.js"
         ></script>
-        <!-- utils.js depends on shared globals from the core renderer vendor bundle. -->
-        <script
-            type="module"
-            defer
-            src="utils.js"
-        ></script>
         <script
             type="module"
             defer
@@ -659,9 +653,7 @@
                 <span>Drop FIT file to open</span>
             </div>
         </div>
-        <!-- Ensure utils.js and main-ui.js are loaded before renderer.js.
-            If they are not loaded first, renderer.js will fail to execute properly
-            because it relies on functions and variables defined in those scripts. -->
+        <!-- Ensure main-ui.js is loaded before renderer.js so legacy UI globals are registered. -->
         <script
             type="module"
             defer

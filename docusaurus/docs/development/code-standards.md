@@ -35,7 +35,7 @@ class StateManager {}
 
 // Files: camelCase or kebab-case
 formatDistance.js;
-map - utils.js;
+mapUtils.js;
 ```
 
 ### Function Style
@@ -93,7 +93,7 @@ export function formatDistance(meters) {}
 export function convertToMiles(meters) {}
 
 // ❌ Bad: Multiple responsibilities
-// utils.js
+// mixedHelpers.js
 export function formatDistance() {}
 export function renderMap() {} // Unrelated
 ```

@@ -69,8 +69,7 @@ electron-app/
 ```text
 electron-app/
 ├── fitParser.ts                      # FIT file parsing source (Garmin SDK integration)
-├── windowStateUtils.ts               # Window state persistence source
-└── utils.ts                          # Legacy utility source (being phased out)
+└── windowStateUtils.ts               # Window state persistence source
 ```
 
 ## Utility Module Organization
@@ -90,7 +89,6 @@ electron-app/utils/
 ├── errors/       # Error normalization and reporting helpers
 ├── files/        # FIT import, export, recent-file, and file browser workflows
 ├── formatting/   # Unit conversion and display formatters
-├── legacy/       # Temporary compatibility globals while old renderer code is retired
 ├── logging/      # Renderer/main logging utilities
 ├── maps/         # Leaflet controls, filters, layers, markers, and map rendering
 ├── net/          # Network and remote-resource helpers

@@ -111,8 +111,8 @@ Custom event dispatch → updateMapTheme() → CSS filter applied/removed
 ### Integration Points
 
 - **Map Rendering**: Added to `renderMap.js` controls
-- **Global Utilities**: Exported through `utils.js`
-- **Theme System**: Integrates with existing theme change events
+- **Theme System**: Imported through typed theme modules
+- **Theme Events**: Integrates with existing theme change events
 
 ### CSS Filter Applied
 

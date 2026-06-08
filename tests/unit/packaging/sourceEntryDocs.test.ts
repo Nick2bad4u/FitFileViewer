@@ -250,7 +250,6 @@ describe("source entrypoint documentation", () => {
             "errors",
             "files",
             "formatting",
-            "legacy",
             "logging",
             "maps",
             "net",
