@@ -23,7 +23,9 @@ const { version: electronVersion } = require("electron/package.json");
 const appPackage = /** @type {AppPackage} */ (require("./package.json"));
 
 const rootPackageFiles = ["dist/**", "package.json"];
-const shouldCodeSign = isEnvironmentFlagEnabled(process.env.REQUIRE_CODE_SIGNING);
+const shouldCodeSign = isEnvironmentFlagEnabled(
+    process.env.REQUIRE_CODE_SIGNING
+);
 
 /**
  * @param {string} exportName
