@@ -61,10 +61,8 @@ import {
     createRendererErrorEventHandlers,
     getRendererErrorMessage,
 } from "./renderer/errorHandling.js";
-import {
-    createRendererLifecycleCleanup,
-    type RendererLifecycleAppState,
-} from "./renderer/lifecycleCleanup.js";
+import { createRendererLifecycleCleanup } from "./renderer/lifecycleCleanup.js";
+import { createRendererStateStartup } from "./renderer/stateManagerStartup.js";
 import { createRendererImportTimeBootstrap } from "./renderer/importTimeBootstrap.js";
 import {
     installRendererGlobalApiExposure,
@@ -87,7 +85,7 @@ import { setLoading } from "./utils/ui/loading/syncRendererLoading.js";
 // Avoid static imports for modules that tests mock; resolve dynamically via ensureCoreModules()
 import { createExportGPXButton } from "./utils/files/export/createExportGPXButton.js";
 // Avoid static import of AppActions because tests sometimes mock the module
-// Without exporting the named symbol. Always resolve via ensureCoreModules().
+// without exporting the named symbol. Always resolve via ensureCoreModules().
 import { getState, subscribe } from "./utils/state/core/stateManager.js";
 import { querySelectorByIdFlexible } from "./utils/ui/dom/elementIdUtils.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
@@ -106,30 +104,7 @@ interface RendererDependencies {
     showUpdateNotification: ShowUpdateNotification | undefined;
 }
 
-// Import domain-level appState for tests that mock this path explicitly
-// Note: app domain state functions are dynamically imported via ensureCoreModules()
-// Avoid static import of uiStateManager for the same reason as AppActions in tests
-
 const rendererConsole = globalThis.console;
-
-/**
- * @param {Record<string, unknown>} appActions
- * @param {"setFileOpening" | "setInitialized"} actionName
- * @param {boolean} value
- *
- * @returns {void}
- */
-function callBooleanAppAction(
-    appActions: Record<string, unknown>,
-    actionName: "setFileOpening" | "setInitialized",
-    value: boolean
-): void {
-    const action = appActions[actionName];
-    if (typeof action === "function") {
-        const actionFn = /** @type {(value: boolean) => unknown} */ action;
-        actionFn(value);
-    }
-}
 
 /**
  * @param {"error" | "group" | "groupEnd" | "log" | "warn"} level
@@ -143,19 +118,6 @@ function logRenderer(level: LogRendererLevel, ...args: unknown[]): void {
         log.apply(rendererConsole, args);
     }
 }
-
-/**
- * Tracks state manager initialization to prevent duplicate subscriptions
- *
- * @type {{ promise: Promise<void> | null; initialized: boolean }}
- */
-const stateInitTracker: {
-    initialized: boolean;
-    promise: null | Promise<void>;
-} = {
-    initialized: false,
-    promise: null,
-};
 
 /**
  * @param {unknown} target
@@ -177,33 +139,6 @@ function callRecordMethod(
     const methodFn =
         /** @type {(this: unknown, ...args: unknown[]) => unknown} */ method;
     return methodFn.apply(target, args);
-}
-
-/**
- * @param {unknown} masterStateManager
- * @param {string} key
- *
- * @returns {boolean}
- */
-function getMasterAppFlag(masterStateManager: unknown, key: string): boolean {
-    const getStateMember = toModuleRecord(masterStateManager)["getState"];
-    if (typeof getStateMember !== "function") {
-        return false;
-    }
-
-    const getStateFn = /** @type {() => unknown} */ getStateMember;
-    const state = toModuleRecord(getStateFn());
-    const app = toModuleRecord(state["app"]);
-
-    return app[key] === true;
-}
-
-/**
- * @returns {number | undefined}
- */
-function getStateStartTime(): number | undefined {
-    const startTime = getState("app.startTime");
-    return typeof startTime === "number" ? startTime : undefined;
 }
 
 function resolveManualHandleOpenFile(): unknown {
@@ -242,19 +177,19 @@ const onDelegatedFileInputChange = createDelegatedFileInputChangeHandler(
 // Application State Management
 // ==========================================
 
-/**
- * Legacy state reference for backward compatibility
- *
- * @type {RendererLifecycleAppState | null}
- */
-let appState: RendererLifecycleAppState | null = null;
-
-/**
- * Reference object for tracking file opening state (legacy compatibility)
- *
- * @type {{ value: boolean }}
- */
-const isOpeningFileRef = { value: false };
+const rendererStateStartup = createRendererStateStartup({
+    ensureCoreModules,
+    getState,
+    logRenderer,
+    subscribe,
+    toModuleRecord,
+});
+const {
+    getAppState,
+    initializeStateManager,
+    isOpeningFileRef,
+    resetStateInitializationForTests,
+} = rendererStateStartup;
 
 const importTimeBootstrap = createRendererImportTimeBootstrap({
     callUnknownFunction,
@@ -592,96 +527,6 @@ async function initializeComponents(
 }
 
 /**
- * Initialize the centralized state management system
- *
- * @returns {Promise<void>}
- */
-async function initializeStateManager(): Promise<void> {
-    if (stateInitTracker.initialized) {
-        return stateInitTracker.promise ?? Promise.resolve();
-    }
-
-    if (stateInitTracker.promise) {
-        return stateInitTracker.promise;
-    }
-
-    stateInitTracker.promise = (async () => {
-        try {
-            logRenderer(
-                "log",
-                "[Renderer] Initializing state management system..."
-            );
-            // Resolve via ensureCoreModules so Vitest manual mocks are honored
-            const { AppActions, masterStateManager } =
-                await ensureCoreModules();
-            const appActions = toModuleRecord(AppActions);
-            const masterStateManagerRecord = toModuleRecord(masterStateManager);
-            const initialize = masterStateManagerRecord["initialize"];
-            if (typeof initialize !== "function") {
-                throw new TypeError("masterStateManager.initialize missing");
-            }
-
-            // Initialize the master state manager (ensure spy in tests is triggered)
-            const initializeFn =
-                /** @type {(this: unknown) => Promise<unknown> | unknown} */ initialize;
-            await initializeFn.call(masterStateManager);
-
-            // Create legacy compatibility object
-            appState = {
-                get isInitialized() {
-                    return getMasterAppFlag(masterStateManager, "initialized");
-                },
-                set isInitialized(value) {
-                    callBooleanAppAction(appActions, "setInitialized", value);
-                },
-                get isOpeningFile() {
-                    return getMasterAppFlag(
-                        masterStateManager,
-                        "isOpeningFile"
-                    );
-                },
-                set isOpeningFile(value) {
-                    callBooleanAppAction(appActions, "setFileOpening", value);
-                    isOpeningFileRef.value = value;
-                },
-                get startTime() {
-                    return getStateStartTime();
-                },
-            };
-
-            // Subscribe to state changes to update legacy reference
-            subscribe("app.isOpeningFile", (isOpening) => {
-                isOpeningFileRef.value = isOpening === true;
-            });
-
-            stateInitTracker.initialized = true;
-
-            logRenderer(
-                "log",
-                "[Renderer] State management system initialized"
-            );
-        } catch (error) {
-            logRenderer(
-                "error",
-                "[Renderer] Failed to initialize state manager:",
-                error
-            );
-            // Fallback to legacy state object
-            appState = {
-                isInitialized: false,
-                isOpeningFile: false,
-                startTime: performance.now(),
-            };
-            stateInitTracker.initialized = false;
-            stateInitTracker.promise = null;
-            throw error;
-        }
-    })();
-
-    return stateInitTracker.promise;
-}
-
-/**
  * Validates that required DOM elements exist
  *
  * @returns {boolean} True if all required elements are present
@@ -703,21 +548,10 @@ function validateDOMElements(): boolean {
 // Global API Exposure
 // ==========================================
 
-/**
- * Test helper to reset renderer state initialization guard
- *
- * @private
- */
-function resetRendererStateInitializationForTests(): void {
-    stateInitTracker.initialized = false;
-    stateInitTracker.promise = null;
-    isOpeningFileRef.value = false;
-}
-
 installRendererGlobalApiExposure({
     appInfo: APP_INFO,
     createExportGPXButton,
-    resetStateInitializationForTests: resetRendererStateInitializationForTests,
+    resetStateInitializationForTests,
 });
 
 // Log application startup information
@@ -733,7 +567,7 @@ logRendererStartupInfo({
 
 const cleanup = createRendererLifecycleCleanup({
     errorHandlers: rendererErrorHandlers,
-    getAppState: () => appState,
+    getAppState,
     getCoreModules: ensureCoreModules,
     isOpeningFileRef,
     logRenderer,
@@ -767,7 +601,7 @@ if (document.readyState === "loading") {
 }
 
 installRendererDevelopmentDebugGlobals({
-    appState,
+    appState: getAppState(),
     callRecordMethod,
     cleanup,
     ensureCoreModules,
