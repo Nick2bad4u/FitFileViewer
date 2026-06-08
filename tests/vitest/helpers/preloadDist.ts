@@ -8,17 +8,28 @@ export const preloadDistPath = join(repositoryRoot, "dist", "preload.js");
 let cachedPreloadCode: string | undefined;
 
 export function readPreloadDistCode(): string {
-    if (cachedPreloadCode !== undefined) {
+    if (
+        cachedPreloadCode !== undefined &&
+        isBundledPreloadCode(cachedPreloadCode)
+    ) {
         return cachedPreloadCode;
     }
 
-    ensurePreloadDistExists();
+    ensureBundledPreloadDist();
     cachedPreloadCode = readFileSync(preloadDistPath, "utf-8");
+    if (!isBundledPreloadCode(cachedPreloadCode)) {
+        throw new Error(
+            `${preloadDistPath} exists but does not look like the bundled preload output.`
+        );
+    }
     return cachedPreloadCode;
 }
 
-function ensurePreloadDistExists(): void {
-    if (existsSync(preloadDistPath)) {
+function ensureBundledPreloadDist(): void {
+    if (
+        existsSync(preloadDistPath) &&
+        isBundledPreloadCode(readFileSync(preloadDistPath, "utf-8"))
+    ) {
         return;
     }
 
@@ -49,4 +60,11 @@ function ensurePreloadDistExists(): void {
             `Runtime build completed but ${preloadDistPath} was not created.`
         );
     }
+}
+
+function isBundledPreloadCode(code: string): boolean {
+    return (
+        code.includes("var __commonJS =") &&
+        !code.includes('require("./preload/')
+    );
 }
