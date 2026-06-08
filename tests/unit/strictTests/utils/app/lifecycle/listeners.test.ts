@@ -44,6 +44,12 @@ const csvExportMocks = vi.hoisted(() => ({
     serializeTableToCSV: vi.fn<(table: unknown) => string>(),
 }));
 
+const fitDataRendererMocks = vi.hoisted(() => ({
+    renderDecodedFitData: vi.fn<
+        (data: unknown, filePath: string) => Promise<void>
+    >(async () => {}),
+}));
+
 vi.mock(
     import("../../../../../../electron-app/utils/files/import/openFileSelector.js"),
     () => ({
@@ -64,6 +70,11 @@ vi.mock(
         copyTableAsCSV: vi.fn<() => Promise<void>>(),
         serializeTableToCSV: csvExportMocks.serializeTableToCSV,
     })
+);
+
+vi.mock(
+    import("../../../../../../electron-app/utils/rendering/core/loadShowFitData.js"),
+    () => ({ renderDecodedFitData: fitDataRendererMocks.renderDecodedFitData })
 );
 
 const openFileSelectorMock = dependencyMocks.openFileSelector;
@@ -228,6 +239,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         ensureContainers();
         csvExportMocks.serializeTableToCSV.mockReset();
         csvExportMocks.serializeTableToCSV.mockReturnValue("a,b\n1,2");
+        fitDataRendererMocks.renderDecodedFitData.mockReset();
+        fitDataRendererMocks.renderDecodedFitData.mockResolvedValue(undefined);
     });
 
     afterEach(() => {
@@ -363,19 +376,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const parseResult = { data: createFitMessages() };
         vi.mocked(electronAPI.parseFitFile).mockResolvedValue(parseResult);
         vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
-        const showFitData = vi.fn<ShowFitDataMock>();
-
-        // Synchronize showFitData between window and globalThis scopes using property descriptor pattern
-        Object.defineProperty(window, "showFitData", {
-            value: showFitData,
-            writable: true,
-            configurable: true,
-        });
-        Object.defineProperty(globalThis, "showFitData", {
-            value: showFitData,
-            writable: true,
-            configurable: true,
-        });
 
         const isOpeningFileRef = { current: false };
 
@@ -422,7 +422,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.readFile).toHaveBeenCalledWith(files[1]);
             expect(electronAPI.parseFitFile).toHaveBeenCalledOnce();
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[1]);
-            expect(showFitData).toHaveBeenCalledWith(
+            expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
                 parseResult.data,
                 files[1]
             );
@@ -503,17 +503,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.mocked(window.electronAPI.readFile).mockResolvedValue(arrayBuf);
         const parsed = createFitMessages();
         vi.mocked(window.electronAPI.parseFitFile).mockResolvedValue(parsed);
-        const showFitData = vi.fn<ShowFitDataMock>();
-        Object.defineProperty(globalThis, "showFitData", {
-            value: showFitData,
-            writable: true,
-            configurable: true,
-        });
-        Object.defineProperty(window, "showFitData", {
-            value: showFitData,
-            writable: true,
-            configurable: true,
-        });
 
         setupListeners({
             openFileBtn,
@@ -537,7 +526,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(window.electronAPI.parseFitFile).toHaveBeenCalledWith(
                 arrayBuf
             );
-            expect(showFitData).toHaveBeenCalledWith(
+            expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
                 parsed,
                 "C:/tmp/sample.fit"
             );
@@ -938,18 +927,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const parseResult = { data: createFitMessages() };
         vi.mocked(electronAPI.parseFitFile).mockResolvedValue(parseResult);
         vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
-        const showFitData = vi.fn<ShowFitDataMock>();
-
-        Object.defineProperty(window, "showFitData", {
-            value: showFitData,
-            writable: true,
-            configurable: true,
-        });
-        Object.defineProperty(globalThis, "showFitData", {
-            value: showFitData,
-            writable: true,
-            configurable: true,
-        });
 
         const isOpeningFileRef = { current: false };
 
@@ -1004,7 +981,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.readFile).toHaveBeenCalledWith(files[0]);
             expect(electronAPI.parseFitFile).toHaveBeenCalledOnce();
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[0]);
-            expect(showFitData).toHaveBeenCalledWith(
+            expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
                 parseResult.data,
                 files[0]
             );

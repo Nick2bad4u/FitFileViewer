@@ -13,6 +13,14 @@ import {
     vi,
 } from "vitest";
 
+const renderDecodedFitDataMock = vi.hoisted(() =>
+    vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
+);
+
+vi.mock("../../rendering/core/loadShowFitData.js", () => ({
+    renderDecodedFitData: renderDecodedFitDataMock,
+}));
+
 type HandleOpenFileModule = Awaited<typeof import("./handleOpenFile.js")>;
 type HandleOpenFileParams = Parameters<HandleOpenFileModule["handleOpenFile"]>[0];
 type HandleOpenFileShowNotification = NonNullable<
@@ -32,13 +40,11 @@ interface MockElectronAPI {
 interface MockFileOpenWindow {
     electronAPI: MockElectronAPI;
     sendFitFileToAltFitReader: ReturnType<typeof vi.fn>;
-    showFitData: ReturnType<typeof vi.fn>;
 }
 
 type HandleOpenFileTestGlobal = typeof globalThis & {
     electronAPI?: unknown;
     sendFitFileToAltFitReader?: unknown;
-    showFitData?: unknown;
 };
 
 const handleOpenFileGlobal = globalThis as HandleOpenFileTestGlobal;
@@ -69,7 +75,6 @@ const mockElectronAPI = {
 
 const mockWindow: MockFileOpenWindow = {
     electronAPI: mockElectronAPI,
-    showFitData: vi.fn(),
     sendFitFileToAltFitReader: vi.fn(),
 };
 
@@ -93,13 +98,14 @@ beforeEach(() => {
     mockConsoleInfo.mockClear();
     mockConsoleWarn.mockClear();
     mockConsoleError.mockClear();
+    renderDecodedFitDataMock.mockReset();
+    renderDecodedFitDataMock.mockResolvedValue(undefined);
 
     // Reset window.electronAPI and map to globalThis for modules using globalThis.electronAPI
     mockWindow.electronAPI = { ...mockElectronAPI };
     handleOpenFileGlobal.electronAPI = mockWindow.electronAPI;
 
-    // Map display helpers used by handleOpenFile to globalThis as implementation checks globalThis
-    handleOpenFileGlobal.showFitData = mockWindow.showFitData;
+    // Map alternate reader helper used by handleOpenFile to globalThis.
     handleOpenFileGlobal.sendFitFileToAltFitReader =
         mockWindow.sendFitFileToAltFitReader;
 
@@ -510,7 +516,7 @@ describe("handleOpenFile.js", () => {
             );
 
             expect(result).toBe(true);
-            expect(mockWindow.showFitData).toHaveBeenCalled();
+            expect(renderDecodedFitDataMock).toHaveBeenCalled();
         });
     });
 
@@ -595,7 +601,7 @@ describe("handleOpenFile.js", () => {
             });
 
             expect(result).toBe(true);
-            expect(mockWindow.showFitData).toHaveBeenCalledWith(
+            expect(renderDecodedFitDataMock).toHaveBeenCalledWith(
                 mockFitData,
                 "/path/to/file.fit"
             );
@@ -620,10 +626,9 @@ describe("handleOpenFile.js", () => {
                 data: mockFitData,
             });
 
-            // Mock showFitData to throw
-            mockWindow.showFitData.mockImplementation(() => {
-                throw new Error("Display error");
-            });
+            renderDecodedFitDataMock.mockRejectedValueOnce(
+                new Error("Display error")
+            );
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },

@@ -6,12 +6,23 @@ const csvExportMocks = vi.hoisted(() => ({
     serializeTableToCSV: vi.fn<(table: unknown) => string>(),
 }));
 
+const fitDataRendererMocks = vi.hoisted(() => ({
+    renderDecodedFitData: vi.fn<
+        (data: unknown, filePath: string) => Promise<void>
+    >(async () => {}),
+}));
+
 vi.mock(
     import("../../../../electron-app/utils/files/export/copyTableAsCSV.js"),
     () => ({
         copyTableAsCSV: vi.fn<() => Promise<void>>(),
         serializeTableToCSV: csvExportMocks.serializeTableToCSV,
     })
+);
+
+vi.mock(
+    import("../../../../electron-app/utils/rendering/core/loadShowFitData.js"),
+    () => ({ renderDecodedFitData: fitDataRendererMocks.renderDecodedFitData })
 );
 
 import { setupListeners } from "../../../../electron-app/utils/app/events.js";
@@ -31,7 +42,6 @@ vi.mock(
 type IpcHandler = (...args: unknown[]) => unknown;
 type LoadingCallback = SetupListenersOptions["setLoading"];
 type NotificationCallback = SetupListenersOptions["showNotification"];
-type ShowFitData = (data: unknown, filePath: string) => void;
 type ShowKeyboardShortcutsModal = () => void;
 type UpdateNotificationCallback =
     SetupListenersOptions["showUpdateNotification"];
@@ -103,7 +113,6 @@ type TestGlobals = typeof globalThis & {
     sendFitFileToAltFitReader?: ReturnType<
         typeof vi.fn<(arrayBuffer: ArrayBuffer) => unknown>
     >;
-    showFitData?: ReturnType<typeof vi.fn<ShowFitData>>;
     showKeyboardShortcutsModal?: ReturnType<
         typeof vi.fn<ShowKeyboardShortcutsModal>
     >;
@@ -264,7 +273,6 @@ describe(setupListeners, () => {
         delete (globalAny as { __ffvMenuForwardRegistry?: Set<string> })
             .__ffvMenuForwardRegistry;
         defineGlobalValue("electronAPI", electronAPI);
-        defineGlobalValue("showFitData", vi.fn<ShowFitData>());
         defineGlobalValue(
             "sendFitFileToAltFitReader",
             vi.fn<(arrayBuffer: ArrayBuffer) => unknown>()
@@ -275,6 +283,8 @@ describe(setupListeners, () => {
         defineGlobalValue("globalData", { recordMesgs: [] });
         csvExportMocks.serializeTableToCSV.mockReset();
         csvExportMocks.serializeTableToCSV.mockReturnValue("header\nvalue");
+        fitDataRendererMocks.renderDecodedFitData.mockReset();
+        fitDataRendererMocks.renderDecodedFitData.mockResolvedValue(undefined);
         keyboardShortcutsModalMock.showKeyboardShortcutsModal.mockReset();
         defineGlobalValue("loadedFitFiles", []);
 
@@ -405,7 +415,7 @@ describe(setupListeners, () => {
         }).toStrictEqual({
             openButtonDisabled: false,
         });
-        expect(globalAny.showFitData).toHaveBeenCalledWith(
+        expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
             { recordMesgs: [{ speed: 10 }] },
             "C:/rides/demo.fit"
         );
@@ -528,7 +538,7 @@ describe(setupListeners, () => {
         }).toStrictEqual({
             openButtonDisabled: false,
         });
-        expect(globalAny.showFitData).toHaveBeenCalledWith(
+        expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
             { recordMesgs: [] },
             "C:/rides/other.fit"
         );

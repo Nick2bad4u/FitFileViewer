@@ -12,7 +12,7 @@ import {
     getProcessEnvironmentValue,
     isDevelopmentEnvironment,
 } from "../../runtime/processEnvironment.js";
-import type { FitMessages } from "../../../shared/fit";
+import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type RecentFilesElectronApi = Pick<ElectronAPI, "readFile" | "recentFiles"> &
@@ -25,7 +25,6 @@ type RecentFilesElectronApi = Pick<ElectronAPI, "readFile" | "recentFiles"> &
 type RecentFilesGlobal = typeof globalThis & {
     electronAPI?: RecentFilesElectronApi;
     sendFitFileToAltFitReader?: (data: ArrayBuffer) => Promise<void> | void;
-    showFitData?: (data: FitMessages, filePath: string) => void;
 };
 
 type AttachRecentFilesContextMenuParams = {
@@ -266,7 +265,7 @@ export function attachRecentFilesContextMenu({
 
                         const dataToShow = unwrapFitParseMessages(result);
 
-                        appGlobal.showFitData?.(dataToShow, file);
+                        await renderDecodedFitData(dataToShow, file);
                         // Optional integration - guarded
                         if (appGlobal.sendFitFileToAltFitReader) {
                             appGlobal.sendFitFileToAltFitReader(arrayBuffer);

@@ -9,6 +9,7 @@ import {
     type RendererLogLevel,
 } from "../../logging/rendererLogger.js";
 import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
+import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import * as stateManager from "../../state/core/stateManager.js";
 import { clearAllNotifications } from "../../ui/notifications/showNotification.js";
 import {
@@ -18,7 +19,6 @@ import {
     unwrapFitParseMessages,
 } from "./fitParsePayload.js";
 import { getFitFileBufferValidationError } from "./fitFileValidation.js";
-import type { FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
 
@@ -66,7 +66,6 @@ type FileOpenRendererGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
     electronAPI?: Partial<FileOpenElectronAPI>;
     sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
-    showFitData?: (data: FitMessages, fileName?: string) => void;
 };
 
 type FitFileStateManagerFacade = {
@@ -362,10 +361,7 @@ async function handleOpenFile(
                 progress: 90,
                 source: "handleOpenFile.rendering",
             });
-            const { showFitData } = getFileOpenGlobal();
-            if (typeof showFitData === "function") {
-                showFitData(fitData, filePathString);
-            }
+            await renderDecodedFitData(fitData, filePathString);
 
             const { sendFitFileToAltFitReader } = getFileOpenGlobal();
             if (typeof sendFitFileToAltFitReader === "function") {

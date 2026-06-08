@@ -1,12 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 
+const renderDecodedFitDataMock = vi.hoisted(() =>
+    vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
+);
+
+vi.mock(
+    "../../../../electron-app/utils/rendering/core/loadShowFitData.js",
+    () => ({ renderDecodedFitData: renderDecodedFitDataMock })
+);
+
 import { openFitFileFromPath } from "../../../../electron-app/utils/files/import/openFitFileFromPath.js";
 
 type HandleFileLoadingError = (error: Error) => void;
 type NotifyFitFileLoaded = (filePath: string) => void;
 type ParseFitFile = (arrayBuffer: ArrayBuffer) => Promise<unknown>;
 type ReadFile = (filePath: string) => Promise<ArrayBuffer>;
-type ShowFitData = (data: unknown, filePath: string) => void;
 type ShowNotification = Parameters<
     typeof openFitFileFromPath
 >[0]["showNotification"];
@@ -16,7 +24,6 @@ type Harness = {
     notifyFitFileLoaded: ReturnType<typeof vi.fn<NotifyFitFileLoaded>>;
     parseFitFile: ReturnType<typeof vi.fn<ParseFitFile>>;
     readFile: ReturnType<typeof vi.fn<ReadFile>>;
-    showFitData: ReturnType<typeof vi.fn<ShowFitData>>;
     showNotification: ReturnType<typeof vi.fn<ShowNotification>>;
 };
 
@@ -26,7 +33,6 @@ function createHarness(): Harness {
         notifyFitFileLoaded: vi.fn<NotifyFitFileLoaded>(),
         parseFitFile: vi.fn<ParseFitFile>(),
         readFile: vi.fn<ReadFile>(),
-        showFitData: vi.fn<ShowFitData>(),
         showNotification: vi.fn<ShowNotification>(),
     };
 }
@@ -46,15 +52,15 @@ async function withOpenFitFileHarness(
 ): Promise<void> {
     const originalElectronAPI = globalThis.electronAPI;
     const originalFitFileStateManager = globalThis.__FFV_fitFileStateManager;
-    const originalShowFitData = globalThis.showFitData;
     const harness = createHarness();
 
+    renderDecodedFitDataMock.mockReset();
+    renderDecodedFitDataMock.mockResolvedValue(undefined);
     globalThis.electronAPI = {
         notifyFitFileLoaded: harness.notifyFitFileLoaded,
         parseFitFile: harness.parseFitFile,
         readFile: harness.readFile,
     } as typeof globalThis.electronAPI;
-    globalThis.showFitData = harness.showFitData;
     globalThis.__FFV_fitFileStateManager = {
         handleFileLoadingError: harness.handleFileLoadingError,
     };
@@ -63,7 +69,6 @@ async function withOpenFitFileHarness(
         await runTest(harness);
     } finally {
         globalThis.electronAPI = originalElectronAPI;
-        globalThis.showFitData = originalShowFitData;
         globalThis.__FFV_fitFileStateManager = originalFitFileStateManager;
         vi.restoreAllMocks();
     }
@@ -87,7 +92,7 @@ describe(openFitFileFromPath, () => {
             });
 
             expect({ result }).toStrictEqual({ result: true });
-            expect(harness.showFitData).toHaveBeenCalledWith(
+            expect(renderDecodedFitDataMock).toHaveBeenCalledWith(
                 decodedMessages,
                 "C:\\activities\\ride.fit"
             );
@@ -120,7 +125,7 @@ describe(openFitFileFromPath, () => {
             });
 
             expect({ result }).toStrictEqual({ result: false });
-            expect(harness.showFitData).not.toHaveBeenCalled();
+            expect(renderDecodedFitDataMock).not.toHaveBeenCalled();
             expect(harness.showNotification).toHaveBeenCalledWith(
                 "Failed to open file: FIT decode failed\nbad header",
                 "error",
@@ -145,7 +150,7 @@ describe(openFitFileFromPath, () => {
 
             expect({ result }).toStrictEqual({ result: false });
             expect(harness.parseFitFile).not.toHaveBeenCalled();
-            expect(harness.showFitData).not.toHaveBeenCalled();
+            expect(renderDecodedFitDataMock).not.toHaveBeenCalled();
             expect(harness.showNotification).toHaveBeenCalledWith(
                 "Failed to open file: Selected file appears to be empty",
                 "error",
@@ -172,7 +177,7 @@ describe(openFitFileFromPath, () => {
             });
 
             expect({ result }).toStrictEqual({ result: false });
-            expect(harness.showFitData).not.toHaveBeenCalled();
+            expect(renderDecodedFitDataMock).not.toHaveBeenCalled();
             expect(harness.showNotification).toHaveBeenCalledWith(
                 "Failed to open file: FIT decode failed\ninvalid CRC",
                 "error",

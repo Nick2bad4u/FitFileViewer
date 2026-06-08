@@ -1,6 +1,15 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
+const renderDecodedFitDataMock = vi.hoisted(() =>
+    vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
+);
+
+vi.mock(
+    "../../../electron-app/utils/rendering/core/loadShowFitData.js",
+    () => ({ renderDecodedFitData: renderDecodedFitDataMock })
+);
+
 import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 import type { SetupListenersOptions } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 
@@ -17,7 +26,6 @@ type ReadFile = (filePath: string) => Promise<ArrayBuffer>;
 type RecentFiles = () => Promise<string[]>;
 type SetLoading = SetupListenersOptions["setLoading"];
 type ShowAboutModal = SetupListenersOptions["showAboutModal"];
-type ShowFitData = (data: unknown, filePath: string) => void;
 type ShowNotification = SetupListenersOptions["showNotification"];
 type ShowUpdateNotification = SetupListenersOptions["showUpdateNotification"];
 
@@ -37,7 +45,6 @@ type Harness = {
     recentFiles: ReturnType<typeof vi.fn<RecentFiles>>;
     setLoading: ReturnType<typeof vi.fn<SetLoading>>;
     showAboutModal: ReturnType<typeof vi.fn<ShowAboutModal>>;
-    showFitData: ReturnType<typeof vi.fn<ShowFitData>>;
     showNotification: ReturnType<typeof vi.fn<ShowNotification>>;
     showUpdateNotification: ReturnType<typeof vi.fn<ShowUpdateNotification>>;
 };
@@ -66,7 +73,6 @@ function createHarness(): Harness {
         recentFiles: vi.fn<RecentFiles>(),
         setLoading: vi.fn<SetLoading>(),
         showAboutModal: vi.fn<ShowAboutModal>(),
-        showFitData: vi.fn<ShowFitData>(),
         showNotification: vi.fn<ShowNotification>(),
         showUpdateNotification: vi.fn<ShowUpdateNotification>(),
     };
@@ -76,9 +82,10 @@ async function withListenersHarness(
     runTest: (harness: Harness) => Promise<void>
 ): Promise<void> {
     const originalElectronAPI = globalThis.electronAPI;
-    const originalShowFitData = globalThis.showFitData;
     const harness = createHarness();
 
+    renderDecodedFitDataMock.mockReset();
+    renderDecodedFitDataMock.mockResolvedValue(undefined);
     document.body.append(harness.openFileBtn);
     globalThis.electronAPI = {
         addRecentFile: harness.addRecentFile,
@@ -89,7 +96,6 @@ async function withListenersHarness(
         readFile: harness.readFile,
         recentFiles: harness.recentFiles,
     } as typeof globalThis.electronAPI;
-    globalThis.showFitData = harness.showFitData;
 
     setupListeners({
         handleOpenFile: harness.handleOpenFile,
@@ -112,7 +118,6 @@ async function withListenersHarness(
         harness.cleanup();
         harness.openFileBtn.remove();
         globalThis.electronAPI = originalElectronAPI;
-        globalThis.showFitData = originalShowFitData;
         vi.restoreAllMocks();
     }
 }
@@ -133,7 +138,7 @@ describe(setupListeners, () => {
             await harness.openRecentHandler("C:\\activities\\bad.fit");
 
             expect(harness.approveRecentFile).not.toHaveBeenCalled();
-            expect(harness.showFitData).not.toHaveBeenCalled();
+            expect(renderDecodedFitDataMock).not.toHaveBeenCalled();
             expect(harness.addRecentFile).not.toHaveBeenCalled();
             expect(harness.showNotification).toHaveBeenCalledWith(
                 "Error: FIT decode failed\ninvalid CRC",

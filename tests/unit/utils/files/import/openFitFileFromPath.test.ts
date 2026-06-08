@@ -1,4 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
+
+const renderDecodedFitDataMock = vi.hoisted(() =>
+    vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/rendering/core/loadShowFitData.js"),
+    () => ({ renderDecodedFitData: renderDecodedFitDataMock })
+);
+
 import { openFitFileFromPath } from "../../../../../electron-app/utils/files/import/openFitFileFromPath.js";
 
 type ShowNotification = (
@@ -26,7 +36,6 @@ type OpenFitFileFromPathTestGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
     electronAPI?: TestElectronAPI;
     sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
-    showFitData?: (data: unknown, filePath: string) => void;
 };
 
 function cleanupFixture(): void {
@@ -34,7 +43,8 @@ function cleanupFixture(): void {
     delete appGlobal.__FFV_fitFileStateManager;
     delete appGlobal.electronAPI;
     delete appGlobal.sendFitFileToAltFitReader;
-    delete appGlobal.showFitData;
+    renderDecodedFitDataMock.mockReset();
+    renderDecodedFitDataMock.mockResolvedValue(undefined);
 }
 
 describe(openFitFileFromPath, () => {
@@ -101,8 +111,6 @@ describe(openFitFileFromPath, () => {
                 vi.fn<(arrayBuffer: ArrayBuffer) => Promise<unknown>>();
             const readFile =
                 vi.fn<(filePath: string) => Promise<ArrayBuffer>>();
-            const showFitData =
-                vi.fn<(data: unknown, filePath: string) => void>();
             const sendFitFileToAltFitReader =
                 vi.fn<(arrayBuffer: ArrayBuffer) => void>();
             const showNotification = vi.fn<ShowNotification>();
@@ -133,7 +141,6 @@ describe(openFitFileFromPath, () => {
                 transitionLoadingPhase,
             };
             appGlobal.sendFitFileToAltFitReader = sendFitFileToAltFitReader;
-            appGlobal.showFitData = showFitData;
 
             const result = await openFitFileFromPath({
                 filePath,
@@ -168,7 +175,10 @@ describe(openFitFileFromPath, () => {
                 ],
             ]);
             expect(parseFitFile).toHaveBeenCalledWith(fitBuffer);
-            expect(showFitData).toHaveBeenCalledWith(fitData, filePath);
+            expect(renderDecodedFitDataMock).toHaveBeenCalledWith(
+                fitData,
+                filePath
+            );
             expect(sendFitFileToAltFitReader).toHaveBeenCalledWith(fitBuffer);
             expect(notifyFitFileLoaded).toHaveBeenCalledWith(filePath);
             expect(showNotification).toHaveBeenCalledWith(
@@ -185,7 +195,7 @@ describe(openFitFileFromPath, () => {
     });
 
     it("reports invalid buffers through notification and file state manager", async () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         cleanupFixture();
 
@@ -197,15 +207,12 @@ describe(openFitFileFromPath, () => {
             const readFile =
                 vi.fn<(filePath: string) => Promise<ArrayBuffer>>();
             const showNotification = vi.fn<ShowNotification>();
-            const showFitData =
-                vi.fn<(data: unknown, filePath: string) => void>();
             const openFileBtn = document.createElement("button");
             const filePath = "C:\\activities\\empty.fit";
 
             readFile.mockResolvedValue(new ArrayBuffer(0));
             appGlobal.__FFV_fitFileStateManager = { handleFileLoadingError };
             appGlobal.electronAPI = { parseFitFile, readFile };
-            appGlobal.showFitData = showFitData;
 
             const result = await openFitFileFromPath({
                 filePath,
@@ -216,6 +223,7 @@ describe(openFitFileFromPath, () => {
             expect({ result }).toStrictEqual({ result: false });
             expect(readFile).toHaveBeenCalledWith(filePath);
             expect(parseFitFile).not.toHaveBeenCalled();
+            expect(renderDecodedFitDataMock).not.toHaveBeenCalled();
             expect(showNotification).toHaveBeenCalledWith(
                 "Failed to open file: Selected file appears to be empty",
                 "error",

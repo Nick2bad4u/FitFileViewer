@@ -1,5 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
+const renderDecodedFitDataMock = vi.hoisted(() =>
+    vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
+);
+
+vi.mock(
+    "../../../electron-app/utils/rendering/core/loadShowFitData.js",
+    () => ({ renderDecodedFitData: renderDecodedFitDataMock })
+);
+
 import { attachRecentFilesContextMenu } from "../../../electron-app/utils/app/lifecycle/recentFilesContextMenu.js";
 
 type AddRecentFile = (file: string) => Promise<void>;
@@ -8,7 +17,6 @@ type ParseFitFile = (arrayBuffer: ArrayBuffer) => Promise<unknown>;
 type ReadFile = (file: string) => Promise<ArrayBuffer>;
 type RecentFiles = () => Promise<string[]>;
 type SetLoading = (isLoading: boolean) => void;
-type ShowFitData = (data: unknown, filePath: string) => void;
 type ShowNotification = Parameters<
     typeof attachRecentFilesContextMenu
 >[0]["showNotification"];
@@ -22,7 +30,6 @@ type Harness = {
     readFile: ReturnType<typeof vi.fn<ReadFile>>;
     recentFiles: ReturnType<typeof vi.fn<RecentFiles>>;
     setLoading: ReturnType<typeof vi.fn<SetLoading>>;
-    showFitData: ReturnType<typeof vi.fn<ShowFitData>>;
     showNotification: ReturnType<typeof vi.fn<ShowNotification>>;
 };
 
@@ -37,10 +44,11 @@ async function withRecentFilesHarness(
     runTest: (harness: Harness) => Promise<void>
 ): Promise<void> {
     const originalElectronAPI = globalThis.electronAPI;
-    const originalShowFitData = globalThis.showFitData;
     const openFileBtn = document.createElement("button");
 
     document.body.append(openFileBtn);
+    renderDecodedFitDataMock.mockReset();
+    renderDecodedFitDataMock.mockResolvedValue(undefined);
 
     const harness: Harness = {
         addRecentFile: vi.fn<AddRecentFile>(),
@@ -51,7 +59,6 @@ async function withRecentFilesHarness(
         readFile: vi.fn<ReadFile>(),
         recentFiles: vi.fn<RecentFiles>(),
         setLoading: vi.fn<SetLoading>(),
-        showFitData: vi.fn<ShowFitData>(),
         showNotification: vi.fn<ShowNotification>(),
     };
 
@@ -62,7 +69,6 @@ async function withRecentFilesHarness(
         readFile: harness.readFile,
         recentFiles: harness.recentFiles,
     } as typeof globalThis.electronAPI;
-    globalThis.showFitData = harness.showFitData;
 
     harness.cleanup = attachRecentFilesContextMenu({
         openFileBtn,
@@ -79,7 +85,6 @@ async function withRecentFilesHarness(
         document.querySelector("#recent-files-menu")?.remove();
         openFileBtn.remove();
         globalThis.electronAPI = originalElectronAPI;
-        globalThis.showFitData = originalShowFitData;
         vi.restoreAllMocks();
     }
 }
@@ -116,7 +121,7 @@ describe(attachRecentFilesContextMenu, () => {
 
             expect(menuItem).toBeInstanceOf(HTMLDivElement);
             expect(harness.approveRecentFile).not.toHaveBeenCalled();
-            expect(harness.showFitData).not.toHaveBeenCalled();
+            expect(renderDecodedFitDataMock).not.toHaveBeenCalled();
             expect(harness.addRecentFile).not.toHaveBeenCalled();
             expect(harness.showNotification).toHaveBeenCalledWith(
                 "Error: FIT decode failed\ninvalid CRC",

@@ -324,6 +324,7 @@
         "electron-app/utils/rendering/helpers/index.ts",
         "electron-app/utils/rendering/core/renderTable.ts",
         "electron-app/utils/rendering/core/renderSummary.ts",
+        "electron-app/utils/rendering/core/loadShowFitData.ts",
         "electron-app/utils/rendering/core/showFitData.ts",
         "electron-app/utils/rendering/core/index.ts",
         "electron-app/utils/rendering/components/createShownFilesList.ts",

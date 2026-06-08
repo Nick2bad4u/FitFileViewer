@@ -1,6 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { FitDecodeResult } from "../../../../../electron-app/shared/fit";
 
+const renderDecodedFitDataMock = vi.hoisted(() =>
+    vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/rendering/core/loadShowFitData.js"),
+    () => ({ renderDecodedFitData: renderDecodedFitDataMock })
+);
+
 type StateManagerModule =
     typeof import("../../../../../electron-app/utils/state/core/stateManager.js");
 type HandleOpenFileModule =
@@ -118,6 +127,8 @@ describe("handleOpenFile Module", () => {
 
         // Reset mocks
         vi.clearAllMocks();
+        renderDecodedFitDataMock.mockReset();
+        renderDecodedFitDataMock.mockResolvedValue(undefined);
 
         // Mock console methods
         vi.spyOn(console, "info").mockImplementation(() => {});
@@ -571,10 +582,9 @@ describe("handleOpenFile Module", () => {
                 data: { sessions: [{ id: 1 }] },
             });
 
-            // Make window.showFitData throw an error
-            vi.spyOn(getTestWindow(), "showFitData").mockImplementation(() => {
-                throw new Error("Display error");
-            });
+            renderDecodedFitDataMock.mockRejectedValueOnce(
+                new Error("Display error")
+            );
 
             const mockParams = createOpenFileParams();
 
@@ -693,13 +703,7 @@ describe("handleOpenFile Module", () => {
         });
 
         it("should handle optional function calls", async () => {
-            expect.assertions(2);
-
-            // Save original window functions
-            const originalShowFitData = getTestWindow().showFitData;
-
-            // Remove optional functions
-            delete getTestWindow().showFitData;
+            expect.assertions(3);
 
             getElectronAPI().openFile.mockResolvedValue("test.fit");
             getElectronAPI().readFile.mockResolvedValue(new ArrayBuffer(100));
@@ -714,10 +718,11 @@ describe("handleOpenFile Module", () => {
                 await handleOpenFileModule.handleOpenFile(mockParams);
 
             expect({ fileOpened: result }).toStrictEqual({ fileOpened: true });
+            expect(renderDecodedFitDataMock).toHaveBeenCalledWith(
+                { sessions: [{ id: 1 }] },
+                "test.fit"
+            );
             expect(mockParams.showNotification).not.toHaveBeenCalled();
-
-            // Restore original functions
-            getTestWindow().showFitData = originalShowFitData;
         });
 
         it("should correctly clean up isOpeningFileRef in finally block", async () => {

@@ -21,6 +21,7 @@ import {
     getProcessEnvironmentValue,
     isDevelopmentEnvironment,
 } from "../../runtime/processEnvironment.js";
+import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import { getGlobalData } from "../../state/core/globalDataStore.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
@@ -121,7 +122,6 @@ type LifecycleGlobal = typeof globalThis & {
     renderChart?: () => unknown;
     renderChartJS?: () => unknown;
     sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => unknown;
-    showFitData?: (data: FitData | FitParseResult, filePath: string) => void;
 };
 
 /** Mutable flag shared with the file-opening workflow. */
@@ -349,10 +349,7 @@ async function reloadCachedFitFileAfterDecoderOptionsChange({
             return;
         }
 
-        lifecycleGlobal.showFitData?.(
-            unwrapFitParseMessages(result),
-            filePath
-        );
+        await renderDecodedFitData(unwrapFitParseMessages(result), filePath);
     } catch (error) {
         showNotification(
             `Error reloading file: ${String(error)}`,
@@ -685,12 +682,7 @@ export function setupListeners({
 
                     // Display the data with proper error handling
                     try {
-                        if (lifecycleGlobal.showFitData) {
-                            lifecycleGlobal.showFitData(
-                                fitData,
-                                filePathString
-                            );
-                        }
+                        await renderDecodedFitData(fitData, filePathString);
 
                         if (
                             typeof lifecycleGlobal.sendFitFileToAltFitReader ===
