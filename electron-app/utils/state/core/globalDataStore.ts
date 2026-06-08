@@ -13,16 +13,8 @@ type LegacyGlobalDataBridgeOptions = {
 };
 
 const GLOBAL_DATA_PROPERTY = "globalData";
-const ownedBridgeAccessors = new WeakMap<
-    object,
-    {
-        readonly get: () => unknown;
-        readonly set: (value: unknown) => void;
-    }
->();
 let fallbackGlobalDataValue: unknown;
 let hasFallbackGlobalDataValue = false;
-let isSyncingLegacyGlobalDataProperty = false;
 
 /** Reads FIT data from the managed state store, falling back to plain legacy data properties. */
 export function getGlobalData<T = unknown>(
@@ -65,7 +57,6 @@ export function setGlobalData(
         source: "globalDataStore",
         ...options,
     });
-    syncLegacyGlobalDataProperty(value, options);
 }
 
 /**
@@ -115,7 +106,6 @@ export function defineLegacyGlobalDataBridge({
             get,
             set,
         });
-        ownedBridgeAccessors.set(scope, { get, set });
 
         return true;
     } catch {
@@ -130,62 +120,6 @@ function readPlainGlobalDataValue(scope: LegacyGlobalDataScope): unknown {
     );
 
     return descriptor && "value" in descriptor ? descriptor.value : undefined;
-}
-
-function ensureLegacyGlobalDataBridge(options: StateUpdateOptions): boolean {
-    return defineLegacyGlobalDataBridge({
-        ...(options.silent === undefined ? {} : { silent: options.silent }),
-        source: options.source ?? "globalDataStore.setGlobalData",
-    });
-}
-
-function syncLegacyGlobalDataProperty(
-    value: unknown,
-    options: StateUpdateOptions
-): void {
-    if (isSyncingLegacyGlobalDataProperty) {
-        return;
-    }
-
-    const scope = globalThis as LegacyGlobalDataScope;
-    const bridgeDefined = ensureLegacyGlobalDataBridge(options);
-    const descriptor = Object.getOwnPropertyDescriptor(
-        scope,
-        GLOBAL_DATA_PROPERTY
-    );
-    if (bridgeDefined || isOwnedLegacyGlobalDataBridge(scope, descriptor)) {
-        return;
-    }
-
-    if (!descriptor) {
-        return;
-    }
-
-    isSyncingLegacyGlobalDataProperty = true;
-    try {
-        if (descriptor.set) {
-            descriptor.set.call(scope, value);
-            return;
-        }
-
-        if ("value" in descriptor && descriptor.writable) {
-            Reflect.set(scope, GLOBAL_DATA_PROPERTY, value);
-        }
-    } finally {
-        isSyncingLegacyGlobalDataProperty = false;
-    }
-}
-
-function isOwnedLegacyGlobalDataBridge(
-    scope: LegacyGlobalDataScope,
-    descriptor?: PropertyDescriptor
-): boolean {
-    const accessors = ownedBridgeAccessors.get(scope);
-    return (
-        accessors !== undefined &&
-        descriptor?.get === accessors.get &&
-        descriptor.set === accessors.set
-    );
 }
 
 function readAccessorFallbackValue(scope: LegacyGlobalDataScope): unknown {

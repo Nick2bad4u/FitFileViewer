@@ -283,11 +283,7 @@ describe("stateIntegration comprehensive coverage", () => {
             );
             expect(
                 Object.getOwnPropertyDescriptor(globalThis, "globalData")
-            ).toMatchObject({
-                configurable: true,
-                get: expect.any(Function),
-                set: expect.any(Function),
-            });
+            ).toBeUndefined();
             expect(globalThis.__state_debug).toBeUndefined();
 
             consoleSpy.mockRestore();
@@ -335,11 +331,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
             expect(
                 Object.getOwnPropertyDescriptor(globalThis, "globalData")
-            ).toMatchObject({
-                configurable: true,
-                get: expect.any(Function),
-                set: expect.any(Function),
-            });
+            ).toBeUndefined();
             expect(mockStateManager.subscribe).toHaveBeenCalledWith(
                 "",
                 expect.any(Function)
@@ -743,25 +735,29 @@ describe("stateIntegration comprehensive coverage", () => {
     });
 
     describe("backward compatibility", () => {
-        it("should set up globalData property correctly (smoke)", async () => {
+        it("should preserve existing plain globalData without installing an accessor", async () => {
             expect.assertions(2);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
+            globalThis.globalData = { test: "data" };
             initializeAppState();
 
-            // Test globalData getter
-            mockStateManager.getState.mockReturnValue({ test: "data" });
-            expect(globalThis.globalData).toEqual({ test: "data" });
-
-            // Test globalData setter
-            globalThis.globalData = { new: "data" };
             expect(mockStateManager.setState).toHaveBeenCalledWith(
                 "globalData",
-                { new: "data" },
-                { source: "window.globalData" }
+                { test: "data" },
+                {
+                    source: "StateIntegration.preserveExistingGlobalData",
+                }
             );
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "globalData")
+            ).toMatchObject({
+                configurable: true,
+                value: { test: "data" },
+                writable: true,
+            });
         });
 
         it("should set up isChartRendered property correctly (smoke)", async () => {

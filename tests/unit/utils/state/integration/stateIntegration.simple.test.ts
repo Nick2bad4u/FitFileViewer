@@ -49,6 +49,7 @@ type StateIntegrationTestGlobal = typeof globalThis & {
         isChartRendered: unknown;
     };
     chartControlsState?: ChartControlsState;
+    globalData?: unknown;
 };
 
 type StorageFixture = {
@@ -333,16 +334,16 @@ describe("stateIntegration.js - Essential Coverage", () => {
         resetTestEnvironment();
     });
 
-    it("initializes compatibility globals and development debug utilities", () => {
-        expect.assertions(6);
+    it("initializes non-FIT compatibility globals and development debug utilities", () => {
+        expect.assertions(7);
         resetTestEnvironment();
 
         const testGlobal = globalThis as StateIntegrationTestGlobal;
         testGlobal.__DEVELOPMENT__ = true;
+        testGlobal.globalData = { loaded: true };
 
         stateIntegration.initializeAppState();
 
-        testGlobal.globalData = { loaded: true };
         testGlobal.isChartRendered = true;
 
         expect({
@@ -355,6 +356,13 @@ describe("stateIntegration.js - Essential Coverage", () => {
             appStateKeys: ["eventListeners", "isChartRendered"],
             chartRenderedState: true,
             globalDataState: { loaded: true },
+        });
+        expect(
+            Object.getOwnPropertyDescriptor(testGlobal, "globalData")
+        ).toMatchObject({
+            configurable: true,
+            value: { loaded: true },
+            writable: true,
         });
         expect(Object.hasOwn(testGlobal.AppState ?? {}, "globalData")).toBe(
             false

@@ -37,7 +37,7 @@ describe("globalDataStore", () => {
 
         expect(getState("globalData")).toBe(data);
         expect(getGlobalData()).toBe(data);
-        expect(testGlobal.globalData).toBe(data);
+        expect(Object.hasOwn(testGlobal, GLOBAL_DATA_PROPERTY)).toBe(false);
     });
 
     it("falls back to a plain legacy globalData value before the bridge is installed", () => {
@@ -75,7 +75,7 @@ describe("globalDataStore", () => {
         expect(getState("globalData")).toBe(secondData);
     });
 
-    it("synchronizes an existing legacy globalData accessor", () => {
+    it("does not synchronize existing legacy globalData accessors on managed writes", () => {
         expect.assertions(4);
 
         const data = { recordMesgs: [{ distance: 2000 }] };
@@ -98,7 +98,7 @@ describe("globalDataStore", () => {
 
         expect(getState("globalData")).toBe(data);
         expect(getGlobalData()).toBe(data);
-        expect(descriptorTarget.value).toBe(data);
+        expect(descriptorTarget.value).toBeNull();
         expect(
             Object.getOwnPropertyDescriptor(globalThis, GLOBAL_DATA_PROPERTY)
         ).toHaveProperty("set");

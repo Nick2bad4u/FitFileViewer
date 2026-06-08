@@ -6,9 +6,9 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 
 - Temporary surface: `window.globalData`, `globalThis.globalData`
 - Current owner: `electron-app/utils/state/core/globalDataStore.ts`
-- Compatibility callers: remaining legacy state integration bridge internals while renderer state migration continues
-- Current status: active compatibility bridge; new runtime writes should go through `setGlobalData`, `setState("globalData", ...)`, or a typed domain service; AppActions clear/load paths and unified state facade globalData routing now go through `globalDataStore`, chart status refreshes subscribe to state, Playwright smoke assertions read activity counts through renderer state APIs, and lifecycle export/reload handlers, summary storage-key, column-modal preference lookup, user/device info, field-toggle metrics, data-point filter statistics, event-message charts, lap-zone charts, chart availability counts, chart settings rerender guards, map lap selector controls, map lap drawing, map core rendering, elevation profile fallback data, and sensor debug utilities now read loaded FIT data through `globalDataStore`; `mainUiGlobals` and `main-ui.ts` no longer own bridge installers
-- Next removal step: replace the remaining legacy state integration bridge internals with state-backed selectors or app-facing test APIs
+- Compatibility callers: no automatic runtime installers remain; the explicit bridge function is quarantined for temporary compatibility tests and any audited one-off caller only
+- Current status: no automatic runtime bridge install; new runtime writes go through `setGlobalData`, `setState("globalData", ...)`, or a typed domain service; AppActions clear/load paths and unified state facade globalData routing now go through `globalDataStore`, chart status refreshes subscribe to state, Playwright smoke assertions read activity counts through renderer state APIs, and lifecycle export/reload handlers, summary storage-key, column-modal preference lookup, user/device info, field-toggle metrics, data-point filter statistics, event-message charts, lap-zone charts, chart availability counts, chart settings rerender guards, map lap selector controls, map lap drawing, map core rendering, elevation profile fallback data, and sensor debug utilities now read loaded FIT data through `globalDataStore`; `mainUiGlobals`, `main-ui.ts`, state integration startup, core state-manager startup, and the legacy app-state domain no longer own bridge installers
+- Next removal step: delete the explicit `defineLegacyGlobalDataBridge` helper after remaining test-only and audited fallback coverage moves to state-backed selectors or app-facing test APIs
 - Verification gates:
   - `npm run lint:app`
   - `npm test -- tests/unit/packaging/architectureBoundaries.test.ts`
@@ -16,7 +16,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Exit criteria:
   - Runtime source reads loaded FIT data through typed imports or state selectors.
   - Playwright smoke tests assert state through app APIs instead of `window.globalData`.
-  - Architecture tests block direct runtime writes and bridge installer calls outside the named state compatibility modules.
+  - Architecture tests block direct runtime writes, direct `globalData` property definitions, reactive `globalData` property creation, and bridge installer calls outside the named state compatibility module.
   - Migrated rendering helpers stay free of direct `window.globalData` reads.
 
 ## Legacy AppState Global
@@ -24,7 +24,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Temporary surface: `AppState.globalData`
 - Current owner: `electron-app/utils/state/integration/stateIntegration.ts`
 - Compatibility callers: none for FIT data; the legacy global `AppState` object only keeps non-FIT state accessors for older event-listener and chart-rendered checks
-- Current status: removed for FIT data; state integration no longer exposes `AppState.globalData`, and architecture tests block reintroducing that runtime access path
+- Current status: removed for FIT data; state integration no longer exposes `AppState.globalData`, state integration preserves pre-existing plain `globalData` values into managed state without installing a global accessor, and architecture tests block reintroducing that runtime access path
 - Next removal step: retire the remaining non-FIT `AppState` event-listener and chart-rendered accessors after callers move to `getState(...)`/`setState(...)`
 - Verification gates:
   - `npm test -- tests/unit/utils/state/integration/stateIntegration.simple.test.ts tests/unit/utils/state/integration/stateIntegration.comprehensive.test.ts`

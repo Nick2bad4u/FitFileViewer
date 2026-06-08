@@ -75,7 +75,6 @@ type DebugInfo = {
 
 type AppStateGlobal = typeof globalThis & {
     __appState?: AppStateManager;
-    globalData?: unknown;
     window?: Window;
 };
 
@@ -603,27 +602,9 @@ const appState = new AppStateManager();
 const stateGlobal = globalThis as AppStateGlobal;
 
 if (stateGlobal.window !== undefined) {
-    try {
-        const desc = Object.getOwnPropertyDescriptor(globalThis, "globalData");
-        if (!desc || desc.configurable) {
-            Object.defineProperty(globalThis, "globalData", {
-                configurable: true,
-                enumerable: true,
-                get() {
-                    return appState.get("data.globalData");
-                },
-                set(value: unknown) {
-                    appState.set("data.globalData", value);
-                },
-            });
-        }
-    } catch {
-        // Ignore global compatibility wiring failures.
-    }
-
     stateGlobal.__appState = appState;
 
-    console.log("[AppState] Global window properties configured");
+    console.log("[AppState] Global app state handle configured");
 }
 
 /** Adds an error entry to app state and error history. */

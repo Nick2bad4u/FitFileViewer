@@ -253,7 +253,6 @@ export function initializeStateManager(): void {
         return;
     }
 
-    createReactiveProperty("globalData", "globalData");
     createReactiveProperty("isChartRendered", "charts.isRendered");
 
     loadPersistedState();

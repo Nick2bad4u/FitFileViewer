@@ -40,8 +40,6 @@ const sourceExtensions = new Set([
 
 const allowedLegacyGlobalDataBridgeFiles = new Set([
     "electron-app/utils/state/core/globalDataStore.ts",
-    "electron-app/utils/state/domain/appState.ts",
-    "electron-app/utils/state/integration/stateIntegration.ts",
 ]);
 
 const migratedGlobalDataReaderFiles = [
@@ -83,6 +81,10 @@ const directGlobalDataWritePattern =
     /(?:\b(?:window|globalThis)\.globalData|\(\s*(?:window|globalThis)\s+as\b[^\n]*?\)\.globalData)\s*=/u;
 const directGlobalDataReadPattern =
     /\b(?:window|globalThis)\.globalData\b|\.globalData\b/u;
+const directGlobalDataPropertyDefinitionPattern =
+    /\bObject\.defineProperty\(\s*(?:window|globalThis)\s*,\s*["']globalData["']/u;
+const directGlobalDataReactivePropertyPattern =
+    /\bcreateReactiveProperty\(\s*["']globalData["']/u;
 const legacyAppStateGlobalDataPattern = /\bAppState\.globalData\b/u;
 const legacyGlobalDataBridgeFunctionPattern =
     /\bdefineLegacyGlobalDataBridge\b/u;
@@ -505,7 +507,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -520,6 +522,22 @@ describe("architecture boundaries", () => {
         const directRendererUtilsGlobals = scannedFiles
             .filter((relativeFile) =>
                 directRendererUtilsGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const directGlobalDataPropertyDefinitions = scannedFiles
+            .filter(
+                (relativeFile) =>
+                    !allowedLegacyGlobalDataBridgeFiles.has(relativeFile) &&
+                    directGlobalDataPropertyDefinitionPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+            )
+            .sort();
+        const directGlobalDataReactiveProperties = scannedFiles
+            .filter((relativeFile) =>
+                directGlobalDataReactivePropertyPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -579,6 +597,8 @@ describe("architecture boundaries", () => {
 
         expect(directGlobalDataWrites).toStrictEqual([]);
         expect(directRendererUtilsGlobals).toStrictEqual([]);
+        expect(directGlobalDataPropertyDefinitions).toStrictEqual([]);
+        expect(directGlobalDataReactiveProperties).toStrictEqual([]);
         expect(directShowFitDataGlobals).toStrictEqual([]);
         expect(legacyAppStateGlobalDataUsages).toStrictEqual([]);
         expect(legacyGlobalDataBridgeFunctionUsages).toStrictEqual([]);
