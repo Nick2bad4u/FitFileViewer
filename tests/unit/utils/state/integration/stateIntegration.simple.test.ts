@@ -356,9 +356,9 @@ describe("stateIntegration.js - Essential Coverage", () => {
             chartRenderedState: true,
             globalDataState: { loaded: true },
         });
-        expect(
-            Object.hasOwn(testGlobal.AppState ?? {}, "globalData")
-        ).toBe(false);
+        expect(Object.hasOwn(testGlobal.AppState ?? {}, "globalData")).toBe(
+            false
+        );
         expect(testGlobal.__state_debug?.logState).toBeTypeOf("function");
         expect(testGlobal.__state_debug?.setState).toBe(setState);
         expect(testGlobal.__state_debug?.triggerAction("missingAction")).toBe(

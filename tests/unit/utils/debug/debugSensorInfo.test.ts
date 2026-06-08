@@ -91,9 +91,7 @@ describe("debugSensorInfo", () => {
         expect(console.log).toHaveBeenCalledWith(
             expect.stringContaining("deviceInfoMesgs: 1 items")
         );
-        expect(console.log).toHaveBeenCalledWith(
-            expect.stringContaining("1.")
-        );
+        expect(console.log).toHaveBeenCalledWith(expect.stringContaining("1."));
     });
 
     it("returns null when no managed data is loaded", () => {

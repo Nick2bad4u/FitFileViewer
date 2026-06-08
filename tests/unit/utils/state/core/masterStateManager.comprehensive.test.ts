@@ -751,8 +751,7 @@ function createKeyboardEvent(key: string): KeyboardEvent {
 
 function createModuleMocks(mocks: HarnessMocks): Record<string, unknown> {
     return {
-        "C:/fit/utils/ui/rendererStateBindings.js":
-            mocks.rendererStateBindings,
+        "C:/fit/utils/ui/rendererStateBindings.js": mocks.rendererStateBindings,
         "C:/fit/utils/app/lifecycle/appActions.js": mocks.appActions,
         "C:/fit/utils/debug/stateDevTools.js": mocks.stateDevTools,
         "C:/fit/utils/rendering/helpers/updateControlsState.js":

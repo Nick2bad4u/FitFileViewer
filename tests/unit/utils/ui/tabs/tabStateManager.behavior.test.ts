@@ -46,12 +46,9 @@ vi.mock(
     })
 );
 
-vi.mock(
-    "../../../../../electron-app/utils/maps/core/renderMap.js",
-    () => ({
-        renderMap: mockRenderMap,
-    })
-);
+vi.mock("../../../../../electron-app/utils/maps/core/renderMap.js", () => ({
+    renderMap: mockRenderMap,
+}));
 
 vi.mock(
     "../../../../../electron-app/utils/rendering/core/renderSummary.js",

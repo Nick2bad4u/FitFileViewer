@@ -195,12 +195,8 @@ describe("mapActionButtons", () => {
     it("reapplies setup after updateShownFilesList is called", async () => {
         expect.assertions(4);
 
-        const {
-            setShownFilesListUpdater,
-            updateShownFilesList,
-        } = await import(
-            "../../../../../electron-app/utils/rendering/components/shownFilesListUpdater.js"
-        );
+        const { setShownFilesListUpdater, updateShownFilesList } =
+            await import("../../../../../electron-app/utils/rendering/components/shownFilesListUpdater.js");
         const disposeShownFilesListUpdater = setShownFilesListUpdater(() => {
             const activeFileName = document.getElementById("activeFileName");
             if (activeFileName) {

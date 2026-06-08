@@ -21,9 +21,7 @@ vi.mock(
 );
 
 vi.mock(
-    import(
-        "../../../../../electron-app/utils/rendering/components/shownFilesListUpdater.js"
-    ),
+    import("../../../../../electron-app/utils/rendering/components/shownFilesListUpdater.js"),
     () => ({
         updateShownFilesList: mocks.updateShownFilesList,
     })

@@ -422,10 +422,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.readFile).toHaveBeenCalledWith(files[1]);
             expect(electronAPI.parseFitFile).toHaveBeenCalledOnce();
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[1]);
-            expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
-                parseResult.data,
-                files[1]
-            );
+            expect(
+                fitDataRendererMocks.renderDecodedFitData
+            ).toHaveBeenCalledWith(parseResult.data, files[1]);
         });
         // Loading toggled on/off
         expect(setLoading).toHaveBeenNthCalledWith(1, true);
@@ -526,10 +525,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(window.electronAPI.parseFitFile).toHaveBeenCalledWith(
                 arrayBuf
             );
-            expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
-                parsed,
-                "C:/tmp/sample.fit"
-            );
+            expect(
+                fitDataRendererMocks.renderDecodedFitData
+            ).toHaveBeenCalledWith(parsed, "C:/tmp/sample.fit");
             // loading on/off around reload
             expect(setLoading).toHaveBeenCalledWith(true);
             expect(setLoading).toHaveBeenCalledWith(false);
@@ -981,10 +979,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.readFile).toHaveBeenCalledWith(files[0]);
             expect(electronAPI.parseFitFile).toHaveBeenCalledOnce();
             expect(electronAPI.addRecentFile).toHaveBeenCalledWith(files[0]);
-            expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
-                parseResult.data,
-                files[0]
-            );
+            expect(
+                fitDataRendererMocks.renderDecodedFitData
+            ).toHaveBeenCalledWith(parseResult.data, files[0]);
         });
     });
 

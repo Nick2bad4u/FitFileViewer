@@ -136,21 +136,13 @@ describe("mapActionButtons", () => {
 
         try {
             const { activeFileName, tabClicks } = mountMapActionDom();
-            const {
-                bounds,
-                fitBounds,
-                polylineBringToFront,
-            } = installMapGlobals();
+            const { bounds, fitBounds, polylineBringToFront } =
+                installMapGlobals();
 
-            const { setupActiveFileNameMapActions } = await import(
-                "../../../../electron-app/utils/maps/controls/mapActionButtons.js"
-            );
-            const {
-                setShownFilesListUpdater,
-                updateShownFilesList,
-            } = await import(
-                "../../../../electron-app/utils/rendering/components/shownFilesListUpdater.js"
-            );
+            const { setupActiveFileNameMapActions } =
+                await import("../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+            const { setShownFilesListUpdater, updateShownFilesList } =
+                await import("../../../../electron-app/utils/rendering/components/shownFilesListUpdater.js");
             const listUpdater = vi.fn<() => void>();
             const disposeListUpdater = setShownFilesListUpdater(listUpdater);
 

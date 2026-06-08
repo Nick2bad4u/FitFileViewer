@@ -221,9 +221,8 @@ describe("chartStatusIndicator.js", () => {
             writable: true,
         });
 
-        Object.defineProperty = vi.fn<DefineProperty>(
-            (obj, prop, descriptor) =>
-                originalDefineProperty.call(Object, obj, prop, descriptor)
+        Object.defineProperty = vi.fn<DefineProperty>((obj, prop, descriptor) =>
+            originalDefineProperty.call(Object, obj, prop, descriptor)
         ) as DefineProperty;
     });
 

@@ -306,9 +306,7 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
                 filePaths: [sampleFitPath],
             });
             await noNodeEnvPage.waitForFunction(() => {
-                const openButton = document.querySelector(
-                    "#open_file_btn"
-                ) as
+                const openButton = document.querySelector("#open_file_btn") as
                     | (HTMLButtonElement & {
                           __ffvLifecycleListenersCleanup?: unknown;
                       })
