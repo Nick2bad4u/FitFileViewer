@@ -849,7 +849,6 @@ describe("stateIntegration comprehensive coverage", () => {
                 }
             );
         });
-
     });
 
     describe("debug utilities", () => {

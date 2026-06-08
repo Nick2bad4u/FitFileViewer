@@ -70,7 +70,16 @@ describe("mapLapSelector", () => {
     it("renders a selector option for each lap plus the all option", () => {
         expect.assertions(5);
 
-        setGlobalData({ lapMesgs: [{}, {}, {}] }, { source: "test" });
+        setGlobalData(
+            {
+                lapMesgs: [
+                    {},
+                    {},
+                    {},
+                ],
+            },
+            { source: "test" }
+        );
         const container = createContainer();
 
         addLapSelector({}, container, vi.fn<DrawLaps>());
@@ -107,7 +116,16 @@ describe("mapLapSelector", () => {
     it("calls mapDrawLaps with selected single and multi-lap values", () => {
         expect.assertions(11);
 
-        setGlobalData({ lapMesgs: [{}, {}, {}] }, { source: "test" });
+        setGlobalData(
+            {
+                lapMesgs: [
+                    {},
+                    {},
+                    {},
+                ],
+            },
+            { source: "test" }
+        );
         const container = createContainer();
         const mapDrawLaps = vi.fn<DrawLaps>();
 

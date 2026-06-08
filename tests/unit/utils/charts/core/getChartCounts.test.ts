@@ -49,13 +49,16 @@ describe(getChartCounts, () => {
         expect.assertions(1);
 
         resetGlobals();
-        setGlobalData({
-            recordMesgs: [
-                null,
-                ["bad"],
-                "bad",
-            ],
-        }, { source: "test" });
+        setGlobalData(
+            {
+                recordMesgs: [
+                    null,
+                    ["bad"],
+                    "bad",
+                ],
+            },
+            { source: "test" }
+        );
 
         expect(getChartCounts()).toStrictEqual({
             available: 0,
@@ -79,34 +82,37 @@ describe(getChartCounts, () => {
         hiddenFields.add("power_lap_zone_individual");
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-        setGlobalData({
-            eventMesgs: [{ event: "start" }],
-            recordMesgs: [
-                null,
-                {
-                    altitude: 50,
-                    developer_stride: "42",
-                    distance: 1_000,
-                    enhancedSpeed: 6.1,
-                    heartRate: 140,
-                    positionLat: 52.5,
-                    power: 210,
-                    speed: "5.8",
-                },
-            ],
-            timeInZoneMesgs: [
-                {
-                    referenceMesg: "session",
-                    timeInHrZone: [1],
-                    timeInPowerZone: [1],
-                },
-                {
-                    referenceMesg: "lap",
-                    timeInHrZone: [2],
-                    timeInPowerZone: [3],
-                },
-            ],
-        }, { source: "test" });
+        setGlobalData(
+            {
+                eventMesgs: [{ event: "start" }],
+                recordMesgs: [
+                    null,
+                    {
+                        altitude: 50,
+                        developer_stride: "42",
+                        distance: 1_000,
+                        enhancedSpeed: 6.1,
+                        heartRate: 140,
+                        positionLat: 52.5,
+                        power: 210,
+                        speed: "5.8",
+                    },
+                ],
+                timeInZoneMesgs: [
+                    {
+                        referenceMesg: "session",
+                        timeInHrZone: [1],
+                        timeInPowerZone: [1],
+                    },
+                    {
+                        referenceMesg: "lap",
+                        timeInHrZone: [2],
+                        timeInPowerZone: [3],
+                    },
+                ],
+            },
+            { source: "test" }
+        );
 
         const counts = getChartCounts();
 
@@ -155,13 +161,16 @@ describe(getChartCounts, () => {
                 .spyOn(console, "error")
                 .mockImplementation(() => {}),
             logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        setGlobalData({
-            recordMesgs: [
-                undefined,
-                "bad row",
-                { custom_field: "text", developer_signal: "NaN" },
-            ],
-        }, { source: "test" });
+        setGlobalData(
+            {
+                recordMesgs: [
+                    undefined,
+                    "bad row",
+                    { custom_field: "text", developer_signal: "NaN" },
+                ],
+            },
+            { source: "test" }
+        );
 
         const counts = getChartCounts();
 

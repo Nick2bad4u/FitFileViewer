@@ -95,13 +95,16 @@ describe("stateHelpers", () => {
     it("computeRangeState returns normalized stats and slider strings for available data", () => {
         expect.hasAssertions();
 
-        setGlobalData({
-            recordMesgs: [
-                { speed: 10 },
-                { speed: 30.25 },
-                { speed: 25.5 },
-            ],
-        }, { source: "test" });
+        setGlobalData(
+            {
+                recordMesgs: [
+                    { speed: 10 },
+                    { speed: 30.25 },
+                    { speed: 25.5 },
+                ],
+            },
+            { source: "test" }
+        );
 
         const { stats, rangeValues, sliderValues } = computeRangeState(
             "speed",

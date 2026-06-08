@@ -15,7 +15,16 @@ describe("mapLapSelector", () => {
         const container = document.createElement("div");
         container.id = "container";
         document.body.replaceChildren(container);
-        setGlobalData({ lapMesgs: [{}, {}, {}] }, { source: "test" });
+        setGlobalData(
+            {
+                lapMesgs: [
+                    {},
+                    {},
+                    {},
+                ],
+            },
+            { source: "test" }
+        );
     });
 
     it("adds control and handles single vs multi select changes", async () => {

@@ -569,10 +569,13 @@ describe("mapDrawLaps", () => {
             ];
 
             // Setup global data
-            setGlobalData({
-                recordMesgs: mockRecordMesgs,
-                lapMesgs: mockLapMesgs,
-            }, { source: "test" });
+            setGlobalData(
+                {
+                    recordMesgs: mockRecordMesgs,
+                    lapMesgs: mockLapMesgs,
+                },
+                { source: "test" }
+            );
             (globalThis as any).mapMarkerCount = 10;
 
             // Setup map container
@@ -645,10 +648,16 @@ describe("mapDrawLaps", () => {
         it("should render a no-location message when every record lacks valid coordinates", () => {
             expect.assertions(5);
 
-            setGlobalData({
-                recordMesgs: [{ altitude: 101 }, { positionLat: "invalid" }],
-                lapMesgs: [{ end_index: 1, start_index: 0 }],
-            }, { source: "test" });
+            setGlobalData(
+                {
+                    recordMesgs: [
+                        { altitude: 101 },
+                        { positionLat: "invalid" },
+                    ],
+                    lapMesgs: [{ end_index: 1, start_index: 0 }],
+                },
+                { source: "test" }
+            );
             (globalThis as any).mapMarkerCount = 0;
 
             const mapContainer = document.createElement("div");
@@ -715,10 +724,13 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            setGlobalData({
-                recordMesgs: mockRecordMesgs,
-                lapMesgs: mockLapMesgs,
-            }, { source: "test" });
+            setGlobalData(
+                {
+                    recordMesgs: mockRecordMesgs,
+                    lapMesgs: mockLapMesgs,
+                },
+                { source: "test" }
+            );
             (globalThis as any).mapMarkerCount = 5;
 
             const mapContainer = document.createElement("div");
@@ -806,10 +818,13 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            setGlobalData({
-                recordMesgs: mockRecordMesgs,
-                lapMesgs: mockLapMesgs,
-            }, { source: "test" });
+            setGlobalData(
+                {
+                    recordMesgs: mockRecordMesgs,
+                    lapMesgs: mockLapMesgs,
+                },
+                { source: "test" }
+            );
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;
@@ -856,10 +871,13 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            setGlobalData({
-                recordMesgs: mockRecordMesgs,
-                lapMesgs: [],
-            }, { source: "test" });
+            setGlobalData(
+                {
+                    recordMesgs: mockRecordMesgs,
+                    lapMesgs: [],
+                },
+                { source: "test" }
+            );
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;
@@ -898,19 +916,22 @@ describe("mapDrawLaps", () => {
             expect.assertions(5);
 
             // Setup main file data
-            setGlobalData({
-                recordMesgs: [
-                    {
-                        positionLat: 429496729,
-                        positionLong: 858993459,
-                        timestamp: 1000,
-                        altitude: 100,
-                        heartRate: 150,
-                        speed: 5.5,
-                    },
-                ],
-                lapMesgs: [],
-            }, { source: "test" });
+            setGlobalData(
+                {
+                    recordMesgs: [
+                        {
+                            positionLat: 429496729,
+                            positionLong: 858993459,
+                            timestamp: 1000,
+                            altitude: 100,
+                            heartRate: 150,
+                            speed: 5.5,
+                        },
+                    ],
+                    lapMesgs: [],
+                },
+                { source: "test" }
+            );
 
             // Setup overlay files
             (globalThis as any).loadedFitFiles = [
@@ -968,19 +989,22 @@ describe("mapDrawLaps", () => {
         it("should handle invalid lap index gracefully", () => {
             expect.assertions(4);
 
-            setGlobalData({
-                recordMesgs: [
-                    {
-                        positionLat: 429496729,
-                        positionLong: 858993459,
-                        timestamp: 1000,
-                        altitude: 100,
-                        heartRate: 150,
-                        speed: 5.5,
-                    },
-                ],
-                lapMesgs: [],
-            }, { source: "test" });
+            setGlobalData(
+                {
+                    recordMesgs: [
+                        {
+                            positionLat: 429496729,
+                            positionLong: 858993459,
+                            timestamp: 1000,
+                            altitude: 100,
+                            heartRate: 150,
+                            speed: 5.5,
+                        },
+                    ],
+                    lapMesgs: [],
+                },
+                { source: "test" }
+            );
 
             const mapContainer = document.createElement("div");
 
@@ -1012,25 +1036,28 @@ describe("mapDrawLaps", () => {
         it("should handle missing position data in records", () => {
             expect.assertions(4);
 
-            setGlobalData({
-                recordMesgs: [
-                    {
-                        timestamp: 1000,
-                        altitude: 100,
-                        heartRate: 150,
-                        speed: 5.5,
-                    }, // Missing position
-                    {
-                        positionLat: 429496729,
-                        positionLong: 858993459,
-                        timestamp: 2000,
-                        altitude: 101,
-                        heartRate: 151,
-                        speed: 5.6,
-                    },
-                ],
-                lapMesgs: [],
-            }, { source: "test" });
+            setGlobalData(
+                {
+                    recordMesgs: [
+                        {
+                            timestamp: 1000,
+                            altitude: 100,
+                            heartRate: 150,
+                            speed: 5.5,
+                        }, // Missing position
+                        {
+                            positionLat: 429496729,
+                            positionLong: 858993459,
+                            timestamp: 2000,
+                            altitude: 101,
+                            heartRate: 151,
+                            speed: 5.6,
+                        },
+                    ],
+                    lapMesgs: [],
+                },
+                { source: "test" }
+            );
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;

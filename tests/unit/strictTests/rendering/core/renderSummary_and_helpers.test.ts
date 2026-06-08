@@ -74,10 +74,7 @@ describe("renderSummary helpers + renderSummary", () => {
             `summaryColSel_${encodeURIComponent("/a/b/c.fit")}`
         );
 
-        setGlobalData(
-            { cachedFilePath: "C:/tmp/foo.fit" },
-            { source: "test" }
-        );
+        setGlobalData({ cachedFilePath: "C:/tmp/foo.fit" }, { source: "test" });
         expect(getStorageKey({ cachedFilePath: "/a/b/c.fit" }, [])).toBe(
             `summaryColSel_${encodeURIComponent("C:/tmp/foo.fit")}`
         );

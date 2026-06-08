@@ -629,16 +629,19 @@ describe(setupListeners, () => {
             ipcHandlers.get("export-file"),
             "export-file"
         );
-        setGlobalData({
-            recordMesgs: [
-                {
-                    positionLat: 1000,
-                    positionLong: 1000,
-                    timestamp: 10,
-                    enhancedAltitude: 5,
-                },
-            ],
-        }, { source: "test" });
+        setGlobalData(
+            {
+                recordMesgs: [
+                    {
+                        positionLat: 1000,
+                        positionLong: 1000,
+                        timestamp: 10,
+                        enhancedAltitude: 5,
+                    },
+                ],
+            },
+            { source: "test" }
+        );
         globalAny.loadedFitFiles = [{ displayName: "Demo Ride" }];
 
         const createObjectURLSpy = vi

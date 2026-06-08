@@ -35,14 +35,12 @@ describe("summaryColModal - file override persistence", () => {
         localStorage.clear();
         vi.resetModules();
         vi.restoreAllMocks();
-        const stateManager = await import(
-            "../../../../../electron-app/utils/state/core/stateManager.js"
-        );
+        const stateManager =
+            await import("../../../../../electron-app/utils/state/core/stateManager.js");
         resetStateManager = stateManager.__resetStateManagerForTests;
         resetStateManager();
-        const { setGlobalData } = await import(
-            "../../../../../electron-app/utils/state/core/globalDataStore.js"
-        );
+        const { setGlobalData } =
+            await import("../../../../../electron-app/utils/state/core/globalDataStore.js");
         setGlobalData(
             { cachedFilePath: "C:/tmp/activity.fit" },
             { source: "test" }

@@ -129,24 +129,27 @@ beforeEach(() => {
     document.body.replaceChildren();
     globalThis.mapDataPointFilter = undefined;
     globalThis.mapDataPointFilterLastResult = undefined;
-    setGlobalData({
-        recordMesgs: [
-            {
-                speed: 6.5,
-                power: 210,
-                cadence: 85,
-                heartRate: 145,
-                altitude: 120,
-            },
-            {
-                speed: 7.2,
-                power: 230,
-                cadence: 92,
-                heartRate: 152,
-                altitude: 128,
-            },
-        ],
-    }, { source: "test" });
+    setGlobalData(
+        {
+            recordMesgs: [
+                {
+                    speed: 6.5,
+                    power: 210,
+                    cadence: 85,
+                    heartRate: 145,
+                    altitude: 120,
+                },
+                {
+                    speed: 7.2,
+                    power: 230,
+                    cadence: 92,
+                    heartRate: 152,
+                    altitude: 128,
+                },
+            ],
+        },
+        { source: "test" }
+    );
     originalQueueMicrotask = globalThis.queueMicrotask;
 
     originalRAF = globalThis.requestAnimationFrame;

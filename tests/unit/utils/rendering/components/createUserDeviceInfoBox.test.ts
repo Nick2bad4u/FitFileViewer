@@ -104,9 +104,7 @@ vi.mock(
 );
 
 import { createUserDeviceInfoBox } from "../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBox.js";
-import {
-    setGlobalData as setManagedGlobalData,
-} from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { setGlobalData as setManagedGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
 import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 function getTestWindow(): TestWindow {

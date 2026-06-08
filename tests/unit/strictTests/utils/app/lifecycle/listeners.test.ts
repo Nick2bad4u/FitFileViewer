@@ -618,12 +618,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         // Provide two records, one invalid, one valid
-        setGlobalData({
-            recordMesgs: [
-                { positionLat: undefined, positionLong: undefined },
-                { positionLat: 1 << 30, positionLong: 1 << 30 },
-            ],
-        }, { source: "test" });
+        setGlobalData(
+            {
+                recordMesgs: [
+                    { positionLat: undefined, positionLong: undefined },
+                    { positionLat: 1 << 30, positionLong: 1 << 30 },
+                ],
+            },
+            { source: "test" }
+        );
 
         await window.electronAPI.emit("export-file", "C:/tmp/out.gpx");
         expect(getGlobalData<any>()?.recordMesgs).toHaveLength(2);
@@ -631,9 +634,12 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Case 2: no valid coords
         clickSpy.mockReset();
-        setGlobalData({
-            recordMesgs: [{}, {}],
-        }, { source: "test" });
+        setGlobalData(
+            {
+                recordMesgs: [{}, {}],
+            },
+            { source: "test" }
+        );
         await window.electronAPI.emit("export-file", "C:/tmp/out.gpx");
         expect(showNotification).toHaveBeenCalledWith(
             "No valid coordinates found for GPX export.",
@@ -1418,9 +1424,12 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        setGlobalData({
-            recordMesgs: [{ positionLat: 1 << 30, positionLong: 1 << 30 }],
-        }, { source: "test" });
+        setGlobalData(
+            {
+                recordMesgs: [{ positionLat: 1 << 30, positionLong: 1 << 30 }],
+            },
+            { source: "test" }
+        );
 
         // Remove createExportGPXButton
         (window as any).createExportGPXButton = undefined;
@@ -2067,20 +2076,23 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             Math.round((degrees * 2 ** 31) / 180);
 
         // Mock globalData with valid coordinates
-        setGlobalData({
-            recordMesgs: [
-                {
-                    positionLat: semicircleConversion(40.7589), // NYC latitude in semicircles
-                    positionLong: semicircleConversion(-73.9851), // NYC longitude in semicircles
-                    timestamp: 1000000,
-                },
-                {
-                    positionLat: semicircleConversion(40.7614), // Another NYC point
-                    positionLong: semicircleConversion(-73.9776),
-                    timestamp: 1000001,
-                },
-            ],
-        }, { source: "test" });
+        setGlobalData(
+            {
+                recordMesgs: [
+                    {
+                        positionLat: semicircleConversion(40.7589), // NYC latitude in semicircles
+                        positionLong: semicircleConversion(-73.9851), // NYC longitude in semicircles
+                        timestamp: 1000000,
+                    },
+                    {
+                        positionLat: semicircleConversion(40.7614), // Another NYC point
+                        positionLong: semicircleConversion(-73.9776),
+                        timestamp: 1000001,
+                    },
+                ],
+            },
+            { source: "test" }
+        );
 
         const createObjectURL = vi.fn<CreateObjectUrlMock>(
             () => "blob:test-url"
@@ -2432,10 +2444,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        setGlobalData(
-            { cachedFilePath: "/test/file.fit" },
-            { source: "test" }
-        );
+        setGlobalData({ cachedFilePath: "/test/file.fit" }, { source: "test" });
 
         // Mock error in file reload
         vi.mocked(electronAPI.readFile).mockRejectedValue(
