@@ -25,10 +25,11 @@ export function createBuildMatrixSummaryRow(options) {
     const status = resolveBuildStatus(
         options.jobStatus,
         options.buildOutcome,
-        options.packagedSmokeOutcome
+        options.packagedSmokeOutcome,
+        options.signingVerificationOutcome
     );
 
-    return `| ${options.version} | ${options.matrixOs} | ${options.arch} | Build Status: ${status} |`;
+    return `| ${options.version} | ${options.matrixOs} | ${options.arch} | Build Status: ${status} | Signing Verification: ${resolveSigningVerificationStatus(options.signingVerificationOutcome)} |`;
 }
 
 export function parseArgs(args, environment = process.env) {
@@ -40,6 +41,7 @@ export function parseArgs(args, environment = process.env) {
         jobStatus: environment.JOB_STATUS,
         matrixOs: environment.MATRIX_OS,
         packagedSmokeOutcome: environment.PACKAGED_SMOKE_OUTCOME,
+        signingVerificationOutcome: environment.SIGNING_VERIFICATION_OUTCOME,
         version: environment.BUILD_VERSION,
     };
 
@@ -127,6 +129,24 @@ export function parseArgs(args, environment = process.env) {
             continue;
         }
 
+        if (arg === "--signing-verification-outcome") {
+            options.signingVerificationOutcome = readOptionValue(
+                args,
+                index,
+                "--signing-verification-outcome"
+            );
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--signing-verification-outcome=")) {
+            options.signingVerificationOutcome = readInlineOptionValue(
+                arg,
+                "--signing-verification-outcome"
+            );
+            continue;
+        }
+
         if (arg === "--matrix-os") {
             options.matrixOs = readOptionValue(args, index, "--matrix-os");
             index += 1;
@@ -166,7 +186,8 @@ export function parseArgs(args, environment = process.env) {
 export function resolveBuildStatus(
     jobStatus,
     buildOutcome,
-    packagedSmokeOutcome
+    packagedSmokeOutcome,
+    signingVerificationOutcome
 ) {
     if (buildOutcome === "failure") {
         return "failure";
@@ -176,11 +197,19 @@ export function resolveBuildStatus(
         return "failure";
     }
 
+    if (signingVerificationOutcome === "failure") {
+        return "failure";
+    }
+
     if (buildOutcome === "success" && packagedSmokeOutcome === "success") {
         return "success";
     }
 
     return jobStatus;
+}
+
+export function resolveSigningVerificationStatus(signingVerificationOutcome) {
+    return signingVerificationOutcome || "not run";
 }
 
 export function updateBuildMatrixSummary(options) {
@@ -201,6 +230,8 @@ Options:
   --build-outcome <outcome>        Build step outcome. Defaults to BUILD_APP_OUTCOME.
   --packaged-smoke-outcome <outcome>
                                    Packaged smoke step outcome. Defaults to PACKAGED_SMOKE_OUTCOME.
+  --signing-verification-outcome <outcome>
+                                   Signing verification step outcome. Defaults to SIGNING_VERIFICATION_OUTCOME.
   --github-step-summary <path>     Summary file. Defaults to GITHUB_STEP_SUMMARY.
   -h, --help                       Show this help text.`);
 }

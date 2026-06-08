@@ -292,6 +292,7 @@ jobs:
                   MATRIX_ARCH: ${{ matrix.arch }}
                   MATRIX_OS: ${{ matrix.os }}
                   PACKAGED_SMOKE_OUTCOME: ${{ steps.smoke_packaged_app.outcome }}
+                  SIGNING_VERIFICATION_OUTCOME: ${{ steps.verify_signed_artifacts.outcome }}
 
     release:
         name: Create Release

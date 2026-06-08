@@ -11,6 +11,7 @@ type UpdateBuildMatrixSummaryModule = {
         jobStatus: string;
         matrixOs: string;
         packagedSmokeOutcome?: string;
+        signingVerificationOutcome?: string;
         version: string;
     }) => string;
     parseArgs: (
@@ -24,12 +25,17 @@ type UpdateBuildMatrixSummaryModule = {
         jobStatus: string;
         matrixOs: string;
         packagedSmokeOutcome?: string;
+        signingVerificationOutcome?: string;
         version: string;
     };
     resolveBuildStatus: (
         jobStatus: string,
         buildOutcome?: string,
-        packagedSmokeOutcome?: string
+        packagedSmokeOutcome?: string,
+        signingVerificationOutcome?: string
+    ) => string;
+    resolveSigningVerificationStatus: (
+        signingVerificationOutcome?: string
     ) => string;
     updateBuildMatrixSummary: (options: {
         arch: string;
@@ -38,6 +44,7 @@ type UpdateBuildMatrixSummaryModule = {
         jobStatus: string;
         matrixOs: string;
         packagedSmokeOutcome?: string;
+        signingVerificationOutcome?: string;
         version: string;
     }) => void;
 };
@@ -65,23 +72,26 @@ afterEach(() => {
 });
 
 describe("update-build-matrix-summary script", () => {
-    it("normalizes the build status from the build step outcome", async () => {
-        expect.assertions(4);
+    it("normalizes the build status from build, smoke, and signing outcomes", async () => {
+        expect.assertions(5);
 
         const { resolveBuildStatus } = await importUpdateBuildMatrixSummary();
 
-        expect(resolveBuildStatus("cancelled", "failure", "success")).toBe(
-            "failure"
-        );
-        expect(resolveBuildStatus("failure", "success", "failure")).toBe(
-            "failure"
-        );
-        expect(resolveBuildStatus("failure", "success", "success")).toBe(
-            "success"
-        );
-        expect(resolveBuildStatus("cancelled", "skipped", "skipped")).toBe(
-            "cancelled"
-        );
+        expect(
+            resolveBuildStatus("cancelled", "failure", "success", "success")
+        ).toBe("failure");
+        expect(
+            resolveBuildStatus("failure", "success", "failure", "success")
+        ).toBe("failure");
+        expect(
+            resolveBuildStatus("failure", "success", "success", "failure")
+        ).toBe("failure");
+        expect(
+            resolveBuildStatus("failure", "success", "success", "success")
+        ).toBe("success");
+        expect(
+            resolveBuildStatus("cancelled", "skipped", "skipped", "skipped")
+        ).toBe("cancelled");
     });
 
     it("creates the build matrix summary row", async () => {
@@ -97,9 +107,33 @@ describe("update-build-matrix-summary script", () => {
                 jobStatus: "failure",
                 matrixOs: "windows-latest",
                 packagedSmokeOutcome: "success",
+                signingVerificationOutcome: "success",
                 version: "30.0.0",
             })
-        ).toBe("| 30.0.0 | windows-latest | x64 | Build Status: success |");
+        ).toBe(
+            "| 30.0.0 | windows-latest | x64 | Build Status: success | Signing Verification: success |"
+        );
+    });
+
+    it("marks unsigned platform summary rows as signing not run", async () => {
+        expect.assertions(2);
+
+        const {
+            createBuildMatrixSummaryRow,
+            resolveSigningVerificationStatus,
+        } = await importUpdateBuildMatrixSummary();
+
+        expect(resolveSigningVerificationStatus()).toBe("not run");
+        expect(
+            createBuildMatrixSummaryRow({
+                arch: "x64",
+                buildOutcome: "success",
+                jobStatus: "success",
+                matrixOs: "ubuntu-latest",
+                packagedSmokeOutcome: "success",
+                version: "30.0.0",
+            })
+        ).toContain("Signing Verification: not run");
     });
 
     it("appends the summary row to GITHUB_STEP_SUMMARY", async () => {
@@ -116,11 +150,12 @@ describe("update-build-matrix-summary script", () => {
             jobStatus: "success",
             matrixOs: "macos-15",
             packagedSmokeOutcome: "success",
+            signingVerificationOutcome: "failure",
             version: "30.0.0",
         });
 
         expect(fs.readFileSync(summaryPath, "utf8")).toBe(
-            "| 30.0.0 | macos-15 | arm64 | Build Status: failure |\n"
+            "| 30.0.0 | macos-15 | arm64 | Build Status: failure | Signing Verification: failure |\n"
         );
     });
 
@@ -138,6 +173,7 @@ describe("update-build-matrix-summary script", () => {
                 MATRIX_ARCH: "x64",
                 MATRIX_OS: "windows-latest",
                 PACKAGED_SMOKE_OUTCOME: "success",
+                SIGNING_VERIFICATION_OUTCOME: "success",
             })
         ).toStrictEqual({
             arch: "x64",
@@ -147,6 +183,7 @@ describe("update-build-matrix-summary script", () => {
             jobStatus: "failure",
             matrixOs: "windows-latest",
             packagedSmokeOutcome: "success",
+            signingVerificationOutcome: "success",
             version: "30.0.0",
         });
         expect(
@@ -161,6 +198,7 @@ describe("update-build-matrix-summary script", () => {
                     "--build-outcome=failure",
                     "--packaged-smoke-outcome",
                     "success",
+                    "--signing-verification-outcome=skipped",
                     "--github-step-summary",
                     "tmp/summary.md",
                 ],
@@ -174,6 +212,7 @@ describe("update-build-matrix-summary script", () => {
             jobStatus: "success",
             matrixOs: "ubuntu-latest",
             packagedSmokeOutcome: "success",
+            signingVerificationOutcome: "skipped",
             version: "31.0.0",
         });
     });
