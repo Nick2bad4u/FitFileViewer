@@ -263,7 +263,5 @@ export interface PreloadModuleRegistry {
         ipcRenderer: null | PreloadIpcRenderer | undefined;
     };
     shouldAllowGenericIpcBridge: (processRef?: NodeJS.Process) => boolean;
-    shouldEnforceGenericIpcAllowlist: (
-        processRef?: NodeJS.Process
-    ) => boolean;
+    shouldEnforceGenericIpcAllowlist: (processRef?: NodeJS.Process) => boolean;
 }

@@ -37,6 +37,7 @@
         "electron-app/preload/mainStateApi.ts",
         "electron-app/preload/mainStateBridge.ts",
         "electron-app/preload/preloadModuleLoader.ts",
+        "electron-app/preload/preloadModuleTypes.ts",
         "electron-app/preload/validators.ts",
         "electron-app/preload/ipcBridgeCatalog.ts",
         "electron-app/renderer/vendorBundleLoader.ts",
