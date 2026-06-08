@@ -178,4 +178,23 @@ describe("renderer test-only bootstrap wiring", () => {
             [setupListeners, setupTheme].map((mock) => mock.mock.calls)
         ).toStrictEqual([[], []]);
     });
+
+    it("ignores combined registration failures", () => {
+        expect.assertions(1);
+
+        const { options } = createOptions();
+        const throwingDocumentTarget = {
+            addEventListener: () => {
+                throw new Error("listener failed");
+            },
+        } as unknown as Document;
+
+        expect(() => {
+            registerRendererTestOnlyBootstrap(options, {
+                documentTarget: throwingDocumentTarget,
+                unloadTarget: globalThis,
+                windowTarget: globalThis,
+            });
+        }).not.toThrow();
+    });
 });

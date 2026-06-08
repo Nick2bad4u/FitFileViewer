@@ -235,15 +235,10 @@ installRendererElectronApiWiring({
     setInterval: globalThis.setInterval.bind(globalThis),
 });
 
-// Ensure mocked setupListeners and theme setup are invoked for event-based tests
-try {
-    registerRendererTestOnlyBootstrap(testOnlyBootstrapOptions, {
-        documentTarget: document,
-        unloadTarget: globalThis,
-        windowTarget: globalThis,
-    });
-} catch {
-    /* Ignore errors */
-}
+registerRendererTestOnlyBootstrap(testOnlyBootstrapOptions, {
+    documentTarget: document,
+    unloadTarget: globalThis,
+    windowTarget: globalThis,
+});
 
 fileInputWiring.registerDelegatedFileInputChangeListener(document, globalThis);

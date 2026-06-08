@@ -140,21 +140,25 @@ export function registerRendererTestOnlyBootstrap(
         readonly windowTarget: EventTarget;
     }
 ): void {
-    const onTestDOMContentLoadedSetupListeners =
-        createTestDOMContentLoadedSetupHandler(options);
-    const onTestWindowLoadSetupTheme =
-        createTestWindowLoadThemeSetupHandler(options);
+    try {
+        const onTestDOMContentLoadedSetupListeners =
+            createTestDOMContentLoadedSetupHandler(options);
+        const onTestWindowLoadSetupTheme =
+            createTestWindowLoadThemeSetupHandler(options);
 
-    registerTestDOMContentLoadedSetupListener(
-        targets.documentTarget,
-        targets.unloadTarget,
-        onTestDOMContentLoadedSetupListeners
-    );
-    registerTestWindowLoadThemeSetupListener(
-        targets.windowTarget,
-        targets.unloadTarget,
-        onTestWindowLoadSetupTheme
-    );
+        registerTestDOMContentLoadedSetupListener(
+            targets.documentTarget,
+            targets.unloadTarget,
+            onTestDOMContentLoadedSetupListeners
+        );
+        registerTestWindowLoadThemeSetupListener(
+            targets.windowTarget,
+            targets.unloadTarget,
+            onTestWindowLoadSetupTheme
+        );
+    } catch {
+        /* Ignore errors */
+    }
 }
 
 function toModuleRecord(value: unknown): Record<string, unknown> {
