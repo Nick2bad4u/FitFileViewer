@@ -46,8 +46,7 @@ import {
     resolveManualMock,
     toModuleRecord,
 } from "./renderer/coreModuleResolution.js";
-import { createRendererElectronMenuActionHandlers } from "./renderer/electronMenuActionHandlers.js";
-import { installRendererElectronApiRegistration } from "./renderer/electronApiRegistration.js";
+import { installRendererElectronApiWiring } from "./renderer/electronApiWiring.js";
 import { createRendererErrorEventHandlers } from "./renderer/errorHandling.js";
 import { createRendererLifecycleCleanup } from "./renderer/lifecycleCleanup.js";
 import { createRendererStateStartup } from "./renderer/stateManagerStartup.js";
@@ -273,19 +272,14 @@ try {
     /* Ignore errors */
 }
 
-const electronMenuActionHandlers = createRendererElectronMenuActionHandlers({
+installRendererElectronApiWiring({
+    addEventListener: globalThis.addEventListener.bind(globalThis),
     callUnknownFunction,
+    clearInterval: globalThis.clearInterval.bind(globalThis),
+    defineProperty: Object.defineProperty,
     ensureCoreModules,
     getFileInput: fileInputWiring.getFileInput,
     logRenderer,
-});
-
-installRendererElectronApiRegistration({
-    addEventListener: globalThis.addEventListener.bind(globalThis),
-    clearInterval: globalThis.clearInterval.bind(globalThis),
-    defineProperty: Object.defineProperty,
-    onMenuAction: electronMenuActionHandlers.onMenuAction,
-    onThemeChanged: electronMenuActionHandlers.onThemeChanged,
     removeEventListener: globalThis.removeEventListener.bind(globalThis),
     scheduleStateInitialization: scheduleImportTimeStateInitialization,
     scope: globalThis,
