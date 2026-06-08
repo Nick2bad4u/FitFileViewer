@@ -88,7 +88,9 @@ jobs:
             - name: Run release verification and packaged smoke
               run: ${{ matrix.release-verify-command }}
               env:
+                  CSC_IDENTITY_AUTO_DISCOVERY: "false"
                   FFV_PACKAGED_SMOKE_TIMEOUT_MS: ${{ inputs.smoke-timeout-ms }}
+                  FFV_FORCE_UNSIGNED_PACKAGE: "true"
                   REQUIRE_CODE_SIGNING: "false"
                   RUNNER_OS: ${{ matrix.runner-os }}
 

@@ -450,6 +450,12 @@ Linux, Windows, and macOS, checks signing availability without publishing,
 builds unsigned artifacts, runs packaged startup smoke checks, and uploads the
 `release-dist` outputs as workflow artifacts.
 
+The rehearsal packaging step sets `FFV_FORCE_UNSIGNED_PACKAGE=true` and
+`CSC_IDENTITY_AUTO_DISCOVERY=false`, so it strips signing variables before
+electron-builder starts. Keep this separate from signed release packaging; use
+the signing preflight to prove credentials are present, then build rehearsal
+artifacts unsigned.
+
 Use `require-code-signing=true` only when the required signing secrets are
 expected to be present. Leave `fail-fast=false` when you want every platform to
 complete and report its own readiness result.

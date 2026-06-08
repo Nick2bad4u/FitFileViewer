@@ -16,7 +16,7 @@ function readReleaseRehearsalWorkflow(): string {
 
 describe("release rehearsal workflow", () => {
     it("runs the release gate, signing preflight, packaged smoke, and artifact upload without publishing", () => {
-        expect.assertions(24);
+        expect.assertions(26);
 
         const workflow = readReleaseRehearsalWorkflow();
 
@@ -44,6 +44,8 @@ describe("release rehearsal workflow", () => {
             "release-verify-command: npm run release:verify"
         );
         expect(workflow).toContain("FFV_PACKAGED_SMOKE_TIMEOUT_MS:");
+        expect(workflow).toContain('FFV_FORCE_UNSIGNED_PACKAGE: "true"');
+        expect(workflow).toContain('CSC_IDENTITY_AUTO_DISCOVERY: "false"');
         expect(workflow).toContain("npm run release:list-release-dist-files");
         expect(workflow).toContain('REQUIRE_CODE_SIGNING: "false"');
         expect(workflow).toContain("actions/upload-artifact@");

@@ -46,11 +46,14 @@ const signingEnvironmentNames = [
     "APPLE_KEYCHAIN",
     "APPLE_KEYCHAIN_PROFILE",
     "APPLE_TEAM_ID",
+    "CSC_IDENTITY_AUTO_DISCOVERY",
     "CSC_INSTALLER_KEY_PASSWORD",
     "CSC_INSTALLER_LINK",
     "CSC_KEY_PASSWORD",
     "CSC_LINK",
+    "CSC_NAME",
     "WIN_CSC_LINK",
+    "WIN_CSC_NAME",
 ];
 
 export function parseArgs(argv) {
@@ -130,6 +133,10 @@ export function getElectronBuilderEnvironment(
     environment = process.env,
     platform = process.platform
 ) {
+    if (isEnvironmentFlagEnabled(environment.FFV_FORCE_UNSIGNED_PACKAGE)) {
+        return getUnsignedElectronBuilderEnvironment(environment);
+    }
+
     const signingErrors = getCodeSigningValidationErrors(environment, platform);
 
     if (signingErrors.length > 0) {
@@ -153,6 +160,21 @@ export function getElectronBuilderEnvironment(
     }
 
     return environment;
+}
+
+export function getUnsignedElectronBuilderEnvironment(environment) {
+    const signingEnvironmentNameSet = new Set(signingEnvironmentNames);
+    const unsignedEnvironment = Object.fromEntries(
+        Object.entries(environment).filter(
+            ([name]) => !signingEnvironmentNameSet.has(name)
+        )
+    );
+
+    return {
+        ...unsignedEnvironment,
+        CSC_IDENTITY_AUTO_DISCOVERY: "false",
+        REQUIRE_CODE_SIGNING: "false",
+    };
 }
 
 export function runElectronBuilder(
@@ -193,6 +215,17 @@ export function runElectronBuilder(
 function hasAnySigningEnvironment(environment) {
     return signingEnvironmentNames.some((name) =>
         hasEnvironmentValue(environment, name)
+    );
+}
+
+function isEnvironmentFlagEnabled(value) {
+    return (
+        typeof value === "string" &&
+        [
+            "1",
+            "true",
+            "yes",
+        ].includes(value.toLowerCase())
     );
 }
 

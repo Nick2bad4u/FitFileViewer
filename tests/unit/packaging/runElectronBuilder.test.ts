@@ -26,6 +26,9 @@ type RunElectronBuilderModule = {
         environment?: NodeJS.ProcessEnv,
         platform?: NodeJS.Platform
     ) => NodeJS.ProcessEnv;
+    getUnsignedElectronBuilderEnvironment: (
+        environment: NodeJS.ProcessEnv
+    ) => NodeJS.ProcessEnv;
     parseArgs: (args: string[]) => {
         builderArgs: string[];
         nodeEnv: string | undefined;
@@ -211,6 +214,39 @@ describe("run-electron-builder script", () => {
             CSC_IDENTITY_AUTO_DISCOVERY: "true",
             FFV_TEST_ENV: "1",
         });
+    });
+
+    it("strips signing variables for forced unsigned release rehearsals", async () => {
+        expect.assertions(2);
+
+        const {
+            getElectronBuilderEnvironment,
+            getUnsignedElectronBuilderEnvironment,
+        } = await importRunElectronBuilder();
+        const environment = {
+            APPLE_API_KEY: "notary-key",
+            CSC_IDENTITY_AUTO_DISCOVERY: "true",
+            CSC_KEY_PASSWORD: "password",
+            CSC_LINK: "certificate.p12",
+            CSC_NAME: "Developer ID Application",
+            FFV_FORCE_UNSIGNED_PACKAGE: "true",
+            FFV_TEST_ENV: "1",
+            REQUIRE_CODE_SIGNING: "true",
+            WIN_CSC_LINK: "windows.pfx",
+        };
+        const unsignedEnvironment = {
+            CSC_IDENTITY_AUTO_DISCOVERY: "false",
+            FFV_FORCE_UNSIGNED_PACKAGE: "true",
+            FFV_TEST_ENV: "1",
+            REQUIRE_CODE_SIGNING: "false",
+        };
+
+        expect(
+            getUnsignedElectronBuilderEnvironment(environment)
+        ).toStrictEqual(unsignedEnvironment);
+        expect(
+            getElectronBuilderEnvironment(environment, "darwin")
+        ).toStrictEqual(unsignedEnvironment);
     });
 
     it("validates required Windows signing secrets for release builds", async () => {
