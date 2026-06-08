@@ -2,7 +2,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
-    defineLegacyGlobalDataBridge,
     getGlobalData,
     setGlobalData,
 } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
@@ -54,27 +53,6 @@ describe("globalDataStore", () => {
         expect(getGlobalData()).toBe(data);
     });
 
-    it("defines a temporary legacy globalData bridge backed by managed state", () => {
-        expect.assertions(3);
-
-        const testGlobal = globalThis as GlobalDataTestScope;
-        const firstData = { active: true };
-        const secondData = { active: false };
-
-        expect(
-            defineLegacyGlobalDataBridge({
-                silent: false,
-                source: "test.globalData",
-            })
-        ).toBe(true);
-
-        setGlobalData(firstData, { source: "test" });
-        expect(testGlobal.globalData).toBe(firstData);
-
-        testGlobal.globalData = secondData;
-        expect(getState("globalData")).toBe(secondData);
-    });
-
     it("does not synchronize existing legacy globalData accessors on managed writes", () => {
         expect.assertions(4);
 
@@ -104,8 +82,8 @@ describe("globalDataStore", () => {
         ).toHaveProperty("set");
     });
 
-    it("does not replace a non-configurable legacy globalData property", () => {
-        expect.assertions(2);
+    it("reads a non-configurable plain legacy globalData property", () => {
+        expect.assertions(1);
 
         const data = { locked: true };
         const scope = {};
@@ -116,12 +94,6 @@ describe("globalDataStore", () => {
             writable: true,
         });
 
-        expect(
-            defineLegacyGlobalDataBridge({
-                scope: scope as GlobalDataTestScope,
-                source: "test.globalData",
-            })
-        ).toBe(false);
         expect(getGlobalData(scope as GlobalDataTestScope)).toBe(data);
     });
 });

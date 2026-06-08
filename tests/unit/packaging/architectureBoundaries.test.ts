@@ -38,9 +38,7 @@ const sourceExtensions = new Set([
     ".ts",
 ]);
 
-const allowedLegacyGlobalDataBridgeFiles = new Set([
-    "electron-app/utils/state/core/globalDataStore.ts",
-]);
+const allowedLegacyGlobalDataBridgeFiles = new Set<string>();
 
 const migratedGlobalDataReaderFiles = [
     "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
