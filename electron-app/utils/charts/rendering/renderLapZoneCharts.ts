@@ -5,7 +5,7 @@ import {
     isDevelopmentEnvironment,
     isTestEnvironment,
 } from "../../runtime/processEnvironment.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
+import { FitFileSelectors } from "../../state/domain/fitFileState.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
@@ -38,10 +38,6 @@ interface LapZoneRuntimeGlobal {
     readonly heartRateZones?: unknown;
     readonly powerZones?: unknown;
     readonly showNotification?: (message: string, type: string) => void;
-}
-
-interface LapZoneGlobalData {
-    readonly timeInZoneMesgs?: unknown;
 }
 
 interface LapZoneVisibility {
@@ -304,8 +300,11 @@ function getRuntimeGlobal(): LapZoneRuntimeGlobal {
 }
 
 function getTimeInZoneMessages(): readonly unknown[] | null {
-    const timeInZoneMesgs = getGlobalData<LapZoneGlobalData>()?.timeInZoneMesgs;
-    return Array.isArray(timeInZoneMesgs) ? timeInZoneMesgs : null;
+    const rawData = FitFileSelectors.getRawData();
+    if (!rawData || !Array.isArray(rawData.timeInZoneMesgs)) {
+        return null;
+    }
+    return FitFileSelectors.getTimeInZoneMessages();
 }
 
 function isTimeInZoneMessage(value: unknown): value is TimeInZoneMessage {

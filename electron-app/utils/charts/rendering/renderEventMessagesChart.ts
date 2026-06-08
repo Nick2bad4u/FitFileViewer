@@ -1,6 +1,6 @@
 import { getUnitSymbol } from "../../data/lookups/getUnitSymbol.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
+import { FitFileSelectors } from "../../state/domain/fitFileState.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 import {
     getThemeConfig,
@@ -40,10 +40,6 @@ type EventTooltipContext = {
     readonly raw?: {
         readonly event?: unknown;
     };
-};
-
-type EventMessagesGlobalData = {
-    readonly eventMesgs?: unknown;
 };
 
 type EventThemeColors = {
@@ -165,8 +161,8 @@ export function renderEventMessagesChart(
 ): void {
     try {
         const eventMesgs =
-            getGlobalData<EventMessagesGlobalData>()?.eventMesgs;
-        if (!Array.isArray(eventMesgs) || eventMesgs.length === 0) {
+            FitFileSelectors.getEventMessages<EventMessageRecord>();
+        if (eventMesgs.length === 0) {
             return;
         }
 
