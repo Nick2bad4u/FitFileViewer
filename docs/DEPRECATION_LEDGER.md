@@ -73,7 +73,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Temporary surface: CommonJS-style preload and runtime bridge modules
 - Current owners: `electron-app/preload.ts`, `electron-app/preload/`, runtime build scripts
 - Compatibility callers: packaged Electron runtime and tests that exercise generated CommonJS output
-- Current status: required by current Electron packaging and preload bundling path; domain-specific preload files exist but still export CommonJS-compatible surfaces
+- Current status: required by current Electron packaging and preload bundling path; domain-specific preload files exist but still export CommonJS-compatible surfaces, and dev-only global exposure now lives in `electron-app/preload/developmentToolsGlobal.ts` instead of the root preload composition file
 - Next removal step: keep splitting preload APIs by domain while adding stricter schema validation for file access, external links, browser folder listing, app state, and dev tools
 - Verification gates:
   - `npm run build:runtime-ts`

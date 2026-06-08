@@ -206,6 +206,15 @@ interface PreloadRequire {
             ) => null | string | undefined;
         }) => Pick<ElectronAPI, "injectMenu">;
     };
+    (moduleId: "./preload/developmentToolsGlobal.js"): {
+        exposeDevelopmentToolsGlobal: (options: {
+            api: ElectronAPI;
+            constants: unknown;
+            contextBridge: null | PreloadContextBridge | undefined;
+            isDevelopmentMode: () => boolean;
+            preloadLog: PreloadLog;
+        }) => boolean;
+    };
     (moduleId: "./preload/fitBrowserApi.js"): {
         createFitBrowserApi: (options: {
             channels: Pick<
@@ -579,6 +588,9 @@ const { createClipboardBridge } = (require as PreloadRequire)(
 const { createDevtoolsMenuApi } = (require as PreloadRequire)(
     "./preload/devtoolsMenuApi.js"
 );
+const { exposeDevelopmentToolsGlobal } = (require as PreloadRequire)(
+    "./preload/developmentToolsGlobal.js"
+);
 const { createFitBrowserApi } = (require as PreloadRequire)(
     "./preload/fitBrowserApi.js"
 );
@@ -589,9 +601,7 @@ const { createExternalApi } = (require as PreloadRequire)(
 const { createMenuEventApi } = (require as PreloadRequire)(
     "./preload/menuEventApi.js"
 );
-const { createThemeApi } = (require as PreloadRequire)(
-    "./preload/themeApi.js"
-);
+const { createThemeApi } = (require as PreloadRequire)("./preload/themeApi.js");
 const { createPreloadValidators } = (require as PreloadRequire)(
     "./preload/validators.js"
 );
@@ -643,7 +653,6 @@ const CONSTANTS = {
     },
     EVENTS: PRELOAD_EVENTS,
 };
-const DEVELOPMENT_TOOLS_GLOBAL_NAME = ["dev", "Tools"].join("");
 
 const { contextBridge, ipcRenderer } = resolvePreloadElectronBridge({
     globalScope: getPreloadGlobal(),
@@ -768,8 +777,7 @@ const fitBrowserApi = createFitBrowserApi({
 const fileApi = createFileApi({
     channels: {
         DIALOG_OPEN_FILE: CONSTANTS.CHANNELS.DIALOG_OPEN_FILE,
-        DIALOG_OPEN_OVERLAY_FILES:
-            CONSTANTS.CHANNELS.DIALOG_OPEN_OVERLAY_FILES,
+        DIALOG_OPEN_OVERLAY_FILES: CONSTANTS.CHANNELS.DIALOG_OPEN_OVERLAY_FILES,
         FILE_READ: CONSTANTS.CHANNELS.FILE_READ,
         FIT_DECODE: CONSTANTS.CHANNELS.FIT_DECODE,
         FIT_PARSE: CONSTANTS.CHANNELS.FIT_PARSE,
@@ -1403,71 +1411,13 @@ exposeElectronApi({
     preloadLog,
 });
 
-// Development helpers - only available in development mode
-if (isDevelopmentMode()) {
-    try {
-        if (
-            contextBridge &&
-            typeof contextBridge.exposeInMainWorld === "function"
-        ) {
-            contextBridge.exposeInMainWorld(DEVELOPMENT_TOOLS_GLOBAL_NAME, {
-                /**
-                 * Get preload script information for debugging
-                 */
-                getPreloadInfo: () => ({
-                    apiMethods: Object.keys(electronAPI),
-                    constants: CONSTANTS,
-                    timestamp: new Date().toISOString(),
-                    version: "1.0.0",
-                }),
-
-                /**
-                 * Log current API state
-                 */
-                logAPIState: () => {
-                    preloadLog("info", "[preload.js] Current API State:", {
-                        constants: CONSTANTS,
-                        electronAPI: typeof electronAPI,
-                        methodCount: Object.keys(electronAPI).length,
-                        timestamp: new Date().toISOString(),
-                    });
-                },
-
-                /**
-                 * Test IPC communication
-                 */
-                testIPC: async () => {
-                    try {
-                        const version = await electronAPI.getAppVersion();
-                        preloadLog(
-                            "info",
-                            "[preload.js] IPC test successful, app version:",
-                            version
-                        );
-                        return true;
-                    } catch (error) {
-                        preloadLog(
-                            "error",
-                            "[preload.js] IPC test failed:",
-                            error
-                        );
-                        return false;
-                    }
-                },
-            });
-
-            preloadLog("info", "[preload.js] Development tools exposed");
-        } else {
-            throw new Error("contextBridge unavailable");
-        }
-    } catch (error) {
-        preloadLog(
-            "error",
-            "[preload.js] Failed to expose development tools:",
-            error
-        );
-    }
-}
+exposeDevelopmentToolsGlobal({
+    api: electronAPI,
+    constants: CONSTANTS,
+    contextBridge,
+    isDevelopmentMode,
+    preloadLog,
+});
 
 // Cleanup and final validation
 registerPreloadBeforeExitHandler({
