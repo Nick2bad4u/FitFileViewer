@@ -1,0 +1,86 @@
+name: Performance Baseline
+run-name: Performance Baseline (${{ github.ref_name }})
+
+concurrency:
+    group: performance-baseline-${{ github.ref }}
+    cancel-in-progress: true
+
+on:
+    schedule:
+        - cron: "41 10 * * 2"
+    workflow_dispatch:
+        inputs:
+            threshold-percent:
+                description: "Allowed regression threshold for comparable metrics"
+                required: true
+                default: "25"
+                type: string
+
+permissions:
+    contents: read
+
+jobs:
+    performance-baseline:
+        name: Compare FIT Performance Trend
+        runs-on: ubuntu-latest
+        timeout-minutes: 45
+        env:
+            NODE_OPTIONS: --max_old_space_size=8192
+            PERF_REGRESSION_THRESHOLD_PERCENT: ${{ inputs['threshold-percent'] || '25' }}
+        defaults:
+            run:
+                shell: bash
+        steps:
+            - name: Harden the runner (Audit all outbound calls)
+              uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+              with:
+                  egress-policy: audit
+
+            - name: Checkout Repo code
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node.js environment (v24)
+              uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+              with:
+                  node-version: 24
+
+            - name: Install app dependencies
+              run: npm ci --no-audit --no-fund
+
+            - name: Restore trusted performance baseline
+              uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+              with:
+                  path: artifacts/performance-baseline-cache/performance-baseline.json
+                  key: performance-baseline-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+                  restore-keys: |
+                      performance-baseline-${{ runner.os }}-${{ github.ref_name }}-
+                      performance-baseline-${{ runner.os }}-
+
+            - name: Prepare previous baseline
+              run: |
+                  mkdir -p artifacts
+                  if [ -f artifacts/performance-baseline-cache/performance-baseline.json ]; then
+                    cp artifacts/performance-baseline-cache/performance-baseline.json artifacts/performance-baseline.previous.json
+                  else
+                    echo "[perf] No cached baseline found; this run will seed the trend cache."
+                  fi
+
+            - name: Run performance trend check
+              run: |
+                  mkdir -p artifacts/performance-baseline-cache
+                  set -o pipefail
+                  xvfb-run -a npm run perf:trend -- --threshold-percent "$PERF_REGRESSION_THRESHOLD_PERCENT" 2>&1 | tee artifacts/performance-baseline.log
+
+            - name: Upload performance baseline artifacts
+              if: always()
+              uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+              with:
+                  name: performance-baseline-${{ runner.os }}
+                  path: |
+                      artifacts/performance-baseline.log
+                      artifacts/performance-baseline.previous.json
+                      artifacts/performance-baseline-cache/performance-baseline.json
+                  if-no-files-found: warn
+                  include-hidden-files: true

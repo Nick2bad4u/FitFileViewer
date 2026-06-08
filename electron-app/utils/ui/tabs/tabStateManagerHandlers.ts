@@ -4,7 +4,10 @@
 
 import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
 import { ensureRendererVendorBundle } from "../../../renderer/vendorBundleLoader.js";
-import { renderMap } from "../../maps/core/renderMap.js";
+import {
+    renderMap,
+    waitForMapLeafletRuntime,
+} from "../../maps/core/renderMap.js";
 import { createTables } from "../../rendering/components/createTables.js";
 import { renderSummary } from "../../rendering/core/renderSummary.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
@@ -152,9 +155,9 @@ export function handleZwiftTab(): void {
  * Handle chart tab activation.
  */
 export async function handleChartTab(
-    globalData: ActivityData | null | undefined
+    rawFitData: ActivityData | null | undefined
 ): Promise<void> {
-    if (!globalData || !globalData.recordMesgs) {
+    if (!rawFitData || !rawFitData.recordMesgs) {
         console.warn("[TabStateManager] No chart data available");
         return;
     }
@@ -202,9 +205,9 @@ export async function handleChartTab(
  * Handle data tables tab activation.
  */
 export async function handleDataTab(
-    globalData: ActivityData | null | undefined
+    rawFitData: ActivityData | null | undefined
 ): Promise<void> {
-    if (!globalData) {
+    if (!rawFitData) {
         return;
     }
 
@@ -231,7 +234,7 @@ export async function handleDataTab(
         }
     } else {
         console.log("[TabStateManager] Creating data tables");
-        createTables(globalData);
+        createTables(rawFitData);
     }
 }
 
@@ -239,13 +242,17 @@ export async function handleDataTab(
  * Handle map tab activation.
  */
 export async function handleMapTab(
-    globalData: ActivityData | null | undefined
+    rawFitData: ActivityData | null | undefined
 ): Promise<void> {
-    if (!globalData || !globalData.recordMesgs) {
+    if (!rawFitData || !rawFitData.recordMesgs) {
         return;
     }
 
     await ensureRendererVendorBundle("map");
+    if (!(await waitForMapLeafletRuntime())) {
+        console.warn("[TabStateManager] Leaflet runtime unavailable");
+        return;
+    }
 
     const rendererGlobal = getRendererGlobal();
     const mapState = getStateMgr().getState("map");
@@ -322,18 +329,18 @@ export async function handleMapTab(
  * Handle summary tab activation.
  */
 export function handleSummaryTab(
-    globalData: ActivityData | null | undefined
+    rawFitData: ActivityData | null | undefined
 ): void {
-    if (!globalData) {
+    if (!rawFitData) {
         return;
     }
 
-    const currentDataHash = hashData(globalData);
+    const currentDataHash = hashData(rawFitData);
     const previousData = getStateMgr().getState("summary.lastDataHash");
 
     if (previousData !== currentDataHash) {
         console.log("[TabStateManager] Rendering summary with new data");
-        renderSummary(globalData);
+        renderSummary(rawFitData);
         getStateMgr().setState("summary.lastDataHash", currentDataHash, {
             source: "TabStateManager.handleSummaryTab",
         });

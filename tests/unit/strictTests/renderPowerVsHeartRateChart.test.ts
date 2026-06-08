@@ -8,7 +8,23 @@ import {
     type Mock,
 } from "vitest";
 import { JSDOM } from "jsdom";
+import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+} from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import { chartSettingsManager } from "../../../electron-app/utils/charts/core/renderChartJS.js";
+
+const chartJsMocks = vi.hoisted(() => ({
+    Chart: vi.fn<ChartConstructorFunction>(),
+}));
+
+vi.mock(import("chart.js/auto"), () => ({
+    default: chartJsMocks.Chart,
+}));
 
 type ChartDataset = {
     backgroundColor?: string;
@@ -65,7 +81,6 @@ type ChartTestGlobal = typeof globalThis & {
     Chart?: ChartConstructorMock;
     HTMLCanvasElement?: typeof HTMLCanvasElement;
     HTMLElement?: typeof HTMLElement;
-    _chartjsInstances?: ChartInstanceMock[];
     localStorage?: StorageMock;
     window?: ChartTestWindow;
 };
@@ -73,7 +88,6 @@ type ChartTestGlobal = typeof globalThis & {
 type ChartTestWindow = Window &
     typeof globalThis & {
         Chart?: ChartConstructorMock;
-        _chartjsInstances?: ChartInstanceMock[];
     };
 
 type PowerHeartRateDatum = {
@@ -120,13 +134,13 @@ function getChartTestWindow(): ChartTestWindow {
 }
 
 function getRequiredChartInstances(): ChartInstanceMock[] {
-    const { _chartjsInstances } = getChartTestWindow();
+    const chartInstances = getRegisteredChartInstances() as ChartInstanceMock[];
 
-    if (!_chartjsInstances) {
+    if (chartInstances.length === 0) {
         throw new Error("Expected Chart.js instances to be tracked");
     }
 
-    return _chartjsInstances;
+    return chartInstances;
 }
 
 function getLatestChartConfig(): ChartConfig {
@@ -221,24 +235,15 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             getDatasetAtEvent: vi.fn<() => unknown[]>(() => []),
         };
 
-        Chart = vi.fn<ChartConstructorFunction>(function ChartConstructor() {
+        Chart = chartJsMocks.Chart as ChartConstructorMock;
+        Chart.mockReset();
+        Chart.mockImplementation(function ChartConstructor() {
             return chartInstanceMock;
-        }) as ChartConstructorMock;
+        });
         getChartTestWindow().Chart = Chart;
         getChartTestGlobal().Chart = Chart;
-        getChartTestWindow()._chartjsInstances = [];
-        // Sync chart instances between window and globalThis using property descriptor
-        Object.defineProperty(getChartTestGlobal(), "_chartjsInstances", {
-            get() {
-                return getChartTestWindow()._chartjsInstances;
-            },
-            set(value) {
-                getChartTestWindow()._chartjsInstances = value as
-                    | ChartInstanceMock[]
-                    | undefined;
-            },
-            configurable: true,
-        });
+        setChartRuntime(Chart);
+        clearChartInstanceRegistryForTests();
 
         // Load the module dynamically with fresh imports
         const module =
@@ -248,11 +253,8 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
     afterEach(() => {
         vi.clearAllMocks();
-        if (global.window && getChartTestWindow()._chartjsInstances) {
-            getChartTestWindow()._chartjsInstances = [];
-        }
-        // Clean up property descriptor
-        delete getChartTestGlobal()._chartjsInstances;
+        clearChartInstanceRegistryForTests();
+        clearChartRuntimeForTests();
         delete getChartTestGlobal().Chart;
 
         // Clean up JSDOM
@@ -922,11 +924,11 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             expect(chartInstances.at(0)).toBe(chartInstanceMock);
         });
 
-        it("should initialize global chart instances array if not present", () => {
+        it("should register chart instance when the registry starts empty", () => {
             expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue(null);
-            delete global.window._chartjsInstances;
+            clearChartInstanceRegistryForTests();
 
             const container = document.createElement("div");
             const data = [{ power: 200, heartRate: 120 }];
@@ -934,7 +936,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(global.window._chartjsInstances).toStrictEqual([
+            expect(getRegisteredChartInstances()).toStrictEqual([
                 chartInstanceMock,
             ]);
         });
@@ -977,7 +979,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
                 "[ChartJS] Error rendering power vs heart rate chart:",
                 chartCreationError
             );
-            expect(global.window._chartjsInstances).toStrictEqual([]);
+            expect(getRegisteredChartInstances()).toStrictEqual([]);
         });
     });
 
@@ -1114,7 +1116,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             }
 
             expect(Chart).toHaveBeenCalledTimes(5);
-            expect(global.window._chartjsInstances).toHaveLength(5);
+            expect(getRegisteredChartInstances()).toHaveLength(5);
         });
 
         it("should not modify original data array", () => {

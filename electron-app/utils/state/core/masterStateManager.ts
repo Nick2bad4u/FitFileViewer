@@ -785,7 +785,7 @@ export class MasterStateManager {
     setupIntegrations() {
         const stateAPI = getStateManagerAPI();
         // Integrate file operations with UI state
-        stateAPI.subscribe("globalData", (data: unknown) => {
+        stateAPI.subscribe("fitFile.rawData", (data: unknown) => {
             if (data) {
                 // Enable tabs when data is loaded
                 const { UIActions: dynUI } = getUIStateModule();

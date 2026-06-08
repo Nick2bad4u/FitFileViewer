@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { clearChartInstanceRegistryForTests } from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
 type ZoneFixture = {
     label: string;
@@ -13,7 +14,6 @@ type InlineZoneSelectorElement = HTMLDivElement & {
 };
 
 type ZoneSelectorWindow = typeof window & {
-    _chartjsInstances?: unknown[];
     heartRateZones?: ZoneFixture[];
     powerZones?: ZoneFixture[];
 };
@@ -203,7 +203,7 @@ describe(createInlineZoneColorSelector, () => {
         vi.clearAllMocks();
         document.body.replaceChildren();
         const zoneWindow = window as ZoneSelectorWindow;
-        zoneWindow._chartjsInstances = [];
+        clearChartInstanceRegistryForTests();
         localStorage.clear();
         // Default zones on window
         zoneWindow.heartRateZones = [

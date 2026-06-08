@@ -2,8 +2,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import * as getThemeColorsModule from "../../../../../electron-app/utils/charts/theming/getThemeColors.js";
 
 import { createElevationProfileButton } from "../../../../../electron-app/utils/ui/controls/createElevationProfileButton.js";
-import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
-import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
+import {
+    __resetStateManagerForTests,
+    setState,
+} from "../../../../../electron-app/utils/state/core/stateManager.js";
+import { setLoadedFitFiles } from "../../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
 
 type ElevationProfilePoint = { x: number; y: number };
 type ElevationProfileFileModel = {
@@ -209,18 +213,20 @@ describe(createElevationProfileButton, () => {
     it("should handle loadedFitFiles when available", async () => {
         expect.assertions(5);
 
-        // Mock window.loadedFitFiles with test data
-        (window as any).loadedFitFiles = [
-            {
-                filePath: "test-file.fit",
-                data: {
-                    recordMesgs: [
-                        { positionLat: 1, positionLong: 2, altitude: 100 },
-                        { positionLat: 3, positionLong: 4, altitude: 200 },
-                    ],
+        setLoadedFitFiles(
+            [
+                {
+                    filePath: "test-file.fit",
+                    data: {
+                        recordMesgs: [
+                            { positionLat: 1, positionLong: 2, altitude: 100 },
+                            { positionLat: 3, positionLong: 4, altitude: 200 },
+                        ],
+                    },
                 },
-            },
-        ];
+            ],
+            "createElevationProfileButton.test"
+        );
 
         // Create the button and click it
         const button = createElevationProfileButton();
@@ -246,7 +252,7 @@ describe(createElevationProfileButton, () => {
     it("should handle globalData when no loadedFitFiles available", async () => {
         expect.assertions(4);
 
-        setGlobalData(
+        setActiveFitRawData(
             {
                 cachedFilePath: "global-test.fit",
                 recordMesgs: [
@@ -274,10 +280,42 @@ describe(createElevationProfileButton, () => {
         ]);
     });
 
+    it("should use active current-file metadata for raw-data elevation fallback labels", async () => {
+        expect.assertions(3);
+
+        setState("fitFile.currentFile", "C:/rides/current-activity.fit", {
+            source: "test",
+        });
+        setActiveFitRawData(
+            {
+                cachedFilePath: "stale-cache.fit",
+                recordMesgs: [
+                    { positionLat: 5, positionLong: 6, altitude: 300 },
+                    { positionLat: 7, positionLong: 8, altitude: 400 },
+                ],
+            },
+            { source: "test" }
+        );
+
+        const button = createElevationProfileButton();
+        await clickElevationButton(button);
+
+        const mockWin = getPopupWindow();
+
+        expect(getPopupFileLabels(mockWin)).toStrictEqual([
+            "C:/rides/current-activity.fit",
+        ]);
+        expect(chartMock).toHaveBeenCalledOnce();
+        expect(chartMock.mock.calls[0][1].data.datasets[0].data).toStrictEqual([
+            300,
+            400,
+        ]);
+    });
+
     it("should handle globalData without recordMesgs", async () => {
         expect.assertions(3);
 
-        setGlobalData(
+        setActiveFitRawData(
             {
                 cachedFilePath: "incomplete-data.fit",
                 // No recordMesgs array
@@ -345,15 +383,17 @@ describe(createElevationProfileButton, () => {
     it("should handle files without altitude data", async () => {
         expect.assertions(3);
 
-        // Mock window.loadedFitFiles with a file that has no altitude data
-        (window as any).loadedFitFiles = [
-            {
-                filePath: "no-altitude.fit",
-                data: {
-                    recordMesgs: [], // Empty array = no altitude data
+        setLoadedFitFiles(
+            [
+                {
+                    filePath: "no-altitude.fit",
+                    data: {
+                        recordMesgs: [], // Empty array = no altitude data
+                    },
                 },
-            },
-        ];
+            ],
+            "createElevationProfileButton.test"
+        );
 
         // Create the button and click it
         const button = createElevationProfileButton();
@@ -371,17 +411,19 @@ describe(createElevationProfileButton, () => {
     it("should use chartOverlayColorPalette from window.opener when available", async () => {
         expect.assertions(2);
 
-        // Mock window.loadedFitFiles with test data
-        (window as any).loadedFitFiles = [
-            {
-                filePath: "test-with-colors.fit",
-                data: {
-                    recordMesgs: [
-                        { positionLat: 1, positionLong: 2, altitude: 100 },
-                    ],
+        setLoadedFitFiles(
+            [
+                {
+                    filePath: "test-with-colors.fit",
+                    data: {
+                        recordMesgs: [
+                            { positionLat: 1, positionLong: 2, altitude: 100 },
+                        ],
+                    },
                 },
-            },
-        ];
+            ],
+            "createElevationProfileButton.test"
+        );
 
         // Setup chartOverlayColorPalette in the current window.
         // (The popup receives colors via the model, not by reading window.opener.)
@@ -412,37 +454,39 @@ describe(createElevationProfileButton, () => {
     it("should handle a mix of files with and without altitude data", async () => {
         expect.assertions(4);
 
-        // Mock window.loadedFitFiles with mix of files with and without altitude data
-        (window as any).loadedFitFiles = [
-            {
-                filePath: "with-altitude.fit",
-                data: {
-                    recordMesgs: [
-                        { positionLat: 1, positionLong: 2, altitude: 100 },
-                        { positionLat: 3, positionLong: 4, altitude: 200 },
-                    ],
+        setLoadedFitFiles(
+            [
+                {
+                    filePath: "with-altitude.fit",
+                    data: {
+                        recordMesgs: [
+                            { positionLat: 1, positionLong: 2, altitude: 100 },
+                            { positionLat: 3, positionLong: 4, altitude: 200 },
+                        ],
+                    },
                 },
-            },
-            {
-                filePath: "without-altitude.fit",
-                data: {
-                    recordMesgs: [], // No altitude data
+                {
+                    filePath: "without-altitude.fit",
+                    data: {
+                        recordMesgs: [], // No altitude data
+                    },
                 },
-            },
-            {
-                filePath: "partial-data.fit",
-                data: {
-                    recordMesgs: [
-                        {
-                            positionLat: null,
-                            positionLong: null,
-                            altitude: 300,
-                        }, // Missing position data
-                        { positionLat: 5, positionLong: 6 }, // Missing altitude
-                    ],
+                {
+                    filePath: "partial-data.fit",
+                    data: {
+                        recordMesgs: [
+                            {
+                                positionLat: null,
+                                positionLong: null,
+                                altitude: 300,
+                            }, // Missing position data
+                            { positionLat: 5, positionLong: 6 }, // Missing altitude
+                        ],
+                    },
                 },
-            },
-        ];
+            ],
+            "createElevationProfileButton.test"
+        );
 
         // Create the button and click it
         const button = createElevationProfileButton();

@@ -2,7 +2,7 @@ import {
     getAuxHeartRateValue,
     resolveFieldDescriptionMessages,
 } from "../../data/processing/auxHeartRateUtils.js";
-import { getState } from "../../state/core/stateManager.js";
+import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 
 interface RecordMessage extends Record<string, unknown> {
     altitude?: number;
@@ -59,13 +59,11 @@ export function formatTooltipData(
         }
 
         const record = row;
-        const recordMesgs =
-            recordMesgsOverride ??
-            getRecordMessagesFromState() ??
-            getRecordMessagesFromManagedGlobalData();
-        const globalData = getTooltipGlobalData();
-        const fieldDescriptionMesgs =
-            resolveFieldDescriptionMessages(globalData);
+        const activityData = getActiveFitActivityData();
+        const recordMesgs = recordMesgsOverride ?? activityData.recordMesgs;
+        const fieldDescriptionMesgs = resolveFieldDescriptionMessages(
+            activityData.rawData ?? undefined
+        );
         const tooltipParts = [`<b>Lap:</b> ${lapNum}`, `<b>Index:</b> ${idx}`];
 
         const dateStr = record.timestamp
@@ -253,28 +251,6 @@ function formatSpeed(speed: unknown): string {
     return `${speedKmh.toFixed(SPEED)} km/h / ${speedMph.toFixed(SPEED)} mph`;
 }
 
-function getRecordMessagesFromManagedGlobalData(): RecordMessage[] | undefined {
-    const globalData = getManagedGlobalData();
-    if (!isRecord(globalData)) {
-        return undefined;
-    }
-
-    return asRecordMessageArray(globalData["recordMesgs"]);
-}
-
-function getRecordMessagesFromState(): RecordMessage[] | undefined {
-    return asRecordMessageArray(getState("globalData.recordMesgs"));
-}
-
-function getTooltipGlobalData(): Record<string, unknown> | undefined {
-    const globalData = getManagedGlobalData();
-    return isRecord(globalData) ? globalData : undefined;
-}
-
-function getManagedGlobalData(): unknown {
-    return getState("globalData");
-}
-
 function isFiniteNumber(value: unknown): value is number {
     return typeof value === "number" && Number.isFinite(value);
 }
@@ -285,10 +261,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isRecordMessage(value: unknown): value is RecordMessage {
     return isRecord(value);
-}
-
-function asRecordMessageArray(value: unknown): RecordMessage[] | undefined {
-    return Array.isArray(value) ? value.filter(isRecordMessage) : undefined;
 }
 
 function logWithContext(message: string, level = "info"): void {

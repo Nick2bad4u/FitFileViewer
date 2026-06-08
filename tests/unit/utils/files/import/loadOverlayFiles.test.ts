@@ -19,11 +19,6 @@ type LoadedFitFileEntry = {
     sourceKey: string | null;
 };
 
-type LoadOverlayTestGlobal = typeof globalThis & {
-    globalData?: OverlayFitData | null;
-    loadedFitFiles?: LoadedFitFileEntry[];
-};
-
 type LoadSingleOverlayResult = {
     data?: OverlayFitData;
     error?: string;
@@ -41,10 +36,14 @@ const mocks = vi.hoisted(() => ({
         vi.fn<(file: OverlayInputFile) => Promise<LoadSingleOverlayResult>>(),
     pLimitCompat: vi.fn<LimitFactory>((_concurrency) => async (task) => task()),
     renderMap: vi.fn<() => void>(),
-    setState:
-        vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
+    setLoadedFiles:
+        vi.fn<
+            (files: readonly LoadedFitFileEntry[], source?: string) => void
+        >(),
     showNotification: vi.fn<(message: string, type?: string) => void>(),
     updateShownFilesList: vi.fn<() => void>(),
+    activeFitRawDataFixture: null as OverlayFitData | null,
+    loadedFitFilesFixture: undefined as LoadedFitFileEntry[] | undefined,
 }));
 
 vi.mock(
@@ -55,9 +54,38 @@ vi.mock(
 );
 
 vi.mock(
-    import("../../../../../electron-app/utils/state/core/stateManager.js"),
+    import("../../../../../electron-app/utils/state/domain/loadedFitFilesState.js"),
     () => ({
-        setState: mocks.setState,
+        appendLoadedFitFile: vi.fn(
+            (entry: LoadedFitFileEntry, source?: string) => {
+                const files = Array.isArray(mocks.loadedFitFilesFixture)
+                    ? [...mocks.loadedFitFilesFixture, entry]
+                    : [entry];
+                mocks.loadedFitFilesFixture = files;
+                mocks.setLoadedFiles(files, source);
+                return files;
+            }
+        ),
+        getLoadedFitFiles: vi.fn(() =>
+            Array.isArray(mocks.loadedFitFilesFixture)
+                ? [...mocks.loadedFitFilesFixture]
+                : []
+        ),
+        setLoadedFitFiles: vi.fn(
+            (files: readonly LoadedFitFileEntry[], source?: string) => {
+                const nextFiles = [...files];
+                mocks.loadedFitFilesFixture = nextFiles;
+                mocks.setLoadedFiles(nextFiles, source);
+                return nextFiles;
+            }
+        ),
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/state/domain/activeFitRawDataState.js"),
+    () => ({
+        getActiveFitRawData: vi.fn(() => mocks.activeFitRawDataFixture),
     })
 );
 
@@ -102,11 +130,9 @@ vi.mock(
 const { loadOverlayFiles } =
     await import("../../../../../electron-app/utils/files/import/loadOverlayFiles.js");
 
-const appGlobal = globalThis as LoadOverlayTestGlobal;
-
 function cleanupGlobals() {
-    delete appGlobal.globalData;
-    delete appGlobal.loadedFitFiles;
+    mocks.activeFitRawDataFixture = null;
+    mocks.loadedFitFilesFixture = undefined;
     document.body.replaceChildren();
     vi.clearAllMocks();
 }
@@ -129,7 +155,7 @@ describe(loadOverlayFiles, () => {
         };
 
         try {
-            appGlobal.globalData = primaryData;
+            mocks.activeFitRawDataFixture = primaryData;
             mocks.loadSingleOverlayFile.mockResolvedValue({
                 data: overlayData,
                 success: true,
@@ -137,7 +163,7 @@ describe(loadOverlayFiles, () => {
 
             await loadOverlayFiles([file]);
 
-            expect(appGlobal.loadedFitFiles).toStrictEqual([
+            expect(mocks.loadedFitFilesFixture).toStrictEqual([
                 {
                     data: primaryData,
                     filePath: "primary.fit",
@@ -155,10 +181,9 @@ describe(loadOverlayFiles, () => {
                 mocks.pLimitCompat.mock.calls[0]?.[0]
             ).toBeGreaterThanOrEqual(1);
             expect(mocks.loadSingleOverlayFile).toHaveBeenCalledWith(file);
-            expect(mocks.setState).toHaveBeenCalledWith(
-                "globalData.loadedFitFiles",
-                appGlobal.loadedFitFiles,
-                { source: "loadOverlayFiles" }
+            expect(mocks.setLoadedFiles).toHaveBeenCalledWith(
+                mocks.loadedFitFilesFixture,
+                "loadOverlayFiles"
             );
             expect(mocks.renderMap).toHaveBeenCalledOnce();
             expect(mocks.updateShownFilesList).toHaveBeenCalledOnce();
@@ -196,13 +221,13 @@ describe(loadOverlayFiles, () => {
         };
 
         try {
-            appGlobal.loadedFitFiles = existingEntries;
+            mocks.loadedFitFilesFixture = existingEntries;
 
             await loadOverlayFiles([file]);
 
-            expect(appGlobal.loadedFitFiles).toStrictEqual(existingEntries);
+            expect(mocks.loadedFitFilesFixture).toStrictEqual(existingEntries);
             expect(mocks.loadSingleOverlayFile).not.toHaveBeenCalled();
-            expect(mocks.setState).not.toHaveBeenCalled();
+            expect(mocks.setLoadedFiles).not.toHaveBeenCalled();
             expect(mocks.loadingHide).toHaveBeenCalledOnce();
             expect(mocks.showNotification).toHaveBeenCalledWith(
                 "overlay.fit already loaded. Skipping duplicate files.",
@@ -229,7 +254,7 @@ describe(loadOverlayFiles, () => {
 
             await loadOverlayFiles([file]);
 
-            expect(appGlobal.loadedFitFiles).toStrictEqual([]);
+            expect(mocks.loadedFitFilesFixture).toStrictEqual([]);
             expect(mocks.loadSingleOverlayFile).toHaveBeenCalledWith(file);
             expect(mocks.loadingHide).toHaveBeenCalledOnce();
             expect(mocks.showNotification).toHaveBeenCalledWith(

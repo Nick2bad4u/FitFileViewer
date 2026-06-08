@@ -26,10 +26,21 @@ const preloadRoots = [
     "electron-app/preload",
     "electron-app/preload.ts",
 ] as const;
+const preloadInjectedRequireFiles = [
+    "electron-app/preload/preloadEntrypoint.ts",
+    "electron-app/preload/preloadBootstrap.ts",
+    "electron-app/preload/preloadRuntime.ts",
+    "electron-app/preload/preloadModuleLoader.ts",
+    "electron-app/preload/preloadAppModuleLoader.ts",
+    "electron-app/preload/preloadFileModuleLoader.ts",
+    "electron-app/preload/preloadIpcModuleLoader.ts",
+    "electron-app/preload/preloadStateModuleLoader.ts",
+] as const;
 
 const stateDomainRoots = ["electron-app/utils/state/domain"] as const;
 const stateCoreRoots = ["electron-app/utils/state/core"] as const;
 const rendererEntrypointFiles = ["electron-app/renderer.ts"] as const;
+const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
 
 const sourceExtensions = new Set([
     ".cjs",
@@ -39,6 +50,7 @@ const sourceExtensions = new Set([
 ]);
 
 const allowedLegacyGlobalDataBridgeFiles = new Set<string>();
+const allowedGlobalDataWriterFiles = new Set<string>();
 
 const migratedGlobalDataReaderFiles = [
     "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
@@ -59,6 +71,34 @@ const migratedGlobalDataReaderFiles = [
     "electron-app/utils/debug/debugSensorInfo.ts",
     "electron-app/utils/ui/controls/createElevationProfileButton.ts",
 ] as const;
+const migratedGlobalDataWriterFreeFiles = [
+    "electron-app/utils/app/lifecycle/appActions.ts",
+    "electron-app/utils/rendering/core/showFitData.ts",
+] as const;
+const migratedExplicitFitSliceReaderFiles = [
+    "electron-app/utils/app/initialization/chartSettingsRender.ts",
+    "electron-app/utils/app/lifecycle/appActions.ts",
+    "electron-app/utils/app/lifecycle/listeners.ts",
+    "electron-app/utils/charts/core/renderChartDevTools.ts",
+    "electron-app/utils/charts/core/renderChartDirectRerender.ts",
+    "electron-app/utils/charts/core/renderChartRenderedEvent.ts",
+    "electron-app/utils/charts/core/renderChartStateManagement.ts",
+    "electron-app/utils/charts/core/renderChartStateView.ts",
+    "electron-app/utils/charts/rendering/renderLapZoneCharts.ts",
+    "electron-app/utils/charts/theming/chartThemeListener.ts",
+    "electron-app/utils/debug/debugSensorInfo.ts",
+    "electron-app/utils/formatting/display/formatTooltipData.ts",
+    "electron-app/utils/maps/core/renderMap.ts",
+    "electron-app/utils/maps/layers/mapDrawLaps.ts",
+    "electron-app/utils/rendering/components/createUserDeviceInfoBox.ts",
+    "electron-app/utils/rendering/helpers/summaryColModal.ts",
+    "electron-app/utils/state/integration/rendererStateIntegration.ts",
+    "electron-app/utils/ui/components/createFieldTogglesSection.ts",
+    "electron-app/utils/ui/controls/createElevationProfileButton.ts",
+    "electron-app/utils/ui/controls/enableTabButtonsDebug.ts",
+    "electron-app/utils/ui/tabs/tabStateManager.ts",
+    "electron-app/utils/ui/tabs/updateTabVisibility.ts",
+] as const;
 const rendererUtilsFreeFiles = [
     "electron-app/utils/app/index.ts",
     "electron-app/utils/app/initialization/index.ts",
@@ -72,6 +112,78 @@ const migratedRendererUtilityCallerFiles = [
     "electron-app/utils/rendering/core/showFitData.ts",
     "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts",
 ] as const;
+const migratedChartImportFiles = [
+    "electron-app/utils/charts/core/createManagedChart.ts",
+    "electron-app/utils/charts/core/renderChartPluginRegistration.ts",
+    "electron-app/utils/charts/components/createEnhancedChart.ts",
+    "electron-app/utils/charts/plugins/addChartHoverEffects.ts",
+    "electron-app/utils/charts/rendering/renderLapZoneChart.ts",
+    "electron-app/utils/charts/rendering/renderZoneChart.ts",
+    "electron-app/utils/data/zones/renderSingleHRZoneBar.ts",
+    "electron-app/utils/data/zones/renderSinglePowerZoneBar.ts",
+] as const;
+const rendererVendorBrowserPackageImportAllowedFiles = [
+    "electron-app/renderer/vendorGlobalsChartData.ts",
+    "electron-app/renderer/vendorGlobalsMap.ts",
+] as const;
+const migratedDataTableImportFiles = [
+    "electron-app/utils/rendering/core/renderTable.ts",
+] as const;
+const migratedChartInstanceRegistryFiles = [
+    "electron-app/utils/charts/core/renderChartActions.ts",
+    "electron-app/utils/charts/core/renderChartDataCharts.ts",
+    "electron-app/utils/charts/core/renderChartDataCompletion.ts",
+    "electron-app/utils/charts/core/renderChartDevTools.ts",
+    "electron-app/utils/charts/core/renderChartExportState.ts",
+    "electron-app/utils/charts/core/getChartCounts.ts",
+    "electron-app/utils/charts/core/renderChartJS.ts",
+    "electron-app/utils/charts/core/renderChartLifecycle.ts",
+    "electron-app/utils/charts/core/renderChartPreparedExecution.ts",
+    "electron-app/utils/charts/core/renderChartPrimaryFields.ts",
+    "electron-app/utils/charts/core/renderChartRuntimeHelpers.ts",
+    "electron-app/utils/charts/core/renderChartSessionStart.ts",
+    "electron-app/utils/charts/rendering/renderLapZoneCharts.ts",
+    "electron-app/utils/charts/rendering/renderZoneChart.ts",
+    "electron-app/utils/app/initialization/chartSettingsRender.ts",
+    "electron-app/utils/ui/components/createSettingsHeader.ts",
+    "electron-app/utils/ui/controls/createInlineZoneColorSelector.ts",
+    "electron-app/utils/ui/modals/openZoneColorPicker.ts",
+    "electron-app/utils/charts/core/chartStateManager.ts",
+    "electron-app/utils/charts/core/chartUpdater.ts",
+    "electron-app/utils/charts/core/createManagedChart.ts",
+    "electron-app/utils/files/export/exportAllCharts.ts",
+] as const;
+const migratedDomPurifyRuntimeFiles = [
+    "electron-app/utils/dom/sanitizeHtmlAllowlist.ts",
+] as const;
+const migratedArqueroRuntimeFiles = [
+    "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
+] as const;
+const migratedExportZipRuntimeFiles = [
+    "electron-app/utils/files/export/exportUtils.ts",
+] as const;
+const migratedScreenfullRuntimeFiles = [
+    "electron-app/utils/ui/controls/addFullScreenButton.ts",
+] as const;
+const migratedMapLeafletRuntimeFiles = [
+    "electron-app/utils/maps/controls/mapActionButtons.ts",
+    "electron-app/utils/maps/controls/leafletPluginControls.ts",
+    "electron-app/utils/maps/controls/mapMeasureTool.ts",
+    "electron-app/utils/maps/core/renderMap.ts",
+    "electron-app/utils/maps/layers/mapBaseLayers.ts",
+    "electron-app/utils/maps/layers/mapDrawLaps.ts",
+    "electron-app/utils/maps/layers/mapIcons.ts",
+    "electron-app/utils/maps/layers/mapVectorLayers.ts",
+    "electron-app/utils/rendering/components/shownFilesListItemHandlers.ts",
+] as const;
+const directLeafletRuntimeGlobalLookupAllowedFiles = [] as const;
+const leafletCompatibilityGlobalDefinitionAllowedFiles = [] as const;
+const directMapLibreBridgeAllowedFiles = [
+    "electron-app/utils/maps/layers/mapVectorLayers.ts",
+] as const;
+const directFitFileRawDataSelectorAllowedFiles = [
+    "electron-app/utils/state/domain/activeFitRawDataState.ts",
+] as const;
 
 const importSpecifierPattern =
     /\b(?:import\s+(?:[^'"]+\s+from\s+)?|export\s+[^'"]+\s+from\s+|require\()\s*["'](?<specifier>[^"']+)["']/gu;
@@ -84,10 +196,26 @@ const directGlobalDataPropertyDefinitionPattern =
 const directGlobalDataReactivePropertyPattern =
     /\bcreateReactiveProperty\(\s*["']globalData["']/u;
 const legacyAppStateGlobalDataPattern = /\bAppState\.globalData\b/u;
+const legacyAppStateCompatibilityPattern =
+    /\b(?:integrationGlobal|globalThis)\.AppState\b|\bAppState\.(?:eventListeners|isChartRendered)\b/u;
+const legacyIsChartRenderedGlobalPattern =
+    /\b(?:window|globalThis)\.isChartRendered\b|Object\.defineProperty\(\s*globalThis\s*,\s*["']isChartRendered["']/u;
 const legacyGlobalDataBridgeFunctionPattern =
     /\bdefineLegacyGlobalDataBridge\b/u;
 const globalDataStoreReaderImportPattern =
     /\bimport\s*\{[^}]*\bgetGlobalData\b[^}]*\}\s*from\s*["'][^"']*globalDataStore\.js["']/u;
+const globalDataStoreWriterPattern =
+    /\bimport\s*\{[^}]*\bsetGlobalData\b[^}]*\}\s*from\s*["'][^"']*globalDataStore\.js["']|\bsetGlobalData\s*\(/u;
+const directGlobalDataStateReadPattern =
+    /\b(?:getState|getStateMgr\(\)\.getState|stateManager\.getState)\(\s*["']globalData["']\s*\)/u;
+const directGlobalDataStateWritePattern =
+    /\b(?:setState|getStateMgr\(\)\.setState|stateManager\.setState)\(\s*["']globalData["']\s*,/u;
+const directFitFileRawDataSelectorPattern =
+    /\bFitFileSelectors\.getRawData\(\)/u;
+const legacyLoadedFitFilesStatePathPattern =
+    /["']globalData\.loadedFitFiles["']/u;
+const legacyLoadedFitFilesGlobalLookupPattern =
+    /\b(?:appGlobal|lifecycleGlobal|overlayGlobal|windowExt|win|window|globalThis)\.loadedFitFiles\b/u;
 const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const directShowFitDataGlobalPattern =
@@ -95,6 +223,31 @@ const directShowFitDataGlobalPattern =
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
 const migratedRendererUtilityGlobalLookupPattern =
     /\b(?:appGlobal|window|globalThis|showFitGlobal|windowExt)\.(?:createTables|invalidateChartRenderCache|renderChartJS|renderMap|renderSummary|setTabButtonsEnabled|setupActiveFileNameMapActions|setupOverlayFileNameMapActions|updateActiveTab|updateOverlayHighlights|updateShownFilesList|updateTabVisibility)\b/u;
+const directChartConstructorGlobalPattern =
+    /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
+const directDataTableGlobalPattern =
+    /\b(?:window|globalThis|tableGlobal|renderTableGlobal)\.(?:\$|jQuery|DataTable)\b|\.jQuery\b/u;
+const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
+const directDomPurifyGlobalPattern =
+    /\b(?:window|globalThis|globalRef|testGlobal)\.DOMPurify\b|\bReflect\.get\(\s*globalThis\s*,\s*["']DOMPurify["']\s*\)|\{\s*DOMPurify\?:\s*unknown\s*\}\)\.DOMPurify/u;
+const directArqueroGlobalPattern =
+    /\b(?:window|globalThis|summaryGlobal|testGlobal)\.(?:aq|arquero)\b|\{\s*(?:aq|arquero)\?:\s*unknown\s*\}\)\.(?:aq|arquero)/u;
+const directJSZipGlobalPattern =
+    /\b(?:window|globalThis|testGlobal|getExportRuntimeGlobal\(\))\.JSZip\b|\{\s*JSZip\?:\s*unknown\s*\}\)\.JSZip/u;
+const directScreenfullGlobalPattern =
+    /\b(?:window|globalThis|testGlobal|getFullscreenGlobal\(\))\.screenfull\b|\{\s*screenfull\?:\s*unknown\s*\}\)\.screenfull/u;
+const directLeafletGlobalPattern =
+    /\b(?:window|globalThis|windowExt|w|win|getWin\(\))\.L\b|\bReflect\.get\(\s*globalThis\s*,\s*["']L["']\s*\)|\{\s*L\?:\s*unknown\s*\}\)\.L/u;
+const leafletCompatibilityGlobalDefinitionPattern =
+    /\bObject\.defineProperty\(\s*[^,\n]+,\s*["']L["']/u;
+const directMapLibreBridgePattern = /\.maplibreGL\b/u;
+const bundledBrowserVendorImportPattern =
+    /(?:from\s*["']|import\(\s*["']|require\(\s*["'])(?:chart\.js\/auto|chartjs-plugin-zoom|datatables\.net-dt)/u;
+const rendererGenericPreloadIpcPattern =
+    /\belectronAPI\.(?:invoke|onIpc|send)\b/u;
+const missingRendererVendorGlobalShimPattern = /\bdefineMissingGlobal\b/u;
+const rendererVendorBundleGlobalMarkerPattern =
+    /\b__FFV_RENDERER_VENDOR_BUNDLE__\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -193,6 +346,25 @@ function resolvesIntoMainProcessSource(
         return true;
     }
 
+    if (!specifier.startsWith(".")) {
+        return false;
+    }
+
+    const importerDirectory = path.posix.dirname(importerPath);
+    const resolvedPath = path.posix.normalize(
+        path.posix.join(importerDirectory, specifier)
+    );
+
+    return (
+        resolvedPath === "electron-app/main" ||
+        resolvedPath.startsWith("electron-app/main/")
+    );
+}
+
+function resolvesIntoAppMainProcessSource(
+    importerPath: string,
+    specifier: string
+): boolean {
     if (!specifier.startsWith(".")) {
         return false;
     }
@@ -418,6 +590,26 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps preload modules out of app main-process source modules", () => {
+        expect.assertions(1);
+
+        const violations = preloadRoots
+            .flatMap(collectSourceFiles)
+            .flatMap((relativeFile) =>
+                getImportSpecifiers(readRepositoryFile(relativeFile))
+                    .filter((specifier) =>
+                        resolvesIntoAppMainProcessSource(
+                            relativeFile,
+                            specifier
+                        )
+                    )
+                    .map((specifier) => `${relativeFile}: ${specifier}`)
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
     it("keeps preload modules from reaching into renderer state internals", () => {
         expect.assertions(1);
 
@@ -433,6 +625,110 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps app source off generic renderer preload IPC methods", () => {
+        expect.assertions(1);
+
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    !relativeFile.startsWith("electron-app/preload") &&
+                    rendererGenericPreloadIpcPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps the preload event helper free of generic IPC methods", () => {
+        expect.assertions(5);
+
+        const preloadEventApiSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadEventApi.ts")
+        );
+
+        expect(preloadEventApiSource).not.toMatch(
+            /\bfunction\s+(?:invoke|onIpc|send)\b/u
+        );
+        expect(preloadEventApiSource).not.toContain(
+            "shouldAllowGenericIpcBridge"
+        );
+        expect(preloadEventApiSource).not.toContain(
+            "isAllowedGenericInvokeChannel"
+        );
+        expect(preloadEventApiSource).not.toContain(
+            "isAllowedGenericSendChannel"
+        );
+        expect(preloadEventApiSource).not.toContain(
+            "isAllowedRendererIpcEventChannel"
+        );
+    });
+
+    it("keeps the root preload entrypoint delegated to the preload entrypoint module", () => {
+        expect.assertions(7);
+
+        const preloadEntrySource = stripComments(
+            readRepositoryFile("electron-app/preload.ts")
+        );
+        const preloadEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadEntrypoint.ts")
+        );
+
+        expect(preloadEntrySource).toContain(
+            'import { startDefaultPreloadEntrypoint } from "./preload/preloadEntrypoint.js";'
+        );
+        expect(preloadEntrySource).toContain(
+            "startDefaultPreloadEntrypoint();"
+        );
+        expect(preloadEntrySource).not.toContain("require");
+        expect(preloadEntrypointSource).toContain(
+            "startPreloadEntrypoint(require,"
+        );
+        expect(preloadEntrySource).not.toContain(
+            'require("./preload/preloadEntrypoint.js")'
+        );
+        expect(preloadEntrySource).not.toContain("startPreloadScript");
+        expect(preloadEntrySource).not.toContain("PreloadModuleRequire");
+    });
+
+    it("keeps preload bootstrap loaders on the injected module require", () => {
+        expect.assertions(1);
+
+        const ambientRequirePattern = /\brequire\s*\(/u;
+        const violations = preloadInjectedRequireFiles
+            .filter((relativeFile) =>
+                ambientRequirePattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps the preload build transform bundling injected require calls", () => {
+        expect.assertions(4);
+
+        const bundlePreloadSource = stripComments(
+            readRepositoryFile("scripts/bundle-preload.mjs")
+        );
+
+        expect(bundlePreloadSource).toContain(
+            "preloadInjectedRequireBundlingPlugin"
+        );
+        expect(bundlePreloadSource).toContain(
+            "preload-injected-require-bundling"
+        );
+        expect(bundlePreloadSource).toContain(
+            '.replace(/\\brequireModule\\s*\\(/gu, "require(")'
+        );
+        expect(bundlePreloadSource).toContain(
+            '.replace(/(["\'])\\.\\/preload\\//gu, "$1./")'
+        );
     });
 
     it("keeps state domain modules out of broad renderer utilities", () => {
@@ -469,18 +765,103 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps globalData reader imports quarantined to state core compatibility", () => {
+    it("keeps globalDataStore imports out of runtime source", () => {
         expect.assertions(1);
 
-        const allowedReaderImportFiles = new Set([
-            "electron-app/utils/state/core/unifiedStateManager.ts",
-        ]);
         const violations = sourceRoots
             .flatMap(collectSourceFiles)
             .filter(
                 (relativeFile) =>
-                    !allowedReaderImportFiles.has(relativeFile) &&
                     globalDataStoreReaderImportPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    ) ||
+                    globalDataStoreWriterPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps migrated runtime callers on explicit FIT state slices", () => {
+        expect.assertions(1);
+
+        const violations = migratedExplicitFitSliceReaderFiles
+            .filter((relativeFile) =>
+                directFitFileRawDataSelectorPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps active FIT raw-data storage on the explicit raw-data state slice", () => {
+        expect.assertions(7);
+
+        const globalDataStorePath =
+            "electron-app/utils/state/core/globalDataStore.ts";
+        const activeFitRawDataStateSource = readRepositoryFile(
+            "electron-app/utils/state/domain/activeFitRawDataState.ts"
+        );
+        const unifiedStateManagerSource = readRepositoryFile(
+            "electron-app/utils/state/core/unifiedStateManager.ts"
+        );
+        const stateManagerDefaultsSource = readRepositoryFile(
+            "electron-app/utils/state/core/stateManagerDefaults.ts"
+        );
+
+        expect(existsSync(path.join(process.cwd(), globalDataStorePath))).toBe(
+            false
+        );
+        expect(activeFitRawDataStateSource).toContain(
+            'const ACTIVE_FIT_RAW_DATA_PATH = "fitFile.rawData";'
+        );
+        expect(activeFitRawDataStateSource).toContain(
+            "setState(ACTIVE_FIT_RAW_DATA_PATH"
+        );
+        expect(stateManagerDefaultsSource).toContain("rawData: null");
+        expect(stateManagerDefaultsSource).not.toContain("globalData: null");
+        expect(unifiedStateManagerSource).toContain(
+            'const UNSUPPORTED_LEGACY_PATHS = new Set(["globalData"]);'
+        );
+        expect(unifiedStateManagerSource).not.toContain(
+            '"globalData", "fitFile.rawData"'
+        );
+    });
+
+    it("keeps Playwright smoke state assertions on explicit FIT activity slices", () => {
+        expect.assertions(3);
+
+        const violations = playwrightSmokeFiles
+            .filter((relativeFile) =>
+                directGlobalDataStateReadPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const smokeSource = readRepositoryFile(playwrightSmokeFiles[0]);
+
+        expect(violations).toStrictEqual([]);
+        expect(smokeSource).toContain(
+            "./utils/state/domain/fitActivityDataState.js"
+        );
+        expect(smokeSource).toContain("getActiveFitActivityData");
+    });
+
+    it("keeps direct raw FIT data selectors quarantined to the active raw-data domain helper", () => {
+        expect.assertions(1);
+
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    !directFitFileRawDataSelectorAllowedFiles.includes(
+                        relativeFile as (typeof directFitFileRawDataSelectorAllowedFiles)[number]
+                    ) &&
+                    directFitFileRawDataSelectorPattern.test(
                         stripComments(readRepositoryFile(relativeFile))
                     )
             )
@@ -526,8 +907,378 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps migrated chart renderers on typed Chart.js imports", () => {
+        expect.assertions(1);
+
+        const violations = migratedChartImportFiles
+            .filter((relativeFile) =>
+                directChartConstructorGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps direct Chart.js global constructor lookups out of runtime source", () => {
+        expect.assertions(1);
+
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter((relativeFile) =>
+                directChartConstructorGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps migrated chart lifecycle paths on the chart instance registry", () => {
+        expect.assertions(1);
+
+        const violations = migratedChartInstanceRegistryFiles
+            .filter((relativeFile) =>
+                directChartInstanceGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps migrated table renderers on typed DataTables imports", () => {
+        expect.assertions(1);
+
+        const violations = migratedDataTableImportFiles
+            .filter((relativeFile) =>
+                directDataTableGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps direct DataTables global lookups out of runtime source", () => {
+        expect.assertions(1);
+
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter((relativeFile) =>
+                directDataTableGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps DataTables wired through the runtime adapter instead of a renderer global", () => {
+        expect.assertions(2);
+
+        const vendorChartDataEntry = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/vendorGlobalsChartData.ts"
+            )
+        );
+
+        expect(vendorChartDataEntry).toContain(
+            "setDataTableRuntime(DataTable)"
+        );
+        expect(vendorChartDataEntry).not.toContain(
+            'defineMissingGlobal("DataTable"'
+        );
+    });
+
+    it("keeps Chart.js wired through the runtime adapter instead of renderer globals", () => {
+        expect.assertions(5);
+
+        const vendorChartDataEntry = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/vendorGlobalsChartData.ts"
+            )
+        );
+
+        expect(vendorChartDataEntry).toContain(
+            "setChartRuntime(Chart, zoomPlugin)"
+        );
+        expect(vendorChartDataEntry).not.toContain(
+            'defineMissingGlobal("Chart"'
+        );
+        expect(vendorChartDataEntry).not.toContain(
+            'defineMissingGlobal("ChartZoom"'
+        );
+        expect(vendorChartDataEntry).not.toContain(
+            'defineMissingGlobal("chartjsPluginZoom"'
+        );
+        expect(vendorChartDataEntry).not.toContain(
+            'defineMissingGlobal("Hammer"'
+        );
+    });
+
+    it("keeps migrated DOM sanitizers on the DOMPurify runtime adapter", () => {
+        expect.assertions(1);
+
+        const violations = migratedDomPurifyRuntimeFiles
+            .filter((relativeFile) =>
+                directDomPurifyGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps DOMPurify wired through the runtime adapter instead of a renderer global", () => {
+        expect.assertions(2);
+
+        const vendorCoreEntry = stripComments(
+            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+        );
+
+        expect(vendorCoreEntry).toContain("setDomPurifyRuntime(DOMPurify)");
+        expect(vendorCoreEntry).not.toContain(
+            'defineMissingGlobal("DOMPurify"'
+        );
+    });
+
+    it("keeps migrated summary renderers on the Arquero runtime adapter", () => {
+        expect.assertions(1);
+
+        const violations = migratedArqueroRuntimeFiles
+            .filter((relativeFile) =>
+                directArqueroGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps Arquero wired through the runtime adapter instead of renderer globals", () => {
+        expect.assertions(3);
+
+        const vendorCoreEntry = stripComments(
+            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+        );
+
+        expect(vendorCoreEntry).toContain("setArqueroRuntime(arquero)");
+        expect(vendorCoreEntry).not.toContain('defineMissingGlobal("aq"');
+        expect(vendorCoreEntry).not.toContain('defineMissingGlobal("arquero"');
+    });
+
+    it("keeps migrated ZIP exports on the JSZip runtime adapter", () => {
+        expect.assertions(1);
+
+        const violations = migratedExportZipRuntimeFiles
+            .filter((relativeFile) =>
+                directJSZipGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps JSZip wired through the export runtime adapter instead of a renderer global", () => {
+        expect.assertions(2);
+
+        const vendorCoreEntry = stripComments(
+            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+        );
+
+        expect(vendorCoreEntry).toContain("setExportZipRuntime(JSZip)");
+        expect(vendorCoreEntry).not.toContain('defineMissingGlobal("JSZip"');
+    });
+
+    it("keeps migrated fullscreen controls on the screenfull runtime adapter", () => {
+        expect.assertions(1);
+
+        const violations = migratedScreenfullRuntimeFiles
+            .filter((relativeFile) =>
+                directScreenfullGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps screenfull wired through the runtime adapter instead of a renderer global", () => {
+        expect.assertions(2);
+
+        const vendorCoreEntry = stripComments(
+            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+        );
+
+        expect(vendorCoreEntry).toContain("setScreenfullRuntime(screenfull)");
+        expect(vendorCoreEntry).not.toContain(
+            'defineMissingGlobal("screenfull"'
+        );
+    });
+
+    it("keeps migrated map helpers on the Leaflet runtime adapter", () => {
+        expect.assertions(1);
+
+        const violations = migratedMapLeafletRuntimeFiles
+            .filter((relativeFile) =>
+                directLeafletGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps direct Leaflet global lookups out of runtime source", () => {
+        expect.assertions(1);
+
+        const allowed = new Set<string>(
+            directLeafletRuntimeGlobalLookupAllowedFiles
+        );
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    !allowed.has(relativeFile) &&
+                    directLeafletGlobalPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps Leaflet plugins wired through the runtime adapter without a persistent global", () => {
+        expect.assertions(11);
+
+        const vendorMapEntry = stripComments(
+            readRepositoryFile("electron-app/renderer/vendorGlobalsMap.ts")
+        );
+        const viteRendererConfig = stripComments(
+            readRepositoryFile("vite.renderer.config.mjs")
+        );
+        const allowed = new Set<string>(
+            leafletCompatibilityGlobalDefinitionAllowedFiles
+        );
+        const globalDefinitionViolations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    !allowed.has(relativeFile) &&
+                    leafletCompatibilityGlobalDefinitionPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+            )
+            .sort();
+        const setLeafletRuntimeIndex = vendorMapEntry.indexOf(
+            "setLeafletRuntime(Leaflet)"
+        );
+        const leafletDrawImportIndex = vendorMapEntry.indexOf(
+            'import("leaflet-draw")'
+        );
+
+        expect(vendorMapEntry).toContain("setLeafletRuntime(Leaflet)");
+        expect(setLeafletRuntimeIndex).toBeGreaterThanOrEqual(0);
+        expect(leafletDrawImportIndex).toBeGreaterThan(setLeafletRuntimeIndex);
+        expect(vendorMapEntry).not.toContain(
+            "installLeafletPluginCompatibilityGlobal"
+        );
+        expect(vendorMapEntry).not.toContain('defineMissingGlobal("L"');
+        expect(globalDefinitionViolations).toStrictEqual([]);
+        expect(viteRendererConfig).toContain(
+            "fitfileviewer-legacy-leaflet-plugin-runtime"
+        );
+        expect(viteRendererConfig).toContain(
+            'Symbol.for("fitfileviewer.leafletRuntime")'
+        );
+        expect(viteRendererConfig).toContain(
+            "/node_modules/leaflet-draw/dist/leaflet.draw.js"
+        );
+        expect(viteRendererConfig).toContain(
+            "/node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js"
+        );
+        expect(viteRendererConfig).toContain(
+            "/node_modules/leaflet-minimap/dist/Control.MiniMap.min.js"
+        );
+    });
+
+    it("keeps direct MapLibre bridge calls quarantined to the vector-layer adapter", () => {
+        expect.assertions(1);
+
+        const allowed = new Set<string>(directMapLibreBridgeAllowedFiles);
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    !allowed.has(relativeFile) &&
+                    directMapLibreBridgePattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps bundled browser package imports in renderer vendor entries", () => {
+        expect.assertions(1);
+
+        const allowed = new Set<string>(
+            rendererVendorBrowserPackageImportAllowedFiles
+        );
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    !allowed.has(relativeFile) &&
+                    bundledBrowserVendorImportPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps renderer vendor global state shims removed", () => {
+        expect.assertions(2);
+
+        const missingGlobalShimViolations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter((relativeFile) =>
+                missingRendererVendorGlobalShimPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const globalMarkerViolations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter((relativeFile) =>
+                rendererVendorBundleGlobalMarkerPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(missingGlobalShimViolations).toStrictEqual([]);
+        expect(globalMarkerViolations).toStrictEqual([]);
+    });
+
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(12);
+        expect.assertions(19);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -576,6 +1327,20 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const legacyAppStateCompatibilityUsages = scannedFiles
+            .filter((relativeFile) =>
+                legacyAppStateCompatibilityPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const legacyIsChartRenderedGlobalUsages = scannedFiles
+            .filter((relativeFile) =>
+                legacyIsChartRenderedGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const legacyGlobalDataBridgeFunctionUsages = scannedFiles
             .filter(
                 (relativeFile) =>
@@ -585,12 +1350,37 @@ describe("architecture boundaries", () => {
                     )
             )
             .sort();
+        const directGlobalDataStateReads = scannedFiles
+            .filter((relativeFile) =>
+                directGlobalDataStateReadPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const globalDataWriterQuarantineViolations = scannedFiles
+            .filter(
+                (relativeFile) =>
+                    !allowedGlobalDataWriterFiles.has(relativeFile) &&
+                    (globalDataStoreWriterPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    ) ||
+                        directGlobalDataStateWritePattern.test(
+                            stripComments(readRepositoryFile(relativeFile))
+                        ))
+            )
+            .sort();
         const unexpectedLegacyUtilityFiles = collectSourceFiles(
             "electron-app/utils/legacy"
         );
         const migratedGlobalDataReaderViolations =
             migratedGlobalDataReaderFiles.filter((relativeFile) =>
                 directGlobalDataReadPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            );
+        const migratedGlobalDataWriterViolations =
+            migratedGlobalDataWriterFreeFiles.filter((relativeFile) =>
+                globalDataStoreWriterPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             );
@@ -606,7 +1396,23 @@ describe("architecture boundaries", () => {
                     stripComments(readRepositoryFile(relativeFile))
                 )
             );
+        const legacyLoadedFitFilesStatePathUsages = scannedFiles
+            .filter((relativeFile) =>
+                legacyLoadedFitFilesStatePathPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const legacyLoadedFitFilesGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                legacyLoadedFitFilesGlobalLookupPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
+            "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
+            "electron-app/renderer/vendorGlobals.ts",
             "electron-app/utils.ts",
             "electron-app/utils/app/initialization/rendererUtils.ts",
             "electron-app/utils/legacy/globalUtilityRegistry.ts",
@@ -621,11 +1427,18 @@ describe("architecture boundaries", () => {
         expect(directGlobalDataReactiveProperties).toStrictEqual([]);
         expect(directShowFitDataGlobals).toStrictEqual([]);
         expect(legacyAppStateGlobalDataUsages).toStrictEqual([]);
+        expect(legacyAppStateCompatibilityUsages).toStrictEqual([]);
+        expect(legacyIsChartRenderedGlobalUsages).toStrictEqual([]);
         expect(legacyGlobalDataBridgeFunctionUsages).toStrictEqual([]);
+        expect(directGlobalDataStateReads).toStrictEqual([]);
+        expect(globalDataWriterQuarantineViolations).toStrictEqual([]);
         expect(unexpectedLegacyUtilityFiles).toStrictEqual([]);
         expect(migratedGlobalDataReaderViolations).toStrictEqual([]);
+        expect(migratedGlobalDataWriterViolations).toStrictEqual([]);
         expect(rendererUtilsFreeViolations).toStrictEqual([]);
         expect(migratedRendererUtilityCallerViolations).toStrictEqual([]);
+        expect(legacyLoadedFitFilesStatePathUsages).toStrictEqual([]);
+        expect(legacyLoadedFitFilesGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

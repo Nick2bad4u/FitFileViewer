@@ -97,6 +97,20 @@ describe("gpxExport", () => {
         expect(Number(secondPt.ele)).toBeCloseTo(200.12, 2);
     });
 
+    it("serializes snake-case FIT coordinates through the route data selector", () => {
+        expect.assertions(2);
+
+        const gpx = buildGpxFromRecords([
+            {
+                position_lat: 536_870_912,
+                position_long: -1_073_741_824,
+            },
+        ]);
+
+        expect(gpx).toBeTypeOf("string");
+        expect(gpx).toContain('<trkpt lat="45.0000000" lon="-90.0000000">');
+    });
+
     it("resolves track names from loaded fit file metadata", () => {
         expect.assertions(3);
 

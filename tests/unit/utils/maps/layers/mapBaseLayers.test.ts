@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+    clearLeafletRuntimeForTests,
+    setLeafletRuntime,
+} from "../../../../../electron-app/utils/maps/core/leafletRuntime.js";
 
 const EXPECTED_LAYER_NAMES = [
     "CartoDB_DarkMatter",
@@ -36,31 +40,44 @@ const EXPECTED_LAYER_NAMES = [
     "WaymarkedTrails_Slopes",
 ];
 
+const runtimeGlobalFallbackFlag =
+    "__fitFileViewerRuntimeGlobalFallbackForTests";
+
 describe("mapBaseLayers", () => {
     type MockLayer = { readonly kind: string };
 
-    let originalL: unknown;
-
     beforeEach(() => {
-        originalL = (global as any).L;
         vi.resetModules();
+        clearLeafletRuntimeForTests();
     });
 
     afterEach(() => {
-        (global as any).L = originalL;
+        clearLeafletRuntimeForTests();
     });
 
     it("uses shim when global L is not present", async () => {
         expect.assertions(4);
 
-        delete (global as any).L;
-        const mod =
-            await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
-        const { baseLayers } = mod;
-        expect(Object.keys(baseLayers)).toEqual(EXPECTED_LAYER_NAMES);
-        expect(baseLayers.OpenStreetMap).toStrictEqual({});
-        expect(baseLayers.CartoDB_Positron).toStrictEqual({});
-        expect(baseLayers.OpenFreeMap_Dark).toStrictEqual({});
+        const previousFallback = Reflect.get(
+            globalThis,
+            runtimeGlobalFallbackFlag
+        );
+        Reflect.set(globalThis, runtimeGlobalFallbackFlag, false);
+        try {
+            const mod =
+                await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
+            const { baseLayers } = mod;
+            expect(Object.keys(baseLayers)).toEqual(EXPECTED_LAYER_NAMES);
+            expect(baseLayers.OpenStreetMap).toStrictEqual({});
+            expect(baseLayers.CartoDB_Positron).toStrictEqual({});
+            expect(baseLayers.OpenFreeMap_Dark).toStrictEqual({});
+        } finally {
+            Reflect.set(
+                globalThis,
+                runtimeGlobalFallbackFlag,
+                previousFallback
+            );
+        }
     });
 
     it("calls L.tileLayer and L.maplibreGL when present", async () => {
@@ -68,26 +85,27 @@ describe("mapBaseLayers", () => {
 
         const rasterLayer = { kind: "raster" };
         const vectorLayer = { kind: "vector" };
-        (global as any).L = {
+        const leaflet = {
             maplibreGL: vi.fn<() => MockLayer>(() => vectorLayer),
             tileLayer: vi.fn<() => MockLayer>(() => rasterLayer),
         };
+        setLeafletRuntime(leaflet);
         const mod =
             await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
         const { baseLayers } = mod;
         expect(baseLayers.OpenStreetMap).toBe(rasterLayer);
         expect(baseLayers.CartoDB_DarkMatter).toBe(rasterLayer);
         expect(baseLayers.OpenFreeMap_Bright).toBe(vectorLayer);
-        expect((global as any).L.tileLayer).toHaveBeenCalledTimes(28);
-        expect((global as any).L.maplibreGL).toHaveBeenCalledTimes(5);
-        expect((global as any).L.tileLayer).toHaveBeenCalledWith(
+        expect(leaflet.tileLayer).toHaveBeenCalledTimes(28);
+        expect(leaflet.maplibreGL).toHaveBeenCalledTimes(5);
+        expect(leaflet.tileLayer).toHaveBeenCalledWith(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
             {
                 attribution:
                     '&copy; <a href="https://www.openstreetmap.org/copyright" data-external-link="true" rel="noopener noreferrer">OpenStreetMap</a> contributors',
             }
         );
-        expect((global as any).L.maplibreGL).toHaveBeenCalledWith({
+        expect(leaflet.maplibreGL).toHaveBeenCalledWith({
             style: "https://tiles.openfreemap.org/styles/bright",
         });
     });
@@ -96,15 +114,28 @@ describe("mapBaseLayers", () => {
         expect.assertions(3);
 
         const maplibreGL = vi.fn<() => MockLayer>(() => ({ kind: "unused" }));
-        (global as any).L = {
+        setLeafletRuntime({
             maplibreGL,
             tileLayer: "not-a-function",
-        };
-        const mod =
-            await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
-        const { baseLayers } = mod;
-        expect(baseLayers.OpenStreetMap).toStrictEqual({});
-        expect(baseLayers.OpenFreeMap_Bright).toStrictEqual({});
-        expect(maplibreGL).not.toHaveBeenCalled();
+        });
+        const previousFallback = Reflect.get(
+            globalThis,
+            runtimeGlobalFallbackFlag
+        );
+        Reflect.set(globalThis, runtimeGlobalFallbackFlag, false);
+        try {
+            const mod =
+                await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
+            const { baseLayers } = mod;
+            expect(baseLayers.OpenStreetMap).toStrictEqual({});
+            expect(baseLayers.OpenFreeMap_Bright).toStrictEqual({});
+            expect(maplibreGL).not.toHaveBeenCalled();
+        } finally {
+            Reflect.set(
+                globalThis,
+                runtimeGlobalFallbackFlag,
+                previousFallback
+            );
+        }
     });
 });

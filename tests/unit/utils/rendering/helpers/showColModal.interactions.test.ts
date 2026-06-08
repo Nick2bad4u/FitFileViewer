@@ -5,19 +5,14 @@ import {
     getStorageKey,
     loadColPrefs,
 } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js";
-import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
-import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import {
+    __resetStateManagerForTests,
+    setState,
+} from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type Cleanup = () => void;
 
-type WindowWithGlobalData = Window & {
-    globalData?: { cachedFilePath: string };
-};
-
 function setupDomTest(): Cleanup {
-    const windowWithGlobalData = globalThis.window as WindowWithGlobalData;
-    const hadGlobalData = Object.hasOwn(windowWithGlobalData, "globalData");
-    const originalGlobalData = windowWithGlobalData.globalData;
     const originalClipboard = globalThis.navigator.clipboard;
     const writeText = vi
         .fn<(text: string) => Promise<void>>()
@@ -26,7 +21,11 @@ function setupDomTest(): Cleanup {
     __resetStateManagerForTests();
     document.body.replaceChildren();
     localStorage.clear();
-    setGlobalData({ cachedFilePath: "/tmp/file.fit" }, { source: "test" });
+    setState(
+        "fitFile.rawData",
+        { cachedFilePath: "/tmp/file.fit" },
+        { source: "test" }
+    );
     Object.defineProperty(globalThis.navigator, "clipboard", {
         configurable: true,
         value: { writeText },
@@ -36,15 +35,6 @@ function setupDomTest(): Cleanup {
         __resetStateManagerForTests();
         document.body.replaceChildren();
         localStorage.clear();
-        if (hadGlobalData) {
-            Object.defineProperty(windowWithGlobalData, "globalData", {
-                configurable: true,
-                value: originalGlobalData,
-                writable: true,
-            });
-        } else {
-            Reflect.deleteProperty(windowWithGlobalData, "globalData");
-        }
         Object.defineProperty(globalThis.navigator, "clipboard", {
             configurable: true,
             value: originalClipboard,

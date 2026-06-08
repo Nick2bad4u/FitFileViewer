@@ -20,11 +20,6 @@ type ChartControlsState = {
     isVisible?: unknown;
 };
 
-type LegacyAppState = {
-    eventListeners: unknown;
-    isChartRendered: unknown;
-};
-
 type PerformanceMemory = {
     jsHeapSizeLimit: number;
     totalJSHeapSize: number;
@@ -50,7 +45,6 @@ type StateIntegrationGlobal = typeof globalThis & {
     __performanceMonitoringInterval?: ReturnType<typeof setInterval>;
     __persistenceTimeout?: ReturnType<typeof setTimeout>;
     __state_debug?: DebugUtilities;
-    AppState?: LegacyAppState;
     chartControlsState?: ChartControlsState;
     electronAPI?: Partial<Pick<ElectronAPIWithDevFlags, "__devMode">>;
 };
@@ -112,9 +106,6 @@ export function initializeAppState(): void {
     initializeStateManager();
     // Initialize UI state manager
     uiStateManager.initialize();
-
-    // Set up backward compatibility
-    setupBackwardCompatibility();
 
     // Set up state debugging in development
     if (isDevelopmentMode()) {
@@ -331,52 +322,6 @@ function isDevelopmentMode(): boolean {
         // Default to non-dev on any unexpected error
         return false;
     }
-}
-
-/**
- * Set up backward compatibility with existing state patterns
- */
-function setupBackwardCompatibility(): void {
-    const integrationGlobal = getIntegrationGlobal();
-
-    // Make sure window.isChartRendered is reactive
-    if (!Object.getOwnPropertyDescriptor(globalThis, "isChartRendered")) {
-        Object.defineProperty(globalThis, "isChartRendered", {
-            configurable: true,
-            get() {
-                return getState("charts.isRendered");
-            },
-            set(value: unknown) {
-                setState("charts.isRendered", value, {
-                    source: "window.isChartRendered",
-                });
-            },
-        });
-    }
-
-    // Create compatibility layer for existing non-FIT AppState usage
-    if (!integrationGlobal.AppState) {
-        integrationGlobal.AppState = {
-            get eventListeners() {
-                return getState("eventListeners") ?? new Map();
-            },
-            set eventListeners(value: unknown) {
-                setState("eventListeners", value, {
-                    source: "AppState.eventListeners",
-                });
-            },
-            get isChartRendered() {
-                return getState("charts.isRendered");
-            },
-            set isChartRendered(value: unknown) {
-                setState("charts.isRendered", value, {
-                    source: "AppState.isChartRendered",
-                });
-            },
-        };
-    }
-
-    console.log("[StateIntegration] Backward compatibility layer established");
 }
 
 /**

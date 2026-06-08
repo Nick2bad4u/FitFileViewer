@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import { clearChartInstanceRegistryForTests } from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
 const hiddenFields = vi.hoisted(() => new Set<string>());
 
@@ -14,16 +15,10 @@ vi.mock(
 
 import { getChartCounts } from "../../../../../electron-app/utils/charts/core/getChartCounts.js";
 
-type ChartCountsTestGlobal = typeof globalThis & {
-    _chartjsInstances?: Array<{ canvas?: { id?: string } }>;
-};
-
-const testGlobal = globalThis as ChartCountsTestGlobal;
-
 function resetGlobals(): void {
     __resetStateManagerForTests();
+    clearChartInstanceRegistryForTests();
     hiddenFields.clear();
-    delete testGlobal._chartjsInstances;
 }
 
 describe(getChartCounts, () => {
@@ -49,7 +44,7 @@ describe(getChartCounts, () => {
         expect.assertions(1);
 
         resetGlobals();
-        setGlobalData(
+        setActiveFitRawData(
             {
                 recordMesgs: [
                     null,
@@ -82,7 +77,7 @@ describe(getChartCounts, () => {
         hiddenFields.add("power_lap_zone_individual");
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-        setGlobalData(
+        setActiveFitRawData(
             {
                 eventMesgs: [{ event: "start" }],
                 recordMesgs: [
@@ -161,7 +156,7 @@ describe(getChartCounts, () => {
                 .spyOn(console, "error")
                 .mockImplementation(() => {}),
             logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        setGlobalData(
+        setActiveFitRawData(
             {
                 recordMesgs: [
                     undefined,

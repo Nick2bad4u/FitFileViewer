@@ -252,6 +252,10 @@ const expectedRootToolingScripts = {
         'secretlint "*.md" "docs/**/*.md" "docusaurus/docs/**/*.{md,mdx}" "docusaurus/blog/**/*.{md,mdx}" --secretlintrc .secretlintrc.cjs',
     "perf:baseline":
         "npm run build:runtime-ts && node scripts/run-performance-baseline.mjs",
+    "perf:compare":
+        "npm run build:runtime-ts && node scripts/run-performance-baseline.mjs --compare artifacts/performance-baseline.previous.json --output artifacts/performance-baseline.current.json",
+    "perf:trend":
+        "npm run build:runtime-ts && node scripts/run-performance-baseline.mjs --compare-if-exists artifacts/performance-baseline.previous.json --output artifacts/performance-baseline-cache/performance-baseline.json",
     "prepare:electron": "node scripts/ensure-electron-binary.mjs",
     "release:check-signing": "node scripts/check-signing-env.mjs",
     pretest: "npm run prepare:electron && npm run build:runtime-ts",
@@ -446,7 +450,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps app release versioning rooted at the repository package", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseWorkflow = readFileSync(
@@ -478,6 +482,9 @@ describe("workspace package boundaries", () => {
             "npm run release:verify-signing-artifacts"
         );
         expect(releaseWorkflow).toContain("SIGNING_VERIFICATION_OUTCOME:");
+        expect(releaseWorkflow).toContain(
+            "release-dist/signing-verification-report.json"
+        );
         expect(releaseWorkflow).toContain("npm run test:packaged");
         expect(releaseVersioningFilesWithWorkspaceFlags).toStrictEqual([]);
     });
@@ -690,7 +697,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps dependency update configuration rooted at the app package", () => {
-        expect.assertions(9);
+        expect.assertions(16);
 
         const ncuConfig = JSON.parse(
             readFileSync(path.join(process.cwd(), rootNcuConfigPath), "utf8")
@@ -743,8 +750,27 @@ describe("workspace package boundaries", () => {
             "xvfb-run -a npm run release:verify"
         );
         expect(dependencyValidationWorkflow).toContain(
+            "tee artifacts/dependency-validation/npm-ci-app.log"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "tee artifacts/dependency-validation/npm-ci-docusaurus.log"
+        );
+        expect(dependencyValidationWorkflow).toContain(
             "Collect dependency validation diagnostics"
         );
+        expect(dependencyValidationWorkflow).toContain(
+            "cp -R release-dist artifacts/dependency-validation/release-dist"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "root-artifacts-files.txt"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "artifacts/dependency-validation/root-artifacts/"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "Summarize dependency validation diagnostics"
+        );
+        expect(dependencyValidationWorkflow).toContain("GITHUB_STEP_SUMMARY");
         expect(dependencyValidationWorkflow).toContain(
             "dependency-validation-diagnostics"
         );

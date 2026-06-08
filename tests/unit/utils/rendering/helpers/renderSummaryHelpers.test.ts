@@ -6,8 +6,10 @@ import {
     loadColPrefs,
     saveColPrefs,
 } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js";
-import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
-import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import {
+    __resetStateManagerForTests,
+    setState,
+} from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type SummaryWindow = Window &
     typeof globalThis & {
@@ -33,7 +35,7 @@ describe("renderSummaryHelpers core functions", () => {
         expect(getRowLabel(2, true)).toBe("Lap 3");
     });
 
-    it("getStorageKey prefers the global data store cached file path and ignores lower-priority names", () => {
+    it("getStorageKey prefers active FIT raw-data cached file path and ignores lower-priority names", () => {
         expect.assertions(3);
 
         resetSummaryFixture();
@@ -41,7 +43,8 @@ describe("renderSummaryHelpers core functions", () => {
         try {
             const preferredFilePath = "C:/Users/Me/My Activity.fit";
             getSummaryWindow().activeFitFileName = "IgnoredName.fit";
-            setGlobalData(
+            setState(
+                "fitFile.rawData",
                 { cachedFilePath: preferredFilePath },
                 { source: "test" }
             );
@@ -61,7 +64,7 @@ describe("renderSummaryHelpers core functions", () => {
         }
     });
 
-    it("getStorageKey falls back to data.cachedFilePath when global data has no cached file path", () => {
+    it("getStorageKey falls back to data.cachedFilePath when active FIT raw data has no cached file path", () => {
         expect.assertions(2);
 
         resetSummaryFixture();
@@ -69,7 +72,7 @@ describe("renderSummaryHelpers core functions", () => {
         try {
             const dataFilePath = "/tmp/äctivity file.fit";
             getSummaryWindow().activeFitFileName = "IgnoredName.fit";
-            setGlobalData({}, { source: "test" });
+            setState("fitFile.rawData", {}, { source: "test" });
 
             const key = getStorageKey({ cachedFilePath: dataFilePath });
 

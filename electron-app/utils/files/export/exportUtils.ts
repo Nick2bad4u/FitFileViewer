@@ -12,6 +12,11 @@ import {
     safeStorageRemoveItem,
     safeStorageSetItem,
 } from "../../storage/storageUtils.js";
+import {
+    resolveExportZipRuntime,
+    type ExportZipConstructor,
+    type ExportZipLike,
+} from "./exportZipRuntime.js";
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
 import { createModalFocusTrap } from "../../ui/modals/modalFocusTrap.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
@@ -31,18 +36,6 @@ type ExportStorageProvider = () => ExportStorageLike | null;
 type SecureRandomGlobal = typeof globalThis & {
     crypto?: Pick<Crypto, "getRandomValues">;
 };
-type ExportZipFileOptions = {
-    base64?: boolean;
-};
-type ExportZipLike = {
-    file: (
-        name: string,
-        data: Blob | string,
-        options?: ExportZipFileOptions
-    ) => ExportZipLike;
-    generateAsync: (options: { type: "blob" }) => Promise<Blob>;
-};
-type ExportZipConstructor = new () => ExportZipLike;
 type ElectronApiLike = Partial<
     Pick<
         ElectronAPI,
@@ -55,7 +48,6 @@ type ElectronApiLike = Partial<
 >;
 type ExportRuntimeGlobal = typeof globalThis & {
     electronAPI?: ElectronApiLike;
-    JSZip?: ExportZipConstructor;
 };
 type ChartDataPoint = {
     x?: LooseRecord;
@@ -453,11 +445,11 @@ function getSortedChartValues(values: Iterable<unknown>): unknown[] {
  * @returns {ExportZipConstructor}
  */
 function getExportZipConstructor(): ExportZipConstructor {
-    const { JSZip } = getExportRuntimeGlobal();
-    if (JSZip === undefined) {
+    const constructor = resolveExportZipRuntime();
+    if (constructor === undefined) {
         throw new TypeError("JSZip library not loaded");
     }
-    return JSZip;
+    return constructor;
 }
 
 /*
@@ -842,7 +834,7 @@ export function __setTestDeps(overrides: Partial<typeof __deps>): void {
     }
 }
 
-// JSZip is loaded globally via a script tag when export-all is used; reference retained only where actually accessed.
+// JSZip is registered by the core vendor bundle and resolved only where exports need it.
 
 /*
  * @param {ChartJSInstance} chart
@@ -1090,11 +1082,8 @@ export const exportUtils = {
                 "Gyazo OAuth is only available in the Electron desktop build (electronAPI unavailable)"
             );
         }
-        const {
-            onGyazoOAuthCallback,
-            startGyazoServer,
-            stopGyazoServer,
-        } = electronAPI;
+        const { onGyazoOAuthCallback, startGyazoServer, stopGyazoServer } =
+            electronAPI;
 
         // Generate state before opening the local server so environments without
         // secure randomness fail closed without leaving a server running.
@@ -2010,7 +1999,7 @@ export const exportUtils = {
             }
 
             const backgroundColor = exportUtils.getExportThemeBackground(),
-                zip = new (getExportZipConstructor())(); // JSZip is loaded globally via script tag
+                zip = new (getExportZipConstructor())();
 
             for (const [i, chart] of charts.entries()) {
                 if (!exportUtils.isValidChart(chart)) {
@@ -2044,7 +2033,8 @@ export const exportUtils = {
             );
 
             // Generate and download ZIP
-            const exportDate = new Date().toISOString().split("T")[0] ?? "unknown-date",
+            const exportDate =
+                    new Date().toISOString().split("T")[0] ?? "unknown-date",
                 content = await zip.generateAsync({ type: "blob" }),
                 link = document.createElement("a");
             link.href = URL.createObjectURL(content);
@@ -2719,9 +2709,7 @@ body {
                     const shareableUrl =
                             await exportUtils.uploadToImgur(base64Image),
                         copied =
-                            await exportUtils.copyTextToClipboard(
-                                shareableUrl
-                            );
+                            await exportUtils.copyTextToClipboard(shareableUrl);
                     showNotification(
                         copied
                             ? "Chart uploaded to Imgur! URL copied to clipboard"
@@ -2760,10 +2748,7 @@ body {
         async function shareCombinedChartsAsUrl(charts: ExportableChart[]) {
             try {
                 if (!charts || charts.length === 0) {
-                    showNotification(
-                        "No charts available to share",
-                        "warning"
-                    );
+                    showNotification("No charts available to share", "warning");
                     return;
                 }
 
@@ -2781,8 +2766,7 @@ body {
                     padding = 20,
                     rows = Math.ceil(charts.length / cols);
 
-                combinedCanvas.width =
-                    cols * chartWidth + (cols - 1) * padding;
+                combinedCanvas.width = cols * chartWidth + (cols - 1) * padding;
                 combinedCanvas.height =
                     rows * chartHeight + (rows - 1) * padding;
                 fillCanvasBackground(
@@ -2813,7 +2797,13 @@ body {
                         chartHeight,
                         backgroundColor
                     );
-                    tempCtx?.drawImage(chartCanvas, 0, 0, chartWidth, chartHeight);
+                    tempCtx?.drawImage(
+                        chartCanvas,
+                        0,
+                        0,
+                        chartWidth,
+                        chartHeight
+                    );
                     ctx?.drawImage(tempCanvas, x, y);
                 }
 
@@ -2823,9 +2813,7 @@ body {
                     const shareableUrl =
                             await exportUtils.uploadToImgur(base64Image),
                         copied =
-                            await exportUtils.copyTextToClipboard(
-                                shareableUrl
-                            );
+                            await exportUtils.copyTextToClipboard(shareableUrl);
                     showNotification(
                         copied
                             ? "Combined charts uploaded to Imgur! URL copied to clipboard"
@@ -2937,10 +2925,7 @@ body {
         async function shareCombinedChartsToGyazo(charts: ExportableChart[]) {
             try {
                 if (!charts || charts.length === 0) {
-                    showNotification(
-                        "No charts available to share",
-                        "warning"
-                    );
+                    showNotification("No charts available to share", "warning");
                     return;
                 }
 
@@ -2958,8 +2943,7 @@ body {
                     padding = 20,
                     rows = Math.ceil(charts.length / cols);
 
-                combinedCanvas.width =
-                    cols * chartWidth + (cols - 1) * padding;
+                combinedCanvas.width = cols * chartWidth + (cols - 1) * padding;
                 combinedCanvas.height =
                     rows * chartHeight + (rows - 1) * padding;
                 fillCanvasBackground(
@@ -2990,7 +2974,13 @@ body {
                         chartHeight,
                         backgroundColor
                     );
-                    tempCtx?.drawImage(chartCanvas, 0, 0, chartWidth, chartHeight);
+                    tempCtx?.drawImage(
+                        chartCanvas,
+                        0,
+                        0,
+                        chartWidth,
+                        chartHeight
+                    );
                     ctx?.drawImage(tempCanvas, x, y);
                 }
 

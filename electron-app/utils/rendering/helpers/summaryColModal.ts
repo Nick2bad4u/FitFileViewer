@@ -13,7 +13,6 @@ import {
     orderSummaryColumnsNamedFirst,
     saveColPrefs,
 } from "./renderSummaryHelpers.js";
-import { getState } from "../../state/core/stateManager.js";
 import { createModalFocusTrap } from "../../ui/modals/modalFocusTrap.js";
 
 type SummaryColModalParams = {
@@ -98,8 +97,7 @@ export function showColModal({
     header.append(title, closeBtn);
     modal.append(header);
 
-    const globalData = getManagedGlobalData();
-    const prefsKeyForFile = getStorageKey(globalData ?? data, allKeys);
+    const prefsKeyForFile = getStorageKey(data, allKeys);
     const prefsKeyGlobal = getGlobalStorageKey();
 
     const updateVisibleColumns = (cols: string[]): void => {
@@ -583,9 +581,12 @@ export function showColModal({
     function updateColList() {
         colList.replaceChildren();
 
-        displayedKeys = filterText.length > 0 ? displayKeys.filter((k) =>
-                k.toLowerCase().includes(filterText)
-            ) : [...displayKeys];
+        displayedKeys =
+            filterText.length > 0
+                ? displayKeys.filter((k) =>
+                      k.toLowerCase().includes(filterText)
+                  )
+                : [...displayKeys];
 
         // Always show label column as checked and disabled
         const checkbox = document.createElement("input");
@@ -677,11 +678,4 @@ export function showColModal({
     overlay.append(modal);
     document.body.append(overlay);
     focusTrapCleanup = createModalFocusTrap(modal, searchInput);
-}
-
-function getManagedGlobalData(): FitSummaryData | null {
-    const globalData = getState("globalData");
-    return globalData !== null && typeof globalData === "object"
-        ? globalData
-        : null;
 }

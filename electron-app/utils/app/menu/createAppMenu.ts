@@ -231,7 +231,7 @@ function safeOpenExternal(url: string): void {
         // Local module, no Electron dependency.
         const {
             validateExternalUrl,
-        } = require("../../../main/security/externalUrlPolicy");
+        } = require("../../../shared/externalUrlPolicy");
         const validated = validateExternalUrl(url);
         const { shell: sh } = getElectron();
         if (sh && typeof sh.openExternal === "function") {

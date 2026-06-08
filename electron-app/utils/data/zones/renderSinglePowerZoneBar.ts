@@ -1,3 +1,4 @@
+import { resolveChartRuntime } from "../../charts/core/chartRuntime.js";
 import { chartBackgroundColorPlugin } from "../../charts/plugins/chartBackgroundColorPlugin.js";
 import { chartZoomResetPlugin } from "../../charts/plugins/chartZoomResetPlugin.js";
 import { detectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
@@ -26,8 +27,7 @@ interface SingleZoneBarOptions {
 
 type ChartConstructor = new (canvas: HTMLCanvasElement, config: SingleZoneBarChartConfig) => unknown;
 
-interface ChartGlobals {
-    readonly Chart?: ChartConstructor;
+interface ZoneBarNotificationGlobal {
     readonly showNotification?: (message: string, type: "error") => void;
 }
 
@@ -157,6 +157,10 @@ function toFiniteNumber(value: unknown): number {
     return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
+function isChartConstructor(value: unknown): value is ChartConstructor {
+    return typeof value === "function";
+}
+
 function normalizeZoneData(
     zoneData: readonly unknown[]
 ): readonly ZoneBarDataPoint[] {
@@ -186,11 +190,16 @@ export function renderSinglePowerZoneBar(
     zoneData: readonly ZoneBarDataPoint[] | readonly unknown[],
     options: SingleZoneBarOptions = {}
 ): unknown | null {
-    const chartGlobal = globalThis as typeof globalThis & ChartGlobals;
+    const chartGlobal = globalThis as typeof globalThis &
+        ZoneBarNotificationGlobal;
+    const ChartConstructor = resolveChartRuntime(isChartConstructor);
 
     try {
-        if (!chartGlobal.Chart || !canvas || !Array.isArray(zoneData)) {
-            throw new Error("Chart.js, canvas, or zoneData missing");
+        if (!ChartConstructor) {
+            throw new Error("Chart.js constructor is unavailable");
+        }
+        if (!canvas || !Array.isArray(zoneData)) {
+            throw new Error("Canvas or zoneData missing");
         }
         const normalizedZoneData = normalizeZoneData(zoneData);
         if (normalizedZoneData.length === 0) {
@@ -363,7 +372,7 @@ export function renderSinglePowerZoneBar(
             type: "bar",
         };
 
-        return new chartGlobal.Chart(canvas, chartConfig);
+        return new ChartConstructor(canvas, chartConfig);
     } catch (error) {
         if (chartGlobal.showNotification) {
             chartGlobal.showNotification(

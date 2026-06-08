@@ -1,6 +1,6 @@
 import { chartStateManager as importedChartStateManager } from "../core/chartStateManager.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
-import { FitFileSelectors } from "../../state/domain/fitFileState.js";
+import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
 interface ChartUpdateAdapter {
     updateAll(reason: string): void;
@@ -72,7 +72,7 @@ function updateChartsForTheme(
 }
 
 function hasChartData(): boolean {
-    return FitFileSelectors.getRawData() !== null;
+    return hasActiveFitChartData();
 }
 
 /**

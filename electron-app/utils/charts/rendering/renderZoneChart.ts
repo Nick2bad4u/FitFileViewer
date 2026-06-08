@@ -10,6 +10,8 @@ import {
 import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import type { ZoneData } from "../../types/sharedChartTypes.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
+import { registerChartInstance } from "../core/chartInstanceRegistry.js";
+import { resolveChartRuntime } from "../core/chartRuntime.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import {
     detectCurrentTheme,
@@ -22,13 +24,8 @@ interface RenderZoneChartOptions {
 }
 
 interface ZoneChartRuntimeGlobal {
-    readonly Chart?: new (
-        canvas: HTMLCanvasElement,
-        config: ZoneChartConfig
-    ) => ZoneChartInstance;
     readonly __FFV_debugCharts?: unknown;
     readonly __FFV_debugChartsVerbose?: unknown;
-    readonly _chartjsInstances?: ZoneChartInstance[];
 }
 
 interface ZoneChartInstance {
@@ -66,6 +63,11 @@ interface ZoneChartConfig {
     plugins: readonly unknown[];
     type: "bar" | "doughnut";
 }
+
+type ZoneChartConstructor = new (
+    canvas: HTMLCanvasElement,
+    config: ZoneChartConfig
+) => ZoneChartInstance;
 
 interface ZoneChartBarTooltipContext {
     readonly parsed: {
@@ -114,6 +116,10 @@ interface ZoneChartLegendItem {
 }
 
 const DEFAULT_ZONE_COLOR = "#808080";
+
+function isZoneChartConstructor(value: unknown): value is ZoneChartConstructor {
+    return typeof value === "function";
+}
 
 /**
  * Render a zone chart (doughnut or bar).
@@ -181,16 +187,21 @@ export function renderZoneChart(
         );
     }
 
-    const ChartCtor = runtimeGlobal.Chart,
-        chart = ChartCtor ? new ChartCtor(canvas, config) : null;
+    const ChartCtor = resolveChartRuntime(isZoneChartConstructor);
+    if (!ChartCtor) {
+        console.error(`[ChartJS] Failed to create zone chart for ${title}`);
+        return;
+    }
 
-    if (chart && Array.isArray(runtimeGlobal._chartjsInstances)) {
+    const chart = new ChartCtor(canvas, config);
+
+    if (chart) {
         if (isDebugLoggingEnabled) {
             console.log(
                 `[ChartJS] Zone chart created successfully for ${title}`
             );
         }
-        runtimeGlobal._chartjsInstances.push(chart);
+        registerChartInstance(chart);
         return;
     }
 

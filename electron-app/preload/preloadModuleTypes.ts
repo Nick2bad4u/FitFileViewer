@@ -3,8 +3,6 @@ export type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
 export type IpcRequestPayload = import("../shared/ipc").IpcRequestPayload;
 export type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
 export type MainStateChange = import("../shared/ipc").MainStateChange;
-export type RendererIpcEventChannel =
-    import("../shared/ipc").RendererIpcEventChannel;
 export type UpdateEventName = import("../shared/ipc").UpdateEventName;
 
 export type PreloadLog = (
@@ -21,6 +19,35 @@ export type PreloadApiFactory<Keys extends keyof ElectronAPI> = (
     options: Record<string, unknown>
 ) => Pick<ElectronAPI, Keys>;
 export type PreloadModuleRequire = (moduleId: string) => unknown;
+export type CreateElectronApi = (
+    options: Record<string, unknown>
+) => ElectronAPI;
+export type AssemblePreloadApi = (options: {
+    constants: PreloadConstants;
+    contextBridge: null | PreloadContextBridge | undefined;
+    createElectronApi: CreateElectronApi;
+    ipcRenderer: null | PreloadIpcRenderer | undefined;
+    modules: PreloadModuleRegistry;
+    preloadLog: PreloadLog;
+    processRef?: NodeJS.Process;
+}) => ElectronAPI;
+
+export interface PreloadConstants {
+    CHANNELS: PreloadChannels;
+    DEFAULT_VALUES: {
+        FIT_FILE_PATH: null;
+        THEME: null;
+    };
+    EVENTS: PreloadEvents;
+}
+
+export interface PreloadRuntime {
+    assemblePreloadApi: AssemblePreloadApi;
+    constants: PreloadConstants;
+    createElectronApi: CreateElectronApi;
+    modules: PreloadModuleRegistry;
+    requireModule: PreloadModuleRequire;
+}
 
 export interface PreloadContextBridge {
     exposeInMainWorld?: (key: string, api: unknown) => void;
@@ -105,15 +132,6 @@ export interface PreloadEvents {
 export interface IpcBridgeCatalog {
     PRELOAD_CHANNELS: PreloadChannels;
     PRELOAD_EVENTS: PreloadEvents;
-    isAllowedGenericInvokeChannel: (
-        channel: unknown
-    ) => channel is import("../shared/ipc").GenericInvokeChannel;
-    isAllowedGenericSendChannel: (
-        channel: unknown
-    ) => channel is GenericSendChannel;
-    isAllowedRendererIpcEventChannel: (
-        channel: unknown
-    ) => channel is RendererIpcEventChannel;
     isAllowedUpdateEventName: (
         eventName: unknown
     ) => eventName is UpdateEventName;
@@ -158,8 +176,8 @@ export interface PreloadModuleRegistry {
         | "setFitBrowserEnabled"
         | "setFitBrowserFolder"
     >;
-    createGenericIpcApi: PreloadApiFactory<
-        "invoke" | "notifyFitFileLoaded" | "onIpc" | "onUpdateEvent" | "send"
+    createPreloadEventApi: PreloadApiFactory<
+        "notifyFitFileLoaded" | "onUpdateEvent"
     >;
     createMainStateApi: PreloadApiFactory<
         | "getErrors"
@@ -262,6 +280,128 @@ export interface PreloadModuleRegistry {
         contextBridge: null | PreloadContextBridge | undefined;
         ipcRenderer: null | PreloadIpcRenderer | undefined;
     };
-    shouldAllowGenericIpcBridge: (processRef?: NodeJS.Process) => boolean;
     shouldEnforceGenericIpcAllowlist: (processRef?: NodeJS.Process) => boolean;
+}
+
+export type PreloadIpcHelpers = ReturnType<
+    PreloadModuleRegistry["createPreloadIpcHelpers"]
+>;
+export type PreloadValidators = ReturnType<
+    PreloadModuleRegistry["createPreloadValidators"]
+>;
+
+export interface PreloadApiAssemblyContext {
+    constants: PreloadConstants;
+    contextBridge: null | PreloadContextBridge | undefined;
+    createSafeEventHandler: PreloadIpcHelpers["createSafeEventHandler"];
+    createSafeInvokeHandler: PreloadIpcHelpers["createSafeInvokeHandler"];
+    createSafeSendHandler: PreloadIpcHelpers["createSafeSendHandler"];
+    ipcRenderer: null | PreloadIpcRenderer | undefined;
+    modules: PreloadModuleRegistry;
+    preloadLog: PreloadLog;
+    processRef?: NodeJS.Process;
+    removeIpcListener: PreloadIpcHelpers["removeIpcListener"];
+    shouldEnforceGenericIpcAllowlist: boolean;
+    validateCallback: PreloadValidators["validateCallback"];
+    validateChannelName: PreloadValidators["validateChannelName"];
+    validateOptionalNonEmptyString: PreloadValidators["validateOptionalNonEmptyString"];
+    validateRequiredNonEmptyString: PreloadValidators["validateRequiredNonEmptyString"];
+}
+
+export interface PreloadAppApiDomain {
+    apiDiagnostics: Pick<ElectronAPI, "getChannelInfo" | "validateAPI">;
+    appInfoApi: Pick<
+        ElectronAPI,
+        | "getAppVersion"
+        | "getChromeVersion"
+        | "getElectronVersion"
+        | "getLicenseInfo"
+        | "getNodeVersion"
+        | "getPlatformInfo"
+    >;
+    clipboardBridge: Pick<
+        ElectronAPI,
+        "writeClipboardPngDataUrl" | "writeClipboardText"
+    >;
+    devtoolsMenuApi: Pick<ElectronAPI, "injectMenu">;
+    externalApi: Pick<
+        ElectronAPI,
+        | "onGyazoOAuthCallback"
+        | "openExternal"
+        | "startGyazoServer"
+        | "stopGyazoServer"
+    >;
+    themeApi: Pick<ElectronAPI, "getTheme">;
+}
+
+export interface PreloadFileApiDomain {
+    fileApi: Pick<
+        ElectronAPI,
+        | "addRecentFile"
+        | "approveRecentFile"
+        | "decodeFitFile"
+        | "openFile"
+        | "openFileDialog"
+        | "openOverlayDialog"
+        | "parseFitFile"
+        | "readFile"
+        | "recentFiles"
+    >;
+    fitBrowserApi: Pick<
+        ElectronAPI,
+        | "getFitBrowserFolder"
+        | "isFitBrowserEnabled"
+        | "listFitBrowserFolder"
+        | "onFitBrowserEnabledChanged"
+        | "setFitBrowserEnabled"
+        | "setFitBrowserFolder"
+    >;
+    openFolderDialog: ElectronAPI["openFolderDialog"];
+}
+
+export interface PreloadIpcEventApiDomain {
+    preloadEventApi: Pick<ElectronAPI, "notifyFitFileLoaded" | "onUpdateEvent">;
+    menuEventApi: Pick<
+        ElectronAPI,
+        | "checkForUpdates"
+        | "installUpdate"
+        | "onDecoderOptionsChanged"
+        | "onExportFile"
+        | "onMenuAbout"
+        | "onMenuCheckForUpdates"
+        | "onMenuExport"
+        | "onMenuKeyboardShortcuts"
+        | "onMenuOpenFile"
+        | "onMenuOpenOverlay"
+        | "onMenuPrint"
+        | "onMenuRestartUpdate"
+        | "onMenuSaveAs"
+        | "onOpenAccentColorPicker"
+        | "onOpenRecentFile"
+        | "onOpenSummaryColumnSelector"
+        | "onSetFontSize"
+        | "onSetHighContrast"
+        | "onSetTheme"
+        | "onShowNotification"
+        | "onUnloadFitFile"
+        | "requestExport"
+        | "requestSaveAs"
+        | "sendThemeChanged"
+        | "setFullScreen"
+    >;
+}
+
+export interface PreloadStateApiDomain {
+    mainStateApi: Pick<
+        ElectronAPI,
+        | "getErrors"
+        | "getMainState"
+        | "getMetrics"
+        | "getOperation"
+        | "getOperations"
+        | "listenToMainState"
+        | "setMainState"
+        | "subscribeToMainState"
+        | "unlistenFromMainState"
+    >;
 }

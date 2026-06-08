@@ -1,8 +1,11 @@
 import { getState, subscribe } from "../../state/core/stateManager.js";
+import {
+    hasActiveFitChartData,
+    hasFitChartRecordMessages,
+} from "../../state/domain/fitChartDataState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
 import { chartStateManager } from "./chartStateManager.js";
-import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 
 type DisableableTabButton = HTMLElement & {
     disabled?: boolean;
@@ -31,9 +34,7 @@ export class ChartTabIntegration {
      * Check whether loaded data and the active tab require chart rendering.
      */
     checkAndRenderCharts(): void {
-        const globalData = getGlobalFitData();
-
-        if (!hasChartDataRecordMessages(globalData)) {
+        if (!hasActiveFitChartData()) {
             console.log(
                 "[ChartTabIntegration] No data available for chart rendering"
             );
@@ -115,7 +116,7 @@ export class ChartTabIntegration {
         return {
             chartState: chartStateManager.getChartInfo(),
             chartTabActive: this.isChartTabActive(),
-            hasData: hasChartDataRecordMessages(getGlobalFitData()),
+            hasData: hasActiveFitChartData(),
             isInitialized: this.isInitialized,
             tabState: tabStateManager.getActiveTabInfo(),
         };
@@ -124,14 +125,14 @@ export class ChartTabIntegration {
     /**
      * Handle new FIT data being loaded or cleared.
      *
-     * @param newData - The new global FIT data payload.
+     * @param newData - The new raw FIT data payload.
      */
     handleDataChange(newData: unknown): void {
         console.log(
             "[ChartTabIntegration] Data changed, updating availability"
         );
 
-        if (hasChartDataRecordMessages(newData)) {
+        if (hasFitChartRecordMessages(newData)) {
             this.enableChartTab();
 
             if (this.isChartTabActive()) {
@@ -174,9 +175,7 @@ export class ChartTabIntegration {
      * @param reason - Reason for the refresh.
      */
     refreshCharts(reason = "Manual refresh"): boolean {
-        const globalData = getGlobalFitData();
-
-        if (!hasChartDataRecordMessages(globalData)) {
+        if (!hasActiveFitChartData()) {
             void showNotification(
                 "No data available for chart rendering",
                 "warning"
@@ -192,7 +191,7 @@ export class ChartTabIntegration {
      * Set up integration between chart and tab systems.
      */
     setupIntegration(): void {
-        subscribe("globalData", (newData, oldData) => {
+        subscribe("fitFile.rawData", (newData, oldData) => {
             if (newData !== oldData) {
                 this.handleDataChange(newData);
             }
@@ -212,9 +211,7 @@ export class ChartTabIntegration {
      * Switch to the chart tab when FIT data is available.
      */
     switchToChartTab(): boolean {
-        const globalData = getGlobalFitData();
-
-        if (!hasChartDataRecordMessages(globalData)) {
+        if (!hasActiveFitChartData()) {
             void showNotification("Please load a FIT file first", "info");
             return false;
         }
@@ -230,10 +227,6 @@ function asDisableableTabButton(
     element: Element | null
 ): DisableableTabButton | null {
     return element instanceof HTMLElement ? element : null;
-}
-
-function getGlobalFitData(): unknown {
-    return getState("globalData");
 }
 
 /**

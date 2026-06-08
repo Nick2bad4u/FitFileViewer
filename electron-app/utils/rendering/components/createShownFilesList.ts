@@ -1,24 +1,21 @@
 import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColorPalette.js";
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
-import { setState } from "../../state/core/stateManager.js";
+import {
+    clearOverlayLoadedFitFiles,
+    getLoadedFitFiles,
+    setLoadedFitFiles,
+} from "../../state/domain/loadedFitFilesState.js";
 import { attachOverlayListItemHandlers } from "./shownFilesListItemHandlers.js";
 import {
     setShownFilesListUpdater,
     updateShownFilesList,
 } from "./shownFilesListUpdater.js";
 
-type LoadedFitFile = {
-    readonly data?: unknown;
-    readonly filePath?: string;
-    readonly originalPath?: string;
-};
-
 type ShownFilesGlobal = typeof globalThis & {
     _measureControl?: {
         clearMeasurements?: () => void;
     };
     _overlayTooltipTimeout?: null | ReturnType<typeof setTimeout>;
-    loadedFitFiles?: LoadedFitFile[];
     renderMap?: () => void;
     updateShownFilesList?: () => void;
 };
@@ -240,12 +237,10 @@ export function createShownFilesList(): HTMLElement {
     let pendingStateSync = false;
     const syncOverlayState = (): void => {
         try {
-            const files = Array.isArray(overlayGlobal.loadedFitFiles)
-                ? [...overlayGlobal.loadedFitFiles]
-                : [];
-            setState("globalData.loadedFitFiles", files, {
-                source: "createShownFilesList",
-            });
+            setLoadedFitFiles(
+                getLoadedFitFiles(),
+                "createShownFilesList"
+            );
         } catch (error) {
             console.error(
                 "[createShownFilesList] Failed to sync overlay state:",
@@ -394,8 +389,8 @@ export function createShownFilesList(): HTMLElement {
         }
 
         shownFilesList.replaceChildren();
-        const files = overlayGlobal.loadedFitFiles;
-        if (!files || files.length <= 1) {
+        const files = getLoadedFitFiles();
+        if (files.length <= 1) {
             shownFilesList.parentElement
                 ?.querySelector(".overlay-clear-all-btn")
                 ?.remove();
@@ -538,9 +533,8 @@ export function createShownFilesList(): HTMLElement {
                         // Ignore optional map measurement cleanup failures.
                     }
 
-                    overlayGlobal.loadedFitFiles?.splice(1);
+                    clearOverlayLoadedFitFiles("createShownFilesList.clearAll");
                     assignKeyboardFocus(-1);
-                    scheduleOverlayStateSync();
                     overlayGlobal.renderMap?.();
                     updateShownFilesList();
                     queueMicrotask(removeOverlayFilenameTooltips);
@@ -558,8 +552,7 @@ export function createShownFilesList(): HTMLElement {
     overlayGlobal.updateShownFilesList = updateShownFilesList;
 
     if (
-        !overlayGlobal.loadedFitFiles ||
-        overlayGlobal.loadedFitFiles.length <= 1
+        getLoadedFitFiles().length <= 1
     ) {
         container.style.display = "none";
     }

@@ -3,6 +3,7 @@
  */
 
 import * as __StateMgr from "../../state/core/stateManager.js";
+import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import {
     buildIdVariants,
     getElementByIdFlexible,
@@ -270,7 +271,7 @@ export function initializeTabVisibilityState(): void {
         }
     });
 
-    getStateMgr().subscribe("globalData", (data: unknown) => {
+    getStateMgr().subscribe("fitFile.rawData", (data: unknown) => {
         const hasData = data !== null && data !== undefined;
 
         if (hasData) {
@@ -288,7 +289,7 @@ export function initializeTabVisibilityState(): void {
         noDataSwitchTimer = setTimeout(() => {
             noDataSwitchTimer = null;
 
-            const latestData = getStateMgr().getState("globalData");
+            const latestData = getActiveFitActivityData().rawData;
             const stillNoData = latestData === null || latestData === undefined;
             const isLoading = Boolean(getStateMgr().getState("isLoading"));
             const latestTab = getStringState("ui.activeTab") ?? "summary";

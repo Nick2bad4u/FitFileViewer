@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
 
-describe("updateTabVisibility globalData state subscription", () => {
+describe("updateTabVisibility FIT raw-data state subscription", () => {
     let mockWindow: Window;
     let mockDocument: Document;
     let mockSubscribe: ReturnType<
@@ -77,6 +77,28 @@ describe("updateTabVisibility globalData state subscription", () => {
                 subscribe: mockSubscribe,
             })
         );
+        vi.doMock(
+            import("../../../electron-app/utils/state/domain/fitFileState.js"),
+            () => ({
+                FitFileSelectors: {
+                    getEventMessages: () => [],
+                    getLapMessages: () => [],
+                    getRawData: () => currentGlobalData,
+                    getRecordMessages: () =>
+                        currentGlobalData !== null &&
+                        typeof currentGlobalData === "object" &&
+                        Array.isArray(
+                            (currentGlobalData as { recordMesgs?: unknown })
+                                .recordMesgs
+                        )
+                            ? (currentGlobalData as { recordMesgs: unknown[] })
+                                  .recordMesgs
+                            : [],
+                    getSessionMessages: () => [],
+                    getTimeInZoneMessages: () => [],
+                },
+            })
+        );
     });
 
     afterEach(() => {
@@ -85,7 +107,7 @@ describe("updateTabVisibility globalData state subscription", () => {
         vi.useRealTimers();
     });
 
-    describe("globalData subscription", () => {
+    describe("fitFile.rawData subscription", () => {
         it("switches to summary when data is cleared from another tab", async () => {
             expect.assertions(7);
 
@@ -105,7 +127,7 @@ describe("updateTabVisibility globalData state subscription", () => {
                 "[TabVisibility] State management initialized"
             );
 
-            // Get the subscription callback for globalData
+            // Get the subscription callback for fitFile.rawData
             expect(
                 mockSubscribe.mock.calls.map(([path, callback]) => [
                     path,
@@ -113,11 +135,11 @@ describe("updateTabVisibility globalData state subscription", () => {
                 ])
             ).toStrictEqual([
                 ["ui.activeTab", "function"],
-                ["globalData", "function"],
+                ["fitFile.rawData", "function"],
             ]);
             const requiredGlobalDataSubscription =
-                getRequiredSubscription("globalData");
-            expect(requiredGlobalDataSubscription[0]).toBe("globalData");
+                getRequiredSubscription("fitFile.rawData");
+            expect(requiredGlobalDataSubscription[0]).toBe("fitFile.rawData");
             expect(requiredGlobalDataSubscription[1]).toBeTypeOf("function");
 
             const globalDataCallback = requiredGlobalDataSubscription[1];
@@ -164,8 +186,9 @@ describe("updateTabVisibility globalData state subscription", () => {
 
             initializeTabVisibilityState();
 
-            // Get the globalData subscription callback
-            const globalDataCallback = getRequiredSubscription("globalData")[1];
+            // Get the fitFile.rawData subscription callback
+            const globalDataCallback =
+                getRequiredSubscription("fitFile.rawData")[1];
 
             // Call with no data when already on summary tab
             globalDataCallback(null);
@@ -187,8 +210,9 @@ describe("updateTabVisibility globalData state subscription", () => {
 
             initializeTabVisibilityState();
 
-            // Get the globalData subscription callback
-            const globalDataCallback = getRequiredSubscription("globalData")[1];
+            // Get the fitFile.rawData subscription callback
+            const globalDataCallback =
+                getRequiredSubscription("fitFile.rawData")[1];
 
             // Call with valid data
             currentGlobalData = { some: "data" };
@@ -211,8 +235,9 @@ describe("updateTabVisibility globalData state subscription", () => {
 
             initializeTabVisibilityState();
 
-            // Get the globalData subscription callback
-            const globalDataCallback = getRequiredSubscription("globalData")[1];
+            // Get the fitFile.rawData subscription callback
+            const globalDataCallback =
+                getRequiredSubscription("fitFile.rawData")[1];
 
             // Test with falsy values that are NOT null/undefined - these should NOT trigger the switch
             globalDataCallback(false);

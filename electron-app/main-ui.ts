@@ -176,7 +176,7 @@ function unloadFitFile(): void {
             electronAPI.notifyFitFileLoaded(null);
         }
 
-        // Tab buttons will be disabled automatically by state management when globalData is cleared
+        // Tab buttons are disabled by state management when active FIT data is cleared.
 
         logMainUi("info", "[main-ui] File unloaded successfully");
     } catch (error) {

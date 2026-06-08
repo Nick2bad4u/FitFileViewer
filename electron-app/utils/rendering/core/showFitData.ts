@@ -12,13 +12,17 @@ import {
 import { applyEstimatedPowerToRecords } from "../../data/processing/estimateCyclingPower.js";
 import { getPowerEstimationSettings } from "../../data/processing/powerEstimationSettings.js";
 import { createRendererLogger } from "../../logging/rendererLogger.js";
-import { renderMap } from "../../maps/core/renderMap.js";
-import { setGlobalData } from "../../state/core/globalDataStore.js";
+import {
+    renderMap,
+    waitForMapLeafletRuntime,
+} from "../../maps/core/renderMap.js";
 import { setState } from "../../state/core/stateManager.js";
+import { getActiveFitTableData } from "../../state/domain/fitTableDataState.js";
 import { setTabButtonsEnabled } from "../../ui/controls/enableTabButtons.js";
 import { updateActiveTab } from "../../ui/tabs/updateActiveTab.js";
 import { updateTabVisibility } from "../../ui/tabs/updateTabVisibility.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import { ensureRendererVendorBundle } from "../../../renderer/vendorBundleLoader.js";
 import { createTables } from "../components/createTables.js";
 import { renderSummary } from "./renderSummary.js";
 
@@ -73,7 +77,6 @@ type EstimatedPowerInput = Parameters<typeof applyEstimatedPowerToRecords>[0];
 type ShowFitDataGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
     electronAPI?: ElectronApiLike;
-    globalData?: FitDataObject;
     isMapRendered?: boolean;
 };
 
@@ -115,8 +118,6 @@ export function showFitData(
 
         integrateFitState(data, filePath);
 
-        setGlobalData(data, { source: "showFitData" });
-
         // Apply estimated power early so Charts/Summary/Tables can consume it immediately.
         // This only applies to cycling-like activities that lack real power, and only when enabled.
         try {
@@ -138,9 +139,8 @@ export function showFitData(
         try {
             if (Array.isArray(data.recordMesgs)) {
                 applyAuxHeartRateToRecords({
-                    fieldDescriptionMesgs: resolveFieldDescriptionMessages(
-                        data
-                    ),
+                    fieldDescriptionMesgs:
+                        resolveFieldDescriptionMessages(data),
                     recordMesgs: data.recordMesgs,
                 });
             }
@@ -230,7 +230,7 @@ export function showFitData(
         }
     }
 
-    createTables(data);
+    createTables(getActiveFitTableData(data).tables);
 
     // Pre-render summary data so it's ready when user switches to summary tab
     // This ensures all tabs have their data ready, even though we default to map
@@ -247,21 +247,36 @@ export function showFitData(
  * in sync while avoiding a summary tab flash.
  */
 function switchToMapTabOnLoad(): void {
-    const windowExt = getShowFitDataGlobal();
-
     updateTabVisibility("content_map");
     updateActiveTab("tab_map");
 
-    renderMapIfReady(windowExt);
+    void renderMapIfReady();
 }
 
-function renderMapIfReady(windowExt: ShowFitDataGlobal): void {
-    if (windowExt.isMapRendered) {
+async function renderMapIfReady(): Promise<void> {
+    if (getShowFitDataGlobal().isMapRendered) {
         return;
     }
 
-    renderMap();
-    windowExt.isMapRendered = true;
+    try {
+        await ensureRendererVendorBundle("map");
+        if (!(await waitForMapLeafletRuntime())) {
+            throw new Error("Leaflet runtime is unavailable");
+        }
+        if (document.querySelector("#leaflet-map")) {
+            setMapRenderedFlag(true);
+            return;
+        }
+        renderMap();
+        setMapRenderedFlag(true);
+    } catch (error) {
+        setMapRenderedFlag(false);
+        console.error("[ShowFitData] Failed to render map on load:", error);
+    }
+}
+
+function setMapRenderedFlag(isRendered: boolean): void {
+    getShowFitDataGlobal().isMapRendered = isRendered;
 }
 
 /** Enables tab buttons and notifies the main process. */
@@ -339,8 +354,7 @@ function integrateFitState(data: FitDataObject, filePath?: string): void {
 
         if (manager && typeof manager.handleFileLoaded === "function") {
             const isAlreadyLoading =
-                typeof manager.isLoading === "function" &&
-                manager.isLoading();
+                typeof manager.isLoading === "function" && manager.isLoading();
             if (
                 filePath &&
                 typeof manager.startFileLoading === "function" &&

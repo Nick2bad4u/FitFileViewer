@@ -15,7 +15,7 @@
     const { z } = require("zod") as typeof import("zod");
 
     const { validateExternalUrl } =
-        require("../security/externalUrlPolicy") as {
+        require("../../shared/externalUrlPolicy") as {
             validateExternalUrl: (url: unknown) => string;
         };
 

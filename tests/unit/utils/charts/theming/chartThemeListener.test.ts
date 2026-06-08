@@ -36,9 +36,9 @@ async function resetManagedState(): Promise<void> {
 }
 
 async function setManagedGlobalData(data: unknown): Promise<void> {
-    const { setGlobalData } =
-        await import("../../../../../electron-app/utils/state/core/globalDataStore.js");
-    setGlobalData(data);
+    const { setActiveFitRawData } =
+        await import("../../../../../electron-app/utils/state/domain/activeFitRawDataState.js");
+    setActiveFitRawData(data);
 }
 
 function testWindow(): TestWindow {
@@ -156,7 +156,7 @@ describe("chartThemeListener", () => {
             const { setupChartThemeListener } = await importModule();
             const chartsContainer = document.createElement("div");
             const settings = buildSettingsDOM();
-            await setManagedGlobalData({});
+            await setManagedGlobalData({ recordMesgs: [{}] });
 
             vi.useFakeTimers();
             setupChartThemeListener(chartsContainer, settings);
@@ -218,7 +218,7 @@ describe("chartThemeListener", () => {
             const { setupChartThemeListener } = await importModule();
             const settings = buildSettingsDOM();
             const updateAll = vi.fn<UpdateAllHandler>();
-            await setManagedGlobalData({});
+            await setManagedGlobalData({ recordMesgs: [{}] });
             testWindow().ChartUpdater = { updateAll };
 
             vi.useFakeTimers();
@@ -249,7 +249,7 @@ describe("chartThemeListener", () => {
             const { setupChartThemeListener } = await importModule();
             const settings = buildSettingsDOM();
             const updateAll = vi.fn<UpdateAllHandler>();
-            await setManagedGlobalData({});
+            await setManagedGlobalData({ recordMesgs: [{}] });
             testWindow().chartUpdater = { updateAll };
 
             vi.useFakeTimers();
@@ -279,7 +279,7 @@ describe("chartThemeListener", () => {
 
             const { setupChartThemeListener } = await importModule();
             const settings = buildSettingsDOM();
-            await setManagedGlobalData({});
+            await setManagedGlobalData({ recordMesgs: [{}] });
 
             vi.useFakeTimers();
             setupChartThemeListener(document.createElement("div"), settings);
@@ -305,7 +305,7 @@ describe("chartThemeListener", () => {
             const { removeChartThemeListener, setupChartThemeListener } =
                 await importModule();
             const settings = buildSettingsDOM();
-            await setManagedGlobalData({});
+            await setManagedGlobalData({ recordMesgs: [{}] });
 
             vi.useFakeTimers();
             setupChartThemeListener(document.createElement("div"), settings);
@@ -338,7 +338,7 @@ describe("chartThemeListener", () => {
             const { forceUpdateChartTheme } = await importModule();
             const updateAll = vi.fn<UpdateAllHandler>();
             const settings = buildSettingsDOM();
-            await setManagedGlobalData({});
+            await setManagedGlobalData({ recordMesgs: [{}] });
             testWindow().ChartUpdater = { updateAll };
 
             forceUpdateChartTheme(document.createElement("div"), settings);
@@ -364,7 +364,7 @@ describe("chartThemeListener", () => {
             const { forceUpdateChartTheme } = await importModule();
             const updateAll = vi.fn<UpdateAllHandler>();
             const settings = buildSettingsDOM();
-            await setManagedGlobalData({});
+            await setManagedGlobalData({ recordMesgs: [{}] });
             testWindow().chartUpdater = { updateAll };
 
             expect(() =>
@@ -391,7 +391,7 @@ describe("chartThemeListener", () => {
 
             const { forceUpdateChartTheme } = await importModule();
             const settings = buildSettingsDOM();
-            await setManagedGlobalData({});
+            await setManagedGlobalData({ recordMesgs: [{}] });
 
             expect(() =>
                 forceUpdateChartTheme(document.createElement("div"), settings)

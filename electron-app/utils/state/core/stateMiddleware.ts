@@ -529,7 +529,7 @@ export const persistenceMiddleware: MiddlewareDefinition = {
 export const notificationMiddleware: MiddlewareDefinition = {
     afterSet(context) {
         if (
-            context.path === "globalData" &&
+            context.path === "fitFile.rawData" &&
             isRecord(context.value) &&
             Object.keys(context.value).length > 0
         ) {

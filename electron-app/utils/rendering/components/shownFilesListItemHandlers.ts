@@ -1,4 +1,6 @@
 import { updateOverlayHighlights } from "../../maps/layers/mapDrawLaps.js";
+import { resolveLeafletRuntime } from "../../maps/core/leafletRuntime.js";
+import { removeLoadedFitFileAt } from "../../state/domain/loadedFitFilesState.js";
 import { updateShownFilesList } from "./shownFilesListUpdater.js";
 
 type OverlayListItem = HTMLLIElement & {
@@ -27,6 +29,10 @@ type CircleMarkerLayer = {
 
 type CircleMarkerConstructor = new (...args: unknown[]) => CircleMarkerLayer;
 
+type CircleMarkerLeafletRuntime = {
+    CircleMarker?: CircleMarkerConstructor;
+};
+
 type OverlayPolyline = {
     _map?: {
         _layers?: Record<string, unknown>;
@@ -40,9 +46,6 @@ type OverlayPolyline = {
 };
 
 type OverlayGlobal = typeof globalThis & {
-    L?: {
-        CircleMarker?: CircleMarkerConstructor;
-    };
     _highlightedOverlayIdx?: number | null;
     _leafletMapInstance?: {
         fitBounds: (
@@ -54,12 +57,19 @@ type OverlayGlobal = typeof globalThis & {
     };
     _overlayPolylines?: readonly (OverlayPolyline | undefined)[];
     _overlayTooltipTimeout?: null | ReturnType<typeof setTimeout>;
-    loadedFitFiles?: unknown[];
     renderMap?: () => void;
 };
 
 function getOverlayGlobal(): OverlayGlobal {
-    return globalThis as OverlayGlobal;
+    return globalThis;
+}
+
+function isCircleMarkerLeafletRuntime(
+    value: unknown
+): value is CircleMarkerLeafletRuntime {
+    return (
+        typeof value === "object" && value !== null && "CircleMarker" in value
+    );
 }
 
 function removeOverlayFilenameTooltips(): void {
@@ -88,8 +98,9 @@ function getOverlayPolyline(overlayIndex: number): OverlayPolyline | undefined {
 }
 
 function bringMatchingOverlayMarkersToFront(polyline: OverlayPolyline): void {
-    const overlayGlobal = getOverlayGlobal();
-    const circleMarker = overlayGlobal.L?.CircleMarker;
+    const circleMarker = resolveLeafletRuntime(
+        isCircleMarkerLeafletRuntime
+    )?.CircleMarker;
     const layers = polyline._map?._layers;
     if (!circleMarker || !layers || !polyline.options) {
         return;
@@ -264,15 +275,16 @@ export function attachOverlayListItemHandlers({
         (event) => {
             event.stopPropagation();
             const overlayGlobal = getOverlayGlobal();
-            if (overlayGlobal.loadedFitFiles) {
-                overlayGlobal.loadedFitFiles.splice(overlayIndex, 1);
-                scheduleOverlayStateSync();
-                const nextFocusIndex = overlayIndex > 1 ? overlayIndex - 1 : -1;
-                assignKeyboardFocus(nextFocusIndex);
-                overlayGlobal.renderMap?.();
-                updateShownFilesList();
-                scheduleManagedTooltipCleanup();
-            }
+            removeLoadedFitFileAt(
+                overlayIndex,
+                "shownFilesListItemHandlers.remove"
+            );
+            scheduleOverlayStateSync();
+            const nextFocusIndex = overlayIndex > 1 ? overlayIndex - 1 : -1;
+            assignKeyboardFocus(nextFocusIndex);
+            overlayGlobal.renderMap?.();
+            updateShownFilesList();
+            scheduleManagedTooltipCleanup();
         },
         { signal }
     );

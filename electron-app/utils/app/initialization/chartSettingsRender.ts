@@ -1,8 +1,12 @@
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
+import {
+    destroyRegisteredChartInstances,
+    getRegisteredChartInstanceCount,
+} from "../../charts/core/chartInstanceRegistry.js";
 import { getChartRenderContainer } from "../../charts/dom/chartDomUtils.js";
 import { queryAll } from "../../dom/index.js";
 import { setState } from "../../state/core/stateManager.js";
-import { FitFileSelectors } from "../../state/domain/fitFileState.js";
+import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 type ChartActionsLike = {
@@ -14,12 +18,7 @@ type ChartRenderManagerLike = {
     debouncedRender: (reason: string) => unknown;
 };
 
-type DestroyableChart = {
-    destroy: () => unknown;
-};
-
 type ChartSettingsGlobal = typeof globalThis & {
-    _chartjsInstances?: unknown;
     chartActions?: unknown;
     chartStateManager?: unknown;
     renderChartJS?: (target?: Element | null) => unknown;
@@ -64,7 +63,7 @@ function getChartSettingsGlobal(): ChartSettingsGlobal {
 }
 
 function hasChartData(): boolean {
-    return Array.isArray(FitFileSelectors.getRawData()?.recordMesgs);
+    return hasActiveFitChartData();
 }
 
 function isChartActionsLike(value: unknown): value is ChartActionsLike {
@@ -88,17 +87,9 @@ function isChartRenderManagerLike(
     return hasFunctionProperty(value, "debouncedRender");
 }
 
-function isDestroyableChart(value: unknown): value is DestroyableChart {
-    if (typeof value !== "object" || value === null) {
-        return false;
-    }
-
-    return hasFunctionProperty(value, "destroy");
-}
-
 function hasFunctionProperty(
     value: object,
-    key: "clearCharts" | "debouncedRender" | "destroy" | "requestRerender"
+    key: "clearCharts" | "debouncedRender" | "requestRerender"
 ): boolean {
     if (!(key in value)) {
         return false;
@@ -146,21 +137,7 @@ function requestRerenderViaActions(
     return true;
 }
 
-function destroyChartInstance(chart: unknown, index: number): void {
-    if (!isDestroyableChart(chart)) {
-        return;
-    }
-
-    try {
-        chart.destroy();
-        console.log(`${LOG_PREFIX} Destroyed chart instance ${index}`);
-    } catch (error) {
-        console.warn(`${LOG_PREFIX} Error destroying chart ${index}:`, error);
-    }
-}
-
 function clearLegacyChartRenderState(
-    chartGlobal: ChartSettingsGlobal,
     actions: ChartActionsLike | undefined
 ): void {
     if (typeof actions?.clearCharts === "function") {
@@ -168,18 +145,17 @@ function clearLegacyChartRenderState(
         return;
     }
 
-    if (!Array.isArray(chartGlobal._chartjsInstances)) {
+    const chartCount = getRegisteredChartInstanceCount();
+    if (chartCount === 0) {
         return;
     }
 
-    const chartInstances = chartGlobal._chartjsInstances;
     console.log(
-        `${LOG_PREFIX} Destroying ${chartInstances.length} existing chart instances`
+        `${LOG_PREFIX} Destroying ${chartCount} existing chart instances`
     );
-    for (const [index, chart] of chartInstances.entries()) {
-        destroyChartInstance(chart, index);
-    }
-    chartGlobal._chartjsInstances = [];
+    destroyRegisteredChartInstances((index, error) => {
+        console.warn(`${LOG_PREFIX} Error destroying chart ${index}:`, error);
+    });
 }
 
 function removeExistingChartCanvases(): void {
@@ -265,7 +241,7 @@ export function reRenderChartsAfterSettingChange(
             return;
         }
 
-        clearLegacyChartRenderState(chartGlobal, actions);
+        clearLegacyChartRenderState(actions);
         removeExistingChartCanvases();
         runGlobalRenderFallback(chartGlobal, settingName);
 
@@ -315,14 +291,12 @@ export function reRenderChartsAfterReset(): void {
         const chartsContainer = getChartRenderContainer(document);
 
         // Clear existing chart instances
-        if (Array.isArray(chartGlobal._chartjsInstances)) {
-            for (const chart of chartGlobal._chartjsInstances) {
-                if (isDestroyableChart(chart)) {
-                    chart.destroy();
-                }
-            }
-            chartGlobal._chartjsInstances = [];
-        }
+        destroyRegisteredChartInstances((index, error) => {
+            console.warn(
+                `${LOG_PREFIX} Error destroying chart ${index}:`,
+                error
+            );
+        });
 
         // Force a complete re-render through modern state management
         if (isChartRenderManagerLike(chartStateManager)) {

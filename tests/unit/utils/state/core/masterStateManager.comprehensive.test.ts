@@ -286,7 +286,7 @@ describe("masterStateManager comprehensive behavior", () => {
                     { source: "MasterStateManager" }
                 );
                 expect(mocks.stateManager.subscribe).toHaveBeenCalledWith(
-                    "globalData",
+                    "fitFile.rawData",
                     expect.any(Function)
                 );
                 expect({ initialized: manager.isInitialized }).toStrictEqual({
@@ -568,9 +568,9 @@ describe("masterStateManager comprehensive behavior", () => {
 
                 manager.setupIntegrations();
                 const subscriptions = mocks.stateManager.subscribe.mock.calls;
-                subscriptions.find(([path]) => path === "globalData")?.[1]({
-                    records: [],
-                });
+                subscriptions.find(([path]) => path === "fitFile.rawData")?.[1](
+                    { records: [] }
+                );
                 subscriptions.find(([path]) => path === "isLoading")?.[1](true);
                 subscriptions.find(([path]) => path === "ui.theme")?.[1](
                     "dark"

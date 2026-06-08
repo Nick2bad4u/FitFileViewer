@@ -55,6 +55,7 @@ const h = vi.hoisted(() => {
                     >
                 >(),
         },
+        mockGetRawData: vi.fn<() => unknown>(),
     };
 });
 
@@ -75,9 +76,28 @@ vi.mock(
     })
 );
 
+function getMockRawMessageArray(key: string): unknown[] {
+    const rawData = h.mockGetRawData();
+    if (rawData === null || typeof rawData !== "object") {
+        return [];
+    }
+
+    const value = (rawData as Record<string, unknown>)[key];
+    return Array.isArray(value) ? value : [];
+}
+
 vi.mock(
     import("../../../../../electron-app/utils/state/domain/fitFileState.js"),
     () => ({
+        FitFileSelectors: {
+            getEventMessages: () => getMockRawMessageArray("eventMesgs"),
+            getLapMessages: () => getMockRawMessageArray("lapMesgs"),
+            getRawData: h.mockGetRawData,
+            getRecordMessages: () => getMockRawMessageArray("recordMesgs"),
+            getSessionMessages: () => getMockRawMessageArray("sessionMesgs"),
+            getTimeInZoneMessages: () =>
+                getMockRawMessageArray("timeInZoneMesgs"),
+        },
         fitFileStateManager: h.mockFitManager,
     })
 );
@@ -105,6 +125,7 @@ beforeEach(() => {
     h.mockFitManager.isLoading.mockReset();
     h.mockFitManager.isLoading.mockReturnValue(false);
     h.mockFitManager.clearFileState.mockReset();
+    h.mockGetRawData.mockReset();
     for (const key of Object.keys(h.subscribeCallbacks)) {
         delete h.subscribeCallbacks[key];
     }
@@ -124,7 +145,7 @@ describe("appActions", () => {
 
         // Expect multiple setState calls for clearing data
         const keys = [
-            "globalData",
+            "fitFile.rawData",
             "currentFile",
             "charts.isRendered",
             "map.isRendered",
@@ -167,7 +188,7 @@ describe("appActions", () => {
         expect(h.mockSetState).not.toHaveBeenCalled();
     });
 
-    it("loadFile falls back to legacy flow when domain manager is unavailable", async () => {
+    it("loadFile falls back to explicit FIT state when domain manager is unavailable", async () => {
         expect.assertions(11);
         expect(Date.now()).toBe(1_704_067_200_000);
 
@@ -193,7 +214,7 @@ describe("appActions", () => {
             expect.any(Object)
         );
         expect(h.mockSetState).toHaveBeenCalledWith(
-            "globalData",
+            "fitFile.rawData",
             { foo: "bar" },
             expect.any(Object)
         );
@@ -425,7 +446,7 @@ describe("appSelectors", () => {
         h.mockGetState.mockReturnValueOnce(null); // currentFile
         h.mockGetState.mockReturnValueOnce(undefined); // map
         h.mockGetState.mockReturnValueOnce(undefined); // performance
-        h.mockGetState.mockReturnValueOnce(null); // globalData
+        h.mockGetRawData.mockReturnValueOnce(null);
         h.mockGetState.mockReturnValueOnce(undefined); // isLoading
         h.mockGetState.mockReturnValueOnce(undefined); // map.isRendered
         expect({
@@ -462,7 +483,6 @@ describe("appSelectors", () => {
             "currentFile",
             "map",
             "performance",
-            "globalData",
             "isLoading",
             "map.isRendered",
         ]);

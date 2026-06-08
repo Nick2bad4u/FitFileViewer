@@ -242,8 +242,7 @@ export function getSubscriptions(): SubscriptionInfo {
 }
 
 /**
- * Initializes the state manager with reactive compatibility properties and
- * persisted state.
+ * Initializes the state manager with persisted state subscriptions.
  */
 export function initializeStateManager(): void {
     if (stateManagerInitState.initialized) {
@@ -252,8 +251,6 @@ export function initializeStateManager(): void {
         );
         return;
     }
-
-    createReactiveProperty("isChartRendered", "charts.isRendered");
 
     loadPersistedState();
 
@@ -266,9 +263,7 @@ export function initializeStateManager(): void {
 
     stateManagerInitState.initialized = true;
 
-    console.log(
-        "[StateManager] Initialized with reactive properties and persistence"
-    );
+    console.log("[StateManager] Initialized with persistence subscriptions");
 }
 
 /**

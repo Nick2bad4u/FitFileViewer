@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { getGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
 import {
     get,
     set,
@@ -11,21 +10,22 @@ import {
     getState,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
-describe("unifiedStateManager globalData routing", () => {
+describe("unifiedStateManager globalData legacy path", () => {
     beforeEach(() => {
         __resetStateManagerForTests();
         Reflect.deleteProperty(globalThis, "globalData");
     });
 
-    it("routes the legacy globalData facade through globalDataStore", () => {
+    it("does not route the legacy globalData facade to active FIT raw data", () => {
         expect.assertions(3);
 
         const activityData = { recordMesgs: [{ distance: 1200 }] };
+        const fallback = { empty: true };
 
         set("globalData", activityData, { source: "test" });
 
-        expect(getState("globalData")).toBe(activityData);
-        expect(getGlobalData()).toBe(activityData);
-        expect(get("globalData")).toBe(activityData);
+        expect(getState("fitFile.rawData")).toBeNull();
+        expect(getState("globalData")).toBeUndefined();
+        expect(get("globalData", fallback)).toBe(fallback);
     });
 });

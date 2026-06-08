@@ -1,12 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
+import {
+    clearChartInstanceRegistryForTests,
+    setRegisteredChartInstances,
+} from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
 type GetCurrentSettingsModule =
     typeof import("../../../../../electron-app/utils/app/initialization/getCurrentSettings.js");
-
-type ChartTestGlobal = typeof globalThis & {
-    _chartjsInstances?: unknown[];
-    globalData?: { recordMesgs?: unknown[] };
-};
 
 const mocks = vi.hoisted(() => ({
     debouncedRender: vi.fn<(reason: string) => void>(),
@@ -206,8 +205,7 @@ describe("getCurrentSettings module", () => {
         secondCanvas.id = "chartjs-canvas-2";
         document.body.append(secondCanvas);
 
-        const testGlobal = globalThis as ChartTestGlobal;
-        testGlobal._chartjsInstances = [{ destroy: mocks.destroyChart }];
+        setRegisteredChartInstances([{ destroy: mocks.destroyChart }]);
 
         const { reRenderChartsAfterSettingChange } =
             await importGetCurrentSettings();
@@ -269,11 +267,9 @@ function resetTestState(): void {
     chartContainer.id = "content-chart";
     document.body.append(wrapper, chartContainer);
 
-    const testGlobal = globalThis as ChartTestGlobal;
-    testGlobal._chartjsInstances = [];
-    testGlobal.globalData = { recordMesgs: [{}] };
+    clearChartInstanceRegistryForTests();
     mocks.getState.mockImplementation((path) =>
-        path === "globalData" ? testGlobal.globalData : undefined
+        path === "fitFile.rawData" ? { recordMesgs: [{}] } : undefined
     );
 }
 

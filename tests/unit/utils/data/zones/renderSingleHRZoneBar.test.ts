@@ -90,6 +90,46 @@ type TooltipContext = {
 
 const testGlobal = globalThis as TestGlobal;
 
+const chartModuleMock = vi.hoisted(() => {
+    const state = {
+        instance: undefined as ChartInstance | undefined,
+        lastConfig: undefined as ChartConfig | undefined,
+    };
+    const Chart = vi.fn<
+        (canvasElement: HTMLCanvasElement, config: ChartConfig) => ChartInstance
+    >(function ChartConstructorMock(_canvasElement, config) {
+        state.lastConfig = config;
+        if (state.instance) {
+            state.instance.config = config;
+            return state.instance;
+        }
+
+        return {
+            config,
+            data: { datasets: [] },
+            destroy: vi.fn<() => void>(),
+            options: {
+                plugins: {
+                    chartBackgroundColorPlugin: { backgroundColor: null },
+                    tooltip: { callbacks: { label: vi.fn() } },
+                },
+                scales: {
+                    x: { ticks: { color: null } },
+                    y: {
+                        ticks: {
+                            callback: vi.fn(),
+                            color: null,
+                        },
+                    },
+                },
+            },
+            update: vi.fn<() => void>(),
+        };
+    });
+
+    return { Chart, state };
+});
+
 // Define types for our global extensions
 declare global {
     interface Window {
@@ -97,6 +137,8 @@ declare global {
         showNotification?: ReturnType<typeof vi.fn<ShowNotification>>;
     }
 }
+
+vi.mock("chart.js/auto", () => ({ default: chartModuleMock.Chart }));
 
 // Mock dependencies before importing the module
 vi.mock(
@@ -158,6 +200,10 @@ vi.mock(
 
 // Import the module after mocks
 import { renderSingleHRZoneBar } from "../../../../../electron-app/utils/data/zones/renderSingleHRZoneBar.js";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../../../electron-app/utils/charts/core/chartRuntime.js";
 import * as formatTime from "../../../../../electron-app/utils/formatting/formatters/formatTime.js";
 import * as chartZoneColorUtils from "../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js";
 
@@ -223,26 +269,14 @@ describe(renderSingleHRZoneBar, () => {
 
         // Reset last captured config
         lastChartConfig = undefined;
+        chartModuleMock.state.instance = mockChartInstance;
+        chartModuleMock.state.lastConfig = undefined;
+        chartModuleMock.Chart.mockClear();
+        setChartRuntime(chartModuleMock.Chart);
 
-        // Create a completely fresh Chart spy for each test
-        // This is the key change to fix the failing tests
-        const ChartSpy = vi
-            .fn<
-                (
-                    canvasElement: HTMLCanvasElement,
-                    config: ChartConfig
-                ) => ChartInstance
-            >()
-            .mockImplementation(function ChartMock(_canvasElement, config) {
-                mockChartInstance.config = config;
-                lastChartConfig = config;
-                testGlobal.__lastChartConfig = config;
-                return mockChartInstance;
-            });
-
-        // Explicitly assign our spy to window.Chart
-        window.Chart = ChartSpy;
-        testGlobal.Chart = ChartSpy;
+        // Keep the legacy window alias in tests while production imports Chart.js directly.
+        window.Chart = chartModuleMock.Chart;
+        testGlobal.Chart = chartModuleMock.Chart;
 
         // Sync Chart constructor between window and globalThis using property descriptor
         Object.defineProperty(globalThis, "Chart", {
@@ -281,6 +315,14 @@ describe(renderSingleHRZoneBar, () => {
             info: vi.fn<typeof console.info>(),
             debug: vi.fn<typeof console.debug>(),
         } as Console;
+
+        vi.mocked(chartZoneColorUtils.getChartZoneColors).mockReturnValue([
+            "#ff0000",
+            "#00ff00",
+            "#0000ff",
+            "#ffff00",
+            "#00ffff",
+        ]);
     });
 
     afterEach(() => {
@@ -300,6 +342,7 @@ describe(renderSingleHRZoneBar, () => {
         delete testGlobal.HTMLElement;
 
         // Reset all mocks
+        clearChartRuntimeForTests();
         vi.clearAllMocks();
     });
 
@@ -310,6 +353,7 @@ describe(renderSingleHRZoneBar, () => {
             testGlobal.Chart?.mock.calls[0]?.[1] ??
             window.Chart?.mock.calls[0]?.[1] ??
             lastChartConfig ??
+            chartModuleMock.state.lastConfig ??
             testGlobal.__lastChartConfig;
 
         expect(chartConfig).toMatchObject({
@@ -369,26 +413,6 @@ describe(renderSingleHRZoneBar, () => {
 
     it("should use zone colors from chartZoneColorUtils when colors not provided", () => {
         expect.assertions(10);
-        // Create a fresh Chart mock for this test
-        const ChartSpy = vi
-            .fn<
-                (
-                    canvasElement: HTMLCanvasElement,
-                    config: ChartConfig
-                ) => ChartInstance
-            >()
-            .mockImplementation(
-                function ChartMockForColors(_canvasElem, config) {
-                    mockChartInstance.config = config;
-                    return mockChartInstance;
-                }
-            );
-        Object.defineProperty(window, "Chart", {
-            configurable: true,
-            value: ChartSpy,
-            writable: true,
-        });
-
         // Mock the getChartZoneColors function
         vi.spyOn(chartZoneColorUtils, "getChartZoneColors").mockReturnValue([
             "#ff0000",
@@ -491,12 +515,17 @@ describe(renderSingleHRZoneBar, () => {
 
         // Reset mocks
         vi.clearAllMocks();
+        vi.mocked(chartZoneColorUtils.getChartZoneColors).mockReturnValue([
+            "#ff0000",
+            "#00ff00",
+            "#0000ff",
+        ]);
 
-        // Test with missing Chart.js
+        // Removing the legacy Chart global no longer prevents rendering.
         window.Chart = undefined;
         expect(
             renderSingleHRZoneBar(canvas, [{ label: "Zone 1", value: 300 }])
-        ).toBeNull();
+        ).toBe(mockChartInstance);
         expect(window.Chart).toBeUndefined();
     });
 

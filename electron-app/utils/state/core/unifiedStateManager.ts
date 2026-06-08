@@ -1,4 +1,3 @@
-import { getGlobalData, setGlobalData } from "./globalDataStore.js";
 import {
     getState as getNewState,
     setState as setNewState,
@@ -53,6 +52,7 @@ const LEGACY_PATHS = new Set([
     "loadedFitFilePath",
     "mainWindow",
 ]);
+const UNSUPPORTED_LEGACY_PATHS = new Set(["globalData"]);
 
 /**
  * Single interface for routing state access during the legacy-to-modern state
@@ -132,21 +132,11 @@ export class UnifiedStateManager {
 
         try {
             if (this.isLegacyPath(path)) {
-                if (path === "globalData") {
-                    setGlobalData(value, {
-                        source: `${opts.source}-legacy-sync`,
-                        silent: opts.silent,
-                    });
-                } else {
-                    this.setLegacyState(path);
-                }
+                const legacySyncPath = this.getLegacySyncPath(path);
+                this.setLegacyState(path);
 
-                if (
-                    path !== "globalData" &&
-                    opts.syncLegacy &&
-                    this.syncEnabled
-                ) {
-                    setNewState(path, value, {
+                if (legacySyncPath && opts.syncLegacy && this.syncEnabled) {
+                    setNewState(legacySyncPath, value, {
                         source: `${opts.source}-legacy-sync`,
                         silent: opts.silent,
                     } satisfies StateUpdateOptions);
@@ -207,8 +197,14 @@ export class UnifiedStateManager {
 
         for (const legacyPath of LEGACY_PATHS) {
             try {
+                const newPath = this.getLegacySyncPath(legacyPath);
+
+                if (!newPath) {
+                    continue;
+                }
+
                 const legacyValue = this.getLegacyState(legacyPath);
-                const newValue = getNewState(legacyPath);
+                const newValue = getNewState(newPath);
 
                 if (
                     legacyValue !== undefined &&
@@ -243,11 +239,16 @@ export class UnifiedStateManager {
     private getLegacyState(path: string, defaultValue?: unknown): unknown {
         this.warnLegacyPathOnce(path, "Accessing");
 
-        if (path === "globalData") {
-            return getGlobalData() ?? defaultValue;
+        const legacySyncPath = this.getLegacySyncPath(path);
+        if (legacySyncPath) {
+            return getNewState(legacySyncPath) ?? defaultValue;
         }
 
         return defaultValue;
+    }
+
+    private getLegacySyncPath(path: string): string | undefined {
+        return UNSUPPORTED_LEGACY_PATHS.has(path) ? undefined : path;
     }
 
     private setLegacyState(path: string): void {

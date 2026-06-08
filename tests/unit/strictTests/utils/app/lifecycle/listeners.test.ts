@@ -82,9 +82,9 @@ const openFileSelectorMock = dependencyMocks.openFileSelector;
 // Import the module under test
 import { setupListeners } from "../../../../../../electron-app/utils/app/lifecycle/listeners.js";
 import {
-    getGlobalData,
-    setGlobalData,
-} from "../../../../../../electron-app/utils/state/core/globalDataStore.js";
+    getActiveFitRawData,
+    setActiveFitRawData,
+} from "../../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../../electron-app/utils/state/core/stateManager.js";
 
 type IpcHandler = (...args: any[]) => any;
@@ -505,7 +505,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect.hasAssertions();
 
         const arrayBuf = new ArrayBuffer(16);
-        setGlobalData(
+        setActiveFitRawData(
             { cachedFilePath: "C:/tmp/sample.fit" },
             { source: "test" }
         );
@@ -574,7 +574,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             return el;
         });
 
-        setGlobalData({ recordMesgs: [{ a: 1, b: 2 }] }, { source: "test" });
+        setActiveFitRawData(
+            { recordMesgs: [{ a: 1, b: 2 }] },
+            { source: "test" }
+        );
 
         await window.electronAPI.emit("export-file", "C:/tmp/out.csv");
 
@@ -618,7 +621,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         // Provide two records, one invalid, one valid
-        setGlobalData(
+        setActiveFitRawData(
             {
                 recordMesgs: [
                     { positionLat: undefined, positionLong: undefined },
@@ -629,12 +632,12 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         );
 
         await window.electronAPI.emit("export-file", "C:/tmp/out.gpx");
-        expect(getGlobalData<any>()?.recordMesgs).toHaveLength(2);
+        expect(getActiveFitRawData()?.recordMesgs).toHaveLength(2);
         expect(clickSpy).toHaveBeenCalledOnce();
 
         // Case 2: no valid coords
         clickSpy.mockReset();
-        setGlobalData(
+        setActiveFitRawData(
             {
                 recordMesgs: [{}, {}],
             },
@@ -648,7 +651,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         );
 
         // Case 3: no data available
-        setGlobalData({}, { source: "test" });
+        setActiveFitRawData({}, { source: "test" });
         await window.electronAPI.emit("export-file", "C:/tmp/out.gpx");
         expect(showNotification).toHaveBeenCalledWith(
             "No data available for GPX export.",
@@ -1306,7 +1309,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     it("decoder-options-changed: handles error during file reload", async () => {
         expect.hasAssertions();
 
-        setGlobalData(
+        setActiveFitRawData(
             { cachedFilePath: "C:/tmp/sample.fit" },
             { source: "test" }
         );
@@ -1352,7 +1355,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        setGlobalData({ some: "data" }, { source: "test" });
+        setActiveFitRawData({ some: "data" }, { source: "test" });
 
         // Test unsupported extension
         await electronAPI.emit("export-file", "C:/tmp/out.txt");
@@ -1375,7 +1378,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        setGlobalData({ some: "data" }, { source: "test" });
+        setActiveFitRawData({ some: "data" }, { source: "test" });
 
         await electronAPI.emit("export-file", "C:/tmp/out.csv");
 
@@ -1397,7 +1400,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        setGlobalData({ some: "data" }, { source: "test" });
+        setActiveFitRawData({ some: "data" }, { source: "test" });
 
         // Remove summary container
         document.querySelector("#content-summary")?.remove();
@@ -1424,7 +1427,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        setGlobalData(
+        setActiveFitRawData(
             {
                 recordMesgs: [{ positionLat: 1 << 30, positionLong: 1 << 30 }],
             },
@@ -1436,7 +1439,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         await electronAPI.emit("export-file", "C:/tmp/out.gpx");
 
-        expect(getGlobalData<any>()?.recordMesgs).toHaveLength(1);
+        expect(getActiveFitRawData()?.recordMesgs).toHaveLength(1);
         expect(showNotification).not.toHaveBeenCalled();
         expect(global.URL.createObjectURL).toHaveBeenCalledWith(
             expect.any(Blob)
@@ -1456,7 +1459,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        setGlobalData(null, { source: "test.clear" });
+        setActiveFitRawData(null, { source: "test.clear" });
 
         await electronAPI.emit("export-file", "C:/tmp/out.csv");
 
@@ -2000,7 +2003,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     it("decoder-options-changed: catch block when file reload fails (line 279)", async () => {
         expect.hasAssertions();
 
-        setGlobalData({ cachedFilePath: "test.fit" }, { source: "test" });
+        setActiveFitRawData({ cachedFilePath: "test.fit" }, { source: "test" });
         vi.mocked(electronAPI.readFile).mockRejectedValue(
             new Error("Read failed")
         );
@@ -2041,7 +2044,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         // Mock global state
-        setGlobalData({ data: "test" }, { source: "test" });
+        setActiveFitRawData({ data: "test" }, { source: "test" });
 
         // Setup #content-summary container (correct querySelector)
         const summaryContainer = document.createElement("div");
@@ -2076,7 +2079,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             Math.round((degrees * 2 ** 31) / 180);
 
         // Mock globalData with valid coordinates
-        setGlobalData(
+        setActiveFitRawData(
             {
                 recordMesgs: [
                     {
@@ -2167,7 +2170,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         await Promise.resolve();
 
         // Verify the download path was triggered first
-        expect(getGlobalData<any>()?.recordMesgs).toHaveLength(2);
+        expect(getActiveFitRawData()?.recordMesgs).toHaveLength(2);
         expect(blobMock).toHaveBeenCalledWith(
             [expect.stringContaining("<gpx")],
             { type: "application/gpx+xml;charset=utf-8" }
@@ -2444,7 +2447,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        setGlobalData({ cachedFilePath: "/test/file.fit" }, { source: "test" });
+        setActiveFitRawData(
+            { cachedFilePath: "/test/file.fit" },
+            { source: "test" }
+        );
 
         // Mock error in file reload
         vi.mocked(electronAPI.readFile).mockRejectedValue(
@@ -2476,7 +2482,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        setGlobalData({ data: "test" }, { source: "test" });
+        setActiveFitRawData({ data: "test" }, { source: "test" });
 
         // Setup #content-summary container (correct querySelector)
         const summaryContainer = document.createElement("div");

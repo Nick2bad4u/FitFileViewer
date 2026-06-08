@@ -8,6 +8,28 @@ vi.mock(
     })
 );
 
+const dataTableModuleMock = vi.hoisted(() => ({
+    DataTable: vi.fn<DataTableConstructor>(),
+}));
+
+type DataTableConstructor = {
+    (
+        selector: string,
+        opts?: {
+            columns?: unknown[];
+            data?: unknown[];
+        }
+    ): DataTableInstance;
+    isDataTable?: (selector: string) => boolean;
+};
+
+type DataTableInstance = {
+    columns?: {
+        adjust: () => void;
+    };
+    destroy: () => void;
+};
+
 // Helper to import fresh module per test
 async function loadModule() {
     return import("../../../../../electron-app/utils/rendering/core/renderTable.js");
@@ -31,13 +53,33 @@ function createMaliciousTableLike() {
 }
 
 describe("renderTable", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         const root = document.createElement("div");
         root.id = "root";
         document.body.replaceChildren(root);
+        dataTableModuleMock.DataTable.mockReset();
+        dataTableModuleMock.DataTable.isDataTable = vi.fn<
+            (selector: string) => boolean
+        >(() => false);
+        dataTableModuleMock.DataTable.mockImplementation(
+            function DataTableMock() {
+                return {
+                    columns: {
+                        adjust: vi.fn<() => void>(),
+                    },
+                    destroy: vi.fn<() => void>(),
+                };
+            }
+        );
+        const { setDataTableRuntime } =
+            await import("../../../../../electron-app/utils/rendering/core/dataTableRuntime.js");
+        setDataTableRuntime(dataTableModuleMock.DataTable);
         vi.useFakeTimers();
     });
-    afterEach(() => {
+    afterEach(async () => {
+        const { clearDataTableRuntimeForTests } =
+            await import("../../../../../electron-app/utils/rendering/core/dataTableRuntime.js");
+        clearDataTableRuntimeForTests();
         vi.useRealTimers();
         vi.resetModules();
         vi.clearAllMocks();
@@ -76,7 +118,7 @@ describe("renderTable", () => {
         expect(copyTableAsCSV).toHaveBeenCalledOnce();
     });
 
-    it("falls back gracefully when jQuery is absent", async () => {
+    it("renders a fallback body before DataTables enhancement runs", async () => {
         expect.assertions(2);
 
         const { renderTable } = await loadModule();
@@ -117,7 +159,7 @@ describe("renderTable", () => {
         expect(table.querySelector("a")).toBeNull();
     });
 
-    it("initializes DataTable when jQuery+DataTables present, destroying prior instance", async () => {
+    it("initializes DataTable from the runtime adapter and destroys prior instance", async () => {
         expect.assertions(2);
 
         const calls: Array<{
@@ -125,48 +167,28 @@ describe("renderTable", () => {
             opts?: any;
             destroyed?: boolean;
         }> = [];
-        // Minimal jQuery/DataTable stub
         const state: Record<string, { initialized: boolean }> = {};
-        function jQ(selector: any) {
-            const key =
-                typeof selector === "string" ? selector : "#datatable_3";
-            return {
-                ready(cb?: any) {
-                    // Immediately invoke as DOM is already ready in jsdom
-                    if (typeof cb === "function") cb();
-                    return this;
-                },
-                DataTable(opts?: any) {
-                    if (opts) {
-                        // init path
-                        state[key] = { initialized: true };
-                        calls.push({ selector: key, opts });
-                        return {
-                            destroy() {
-                                calls.push({ selector: key, destroyed: true });
-                                state[key] = { initialized: false } as any;
-                            },
-                        } as any;
-                    }
-                    // getter
-                    return {
-                        destroy() {
-                            calls.push({ selector: key, destroyed: true });
-                            state[key] = { initialized: false } as any;
-                        },
-                    } as any;
-                },
-            } as any;
-        }
-        jQ.fn = {
-            DataTable: {
-                isDataTable(sel: string) {
-                    return Boolean(state[sel]?.initialized);
-                },
-            },
-        } as any;
+        dataTableModuleMock.DataTable.isDataTable = vi.fn<
+            (selector: string) => boolean
+        >((selector) => Boolean(state[selector]?.initialized));
+        dataTableModuleMock.DataTable.mockImplementation(
+            function DataTableMock(selector, opts) {
+                if (opts) {
+                    state[selector] = { initialized: true };
+                    calls.push({ selector, opts });
+                }
 
-        (window as any).jQuery = jQ;
+                return {
+                    columns: {
+                        adjust: vi.fn<() => void>(),
+                    },
+                    destroy() {
+                        calls.push({ selector, destroyed: true });
+                        state[selector] = { initialized: false };
+                    },
+                };
+            }
+        );
 
         const { renderTable } = await loadModule();
         const root = document.getElementById("root")!;
@@ -175,7 +197,7 @@ describe("renderTable", () => {
         await renderTable(root, "DT", createTableLike(), 3);
         // Init happens on expand.
         (root.querySelector(".table-header") as HTMLElement).click();
-        vi.runOnlyPendingTimers();
+        vi.runAllTimers();
         const selector = "#datatable_3";
         expect(calls.some((c) => c.selector === selector && c.opts)).toBe(true);
 
@@ -187,7 +209,7 @@ describe("renderTable", () => {
             root.querySelectorAll(".table-header")
         ) as HTMLElement[];
         headers[headers.length - 1].click();
-        vi.runOnlyPendingTimers();
+        vi.runAllTimers();
         const destroyed = calls.filter(
             (c) => c.selector === selector && c.destroyed
         ).length;

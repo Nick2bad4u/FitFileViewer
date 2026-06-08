@@ -14,10 +14,6 @@ import {
     type NumericFieldConverter,
 } from "./renderChartSeriesCache.js";
 
-type ChartInstancesGlobal = {
-    _chartjsInstances: unknown[];
-};
-
 type ChartRenderBooleanSettings = {
     showFill: boolean;
     showGrid: boolean;
@@ -54,7 +50,6 @@ function toReadonlyRecord(
 
 interface RenderPrimaryChartFieldsDependencies {
     chartContainer: ParentNode;
-    chartGlobal: ChartInstancesGlobal;
     createChartCanvas: CreateChartCanvas;
     createEnhancedChart: CreateEnhancedChart;
     getActiveTab(): unknown;
@@ -201,7 +196,6 @@ export function renderPrimaryChartFields(
         });
 
         if (chart) {
-            dependencies.chartGlobal._chartjsInstances.push(chart);
             dependencies.registerChart(chart);
         }
     }

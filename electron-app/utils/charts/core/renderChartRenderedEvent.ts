@@ -1,4 +1,4 @@
-import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
+import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
 interface RenderedEventDependencies {
     CustomEventConstructor: typeof CustomEvent | undefined;
@@ -13,8 +13,8 @@ interface RenderedEventSummary {
     visibleFieldCount: number;
 }
 
-function hasRenderableGlobalData(getState: (path: string) => unknown): boolean {
-    return hasChartDataRecordMessages(getState("globalData"));
+function hasRenderableGlobalData(): boolean {
+    return hasActiveFitChartData();
 }
 
 /**
@@ -32,9 +32,7 @@ export function emitChartsRenderedEvent(
     try {
         const chartsRenderedEvent = new EventConstructor("chartsRendered", {
             detail: {
-                hasData: hasRenderableGlobalData((path) =>
-                    dependencies.getState(path)
-                ),
+                hasData: hasRenderableGlobalData(),
                 renderTime: summary.renderTime,
                 settings: dependencies.getState("charts.chartOptions"),
                 timestamp: dependencies.now(),

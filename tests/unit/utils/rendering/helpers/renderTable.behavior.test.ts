@@ -1,4 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+    clearArqueroRuntimeForTests,
+    setArqueroRuntime,
+} from "../../../../../electron-app/utils/rendering/helpers/arqueroRuntime.js";
 import { renderTable } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js";
 
 function getRequiredElement<T extends Element>(
@@ -23,8 +27,8 @@ describe("renderTable behavior", () => {
         document.body.replaceChildren(host);
         vi.resetModules();
         vi.restoreAllMocks();
-        // Provide aq minimal API for getSummaryRows(recordMesgs path)
-        (global.window as any).aq = {
+        clearArqueroRuntimeForTests();
+        setArqueroRuntime({
             from(arr: any[]) {
                 const data = [...arr];
                 return {
@@ -36,7 +40,7 @@ describe("renderTable behavior", () => {
                         data.map((r) => r[col]).filter((v) => v !== undefined),
                 };
             },
-        };
+        });
         // Stub clipboard
         (global.navigator as any).clipboard = {
             writeText: vi.fn<(data: string) => Promise<void>>(),

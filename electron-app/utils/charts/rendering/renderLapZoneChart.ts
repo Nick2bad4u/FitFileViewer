@@ -30,7 +30,6 @@ interface LapZoneEntry {
 }
 
 interface LapZoneRuntimeGlobal {
-    readonly Chart?: unknown;
     readonly showNotification?: (message: string, type: string) => void;
 }
 
@@ -104,13 +103,8 @@ export function renderLapZoneChart(
     options: LapZoneChartOptions = {}
 ): ManagedChartInstance | null {
     try {
-        const runtimeGlobal = getRuntimeGlobal();
-        if (
-            typeof runtimeGlobal.Chart !== "function" ||
-            !canvas ||
-            !Array.isArray(lapZoneData)
-        ) {
-            throw new Error("Chart.js, canvas, or lapZoneData missing");
+        if (!canvas || !Array.isArray(lapZoneData)) {
+            throw new Error("Canvas or lapZoneData missing");
         }
 
         canvas.classList.add("chart-canvas");
@@ -156,7 +150,12 @@ export function renderLapZoneChart(
                 colors
             );
 
-        return createManagedChart(canvas, config);
+        const chart = createManagedChart(canvas, config);
+        if (!chart) {
+            throw new Error("Chart.js missing");
+        }
+
+        return chart;
     } catch (error) {
         getRuntimeGlobal().showNotification?.(
             "Failed to render lap zone chart",

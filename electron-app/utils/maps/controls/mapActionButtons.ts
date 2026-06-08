@@ -23,6 +23,7 @@ import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../../ui/events/eventListenerManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
 import { updateOverlayHighlights } from "../layers/mapDrawLaps.js";
 
 type MapBounds = {
@@ -59,6 +60,9 @@ type LeafletMapInstance = {
 };
 
 type CircleMarkerConstructor = abstract new (...args: never[]) => object;
+type MapActionLeafletRuntime = {
+    CircleMarker?: CircleMarkerConstructor;
+};
 
 type MapActionButtonsGlobal = typeof globalThis & {
     __centerMainAttempts?: number;
@@ -70,9 +74,6 @@ type MapActionButtonsGlobal = typeof globalThis & {
     _mainPolyline?: MapPolyline | null;
     _mainPolylineOriginalBounds?: MapBounds | null;
     _overlayPolylines?: OverlayPolylineCollection;
-    L?: {
-        CircleMarker?: CircleMarkerConstructor;
-    };
 };
 
 type ActiveFileNameElement = HTMLElement & {
@@ -89,6 +90,12 @@ function getMapActionButtonsGlobal(): MapActionButtonsGlobal {
 
 function isMapLayer(value: unknown): value is MapLayer {
     return typeof value === "object" && value !== null;
+}
+
+function isMapActionLeafletRuntime(
+    value: unknown
+): value is MapActionLeafletRuntime {
+    return typeof value === "object" && value !== null && "CircleMarker" in value;
 }
 
 function scheduleMapActionTimeout(callback: () => void, delayMs: number): void {
@@ -169,11 +176,9 @@ function handleMissingMainPolyline(
     void showNotification(message, "warning");
 }
 
-function bringAssociatedMarkersToFront(
-    w: MapActionButtonsGlobal,
-    polyline: MapPolyline
-): void {
-    const circleMarker = w.L?.CircleMarker;
+function bringAssociatedMarkersToFront(polyline: MapPolyline): void {
+    const circleMarker = resolveLeafletRuntime(isMapActionLeafletRuntime)
+        ?.CircleMarker;
     if (!circleMarker || !polyline._map?._layers) {
         return;
     }
@@ -327,7 +332,7 @@ function _centerMapOnMainFile(): void {
         polyline.bringToFront?.();
 
         // Bring associated markers to front
-        bringAssociatedMarkersToFront(w, polyline);
+    bringAssociatedMarkersToFront(polyline);
 
         // Add visual highlighting effect
         highlightMainPolyline(w, polyline);

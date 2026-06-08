@@ -61,6 +61,9 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
         // Mock state manager with proper subscription handling
         let stateData: any = {
+            fitFile: {
+                rawData: null,
+            },
             globalData: {},
             app: {
                 initialized: false,
@@ -796,16 +799,38 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 ).not.toStrictEqual(true);
             });
 
+            it("subscribes common FIT computed values to raw FIT data state", () => {
+                expect.assertions(1);
+                initializeCommonComputedValues();
+
+                expect(computedStateManager.getDependencyGraph()).toEqual(
+                    expect.objectContaining({
+                        hasChartData: ["fitFile.rawData.recordMesgs"],
+                        hasMapData: ["fitFile.rawData.recordMesgs"],
+                        isFileLoaded: ["fitFile.rawData"],
+                        performanceMetrics: [
+                            "app.startTime",
+                            "fitFile.rawData",
+                            "ui.tabs",
+                            "system.lastActivity",
+                        ],
+                        summaryData: ["fitFile.rawData.sessionMesgs"],
+                    })
+                );
+            });
+
             it("should compute isFileLoaded correctly", () => {
                 expect.assertions(2);
                 initializeCommonComputedValues();
 
-                // Test with empty globalData
+                // Test with empty raw FIT data
                 let result = getComputed("isFileLoaded");
                 expect(result).toStrictEqual(false);
 
                 // Test with data
-                mockStateManager.setState("globalData", { records: ["data"] });
+                mockStateManager.setState("fitFile.rawData", {
+                    records: ["data"],
+                });
                 computedStateManager.invalidateComputed("isFileLoaded");
                 result = getComputed("isFileLoaded");
                 expect(result).toStrictEqual(true);
@@ -828,7 +853,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect.assertions(1);
                 initializeCommonComputedValues();
 
-                mockStateManager.setState("globalData", {
+                mockStateManager.setState("fitFile.rawData", {
                     recordMesgs: [{ data: "test" }],
                 });
                 computedStateManager.invalidateComputed("hasChartData");
@@ -840,7 +865,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect.assertions(1);
                 initializeCommonComputedValues();
 
-                mockStateManager.setState("globalData", {
+                mockStateManager.setState("fitFile.rawData", {
                     recordMesgs: [{ positionLat: 123, positionLong: 456 }],
                 });
                 computedStateManager.invalidateComputed("hasMapData");
@@ -858,7 +883,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                     maxSpeed: 45,
                     totalDistance: 10000,
                 };
-                mockStateManager.setState("globalData", {
+                mockStateManager.setState("fitFile.rawData", {
                     sessionMesgs: [sessionData],
                 });
                 computedStateManager.invalidateComputed("summaryData");

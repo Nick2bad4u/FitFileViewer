@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
     buildGpxFromRecords,
+    resolveTrackNameFromFileIdentity,
     resolveTrackNameFromLoadedFiles,
 } from "../../../../../electron-app/utils/files/export/gpxExport.js";
 
@@ -39,6 +40,19 @@ describe(buildGpxFromRecords, () => {
         expect(output).toContain("<ele>123.46</ele>");
         expect(output).toContain("<gpxtpx:hr>143</gpxtpx:hr>");
         expect(output).toContain("<gpxtpx:power>251</gpxtpx:power>");
+    });
+
+    it("accepts raw FIT snake-case coordinate records", () => {
+        expect.assertions(1);
+
+        const gpx = buildGpxFromRecords([
+            {
+                position_lat: 536_870_912,
+                position_long: -1_073_741_824,
+            },
+        ]);
+
+        expect(gpx).toContain('<trkpt lat="45.0000000" lon="-90.0000000">');
     });
 
     it("returns null when no valid coordinates exist", () => {
@@ -80,5 +94,22 @@ describe(resolveTrackNameFromLoadedFiles, () => {
             "Fallback"
         );
         expect(resolveTrackNameFromLoadedFiles(undefined)).not.toBe("");
+    });
+});
+
+describe(resolveTrackNameFromFileIdentity, () => {
+    it("resolves user-friendly names from active file identities", () => {
+        expect.assertions(4);
+
+        expect(
+            resolveTrackNameFromFileIdentity("C:\\Activities\\evening.fit")
+        ).toBe("evening");
+        expect(resolveTrackNameFromFileIdentity("/tmp/morning.run.fit")).toBe(
+            "morning.run"
+        );
+        expect(resolveTrackNameFromFileIdentity("", "Fallback")).toBe(
+            "Fallback"
+        );
+        expect(resolveTrackNameFromFileIdentity(null)).toBe("Exported Track");
     });
 });

@@ -27,6 +27,11 @@ const defaultMockChartOverlayColorPalette = [
 ];
 const mockChartOverlayColorPalette = [...defaultMockChartOverlayColorPalette];
 const mockUpdateOverlayHighlights = vi.fn<() => void>();
+const mockSetLoadedFiles =
+    vi.fn<(files: readonly unknown[], source?: string) => void>();
+const loadedFitFilesFixture = vi.hoisted(() => ({
+    files: undefined as null | unknown[] | undefined,
+}));
 
 vi.mock(
     import("../../../../electron-app/utils/charts/theming/getThemeColors.js"),
@@ -46,6 +51,42 @@ vi.mock(
     import("../../../../electron-app/utils/maps/layers/mapDrawLaps.js"),
     () => ({
         updateOverlayHighlights: mockUpdateOverlayHighlights,
+    })
+);
+
+vi.mock(
+    import("../../../../electron-app/utils/state/domain/loadedFitFilesState.js"),
+    () => ({
+        clearOverlayLoadedFitFiles: vi.fn((source?: string) => {
+            const files = Array.isArray(loadedFitFilesFixture.files)
+                ? loadedFitFilesFixture.files.slice(0, 1)
+                : [];
+            loadedFitFilesFixture.files = files;
+            mockSetLoadedFiles(files, source);
+            return files;
+        }),
+        getLoadedFitFiles: vi.fn(() =>
+            Array.isArray(loadedFitFilesFixture.files)
+                ? [...loadedFitFilesFixture.files]
+                : []
+        ),
+        removeLoadedFitFileAt: vi.fn((index: number, source?: string) => {
+            const files = Array.isArray(loadedFitFilesFixture.files)
+                ? [...loadedFitFilesFixture.files]
+                : [];
+            files.splice(index, 1);
+            loadedFitFilesFixture.files = files;
+            mockSetLoadedFiles(files, source);
+            return files;
+        }),
+        setLoadedFitFiles: vi.fn(
+            (files: readonly unknown[], source?: string) => {
+                const nextFiles = [...files];
+                loadedFitFilesFixture.files = nextFiles;
+                mockSetLoadedFiles(nextFiles, source);
+                return nextFiles;
+            }
+        ),
     })
 );
 
@@ -277,7 +318,7 @@ describe("createShownFilesList", () => {
 
         // Mock all window properties
         const windowMock = global.window as any;
-        windowMock.loadedFitFiles = [];
+        loadedFitFilesFixture.files = [];
         windowMock._overlayPolylines = [];
         windowMock._leafletMapInstance = null;
         windowMock._highlightedOverlayIdx = null;
@@ -442,7 +483,7 @@ describe("createShownFilesList", () => {
 
         it("initially hides container when no overlays exist", () => {
             expect.assertions(1);
-            (global.window as any).loadedFitFiles = [];
+            loadedFitFilesFixture.files = [];
 
             const container = createShownFilesList();
 
@@ -451,9 +492,7 @@ describe("createShownFilesList", () => {
 
         it("initially hides container when only main file exists", () => {
             expect.assertions(1);
-            (global.window as any).loadedFitFiles = [
-                { data: {}, filePath: "main.fit" },
-            ];
+            loadedFitFilesFixture.files = [{ data: {}, filePath: "main.fit" }];
 
             const container = createShownFilesList();
 
@@ -462,7 +501,7 @@ describe("createShownFilesList", () => {
 
         it("shows container when multiple files exist", () => {
             expect.assertions(1);
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
@@ -485,7 +524,7 @@ describe("createShownFilesList", () => {
             document.body.classList.add("theme-dark");
 
             // Test through actual color accessibility checking
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
@@ -530,7 +569,7 @@ describe("createShownFilesList", () => {
             // Enable dark theme to trigger getComputedStyle call
             document.body.classList.add("theme-dark");
 
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
@@ -557,7 +596,7 @@ describe("createShownFilesList", () => {
 
         it("handles invalid color formats gracefully", () => {
             expect.assertions(3);
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
@@ -583,7 +622,7 @@ describe("createShownFilesList", () => {
         it("calculates luminance correctly for contrast ratios", () => {
             expect.assertions(2);
             // Test by setting up contrasting colors
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
@@ -609,7 +648,7 @@ describe("createShownFilesList", () => {
             expect.assertions(1);
             document.body.classList.add("theme-dark");
 
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
@@ -644,7 +683,7 @@ describe("createShownFilesList", () => {
 
         it("meets WCAG AA contrast requirements", () => {
             expect.assertions(1);
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
@@ -674,7 +713,7 @@ describe("createShownFilesList", () => {
             expect.assertions(2);
             mockChartOverlayColorPalette[1] = "#abc";
 
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
@@ -694,7 +733,7 @@ describe("createShownFilesList", () => {
             expect.assertions(2);
             mockChartOverlayColorPalette[1] = "#aabbcc";
 
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay.fit" },
             ];
@@ -713,7 +752,7 @@ describe("createShownFilesList", () => {
 
     describe("file List Management", () => {
         beforeEach(() => {
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
                 { data: {}, filePath: "overlay2.fit" },
@@ -867,7 +906,7 @@ describe("createShownFilesList", () => {
 
         it("handles missing file paths gracefully", () => {
             expect.assertions(2);
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {} }, // No filePath
                 { data: {}, filePath: undefined },
                 { data: {}, filePath: "overlay.fit" },
@@ -896,7 +935,7 @@ describe("createShownFilesList", () => {
             ]);
 
             // Change files and update again
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "different.fit" },
             ];
@@ -909,9 +948,7 @@ describe("createShownFilesList", () => {
 
         it("hides container when no overlays exist", () => {
             expect.assertions(1);
-            (global.window as any).loadedFitFiles = [
-                { data: {}, filePath: "main.fit" },
-            ];
+            loadedFitFilesFixture.files = [{ data: {}, filePath: "main.fit" }];
 
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
@@ -930,7 +967,7 @@ describe("createShownFilesList", () => {
 
     describe("remove Button Functionality", () => {
         beforeEach(() => {
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
                 { data: {}, filePath: "overlay2.fit" },
@@ -959,8 +996,8 @@ describe("createShownFilesList", () => {
             // Click remove button
             removeBtn.click();
 
-            expect((global.window as any).loadedFitFiles).toHaveLength(2);
-            expect((global.window as any).loadedFitFiles[1].filePath).toBe(
+            expect(loadedFitFilesFixture.files).toHaveLength(2);
+            expect(loadedFitFilesFixture.files[1].filePath).toBe(
                 "overlay2.fit"
             );
             expect((global.window as any).renderMap).toHaveBeenCalledWith();
@@ -982,7 +1019,7 @@ describe("createShownFilesList", () => {
             removeBtn.dispatchEvent(clickEvent);
 
             expect(stopPropagationSpy).toHaveBeenCalledWith();
-            expect((global.window as any).loadedFitFiles).toHaveLength(2);
+            expect(loadedFitFilesFixture.files).toHaveLength(2);
         });
 
         it("shows remove button on hover", () => {
@@ -1049,7 +1086,7 @@ describe("createShownFilesList", () => {
 
         it("handles missing loadedFitFiles gracefully", () => {
             expect.assertions(1);
-            (global.window as any).loadedFitFiles = null;
+            loadedFitFilesFixture.files = null;
 
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
@@ -1065,7 +1102,7 @@ describe("createShownFilesList", () => {
 
     describe("clear All Functionality", () => {
         beforeEach(() => {
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
                 { data: {}, filePath: "overlay2.fit" },
@@ -1110,7 +1147,7 @@ describe("createShownFilesList", () => {
 
             getClearAllButton(container).click();
 
-            expect((global.window as any).loadedFitFiles).toStrictEqual([
+            expect(loadedFitFilesFixture.files).toStrictEqual([
                 { data: {}, filePath: "main.fit" },
             ]);
             expect((global.window as any).renderMap).toHaveBeenCalledWith();
@@ -1131,7 +1168,7 @@ describe("createShownFilesList", () => {
             getClearAllButton(container).dispatchEvent(clickEvent);
 
             expect(stopPropagationSpy).toHaveBeenCalledWith();
-            expect((global.window as any).loadedFitFiles).toStrictEqual([
+            expect(loadedFitFilesFixture.files).toStrictEqual([
                 { data: {}, filePath: "main.fit" },
             ]);
         });
@@ -1171,9 +1208,7 @@ describe("createShownFilesList", () => {
 
         it("does not create clear all button when no overlays exist", () => {
             expect.assertions(2);
-            (global.window as any).loadedFitFiles = [
-                { data: {}, filePath: "main.fit" },
-            ];
+            loadedFitFilesFixture.files = [{ data: {}, filePath: "main.fit" }];
 
             const container = createShownFilesList();
             (global.window as any).updateShownFilesList();
@@ -1188,7 +1223,7 @@ describe("createShownFilesList", () => {
 
     describe("interactive Features and Event Handling", () => {
         beforeEach(() => {
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
             ];
@@ -1286,7 +1321,7 @@ describe("createShownFilesList", () => {
 
     describe("tooltip System", () => {
         beforeEach(() => {
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "/path/to/overlay1.fit" },
             ];
@@ -1412,7 +1447,7 @@ describe("createShownFilesList", () => {
             document.body.classList.add("theme-dark");
 
             // Set up data for testing
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "/path/to/overlay1.fit" },
             ];
@@ -1580,7 +1615,7 @@ describe("createShownFilesList", () => {
                 fitBounds: vi.fn<(bounds: unknown, options: unknown) => void>(),
             };
 
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
             ];
@@ -1790,7 +1825,7 @@ describe("createShownFilesList", () => {
 
         it("handles empty loadedFitFiles array", () => {
             expect.assertions(3);
-            (global.window as any).loadedFitFiles = [];
+            loadedFitFilesFixture.files = [];
 
             const container = createShownFilesList();
 
@@ -1803,7 +1838,7 @@ describe("createShownFilesList", () => {
 
         it("handles null loadedFitFiles", () => {
             expect.assertions(3);
-            (global.window as any).loadedFitFiles = null;
+            loadedFitFilesFixture.files = null;
 
             const container = createShownFilesList();
 
@@ -1816,7 +1851,7 @@ describe("createShownFilesList", () => {
 
         it("handles undefined loadedFitFiles", () => {
             expect.assertions(3);
-            (global.window as any).loadedFitFiles = undefined;
+            loadedFitFilesFixture.files = undefined;
 
             const container = createShownFilesList();
 
@@ -1831,7 +1866,7 @@ describe("createShownFilesList", () => {
             expect.assertions(2);
             mockChartOverlayColorPalette.length = 0;
 
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
             ];
@@ -1854,7 +1889,7 @@ describe("createShownFilesList", () => {
             const addEventListenerSpy = vi.spyOn(window, "addEventListener");
 
             const container = createShownFilesList();
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
             ];
@@ -1901,7 +1936,7 @@ describe("createShownFilesList", () => {
             vi.useFakeTimers();
 
             const container = createShownFilesList();
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
             ];
@@ -2006,7 +2041,7 @@ describe("createShownFilesList", () => {
             document.body.dispatchEvent(new Event("themechange"));
 
             // Theme should persist through file list updates
-            (global.window as any).loadedFitFiles = [
+            loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
                 { data: {}, filePath: "overlay1.fit" },
             ];

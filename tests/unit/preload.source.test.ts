@@ -41,13 +41,10 @@ interface PreloadElectronApi {
         totalEvents: number;
     };
     injectMenu: (theme: unknown, fitFilePath: unknown) => Promise<boolean>;
-    invoke: (channel: unknown, ...args: unknown[]) => Promise<unknown>;
-    onIpc: (channel: unknown, callback: unknown) => void;
     onMenuOpenFile: (callback: IpcListener) => void;
     onOpenRecentFile: (callback: IpcListener) => void;
     onSetTheme: (callback: IpcListener) => void;
     onUpdateEvent: (eventName: unknown, callback: IpcListener) => void;
-    send: (channel: unknown, ...args: unknown[]) => void;
     validateAPI: () => unknown;
 }
 
@@ -259,8 +256,8 @@ describe("preload.js electronAPI exposure and behavior", () => {
         expect(errors.join("\n")).toMatch(/Error in checkForUpdates/);
     });
 
-    it("validates dynamic update and IPC subscriptions", async () => {
-        expect.assertions(5);
+    it("validates dynamic update subscriptions", async () => {
+        expect.assertions(4);
 
         const { api, ipcBridge, listeners } = await setupPreloadTest();
 
@@ -275,28 +272,14 @@ describe("preload.js electronAPI exposure and behavior", () => {
         updHandlers?.[0]?.({}, { v: 1 });
         expect(updCb).toHaveBeenCalledWith({ v: 1 });
 
-        // onIpc invalid args
-        const onIpcCb = vi.fn<IpcListener>();
-        api.onIpc(42, onIpcCb);
-        api.onIpc("custom:event", "nope");
-        // valid path
-        api.onIpc("custom:event", onIpcCb);
-        const customHandlers = listeners.get("custom:event");
-        expect(customHandlers).toHaveLength(1);
-        customHandlers?.[0]?.({ id: "evt" }, 1, 2, 3);
-        expect(onIpcCb).toHaveBeenCalledWith(1, 2, 3);
+        expect(listeners.has("custom:event")).toBe(false);
     });
 
-    it("validates generic send, invoke, and menu injection inputs", async () => {
-        expect.assertions(4);
+    it("validates menu injection inputs", async () => {
+        expect.assertions(3);
 
         const { api, ipcBridge } = await setupPreloadTest();
 
-        // send/invoke validation
-        api.send(99);
-        await expect(api.invoke(99)).rejects.toThrow(/Invalid channel/);
-
-        // injectMenu validation and success
         await expect(api.injectMenu(5, null)).resolves.toStrictEqual(false);
         await expect(api.injectMenu("dark", 9)).resolves.toStrictEqual(false);
         ipcBridge.invoke.mockResolvedValueOnce(true);

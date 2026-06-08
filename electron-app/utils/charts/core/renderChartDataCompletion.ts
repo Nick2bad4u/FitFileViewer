@@ -1,3 +1,4 @@
+import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import { completeSuccessfulChartRender } from "./renderChartSuccessfulCompletion.js";
 
 type CompletionDependencies = Parameters<
@@ -6,7 +7,6 @@ type CompletionDependencies = Parameters<
 type CompletionInput = Parameters<typeof completeSuccessfulChartRender>[1];
 
 interface ChartCompletionGlobal {
-    readonly _chartjsInstances: unknown;
     readonly getThemeConfig?: unknown;
 }
 
@@ -42,7 +42,7 @@ export async function completeChartDataRender(
     const completionDependencies: CompletionDependencies = {
         addChartHoverEffects: dependencies.addChartHoverEffects,
         chartContainer: dependencies.chartContainer,
-        chartInstances: dependencies.chartGlobal._chartjsInstances,
+        chartInstances: getRegisteredChartInstances(),
         CustomEventConstructor: dependencies.CustomEventConstructor,
         doc: dependencies.doc,
         getComputedStateManager: dependencies.getComputedStateManager,

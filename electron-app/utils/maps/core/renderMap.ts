@@ -17,6 +17,12 @@ import { updateShownFilesList } from "../../rendering/components/shownFilesListU
 import { renderSummary } from "../../rendering/core/renderSummary.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import {
+    getActiveFitActivityData,
+    getActiveFitPowerInput,
+    hasActiveFitRecords,
+} from "../../state/domain/fitActivityDataState.js";
+import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
+import {
     installUpdateMapThemeListeners,
     updateMapTheme,
 } from "../../theming/specific/updateMapTheme.js";
@@ -27,6 +33,15 @@ import { createMarkerCountSelector } from "../../ui/controls/createMarkerCountSe
 import { createPowerEstimationButton } from "../../ui/controls/createPowerEstimationButton.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { createMapThemeToggle } from "../controls/mapActionButtons.js";
+import {
+    addLeafletDrawPluginControl,
+    addLeafletFullscreenPluginControl,
+    addLeafletLocatePluginControl,
+    addLeafletMeasurePluginControl,
+    addLeafletMiniMapPluginControl,
+    hasLeafletMeasurePluginControl,
+    type LeafletDrawnItemsLayerGroup as DrawnItemsLayerGroup,
+} from "../controls/leafletPluginControls.js";
 import { addFullscreenControl } from "../controls/mapFullscreenControl.js";
 import { addLapSelector } from "../controls/mapLapSelector.js";
 import { addSimpleMeasureTool } from "../controls/mapMeasureTool.js";
@@ -39,6 +54,10 @@ import {
 import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
 import { getLapColor } from "./mapColors.js";
 import { ensureMapDocumentListenersInstalled } from "./mapDocumentListeners.js";
+import {
+    resolveLeafletRuntime,
+    waitForLeafletRuntime,
+} from "./leafletRuntime.js";
 
 type LooseRecord = Record<string, unknown>;
 
@@ -56,16 +75,11 @@ type RecordMessage = LooseRecord & {
     timestamp?: number;
 };
 
-type GlobalData = LooseRecord & {
+type FitMapActivityData = LooseRecord & {
     cachedFilePath?: string;
     lapMesgs?: LooseRecord[];
     recordMesgs?: RecordMessage[];
     sessionMesgs?: LooseRecord[];
-};
-
-type FitFileEntry = LooseRecord & {
-    data?: GlobalData;
-    filePath?: string;
 };
 
 type DrawActiveHandler = {
@@ -121,10 +135,6 @@ type DrawnLayer = Leaflet.Layer & {
     toGeoJSON?: () => LeafletGeoJsonInput | null;
 };
 
-type DrawnItemsLayerGroup = Leaflet.FeatureGroup & {
-    getLayers: () => Leaflet.Layer[];
-};
-
 type LeafletGeoJsonInput = Parameters<typeof Leaflet.geoJSON>[0];
 
 type OverlayPolyline = Leaflet.Polyline & {
@@ -138,7 +148,6 @@ type OverlayPolyline = Leaflet.Polyline & {
 
 type WindowExtensions = typeof globalThis & {
     [key: string]: unknown;
-    L?: LeafletRuntime;
     __ffvLayoutLayersControl?: () => void;
     __ffvMapTypeButton?: HTMLElement;
     __ffvRenderMapAbortController?: AbortController;
@@ -151,7 +160,6 @@ type WindowExtensions = typeof globalThis & {
     _measureControl?: DisposableControl | null;
     _miniMapControl?: DisposableControl | null;
     _overlayPolylines?: Record<string, OverlayPolyline> | null;
-    loadedFitFiles?: FitFileEntry[];
     mapMarkerCount?: number;
 };
 
@@ -222,9 +230,35 @@ function isDrawnLayer(layer: Leaflet.Layer): layer is DrawnLayer {
     return typeof layer === "object" && layer !== null;
 }
 
-function getManagedGlobalData(): GlobalData | null {
-    const data = getState("globalData");
-    return data !== null && typeof data === "object" ? (data as GlobalData) : null;
+function isLeafletRuntime(value: unknown): value is LeafletRuntime {
+    if (typeof value !== "object" || value === null) {
+        return false;
+    }
+
+    const candidate = value as {
+        Layer?: unknown;
+        control?: unknown;
+        map?: unknown;
+        tileLayer?: unknown;
+    };
+
+    return (
+        typeof candidate.Layer === "function" &&
+        typeof candidate.map === "function" &&
+        typeof candidate.tileLayer === "function" &&
+        (typeof candidate.control === "function" ||
+            typeof candidate.control === "object") &&
+        candidate.control !== null
+    );
+}
+
+export async function waitForMapLeafletRuntime(): Promise<boolean> {
+    return (await waitForLeafletRuntime(isLeafletRuntime)) !== null;
+}
+
+function getActiveFitMapActivityData(): FitMapActivityData | null {
+    const data = getActiveFitActivityData().rawData;
+    return data !== null && typeof data === "object" ? data : null;
 }
 
 function isLeafletLayer(
@@ -302,7 +336,7 @@ function restoreDrawnLayer({
 export function renderMap(): void {
     // Reset overlay polylines to prevent stale references and memory leaks
     const windowExt = globalThis as WindowExtensions;
-    const LeafletLib = windowExt.L;
+    const LeafletLib = resolveLeafletRuntime(isLeafletRuntime);
     if (!LeafletLib) {
         console.warn(
             "[renderMap] Leaflet library unavailable; skipping map render."
@@ -1025,21 +1059,8 @@ export function renderMap(): void {
         .scale({ imperial: true, metric: true, position: "bottomleft" })
         .addTo(map);
 
-    // --- Fullscreen control (if plugin loaded) ---
-    if (L.control.fullscreen) {
-        L.control.fullscreen({ position: "topleft" }).addTo?.(map);
-    }
-
-    // --- Locate user button ---
-    if (L.control.locate) {
-        L.control
-            .locate({
-                flyTo: true,
-                keepCurrentZoomLevel: true,
-                position: "topleft",
-            })
-            .addTo?.(map);
-    }
+    addLeafletFullscreenPluginControl(L, map);
+    addLeafletLocatePluginControl(L, map);
 
     // --- Print/export button ---
     const controlsDiv = document.querySelector<HTMLElement>("#map-controls");
@@ -1086,8 +1107,7 @@ export function renderMap(): void {
         primaryControls.append(createElevationProfileButton());
         filterControl = createDataPointFilterControl(({ action }) => {
             const didReset = resetLapSelectorSelection();
-            const currentGlobalData = getManagedGlobalData();
-            if (!didReset && currentGlobalData?.recordMesgs) {
+            if (!didReset && hasActiveFitRecords()) {
                 mapDrawLapsWrapper("all");
             }
             updateShownFilesList();
@@ -1112,18 +1132,11 @@ export function renderMap(): void {
         // Estimated power (virtual power) settings
         const estPowerBtn = createPowerEstimationButton({
             getData: () => {
-                const data = getManagedGlobalData();
-                const fitData = {
-                    loadedFitFiles: Array.isArray(windowExt.loadedFitFiles)
-                        ? windowExt.loadedFitFiles
-                        : [],
-                    recordMesgs: Array.isArray(data?.recordMesgs)
-                        ? data.recordMesgs
-                        : [],
+                const activityData = getActiveFitPowerInput();
+                return {
+                    ...activityData,
+                    loadedFitFiles: getLoadedFitFiles(),
                 };
-                return Array.isArray(data?.sessionMesgs)
-                    ? { ...fitData, sessionMesgs: data.sessionMesgs }
-                    : fitData;
             },
             onAfterApply: () => {
                 // Redraw map so tooltips/points pick up the updated estimated power values.
@@ -1133,18 +1146,18 @@ export function renderMap(): void {
                 void refreshChartsAfterEstimatedPowerUpdate();
 
                 try {
-                    const currentGlobalData = getManagedGlobalData();
-                    if (currentGlobalData) {
-                        renderSummary(currentGlobalData);
+                    const currentActivityData = getActiveFitMapActivityData();
+                    if (currentActivityData) {
+                        renderSummary(currentActivityData);
                     }
                 } catch {
                     /* ignore */
                 }
 
                 try {
-                    const currentGlobalData = getManagedGlobalData();
-                    if (currentGlobalData) {
-                        createTables(currentGlobalData);
+                    const currentActivityData = getActiveFitMapActivityData();
+                    if (currentActivityData) {
+                        createTables(currentActivityData);
                     }
                 } catch {
                     /* ignore */
@@ -1153,11 +1166,7 @@ export function renderMap(): void {
         });
 
         try {
-            const currentGlobalData = getManagedGlobalData();
-            const recs = Array.isArray(currentGlobalData?.recordMesgs)
-                ? currentGlobalData.recordMesgs
-                : [];
-            if (hasPowerData(recs)) {
+            if (hasPowerData(getActiveFitActivityData().recordMesgs)) {
                 estPowerBtn.title =
                     "This file has real power data. Configure estimation defaults for other files.";
             }
@@ -1170,8 +1179,7 @@ export function renderMap(): void {
             createMarkerCountSelector(() => {
                 // Redraw map with new marker count
                 const didReset = resetLapSelectorSelection();
-                const currentGlobalData = getManagedGlobalData();
-                if (!didReset && currentGlobalData?.recordMesgs) {
+                if (!didReset && hasActiveFitRecords()) {
                     mapDrawLapsWrapper("all");
                 }
                 updateShownFilesList();
@@ -1181,11 +1189,11 @@ export function renderMap(): void {
         // Avoid duplicate measurement controls.
         // Prefer the Leaflet control (leaflet-measure-lite) when present; fall back to the simple
         // 2-click measure button only when the control plugin is unavailable.
-        if (!windowExt.L || !L.control || !L.control.measure) {
+        if (!hasLeafletMeasurePluginControl(L)) {
             addSimpleMeasureTool(map, primaryControls);
         }
         primaryControls.append(createAddFitFileToMapButton());
-        if (windowExt.loadedFitFiles && windowExt.loadedFitFiles.length > 1) {
+        if (getLoadedFitFiles().length > 1) {
             const shownFilesList = createShownFilesList();
             const secondaryControls = ensureSecondaryControls();
             if (secondaryControls) {
@@ -1205,7 +1213,7 @@ export function renderMap(): void {
     // --- Marker cluster group (if available) ---
     const markerClusterGroup = null;
     // TEMPORARILY DISABLED FOR DEBUGGING - markers not showing
-    // if (windowExt.L && L.markerClusterGroup) {
+    // if (L.markerClusterGroup) {
     //     markerClusterGroup = L.markerClusterGroup();
     //     map.addLayer(markerClusterGroup);
     // }
@@ -1245,171 +1253,29 @@ export function renderMap(): void {
         addLapSelector(map, leafletMapElement, mapDrawLapsWrapper);
     }
 
-    // --- Minimap (if plugin available) ---
-    if (windowExt.L && L.Control && L.Control.MiniMap) {
-        // Always use a standard tile layer for the minimap
-        const miniMapLayer = L.tileLayer(
-            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            {
-                attribution: "",
-                maxZoom: 18,
-                minZoom: 0,
-            }
-        );
-        const miniMap = new L.Control.MiniMap(miniMapLayer, {
-            aimingRectOptions: {
-                clickable: false,
-                color: "#ff7800",
-                fillColor: "#ff7800",
-                fillOpacity: 0.1,
-                opacity: 1,
-                weight: 2,
-            },
-            autoToggleDisplay: false,
-            centerFixed: false,
-            height: 150,
-            mapOptions: {
-                attributionControl: false,
-                zoomControl: false,
-            },
-            minimized: false,
-            position: "bottomright",
-            shadowRectOptions: {
-                clickable: true,
-                color: "#000000",
-                fillColor: "#000000",
-                fillOpacity: 0.2,
-                opacity: 0.4,
-                weight: 1,
-            },
-            toggleDisplay: true,
-            width: 150,
-            zoomAnimation: false,
-            zoomLevelFixed: false,
-            zoomLevelOffset: -5,
-        });
-        miniMap.addTo?.(map);
+    const miniMap = addLeafletMiniMapPluginControl(L, map, setCleanupTimeout);
+    if (miniMap) {
         windowExt._miniMapControl = miniMap;
-
-        // Force minimap to update after a short delay to ensure proper rendering
-        setCleanupTimeout(() => {
-            if (miniMap._miniMap?.invalidateSize) {
-                miniMap._miniMap.invalidateSize();
-            }
-        }, 100);
-
-        // Keep minimap in sync when main map moves or zooms to prevent grey tiles
-        map.on("moveend", () => {
-            if (miniMap._miniMap?.invalidateSize) {
-                miniMap._miniMap.invalidateSize();
-            }
-        });
-
-        map.on("zoomend", () => {
-            if (miniMap._miniMap?.invalidateSize) {
-                miniMap._miniMap.invalidateSize();
-            }
-        });
     }
 
-    // --- Measurement tool (if plugin available) ---
-    if (windowExt.L && L.control && L.control.measure) {
-        const measureControl = L.control.measure({
-            activeColor: "#ff7800",
-            captureZIndex: 10_000,
-            clearMeasurementsOnStop: false,
-            completedColor: "#1976d2",
-            decPoint: ".",
-            popupOptions: {
-                autoPanPadding: [10, 10],
-                className: "leaflet-measure-resultpopup",
-            },
-            position: "topleft",
-            primaryAreaUnit: "sqmeters",
-            primaryLengthUnit: "meters",
-            secondaryAreaUnit: "acres",
-            secondaryLengthUnit: "miles",
-            thousandsSep: ",",
-        });
-        measureControl.addTo?.(map);
+    const measureControl = addLeafletMeasurePluginControl(L, map);
+    if (measureControl) {
         windowExt._measureControl = measureControl;
-
-        // Clear measurements when starting a new measurement
-        map.on("measurestart", () => {
-            // Clear previous completed measurements when starting new one
-            if (measureControl._measurementRunningTotal) {
-                measureControl._measurementRunningTotal = 0;
-            }
-        });
     }
 
-    // --- Drawing/editing tool (if plugin available) ---
-    if (windowExt.L && L.Control && L.Control.Draw) {
-        const drawnItems = new L.FeatureGroup() as DrawnItemsLayerGroup;
-        map.addLayer(drawnItems);
-        const drawControl = new L.Control.Draw({
-            draw: {
-                circle: {
-                    shapeOptions: {
-                        clickable: true,
-                        color: "#1976d2",
-                    },
-                },
-                marker: true,
-                polygon: {
-                    allowIntersection: false,
-                    // Prefer imperial units so distances match the rest of the app (miles).
-                    // Leaflet.draw will still display metric when appropriate internally.
-                    feet: true,
-                    metric: false,
-                    shapeOptions: {
-                        clickable: true,
-                        color: "#1976d2",
-                    },
-                },
-                polyline: {
-                    // Prefer imperial units so distances match the rest of the app (miles).
-                    feet: true,
-                    metric: false,
-                    shapeOptions: {
-                        clickable: true,
-                        color: "#1976d2",
-                    },
-                },
-                rectangle: {
-                    shapeOptions: {
-                        clickable: true,
-                        color: "#1976d2",
-                    },
-                },
-            },
-            edit: {
-                edit: {},
-                featureGroup: drawnItems,
-                remove: {},
-            },
-        });
-        map.addControl(drawControl);
-        windowExt._drawControl = drawControl;
-
-        // Add drawn shapes to the layer so they persist.
-        // Register exactly once (L.Draw.Event.CREATED is typically "draw:created").
-        const onDrawCreated: Leaflet.LeafletEventHandlerFn = (event) => {
-            const { layer } = event as unknown as { layer?: unknown };
+    const drawPluginSetup = addLeafletDrawPluginControl({
+        leaflet: L,
+        map,
+        onLayerCreated: (layer, drawnItems) => {
             if (isLeafletLayer(L, layer)) {
                 drawnItems.addLayer(layer);
             }
-        };
-
-        {
-            const createdEventName =
-                L.Draw &&
-                L.Draw.Event &&
-                typeof L.Draw.Event.CREATED === "string"
-                    ? L.Draw.Event.CREATED
-                    : "draw:created";
-            map.on(createdEventName, onDrawCreated);
-        }
+        },
+    });
+    if (drawPluginSetup) {
+        const { drawnItems } = drawPluginSetup;
+        const drawControl = drawPluginSetup.drawControl as DisposableControl;
+        windowExt._drawControl = drawControl;
 
         // UX fix: Leaflet.draw's tooltip says "Click last point to finish line", but in practice
         // the click target (vertex marker) is tiny. If the user clicks *near* the last point, we
@@ -1544,70 +1410,54 @@ export function renderMap(): void {
     // Apply estimated power before drawing any tracks/markers so tooltips have access.
     // Only applies to files without real power.
     try {
-        const currentGlobalData = getManagedGlobalData();
-        if (Array.isArray(currentGlobalData?.recordMesgs)) {
-            const sessionMesgs = Array.isArray(currentGlobalData.sessionMesgs)
-                ? currentGlobalData.sessionMesgs
-                : undefined;
-            applyEstimatedPowerToRecords(
-                sessionMesgs === undefined
-                    ? {
-                          recordMesgs: currentGlobalData.recordMesgs,
-                          settings: getPowerEstimationSettings(),
-                      }
-                    : {
-                          recordMesgs: currentGlobalData.recordMesgs,
-                          sessionMesgs,
-                          settings: getPowerEstimationSettings(),
-                      }
-            );
+        const activityData = getActiveFitPowerInput();
+        if (activityData.recordMesgs.length > 0) {
+            applyEstimatedPowerToRecords({
+                ...activityData,
+                settings: getPowerEstimationSettings(),
+            });
         }
-        if (Array.isArray(windowExt.loadedFitFiles)) {
-            for (const fitFile of windowExt.loadedFitFiles) {
-                const recs =
+        for (const fitFile of getLoadedFitFiles()) {
+            const recs =
+                fitFile &&
+                fitFile.data &&
+                Array.isArray(fitFile.data.recordMesgs)
+                    ? fitFile.data.recordMesgs
+                    : null;
+            if (recs) {
+                const sessionMesgs =
                     fitFile &&
                     fitFile.data &&
-                    Array.isArray(fitFile.data.recordMesgs)
-                        ? fitFile.data.recordMesgs
-                        : null;
-                if (recs) {
-                    const sessionMesgs =
-                        fitFile &&
-                        fitFile.data &&
-                        Array.isArray(fitFile.data.sessionMesgs)
-                            ? fitFile.data.sessionMesgs
-                            : undefined;
-                    applyEstimatedPowerToRecords(
-                        sessionMesgs === undefined
-                            ? {
-                                  recordMesgs: recs,
-                                  settings: getPowerEstimationSettings(),
-                              }
-                            : {
-                                  recordMesgs: recs,
-                                  sessionMesgs,
-                                  settings: getPowerEstimationSettings(),
-                              }
-                    );
-                }
+                    Array.isArray(fitFile.data.sessionMesgs)
+                        ? fitFile.data.sessionMesgs
+                        : undefined;
+                applyEstimatedPowerToRecords(
+                    sessionMesgs === undefined
+                        ? {
+                              recordMesgs: recs,
+                              settings: getPowerEstimationSettings(),
+                          }
+                        : {
+                              recordMesgs: recs,
+                              sessionMesgs,
+                              settings: getPowerEstimationSettings(),
+                          }
+                );
             }
         }
     } catch {
         /* ignore */
     }
 
-    if (
-        windowExt.loadedFitFiles &&
-        Array.isArray(windowExt.loadedFitFiles) &&
-        windowExt.loadedFitFiles.length > 0
-    ) {
+    const loadedFitFiles = getLoadedFitFiles();
+    if (loadedFitFiles.length > 0) {
         console.log(
             "[renderMap] Overlay logic: loadedFitFiles.length =",
-            windowExt.loadedFitFiles.length
+            loadedFitFiles.length
         );
         // Clear overlay polylines tracking before drawing
         windowExt._overlayPolylines = {};
-        for (const [idx, fitFile] of windowExt.loadedFitFiles.entries()) {
+        for (const [idx, fitFile] of loadedFitFiles.entries()) {
             // Skip index 0 (main file) here to avoid duplicating the main track as an overlay
             if (idx === 0) {
                 continue;
@@ -1659,7 +1509,7 @@ export function renderMap(): void {
         );
         // --- Always call mapDrawLapsWrapper('all') to ensure correct zoom/fitBounds logic ---
         mapDrawLapsWrapper("all");
-    } else if (getManagedGlobalData()?.recordMesgs) {
+    } else if (hasActiveFitRecords()) {
         console.log(
             '[renderMap] No overlays, calling mapDrawLapsWrapper("all")'
         );
@@ -1725,9 +1575,8 @@ export function renderMap(): void {
 
 async function refreshChartsAfterEstimatedPowerUpdate(): Promise<void> {
     try {
-        const { invalidateChartRenderCache, renderChartJS } = await import(
-            "../../charts/core/renderChartJS.js"
-        );
+        const { invalidateChartRenderCache, renderChartJS } =
+            await import("../../charts/core/renderChartJS.js");
         invalidateChartRenderCache("estimated-power-updated");
         await renderChartJS();
     } catch {

@@ -1,4 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    clearChartInstanceRegistryForTests,
+    setRegisteredChartInstances,
+} from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
 // Use jsdom timers to control debounce/timeouts
 vi.useFakeTimers();
@@ -13,15 +17,7 @@ interface ChartInstanceMock {
     };
 }
 
-type EnsureDropdownsTestWindow = Window &
-    typeof globalThis & {
-        _chartjsInstances?: ChartInstanceMock[];
-    };
 type MockVoidFn = (...args: unknown[]) => void;
-
-function getTestWindow(): EnsureDropdownsTestWindow {
-    return window as EnsureDropdownsTestWindow;
-}
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null;
@@ -92,6 +88,7 @@ vi.mock(
         setState: (key: string, value: unknown) => {
             state[key] = value;
         },
+        subscribe: () => () => {},
         updateState: (ns: string, patch: Record<string, unknown>) => {
             state[ns] = {
                 ...(isObjectRecord(state[ns]) ? state[ns] : {}),
@@ -368,7 +365,7 @@ function seedCharts(count = 2): ChartInstanceMock[] {
         },
         config: { type: "line" },
     }));
-    getTestWindow()._chartjsInstances = chartInstances;
+    setRegisteredChartInstances(chartInstances);
 
     return chartInstances;
 }
@@ -388,11 +385,12 @@ beforeEach(() => {
     if (typeof localStorage !== "undefined") {
         localStorage.clear();
     }
-    delete getTestWindow()._chartjsInstances;
+    clearChartInstanceRegistryForTests();
     delete state["globalData"];
 });
 
 afterEach(() => {
+    clearChartInstanceRegistryForTests();
     document.body.replaceChildren();
 });
 
@@ -653,7 +651,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         const wrapper = document.getElementById("chartjs-settings-wrapper")!;
 
         // No charts path
-        delete getTestWindow()._chartjsInstances;
+        clearChartInstanceRegistryForTests();
         const exportZipBtn = Array.from(
             wrapper.querySelectorAll("button")
         ).find((b) =>

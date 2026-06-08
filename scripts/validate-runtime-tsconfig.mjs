@@ -84,6 +84,27 @@ export function validateRuntimeTsconfigFiles({
         }
     }
 
+    const preloadSourcePath = path.join(
+        repositoryRoot,
+        "electron-app",
+        "preload"
+    );
+    if (fileSystem.existsSync(preloadSourcePath)) {
+        const preloadSourceFiles = fileSystem
+            .readdirSync(preloadSourcePath)
+            .filter((file) => file.endsWith(".ts"))
+            .map((file) => path.posix.join("electron-app", "preload", file));
+
+        for (const preloadSourceFile of preloadSourceFiles) {
+            if (!seenFiles.has(preloadSourceFile)) {
+                issues.push({
+                    file: preloadSourceFile,
+                    reason: "preload runtime source file is missing from tsconfig.runtime.json",
+                });
+            }
+        }
+    }
+
     return issues;
 }
 

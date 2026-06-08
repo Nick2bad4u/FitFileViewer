@@ -5,8 +5,13 @@
 /* eslint-disable vitest/no-hooks -- Integration tests share DOM lifecycle setup. */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-type StateKey = "globalData" | "ui.activeTab" | "ui.tabButtonsEnabled";
+type StateKey =
+    | "fitFile.rawData"
+    | "globalData"
+    | "ui.activeTab"
+    | "ui.tabButtonsEnabled";
 type StateShape = {
+    "fitFile.rawData": null | { records: { type?: string }[] };
     globalData: null | { records: { type?: string }[] };
     "ui.activeTab": string;
     "ui.tabButtonsEnabled": boolean;
@@ -21,6 +26,7 @@ const mockStateManager = {
 };
 
 let globalState: StateShape = {
+    "fitFile.rawData": null,
     "ui.activeTab": "summary",
     "ui.tabButtonsEnabled": false,
     globalData: null,
@@ -92,6 +98,7 @@ vi.mock(import("../../../electron-app/utils/dom/index.js"), () => ({
 describe("tab button state integration", () => {
     beforeEach(() => {
         globalState = {
+            "fitFile.rawData": null,
             "ui.activeTab": "summary",
             "ui.tabButtonsEnabled": false,
             globalData: null,
@@ -131,8 +138,11 @@ describe("tab button state integration", () => {
             });
         });
 
-        globalState.globalData = { records: [{ type: "activity" }] };
-        mockStateManager.setState("globalData", globalState.globalData);
+        globalState["fitFile.rawData"] = { records: [{ type: "activity" }] };
+        mockStateManager.setState(
+            "fitFile.rawData",
+            globalState["fitFile.rawData"]
+        );
 
         await flushMutationObservers();
 
@@ -207,8 +217,11 @@ describe("tab button state integration", () => {
 
         await flushMutationObservers();
 
-        globalState.globalData = { records: [] };
-        mockStateManager.setState("globalData", globalState.globalData);
+        globalState["fitFile.rawData"] = { records: [] };
+        mockStateManager.setState(
+            "fitFile.rawData",
+            globalState["fitFile.rawData"]
+        );
         setTabButtonsEnabled(true);
 
         await flushMutationObservers();

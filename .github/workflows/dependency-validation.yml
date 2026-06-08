@@ -41,8 +41,10 @@ jobs:
 
             - name: Install app and docs dependencies
               run: |
-                  npm ci --no-audit --no-fund
-                  npm ci --prefix docusaurus --no-audit --no-fund
+                  mkdir -p artifacts/dependency-validation
+                  set -o pipefail
+                  npm ci --no-audit --no-fund 2>&1 | tee artifacts/dependency-validation/npm-ci-app.log
+                  npm ci --prefix docusaurus --no-audit --no-fund 2>&1 | tee artifacts/dependency-validation/npm-ci-docusaurus.log
 
             - name: Run release verification gate
               run: |
@@ -54,11 +56,29 @@ jobs:
               if: always()
               run: |
                   mkdir -p artifacts/dependency-validation
+                  node --version > artifacts/dependency-validation/node-version.txt
+                  npm --version > artifacts/dependency-validation/npm-version.txt
                   git status --short > artifacts/dependency-validation/git-status.txt
+                  cp package.json artifacts/dependency-validation/package.json
+                  cp package-lock.json artifacts/dependency-validation/package-lock.json
+                  cp docusaurus/package.json artifacts/dependency-validation/docusaurus-package.json
+                  cp docusaurus/package-lock.json artifacts/dependency-validation/docusaurus-package-lock.json
                   npm ls --all > artifacts/dependency-validation/npm-ls.txt 2>&1 || true
                   npm --prefix docusaurus ls --all > artifacts/dependency-validation/docusaurus-npm-ls.txt 2>&1 || true
                   if [ -d release-dist ]; then
                     npm run release:list-release-dist-files > artifacts/dependency-validation/release-dist-files.txt 2>&1 || true
+                    cp -R release-dist artifacts/dependency-validation/release-dist
+                  fi
+                  if [ -d dist ]; then
+                    find dist -maxdepth 3 -type f | sort > artifacts/dependency-validation/dist-files.txt
+                  fi
+                  if [ -d artifacts ]; then
+                    find artifacts -path artifacts/dependency-validation -prune -o -type f -print | sort > artifacts/dependency-validation/root-artifacts-files.txt
+                    while IFS= read -r artifact_file; do
+                      target="artifacts/dependency-validation/root-artifacts/${artifact_file#artifacts/}"
+                      mkdir -p "$(dirname "$target")"
+                      cp "$artifact_file" "$target"
+                    done < artifacts/dependency-validation/root-artifacts-files.txt
                   fi
                   if [ -d test-results ]; then
                     cp -R test-results artifacts/dependency-validation/test-results
@@ -66,6 +86,59 @@ jobs:
                   if [ -d playwright-report ]; then
                     cp -R playwright-report artifacts/dependency-validation/playwright-report
                   fi
+
+            - name: Summarize dependency validation diagnostics
+              if: failure()
+              run: |
+                  {
+                    echo "## Dependency validation diagnostics"
+                    echo
+                    echo "The failed dependency rehearsal uploaded \`dependency-validation-diagnostics\`."
+                    echo
+                    echo "### Captured logs"
+                    echo "- \`artifacts/dependency-validation/npm-ci-app.log\`"
+                    echo "- \`artifacts/dependency-validation/npm-ci-docusaurus.log\`"
+                    echo "- \`artifacts/dependency-validation/release-verify.log\`"
+                    echo "- \`artifacts/dependency-validation/npm-ls.txt\`"
+                    echo "- \`artifacts/dependency-validation/docusaurus-npm-ls.txt\`"
+                    echo "- \`artifacts/dependency-validation/root-artifacts-files.txt\`"
+                    echo
+                    echo "### App install tail"
+                    if [ -f artifacts/dependency-validation/npm-ci-app.log ]; then
+                      echo '```text'
+                      tail -n 40 artifacts/dependency-validation/npm-ci-app.log
+                      echo '```'
+                    else
+                      echo "_No app install log was produced._"
+                    fi
+                    echo
+                    echo "### Docs install tail"
+                    if [ -f artifacts/dependency-validation/npm-ci-docusaurus.log ]; then
+                      echo '```text'
+                      tail -n 40 artifacts/dependency-validation/npm-ci-docusaurus.log
+                      echo '```'
+                    else
+                      echo "_No docs install log was produced._"
+                    fi
+                    echo
+                    echo "### Release verification tail"
+                    if [ -f artifacts/dependency-validation/release-verify.log ]; then
+                      echo '```text'
+                      tail -n 80 artifacts/dependency-validation/release-verify.log
+                      echo '```'
+                    else
+                      echo "_No release verification log was produced._"
+                    fi
+                    echo
+                    echo "### Root artifact inventory"
+                    if [ -s artifacts/dependency-validation/root-artifacts-files.txt ]; then
+                      echo '```text'
+                      sed 's#^artifacts/##' artifacts/dependency-validation/root-artifacts-files.txt
+                      echo '```'
+                    else
+                      echo "_No root artifacts were produced before failure._"
+                    fi
+                  } >> "$GITHUB_STEP_SUMMARY"
 
             - name: Upload dependency validation diagnostics
               if: failure()

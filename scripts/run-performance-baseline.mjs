@@ -27,6 +27,7 @@ const defaultFixtureNames = [
 ];
 
 export function parseArgs(argv = []) {
+    let compareIfExistsPath = null;
     const fixturePaths = [];
     let comparePath = null;
     let outputPath = defaultOutputPath;
@@ -43,6 +44,25 @@ export function parseArgs(argv = []) {
             }
             comparePath = path.resolve(nextComparePath);
             index += 1;
+            continue;
+        }
+
+        if (arg === "--compare-if-exists") {
+            const nextComparePath = argv[index + 1];
+            if (!nextComparePath || nextComparePath.startsWith("-")) {
+                throw new Error("--compare-if-exists requires a value");
+            }
+            compareIfExistsPath = path.resolve(nextComparePath);
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--compare-if-exists=")) {
+            const nextComparePath = arg.slice("--compare-if-exists=".length);
+            if (!nextComparePath) {
+                throw new Error("--compare-if-exists must not be empty");
+            }
+            compareIfExistsPath = path.resolve(nextComparePath);
             continue;
         }
 
@@ -120,7 +140,14 @@ export function parseArgs(argv = []) {
         throw new Error(`Unknown argument: ${arg}`);
     }
 
+    if (comparePath && compareIfExistsPath) {
+        throw new Error(
+            "--compare and --compare-if-exists cannot be used together"
+        );
+    }
+
     return {
+        compareIfExistsPath,
         comparePath,
         fixturePaths:
             fixturePaths.length > 0 ? fixturePaths : getDefaultFixturePaths(),
@@ -142,12 +169,18 @@ export async function runPerformanceBaseline(
     logger = console.log
 ) {
     const {
+        compareIfExistsPath,
         comparePath,
         fixturePaths,
         outputPath,
         thresholdPercent,
         timeoutMs,
     } = parseArgs(argv);
+    const effectiveComparePath = resolveComparisonPath({
+        compareIfExistsPath,
+        comparePath,
+        logger,
+    });
     assertFixturesExist(fixturePaths);
 
     const electronApp = await electron.launch({
@@ -197,10 +230,10 @@ export async function runPerformanceBaseline(
             rendererErrors,
             fixtures,
         };
-        if (comparePath) {
+        if (effectiveComparePath) {
             baseline.comparison = comparePerformanceBaselines(
                 baseline,
-                readBaseline(comparePath),
+                readBaseline(effectiveComparePath),
                 thresholdPercent
             );
         }
@@ -208,6 +241,10 @@ export async function runPerformanceBaseline(
         fs.mkdirSync(path.dirname(outputPath), { recursive: true });
         fs.writeFileSync(outputPath, `${JSON.stringify(baseline, null, 2)}\n`);
         logger(`[perf] Wrote ${outputPath}`);
+        appendPerformanceBaselineSummary(environment.GITHUB_STEP_SUMMARY, {
+            baseline,
+            outputPath,
+        });
 
         if (pageErrors.length > 0 || rendererErrors.length > 0) {
             throw new Error(
@@ -226,6 +263,66 @@ export async function runPerformanceBaseline(
         page.off("pageerror", handlePageError);
         await electronApp.close();
     }
+}
+
+export function appendPerformanceBaselineSummary(
+    summaryPath,
+    { baseline, outputPath }
+) {
+    if (!summaryPath) {
+        return false;
+    }
+
+    const comparison = baseline.comparison;
+    const lines = [
+        "## Performance Baseline",
+        "",
+        `- Output: \`${path.relative(repositoryRoot, outputPath)}\``,
+        `- Fixture count: \`${String(getBaselineFixtures(baseline).length)}\``,
+        `- Renderer errors: \`${String((baseline.rendererErrors ?? []).length)}\``,
+        `- Page errors: \`${String((baseline.pageErrors ?? []).length)}\``,
+    ];
+
+    if (comparison) {
+        lines.push(
+            `- Comparison: \`enabled\``,
+            `- Compared fixtures: \`${String(comparison.comparedFixtureCount)}\``,
+            `- Threshold: \`${String(comparison.thresholdPercent)}%\``,
+            `- Regressions: \`${String(comparison.regressions.length)}\``,
+            `- Skipped fixtures: \`${String(comparison.skippedFixtures.length)}\``
+        );
+
+        if (comparison.regressions.length > 0) {
+            lines.push("", "### Regressions");
+            for (const regression of comparison.regressions.slice(0, 10)) {
+                lines.push(
+                    `- \`${regression.fixture}\` \`${regression.metric}\`: ${regression.previous} -> ${regression.current} (+${regression.changePercent}%, threshold ${regression.thresholdPercent}%)`
+                );
+            }
+        }
+
+        if (comparison.skippedFixtures.length > 0) {
+            lines.push("", "### Skipped Fixtures");
+            for (const skippedFixture of comparison.skippedFixtures.slice(
+                0,
+                10
+            )) {
+                lines.push(
+                    `- \`${skippedFixture.fixture}\`: ${skippedFixture.reason}`
+                );
+            }
+        }
+    } else {
+        lines.push(
+            "- Comparison: `not run`",
+            "",
+            "No previous baseline was available; this run seeded the trend cache."
+        );
+    }
+
+    fs.mkdirSync(path.dirname(summaryPath), { recursive: true });
+    fs.appendFileSync(summaryPath, `${lines.join("\n")}\n\n`);
+    return true;
 }
 
 async function measureFixture(page, { fixturePath, timeoutMs }) {
@@ -249,14 +346,16 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
                 "utils/rendering/core/loadShowFitData.js",
                 globalThis.location.href
             ).href;
-            const stateModuleUrl = new URL(
-                "utils/state/core/stateManager.js",
+            const activityStateModuleUrl = new URL(
+                "utils/state/domain/fitActivityDataState.js",
                 globalThis.location.href
             ).href;
             // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used by the performance baseline runner.
             const { renderDecodedFitData } = await import(renderModuleUrl);
             // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used by the performance baseline runner.
-            const { getState } = await import(stateModuleUrl);
+            const { getActiveFitActivityData } = await import(
+                activityStateModuleUrl
+            );
 
             const memoryBeforeLoad = getHeapBytes();
             const parseStart = performance.now();
@@ -268,7 +367,7 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
             const renderStart = performance.now();
             await renderDecodedFitData(data, filePath);
             const renderMs = performance.now() - renderStart;
-            const activityData = getState("globalData");
+            const activityData = getActiveFitActivityData();
 
             return {
                 activeFileName:
@@ -310,25 +409,35 @@ async function measureFixture(page, { fixturePath, timeoutMs }) {
     const chartMetrics = await measureTabRender(page, {
         activeTabSelector: "#tab_chartjs.active",
         metricName: "chartRenderMs",
-        readyExpression: () => {
-            const chartInstances = Reflect.get(globalThis, "_chartjsInstances");
+        readyExpression: async () => {
+            const chartRegistryModuleUrl = new URL(
+                "utils/charts/core/chartInstanceRegistry.js",
+                globalThis.location.href
+            ).href;
+            // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used by the performance baseline runner.
+            const { getRegisteredChartInstanceCount } = await import(
+                chartRegistryModuleUrl
+            );
             return (
                 document.querySelectorAll(
                     "#chartjs_chart_container canvas.chart-canvas"
-                ).length > 0 &&
-                Array.isArray(chartInstances) &&
-                chartInstances.length > 0
+                ).length > 0 && getRegisteredChartInstanceCount() > 0
             );
         },
-        resultExpression: () => {
-            const chartInstances = Reflect.get(globalThis, "_chartjsInstances");
+        resultExpression: async () => {
+            const chartRegistryModuleUrl = new URL(
+                "utils/charts/core/chartInstanceRegistry.js",
+                globalThis.location.href
+            ).href;
+            // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used by the performance baseline runner.
+            const { getRegisteredChartInstanceCount } = await import(
+                chartRegistryModuleUrl
+            );
             return {
                 canvasCount: document.querySelectorAll(
                     "#chartjs_chart_container canvas.chart-canvas"
                 ).length,
-                chartInstanceCount: Array.isArray(chartInstances)
-                    ? chartInstances.length
-                    : 0,
+                chartInstanceCount: getRegisteredChartInstanceCount(),
             };
         },
         tabSelector: "#tab_chartjs",
@@ -455,6 +564,30 @@ export function assertNoPerformanceRegressions(comparison) {
     throw new Error(
         `Performance baseline exceeded ${comparison.thresholdPercent}% regression threshold: ${regressionSummary}`
     );
+}
+
+export function resolveComparisonPath({
+    compareIfExistsPath,
+    comparePath,
+    fileExists = fs.existsSync,
+    logger = console.log,
+} = {}) {
+    if (comparePath) {
+        return comparePath;
+    }
+
+    if (!compareIfExistsPath) {
+        return null;
+    }
+
+    if (fileExists(compareIfExistsPath)) {
+        return compareIfExistsPath;
+    }
+
+    logger(
+        `[perf] No previous baseline found at ${compareIfExistsPath}; recording a new baseline without comparison.`
+    );
+    return null;
 }
 
 async function measureDataTableRender(page, { timeoutMs }) {

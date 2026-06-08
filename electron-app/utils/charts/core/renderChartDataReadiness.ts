@@ -1,28 +1,26 @@
 import { touchChartRenderDependencies } from "./renderChartDependencyTouches.js";
 import { renderNoChartDataPlaceholder } from "./renderChartPlaceholders.js";
 import {
-    type ActivityStartTime,
     type ChartDataRecord,
     type ChartDataRecordSource,
-    getActivityStartTime,
-    getRecordMessages,
     isChartDataObject,
     storeChartData,
 } from "./renderChartDataPreparation.js";
 import type { StateUpdateOptions } from "../../state/core/stateManager.js";
+import {
+    getActiveFitChartData,
+    type FitChartActivityStartTime,
+} from "../../state/domain/fitChartDataState.js";
 
 type UnitConverter = (value: number, field: string) => unknown;
-type NotifyFunction = (
-    message: string,
-    type: "info" | "warning"
-) => unknown;
+type NotifyFunction = (message: string, type: "info" | "warning") => unknown;
 type SetStateFunction = (
     path: string,
     value: unknown,
     options?: StateUpdateOptions
 ) => void;
 type SetupZoneDataFunction = (
-    globalData: ChartDataRecord | ChartDataRecordSource
+    activityData: ChartDataRecord | ChartDataRecordSource
 ) => unknown;
 
 interface ChartStateManagerAccess {
@@ -50,7 +48,7 @@ export type ChartRenderDataReadinessResult =
           ready: false;
       }
     | {
-          activityStartTime: ActivityStartTime;
+          activityStartTime: FitChartActivityStartTime;
           ready: true;
           recordMesgs: ChartDataRecord[];
       };
@@ -88,19 +86,8 @@ export async function prepareChartRenderData(
     dependencies: ChartRenderDataReadinessDependencies,
     input: ChartRenderDataReadinessInput
 ): Promise<ChartRenderDataReadinessResult> {
-    const firstGlobalData = dependencies.getState("globalData");
-    if (!isChartDataObject(firstGlobalData)) {
-        console.warn("[ChartJS] No FIT file data available for charts");
-        await dependencies.notify(
-            "No FIT file data available for chart rendering",
-            "warning"
-        );
-        dependencies.safeCompleteRendering(false);
-        return { ready: false };
-    }
-
-    const globalData = dependencies.getState("globalData");
-    if (!isChartDataObject(globalData)) {
+    const chartData = getActiveFitChartData();
+    if (!isChartDataObject(chartData.rawData)) {
         console.warn("[ChartJS] No FIT file data available for charts");
         await dependencies.notify(
             "No FIT file data available for chart rendering",
@@ -111,21 +98,22 @@ export async function prepareChartRenderData(
     }
 
     const setup = dependencies.getSetupZoneData();
-    setup(globalData);
+    setup(chartData.rawData);
 
     await touchChartRenderDependencies({
         getConverters: () => dependencies.getConverters(),
         getThemeConfig: () => dependencies.getThemeConfig(),
     });
 
-    const recordMesgs = getRecordMessages(globalData);
-    if (!recordMesgs) {
+    if (!chartData.ready) {
         return completeMissingChartData(dependencies, input);
     }
 
-    console.log(`[ChartJS] Found ${recordMesgs.length} data points to process`);
+    console.log(
+        `[ChartJS] Found ${chartData.totalDataPoints} data points to process`
+    );
 
-    const activityStartTime = getActivityStartTime(recordMesgs);
+    const activityStartTime = chartData.activityStartTime;
     if (activityStartTime !== null) {
         console.log("[ChartJS] Activity start time:", activityStartTime);
     }
@@ -135,13 +123,13 @@ export async function prepareChartRenderData(
             setState: (path, value, options) =>
                 dependencies.getStateManager().setState(path, value, options),
         },
-        recordMesgs,
+        chartData.recordMesgs,
         activityStartTime
     );
 
     return {
         activityStartTime,
         ready: true,
-        recordMesgs,
+        recordMesgs: chartData.recordMesgs,
     };
 }

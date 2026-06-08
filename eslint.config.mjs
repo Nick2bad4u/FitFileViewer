@@ -289,21 +289,6 @@ const config = [
         },
     },
     {
-        basePath: electronAppBasePath,
-        files: ["renderer/vendorGlobals.ts"],
-        plugins: {
-            depend: dependPlugin,
-        },
-        rules: {
-            "depend/ban-dependencies": [
-                "error",
-                {
-                    allowed: ["jquery"],
-                },
-            ],
-        },
-    },
-    {
         files: ["playwright.config.ts"],
         rules: {
             "module-interop/no-require-esm": "off",

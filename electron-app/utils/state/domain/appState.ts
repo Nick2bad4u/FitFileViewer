@@ -12,9 +12,9 @@ type ChartDomainState = {
 };
 
 type DataDomainState = {
-    globalData: unknown;
     isLoaded: boolean;
     lastModified: number | null;
+    rawFitData: unknown;
     recordCount: number;
 };
 
@@ -86,7 +86,7 @@ const PERSISTENT_KEYS = [
 ] as const;
 
 const VOLATILE_KEYS = [
-    "data.globalData",
+    "data.rawFitData",
     "file.isOpening",
     "performance.metrics",
     "errors.current",
@@ -128,9 +128,9 @@ function createDefaultState(): AppStateShape {
             visibleFields: new Set(),
         },
         data: {
-            globalData: null,
             isLoaded: false,
             lastModified: null,
+            rawFitData: null,
             recordCount: 0,
         },
         errors: {
@@ -285,7 +285,7 @@ class AppStateManager {
                 break;
             }
 
-            case "data.globalData": {
+            case "data.rawFitData": {
                 if (newValue && !oldValue) {
                     this.emit(STATE_EVENTS.DATA_LOADED, { data: newValue });
                 } else if (!newValue && oldValue) {
@@ -502,7 +502,7 @@ class AppStateManager {
     /** Defines reactive properties for selected state paths. */
     public setupReactiveProperties(): void {
         const reactivePaths = [
-            "data.globalData",
+            "data.rawFitData",
             "data.isLoaded",
             "file.isOpening",
             "ui.activeTab",
@@ -634,11 +634,11 @@ export function clearErrors(): void {
 }
 
 /** Clears loaded FIT data from app state. */
-export function clearGlobalData(): void {
+export function clearRawFitData(): void {
     appState.update({
-        "data.globalData": null,
         "data.isLoaded": false,
         "data.lastModified": null,
+        "data.rawFitData": null,
         "data.recordCount": 0,
     });
 }
@@ -671,11 +671,11 @@ export function setFileOpeningState(
 }
 
 /** Sets loaded FIT data and derived file metrics. */
-export function setGlobalData(data: unknown): void {
+export function setRawFitData(data: unknown): void {
     appState.update({
-        "data.globalData": data,
         "data.isLoaded": Boolean(data),
         "data.lastModified": Date.now(),
+        "data.rawFitData": data,
         "data.recordCount": getRecordCount(data),
     });
 }

@@ -4,25 +4,13 @@ import {
     ensureRendererVendorBundle,
     type RendererVendorBundleEntry,
 } from "../../../electron-app/renderer/vendorBundleLoader.js";
-
-type VendorBundleTestGlobal = typeof globalThis & {
-    __FFV_RENDERER_VENDOR_BUNDLE__?: {
-        loaded: true;
-        source: "npm-bundle";
-        splitEntries: readonly string[];
-    };
-};
-
-function getVendorBundleGlobal(): VendorBundleTestGlobal {
-    return globalThis as VendorBundleTestGlobal;
-}
+import {
+    markRendererVendorEntryLoaded,
+    resetRendererVendorBundleState,
+} from "../../../electron-app/renderer/vendorGlobalsShared.js";
 
 function markEntryLoaded(entryName: RendererVendorBundleEntry): void {
-    getVendorBundleGlobal().__FFV_RENDERER_VENDOR_BUNDLE__ = {
-        loaded: true,
-        source: "npm-bundle",
-        splitEntries: [entryName],
-    };
+    markRendererVendorEntryLoaded(entryName);
 }
 
 function ensureVendorBundle(
@@ -47,7 +35,7 @@ function getVendorScript(
 
 describe("renderer vendor bundle loader", () => {
     afterEach(() => {
-        Reflect.deleteProperty(globalThis, "__FFV_RENDERER_VENDOR_BUNDLE__");
+        resetRendererVendorBundleState();
         document
             .querySelectorAll("script[data-ffv-renderer-vendor-entry]")
             .forEach((script) => script.remove());
@@ -107,6 +95,18 @@ describe("renderer vendor bundle loader", () => {
         } finally {
             vi.useRealTimers();
         }
+    });
+
+    it("resolves when the module marks readiness before the script load event", async () => {
+        expect.assertions(1);
+
+        const vendorReadiness = [ensureVendorBundle("map")];
+        const script = getVendorScript("map");
+
+        markEntryLoaded("map");
+        script.dispatchEvent(new Event("load"));
+
+        await expect(vendorReadiness[0]).resolves.toBeUndefined();
     });
 
     it("waits for the split entry marker when a script tag already exists", async () => {

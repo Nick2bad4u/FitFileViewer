@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type LapSelection = "all" | string[];
@@ -15,7 +15,7 @@ describe("mapLapSelector", () => {
         const container = document.createElement("div");
         container.id = "container";
         document.body.replaceChildren(container);
-        setGlobalData(
+        setActiveFitRawData(
             {
                 lapMesgs: [
                     {},
@@ -81,7 +81,7 @@ describe("mapLapSelector", () => {
         const container = document.getElementById("container")!;
         const drawFn = vi.fn<DrawLapsFn>();
 
-        setGlobalData(null, { source: "test.clear" });
+        setActiveFitRawData(null, { source: "test.clear" });
 
         addLapSelector(null as any, container, drawFn);
 

@@ -7,28 +7,20 @@
  * - FitFileViewer runs with a CSP that intentionally disallows unsafe-eval.
  *
  * This file provides a lightweight subset compatible with this codebase:
- * - Defines `L.Control.Measure` and `L.control.measure(options)`.
+ * - Installs `L.Control.Measure` and `L.control.measure(options)`.
  * - Fires `measurestart` and `measurefinish` map events.
  * - Exposes `_measurementRunningTotal` so existing cleanup hooks can reset state.
  *
  * It intentionally does not attempt to be a full drop-in replacement for every upstream feature.
+ *
+ * @param {any} L
+ *
+ * @returns {void}
  */
-
-(function attachLeafletMeasureLite() {
-    /**
-     * @returns {any}
-     */
-    function getLeaflet() {
-        const { L } = /** @type {any} */ (globalThis);
-        if (!L) {
-            throw new Error(
-                "Leaflet (global L) must be loaded before leaflet-measure-lite.js"
-            );
-        }
-        return L;
+export function installLeafletMeasureLite(L) {
+    if (!L) {
+        throw new Error("Leaflet runtime is required for leaflet-measure-lite");
     }
-
-    const L = getLeaflet();
 
     /**
      * @typedef {{
@@ -1188,6 +1180,4 @@
     L.control.measure = function measure(options) {
         return new L.Control.Measure(options);
     };
-})();
-
-export {};
+}

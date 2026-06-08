@@ -217,7 +217,7 @@ describe("preload edge cases", () => {
         consoleErrorSpy.mockRestore();
     });
 
-    it("injectMenu returns false on invalid parameters and logs error", async () => {
+    it("injectMenu returns false on invalid parameters without logging", async () => {
         expect.assertions(2);
 
         const ipcRenderer: IpcRendererMock = {
@@ -243,7 +243,7 @@ describe("preload edge cases", () => {
         const api = getExposedElectronAPI();
         expect(api.injectMenu).toBeTypeOf("function");
 
-        // theme undefined (invalid) and fitFilePath number (invalid) should both be rejected by validation and return false
+        // Invalid optional developer-menu payloads should fail closed before IPC.
         const res = await api.injectMenu(undefined, 123);
         expect({
             result: res,
@@ -252,9 +252,7 @@ describe("preload edge cases", () => {
             ),
         }).toStrictEqual({
             result: false,
-            validationErrors: [
-                "[preload.js] injectMenu: fitFilePath must be a string or null",
-            ],
+            validationErrors: [],
         });
 
         consoleErrorSpy.mockRestore();

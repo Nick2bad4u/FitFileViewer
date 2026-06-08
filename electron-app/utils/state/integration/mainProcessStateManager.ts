@@ -14,27 +14,6 @@
  * Main process state manager providing a minimal reactive store & IPC bridge.
  */
 
-// ---- Security: dot-path hardening -----------------------------------------
-//
-// This module accepts dot-separated paths from the renderer via IPC.
-// Without explicit guards, paths like "operations.__proto__.polluted" can lead
-// to prototype pollution because our setByPath/getByPath helpers use bracket
-// access while walking objects.
-//
-// We treat the renderer as untrusted: validate any path before traversing.
-
-const FORBIDDEN_DOT_PATH_SEGMENTS: ReadonlySet<string> = new Set([
-    "__proto__",
-    "constructor",
-    "prototype",
-]);
-
-// Defensive limits to avoid renderer-driven memory/perf abuse.
-// Paths are dot-separated and should be short.
-const MAX_DOT_PATH_LENGTH = 512;
-const MAX_DOT_PATH_SEGMENT_LENGTH = 128;
-// Keep segments conservative: allow identifier-ish keys plus ':' (used by fitFile:decode).
-const DOT_PATH_SEGMENT_PATTERN = /^[\w:-]+$/u;
 const RENDERER_READABLE_MAIN_STATE_PATHS: ReadonlySet<string> = new Set([
     "loadedFitFilePath",
 ]);
@@ -62,6 +41,11 @@ function isRendererReadableMainStatePath(path: string): boolean {
 const { getElectron: getStateRuntimeElectron } =
     require("../../../main/runtime/electronAccess") as {
         getElectron: () => unknown;
+    };
+const { isSafeMainStateOperationId, isSafeMainStatePath } =
+    require("../../../shared/mainStatePathPolicy") as {
+        isSafeMainStateOperationId: (value: unknown) => value is string;
+        isSafeMainStatePath: (value: unknown) => value is string;
     };
 const { registerIpcHandle } = require("../../../main/ipc/ipcRegistry") as {
     registerIpcHandle: MainStateRegisterIpcHandle;
@@ -459,7 +443,7 @@ class MainProcessState {
 
         // Security: do not traverse unsafe dot paths.
         // This prevents prototype leakage and makes set/get semantics deterministic.
-        if (!isSafeDotPath(path)) {
+        if (!isSafeMainStatePath(path)) {
             return null;
         }
 
@@ -949,7 +933,7 @@ class MainProcessState {
         }
 
         // Security: refuse to set unsafe dot paths.
-        if (!isSafeDotPath(path)) {
+        if (!isSafeMainStatePath(path)) {
             try {
                 logWithContext("warn", "Blocked unsafe state path", { path });
             } catch {
@@ -1030,7 +1014,7 @@ class MainProcessState {
                 }
 
                 if (
-                    !isSafeDotPath(safePath) ||
+                    !isSafeMainStatePath(safePath) ||
                     !isRendererReadableMainStatePath(safePath)
                 ) {
                     logWithContext(
@@ -1065,7 +1049,7 @@ class MainProcessState {
                 }
 
                 // Security: deny unsafe dot paths (prototype pollution hardening)
-                if (!isSafeDotPath(safePath)) {
+                if (!isSafeMainStatePath(safePath)) {
                     logWithContext(
                         "warn",
                         "Renderer attempted to set unsafe path",
@@ -1130,7 +1114,7 @@ class MainProcessState {
                 // Security: refuse broad or restricted subscriptions.
                 if (
                     !safePath ||
-                    !isSafeDotPath(safePath) ||
+                    !isSafeMainStatePath(safePath) ||
                     !isRendererReadableMainStatePath(safePath)
                 ) {
                     logWithContext(
@@ -1197,7 +1181,7 @@ class MainProcessState {
 
                 if (
                     !safePath ||
-                    !isSafeDotPath(safePath) ||
+                    !isSafeMainStatePath(safePath) ||
                     !isRendererReadableMainStatePath(safePath)
                 ) {
                     return false;
@@ -1232,16 +1216,7 @@ class MainProcessState {
 
                 const safeOperationId =
                     typeof operationId === "string" ? operationId.trim() : "";
-                if (
-                    !safeOperationId ||
-                    safeOperationId.length > MAX_DOT_PATH_SEGMENT_LENGTH
-                ) {
-                    return;
-                }
-                if (
-                    !DOT_PATH_SEGMENT_PATTERN.test(safeOperationId) ||
-                    FORBIDDEN_DOT_PATH_SEGMENTS.has(safeOperationId)
-                ) {
+                if (!isSafeMainStateOperationId(safeOperationId)) {
                     return;
                 }
 
@@ -1417,35 +1392,6 @@ class MainProcessState {
             operationId,
         });
     }
-}
-
-/*
- * Validate a dot-separated path for safe traversal.
- *
- * Rules:
- *
- * - Must be a non-empty string after trimming
- * - Must not contain empty segments ("a..b")
- * - Must not contain prototype-pollution segments
- *
- * @param {unknown} path
- *
- * @returns {path is string}
- */
-function isSafeDotPath(path: unknown): path is string {
-    if (typeof path !== "string") return false;
-    const trimmed = path.trim();
-    if (!trimmed) return false;
-
-    if (trimmed.length > MAX_DOT_PATH_LENGTH) return false;
-    const parts = trimmed.split(".");
-    for (const part of parts) {
-        if (!part) return false;
-        if (part.length > MAX_DOT_PATH_SEGMENT_LENGTH) return false;
-        if (FORBIDDEN_DOT_PATH_SEGMENTS.has(part)) return false;
-        if (!DOT_PATH_SEGMENT_PATTERN.test(part)) return false;
-    }
-    return true;
 }
 
 /*

@@ -66,15 +66,31 @@ describe("preload devtools menu API", () => {
         const { api, invoke, preloadLog } = createApi();
         invoke.mockResolvedValueOnce(true);
 
-        const result = await api.injectMenu("dark", "activity.fit");
+        const result = await api.injectMenu("dark", "C:/rides/activity.fit");
 
         expect({ injected: result }).toStrictEqual({ injected: true });
         expect(invoke).toHaveBeenCalledWith(
             "devtools-inject-menu",
             "dark",
-            "activity.fit"
+            "C:/rides/activity.fit"
         );
         expect(preloadLog).not.toHaveBeenCalled();
+    });
+
+    it("normalizes system theme before invoking IPC", async () => {
+        expect.assertions(2);
+
+        const { api, invoke } = createApi();
+        invoke.mockResolvedValueOnce(true);
+
+        const result = await api.injectMenu("system", null);
+
+        expect({ injected: result }).toStrictEqual({ injected: true });
+        expect(invoke).toHaveBeenCalledWith(
+            "devtools-inject-menu",
+            "auto",
+            null
+        );
     });
 
     it("uses null defaults when no values are supplied", async () => {
@@ -96,18 +112,30 @@ describe("preload devtools menu API", () => {
 
         const invalidThemeResult = await api.injectMenu(123 as never, null);
         const invalidPathResult = await api.injectMenu("dark", 123 as never);
+        const invalidRelativePathResult = await api.injectMenu(
+            "dark",
+            "activity.fit"
+        );
+        const invalidThemeNameResult = await api.injectMenu("solarized", null);
 
         expect({
+            invalidRelativePathResult,
             invalidPathResult,
+            invalidThemeNameResult,
             invalidThemeResult,
         }).toStrictEqual({
+            invalidRelativePathResult: false,
             invalidPathResult: false,
+            invalidThemeNameResult: false,
             invalidThemeResult: false,
         });
         expect(invoke).not.toHaveBeenCalled();
 
         invoke.mockResolvedValueOnce(false);
-        const validCallResult = await api.injectMenu("dark", "activity.fit");
+        const validCallResult = await api.injectMenu(
+            "dark",
+            "C:/rides/activity.fit"
+        );
 
         expect({ validCallResult }).toStrictEqual({ validCallResult: false });
     });

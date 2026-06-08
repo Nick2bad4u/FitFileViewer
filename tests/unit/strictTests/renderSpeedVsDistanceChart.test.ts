@@ -8,7 +8,23 @@ import {
     type Mock,
 } from "vitest";
 import { JSDOM } from "jsdom";
+import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+} from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import { chartSettingsManager } from "../../../electron-app/utils/charts/core/renderChartJS.js";
+
+const chartJsMocks = vi.hoisted(() => ({
+    Chart: vi.fn<ChartConstructorFunction>(),
+}));
+
+vi.mock(import("chart.js/auto"), () => ({
+    default: chartJsMocks.Chart,
+}));
 
 type ChartDataset = {
     data?: unknown[];
@@ -67,7 +83,6 @@ type ChartTestGlobal = typeof globalThis & {
     Chart?: ChartConstructorMock;
     HTMLCanvasElement?: typeof HTMLCanvasElement;
     HTMLElement?: typeof HTMLElement;
-    _chartjsInstances?: ChartInstanceMock[];
     localStorage?: StorageMock;
     window?: ChartTestWindow;
 };
@@ -75,7 +90,6 @@ type ChartTestGlobal = typeof globalThis & {
 type ChartTestWindow = Window &
     typeof globalThis & {
         Chart?: ChartConstructorMock;
-        _chartjsInstances?: ChartInstanceMock[];
     };
 
 type RenderSpeedVsDistanceChart = (
@@ -197,11 +211,15 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
             getDatasetAtEvent: vi.fn<() => unknown[]>(() => []),
         };
 
-        Chart = vi.fn<ChartConstructorFunction>(function ChartConstructor() {
+        Chart = chartJsMocks.Chart as ChartConstructorMock;
+        Chart.mockReset();
+        Chart.mockImplementation(function ChartConstructor() {
             return chartInstanceMock;
-        }) as ChartConstructorMock;
+        });
         getChartTestWindow().Chart = Chart;
         getChartTestGlobal().Chart = Chart;
+        setChartRuntime(Chart);
+        clearChartInstanceRegistryForTests();
 
         // Sync Chart constructor between window and globalThis using property descriptor
         Object.defineProperty(getChartTestGlobal(), "Chart", {
@@ -214,20 +232,6 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
             configurable: true,
         });
 
-        getChartTestWindow()._chartjsInstances = [];
-        // Sync chart instances between window and globalThis using property descriptor
-        Object.defineProperty(getChartTestGlobal(), "_chartjsInstances", {
-            get() {
-                return getChartTestWindow()._chartjsInstances;
-            },
-            set(value) {
-                getChartTestWindow()._chartjsInstances = value as
-                    | ChartInstanceMock[]
-                    | undefined;
-            },
-            configurable: true,
-        });
-
         // Load the module dynamically with fresh imports
         const module =
             await import("../../../electron-app/utils/charts/rendering/renderSpeedVsDistanceChart.js");
@@ -236,11 +240,9 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
     afterEach(() => {
         vi.clearAllMocks();
-        if (global.window && getChartTestWindow()._chartjsInstances) {
-            getChartTestWindow()._chartjsInstances = [];
-        }
-        // Clean up property descriptors
-        delete getChartTestGlobal()._chartjsInstances;
+        clearChartInstanceRegistryForTests();
+        clearChartRuntimeForTests();
+        // Clean up property descriptor
         delete getChartTestGlobal().Chart;
 
         // Clean up JSDOM
@@ -806,19 +808,17 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect(getChartTestWindow()._chartjsInstances).not.toContain(
-                undefined
-            );
-            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([
+            expect(getRegisteredChartInstances()).not.toContain(undefined);
+            expect(getRegisteredChartInstances()).toStrictEqual([
                 chartInstanceMock,
             ]);
         });
 
-        it("should initialize global instances array if it doesn't exist", () => {
+        it("should register chart instance when the registry starts empty", () => {
             expect.assertions(1);
 
             mockLocalStorage.getItem.mockReturnValue(null);
-            getChartTestWindow()._chartjsInstances = undefined;
+            clearChartInstanceRegistryForTests();
 
             const container = document.createElement("div");
             const data = [{ speed: 5.5, distance: 1000 }];
@@ -832,7 +832,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([
+            expect(getRegisteredChartInstances()).toStrictEqual([
                 chartInstanceMock,
             ]);
         });
@@ -1112,7 +1112,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
                 chartCreationError
             );
             expect(Chart).toHaveBeenCalledOnce();
-            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([]);
+            expect(getRegisteredChartInstances()).toStrictEqual([]);
             expect(
                 [...container.children].map((child) => child.tagName)
             ).toEqual(["CANVAS"]);
@@ -1125,19 +1125,9 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
 
-            // Mock window.Chart to throw an error when instantiated
             const chartCreationError = new Error("Chart creation failed");
-            const mockChart = vi.fn<ChartConstructorFunction>(
-                function ChartMock() {
-                    throw chartCreationError;
-                }
-            ) as ChartConstructorMock;
-
-            // Setup the Chart mock on window
-            Object.defineProperty(window, "Chart", {
-                value: mockChart,
-                writable: true,
-                configurable: true,
+            Chart.mockImplementationOnce(function ChartMock() {
+                throw chartCreationError;
             });
 
             const container = document.createElement("div");
@@ -1149,8 +1139,8 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
                 "[ChartJS] Error rendering speed vs distance chart:",
                 chartCreationError
             );
-            expect(mockChart).toHaveBeenCalledOnce();
-            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([]);
+            expect(Chart).toHaveBeenCalledOnce();
+            expect(getRegisteredChartInstances()).toStrictEqual([]);
             expect(
                 [...container.children].map((child) => child.tagName)
             ).toEqual(["CANVAS"]);
@@ -1185,7 +1175,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
                 true,
             ]);
             expect(Chart).not.toHaveBeenCalled();
-            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([]);
+            expect(getRegisteredChartInstances()).toStrictEqual([]);
         });
     });
 

@@ -5,6 +5,7 @@
  * untrusted/derived sources. It is intentionally conservative and should not be
  * treated as a full HTML sanitizer replacement for arbitrary documents.
  */
+import { resolveDomPurifyRuntime } from "./domPurifyRuntime.js";
 
 /**
  * Small presentation-only HTML allowlist.
@@ -13,24 +14,6 @@ export interface SanitizeAllowlistOptions {
     allowedTags: readonly string[];
     allowedAttributes: readonly string[];
     stripUrlInStyle?: boolean;
-}
-
-interface DomPurifyLike {
-    sanitize(
-        html: string,
-        options: {
-            ALLOWED_ATTR: string[];
-            ALLOWED_TAGS: string[];
-            FORBID_ATTR: string[];
-            FORBID_CONTENTS: string[];
-            FORBID_TAGS: string[];
-            RETURN_DOM_FRAGMENT: true;
-        }
-    ): DocumentFragment;
-}
-
-interface GlobalWithDomPurify {
-    DOMPurify?: DomPurifyLike;
 }
 
 /**
@@ -105,10 +88,7 @@ export function sanitizeHtmlAllowlist(
         ? options.allowedAttributes
         : [];
 
-    // This project loads DOMPurify as a classic script (global DOMPurify) in
-    // index.html. A bare ESM import breaks under file:// because the browser
-    // cannot resolve Node-style module specifiers without a bundler.
-    const purifier = getGlobalDomPurify();
+    const purifier = resolveDomPurifyRuntime();
 
     if (purifier) {
         const fragment = purifier.sanitize(String(html), {
@@ -137,18 +117,6 @@ export function sanitizeHtmlAllowlist(
         options.stripUrlInStyle !== false
     );
     return fragment;
-}
-
-function getGlobalDomPurify(): DomPurifyLike | undefined {
-    try {
-        const globalPurifier = (globalThis as GlobalWithDomPurify).DOMPurify;
-        if (globalPurifier && typeof globalPurifier.sanitize === "function") {
-            return globalPurifier;
-        }
-    } catch {
-        // Ignore globals that throw during access.
-    }
-    return undefined;
 }
 
 function parseHtmlFragment(html: string): DocumentFragment {

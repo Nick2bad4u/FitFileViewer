@@ -1,4 +1,5 @@
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
+import { getRegisteredChartInstances } from "../../charts/core/chartInstanceRegistry.js";
 import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
 // Avoid direct import to prevent circular dependency during SSR; use event-based request
 import {
@@ -30,7 +31,6 @@ type ChartInstance = {
 };
 
 type ZoneColorPickerGlobal = typeof globalThis & {
-    _chartjsInstances?: ChartInstance[];
     clearZoneColorData?: (field: string, zoneCount: number) => void;
     heartRateZones?: ZoneData[];
     powerZones?: ZoneData[];
@@ -41,6 +41,22 @@ type ZoneColorPickerGlobal = typeof globalThis & {
 };
 
 const zoneColorGlobal = globalThis as ZoneColorPickerGlobal;
+
+function isChartInstance(value: unknown): value is ChartInstance {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const chartData = (value as { data?: unknown }).data;
+
+    return (
+        chartData !== null &&
+        typeof chartData === "object" &&
+        Array.isArray((chartData as { datasets?: unknown }).datasets) &&
+        "update" in value &&
+        typeof (value as { update?: unknown }).update === "function"
+    );
+}
 
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
@@ -722,18 +738,20 @@ export function updateZoneColorPreview(
 ): void {
     try {
         // Find the corresponding chart instance
-        const targetChart = zoneColorGlobal._chartjsInstances?.find((chart) => {
-            const [dataset] = chart.data.datasets;
-            return (
-                dataset &&
-                ((field.includes("hr_zone") &&
-                    dataset.label &&
-                    dataset.label.includes("Heart Rate")) ||
-                    (field.includes("power_zone") &&
+        const targetChart = getRegisteredChartInstances()
+            .filter(isChartInstance)
+            .find((chart) => {
+                const [dataset] = chart.data.datasets;
+                return (
+                    dataset &&
+                    ((field.includes("hr_zone") &&
                         dataset.label &&
-                        dataset.label.includes("Power")))
-            );
-        });
+                        dataset.label.includes("Heart Rate")) ||
+                        (field.includes("power_zone") &&
+                            dataset.label &&
+                            dataset.label.includes("Power")))
+                );
+            });
 
         if (targetChart && targetChart.data.datasets[0]) {
             const [dataset] = targetChart.data.datasets;

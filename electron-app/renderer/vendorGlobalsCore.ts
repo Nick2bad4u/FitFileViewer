@@ -3,18 +3,18 @@ import DOMPurify from "dompurify";
 import JSZip from "jszip";
 import screenfull from "screenfull";
 
-import {
-    defineMissingGlobal,
-    markRendererVendorEntryLoaded,
-} from "./vendorGlobalsShared.js";
+import { markRendererVendorEntryLoaded } from "./vendorGlobalsShared.js";
+import { setExportZipRuntime } from "../utils/files/export/exportZipRuntime.js";
+import { setDomPurifyRuntime } from "../utils/dom/domPurifyRuntime.js";
+import { setArqueroRuntime } from "../utils/rendering/helpers/arqueroRuntime.js";
+import { setScreenfullRuntime } from "../utils/ui/controls/screenfullRuntime.js";
 
 /** Installs renderer globals shared across tabs and export flows. */
 export function installRendererCoreVendorGlobals(): void {
-    defineMissingGlobal("DOMPurify", DOMPurify);
-    defineMissingGlobal("JSZip", JSZip);
-    defineMissingGlobal("aq", arquero);
-    defineMissingGlobal("arquero", arquero);
-    defineMissingGlobal("screenfull", screenfull);
+    setArqueroRuntime(arquero);
+    setExportZipRuntime(JSZip);
+    setDomPurifyRuntime(DOMPurify);
+    setScreenfullRuntime(screenfull);
     markRendererVendorEntryLoaded("core");
 }
 

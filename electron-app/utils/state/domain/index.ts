@@ -2,8 +2,16 @@
 /**
  * Re-exports all modules in the state/domain category.
  */
+export * from "./activeFitFileMetadataState.js";
+export * from "./activeFitRawDataState.js";
 export * from "./appState.js";
+export * from "./fitActivityDataState.js";
+export * from "./fitChartDataState.js";
 export * from "./fitFileState.js";
+export * from "./fitRouteDataState.js";
+export * from "./fitTableDataState.js";
+export * from "./fitUserDeviceDataState.js";
+export * from "./loadedFitFilesState.js";
 export * from "./settingsStateManager.js";
 export * from "./uiStateManager.js";
 /* eslint-enable no-barrel-files/no-barrel-files */

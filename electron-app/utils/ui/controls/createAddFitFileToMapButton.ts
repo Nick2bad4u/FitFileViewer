@@ -1,7 +1,8 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { openFileSelector } from "../../files/import/openFileSelector.js";
 import { isTestEnvironment } from "../../runtime/processEnvironment.js";
-import { getState, subscribe } from "../../state/core/stateManager.js";
+import { subscribe } from "../../state/core/stateManager.js";
+import { hasActiveFitRouteData } from "../../state/domain/fitRouteDataState.js";
 import { showNotification } from "../notifications/showNotification.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -9,10 +10,6 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 type AddFitOverlayGlobal = typeof globalThis & {
     __ffvAddFitOverlayButtonUnsubscribe?: () => void;
     __ffvAddFitOverlayButtonUpdate?: () => void;
-};
-
-type FitRecordData = {
-    readonly recordMesgs?: readonly unknown[];
 };
 
 /**
@@ -67,14 +64,7 @@ export function createAddFitFileToMapButton(): HTMLButtonElement {
 
         const updateAvailability = (): void => {
             try {
-                const data = getState("globalData");
-                const recordMesgs =
-                    data && typeof data === "object"
-                        ? (data as FitRecordData).recordMesgs
-                        : undefined;
-                const hasMainFile = Boolean(
-                    Array.isArray(recordMesgs) && recordMesgs.length > 0
-                );
+                const hasMainFile = hasActiveFitRouteData();
                 addOverlayBtn.disabled = !hasMainFile;
                 addOverlayBtn.setAttribute(
                     "aria-disabled",
@@ -99,7 +89,7 @@ export function createAddFitFileToMapButton(): HTMLButtonElement {
             typeof globalRef.__ffvAddFitOverlayButtonUnsubscribe !== "function"
         ) {
             globalRef.__ffvAddFitOverlayButtonUnsubscribe = subscribe(
-                "globalData",
+                "fitFile.rawData",
                 () => {
                     try {
                         const fn = globalRef.__ffvAddFitOverlayButtonUpdate;

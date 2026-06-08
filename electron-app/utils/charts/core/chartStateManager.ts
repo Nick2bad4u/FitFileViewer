@@ -5,14 +5,21 @@ import {
     updateState,
 } from "../../state/core/stateManager.js";
 import {
+    hasActiveFitChartData,
+    hasFitChartRecordMessages,
+} from "../../state/domain/fitChartDataState.js";
+import {
     type ChartSettings,
     subscribeToChartSettings,
 } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getChartRenderContainer } from "../dom/chartDomUtils.js";
+import {
+    destroyRegisteredChartInstances,
+    getRegisteredChartInstanceCount,
+} from "./chartInstanceRegistry.js";
 import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
-import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
-import { hasDestroy, isObjectRecord } from "./renderChartModuleHelpers.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 type ChartInfo = {
     instanceCount: number;
@@ -32,9 +39,8 @@ type ChartState = {
 };
 
 type ChartStateGlobal = typeof globalThis & {
-    _chartjsInstances?: unknown[];
     chartStateManager?: ChartStateManager;
-    window?: (Window & { _chartjsInstances?: unknown[] }) | undefined;
+    window?: Window | undefined;
 };
 
 /**
@@ -114,24 +120,12 @@ export class ChartStateManager {
      * Properly destroys existing chart instances.
      */
     destroyExistingCharts(): void {
-        const chartGlobal = globalThis as ChartStateGlobal;
-        if (!Array.isArray(chartGlobal._chartjsInstances)) {
-            return;
-        }
-
-        for (const [index, chart] of chartGlobal._chartjsInstances.entries()) {
-            try {
-                if (hasDestroy(chart)) {
-                    chart.destroy();
-                }
-            } catch (error) {
-                console.warn(
-                    `[ChartStateManager] Error destroying chart ${index}:`,
-                    error
-                );
-            }
-        }
-        chartGlobal._chartjsInstances = [];
+        destroyRegisteredChartInstances((index, error) => {
+            console.warn(
+                `[ChartStateManager] Error destroying chart ${index}:`,
+                error
+            );
+        });
     }
 
     /**
@@ -150,11 +144,10 @@ export class ChartStateManager {
      * Gets current chart state information.
      */
     getChartInfo(): ChartInfo {
-        const chartState = getChartState(),
-            chartGlobal = globalThis as ChartStateGlobal;
+        const chartState = getChartState();
 
         const info: ChartInfo = {
-            instanceCount: chartGlobal._chartjsInstances?.length ?? 0,
+            instanceCount: getRegisteredChartInstanceCount(),
             isRendered: chartState?.isRendered ?? false,
             isRendering: chartState?.isRendering ?? false,
             selectedChart: chartState?.selectedChart ?? "elevation",
@@ -171,7 +164,7 @@ export class ChartStateManager {
     /**
      * Handles new data being loaded.
      *
-     * @param newData - The new global FIT data.
+     * @param newData - The new raw FIT data.
      */
     handleDataChange(newData: unknown): void {
         console.log(
@@ -180,7 +173,7 @@ export class ChartStateManager {
 
         this.clearChartState();
 
-        if (hasChartDataRecordMessages(newData) && this.isChartTabActive()) {
+        if (hasFitChartRecordMessages(newData) && this.isChartTabActive()) {
             this.debouncedRender("New data loaded");
         }
     }
@@ -189,8 +182,7 @@ export class ChartStateManager {
      * Handles chart tab activation.
      */
     handleTabActivation(): void {
-        const chartState = getChartState(),
-            globalData = getGlobalFitData();
+        const chartState = getChartState();
 
         console.log("[ChartStateManager] Chart tab activated");
 
@@ -205,7 +197,7 @@ export class ChartStateManager {
             return;
         }
 
-        if (hasChartDataRecordMessages(globalData)) {
+        if (hasActiveFitChartData()) {
             const isRendered = chartState?.isRendered ?? false,
                 hasRenderableOutput = hasExistingRenderableChartOutput();
 
@@ -257,7 +249,7 @@ export class ChartStateManager {
             }
         });
 
-        subscribe("globalData", (newData, oldData) => {
+        subscribe("fitFile.rawData", (newData, oldData) => {
             if (newData !== oldData) {
                 this.handleDataChange(newData);
             }
@@ -385,8 +377,7 @@ export class ChartStateManager {
             skipReasons.push("chart tab inactive");
         }
 
-        const globalData = getGlobalFitData(),
-            hasRecords = hasChartDataRecordMessages(globalData);
+        const hasRecords = hasActiveFitChartData();
 
         if (!hasRecords) {
             skipReasons.push("no chartable data");
@@ -442,13 +433,7 @@ function areObjectsShallowEqual(
 }
 
 function getChartInstanceCount(): number {
-    const chartGlobal = globalThis as ChartStateGlobal,
-        instances =
-            chartGlobal._chartjsInstances ??
-            chartGlobal.window?._chartjsInstances ??
-            [];
-
-    return Array.isArray(instances) ? instances.length : 0;
+    return getRegisteredChartInstanceCount();
 }
 
 function getChartState(): ChartState | undefined {
@@ -466,10 +451,6 @@ function getChartState(): ChartState | undefined {
     assignBooleanProperty(chartState, value, "tabActive");
 
     return chartState;
-}
-
-function getGlobalFitData(): unknown {
-    return getState("globalData");
 }
 
 function hasExistingRenderableChartOutput(): boolean {

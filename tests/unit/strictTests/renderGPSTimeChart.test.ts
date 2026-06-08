@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
+import { clearChartInstanceRegistryForTests } from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../electron-app/utils/charts/core/chartRuntime.js";
 
 type ChartConfig = {
     data: {
@@ -71,7 +76,6 @@ type GPSTimeTestGlobal = typeof globalThis & {
     Chart?: ChartConstructorMock;
     HTMLCanvasElement?: typeof HTMLCanvasElement;
     HTMLElement?: typeof HTMLElement;
-    _chartjsInstances?: ChartInstanceMock[];
     localStorage?: StorageMock;
     window?: Window & typeof globalThis;
 };
@@ -180,8 +184,12 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         Chart = vi.fn<() => ChartInstanceMock>(function ChartConstructor() {
             return chartInstanceMock;
         }) as ChartConstructorMock;
+        vi.doMock(import("chart.js/auto"), () => ({
+            default: Chart,
+        }));
         getGPSTimeGlobal().Chart = Chart;
-        getGPSTimeGlobal()._chartjsInstances = [];
+        setChartRuntime(Chart);
+        clearChartInstanceRegistryForTests();
 
         createChartCanvasMock = vi.fn<() => HTMLCanvasElement>(() =>
             document.createElement("canvas")
@@ -230,8 +238,9 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
     afterEach(() => {
         vi.resetModules();
         vi.clearAllMocks();
+        clearChartRuntimeForTests();
+        clearChartInstanceRegistryForTests();
         delete getGPSTimeGlobal().Chart;
-        delete getGPSTimeGlobal()._chartjsInstances;
         delete getGPSTimeGlobal().window;
         delete getGPSTimeGlobal().document;
         delete getGPSTimeGlobal().HTMLCanvasElement;

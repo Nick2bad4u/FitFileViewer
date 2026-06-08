@@ -369,20 +369,12 @@ const __nativeWindow = typeof window !== "undefined" ? window : undefined;
 
 /**
  * Best-effort cleanup of globals that can leak memory or state across tests.
- * Clears Chart.js instance arrays, dev helpers, and storage contents on a given
- * window.
+ * Clears dev helpers and storage contents on a given window.
  *
  * @param {any} win
  */
 function cleanupWindowGlobals(win) {
     if (!win) return;
-    try {
-        if (Array.isArray(win._chartjsInstances)) {
-            win._chartjsInstances.length = 0;
-        }
-    } catch {
-        /* Ignore errors */
-    }
     try {
         if (win.__chartjs_dev) {
             try {
@@ -1431,6 +1423,8 @@ if (
 ) {
     global.HTMLElement = window.HTMLElement;
 }
+
+globalThis.__fitFileViewerRuntimeGlobalFallbackForTests = true;
 
 if (typeof window !== "undefined") {
     window.L = leafletMock;

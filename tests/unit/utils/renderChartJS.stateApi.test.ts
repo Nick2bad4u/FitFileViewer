@@ -348,7 +348,7 @@ describe("renderChartJS.js state API", () => {
             expect.assertions(2);
 
             // Mock state to have data but currently rendering
-            globalMockState.data.set("globalData", {
+            globalMockState.data.set("fitFile.rawData", {
                 recordMesgs: [
                     1,
                     2,
@@ -369,7 +369,7 @@ describe("renderChartJS.js state API", () => {
         it("should handle empty recordMesgs array", () => {
             expect.assertions(1);
 
-            globalMockState.data.set("globalData", {
+            globalMockState.data.set("fitFile.rawData", {
                 recordMesgs: [], // Empty array
             });
             globalMockState.data.set("charts.isRendering", false);
@@ -391,13 +391,7 @@ describe("renderChartJS.js state API", () => {
             globalMockState.data.set("charts.renderedCount", 8);
             globalMockState.data.set("charts.lastRenderTime", 1234567890);
             globalMockState.data.set("performance.renderTimes.chart", 150);
-            globalMockState.data.set("globalData", {
-                recordMesgs: [
-                    1,
-                    2,
-                    3,
-                ],
-            });
+            globalMockState.data.set("fitFile.rawData", { recordMesgs: [] });
 
             const status = getChartStatus();
 
@@ -443,7 +437,7 @@ describe("renderChartJS.js state API", () => {
             const emptyStatus = getChartStatus();
             expect(emptyStatus.hasData).not.toBe(true);
 
-            globalMockState.data.set("globalData", { recordMesgs: [{}] });
+            globalMockState.data.set("fitFile.rawData", { recordMesgs: [{}] });
             const populatedStatus = getChartStatus();
 
             expect({

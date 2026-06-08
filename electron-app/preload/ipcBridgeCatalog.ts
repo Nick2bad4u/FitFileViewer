@@ -1,6 +1,5 @@
 {
     type GenericInvokeChannel = import("../shared/ipc").GenericInvokeChannel;
-    type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
     type RendererIpcEventChannel =
         import("../shared/ipc").RendererIpcEventChannel;
     type UpdateEventName = import("../shared/ipc").UpdateEventName;
@@ -119,25 +118,6 @@
         UNLOAD_FIT_FILE: "unload-fit-file",
     } as const satisfies Record<PreloadEventName, RendererIpcEventChannel>;
 
-    const ADDITIONAL_GENERIC_INVOKE_CHANNELS = [
-        "main-state:errors",
-        "main-state:get",
-        "main-state:listen",
-        "main-state:metrics",
-        "main-state:operation",
-        "main-state:operations",
-        "main-state:set",
-        "main-state:unlisten",
-    ] as const satisfies readonly GenericInvokeChannel[];
-
-    const GENERIC_SEND_CHANNELS = [
-        PRELOAD_EVENTS.FIT_FILE_LOADED,
-        PRELOAD_EVENTS.INSTALL_UPDATE,
-        PRELOAD_EVENTS.MENU_CHECK_FOR_UPDATES,
-        PRELOAD_EVENTS.SET_FULLSCREEN,
-        PRELOAD_EVENTS.THEME_CHANGED,
-    ] as const satisfies readonly GenericSendChannel[];
-
     const UPDATE_EVENT_NAMES = [
         "update-available",
         "update-checking",
@@ -147,16 +127,6 @@
         "update-not-available",
     ] as const satisfies readonly UpdateEventName[];
 
-    const ALLOWED_GENERIC_INVOKE_CHANNELS: ReadonlySet<string> = new Set([
-        ...ADDITIONAL_GENERIC_INVOKE_CHANNELS,
-        ...Object.values(PRELOAD_CHANNELS),
-    ]);
-    const ALLOWED_GENERIC_SEND_CHANNELS: ReadonlySet<string> = new Set(
-        GENERIC_SEND_CHANNELS
-    );
-    const ALLOWED_GENERIC_ON_IPC_CHANNELS: ReadonlySet<string> = new Set(
-        UPDATE_EVENT_NAMES
-    );
     const ALLOWED_UPDATE_EVENT_NAMES: ReadonlySet<string> = new Set(
         UPDATE_EVENT_NAMES
     );
@@ -168,24 +138,6 @@
         return typeof value === "string" && allowedValues.has(value);
     }
 
-    function isAllowedGenericInvokeChannel(
-        channel: unknown
-    ): channel is GenericInvokeChannel {
-        return isStringSetMember(ALLOWED_GENERIC_INVOKE_CHANNELS, channel);
-    }
-
-    function isAllowedGenericSendChannel(
-        channel: unknown
-    ): channel is GenericSendChannel {
-        return isStringSetMember(ALLOWED_GENERIC_SEND_CHANNELS, channel);
-    }
-
-    function isAllowedRendererIpcEventChannel(
-        channel: unknown
-    ): channel is RendererIpcEventChannel {
-        return isStringSetMember(ALLOWED_GENERIC_ON_IPC_CHANNELS, channel);
-    }
-
     function isAllowedUpdateEventName(
         eventName: unknown
     ): eventName is UpdateEventName {
@@ -195,9 +147,6 @@
     module.exports = {
         PRELOAD_CHANNELS,
         PRELOAD_EVENTS,
-        isAllowedGenericInvokeChannel,
-        isAllowedGenericSendChannel,
-        isAllowedRendererIpcEventChannel,
         isAllowedUpdateEventName,
     };
 }

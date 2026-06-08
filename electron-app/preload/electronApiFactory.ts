@@ -44,9 +44,9 @@
         | "setFitBrowserEnabled"
         | "setFitBrowserFolder"
     >;
-    type GenericIpcApi = Pick<
+    type PreloadEventApi = Pick<
         ElectronAPI,
-        "invoke" | "notifyFitFileLoaded" | "onIpc" | "onUpdateEvent" | "send"
+        "notifyFitFileLoaded" | "onUpdateEvent"
     >;
     type MainStateApi = Pick<
         ElectronAPI,
@@ -98,10 +98,10 @@
         externalApi: ExternalApi;
         fileApi: FileApi;
         fitBrowserApi: FitBrowserApi;
-        genericIpcApi: GenericIpcApi;
         mainStateApi: MainStateApi;
         menuEventApi: MenuEventApi;
         openFolderDialog: ElectronAPI["openFolderDialog"];
+        preloadEventApi: PreloadEventApi;
         themeApi: ThemeApi;
     }
 
@@ -113,10 +113,10 @@
         externalApi,
         fileApi,
         fitBrowserApi,
-        genericIpcApi,
         mainStateApi,
         menuEventApi,
         openFolderDialog,
+        preloadEventApi,
         themeApi,
     }: ElectronApiFactoryOptions): ElectronAPI {
         return {
@@ -143,14 +143,12 @@
             onGyazoOAuthCallback: externalApi.onGyazoOAuthCallback,
             onDecoderOptionsChanged: menuEventApi.onDecoderOptionsChanged,
             onExportFile: menuEventApi.onExportFile,
-            invoke: genericIpcApi.invoke,
             isFitBrowserEnabled: fitBrowserApi.isFitBrowserEnabled,
             onFitBrowserEnabledChanged:
                 fitBrowserApi.onFitBrowserEnabledChanged,
             listenToMainState: mainStateApi.listenToMainState,
             listFitBrowserFolder: fitBrowserApi.listFitBrowserFolder,
-            notifyFitFileLoaded: genericIpcApi.notifyFitFileLoaded,
-            onIpc: genericIpcApi.onIpc,
+            notifyFitFileLoaded: preloadEventApi.notifyFitFileLoaded,
             onMenuOpenFile: menuEventApi.onMenuOpenFile,
             onMenuOpenOverlay: menuEventApi.onMenuOpenOverlay,
             onMenuPrint: menuEventApi.onMenuPrint,
@@ -169,7 +167,7 @@
             onUnloadFitFile: menuEventApi.onUnloadFitFile,
             onSetTheme: menuEventApi.onSetTheme,
             onShowNotification: menuEventApi.onShowNotification,
-            onUpdateEvent: genericIpcApi.onUpdateEvent,
+            onUpdateEvent: preloadEventApi.onUpdateEvent,
             requestExport: menuEventApi.requestExport,
             requestSaveAs: menuEventApi.requestSaveAs,
             openExternal: externalApi.openExternal,
@@ -180,7 +178,6 @@
             parseFitFile: fileApi.parseFitFile,
             readFile: fileApi.readFile,
             recentFiles: fileApi.recentFiles,
-            send: genericIpcApi.send,
             sendThemeChanged: menuEventApi.sendThemeChanged,
             setFitBrowserEnabled: fitBrowserApi.setFitBrowserEnabled,
             setFitBrowserFolder: fitBrowserApi.setFitBrowserFolder,

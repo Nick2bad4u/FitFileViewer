@@ -269,7 +269,7 @@ describe(updateTabVisibility, () => {
         expect(getVisibleTabContent()).toBeNull();
     });
 
-    it("registers active-tab and global-data subscriptions", () => {
+    it("registers active-tab and raw FIT data subscriptions", () => {
         expect.assertions(4);
 
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -281,13 +281,13 @@ describe(updateTabVisibility, () => {
         );
         expect(subscriptionRegistrations).toStrictEqual([
             ["ui.activeTab", "function"],
-            ["globalData", "function"],
+            ["fitFile.rawData", "function"],
         ]);
         expect(logSpy).toHaveBeenCalledWith(
             "[TabVisibility] State management initialized"
         );
         expect(getSubscription("ui.activeTab")).toBeTypeOf("function");
-        expect(getSubscription("globalData")).toBeTypeOf("function");
+        expect(getSubscription("fitFile.rawData")).toBeTypeOf("function");
 
         logSpy.mockRestore();
     });

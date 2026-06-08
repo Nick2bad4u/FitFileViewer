@@ -452,7 +452,7 @@ describe("enableTabButtons behavior", () => {
                     path,
                     typeof callback,
                 ])
-            ).toStrictEqual([["globalData", "function"]]);
+            ).toStrictEqual([["fitFile.rawData", "function"]]);
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.tabButtonsEnabled",
                 false,
@@ -465,7 +465,7 @@ describe("enableTabButtons behavior", () => {
             ).toStrictEqual(true);
         });
 
-        it("should enable tabs when globalData is present", () => {
+        it("should enable tabs when FIT raw data is present", () => {
             expect.assertions(3);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
@@ -491,7 +491,7 @@ describe("enableTabButtons behavior", () => {
             );
         });
 
-        it("should disable tabs when globalData is null/undefined", () => {
+        it("should disable tabs when FIT raw data is null/undefined", () => {
             expect.assertions(4);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
@@ -621,7 +621,7 @@ describe("enableTabButtons behavior", () => {
 
             mockGetState.mockImplementation((key) => {
                 const state = new Map<string, unknown>([
-                    ["globalData", { test: true }],
+                    ["fitFile.rawData", { test: true }],
                     ["isLoading", false],
                     ["ui.tabButtonsEnabled", true],
                 ]);
@@ -639,7 +639,7 @@ describe("enableTabButtons behavior", () => {
             expect(consoleLogSpy).toHaveBeenCalledWith(
                 "[TabButtons] SKIPPING open file button: openFileBtn"
             );
-            expect(mockGetState).toHaveBeenCalledWith("globalData");
+            expect(mockGetState).toHaveBeenCalledWith("fitFile.rawData");
             expect(mockGetState).toHaveBeenCalledWith("isLoading");
             expect(mockGetState).toHaveBeenCalledWith("ui.tabButtonsEnabled");
             expect(getRequiredButton("tab-summary").disabled).toStrictEqual(
@@ -819,7 +819,7 @@ describe("enableTabButtons behavior", () => {
             mockGetState.mockImplementation((key) => {
                 const state = new Map<string, unknown>([
                     ["ui.activeTab", "summary"],
-                    ["globalData", { test: true }],
+                    ["fitFile.rawData", { test: true }],
                     ["ui.tabButtonsEnabled", true],
                 ]);
 
@@ -834,7 +834,7 @@ describe("enableTabButtons behavior", () => {
                 "[TabButtons] === CURRENT TAB STATE ==="
             );
             expect(mockGetState).toHaveBeenCalledWith("ui.activeTab");
-            expect(mockGetState).toHaveBeenCalledWith("globalData");
+            expect(mockGetState).toHaveBeenCalledWith("fitFile.rawData");
             expect(mockGetState).toHaveBeenCalledWith("ui.tabButtonsEnabled");
             expect(getRequiredButton("tab-summary").className).toBe(
                 "tab-button active"

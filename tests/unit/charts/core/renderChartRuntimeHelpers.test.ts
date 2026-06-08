@@ -7,6 +7,11 @@ import {
     isNodeEnv,
     isTestEnvironment,
 } from "../../../../electron-app/utils/charts/core/renderChartRuntimeHelpers.js";
+import {
+    clearChartInstanceRegistryForTests,
+    clearRegisteredChartInstances,
+    setRegisteredChartInstances,
+} from "../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
 const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
     globalThis,
@@ -52,7 +57,7 @@ describe("render chart runtime helpers", () => {
 
     afterEach(() => {
         restoreGlobalProcess();
-        Reflect.deleteProperty(globalThis, "_chartjsInstances");
+        clearChartInstanceRegistryForTests();
         if (originalWindowDescriptor) {
             Object.defineProperty(
                 globalThis,
@@ -147,36 +152,21 @@ describe("render chart runtime helpers", () => {
         expect(calls).toStrictEqual(["queued"]);
     });
 
-    it("returns chart instances only when the resolved global value is an array", () => {
-        expect.assertions(4);
-
-        const chartGlobal = globalThis as typeof globalThis & {
-            _chartjsInstances?: unknown[];
-            window?: { _chartjsInstances?: unknown[] };
-        };
+    it("returns registered chart instances before falling back to caller-provided arrays", () => {
+        expect.assertions(3);
 
         expect(getGlobalChartInstances(["fallback"])).toStrictEqual([
             "fallback",
         ]);
 
-        Object.defineProperty(globalThis, "window", {
-            configurable: true,
-            value: { _chartjsInstances: ["window"] },
-            writable: true,
-        });
+        const registeredChart = { id: "registered" };
+        setRegisteredChartInstances([registeredChart]);
 
-        expect(getGlobalChartInstances(["fallback"])).toStrictEqual(["window"]);
+        expect(getGlobalChartInstances(["fallback"])).toStrictEqual([
+            registeredChart,
+        ]);
 
-        chartGlobal._chartjsInstances = ["global"];
-
-        expect(getGlobalChartInstances(["fallback"])).toStrictEqual(["global"]);
-
-        chartGlobal._chartjsInstances = undefined;
-        Object.defineProperty(globalThis, "window", {
-            configurable: true,
-            value: {},
-            writable: true,
-        });
+        clearRegisteredChartInstances();
 
         expect(getGlobalChartInstances("invalid")).toStrictEqual([]);
     });

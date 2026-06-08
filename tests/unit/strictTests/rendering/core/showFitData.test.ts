@@ -28,18 +28,22 @@ vi.mock(
 );
 
 const rendererDependencyMocks = vi.hoisted(() => ({
-    createTables: vi.fn<(data: Record<string, unknown>) => void>(),
+    createTables: vi.fn<(data: unknown) => void>(),
     renderMap: vi.fn<() => void>(),
     renderSummary: vi.fn<(data: Record<string, unknown>) => void>(),
     setTabButtonsEnabled: vi.fn<(enabled: boolean) => void>(),
     updateActiveTab: vi.fn<(tabId: string) => void>(),
     updateTabVisibility: vi.fn<(contentId: string) => void>(),
+    ensureRendererVendorBundle: vi.fn<() => Promise<void>>(),
+    waitForMapLeafletRuntime: vi.fn<() => Promise<boolean>>(),
 }));
 
 vi.mock(
     import("../../../../../electron-app/utils/maps/core/renderMap.js"),
     () => ({
         renderMap: rendererDependencyMocks.renderMap,
+        waitForMapLeafletRuntime:
+            rendererDependencyMocks.waitForMapLeafletRuntime,
     })
 );
 
@@ -78,13 +82,18 @@ vi.mock(
     })
 );
 
-import { setState } from "../../../../../electron-app/utils/state/core/stateManager.js";
+vi.mock(
+    import("../../../../../electron-app/renderer/vendorBundleLoader.js"),
+    () => ({
+        ensureRendererVendorBundle:
+            rendererDependencyMocks.ensureRendererVendorBundle,
+    })
+);
 
 type ShowFitDataTestGlobal = typeof globalThis & {
     electronAPI?: {
         notifyFitFileLoaded: Mock<(filePath: string) => void>;
     };
-    globalData?: Record<string, unknown>;
     isMapRendered?: boolean;
 };
 
@@ -120,6 +129,12 @@ describe("showFitData", () => {
         rendererDependencyMocks.setTabButtonsEnabled.mockClear();
         rendererDependencyMocks.updateActiveTab.mockClear();
         rendererDependencyMocks.updateTabVisibility.mockClear();
+        rendererDependencyMocks.ensureRendererVendorBundle.mockResolvedValue(
+            undefined
+        );
+        rendererDependencyMocks.waitForMapLeafletRuntime.mockResolvedValue(
+            true
+        );
         vi.useFakeTimers();
     });
     afterEach(() => {
@@ -128,23 +143,27 @@ describe("showFitData", () => {
         vi.resetModules();
         const showFitGlobal = getShowFitDataTestGlobal();
         delete showFitGlobal.electronAPI;
-        delete showFitGlobal.globalData;
         delete showFitGlobal.isMapRendered;
         vi.clearAllMocks();
     });
 
     it("updates UI, state, dispatches events, and triggers map render", async () => {
-        expect.assertions(9);
+        expect.assertions(8);
 
         const { showFitData } = await loadModule();
-        const data: Record<string, unknown> = {};
+        const data: Record<string, unknown> = {
+            invalidTable: [null],
+            recordMesgs: [{ timestamp: 1 }],
+        };
         const filePath = "C:/tmp/file.fit";
         showFitData(data, filePath);
+        await vi.waitFor(() => {
+            if (rendererDependencyMocks.renderMap.mock.calls.length === 0) {
+                throw new Error("Expected map render");
+            }
+        });
         const showFitGlobal = getShowFitDataTestGlobal();
 
-        expect(setState).toHaveBeenCalledWith("globalData", data, {
-            source: "showFitData",
-        });
         expect(data).toMatchObject({
             cachedFileName: "file.fit",
             cachedFilePath: filePath,
@@ -153,16 +172,20 @@ describe("showFitData", () => {
             rendererDependencyMocks.setTabButtonsEnabled
         ).toHaveBeenCalledWith(true);
 
-        expect(rendererDependencyMocks.updateTabVisibility).toHaveBeenCalledWith(
-            "content_map"
-        );
+        expect(
+            rendererDependencyMocks.updateTabVisibility
+        ).toHaveBeenCalledWith("content_map");
         expect(rendererDependencyMocks.updateActiveTab).toHaveBeenCalledWith(
             "tab_map"
         );
         expect(rendererDependencyMocks.renderMap).toHaveBeenCalledWith();
-
         // Should have called createTables and renderSummary
-        expect(rendererDependencyMocks.createTables).toHaveBeenCalledWith(data);
+        expect(rendererDependencyMocks.createTables).toHaveBeenCalledWith([
+            {
+                key: "recordMesgs",
+                rows: data.recordMesgs,
+            },
+        ]);
         expect(rendererDependencyMocks.renderSummary).toHaveBeenCalledWith(
             data
         );
@@ -184,9 +207,9 @@ describe("showFitData", () => {
 
         showFitData(data, filePath);
 
-        expect(rendererDependencyMocks.updateTabVisibility).toHaveBeenCalledWith(
-            "content_map"
-        );
+        expect(
+            rendererDependencyMocks.updateTabVisibility
+        ).toHaveBeenCalledWith("content_map");
         expect(rendererDependencyMocks.updateActiveTab).toHaveBeenCalledWith(
             "tab_map"
         );

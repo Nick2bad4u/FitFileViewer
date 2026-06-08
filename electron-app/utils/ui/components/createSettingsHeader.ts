@@ -3,6 +3,7 @@ import {
     resetAllSettings,
 } from "../../app/initialization/getCurrentSettings.js";
 import { createChartStatusIndicator } from "../../charts/components/createChartStatusIndicator.js";
+import { getRegisteredChartInstances } from "../../charts/core/chartInstanceRegistry.js";
 import { chartOptionsConfig } from "../../charts/plugins/chartOptionsConfig.js";
 import { exportAllCharts } from "../../files/export/exportAllCharts.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
@@ -49,10 +50,6 @@ type ChartOption = {
     type: string;
 };
 
-type WindowExtensions = typeof globalThis & {
-    _chartjsInstances?: ChartLike[];
-};
-
 type HTMLDivElementExtended = HTMLDivElement & {
     _updateFromReset?: () => void;
 };
@@ -89,35 +86,25 @@ type ExtendedExportUtils = typeof exportUtils & {
     showImgurAccountManager: () => unknown;
 };
 
-function getWindowExtensions(): WindowExtensions {
-    return globalThis;
-}
-
 function getExtendedExportUtils(): ExtendedExportUtils {
     return exportUtils as ExtendedExportUtils;
 }
 
-/*
- * Resolve chart instances from the renderer global. In Electron's renderer,
- * `globalThis` and `window` normally point at the same object; Vitest's jsdom
- * environment can keep them separate.
- *
- * @returns {unknown[] | undefined}
- */
 function getChartInstances(): ChartLike[] | undefined {
-    const globalScope = getWindowExtensions();
-    if (Array.isArray(globalScope._chartjsInstances)) {
-        return globalScope._chartjsInstances;
-    }
+    return getRegisteredChartInstances().filter(isChartLike);
+}
 
-    if (globalThis.window !== undefined) {
-        const windowScope = globalThis.window as WindowExtensions;
-        if (Array.isArray(windowScope._chartjsInstances)) {
-            return windowScope._chartjsInstances;
-        }
-    }
+function isChartLike(value: unknown): value is ChartLike {
+    const chartData =
+        value !== null && typeof value === "object"
+            ? (value as { data?: unknown }).data
+            : undefined;
 
-    return undefined;
+    return (
+        chartData !== null &&
+        typeof chartData === "object" &&
+        Array.isArray((chartData as { datasets?: unknown }).datasets)
+    );
 }
 
 function stringifyPrimitiveSetting(value: unknown, fallback = ""): string {

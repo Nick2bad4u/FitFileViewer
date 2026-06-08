@@ -5,7 +5,7 @@ import {
     previewFilterResult,
 } from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/metricsPreview.js";
 import type { MetricFilterResult } from "../../../../../../electron-app/utils/maps/filters/mapMetricFilter.js";
-import { setGlobalData } from "../../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { setActiveFitRawData } from "../../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../../electron-app/utils/state/core/stateManager.js";
 
 function createMetricFilterResult(
@@ -92,7 +92,7 @@ describe("metricsPreview", () => {
     it("previews filters from global FIT records", () => {
         expect.assertions(2);
 
-        setGlobalData(
+        setActiveFitRawData(
             {
                 recordMesgs: [
                     { speed: 10 },

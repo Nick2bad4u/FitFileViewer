@@ -1,4 +1,22 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../../../electron-app/utils/charts/core/chartRuntime.js";
+import { renderSinglePowerZoneBar } from "../../../../../electron-app/utils/data/zones/renderSinglePowerZoneBar.js";
+
+const ChartMock = vi.hoisted(() =>
+    vi.fn<
+        (
+            canvas: HTMLCanvasElement,
+            config: SingleZoneBarChartConfig
+        ) => ChartView
+    >(function ChartConstructorMock(_canvas, config) {
+        return { config, destroy: vi.fn<() => void>() };
+    })
+);
+
+vi.mock("chart.js/auto", () => ({ default: ChartMock }));
 
 vi.mock(
     import("../../../../../electron-app/utils/charts/theming/chartThemeUtils.js"),
@@ -73,12 +91,7 @@ interface ChartView {
     readonly destroy: () => void;
 }
 
-type ChartConstructorMock = typeof vi.fn<
-    (canvas: HTMLCanvasElement, config: SingleZoneBarChartConfig) => ChartView
->;
-
 interface RenderSinglePowerZoneBarTestGlobal {
-    Chart?: ChartConstructorMock;
     showNotification?: (message: string, type: "error") => void;
 }
 
@@ -88,9 +101,13 @@ const testGlobal = globalThis as typeof globalThis &
 describe("renderSinglePowerZoneBar", () => {
     beforeEach(() => {
         document.body.replaceChildren();
-        delete testGlobal.Chart;
+        setChartRuntime(ChartMock);
         delete testGlobal.showNotification;
-        vi.resetModules();
+        ChartMock.mockClear();
+    });
+
+    afterEach(() => {
+        clearChartRuntimeForTests();
     });
 
     it("renders chart when Chart is available", async () => {
@@ -99,18 +116,6 @@ describe("renderSinglePowerZoneBar", () => {
         vi.spyOn(console, "log").mockReturnValue(undefined);
         const canvas = document.createElement("canvas");
         document.body.appendChild(canvas);
-        const Chart = vi.fn<
-            (
-                canvas: HTMLCanvasElement,
-                config: SingleZoneBarChartConfig
-            ) => ChartView
-        >(function ChartMock(_canvas, config) {
-            return { config, destroy: vi.fn<() => void>() };
-        }) as ChartConstructorMock;
-        testGlobal.Chart = Chart;
-
-        const { renderSinglePowerZoneBar } =
-            await import("../../../../../electron-app/utils/data/zones/renderSinglePowerZoneBar.js");
         const view = renderSinglePowerZoneBar(
             canvas as HTMLCanvasElement,
             [
@@ -126,12 +131,12 @@ describe("renderSinglePowerZoneBar", () => {
                 destroy: expect.any(Function),
             })
         );
-        expect(Chart).toHaveBeenCalledWith(
+        expect(ChartMock).toHaveBeenCalledWith(
             canvas,
             expect.objectContaining({ type: "bar" })
         );
 
-        const cfg = Chart.mock.calls[0][1];
+        const cfg = ChartMock.mock.calls[0][1];
         const yTickCb = cfg.options.scales.y.ticks.callback;
         const tooltipCb = cfg.options.plugins.tooltip.callbacks.label;
         expect(yTickCb(30)).toBe("30s");
@@ -140,13 +145,10 @@ describe("renderSinglePowerZoneBar", () => {
         );
     });
 
-    it("handles errors gracefully when Chart.js missing", async () => {
+    it("handles errors gracefully when canvas or zone data is missing", async () => {
         expect.assertions(2);
 
         vi.spyOn(console, "error").mockReturnValue(undefined);
-        delete testGlobal.Chart;
-        const { renderSinglePowerZoneBar } =
-            await import("../../../../../electron-app/utils/data/zones/renderSinglePowerZoneBar.js");
         const showNotification =
             vi.fn<(message: string, type: "error") => void>();
         testGlobal.showNotification = showNotification;

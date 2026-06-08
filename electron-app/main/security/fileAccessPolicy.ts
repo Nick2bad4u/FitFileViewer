@@ -4,6 +4,10 @@
         path: typeof import("node:path");
     };
     const { path } = nodeModules;
+    const { validateFitFilePathInput } =
+        require("../../shared/fitFilePathPolicy") as {
+            validateFitFilePathInput: (filePath: unknown) => string;
+        };
 
     interface ApprovalOptions {
         source?: string;
@@ -36,7 +40,7 @@
         filePath: unknown,
         options: ApprovalOptions = {}
     ): string {
-        const validated = validateFilePathInput(filePath);
+        const validated = validateFitFilePathInput(filePath);
 
         if (!hasFitExtension(validated)) {
             throw new Error("Only .fit files can be approved");
@@ -94,7 +98,7 @@
      * @throws Error when the path is invalid, not a FIT file, or not approved.
      */
     function assertFileReadAllowed(filePath: unknown): string {
-        const validated = validateFilePathInput(filePath);
+        const validated = validateFitFilePathInput(filePath);
 
         if (!hasFitExtension(validated)) {
             throw new Error("Only .fit files are allowed");
@@ -130,7 +134,7 @@
 
     function isApprovedFilePath(filePath: unknown): boolean {
         try {
-            const validated = validateFilePathInput(filePath);
+            const validated = validateFitFilePathInput(filePath);
             if (!hasFitExtension(validated)) {
                 return false;
             }
@@ -138,10 +142,6 @@
         } catch {
             return false;
         }
-    }
-
-    function isNonEmptyString(filePath: unknown): filePath is string {
-        return typeof filePath === "string" && filePath.trim().length > 0;
     }
 
     /**
@@ -155,7 +155,7 @@
         filePath: unknown
     ): filePath is string {
         try {
-            const validated = validateFilePathInput(filePath);
+            const validated = validateFitFilePathInput(filePath);
             return hasFitExtension(validated);
         } catch {
             return false;
@@ -194,45 +194,6 @@
         return isWindowsStylePath(filePath)
             ? canonical.toLowerCase()
             : canonical;
-    }
-
-    /**
-     * Validate and normalize an IPC-provided file path.
-     *
-     * @throws Error when the value is not an acceptable absolute filesystem
-     *   path.
-     */
-    function validateFilePathInput(filePath: unknown): string {
-        if (!isNonEmptyString(filePath)) {
-            throw new Error("Invalid file path provided");
-        }
-
-        const trimmed = filePath.trim();
-
-        if (/^\w+:\/\//u.test(trimmed)) {
-            throw new Error("Invalid file path provided");
-        }
-
-        if (trimmed.includes("\0")) {
-            throw new Error("Invalid file path provided");
-        }
-
-        if (
-            trimmed.startsWith("\\\\?\\") ||
-            trimmed.startsWith("\\\\.\\") ||
-            trimmed.startsWith("//?/") ||
-            trimmed.startsWith("//./")
-        ) {
-            throw new Error("Invalid file path provided");
-        }
-
-        const isAbsolute =
-            path.posix.isAbsolute(trimmed) || path.win32.isAbsolute(trimmed);
-        if (!isAbsolute) {
-            throw new Error("Only absolute file paths are allowed");
-        }
-
-        return trimmed;
     }
 
     module.exports = {

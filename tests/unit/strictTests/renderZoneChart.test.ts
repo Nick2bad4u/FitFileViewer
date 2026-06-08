@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
+import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+} from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 import type { ZoneData } from "../../../electron-app/utils/types/sharedChartTypes.js";
 
 interface RenderZoneChartOptions {
@@ -68,8 +72,7 @@ type ChartConstructorMock = ReturnType<
 >;
 
 type ZoneChartTestGlobal = typeof globalThis & {
-    Chart?: unknown;
-    _chartjsInstances?: unknown[];
+    Chart?: ChartConstructorMock;
 };
 
 type ConsoleMethod = (...args: unknown[]) => void;
@@ -158,7 +161,9 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         });
         const zoneGlobal = getZoneChartGlobal();
         zoneGlobal.Chart = Chart;
-        zoneGlobal._chartjsInstances = [];
+        (globalThis.window as Window & { Chart?: ChartConstructorMock }).Chart =
+            Chart;
+        clearChartInstanceRegistryForTests();
 
         detectCurrentThemeMock = vi.fn<() => string>(() => "light");
         getThemeConfigMock = vi.fn<() => unknown>(() => ({
@@ -184,6 +189,9 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             document.createElement("canvas")
         );
 
+        vi.doMock(import("chart.js/auto"), () => ({
+            default: Chart,
+        }));
         vi.doMock(
             import("../../../electron-app/utils/charts/theming/chartThemeUtils.js"),
             () => ({
@@ -222,18 +230,23 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             })
         );
 
+        const { setChartRuntime } =
+            await import("../../../electron-app/utils/charts/core/chartRuntime.js");
+        setChartRuntime(Chart);
+
         const module =
             await import("../../../electron-app/utils/charts/rendering/renderZoneChart.js");
         renderZoneChart = module.renderZoneChart;
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        const { clearChartRuntimeForTests } =
+            await import("../../../electron-app/utils/charts/core/chartRuntime.js");
+        clearChartRuntimeForTests();
+        clearChartInstanceRegistryForTests();
         vi.resetModules();
         vi.clearAllMocks();
         const zoneGlobal = getZoneChartGlobal();
-        if (zoneGlobal._chartjsInstances) {
-            zoneGlobal._chartjsInstances = [];
-        }
         delete zoneGlobal.Chart;
         delete zoneGlobal.window;
         delete zoneGlobal.document;
@@ -252,10 +265,9 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         );
         expect(Chart).not.toHaveBeenCalled();
         expect<ZoneChartRenderRegistrySnapshot>({
-            chartInstanceTypes:
-                getZoneChartGlobal()._chartjsInstances?.map(
-                    (chartInstance) => typeof chartInstance
-                ) ?? [],
+            chartInstanceTypes: getRegisteredChartInstances().map(
+                (chartInstance) => typeof chartInstance
+            ),
         }).toStrictEqual({
             chartInstanceTypes: [],
         });
@@ -301,7 +313,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         expect(view).toBeInstanceOf(HTMLCanvasElement);
         expect(getFirstChartCanvasArgument()).toBe(view);
         expect(Chart).toHaveBeenCalledOnce();
-        expect(getZoneChartGlobal()._chartjsInstances).toStrictEqual([
+        expect(getRegisteredChartInstances()).toStrictEqual([
             chartInstanceMock,
         ]);
         const config = getLatestChartConfig();
@@ -369,7 +381,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         });
         expect(formatTimeMock).toHaveBeenCalledWith(150, true);
         expect(label).toBe("Time: formatted-150");
-        expect(getZoneChartGlobal()._chartjsInstances).toStrictEqual([
+        expect(getRegisteredChartInstances()).toStrictEqual([
             chartInstanceMock,
         ]);
     });

@@ -1,4 +1,4 @@
-import { hasDestroy } from "./renderChartModuleHelpers.js";
+import { destroyRegisteredChartInstances } from "./chartInstanceRegistry.js";
 
 interface ChartLifecycleActions {
     clearCharts?: () => void;
@@ -10,10 +10,6 @@ interface ChartLifecycleActions {
     startRendering?: () => void;
 }
 
-interface ChartLifecycleGlobal {
-    _chartjsInstances?: unknown[];
-}
-
 interface StartChartRenderingDependencies {
     getGlobalChartActions(): ChartLifecycleActions | null;
     isLoadingStateSuppressed(): boolean;
@@ -21,7 +17,6 @@ interface StartChartRenderingDependencies {
 }
 
 interface ClearExistingChartsDependencies {
-    chartGlobal: ChartLifecycleGlobal;
     getGlobalChartActions(): ChartLifecycleActions | null;
     updateState(path: string, value: unknown, options: unknown): void;
 }
@@ -64,23 +59,10 @@ export function clearExistingCharts(
         return;
     }
 
-    const instances = dependencies.chartGlobal._chartjsInstances;
-    if (instances) {
-        for (const [index, chart] of instances.entries()) {
-            try {
-                if (hasDestroy(chart)) {
-                    chart.destroy();
-                }
-            } catch (error) {
-                console.warn(
-                    `[ChartJS] Error destroying chart ${index}:`,
-                    error
-                );
-            }
-        }
-    }
+    destroyRegisteredChartInstances((index, error) => {
+        console.warn(`[ChartJS] Error destroying chart ${index}:`, error);
+    });
 
-    dependencies.chartGlobal._chartjsInstances = [];
     dependencies.updateState(
         "charts",
         { chartData: null, isRendered: false, renderedCount: 0 },

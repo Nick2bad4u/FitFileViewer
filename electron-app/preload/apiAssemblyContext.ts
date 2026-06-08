@@ -1,0 +1,79 @@
+{
+    type PreloadApiAssemblyContext =
+        import("./preloadModuleTypes").PreloadApiAssemblyContext;
+    type PreloadConstants = import("./preloadModuleTypes").PreloadConstants;
+    type PreloadContextBridge =
+        import("./preloadModuleTypes").PreloadContextBridge;
+    type PreloadIpcRenderer = import("./preloadModuleTypes").PreloadIpcRenderer;
+    type PreloadLog = import("./preloadModuleTypes").PreloadLog;
+    type PreloadModuleRegistry =
+        import("./preloadModuleTypes").PreloadModuleRegistry;
+
+    interface CreatePreloadApiAssemblyContextOptions {
+        constants: PreloadConstants;
+        contextBridge: null | PreloadContextBridge | undefined;
+        ipcRenderer: null | PreloadIpcRenderer | undefined;
+        modules: PreloadModuleRegistry;
+        preloadLog: PreloadLog;
+        processRef?: NodeJS.Process;
+    }
+
+    function createPreloadApiAssemblyContext({
+        constants,
+        contextBridge,
+        ipcRenderer,
+        modules,
+        preloadLog,
+        processRef,
+    }: CreatePreloadApiAssemblyContextOptions): PreloadApiAssemblyContext {
+        const {
+            createPreloadIpcHelpers,
+            createPreloadValidators,
+            shouldEnforceGenericIpcAllowlist:
+                shouldEnforceGenericIpcAllowlistForProcess,
+        } = modules;
+        const {
+            validateCallback,
+            validateChannelName,
+            validateOptionalNonEmptyString,
+            validateRequiredNonEmptyString,
+        } = createPreloadValidators(preloadLog);
+        const {
+            createSafeEventHandler,
+            createSafeInvokeHandler,
+            createSafeSendHandler,
+            removeIpcListener,
+        } = createPreloadIpcHelpers({
+            ipcRenderer,
+            preloadLog,
+            validateCallback,
+        });
+        const shouldEnforceGenericIpcAllowlist =
+            processRef !== undefined &&
+            shouldEnforceGenericIpcAllowlistForProcess(processRef);
+        const assemblyContextBase = {
+            constants,
+            contextBridge,
+            createSafeEventHandler,
+            createSafeInvokeHandler,
+            createSafeSendHandler,
+            ipcRenderer,
+            modules,
+            preloadLog,
+            removeIpcListener,
+            shouldEnforceGenericIpcAllowlist,
+            validateCallback,
+            validateChannelName,
+            validateOptionalNonEmptyString,
+            validateRequiredNonEmptyString,
+        };
+
+        return processRef === undefined
+            ? assemblyContextBase
+            : { ...assemblyContextBase, processRef };
+    }
+
+    module.exports = {
+        createPreloadApiAssemblyContext,
+    };
+}

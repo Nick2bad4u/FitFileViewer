@@ -4,66 +4,15 @@ import { formatHeight } from "../../formatting/formatters/formatHeight.js";
 import { formatManufacturer } from "../../formatting/formatters/formatManufacturer.js";
 import { formatSensorName } from "../../formatting/formatters/formatSensorName.js";
 import { formatWeight } from "../../formatting/formatters/formatWeight.js";
-import { getState } from "../../state/core/stateManager.js";
+import {
+    getActiveFitUserDeviceData,
+    type FitDeviceInfo,
+    type FitUserProfileData,
+} from "../../state/domain/fitUserDeviceDataState.js";
 import {
     getThemeConfig,
     type ThemeColorMap,
 } from "../../theming/core/theme.js";
-
-type UserProfileData = {
-    readonly activityClass?: string;
-    readonly age?: number;
-    readonly defaultMaxBikingHeartRate?: number;
-    readonly defaultMaxHeartRate?: number;
-    readonly defaultMaxRunningHeartRate?: number;
-    readonly depthSetting?: string;
-    readonly distSetting?: string;
-    readonly diveCount?: number;
-    readonly elevSetting?: string;
-    readonly friendlyName?: string;
-    readonly gender?: string;
-    readonly globalId?: string;
-    readonly height?: number;
-    readonly heightSetting?: string;
-    readonly hrSetting?: string;
-    readonly language?: string;
-    readonly localId?: number;
-    readonly positionSetting?: string;
-    readonly powerSetting?: string;
-    readonly restingHeartRate?: number;
-    readonly sleepTime?: string;
-    readonly speedSetting?: string;
-    readonly temperatureSetting?: string;
-    readonly userRunningStepLength?: number;
-    readonly userWalkingStepLength?: number;
-    readonly wakeTime?: string;
-    readonly weight?: number;
-    readonly weightSetting?: string;
-};
-
-type DeviceInfo = {
-    readonly antNetwork?: string;
-    readonly batteryStatus?: string;
-    readonly batteryVoltage?: number;
-    readonly descriptor?: string;
-    readonly deviceIndex?: number | string;
-    readonly deviceType?: string;
-    readonly garminProduct?: string;
-    readonly hardwareVersion?: number;
-    readonly manufacturer?: number | string;
-    readonly product?: number | string;
-    readonly productName?: string;
-    readonly serialNumber?: number | string;
-    readonly softwareVersion?: number;
-    readonly sourceType?: string;
-};
-
-type FitGlobalData = {
-    readonly cachedFilePath?: string;
-    readonly deviceInfoMesgs?: DeviceInfo[];
-    readonly recordMesgs?: readonly Record<string, unknown>[];
-    readonly userProfileMesgs?: UserProfileData[];
-};
 
 type InfoBoxThemeColors = {
     readonly accent: string;
@@ -156,13 +105,6 @@ function getInfoBoxThemeColors(colors: ThemeColorMap): InfoBoxThemeColors {
     };
 }
 
-function getManagedGlobalData(): FitGlobalData {
-    const globalData = getState("globalData");
-    return globalData !== null && typeof globalData === "object"
-        ? globalData
-        : {};
-}
-
 function sanitizeInfoBoxHtml(html: string): DocumentFragment {
     return sanitizeHtmlAllowlist(html, {
         allowedAttributes: ALLOWED_INFO_BOX_ATTRIBUTES,
@@ -178,13 +120,15 @@ function sanitizeInfoBoxHtml(html: string): DocumentFragment {
  */
 export function createUserDeviceInfoBox(container: HTMLElement): void {
     try {
-        const globalData = getManagedGlobalData(),
-            deviceInfos = Array.isArray(globalData.deviceInfoMesgs)
-                ? globalData.deviceInfoMesgs
-                : [],
+        const {
+                deviceInfos,
+                userProfile,
+            }: {
+                deviceInfos: FitDeviceInfo[];
+                userProfile: FitUserProfileData;
+            } = getActiveFitUserDeviceData(),
             infoBox = document.createElement("div"),
             themeConfig = getThemeConfig(),
-            userProfile = globalData.userProfileMesgs?.[0] ?? {},
             colors = getInfoBoxThemeColors(themeConfig.colors);
         const { signal } = new AbortController();
 

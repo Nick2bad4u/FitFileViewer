@@ -64,6 +64,13 @@ export type RawFitData = DataRecord & {
     timeInZoneMesgs?: DataRecord[];
 };
 
+export type LoadedFitFile = DataRecord & {
+    data?: RawFitData;
+    filePath?: string;
+    originalPath?: string | null;
+    sourceKey?: string | null;
+};
+
 type SessionInfo = {
     sport: string | undefined;
     startTime: number | undefined;
@@ -302,12 +309,7 @@ function getRawMessageArray<T extends DataRecord = DataRecord>(
 
 function getStoredRawFitData(): RawFitData | null {
     const domainRawData = stateCore.getState("fitFile.rawData");
-    if (isRawFitData(domainRawData)) {
-        return domainRawData;
-    }
-
-    const compatibilityRawData = stateCore.getState("globalData");
-    return isRawFitData(compatibilityRawData) ? compatibilityRawData : null;
+    return isRawFitData(domainRawData) ? domainRawData : null;
 }
 
 /**
@@ -454,6 +456,10 @@ export class FitFileStateManager {
         stateCore.setState("fitFile.loaded", null, {
             source: SOURCE_CLEAR_FILE_STATE,
         });
+        stateCore.setState("fitFile.loadedFiles", [], {
+            source: SOURCE_CLEAR_FILE_STATE,
+        });
+        Reflect.deleteProperty(globalThis, "loadedFitFiles");
 
         console.log("[FitFileState] File state cleared");
     }
@@ -577,7 +583,6 @@ export class FitFileStateManager {
             progress: 100,
             source,
         });
-        stateCore.setState("globalData", safeData, { source });
         stateCore.setState("currentFile", resolvedPath, { source });
         stateCore.setState("fitFile.currentFile", resolvedPath, { source });
         stateCore.setState("fitFile.loaded", safeData, { source });
@@ -591,6 +596,16 @@ export class FitFileStateManager {
 
         showNotification("FIT file loaded successfully", "success", 3000);
         console.log("[FitFileState] File loaded successfully");
+    }
+
+    /**
+     * Store the active file plus overlay FIT-file entries.
+     */
+    public setLoadedFiles(
+        files: readonly LoadedFitFile[],
+        source = "FitFileStateManager.setLoadedFiles"
+    ): void {
+        stateCore.setState("fitFile.loadedFiles", [...files], { source });
     }
 
     /**
@@ -680,7 +695,7 @@ export class FitFileStateManager {
      * Set up listeners for data processing events.
      */
     public setupDataProcessingListeners(): void {
-        subscribe("globalData", (data) => {
+        subscribe("fitFile.rawData", (data) => {
             if (data) {
                 this.processFileData(data as RawFitData);
             }
@@ -718,7 +733,7 @@ export class FitFileStateManager {
      * Set up data validation listeners.
      */
     public setupValidationListeners(): void {
-        subscribe("globalData", (data) => {
+        subscribe("fitFile.rawData", (data) => {
             if (data) {
                 this.validateFileData(data as RawFitData);
             }
@@ -987,6 +1002,11 @@ export const FitFileSelectors = {
             startedAt: null,
             updatedAt: null,
         };
+    },
+
+    getLoadedFiles<T extends LoadedFitFile = LoadedFitFile>(): T[] {
+        const loadedFiles = stateCore.getState("fitFile.loadedFiles");
+        return Array.isArray(loadedFiles) ? ([...loadedFiles] as T[]) : [];
     },
 
     getMetrics(): FileMetrics | null {

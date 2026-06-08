@@ -1,4 +1,5 @@
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
+import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import {
     isDevelopmentEnvironment as isDevelopmentRuntimeEnvironment,
     isNodeEnvironment,
@@ -30,7 +31,6 @@ interface RenderChartRuntimeGlobal {
     getThemeConfig?: unknown;
     uiStateManager?: unknown;
     window?: unknown;
-    _chartjsInstances?: unknown[];
 }
 
 interface DebouncedChartStateManager {
@@ -194,15 +194,12 @@ export function getGlobalPanelVisibilityManager(): PanelVisibilityBridge | null 
  * Returns Chart.js instances from either the renderer global or window mirror.
  */
 export function getGlobalChartInstances(fallbackInstances: unknown): unknown[] {
-    const chartGlobal = getMutableChartRuntimeGlobal();
-    const windowValue = chartGlobal.window;
-    const windowInstances = isObjectRecord(windowValue)
-        ? windowValue["_chartjsInstances"]
-        : undefined;
-    const instances =
-        chartGlobal._chartjsInstances ?? windowInstances ?? fallbackInstances;
+    const instances = getRegisteredChartInstances();
+    if (instances.length > 0) {
+        return instances;
+    }
 
-    return Array.isArray(instances) ? instances : [];
+    return Array.isArray(fallbackInstances) ? fallbackInstances : [];
 }
 
 /**

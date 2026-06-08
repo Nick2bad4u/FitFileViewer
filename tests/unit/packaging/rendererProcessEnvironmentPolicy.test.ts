@@ -85,7 +85,6 @@ describe("renderer process environment policy", () => {
             "electron-app/renderer/vendorGlobalsCore.ts",
             "electron-app/renderer/vendorGlobalsMap.ts",
             "electron-app/renderer/vendorGlobalsShared.ts",
-            "electron-app/renderer/vendorGlobals.ts",
             "electron-app/ui/modals/accentColorPicker.ts",
             "electron-app/utils/charts/core/renderChartRuntimeHelpers.ts",
         ];

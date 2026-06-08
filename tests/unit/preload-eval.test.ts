@@ -7,7 +7,6 @@ type IpcListener = (...args: unknown[]) => void;
 
 interface ExposedElectronApi {
     getAppVersion: () => Promise<string>;
-    invoke: (...args: unknown[]) => Promise<string>;
     validateAPI: () => boolean;
 }
 
@@ -105,18 +104,13 @@ describe("preload.js - Script Evaluation Test", () => {
         ]);
         expect(
             Object.fromEntries(
-                [
-                    "getAppVersion",
-                    "invoke",
-                    "validateAPI",
-                ].map((methodName) => [
+                ["getAppVersion", "validateAPI"].map((methodName) => [
                     methodName,
                     Object.hasOwn(electronAPI, methodName),
                 ])
             )
         ).toStrictEqual({
             getAppVersion: true,
-            invoke: true,
             validateAPI: true,
         });
         expect(electronAPI.validateAPI()).toBe(true);

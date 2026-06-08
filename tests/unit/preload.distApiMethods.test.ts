@@ -443,11 +443,11 @@ describe("preload.js dist API methods", () => {
         it("should provide readFile method", async () => {
             expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
-            const result = await exposedAPI.readFile("test.fit");
+            const result = await exposedAPI.readFile("C:/rides/test.fit");
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "file:read",
-                "test.fit"
+                "C:/rides/test.fit"
             );
             expect(result).toBe("mock-result");
         });
@@ -461,7 +461,7 @@ describe("preload.js dist API methods", () => {
             const { exposedAPI } = createPreloadEnvironment();
 
             await expect(
-                exposedAPI.readFile("nonexistent.fit")
+                exposedAPI.readFile("C:/rides/nonexistent.fit")
             ).rejects.toThrow("File not found");
         });
     });
@@ -523,11 +523,11 @@ describe("preload.js dist API methods", () => {
         it("should provide addRecentFile method", async () => {
             expect.assertions(2);
             const { exposedAPI } = createPreloadEnvironment();
-            const result = await exposedAPI.addRecentFile("new.fit");
+            const result = await exposedAPI.addRecentFile("C:/rides/new.fit");
 
             expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
                 "recentFiles:add",
-                "new.fit"
+                "C:/rides/new.fit"
             );
             expect(result).toBe("mock-result");
         });
@@ -642,7 +642,7 @@ describe("preload.js dist API methods", () => {
             const { exposedAPI } = createPreloadEnvironment();
 
             await expect(
-                exposedAPI.openExternal("invalid-url")
+                exposedAPI.openExternal("https://example.com/unavailable")
             ).rejects.toThrow("Cannot open URL");
         });
     });
@@ -853,87 +853,6 @@ describe("preload.js dist API methods", () => {
         });
     });
 
-    describe("generic IPC Functions", () => {
-        it("should provide onIpc method", () => {
-            expect.assertions(3);
-            const { exposedAPI } = createPreloadEnvironment();
-            const callback = vi.fn<IpcListener>();
-
-            const unsubscribe = exposedAPI.onIpc("custom-channel", callback);
-            const [channel, registeredListener] = getRequiredIpcOnCall();
-            const ipcEvent = { senderId: 1 };
-
-            expect(channel).toBe("custom-channel");
-            registeredListener(ipcEvent, "arg1", "arg2");
-            expect(callback).toHaveBeenCalledWith("arg1", "arg2");
-            unsubscribe();
-            expect(mockIpcRenderer.removeListener).toHaveBeenCalledWith(
-                "custom-channel",
-                registeredListener
-            );
-        });
-
-        it("should provide send method", () => {
-            expect.assertions(2);
-            const { exposedAPI } = createPreloadEnvironment();
-
-            const result = exposedAPI.send("custom-channel", "arg1", "arg2");
-
-            expect(result).toBeUndefined();
-            expect(mockIpcRenderer.send).toHaveBeenCalledWith(
-                "custom-channel",
-                "arg1",
-                "arg2"
-            );
-        });
-
-        it("should provide invoke method", async () => {
-            expect.assertions(2);
-            const { exposedAPI } = createPreloadEnvironment();
-            const result = await exposedAPI.invoke("custom-channel", "arg1");
-
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
-                "custom-channel",
-                "arg1"
-            );
-            expect(result).toBe("mock-result");
-        });
-
-        it("should validate channel parameter in generic IPC methods", () => {
-            expect.assertions(3);
-            const { exposedAPI, mockConsole } = createPreloadEnvironment();
-
-            // Try with invalid channel (should trigger validateString error)
-            const result = exposedAPI.send(123, "data");
-
-            expect(result).toBeUndefined();
-            expect(mockConsole.error).toHaveBeenCalledWith(
-                "[preload.js] send: channel must be a string"
-            );
-            expect(mockIpcRenderer.send).not.toHaveBeenCalledWith(123, "data");
-        });
-
-        it("should handle invoke errors properly", async () => {
-            expect.assertions(1);
-            mockIpcRenderer.invoke.mockRejectedValue(new Error("IPC Error"));
-
-            const { exposedAPI } = createPreloadEnvironment();
-
-            await expect(exposedAPI.invoke("failing-channel")).rejects.toThrow(
-                "IPC Error"
-            );
-        });
-
-        it("should reject invoke with invalid channel", async () => {
-            expect.assertions(1);
-            const { exposedAPI } = createPreloadEnvironment();
-
-            await expect(exposedAPI.invoke(123)).rejects.toThrow(
-                "Invalid channel for invoke"
-            );
-        });
-    });
-
     describe("development Tools", () => {
         it("should provide injectMenu method", async () => {
             expect.assertions(2);
@@ -991,9 +910,7 @@ describe("preload.js dist API methods", () => {
                 "devtools-inject-menu",
                 123
             );
-            expect(consoleSpy.error).toHaveBeenCalledWith(
-                "[preload.js] injectMenu: theme must be a string or null"
-            );
+            expect(consoleSpy.error).not.toHaveBeenCalled();
         });
     });
 

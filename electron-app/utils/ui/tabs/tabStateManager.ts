@@ -5,6 +5,7 @@
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
+import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { resolveTabNameFromButtonId } from "./tabIdUtils.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import {
@@ -56,6 +57,21 @@ function asActivityData(value: unknown): ActivityData | null | undefined {
     }
 
     return typeof value === "object" ? value : undefined;
+}
+
+function getActiveActivityData(): ActivityData | null | undefined {
+    const activityData = getActiveFitActivityData();
+    const sourceData = asActivityData(activityData.rawData);
+    if (!sourceData) {
+        return sourceData;
+    }
+
+    return Array.isArray(sourceData.recordMesgs)
+        ? {
+              ...sourceData,
+              recordMesgs: activityData.recordMesgs,
+          }
+        : sourceData;
 }
 
 function getTabConfig(tabName: string): TabDef | undefined {
@@ -234,39 +250,39 @@ export class TabStateManager {
     /**
      * Handle chart tab activation.
      *
-     * @param globalData - Current activity data.
+     * @param rawFitData - Current activity data.
      */
-    handleChartTab(globalData: ActivityData | null | undefined): Promise<void> {
-        return handleChartTabImpl(globalData);
+    handleChartTab(rawFitData: ActivityData | null | undefined): Promise<void> {
+        return handleChartTabImpl(rawFitData);
     }
 
     /**
      * Handle data tab activation.
      *
-     * @param globalData - Current activity data.
+     * @param rawFitData - Current activity data.
      */
-    handleDataTab(globalData: ActivityData | null | undefined): Promise<void> {
-        return handleDataTabImpl(globalData);
+    handleDataTab(rawFitData: ActivityData | null | undefined): Promise<void> {
+        return handleDataTabImpl(rawFitData);
     }
 
     /**
      * Handle map tab activation.
      *
-     * @param globalData - Current activity data.
+     * @param rawFitData - Current activity data.
      */
-    handleMapTab(globalData: ActivityData | null | undefined): Promise<void> {
-        return handleMapTabImpl(globalData);
+    handleMapTab(rawFitData: ActivityData | null | undefined): Promise<void> {
+        return handleMapTabImpl(rawFitData);
     }
 
     /**
      * Handle summary tab activation.
      *
-     * @param globalData - Current activity data.
+     * @param rawFitData - Current activity data.
      */
     handleSummaryTab(
-        globalData: ActivityData | null | undefined
+        rawFitData: ActivityData | null | undefined
     ): Promise<void> {
-        handleSummaryTabImpl(globalData);
+        handleSummaryTabImpl(rawFitData);
         return Promise.resolve();
     }
 
@@ -322,10 +338,8 @@ export class TabStateManager {
         // Check if tab requires data
         const tabConfig = getTabConfig(tabName);
         if (tabConfig?.requiresData) {
-            const globalData = asActivityData(
-                getStateMgr().getState("globalData")
-            );
-            if (!globalData || !globalData.recordMesgs) {
+            const rawFitData = getActiveActivityData();
+            if (!rawFitData || !rawFitData.recordMesgs) {
                 void showNotification("Please load a FIT file first", "info");
                 return;
             }
@@ -374,8 +388,8 @@ export class TabStateManager {
             return;
         }
 
-        const globalData = asActivityData(getStateMgr().getState("globalData"));
-        if (tabConfig.requiresData && !globalData?.recordMesgs) {
+        const rawFitData = getActiveActivityData();
+        if (tabConfig.requiresData && !rawFitData?.recordMesgs) {
             setTabReadiness(
                 tabName,
                 "blocked",
@@ -404,22 +418,22 @@ export class TabStateManager {
                 case "chart":
                 // falls through to chartjs case
                 case "chartjs": {
-                    await this.handleChartTab(globalData);
+                    await this.handleChartTab(rawFitData);
                     break;
                 }
 
                 case "data": {
-                    await this.handleDataTab(globalData);
+                    await this.handleDataTab(rawFitData);
                     break;
                 }
 
                 case "map": {
-                    await this.handleMapTab(globalData);
+                    await this.handleMapTab(rawFitData);
                     break;
                 }
 
                 case "summary": {
-                    await this.handleSummaryTab(globalData);
+                    await this.handleSummaryTab(rawFitData);
                     break;
                 }
 
@@ -507,7 +521,7 @@ export class TabStateManager {
 
         // Subscribe to data changes to enable/disable tabs
         const unsubData = getStateMgr().subscribe(
-            "globalData",
+            "fitFile.rawData",
             (newData: unknown) => {
                 this.updateTabAvailability(asActivityData(newData));
             }
@@ -620,10 +634,10 @@ export class TabStateManager {
     /**
      * Update tab availability based on data availability
      *
-     * @param globalData - Current global data.
+     * @param rawFitData - Current activity data.
      */
-    updateTabAvailability(globalData: ActivityData | null | undefined): void {
-        const hasData = Boolean(globalData && globalData.recordMesgs);
+    updateTabAvailability(rawFitData: ActivityData | null | undefined): void {
+        const hasData = Boolean(rawFitData && rawFitData.recordMesgs);
 
         for (const [, config] of Object.entries(TAB_CONFIG)) {
             if (!config.requiresData) {

@@ -14,7 +14,9 @@ type ComputedValue = {
 };
 
 type ComputedStateInput = AppStateShape & {
-    globalData?: FitComputedData | null;
+    fitFile?: AppStateShape["fitFile"] & {
+        rawData?: FitComputedData | null;
+    };
     settings?: {
         mapTheme?: boolean;
         theme?: "auto" | "dark" | "light" | string;
@@ -76,15 +78,19 @@ function getComputedStateInput(): ComputedStateInput {
 }
 
 function getRecordMessages(state: ComputedStateInput): FitRecordMessage[] {
-    return state.globalData?.recordMesgs ?? [];
+    return getRawFitData(state)?.recordMesgs ?? [];
 }
 
-function hasLoadedGlobalData(state: ComputedStateInput): boolean {
-    const globalData = state.globalData;
+function getRawFitData(state: ComputedStateInput): FitComputedData | null {
+    return state.fitFile?.rawData ?? null;
+}
+
+function hasLoadedRawFitData(state: ComputedStateInput): boolean {
+    const rawData = getRawFitData(state);
     return (
-        globalData !== null &&
-        typeof globalData === "object" &&
-        Object.keys(globalData).length > 0
+        rawData !== null &&
+        typeof rawData === "object" &&
+        Object.keys(rawData).length > 0
     );
 }
 
@@ -391,7 +397,7 @@ export function initializeCommonComputedValues(): void {
 
     console.log("[ComputedState] Initializing common computed values...");
 
-    addComputed("isFileLoaded", hasLoadedGlobalData, ["globalData"]);
+    addComputed("isFileLoaded", hasLoadedRawFitData, ["fitFile.rawData"]);
 
     addComputed(
         "isAppReady",
@@ -402,7 +408,7 @@ export function initializeCommonComputedValues(): void {
     addComputed(
         "hasChartData",
         (state) => getRecordMessages(state).length > 0,
-        ["globalData.recordMesgs"]
+        ["fitFile.rawData.recordMesgs"]
     );
 
     addComputed(
@@ -413,13 +419,13 @@ export function initializeCommonComputedValues(): void {
                     record.positionLat !== undefined &&
                     record.positionLong !== undefined
             ),
-        ["globalData.recordMesgs"]
+        ["fitFile.rawData.recordMesgs"]
     );
 
     addComputed(
         "summaryData",
         (state) => {
-            const [session] = state.globalData?.sessionMesgs ?? [];
+            const [session] = getRawFitData(state)?.sessionMesgs ?? [];
             if (!session) {
                 return null;
             }
@@ -437,7 +443,7 @@ export function initializeCommonComputedValues(): void {
                 totalTime: session.totalElapsedTime,
             };
         },
-        ["globalData.sessionMesgs"]
+        ["fitFile.rawData.sessionMesgs"]
     );
 
     addComputed(
@@ -449,7 +455,7 @@ export function initializeCommonComputedValues(): void {
             }
 
             return {
-                isFileLoaded: hasLoadedGlobalData(state),
+                isFileLoaded: hasLoadedRawFitData(state),
                 lastActivity: state.system?.lastActivity ?? startTime,
                 tabsEnabled: state.ui?.tabs ?? {},
                 uptime: Date.now() - startTime,
@@ -457,7 +463,7 @@ export function initializeCommonComputedValues(): void {
         },
         [
             "app.startTime",
-            "globalData",
+            "fitFile.rawData",
             "ui.tabs",
             "system.lastActivity",
         ]

@@ -7,7 +7,6 @@ import {
     appLeafletMeasureLitePath,
     appRendererVendorGlobalsChartDataEntryPath,
     appRendererVendorGlobalsCoreEntryPath,
-    appRendererVendorGlobalsEntryPath,
     appRendererVendorGlobalsMapEntryPath,
     appSourceRepositoryPath,
     rootAppIndexHtmlPath,
@@ -25,8 +24,6 @@ const rendererImportedBrowserPackages = [
     "chartjs-plugin-zoom",
     "datatables.net-dt",
     "dompurify",
-    "hammerjs",
-    "jquery",
     "jszip",
     "leaflet",
     "leaflet-draw",
@@ -38,7 +35,7 @@ const rendererImportedBrowserPackages = [
     "maplibre-gl",
     "screenfull",
 ] as const;
-const rendererCompanionBrowserPackages = ["date-fns"] as const;
+const rendererCompanionBrowserPackages = ["date-fns", "hammerjs"] as const;
 const rendererManagedBrowserPackages = [
     ...rendererImportedBrowserPackages,
     ...rendererCompanionBrowserPackages,
@@ -137,7 +134,6 @@ describe("renderer vendor asset policy", () => {
         const vendorBundleSource = [
             readWorkspaceFile(appRendererVendorGlobalsChartDataEntryPath),
             readWorkspaceFile(appRendererVendorGlobalsCoreEntryPath),
-            readWorkspaceFile(appRendererVendorGlobalsEntryPath),
             readWorkspaceFile(appRendererVendorGlobalsMapEntryPath),
         ].join("\n");
         const browserPackagesInProductionDependencies =
@@ -209,7 +205,7 @@ describe("renderer vendor asset policy", () => {
     });
 
     it("keeps upstream CSS npm-managed and JS as a CSP-safe local control", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const rootPackage = JSON.parse(
             readWorkspaceFile(rootPackageRepositoryPath)
@@ -218,9 +214,6 @@ describe("renderer vendor asset policy", () => {
         };
         const vendorGlobalsMap = readWorkspaceFile(
             appRendererVendorGlobalsMapEntryPath
-        );
-        const vendorGlobals = readWorkspaceFile(
-            appRendererVendorGlobalsEntryPath
         );
         const measureLite = readWorkspaceFile(appLeafletMeasureLitePath);
 
@@ -234,9 +227,12 @@ describe("renderer vendor asset policy", () => {
             'import "leaflet-measure/dist/leaflet-measure.css";'
         );
         expect(vendorGlobalsMap).toContain(
-            'await import("./leafletMeasureLite.js");'
+            'import { installLeafletMeasureLite } from "./leafletMeasureLite.js";'
         );
-        expect(vendorGlobals).not.toContain(
+        expect(vendorGlobalsMap).toContain(
+            "installLeafletMeasureLite(Leaflet);"
+        );
+        expect(vendorGlobalsMap).not.toContain(
             'import "leaflet-measure/dist/leaflet-measure.js";'
         );
         expect(measureLite).toContain("violates a strict CSP");

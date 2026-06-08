@@ -11,8 +11,10 @@ import {
     renderTable,
     saveColPrefs,
 } from "../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js";
-import { setGlobalData } from "../../../../electron-app/utils/state/core/globalDataStore.js";
-import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
+import {
+    __resetStateManagerForTests,
+    setState,
+} from "../../../../electron-app/utils/state/core/stateManager.js";
 
 type SummaryWindow = Window &
     typeof globalThis & {
@@ -28,7 +30,6 @@ function resetSummaryFixture(): void {
     document.body.replaceChildren();
     localStorage.clear();
     delete getSummaryWindow().activeFitFileName;
-    Reflect.deleteProperty(globalThis, "globalData");
 }
 
 describe("renderSummaryHelpers", () => {
@@ -63,7 +64,11 @@ describe("renderSummaryHelpers", () => {
 
         try {
             const filePath = "C:\\Activities\\ride.fit";
-            setGlobalData({ cachedFilePath: filePath }, { source: "test" });
+            setState(
+                "fitFile.rawData",
+                { cachedFilePath: filePath },
+                { source: "test" }
+            );
 
             const fileKey = getStorageKey({}, ["speed"]);
 

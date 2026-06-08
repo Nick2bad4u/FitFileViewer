@@ -9,7 +9,7 @@ import {
     subscribe,
     updateState,
 } from "../../state/core/stateManager.js";
-import { setGlobalData } from "../../state/core/globalDataStore.js";
+import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
@@ -76,7 +76,7 @@ export const AppActions = {
             }
         }
 
-        setGlobalData(null, { source: "AppActions.clearData" });
+        setState("fitFile.rawData", null, { source: "AppActions.clearData" });
         setState("currentFile", null, { source: "AppActions.clearData" });
         setState("charts.isRendered", false, {
             source: "AppActions.clearData",
@@ -90,7 +90,7 @@ export const AppActions = {
         if (options.notify !== false) {
             void showNotification(
                 options.notificationMessage ?? "Data cleared",
-                "info",
+                "info"
             );
         }
     },
@@ -156,7 +156,9 @@ export const AppActions = {
             setState("isLoading", true, { source: "AppActions.loadFile" });
 
             // Update file-related state
-            setGlobalData(fileData, { source: "AppActions.loadFile" });
+            setState("fitFile.rawData", fileData, {
+                source: "AppActions.loadFile",
+            });
             setState("currentFile", filePath, {
                 source: "AppActions.loadFile",
             });
@@ -487,7 +489,7 @@ export const AppSelectors = {
      * @returns True if data is loaded.
      */
     hasData() {
-        return getState("globalData") !== null;
+        return getActiveFitActivityData().rawData != null;
     },
 
     /**

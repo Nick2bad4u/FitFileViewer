@@ -142,7 +142,7 @@
         path: PathModule;
     };
     const { validateExternalUrl } =
-        require("../security/externalUrlPolicy") as {
+        require("../../shared/externalUrlPolicy") as {
             validateExternalUrl: (url: string) => string;
         };
     const { getAppState, setAppState } = require("../state/appState") as {
@@ -311,8 +311,7 @@
                         detail:
                             "FitFileViewer can center the map on your current location if you allow access.\n\n" +
                             "Your location is only used locally in the app.",
-                        message:
-                            "Allow FitFileViewer to access your location?",
+                        message: "Allow FitFileViewer to access your location?",
                         noLink: true,
                         title: "Location permission",
                         type: "question",

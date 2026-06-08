@@ -6,7 +6,7 @@ type ActivityData = {
 };
 
 type GetState = (key: string) => ActivityData | null | string;
-type RenderSummary = (globalData: ActivityData) => void;
+type RenderSummary = (activeFitData: ActivityData) => void;
 type SetState = (
     key: string,
     value: unknown,
@@ -22,7 +22,7 @@ type TestGlobal = typeof globalThis & {
     __vitest_effective_stateManager__?: EffectiveStateManager;
 };
 
-const globalData: ActivityData = {
+const activeFitData: ActivityData = {
     recordMesgs: [{ timestamp: 1 }, { timestamp: 2 }],
 };
 
@@ -54,7 +54,11 @@ function getEffectiveStateManager(): EffectiveStateManager {
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
-        getState: undefined,
+        getState: vi.fn<GetState>((key) => {
+            const stateManager = (globalThis as TestGlobal)
+                .__vitest_effective_stateManager__;
+            return stateManager?.getState(key) ?? null;
+        }),
         setState: undefined,
         updateState: undefined,
         // Intentionally non-function so tabStateManager's getStateMgr() does not accept module exports.
@@ -88,8 +92,8 @@ describe("tabStateManager.fallback", () => {
                 if (key === "summary.lastDataHash") {
                     return "";
                 }
-                if (key === "globalData") {
-                    return globalData;
+                if (key === "fitFile.rawData") {
+                    return activeFitData;
                 }
                 return null;
             }),
@@ -113,7 +117,7 @@ describe("tabStateManager.fallback", () => {
 
         await instance.handleTabSpecificLogic("summary");
 
-        expect(mockRenderSummary).toHaveBeenCalledWith(globalData);
+        expect(mockRenderSummary).toHaveBeenCalledWith(activeFitData);
         // Verify setState through the fallback manager was called
         const eff = getEffectiveStateManager();
         expect(eff.setState).toHaveBeenCalledWith(

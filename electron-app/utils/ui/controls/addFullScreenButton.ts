@@ -1,7 +1,10 @@
-// screenfull is exposed as a compatibility global by the renderer dependency bundle.
 import { getActiveTabContent } from "../../rendering/helpers/getActiveTabContent.js";
 import { addExitFullscreenOverlay } from "./addExitFullscreenOverlay.js";
 import { removeExitFullscreenOverlay } from "./removeExitFullscreenOverlay.js";
+import {
+    resolveScreenfullRuntime,
+    type ScreenfullRuntime,
+} from "./screenfullRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type ElectronFullscreenAPI = Partial<Pick<ElectronAPI, "setFullScreen">>;
@@ -10,10 +13,7 @@ type FullscreenGlobal = typeof globalThis & {
     __ffvFullscreenKeydownHandler?: null | ((event: Event) => void);
     __ffvNativeFullscreenChangeHandler?: null | ((event: Event) => void);
     electronAPI?: ElectronFullscreenAPI;
-    screenfull?: ScreenfullInstance;
 };
-
-type ScreenfullInstance = typeof import("screenfull").default;
 
 type StoredEventHandler = (event: Event) => void;
 type StoredHandlerKey =
@@ -56,14 +56,13 @@ const NATIVE_FULLSCREEN_EVENTS = [
 const SVG_NS = "http://www.w3.org/2000/svg";
 let isWindowFullscreenRequested = false;
 
-const getFullscreenGlobal = (): FullscreenGlobal =>
-    globalThis;
+const getFullscreenGlobal = (): FullscreenGlobal => globalThis;
 
 const getElectronAPI = (): ElectronFullscreenAPI | undefined =>
     getFullscreenGlobal().electronAPI;
 
-const getScreenfullInstance = (): ScreenfullInstance | undefined =>
-    getFullscreenGlobal().screenfull;
+const getScreenfullInstance = (): ScreenfullRuntime | undefined =>
+    resolveScreenfullRuntime();
 
 const getStoredHandler = (key: StoredHandlerKey): null | StoredEventHandler => {
     const handler = getFullscreenGlobal()[key];

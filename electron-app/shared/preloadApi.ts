@@ -18,18 +18,12 @@ import type {
     FitBrowserSetFolderResponse,
     FileSystemRequestPayload,
     FileSystemResponsePayload,
-    GenericInvokeChannel,
-    GenericSendChannel,
     GyazoServerStartRequest,
     GyazoServerStartResponse,
     GyazoServerStopResponse,
     InfoPlatformResponse,
     InfoStringResponse,
-    IpcEventCallback,
-    IpcRequestPayload,
     IpcResponsePayload,
-    InvokeRequestArgs,
-    InvokeResponsePayloadForChannel,
     MainStateErrorsRequest,
     MainStateErrorsResponse,
     MainStateGetRequest,
@@ -50,7 +44,6 @@ import type {
     RecentFileRequestPayload,
     RecentFilesApprovalResponse,
     RecentFilesListResponse,
-    RendererIpcEventChannel,
     ShellOpenExternalRequest,
     ShellOpenExternalResponse,
     ThemePreferenceResponse,
@@ -135,7 +128,9 @@ export interface ElectronAPI {
     onDecoderOptionsChanged: (
         callback: (options: IpcResponsePayload) => void
     ) => () => void;
-    onExportFile: (callback: (filePath: IpcResponsePayload) => void) => () => void;
+    onExportFile: (
+        callback: (filePath: IpcResponsePayload) => void
+    ) => () => void;
     onFitBrowserEnabledChanged: (
         callback: (enabled: boolean) => void
     ) => () => void;
@@ -177,16 +172,6 @@ export interface ElectronAPI {
     requestExport: () => void;
     requestSaveAs: () => void;
     setFullScreen: (flag: boolean) => void;
-
-    onIpc: (
-        channel: RendererIpcEventChannel,
-        callback: IpcEventCallback
-    ) => (() => void) | undefined;
-    send: (channel: GenericSendChannel, ...args: IpcRequestPayload[]) => void;
-    invoke: <Channel extends GenericInvokeChannel>(
-        channel: Channel,
-        ...args: InvokeRequestArgs<Channel>
-    ) => Promise<InvokeResponsePayloadForChannel<Channel>>;
 
     getMainState: (path?: MainStateGetRequest) => Promise<MainStateGetResponse>;
     setMainState: (

@@ -104,7 +104,7 @@ vi.mock(
 );
 
 import { createUserDeviceInfoBox } from "../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBox.js";
-import { setGlobalData as setManagedGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { setActiveFitRawData as setManagedActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 function getTestWindow(): TestWindow {
@@ -118,8 +118,8 @@ function makeContainer(): HTMLDivElement {
     return c;
 }
 
-function setGlobalData(globalData: unknown): void {
-    setManagedGlobalData(globalData, { source: "test" });
+function setActiveFitRawData(activeFitRawData: unknown): void {
+    setManagedActiveFitRawData(activeFitRawData, { source: "test" });
 }
 
 function getInfoBoxElement(container: HTMLElement): HTMLDivElement {
@@ -207,7 +207,7 @@ describe(createUserDeviceInfoBox, () => {
         expect.assertions(1);
 
         const container = makeContainer();
-        setGlobalData({
+        setActiveFitRawData({
             userProfileMesgs: [
                 { friendlyName: "nick", age: 30, height: 180, weight: 80 },
             ],
@@ -246,7 +246,7 @@ describe(createUserDeviceInfoBox, () => {
         expect.assertions(1);
 
         const container = makeContainer();
-        setGlobalData({ deviceInfoMesgs: [], userProfileMesgs: [{}] });
+        setActiveFitRawData({ deviceInfoMesgs: [], userProfileMesgs: [{}] });
         createUserDeviceInfoBox(container);
 
         expect(getElementText(container, ".device-info-empty-state")).toBe(
@@ -258,7 +258,7 @@ describe(createUserDeviceInfoBox, () => {
         expect.assertions(1);
 
         const container = makeContainer();
-        setGlobalData({
+        setActiveFitRawData({
             userProfileMesgs: [
                 {
                     friendlyName: "nick",
@@ -345,7 +345,7 @@ describe(createUserDeviceInfoBox, () => {
         expect.assertions(3);
 
         const container = makeContainer();
-        setGlobalData({
+        setActiveFitRawData({
             userProfileMesgs: [{}],
             deviceInfoMesgs: [
                 {
@@ -388,7 +388,7 @@ describe(createUserDeviceInfoBox, () => {
         expect.assertions(2);
 
         const container = makeContainer();
-        setGlobalData({
+        setActiveFitRawData({
             userProfileMesgs: [{}],
             deviceInfoMesgs: [
                 {
@@ -423,7 +423,7 @@ describe(createUserDeviceInfoBox, () => {
 
         const container = makeContainer();
 
-        setGlobalData({
+        setActiveFitRawData({
             userProfileMesgs: [
                 { friendlyName: "<img src=x onerror=alert(1)>bad" },
             ],
@@ -447,7 +447,7 @@ describe(createUserDeviceInfoBox, () => {
 
         const container = makeContainer();
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        setGlobalData({
+        setActiveFitRawData({
             userProfileMesgs: [{}],
             deviceInfoMesgs: [
                 {

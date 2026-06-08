@@ -3,11 +3,15 @@
  * export functionality
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
     exportUtils,
     __setTestDeps,
 } from "../../../../../electron-app/utils/files/export/exportUtils.js";
+import {
+    clearExportZipRuntimeForTests,
+    setExportZipRuntime,
+} from "../../../../../electron-app/utils/files/export/exportZipRuntime.js";
 import type { ExportableChart } from "../../../../../electron-app/utils/files/export/exportUtils.js";
 
 type AddCombinedCsvZip = Parameters<typeof exportUtils.addCombinedCSVToZip>[0];
@@ -88,7 +92,6 @@ const mockElectronAPI = {
     stopGyazoServer: vi.fn<() => Promise<void> | void>(),
 };
 
-// Mock JSZip
 const mockJSZip = vi.fn<() => AddCombinedCsvZip>(() => ({
     file: vi.fn<
         (
@@ -268,10 +271,7 @@ describe("exportUtils", () => {
             writable: true,
         });
 
-        Object.defineProperty(globalThis, "JSZip", {
-            value: mockJSZip,
-            writable: true,
-        });
+        setExportZipRuntime(mockJSZip);
 
         Object.defineProperty(globalThis, "document", {
             value: mockDocument,
@@ -298,6 +298,10 @@ describe("exportUtils", () => {
             detectCurrentTheme: mockDetectCurrentTheme,
             getStorage: () => mockLocalStorage,
         });
+    });
+
+    afterEach(() => {
+        clearExportZipRuntimeForTests();
     });
 
     describe("addCombinedCSVToZip", () => {

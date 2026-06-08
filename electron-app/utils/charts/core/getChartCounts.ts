@@ -1,6 +1,7 @@
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
 import { FitFileSelectors } from "../../state/domain/fitFileState.js";
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
+import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 import {
     type ChartDataRecord,
@@ -39,10 +40,6 @@ type RenderedChartInstance = {
     };
 };
 
-type ChartCountsGlobal = typeof globalThis & {
-    _chartjsInstances?: RenderedChartInstance[];
-};
-
 const ANALYSIS_CHART_TYPES = [
     "speed_vs_distance",
     "power_vs_hr",
@@ -68,7 +65,6 @@ const ZONE_CHART_TYPES = ["hr_zone_doughnut", "power_zone_doughnut"] as const;
  */
 export function getChartCounts(): ChartCounts {
     const counts = createEmptyChartCounts(),
-        chartGlobal = globalThis as ChartCountsGlobal,
         eventRows = FitFileSelectors.getEventMessages(),
         recordRows = getRecordRows(),
         timeInZoneRows = getTimeInZoneRows();
@@ -89,7 +85,7 @@ export function getChartCounts(): ChartCounts {
         console.error("[ChartStatus] Error counting charts:", error);
     }
 
-    logChartCountDebug(counts, chartGlobal);
+    logChartCountDebug(counts);
 
     return counts;
 }
@@ -345,23 +341,20 @@ function isNumericLike(value: unknown): boolean {
     );
 }
 
-function logChartCountDebug(
-    counts: ChartCounts,
-    chartGlobal: ChartCountsGlobal
-): void {
+function logChartCountDebug(counts: ChartCounts): void {
+    const renderedCharts =
+        getRegisteredChartInstances() as RenderedChartInstance[];
+
     console.log("[ChartStatus] Chart count breakdown:", {
-        actualRendered: chartGlobal._chartjsInstances?.length ?? 0,
+        actualRendered: renderedCharts.length,
         available: counts.available,
         categories: counts.categories,
         total: counts.total,
         visible: counts.visible,
     });
 
-    if (
-        Array.isArray(chartGlobal._chartjsInstances) &&
-        chartGlobal._chartjsInstances.length > 0
-    ) {
-        const renderedChartIds = chartGlobal._chartjsInstances.map(
+    if (renderedCharts.length > 0) {
+        const renderedChartIds = renderedCharts.map(
             (chart) => chart.canvas?.id ?? ""
         );
         console.log(

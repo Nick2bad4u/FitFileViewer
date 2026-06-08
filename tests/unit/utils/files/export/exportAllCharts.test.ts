@@ -24,18 +24,17 @@ vi.mock(
 );
 
 import { exportAllCharts } from "../../../../../electron-app/utils/files/export/exportAllCharts.js";
+import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+    setRegisteredChartInstances,
+} from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
 type TestChart = {
     readonly data?: {
         readonly datasets?: Array<{ readonly label?: unknown }>;
     };
 };
-
-type TestChartGlobal = typeof globalThis & {
-    _chartjsInstances?: TestChart[];
-};
-
-const testGlobal = globalThis as TestChartGlobal;
 
 function createChart(label?: unknown): TestChart {
     return {
@@ -49,7 +48,7 @@ function resetTestState(): void {
     vi.restoreAllMocks();
     notificationMock.mockReset();
     downloadChartAsPNGMock.mockReset();
-    delete testGlobal._chartjsInstances;
+    clearChartInstanceRegistryForTests();
 }
 
 describe(exportAllCharts, () => {
@@ -60,7 +59,7 @@ describe(exportAllCharts, () => {
 
         exportAllCharts();
 
-        expect(testGlobal._chartjsInstances).toBeUndefined();
+        expect(getRegisteredChartInstances()).toStrictEqual([]);
         expect(notificationMock).toHaveBeenCalledWith(
             "No charts available to export",
             "warning"
@@ -76,11 +75,11 @@ describe(exportAllCharts, () => {
         resetTestState();
         const powerChart = createChart("Power Output"),
             fallbackChart = createChart(123);
-        testGlobal._chartjsInstances = [powerChart, fallbackChart];
+        setRegisteredChartInstances([powerChart, fallbackChart]);
 
         exportAllCharts();
 
-        expect(testGlobal._chartjsInstances).toStrictEqual([
+        expect(getRegisteredChartInstances()).toStrictEqual([
             powerChart,
             fallbackChart,
         ]);
@@ -109,14 +108,14 @@ describe(exportAllCharts, () => {
         resetTestState();
         const error = new Error("download failed"),
             errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-        testGlobal._chartjsInstances = [createChart("Speed")];
+        setRegisteredChartInstances([createChart("Speed")]);
         downloadChartAsPNGMock.mockImplementation(() => {
             throw error;
         });
 
         exportAllCharts();
 
-        expect(testGlobal._chartjsInstances).toHaveLength(1);
+        expect(getRegisteredChartInstances()).toHaveLength(1);
         expect(errorSpy).toHaveBeenCalledWith(
             "Error exporting all charts:",
             error

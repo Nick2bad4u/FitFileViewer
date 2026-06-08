@@ -40,12 +40,24 @@ const switchToTabMock = vi.hoisted(() =>
 const showNotificationMock = vi.hoisted(() =>
     vi.fn<(message: string, type: string) => void>()
 );
+const getRawDataMock = vi.hoisted(() =>
+    vi.fn<() => unknown>(() => stateValues.get("fitFile.rawData"))
+);
 
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
         getState: getStateMock,
         subscribe: subscribeMock,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/state/domain/fitFileState.js"),
+    () => ({
+        FitFileSelectors: {
+            getRawData: getRawDataMock,
+        },
     })
 );
 
@@ -98,6 +110,8 @@ function resetState(): void {
     getActiveTabInfoMock.mockClear();
     switchToTabMock.mockClear();
     showNotificationMock.mockClear();
+    getRawDataMock.mockClear();
+    getRawDataMock.mockImplementation(() => stateValues.get("fitFile.rawData"));
     document.body.replaceChildren();
     delete testGlobal.chartTabIntegration;
 }
@@ -153,15 +167,15 @@ describe(ChartTabIntegration, () => {
 
         resetState();
         stateValues.set("ui.activeTab", "chartjs");
-        stateValues.set("globalData", { recordMesgs: [{}] });
+        stateValues.set("fitFile.rawData", { recordMesgs: [{}] });
         const integration = new ChartTabIntegration(),
             logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
         integration.initialize();
-        stateListeners.get("globalData")?.(
+        stateListeners.get("fitFile.rawData")?.(
             { recordMesgs: [{}] },
             { recordMesgs: [] },
-            "globalData"
+            "fitFile.rawData"
         );
         stateListeners.get("app.isOpeningFile")?.(
             false,
@@ -175,7 +189,7 @@ describe(ChartTabIntegration, () => {
         expect({ isInitialized: integration.isInitialized }).toStrictEqual({
             isInitialized: true,
         });
-        expect(firstSubscribeCall?.[0]).toBe("globalData");
+        expect(firstSubscribeCall?.[0]).toBe("fitFile.rawData");
         expect(firstSubscribeCall?.[1]).toBeTypeOf("function");
         expect(secondSubscribeCall?.[0]).toBe("app.isOpeningFile");
         expect(secondSubscribeCall?.[1]).toBeTypeOf("function");
@@ -205,7 +219,7 @@ describe(ChartTabIntegration, () => {
         expect.assertions(4);
 
         resetState();
-        stateValues.set("globalData", { recordMesgs: [{}] });
+        stateValues.set("fitFile.rawData", { recordMesgs: [{}] });
         stateValues.set("ui.activeTab", "chart");
         const integration = new ChartTabIntegration();
 

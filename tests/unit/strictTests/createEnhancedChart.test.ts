@@ -76,6 +76,9 @@ interface LocalStorageMock {
 type ChartConstructorMock = Mock<
     (canvas: HTMLCanvasElement, config: ChartConfig) => ChartInstanceMock
 >;
+type ChartTestGlobal = typeof globalThis & {
+    Chart?: ChartConstructorMock;
+};
 
 type ConsoleMethod = (...data: unknown[]) => void;
 type CreateEnhancedChart =
@@ -88,10 +91,6 @@ type GetUnitSymbol = (field: string) => string;
 type HexToRgba = (hex: string, alpha: number) => string;
 type GetFieldColor = (field: string) => string;
 type UpdateChartAnimations = (...args: unknown[]) => void;
-
-type CreateEnhancedChartTestGlobal = typeof globalThis & {
-    Chart?: unknown;
-};
 
 let Chart: ChartConstructorMock;
 let chartInstanceMock: ChartInstanceMock;
@@ -151,8 +150,9 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         >(function ChartConstructor() {
             return chartInstanceMock;
         });
-        window.Chart = Chart as unknown as typeof window.Chart;
-        (globalThis as CreateEnhancedChartTestGlobal).Chart = Chart;
+        (globalThis as ChartTestGlobal).Chart = Chart;
+        (globalThis.window as Window & { Chart?: ChartConstructorMock }).Chart =
+            Chart;
 
         // Mock all dependencies
         vi.doMock(
@@ -268,9 +268,9 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         delete globalThis.document;
         delete globalThis.HTMLCanvasElement;
         delete globalThis.HTMLElement;
+        delete (globalThis as ChartTestGlobal).Chart;
         delete globalThis.console;
         delete globalThis.localStorage;
-        delete (globalThis as CreateEnhancedChartTestGlobal).Chart;
     });
 
     describe("basic chart creation", () => {

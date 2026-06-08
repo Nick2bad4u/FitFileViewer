@@ -14,8 +14,8 @@ import {
 
 const GLOBAL_DATA_PROPERTY = "globalData";
 
-function setManagedGlobalData(data: unknown): void {
-    setState("globalData", data, {
+function setActiveFitRawData(data: unknown): void {
+    setState("fitFile.rawData", data, {
         source: "debugSensorInfo.test",
     });
 }
@@ -34,10 +34,10 @@ describe("debugSensorInfo", () => {
         Reflect.deleteProperty(globalThis, GLOBAL_DATA_PROPERTY);
     });
 
-    it("checks availability from managed state before stale legacy globals", () => {
+    it("checks availability from active FIT state before stale legacy globals", () => {
         expect.assertions(4);
 
-        const managedData = {
+        const activeFitData = {
             deviceInfoMesgs: [{ manufacturer: "garmin", product: 1 }],
             sessionMesgs: [{ manufacturer: "garmin" }],
         };
@@ -47,11 +47,11 @@ describe("debugSensorInfo", () => {
             value: { stale: true },
             writable: true,
         });
-        setManagedGlobalData(managedData);
+        setActiveFitRawData(activeFitData);
 
-        expect(checkDataAvailability()).toBe(managedData);
+        expect(checkDataAvailability()).toBe(activeFitData);
         expect(console.log).toHaveBeenCalledWith(
-            "Managed globalData exists: true"
+            "Active FIT data exists: true"
         );
         expect(console.log).toHaveBeenCalledWith(
             "Sensor-related keys: deviceInfoMesgs, sessionMesgs"
@@ -61,10 +61,10 @@ describe("debugSensorInfo", () => {
         });
     });
 
-    it("analyzes sensor entries from managed state", () => {
+    it("analyzes sensor entries from active FIT state", () => {
         expect.assertions(2);
 
-        setManagedGlobalData({
+        setActiveFitRawData({
             deviceInfoMesgs: [{ manufacturer: "garmin", product: 1 }],
             fileIdMesgs: [{ manufacturer: "garmin", product: 2 }],
         });
@@ -75,31 +75,31 @@ describe("debugSensorInfo", () => {
         expect(console.warn).not.toHaveBeenCalled();
     });
 
-    it("shows managed data keys and sensor names", () => {
+    it("shows active FIT data keys and sensor names", () => {
         expect.assertions(3);
 
-        const managedData = {
+        const activeFitData = {
             deviceInfoMesgs: [{ manufacturer: "garmin", product: 1 }],
             recordMesgs: [{ distance: 100 }],
         };
-        setManagedGlobalData(managedData);
+        setActiveFitRawData(activeFitData);
 
         showDataKeys();
         showSensorNames();
 
-        expect(checkDataAvailability()).toBe(managedData);
+        expect(checkDataAvailability()).toBe(activeFitData);
         expect(console.log).toHaveBeenCalledWith(
             expect.stringContaining("deviceInfoMesgs: 1 items")
         );
         expect(console.log).toHaveBeenCalledWith(expect.stringContaining("1."));
     });
 
-    it("returns null when no managed data is loaded", () => {
+    it("returns null when no active FIT data is loaded", () => {
         expect.assertions(2);
 
         expect(debugSensorInfo()).toBeNull();
         expect(console.warn).toHaveBeenCalledWith(
-            "❌ No global data available. Load a FIT file first."
+            "❌ No active FIT data available. Load a FIT file first."
         );
     });
 });

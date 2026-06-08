@@ -7,6 +7,12 @@
  * GPX specification reference: https://www.topografix.com/gpx.asp
  */
 
+import {
+    getFitRouteCoordinates,
+    semicirclesToDegrees,
+    type FitRouteRecord,
+} from "../../state/domain/fitRouteDataState.js";
+
 type GpxBuildOptions = {
     creator?: string;
     description?: string;
@@ -15,16 +21,17 @@ type GpxBuildOptions = {
 };
 
 /** Minimal record shape required for GPX track point serialization. */
-export type GpxRecord = {
+export type GpxRecord = FitRouteRecord & {
     altitude?: number;
     cadence?: number;
     enhancedAltitude?: number;
     heartRate?: number;
     positionLat?: number;
     positionLong?: number;
+    position_lat?: number;
+    position_long?: number;
     power?: number;
     timestamp?: Date | number | string;
-    [key: string]: unknown;
 };
 
 /** Loaded FIT file metadata used to derive a human-readable GPX track name. */
@@ -41,7 +48,6 @@ const GPX_XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance";
 const GPX_SCHEMA_LOCATION = `${GPX_NAMESPACE} ${GPX_NAMESPACE}/gpx.xsd`;
 const GPX_TRACKPOINT_EXTENSION_NAMESPACE =
     "http://www.garmin.com/xmlschemas/TrackPointExtension/v1"; // eslint-disable-line sdl/no-insecure-url -- Garmin TrackPointExtension uses this namespace URI.
-const SEMICIRCLE_TO_DEGREES = 180 / 2_147_483_648; // 2 ** 31 per FIT protocol
 const FIT_EPOCH_OFFSET_SECONDS = 631_065_600; // 1989-12-31T00:00:00Z
 
 /**
@@ -79,26 +85,21 @@ export function buildGpxFromRecords(
     let firstTimestamp: string | null = null;
     let extensionsPresent = false;
 
-    for (const record of records) {
-        if (!record) {
-            continue;
-        }
-        const lat = semicirclesToDegrees(record.positionLat);
-        const lon = semicirclesToDegrees(record.positionLong);
-        if (
-            lat === null ||
-            lon === null ||
-            Math.abs(lat) > 90 ||
-            Math.abs(lon) > 180
-        ) {
+    for (const {
+        latitude: lat,
+        longitude: lon,
+        record,
+    } of getFitRouteCoordinates(records)) {
+        if (Math.abs(lat) > 90 || Math.abs(lon) > 180) {
             continue;
         }
 
+        const gpxRecord = record as GpxRecord;
         const elevation =
-            typeof record.enhancedAltitude === "number"
-                ? record.enhancedAltitude
-                : record.altitude;
-        const timestampIso = toIsoTimestamp(record.timestamp);
+            typeof gpxRecord.enhancedAltitude === "number"
+                ? gpxRecord.enhancedAltitude
+                : gpxRecord.altitude;
+        const timestampIso = toIsoTimestamp(gpxRecord.timestamp);
         if (!firstTimestamp && timestampIso) {
             firstTimestamp = timestampIso;
         }
@@ -113,19 +114,21 @@ export function buildGpxFromRecords(
 
         let extensionLines: string[] = [];
         if (includeExtensions) {
-            const hr = normalizeMetric(record.heartRate);
+            const hr = normalizeMetric(gpxRecord.heartRate);
             const cadence = normalizeMetric(
-                record.cadence ??
-                    record["cadenceRunning"] ??
-                    record["cadenceCycling"]
+                gpxRecord.cadence ??
+                    gpxRecord["cadenceRunning"] ??
+                    gpxRecord["cadenceCycling"]
             );
             const temperature = normalizeMetric(
-                record["temperature"] ??
-                    record["bodyTemperature"] ??
-                    record["ambientTemperature"]
+                gpxRecord["temperature"] ??
+                    gpxRecord["bodyTemperature"] ??
+                    gpxRecord["ambientTemperature"]
             );
             const power = normalizeMetric(
-                record.power ?? record["instantPower"] ?? record["avgPower"]
+                gpxRecord.power ??
+                    gpxRecord["instantPower"] ??
+                    gpxRecord["avgPower"]
             );
 
             const extensionValues = [
@@ -224,13 +227,7 @@ export function resolveTrackNameFromLoadedFiles(
 
     const [primary] = loadedFitFiles;
     const baseCandidates = [primary?.displayName, primary?.name];
-    const fileName =
-        typeof primary?.filePath === "string"
-            ? (primary.filePath
-                  .split(/[/\\]/)
-                  .pop()
-                  ?.replace(/\.[^.]+$/u, "") ?? "")
-            : "";
+    const fileName = resolveTrackNameFromFileIdentity(primary?.filePath, "");
 
     const resolved = [...baseCandidates, fileName].find(
         (candidate) =>
@@ -238,6 +235,28 @@ export function resolveTrackNameFromLoadedFiles(
     );
 
     return resolved ? resolved.trim() : fallback;
+}
+
+/**
+ * Resolves a user-friendly track name from a file path or active file identity.
+ */
+export function resolveTrackNameFromFileIdentity(
+    fileIdentity: null | string | undefined,
+    fallback = "Exported Track"
+): string {
+    if (typeof fileIdentity !== "string" || fileIdentity.trim().length === 0) {
+        return fallback;
+    }
+
+    const fileName =
+        fileIdentity
+            .trim()
+            .split(/[/\\]/u)
+            .pop()
+            ?.replace(/\.[^.]+$/u, "")
+            .trim() ?? "";
+
+    return fileName || fallback;
 }
 
 /**
@@ -283,20 +302,6 @@ function normalizeMetric(value: unknown): string | null {
         return null;
     }
     return String(Math.round(value));
-}
-
-/**
- * Converts FIT semicircle coordinates to decimal degrees.
- */
-function semicirclesToDegrees(raw: unknown): number | null {
-    if (typeof raw !== "number" || !Number.isFinite(raw)) {
-        return null;
-    }
-    const degrees = raw * SEMICIRCLE_TO_DEGREES;
-    if (!Number.isFinite(degrees) || Math.abs(degrees) > 180) {
-        return null;
-    }
-    return degrees;
 }
 
 /**

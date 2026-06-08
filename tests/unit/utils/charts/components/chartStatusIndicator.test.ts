@@ -187,8 +187,6 @@ describe("chartStatusIndicator.js", () => {
         testGlobal.window = dom.window as Window & typeof globalThis;
         testGlobal.HTMLElement = dom.window.HTMLElement;
         testGlobal.customElements = dom.window.customElements;
-        Reflect.deleteProperty(testGlobal, "globalData");
-        Reflect.deleteProperty(testGlobal.window, "globalData");
 
         // Save original functions
         originalAddEventListener = window.addEventListener;
@@ -479,7 +477,7 @@ describe("chartStatusIndicator.js", () => {
                 vi.mocked(settingsStateManager.subscribeToChartSettings)
             ).toHaveBeenCalledWith(expect.any(Function));
             expect(vi.mocked(stateManager.subscribe)).toHaveBeenCalledWith(
-                "globalData",
+                "fitFile.rawData",
                 expect.any(Function)
             );
             expect(Object.hasOwn(globalThis, "globalData")).toBe(false);
@@ -514,7 +512,7 @@ describe("chartStatusIndicator.js", () => {
                 vi.mocked(settingsStateManager.subscribeToChartSettings)
             ).toHaveBeenCalledWith(expect.any(Function));
             expect(vi.mocked(stateManager.subscribe)).toHaveBeenCalledWith(
-                "globalData",
+                "fitFile.rawData",
                 expect.any(Function)
             );
 
@@ -555,48 +553,6 @@ describe("chartStatusIndicator.js", () => {
                 expect.objectContaining({ signal: expect.any(AbortSignal) })
             );
             expect(document.body.childElementCount).toBe(0);
-        });
-
-        it("should not redefine globalData property if already configured", async () => {
-            expect.assertions(2);
-
-            // Define a custom getter/setter for globalData
-            Object.defineProperty(window, "globalData", {
-                get() {
-                    return "existing";
-                },
-                set() {
-                    /* do nothing */
-                },
-                configurable: false,
-            });
-
-            // Import the module
-            const { setupChartStatusUpdates } =
-                await import("../../../../../electron-app/utils/charts/components/chartStatusIndicator.js");
-
-            // Call the function
-            setupChartStatusUpdates();
-
-            // Assert that the property was not reconfigured
-            const descriptor = Object.getOwnPropertyDescriptor(
-                window,
-                "globalData"
-            );
-            expect({
-                configurable: descriptor?.configurable,
-                enumerable: descriptor?.enumerable,
-                hasGetter: typeof descriptor?.get,
-                hasSetter: typeof descriptor?.set,
-                value: window.globalData,
-            }).toStrictEqual({
-                configurable: false,
-                enumerable: false,
-                hasGetter: "function",
-                hasSetter: "function",
-                value: "existing",
-            });
-            expect(console.error).not.toHaveBeenCalled();
         });
     });
 });

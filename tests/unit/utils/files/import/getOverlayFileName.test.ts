@@ -24,9 +24,9 @@ describe("getOverlayFileName", () => {
         expect.assertions(1);
 
         vi.doMock(
-            import("../../../../../electron-app/utils/state/core/stateManager.js"),
+            import("../../../../../electron-app/utils/state/domain/loadedFitFilesState.js"),
             () => ({
-                getState: vi.fn<(path?: string) => unknown>(() => ({
+                getLoadedFitFiles: vi.fn<() => unknown>(() => ({
                     nope: true,
                 })),
             })
@@ -39,9 +39,9 @@ describe("getOverlayFileName", () => {
         expect.assertions(3);
 
         vi.doMock(
-            import("../../../../../electron-app/utils/state/core/stateManager.js"),
+            import("../../../../../electron-app/utils/state/domain/loadedFitFilesState.js"),
             () => ({
-                getState: vi.fn<(path?: string) => unknown>(() => [
+                getLoadedFitFiles: vi.fn<() => unknown>(() => [
                     {},
                     { filePath: 123 },
                     { filePath: "   " },
@@ -58,9 +58,9 @@ describe("getOverlayFileName", () => {
         expect.assertions(1);
 
         vi.doMock(
-            import("../../../../../electron-app/utils/state/core/stateManager.js"),
+            import("../../../../../electron-app/utils/state/domain/loadedFitFilesState.js"),
             () => ({
-                getState: vi.fn<(path?: string) => unknown>(() => [
+                getLoadedFitFiles: vi.fn<() => unknown>(() => [
                     { filePath: "C:/data/ride.fit" },
                 ]),
             })
@@ -73,9 +73,9 @@ describe("getOverlayFileName", () => {
         expect.assertions(1);
 
         vi.doMock(
-            import("../../../../../electron-app/utils/state/core/stateManager.js"),
+            import("../../../../../electron-app/utils/state/domain/loadedFitFilesState.js"),
             () => ({
-                getState: vi.fn<(path?: string) => unknown>(() => {
+                getLoadedFitFiles: vi.fn<() => unknown>(() => {
                     throw new Error("boom");
                 }),
             })

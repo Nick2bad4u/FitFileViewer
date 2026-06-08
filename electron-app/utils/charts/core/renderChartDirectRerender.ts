@@ -1,5 +1,5 @@
 import { debounce } from "./renderChartDebounce.js";
-import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
+import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
 interface StateManager {
     getState(path: string): unknown;
@@ -37,9 +37,8 @@ export function createDebouncedDirectRerender(
 ): (reason?: string) => void {
     return debounce((reason = "State change") => {
         const container = getChartContainer();
-        const stateManager = dependencies.getStateManager();
-        const data = stateManager.getState("globalData");
-        const hasValidData = hasChartDataRecordMessages(data);
+        dependencies.getStateManager();
+        const hasValidData = hasActiveFitChartData();
 
         if (container && hasValidData) {
             void dependencies

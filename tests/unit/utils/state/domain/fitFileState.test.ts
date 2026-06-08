@@ -157,9 +157,10 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("clearFileState sets all related paths and logs", () => {
-        expect.assertions(9);
+        expect.assertions(13);
 
         const mgr = new FitFileStateManager();
+        Reflect.set(globalThis, "loadedFitFiles", [{ filePath: "stale.fit" }]);
         const spy = vi.spyOn(stateManager, "setState");
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         mgr.clearFileState();
@@ -174,10 +175,37 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             "fitFile.metrics",
             "fitFile.loadingError",
             "fitFile.processingError",
+            "fitFile.loaded",
+            "fitFile.loadedFiles",
         ].forEach((p) => expect(calls).toContain(p));
+        expect(stateManager.getState("fitFile.loadedFiles")).toStrictEqual([]);
+        expect(Reflect.has(globalThis, "loadedFitFiles")).toBe(false);
         expect(logSpy).toHaveBeenCalledWith(
             "[FitFileState] File state cleared"
         );
+    });
+
+    it("stores loaded FIT file entries through the explicit domain slice", () => {
+        expect.assertions(3);
+
+        const mgr = new FitFileStateManager();
+        const loadedFiles = [
+            {
+                data: { recordMesgs: [] },
+                filePath: "overlay.fit",
+                originalPath: "C:/rides/overlay.fit",
+                sourceKey: "path:c:/rides/overlay.fit",
+            },
+        ];
+
+        mgr.setLoadedFiles(loadedFiles, "test");
+
+        const selectedFiles = FitFileSelectors.getLoadedFiles();
+        expect(selectedFiles).toStrictEqual(loadedFiles);
+        expect(selectedFiles).not.toBe(loadedFiles);
+
+        selectedFiles.push({ filePath: "mutated.fit" });
+        expect(FitFileSelectors.getLoadedFiles()).toStrictEqual(loadedFiles);
     });
 
     it("startFileLoading sets loading flags and current file", () => {
@@ -216,8 +244,8 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         expect(stateManager.getState("fitFile.loadingError")).toBeNull();
     });
 
-    it("handleFileLoaded updates domain + legacy slices and notifies", () => {
-        expect.assertions(14);
+    it("handleFileLoaded updates domain slices and notifies", () => {
+        expect.assertions(13);
 
         const mgr = new FitFileStateManager();
         const ss = vi.spyOn(stateManager, "setState");
@@ -254,7 +282,6 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             data,
             expect.any(Object)
         );
-        expect(ss).toHaveBeenCalledWith("globalData", data, expect.any(Object));
         expect(ss).toHaveBeenCalledWith(
             "currentFile",
             "C:/demo.fit",
@@ -295,7 +322,6 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             chartsRendered: stateManager.getState("charts.isRendered"),
             currentFile: stateManager.getState("currentFile"),
             fitFileCurrentFile: stateManager.getState("fitFile.currentFile"),
-            globalData: stateManager.getState("globalData"),
             isLoading: stateManager.getState("fitFile.isLoading"),
             loadingPhase: stateManager.getState("fitFile.loadingPhase"),
             loadingError: stateManager.getState("fitFile.loadingError"),
@@ -308,7 +334,6 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             chartsRendered: false,
             currentFile: "C:/demo.fit",
             fitFileCurrentFile: "C:/demo.fit",
-            globalData: data,
             isLoading: false,
             loadingPhase: "loaded",
             loadingError: null,
@@ -452,7 +477,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         const paths = subscribeCalls.map((c) => c.path);
         expect(paths).toEqual(
             expect.arrayContaining([
-                "globalData",
+                "fitFile.rawData",
                 "fitFile.processedData",
                 "fitFile.loadingProgress",
                 "fitFile.loaded",
@@ -461,12 +486,14 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         );
 
         // Trigger data processing subscriber(s)
-        const procSubs = subscribeCalls.filter((c) => c.path === "globalData");
+        const procSubs = subscribeCalls.filter(
+            (c) => c.path === "fitFile.rawData"
+        );
         const pSpy = vi.spyOn(mgr, "processFileData");
         const vSpy = vi.spyOn(mgr, "validateFileData");
         const recordPayload = { recordMesgs: [{}] };
         for (const subscription of procSubs) {
-            subscription.cb(recordPayload, undefined, "globalData");
+            subscription.cb(recordPayload, undefined, "fitFile.rawData");
         }
         expect(pSpy).toHaveBeenCalledWith(recordPayload);
         expect(vSpy).toHaveBeenCalledWith(recordPayload);
@@ -689,17 +716,16 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             { source: "test" }
         );
         stateManager.setState("fitFile.isLoading", true, { source: "test" });
-        stateManager.setState(
-            "globalData",
-            {
-                eventMesgs: [{ event: "start" }],
-                lapMesgs: [{ total_elapsed_time: 120 }],
-                recordMesgs: [{ timestamp: 1 }],
-                sessionMesgs: [{ sport: "cycling" }],
-                timeInZoneMesgs: [{ referenceMesg: "lap" }],
-            },
-            { source: "test" }
-        );
+        const rawData = {
+            eventMesgs: [{ event: "start" }],
+            lapMesgs: [{ total_elapsed_time: 120 }],
+            recordMesgs: [{ timestamp: 1 }],
+            sessionMesgs: [{ sport: "cycling" }],
+            timeInZoneMesgs: [{ referenceMesg: "lap" }],
+        };
+        stateManager.setState("fitFile.rawData", rawData, {
+            source: "test",
+        });
 
         expect({
             currentFile: FitFileSelectors.getCurrentFile(),
@@ -737,13 +763,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
                     hasPower: true,
                 },
             },
-            rawData: {
-                eventMesgs: [{ event: "start" }],
-                lapMesgs: [{ total_elapsed_time: 120 }],
-                recordMesgs: [{ timestamp: 1 }],
-                sessionMesgs: [{ sport: "cycling" }],
-                timeInZoneMesgs: [{ referenceMesg: "lap" }],
-            },
+            rawData,
             validation: { isValid: true },
         });
         expect({
@@ -761,7 +781,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
         });
     });
 
-    it("fitFileSelectors prefer domain raw data over compatibility global data", () => {
+    it("fitFileSelectors ignore compatibility global data when domain raw data is loaded", () => {
         expect.assertions(1);
 
         stateManager.setState(

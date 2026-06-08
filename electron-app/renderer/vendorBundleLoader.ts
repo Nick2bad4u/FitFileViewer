@@ -1,14 +1,11 @@
-export type RendererVendorBundleEntry = "chart-data" | "core" | "map";
+import {
+    isRendererVendorEntryLoaded,
+    rendererVendorEntryLoadedEventName,
+    type RendererVendorBundleEntry,
+    type RendererVendorEntryLoadedEventDetail,
+} from "./vendorGlobalsShared.js";
 
-type RendererVendorBundleState = Readonly<{
-    loaded: true;
-    source: "npm-bundle";
-    splitEntries: readonly string[];
-}>;
-
-type RendererVendorBundleGlobal = typeof globalThis & {
-    __FFV_RENDERER_VENDOR_BUNDLE__?: RendererVendorBundleState;
-};
+export type { RendererVendorBundleEntry } from "./vendorGlobalsShared.js";
 
 const bundleFileByEntry: Record<RendererVendorBundleEntry, string> = {
     "chart-data": "vendor-globals-chart-data.js",
@@ -20,18 +17,10 @@ const inFlightLoads = new Map<RendererVendorBundleEntry, Promise<void>>();
 const vendorEntryMarkerPollMs = 20;
 const vendorEntryMarkerTimeoutMs = 5000;
 
-function getVendorGlobal(): RendererVendorBundleGlobal {
-    return globalThis;
-}
-
 function isRendererVendorBundleLoaded(
     entryName: RendererVendorBundleEntry
 ): boolean {
-    return (
-        getVendorGlobal().__FFV_RENDERER_VENDOR_BUNDLE__?.splitEntries.includes(
-            entryName
-        ) === true
-    );
+    return isRendererVendorEntryLoaded(entryName);
 }
 
 function createVendorScriptUrl(entryName: RendererVendorBundleEntry): string {
@@ -48,6 +37,7 @@ function waitForRendererVendorEntry(
     const startedAt = Date.now();
 
     return new Promise<void>((resolve, reject) => {
+        const eventController = new AbortController();
         let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
         const clearPendingTimer = (): void => {
@@ -57,19 +47,40 @@ function waitForRendererVendorEntry(
             clearTimeout(timeoutId);
             timeoutId = undefined;
         };
+        const cleanup = (): void => {
+            clearPendingTimer();
+            eventController.abort();
+            globalThis.removeEventListener(
+                rendererVendorEntryLoadedEventName,
+                onEntryLoaded
+            );
+        };
         const scheduleCheck = (delayMs: number): void => {
             clearPendingTimer();
             timeoutId = setTimeout(checkEntryMarker, delayMs);
         };
+        const isMatchingEntryEvent = (
+            event: Event
+        ): event is CustomEvent<RendererVendorEntryLoadedEventDetail> =>
+            event instanceof CustomEvent &&
+            event.detail?.entryName === entryName;
+        const onEntryLoaded = (event: Event): void => {
+            if (!isMatchingEntryEvent(event)) {
+                return;
+            }
+
+            cleanup();
+            resolve();
+        };
         const checkEntryMarker = (): void => {
             if (isRendererVendorBundleLoaded(entryName)) {
-                clearPendingTimer();
+                cleanup();
                 resolve();
                 return;
             }
 
             if (Date.now() - startedAt >= vendorEntryMarkerTimeoutMs) {
-                clearPendingTimer();
+                cleanup();
                 reject(
                     new Error(
                         `Renderer vendor bundle loaded without registering entry: ${entryName}`
@@ -81,6 +92,11 @@ function waitForRendererVendorEntry(
             scheduleCheck(vendorEntryMarkerPollMs);
         };
 
+        globalThis.addEventListener(
+            rendererVendorEntryLoadedEventName,
+            onEntryLoaded,
+            { signal: eventController.signal }
+        );
         scheduleCheck(0);
     });
 }
@@ -110,7 +126,7 @@ function createVendorScript(
  *
  * The index shell keeps only the small core vendor entry eager. Map and
  * chart/data vendors should call this from tab activation paths before touching
- * Leaflet, Chart.js, jQuery, or DataTables globals.
+ * Leaflet, Chart.js, or other renderer compatibility globals.
  */
 export async function ensureRendererVendorBundle(
     entryName: RendererVendorBundleEntry

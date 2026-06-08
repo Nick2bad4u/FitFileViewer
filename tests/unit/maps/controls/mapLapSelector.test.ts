@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { addLapSelector } from "../../../../electron-app/utils/maps/controls/mapLapSelector.js";
-import { setGlobalData } from "../../../../electron-app/utils/state/core/globalDataStore.js";
+import { setActiveFitRawData } from "../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
 
 type LapSelection = "all" | string[];
@@ -70,7 +70,7 @@ describe("mapLapSelector", () => {
     it("renders a selector option for each lap plus the all option", () => {
         expect.assertions(5);
 
-        setGlobalData(
+        setActiveFitRawData(
             {
                 lapMesgs: [
                     {},
@@ -116,7 +116,7 @@ describe("mapLapSelector", () => {
     it("calls mapDrawLaps with selected single and multi-lap values", () => {
         expect.assertions(11);
 
-        setGlobalData(
+        setActiveFitRawData(
             {
                 lapMesgs: [
                     {},

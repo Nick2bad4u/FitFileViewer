@@ -1,4 +1,4 @@
-import { getState } from "../../state/core/stateManager.js";
+import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
 
 type LoadedFitFile = {
     readonly filePath?: unknown;
@@ -31,7 +31,7 @@ export function getOverlayFileName(idx: number): string {
     }
 
     try {
-        const loadedFitFiles = getState<unknown>("globalData.loadedFitFiles");
+        const loadedFitFiles = getLoadedFitFiles();
 
         if (!Array.isArray(loadedFitFiles)) {
             console.warn(

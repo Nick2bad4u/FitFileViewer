@@ -1,3 +1,4 @@
+import { getRegisteredChartInstanceCount } from "./chartInstanceRegistry.js";
 import { runChartRender } from "./renderChartExecution.js";
 import { completeChartRendering } from "./renderChartLifecycle.js";
 import { touchRendererModulesForTest } from "./renderChartTestRendererTouches.js";
@@ -33,12 +34,7 @@ interface ChartLifecycleActions {
     ) => void;
 }
 
-interface ChartRuntimeGlobal {
-    _chartjsInstances?: unknown[];
-}
-
 interface PreparedChartRenderDependencies {
-    chartGlobal: ChartRuntimeGlobal;
     createElement(tagName: string): HTMLElement;
     getGlobalChartActions(): ChartLifecycleActions | null;
     getRendererModules(): RendererProbeModules;
@@ -59,12 +55,6 @@ interface PreparedChartRenderInput {
 interface PreparedChartRenderResult {
     renderTime: number;
     success: boolean;
-}
-
-function getChartInstanceCount(chartGlobal: ChartRuntimeGlobal): number {
-    return Array.isArray(chartGlobal._chartjsInstances)
-        ? chartGlobal._chartjsInstances.length
-        : 0;
 }
 
 /**
@@ -128,7 +118,7 @@ export async function executePreparedChartRender(
                 dependencies.safeCompleteRendering(wasSuccessful),
         },
         success,
-        getChartInstanceCount(dependencies.chartGlobal),
+        getRegisteredChartInstanceCount(),
         renderTime
     );
 

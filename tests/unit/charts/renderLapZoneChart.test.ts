@@ -3,6 +3,14 @@ import { renderLapZoneChart } from "../../../electron-app/utils/charts/rendering
 import { getThemeConfig } from "../../../electron-app/utils/theming/core/theme.js";
 import { getZoneColor } from "../../../electron-app/utils/data/zones/chartZoneColorUtils.js";
 
+const chartJsMocks = vi.hoisted(() => ({
+    Chart: vi.fn<() => ChartMockInstance>(),
+}));
+
+vi.mock(import("chart.js/auto"), () => ({
+    default: chartJsMocks.Chart,
+}));
+
 interface ChartConfig {
     data: {
         datasets: ChartDataset[];
@@ -169,12 +177,14 @@ describe(renderLapZoneChart, () => {
         mockChart = {
             destroy: vi.fn<() => void>(),
         };
+        chartJsMocks.Chart.mockReset();
+        chartJsMocks.Chart.mockImplementation(function ChartMock() {
+            return mockChart;
+        });
 
         Object.defineProperty(globalThis, "Chart", {
             configurable: true,
-            value: vi.fn<() => ChartMockInstance>(function ChartMock() {
-                return mockChart;
-            }),
+            value: chartJsMocks.Chart,
         });
         Object.defineProperty(globalThis, "showNotification", {
             configurable: true,
@@ -195,10 +205,12 @@ describe(renderLapZoneChart, () => {
         delete (globalThis as LapZoneChartTestGlobal).showNotification;
     });
 
-    it("should return null when Chart.js is missing", () => {
+    it("should return null when Chart.js chart creation fails", () => {
         expect.assertions(2);
 
-        delete (globalThis as LapZoneChartTestGlobal).Chart;
+        chartJsMocks.Chart.mockImplementationOnce(function ChartMock() {
+            throw new Error("Chart.js creation failed");
+        });
 
         const view = renderLapZoneChart(mockCanvas, []);
 

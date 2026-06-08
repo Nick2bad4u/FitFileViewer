@@ -1,10 +1,20 @@
-import { getRecordValue, isObjectRecord } from "./renderChartModuleHelpers.js";
+import {
+    getFitChartActivityStartTime,
+    getFitChartRecordMessages,
+    hasFitChartRecordMessages,
+    isFitChartRecord,
+    isFitChartRecordArray,
+    isNonEmptyFitChartRecordArray,
+    type FitChartActivityStartTime,
+    type FitChartRecord,
+    type FitChartRecordSource,
+} from "../../state/domain/fitChartDataState.js";
 
 /** Supported activity start-time values consumed by chart label normalization. */
-export type ActivityStartTime = Date | number | null;
+export type ActivityStartTime = FitChartActivityStartTime;
 
 /** Object row from FIT record messages after validating chart data input. */
-export type ChartDataRecord = Record<string, unknown>;
+export type ChartDataRecord = FitChartRecord;
 
 /** State payload stored for downstream chart data consumers. */
 export interface PreparedChartData {
@@ -14,9 +24,7 @@ export interface PreparedChartData {
 }
 
 /** Object that exposes validated chart record messages. */
-export interface ChartDataRecordSource {
-    readonly recordMesgs: readonly ChartDataRecord[];
-}
+export type ChartDataRecordSource = FitChartRecordSource;
 
 interface StoreChartDataDependencies {
     setState(
@@ -28,45 +36,35 @@ interface StoreChartDataDependencies {
 
 /** Checks whether a value is a single object row from FIT record messages. */
 export function isChartDataRecord(value: unknown): value is ChartDataRecord {
-    return isObjectRecord(value);
+    return isFitChartRecord(value);
 }
 
 /** Checks whether a value is an array containing only chart data records. */
 export function isChartDataRecordArray(
     value: unknown
 ): value is ChartDataRecord[] {
-    return Array.isArray(value) && value.every(isChartDataRecord);
+    return isFitChartRecordArray(value);
 }
 
 /** Checks whether a value is a non-empty array of chart data records. */
 export function isNonEmptyChartDataRecordArray(
     value: unknown
 ): value is ChartDataRecord[] {
-    return isChartDataRecordArray(value) && value.length > 0;
+    return isNonEmptyFitChartRecordArray(value);
 }
 
 /** Checks whether an object exposes non-empty validated chart record messages. */
 export function hasChartDataRecordMessages(
     value: unknown
 ): value is ChartDataRecordSource {
-    return (
-        isChartDataRecord(value) &&
-        isNonEmptyChartDataRecordArray(getRecordValue(value, "recordMesgs"))
-    );
-}
-
-function isActivityStartTime(value: unknown): value is Date | number {
-    return (
-        value instanceof Date ||
-        (typeof value === "number" && Number.isFinite(value))
-    );
+    return hasFitChartRecordMessages(value);
 }
 
 /**
- * Checks whether global chart data is a record-like object.
+ * Checks whether FIT activity chart data is a record-like object.
  */
 export function isChartDataObject(value: unknown): value is ChartDataRecord {
-    return isChartDataRecord(value);
+    return isFitChartRecord(value);
 }
 
 /**
@@ -74,22 +72,9 @@ export function isChartDataObject(value: unknown): value is ChartDataRecord {
  * rows.
  */
 export function getRecordMessages(
-    globalData: ChartDataRecord
+    activityData: ChartDataRecord
 ): ChartDataRecord[] | null {
-    const recordMesgs = getRecordValue(globalData, "recordMesgs");
-    if (!Array.isArray(recordMesgs)) {
-        return null;
-    }
-    if (recordMesgs.length === 0) {
-        return null;
-    }
-
-    if (isChartDataRecordArray(recordMesgs)) {
-        return recordMesgs;
-    }
-
-    const validRecords = recordMesgs.filter(isChartDataRecord);
-    return validRecords.length > 0 ? validRecords : null;
+    return getFitChartRecordMessages(activityData);
 }
 
 /**
@@ -98,14 +83,7 @@ export function getRecordMessages(
 export function getActivityStartTime(
     recordMesgs: readonly ChartDataRecord[]
 ): ActivityStartTime {
-    for (const record of recordMesgs) {
-        const timestamp = getRecordValue(record, "timestamp");
-        if (isActivityStartTime(timestamp)) {
-            return timestamp;
-        }
-    }
-
-    return null;
+    return getFitChartActivityStartTime(recordMesgs);
 }
 
 /**

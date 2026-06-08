@@ -1,8 +1,8 @@
-import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
 import type {
     MiddlewareContext,
     MiddlewareDefinition,
 } from "../../state/core/stateMiddleware.js";
+import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
 interface ComputedStateManager {
     define?(key: string, compute: () => unknown): void;
@@ -68,7 +68,7 @@ export function initializeChartStateManagement(
 
     const computedStateManager = dependencies.getComputedStateManager();
     computedStateManager.define?.("charts.hasData", () =>
-        hasChartDataRecordMessages(dependencies.getState("globalData"))
+        hasActiveFitChartData()
     );
 
     computedStateManager.define?.(

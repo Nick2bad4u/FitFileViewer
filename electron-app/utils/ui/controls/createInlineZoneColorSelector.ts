@@ -4,6 +4,7 @@
  */
 
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
+import { getRegisteredChartInstances } from "../../charts/core/chartInstanceRegistry.js";
 // Avoid direct import to prevent circular dependency during SSR; use event-based request
 import {
     applyZoneColors,
@@ -54,7 +55,6 @@ type ZoneColorSelectorElement = HTMLElement & {
 };
 
 type ZoneColorSelectorGlobal = typeof globalThis & {
-    _chartjsInstances?: ChartLike[];
     heartRateZones?: ZoneDataItem[];
     powerZones?: ZoneDataItem[];
     renderChartJS?: () => unknown;
@@ -70,6 +70,19 @@ const zoneColorSelectorTimers = new Set<ReturnType<typeof setTimeout>>();
 
 function getZoneColorSelectorGlobal(): ZoneColorSelectorGlobal {
     return globalThis;
+}
+
+function isChartLike(value: unknown): value is ChartLike {
+    const chartData =
+        value !== null && typeof value === "object"
+            ? (value as { data?: unknown }).data
+            : undefined;
+
+    return (
+        chartData !== null &&
+        typeof chartData === "object" &&
+        Array.isArray((chartData as { datasets?: unknown }).datasets)
+    );
 }
 
 function scheduleZoneColorSelectorTimer(
@@ -1219,19 +1232,12 @@ function updateZoneColorPreview(
     newColor: string
 ): void {
     try {
-        const zoneColorGlobal = getZoneColorSelectorGlobal();
         // Find all charts that might be affected by this zone color change
-        if (
-            zoneColorGlobal._chartjsInstances &&
-            Array.isArray(zoneColorGlobal._chartjsInstances)
-        ) {
+        const charts = getRegisteredChartInstances().filter(isChartLike);
+        if (charts.length > 0) {
             let chartsUpdated = 0;
 
-            for (const chart of zoneColorGlobal._chartjsInstances) {
-                if (!chart) {
-                    continue;
-                }
-
+            for (const chart of charts) {
                 chartsUpdated += updateChartZoneDatasetColors(
                     chart,
                     field,

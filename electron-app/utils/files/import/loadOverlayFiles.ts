@@ -1,6 +1,11 @@
 import pLimitCompat from "../../async/pLimitCompat.js";
 import { updateShownFilesList } from "../../rendering/components/shownFilesListUpdater.js";
-import { setState } from "../../state/core/stateManager.js";
+import {
+    appendLoadedFitFile,
+    getLoadedFitFiles,
+    setLoadedFitFiles,
+} from "../../state/domain/loadedFitFilesState.js";
+import { getActiveFitRawData } from "../../state/domain/activeFitRawDataState.js";
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import {
@@ -31,11 +36,6 @@ export type LoadedFitFileEntry = {
     sourceKey: string | null;
 };
 
-type LoadOverlayGlobal = typeof globalThis & {
-    globalData?: OverlayFitData | null;
-    loadedFitFiles?: LoadedFitFileEntry[];
-};
-
 const PATH_SEPARATOR_REGEX = /[/\\]+/g;
 const OVERLAY_PATH_KEYS = [
     "originalPath",
@@ -57,12 +57,9 @@ export async function loadOverlayFiles(
     const totalFiles = files.length;
     LoadingOverlay.show(`Loading 0 / ${totalFiles} files...`);
 
-    const appGlobal = getLoadOverlayGlobal();
     const existingKeys = new Set<string>();
     let stateDirty = ensureLoadedFitFilesInitialized(existingKeys);
-    const initialCount = Array.isArray(appGlobal.loadedFitFiles)
-        ? appGlobal.loadedFitFiles.length
-        : 0;
+    const initialCount = getLoadedFitFiles().length;
 
     const invalidFiles: string[] = [];
     const duplicateFiles: string[] = [];
@@ -93,7 +90,7 @@ export async function loadOverlayFiles(
                         result.data,
                         uniqueKey
                     );
-                    appendLoadedFitFile(appGlobal, entry);
+                    appendLoadedFitFile(entry, "loadOverlayFiles");
                     stateDirty = true;
                 } else {
                     invalidFiles.push(displayName);
@@ -177,9 +174,7 @@ export async function loadOverlayFiles(
         }
     }
 
-    const finalCount = Array.isArray(appGlobal.loadedFitFiles)
-        ? appGlobal.loadedFitFiles.length
-        : 0;
+    const finalCount = getLoadedFitFiles().length;
     const newlyAdded = Math.max(0, finalCount - initialCount);
     const attempted = totalFiles - duplicateFiles.length;
 
@@ -208,11 +203,7 @@ export async function loadOverlayFiles(
 
 function syncLoadedFitFilesState(): void {
     try {
-        const { loadedFitFiles } = getLoadOverlayGlobal();
-        const files = Array.isArray(loadedFitFiles) ? [...loadedFitFiles] : [];
-        setState("globalData.loadedFitFiles", files, {
-            source: "loadOverlayFiles",
-        });
+        setLoadedFitFiles(getLoadedFitFiles(), "loadOverlayFiles");
     } catch (error) {
         console.error(
             "[loadOverlayFiles] Failed to sync loadedFitFiles state:",
@@ -226,24 +217,11 @@ async function refreshOverlayMap(): Promise<void> {
         const { renderMap } = await import("../../maps/core/renderMap.js");
         renderMap();
     } catch (error) {
-        console.error("[loadOverlayFiles] Failed to refresh overlay map:", error);
+        console.error(
+            "[loadOverlayFiles] Failed to refresh overlay map:",
+            error
+        );
     }
-}
-
-function appendLoadedFitFile(
-    appGlobal: LoadOverlayGlobal,
-    entry: LoadedFitFileEntry
-): void {
-    if (Array.isArray(appGlobal.loadedFitFiles)) {
-        appGlobal.loadedFitFiles.push(entry);
-        return;
-    }
-
-    appGlobal.loadedFitFiles = [entry];
-}
-
-function getLoadOverlayGlobal(): LoadOverlayGlobal {
-    return globalThis;
 }
 
 function createOverlayEntry(
@@ -278,7 +256,7 @@ function createOverlayEntry(
 }
 
 function createPrimaryEntry(): LoadedFitFileEntry | null {
-    const { globalData: baseData } = getLoadOverlayGlobal();
+    const baseData = getActiveFitRawData() as OverlayFitData | null;
     if (!baseData) {
         return null;
     }
@@ -315,24 +293,17 @@ function deriveEntryKey(entry: LoadedFitFileEntry): string | null {
 }
 
 function ensureLoadedFitFilesInitialized(existingKeys: Set<string>): boolean {
-    const appGlobal = getLoadOverlayGlobal();
+    let loadedFitFiles = getLoadedFitFiles() as LoadedFitFileEntry[];
     let mutated = false;
+    const shouldInitializeEmptyMirror = loadedFitFiles.length === 0;
 
-    if (
-        !Array.isArray(appGlobal.loadedFitFiles) ||
-        appGlobal.loadedFitFiles.length === 0
-    ) {
+    if (loadedFitFiles.length === 0) {
         const primaryEntry = createPrimaryEntry();
-        appGlobal.loadedFitFiles = primaryEntry ? [primaryEntry] : [];
+        loadedFitFiles = primaryEntry ? [primaryEntry] : [];
         mutated = Boolean(primaryEntry);
     }
 
-    if (!Array.isArray(appGlobal.loadedFitFiles)) {
-        appGlobal.loadedFitFiles = [];
-        return mutated;
-    }
-
-    for (const entry of appGlobal.loadedFitFiles) {
+    for (const entry of loadedFitFiles) {
         if (
             !entry.originalPath &&
             typeof entry.data.cachedFilePath === "string"
@@ -352,6 +323,10 @@ function ensureLoadedFitFilesInitialized(existingKeys: Set<string>): boolean {
             }
             existingKeys.add(key);
         }
+    }
+
+    if (mutated || shouldInitializeEmptyMirror) {
+        setLoadedFitFiles(loadedFitFiles, "loadOverlayFiles.initialize");
     }
 
     return mutated;

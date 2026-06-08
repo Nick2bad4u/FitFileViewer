@@ -1,7 +1,14 @@
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
-import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import {
+    clearLeafletRuntimeForTests,
+    setLeafletRuntime,
+} from "../../../../../electron-app/utils/maps/core/leafletRuntime.js";
+import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
+import {
+    __resetStateManagerForTests,
+    setState,
+} from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type DomFactory = () => HTMLElement;
 type EventHandler = () => void;
@@ -56,6 +63,11 @@ type RenderMapWindow = Window & {
     globalData: { recordMesgs: unknown[]; sessionMesgs?: unknown[] };
     loadedFitFiles: unknown[];
 };
+
+function setActiveFitTestData(data: Record<string, unknown>): void {
+    setActiveFitRawData(data, { source: "test" });
+    setState("fitFile.rawData", data, { source: "test.fitFileRawData" });
+}
 
 const {
     mockCreateTables,
@@ -146,16 +158,11 @@ vi.mock(
 vi.mock(
     import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js"),
     async (orig) => {
-        // We defer to actual implementation but ensure it sees a stubbed global L with tileLayer/maplibreGL
-        const g = globalThis as typeof globalThis & {
-            L?: BaseLayerLeafletStub;
-        };
-        if (!g.L) {
-            g.L = {
-                maplibreGL: vi.fn<() => Record<string, never>>(() => ({})),
-                tileLayer: vi.fn<() => Record<string, never>>(() => ({})),
-            };
-        }
+        // We defer to actual implementation but ensure it sees a stubbed Leaflet adapter with tileLayer/maplibreGL.
+        setLeafletRuntime({
+            maplibreGL: vi.fn<() => Record<string, never>>(() => ({})),
+            tileLayer: vi.fn<() => Record<string, never>>(() => ({})),
+        } satisfies BaseLayerLeafletStub);
         return await (orig as any)();
     }
 );
@@ -301,6 +308,7 @@ describe("renderMap core", () => {
     beforeEach(() => {
         __resetStateManagerForTests();
         vi.restoreAllMocks();
+        clearLeafletRuntimeForTests();
         document.body.replaceChildren();
 
         // Ensure a container exists by default
@@ -310,7 +318,7 @@ describe("renderMap core", () => {
 
         // Reset window extensions used by the module
         const w = window as RenderMapWindow;
-        setGlobalData({ recordMesgs: [] }, { source: "test" });
+        setActiveFitTestData({ recordMesgs: [] });
         w._overlayPolylines = {};
         w._leafletMapInstance = null;
         w.loadedFitFiles = [];
@@ -336,7 +344,7 @@ describe("renderMap core", () => {
         expect.assertions(11);
 
         const { L, map, handlers } = makeLeafletStub();
-        (globalThis as typeof globalThis & { L?: LeafletGlobalStub }).L = L;
+        setLeafletRuntime(L);
 
         const { renderMap } = await importSUT();
         renderMap();
@@ -414,7 +422,7 @@ describe("renderMap core", () => {
         expect.assertions(3);
 
         const { L, map } = makeLeafletStub();
-        (globalThis as typeof globalThis & { L?: LeafletGlobalStub }).L = L;
+        setLeafletRuntime(L);
         const { renderMap } = await importSUT();
 
         const container = document.getElementById("content-map")!;
@@ -437,12 +445,12 @@ describe("renderMap core", () => {
         expect.assertions(6);
 
         const { L } = makeLeafletStub();
-        (globalThis as typeof globalThis & { L?: LeafletGlobalStub }).L = L;
+        setLeafletRuntime(L);
         const data = {
             recordMesgs: [{ enhancedSpeed: 6, timestamp: 1 }],
             sessionMesgs: [{ sport: "cycling" }],
         };
-        setGlobalData(data, { source: "test" });
+        setActiveFitTestData(data);
 
         const { renderMap } = await importSUT();
         renderMap();

@@ -2,8 +2,10 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
 import type { SummaryRenderData } from "../../../../../electron-app/utils/rendering/core/renderSummary.js";
 import type { FitSummaryData } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js";
-import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
-import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import {
+    __resetStateManagerForTests,
+    setState,
+} from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 async function importHelpers() {
     return await import("../../../../../electron-app/utils/rendering/helpers/renderSummaryHelpers.js");
@@ -51,18 +53,16 @@ describe("renderSummary helpers + renderSummary", () => {
         createSummaryContainer();
         localStorage.clear();
         delete getSummaryWindow().activeFitFileName;
-        Reflect.deleteProperty(globalThis, "globalData");
     });
     afterEach(() => {
         vi.resetModules();
         __resetStateManagerForTests();
         delete getSummaryWindow().activeFitFileName;
-        Reflect.deleteProperty(globalThis, "globalData");
         document.body.replaceChildren();
     });
 
-    it("getStorageKey prefers managed globalData cachedFilePath then data.cachedFilePath then activeFitFileName", async () => {
-        expect.assertions(4);
+    it("getStorageKey prefers active FIT metadata then data.cachedFilePath then activeFitFileName", async () => {
+        expect.assertions(5);
 
         const { getStorageKey } = await importHelpers();
         const summaryWindow = getSummaryWindow();
@@ -74,12 +74,24 @@ describe("renderSummary helpers + renderSummary", () => {
             `summaryColSel_${encodeURIComponent("/a/b/c.fit")}`
         );
 
-        setGlobalData({ cachedFilePath: "C:/tmp/foo.fit" }, { source: "test" });
+        setState(
+            "fitFile.rawData",
+            { cachedFilePath: "C:/tmp/foo.fit" },
+            { source: "test" }
+        );
         expect(getStorageKey({ cachedFilePath: "/a/b/c.fit" }, [])).toBe(
             `summaryColSel_${encodeURIComponent("C:/tmp/foo.fit")}`
         );
 
-        setGlobalData(null, { source: "test.clear" });
+        setState("fitFile.currentFile", "C:/tmp/current.fit", {
+            source: "test",
+        });
+        expect(getStorageKey({ cachedFilePath: "/a/b/c.fit" }, [])).toBe(
+            `summaryColSel_${encodeURIComponent("C:/tmp/current.fit")}`
+        );
+
+        setState("fitFile.currentFile", null, { source: "test.clear" });
+        setState("fitFile.rawData", null, { source: "test.clear" });
         expect(getStorageKey({}, [])).toBe(
             `summaryColSel_${encodeURIComponent("active.fit")}`
         );

@@ -1,26 +1,43 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getState } from "../../../electron-app/utils/state/core/stateManager.js";
 import { formatTooltipData } from "../../../electron-app/utils/formatting/display/formatTooltipData.js";
 
+const getActiveFitActivityDataMock = vi.hoisted(() =>
+    vi.fn<
+        () => {
+            lapMesgs: Record<string, unknown>[];
+            rawData: Record<string, unknown> | null;
+            recordMesgs: Record<string, unknown>[];
+            sessionMesgs: Record<string, unknown>[];
+        }
+    >()
+);
+
 vi.mock(
-    import("../../../electron-app/utils/state/core/stateManager.js"),
+    import("../../../electron-app/utils/state/domain/fitActivityDataState.js"),
     () => ({
-        getState: vi.fn<(path?: string) => unknown>(),
-        setState: vi.fn(),
+        getActiveFitActivityData: getActiveFitActivityDataMock,
     })
 );
 
-const mockedGetState = vi.mocked(getState);
+function mockActiveFitActivityData({
+    rawData = { fieldDescriptionMesgs: [] },
+    recordMesgs = [],
+}: {
+    rawData?: Record<string, unknown> | null;
+    recordMesgs?: Record<string, unknown>[];
+} = {}): void {
+    getActiveFitActivityDataMock.mockReturnValue({
+        lapMesgs: [],
+        rawData,
+        recordMesgs,
+        sessionMesgs: [],
+    });
+}
 
 describe(formatTooltipData, () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        mockedGetState.mockImplementation((path?: string) => {
-            if (path === "globalData") {
-                return { fieldDescriptionMesgs: [] };
-            }
-            return undefined;
-        });
+        mockActiveFitActivityData();
     });
 
     it("formats complete tooltip data with elapsed time and primary metrics", () => {

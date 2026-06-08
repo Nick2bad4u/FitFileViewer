@@ -112,7 +112,7 @@ describe("preload.js - Module Cache Injection Test", () => {
             mockModule as unknown as RequireCacheModule;
 
         // Clear preload.js from cache to ensure fresh require
-        delete require.cache[require.resolve("../../electron-app/preload.js")];
+        delete require.cache[require.resolve("../../dist/preload.js")];
 
         writeDebugPreloadMessage(
             `About to require preload.js with module cache injection\n`
@@ -129,7 +129,7 @@ describe("preload.js - Module Cache Injection Test", () => {
             mockContextBridge.exposeInMainWorld.mock.calls.length;
 
         // Require the preload.js file to execute it
-        require("../../electron-app/preload.js");
+        require("../../dist/preload.js");
 
         // Check mock calls after require
         const callsAfter =

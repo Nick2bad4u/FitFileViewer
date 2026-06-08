@@ -1,4 +1,4 @@
-import * as Leaflet from "leaflet";
+import Leaflet from "leaflet";
 /* eslint-disable import-x/no-unassigned-import -- Leaflet stylesheets must be loaded through the bundle entry. */
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
@@ -18,15 +18,13 @@ import "leaflet.locatecontrol/dist/L.Control.Locate.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 /* eslint-enable import-x/no-unassigned-import */
-import maplibregl from "maplibre-gl";
 /* eslint-disable import-x/no-unassigned-import -- MapLibre stylesheet must be loaded through the bundle entry. */
 import "maplibre-gl/dist/maplibre-gl.css";
 /* eslint-enable import-x/no-unassigned-import */
 
-import {
-    defineMissingGlobal,
-    markRendererVendorEntryLoaded,
-} from "./vendorGlobalsShared.js";
+import { installLeafletMeasureLite } from "./leafletMeasureLite.js";
+import { markRendererVendorEntryLoaded } from "./vendorGlobalsShared.js";
+import { setLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
 
 const leafletGlobal = Leaflet as typeof Leaflet & {
     Control: typeof Leaflet.Control & {
@@ -64,7 +62,7 @@ function installMinimapToggleIcon(): void {
     );
 }
 
-/** Installs Leaflet, MapLibre, and map plugin globals used by the Map tab. */
+/** Installs the Leaflet runtime and map plugins used by the Map tab. */
 export async function installRendererMapVendorGlobals(): Promise<void> {
     installMinimapToggleIcon();
 
@@ -73,15 +71,13 @@ export async function installRendererMapVendorGlobals(): Promise<void> {
     leafletGlobal.control.fullscreen = (options) => new FullScreen(options);
     leafletGlobal.control.locate = (options) => new LocateControl(options);
 
-    defineMissingGlobal("L", Leaflet);
-    defineMissingGlobal("Leaflet", Leaflet);
-    defineMissingGlobal("maplibregl", maplibregl);
+    setLeafletRuntime(Leaflet);
 
     await import("leaflet-draw");
     await import("leaflet-minimap");
     await import("leaflet.markercluster");
     await import("@maplibre/maplibre-gl-leaflet");
-    await import("./leafletMeasureLite.js");
+    installLeafletMeasureLite(Leaflet);
 
     markRendererVendorEntryLoaded("map");
 }

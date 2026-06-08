@@ -4,6 +4,7 @@ import {
 } from "../../theming/core/theme.js";
 import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import type { AppIconName } from "../../ui/icons/iconFactory.js";
+import { resolveChartRuntime } from "../core/chartRuntime.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { resolveChartTitleIconName } from "./chartTitleOverlayUtils.js";
 const FULLSCREEN_EVENTS = [
@@ -60,7 +61,6 @@ interface LegacyChartCanvas extends HTMLCanvasElement {
 interface ChartHoverGlobal {
     __FFV_debugCharts?: unknown;
     __FFV_traceFullscreen?: unknown;
-    Chart?: unknown;
     getThemeConfig?: unknown;
 }
 
@@ -259,9 +259,9 @@ function traceChartFullscreen(
 function getChartInstanceFromCanvas(
     canvas: HTMLCanvasElement
 ): ChartInstanceLike | null {
-    const chartGlobal = chartHoverGlobal.Chart;
+    const chartGlobal = resolveChartRuntime(isChartGlobalLike);
     if (
-        isChartGlobalLike(chartGlobal) &&
+        chartGlobal &&
         typeof chartGlobal.getChart === "function"
     ) {
         const chart = chartGlobal.getChart(canvas);

@@ -336,8 +336,8 @@ class StateDebugUtilities {
 
         const expectedKeys = [
             "app",
+            "fitFile",
             "ui",
-            "globalData",
             "system",
             "settings",
         ];

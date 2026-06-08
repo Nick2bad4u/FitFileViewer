@@ -19,6 +19,71 @@ const vendorEntryNames = new Set([
     rendererVendorGlobalsMapBundleName,
 ]);
 
+const leafletRuntimePluginPrelude = [
+    'const L = globalThis[Symbol.for("fitfileviewer.leafletRuntime")]?.runtime;',
+    'if (!L) throw new Error("Leaflet runtime is required before loading legacy Leaflet plugins.");',
+    "",
+].join("\n");
+
+const minimapGlobalRegistrationSnippet =
+    'if(typeof window!=="undefined"&&window.L){window.L.Control.MiniMap=factory(L);window.L.control.minimap=function(layer,options){return new window.L.Control.MiniMap(layer,options)}}';
+
+/** @type {ReadonlyMap<string, (code: string) => string>} */
+const legacyLeafletPluginTransforms = new Map([
+    [
+        "/node_modules/leaflet-draw/dist/leaflet.draw.js",
+        (code) => `${leafletRuntimePluginPrelude}${code}`,
+    ],
+    [
+        "/node_modules/leaflet-minimap/dist/Control.MiniMap.min.js",
+        (code) => {
+            if (!code.includes(minimapGlobalRegistrationSnippet)) {
+                throw new Error(
+                    "Unable to rewrite leaflet-minimap global registration"
+                );
+            }
+
+            return `${leafletRuntimePluginPrelude}${code.replace(
+                minimapGlobalRegistrationSnippet,
+                "if(true){L.Control.MiniMap=factory(L);L.control.minimap=function(layer,options){return new L.Control.MiniMap(layer,options)}}"
+            )}`;
+        },
+    ],
+    [
+        "/node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js",
+        (code) => `${leafletRuntimePluginPrelude}${code}`,
+    ],
+]);
+
+/** @returns {import("vite").Plugin} */
+function legacyLeafletPluginRuntimeTransform() {
+    return {
+        enforce: "pre",
+        name: "fitfileviewer-legacy-leaflet-plugin-runtime",
+        /**
+         * @param {string} code
+         * @param {string} id
+         *
+         * @returns {import("vite").TransformResult}
+         */
+        transform(code, id) {
+            const normalizedId = id.replaceAll("\\", "/");
+            const transformLegacyPlugin = [
+                ...legacyLeafletPluginTransforms.entries(),
+            ].find(([pluginPath]) => normalizedId.includes(pluginPath))?.[1];
+
+            if (!transformLegacyPlugin) {
+                return null;
+            }
+
+            return {
+                code: transformLegacyPlugin(code),
+                map: null,
+            };
+        },
+    };
+}
+
 export default defineConfig({
     build: {
         cssCodeSplit: false,
@@ -41,9 +106,10 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 assetFileNames(assetInfo) {
-                    return assetInfo.names.includes(
-                        rendererVendorGlobalsStyleFileName
-                    )
+                    return Array.isArray(assetInfo.names) &&
+                        assetInfo.names.includes(
+                            rendererVendorGlobalsStyleFileName
+                        )
                         ? "[name][extname]"
                         : "assets/[name][extname]";
                 },
@@ -58,6 +124,7 @@ export default defineConfig({
         sourcemap: false,
         target: "es2024",
     },
+    plugins: [legacyLeafletPluginRuntimeTransform()],
     publicDir: false,
     root: repositoryRoot,
 });

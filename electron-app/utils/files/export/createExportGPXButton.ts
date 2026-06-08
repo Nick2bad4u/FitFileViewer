@@ -1,18 +1,17 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
-import { FitFileSelectors } from "../../state/domain/fitFileState.js";
+import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
+import { getActiveFitRouteData } from "../../state/domain/fitRouteDataState.js";
+import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { buildDownloadFilename } from "../sanitizeFilename.js";
 import {
     buildGpxFromRecords,
     type GpxRecord,
     type LoadedFitFileDescriptor,
+    resolveTrackNameFromFileIdentity,
     resolveTrackNameFromLoadedFiles,
 } from "./gpxExport.js";
-
-type GpxExportGlobal = typeof globalThis & {
-    loadedFitFiles?: LoadedFitFileDescriptor[];
-};
 
 type GpxExportData = {
     readonly loadedFitFiles?: LoadedFitFileDescriptor[];
@@ -24,14 +23,6 @@ const downloadCleanupTimers = new WeakMap<
     HTMLAnchorElement,
     ReturnType<typeof setTimeout>
 >();
-
-function getGpxExportGlobal(): GpxExportGlobal {
-    return globalThis;
-}
-
-function getGpxExportData(): GpxExportData | null | undefined {
-    return FitFileSelectors.getRawData();
-}
 
 function createExportIcon(primary: string): SVGSVGElement {
     const svg = document.createElementNS(SVG_NAMESPACE, "svg");
@@ -62,7 +53,7 @@ function createExportIcon(primary: string): SVGSVGElement {
 /**
  * Creates an Export GPX button for exporting the current track as a GPX file.
  * The button uses the current theme colors and exports the track from
- * globalData.
+ * explicit FIT route state.
  */
 export function createExportGPXButton(): HTMLButtonElement {
     const exportBtn = document.createElement("button");
@@ -77,11 +68,11 @@ export function createExportGPXButton(): HTMLButtonElement {
     exportBtn.addEventListener(
         "click",
         () => {
-            const windowCtx = getGpxExportGlobal();
-            const fitData = getGpxExportData();
-            const records = FitFileSelectors.getRecordMessages<GpxRecord>();
+            const routeData = getActiveFitRouteData();
+            const fitData = routeData.rawData as GpxExportData | null;
+            const records = routeData.recordMesgs as GpxRecord[];
 
-            if (records.length === 0) {
+            if (routeData.totalRecords === 0) {
                 showNotification(
                     "No data available for GPX export.",
                     "info",
@@ -90,8 +81,24 @@ export function createExportGPXButton(): HTMLButtonElement {
                 return;
             }
 
+            if (!routeData.ready) {
+                showNotification(
+                    "No valid coordinates found for GPX export.",
+                    "info",
+                    3000
+                );
+                return;
+            }
+
+            const fallbackTrackName = resolveTrackNameFromFileIdentity(
+                getActiveFitFileMetadata({
+                    sourceData:
+                        fitData && typeof fitData === "object" ? fitData : null,
+                }).storageIdentity
+            );
             const trackName = resolveTrackNameFromLoadedFiles(
-                fitData?.loadedFitFiles ?? windowCtx?.loadedFitFiles
+                fitData?.loadedFitFiles ?? getLoadedFitFiles(),
+                fallbackTrackName
             );
             const gpx = buildGpxFromRecords(records, { trackName });
             if (!gpx) {

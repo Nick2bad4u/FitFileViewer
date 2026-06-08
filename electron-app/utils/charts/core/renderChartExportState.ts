@@ -1,11 +1,7 @@
+import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import type { StateUpdateOptions } from "../../state/core/stateManager.js";
 
-interface ChartExportGlobal {
-    _chartjsInstances?: unknown;
-}
-
 interface CreateExportChartsWithStateDependencies {
-    chartGlobal: ChartExportGlobal;
     getChartInstances(fallbackInstances: unknown): unknown[];
     getState(path: string): unknown;
     notify(
@@ -42,7 +38,7 @@ export function createExportChartsWithState(
     return (format = "png") => {
         const isRendered = Boolean(dependencies.getState("charts.isRendered"));
         const instances = dependencies.getChartInstances(
-            dependencies.chartGlobal._chartjsInstances
+            getRegisteredChartInstances()
         );
 
         if (!isRendered && instances.length === 0) {

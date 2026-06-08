@@ -17,6 +17,7 @@ const isMapRenderedMock = vi.fn<() => boolean>();
 const areTablesRenderedMock = vi.fn<() => boolean>();
 
 const toggleChartControlsMock = vi.fn<() => void>();
+const getRawDataMock = vi.fn<() => unknown>();
 
 const getStateMock = vi.fn<(key: string) => unknown>();
 const setStateMock =
@@ -60,6 +61,23 @@ vi.mock(
         getState: getStateMock,
         setState: setStateMock,
         subscribe: subscribeMock,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/state/domain/fitFileState.js"),
+    () => ({
+        FitFileSelectors: {
+            getLapMessages: () => {
+                const rawData = getRawDataMock();
+                if (rawData === null || typeof rawData !== "object") {
+                    return [];
+                }
+                const lapMesgs = (rawData as { lapMesgs?: unknown }).lapMesgs;
+                return Array.isArray(lapMesgs) ? lapMesgs : [];
+            },
+            getRawData: getRawDataMock,
+        },
     })
 );
 
@@ -133,6 +151,7 @@ beforeEach(() => {
     setStateMock.mockImplementation((key: string, value: unknown) => {
         stateStore.set(key, value);
     });
+    getRawDataMock.mockImplementation(() => stateStore.get("fitFile.rawData"));
 
     hasDataMock.mockReturnValue(true);
     isTabActiveMock.mockImplementation(
@@ -206,7 +225,7 @@ describe("rendererStateIntegration", () => {
     });
 
     it("initializeRendererWithNewStateSystem wires subscriptions and responds to changes", async () => {
-        expect.assertions(20);
+        expect.assertions(21);
 
         const tabContentSummary = document.createElement("div");
         tabContentSummary.className = "tab-content";
@@ -279,7 +298,7 @@ describe("rendererStateIntegration", () => {
         expect(switchTabMock).toHaveBeenCalledWith("summary");
 
         hasDataMock.mockReturnValue(true);
-        stateStore.set("globalData", { data: true });
+        stateStore.set("fitFile.rawData", { data: true });
         areChartsRenderedMock.mockReturnValue(false);
         isMapRenderedMock.mockReturnValue(false);
         areTablesRenderedMock.mockReturnValue(false);
@@ -322,6 +341,7 @@ describe("rendererStateIntegration", () => {
             false,
             expect.objectContaining({ source: "loadTableTab" })
         );
+        expect(getRawDataMock.mock.calls.length).toBeGreaterThanOrEqual(3);
 
         requiredReactiveHandler("chart");
         expect({
@@ -350,10 +370,10 @@ describe("rendererStateIntegration", () => {
         controlsHandler(false);
         expect(settingsWrapper.style.display).toBe("none");
 
-        const globalHandlers = getHandlers("globalData");
+        const globalHandlers = getHandlers("fitFile.rawData");
         const globalHandler = requireValue(
             globalHandlers[0],
-            "Expected globalData handler"
+            "Expected fitFile.rawData handler"
         );
         setStateMock.mockClear();
         areChartsRenderedMock.mockClear();

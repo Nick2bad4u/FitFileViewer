@@ -59,7 +59,6 @@ export function renderChartDataCharts(
     const primaryFieldRenderResult = renderPrimaryChartFields(
         {
             chartContainer: dependencies.chartContainer,
-            chartGlobal: dependencies.chartGlobal,
             createChartCanvas: dependencies.createChartCanvas,
             createEnhancedChart: dependencies.createEnhancedChart,
             getActiveTab: dependencies.getActiveTab,

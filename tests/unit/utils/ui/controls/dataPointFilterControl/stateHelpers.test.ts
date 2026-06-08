@@ -10,7 +10,7 @@ import {
     toSliderString,
     updateGlobalFilter,
 } from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.js";
-import { setGlobalData } from "../../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { setActiveFitRawData } from "../../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../../electron-app/utils/state/core/stateManager.js";
 
 type DataPointFilterConfig = {
@@ -41,7 +41,7 @@ describe("stateHelpers", () => {
         vi.restoreAllMocks();
         console.error = originalConsoleError;
         Reflect.deleteProperty(testGlobal, "mapDataPointFilter");
-        setGlobalData({ recordMesgs: [] }, { source: "test" });
+        setActiveFitRawData({ recordMesgs: [] }, { source: "test" });
     });
 
     afterEach(() => {
@@ -95,7 +95,7 @@ describe("stateHelpers", () => {
     it("computeRangeState returns normalized stats and slider strings for available data", () => {
         expect.hasAssertions();
 
-        setGlobalData(
+        setActiveFitRawData(
             {
                 recordMesgs: [
                     { speed: 10 },

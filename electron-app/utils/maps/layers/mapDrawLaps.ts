@@ -2,7 +2,18 @@ import { chartOverlayColorPalette } from "../../charts/theming/chartOverlayColor
 import type * as Leaflet from "leaflet";
 import { escapeHtml } from "../../dom/index.js";
 import { getOverlayFileName } from "../../files/import/getOverlayFileName.js";
-import { getState, setState } from "../../state/core/stateManager.js";
+import {
+    getLoadedFitFiles,
+    getOverlayLoadedFitFiles,
+    keepOnlyLoadedFitFileAt,
+} from "../../state/domain/loadedFitFilesState.js";
+import {
+    getActiveFitRouteData,
+    getFitRouteCoordinates,
+    getFitRouteRecordLatitude,
+    getFitRouteRecordLongitude,
+} from "../../state/domain/fitRouteDataState.js";
+import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
 import {
     createMetricFilter,
     getMetricDefinition,
@@ -74,11 +85,6 @@ type FitDataLike = {
     recordMesgs?: RecordMesg[];
 };
 
-type LoadedFitFileLike = {
-    data?: FitDataLike;
-    filePath?: string;
-};
-
 type MapDrawWindowLike = typeof globalThis & {
     __realUpdateOverlayHighlights?: () => unknown;
     _activeMainFileIdx?: number;
@@ -88,8 +94,6 @@ type MapDrawWindowLike = typeof globalThis & {
     _mainPolyline?: LeafletLayerLike | undefined;
     _mainPolylineOriginalBounds?: LeafletBoundsLike | undefined;
     _overlayPolylines?: Record<string, LeafletLayerLike>;
-    L?: LeafletRuntimeLike;
-    loadedFitFiles?: LoadedFitFileLike[];
     mapDataPointFilter?: MapDataPointFilterConfig | null;
     mapDataPointFilterLastResult?: MetricFilterSummary | null;
     mapMarkerCount?: number;
@@ -202,6 +206,23 @@ type AddLapDataPointMarkerOptions = {
     registerDataPointMarker: (marker: LeafletLayerLike) => void;
 };
 
+type BuildRouteCoordTuplesOptions = {
+    fixedLapNum?: number | undefined;
+    getLapNumForIdx?: MapDrawLapsOptions["getLapNumForIdx"] | undefined;
+    lapMesgs?: LapMesg[] | undefined;
+    recordIndexOffset?: number | undefined;
+};
+
+type DrawLoadedFitFileOverlaysOptions = {
+    endIcon?: unknown;
+    formatTooltipData: MapDrawLapsOptions["formatTooltipData"];
+    getLapNumForIdx: MapDrawLapsOptions["getLapNumForIdx"];
+    leaflet: LeafletRuntimeLike;
+    map: MapLike;
+    markerClusterGroup?: MarkerClusterLike | null | undefined;
+    startIcon?: unknown;
+};
+
 /**
  * Draw an overlay activity track for a loaded FIT file.
  */
@@ -223,27 +244,24 @@ export function drawOverlayForFitFile({
 
     patchLapIndices(lapMesgs, recordMesgs);
 
-    const coords = recordMesgs
-        .map((row: RecordMesg, idx: number) => {
-            if (
-                typeof row.positionLat === "number" &&
-                typeof row.positionLong === "number"
-            ) {
-                return [
-                    Number((row.positionLat / 2 ** 31) * 180),
-                    Number((row.positionLong / 2 ** 31) * 180),
-                    row.timestamp || null,
-                    row.altitude || null,
-                    row.heartRate || null,
-                    row.speed || null,
-                    idx,
-                    row,
-                    (getLapNumForIdx ? getLapNumForIdx(idx, lapMesgs) : 1) ?? 1,
-                ] as CoordTuple;
-            }
-            return null;
-        })
-        .filter((coord): coord is CoordTuple => coord !== null);
+    const coords = getFitRouteCoordinates(recordMesgs).map(
+        ({ latitude, longitude, record, recordIndex }) => {
+            const row = record as RecordMesg;
+            return [
+                latitude,
+                longitude,
+                row.timestamp || null,
+                row.altitude || null,
+                row.heartRate || null,
+                row.speed || null,
+                recordIndex,
+                row,
+                (getLapNumForIdx
+                    ? getLapNumForIdx(recordIndex, lapMesgs)
+                    : 1) ?? 1,
+            ] as CoordTuple;
+        }
+    );
 
     if (coords.length === 0) {
         console.warn(
@@ -503,19 +521,12 @@ export function mapDrawLaps(
 
     // --- If switching main files, ensure overlays are cleared and only the new main file is plotted ---
     if (
-        Array.isArray(win.loadedFitFiles) &&
-        win.loadedFitFiles.length > 1 &&
+        getLoadedFitFiles().length > 1 &&
         typeof win._activeMainFileIdx === "number" &&
         win._activeMainFileIdx > 0
     ) {
-        // Remove overlays from loadedFitFiles except the main file
-        const activeMainFile = win.loadedFitFiles[win._activeMainFileIdx];
-        win.loadedFitFiles = activeMainFile ? [activeMainFile] : [];
         try {
-            const files = [...win.loadedFitFiles];
-            setState("globalData.loadedFitFiles", files, {
-                source: "mapDrawLaps",
-            });
+            keepOnlyLoadedFitFileAt(win._activeMainFileIdx, "mapDrawLaps");
         } catch (error) {
             console.warn(
                 "[mapDrawLaps] Failed to sync loadedFitFiles state:",
@@ -611,40 +622,10 @@ export function mapDrawLaps(
             }
         }
 
-        coords = recordMesgs
-            .map((row, idx) => {
-                if (
-                    row &&
-                    typeof row.positionLat === "number" &&
-                    typeof row.positionLong === "number"
-                ) {
-                    let lapNum = 1;
-                    if (getLapNumForIdx) {
-                        lapNum = getLapNumForIdx(idx, lapMesgs) ?? 1;
-                        if (!lapNum || Number.isNaN(lapNum)) {
-                            lapNum = 1;
-                        }
-                    }
-                    if (idx < 10 || idx > recordMesgs.length - 10) {
-                        console.log(
-                            `[mapDrawLaps] idx=${idx}, lapNum=${lapNum}, lat=${row.positionLat}, lon=${row.positionLong}`
-                        );
-                    }
-                    return [
-                        Number((row.positionLat / 2 ** 31) * 180),
-                        Number((row.positionLong / 2 ** 31) * 180),
-                        row.timestamp || null,
-                        row.altitude || null,
-                        row.heartRate || null,
-                        row.speed || null,
-                        idx,
-                        row,
-                        lapNum,
-                    ] as CoordTuple;
-                }
-                return null;
-            })
-            .filter((coord): coord is CoordTuple => coord !== null);
+        coords = buildRouteCoordTuples(recordMesgs, {
+            getLapNumForIdx,
+            lapMesgs,
+        });
 
         if (coords.length === 0) {
             renderMapInfoMessage(
@@ -774,60 +755,17 @@ export function mapDrawLaps(
             bringDataPointMarkersToFront();
         }
 
-        // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
-        if (getLoadedFitFiles().length > 1) {
-            const colorPalette = chartOverlayColorPalette;
-            let lastOverlayBounds = null,
-                overlayIdx = 0;
-            const loaded = getLoadedFitFiles();
-            for (let i = 1; i < loaded.length; i += 1) {
-                const overlay = loaded[i];
-                if (!overlay || !overlay.data) {
-                    continue;
-                }
-                const color = colorPalette[overlayIdx % colorPalette.length],
-                    fileName =
-                        typeof getOverlayFileName === "function"
-                            ? getOverlayFileName(i)
-                            : overlay.filePath || "",
-                    bounds = drawOverlayForFitFile({
-                        color: color || "#1976d2",
-                        endIcon,
-                        fileName,
-                        fitData: {
-                            lapMesgs: Array.isArray(overlay.data.lapMesgs)
-                                ? overlay.data.lapMesgs
-                                : [],
-                            recordMesgs: Array.isArray(overlay.data.recordMesgs)
-                                ? overlay.data.recordMesgs
-                                : [],
-                        },
-                        formatTooltipData,
-                        getLapNumForIdx,
-                        map,
-                        markerClusterGroup,
-                        overlayIdx: i,
-                        startIcon,
-                    });
-                if (bounds) {
-                    let safeBounds = bounds;
-                    const winLeaflet = getWin().L;
-                    if (
-                        (!bounds || typeof bounds.clone !== "function") &&
-                        winLeaflet
-                    ) {
-                        safeBounds = winLeaflet.latLngBounds(bounds);
-                    }
-                    lastOverlayBounds =
-                        safeBounds && typeof safeBounds.clone === "function"
-                            ? safeBounds.clone()
-                            : safeBounds || null;
-                }
-                overlayIdx += 1;
-            }
-            if (lastOverlayBounds) {
-                safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
-            }
+        const lastOverlayBounds = drawLoadedFitFileOverlays({
+            endIcon,
+            formatTooltipData,
+            getLapNumForIdx,
+            leaflet: L,
+            map,
+            markerClusterGroup,
+            startIcon,
+        });
+        if (lastOverlayBounds) {
+            safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
         }
         return;
     }
@@ -840,39 +778,10 @@ export function mapDrawLaps(
                 `[mapDrawLaps] "all" laps mode: recordMesgs.length = ${recordMesgs.length} lapMesgs.length = ${lapMesgs.length} lapMesgs[0]=`,
                 lapMesgs[0]
             );
-            coords = recordMesgs
-                .map((row: RecordMesg, idx: number) => {
-                    if (
-                        typeof row.positionLat === "number" &&
-                        typeof row.positionLong === "number"
-                    ) {
-                        let lapNum = 1;
-                        if (getLapNumForIdx) {
-                            lapNum = getLapNumForIdx(idx, lapMesgs) ?? 1;
-                            if (!lapNum || Number.isNaN(lapNum)) {
-                                lapNum = 1;
-                            }
-                        }
-                        if (idx < 10 || idx > recordMesgs.length - 10) {
-                            console.log(
-                                `[mapDrawLaps] idx=${idx}, lapNum=${lapNum}, lat=${row.positionLat}, lon=${row.positionLong}`
-                            );
-                        }
-                        return [
-                            Number((row.positionLat / 2 ** 31) * 180),
-                            Number((row.positionLong / 2 ** 31) * 180),
-                            row.timestamp || null,
-                            row.altitude || null,
-                            row.heartRate || null,
-                            row.speed || null,
-                            idx,
-                            row,
-                            lapNum,
-                        ] as CoordTuple;
-                    }
-                    return null;
-                })
-                .filter((coord): coord is CoordTuple => coord !== null);
+            coords = buildRouteCoordTuples(recordMesgs, {
+                getLapNumForIdx,
+                lapMesgs,
+            });
 
             if (coords.length === 0) {
                 renderMapInfoMessage(
@@ -982,65 +891,19 @@ export function mapDrawLaps(
                 }
             }
 
-            // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
-            if (getLoadedFitFiles().length > 1) {
-                const colorPalette = chartOverlayColorPalette;
-                let lastOverlayBounds = null,
-                    overlayIdx = 0;
-                const loaded = getLoadedFitFiles();
-                for (let i = 1; i < loaded.length; i += 1) {
-                    const overlay = loaded[i];
-                    if (!overlay || !overlay.data) {
-                        continue;
-                    }
-                    const color =
-                            colorPalette[overlayIdx % colorPalette.length],
-                        fileName =
-                            typeof getOverlayFileName === "function"
-                                ? getOverlayFileName(i)
-                                : overlay.filePath || "",
-                        bounds = drawOverlayForFitFile({
-                            color: color || "#1976d2",
-                            endIcon,
-                            fileName,
-                            fitData: {
-                                lapMesgs: Array.isArray(overlay.data.lapMesgs)
-                                    ? overlay.data.lapMesgs
-                                    : [],
-                                recordMesgs: Array.isArray(
-                                    overlay.data.recordMesgs
-                                )
-                                    ? overlay.data.recordMesgs
-                                    : [],
-                            },
-                            formatTooltipData,
-                            getLapNumForIdx,
-                            map,
-                            markerClusterGroup,
-                            overlayIdx: i,
-                            startIcon,
-                        });
-                    if (bounds) {
-                        let safeBounds = bounds;
-                        const winLeaflet = getWin().L;
-                        if (
-                            (!bounds || typeof bounds.clone !== "function") &&
-                            winLeaflet
-                        ) {
-                            safeBounds = winLeaflet.latLngBounds(bounds);
-                        }
-                        lastOverlayBounds =
-                            safeBounds && typeof safeBounds.clone === "function"
-                                ? safeBounds.clone()
-                                : safeBounds || null;
-                    }
-                    overlayIdx += 1;
-                }
-                if (lastOverlayBounds) {
-                    safeFitBounds(map, lastOverlayBounds, {
-                        padding: [20, 20],
-                    });
-                }
+            const lastOverlayBounds = drawLoadedFitFileOverlays({
+                endIcon,
+                formatTooltipData,
+                getLapNumForIdx,
+                leaflet: L,
+                map,
+                markerClusterGroup,
+                startIcon,
+            });
+            if (lastOverlayBounds) {
+                safeFitBounds(map, lastOverlayBounds, {
+                    padding: [20, 20],
+                });
             }
             return;
         }
@@ -1054,9 +917,7 @@ export function mapDrawLaps(
                 continue;
             }
             const lap = lapMesgs[Number(lapVal)];
-            if (
-                hasLapCoordinates(lap)
-            ) {
+            if (hasLapCoordinates(lap)) {
                 const startIdx = findClosestRecordIndexByLatLon(
                     lap.startPositionLat,
                     lap.startPositionLong,
@@ -1073,33 +934,10 @@ export function mapDrawLaps(
                 }
                 if (startIdx !== -1 && endIdx !== -1 && startIdx <= endIdx) {
                     const lapRecords = recordMesgs.slice(startIdx, endIdx + 1),
-                        lapCoords = lapRecords
-                            .map((row: RecordMesg, idx: number) => {
-                                if (
-                                    typeof row.positionLat === "number" &&
-                                    typeof row.positionLong === "number"
-                                ) {
-                                    return [
-                                        Number(
-                                            (row.positionLat / 2 ** 31) * 180
-                                        ),
-                                        Number(
-                                            (row.positionLong / 2 ** 31) * 180
-                                        ),
-                                        row.timestamp || null,
-                                        row.altitude || null,
-                                        row.heartRate || null,
-                                        row.speed || null,
-                                        startIdx + idx,
-                                        row,
-                                        Number(lapVal) + 1,
-                                    ] as CoordTuple;
-                                }
-                                return null;
-                            })
-                            .filter(
-                                (coord): coord is CoordTuple => coord !== null
-                            );
+                        lapCoords = buildRouteCoordTuples(lapRecords, {
+                            fixedLapNum: Number(lapVal) + 1,
+                            recordIndexOffset: startIdx,
+                        });
 
                     if (lapCoords.length > 0) {
                         const polyColor = getLapColor(Number(lapVal)),
@@ -1162,72 +1000,24 @@ export function mapDrawLaps(
             });
         }
 
-        // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
-        if (getLoadedFitFiles().length > 1) {
-            const colorPalette = chartOverlayColorPalette;
-            let lastOverlayBounds = null,
-                overlayIdx = 0;
-            const loaded = getLoadedFitFiles();
-            for (let i = 1; i < loaded.length; i += 1) {
-                const overlay = loaded[i];
-                if (!overlay || !overlay.data) {
-                    continue;
-                }
-                const color = colorPalette[overlayIdx % colorPalette.length],
-                    fileName =
-                        typeof getOverlayFileName === "function"
-                            ? getOverlayFileName(i)
-                            : overlay.filePath || "";
-                const overlayBounds = drawOverlayForFitFile({
-                    color: color || "#1976d2",
-                    endIcon,
-                    fileName,
-                    fitData: {
-                        lapMesgs: Array.isArray(overlay.data.lapMesgs)
-                            ? overlay.data.lapMesgs
-                            : [],
-                        recordMesgs: Array.isArray(overlay.data.recordMesgs)
-                            ? overlay.data.recordMesgs
-                            : [],
-                    },
-                    formatTooltipData,
-                    getLapNumForIdx,
-                    map,
-                    markerClusterGroup,
-                    overlayIdx: i,
-                    startIcon,
-                });
-                if (overlayBounds) {
-                    // Defensive: ensure bounds is a valid LatLngBounds object
-                    let safeBounds = overlayBounds;
-                    const winLeaflet = getWin().L;
-                    if (
-                        (!overlayBounds ||
-                            typeof overlayBounds.clone !== "function") &&
-                        winLeaflet
-                    ) {
-                        safeBounds = winLeaflet.latLngBounds(overlayBounds);
-                    }
-                    lastOverlayBounds =
-                        safeBounds && typeof safeBounds.clone === "function"
-                            ? safeBounds.clone()
-                            : safeBounds || null;
-                }
-                overlayIdx += 1;
-            }
-            // Always auto-zoom to the overlay just added (not all overlays)
-            if (lastOverlayBounds) {
-                safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
-            }
+        const lastOverlayBounds = drawLoadedFitFileOverlays({
+            endIcon,
+            formatTooltipData,
+            getLapNumForIdx,
+            leaflet: L,
+            map,
+            markerClusterGroup,
+            startIcon,
+        });
+        if (lastOverlayBounds) {
+            safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
         }
         return;
     }
 
     if (lapIdx !== undefined && lapIdx !== "all" && lapMesgs.length > 0) {
         const lap = lapMesgs[Number(lapIdx)];
-        if (
-            hasLapCoordinates(lap)
-        ) {
+        if (hasLapCoordinates(lap)) {
             const startIdx = findClosestRecordIndexByLatLon(
                 lap.startPositionLat,
                 lap.startPositionLong,
@@ -1244,27 +1034,10 @@ export function mapDrawLaps(
             }
             if (startIdx !== -1 && endIdx !== -1 && startIdx <= endIdx) {
                 const lapRecords = recordMesgs.slice(startIdx, endIdx + 1);
-                coords = lapRecords
-                    .map((row: RecordMesg, idx: number) => {
-                        if (
-                            typeof row.positionLat === "number" &&
-                            typeof row.positionLong === "number"
-                        ) {
-                            return [
-                                Number((row.positionLat / 2 ** 31) * 180),
-                                Number((row.positionLong / 2 ** 31) * 180),
-                                row.timestamp || null,
-                                row.altitude || null,
-                                row.heartRate || null,
-                                row.speed || null,
-                                startIdx + idx,
-                                row,
-                                Number(lapIdx) + 1,
-                            ] as CoordTuple;
-                        }
-                        return null;
-                    })
-                    .filter((coord): coord is CoordTuple => coord !== null);
+                coords = buildRouteCoordTuples(lapRecords, {
+                    fixedLapNum: Number(lapIdx) + 1,
+                    recordIndexOffset: startIdx,
+                });
             } else {
                 renderMapInfoMessage(
                     mapContainer,
@@ -1294,27 +1067,10 @@ export function mapDrawLaps(
             return;
         }
     } else {
-        coords = recordMesgs
-            .map((row: RecordMesg, idx: number) => {
-                if (
-                    typeof row.positionLat === "number" &&
-                    typeof row.positionLong === "number"
-                ) {
-                    return [
-                        Number((row.positionLat / 2 ** 31) * 180),
-                        Number((row.positionLong / 2 ** 31) * 180),
-                        row.timestamp || null,
-                        row.altitude || null,
-                        row.heartRate || null,
-                        row.speed || null,
-                        idx,
-                        row,
-                        getLapNumForIdx(idx, lapMesgs) ?? 1,
-                    ] as CoordTuple;
-                }
-                return null;
-            })
-            .filter((coord): coord is CoordTuple => coord !== null);
+        coords = buildRouteCoordTuples(recordMesgs, {
+            getLapNumForIdx,
+            lapMesgs,
+        });
     }
 
     if (coords.length === 0) {
@@ -1444,59 +1200,17 @@ export function mapDrawLaps(
             );
         }
 
-        // --- When adding overlays, only zoom to the overlay just added, not all overlays ---
-        if (getLoadedFitFiles().length > 1) {
-            const colorPalette = chartOverlayColorPalette;
-            let lastOverlayBounds = null,
-                overlayIdx = 0;
-            const loaded = getLoadedFitFiles();
-            for (let i = 1; i < loaded.length; i += 1) {
-                const overlay = loaded[i];
-                if (!overlay || !overlay.data) {
-                    continue;
-                }
-                const color = colorPalette[overlayIdx % colorPalette.length],
-                    fileName =
-                        typeof getOverlayFileName === "function"
-                            ? getOverlayFileName(i)
-                            : overlay.filePath || "",
-                    bounds = drawOverlayForFitFile({
-                        color: color || "#1976d2",
-                        endIcon,
-                        fileName,
-                        fitData: {
-                            lapMesgs: Array.isArray(overlay.data.lapMesgs)
-                                ? overlay.data.lapMesgs
-                                : [],
-                            recordMesgs: Array.isArray(overlay.data.recordMesgs)
-                                ? overlay.data.recordMesgs
-                                : [],
-                        },
-                        formatTooltipData,
-                        getLapNumForIdx,
-                        map,
-                        markerClusterGroup,
-                        overlayIdx: i,
-                        startIcon,
-                    });
-                if (bounds) {
-                    // Defensive: ensure bounds is a valid LatLngBounds object
-                    let safeBounds = bounds;
-                    const winLeaflet = getWin().L;
-                    if (typeof bounds.clone !== "function" && winLeaflet) {
-                        safeBounds = winLeaflet.latLngBounds(bounds);
-                    }
-                    lastOverlayBounds =
-                        safeBounds && typeof safeBounds.clone === "function"
-                            ? safeBounds.clone()
-                            : safeBounds || null;
-                }
-                overlayIdx += 1;
-            }
-            // Always auto-zoom to the overlay just added (not all overlays)
-            if (lastOverlayBounds) {
-                safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
-            }
+        const lastOverlayBounds = drawLoadedFitFileOverlays({
+            endIcon,
+            formatTooltipData,
+            getLapNumForIdx,
+            leaflet: L,
+            map,
+            markerClusterGroup,
+            startIcon,
+        });
+        if (lastOverlayBounds) {
+            safeFitBounds(map, lastOverlayBounds, { padding: [20, 20] });
         }
     } else {
         renderMapInfoMessage(
@@ -1558,6 +1272,98 @@ function addLapDataPointMarker({
     });
 }
 
+function buildRouteCoordTuples(
+    records: readonly RecordMesg[],
+    {
+        fixedLapNum,
+        getLapNumForIdx,
+        lapMesgs = [],
+        recordIndexOffset = 0,
+    }: BuildRouteCoordTuplesOptions = {}
+): CoordTuple[] {
+    return getFitRouteCoordinates(records).map(
+        ({ latitude, longitude, record, recordIndex }) => {
+            const sourceIndex = recordIndexOffset + recordIndex;
+            const row = record as RecordMesg;
+            return [
+                latitude,
+                longitude,
+                row.timestamp || null,
+                row.altitude || null,
+                row.heartRate || null,
+                row.speed || null,
+                sourceIndex,
+                row,
+                normalizeLapNumber(
+                    fixedLapNum ?? getLapNumForIdx?.(sourceIndex, lapMesgs)
+                ),
+            ] as CoordTuple;
+        }
+    );
+}
+
+function normalizeLapNumber(value: unknown): number {
+    return typeof value === "number" && Number.isFinite(value) && value > 0
+        ? value
+        : 1;
+}
+
+function drawLoadedFitFileOverlays({
+    endIcon,
+    formatTooltipData,
+    getLapNumForIdx,
+    leaflet,
+    map,
+    markerClusterGroup,
+    startIcon,
+}: DrawLoadedFitFileOverlaysOptions): LeafletBoundsLike | null {
+    let lastOverlayBounds: LeafletBoundsLike | null = null;
+
+    for (const {
+        file,
+        fileIndex,
+        overlayIndex,
+    } of getOverlayLoadedFitFiles()) {
+        const fitData = file.data;
+        if (!fitData) {
+            continue;
+        }
+
+        const color =
+                chartOverlayColorPalette[
+                    overlayIndex % chartOverlayColorPalette.length
+                ] || "#1976d2",
+            bounds = drawOverlayForFitFile({
+                color,
+                endIcon,
+                fileName:
+                    typeof getOverlayFileName === "function"
+                        ? getOverlayFileName(fileIndex)
+                        : file.filePath || "",
+                fitData: {
+                    lapMesgs: asLapMesgs(fitData.lapMesgs),
+                    recordMesgs: asRecordMesgs(fitData.recordMesgs),
+                },
+                formatTooltipData,
+                getLapNumForIdx,
+                map,
+                markerClusterGroup,
+                overlayIdx: fileIndex,
+                startIcon,
+            });
+
+        const safeBounds = normalizeLeafletBounds(bounds, leaflet);
+        if (safeBounds) {
+            lastOverlayBounds =
+                typeof safeBounds.clone === "function"
+                    ? safeBounds.clone()
+                    : safeBounds;
+        }
+    }
+
+    return lastOverlayBounds;
+}
+
 function asLapMesgs(value: unknown): LapMesg[] {
     return Array.isArray(value) ? value.filter(isLapMesg) : [];
 }
@@ -1584,7 +1390,9 @@ function isLapMesg(value: unknown): value is LapMesg {
     return isFitObject(value);
 }
 
-function hasLapCoordinates(value: unknown): value is LapMesg &
+function hasLapCoordinates(
+    value: unknown
+): value is LapMesg &
     Required<
         Pick<
             LapMesg,
@@ -1624,13 +1432,11 @@ function findClosestRecordIndexByLatLon(
     let minDist = Infinity,
         minIdx = -1;
     for (const [i, r] of records.entries()) {
-        if (
-            r &&
-            typeof r.positionLat === "number" &&
-            typeof r.positionLong === "number"
-        ) {
-            const dLat = r.positionLat - lat,
-                dLon = r.positionLong - lon,
+        const recordLat = getFitRouteRecordLatitude(r),
+            recordLon = getFitRouteRecordLongitude(r);
+        if (typeof recordLat === "number" && typeof recordLon === "number") {
+            const dLat = recordLat - lat,
+                dLon = recordLon - lon,
                 dist = dLat * dLat + dLon * dLon;
             if (dist < minDist) {
                 minDist = dist;
@@ -1642,24 +1448,20 @@ function findClosestRecordIndexByLatLon(
 }
 
 function getLeaflet(): LeafletRuntimeLike {
-    const w = getWin();
-    const globalLeaflet: unknown = Reflect.get(globalThis, "L");
-    const candidate = isLeafletRuntimeLike(globalLeaflet) ? globalLeaflet : w.L;
-    if (isLeafletRuntimeLike(candidate)) {
-        return candidate;
-    }
-
+    const candidate = resolveLeafletRuntime(isLeafletRuntimeLike);
+    if (candidate) return candidate;
     throw new Error("Leaflet runtime is unavailable");
 }
 
-function getLoadedFitFiles(): LoadedFitFileLike[] {
-    const loadedFitFiles = getWin().loadedFitFiles;
-    return Array.isArray(loadedFitFiles) ? loadedFitFiles : [];
-}
-
 function getManagedFitData(): FitDataLike | null {
-    const data = getState("globalData");
-    return data !== null && typeof data === "object" ? data : null;
+    const routeData = getActiveFitRouteData();
+    return routeData.rawData
+        ? {
+              ...routeData.rawData,
+              lapMesgs: routeData.lapMesgs,
+              recordMesgs: routeData.recordMesgs,
+          }
+        : null;
 }
 
 function getMarkerLimit(): number {
@@ -1677,9 +1479,22 @@ function getPolylineSmoothFactor(): number {
 }
 
 function getWin(): MapDrawWindowLike {
-    return (
-        globalThis.window === undefined ? globalThis : globalThis.window
-    ) as MapDrawWindowLike;
+    return globalThis.window === undefined ? globalThis : globalThis.window;
+}
+
+function normalizeLeafletBounds(
+    bounds: LeafletBoundsLike | null,
+    leaflet: LeafletRuntimeLike
+): LeafletBoundsLike | null {
+    if (!bounds) {
+        return null;
+    }
+
+    if (typeof bounds.clone === "function") {
+        return bounds;
+    }
+
+    return leaflet.latLngBounds(bounds);
 }
 
 function patchLapIndices(lapMesgs: LapMesg[], recordMesgs: RecordMesg[]): void {
@@ -1955,7 +1770,9 @@ function safelyBringLayerToFront(layer: LeafletLayerLike): void {
     }
 }
 
-function updateTrackHighlights(highlightedIdx = getWin()._highlightedOverlayIdx): void {
+function updateTrackHighlights(
+    highlightedIdx = getWin()._highlightedOverlayIdx
+): void {
     applyOverlayPolylineHighlights(highlightedIdx);
     applyMainPolylineHighlight(highlightedIdx);
 }

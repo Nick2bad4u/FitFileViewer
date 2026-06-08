@@ -1,8 +1,5 @@
-import { hasDestroy, isObjectRecord } from "./renderChartModuleHelpers.js";
-
-interface ChartActionsGlobal {
-    _chartjsInstances?: unknown[];
-}
+import { destroyRegisteredChartInstances } from "./chartInstanceRegistry.js";
+import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 interface DebouncedChartStateManager {
     debouncedRender(reason: string): void;
@@ -14,7 +11,6 @@ interface PanelVisibilityManager {
 
 interface CreateChartActionsDependencies {
     appActions: unknown;
-    chartGlobal: ChartActionsGlobal;
     debouncedDirectRerender(reason: string): void;
     getControlsVisible(): boolean;
     getDebouncedChartStateManager(): DebouncedChartStateManager | null;
@@ -68,24 +64,12 @@ export function createChartActions(
 ): ChartActions {
     return {
         clearCharts() {
-            if (dependencies.chartGlobal._chartjsInstances) {
-                for (const [
-                    index,
-                    chart,
-                ] of dependencies.chartGlobal._chartjsInstances.entries()) {
-                    try {
-                        if (hasDestroy(chart)) {
-                            chart.destroy();
-                        }
-                    } catch (error) {
-                        console.warn(
-                            `[ChartJS] Error destroying chart ${index}:`,
-                            error
-                        );
-                    }
-                }
-                dependencies.chartGlobal._chartjsInstances = [];
-            }
+            destroyRegisteredChartInstances((index, error) => {
+                console.warn(
+                    `[ChartJS] Error destroying chart ${index}:`,
+                    error
+                );
+            });
 
             dependencies.updateState(
                 "charts",

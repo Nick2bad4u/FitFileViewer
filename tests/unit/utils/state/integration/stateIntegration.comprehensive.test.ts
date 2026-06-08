@@ -780,73 +780,29 @@ describe("stateIntegration comprehensive coverage", () => {
             expect(globalThis.AppState).toEqual({ existing: "appstate" });
         });
 
-        it("should set up isChartRendered property correctly (smoke)", async () => {
-            expect.assertions(2);
-
-            const { initializeAppState } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            initializeAppState();
-
-            // Test isChartRendered getter
-            mockStateManager.getState.mockReturnValue(true);
-            expect({
-                isChartRendered: globalThis.isChartRendered,
-            }).toStrictEqual({
-                isChartRendered: true,
-            });
-
-            // Test isChartRendered setter
-            globalThis.isChartRendered = false;
-            expect(mockStateManager.setState).toHaveBeenCalledWith(
-                "charts.isRendered",
-                false,
-                {
-                    source: "window.isChartRendered",
-                }
-            );
-        });
-
-        it("should set up AppState compatibility layer (smoke)", async () => {
+        it("should leave removed compatibility globals absent (smoke)", async () => {
             expect.assertions(4);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            // Set mock before calling initializeAppState
-            mockStateManager.getState.mockImplementation((path) => {
-                if (path === "globalData") {
-                    return { test: "appstate" };
-                }
-                return undefined;
-            });
-
             initializeAppState();
 
-            expect(Object.keys(globalThis.AppState).sort()).toEqual([
-                "eventListeners",
-                "isChartRendered",
-            ]);
-
-            // FIT data no longer flows through the legacy AppState global.
-            const descriptor = Object.getOwnPropertyDescriptor(
-                globalThis.AppState,
-                "globalData"
-            );
-            expect(descriptor).toBeUndefined();
-
-            // Test AppState.eventListeners
-            const mockMap = new Map();
-            mockStateManager.getState.mockReturnValue(mockMap);
-            expect(globalThis.AppState.eventListeners).toBe(mockMap);
-
-            globalThis.AppState.eventListeners = new Map();
-            expect(mockStateManager.setState).toHaveBeenCalledWith(
-                "eventListeners",
-                expect.any(Map),
-                {
-                    source: "AppState.eventListeners",
-                }
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "globalData")
+            ).toBeUndefined();
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "AppState")
+            ).toBeUndefined();
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "isChartRendered")
+            ).toBeUndefined();
+            expect(mockStateManager.setState).not.toHaveBeenCalledWith(
+                "charts.isRendered",
+                expect.anything(),
+                expect.objectContaining({
+                    source: expect.stringContaining("isChartRendered"),
+                })
             );
         });
     });

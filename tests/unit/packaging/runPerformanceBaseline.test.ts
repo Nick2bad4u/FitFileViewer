@@ -1,19 +1,22 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import {
+    appendPerformanceBaselineSummary,
     assertNoPerformanceRegressions,
     classifyFixtureSize,
     comparePerformanceBaselines,
     getDefaultFixturePaths,
     parseArgs,
+    resolveComparisonPath,
 } from "../../../scripts/run-performance-baseline.mjs";
 
 describe("run-performance-baseline script", () => {
     it("defaults to representative real FIT fixtures and the ignored artifact output", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const parsed = parseArgs([]);
 
@@ -26,6 +29,7 @@ describe("run-performance-baseline script", () => {
         expect(parsed.outputPath).toBe(
             path.join(process.cwd(), "artifacts", "performance-baseline.json")
         );
+        expect(parsed.compareIfExistsPath).toBeNull();
         expect(parsed.comparePath).toBeNull();
         expect(parsed.thresholdPercent).toBe(25);
         expect(parsed.timeoutMs).toBe(60_000);
@@ -46,6 +50,7 @@ describe("run-performance-baseline script", () => {
                 "120000",
             ])
         ).toStrictEqual({
+            compareIfExistsPath: null,
             comparePath: path.resolve("artifacts/previous.json"),
             fixturePaths: [path.resolve("fit-test-files/example.fit")],
             outputPath: path.resolve("artifacts/custom.json"),
@@ -66,17 +71,58 @@ describe("run-performance-baseline script", () => {
     });
 
     it("rejects malformed comparison arguments", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         expect(() => parseArgs(["--compare"])).toThrow(
             "--compare requires a value"
         );
+        expect(() => parseArgs(["--compare-if-exists"])).toThrow(
+            "--compare-if-exists requires a value"
+        );
+        expect(() =>
+            parseArgs([
+                "--compare=artifacts/previous.json",
+                "--compare-if-exists=artifacts/optional.json",
+            ])
+        ).toThrow("--compare and --compare-if-exists cannot be used together");
         expect(() => parseArgs(["--threshold-percent"])).toThrow(
             "--threshold-percent requires a value"
         );
         expect(() => parseArgs(["--threshold-percent", "-1"])).toThrow(
             "--threshold-percent must be a number >= 0"
         );
+    });
+
+    it("resolves optional comparison baselines only when present", () => {
+        expect.assertions(4);
+
+        const logger = () => undefined;
+
+        expect(
+            parseArgs(["--compare-if-exists=artifacts/previous.json"])
+                .compareIfExistsPath
+        ).toBe(path.resolve("artifacts/previous.json"));
+        expect(
+            resolveComparisonPath({
+                compareIfExistsPath: "artifacts/previous.json",
+                fileExists: () => true,
+                logger,
+            })
+        ).toBe("artifacts/previous.json");
+        expect(
+            resolveComparisonPath({
+                compareIfExistsPath: "artifacts/previous.json",
+                fileExists: () => false,
+                logger,
+            })
+        ).toBeNull();
+        expect(
+            resolveComparisonPath({
+                comparePath: "artifacts/required.json",
+                fileExists: () => false,
+                logger,
+            })
+        ).toBe("artifacts/required.json");
     });
 
     it("keeps default fixtures under fit-test-files", () => {
@@ -212,8 +258,63 @@ describe("run-performance-baseline script", () => {
         });
     });
 
+    it("appends a GitHub job summary for performance trend comparisons", () => {
+        expect.assertions(5);
+
+        const temporaryDirectory = fs.mkdtempSync(
+            path.join(os.tmpdir(), "ffv-performance-summary-")
+        );
+        const summaryPath = path.join(temporaryDirectory, "summary.md");
+
+        try {
+            expect(
+                appendPerformanceBaselineSummary(summaryPath, {
+                    baseline: {
+                        comparison: {
+                            comparedFixtureCount: 1,
+                            metricNames: ["parseMs"],
+                            regressions: [
+                                {
+                                    changePercent: 40,
+                                    current: 140,
+                                    fixture: "activity.fit",
+                                    metric: "parseMs",
+                                    previous: 100,
+                                    thresholdPercent: 25,
+                                },
+                            ],
+                            skippedFixtures: [
+                                {
+                                    fixture: "new.fit",
+                                    reason: "missing previous fixture",
+                                },
+                            ],
+                            thresholdPercent: 25,
+                        },
+                        fixtures: [{ name: "activity.fit" }],
+                        pageErrors: [],
+                        rendererErrors: [],
+                    },
+                    outputPath: path.join(
+                        process.cwd(),
+                        "artifacts",
+                        "performance-baseline.json"
+                    ),
+                })
+            ).toBe(true);
+
+            const summary = fs.readFileSync(summaryPath, "utf8");
+            expect(summary).toContain("## Performance Baseline");
+            expect(summary).toContain("- Regressions: `1`");
+            expect(summary).toContain("`activity.fit` `parseMs`: 100 -> 140");
+            expect(summary).toContain("`new.fit`: missing previous fixture");
+        } finally {
+            fs.rmSync(temporaryDirectory, { force: true, recursive: true });
+        }
+    });
+
     it("documents and records the release baseline metric contract", () => {
-        expect.assertions(24);
+        expect.assertions(37);
 
         const script = fs.readFileSync(
             path.join(process.cwd(), "scripts", "run-performance-baseline.mjs"),
@@ -223,6 +324,9 @@ describe("run-performance-baseline script", () => {
             path.join(process.cwd(), "docs", "PERFORMANCE_BASELINES.md"),
             "utf8"
         );
+        const packageJson = JSON.parse(
+            fs.readFileSync(path.join(process.cwd(), "package.json"), "utf8")
+        ) as { scripts?: Record<string, string> };
 
         expect(script).toContain("byteLength");
         expect(script).toContain("fixtureSizeClass");
@@ -232,7 +336,24 @@ describe("run-performance-baseline script", () => {
         expect(script).toContain("chartRenderMs");
         expect(script).toContain("dataTableRenderMs");
         expect(script).toContain("comparePerformanceBaselines");
+        expect(script).toContain("appendPerformanceBaselineSummary");
+        expect(script).toContain("GITHUB_STEP_SUMMARY");
+        expect(script).toContain("getActiveFitActivityData");
+        expect(script).toContain("getRegisteredChartInstanceCount");
+        expect(script).not.toContain('getState("globalData")');
+        expect(script).not.toContain("_chartjsInstances");
         expect(script).toContain("--threshold-percent");
+        expect(script).toContain("--compare-if-exists");
+        expect(script).toContain("resolveComparisonPath");
+        expect(packageJson.scripts?.["perf:compare"]).toContain("--compare");
+        expect(packageJson.scripts?.["perf:trend"]).toContain(
+            "--compare-if-exists"
+        );
+        expect(packageJson.scripts?.["perf:trend"]).toContain(
+            "artifacts/performance-baseline-cache/performance-baseline.json"
+        );
+        expect(docs).toContain("npm run perf:compare");
+        expect(docs).toContain("npm run perf:trend");
         expect(script).toContain("dataTableHeaderCount");
         expect(script).toContain("dataTableInitializedCount");
         expect(script).toContain("dataTableVisibleRowCount");

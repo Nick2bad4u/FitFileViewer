@@ -2,14 +2,15 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { showColModal } from "../../../../electron-app/utils/rendering/helpers/summaryColModal.js";
-import { setGlobalData } from "../../../../electron-app/utils/state/core/globalDataStore.js";
-import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
+import {
+    __resetStateManagerForTests,
+    setState,
+} from "../../../../electron-app/utils/state/core/stateManager.js";
 
 function resetSummaryModalFixture(): void {
     __resetStateManagerForTests();
     document.body.replaceChildren();
     localStorage.clear();
-    Reflect.deleteProperty(globalThis, "globalData");
 }
 
 function getRequiredElement<TElement extends Element>(
@@ -55,7 +56,8 @@ describe("summaryColModal", () => {
         resetSummaryModalFixture();
 
         try {
-            setGlobalData(
+            setState(
+                "fitFile.rawData",
                 { cachedFilePath: "C:\\Activities\\ride.fit" },
                 { source: "test" }
             );

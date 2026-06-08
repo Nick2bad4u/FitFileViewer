@@ -29,6 +29,11 @@
             options?: { source?: string }
         ) => string;
     };
+    const { validateFitBrowserRelativePath, validateFitBrowserRootFolderPath } =
+        require("../../shared/fitBrowserPathPolicy") as {
+            validateFitBrowserRelativePath: (value: unknown) => string;
+            validateFitBrowserRootFolderPath: (value: unknown) => string;
+        };
 
     interface DialogApi {
         showOpenDialog: (
@@ -146,11 +151,13 @@
         value: unknown,
         path: Pick<PathApi, "isAbsolute">
     ): string | null {
-        const v = typeof value === "string" ? value.trim() : "";
-        if (!v) {
+        let folder: string;
+        try {
+            folder = validateFitBrowserRootFolderPath(value);
+        } catch {
             return null;
         }
-        return path.isAbsolute(v) ? v : null;
+        return path.isAbsolute(folder) ? folder : null;
     }
 
     function createBrowserListResponse(
@@ -520,8 +527,12 @@
                     return createBrowserListResponse(root);
                 }
 
-                const listRelPath: FitBrowserListFolderRequest =
-                    typeof relPath === "string" ? relPath : "";
+                let listRelPath: FitBrowserListFolderRequest;
+                try {
+                    listRelPath = validateFitBrowserRelativePath(relPath);
+                } catch {
+                    return createBrowserListResponse(root);
+                }
 
                 const abs = resolveWithinRoot(root, listRelPath, path);
                 if (!abs) {

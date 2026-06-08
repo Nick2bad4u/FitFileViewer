@@ -1,11 +1,9 @@
-import {
-    serializeTableToCSV,
-} from "../../files/export/copyTableAsCSV.js";
+import { serializeTableToCSV } from "../../files/export/copyTableAsCSV.js";
 import {
     buildGpxFromRecords,
+    resolveTrackNameFromFileIdentity,
     resolveTrackNameFromLoadedFiles,
     type GpxRecord,
-    type LoadedFitFileDescriptor,
 } from "../../files/export/gpxExport.js";
 import {
     getFitMessagesSessionCount,
@@ -22,7 +20,9 @@ import {
     isDevelopmentEnvironment,
 } from "../../runtime/processEnvironment.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
-import { getState } from "../../state/core/stateManager.js";
+import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
+import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
+import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { registerChartResizeListener } from "./listenersResize.js";
@@ -118,7 +118,6 @@ type LifecycleGlobal = typeof globalThis & {
     ChartUpdater?: { updateCharts?: (reason?: string) => unknown };
     __ffvLifecycleListenersCleanup?: () => void;
     electronAPI?: LifecycleElectronAPI;
-    loadedFitFiles?: LoadedFitFileDescriptor[];
     renderChart?: () => unknown;
     renderChartJS?: () => unknown;
     sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => unknown;
@@ -223,10 +222,7 @@ function exportCsvFile(
     });
 }
 
-function getCsvExportRows(
-    container: Element,
-    data: FitData
-): unknown[] {
+function getCsvExportRows(container: Element, data: FitData): unknown[] {
     const table = container.querySelector("table");
     if (table) {
         const tableRows = getHtmlTableRows(table);
@@ -276,8 +272,12 @@ function exportGpxFile(
         return;
     }
 
+    const fallbackTrackName = resolveTrackNameFromFileIdentity(
+        getActiveFitFileMetadata({ sourceData: data }).storageIdentity
+    );
     const trackName = resolveTrackNameFromLoadedFiles(
-        lifecycleGlobal.loadedFitFiles
+        getLoadedFitFiles(),
+        fallbackTrackName
     );
     const gpx = buildGpxFromRecords(records, { trackName });
     if (!gpx) {
@@ -351,18 +351,15 @@ async function reloadCachedFitFileAfterDecoderOptionsChange({
 
         await renderDecodedFitData(unwrapFitParseMessages(result), filePath);
     } catch (error) {
-        showNotification(
-            `Error reloading file: ${String(error)}`,
-            "error"
-        );
+        showNotification(`Error reloading file: ${String(error)}`, "error");
     } finally {
         setLoading(false);
     }
 }
 
 function getManagedFitData(): FitData | null {
-    const data = getState("globalData");
-    return data !== null && typeof data === "object" ? (data as FitData) : null;
+    const data = getActiveFitActivityData().rawData;
+    return data !== null && typeof data === "object" ? data : null;
 }
 
 function getUpdateDownloadPercent(progress: unknown): number | null {
@@ -402,11 +399,7 @@ function registerUpdateEventListeners(
         );
     });
     electronAPI.onUpdateEvent("update-error", (error: unknown) => {
-        showUpdateNotification(
-            `Update error: ${String(error)}`,
-            "error",
-            7000
-        );
+        showUpdateNotification(`Update error: ${String(error)}`, "error", 7000);
     });
     electronAPI.onUpdateEvent(
         "update-download-progress",

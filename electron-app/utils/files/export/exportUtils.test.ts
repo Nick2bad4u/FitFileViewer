@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { exportUtils } from "./exportUtils.js";
+import {
+    clearExportZipRuntimeForTests,
+    setExportZipRuntime,
+} from "./exportZipRuntime.js";
 
 // Mock dependencies
 vi.mock("../../charts/theming/chartThemeUtils.js", () => ({
@@ -71,7 +75,6 @@ Object.defineProperty(globalThis, "localStorage", {
     writable: true,
 });
 
-// Mock JSZip
 function installZipMock(): void {
     const MockZip = vi.fn(function MockZip(this: any) {
         this.file = vi.fn();
@@ -80,10 +83,7 @@ function installZipMock(): void {
         );
     });
 
-    Object.defineProperty(globalThis, "JSZip", {
-        value: MockZip,
-        writable: true,
-    });
+    setExportZipRuntime(MockZip);
 }
 
 // Mock fetch with base64 data URL handling and upload response shapes
@@ -244,6 +244,7 @@ describe("exportUtils", () => {
     });
 
     afterEach(() => {
+        clearExportZipRuntimeForTests();
         vi.restoreAllMocks();
     });
 

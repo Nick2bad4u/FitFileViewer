@@ -7,7 +7,7 @@ import {
     fieldLabels,
     formatChartFields,
 } from "../../formatting/display/formatChartFields.js";
-import { getState } from "../../state/core/stateManager.js";
+import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import {
     getChartFieldVisibility,
     getChartSetting,
@@ -37,7 +37,7 @@ type ZoneMessage = LooseRecord & {
     timeInPowerZone?: unknown;
 };
 
-type GlobalData = {
+type FieldToggleFitData = {
     eventMesgs: LooseRecord[];
     recordMesgs: FitRecord[];
     timeInZoneMesgs: ZoneMessage[];
@@ -51,16 +51,13 @@ function getFieldToggleGlobal(): FieldToggleGlobal {
     return globalThis;
 }
 
-function getManagedGlobalData(): GlobalData {
-    const rawGlobalData = getState("globalData");
-    const globalData =
-        rawGlobalData !== null && typeof rawGlobalData === "object"
-            ? (rawGlobalData as Partial<GlobalData>)
-            : {};
+function getManagedFieldToggleFitData(): FieldToggleFitData {
+    const activityData =
+        getActiveFitActivityData() as Partial<FieldToggleFitData>;
     return {
-        eventMesgs: globalData.eventMesgs ?? [],
-        recordMesgs: globalData.recordMesgs ?? [],
-        timeInZoneMesgs: globalData.timeInZoneMesgs ?? [],
+        eventMesgs: activityData.eventMesgs ?? [],
+        recordMesgs: activityData.recordMesgs ?? [],
+        timeInZoneMesgs: activityData.timeInZoneMesgs ?? [],
     };
 }
 
@@ -266,8 +263,8 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
     fieldsGrid.append(powerZoneDoughnutToggle);
 
     // Add lap zone chart toggles if data exists
-    if (getManagedGlobalData().timeInZoneMesgs) {
-        const { timeInZoneMesgs } = getManagedGlobalData(),
+    if (getManagedFieldToggleFitData().timeInZoneMesgs) {
+        const { timeInZoneMesgs } = getManagedFieldToggleFitData(),
             lapZoneMsgs = timeInZoneMesgs.filter(
                 (msg) => msg.referenceMesg === "lap"
             );
@@ -307,17 +304,17 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
 
     // Add event messages toggle if data exists
     if (
-        Array.isArray(getManagedGlobalData().eventMesgs) &&
-        getManagedGlobalData().eventMesgs.length > 0
+        Array.isArray(getManagedFieldToggleFitData().eventMesgs) &&
+        getManagedFieldToggleFitData().eventMesgs.length > 0
     ) {
         const eventMessagesToggle = createFieldToggle("event_messages");
         fieldsGrid.append(eventMessagesToggle);
     }
 
     // Add developer fields toggles if data exists
-    if (getManagedGlobalData().recordMesgs) {
+    if (getManagedFieldToggleFitData().recordMesgs) {
         const devFields = extractDeveloperFieldsList(
-            getManagedGlobalData().recordMesgs
+            getManagedFieldToggleFitData().recordMesgs
         );
         for (const field of devFields) {
             const fieldToggle = createFieldToggle(field);
@@ -357,12 +354,12 @@ function hasLapZoneData(
 }
 
 function hasValidDataForField(field: string): boolean {
-    const globalData = getManagedGlobalData();
-    if (globalData.recordMesgs.length === 0) {
+    const rawFitData = getManagedFieldToggleFitData();
+    if (rawFitData.recordMesgs.length === 0) {
         return false;
     }
 
-    const data = globalData.recordMesgs;
+    const data = rawFitData.recordMesgs;
     switch (field) {
         case "altitude_profile": {
             return data.some((row) => {
@@ -371,7 +368,7 @@ function hasValidDataForField(field: string): boolean {
             });
         }
         case "event_messages": {
-            return globalData.eventMesgs.length > 0;
+            return rawFitData.eventMesgs.length > 0;
         }
         case "gps_track": {
             return data.some(
@@ -384,10 +381,13 @@ function hasValidDataForField(field: string): boolean {
         case "hr_lap_zone_stacked":
         case "power_lap_zone_individual":
         case "power_lap_zone_stacked": {
-            return hasLapZoneData(field, globalData.timeInZoneMesgs);
+            return hasLapZoneData(field, rawFitData.timeInZoneMesgs);
         }
         case "power_vs_hr": {
-            return hasNumericData(data, "power") && hasNumericData(data, "heartRate");
+            return (
+                hasNumericData(data, "power") &&
+                hasNumericData(data, "heartRate")
+            );
         }
         case "speed_vs_distance": {
             return (
@@ -598,9 +598,9 @@ function toggleAllFields(enable: boolean): void {
             visibility = enable ? "visible" : "hidden";
 
         // Add developer fields if they exist
-        if (getManagedGlobalData().recordMesgs) {
+        if (getManagedFieldToggleFitData().recordMesgs) {
             const devFields = extractDeveloperFieldsList(
-                getManagedGlobalData().recordMesgs
+                getManagedFieldToggleFitData().recordMesgs
             );
             allFields.push(...devFields);
         } // Update localStorage for all fields

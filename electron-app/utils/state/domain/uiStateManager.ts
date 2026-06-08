@@ -16,6 +16,7 @@ import {
     subscribe,
     updateState,
 } from "../core/stateManager.js";
+import { getActiveFitRawData } from "./activeFitRawDataState.js";
 
 type NotificationInput =
     | string
@@ -74,9 +75,7 @@ export class UIStateManager {
      * Apply theme to the UI
      */
     applyTheme(theme: string) {
-        const root = (document.documentElement ||
-            document.body ||
-            {});
+        const root = document.documentElement || document.body || {};
 
         if (theme === "system") {
             // Remove explicit theme and use system preference
@@ -520,9 +519,9 @@ export class UIStateManager {
                 typeof info.title === "string" && info.title.trim().length > 0
                     ? info.title
                     : DEFAULT_DOCUMENT_TITLE,
-            globalData = getState("globalData"),
+            activeFitRawData = getActiveFitRawData(),
             hasRenderableFile = Boolean(
-                requestedHasFile && displayName && globalData
+                requestedHasFile && displayName && activeFitRawData
             );
 
         const fileNameContainer = (() => {

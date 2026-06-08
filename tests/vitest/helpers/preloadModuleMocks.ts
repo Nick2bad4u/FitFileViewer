@@ -2,11 +2,50 @@ import { createRequire } from "node:module";
 
 const requireFromTest = createRequire(import.meta.url);
 
+const preloadApiAssembly = requireFromTest(
+    "../../../electron-app/preload/apiAssembly.js"
+);
+const preloadApiAssemblyContext = requireFromTest(
+    "../../../electron-app/preload/apiAssemblyContext.js"
+);
+const preloadAppApiDomain = requireFromTest(
+    "../../../electron-app/preload/appApiDomain.js"
+);
+const preloadFileApiDomain = requireFromTest(
+    "../../../electron-app/preload/fileApiDomain.js"
+);
+const preloadIpcEventApiDomain = requireFromTest(
+    "../../../electron-app/preload/ipcEventApiDomain.js"
+);
+const preloadStateApiDomain = requireFromTest(
+    "../../../electron-app/preload/stateApiDomain.js"
+);
+const preloadRuntime = requireFromTest(
+    "../../../electron-app/preload/preloadRuntime.js"
+);
+const preloadBootstrap = requireFromTest(
+    "../../../electron-app/preload/preloadBootstrap.js"
+);
+const preloadModuleLoader = requireFromTest(
+    "../../../electron-app/preload/preloadModuleLoader.js"
+);
+const preloadAppModuleLoader = requireFromTest(
+    "../../../electron-app/preload/preloadAppModuleLoader.js"
+);
+const preloadFileModuleLoader = requireFromTest(
+    "../../../electron-app/preload/preloadFileModuleLoader.js"
+);
+const preloadIpcModuleLoader = requireFromTest(
+    "../../../electron-app/preload/preloadIpcModuleLoader.js"
+);
 const preloadIpcBridgeCatalog = requireFromTest(
     "../../../electron-app/preload/ipcBridgeCatalog.js"
 );
 const preloadApiDiagnostics = requireFromTest(
     "../../../electron-app/preload/apiDiagnostics.js"
+);
+const preloadAppInfoApi = requireFromTest(
+    "../../../electron-app/preload/appInfoApi.js"
 );
 const preloadBeforeExitHandler = requireFromTest(
     "../../../electron-app/preload/beforeExitHandler.js"
@@ -17,14 +56,32 @@ const preloadClipboardBridge = requireFromTest(
 const preloadDevtoolsMenuApi = requireFromTest(
     "../../../electron-app/preload/devtoolsMenuApi.js"
 );
+const preloadDevelopmentToolsGlobal = requireFromTest(
+    "../../../electron-app/preload/developmentToolsGlobal.js"
+);
+const preloadElectronApiExposure = requireFromTest(
+    "../../../electron-app/preload/electronApiExposure.js"
+);
+const preloadElectronApiFactory = requireFromTest(
+    "../../../electron-app/preload/electronApiFactory.js"
+);
 const preloadElectronBridge = requireFromTest(
     "../../../electron-app/preload/electronBridge.js"
 );
 const preloadEnvironment = requireFromTest(
     "../../../electron-app/preload/environment.js"
 );
-const preloadGenericIpcApi = requireFromTest(
-    "../../../electron-app/preload/genericIpcApi.js"
+const preloadExternalApi = requireFromTest(
+    "../../../electron-app/preload/externalApi.js"
+);
+const preloadEventApi = requireFromTest(
+    "../../../electron-app/preload/preloadEventApi.js"
+);
+const preloadFileApi = requireFromTest(
+    "../../../electron-app/preload/fileApi.js"
+);
+const preloadFitBrowserApi = requireFromTest(
+    "../../../electron-app/preload/fitBrowserApi.js"
 );
 const preloadIpcHelpers = requireFromTest(
     "../../../electron-app/preload/ipcHelpers.js"
@@ -38,8 +95,17 @@ const preloadMainStateApi = requireFromTest(
 const preloadMainStateBridge = requireFromTest(
     "../../../electron-app/preload/mainStateBridge.js"
 );
+const preloadMenuEventApi = requireFromTest(
+    "../../../electron-app/preload/menuEventApi.js"
+);
+const preloadThemeApi = requireFromTest(
+    "../../../electron-app/preload/themeApi.js"
+);
 const preloadValidators = requireFromTest(
     "../../../electron-app/preload/validators.js"
+);
+const preloadStateModuleLoader = requireFromTest(
+    "../../../electron-app/preload/preloadStateModuleLoader.js"
 );
 
 export function resolvePreloadScriptRequire(
@@ -54,8 +120,64 @@ export function resolvePreloadScriptRequire(
         return preloadIpcBridgeCatalog;
     }
 
+    if (moduleName === "./preload/apiAssembly.js") {
+        return preloadApiAssembly;
+    }
+
+    if (moduleName === "./preload/apiAssemblyContext.js") {
+        return preloadApiAssemblyContext;
+    }
+
+    if (moduleName === "./preload/appApiDomain.js") {
+        return preloadAppApiDomain;
+    }
+
+    if (moduleName === "./preload/fileApiDomain.js") {
+        return preloadFileApiDomain;
+    }
+
+    if (moduleName === "./preload/ipcEventApiDomain.js") {
+        return preloadIpcEventApiDomain;
+    }
+
+    if (moduleName === "./preload/stateApiDomain.js") {
+        return preloadStateApiDomain;
+    }
+
+    if (moduleName === "./preload/preloadRuntime.js") {
+        return preloadRuntime;
+    }
+
+    if (moduleName === "./preload/preloadBootstrap.js") {
+        return preloadBootstrap;
+    }
+
+    if (moduleName === "./preload/preloadModuleLoader.js") {
+        return preloadModuleLoader;
+    }
+
+    if (moduleName === "./preload/preloadAppModuleLoader.js") {
+        return preloadAppModuleLoader;
+    }
+
+    if (moduleName === "./preload/preloadFileModuleLoader.js") {
+        return preloadFileModuleLoader;
+    }
+
+    if (moduleName === "./preload/preloadIpcModuleLoader.js") {
+        return preloadIpcModuleLoader;
+    }
+
+    if (moduleName === "./preload/preloadStateModuleLoader.js") {
+        return preloadStateModuleLoader;
+    }
+
     if (moduleName === "./preload/apiDiagnostics.js") {
         return preloadApiDiagnostics;
+    }
+
+    if (moduleName === "./preload/appInfoApi.js") {
+        return preloadAppInfoApi;
     }
 
     if (moduleName === "./preload/beforeExitHandler.js") {
@@ -70,6 +192,18 @@ export function resolvePreloadScriptRequire(
         return preloadDevtoolsMenuApi;
     }
 
+    if (moduleName === "./preload/developmentToolsGlobal.js") {
+        return preloadDevelopmentToolsGlobal;
+    }
+
+    if (moduleName === "./preload/electronApiExposure.js") {
+        return preloadElectronApiExposure;
+    }
+
+    if (moduleName === "./preload/electronApiFactory.js") {
+        return preloadElectronApiFactory;
+    }
+
     if (moduleName === "./preload/electronBridge.js") {
         return preloadElectronBridge;
     }
@@ -78,8 +212,20 @@ export function resolvePreloadScriptRequire(
         return preloadEnvironment;
     }
 
-    if (moduleName === "./preload/genericIpcApi.js") {
-        return preloadGenericIpcApi;
+    if (moduleName === "./preload/externalApi.js") {
+        return preloadExternalApi;
+    }
+
+    if (moduleName === "./preload/preloadEventApi.js") {
+        return preloadEventApi;
+    }
+
+    if (moduleName === "./preload/fileApi.js") {
+        return preloadFileApi;
+    }
+
+    if (moduleName === "./preload/fitBrowserApi.js") {
+        return preloadFitBrowserApi;
     }
 
     if (moduleName === "./preload/ipcHelpers.js") {
@@ -96,6 +242,14 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/mainStateBridge.js") {
         return preloadMainStateBridge;
+    }
+
+    if (moduleName === "./preload/menuEventApi.js") {
+        return preloadMenuEventApi;
+    }
+
+    if (moduleName === "./preload/themeApi.js") {
+        return preloadThemeApi;
     }
 
     if (moduleName === "./preload/validators.js") {

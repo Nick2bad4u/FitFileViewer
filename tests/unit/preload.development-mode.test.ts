@@ -5,7 +5,7 @@ import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
 type ConsoleCall = unknown[];
 type ExposedElectronAPI = Pick<
     ElectronAPI,
-    "getAppVersion" | "injectMenu" | "invoke" | "validateAPI"
+    "getAppVersion" | "injectMenu" | "validateAPI"
 >;
 
 interface ExposedDevTools {
@@ -134,7 +134,6 @@ describe("preload.js - Development mode coverage", () => {
                 [
                     "getAppVersion",
                     "injectMenu",
-                    "invoke",
                     "validateAPI",
                 ].map((methodName) => [
                     methodName,
@@ -144,7 +143,6 @@ describe("preload.js - Development mode coverage", () => {
         ).toStrictEqual({
             getAppVersion: true,
             injectMenu: true,
-            invoke: true,
             validateAPI: true,
         });
         expect(api.validateAPI()).toBe(true);

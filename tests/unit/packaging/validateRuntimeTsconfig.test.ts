@@ -93,6 +93,28 @@ describe("validate-runtime-tsconfig script", () => {
         ]);
     });
 
+    it("reports preload modules missing from the runtime file list", () => {
+        expect.assertions(1);
+
+        const repositoryRoot = makeTemporaryRoot();
+        writeFile(repositoryRoot, "electron-app/main.ts");
+        writeFile(repositoryRoot, "electron-app/preload/fileApiDomain.ts");
+
+        expect(
+            validateRuntimeTsconfigFiles({
+                repositoryRoot,
+                tsconfig: {
+                    files: ["electron-app/main.ts"],
+                },
+            })
+        ).toStrictEqual([
+            {
+                file: "electron-app/preload/fileApiDomain.ts",
+                reason: "preload runtime source file is missing from tsconfig.runtime.json",
+            },
+        ]);
+    });
+
     it("formats runtime file list issues for CLI output", () => {
         expect.assertions(1);
 

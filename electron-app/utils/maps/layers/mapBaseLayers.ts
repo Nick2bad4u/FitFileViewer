@@ -1,18 +1,20 @@
-import type { Layer, TileLayerOptions } from "leaflet";
+import type { TileLayerOptions } from "leaflet";
+import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
+import {
+    createOpenFreeMapVectorLayers,
+    type LeafletBaseLayer,
+    type LeafletVectorLayerRuntime,
+} from "./mapVectorLayers.js";
 
 // Leaflet base layers module. Resolves the Leaflet global if present; otherwise
 // provides a minimal shim to keep imports safe in non-map/test environments.
 
-type EmptyLeafletLayer = Record<string, never>;
-type LeafletLayer = EmptyLeafletLayer | Layer;
 type LeafletTileLayerOptions = TileLayerOptions & Record<string, unknown>;
 type LeafletTileLayerFactory = (
     urlTemplate: string,
     options?: LeafletTileLayerOptions
-) => LeafletLayer;
-type MapLibreLayerFactory = (options: Record<string, unknown>) => LeafletLayer;
-type LeafletMinimal = {
-    maplibreGL?: MapLibreLayerFactory;
+) => LeafletBaseLayer;
+type LeafletMinimal = LeafletVectorLayerRuntime & {
     tileLayer: LeafletTileLayerFactory;
 };
 
@@ -40,23 +42,21 @@ function hasFunctionProperty(value: object, key: "tileLayer"): boolean {
  * used in this module so tests can import without errors.
  */
 function getLeaflet(): LeafletMinimal {
-    const leaflet = (globalThis as { L?: unknown }).L;
-    if (isLeafletMinimal(leaflet)) {
-        return leaflet;
-    }
-
-    return {
-        maplibreGL: () => ({}),
-        tileLayer: () => ({}),
-    };
+    return (
+        resolveLeafletRuntime(isLeafletMinimal) ?? {
+            maplibreGL: () => ({}),
+            tileLayer: () => ({}),
+        }
+    );
 }
 /**
  * Leaflet base-layer instances keyed by map style name.
  */
 export function createBaseLayers(
     leaflet: LeafletMinimal = getLeaflet()
-): Record<string, LeafletLayer> {
+): Record<string, LeafletBaseLayer> {
     const LRef = leaflet;
+    const openFreeMapLayers = createOpenFreeMapVectorLayers(LRef);
 
     return {
         CartoDB_DarkMatter: LRef.tileLayer(
@@ -181,33 +181,7 @@ export function createBaseLayers(
                 ],
             }
         ),
-        OpenFreeMap_Bright: LRef.maplibreGL
-            ? LRef.maplibreGL({
-                  style: "https://tiles.openfreemap.org/styles/bright",
-              })
-            : {},
-        OpenFreeMap_Dark: LRef.maplibreGL
-            ? LRef.maplibreGL({
-                  style: "https://tiles.openfreemap.org/styles/dark",
-              })
-            : {},
-        OpenFreeMap_Fiord: LRef.maplibreGL
-            ? LRef.maplibreGL({
-                  style: "https://tiles.openfreemap.org/styles/fiord",
-              })
-            : {},
-        // The OpenFreeMap_* layers use L.maplibreGL for rendering vector tiles with MapLibre GL styles,
-        // While other layers use L.tileLayer for raster tile layers.
-        OpenFreeMap_Liberty: LRef.maplibreGL
-            ? LRef.maplibreGL({
-                  style: "https://tiles.openfreemap.org/styles/liberty",
-              })
-            : {},
-        OpenFreeMap_Positron: LRef.maplibreGL
-            ? LRef.maplibreGL({
-                  style: "https://tiles.openfreemap.org/styles/positron",
-              })
-            : {},
+        ...openFreeMapLayers,
         OpenRailwayMap: LRef.tileLayer(
             "https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png",
             {
@@ -320,4 +294,4 @@ export function createBaseLayers(
     };
 }
 
-export const baseLayers: Record<string, LeafletLayer> = createBaseLayers();
+export const baseLayers: Record<string, LeafletBaseLayer> = createBaseLayers();

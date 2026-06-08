@@ -4,6 +4,7 @@ import {
     createAppIconElement,
 } from "../../ui/icons/iconFactory.js";
 import { addEventListenerWithCleanup } from "../../ui/events/eventListenerManager.js";
+import { resolveDataTableRuntime } from "./dataTableRuntime.js";
 
 /** Row shape accepted by the raw-data table renderer. */
 export type RenderTableRow = Record<string, unknown>;
@@ -44,32 +45,19 @@ type DataTableOptions = {
     searching: boolean;
 };
 
-type JQueryTableSelection = {
-    DataTable: (options?: DataTableOptions) => DataTableInstance;
-};
-
-type DataTableFactory = {
+type DataTableConstructor = {
     isDataTable: (selector: string) => boolean;
+    new (selector: string, options?: DataTableOptions): DataTableInstance;
 };
 
-type JQueryLike = {
-    (selector: string): JQueryTableSelection;
-    fn?: {
-        DataTable?: DataTableFactory;
-    };
-};
-
-type RenderTableGlobal = typeof globalThis & {
-    jQuery?: JQueryLike;
-};
-
-function getRenderTableGlobal(): RenderTableGlobal {
-    return globalThis;
-}
-
-function getJQueryWithDataTable(): JQueryLike | null {
-    const { jQuery } = getRenderTableGlobal();
-    return jQuery?.fn?.DataTable ? jQuery : null;
+function isDataTableConstructor(
+    value: unknown
+): value is DataTableConstructor {
+    return (
+        typeof value === "function" &&
+        typeof (value as Partial<DataTableConstructor>).isDataTable ===
+            "function"
+    );
 }
 
 /**
@@ -152,22 +140,24 @@ export function renderTable(
     content.append(tableElement);
 
     const initializeDataTableIfAvailable = (): void => {
-        const jQ = getJQueryWithDataTable();
-        if (!jQ) {
-            return;
-        }
-
         const tableSelector = `#${tableId}`;
         try {
-            if (jQ.fn?.DataTable?.isDataTable(tableSelector)) {
+            const DataTableCtor = resolveDataTableRuntime(
+                isDataTableConstructor
+            );
+            if (!DataTableCtor) {
+                return;
+            }
+
+            if (DataTableCtor.isDataTable(tableSelector)) {
                 try {
-                    jQ(tableSelector).DataTable().destroy();
+                    new DataTableCtor(tableSelector).destroy();
                 } catch {
                     /* ignore */
                 }
             }
 
-            const dt = jQ(tableSelector).DataTable({
+            const dt = new DataTableCtor(tableSelector, {
                 autoWidth: false,
                 columns: columns.map((column) => ({
                     data: column,
@@ -249,7 +239,7 @@ export function renderTable(
     };
 
     const scheduleDataTableInit = (): void => {
-        if (!getJQueryWithDataTable() || dataTableInitTimer) {
+        if (dataTableInitTimer) {
             return;
         }
 
@@ -281,11 +271,8 @@ export function renderTable(
         icon.textContent = isHidden ? "➖" : "➕";
 
         if (isHidden) {
-            if (getJQueryWithDataTable()) {
-                scheduleDataTableInit();
-            } else {
-                renderFallbackTableBody();
-            }
+            renderFallbackTableBody();
+            scheduleDataTableInit();
         }
     });
 

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type NotificationFn = (
@@ -147,11 +147,14 @@ describe("export/print buttons", () => {
         const create = vi
             .spyOn(URL, "createObjectURL")
             .mockReturnValue("blob:url");
-        setGlobalData(
+        setActiveFitRawData(
             {
                 recordMesgs: [
-                    { positionLat: 0, positionLong: 0 },
-                    { positionLat: 1073741824, positionLong: -1073741824 },
+                    { position_lat: 0, position_long: 0 },
+                    {
+                        position_lat: 1073741824,
+                        position_long: -1073741824,
+                    },
                 ],
             },
             { source: "test" }

@@ -8,6 +8,9 @@ import { AppActions, AppSelectors } from "../../app/lifecycle/appActions.js";
 import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
 // Corrected path: state manager utilities live in ../core directory
 import { getState, setState, subscribe } from "../core/stateManager.js";
+import { getActiveFitChartData } from "../domain/fitChartDataState.js";
+import { getActiveFitRouteData } from "../domain/fitRouteDataState.js";
+import { getActiveFitTableData } from "../domain/fitTableDataState.js";
 import { UIActions } from "../domain/uiStateManager.js";
 // At the top of renderer.js, add these imports:
 import { initializeCompleteStateSystem } from "./stateIntegration.js";
@@ -94,13 +97,13 @@ export function initializeRendererWithNewStateSystem(): void {
  * initialization with this pattern
  */
 export function migrateExistingRenderer(): void {
-    // 1. Replace direct global variable assignments with setState
-    // OLD: window.globalData = newData;
-    // NEW: setState('globalData', newData, { source: 'fileLoad' });
+    // 1. Replace direct global FIT-data assignments with setState
+    // OLD: direct renderer-level FIT-data assignment
+    // NEW: setState('fitFile.rawData', newData, { source: 'fileLoad' });
 
     // 2. Replace direct property access with getState
-    // OLD: if (window.globalData) { ... }
-    // NEW: if (getState('globalData')) { ... }
+    // OLD: direct renderer-level FIT-data access
+    // NEW: if (AppSelectors.hasData()) { ... }
 
     // 3. Replace manual DOM updates with state subscriptions
     // OLD: Directly updating DOM in multiple places
@@ -157,7 +160,7 @@ function handleTabChange(activeTab: string): void {
  */
 function initializeComponentsWithState(): void {
     // Subscribe to data loading events
-    subscribe("globalData", (newData) => {
+    subscribe("fitFile.rawData", (newData) => {
         if (newData) {
             console.log("[Renderer] New data loaded, updating components...");
             updateAllComponents(newData);
@@ -192,8 +195,8 @@ function initializeComponentsWithState(): void {
  * Load chart tab with state awareness
  */
 async function loadChartTab(): Promise<void> {
-    const globalData = getState("globalData");
-    if (!globalData) {
+    const chartData = getActiveFitChartData();
+    if (!chartData.rawData) {
         return;
     }
 
@@ -201,7 +204,7 @@ async function loadChartTab(): Promise<void> {
         setState("isLoading", true, { silent: false, source: "loadChartTab" });
 
         // Your existing chart rendering logic here
-        // Const chartData = await processChartData(globalData);
+// Const chartData = await processChartData(rawFitData);
         // Const chartOptions = getChartOptions();
 
         // AppActions.renderChart(chartData, chartOptions);
@@ -218,8 +221,8 @@ async function loadChartTab(): Promise<void> {
  * Load map tab with state awareness
  */
 async function loadMapTab(): Promise<void> {
-    const globalData = getState("globalData");
-    if (!globalData) {
+    const routeData = getActiveFitRouteData();
+    if (!routeData.rawData) {
         return;
     }
 
@@ -227,8 +230,8 @@ async function loadMapTab(): Promise<void> {
         setState("isLoading", true, { silent: false, source: "loadMapTab" });
 
         // Your existing map rendering logic here
-        // Const mapCenter = calculateMapCenter(globalData);
-        // Const mapZoom = getOptimalZoom(globalData);
+// Const mapCenter = calculateMapCenter(rawFitData);
+// Const mapZoom = getOptimalZoom(rawFitData);
 
         // AppActions.renderMap(mapCenter, mapZoom);
 
@@ -244,8 +247,8 @@ async function loadMapTab(): Promise<void> {
  * Load table tab with state awareness
  */
 async function loadTableTab(): Promise<void> {
-    const globalData = getState("globalData");
-    if (!globalData) {
+    const tableData = getActiveFitTableData();
+    if (!tableData.rawData) {
         return;
     }
 

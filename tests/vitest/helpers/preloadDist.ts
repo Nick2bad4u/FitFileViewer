@@ -4,31 +4,37 @@ import { join } from "node:path";
 
 const repositoryRoot = process.cwd();
 export const preloadDistPath = join(repositoryRoot, "dist", "preload.js");
+const preloadDistModuleDirectory = join(repositoryRoot, "dist", "preload");
+const requiredDelegatedPreloadModules = [
+    "preloadBootstrap.js",
+    "preloadRuntime.js",
+    "preloadModuleLoader.js",
+] as const;
 
 let cachedPreloadCode: string | undefined;
 
 export function readPreloadDistCode(): string {
     if (
         cachedPreloadCode !== undefined &&
-        isBundledPreloadCode(cachedPreloadCode)
+        isValidPreloadDistCode(cachedPreloadCode)
     ) {
         return cachedPreloadCode;
     }
 
-    ensureBundledPreloadDist();
+    ensurePreloadDist();
     cachedPreloadCode = readFileSync(preloadDistPath, "utf-8");
-    if (!isBundledPreloadCode(cachedPreloadCode)) {
+    if (!isValidPreloadDistCode(cachedPreloadCode)) {
         throw new Error(
-            `${preloadDistPath} exists but does not look like the bundled preload output.`
+            `${preloadDistPath} exists but does not look like valid preload output.`
         );
     }
     return cachedPreloadCode;
 }
 
-function ensureBundledPreloadDist(): void {
+function ensurePreloadDist(): void {
     if (
         existsSync(preloadDistPath) &&
-        isBundledPreloadCode(readFileSync(preloadDistPath, "utf-8"))
+        isValidPreloadDistCode(readFileSync(preloadDistPath, "utf-8"))
     ) {
         return;
     }
@@ -62,9 +68,27 @@ function ensureBundledPreloadDist(): void {
     }
 }
 
+function hasDelegatedPreloadModules(): boolean {
+    return requiredDelegatedPreloadModules.every((moduleFileName) =>
+        existsSync(join(preloadDistModuleDirectory, moduleFileName))
+    );
+}
+
 function isBundledPreloadCode(code: string): boolean {
     return (
         code.includes("var __commonJS =") &&
         !code.includes('require("./preload/')
     );
+}
+
+function isDelegatedPreloadCode(code: string): boolean {
+    return (
+        code.includes("startPreloadEntrypoint(require,") &&
+        code.includes('"./preload/preloadBootstrap.js"') &&
+        hasDelegatedPreloadModules()
+    );
+}
+
+function isValidPreloadDistCode(code: string): boolean {
+    return isBundledPreloadCode(code) || isDelegatedPreloadCode(code);
 }

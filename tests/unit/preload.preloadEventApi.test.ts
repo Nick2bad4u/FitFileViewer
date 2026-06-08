@@ -3,20 +3,13 @@ import { createRequire } from "node:module";
 import { describe, expect, it, vi } from "vitest";
 
 import type {
-    GenericInvokeChannel,
     GenericSendChannel,
     IpcRequestPayload,
     IpcResponsePayload,
-    RendererIpcEventChannel,
     UpdateEventName,
 } from "../../electron-app/shared/ipc";
 
 interface IpcRendererMock {
-    invoke: ReturnType<
-        typeof vi.fn<
-            (channel: string, ...args: IpcRequestPayload[]) => Promise<unknown>
-        >
-    >;
     on: ReturnType<
         typeof vi.fn<
             (
@@ -30,38 +23,23 @@ interface IpcRendererMock {
     >;
 }
 
-interface GenericIpcApiModule {
-    createGenericIpcApi: (options: Record<string, unknown>) => {
-        invoke: (
-            channel: GenericInvokeChannel,
-            ...args: IpcRequestPayload[]
-        ) => Promise<unknown>;
+interface PreloadEventApiModule {
+    createPreloadEventApi: (options: Record<string, unknown>) => {
         notifyFitFileLoaded: (filePath: null | string) => void;
-        onIpc: (
-            channel: RendererIpcEventChannel,
-            callback: (...args: IpcResponsePayload[]) => unknown
-        ) => (() => void) | undefined;
         onUpdateEvent: (
             eventName: UpdateEventName,
             callback: (...args: IpcResponsePayload[]) => unknown
         ) => (() => void) | undefined;
-        send: (
-            channel: GenericSendChannel,
-            ...args: IpcRequestPayload[]
-        ) => void;
     };
 }
 
 const requireFromTest = createRequire(import.meta.url);
-const { createGenericIpcApi } = requireFromTest(
-    "../../electron-app/preload/genericIpcApi.js"
-) as GenericIpcApiModule;
+const { createPreloadEventApi } = requireFromTest(
+    "../../electron-app/preload/preloadEventApi.js"
+) as PreloadEventApiModule;
 
 function createIpcMock(): IpcRendererMock {
     return {
-        invoke: vi.fn<
-            (channel: string, ...args: IpcRequestPayload[]) => Promise<unknown>
-        >(),
         on: vi.fn<
             (
                 channel: string,
@@ -73,10 +51,8 @@ function createIpcMock(): IpcRendererMock {
 }
 
 function createApi({
-    shouldAllowGenericIpcBridge = true,
     shouldEnforceGenericIpcAllowlist = true,
 }: {
-    shouldAllowGenericIpcBridge?: boolean;
     shouldEnforceGenericIpcAllowlist?: boolean;
 } = {}) {
     const ipcMock = createIpcMock();
@@ -97,25 +73,14 @@ function createApi({
         >();
 
     return {
-        api: createGenericIpcApi({
+        api: createPreloadEventApi({
             fitFileLoadedChannel: "fit-file-loaded",
             ipcRenderer: ipcMock,
-            isAllowedGenericInvokeChannel: (
-                channel: unknown
-            ): channel is GenericInvokeChannel => channel === "getAppVersion",
-            isAllowedGenericSendChannel: (
-                channel: unknown
-            ): channel is GenericSendChannel => channel === "theme-changed",
-            isAllowedRendererIpcEventChannel: (
-                channel: unknown
-            ): channel is RendererIpcEventChannel =>
-                channel === "show-notification",
             isAllowedUpdateEventName: (
                 eventName: unknown
             ): eventName is UpdateEventName => eventName === "update-checking",
             preloadLog,
             removeIpcListener,
-            shouldAllowGenericIpcBridge,
             shouldEnforceGenericIpcAllowlist,
             validateCallback: (
                 callback: unknown
@@ -130,91 +95,31 @@ function createApi({
     };
 }
 
-describe("generic preload IPC API", () => {
-    it("invokes allowlisted channels and logs before rethrowing failures", async () => {
-        expect.assertions(5);
+describe("preload event API", () => {
+    it("exposes only FIT notification and update event methods", () => {
+        expect.assertions(1);
 
-        const { api, ipcMock, preloadLog } = createApi();
-        ipcMock.invoke.mockResolvedValueOnce("29.9.0");
-        const invokeError = new Error("invoke failed");
-        ipcMock.invoke.mockRejectedValueOnce(invokeError);
+        const { api } = createApi();
 
-        await expect(api.invoke("getAppVersion")).resolves.toBe("29.9.0");
-        await expect(api.invoke("getAppVersion")).rejects.toThrow(
-            "invoke failed"
-        );
-
-        expect(ipcMock.invoke).toHaveBeenCalledTimes(2);
-        expect(preloadLog).toHaveBeenCalledWith(
-            "error",
-            "[preload.js] Error in invoke(getAppVersion):",
-            invokeError
-        );
-        expect(
-            preloadLog.mock.calls.filter(([level]) => level === "warn")
-        ).toStrictEqual([]);
-    });
-
-    it("blocks non-allowlisted generic channels while enforcement is enabled", async () => {
-        expect.assertions(4);
-
-        const { api, ipcMock, preloadLog } = createApi();
-
-        await expect(api.invoke("theme:get")).rejects.toThrow(
-            "Channel not allowed for invoke"
-        );
-
-        api.onIpc("menu-about", vi.fn());
-        api.onUpdateEvent("update-downloaded", vi.fn());
-
-        api.send("fit-file-loaded", "activity.fit");
-
-        expect(ipcMock.on).not.toHaveBeenCalled();
-        expect(ipcMock.send).not.toHaveBeenCalled();
-        expect(preloadLog.mock.calls).toStrictEqual([
-            [
-                "warn",
-                "[preload.js] Blocked onIpc() subscription to non-allowlisted channel: menu-about",
-            ],
-            [
-                "warn",
-                "[preload.js] Blocked onUpdateEvent() subscription to non-allowlisted event: update-downloaded",
-            ],
-            [
-                "warn",
-                "[preload.js] Blocked send() to non-allowlisted channel: fit-file-loaded",
-            ],
+        expect(Object.keys(api).sort()).toStrictEqual([
+            "notifyFitFileLoaded",
+            "onUpdateEvent",
         ]);
     });
 
-    it("disables generic invoke, send, and onIpc when production bridge access is off", async () => {
-        expect.assertions(6);
+    it("blocks non-allowlisted update events while enforcement is enabled", () => {
+        expect.assertions(3);
 
-        const { api, ipcMock, preloadLog } = createApi({
-            shouldAllowGenericIpcBridge: false,
-        });
+        const { api, ipcMock, preloadLog } = createApi();
 
-        await expect(api.invoke("getAppVersion")).rejects.toThrow(
-            "Generic invoke is disabled"
-        );
-        expect(api.onIpc("show-notification", vi.fn())).toBeUndefined();
-        api.send("theme-changed", "dark");
-        api.notifyFitFileLoaded("activity.fit");
+        const unsubscribe = api.onUpdateEvent("update-downloaded", vi.fn());
 
-        expect(ipcMock.invoke).not.toHaveBeenCalled();
+        expect(unsubscribe).toBeUndefined();
         expect(ipcMock.on).not.toHaveBeenCalled();
-        expect(ipcMock.send).toHaveBeenCalledExactlyOnceWith(
-            "fit-file-loaded",
-            "activity.fit"
-        );
         expect(preloadLog.mock.calls).toStrictEqual([
             [
                 "warn",
-                "[preload.js] Blocked onIpc() subscription while generic IPC is disabled: show-notification",
-            ],
-            [
-                "warn",
-                "[preload.js] Blocked send() while generic IPC is disabled: theme-changed",
+                "[preload.js] Blocked onUpdateEvent() subscription to non-allowlisted event: update-downloaded",
             ],
         ]);
     });
@@ -256,13 +161,13 @@ describe("generic preload IPC API", () => {
         ]);
     });
 
-    it("wraps event callbacks and removes listeners through the shared remover", () => {
+    it("wraps update event callbacks and removes listeners through the shared remover", () => {
         expect.assertions(7);
 
         const { api, ipcMock, preloadLog, removeIpcListener } = createApi();
         const callback = vi.fn<(...args: IpcResponsePayload[]) => void>();
-        const unsubscribe = api.onIpc(
-            "show-notification",
+        const unsubscribe = api.onUpdateEvent(
+            "update-checking",
             callback
         ) as () => void;
         const [registeredChannel, listener] = ipcMock.on.mock.calls[0] as [
@@ -272,7 +177,7 @@ describe("generic preload IPC API", () => {
         const event = { id: "evt" };
 
         expect(ipcMock.on).toHaveBeenCalledOnce();
-        expect(registeredChannel).toBe("show-notification");
+        expect(registeredChannel).toBe("update-checking");
         expect(listener).not.toBe(callback);
 
         listener(event, "payload");
@@ -281,7 +186,7 @@ describe("generic preload IPC API", () => {
         expect(callback).toHaveBeenCalledWith("payload");
         expect(callback).not.toHaveBeenCalledWith(event, "payload");
         expect(removeIpcListener).toHaveBeenCalledWith(
-            "show-notification",
+            "update-checking",
             listener
         );
         expect(preloadLog).not.toHaveBeenCalled();

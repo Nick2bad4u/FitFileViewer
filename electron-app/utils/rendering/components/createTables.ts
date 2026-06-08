@@ -1,11 +1,9 @@
 import { renderTable } from "../core/renderTable.js";
-
-type TableRow = Record<string, unknown>;
-type DataFrames = Record<string, unknown>;
-
-function isTableRow(row: unknown): row is TableRow {
-    return Boolean(row) && typeof row === "object" && !Array.isArray(row);
-}
+import {
+    getFitTableEntries,
+    isFitTableEntry,
+    type FitTableEntry,
+} from "../../state/domain/fitTableDataState.js";
 
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
@@ -13,10 +11,6 @@ function getErrorMessage(error: unknown): string {
 
 function getErrorStack(error: unknown): string | undefined {
     return error instanceof Error ? error.stack : undefined;
-}
-
-function isNumericOnlyKey(key: string): boolean {
-    return /^\d+$/u.test(key);
 }
 
 /**
@@ -29,7 +23,7 @@ function isNumericOnlyKey(key: string): boolean {
  * @param containerOverride - Optional container element to render into.
  */
 export function createTables(
-    dataFrames: DataFrames,
+    dataFrames: unknown,
     containerOverride?: HTMLElement
 ): void {
     const container =
@@ -46,50 +40,14 @@ export function createTables(
         container.firstChild.remove();
     }
 
-    const keys = Object.keys(dataFrames).filter((key) => {
-        const rows = dataFrames[key];
-        // Some datasets can contain occasional null entries; render what we can instead of dropping the entire table.
-        return Array.isArray(rows) && rows.some((row) => isTableRow(row));
-    });
-
-    // Sort keys so 'recordMesgs' appears first, then named tables, then numeric-only tables.
-    keys.sort((a, b) => {
-        if (a === "recordMesgs") return -1;
-        if (b === "recordMesgs") return 1;
-
-        const aNumeric = isNumericOnlyKey(a);
-        const bNumeric = isNumericOnlyKey(b);
-        if (aNumeric !== bNumeric) {
-            return aNumeric ? 1 : -1;
-        }
-
-        // Within the numeric-only group, order numerically for readability.
-        if (aNumeric && bNumeric) {
-            return Number(a) - Number(b);
-        }
-
-        return a.localeCompare(b);
-    });
-
-    for (const [index, key] of keys.entries()) {
+    for (const [index, { key, rows }] of resolveTableEntries(
+        dataFrames
+    ).entries()) {
         try {
-            const rows = dataFrames[key];
-            if (!Array.isArray(rows) || rows.length === 0) {
-                continue;
-            }
-
-            const validRows = rows.filter((row) => isTableRow(row));
-            if (validRows.length === 0) {
-                console.warn(
-                    `[WARNING] Skipping table for key: ${key} as it has no compatible rows.`
-                );
-                continue;
-            }
-
             // IMPORTANT (CSP): Avoid Arquero for raw table rendering.
             // Arquero's `toHTML()` / `objects()` use runtime Function generation in some builds,
             // which is blocked by our CSP (no unsafe-eval). Render tables directly from raw rows instead.
-            renderTable(container, key, { rows: validRows }, index);
+            renderTable(container, key, { rows }, index);
         } catch (error) {
             console.error(
                 `[ERROR] Failed to render table for key: ${key}. Error message: ${getErrorMessage(error)}. Stack trace:`,
@@ -97,4 +55,10 @@ export function createTables(
             );
         }
     }
+}
+
+function resolveTableEntries(dataFrames: unknown): FitTableEntry[] {
+    return Array.isArray(dataFrames) && dataFrames.every(isFitTableEntry)
+        ? dataFrames
+        : getFitTableEntries(dataFrames);
 }

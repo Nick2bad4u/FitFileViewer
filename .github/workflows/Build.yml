@@ -277,6 +277,7 @@ jobs:
                   path: |
                       release-dist/Fit-File-Viewer-*
                       release-dist/latest*.yml
+                      release-dist/signing-verification-report.json
                       release-dist/squirrel*/*
                       release-dist/nsis-web/*
                   include-hidden-files: true

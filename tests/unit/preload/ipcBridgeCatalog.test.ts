@@ -5,9 +5,6 @@ const requireFromTest = createRequire(import.meta.url);
 const ipcBridgeCatalog = requireFromTest(
     "../../../electron-app/preload/ipcBridgeCatalog.js"
 ) as {
-    isAllowedGenericInvokeChannel: (channel: unknown) => boolean;
-    isAllowedGenericSendChannel: (channel: unknown) => boolean;
-    isAllowedRendererIpcEventChannel: (channel: unknown) => boolean;
     isAllowedUpdateEventName: (eventName: unknown) => boolean;
     PRELOAD_CHANNELS: Record<string, string>;
     PRELOAD_EVENTS: Record<string, string>;
@@ -89,95 +86,42 @@ describe("preload ipcBridgeCatalog", () => {
         ).toBe(Object.values(ipcBridgeCatalog.PRELOAD_EVENTS).length);
     });
 
-    it("keeps generic IPC allowlists narrow", () => {
-        expect.assertions(4);
+    it("allows only updater event names through the update-event API", () => {
+        expect.assertions(3);
 
-        const invokeChannelResults = [
-            ...Object.values(expectedPreloadChannels).map((channel) =>
-                ipcBridgeCatalog.isAllowedGenericInvokeChannel(channel)
-            ),
-            ipcBridgeCatalog.isAllowedGenericInvokeChannel("fit:parse"),
-            ipcBridgeCatalog.isAllowedGenericInvokeChannel("main-state:get"),
-            ipcBridgeCatalog.isAllowedGenericInvokeChannel("unknown:channel"),
-        ];
-        const sendChannelResults = [
-            ipcBridgeCatalog.isAllowedGenericSendChannel("theme-changed"),
-            ipcBridgeCatalog.isAllowedGenericSendChannel("menu-open-file"),
-            ipcBridgeCatalog.isAllowedGenericSendChannel("menu-save-as"),
-        ];
-        const blockedChannelResults = {
-            fitParseSend:
-                ipcBridgeCatalog.isAllowedGenericSendChannel("fit:parse"),
-            menuSaveAsSend:
-                ipcBridgeCatalog.isAllowedGenericSendChannel("menu-save-as"),
-            menuOpenFileInvoke:
-                ipcBridgeCatalog.isAllowedGenericInvokeChannel(
-                    "menu-open-file"
-                ),
-        };
-
-        expect(invokeChannelResults).toStrictEqual([
-            ...Object.values(expectedPreloadChannels).map(() => true),
-            true,
-            true,
-            false,
-        ]);
-        expect(sendChannelResults).toStrictEqual([
-            true,
-            false,
-            false,
-        ]);
-        expect(blockedChannelResults).toStrictEqual({
-            fitParseSend: false,
-            menuSaveAsSend: false,
-            menuOpenFileInvoke: false,
-        });
-        expect(Object.values(blockedChannelResults)).not.toContain(true);
-    });
-
-    it("allows only update event names through generic renderer subscriptions", () => {
-        expect.assertions(4);
-
-        const rendererEventResults = [
-            ...Object.values(expectedPreloadEvents).map((channel) =>
-                ipcBridgeCatalog.isAllowedRendererIpcEventChannel(channel)
-            ),
-            ipcBridgeCatalog.isAllowedRendererIpcEventChannel(
-                "update-downloaded"
-            ),
-            ipcBridgeCatalog.isAllowedRendererIpcEventChannel("secret-channel"),
-        ];
         const updateEventResults = [
+            ipcBridgeCatalog.isAllowedUpdateEventName("update-available"),
             ipcBridgeCatalog.isAllowedUpdateEventName("update-downloaded"),
+            ipcBridgeCatalog.isAllowedUpdateEventName("update-error"),
             ipcBridgeCatalog.isAllowedUpdateEventName("menu-open-file"),
         ];
-        const rendererBoundaryResults = {
-            fitParseSubscription:
-                ipcBridgeCatalog.isAllowedRendererIpcEventChannel("fit:parse"),
+        const updateBoundaryResults = {
+            fitParseEvent:
+                ipcBridgeCatalog.isAllowedUpdateEventName("fit:parse"),
             updateErrorEvent:
                 ipcBridgeCatalog.isAllowedUpdateEventName("update-error"),
         };
 
-        expect(rendererEventResults).toStrictEqual([
-            ...Object.values(expectedPreloadEvents).map(() => false),
+        expect(updateEventResults).toStrictEqual([
+            true,
+            true,
             true,
             false,
         ]);
-        expect(updateEventResults).toStrictEqual([true, false]);
-        expect(rendererBoundaryResults).toStrictEqual({
-            fitParseSubscription: false,
+        expect(updateBoundaryResults).toStrictEqual({
+            fitParseEvent: false,
             updateErrorEvent: true,
         });
-        expect(Object.values(rendererBoundaryResults)).toContain(true);
+        expect(Object.values(updateBoundaryResults)).toContain(true);
     });
 
-    it("rejects non-string channel values before consulting allowlists", () => {
+    it("rejects non-string update event names before consulting allowlists", () => {
         expect.assertions(1);
 
         const nonStringResults = [
-            ipcBridgeCatalog.isAllowedGenericInvokeChannel(undefined),
-            ipcBridgeCatalog.isAllowedGenericSendChannel(42),
-            ipcBridgeCatalog.isAllowedRendererIpcEventChannel({}),
+            ipcBridgeCatalog.isAllowedUpdateEventName(undefined),
+            ipcBridgeCatalog.isAllowedUpdateEventName(42),
+            ipcBridgeCatalog.isAllowedUpdateEventName({}),
             ipcBridgeCatalog.isAllowedUpdateEventName(null),
         ];
 

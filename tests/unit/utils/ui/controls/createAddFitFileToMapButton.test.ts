@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-    getState: vi.fn<(key: string) => unknown>(),
     getThemeColors: vi.fn<() => Record<string, string>>(),
+    hasActiveFitRouteData: vi.fn<() => boolean>(),
     openFileSelector: vi.fn<() => Promise<void>>(),
     showNotification: vi.fn<(message: string, type: string) => void>(),
     subscribe: vi.fn<(key: string, listener: () => void) => () => void>(),
@@ -25,8 +25,14 @@ vi.mock(
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
-        getState: mocks.getState,
         subscribe: mocks.subscribe,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/state/domain/fitRouteDataState.js"),
+    () => ({
+        hasActiveFitRouteData: mocks.hasActiveFitRouteData,
     })
 );
 
@@ -52,7 +58,7 @@ function resetFixture(): void {
     delete globalRef.__ffvAddFitOverlayButtonUnsubscribe;
     delete globalRef.__ffvAddFitOverlayButtonUpdate;
     mocks.getThemeColors.mockReturnValue({ primary: "#2563eb" });
-    mocks.getState.mockReturnValue(null);
+    mocks.hasActiveFitRouteData.mockReturnValue(false);
     mocks.openFileSelector.mockResolvedValue();
     mocks.subscribe.mockReturnValue(() => {});
 }
@@ -92,7 +98,7 @@ describe(createAddFitFileToMapButton, () => {
             expect(button.textContent).toBe("Add FIT File(s) to Map");
             expect(getIconPath(button).getAttribute("stroke")).toBe("#2563eb");
             expect(mocks.subscribe).toHaveBeenCalledExactlyOnceWith(
-                "globalData",
+                "fitFile.rawData",
                 expect.any(Function)
             );
 
@@ -111,7 +117,7 @@ describe(createAddFitFileToMapButton, () => {
         expect.assertions(4);
 
         resetFixture();
-        mocks.getState.mockReturnValue({ recordMesgs: [{}] });
+        mocks.hasActiveFitRouteData.mockReturnValue(true);
 
         try {
             const button = createAddFitFileToMapButton();
@@ -137,11 +143,11 @@ describe(createAddFitFileToMapButton, () => {
             subscribedListener = listener;
             return () => {};
         });
-        mocks.getState.mockReturnValue(null);
+        mocks.hasActiveFitRouteData.mockReturnValue(false);
 
         try {
             const firstButton = createAddFitFileToMapButton();
-            mocks.getState.mockReturnValue({ recordMesgs: [{}] });
+            mocks.hasActiveFitRouteData.mockReturnValue(true);
             const secondButton = createAddFitFileToMapButton();
 
             subscribedListener?.();
@@ -179,7 +185,7 @@ describe(createAddFitFileToMapButton, () => {
         resetFixture();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const error = new Error("state failed");
-        mocks.getState.mockImplementation(() => {
+        mocks.hasActiveFitRouteData.mockImplementation(() => {
             throw error;
         });
 
@@ -202,7 +208,7 @@ describe(createAddFitFileToMapButton, () => {
 
         resetFixture();
         const error = new Error("dialog failed");
-        mocks.getState.mockReturnValue({ recordMesgs: [{}] });
+        mocks.hasActiveFitRouteData.mockReturnValue(true);
         mocks.openFileSelector.mockRejectedValue(error);
 
         try {

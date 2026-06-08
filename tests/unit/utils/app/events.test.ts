@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SetupListenersOptions } from "../../../../electron-app/utils/app/lifecycle/listeners.js";
-import { setGlobalData } from "../../../../electron-app/utils/state/core/globalDataStore.js";
+import { setActiveFitRawData } from "../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
+import { setLoadedFitFiles } from "../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
 
 const csvExportMocks = vi.hoisted(() => ({
     serializeTableToCSV: vi.fn<(table: unknown) => string>(),
@@ -283,7 +284,7 @@ describe(setupListeners, () => {
         defineGlobalValue("ChartUpdater", {
             updateCharts: vi.fn<(reason?: string) => unknown>(),
         });
-        setGlobalData({ recordMesgs: [] }, { source: "test" });
+        setActiveFitRawData({ recordMesgs: [] }, { source: "test" });
         csvExportMocks.serializeTableToCSV.mockReset();
         csvExportMocks.serializeTableToCSV.mockReturnValue("header\nvalue");
         fitDataRendererMocks.renderDecodedFitData.mockReset();
@@ -553,7 +554,7 @@ describe(setupListeners, () => {
         vi.useFakeTimers();
         const csv = "header\nvalue";
         csvExportMocks.serializeTableToCSV.mockReturnValueOnce(csv);
-        setGlobalData(
+        setActiveFitRawData(
             {
                 recordMesgs: [{ header: "value" }],
             },
@@ -607,7 +608,7 @@ describe(setupListeners, () => {
             ipcHandlers.get("export-file"),
             "export-file"
         );
-        setGlobalData({ recordMesgs: [] }, { source: "test" });
+        setActiveFitRawData({ recordMesgs: [] }, { source: "test" });
         await exportHandler("activity.gpx");
         expect(showNotification).toHaveBeenCalledWith(
             "No data available for GPX export.",
@@ -629,7 +630,7 @@ describe(setupListeners, () => {
             ipcHandlers.get("export-file"),
             "export-file"
         );
-        setGlobalData(
+        setActiveFitRawData(
             {
                 recordMesgs: [
                     {
@@ -642,7 +643,7 @@ describe(setupListeners, () => {
             },
             { source: "test" }
         );
-        globalAny.loadedFitFiles = [{ displayName: "Demo Ride" }];
+        setLoadedFitFiles([{ displayName: "Demo Ride" }], "test");
 
         const createObjectURLSpy = vi
             .spyOn(URL, "createObjectURL")

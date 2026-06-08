@@ -1,17 +1,11 @@
-import {
-    isChartLibraryUnavailable,
-    touchStringTargetContainer,
-} from "./renderChartPreflight.js";
+import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
+import { touchStringTargetContainer } from "./renderChartPreflight.js";
 import type { StateUpdateOptions } from "../../state/core/stateManager.js";
 import {
     clearExistingCharts,
     startChartRendering,
 } from "./renderChartLifecycle.js";
 
-type NotifyErrorFunction = (
-    message: string,
-    type: "error"
-) => unknown;
 type SetStateFunction = (
     path: string,
     value: unknown,
@@ -28,19 +22,11 @@ interface ChartLifecycleActions {
     startRendering?: () => void;
 }
 
-interface ChartRuntimeGlobal {
-    Chart?: unknown;
-    _chartjsInstances?: unknown[];
-}
-
 interface ChartRenderSessionStartDependencies {
-    chartGlobal: ChartRuntimeGlobal;
     doc: Document;
     getGlobalChartActions(): ChartLifecycleActions | null;
     isLoadingStateSuppressed(): boolean;
-    notify: NotifyErrorFunction;
     now(): number;
-    safeCompleteRendering(success: boolean): void;
     setState: SetStateFunction;
     updateState: UpdateStateFunction;
     waitIfRapidRender(): Promise<void>;
@@ -88,12 +74,9 @@ export async function beginChartRenderSession(
 
     const performanceStart = dependencies.now();
 
-    if (!dependencies.chartGlobal._chartjsInstances) {
-        dependencies.chartGlobal._chartjsInstances = [];
-    }
+    getRegisteredChartInstances();
 
     clearExistingCharts({
-        chartGlobal: dependencies.chartGlobal,
         getGlobalChartActions: () => dependencies.getGlobalChartActions(),
         updateState: (path, value, options) =>
             dependencies.updateState(
@@ -102,14 +85,6 @@ export async function beginChartRenderSession(
                 options as StateUpdateOptions | undefined
             ),
     });
-
-    if (isChartLibraryUnavailable(dependencies.chartGlobal)) {
-        const error = "Chart.js library is not loaded or not available";
-        console.error(`[ChartJS] ${error}`);
-        await dependencies.notify("Chart library not available", "error");
-        dependencies.safeCompleteRendering(false);
-        return { ready: false };
-    }
 
     return { performanceStart, ready: true };
 }

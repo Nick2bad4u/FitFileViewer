@@ -39,9 +39,8 @@ describe("summaryColModal - file override persistence", () => {
             await import("../../../../../electron-app/utils/state/core/stateManager.js");
         resetStateManager = stateManager.__resetStateManagerForTests;
         resetStateManager();
-        const { setGlobalData } =
-            await import("../../../../../electron-app/utils/state/core/globalDataStore.js");
-        setGlobalData(
+        stateManager.setState(
+            "fitFile.rawData",
             { cachedFilePath: "C:/tmp/activity.fit" },
             { source: "test" }
         );

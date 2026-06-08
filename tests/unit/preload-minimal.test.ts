@@ -184,9 +184,9 @@ describe("preload.js - Basic API Validation", () => {
         );
 
         await expect(electronAPI.openFile()).resolves.toBe("mock-result");
-        await expect(electronAPI.readFile("activity.fit")).resolves.toBe(
-            "mock-result"
-        );
+        await expect(
+            electronAPI.readFile("C:/rides/activity.fit")
+        ).resolves.toBe("mock-result");
         expect(electronMock.ipcRenderer.invoke).toHaveBeenNthCalledWith(
             1,
             "dialog:openFile"
@@ -194,7 +194,7 @@ describe("preload.js - Basic API Validation", () => {
         expect(electronMock.ipcRenderer.invoke).toHaveBeenNthCalledWith(
             2,
             "file:read",
-            "activity.fit"
+            "C:/rides/activity.fit"
         );
     });
 

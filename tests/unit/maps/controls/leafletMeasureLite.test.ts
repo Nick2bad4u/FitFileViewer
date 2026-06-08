@@ -3,6 +3,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { installLeafletMeasureLite } from "../../../../electron-app/renderer/leafletMeasureLite.js";
+
 type LayerGroupMock = {
     addLayer: (layer: any) => LayerGroupMock;
     addTo: (target: { addLayer: (layer: any) => unknown }) => LayerGroupMock;
@@ -27,10 +29,6 @@ type MapMock = {
     off: ReturnType<typeof vi.fn<() => void>>;
     on: ReturnType<typeof vi.fn<() => void>>;
     removeLayer: ReturnType<typeof vi.fn<(layer: any) => MapMock>>;
-};
-
-type LeafletMeasureTestGlobal = typeof globalThis & {
-    L?: any;
 };
 
 function createLayerGroup(): LayerGroupMock {
@@ -77,7 +75,7 @@ function createLayer() {
     };
 }
 
-function installLeafletMock(createdPopups: PopupMock[]): void {
+function createLeafletMock(createdPopups: PopupMock[]): any {
     const controlFactory = {
         extend(definition: Record<string, any>) {
             function Measure(this: any, options?: Record<string, any>) {
@@ -105,7 +103,7 @@ function installLeafletMock(createdPopups: PopupMock[]): void {
         },
     };
 
-    (globalThis as LeafletMeasureTestGlobal).L = {
+    return {
         Control: controlFactory,
         DomEvent: {
             disableClickPropagation: vi.fn(),
@@ -180,12 +178,10 @@ function openPopupDom(container: HTMLElement, popup: PopupMock): void {
 
 describe("leafletMeasureLite", () => {
     beforeEach(() => {
-        vi.resetModules();
         document.body.replaceChildren();
     });
 
     afterEach(() => {
-        Reflect.deleteProperty(globalThis, "L");
         document.body.replaceChildren();
         vi.restoreAllMocks();
     });
@@ -197,11 +193,9 @@ describe("leafletMeasureLite", () => {
         const mapContainer = document.createElement("div");
         document.body.append(mapContainer);
         const map = createMapMock(mapContainer);
-        installLeafletMock(createdPopups);
+        const leaflet = createLeafletMock(createdPopups);
 
-        await import("../../../../electron-app/renderer/leafletMeasureLite.js");
-
-        const leaflet = (globalThis as LeafletMeasureTestGlobal).L;
+        installLeafletMeasureLite(leaflet);
         const control = leaflet.control.measure();
         control.addTo(map);
 

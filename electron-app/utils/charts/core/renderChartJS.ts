@@ -21,8 +21,8 @@
  *
  * Dependencies:
  *
- * - Chart.js library (chartGlobal.Chart)
- * - Chart.js zoom plugin (chartGlobal.ChartZoom)
+ * - Chart.js and chartjs-plugin-zoom via the bundled renderer chart runtime
+ *   adapter
  */
 
 import { loadSharedConfiguration } from "../../app/initialization/loadSharedConfiguration.js";
@@ -79,7 +79,6 @@ import {
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
 import { addHoverEffectsToExistingCharts } from "../plugins/addChartHoverEffects.js";
 import {
-    
     resetChartNotificationState as resetChartNotificationStateCompat,
     updatePreviousChartState as updatePreviousChartStateCompat,
 } from "./renderChartNotificationStateCompat.js";
@@ -133,6 +132,7 @@ import { resolveChartRuntimeDependencies } from "./renderChartRuntimeDependencie
 import { renderChartDataCharts } from "./renderChartDataCharts.js";
 import { completeChartDataRender } from "./renderChartDataCompletion.js";
 import { beginChartDataRenderContext } from "./renderChartDataContext.js";
+import { registerChartInstance } from "./chartInstanceRegistry.js";
 import type {
     ActivityStartTime,
     ChartDataRecord,
@@ -145,9 +145,6 @@ type RenderChartOptions = {
     skipControls?: boolean;
     skipTabAbort?: boolean;
 };
-type ChartGlobalWithInstances = typeof chartGlobal & {
-    _chartjsInstances: unknown[];
-};
 
 function debounceCallback(callback: () => void, delay: number): () => void {
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -157,11 +154,6 @@ function debounceCallback(callback: () => void, delay: number): () => void {
         }
         timer = setTimeout(callback, delay);
     };
-}
-
-function getChartGlobalWithInstances(): ChartGlobalWithInstances {
-    chartGlobal._chartjsInstances ??= [];
-    return chartGlobal as ChartGlobalWithInstances;
 }
 
 /** Tracks render timings and exposes chart performance summaries. */
@@ -248,7 +240,6 @@ const ensureDataSettingsSignature = (settings: unknown): string =>
 
 /** Last chart notification state retained for compatibility callers. */
 
-
 /** Resets notification tracking for the next chart render. */
 export function resetChartNotificationState() {
     return resetChartNotificationStateCompat();
@@ -279,7 +270,6 @@ export const chartState = createChartStateView({
 /** State-backed chart action handlers exposed to chart integrations. */
 export const chartActions = createChartActions({
     appActions: AppActions,
-    chartGlobal,
     debouncedDirectRerender,
     getControlsVisible: () => chartState.controlsVisible,
     getDebouncedChartStateManager,
@@ -310,7 +300,6 @@ registerChartStartup({
 
 /** Exports rendered chart artifacts using current state. */
 export const exportChartsWithState = createExportChartsWithState({
-    chartGlobal,
     getChartInstances: getGlobalChartInstances,
     getState,
     notify,
@@ -385,13 +374,10 @@ export async function renderChartJS(
     try {
         const renderSession = await beginChartRenderSession(
             {
-                chartGlobal,
                 doc: document,
                 getGlobalChartActions,
                 isLoadingStateSuppressed,
-                notify,
                 now: () => performance.now(),
-                safeCompleteRendering,
                 setState: callSetState,
                 updateState: callUpdateState,
                 waitIfRapidRender: () => renderTimingGate.waitIfRapidRender(),
@@ -423,7 +409,6 @@ export async function renderChartJS(
 
         const { success } = await executePreparedChartRender(
             {
-                chartGlobal,
                 createElement: (tagName) => document.createElement(tagName),
                 getGlobalChartActions,
                 getRendererModules: getRendererModulesSafe,
@@ -584,7 +569,6 @@ async function renderChartsWithData(
     const chartDataRenderResult = renderChartDataCharts(
         {
             chartContainer,
-            chartGlobal: getChartGlobalWithInstances(),
             createChartCanvas: createChartCanvasSafe,
             createEnhancedChart: createEnhancedChartSafe,
             getActiveTab: () => gs_rcwd("ui.activeTab"),
@@ -592,10 +576,12 @@ async function renderChartsWithData(
                 chartSettingsManager.getFieldVisibility(field),
             isDebugLoggingEnabled,
             isTestRuntime,
-            registerChart: (chart) =>
+            registerChart: (chart) => {
+                registerChartInstance(chart);
                 resourceManager.registerChart(chart, {
                     owner: "renderChartJS",
-                }),
+                });
+            },
             renderers: {
                 renderEventMessagesChart: renderEventMessagesChartSafe,
                 renderGPSTimeChart: renderGPSTimeChartSafe,
@@ -649,7 +635,7 @@ async function renderChartsWithData(
             addHoverEffectsToExistingCharts:
                 addHoverEffectsToExistingChartsSafe,
             chartContainer,
-            chartGlobal: getChartGlobalWithInstances(),
+            chartGlobal,
             CustomEventConstructor: globalThis.CustomEvent,
             doc: document,
             getComputedStateManager: getComputedStateManagerSafe,
@@ -694,4 +680,4 @@ exposeChartDevTools({
     subscribe,
 });
 
-export {previousChartState} from "./renderChartNotificationStateCompat.js";
+export { previousChartState } from "./renderChartNotificationStateCompat.js";

@@ -15,11 +15,6 @@ type ActivityDataCounts = {
     sessionCount: number;
 };
 
-type RendererActivityData = {
-    recordMesgs?: unknown[];
-    sessionMesgs?: unknown[];
-};
-
 type FitFixtureFileState =
     | {
           byteLength: number;
@@ -239,23 +234,23 @@ async function getRendererActivityDataCounts(
 ): Promise<ActivityDataCounts> {
     return page.evaluate(async () => {
         const moduleUrl = new URL(
-            "./utils/state/core/stateManager.js",
+            "./utils/state/domain/fitActivityDataState.js",
             window.location.href
         ).href;
-        // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used to inspect renderer state in Playwright smoke tests.
-        const stateModule = (await import(moduleUrl)) as {
-            getState: (path: string) => unknown;
+        // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used to inspect explicit renderer FIT state in Playwright smoke tests.
+        const activityStateModule = (await import(moduleUrl)) as {
+            getActiveFitActivityData: () => {
+                recordMesgs: unknown[];
+                sessionMesgs: unknown[];
+            };
         };
-        const activityData = stateModule.getState("globalData") as
-            | null
-            | RendererActivityData
-            | undefined;
+        const activityData = activityStateModule.getActiveFitActivityData();
 
         return {
-            recordCount: Array.isArray(activityData?.recordMesgs)
+            recordCount: Array.isArray(activityData.recordMesgs)
                 ? activityData.recordMesgs.length
                 : 0,
-            sessionCount: Array.isArray(activityData?.sessionMesgs)
+            sessionCount: Array.isArray(activityData.sessionMesgs)
                 ? activityData.sessionMesgs.length
                 : 0,
         };
@@ -781,7 +776,7 @@ test.describe("FitFileViewer Electron UI", () => {
                     typeof globalWindow.DOMPurify?.sanitize === "function",
                 hasHammer: typeof globalWindow.Hammer === "function",
                 hasJsZip: typeof globalWindow.JSZip === "function",
-                hasJQueryDataTables:
+                hasDataTableCompatibilityGlobals:
                     typeof globalWindow.$ === "function" &&
                     typeof globalWindow.jQuery === "function" &&
                     typeof globalWindow.jQuery.fn?.DataTable === "function" &&
@@ -794,25 +789,28 @@ test.describe("FitFileViewer Electron UI", () => {
                     typeof globalWindow.Chart === "function" &&
                     globalWindow.Chart.registry?.plugins?.get?.("zoom") !==
                         undefined,
-                vendorBundleSource:
-                    globalWindow.__FFV_RENDERER_VENDOR_BUNDLE__?.source,
-                vendorSplitEntries:
-                    globalWindow.__FFV_RENDERER_VENDOR_BUNDLE__?.splitEntries,
+                hasCoreVendorScript: Boolean(
+                    document.querySelector(
+                        'script[src*="vendor-globals-core.js"]'
+                    )
+                ),
+                hasVendorBundleGlobal:
+                    "__FFV_RENDERER_VENDOR_BUNDLE__" in globalWindow,
             };
         });
 
         expect(vendorGlobals).toStrictEqual({
-            hasArqueroTable: true,
+            hasArqueroTable: false,
             hasChart: false,
             hasChartZoom: false,
-            hasDomPurify: true,
+            hasDomPurify: false,
             hasHammer: false,
-            hasJsZip: true,
-            hasJQueryDataTables: false,
-            hasScreenfull: true,
+            hasJsZip: false,
+            hasDataTableCompatibilityGlobals: false,
+            hasScreenfull: false,
+            hasCoreVendorScript: true,
+            hasVendorBundleGlobal: false,
             isChartZoomRegistered: false,
-            vendorBundleSource: "npm-bundle",
-            vendorSplitEntries: ["core"],
         });
     });
 
@@ -1060,23 +1058,18 @@ test.describe("FitFileViewer Electron UI", () => {
                 document.querySelectorAll(".leaflet-control-layers label"),
                 (element) => element.textContent?.trim() ?? ""
             );
-            const runtimeFeatureChecks = {
-                "Leaflet control layers":
-                    typeof globalWindow.L?.control?.layers === "function",
-                "Leaflet map factory":
-                    typeof globalWindow.L?.map === "function",
-                "MapLibre global":
-                    typeof globalWindow.maplibregl === "object" ||
-                    typeof globalWindow.maplibregl === "function",
-                "MapLibre Leaflet bridge":
-                    typeof globalWindow.L?.maplibreGL === "function",
-            };
+            const leafletGlobal = globalWindow.L as
+                | { Edit?: { Poly?: unknown } }
+                | undefined;
 
             return {
+                exposesMapLibreGlobal:
+                    typeof globalWindow.maplibregl === "object" ||
+                    typeof globalWindow.maplibregl === "function",
+                exposesLeafletGlobal: "L" in globalWindow,
+                hasLeafletDrawEditRuntime:
+                    typeof leafletGlobal?.Edit?.Poly === "function",
                 layerLabels,
-                missingRuntimeFeatures: Object.entries(runtimeFeatureChecks)
-                    .filter(([, available]) => !available)
-                    .map(([name]) => name),
                 openFreeMapLabels: layerLabels.filter((label) =>
                     label.startsWith("Open Free Map ")
                 ),
@@ -1086,7 +1079,9 @@ test.describe("FitFileViewer Electron UI", () => {
             };
         });
 
-        expect(mapRuntime.missingRuntimeFeatures).toStrictEqual([]);
+        expect(mapRuntime.exposesLeafletGlobal).toBe(true);
+        expect(mapRuntime.hasLeafletDrawEditRuntime).toBe(true);
+        expect(mapRuntime.exposesMapLibreGlobal).toBe(false);
         expect(mapRuntime.layerLabels).toHaveLength(33);
         expect(mapRuntime.openFreeMapLabels).toEqual([
             "Open Free Map Bright",
@@ -1205,7 +1200,7 @@ test.describe("FitFileViewer Electron UI", () => {
         expect(clickedDownload.download).toMatch(/\.gpx$/u);
         expect(clickedDownload.href).toBe("blob:ffv-playwright-gpx");
         expect(gpxExport.exportedBlob).toStrictEqual({
-            size: 450_729,
+            size: 450_785,
             type: "application/gpx+xml;charset=utf-8",
         });
 
@@ -1288,37 +1283,28 @@ test.describe("FitFileViewer Electron UI", () => {
         ).toBeVisible();
 
         const chartRuntimeHandle = await page.waitForFunction(() => {
-            const globalWindow = window as Window & {
-                _chartjsInstances?: Array<{ canvas?: HTMLCanvasElement }>;
-            };
             const canvases = Array.from(
                 document.querySelectorAll<HTMLCanvasElement>(
                     "#chartjs_chart_container canvas.chart-canvas"
                 )
             );
-            const instances = Array.isArray(globalWindow._chartjsInstances)
-                ? globalWindow._chartjsInstances
-                : [];
 
-            if (canvases.length === 0 || instances.length === 0) {
+            if (canvases.length === 0) {
                 return null;
             }
 
             return {
                 canvasCount: canvases.length,
-                chartInstanceCount: instances.length,
                 chartIds: canvases.map((canvas) => canvas.id),
             };
         });
         const chartRuntime = (await chartRuntimeHandle.jsonValue()) as {
             canvasCount: number;
             chartIds: string[];
-            chartInstanceCount: number;
         } | null;
 
         expect(chartRuntime).toStrictEqual({
             canvasCount: 23,
-            chartInstanceCount: 25,
             chartIds: [
                 "chart-heartRate-1",
                 "chart-power-2",

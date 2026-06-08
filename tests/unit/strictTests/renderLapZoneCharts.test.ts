@@ -7,8 +7,12 @@ import {
     afterEach,
     type Mock,
 } from "vitest";
+import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+} from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 import { renderLapZoneCharts } from "../../../electron-app/utils/charts/rendering/renderLapZoneCharts.js";
-import { setGlobalData } from "../../../electron-app/utils/state/core/globalDataStore.js";
+import { setActiveFitRawData } from "../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../electron-app/utils/state/core/stateManager.js";
 
 // Mock dependencies
@@ -86,12 +90,12 @@ describe(renderLapZoneCharts, () => {
 
         // Setup global data
         lapZoneGlobalData = { timeInZoneMesgs: [] };
-        setGlobalData(lapZoneGlobalData, { source: "test" });
+        setActiveFitRawData(lapZoneGlobalData, { source: "test" });
 
         // Setup zone data globals
         window.heartRateZones = [];
         window.powerZones = [];
-        window._chartjsInstances = [];
+        clearChartInstanceRegistryForTests();
 
         // Mock console methods
         mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -109,17 +113,20 @@ describe(renderLapZoneCharts, () => {
 
     afterEach(() => {
         __resetStateManagerForTests();
+        clearChartInstanceRegistryForTests();
         document.body.removeChild(container);
         vi.restoreAllMocks();
     });
 
     const setLapZoneGlobalData = (data: LapZoneGlobalData | null): void => {
         lapZoneGlobalData = data ?? {};
-        setGlobalData(data, { source: "test" });
+        setActiveFitRawData(data, { source: "test" });
     };
 
     const getCanvasIds = (): string[] =>
         [...container.querySelectorAll("canvas")].map((canvas) => canvas.id);
+
+    const getChartInstances = (): object[] => getRegisteredChartInstances();
 
     const getLatestChartRenderCall = (
         renderMock: ChartRenderMock
@@ -144,7 +151,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -162,7 +169,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -179,7 +186,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -195,7 +202,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -211,7 +218,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -230,7 +237,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -247,7 +254,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -264,7 +271,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -285,7 +292,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -341,7 +348,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -417,7 +424,7 @@ describe(renderLapZoneCharts, () => {
             expect(mockConsoleError).not.toHaveBeenCalled();
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -439,7 +446,7 @@ describe(renderLapZoneCharts, () => {
             expect(mockConsoleError).not.toHaveBeenCalled();
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -457,7 +464,7 @@ describe(renderLapZoneCharts, () => {
             expect(mockConsoleError).not.toHaveBeenCalled();
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -663,7 +670,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -819,7 +826,7 @@ describe(renderLapZoneCharts, () => {
             expect(canvas.id).toBe("chartjs-canvas-lap-hr-zones");
             expect(data).toBeInstanceOf(Array);
             expect(options.title).toBe("HR Zone by Lap (Stacked)");
-            expect(window._chartjsInstances).toStrictEqual([
+            expect(getChartInstances()).toStrictEqual([
                 { id: "mock-chart" },
                 { id: "mock-chart" },
                 { id: "mock-hr-bar" },
@@ -918,13 +925,13 @@ describe(renderLapZoneCharts, () => {
             ];
         });
 
-        it("should initialize window._chartjsInstances array if not exists", () => {
+        it("should register chart instances when the registry starts empty", () => {
             expect.assertions(2);
 
-            delete window._chartjsInstances;
+            clearChartInstanceRegistryForTests();
             renderLapZoneCharts(container);
-            expect(window._chartjsInstances).toBeInstanceOf(Array);
-            expect(window._chartjsInstances).toEqual([
+            expect(getChartInstances()).toBeInstanceOf(Array);
+            expect(getChartInstances()).toEqual([
                 { id: "mock-chart" },
                 { id: "mock-hr-bar" },
             ]);
@@ -933,9 +940,9 @@ describe(renderLapZoneCharts, () => {
         it("should add chart instances to global array", () => {
             expect.assertions(1);
 
-            window._chartjsInstances = [];
+            clearChartInstanceRegistryForTests();
             renderLapZoneCharts(container);
-            expect(window._chartjsInstances).toEqual([
+            expect(getChartInstances()).toEqual([
                 { id: "mock-chart" },
                 { id: "mock-hr-bar" },
             ]);
@@ -947,10 +954,10 @@ describe(renderLapZoneCharts, () => {
             renderLapZoneChartMock.mockReturnValue(null);
             renderSingleHRZoneBarMock.mockReturnValue(null);
 
-            window._chartjsInstances = [];
+            clearChartInstanceRegistryForTests();
             renderLapZoneCharts(container);
             // Should not add null values to the array
-            expect(window._chartjsInstances).toStrictEqual([]);
+            expect(getChartInstances()).toStrictEqual([]);
             expect(getCanvasIds()).toEqual([
                 "chartjs-canvas-lap-hr-zones",
                 "chartjs-canvas-single-lap-hr",
@@ -984,7 +991,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -1013,7 +1020,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],
@@ -1045,7 +1052,7 @@ describe(renderLapZoneCharts, () => {
             );
             expect({
                 canvasIds: getCanvasIds(),
-                chartInstances: window._chartjsInstances ?? [],
+                chartInstances: getChartInstances(),
             }).toStrictEqual({
                 canvasIds: [],
                 chartInstances: [],

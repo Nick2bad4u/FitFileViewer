@@ -9,7 +9,7 @@ import {
 import { formatManufacturer } from "../formatting/formatters/formatManufacturer.js";
 import { formatProduct } from "../formatting/formatters/formatProduct.js";
 import { formatSensorName } from "../formatting/formatters/formatSensorName.js";
-import { FitFileSelectors } from "../state/domain/fitFileState.js";
+import { getActiveFitTableData } from "../state/domain/fitTableDataState.js";
 
 type SensorEntry = Record<string, unknown> & {
     readonly device_index?: unknown;
@@ -29,7 +29,7 @@ type SensorEntry = Record<string, unknown> & {
     readonly source: string;
 };
 
-type FitGlobalData = Record<string, unknown>;
+type FitSensorData = Record<string, unknown>;
 
 type SensorIssue = {
     readonly actualManufacturer?: unknown;
@@ -62,12 +62,12 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === "object";
 }
 
-function getLoadedFitData(): FitGlobalData | null {
-    const data = FitFileSelectors.getRawData();
+function getLoadedFitData(): FitSensorData | null {
+    const data = getActiveFitTableData().rawData;
     return isRecord(data) ? data : null;
 }
 
-function getArrayValue(data: FitGlobalData, key: string): unknown[] {
+function getArrayValue(data: FitSensorData, key: string): unknown[] {
     const value = data[key];
     return Array.isArray(value) ? value : [];
 }
@@ -82,14 +82,14 @@ function withSource(value: unknown, source: string): SensorEntry {
 /**
  * Quick data availability check
  *
- * @returns Current global FIT data, or null when no parsed data is loaded.
+ * @returns Current active FIT data, or null when no parsed data is loaded.
  */
-export function checkDataAvailability(): FitGlobalData | null {
+export function checkDataAvailability(): FitSensorData | null {
     const data = getLoadedFitData();
 
     console.log("🔍 DATA AVAILABILITY CHECK:");
-    console.log(`Managed globalData exists: ${Boolean(data)}`);
-    console.log(`Managed globalData type: ${typeof data}`);
+    console.log(`Active FIT data exists: ${Boolean(data)}`);
+    console.log(`Active FIT data type: ${typeof data}`);
 
     if (data) {
         console.log(`Keys count: ${Object.keys(data).length}`);
@@ -112,14 +112,14 @@ export function checkDataAvailability(): FitGlobalData | null {
 }
 
 /**
- * Extracts and displays detailed sensor information from global data.
+ * Extracts and displays detailed sensor information from active FIT data.
  *
  * @returns Sensor analysis summary, or null if no data is available.
  */
 export function debugSensorInfo(): SensorAnalysis | null {
     const data = getLoadedFitData();
     if (!data || Object.keys(data).length === 0) {
-        console.warn("❌ No global data available. Load a FIT file first.");
+        console.warn("❌ No active FIT data available. Load a FIT file first.");
         return null;
     }
 
@@ -320,12 +320,12 @@ export function debugSensorInfo(): SensorAnalysis | null {
 }
 
 /**
- * Shows all available global data keys for debugging.
+ * Shows all available active FIT data keys for debugging.
  */
 export function showDataKeys(): void {
     const data = getLoadedFitData();
     if (!data || Object.keys(data).length === 0) {
-        console.warn("❌ No global data available. Load a FIT file first.");
+        console.warn("❌ No active FIT data available. Load a FIT file first.");
         return;
     }
 
@@ -339,12 +339,12 @@ export function showDataKeys(): void {
 }
 
 /**
- * Shows only the formatted sensor names from the loaded global data.
+ * Shows only the formatted sensor names from the loaded active FIT data.
  */
 export function showSensorNames(): void {
     const data = getLoadedFitData();
     if (!data || Object.keys(data).length === 0) {
-        console.warn("❌ No global data available. Load a FIT file first.");
+        console.warn("❌ No active FIT data available. Load a FIT file first.");
         return;
     }
 

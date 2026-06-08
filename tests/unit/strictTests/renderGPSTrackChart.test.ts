@@ -1,4 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../electron-app/utils/charts/core/chartRuntime.js";
+import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+} from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 import { chartSettingsManager } from "../../../electron-app/utils/charts/core/renderChartJS.js";
 import { renderGPSTrackChart } from "../../../electron-app/utils/charts/rendering/renderGPSTrackChart.js";
 
@@ -18,9 +26,15 @@ const themeMocks = vi.hoisted(() => ({
         },
     }),
 }));
+const chartJsMocks = vi.hoisted(() => ({
+    Chart: vi.fn<ChartConstructor>(),
+}));
 
 vi.mock(import("../../../electron-app/utils/theming/core/theme.js"), () => ({
     getThemeConfig: themeMocks.getThemeConfig,
+}));
+vi.mock(import("chart.js/auto"), () => ({
+    default: chartJsMocks.Chart,
 }));
 
 type GpsDatum = {
@@ -119,13 +133,10 @@ type ChartInstance = {
     readonly id: "chart-instance";
 };
 
-type RuntimeGlobal = typeof globalThis & {
-    Chart?: new (
-        canvas: HTMLCanvasElement,
-        config: ChartConfig
-    ) => ChartInstance;
-    _chartjsInstances?: ChartInstance[];
-};
+type ChartConstructor = (
+    canvas: HTMLCanvasElement,
+    config: ChartConfig
+) => ChartInstance;
 
 type Harness = {
     readonly chartCalls: ChartCall[];
@@ -133,7 +144,6 @@ type Harness = {
     readonly consoleError: ReturnType<typeof vi.spyOn<typeof console, "error">>;
     readonly consoleLog: ReturnType<typeof vi.spyOn<typeof console, "log">>;
     readonly container: HTMLElement;
-    readonly runtimeGlobal: RuntimeGlobal;
 };
 
 const defaultData = [
@@ -201,7 +211,9 @@ describe(renderGPSTrackChart, () => {
             expect(chartConfig.options.scales.y.title.text).toBe(
                 "Latitude (°)"
             );
-            expect(globalThis._chartjsInstances).toStrictEqual([chartInstance]);
+            expect(getRegisteredChartInstances()).toStrictEqual([
+                chartInstance,
+            ]);
             expect(consoleLog).toHaveBeenCalledWith(
                 "[ChartJS] GPS track chart created successfully"
             );
@@ -387,10 +399,10 @@ describe(renderGPSTrackChart, () => {
         });
     });
 
-    it("does not render for invalid input, hidden field, or unavailable Chart.js", () => {
-        expect.assertions(9);
+    it("does not render for invalid input or hidden field", () => {
+        expect.assertions(7);
 
-        withHarness(({ chartCalls, consoleLog, container, runtimeGlobal }) => {
+        withHarness(({ chartCalls, consoleLog, container }) => {
             renderGPSTrackChart(null, defaultData, defaultOptions);
             renderGPSTrackChart(container, [], defaultOptions);
             renderGPSTrackChart(
@@ -408,15 +420,8 @@ describe(renderGPSTrackChart, () => {
 
             renderGPSTrackChart(container, defaultData, defaultOptions);
 
-            delete runtimeGlobal.Chart;
-            renderGPSTrackChart(container, defaultData, defaultOptions);
-
             expect(chartCalls).toStrictEqual([]);
-            expect(container.children).toHaveLength(1);
-            expect(
-                getRequiredElement(container.firstElementChild).tagName
-            ).toBe("CANVAS");
-            expect(globalThis._chartjsInstances).toStrictEqual([]);
+            expect(getRegisteredChartInstances()).toStrictEqual([]);
             expect(consoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No GPS position data available"
             );
@@ -434,20 +439,18 @@ describe(renderGPSTrackChart, () => {
     it("catches Chart constructor failures and leaves no registered instance", () => {
         expect.assertions(3);
 
-        withHarness(({ consoleError, container, runtimeGlobal }) => {
+        withHarness(({ consoleError, container }) => {
             const chartCreationError = new Error("Chart creation failed");
-            runtimeGlobal.Chart = class ThrowingChart {
-                public constructor() {
-                    throw chartCreationError;
-                }
-            };
+            chartJsMocks.Chart.mockImplementationOnce(function ThrowingChart() {
+                throw chartCreationError;
+            });
 
             renderGPSTrackChart(container, defaultData, defaultOptions);
             expect(consoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering GPS track chart:",
                 chartCreationError
             );
-            expect(globalThis._chartjsInstances).toStrictEqual([]);
+            expect(getRegisteredChartInstances()).toStrictEqual([]);
             expect(container.querySelector("canvas")).toBeInstanceOf(
                 HTMLCanvasElement
             );
@@ -456,14 +459,11 @@ describe(renderGPSTrackChart, () => {
 });
 
 function withHarness(callback: (harness: Harness) => void): void {
-    const runtimeGlobal = globalThis as RuntimeGlobal,
-        chartCalls: ChartCall[] = [],
+    const chartCalls: ChartCall[] = [],
         chartInstance: ChartInstance = { id: "chart-instance" },
         container = document.createElement("div"),
         consoleError = vi.spyOn(console, "error").mockImplementation(() => {}),
-        consoleLog = vi.spyOn(console, "log").mockImplementation(() => {}),
-        originalChart = runtimeGlobal.Chart,
-        originalChartInstances = runtimeGlobal._chartjsInstances;
+        consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
 
     document.body.append(container);
     themeMocks.getThemeConfig.mockClear();
@@ -471,14 +471,16 @@ function withHarness(callback: (harness: Harness) => void): void {
         "visible"
     );
 
-    runtimeGlobal._chartjsInstances = [];
-    runtimeGlobal.Chart = function ChartMock(
+    clearChartInstanceRegistryForTests();
+    chartJsMocks.Chart.mockReset();
+    chartJsMocks.Chart.mockImplementation(function ChartMock(
         canvas: HTMLCanvasElement,
         config: ChartConfig
     ): ChartInstance {
         chartCalls.push([canvas, config]);
         return chartInstance;
-    } as unknown as RuntimeGlobal["Chart"];
+    });
+    setChartRuntime(chartJsMocks.Chart);
 
     try {
         callback({
@@ -487,24 +489,13 @@ function withHarness(callback: (harness: Harness) => void): void {
             consoleError,
             consoleLog,
             container,
-            runtimeGlobal,
         });
     } finally {
         container.remove();
 
-        if (originalChart === undefined) {
-            delete runtimeGlobal.Chart;
-        } else {
-            runtimeGlobal.Chart = originalChart;
-        }
-
-        if (originalChartInstances === undefined) {
-            delete runtimeGlobal._chartjsInstances;
-        } else {
-            runtimeGlobal._chartjsInstances = originalChartInstances;
-        }
-
         vi.restoreAllMocks();
+        clearChartInstanceRegistryForTests();
+        clearChartRuntimeForTests();
         themeMocks.getThemeConfig.mockReset();
         themeMocks.getThemeConfig.mockReturnValue({
             colors: {

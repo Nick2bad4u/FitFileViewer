@@ -1,6 +1,10 @@
 import type { Mock } from "vitest";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createEnhancedChart } from "../../../electron-app/utils/charts/components/createEnhancedChart.js";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import { detectCurrentTheme } from "../../../electron-app/utils/charts/theming/chartThemeUtils.js";
 import { showNotification } from "../../../electron-app/utils/ui/notifications/showNotification.js";
 
@@ -112,10 +116,6 @@ type ChartTestContext = {
     };
 };
 
-type ChartGlobal = typeof globalThis & {
-    Chart?: ChartConstructor;
-};
-
 type ConvertTimeUnits = (value: number, unit: string) => number;
 type FormatTime = (value: number) => string;
 type FormatTooltipWithUnits = (value: number, field: string) => string;
@@ -124,6 +124,30 @@ type GetUnitSymbol = (field: string) => string;
 type HexToRgba = (hex: string, alpha: number) => string;
 type ShowNotification = typeof showNotification;
 type UpdateChartAnimations = (chart: unknown, field: string) => void;
+
+const chartJsAutoMock = vi.hoisted(() => ({
+    Chart: undefined as
+        | (new (
+              canvas: HTMLCanvasElement,
+              config: ChartConfig
+          ) => ChartInstance)
+        | undefined,
+    ChartProxy: vi.fn(function ChartProxy(
+        canvas: HTMLCanvasElement,
+        config: ChartConfig
+    ) {
+        const ChartConstructor = chartJsAutoMock.Chart;
+        if (typeof ChartConstructor !== "function") {
+            throw new Error("Chart.js constructor is unavailable");
+        }
+
+        return new ChartConstructor(canvas, config);
+    }),
+}));
+
+vi.mock(import("chart.js/auto"), () => ({
+    default: chartJsAutoMock.ChartProxy,
+}));
 
 vi.mock(
     import("../../../electron-app/utils/data/lookups/getUnitSymbol.js"),
@@ -232,6 +256,10 @@ vi.mock(
     })
 );
 
+afterEach(() => {
+    clearChartRuntimeForTests();
+});
+
 const defaultOptions = {
     chartData: [
         { x: 1, y: 10 },
@@ -273,8 +301,8 @@ function createChartTestContext(): ChartTestContext {
     const chartMock = vi.fn<ChartConstructorFunction>(
         (_canvas, _config) => chartInstance
     );
-    (globalThis as ChartGlobal).Chart =
-        chartMock as unknown as ChartConstructor;
+    chartJsAutoMock.Chart = chartMock as unknown as ChartConstructor;
+    setChartRuntime(chartJsAutoMock.ChartProxy);
 
     const render = (options: Partial<ChartOptions> = {}) => {
         const result = createEnhancedChart(canvas, {
@@ -580,7 +608,7 @@ describe("createEnhancedChart Settings", () => {
         expect.assertions(3);
 
         vi.clearAllMocks();
-        delete (globalThis as ChartGlobal).Chart;
+        chartJsAutoMock.Chart = undefined;
         const consoleErrorSpy = vi
             .spyOn(console, "error")
             .mockReturnValue(undefined);
@@ -592,7 +620,7 @@ describe("createEnhancedChart Settings", () => {
         expect(result).toBeNull();
         expect(consoleErrorSpy).toHaveBeenCalledWith(
             "[ChartJS] Error creating chart for speed:",
-            "Chart.js constructor is unavailable"
+            expect.any(Error)
         );
         expect(vi.mocked(showNotification)).toHaveBeenCalledWith(
             "Error creating chart for speed",

@@ -1,6 +1,14 @@
 import type { Mock } from "vitest";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
+import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+} from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../electron-app/utils/charts/core/chartRuntime.js";
 // import { chartSettingsManager } from "../../../electron-app/utils/charts/core/renderChartJS.js";
 
 type AltitudeDatum = {
@@ -71,7 +79,6 @@ type ChartTestGlobal = typeof globalThis & {
     Chart?: ChartConstructorMock;
     HTMLCanvasElement?: typeof HTMLCanvasElement;
     HTMLElement?: typeof HTMLElement;
-    _chartjsInstances?: ChartInstanceMock[];
     localStorage?: StorageMock;
     window?: ChartTestWindow;
 };
@@ -79,7 +86,6 @@ type ChartTestGlobal = typeof globalThis & {
 type ChartTestWindow = Window &
     typeof globalThis & {
         Chart?: ChartConstructorMock;
-        _chartjsInstances?: ChartInstanceMock[];
     };
 
 type RenderAltitudeProfileChart = (
@@ -193,23 +199,15 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             .mockImplementation(function ChartConstructor() {
                 return chartInstanceMock;
             }) as ChartConstructorMock;
+        vi.doMock(import("chart.js/auto"), () => ({
+            default: Chart,
+        }));
         getChartTestWindow().Chart = Chart;
-        getChartTestWindow()._chartjsInstances = [];
+        setChartRuntime(Chart);
+        clearChartInstanceRegistryForTests();
 
         // Ensure Chart is accessible from both window and globalThis
         getChartTestGlobal().Chart = Chart;
-        // Sync chart instances between window and globalThis using property descriptor
-        Object.defineProperty(getChartTestGlobal(), "_chartjsInstances", {
-            get() {
-                return getChartTestWindow()._chartjsInstances;
-            },
-            set(value) {
-                getChartTestWindow()._chartjsInstances = value as
-                    | ChartInstanceMock[]
-                    | undefined;
-            },
-            configurable: true,
-        });
 
         // Mock all dependencies
         mockChartSettingsManager = {
@@ -304,12 +302,8 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
     });
 
     afterEach(() => {
-        // Clean up global Chart instances
-        if (global.window && getChartTestWindow()._chartjsInstances) {
-            getChartTestWindow()._chartjsInstances.length = 0;
-        }
-        // Clean up property descriptor
-        delete getChartTestGlobal()._chartjsInstances;
+        clearChartInstanceRegistryForTests();
+        clearChartRuntimeForTests();
         delete getChartTestGlobal().Chart;
 
         vi.clearAllMocks();
@@ -845,7 +839,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
     });
 
     describe("chart instance management", () => {
-        it("should add chart instance to global instances array", () => {
+        it("should register chart instance", () => {
             expect.assertions(3);
 
             const container = document.createElement("div");
@@ -860,21 +854,17 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect(getChartTestWindow()._chartjsInstances).not.toContain(
-                undefined
-            );
-            expect(getChartTestWindow()._chartjsInstances).toContain(
-                chartInstanceMock
-            );
-            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([
+            expect(getRegisteredChartInstances()).not.toContain(undefined);
+            expect(getRegisteredChartInstances()).toContain(chartInstanceMock);
+            expect(getRegisteredChartInstances()).toStrictEqual([
                 chartInstanceMock,
             ]);
         });
 
-        it("should initialize global instances array if it doesn't exist", () => {
+        it("should register chart instance when the registry starts empty", () => {
             expect.assertions(2);
 
-            delete getChartTestWindow()._chartjsInstances;
+            clearChartInstanceRegistryForTests();
 
             const container = document.createElement("div");
             const data = [{ altitude: 100 }];
@@ -888,12 +878,8 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect(getChartTestWindow()._chartjsInstances).toEqual([
-                chartInstanceMock,
-            ]);
-            expect(getChartTestWindow()._chartjsInstances).toContain(
-                chartInstanceMock
-            );
+            expect(getRegisteredChartInstances()).toEqual([chartInstanceMock]);
+            expect(getRegisteredChartInstances()).toContain(chartInstanceMock);
         });
 
         it("should log success message when chart is created", () => {
@@ -1154,7 +1140,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
                 "[ChartJS] Error rendering altitude profile chart:",
                 chartCreationError
             );
-            expect(getChartTestWindow()._chartjsInstances).toStrictEqual([]);
+            expect(getRegisteredChartInstances()).toStrictEqual([]);
             expect(
                 [...container.children].map((child) => child.tagName)
             ).toEqual(["CANVAS"]);

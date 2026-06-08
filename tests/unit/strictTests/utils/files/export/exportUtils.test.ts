@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
+import {
+    clearExportZipRuntimeForTests,
+    setExportZipRuntime,
+} from "../../../../../../electron-app/utils/files/export/exportZipRuntime.js";
+
 function loadExportUtils() {
     return import("../../../../../../electron-app/utils/files/export/exportUtils.js");
 }
@@ -42,10 +47,7 @@ type TestGlobal = typeof globalThis & {
             writeText: ReturnType<typeof vi.fn<ClipboardWriteText>>;
         };
     };
-    window: Window &
-        typeof globalThis & {
-            JSZip?: typeof FakeZip;
-        };
+    window: Window & typeof globalThis & {};
 };
 type ToBase64Image = NonNullable<ExportableChartLike["toBase64Image"]>;
 
@@ -159,8 +161,7 @@ class FakeZip {
 }
 
 function installJSZipMock() {
-    testGlobal.window = testGlobal.window || testGlobal;
-    testGlobal.window.JSZip = FakeZip;
+    setExportZipRuntime(FakeZip);
     return FakeZip;
 }
 
@@ -265,6 +266,7 @@ describe("exportUtils core flows", () => {
     });
 
     afterEach(() => {
+        clearExportZipRuntimeForTests();
         // Ensure body is clean between tests
         document.body.innerHTML = "";
     });

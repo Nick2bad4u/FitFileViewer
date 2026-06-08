@@ -32,7 +32,9 @@ describe("createAddFitFileToMapButton", () => {
         expect(btn.tagName).toBe("BUTTON");
         expect(btn.disabled).toBe(true);
 
-        state.setState("globalData", { recordMesgs: [{}] });
+        state.setState("fitFile.rawData", {
+            recordMesgs: [{ positionLat: 1, positionLong: 2 }],
+        });
         await vi.waitFor(() => {
             if (btn.disabled) {
                 throw new Error("Expected button to become enabled");

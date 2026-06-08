@@ -8,6 +8,10 @@
         import("../../shared/ipc").DevtoolsInjectMenuTheme;
     type DevtoolsInvokeChannel =
         import("../../shared/ipc").DevtoolsInvokeChannel;
+    type ValidatedDevtoolsInjectMenuPayload = {
+        fitFilePath: DevtoolsInjectMenuFitFilePath;
+        theme: DevtoolsInjectMenuTheme;
+    };
     type FileFilter = import("electron").FileFilter;
     type MainProcessIpcEventChannel =
         import("../../shared/ipc").MainProcessIpcEventChannel;
@@ -87,6 +91,13 @@
             SETTINGS_CONFIG_NAME: string;
         };
     };
+    const { validateDevtoolsInjectMenuPayload } =
+        require("../../shared/devtoolsMenuPolicy") as {
+            validateDevtoolsInjectMenuPayload: (
+                theme: unknown,
+                fitFilePath: unknown
+            ) => ValidatedDevtoolsInjectMenuPayload;
+        };
     const { registerIpcHandle, registerIpcListener } =
         require("../ipc/ipcRegistry") as {
             registerIpcHandle: (
@@ -478,11 +489,23 @@
                     return false;
                 }
 
-                const filePath =
-                    typeof fitFilePath === "string" && fitFilePath
-                        ? fitFilePath
-                        : null;
-                const resolvedTheme = getThemeFromPayload(theme);
+                let payload: ValidatedDevtoolsInjectMenuPayload;
+                try {
+                    payload = validateDevtoolsInjectMenuPayload(
+                        theme,
+                        fitFilePath
+                    );
+                } catch (error) {
+                    logWithContext(
+                        "warn",
+                        "Blocked devtools menu injection with invalid payload",
+                        { error: getErrorMessage(error) }
+                    );
+                    return false;
+                }
+
+                const filePath = payload.fitFilePath;
+                const resolvedTheme = payload.theme ?? CONSTANTS.DEFAULT_THEME;
                 const win = getBrowserWindowFromEvent(event as IpcEventLike);
                 logWithContext("info", "Manual menu injection requested", {
                     fitFilePath: filePath,

@@ -1,4 +1,5 @@
 import type { DivIcon, DivIconOptions } from "leaflet";
+import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
 
 type PointTuple = [number, number];
 type LeafletMarkerIcon = DivIcon | Record<string, never>;
@@ -27,14 +28,11 @@ function hasFunctionProperty(value: object, key: "divIcon"): boolean {
 }
 
 function getLeaflet(): LeafletIconFactory {
-    const leaflet = (globalThis as { L?: unknown }).L;
-    if (isLeafletIconFactory(leaflet)) {
-        return leaflet;
-    }
-
-    return {
-        divIcon: () => ({}),
-    };
+    return (
+        resolveLeafletRuntime(isLeafletIconFactory) ?? {
+            divIcon: () => ({}),
+        }
+    );
 }
 
 function createRouteEndpointIcon(kind: "end" | "start", glyph: string) {

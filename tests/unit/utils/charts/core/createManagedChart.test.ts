@@ -1,22 +1,26 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import {
-    createManagedChart,
-    type ManagedChartConfig,
-    type ManagedChartInstance,
+import type {
+    ManagedChartConfig,
+    ManagedChartInstance,
 } from "../../../../../electron-app/utils/charts/core/createManagedChart.js";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../../../electron-app/utils/charts/core/chartRuntime.js";
+import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+    setRegisteredChartInstances,
+} from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+
+type CreateManagedChart =
+    typeof import("../../../../../electron-app/utils/charts/core/createManagedChart.js").createManagedChart;
 
 type TestChartConstructor = new (
     canvas: HTMLCanvasElement,
     config: ManagedChartConfig
 ) => ManagedChartInstance;
-
-type TestChartGlobal = typeof globalThis & {
-    Chart?: TestChartConstructor;
-    _chartjsInstances?: ManagedChartInstance[];
-};
-
-const testGlobal = globalThis as TestChartGlobal;
 
 class FakeChart {
     readonly canvas: HTMLCanvasElement;
@@ -28,59 +32,66 @@ class FakeChart {
     }
 }
 
-function resetChartGlobals(): void {
-    delete testGlobal.Chart;
-    delete testGlobal._chartjsInstances;
+async function loadCreateManagedChart(
+    chartConstructor: TestChartConstructor | undefined
+): Promise<CreateManagedChart> {
+    if (chartConstructor) {
+        setChartRuntime(chartConstructor);
+    } else {
+        clearChartRuntimeForTests();
+    }
+
+    const module =
+        await import("../../../../../electron-app/utils/charts/core/createManagedChart.js");
+    return module.createManagedChart;
 }
 
-describe(createManagedChart, () => {
-    it("returns null when Chart.js is not loaded", () => {
-        expect.assertions(2);
+function resetChartRegistry(): void {
+    clearChartInstanceRegistryForTests();
+    clearChartRuntimeForTests();
+}
 
-        resetChartGlobals();
-
-        const canvas = document.createElement("canvas");
-
-        expect(createManagedChart(canvas, {})).toBeNull();
-        expect(testGlobal._chartjsInstances).toBeUndefined();
-
-        resetChartGlobals();
+describe("createManagedChart", () => {
+    afterEach(() => {
+        resetChartRegistry();
     });
 
-    it("creates and registers a Chart.js instance", () => {
+    it("returns null when Chart.js is not loaded", async () => {
         expect.assertions(2);
 
-        resetChartGlobals();
+        const createManagedChart = await loadCreateManagedChart(undefined),
+            canvas = document.createElement("canvas");
 
-        const canvas = document.createElement("canvas"),
+        expect(createManagedChart(canvas, {})).toBeNull();
+        expect(getRegisteredChartInstances()).toStrictEqual([]);
+    });
+
+    it("creates and registers a Chart.js instance", async () => {
+        expect.assertions(2);
+
+        const createManagedChart = await loadCreateManagedChart(FakeChart),
+            canvas = document.createElement("canvas"),
             config = { data: { datasets: [] }, type: "line" };
-        testGlobal.Chart = FakeChart;
 
         const chart = createManagedChart(canvas, config);
 
         expect(chart).toBeInstanceOf(FakeChart);
-        expect(testGlobal._chartjsInstances).toStrictEqual([chart]);
-
-        resetChartGlobals();
+        expect(getRegisteredChartInstances()).toStrictEqual([chart]);
     });
 
-    it("reuses the existing chart instance registry", () => {
+    it("reuses the existing chart instance registry", async () => {
         expect.assertions(1);
 
-        resetChartGlobals();
-
-        const canvas = document.createElement("canvas"),
+        const createManagedChart = await loadCreateManagedChart(FakeChart),
+            canvas = document.createElement("canvas"),
             existingChart = { id: "existing" };
-        testGlobal.Chart = FakeChart;
-        testGlobal._chartjsInstances = [existingChart];
+        setRegisteredChartInstances([existingChart]);
 
         const chart = createManagedChart(canvas, {});
 
-        expect(testGlobal._chartjsInstances).toStrictEqual([
+        expect(getRegisteredChartInstances()).toStrictEqual([
             existingChart,
             chart,
         ]);
-
-        resetChartGlobals();
     });
 });

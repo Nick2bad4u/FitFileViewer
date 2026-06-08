@@ -1,4 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+    setRegisteredChartInstances,
+} from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
 type ZoneRecord = Record<string, unknown>;
 type ChartInstance = {
@@ -170,7 +175,7 @@ describe("openZoneColorPicker", () => {
         delete (globalThis as any).resetAllSettings;
         delete (globalThis as any).renderChartJS;
         delete (globalThis as any).showNotification;
-        delete (globalThis as any)._chartjsInstances;
+        clearChartInstanceRegistryForTests();
 
         chartStateManagerRef.current = { debouncedRender: debouncedRenderMock };
 
@@ -200,7 +205,7 @@ describe("openZoneColorPicker", () => {
         delete (globalThis as any).resetAllSettings;
         delete (globalThis as any).renderChartJS;
         delete (globalThis as any).showNotification;
-        delete (globalThis as any)._chartjsInstances;
+        clearChartInstanceRegistryForTests();
     });
 
     it("handles unknown zone field gracefully", async () => {
@@ -469,7 +474,7 @@ describe("updateZoneColorPreview", () => {
     });
 
     afterEach(() => {
-        delete (globalThis as any)._chartjsInstances;
+        clearChartInstanceRegistryForTests();
     });
 
     it("updates matching heart rate chart without animation", async () => {
@@ -477,7 +482,7 @@ describe("updateZoneColorPreview", () => {
 
         const module = await loadModule();
         const updateMock = vi.fn<(mode?: string) => void>();
-        (globalThis as any)._chartjsInstances = [
+        setRegisteredChartInstances([
             {
                 data: {
                     datasets: [
@@ -489,13 +494,14 @@ describe("updateZoneColorPreview", () => {
                 },
                 update: updateMock,
             },
-        ];
+        ]);
 
         module.updateZoneColorPreview("hr_zone", 0, "#fedcba");
 
+        const [registeredChart] =
+            getRegisteredChartInstances() as ChartInstance[];
         const dataset = requireValue(
-            ((globalThis as any)._chartjsInstances as ChartInstance[])[0].data
-                ?.datasets?.[0],
+            registeredChart?.data?.datasets?.[0],
             "Heart rate chart dataset not found"
         );
         expect(dataset.backgroundColor[0]).toBe("#fedcba");
@@ -507,7 +513,7 @@ describe("updateZoneColorPreview", () => {
 
         const module = await loadModule();
         const updateMock = vi.fn<(mode?: string) => void>();
-        (globalThis as any)._chartjsInstances = [
+        setRegisteredChartInstances([
             {
                 data: {
                     datasets: [
@@ -519,7 +525,7 @@ describe("updateZoneColorPreview", () => {
                 },
                 update: updateMock,
             },
-        ];
+        ]);
 
         expect(() =>
             module.updateZoneColorPreview("hr_zone", 0, "#abcdef")

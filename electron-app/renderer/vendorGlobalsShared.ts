@@ -1,35 +1,87 @@
-export type RendererVendorGlobal = typeof globalThis & {
-    __FFV_RENDERER_VENDOR_BUNDLE__?: Readonly<{
-        loaded: true;
-        source: "npm-bundle";
-        splitEntries: readonly string[];
-    }>;
-};
+export type RendererVendorBundleEntry = "chart-data" | "core" | "map";
 
-export const vendorGlobal = globalThis as RendererVendorGlobal &
-    Record<string, unknown>;
+export type RendererVendorBundleState = Readonly<{
+    loaded: true;
+    source: "npm-bundle";
+    splitEntries: readonly RendererVendorBundleEntry[];
+}>;
 
-export function defineMissingGlobal(key: string, value: unknown): void {
-    if (vendorGlobal[key] === undefined || vendorGlobal[key] === null) {
-        Object.defineProperty(vendorGlobal, key, {
-            configurable: true,
-            value,
-            writable: true,
-        });
+export type RendererVendorEntryLoadedEventDetail = Readonly<{
+    entryName: RendererVendorBundleEntry;
+}>;
+
+export const rendererVendorEntryLoadedEventName =
+    "ffv-renderer-vendor-entry-loaded";
+
+const rendererVendorEntryRegistryKey = Symbol.for(
+    "fitfileviewer.rendererVendorEntries"
+);
+
+type RendererVendorEntryRegistryGlobal = typeof globalThis &
+    Record<symbol, Set<RendererVendorBundleEntry> | undefined>;
+
+function getLoadedVendorEntries(): Set<RendererVendorBundleEntry> {
+    const vendorGlobal = globalThis as RendererVendorEntryRegistryGlobal;
+    const existingEntries = vendorGlobal[rendererVendorEntryRegistryKey];
+
+    if (existingEntries instanceof Set) {
+        return existingEntries;
     }
+
+    const loadedVendorEntries = new Set<RendererVendorBundleEntry>();
+    Object.defineProperty(vendorGlobal, rendererVendorEntryRegistryKey, {
+        configurable: true,
+        enumerable: false,
+        value: loadedVendorEntries,
+        writable: false,
+    });
+
+    return loadedVendorEntries;
 }
 
-export function markRendererVendorEntryLoaded(entryName: string): void {
-    const currentBundle = vendorGlobal.__FFV_RENDERER_VENDOR_BUNDLE__;
-    const splitEntries = new Set<string>();
-    for (const currentEntry of currentBundle?.splitEntries ?? []) {
-        splitEntries.add(currentEntry);
-    }
-    splitEntries.add(entryName);
+function dispatchRendererVendorEntryLoadedEvent(
+    entryName: RendererVendorBundleEntry
+): void {
+    const eventTarget = globalThis.window ?? globalThis;
 
-    vendorGlobal.__FFV_RENDERER_VENDOR_BUNDLE__ = {
+    if (
+        typeof eventTarget.dispatchEvent !== "function" ||
+        typeof CustomEvent !== "function"
+    ) {
+        return;
+    }
+
+    eventTarget.dispatchEvent(
+        new CustomEvent<RendererVendorEntryLoadedEventDetail>(
+            rendererVendorEntryLoadedEventName,
+            {
+                detail: { entryName },
+            }
+        )
+    );
+}
+
+export function getRendererVendorBundleState(): RendererVendorBundleState {
+    return {
         loaded: true,
         source: "npm-bundle",
-        splitEntries: [...splitEntries].sort(),
+        splitEntries: [...getLoadedVendorEntries()].sort(),
     };
+}
+
+export function isRendererVendorEntryLoaded(
+    entryName: RendererVendorBundleEntry
+): boolean {
+    return getLoadedVendorEntries().has(entryName);
+}
+
+export function markRendererVendorEntryLoaded(
+    entryName: RendererVendorBundleEntry
+): void {
+    getLoadedVendorEntries().add(entryName);
+    dispatchRendererVendorEntryLoadedEvent(entryName);
+}
+
+export function resetRendererVendorBundleState(): void {
+    getLoadedVendorEntries().clear();
 }

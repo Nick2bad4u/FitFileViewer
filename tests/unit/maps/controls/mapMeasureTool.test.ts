@@ -5,10 +5,15 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { addSimpleMeasureTool } from "../../../../electron-app/utils/maps/controls/mapMeasureTool.js";
+import {
+    clearLeafletRuntimeForTests,
+    setLeafletRuntime,
+} from "../../../../electron-app/utils/maps/core/leafletRuntime.js";
 
 describe("mapMeasureTool.js", () => {
     let mapDiv: HTMLElement;
     let controlsDiv: HTMLElement;
+    let mockLeaflet: any;
     let mockMap: any;
     let addedLayers: any[] = [];
 
@@ -54,8 +59,7 @@ describe("mapMeasureTool.js", () => {
             }),
         };
 
-        // Mock global Leaflet (L)
-        global.L = {
+        mockLeaflet = {
             marker: vi.fn((_latlng, _options) => {
                 const marker = {
                     addTo: vi.fn((map) => {
@@ -86,6 +90,7 @@ describe("mapMeasureTool.js", () => {
                 return { className, html };
             }),
         };
+        setLeafletRuntime(mockLeaflet);
 
         // Set up fake timers for setTimeout
         vi.useFakeTimers();
@@ -102,7 +107,7 @@ describe("mapMeasureTool.js", () => {
         }
 
         addedLayers = [];
-        delete global.L;
+        clearLeafletRuntimeForTests();
 
         vi.clearAllMocks();
         vi.restoreAllMocks();
@@ -183,7 +188,7 @@ describe("mapMeasureTool.js", () => {
         clickHandler({ latlng: { lat: 0, lng: 0 } });
 
         // Should have added a marker
-        expect(global.L.marker).toHaveBeenCalledWith(
+        expect(mockLeaflet.marker).toHaveBeenCalledWith(
             { lat: 0, lng: 0 },
             { draggable: false }
         );
@@ -191,21 +196,21 @@ describe("mapMeasureTool.js", () => {
         expect(addedLayers).toHaveLength(1);
 
         // Reset mock counts to distinguish second click calls
-        global.L.marker.mockClear();
+        mockLeaflet.marker.mockClear();
         mockMap.addLayer.mockClear();
 
         // Simulate second point click
         clickHandler({ latlng: { lat: 1, lng: 1 } });
 
         // Should have added another marker
-        expect(global.L.marker).toHaveBeenCalledWith(
+        expect(mockLeaflet.marker).toHaveBeenCalledWith(
             { lat: 1, lng: 1 },
             { draggable: false }
         );
         expect(addedLayers).toHaveLength(4);
 
         // Should have created a polyline and distance label
-        expect(global.L.polyline).toHaveBeenCalledWith(
+        expect(mockLeaflet.polyline).toHaveBeenCalledWith(
             [
                 { lat: 0, lng: 0 },
                 { lat: 1, lng: 1 },
@@ -216,7 +221,7 @@ describe("mapMeasureTool.js", () => {
                 weight: 3,
             }
         );
-        expect(global.L.marker).toHaveBeenCalledTimes(2); // One for point and one for label
+        expect(mockLeaflet.marker).toHaveBeenCalledTimes(2); // One for point and one for label
 
         // Measurement mode should be disabled after second click
         expect(mockMap.off).toHaveBeenCalledWith("click", clickHandler);
@@ -305,7 +310,7 @@ describe("mapMeasureTool.js", () => {
     });
 
     it("does not add measurement layers when Leaflet is unavailable", () => {
-        delete global.L;
+        clearLeafletRuntimeForTests();
         addSimpleMeasureTool(mockMap, controlsDiv);
         const button = getMeasureButton();
 
@@ -324,21 +329,23 @@ describe("mapMeasureTool.js", () => {
         // Set up a mock implementation for Leaflet's marker that allows us to simulate the exit button click
 
         // Override the getElement implementation to capture the click handler
-        vi.spyOn(global.L, "marker").mockImplementation((_latlng, options) => {
-            const labelElement = document.createElement("div");
-            labelElement.className = "leaflet-marker-icon";
-            if (options?.icon?.html instanceof HTMLElement) {
-                labelElement.append(options.icon.html);
+        vi.spyOn(mockLeaflet, "marker").mockImplementation(
+            (_latlng, options) => {
+                const labelElement = document.createElement("div");
+                labelElement.className = "leaflet-marker-icon";
+                if (options?.icon?.html instanceof HTMLElement) {
+                    labelElement.append(options.icon.html);
+                }
+                const marker = {
+                    addTo: vi.fn((map) => {
+                        map.addLayer(marker);
+                        return marker;
+                    }),
+                    getElement: vi.fn(() => labelElement),
+                };
+                return marker;
             }
-            const marker = {
-                addTo: vi.fn((map) => {
-                    map.addLayer(marker);
-                    return marker;
-                }),
-                getElement: vi.fn(() => labelElement),
-            };
-            return marker;
-        });
+        );
 
         // Now initialize the measurement tool and create a measurement
         addSimpleMeasureTool(mockMap, controlsDiv);
@@ -356,8 +363,8 @@ describe("mapMeasureTool.js", () => {
         mapClickHandler({ latlng: { lat: 1, lng: 1 } });
 
         // Verify that the divIcon was created with the exit button
-        expect(global.L.divIcon).toHaveBeenCalledOnce();
-        const divIconCall = global.L.divIcon.mock.calls[0][0];
+        expect(mockLeaflet.divIcon).toHaveBeenCalledOnce();
+        const divIconCall = mockLeaflet.divIcon.mock.calls[0][0];
         expect(divIconCall.html).toBeInstanceOf(HTMLElement);
         const exitButton = divIconCall.html.querySelector(".measure-exit-btn");
         expect(exitButton).toBeInstanceOf(HTMLButtonElement);

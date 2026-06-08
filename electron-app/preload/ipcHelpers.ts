@@ -7,6 +7,10 @@
         import("../shared/ipc").InvokeRequestArgs<Channel>;
     type InvokeResponsePayloadForChannel<Channel extends GenericInvokeChannel> =
         import("../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
+    type ValidatedDevtoolsInjectMenuPayload = {
+        fitFilePath: null | string;
+        theme: null | string;
+    };
 
     type IpcListener = (event: object, ...args: IpcResponsePayload[]) => void;
     type PreloadLog = (
@@ -15,6 +19,34 @@
         ...details: unknown[]
     ) => void;
     type UnknownCallback = (...args: unknown[]) => unknown;
+
+    const { validateDevtoolsInjectMenuPayload } =
+        require("../shared/devtoolsMenuPolicy") as {
+            validateDevtoolsInjectMenuPayload: (
+                theme: unknown,
+                fitFilePath: unknown
+            ) => ValidatedDevtoolsInjectMenuPayload;
+        };
+    const { validateExternalUrl } = require("../shared/externalUrlPolicy") as {
+        validateExternalUrl: (url: unknown) => string;
+    };
+    const { validateFitBrowserRelativePath, validateFitBrowserRootFolderPath } =
+        require("../shared/fitBrowserPathPolicy") as {
+            validateFitBrowserRelativePath: (value: unknown) => string;
+            validateFitBrowserRootFolderPath: (value: unknown) => string;
+        };
+    const { validateFitFilePathInput } =
+        require("../shared/fitFilePathPolicy") as {
+            validateFitFilePathInput: (filePath: unknown) => string;
+        };
+    const { validateMainStateOperationIdInput, validateMainStatePathInput } =
+        require("../shared/mainStatePathPolicy") as {
+            validateMainStateOperationIdInput: (value: unknown) => string;
+            validateMainStatePathInput: (
+                value: unknown,
+                options?: { allowUndefined?: boolean }
+            ) => string | undefined;
+        };
 
     interface IpcRendererLike {
         invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
@@ -142,18 +174,6 @@
         }
     }
 
-    function validateSingleStringArgAllowingEmpty(
-        channel: string,
-        args: readonly unknown[]
-    ): void {
-        if (args.length !== 1 || typeof args[0] !== "string") {
-            throw createInvokeValidationError(
-                channel,
-                "expected one string argument"
-            );
-        }
-    }
-
     function validateInvokeArgs(
         channel: string,
         args: readonly unknown[]
@@ -179,7 +199,13 @@
             }
 
             case "browser:listFolder": {
-                validateSingleStringArgAllowingEmpty(channel, args);
+                if (args.length !== 1) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected one relative folder path argument"
+                    );
+                }
+                validateFitBrowserRelativePath(args[0]);
                 return;
             }
 
@@ -193,35 +219,44 @@
                 return;
             }
 
-            case "browser:setFolder":
+            case "browser:setFolder": {
+                if (args.length !== 1) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected one root folder path argument"
+                    );
+                }
+                validateFitBrowserRootFolderPath(args[0]);
+                return;
+            }
+
             case "clipboard:writePngDataUrl":
-            case "clipboard:writeText":
-            case "file:read":
-            case "main-state:listen":
-            case "main-state:operation":
-            case "main-state:unlisten":
-            case "recentFiles:add":
-            case "recentFiles:approve":
-            case "shell:openExternal": {
+            case "clipboard:writeText": {
                 validateSingleStringArg(channel, args);
                 return;
             }
 
             case "devtools-inject-menu": {
-                if (
-                    args.length > 2 ||
-                    args.some(
-                        (arg) =>
-                            arg !== undefined &&
-                            arg !== null &&
-                            !isNonEmptyString(arg)
-                    )
-                ) {
+                if (args.length > 2) {
                     throw createInvokeValidationError(
                         channel,
                         "expected optional theme and FIT file path strings"
                     );
                 }
+                validateDevtoolsInjectMenuPayload(args[0], args[1]);
+                return;
+            }
+
+            case "file:read":
+            case "recentFiles:add":
+            case "recentFiles:approve": {
+                if (args.length !== 1) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected one absolute FIT file path argument"
+                    );
+                }
+                validateFitFilePathInput(args[0]);
                 return;
             }
 
@@ -269,15 +304,25 @@
             }
 
             case "main-state:get": {
-                if (
-                    args.length > 1 ||
-                    (args[0] !== undefined && !isNonEmptyString(args[0]))
-                ) {
+                if (args.length > 1) {
                     throw createInvokeValidationError(
                         channel,
                         "expected an optional non-empty state path"
                     );
                 }
+                validateMainStatePathInput(args[0], { allowUndefined: true });
+                return;
+            }
+
+            case "main-state:listen":
+            case "main-state:unlisten": {
+                if (args.length !== 1) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected one main-state path argument"
+                    );
+                }
+                validateMainStatePathInput(args[0]);
                 return;
             }
 
@@ -287,11 +332,21 @@
                 return;
             }
 
+            case "main-state:operation": {
+                if (args.length !== 1) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected one main-state operation id argument"
+                    );
+                }
+                validateMainStateOperationIdInput(args[0]);
+                return;
+            }
+
             case "main-state:set": {
                 if (
                     args.length < 2 ||
                     args.length > 3 ||
-                    !isNonEmptyString(args[0]) ||
                     !isSerializableMainStateValue(args[1]) ||
                     (args[2] !== undefined &&
                         !isSerializableMainStateValue(args[2]))
@@ -301,6 +356,18 @@
                         "expected a state path, serializable value, and optional serializable options"
                     );
                 }
+                validateMainStatePathInput(args[0]);
+                return;
+            }
+
+            case "shell:openExternal": {
+                if (args.length !== 1) {
+                    throw createInvokeValidationError(
+                        channel,
+                        "expected one external URL argument"
+                    );
+                }
+                validateExternalUrl(args[0]);
                 return;
             }
         }

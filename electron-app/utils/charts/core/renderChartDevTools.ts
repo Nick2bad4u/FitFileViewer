@@ -1,7 +1,12 @@
+import {
+    getRegisteredChartInstanceCount,
+    getRegisteredChartInstances,
+} from "./chartInstanceRegistry.js";
 import type {
     StateListener,
     StateUpdateOptions,
 } from "../../state/core/stateManager.js";
+import { getActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
 interface ChartActionsAccess {
     readonly clearCharts?: unknown;
@@ -10,7 +15,6 @@ interface ChartActionsAccess {
 
 interface ChartRuntimeGlobal {
     addHoverEffectsToExistingCharts?: unknown;
-    readonly _chartjsInstances?: readonly unknown[];
     __chartjs_dev?: unknown;
 }
 
@@ -116,9 +120,9 @@ export function exposeChartDevTools(
             list: () => getComputedStateManager().list?.(),
         },
         dumpState: () => ({
-            chartInstances: chartGlobal._chartjsInstances?.length || 0,
+            chartInstances: getRegisteredChartInstanceCount(),
             charts: getState("charts"),
-            globalData: Boolean(getState("globalData")),
+            activeFitChartData: getActiveFitChartData().rawData !== null,
             performance: getState("performance"),
             settings: getState("settings"),
             ui: getState("ui"),
@@ -135,7 +139,7 @@ export function exposeChartDevTools(
             set: (field: string, visibility: unknown) =>
                 chartSettingsManager.setFieldVisibility(field, visibility),
         },
-        getChartInstances: () => chartGlobal._chartjsInstances || [],
+        getChartInstances: () => getRegisteredChartInstances(),
         getChartSettings: () => chartSettingsManager.getSettings(),
         getChartState: () => dependencies.chartState,
         getChartStatus: dependencies.getChartStatus,

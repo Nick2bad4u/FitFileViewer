@@ -78,7 +78,7 @@ vi.mock(
 );
 
 import { createDataPointFilterControl } from "../../../../../electron-app/utils/ui/controls/createDataPointFilterControl.js";
-import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
+import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 import { showNotification } from "../../../../../electron-app/utils/ui/notifications/showNotification.js";
 import {
@@ -129,7 +129,7 @@ beforeEach(() => {
     document.body.replaceChildren();
     globalThis.mapDataPointFilter = undefined;
     globalThis.mapDataPointFilterLastResult = undefined;
-    setGlobalData(
+    setActiveFitRawData(
         {
             recordMesgs: [
                 {

@@ -29,7 +29,7 @@ interface LapMesg {
     readonly time_in_power_zone?: readonly NullishNumber[];
 }
 
-interface GlobalData {
+interface FitZoneActivityData {
     readonly lapMesgs?: readonly LapMesg[];
     readonly sessionMesgs?: readonly SessionMesg[];
     readonly timeInZoneMesgs?: readonly TimeInZoneMesg[];
@@ -150,7 +150,9 @@ function getRecordArray(value: unknown): readonly LooseRecord[] | undefined {
     return value.filter(isLooseRecord);
 }
 
-function getZoneTimeArray(value: unknown): readonly NullishNumber[] | undefined {
+function getZoneTimeArray(
+    value: unknown
+): readonly NullishNumber[] | undefined {
     if (!Array.isArray(value)) {
         return undefined;
     }
@@ -181,14 +183,16 @@ function normalizeSessionMesg(record: LooseRecord): SessionMesg {
     };
 }
 
-function normalizeGlobalData(globalData: unknown): GlobalData | null {
-    if (!isLooseRecord(globalData)) {
+function normalizeFitZoneActivityData(
+    activityData: unknown
+): FitZoneActivityData | null {
+    if (!isLooseRecord(activityData)) {
         return null;
     }
 
-    const lapMesgs = getRecordArray(globalData["lapMesgs"]);
-    const sessionMesgs = getRecordArray(globalData["sessionMesgs"]);
-    const timeInZoneMesgs = getRecordArray(globalData["timeInZoneMesgs"]);
+    const lapMesgs = getRecordArray(activityData["lapMesgs"]);
+    const sessionMesgs = getRecordArray(activityData["sessionMesgs"]);
+    const timeInZoneMesgs = getRecordArray(activityData["timeInZoneMesgs"]);
 
     return {
         ...(lapMesgs
@@ -351,7 +355,12 @@ function applyLapZoneMesgs(
 
     const hrZoneTimes = sumLapZoneTimes(lapMesgs, "time_in_hr_zone");
     if (hasPositiveZoneTimes(hrZoneTimes)) {
-        applyZoneTimes(state, "hr", hrZoneTimes, "[ChartJS] HR zones from laps:");
+        applyZoneTimes(
+            state,
+            "hr",
+            hrZoneTimes,
+            "[ChartJS] HR zones from laps:"
+        );
     }
 
     const powerZoneTimes = sumLapZoneTimes(lapMesgs, "time_in_power_zone");
@@ -375,12 +384,12 @@ function toSetupZoneDataResult(state: ZoneDataState): SetupZoneDataResult {
 }
 
 /**
- * Extracts zone data from FIT globals and updates window.heartRateZones /
+ * Extracts zone data from FIT activity data and updates window.heartRateZones /
  * window.powerZones for existing chart modules.
  */
-export function setupZoneData(globalData: unknown): SetupZoneDataResult {
+export function setupZoneData(activityData: unknown): SetupZoneDataResult {
     const state = createInitialZoneState();
-    const zoneData = normalizeGlobalData(globalData);
+    const zoneData = normalizeFitZoneActivityData(activityData);
 
     try {
         if (!zoneData) {
@@ -388,7 +397,7 @@ export function setupZoneData(globalData: unknown): SetupZoneDataResult {
         }
 
         logZoneData(
-            "[ChartJS] Setting up zone data from globalData:",
+            "[ChartJS] Setting up zone data from FIT activity data:",
             zoneData
         );
 

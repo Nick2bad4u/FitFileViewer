@@ -8,11 +8,29 @@
 
 import type { Mock } from "vitest";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+} from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import { renderEventMessagesChart } from "../../../electron-app/utils/charts/rendering/renderEventMessagesChart.js";
-import { setGlobalData } from "../../../electron-app/utils/state/core/globalDataStore.js";
-import { __resetStateManagerForTests } from "../../../electron-app/utils/state/core/stateManager.js";
+import {
+    __resetStateManagerForTests,
+    setState,
+} from "../../../electron-app/utils/state/core/stateManager.js";
 import { getChartSetting } from "../../../electron-app/utils/state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../../electron-app/utils/theming/core/theme.js";
+
+const chartJsMocks = vi.hoisted(() => ({
+    Chart: vi.fn<ChartConstructor>(),
+}));
+
+vi.mock(import("chart.js/auto"), () => ({
+    default: chartJsMocks.Chart,
+}));
 
 type ChartConfig = {
     data: {
@@ -73,15 +91,13 @@ type EventMessage = {
     timestamp?: Date | number | string;
 };
 
-type EventMessagesGlobalData = {
+type EventMessagesRawData = {
     eventMesgs?: EventMessage[] | unknown;
 };
 
 type EventMessagesWindow = Window &
     typeof globalThis & {
         Chart?: ChartMock;
-        _chartjsInstances?: ChartInstanceMock[];
-        globalData?: EventMessagesGlobalData | null;
     };
 
 type EventMessagesGlobal = typeof globalThis & {
@@ -101,10 +117,8 @@ function getEventMessagesWindow(): EventMessagesWindow {
     return window as EventMessagesWindow;
 }
 
-function setEventMessagesGlobalData(
-    data: EventMessagesGlobalData | null
-): void {
-    setGlobalData(data, { source: "test" });
+function setEventMessagesRawData(data: EventMessagesRawData | null): void {
+    setState("fitFile.rawData", data, { source: "test" });
 }
 
 function getLatestChartConfig(): ChartConfig {
@@ -135,7 +149,9 @@ function getRenderedCanvas(container: HTMLElement): HTMLCanvasElement {
 }
 
 function getFirstChartInstance(): ChartInstanceMock {
-    const chartInstance = getEventMessagesWindow()._chartjsInstances?.[0];
+    const chartInstance = getRegisteredChartInstances()[0] as
+        | ChartInstanceMock
+        | undefined;
 
     if (!chartInstance) {
         throw new TypeError("Expected first Chart.js instance to exist");
@@ -245,15 +261,18 @@ beforeEach(() => {
         destroy: vi.fn<() => void>(),
         resize: vi.fn<() => void>(),
     };
+    chartJsMocks.Chart.mockReset();
+    chartJsMocks.Chart.mockImplementation(function ChartMock() {
+        return mockChart;
+    });
+    setChartRuntime(chartJsMocks.Chart);
+    clearChartInstanceRegistryForTests();
 
     // Ensure window and global.window reference the same object
     Object.assign(window, {
-        Chart: vi.fn<ChartConstructor>(function ChartMock() {
-            return mockChart;
-        }),
-        _chartjsInstances: [],
+        Chart: chartJsMocks.Chart,
     });
-    setEventMessagesGlobalData({
+    setEventMessagesRawData({
         eventMesgs: [
             {
                 timestamp: new Date("2023-01-01T10:00:00Z"),
@@ -287,10 +306,10 @@ beforeEach(() => {
 afterEach(() => {
     __resetStateManagerForTests();
     vi.clearAllMocks();
+    clearChartRuntimeForTests();
+    clearChartInstanceRegistryForTests();
     mockConsoleError.mockRestore();
     delete window.Chart;
-    delete window._chartjsInstances;
-    delete window.globalData;
 });
 
 describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
@@ -298,7 +317,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should return early when eventMesgs is not available", () => {
             expect.assertions(2);
 
-            setEventMessagesGlobalData(null);
+            setEventMessagesRawData(null);
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -313,7 +332,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should return early when eventMesgs is not an array", () => {
             expect.assertions(2);
 
-            setEventMessagesGlobalData({ eventMesgs: "invalid" });
+            setEventMessagesRawData({ eventMesgs: "invalid" });
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -328,7 +347,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should return early when eventMesgs array is empty", () => {
             expect.assertions(2);
 
-            setEventMessagesGlobalData({ eventMesgs: [] });
+            setEventMessagesRawData({ eventMesgs: [] });
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -354,10 +373,10 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect(chartConfig.data.datasets[0].data).toHaveLength(3);
         });
 
-        it("should handle missing globalData gracefully", () => {
+        it("should handle missing raw FIT data gracefully", () => {
             expect.assertions(2);
 
-            setEventMessagesGlobalData(null);
+            setEventMessagesRawData(null);
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -372,7 +391,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should extract event names from different fields", () => {
             expect.assertions(4);
 
-            setEventMessagesGlobalData({
+            setEventMessagesRawData({
                 eventMesgs: [
                     {
                         timestamp: new Date("2023-01-01T10:00:00Z"),
@@ -427,7 +446,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle number timestamps in seconds", () => {
             expect.assertions(1);
 
-            setEventMessagesGlobalData({
+            setEventMessagesRawData({
                 eventMesgs: [
                     { timestamp: 1672570800, event: "Event 1" }, // Unix timestamp in seconds
                     { timestamp: 1672571100, event: "Event 2" }, // 5 minutes later
@@ -452,7 +471,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle number timestamps in milliseconds", () => {
             expect.assertions(1);
 
-            setEventMessagesGlobalData({
+            setEventMessagesRawData({
                 eventMesgs: [
                     { timestamp: 1672570800000, event: "Event 1" }, // Unix timestamp in milliseconds
                     { timestamp: 1672571100000, event: "Event 2" }, // 5 minutes later
@@ -477,7 +496,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle mixed timestamp formats", () => {
             expect.assertions(1);
 
-            setEventMessagesGlobalData({
+            setEventMessagesRawData({
                 eventMesgs: [
                     {
                         timestamp: new Date("2023-01-01T10:00:00Z"),
@@ -507,7 +526,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should fallback to x:0 for invalid timestamp formats", () => {
             expect.assertions(1);
 
-            setEventMessagesGlobalData({
+            setEventMessagesRawData({
                 eventMesgs: [
                     { timestamp: "invalid", event: "Event 1" },
                     { timestamp: null, event: "Event 2" },
@@ -759,20 +778,20 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(window._chartjsInstances).toHaveLength(1);
+            expect(getRegisteredChartInstances()).toHaveLength(1);
             expect(getFirstChartInstance()).toBe(mockChart);
         });
 
-        it("should initialize global instances array if it doesn't exist", () => {
+        it("should register chart instance when the registry starts empty", () => {
             expect.assertions(2);
 
-            delete getEventMessagesWindow()._chartjsInstances;
+            clearChartInstanceRegistryForTests();
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(window._chartjsInstances).toStrictEqual([mockChart]);
-            expect(window._chartjsInstances).not.toContain(undefined);
+            expect(getRegisteredChartInstances()).toStrictEqual([mockChart]);
+            expect(getRegisteredChartInstances()).not.toContain(undefined);
         });
 
         it("should call updateChartAnimations with correct parameters", async () => {
@@ -945,18 +964,18 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             expect.assertions(3);
 
             const chartCreationError = new Error("Chart creation failed");
-            getEventMessagesWindow().Chart = vi.fn<ChartConstructor>(
+            chartJsMocks.Chart.mockImplementationOnce(
                 function ChartErrorMock() {
                     throw chartCreationError;
                 }
-            ) as ChartMock;
+            );
 
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
 
             expect(window.Chart).toHaveBeenCalledOnce();
-            expect(window._chartjsInstances).toStrictEqual([]);
+            expect(getRegisteredChartInstances()).toStrictEqual([]);
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
                 chartCreationError
@@ -993,7 +1012,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle empty event messages array", () => {
             expect.assertions(2);
 
-            setEventMessagesGlobalData({ eventMesgs: [] });
+            setEventMessagesRawData({ eventMesgs: [] });
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
@@ -1012,20 +1031,19 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
             const chartConstructionError = new Error(
                 "Chart construction failed"
             );
-            const mockChartConstructor = vi.fn<ChartConstructor>(
+            chartJsMocks.Chart.mockImplementationOnce(
                 function ChartErrorMock() {
                     throw chartConstructionError;
                 }
             );
-            getEventMessagesWindow().Chart = mockChartConstructor as ChartMock;
             const container = document.createElement("div");
 
             renderEventMessagesChart(container, {}, new Date());
 
-            const [canvas] = mockChartConstructor.mock.calls[0];
+            const [canvas] = chartJsMocks.Chart.mock.calls[0];
 
             expect(canvas).toBeInstanceOf(HTMLCanvasElement);
-            expect(window._chartjsInstances).toStrictEqual([]);
+            expect(getRegisteredChartInstances()).toStrictEqual([]);
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
                 chartConstructionError
@@ -1035,7 +1053,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
         it("should handle events with all timestamp variations", () => {
             expect.assertions(1);
 
-            setEventMessagesGlobalData({
+            setEventMessagesRawData({
                 eventMesgs: [
                     {
                         time: new Date("2023-01-01T10:00:00Z"),
@@ -1065,7 +1083,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             expect(window.Chart).not.toHaveBeenCalled();
             expect(document.body.childElementCount).toBe(0);
-            expect(window._chartjsInstances).toStrictEqual([]);
+            expect(getRegisteredChartInstances()).toStrictEqual([]);
             const [message, error] = mockConsoleError.mock.calls[0] ?? [];
 
             expect([message, error instanceof TypeError]).toStrictEqual([
@@ -1090,13 +1108,13 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 childCount: 1,
             });
             expect(window.Chart).toHaveBeenCalledOnce();
-            expect(window._chartjsInstances).toStrictEqual([mockChart]);
+            expect(getRegisteredChartInstances()).toStrictEqual([mockChart]);
         });
 
         it("should handle very large timestamp values", () => {
             expect.assertions(1);
 
-            setEventMessagesGlobalData({
+            setEventMessagesRawData({
                 eventMesgs: [
                     {
                         timestamp: Number.MAX_SAFE_INTEGER,

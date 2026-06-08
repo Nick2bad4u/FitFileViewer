@@ -1,12 +1,8 @@
 import { chartStateManager } from "./chartStateManager.js";
+import { destroyRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import { renderChartJS } from "./renderChartJS.js";
 
-type DestroyableChart = {
-    destroy?: () => void;
-};
-
 type ChartUpdaterGlobal = typeof globalThis & {
-    _chartjsInstances?: DestroyableChart[];
     ChartUpdater?: typeof ChartUpdater;
     chartUpdater?: typeof ChartUpdater;
     renderChartJS?: unknown;
@@ -173,25 +169,9 @@ export async function updateChartsForThemeChange(
 }
 
 function destroyLegacyChartInstances(): void {
-    if (
-        !Array.isArray(chartGlobal._chartjsInstances) ||
-        chartGlobal._chartjsInstances.length === 0
-    ) {
-        return;
-    }
-
-    for (const chart of chartGlobal._chartjsInstances) {
-        if (typeof chart.destroy !== "function") {
-            continue;
-        }
-
-        try {
-            chart.destroy();
-        } catch (error) {
-            console.warn("[ChartUpdate] Error destroying chart:", error);
-        }
-    }
-    chartGlobal._chartjsInstances = [];
+    destroyRegisteredChartInstances((_index, error) => {
+        console.warn("[ChartUpdate] Error destroying chart:", error);
+    });
 }
 
 /**

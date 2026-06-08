@@ -44,10 +44,6 @@ type StateIntegrationTestGlobal = typeof globalThis & {
     __performanceMonitoringInterval?: ReturnType<typeof setInterval>;
     __persistenceTimeout?: ReturnType<typeof setTimeout>;
     __state_debug?: StateDebugApi;
-    AppState?: {
-        eventListeners: unknown;
-        isChartRendered: unknown;
-    };
     chartControlsState?: ChartControlsState;
 };
 
@@ -333,8 +329,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
         resetTestEnvironment();
     });
 
-    it("initializes non-FIT compatibility globals and development debug utilities", () => {
-        expect.assertions(7);
+    it("keeps legacy compatibility globals removed while installing development debug utilities", () => {
+        expect.assertions(11);
         resetTestEnvironment();
 
         const testGlobal = globalThis as StateIntegrationTestGlobal;
@@ -342,25 +338,28 @@ describe("stateIntegration.js - Essential Coverage", () => {
 
         stateIntegration.initializeAppState();
 
-        testGlobal.isChartRendered = true;
-
         expect({
-            appStateChartRendered: testGlobal.AppState?.isChartRendered,
-            appStateKeys: Object.keys(testGlobal.AppState ?? {}).sort(),
             chartRenderedState: getState("charts.isRendered"),
             globalDataState: getState("globalData"),
         }).toStrictEqual({
-            appStateChartRendered: true,
-            appStateKeys: ["eventListeners", "isChartRendered"],
-            chartRenderedState: true,
-            globalDataState: null,
+            chartRenderedState: false,
+            globalDataState: undefined,
         });
         expect(
             Object.getOwnPropertyDescriptor(testGlobal, "globalData")
         ).toBeUndefined();
-        expect(Object.hasOwn(testGlobal.AppState ?? {}, "globalData")).toBe(
-            false
+        expect(Object.getOwnPropertyDescriptor(testGlobal, "AppState")).toBe(
+            undefined
         );
+        expect(
+            Object.getOwnPropertyDescriptor(testGlobal, "isChartRendered")
+        ).toBeUndefined();
+        expect(Object.hasOwn(testGlobal, "AppState")).toBe(false);
+        expect(Object.hasOwn(testGlobal, "isChartRendered")).toBe(false);
+        setState("charts.isRendered", true, {
+            source: "stateIntegration.simple.test",
+        });
+        expect(getState("charts.isRendered")).toBe(true);
         expect(testGlobal.__state_debug?.logState).toBeTypeOf("function");
         expect(testGlobal.__state_debug?.setState).toBe(setState);
         expect(testGlobal.__state_debug?.triggerAction("missingAction")).toBe(

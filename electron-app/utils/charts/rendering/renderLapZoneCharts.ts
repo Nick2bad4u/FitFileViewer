@@ -5,9 +5,10 @@ import {
     isDevelopmentEnvironment,
     isTestEnvironment,
 } from "../../runtime/processEnvironment.js";
-import { FitFileSelectors } from "../../state/domain/fitFileState.js";
+import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
+import { registerChartInstance as registerRegisteredChartInstance } from "../core/chartInstanceRegistry.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { renderLapZoneChart } from "./renderLapZoneChart.js";
 
@@ -34,7 +35,6 @@ interface LapZoneEntry {
 interface LapZoneRuntimeGlobal {
     readonly __FFV_debugCharts?: unknown;
     readonly __FFV_debugChartsVerbose?: unknown;
-    _chartjsInstances?: unknown[];
     readonly heartRateZones?: unknown;
     readonly powerZones?: unknown;
     readonly showNotification?: (message: string, type: string) => void;
@@ -300,11 +300,14 @@ function getRuntimeGlobal(): LapZoneRuntimeGlobal {
 }
 
 function getTimeInZoneMessages(): readonly unknown[] | null {
-    const rawData = FitFileSelectors.getRawData();
-    if (!rawData || !Array.isArray(rawData.timeInZoneMesgs)) {
+    const activityData = getActiveFitActivityData();
+    if (
+        !activityData.rawData ||
+        !Array.isArray(activityData.rawData.timeInZoneMesgs)
+    ) {
         return null;
     }
-    return FitFileSelectors.getTimeInZoneMessages();
+    return activityData.timeInZoneMesgs;
 }
 
 function isTimeInZoneMessage(value: unknown): value is TimeInZoneMessage {
@@ -377,11 +380,7 @@ function registerChartInstance(chart: unknown): void {
         return;
     }
 
-    const runtimeGlobal = getRuntimeGlobal();
-    if (!Array.isArray(runtimeGlobal._chartjsInstances)) {
-        runtimeGlobal._chartjsInstances = [];
-    }
-    runtimeGlobal._chartjsInstances.push(chart);
+    registerRegisteredChartInstance(chart);
 }
 
 function renderIndividualLapZoneCharts(

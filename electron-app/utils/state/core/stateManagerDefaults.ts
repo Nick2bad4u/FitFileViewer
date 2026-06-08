@@ -201,6 +201,7 @@ export type FitFileState = {
     currentFile: null | string;
     isLoading: boolean;
     loaded: unknown;
+    loadedFiles: unknown[];
     loadingError: null | string;
     loadingPhase: FitFileLoadingPhase;
     loadingProgress: number;
@@ -221,7 +222,6 @@ export type AppStateShape = {
     charts: ChartsState;
     currentFile: unknown;
     fitFile: FitFileState;
-    globalData: unknown;
     isLoading: boolean;
     map: MapState;
     performance: PerformanceMetricsState;
@@ -295,6 +295,7 @@ export function createDefaultAppState(): AppStateShape {
             currentFile: null,
             isLoading: false,
             loaded: null,
+            loadedFiles: [],
             loadingError: null,
             loadingPhase: "idle",
             loadingProgress: 0,
@@ -312,7 +313,6 @@ export function createDefaultAppState(): AppStateShape {
             rawData: null,
             validation: null,
         },
-        globalData: null,
         isLoading: false,
         map: {
             baseLayer: "openstreetmap",

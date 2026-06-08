@@ -20,6 +20,12 @@ type ChartWrapperState = {
 
 const chartHoverTestGlobal = globalThis as ChartHoverTestGlobal;
 
+vi.mock(import("chart.js/auto"), () => ({
+    default: {
+        getChart: vi.fn<() => null>(() => null),
+    },
+}));
+
 async function waitForTimers(): Promise<void> {
     await new Promise<void>((resolve) => {
         const timeout = setTimeout(() => {

@@ -170,4 +170,24 @@ describe("preload FIT browser API", () => {
             trueValue: true,
         });
     });
+
+    it("rejects malformed Browser folder and enabled arguments before IPC", async () => {
+        expect.assertions(5);
+
+        const { api, invokeCalls } = createApi();
+
+        await expect(
+            api.listFitBrowserFolder(42 as unknown as string)
+        ).rejects.toThrow("listFitBrowserFolder: relPath must be a string");
+        await expect(
+            api.setFitBrowserEnabled("true" as unknown as boolean)
+        ).rejects.toThrow("setFitBrowserEnabled: enabled must be a boolean");
+        await expect(api.setFitBrowserFolder("")).rejects.toThrow(
+            "setFitBrowserFolder: folder must be a non-empty string"
+        );
+        await expect(api.setFitBrowserFolder("   ")).rejects.toThrow(
+            "setFitBrowserFolder: folder must be a non-empty string"
+        );
+        expect(invokeCalls).toStrictEqual([]);
+    });
 });

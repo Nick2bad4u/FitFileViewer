@@ -1,4 +1,4 @@
-import { hasChartDataRecordMessages } from "./renderChartDataPreparation.js";
+import { getActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
 interface CreateChartStateViewDependencies {
     getFieldVisibility(field: string): unknown;
@@ -18,16 +18,14 @@ export interface ChartStateView {
     readonly selectedChart: unknown;
 }
 
-function resolveHasValidData(
-    dependencies: CreateChartStateViewDependencies
-): boolean | null {
-    const data = dependencies.getState("globalData");
+function resolveHasValidData(): boolean | null {
+    const chartData = getActiveFitChartData();
 
-    if (data === undefined || data === null) {
+    if (chartData.rawData === null) {
         return null;
     }
 
-    return hasChartDataRecordMessages(data);
+    return chartData.ready;
 }
 
 function resolveRenderableFields(
@@ -75,7 +73,7 @@ export function createChartStateView(
         },
 
         get hasValidData() {
-            return resolveHasValidData(dependencies);
+            return resolveHasValidData();
         },
 
         get isRendered() {

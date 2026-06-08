@@ -17,10 +17,6 @@ interface InactiveTabDependencies {
     log(message: string): void;
 }
 
-interface ChartRuntimeGlobal {
-    Chart?: unknown;
-}
-
 /**
  * Normalizes caller-provided render options to explicit booleans.
  */
@@ -83,13 +79,4 @@ export function touchStringTargetContainer(
     } catch {
         /* ignore */
     }
-}
-
-/**
- * Checks the legacy Chart.js unavailable sentinels used by the renderer.
- */
-export function isChartLibraryUnavailable(
-    chartGlobal: ChartRuntimeGlobal
-): boolean {
-    return chartGlobal.Chart === null || chartGlobal.Chart === false;
 }

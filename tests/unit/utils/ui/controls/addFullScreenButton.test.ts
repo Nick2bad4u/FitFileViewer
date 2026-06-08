@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
+import {
+    clearScreenfullRuntimeForTests,
+    setScreenfullRuntime,
+} from "../../../../../electron-app/utils/ui/controls/screenfullRuntime.js";
+
 type AddFullScreenButtonModule =
     typeof import("../../../../../electron-app/utils/ui/controls/addFullScreenButton.js");
 
@@ -28,7 +33,6 @@ type FullscreenTestGlobal = typeof globalThis & {
     __ffvFullscreenKeydownHandler?: EventListener | null;
     __ffvNativeFullscreenChangeHandler?: EventListener | null;
     electronAPI?: TestElectronAPI;
-    screenfull?: ScreenfullMock;
 };
 
 const controlMocks = vi.hoisted(() => ({
@@ -106,7 +110,7 @@ describe("addFullScreenButton", () => {
         resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
-        getTestGlobal().screenfull = screenfullMock;
+        setScreenfullRuntime(screenfullMock);
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-data";
@@ -173,7 +177,7 @@ describe("addFullScreenButton", () => {
         resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
-        getTestGlobal().screenfull = screenfullMock;
+        setScreenfullRuntime(screenfullMock);
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-map";
@@ -267,7 +271,7 @@ function cleanupStoredEventHandlers(): void {
 
 function cleanupTestState(): void {
     cleanupStoredEventHandlers();
-    Reflect.deleteProperty(getTestGlobal(), "screenfull");
+    clearScreenfullRuntimeForTests();
     Reflect.deleteProperty(getTestGlobal(), "electronAPI");
     document.body.replaceChildren();
     document.body.style.overflow = "";

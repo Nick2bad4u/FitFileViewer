@@ -1,5 +1,6 @@
 import { isHTMLElement } from "../../dom/index.js";
 import { getState } from "../../state/core/stateManager.js";
+import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import {
     getTabButtonIdentity,
     isOpenFileButton,
@@ -70,13 +71,15 @@ export function debugTabButtons(): void {
         });
     }
 
-    const globalData = getState("globalData");
+    const activeFitRawData = getActiveFitActivityData().rawData;
     const isLoading = getState("isLoading");
     const tabButtonsEnabled = getState("ui.tabButtonsEnabled");
 
     console.log("[TabButtons] Current state:", {
-        globalDataKeys: isRecord(globalData) ? Object.keys(globalData) : null,
-        hasGlobalData: Boolean(globalData),
+        activeFitRawDataKeys: isRecord(activeFitRawData)
+            ? Object.keys(activeFitRawData)
+            : null,
+        hasActiveFitRawData: Boolean(activeFitRawData),
         isLoading,
         tabButtonsEnabled,
     });
@@ -89,11 +92,11 @@ export function debugTabState(): void {
     console.log("[TabButtons] === CURRENT TAB STATE ===");
     try {
         const activeTab = getState("ui.activeTab");
-        const globalData = getState("globalData");
+        const activeFitRawData = getActiveFitActivityData().rawData;
         const tabButtonsEnabled = getState("ui.tabButtonsEnabled");
         console.log("[TabButtons] UI State Snapshot", {
             activeTab,
-            hasGlobalData: Boolean(globalData),
+            hasActiveFitRawData: Boolean(activeFitRawData),
             tabButtonsEnabled,
         });
     } catch {

@@ -10,7 +10,6 @@ type ChartStateManagerMock = {
 };
 
 type ChartUpdaterTestGlobal = typeof globalThis & {
-    _chartjsInstances?: Array<{ destroy?: () => void }>;
     renderChartJS?: unknown;
 };
 
@@ -53,6 +52,11 @@ vi.mock(
 );
 
 import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+    setRegisteredChartInstances,
+} from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import {
     getChartUpdateSystemStatus,
     isModernChartSystemAvailable,
     updateCharts,
@@ -73,7 +77,7 @@ function resetMocks(): void {
     getChartInfoMock.mockClear();
     handleThemeChangeMock.mockClear();
     renderChartJSMock.mockReset();
-    delete testGlobal._chartjsInstances;
+    clearChartInstanceRegistryForTests();
     delete testGlobal.renderChartJS;
 }
 
@@ -189,7 +193,7 @@ describe("chartUpdater", () => {
         resetMocks();
         chartStateManagerMock.handleThemeChange = undefined;
         const destroy = vi.fn<() => void>();
-        testGlobal._chartjsInstances = [{ destroy }];
+        setRegisteredChartInstances([{ destroy }]);
         renderChartJSMock.mockResolvedValue(true);
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {}),
             warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -198,7 +202,7 @@ describe("chartUpdater", () => {
 
         expect({ result }).toStrictEqual({ result: true });
         expect(destroy).toHaveBeenCalledOnce();
-        expect(testGlobal._chartjsInstances).toStrictEqual([]);
+        expect(getRegisteredChartInstances()).toStrictEqual([]);
         expect(renderChartJSMock).toHaveBeenCalledWith();
 
         logSpy.mockRestore();

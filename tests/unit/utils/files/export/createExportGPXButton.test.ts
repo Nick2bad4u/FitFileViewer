@@ -2,8 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { showNotification } from "../../../../../electron-app/utils/ui/notifications/showNotification.js";
 import { createExportGPXButton } from "../../../../../electron-app/utils/files/export/createExportGPXButton.js";
-import { setGlobalData } from "../../../../../electron-app/utils/state/core/globalDataStore.js";
-import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
+import {
+    __resetStateManagerForTests,
+    setState,
+} from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 vi.mock(
     import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
@@ -96,7 +99,7 @@ describe(createExportGPXButton, () => {
                 createObjectURL,
                 revokeObjectURL,
             });
-            setGlobalData({
+            setActiveFitRawData({
                 loadedFitFiles: [{ displayName: "Morning Ride" }],
                 recordMesgs: [
                     {
@@ -123,6 +126,92 @@ describe(createExportGPXButton, () => {
 
             expect(revokeObjectURL).toHaveBeenCalledWith("blob:track");
             expect(document.querySelector("a[download]")).toBeNull();
+        } finally {
+            cleanupTestGlobals();
+        }
+    });
+
+    it("uses route-ready data from the explicit FIT raw-data state", async () => {
+        expect.assertions(2);
+
+        try {
+            vi.stubGlobal("URL", {
+                createObjectURL: vi.fn(() => "blob:track"),
+                revokeObjectURL: vi.fn(),
+            });
+            vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(
+                () => {}
+            );
+            setState(
+                "fitFile.rawData",
+                {
+                    recordMesgs: [
+                        {
+                            position_lat: 536_870_912,
+                            position_long: -1_073_741_824,
+                        },
+                    ],
+                },
+                { source: "test" }
+            );
+            const button = createExportGPXButton();
+
+            button.click();
+
+            const [[blob]] = vi.mocked(URL.createObjectURL).mock.calls as [
+                [Blob],
+            ];
+
+            await expect(blob.text()).resolves.toContain(
+                '<trkpt lat="45.0000000" lon="-90.0000000">'
+            );
+            expect(showNotificationMock).not.toHaveBeenCalled();
+        } finally {
+            cleanupTestGlobals();
+        }
+    });
+
+    it("uses active current-file metadata when loaded-file names are unavailable", async () => {
+        expect.assertions(3);
+
+        try {
+            const clickSpy = vi
+                .spyOn(HTMLAnchorElement.prototype, "click")
+                .mockImplementation(() => {});
+            vi.stubGlobal("URL", {
+                createObjectURL: vi.fn(() => "blob:track"),
+                revokeObjectURL: vi.fn(),
+            });
+            setState("fitFile.currentFile", "C:/rides/current-activity.fit", {
+                source: "test",
+            });
+            setActiveFitRawData({
+                cachedFilePath: "stale-cache.fit",
+                recordMesgs: [
+                    {
+                        enhancedAltitude: 10,
+                        positionLat: 536_870_912,
+                        positionLong: -1_073_741_824,
+                        timestamp: "2026-05-20T12:00:00.000Z",
+                    },
+                ],
+            });
+            const button = createExportGPXButton();
+
+            button.click();
+
+            const link = queryRequiredAnchor(
+                "a[download='current-activity.gpx']"
+            );
+            const [[blob]] = vi.mocked(URL.createObjectURL).mock.calls as [
+                [Blob],
+            ];
+
+            expect(link).toBeInstanceOf(HTMLAnchorElement);
+            expect(clickSpy).toHaveBeenCalledOnce();
+            await expect(blob.text()).resolves.toContain(
+                "<name>current-activity</name>"
+            );
         } finally {
             cleanupTestGlobals();
         }

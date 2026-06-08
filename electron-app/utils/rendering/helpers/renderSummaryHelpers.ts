@@ -1,7 +1,8 @@
 import { hasPowerData } from "../../data/processing/estimateCyclingPower.js";
 import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
-import { getState } from "../../state/core/stateManager.js";
+import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
+import { resolveArqueroRuntime } from "./arqueroRuntime.js";
 
 /** Generic row shape used by summary and lap table renderers. */
 export type SummaryRecord = Record<string, unknown>;
@@ -31,25 +32,12 @@ type SummaryContainer = HTMLElement & {
     _summaryVirtualCleanup?: (() => void) | undefined;
 };
 
-type ArqueroTable = {
-    array: (columnName: string) => unknown[];
-    columnNames: () => string[];
-    get: (rowIndex: number, columnName: string) => unknown;
-    numRows: () => number;
-};
-
-type ArqueroApi = {
-    from: (records: readonly SummaryRecord[]) => ArqueroTable;
-};
-
 type SummaryGlobal = typeof globalThis & {
     activeFitFileName?: string;
-    aq?: ArqueroApi;
     window?:
         | (Window &
               typeof globalThis & {
                   activeFitFileName?: string;
-                  aq?: ArqueroApi;
               })
         | null;
 };
@@ -126,22 +114,14 @@ export function getStorageKey(
     data: FitSummaryData | SummaryRecord | null | undefined,
     _allKeys?: readonly string[]
 ): string {
-    let fpath = "";
+    let fpath: null | string = null;
     try {
         const summaryGlobal = globalThis as SummaryGlobal;
         const windowGlobal = summaryGlobal.window;
-        const globalData = getManagedGlobalData();
-        if (globalData?.cachedFilePath) {
-            fpath = globalData.cachedFilePath;
-        } else if (
-            data &&
-            typeof data === "object" &&
-            typeof data["cachedFilePath"] === "string"
-        ) {
-            fpath = data["cachedFilePath"];
-        } else if (windowGlobal?.activeFitFileName) {
-            fpath = windowGlobal.activeFitFileName;
-        }
+        fpath = getActiveFitFileMetadata({
+            fallbackName: windowGlobal?.activeFitFileName,
+            sourceData: data && typeof data === "object" ? data : null,
+        }).storageIdentity;
     } catch {
         // Ignore
     }
@@ -149,16 +129,6 @@ export function getStorageKey(
         return `summaryColSel_${encodeURIComponent(String(fpath))}`;
     }
     return "summaryColSel_default";
-}
-
-function getManagedGlobalData():
-    | (FitSummaryData & SummaryRecord)
-    | null
-    | undefined {
-    const globalData = getState("globalData");
-    return globalData !== null && typeof globalData === "object"
-        ? (globalData as FitSummaryData & SummaryRecord)
-        : null;
 }
 
 /**
@@ -452,15 +422,11 @@ export function renderTable({
                 lapBody.append(createLapRowElement(i, lap, sortedVisible));
             }
         } else if (lapFilterIndex >= 0 && lapFilterIndex < lapMesgs.length) {
-                const lap = getPatchedLapRow(
-                    lapMesgs,
-                    lapFilterIndex,
-                    lapCache
-                );
-                lapBody.append(
-                    createLapRowElement(lapFilterIndex, lap, sortedVisible)
-                );
-            }
+            const lap = getPatchedLapRow(lapMesgs, lapFilterIndex, lapCache);
+            lapBody.append(
+                createLapRowElement(lapFilterIndex, lap, sortedVisible)
+            );
+        }
     }
     table.append(thead);
     table.append(summaryBody);
@@ -715,16 +681,10 @@ function getSummaryRows(data: FitSummaryData): SummaryRecord[] {
         }
         return [raw];
     }
-    const summaryGlobal = globalThis as SummaryGlobal;
-    if (
-        data?.recordMesgs &&
-        data.recordMesgs.length > 0 &&
-        summaryGlobal.window !== undefined &&
-        summaryGlobal.aq
-    ) {
+    const arquero = resolveArqueroRuntime();
+    if (data?.recordMesgs && data.recordMesgs.length > 0 && arquero) {
         try {
-            const { aq } = summaryGlobal;
-            const table = aq.from(data.recordMesgs);
+            const table = arquero.from(data.recordMesgs);
             const stats: SummaryStats = {
                 end_time: table.get(table.numRows() - 1, "timestamp"),
                 start_time: table.get(0, "timestamp"),

@@ -17,9 +17,41 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    clearChartInstanceRegistryForTests,
+    getRegisteredChartInstances,
+    setRegisteredChartInstances,
+} from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
 type MockFn = (...args: unknown[]) => unknown;
 type VoidFn = (...args: unknown[]) => void;
+
+const chartJsModuleMocks = vi.hoisted(() => ({
+    Chart: {
+        defaults: {
+            plugins: {
+                legend: {
+                    labels: {},
+                },
+            },
+        },
+        register: vi.fn<MockFn>(),
+        registry: {
+            plugins: {
+                get: vi.fn<MockFn>().mockReturnValue(false),
+            },
+        },
+    },
+    zoomPlugin: { id: "zoom" },
+}));
+
+vi.mock(import("chart.js/auto"), () => ({
+    default: chartJsModuleMocks.Chart,
+}));
+
+vi.mock(import("chartjs-plugin-zoom"), () => ({
+    default: chartJsModuleMocks.zoomPlugin,
+}));
 
 // Stable ESM mock for theme module before SUT import to avoid SSR init order issues
 vi.mock(
@@ -108,7 +140,6 @@ declare global {
         Chart?: any;
         chartjsPluginZoom?: any;
         ChartZoom?: any;
-        _chartjsInstances?: any[];
         _fitFileViewerChartListener?: boolean;
         JSZip?: any;
         performance: {
@@ -123,7 +154,6 @@ declare global {
     var Chart: any;
     var chartjsPluginZoom: any;
     var ChartZoom: any;
-    var _chartjsInstances: any[];
     var _fitFileViewerChartListener: boolean;
     var JSZip: any;
 }
@@ -311,7 +341,7 @@ function injectChartJSMocks() {
 
     globalThis.chartjsPluginZoom = {};
     globalThis.ChartZoom = {};
-    globalThis._chartjsInstances = [];
+    clearChartInstanceRegistryForTests();
     globalThis._fitFileViewerChartListener = false;
     vi.stubGlobal("JSZip", vi.fn<MockFn>());
     globalThis.showNotification = mocks.showNotification.showNotification;
@@ -632,19 +662,29 @@ function setupDOMEnvironment() {
 describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection", () => {
     let mocks;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.resetModules();
         vi.clearAllMocks();
+        delete chartJsModuleMocks.Chart.__ffvPluginsRegistered;
+        chartJsModuleMocks.Chart.registry.plugins.get.mockReturnValue(false);
         mocks = injectChartJSMocks();
+        const { setChartRuntime } =
+            await import("../../../../../electron-app/utils/charts/core/chartRuntime.js");
+        setChartRuntime(
+            chartJsModuleMocks.Chart,
+            chartJsModuleMocks.zoomPlugin
+        );
 
         // Reset global state
-        globalThis._chartjsInstances = [];
+        globalThis.Chart = chartJsModuleMocks.Chart;
+        globalThis.ChartZoom = chartJsModuleMocks.zoomPlugin;
+        clearChartInstanceRegistryForTests();
         globalThis._fitFileViewerChartListener = false;
 
         // Setup default state responses
         mocks.stateManager.getState.mockImplementation((path) => {
             const stateMap = {
-                globalData: {
+                "fitFile.rawData": {
                     recordMesgs: [
                         { timestamp: 1000, speed: 10, elevation: 100 },
                         { timestamp: 2000, speed: 15, elevation: 105 },
@@ -805,35 +845,23 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
     describe("chart Plugin Registration", () => {
         it("should register Chart.js zoom plugin when available", async () => {
             expect.assertions(2);
-            globalThis.Chart = {
-                register: vi.fn<MockFn>(),
-                Zoom: {},
-            };
 
             const chartModule =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
-            expect(globalThis.Chart.register).toHaveBeenCalledWith(
-                globalThis.Chart.Zoom
+            expect(chartJsModuleMocks.Chart.register).toHaveBeenCalledWith(
+                chartJsModuleMocks.zoomPlugin
             );
             expect(chartModule.chartState).toHaveProperty("hasValidData", true);
         });
 
         it("should register background color plugin when Chart.js available", async () => {
             expect.assertions(2);
-            globalThis.Chart = {
-                register: vi.fn<MockFn>(),
-                registry: {
-                    plugins: {
-                        get: vi.fn<MockFn>().mockReturnValue(false),
-                    },
-                },
-            };
 
             const chartModule =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
-            expect(globalThis.Chart.register).toHaveBeenCalledWith(
+            expect(chartJsModuleMocks.Chart.register).toHaveBeenCalledWith(
                 expect.any(Object)
             );
             expect(chartModule.chartState).toHaveProperty("hasValidData", true);
@@ -842,6 +870,9 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         it("should handle Chart.js not available scenario", async () => {
             expect.assertions(2);
             globalThis.Chart = null;
+            const { clearChartRuntimeForTests } =
+                await import("../../../../../electron-app/utils/charts/core/chartRuntime.js");
+            clearChartRuntimeForTests();
 
             const { chartActions, chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
@@ -880,7 +911,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             const result = chartState.hasValidData;
 
             expect(mocks.stateManager.getState).toHaveBeenCalledWith(
-                "globalData"
+                "fitFile.rawData"
             );
             expect({ hasValidData: result }).toStrictEqual({
                 hasValidData: true,
@@ -929,7 +960,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         it("should clear charts and reset state", async () => {
             expect.assertions(3);
             const mockChart = { destroy: vi.fn<MockFn>() };
-            globalThis._chartjsInstances = [mockChart];
+            setRegisteredChartInstances([mockChart]);
 
             const { chartActions } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
@@ -949,7 +980,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                     source: "chartActions.clearCharts",
                 })
             );
-            expect(globalThis._chartjsInstances).toEqual([]);
+            expect(getRegisteredChartInstances()).toEqual([]);
         });
 
         it("should handle chart destruction errors gracefully", async () => {
@@ -959,13 +990,13 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                     throw new Error("Destroy failed");
                 }),
             };
-            globalThis._chartjsInstances = [mockChart];
+            setRegisteredChartInstances([mockChart]);
 
             const { chartActions } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
             expect(() => chartActions.clearCharts()).not.toThrow();
-            expect(globalThis._chartjsInstances).toEqual([]);
+            expect(getRegisteredChartInstances()).toEqual([]);
         });
 
         it("should complete rendering with success", async () => {
@@ -1104,7 +1135,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 if (path === "charts.isRendered") return false;
                 return null;
             });
-            globalThis._chartjsInstances = [];
+            clearChartInstanceRegistryForTests();
 
             const { exportChartsWithState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
@@ -1132,13 +1163,13 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 return null;
             });
 
-            globalThis._chartjsInstances = [
+            setRegisteredChartInstances([
                 {
                     toBase64Image: vi
                         .fn<MockFn>()
                         .mockReturnValue("data:image/png;base64,mockimage"),
                 },
-            ];
+            ]);
 
             const { exportChartsWithState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
@@ -1193,7 +1224,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         it("should handle no valid data scenario", async () => {
             expect.assertions(2);
             mocks.stateManager.getState.mockImplementation((path) => {
-                if (path === "globalData") return null;
+                if (path === "fitFile.rawData") return null;
                 return null;
             });
 
@@ -1211,7 +1242,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect({ rendered: view }).toStrictEqual({ rendered: false });
         });
 
-        it("should handle Chart.js not available error", async () => {
+        it("should ignore legacy Chart.js unavailable global sentinel", async () => {
             expect.assertions(2);
             globalThis.Chart = null;
 
@@ -1222,14 +1253,14 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             expect(
                 mocks.showNotification.showNotification
-            ).toHaveBeenCalledWith("Chart library not available", "error");
-            expect({ rendered: view }).toStrictEqual({ rendered: false });
+            ).not.toHaveBeenCalledWith("Chart library not available", "error");
+            expect({ rendered: view }).toStrictEqual({ rendered: true });
         });
 
         it("should handle empty record messages", async () => {
             expect.assertions(2);
             mocks.stateManager.getState.mockImplementation((path) => {
-                if (path === "globalData") return { recordMesgs: [] };
+                if (path === "fitFile.rawData") return { recordMesgs: [] };
                 return null;
             });
 
@@ -1302,7 +1333,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         it("should handle no container scenario with placeholder content", async () => {
             expect.assertions(1);
             mocks.stateManager.getState.mockImplementation((path) => {
-                if (path === "globalData") return { recordMesgs: [] };
+                if (path === "fitFile.rawData") return { recordMesgs: [] };
                 return null;
             });
 
@@ -1373,7 +1404,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
             mocks.stateManager.getState.mockImplementation((path) => {
                 const stateMap = {
-                    globalData: sharedData,
+                    "fitFile.rawData": sharedData,
                     "charts.chartData": null,
                     "charts.chartOptions": {},
                     "charts.controlsVisible": true,
@@ -1474,10 +1505,10 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
     describe("integration and Complex Workflows", () => {
         it("should handle complete chart lifecycle with all components", async () => {
             expect.assertions(7);
-            globalThis._chartjsInstances = [
+            setRegisteredChartInstances([
                 { destroy: vi.fn<MockFn>() },
                 { destroy: vi.fn<MockFn>() },
-            ];
+            ]);
 
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
@@ -1568,7 +1599,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         it("should handle malformed record messages", async () => {
             expect.assertions(1);
             mocks.stateManager.getState.mockImplementation((path) => {
-                if (path === "globalData")
+                if (path === "fitFile.rawData")
                     return {
                         recordMesgs: [
                             null,

@@ -4,7 +4,7 @@ import {
     type MetricRecord,
     type MetricStatistics,
 } from "../../../maps/filters/mapMetricFilter.js";
-import { getState } from "../../../state/core/stateManager.js";
+import { FitFileSelectors } from "../../../state/domain/fitFileState.js";
 
 type DataPointFilterGlobal = typeof globalThis & {
     mapDataPointFilter?:
@@ -160,14 +160,7 @@ export function formatPercent(value: number): string {
 
 /** Reads FIT record messages from managed global data state. */
 export function getGlobalRecords(): MetricRecord[] {
-    const globalData = getState("globalData");
-    const records =
-        globalData !== null &&
-        typeof globalData === "object" &&
-        "recordMesgs" in globalData
-            ? globalData.recordMesgs
-            : undefined;
-    return Array.isArray(records) ? (records as MetricRecord[]) : [];
+    return FitFileSelectors.getRecordMessages<MetricRecord>();
 }
 
 /** Resolves persisted filter settings against UI defaults. */

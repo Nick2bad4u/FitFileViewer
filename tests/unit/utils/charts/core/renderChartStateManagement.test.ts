@@ -6,6 +6,15 @@ import {
 } from "../../../../../electron-app/utils/charts/core/renderChartStateManagement.js";
 import type { MiddlewareDefinition } from "../../../../../electron-app/utils/state/core/stateMiddleware.js";
 
+const hasActiveFitChartDataMock = vi.hoisted(() => vi.fn<() => boolean>());
+
+vi.mock(
+    import("../../../../../electron-app/utils/state/domain/fitChartDataState.js"),
+    () => ({
+        hasActiveFitChartData: hasActiveFitChartDataMock,
+    })
+);
+
 type ChartSummaryState = {
     hasValidData: boolean;
     isRendered: boolean;
@@ -14,6 +23,7 @@ type ChartSummaryState = {
 
 describe("renderChartStateManagement", () => {
     afterEach(() => {
+        hasActiveFitChartDataMock.mockReset();
         vi.restoreAllMocks();
     });
 
@@ -37,12 +47,8 @@ describe("renderChartStateManagement", () => {
             isRendered: false,
             renderableFields: ["heart_rate", "power"],
         }));
+        hasActiveFitChartDataMock.mockReturnValue(true);
         const getState = vi.fn<(path: string) => unknown>((path) => {
-            if (path === "globalData") {
-                return {
-                    recordMesgs: [{ heart_rate: 120 }],
-                };
-            }
             if (path === "charts.renderedCount") return 3;
             if (path === "charts.lastRenderTime") return 1234;
         });

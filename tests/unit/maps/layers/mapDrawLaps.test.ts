@@ -1,8 +1,16 @@
 // @vitest-environment jsdom
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { setGlobalData } from "../../../../electron-app/utils/state/core/globalDataStore.js";
-import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    clearLeafletRuntimeForTests,
+    setLeafletRuntime,
+} from "../../../../electron-app/utils/maps/core/leafletRuntime.js";
+import { setActiveFitRawData } from "../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
+import {
+    __resetStateManagerForTests,
+    setState,
+} from "../../../../electron-app/utils/state/core/stateManager.js";
+import { setLoadedFitFiles } from "../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
 
 type MockFunction = (...args: any[]) => any;
 
@@ -10,6 +18,11 @@ function mockFn<T extends MockFunction = MockFunction>(
     implementation?: T
 ): ReturnType<typeof vi.fn<T>> {
     return implementation ? vi.fn<T>(implementation) : vi.fn<T>();
+}
+
+function setActiveFitTestData(data: Record<string, unknown>): void {
+    setActiveFitRawData(data, { source: "test" });
+    setState("fitFile.rawData", data, { source: "test.fitFileRawData" });
 }
 
 // Mock dependencies
@@ -47,7 +60,6 @@ declare global {
     }
     var _overlayPolylines: any;
     var _mainPolylineOriginalBounds: any;
-    var loadedFitFiles: any[];
     var _activeMainFileIdx: number;
     var mapMarkerCount: number;
     var _highlightedOverlayIdx: number;
@@ -133,10 +145,8 @@ describe("mapDrawLaps", () => {
             latLngBounds: mockFn().mockReturnValue(mockLatLngBounds),
         };
 
-        // Set up Leaflet global
-        (globalThis as any).L = mockLeaflet;
         (globalThis as any).window = globalThis;
-        (globalThis as any).window.L = mockLeaflet;
+        setLeafletRuntime(mockLeaflet);
 
         // Create mock functions
         mockGetLapColor = mockFn().mockReturnValue("#1976d2");
@@ -147,11 +157,14 @@ describe("mapDrawLaps", () => {
         (globalThis as any)._overlayPolylines = {};
         (globalThis as any)._mainPolylineOriginalBounds = undefined;
         (globalThis as any)._ffvActivityLayerGroup = undefined;
-        (globalThis as any).loadedFitFiles = [];
         (globalThis as any)._activeMainFileIdx = 0;
         (globalThis as any).mapMarkerCount = 10;
         (globalThis as any)._highlightedOverlayIdx = -1;
         (globalThis as any).updateOverlayHighlights = mockFn();
+    });
+
+    afterEach(() => {
+        clearLeafletRuntimeForTests();
     });
 
     const getPolylineCall = (
@@ -251,6 +264,40 @@ describe("mapDrawLaps", () => {
 
             expect(mockLeaflet.polyline).not.toHaveBeenCalled();
             expect(result).toBeNull();
+        });
+
+        it("should draw overlays from raw FIT snake-case GPS data", () => {
+            expect.assertions(2);
+
+            const mockFitData = {
+                recordMesgs: [
+                    { position_lat: 536_870_912, position_long: -536_870_912 },
+                    {
+                        position_lat: 1_073_741_824,
+                        position_long: -1_073_741_824,
+                    },
+                ],
+                lapMesgs: [],
+            };
+
+            drawOverlayForFitFile({
+                map: mockMap,
+                fitData: mockFitData,
+                overlayIdx: 0,
+                markerClusterGroup: mockMarkerClusterGroup,
+                startIcon: mockMarker,
+                endIcon: mockMarker,
+                fileName: "raw.fit",
+                formatTooltipData: mockFn(),
+                getLapNumForIdx: mockFn(),
+            });
+
+            const [coordinates] = getPolylineCall();
+            expect(coordinates).toStrictEqual([
+                [45, -45],
+                [90, -90],
+            ]);
+            expect(mockPolyline.addTo).toHaveBeenCalledWith(mockMap);
         });
 
         it("should handle null/undefined fitData", () => {
@@ -569,7 +616,7 @@ describe("mapDrawLaps", () => {
             ];
 
             // Setup global data
-            setGlobalData(
+            setActiveFitTestData(
                 {
                     recordMesgs: mockRecordMesgs,
                     lapMesgs: mockLapMesgs,
@@ -645,10 +692,57 @@ describe("mapDrawLaps", () => {
             document.body.removeChild(mapContainer);
         });
 
+        it('should handle lapIdx="all" with raw FIT snake-case GPS data', () => {
+            expect.assertions(2);
+
+            setActiveFitTestData(
+                {
+                    recordMesgs: [
+                        {
+                            position_lat: 536_870_912,
+                            position_long: -536_870_912,
+                        },
+                        {
+                            position_lat: 1_073_741_824,
+                            position_long: -1_073_741_824,
+                        },
+                    ],
+                    lapMesgs: [],
+                },
+                { source: "test" }
+            );
+            (globalThis as any).mapMarkerCount = 10;
+
+            const mapContainer = document.createElement("div");
+            document.body.append(mapContainer);
+            mockMap._container = mapContainer;
+            mockPolyline.getBounds.mockReturnValue(mockLatLngBounds);
+            mockLatLngBounds.clone.mockReturnValue(mockLatLngBounds);
+
+            mapDrawLaps("all", {
+                map: mockMap,
+                baseLayers: { base: mockMap },
+                markerClusterGroup: mockMarkerClusterGroup,
+                startIcon: mockMarker,
+                endIcon: mockMarker,
+                mapContainer,
+                getLapColor: mockGetLapColor,
+                formatTooltipData: mockFormatTooltipData,
+                getLapNumForIdx: mockGetLapNumForIdx,
+            });
+
+            const [polylineCoordinates] = getPolylineCall();
+            expect(polylineCoordinates).toStrictEqual([
+                [45, -45],
+                [90, -90],
+            ]);
+            expect(mockFormatTooltipData).toHaveBeenCalled();
+        });
+
         it("should render a no-location message when every record lacks valid coordinates", () => {
             expect.assertions(5);
 
-            setGlobalData(
+            setActiveFitTestData(
                 {
                     recordMesgs: [
                         { altitude: 101 },
@@ -724,7 +818,7 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            setGlobalData(
+            setActiveFitTestData(
                 {
                     recordMesgs: mockRecordMesgs,
                     lapMesgs: mockLapMesgs,
@@ -818,7 +912,7 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            setGlobalData(
+            setActiveFitTestData(
                 {
                     recordMesgs: mockRecordMesgs,
                     lapMesgs: mockLapMesgs,
@@ -871,7 +965,7 @@ describe("mapDrawLaps", () => {
                 },
             ];
 
-            setGlobalData(
+            setActiveFitTestData(
                 {
                     recordMesgs: mockRecordMesgs,
                     lapMesgs: [],
@@ -916,7 +1010,7 @@ describe("mapDrawLaps", () => {
             expect.assertions(5);
 
             // Setup main file data
-            setGlobalData(
+            setActiveFitTestData(
                 {
                     recordMesgs: [
                         {
@@ -934,27 +1028,30 @@ describe("mapDrawLaps", () => {
             );
 
             // Setup overlay files
-            (globalThis as any).loadedFitFiles = [
-                {
-                    data: { recordMesgs: [], lapMesgs: [] },
-                },
-                {
-                    data: {
-                        recordMesgs: [
-                            {
-                                positionLat: 429496730,
-                                positionLong: 858993460,
-                                timestamp: 2000,
-                                altitude: 101,
-                                heartRate: 151,
-                                speed: 5.6,
-                            },
-                        ],
-                        lapMesgs: [],
+            setLoadedFitFiles(
+                [
+                    {
+                        data: { recordMesgs: [], lapMesgs: [] },
                     },
-                    filePath: "overlay1.fit",
-                },
-            ];
+                    {
+                        data: {
+                            recordMesgs: [
+                                {
+                                    positionLat: 429496730,
+                                    positionLong: 858993460,
+                                    timestamp: 2000,
+                                    altitude: 101,
+                                    heartRate: 151,
+                                    speed: 5.6,
+                                },
+                            ],
+                            lapMesgs: [],
+                        },
+                        filePath: "overlay1.fit",
+                    },
+                ],
+                "mapDrawLaps.test"
+            );
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;
@@ -989,7 +1086,7 @@ describe("mapDrawLaps", () => {
         it("should handle invalid lap index gracefully", () => {
             expect.assertions(4);
 
-            setGlobalData(
+            setActiveFitTestData(
                 {
                     recordMesgs: [
                         {
@@ -1036,7 +1133,7 @@ describe("mapDrawLaps", () => {
         it("should handle missing position data in records", () => {
             expect.assertions(4);
 
-            setGlobalData(
+            setActiveFitTestData(
                 {
                     recordMesgs: [
                         {

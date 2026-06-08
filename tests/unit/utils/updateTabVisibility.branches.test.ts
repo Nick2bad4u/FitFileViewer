@@ -54,6 +54,14 @@ describe("updateTabVisibility - additional branches", () => {
     beforeEach(() => {
         vi.resetModules();
         createContentDom();
+        vi.doMock(
+            import("../../../electron-app/utils/state/domain/fitFileState.js"),
+            () => ({
+                FitFileSelectors: {
+                    getRawData: () => null,
+                },
+            })
+        );
     });
 
     afterEach(() => {

@@ -3,6 +3,7 @@ import type * as Leaflet from "leaflet";
 
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
+import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -23,7 +24,6 @@ type MeasureLeaflet = Pick<
 
 type MeasureToolGlobal = typeof globalThis & {
     __ffvMapMeasureEscapeHandler?: (event: KeyboardEvent) => void;
-    L?: unknown;
 };
 
 type ThemeColors = {
@@ -60,8 +60,7 @@ function getMeasureToolGlobal(): MeasureToolGlobal {
 }
 
 function getLeaflet(): MeasureLeaflet | null {
-    const { L } = getMeasureToolGlobal();
-    return isMeasureLeaflet(L) ? L : null;
+    return resolveLeafletRuntime(isMeasureLeaflet);
 }
 
 function createMeasureIcon(primary: string, surface: string): SVGSVGElement {

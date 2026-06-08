@@ -1,6 +1,9 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
+import { resolveChartRuntime } from "../../charts/core/chartRuntime.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
-import { FitFileSelectors } from "../../state/domain/fitFileState.js";
+import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
+import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
+import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 
@@ -48,7 +51,6 @@ interface ElevationPopupThemeColors {
 type ElevationGlobal = typeof globalThis & {
     Chart?: unknown;
     chartOverlayColorPalette?: unknown;
-    loadedFitFiles?: unknown;
 };
 
 interface ChartColorBuilder {
@@ -279,20 +281,26 @@ function getDisplayFilePath(file: ElevationFitFile, idx: number): string {
 }
 
 function getElevationFitFiles(): ElevationFitFile[] {
-    const { loadedFitFiles } = getElevationGlobal();
-    if (Array.isArray(loadedFitFiles) && loadedFitFiles.length > 0) {
+    const loadedFitFiles = getLoadedFitFiles();
+    if (loadedFitFiles.length > 0) {
         return loadedFitFiles.filter(isElevationFitFile);
     }
 
-    const globalData = FitFileSelectors.getRawData();
+    const activityData = getActiveFitActivityData();
+    const sourceData = activityData.rawData;
     if (
-        isElevationFitData(globalData) &&
-        Array.isArray(globalData.recordMesgs)
+        isElevationFitData(sourceData) &&
+        Array.isArray(sourceData.recordMesgs)
     ) {
         return [
             {
-                data: globalData,
-                filePath: globalData.cachedFilePath,
+                data: {
+                    ...sourceData,
+                    recordMesgs: activityData.recordMesgs,
+                },
+                filePath: getActiveFitFileMetadata({
+                    sourceData,
+                }).storageIdentity,
             },
         ];
     }
@@ -312,12 +320,7 @@ async function resolveElevationChartConstructor(): Promise<
         return Chart;
     }
 
-    const chartModule = (await import("chart.js/auto")) as {
-        default?: unknown;
-    };
-    return isElevationChartConstructor(chartModule.default)
-        ? chartModule.default
-        : undefined;
+    return resolveChartRuntime(isElevationChartConstructor) ?? undefined;
 }
 
 function getElevationPoints(file: ElevationFitFile): ElevationPoint[] {

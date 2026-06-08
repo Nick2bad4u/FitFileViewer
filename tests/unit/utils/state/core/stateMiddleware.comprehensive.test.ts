@@ -455,10 +455,10 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
         // Register only the notification middleware and exercise its branches
         registerMiddleware("notification", notificationMiddleware, 50);
         // We won't assert DOM/UI effects here; executing code paths increases coverage safely
-        const globalDataContext = await executeMiddleware(
+        const activeFitDataContext = await executeMiddleware(
             MIDDLEWARE_PHASES.AFTER_SET,
             {
-                path: "globalData",
+                path: "fitFile.rawData",
                 value: { any: 1 },
                 options: {},
             } as any
@@ -480,7 +480,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
             } as any
         );
 
-        expect(globalDataContext.value).toEqual({ any: 1 });
+        expect(activeFitDataContext.value).toEqual({ any: 1 });
         expect({ initialized: initializedContext.value }).toStrictEqual({
             initialized: true,
         });

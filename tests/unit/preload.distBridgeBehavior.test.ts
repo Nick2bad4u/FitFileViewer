@@ -546,12 +546,10 @@ describe("preload.js dist bridge behavior", () => {
                 "getTheme",
                 "injectMenu",
                 "installUpdate",
-                "invoke",
                 "onDecoderOptionsChanged",
                 "onExportFile",
                 "onFitBrowserEnabledChanged",
                 "onGyazoOAuthCallback",
-                "onIpc",
                 "onMenuAbout",
                 "onMenuCheckForUpdates",
                 "onMenuExport",
@@ -578,7 +576,6 @@ describe("preload.js dist bridge behavior", () => {
                 "recentFiles",
                 "requestExport",
                 "requestSaveAs",
-                "send",
                 "sendThemeChanged",
                 "setFullScreen",
                 "startGyazoServer",
@@ -1080,36 +1077,6 @@ describe("preload.js dist bridge behavior", () => {
             });
         });
 
-        it("onIpc should register generic event handler", () => {
-            expect.assertions(1);
-            const channel = "custom-channel";
-            const callback = vi.fn<IpcListener>();
-            const unsubscribe = exposedAPI.onIpc(
-                channel,
-                callback
-            ) as () => void;
-
-            expect(
-                getIpcRegistrationLifecycle({
-                    callback,
-                    channel,
-                    eventArgs: ["payload", 7],
-                    unsubscribe,
-                })
-            ).toStrictEqual({
-                callbackCalls: [["payload", 7]],
-                cleanup: {
-                    removedChannel: channel,
-                    removedRegisteredListener: true,
-                },
-                registration: {
-                    listenerType: "function",
-                    registeredChannel: channel,
-                },
-                unsubscribeResult: undefined,
-            });
-        });
-
         it("onMenuOpenFile should reject invalid callbacks", () => {
             expect.assertions(4);
             const unsubscribe = exposedAPI.onMenuOpenFile(
@@ -1121,48 +1088,6 @@ describe("preload.js dist bridge behavior", () => {
             expect(mockIpcRenderer.removeListener).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onMenuOpenFile: callback must be a function"
-            );
-        });
-    });
-
-    describe("generic IPC methods", () => {
-        beforeEach(() => {
-            executePreloadScript();
-        });
-
-        it("invoke should call ipcRenderer.invoke", async () => {
-            expect.assertions(2);
-            const channel = "test-channel";
-            const args = ["arg1", "arg2"];
-            const result = await exposedAPI.invoke(channel, ...args);
-
-            expect(mockIpcRenderer.invoke).toHaveBeenCalledWith(
-                channel,
-                ...args
-            );
-            expect(result).toBe("mock-result");
-        });
-
-        it("send should call ipcRenderer.send", () => {
-            expect.assertions(2);
-            const channel = "test-channel";
-            const args = ["arg1", "arg2"];
-
-            const result = exposedAPI.send(channel, ...args);
-
-            expect(result).toBeUndefined();
-            expect(mockIpcRenderer.send).toHaveBeenCalledWith(channel, ...args);
-        });
-
-        it("send should reject invalid channels", () => {
-            expect.assertions(3);
-
-            const result = exposedAPI.send(123);
-
-            expect(result).toBeUndefined();
-            expect(mockIpcRenderer.send).not.toHaveBeenCalled();
-            expect(consoleSpy.error).toHaveBeenCalledWith(
-                "[preload.js] send: channel must be a string"
             );
         });
     });
@@ -1207,9 +1132,7 @@ describe("preload.js dist bridge behavior", () => {
                 exposedAPI.injectMenu(invalidTheme)
             ).resolves.toStrictEqual(false);
             expect(mockIpcRenderer.invoke).not.toHaveBeenCalled();
-            expect(consoleSpy.error).toHaveBeenCalledWith(
-                "[preload.js] injectMenu: theme must be a string or null"
-            );
+            expect(consoleSpy.error).not.toHaveBeenCalled();
         });
 
         it("injectMenu should validate fitFilePath parameter", async () => {
@@ -1220,9 +1143,7 @@ describe("preload.js dist bridge behavior", () => {
                 exposedAPI.injectMenu("dark", invalidPath)
             ).resolves.toStrictEqual(false);
             expect(mockIpcRenderer.invoke).not.toHaveBeenCalled();
-            expect(consoleSpy.error).toHaveBeenCalledWith(
-                "[preload.js] injectMenu: fitFilePath must be a string or null"
-            );
+            expect(consoleSpy.error).not.toHaveBeenCalled();
         });
     });
 
@@ -1335,65 +1256,6 @@ describe("preload.js dist bridge behavior", () => {
             expect(mockIpcRenderer.on).not.toHaveBeenCalled();
             expect(consoleSpy.error).toHaveBeenCalledWith(
                 "[preload.js] onUpdateEvent: eventName must be a string"
-            );
-        });
-
-        it("should validate channel in generic methods", async () => {
-            expect.assertions(2);
-            await expect(exposedAPI.invoke(123)).rejects.toThrow(
-                "Invalid channel for invoke"
-            );
-            expect(consoleSpy.error).toHaveBeenCalledWith(
-                "[preload.js] invoke: channel must be a string"
-            );
-        });
-
-        it("should validate channel in send method", () => {
-            expect.assertions(3);
-
-            const result = exposedAPI.send(123);
-
-            expect(result).toBeUndefined();
-            expect(mockIpcRenderer.send).not.toHaveBeenCalled();
-            expect(consoleSpy.error).toHaveBeenCalledWith(
-                "[preload.js] send: channel must be a string"
-            );
-        });
-
-        it("should validate channel in onIpc method", () => {
-            expect.assertions(3);
-            const unsubscribe = exposedAPI.onIpc(123, vi.fn<IpcListener>());
-
-            expect({
-                listenerRegistrations: mockIpcRenderer.on.mock.calls.length,
-                unsubscribe,
-            }).toStrictEqual({
-                listenerRegistrations: 0,
-                unsubscribe: undefined,
-            });
-            expect(mockIpcRenderer.on).not.toHaveBeenCalled();
-            expect(consoleSpy.error).toHaveBeenCalledWith(
-                "[preload.js] onIpc: channel must be a string"
-            );
-        });
-
-        it("should validate callback in onIpc method", () => {
-            expect.assertions(3);
-            const unsubscribe = exposedAPI.onIpc(
-                "test-channel",
-                "not-a-function"
-            );
-
-            expect({
-                listenerRegistrations: mockIpcRenderer.on.mock.calls.length,
-                unsubscribe,
-            }).toStrictEqual({
-                listenerRegistrations: 0,
-                unsubscribe: undefined,
-            });
-            expect(mockIpcRenderer.on).not.toHaveBeenCalled();
-            expect(consoleSpy.error).toHaveBeenCalledWith(
-                "[preload.js] onIpc: callback must be a function"
             );
         });
     });

@@ -1,3 +1,6 @@
+import { resolveChartRuntime } from "./chartRuntime.js";
+import { registerChartInstance } from "./chartInstanceRegistry.js";
+
 /**
  * Configuration passed through to the runtime Chart.js constructor.
  */
@@ -13,12 +16,11 @@ type ManagedChartConstructor = new (
     config: ManagedChartConfig
 ) => ManagedChartInstance;
 
-type ManagedChartGlobal = typeof globalThis & {
-    Chart?: ManagedChartConstructor;
-    _chartjsInstances?: ManagedChartInstance[];
-};
-
-const chartGlobal = globalThis as ManagedChartGlobal;
+function isManagedChartConstructor(
+    value: unknown
+): value is ManagedChartConstructor {
+    return typeof value === "function";
+}
 
 /**
  * Create a Chart.js instance and register it in the shared lifecycle registry.
@@ -32,17 +34,12 @@ export function createManagedChart(
     canvas: HTMLCanvasElement,
     config: ManagedChartConfig
 ): ManagedChartInstance | null {
-    const ChartCtor = chartGlobal.Chart;
-    if (typeof ChartCtor !== "function") {
+    const ManagedChartCtor = resolveChartRuntime(isManagedChartConstructor);
+    if (!ManagedChartCtor) {
         return null;
     }
 
-    const chart = new ChartCtor(canvas, config);
-
-    if (!Array.isArray(chartGlobal._chartjsInstances)) {
-        chartGlobal._chartjsInstances = [];
-    }
-
-    chartGlobal._chartjsInstances.push(chart);
+    const chart = new ManagedChartCtor(canvas, config);
+    registerChartInstance(chart);
     return chart;
 }

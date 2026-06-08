@@ -10,9 +10,11 @@ import {
 } from "./lib/workspaces.mjs";
 
 const windowsSignedArtifactExtensions = new Set([".exe", ".msi"]);
+const signingVerificationReportFileName = "signing-verification-report.json";
 
 export function parseArgs(argv = []) {
     let platform;
+    let reportPath;
     let releaseDir = rootReleaseDistAbsolutePath;
     let runnerOs;
 
@@ -55,6 +57,25 @@ export function parseArgs(argv = []) {
             continue;
         }
 
+        if (arg === "--report") {
+            const nextReportPath = argv[index + 1];
+            if (!nextReportPath || nextReportPath.startsWith("-")) {
+                throw new Error("--report requires a value");
+            }
+            reportPath = path.resolve(nextReportPath);
+            index += 1;
+            continue;
+        }
+
+        if (arg.startsWith("--report=")) {
+            const nextReportPath = arg.slice("--report=".length);
+            if (!nextReportPath) {
+                throw new Error("--report must not be empty");
+            }
+            reportPath = path.resolve(nextReportPath);
+            continue;
+        }
+
         if (arg === "--runner-os") {
             runnerOs = argv[index + 1];
             if (!runnerOs || runnerOs.startsWith("-")) {
@@ -78,6 +99,9 @@ export function parseArgs(argv = []) {
     return {
         platform: resolvePlatform({ platform, runnerOs }),
         releaseDir,
+        reportPath:
+            reportPath ??
+            path.join(releaseDir, signingVerificationReportFileName),
         runnerOs,
     };
 }
@@ -159,15 +183,39 @@ export function verifySignedArtifacts(
     commandRunner = spawnSync,
     logger = console.log
 ) {
-    const { platform, releaseDir } = parseArgs(argv);
+    const { platform, releaseDir, reportPath } = parseArgs(argv);
 
     if (environment.REQUIRE_CODE_SIGNING !== "true" || platform === "linux") {
+        const report = writeSigningVerificationReport(reportPath, {
+            artifacts: [],
+            platform,
+            releaseDir,
+            signingRequired: environment.REQUIRE_CODE_SIGNING === "true",
+            status: "skipped",
+        });
+        appendSigningVerificationSummary(
+            environment.GITHUB_STEP_SUMMARY,
+            report
+        );
         logger("[signing] Artifact signature verification skipped.");
         return 0;
     }
 
     const artifacts = collectSigningVerificationArtifacts(releaseDir, platform);
+    const verificationResults = [];
     if (artifacts.length === 0) {
+        const report = writeSigningVerificationReport(reportPath, {
+            artifacts: [],
+            error: `No signed artifact candidates found in ${releaseDir} for ${platform}`,
+            platform,
+            releaseDir,
+            signingRequired: true,
+            status: "failed",
+        });
+        appendSigningVerificationSummary(
+            environment.GITHUB_STEP_SUMMARY,
+            report
+        );
         throw new Error(
             `No signed artifact candidates found in ${releaseDir} for ${platform}`
         );
@@ -182,18 +230,138 @@ export function verifySignedArtifacts(
             cwd: repositoryRoot,
             stdio: "inherit",
         });
+        const verificationResult = {
+            args: args.map((arg) =>
+                arg === artifactPath
+                    ? path.relative(releaseDir, artifactPath)
+                    : arg
+            ),
+            command,
+            path: artifactPath,
+            status: result.status,
+        };
+        verificationResults.push(
+            result.error
+                ? { ...verificationResult, error: result.error.message }
+                : verificationResult
+        );
 
         if (result.error) {
+            const report = writeSigningVerificationReport(reportPath, {
+                artifacts,
+                error: result.error.message,
+                platform,
+                releaseDir,
+                signingRequired: true,
+                status: "failed",
+                verificationResults,
+            });
+            appendSigningVerificationSummary(
+                environment.GITHUB_STEP_SUMMARY,
+                report
+            );
             throw result.error;
         }
 
         if ((result.status ?? 1) !== 0) {
+            const report = writeSigningVerificationReport(reportPath, {
+                artifacts,
+                error: `Signing verification command exited with status ${result.status ?? 1}`,
+                platform,
+                releaseDir,
+                signingRequired: true,
+                status: "failed",
+                verificationResults,
+            });
+            appendSigningVerificationSummary(
+                environment.GITHUB_STEP_SUMMARY,
+                report
+            );
             return result.status ?? 1;
         }
     }
 
+    const report = writeSigningVerificationReport(reportPath, {
+        artifacts,
+        platform,
+        releaseDir,
+        signingRequired: true,
+        status: "verified",
+        verificationResults,
+    });
+    appendSigningVerificationSummary(environment.GITHUB_STEP_SUMMARY, report);
     logger(`[signing] Verified ${artifacts.length} signed artifact(s).`);
     return 0;
+}
+
+export function appendSigningVerificationSummary(summaryPath, report) {
+    if (!summaryPath) {
+        return false;
+    }
+
+    const lines = [
+        "## Signing Verification",
+        "",
+        `- Status: \`${report.status}\``,
+        `- Platform: \`${report.platform}\``,
+        `- Signing required: \`${String(report.signingRequired)}\``,
+        `- Artifact count: \`${String(report.artifactCount)}\``,
+    ];
+
+    if (report.error) {
+        lines.push(`- Error: \`${report.error}\``);
+    }
+
+    if (report.artifacts.length > 0) {
+        lines.push("", "### Artifacts");
+        for (const artifact of report.artifacts) {
+            lines.push(`- \`${artifact.path}\` (${artifact.type})`);
+        }
+    }
+
+    if (report.verificationResults.length > 0) {
+        lines.push("", "### Verification Commands");
+        for (const result of report.verificationResults) {
+            lines.push(
+                `- \`${result.command}\` for \`${result.path}\`: \`${String(result.status)}\``
+            );
+        }
+    }
+
+    fs.mkdirSync(path.dirname(summaryPath), { recursive: true });
+    fs.appendFileSync(summaryPath, `${lines.join("\n")}\n\n`);
+    return true;
+}
+
+export function writeSigningVerificationReport(reportPath, report) {
+    const releaseDir = report.releaseDir;
+    const artifacts = report.artifacts.map((artifactPath) => ({
+        path: path.relative(releaseDir, artifactPath),
+        type: fs.existsSync(artifactPath)
+            ? fs.statSync(artifactPath).isDirectory()
+                ? "directory"
+                : "file"
+            : "missing",
+    }));
+    const payload = {
+        artifactCount: artifacts.length,
+        artifacts,
+        error: report.error,
+        generatedAt: new Date().toISOString(),
+        platform: report.platform,
+        releaseDir,
+        signingRequired: report.signingRequired,
+        status: report.status,
+        verificationResults: (report.verificationResults ?? []).map(
+            (result) => ({
+                ...result,
+                path: path.relative(releaseDir, result.path),
+            })
+        ),
+    };
+    fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+    fs.writeFileSync(reportPath, `${JSON.stringify(payload, null, 2)}\n`);
+    return payload;
 }
 
 function walkReleaseDir(releaseDir, options = {}) {

@@ -114,9 +114,9 @@ export function setupChartStatusUpdates(): void {
             })
         );
         trackSetupSubscription(
-            subscribe("globalData", () => {
+            subscribe("fitFile.rawData", () => {
                 scheduleIndicatorRefresh(
-                    "[ChartStatus] Error in globalData state handler:",
+                    "[ChartStatus] Error in fitFile.rawData state handler:",
                     100
                 );
             })

@@ -1,5 +1,6 @@
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import { chartLegendItemBoxPlugin } from "../plugins/chartLegendItemBoxPlugin.js";
+import { resolveChartRuntime, resolveChartZoomPlugin } from "./chartRuntime.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 
 interface ChartLike extends Record<string, unknown> {
@@ -18,11 +19,7 @@ interface ChartLike extends Record<string, unknown> {
     register?: (...plugins: unknown[]) => void;
 }
 
-interface ChartPluginGlobal extends Record<string, unknown> {
-    Chart?: ChartLike | undefined;
-    ChartZoom?: unknown;
-    chartjsPluginZoom?: unknown;
-}
+type ChartPluginGlobal = Record<string, unknown>;
 
 function isChartRegistered(chart: unknown): boolean {
     return Boolean(
@@ -99,23 +96,14 @@ function configureLegendLabelDefaults(chart: ChartLike): void {
     }
 }
 
-function registerPluginsForChart(
-    chartGlobal: ChartPluginGlobal,
-    chart: ChartLike | undefined
-): void {
+function registerPluginsForChart(chart: ChartLike | undefined): void {
     if (!chart || typeof chart.register !== "function") {
         return;
     }
 
-    if (!chart.registry?.plugins?.get?.("zoom")) {
-        const chartZoom = chart["Zoom"];
-        if (chartZoom) {
-            chart.register(chartZoom);
-        } else if (chartGlobal.chartjsPluginZoom) {
-            chart.register(chartGlobal.chartjsPluginZoom);
-        } else if (chartGlobal.ChartZoom) {
-            chart.register(chartGlobal.ChartZoom);
-        }
+    const zoomPlugin = resolveChartZoomPlugin();
+    if (zoomPlugin && !chart.registry?.plugins?.get?.("zoom")) {
+        chart.register(zoomPlugin);
     }
 
     registerBundledPlugins(chart);
@@ -124,74 +112,23 @@ function registerPluginsForChart(
 }
 
 /**
- * Registers Chart.js plugins immediately and for late Chart assignments.
+ * Registers Chart.js plugins for the bundled Chart.js runtime.
  *
  * @param chartGlobal - Mutable chart runtime global object.
  */
 export function registerChartJsPlugins(chartGlobal: ChartPluginGlobal): void {
-    try {
-        if (
-            chartGlobal &&
-            !Object.getOwnPropertyDescriptor(chartGlobal, "Chart")?.set
-        ) {
-            let currentChart = chartGlobal.Chart;
-
-            Object.defineProperty(chartGlobal, "Chart", {
-                configurable: true,
-                enumerable: true,
-                get() {
-                    try {
-                        if (currentChart && !isChartRegistered(currentChart)) {
-                            registerPluginsForChart(chartGlobal, currentChart);
-                        }
-                    } catch {
-                        // Ignore getter registration failures.
-                    }
-
-                    return currentChart;
-                },
-                set(nextChart: ChartLike | undefined) {
-                    currentChart = nextChart;
-                    try {
-                        registerPluginsForChart(chartGlobal, nextChart);
-                    } catch {
-                        // Ignore setter registration failures.
-                    }
-                },
-            });
-
-            try {
-                chartGlobal.Chart = currentChart;
-            } catch {
-                // Ignore setter trigger failures.
-            }
-        }
-    } catch {
-        // Ignore descriptor setup errors in tests.
-    }
+    void chartGlobal;
 
     try {
-        if (
-            chartGlobal?.Chart?.register &&
-            !chartGlobal.Chart.registry?.plugins?.get?.("zoom")
-        ) {
-            const chartZoom = chartGlobal.Chart["Zoom"];
-            if (chartZoom) {
-                chartGlobal.Chart.register(chartZoom);
-                console.log("[ChartJS] chartjs-plugin-zoom registered.");
-            } else if (chartGlobal.chartjsPluginZoom) {
-                chartGlobal.Chart.register(chartGlobal.chartjsPluginZoom);
-                console.log(
-                    "[ChartJS] chartjs-plugin-zoom registered (chartGlobal.ChartjsPluginZoom)."
-                );
-            } else if (chartGlobal.ChartZoom) {
-                chartGlobal.Chart.register(chartGlobal.ChartZoom);
-                console.log(
-                    "[ChartJS] chartjs-plugin-zoom registered (chartGlobal.ChartZoom)."
-                );
-            }
+        const chart = resolveChartRuntime(isChartLike);
+        if (!isChartRegistered(chart)) {
+            registerPluginsForChart(chart ?? undefined);
         }
     } catch {
-        // Ignore plugin registration errors in tests.
+        // Ignore plugin registration errors in tests and non-browser runtimes.
     }
+}
+
+function isChartLike(value: unknown): value is ChartLike {
+    return isObjectRecord(value);
 }

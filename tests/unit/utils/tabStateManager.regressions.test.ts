@@ -210,7 +210,7 @@ describe("tabStateManager regressions", () => {
                     .map(([path, listener]) => [path, typeof listener])
             ).toEqual([
                 ["ui.activeTab", "function"],
-                ["globalData", "function"],
+                ["fitFile.rawData", "function"],
             ]);
             manager.cleanup();
             manager.cleanup();
@@ -490,7 +490,7 @@ describe("tabStateManager regressions", () => {
                 .mockImplementation(() => {});
             vi.spyOn(manager, "handleChartTab").mockRejectedValue(renderError);
             mockGetState.mockImplementation((path?: string) =>
-                path === "globalData" ? activityData : "chart"
+                path === "fitFile.rawData" ? activityData : "chart"
             );
 
             const result = await manager.handleTabSpecificLogic("chart");

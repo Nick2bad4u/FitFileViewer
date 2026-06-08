@@ -17,13 +17,17 @@ const { mockEnsureRendererVendorBundle } = vi.hoisted(() => ({
     mockEnsureRendererVendorBundle: vi.fn(() => Promise.resolve()),
 }));
 
-const { mockCreateTables, mockRenderMap, mockRenderSummary } = vi.hoisted(
-    () => ({
-        mockCreateTables: vi.fn<MockFn>(),
-        mockRenderMap: vi.fn<MockFn>(),
-        mockRenderSummary: vi.fn<MockFn>(),
-    })
-);
+const {
+    mockCreateTables,
+    mockRenderMap,
+    mockRenderSummary,
+    mockWaitForMapLeafletRuntime,
+} = vi.hoisted(() => ({
+    mockCreateTables: vi.fn<MockFn>(),
+    mockRenderMap: vi.fn<MockFn>(),
+    mockRenderSummary: vi.fn<MockFn>(),
+    mockWaitForMapLeafletRuntime: vi.fn(() => Promise.resolve(true)),
+}));
 
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager"),
@@ -48,6 +52,7 @@ vi.mock(
 
 vi.mock("../../../../../electron-app/utils/maps/core/renderMap.js", () => ({
     renderMap: mockRenderMap,
+    waitForMapLeafletRuntime: mockWaitForMapLeafletRuntime,
 }));
 
 vi.mock(
@@ -94,13 +99,15 @@ describe("tabStateManager.behavior", () => {
         mockCreateTables.mockReset();
         mockRenderMap.mockReset();
         mockRenderSummary.mockReset();
+        mockWaitForMapLeafletRuntime.mockReset();
         mockEnsureRendererVendorBundle.mockResolvedValue(undefined);
+        mockWaitForMapLeafletRuntime.mockResolvedValue(true);
 
         mockGetState.mockImplementation((/* @type {any} */ key) => {
             switch (key) {
                 case "ui.activeTab":
                     return "summary";
-                case "globalData":
+                case "fitFile.rawData":
                     return { recordMesgs: [{ timestamp: 1 }] };
                 case "charts":
                     return { isRendered: false };
@@ -236,7 +243,7 @@ describe("tabStateManager.behavior", () => {
         root.appendChild(btn);
 
         mockGetState.mockImplementation((/* @type {any} */ key) =>
-            key === "globalData" ? null : undefined
+            key === "fitFile.rawData" ? null : undefined
         );
 
         const prevent = vi.fn<VoidFn>();
@@ -436,17 +443,19 @@ describe("tabStateManager.behavior", () => {
 
     it("handleTabSpecificLogic executes 'summary' branch normally and breaks", async () => {
         expect.assertions(3);
-        // Ensure globalData present and summary hash differs so render occurs
-        const gd = { recordMesgs: [{ timestamp: 1 }, { timestamp: 3 }] };
+        // Ensure active FIT data is present and summary hash differs so render occurs.
+        const activeFitData = {
+            recordMesgs: [{ timestamp: 1 }, { timestamp: 3 }],
+        };
         mockGetState.mockImplementation((/* @type {any} */ key) => {
-            if (key === "globalData") return gd;
+            if (key === "fitFile.rawData") return activeFitData;
             if (key === "summary.lastDataHash") return "different"; // force re-render
             return null;
         });
         await expect(
             tabStateManager.handleTabSpecificLogic("summary")
         ).resolves.toBeUndefined();
-        expect(mockRenderSummary).toHaveBeenCalledWith(gd);
+        expect(mockRenderSummary).toHaveBeenCalledWith(activeFitData);
         expect(mockSetState).toHaveBeenCalledWith(
             "summary.lastDataHash",
             expect.any(String),
@@ -457,7 +466,7 @@ describe("tabStateManager.behavior", () => {
     it("handleTabSpecificLogic records loading and ready readiness states", async () => {
         expect.assertions(3);
         mockGetState.mockImplementation((/* @type {any} */ key) => {
-            if (key === "globalData") return { recordMesgs: [{}] };
+            if (key === "fitFile.rawData") return { recordMesgs: [{}] };
             if (key === "map") return { isRendered: false };
             return null;
         });
@@ -489,7 +498,7 @@ describe("tabStateManager.behavior", () => {
     it("handleTabSpecificLogic blocks data-required tabs without FIT data", async () => {
         expect.assertions(3);
         mockGetState.mockImplementation((/* @type {any} */ key) =>
-            key === "globalData" ? null : undefined
+            key === "fitFile.rawData" ? null : undefined
         );
 
         await expect(
@@ -787,7 +796,7 @@ describe("tabStateManager.behavior", () => {
     it("handleTabSpecificLogic executes 'chartjs' branch and marks charts active", async () => {
         expect.assertions(2);
         mockGetState.mockImplementation((/* @type {any} */ key) => {
-            if (key === "globalData") return { recordMesgs: [{}] };
+            if (key === "fitFile.rawData") return { recordMesgs: [{}] };
             if (key === "charts") return { isRendered: false };
             return null;
         });
@@ -801,7 +810,7 @@ describe("tabStateManager.behavior", () => {
     it("handleTabSpecificLogic executes 'map' branch and calls renderMap", async () => {
         expect.assertions(2);
         mockGetState.mockImplementation((/* @type {any} */ key) => {
-            if (key === "globalData") return { recordMesgs: [{}] };
+            if (key === "fitFile.rawData") return { recordMesgs: [{}] };
             if (key === "map") return { isRendered: false };
             return null;
         });
@@ -817,7 +826,7 @@ describe("tabStateManager.behavior", () => {
         vis.id = "content_data";
         root.appendChild(vis);
         mockGetState.mockImplementation((/* @type {any} */ key) =>
-            key === "globalData" ? { recordMesgs: [{}] } : null
+            key === "fitFile.rawData" ? { recordMesgs: [{}] } : null
         );
         await tabStateManager.handleTabSpecificLogic("data");
         expect(vis.id).toBe("content_data");
@@ -887,7 +896,7 @@ describe("tabStateManager.behavior", () => {
         const dataFn = [...calls]
             .filter(
                 (/* @type {any} */ c) =>
-                    c[0] === "globalData" && typeof c[1] === "function"
+                    c[0] === "fitFile.rawData" && typeof c[1] === "function"
             )
             .map((c) => c[1])
             .at(-1);
@@ -903,7 +912,7 @@ describe("tabStateManager.behavior", () => {
         expect(changeSpy).toHaveBeenCalledWith("map", "summary");
         changeSpy.mockRestore();
 
-        // Invoke globalData callback to hit updateTabAvailability call
+        // Invoke raw FIT data callback to hit updateTabAvailability call
         const btn = document.createElement("button");
         btn.id = TAB_CONFIG.summary.id;
         btn.className = "tab-button";

@@ -796,7 +796,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
             // Ensure globalData is present so the UI is considered renderable.
             vi.mocked(getState).mockImplementation((key: any) => {
-                if (key === "globalData") return { ok: true } as any;
+                if (key === "fitFile.rawData") return { ok: true } as any;
                 return false as any;
             });
 

@@ -1,5 +1,6 @@
 import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { resolveChartRuntime } from "../core/chartRuntime.js";
 import { updateChartAnimations } from "../core/updateChartAnimations.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
 import {
@@ -16,11 +17,14 @@ type ChartConstructor = new (
 ) => EnhancedChartInstance;
 
 interface ChartDebugGlobal {
-    readonly Chart?: ChartConstructor;
     readonly __FFV_debugCharts?: unknown;
 }
 
 const chartGlobal = globalThis as typeof globalThis & ChartDebugGlobal;
+
+function isChartConstructor(value: unknown): value is ChartConstructor {
+    return typeof value === "function";
+}
 
 function resolveTheme(theme: string | undefined): string {
     return theme && theme !== "auto" ? theme : detectCurrentTheme();
@@ -31,10 +35,7 @@ function logThemeDebug(
     theme: string | undefined,
     currentTheme: string
 ): void {
-    if (
-        !isDevelopmentEnvironment() ||
-        !chartGlobal.__FFV_debugCharts
-    ) {
+    if (!isDevelopmentEnvironment() || !chartGlobal.__FFV_debugCharts) {
         return;
     }
 
@@ -60,11 +61,12 @@ export function createEnhancedChart(
         const currentTheme = resolveTheme(theme);
         logThemeDebug(field, theme, currentTheme);
 
-        const ChartConstructor = chartGlobal.Chart;
+        const ChartConstructor = resolveChartRuntime(isChartConstructor);
         if (!ChartConstructor) {
+            const error = new Error("Chart.js constructor is unavailable");
             console.error(
                 `[ChartJS] Error creating chart for ${field}:`,
-                "Chart.js constructor is unavailable"
+                error
             );
             notifyChartCreationError(field);
             return null;
