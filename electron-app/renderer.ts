@@ -27,7 +27,6 @@
 // ==========================================
 
 import { isDevelopmentMode } from "./utils/app/initialization/rendererEnvironment.js";
-import { validateRendererDomElements } from "./renderer/domStartupValidation.js";
 import {
     createRendererPerformanceMonitor,
     type RendererPerformanceMonitor,
@@ -52,11 +51,11 @@ import {
 import { installRendererGlobalSurfaces } from "./renderer/globalSurfacesWiring.js";
 import { createRendererFileInputWiring } from "./renderer/fileInputWiring.js";
 import { registerRendererTestOnlyBootstrap } from "./renderer/testOnlyBootstrap.js";
+import { createRendererDomAccess } from "./renderer/domElementAccess.js";
 import { setLoading } from "./utils/ui/loading/syncRendererLoading.js";
 // Avoid static import of AppActions because tests sometimes mock the module
 // without exporting the named symbol. Always resolve via ensureCoreModules().
 import { getState, subscribe } from "./utils/state/core/stateManager.js";
-import { querySelectorByIdFlexible } from "./utils/ui/dom/elementIdUtils.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
 
 type LogRendererLevel = "error" | "group" | "groupEnd" | "log" | "warn";
@@ -98,11 +97,15 @@ const {
     resetStateInitializationForTests,
 } = rendererStateStartup;
 
+const domAccess = createRendererDomAccess({
+    documentTarget: document,
+    logRenderer,
+});
+
 const importTimeBootstrap = createRendererImportTimeBootstrap({
     callUnknownFunction,
     ensureCoreModules,
-    getOpenFileButton: () =>
-        querySelectorByIdFlexible(document, "#open_file_btn"),
+    getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
     resolveExactManualMock,
@@ -116,11 +119,7 @@ const { scheduleImportTimeStateInitialization, scheduleImportTimeThemeSetup } =
 const fileInputWiring = createRendererFileInputWiring({
     callUnknownFunction,
     ensureCoreModules,
-    getFileInput: () =>
-        querySelectorByIdFlexible(
-            document,
-            "#file_input"
-        ) as HTMLInputElement | null,
+    getFileInput: domAccess.getFileInput,
     logRenderer,
     resolveExactManualMock,
     resolveManualMock,
@@ -129,8 +128,7 @@ const fileInputWiring = createRendererFileInputWiring({
 
 const testOnlyBootstrapOptions = {
     callUnknownFunction,
-    getOpenFileButton: () =>
-        querySelectorByIdFlexible(document, "#open_file_btn"),
+    getOpenFileButton: domAccess.getOpenFileButton,
     isOpeningFileRef,
     resolveExactManualMock,
     resolveManualMock,
@@ -163,8 +161,7 @@ const initializeApplication = createRendererApplicationStartup({
     ensureCoreModules,
     errorHandlers: rendererErrorHandlers,
     getFileInput: fileInputWiring.getFileInput,
-    getOpenFileButton: () =>
-        querySelectorByIdFlexible(document, "#open_file_btn"),
+    getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isDevelopmentMode,
     isOpeningFileRef,
@@ -172,21 +169,8 @@ const initializeApplication = createRendererApplicationStartup({
     performanceMonitor: PerformanceMonitor,
     setLoading,
     setupCreditsMarquee,
-    validateDOMElements,
+    validateDOMElements: domAccess.validateDOMElements,
 });
-
-// ==========================================
-// DOM Ready & Initialization
-// ==========================================
-
-/**
- * Validates that required DOM elements exist
- *
- * @returns {boolean} True if all required elements are present
- */
-function validateDOMElements(): boolean {
-    return validateRendererDomElements(document, logRenderer);
-}
 
 // ==========================================
 // Performance Monitoring
@@ -227,7 +211,7 @@ installRendererGlobalSurfaces({
     logRenderer,
     performanceMonitor: PerformanceMonitor,
     resetStateInitializationForTests,
-    validateDOMElements,
+    validateDOMElements: domAccess.validateDOMElements,
 });
 
 // ==========================================
