@@ -219,13 +219,7 @@ installRendererGlobalSurfaces({
 // ==========================================
 
 runRendererImportTimeBootstrap(importTimeBootstrap);
-
-// Attach file input change handler if present at import time (tests rely on this)
-try {
-    fileInputWiring.registerImportTimeFileInputChangeHandler(globalThis);
-} catch {
-    /* Ignore errors */
-}
+fileInputWiring.registerImportTimeFileInputChangeHandler(globalThis);
 
 installRendererElectronApiWiring({
     addEventListener: globalThis.addEventListener.bind(globalThis),
@@ -252,12 +246,4 @@ try {
     /* Ignore errors */
 }
 
-// Delegated change listener for dynamically created/replaced file input across tests
-try {
-    fileInputWiring.registerDelegatedFileInputChangeListener(
-        document,
-        globalThis
-    );
-} catch {
-    /* Ignore errors */
-}
+fileInputWiring.registerDelegatedFileInputChangeListener(document, globalThis);

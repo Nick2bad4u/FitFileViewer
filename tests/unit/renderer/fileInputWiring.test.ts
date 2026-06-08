@@ -157,4 +157,37 @@ describe("renderer file input wiring", () => {
 
         expect(handleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
     });
+
+    it("ignores import-time registration failures", () => {
+        expect.assertions(1);
+
+        const utils = createWiring({
+            getFileInput: () => {
+                throw new Error("missing DOM");
+            },
+        });
+
+        expect(() => {
+            utils.registerImportTimeFileInputChangeHandler(window);
+        }).not.toThrow();
+    });
+
+    it("ignores delegated listener registration failures", () => {
+        expect.assertions(1);
+
+        const utils = createWiring({});
+        const throwingDocumentTarget = {
+            addEventListener: () => {
+                throw new Error("listener failed");
+            },
+            removeEventListener: vi.fn(),
+        } as unknown as Document;
+
+        expect(() => {
+            utils.registerDelegatedFileInputChangeListener(
+                throwingDocumentTarget,
+                window
+            );
+        }).not.toThrow();
+    });
 });

@@ -65,23 +65,31 @@ export function createRendererFileInputWiring(
             documentTarget,
             windowTarget
         ) => {
-            registerDelegatedFileInputChangeListener(
-                documentTarget,
-                windowTarget,
-                onDelegatedFileInputChange
-            );
+            try {
+                registerDelegatedFileInputChangeListener(
+                    documentTarget,
+                    windowTarget,
+                    onDelegatedFileInputChange
+                );
+            } catch {
+                /* Ignore errors */
+            }
         },
         registerImportTimeFileInputChangeHandler: (windowTarget) => {
-            const fileInput = options.getFileInput();
-            if (
-                fileInput !== null &&
-                typeof fileInput.addEventListener === "function"
-            ) {
-                registerImportTimeFileInputChangeHandler(
-                    fileInput,
-                    windowTarget,
-                    startupOptions
-                );
+            try {
+                const fileInput = options.getFileInput();
+                if (
+                    fileInput !== null &&
+                    typeof fileInput.addEventListener === "function"
+                ) {
+                    registerImportTimeFileInputChangeHandler(
+                        fileInput,
+                        windowTarget,
+                        startupOptions
+                    );
+                }
+            } catch {
+                /* Ignore errors */
             }
         },
     };
