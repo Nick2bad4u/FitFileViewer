@@ -57,12 +57,7 @@ import {
     installRendererGlobalApiExposure,
     logRendererStartupInfo,
 } from "./renderer/globalApiExposure.js";
-import {
-    createDelegatedFileInputChangeHandler,
-    registerDelegatedFileInputChangeListener,
-    registerImportTimeFileInputChangeHandler,
-    type RendererFileInputStartupOptions,
-} from "./renderer/fileInputStartup.js";
+import { createRendererFileInputWiring } from "./renderer/fileInputWiring.js";
 import {
     createTestDOMContentLoadedSetupHandler,
     createTestWindowLoadThemeSetupHandler,
@@ -117,34 +112,6 @@ function callRecordMethod(
     return methodFn.apply(target, args);
 }
 
-function resolveManualHandleOpenFile(): unknown {
-    const moduleRecord = toModuleRecord(
-        resolveExactManualMock("../../utils/files/import/handleOpenFile.js") ??
-            resolveManualMock("/utils/files/import/handleOpenFile.js")
-    );
-
-    return (
-        moduleRecord["handleOpenFile"] ??
-        toModuleRecord(moduleRecord["default"])["handleOpenFile"]
-    );
-}
-
-async function getFileInputHandleOpenFile(): Promise<unknown> {
-    const { handleOpenFile } = await ensureCoreModules();
-    return handleOpenFile;
-}
-
-const fileInputStartupOptions: RendererFileInputStartupOptions = {
-    callUnknownFunction,
-    getHandleOpenFile: getFileInputHandleOpenFile,
-    getManualHandleOpenFile: resolveManualHandleOpenFile,
-    logRenderer,
-};
-
-const onDelegatedFileInputChange = createDelegatedFileInputChangeHandler(
-    fileInputStartupOptions
-);
-
 // ==========================================
 // Environment Detection
 // ==========================================
@@ -186,6 +153,20 @@ const {
     scheduleImportTimeThemeSetup,
     touchManualAppStartTime,
 } = importTimeBootstrap;
+
+const fileInputWiring = createRendererFileInputWiring({
+    callUnknownFunction,
+    ensureCoreModules,
+    getFileInput: () =>
+        querySelectorByIdFlexible(
+            document,
+            "#file_input"
+        ) as HTMLInputElement | null,
+    logRenderer,
+    resolveExactManualMock,
+    resolveManualMock,
+    toModuleRecord,
+});
 
 const testOnlyBootstrapOptions = {
     callUnknownFunction,
@@ -229,11 +210,7 @@ const initializeApplication = createRendererApplicationStartup({
     callUnknownFunction,
     ensureCoreModules,
     errorHandlers: rendererErrorHandlers,
-    getFileInput: () =>
-        querySelectorByIdFlexible(
-            document,
-            "#file_input"
-        ) as HTMLInputElement | null,
+    getFileInput: fileInputWiring.getFileInput,
     getOpenFileButton: () =>
         querySelectorByIdFlexible(document, "#open_file_btn"),
     initializeStateManager,
@@ -372,17 +349,7 @@ try {
 
 // Attach file input change handler if present at import time (tests rely on this)
 try {
-    const fileInput = querySelectorByIdFlexible(
-        document,
-        "#file_input"
-    ) as HTMLInputElement | null;
-    if (fileInput && typeof fileInput.addEventListener === "function") {
-        registerImportTimeFileInputChangeHandler(
-            fileInput,
-            globalThis,
-            fileInputStartupOptions
-        );
-    }
+    fileInputWiring.registerImportTimeFileInputChangeHandler(globalThis);
 } catch {
     /* Ignore errors */
 }
@@ -390,11 +357,7 @@ try {
 const electronMenuActionHandlers = createRendererElectronMenuActionHandlers({
     callUnknownFunction,
     ensureCoreModules,
-    getFileInput: () =>
-        querySelectorByIdFlexible(
-            document,
-            "#file_input"
-        ) as HTMLInputElement | null,
+    getFileInput: fileInputWiring.getFileInput,
     logRenderer,
 });
 
@@ -456,10 +419,9 @@ try {
 
 // Delegated change listener for dynamically created/replaced file input across tests
 try {
-    registerDelegatedFileInputChangeListener(
+    fileInputWiring.registerDelegatedFileInputChangeListener(
         document,
-        globalThis,
-        onDelegatedFileInputChange
+        globalThis
     );
 } catch {
     /* Ignore errors */

@@ -1,0 +1,110 @@
+import type {
+    RendererCoreModules,
+    UnknownRendererFunction,
+} from "./coreModuleResolution.js";
+import {
+    createDelegatedFileInputChangeHandler,
+    registerDelegatedFileInputChangeListener,
+    registerImportTimeFileInputChangeHandler,
+    type RendererFileInputStartupOptions,
+} from "./fileInputStartup.js";
+
+type RendererFileInputWiringLogger = (
+    level: "warn",
+    ...args: unknown[]
+) => void;
+
+type RendererFileInputWiringOptions = {
+    readonly callUnknownFunction: (
+        candidate: unknown,
+        args?: unknown[]
+    ) => unknown;
+    readonly ensureCoreModules: () => Promise<RendererCoreModules>;
+    readonly getFileInput: () => HTMLInputElement | null;
+    readonly logRenderer: RendererFileInputWiringLogger;
+    readonly resolveExactManualMock: (testId: string) => null | unknown;
+    readonly resolveManualMock: (pathSuffix: string) => null | unknown;
+    readonly toModuleRecord: (value: unknown) => Record<string, unknown>;
+};
+
+type RendererFileInputWiring = {
+    readonly getFileInput: () => HTMLInputElement | null;
+    readonly registerDelegatedFileInputChangeListener: (
+        documentTarget: Pick<
+            EventTarget,
+            "addEventListener" | "removeEventListener"
+        >,
+        windowTarget: Pick<
+            EventTarget,
+            "addEventListener" | "removeEventListener"
+        >
+    ) => void;
+    readonly registerImportTimeFileInputChangeHandler: (
+        windowTarget: Pick<
+            EventTarget,
+            "addEventListener" | "removeEventListener"
+        >
+    ) => void;
+};
+
+export function createRendererFileInputWiring(
+    options: RendererFileInputWiringOptions
+): RendererFileInputWiring {
+    const startupOptions: RendererFileInputStartupOptions = {
+        callUnknownFunction: options.callUnknownFunction,
+        getHandleOpenFile: async () => getFileInputHandleOpenFile(options),
+        getManualHandleOpenFile: () => resolveManualHandleOpenFile(options),
+        logRenderer: options.logRenderer,
+    };
+    const onDelegatedFileInputChange =
+        createDelegatedFileInputChangeHandler(startupOptions);
+
+    return {
+        getFileInput: options.getFileInput,
+        registerDelegatedFileInputChangeListener: (
+            documentTarget,
+            windowTarget
+        ) => {
+            registerDelegatedFileInputChangeListener(
+                documentTarget,
+                windowTarget,
+                onDelegatedFileInputChange
+            );
+        },
+        registerImportTimeFileInputChangeHandler: (windowTarget) => {
+            const fileInput = options.getFileInput();
+            if (
+                fileInput !== null &&
+                typeof fileInput.addEventListener === "function"
+            ) {
+                registerImportTimeFileInputChangeHandler(
+                    fileInput,
+                    windowTarget,
+                    startupOptions
+                );
+            }
+        },
+    };
+}
+
+function resolveManualHandleOpenFile(
+    options: RendererFileInputWiringOptions
+): unknown {
+    const moduleRecord = options.toModuleRecord(
+        options.resolveExactManualMock(
+            "../../utils/files/import/handleOpenFile.js"
+        ) ?? options.resolveManualMock("/utils/files/import/handleOpenFile.js")
+    );
+
+    return (
+        moduleRecord["handleOpenFile"] ??
+        options.toModuleRecord(moduleRecord["default"])["handleOpenFile"]
+    );
+}
+
+async function getFileInputHandleOpenFile(
+    options: RendererFileInputWiringOptions
+): Promise<undefined | UnknownRendererFunction> {
+    const { handleOpenFile } = await options.ensureCoreModules();
+    return handleOpenFile;
+}
