@@ -1,8 +1,8 @@
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { getChartRenderContainer } from "../../charts/dom/chartDomUtils.js";
 import { queryAll } from "../../dom/index.js";
-import { getGlobalData } from "../../state/core/globalDataStore.js";
 import { setState } from "../../state/core/stateManager.js";
+import { FitFileSelectors } from "../../state/domain/fitFileState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 type ChartActionsLike = {
@@ -23,10 +23,6 @@ type ChartSettingsGlobal = typeof globalThis & {
     chartActions?: unknown;
     chartStateManager?: unknown;
     renderChartJS?: (target?: Element | null) => unknown;
-};
-
-type ChartSettingsGlobalData = {
-    readonly recordMesgs?: unknown;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -68,7 +64,7 @@ function getChartSettingsGlobal(): ChartSettingsGlobal {
 }
 
 function hasChartData(): boolean {
-    return Boolean(getGlobalData<ChartSettingsGlobalData>()?.recordMesgs);
+    return Array.isArray(FitFileSelectors.getRawData()?.recordMesgs);
 }
 
 function isChartActionsLike(value: unknown): value is ChartActionsLike {

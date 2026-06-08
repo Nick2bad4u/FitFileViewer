@@ -689,6 +689,11 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             { source: "test" }
         );
         stateManager.setState("fitFile.isLoading", true, { source: "test" });
+        stateManager.setState(
+            "globalData",
+            { recordMesgs: [{ timestamp: 1 }] },
+            { source: "test" }
+        );
 
         expect({
             currentFile: FitFileSelectors.getCurrentFile(),
@@ -697,6 +702,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             loadingProgress: FitFileSelectors.getLoadingProgress(),
             metrics: FitFileSelectors.getMetrics(),
             processedData: FitFileSelectors.getProcessedData(),
+            rawData: FitFileSelectors.getRawData(),
             validation: FitFileSelectors.getValidation(),
         }).toEqual({
             currentFile: "A",
@@ -711,6 +717,7 @@ describe("fitFileStateManager - domain logic and selectors", () => {
                     hasPower: true,
                 },
             },
+            rawData: { recordMesgs: [{ timestamp: 1 }] },
             validation: { isValid: true },
         });
         expect({

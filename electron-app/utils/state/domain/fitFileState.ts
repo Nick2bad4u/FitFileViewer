@@ -47,7 +47,7 @@ type ActivityMessage = DataRecord & {
     total_timer_time?: number;
 };
 
-type RawFitData = DataRecord & {
+export type RawFitData = DataRecord & {
     activities?: ActivityMessage[];
     device_infos?: DeviceInfoMessage[];
     fileIdMesgs?: DataRecord[];
@@ -169,14 +169,55 @@ const ALLOWED_PHASE_TRANSITIONS: Record<
     FitFileLoadingPhase,
     readonly FitFileLoadingPhase[]
 > = {
-    error: ["idle", "selecting", "reading"],
-    idle: ["selecting", "reading", "parsing", "rendering", "loaded", "error"],
-    loaded: ["idle", "selecting", "reading"],
-    parsing: ["rendering", "loaded", "error", "idle"],
-    reading: ["validating", "parsing", "rendering", "loaded", "error", "idle"],
-    rendering: ["loaded", "error", "idle"],
-    selecting: ["reading", "error", "idle"],
-    validating: ["parsing", "rendering", "loaded", "error", "idle"],
+    error: [
+        "idle",
+        "selecting",
+        "reading",
+    ],
+    idle: [
+        "selecting",
+        "reading",
+        "parsing",
+        "rendering",
+        "loaded",
+        "error",
+    ],
+    loaded: [
+        "idle",
+        "selecting",
+        "reading",
+    ],
+    parsing: [
+        "rendering",
+        "loaded",
+        "error",
+        "idle",
+    ],
+    reading: [
+        "validating",
+        "parsing",
+        "rendering",
+        "loaded",
+        "error",
+        "idle",
+    ],
+    rendering: [
+        "loaded",
+        "error",
+        "idle",
+    ],
+    selecting: [
+        "reading",
+        "error",
+        "idle",
+    ],
+    validating: [
+        "parsing",
+        "rendering",
+        "loaded",
+        "error",
+        "idle",
+    ],
 };
 
 function emptyUnsubscribe(): void {
@@ -886,12 +927,9 @@ export const FitFileSelectors = {
                 updatedAt?: unknown;
             };
             return {
-                error:
-                    typeof state.error === "string" ? state.error : null,
+                error: typeof state.error === "string" ? state.error : null,
                 filePath:
-                    typeof state.filePath === "string"
-                        ? state.filePath
-                        : null,
+                    typeof state.filePath === "string" ? state.filePath : null,
                 phase:
                     typeof state.phase === "string" &&
                     (FIT_FILE_LOADING_PHASES as readonly string[]).includes(
@@ -938,6 +976,11 @@ export const FitFileSelectors = {
     getProcessingError(): string | null {
         const processingError = stateCore.getState("fitFile.processingError");
         return typeof processingError === "string" ? processingError : null;
+    },
+
+    getRawData(): RawFitData | null {
+        const rawData = stateCore.getState("globalData");
+        return isRawFitData(rawData) ? rawData : null;
     },
 
     getValidation(): ValidationResult | null {
