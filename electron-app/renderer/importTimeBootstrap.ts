@@ -12,7 +12,7 @@ interface RendererImportTimeBootstrapOptions {
     toModuleRecord: (value: unknown) => Record<string, unknown>;
 }
 
-interface RendererImportTimeBootstrap {
+export interface RendererImportTimeBootstrap {
     scheduleAppDomainStateCoverageTouch: () => void;
     scheduleImportTimeListenersSetup: () => void;
     scheduleImportTimeStateInitialization: () => void;
@@ -168,4 +168,43 @@ export function createRendererImportTimeBootstrap({
         scheduleImportTimeThemeSetup,
         touchManualAppStartTime,
     };
+}
+
+export function runRendererImportTimeBootstrap(
+    bootstrap: RendererImportTimeBootstrap
+): void {
+    try {
+        bootstrap.scheduleImportTimeThemeSetup();
+    } catch {
+        /* Ignore errors */
+    }
+
+    try {
+        bootstrap.scheduleImportTimeStateInitialization();
+    } catch {
+        /* Ignore errors */
+    }
+
+    try {
+        bootstrap.scheduleImportTimeListenersSetup();
+    } catch {
+        /* Ignore errors */
+    }
+
+    try {
+        bootstrap.scheduleAppDomainStateCoverageTouch();
+
+        try {
+            try {
+                bootstrap.scheduleAppDomainStateCoverageTouch();
+            } catch {
+                /* Ignore errors */
+            }
+            bootstrap.touchManualAppStartTime();
+        } catch {
+            /* Ignore errors */
+        }
+    } catch {
+        /* Ignore errors */
+    }
 }

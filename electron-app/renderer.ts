@@ -52,7 +52,10 @@ import { createRendererErrorEventHandlers } from "./renderer/errorHandling.js";
 import { createRendererLifecycleCleanup } from "./renderer/lifecycleCleanup.js";
 import { createRendererStateStartup } from "./renderer/stateManagerStartup.js";
 import { createRendererApplicationStartup } from "./renderer/applicationStartup.js";
-import { createRendererImportTimeBootstrap } from "./renderer/importTimeBootstrap.js";
+import {
+    createRendererImportTimeBootstrap,
+    runRendererImportTimeBootstrap,
+} from "./renderer/importTimeBootstrap.js";
 import {
     installRendererGlobalApiExposure,
     logRendererStartupInfo,
@@ -141,13 +144,8 @@ const importTimeBootstrap = createRendererImportTimeBootstrap({
     setLoading,
     toModuleRecord,
 });
-const {
-    scheduleAppDomainStateCoverageTouch,
-    scheduleImportTimeListenersSetup,
-    scheduleImportTimeStateInitialization,
-    scheduleImportTimeThemeSetup,
-    touchManualAppStartTime,
-} = importTimeBootstrap;
+const { scheduleImportTimeStateInitialization, scheduleImportTimeThemeSetup } =
+    importTimeBootstrap;
 
 const fileInputWiring = createRendererFileInputWiring({
     callUnknownFunction,
@@ -306,34 +304,7 @@ installRendererDevelopmentDebugGlobals({
 // Immediate wiring for tests and basic environments
 // ==========================================
 
-try {
-    // Always attempt to setup theme for coverage tests using dynamically resolved (mockable) modules
-    try {
-        scheduleImportTimeThemeSetup();
-    } catch {
-        /* Ignore errors */
-    }
-} catch {
-    /* Ignore errors */
-}
-
-// Immediately initialize state manager at import time so tests see initialize() called
-try {
-    scheduleImportTimeStateInitialization();
-} catch {
-    /* Ignore errors */
-}
-
-try {
-    // Call setupListeners regardless of openFileBtn presence; tests mock this function
-    try {
-        scheduleImportTimeListenersSetup();
-    } catch {
-        /* Ignore errors */
-    }
-} catch {
-    /* Ignore errors */
-}
+runRendererImportTimeBootstrap(importTimeBootstrap);
 
 // Attach file input change handler if present at import time (tests rely on this)
 try {
@@ -360,28 +331,6 @@ installRendererElectronApiRegistration({
     scope: globalThis,
     setInterval: globalThis.setInterval.bind(globalThis),
 });
-
-// Call into domain appState getters for performance/coverage tests
-try {
-    // This mirrors renderer.coverage.test.ts expectations using dynamically resolved functions
-    scheduleAppDomainStateCoverageTouch();
-
-    // Also try synchronous mock call so spies observe immediately after import
-    try {
-        // Prefer ensureCoreModules result first
-        try {
-            scheduleAppDomainStateCoverageTouch();
-        } catch {
-            /* Ignore errors */
-        }
-        // Then directly invoke the exact mocked module if available
-        touchManualAppStartTime();
-    } catch {
-        /* Ignore errors */
-    }
-} catch {
-    /* Ignore errors */
-}
 
 // Ensure mocked setupListeners and theme setup are invoked for event-based tests
 try {
