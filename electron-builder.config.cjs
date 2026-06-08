@@ -90,7 +90,7 @@ module.exports = {
     ],
     win: {
         icon: appPackageExportPath("./icons/favicon-256x256.ico"),
-        signAndEditExecutable: shouldCodeSign,
+        signExecutable: shouldCodeSign,
         target: [
             "nsis",
             "nsis-web",

@@ -28,7 +28,7 @@ type ElectronBuilderConfig = {
     productName: string;
     win: {
         icon: string;
-        signAndEditExecutable: boolean;
+        signExecutable: boolean;
     };
 };
 
@@ -75,7 +75,7 @@ describe("electron-builder config", () => {
             `${maintainer.name} <${maintainer.email}>`
         );
         expect(builderConfig.forceCodeSigning).toBe(false);
-        expect(builderConfig.win.signAndEditExecutable).toBe(false);
+        expect(builderConfig.win.signExecutable).toBe(false);
         expect(builderConfig.productName).not.toBe("FitFileViewer");
     });
 
@@ -88,7 +88,7 @@ describe("electron-builder config", () => {
 
         try {
             expect(loadBuilderConfig().forceCodeSigning).toBe(true);
-            expect(loadBuilderConfig().win.signAndEditExecutable).toBe(true);
+            expect(loadBuilderConfig().win.signExecutable).toBe(true);
         } finally {
             if (previousValue === undefined) {
                 delete process.env.REQUIRE_CODE_SIGNING;
