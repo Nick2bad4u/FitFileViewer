@@ -14,7 +14,6 @@ import {
     isDevelopmentEnvironment,
     isTestEnvironment,
 } from "./utils/runtime/processEnvironment.js";
-import { defineLegacyGlobalDataBridge } from "./utils/state/core/globalDataStore.js";
 // State Management Integration
 import { setState } from "./utils/state/core/stateManager.js";
 import { fitFileStateManager } from "./utils/state/domain/fitFileState.js";
@@ -96,9 +95,6 @@ const CONSTANTS = {
     },
     SUMMARY_COLUMN_SELECTOR_DELAY: UI_CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY,
 } as const;
-
-// Make globalData available on window for backwards compatibility
-defineLegacyGlobalDataBridge({ silent: false, source: "main-ui.js" });
 
 function clearContentAreas(): void {
     const contentIds = [

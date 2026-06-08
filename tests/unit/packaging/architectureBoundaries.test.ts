@@ -40,7 +40,6 @@ const sourceExtensions = new Set([
 ]);
 
 const allowedLegacyGlobalDataBridgeFiles = new Set([
-    "electron-app/main-ui.ts",
     "electron-app/utils/state/core/globalDataStore.ts",
     "electron-app/utils/state/domain/appState.ts",
     "electron-app/utils/state/integration/stateIntegration.ts",
@@ -94,6 +93,8 @@ const directGlobalDataWritePattern =
 const directGlobalDataReadPattern =
     /\b(?:window|globalThis)\.globalData\b|\.globalData\b/u;
 const legacyAppStateGlobalDataPattern = /\bAppState\.globalData\b/u;
+const legacyGlobalDataBridgeFunctionPattern =
+    /\bdefineLegacyGlobalDataBridge\b/u;
 const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
@@ -512,7 +513,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -536,6 +537,15 @@ describe("architecture boundaries", () => {
                 legacyAppStateGlobalDataPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
+            )
+            .sort();
+        const legacyGlobalDataBridgeFunctionUsages = scannedFiles
+            .filter(
+                (relativeFile) =>
+                    !allowedLegacyGlobalDataBridgeFiles.has(relativeFile) &&
+                    legacyGlobalDataBridgeFunctionPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
             )
             .sort();
         const unexpectedLegacyUtilityFiles = collectSourceFiles(
@@ -568,6 +578,7 @@ describe("architecture boundaries", () => {
         expect(directGlobalDataWrites).toStrictEqual([]);
         expect(directRendererUtilsGlobals).toStrictEqual([]);
         expect(legacyAppStateGlobalDataUsages).toStrictEqual([]);
+        expect(legacyGlobalDataBridgeFunctionUsages).toStrictEqual([]);
         expect(unexpectedLegacyUtilityFiles).toStrictEqual([]);
         expect(migratedGlobalDataReaderViolations).toStrictEqual([]);
         expect(rendererUtilsFreeViolations).toStrictEqual([]);

@@ -6,8 +6,8 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 
 - Temporary surface: `window.globalData`, `globalThis.globalData`
 - Current owner: `electron-app/utils/state/core/globalDataStore.ts`
-- Compatibility callers: early `main-ui.ts` composition-root startup and remaining legacy state integration bridge internals while renderer state migration continues
-- Current status: active compatibility bridge; new runtime writes should go through `setGlobalData`, `setState("globalData", ...)`, or a typed domain service; AppActions clear/load paths and unified state facade globalData routing now go through `globalDataStore`, chart status refreshes subscribe to state, Playwright smoke assertions read activity counts through renderer state APIs, and lifecycle export/reload handlers, summary storage-key, column-modal preference lookup, user/device info, field-toggle metrics, data-point filter statistics, event-message charts, lap-zone charts, chart availability counts, chart settings rerender guards, map lap selector controls, map lap drawing, map core rendering, elevation profile fallback data, and sensor debug utilities now read loaded FIT data through `globalDataStore`; `mainUiGlobals` no longer owns the bridge installer
+- Compatibility callers: remaining legacy state integration bridge internals while renderer state migration continues
+- Current status: active compatibility bridge; new runtime writes should go through `setGlobalData`, `setState("globalData", ...)`, or a typed domain service; AppActions clear/load paths and unified state facade globalData routing now go through `globalDataStore`, chart status refreshes subscribe to state, Playwright smoke assertions read activity counts through renderer state APIs, and lifecycle export/reload handlers, summary storage-key, column-modal preference lookup, user/device info, field-toggle metrics, data-point filter statistics, event-message charts, lap-zone charts, chart availability counts, chart settings rerender guards, map lap selector controls, map lap drawing, map core rendering, elevation profile fallback data, and sensor debug utilities now read loaded FIT data through `globalDataStore`; `mainUiGlobals` and `main-ui.ts` no longer own bridge installers
 - Next removal step: replace the remaining legacy state integration bridge internals with state-backed selectors or app-facing test APIs
 - Verification gates:
   - `npm run lint:app`
@@ -16,7 +16,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Exit criteria:
   - Runtime source reads loaded FIT data through typed imports or state selectors.
   - Playwright smoke tests assert state through app APIs instead of `window.globalData`.
-  - Architecture tests block direct runtime writes outside `globalDataStore`.
+  - Architecture tests block direct runtime writes and bridge installer calls outside the named state compatibility modules.
   - Migrated rendering helpers stay free of direct `window.globalData` reads.
 
 ## Legacy AppState Global
