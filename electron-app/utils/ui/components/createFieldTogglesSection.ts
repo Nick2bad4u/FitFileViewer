@@ -7,7 +7,7 @@ import {
     fieldLabels,
     formatChartFields,
 } from "../../formatting/display/formatChartFields.js";
-import { getGlobalData as readGlobalData } from "../../state/core/globalDataStore.js";
+import { getState } from "../../state/core/stateManager.js";
 import {
     getChartFieldVisibility,
     getChartSetting,
@@ -51,8 +51,12 @@ function getFieldToggleGlobal(): FieldToggleGlobal {
     return globalThis;
 }
 
-function getGlobalData(): GlobalData {
-    const globalData = readGlobalData<Partial<GlobalData>>() ?? {};
+function getManagedGlobalData(): GlobalData {
+    const rawGlobalData = getState("globalData");
+    const globalData =
+        rawGlobalData !== null && typeof rawGlobalData === "object"
+            ? (rawGlobalData as Partial<GlobalData>)
+            : {};
     return {
         eventMesgs: globalData.eventMesgs ?? [],
         recordMesgs: globalData.recordMesgs ?? [],
@@ -262,8 +266,8 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
     fieldsGrid.append(powerZoneDoughnutToggle);
 
     // Add lap zone chart toggles if data exists
-    if (getGlobalData().timeInZoneMesgs) {
-        const { timeInZoneMesgs } = getGlobalData(),
+    if (getManagedGlobalData().timeInZoneMesgs) {
+        const { timeInZoneMesgs } = getManagedGlobalData(),
             lapZoneMsgs = timeInZoneMesgs.filter(
                 (msg) => msg.referenceMesg === "lap"
             );
@@ -303,18 +307,17 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
 
     // Add event messages toggle if data exists
     if (
-        getGlobalData()?.eventMesgs &&
-        Array.isArray(getGlobalData().eventMesgs) &&
-        getGlobalData().eventMesgs.length > 0
+        Array.isArray(getManagedGlobalData().eventMesgs) &&
+        getManagedGlobalData().eventMesgs.length > 0
     ) {
         const eventMessagesToggle = createFieldToggle("event_messages");
         fieldsGrid.append(eventMessagesToggle);
     }
 
     // Add developer fields toggles if data exists
-    if (getGlobalData() && getGlobalData().recordMesgs) {
+    if (getManagedGlobalData().recordMesgs) {
         const devFields = extractDeveloperFieldsList(
-            getGlobalData().recordMesgs
+            getManagedGlobalData().recordMesgs
         );
         for (const field of devFields) {
             const fieldToggle = createFieldToggle(field);
@@ -354,7 +357,7 @@ function hasLapZoneData(
 }
 
 function hasValidDataForField(field: string): boolean {
-    const globalData = getGlobalData();
+    const globalData = getManagedGlobalData();
     if (globalData.recordMesgs.length === 0) {
         return false;
     }
@@ -595,9 +598,9 @@ function toggleAllFields(enable: boolean): void {
             visibility = enable ? "visible" : "hidden";
 
         // Add developer fields if they exist
-        if (getGlobalData() && getGlobalData().recordMesgs) {
+        if (getManagedGlobalData().recordMesgs) {
             const devFields = extractDeveloperFieldsList(
-                getGlobalData().recordMesgs
+                getManagedGlobalData().recordMesgs
             );
             allFields.push(...devFields);
         } // Update localStorage for all fields
