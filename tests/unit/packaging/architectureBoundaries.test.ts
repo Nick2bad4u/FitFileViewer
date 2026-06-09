@@ -227,6 +227,8 @@ const directAltFitGlobalSenderPattern =
     /\b(?:appGlobal|window|globalThis|lifecycleGlobal|showFitGlobal|windowExt|getDragDropGlobal\(\)|getFileOpenGlobal\(\)|getOpenFitFileGlobal\(\))\.sendFitFileToAltFitReader\b/u;
 const directOverlayHighlightGlobalPattern =
     /\b(?:window|globalThis|windowExt|w|getWin\(\)|overlayGlobal|getOverlayGlobal\(\)|getMapActionButtonsGlobal\(\))\._highlightedOverlayIdx\b|Object\.defineProperty\(\s*[^,\n]+,\s*["'](?:_highlightedOverlayIdx|updateOverlayHighlights)["']/u;
+const directShownFilesListGlobalPattern =
+    /\b(?:window|globalThis|windowExt|overlayGlobal|getShownFilesGlobal\(\))\.updateShownFilesList\s*=/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1282,7 +1284,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(21);
+        expect.assertions(22);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1428,6 +1430,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directShownFilesListGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directShownFilesListGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1460,6 +1469,7 @@ describe("architecture boundaries", () => {
         expect(legacyLoadedFitFilesGlobalLookups).toStrictEqual([]);
         expect(directAltFitGlobalSenderLookups).toStrictEqual([]);
         expect(directOverlayHighlightGlobalLookups).toStrictEqual([]);
+        expect(directShownFilesListGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

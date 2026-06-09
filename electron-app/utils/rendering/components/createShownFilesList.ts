@@ -17,7 +17,6 @@ type ShownFilesGlobal = typeof globalThis & {
     };
     _overlayTooltipTimeout?: null | ReturnType<typeof setTimeout>;
     renderMap?: () => void;
-    updateShownFilesList?: () => void;
 };
 
 type ShownFilesContainer = HTMLDivElement & {
@@ -51,7 +50,11 @@ function removeOverlayFilenameTooltips(): void {
 }
 
 function getOverlayItems(container: HTMLElement): OverlayListItem[] {
-    return [...container.querySelectorAll<OverlayListItem>("li[data-overlay-index]")];
+    return [
+        ...container.querySelectorAll<OverlayListItem>(
+            "li[data-overlay-index]"
+        ),
+    ];
 }
 
 function hexToRgb(hexColor: string): Rgb {
@@ -237,10 +240,7 @@ export function createShownFilesList(): HTMLElement {
     let pendingStateSync = false;
     const syncOverlayState = (): void => {
         try {
-            setLoadedFitFiles(
-                getLoadedFitFiles(),
-                "createShownFilesList"
-            );
+            setLoadedFitFiles(getLoadedFitFiles(), "createShownFilesList");
         } catch (error) {
             console.error(
                 "[createShownFilesList] Failed to sync overlay state:",
@@ -549,11 +549,8 @@ export function createShownFilesList(): HTMLElement {
     disposeShownFilesListUpdater = setShownFilesListUpdater(
         updateShownFilesListForContainer
     );
-    overlayGlobal.updateShownFilesList = updateShownFilesList;
 
-    if (
-        getLoadedFitFiles().length <= 1
-    ) {
+    if (getLoadedFitFiles().length <= 1) {
         container.style.display = "none";
     }
 
