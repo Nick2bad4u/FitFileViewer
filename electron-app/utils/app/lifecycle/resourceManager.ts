@@ -52,9 +52,6 @@ type DisconnectableObserver = { disconnect: () => unknown };
 type TerminableWorker = { terminate: () => unknown };
 type TimerHandle = ReturnType<typeof setTimeout>;
 type IntervalHandle = ReturnType<typeof setInterval>;
-type ResourceManagerGlobal = typeof globalThis & {
-    resourceManager?: ResourceManager;
-};
 
 function hasFunctionProperty<TProperty extends string>(
     value: unknown,
@@ -576,8 +573,3 @@ export const registerWorker = (
 export const shutdown = (): Promise<void> => resourceManager.shutdown();
 export const unregister = (id: string): boolean =>
     resourceManager.unregister(id);
-
-// Make available globally for debugging
-if (typeof globalThis !== "undefined") {
-    (globalThis as ResourceManagerGlobal).resourceManager = resourceManager;
-}

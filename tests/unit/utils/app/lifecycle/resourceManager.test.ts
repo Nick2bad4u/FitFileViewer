@@ -19,6 +19,12 @@ function setupFixture(): void {
 }
 
 describe("resourceManager", () => {
+    it("does not publish the singleton on the global object", () => {
+        expect.assertions(1);
+
+        expect(globalThis).not.toHaveProperty("resourceManager");
+    });
+
     it("tracks resource stats and filters cleanup by owner", () => {
         expect.assertions(8);
 
