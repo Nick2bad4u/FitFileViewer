@@ -225,6 +225,7 @@
         "electron-app/utils/app/initialization/updateSystemInfo.ts",
         "electron-app/utils/app/initialization/index.ts",
         "electron-app/utils/app/lifecycle/appActions.ts",
+        "electron-app/utils/app/lifecycle/lifecycleListenerCleanupRegistry.ts",
         "electron-app/utils/app/lifecycle/listeners.ts",
         "electron-app/utils/app/lifecycle/listenersResize.ts",
         "electron-app/utils/app/lifecycle/menuIpcListeners.ts",

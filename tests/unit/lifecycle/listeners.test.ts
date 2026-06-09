@@ -30,6 +30,7 @@ vi.mock(
 );
 
 import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listeners.js";
+import { getLifecycleListenerCleanup } from "../../../electron-app/utils/app/lifecycle/lifecycleListenerCleanupRegistry.js";
 import { resetMenuIpcListenerStateForTests } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 
 type TestElectronAPI = {
@@ -184,6 +185,27 @@ describe("utils/app/lifecycle/listeners.js", () => {
             isOpeningFile: true,
             openedDatasetValue: "true",
         });
+    });
+
+    it("replaces existing Open File listeners during repeated setup", () => {
+        expect.assertions(4);
+
+        const firstMount = mount([]);
+        const secondMount = mount([]);
+
+        firstMount.openFileBtn.click();
+
+        expect(firstMount.handleOpenFile).not.toHaveBeenCalled();
+        expect(secondMount.handleOpenFile).toHaveBeenCalledOnce();
+        expect(getLifecycleListenerCleanup(firstMount.openFileBtn)).toBeTypeOf(
+            "function"
+        );
+
+        getLifecycleListenerCleanup(firstMount.openFileBtn)?.();
+
+        expect(
+            getLifecycleListenerCleanup(firstMount.openFileBtn)
+        ).toBeUndefined();
     });
 
     it("contextmenu with no electronAPI.recentFiles early-returns and shows info", async () => {

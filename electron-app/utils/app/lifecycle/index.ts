@@ -3,6 +3,7 @@
  * Re-exports all modules in the app/lifecycle category.
  */
 export * from "./appActions.js";
+export * from "./lifecycleListenerCleanupRegistry.js";
 export * from "./listeners.js";
 export * from "./listenersResize.js";
 export * from "./menuIpcListeners.js";

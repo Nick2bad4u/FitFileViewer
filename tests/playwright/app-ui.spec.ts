@@ -301,18 +301,11 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
                 filePaths: [sampleFitPath],
             });
             await noNodeEnvPage.waitForFunction(() => {
-                const openButton = document.querySelector("#open_file_btn") as
-                    | (HTMLButtonElement & {
-                          __ffvLifecycleListenersCleanup?: unknown;
-                      })
-                    | null;
+                const openButton = document.querySelector(
+                    "#open_file_btn"
+                ) as HTMLButtonElement | null;
 
-                return (
-                    openButton !== null &&
-                    !openButton.disabled &&
-                    typeof openButton.__ffvLifecycleListenersCleanup ===
-                        "function"
-                );
+                return openButton !== null && !openButton.disabled;
             });
             await noNodeEnvPage.locator("#open_file_btn").click();
             await expect(
@@ -493,17 +486,11 @@ test.describe("FitFileViewer Electron UI", () => {
 
     async function waitForOpenFileButtonReady(): Promise<void> {
         await page.waitForFunction(() => {
-            const openButton = document.querySelector("#open_file_btn") as
-                | (HTMLButtonElement & {
-                      __ffvLifecycleListenersCleanup?: unknown;
-                  })
-                | null;
+            const openButton = document.querySelector(
+                "#open_file_btn"
+            ) as HTMLButtonElement | null;
 
-            return (
-                openButton !== null &&
-                !openButton.disabled &&
-                typeof openButton.__ffvLifecycleListenersCleanup === "function"
-            );
+            return openButton !== null && !openButton.disabled;
         });
     }
 

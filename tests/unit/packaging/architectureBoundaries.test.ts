@@ -273,6 +273,8 @@ const directQuickColorSwitcherStateExpandoPattern =
     /\b(?:switcher|element)\.__ffvQuickColorSwitcherState\b/u;
 const directMapActionCleanupExpandoPattern =
     /\b(?:activeFileName|activeFileNameElement|element)\.__ffvMapActionCleanup\b/u;
+const directLifecycleListenerCleanupExpandoPattern =
+    /\b(?:openFileBtn|openButton|button|element|btnAny)\.__ffvLifecycleListenersCleanup\b|["']__ffvLifecycleListenersCleanup["']/u;
 const directMapMeasureEscapeHandlerGlobalPattern =
     /\b(?:window|globalThis|g|getMeasureToolGlobal\(\))\.__ffvMapMeasureEscapeHandler\b|["']__ffvMapMeasureEscapeHandler["']/u;
 const directLapSelectorMouseupHandlerGlobalPattern =
@@ -1338,7 +1340,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(49);
+        expect.assertions(50);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1645,6 +1647,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directLifecycleListenerCleanupExpandoLookups = scannedFiles
+            .filter((relativeFile) =>
+                directLifecycleListenerCleanupExpandoPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directMapMeasureEscapeHandlerGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directMapMeasureEscapeHandlerGlobalPattern.test(
@@ -1737,6 +1746,7 @@ describe("architecture boundaries", () => {
         expect(directFilenameAutoScrollStateExpandoLookups).toStrictEqual([]);
         expect(directQuickColorSwitcherStateExpandoLookups).toStrictEqual([]);
         expect(directMapActionCleanupExpandoLookups).toStrictEqual([]);
+        expect(directLifecycleListenerCleanupExpandoLookups).toStrictEqual([]);
         expect(directMapMeasureEscapeHandlerGlobalLookups).toStrictEqual([]);
         expect(directLapSelectorMouseupHandlerGlobalLookups).toStrictEqual([]);
         expect(directZoneDataGlobalLookups).toStrictEqual([]);

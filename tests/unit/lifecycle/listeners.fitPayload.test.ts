@@ -10,6 +10,7 @@ vi.mock(
     () => ({ renderDecodedFitData: renderDecodedFitDataMock })
 );
 
+import { getLifecycleListenerCleanup } from "../../../electron-app/utils/app/lifecycle/lifecycleListenerCleanupRegistry.js";
 import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 import type { SetupListenersOptions } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 
@@ -36,9 +37,7 @@ type Harness = {
     handleOpenFile: ReturnType<typeof vi.fn<HandleOpenFile>>;
     onMenuOpenFile: ReturnType<typeof vi.fn<OnMenuOpenFile>>;
     onOpenRecentFile: ReturnType<typeof vi.fn<OnOpenRecentFile>>;
-    openFileBtn: HTMLButtonElement & {
-        __ffvLifecycleListenersCleanup?: () => void;
-    };
+    openFileBtn: HTMLButtonElement;
     openRecentHandler: OpenRecentHandler;
     parseFitFile: ReturnType<typeof vi.fn<ParseFitFile>>;
     readFile: ReturnType<typeof vi.fn<ReadFile>>;
@@ -110,7 +109,7 @@ async function withListenersHarness(
     });
 
     harness.cleanup =
-        harness.openFileBtn.__ffvLifecycleListenersCleanup ?? (() => {});
+        getLifecycleListenerCleanup(harness.openFileBtn) ?? (() => {});
 
     try {
         await runTest(harness);

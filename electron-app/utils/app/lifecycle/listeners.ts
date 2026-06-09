@@ -26,6 +26,12 @@ import { getActiveFitActivityData } from "../../state/domain/fitActivityDataStat
 import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
+import {
+    clearLifecycleListenerCleanup,
+    getLifecycleListenerCleanup,
+    runLifecycleListenerCleanup,
+    setLifecycleListenerCleanup,
+} from "./lifecycleListenerCleanupRegistry.js";
 import { registerChartResizeListener } from "./listenersResize.js";
 import { registerMenuIpcListeners } from "./menuIpcListeners.js";
 import { attachRecentFilesContextMenu } from "./recentFilesContextMenu.js";
@@ -116,7 +122,6 @@ type LifecycleElectronAPI = Partial<
 };
 
 type LifecycleGlobal = typeof globalThis & {
-    __ffvLifecycleListenersCleanup?: () => void;
     electronAPI?: LifecycleElectronAPI;
 };
 
@@ -521,18 +526,8 @@ export function setupListeners({
         return;
     }
 
-    const btnAny = openFileBtn as HTMLButtonElement & {
-        __ffvLifecycleListenersCleanup?: () => void;
-    };
-    const cleanupKey = "__ffvLifecycleListenersCleanup";
-
-    const previousCleanup = btnAny[cleanupKey];
-    if (typeof previousCleanup === "function") {
-        try {
-            previousCleanup();
-        } catch {
-            /* ignore */
-        }
+    if (getLifecycleListenerCleanup(openFileBtn) !== undefined) {
+        runLifecycleListenerCleanup(openFileBtn);
     }
 
     const cleanupCallbacks: Array<() => void> = [];
@@ -768,7 +763,7 @@ export function setupListeners({
     }
 
     // Expose cleanup for idempotent initialization (tests/hot reload).
-    btnAny[cleanupKey] = () => {
+    setLifecycleListenerCleanup(openFileBtn, () => {
         for (const cleanup of cleanupCallbacks.splice(0)) {
             try {
                 cleanup();
@@ -776,12 +771,6 @@ export function setupListeners({
                 /* ignore */
             }
         }
-        if (btnAny[cleanupKey]) {
-            try {
-                Reflect.deleteProperty(btnAny, cleanupKey);
-            } catch {
-                /* ignore */
-            }
-        }
-    };
+        clearLifecycleListenerCleanup(openFileBtn);
+    });
 }
