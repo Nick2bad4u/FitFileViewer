@@ -2,6 +2,12 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import type { Mock } from "vitest";
 
+const { clearGyazoStartupTimer, getGyazoStartupTimer } =
+    require("../../electron-app/main/app/gyazoStartupTimerState") as {
+        clearGyazoStartupTimer: () => void;
+        getGyazoStartupTimer: () => ReturnType<typeof setTimeout> | undefined;
+    };
+
 type MockWindow = {
     isDestroyed: () => boolean;
     setFullScreen: Mock<(fullscreen: boolean) => void>;
@@ -369,7 +375,6 @@ type DevHelpers = {
 
 type TestGlobals = typeof globalThis & {
     __electronHoistedMock?: typeof mockElectron;
-    __ffvGyazoStartupTimer?: TimerHandle;
     __ffvTestKeepalive?: TimerHandle;
     __ffvTestRetryTimers?: TimerHandle[];
     devHelpers?: DevHelpers;
@@ -559,11 +564,7 @@ describe("main.js - Electron Main Process", () => {
             }
         }
         delete testGlobals.__ffvTestRetryTimers;
-        const gyazoTimer = testGlobals.__ffvGyazoStartupTimer;
-        if (gyazoTimer) {
-            clearTimeout(gyazoTimer);
-        }
-        delete testGlobals.__ffvGyazoStartupTimer;
+        clearGyazoStartupTimer();
 
         // Clear the main module from cache to reset its state
         const mainPath = require.resolve("../../electron-app/main.js");
@@ -831,6 +832,22 @@ describe("main.js - Electron Main Process", () => {
     });
 
     describe("gyazo OAuth server", () => {
+        it("stores the deferred Gyazo startup timer in module state", async () => {
+            expect.assertions(3);
+
+            process.env.GYAZO_CLIENT_ID = "test-client-id";
+            process.env.GYAZO_CLIENT_SECRET = "test-client-secret";
+
+            const mainModule = await importMainModule();
+
+            expect(getGyazoStartupTimer()).toBeDefined();
+            expect(testGlobals).not.toHaveProperty("__ffvGyazoStartupTimer");
+            await expect(mainModule.stopGyazoOAuthServer()).resolves.toEqual({
+                message: "No server was running",
+                success: true,
+            });
+        });
+
         it("should handle missing Gyazo environment variables", async () => {
             expect.assertions(2);
 
@@ -840,7 +857,7 @@ describe("main.js - Electron Main Process", () => {
 
             const mainModule = await importMainModule();
 
-            expect(testGlobals).not.toHaveProperty("__ffvGyazoStartupTimer");
+            expect(getGyazoStartupTimer()).toBeUndefined();
             await expect(mainModule.stopGyazoOAuthServer()).resolves.toEqual({
                 message: "No server was running",
                 success: true,

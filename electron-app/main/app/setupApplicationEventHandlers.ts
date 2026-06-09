@@ -130,6 +130,9 @@
             startGyazoOAuthServer: () => Promise<unknown>;
             stopGyazoOAuthServer: () => Promise<unknown>;
         };
+    const { setGyazoStartupTimer } = require("./gyazoStartupTimerState") as {
+        setGyazoStartupTimer: (handle: ReturnType<typeof setTimeout>) => void;
+    };
     const { appRef, browserWindowRef, dialogRef, shellRef } =
         require("../runtime/electronAccess") as {
             appRef: () => AppLike | undefined;
@@ -793,11 +796,7 @@
     }
 
     function rememberStartupTimer(handle: ReturnType<typeof setTimeout>): void {
-        try {
-            Reflect.set(globalThis, "__ffvGyazoStartupTimer", handle);
-        } catch {
-            /* ignore */
-        }
+        setGyazoStartupTimer(handle);
     }
 
     function tryOpenExternal(url: string): void {

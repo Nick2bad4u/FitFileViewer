@@ -285,6 +285,8 @@ const directChartNotificationSuppressionGlobalPattern =
     /\b(?:window|globalThis|chartGlobal|notificationGlobal)\.__FFV_suppressNotifications\b|["']__FFV_suppressNotifications["']/u;
 const directChartLoadingSuppressionGlobalPattern =
     /\b(?:window|globalThis|chartGlobal|runtimeGlobal)\.__FFV_suppressLoadingState\b|["']__FFV_suppressLoadingState["']/u;
+const directGyazoStartupTimerGlobalPattern =
+    /\b(?:window|globalThis|testGlobals)\.__ffvGyazoStartupTimer\b|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']__ffvGyazoStartupTimer["']/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1340,7 +1342,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(50);
+        expect.assertions(51);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1689,6 +1691,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directGyazoStartupTimerGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directGyazoStartupTimerGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1754,6 +1763,7 @@ describe("architecture boundaries", () => {
             []
         );
         expect(directChartLoadingSuppressionGlobalLookups).toStrictEqual([]);
+        expect(directGyazoStartupTimerGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });
