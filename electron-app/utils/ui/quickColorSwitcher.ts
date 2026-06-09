@@ -14,10 +14,6 @@ interface QuickColorSwitcherState {
     listenerController: AbortController;
 }
 
-type QuickColorSwitcherElement = HTMLDivElement & {
-    __ffvQuickColorSwitcherState?: QuickColorSwitcherState;
-};
-
 const COLOR_PRESETS = [
     { color: "#3b82f6", name: "Blue-tiful" },
     { color: "#8b5cf6", name: "Purple Rain" },
@@ -32,6 +28,11 @@ const COLOR_PRESETS = [
 const SWITCHER_ID = "quick-color-switcher";
 const SWITCHER_CLOSE_DELAY_MS = 500;
 const SVG_NS = "http://www.w3.org/2000/svg";
+const quickColorSwitcherStates = new WeakMap<
+    HTMLDivElement,
+    QuickColorSwitcherState
+>();
+const trackedQuickColorSwitcherElements = new Set<HTMLDivElement>();
 
 function createPaletteIcon(): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
@@ -202,8 +203,8 @@ export function updateSwitcherActiveColor(color: string): void {
     }
 }
 
-function createSwitcherElement(): QuickColorSwitcherElement {
-    const switcher = document.createElement("div") as QuickColorSwitcherElement;
+function createSwitcherElement(): HTMLDivElement {
+    const switcher = document.createElement("div");
     switcher.id = SWITCHER_ID;
     switcher.className = "quick-color-switcher";
 
@@ -436,18 +437,37 @@ function injectSwitcherStyles(): void {
     document.head.append(style);
 }
 
-function setupSwitcherListeners(switcher: QuickColorSwitcherElement): void {
-    switcher.__ffvQuickColorSwitcherState?.listenerController.abort();
-    if (switcher.__ffvQuickColorSwitcherState?.closeTimer) {
-        clearTimeout(switcher.__ffvQuickColorSwitcherState.closeTimer);
+function cleanupSwitcherState(switcher: HTMLDivElement): void {
+    const existingState = quickColorSwitcherStates.get(switcher);
+    if (!existingState) {
+        return;
     }
+
+    existingState.listenerController.abort();
+    if (existingState.closeTimer) {
+        clearTimeout(existingState.closeTimer);
+    }
+    quickColorSwitcherStates.delete(switcher);
+    trackedQuickColorSwitcherElements.delete(switcher);
+}
+
+export function resetQuickColorSwitcherStateForTests(): void {
+    for (const switcher of trackedQuickColorSwitcherElements) {
+        cleanupSwitcherState(switcher);
+    }
+    trackedQuickColorSwitcherElements.clear();
+}
+
+function setupSwitcherListeners(switcher: HTMLDivElement): void {
+    cleanupSwitcherState(switcher);
 
     const listenerController = new AbortController();
     const state: QuickColorSwitcherState = {
         closeTimer: null,
         listenerController,
     };
-    switcher.__ffvQuickColorSwitcherState = state;
+    quickColorSwitcherStates.set(switcher, state);
+    trackedQuickColorSwitcherElements.add(switcher);
 
     const toggle = switcher.querySelector<HTMLButtonElement>(
         "#color-switcher-toggle"

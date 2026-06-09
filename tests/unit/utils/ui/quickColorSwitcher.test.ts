@@ -27,6 +27,7 @@ vi.mock(import("../../../../electron-app/utils/ui/settingsModal.js"), () => ({
 
 import {
     initQuickColorSwitcher,
+    resetQuickColorSwitcherStateForTests,
     updateSwitcherActiveColor,
 } from "../../../../electron-app/utils/ui/quickColorSwitcher.js";
 
@@ -98,6 +99,7 @@ function createExpectedColorOptionStates(activeColor: string) {
 }
 
 function resetFixture(): void {
+    resetQuickColorSwitcherStateForTests();
     vi.useRealTimers();
     vi.clearAllMocks();
     document.body.replaceChildren();
@@ -110,6 +112,7 @@ function resetFixture(): void {
 }
 
 function cleanupFixture(): void {
+    resetQuickColorSwitcherStateForTests();
     vi.useRealTimers();
     vi.clearAllMocks();
     document.body.replaceChildren();
@@ -118,7 +121,7 @@ function cleanupFixture(): void {
 
 describe(initQuickColorSwitcher, () => {
     it("renders the switcher once with the current accent color selected", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         resetFixture();
 
@@ -167,6 +170,7 @@ describe(initQuickColorSwitcher, () => {
             expect(getColorOptionStates(switcher)).toStrictEqual(
                 createExpectedColorOptionStates("#10b981")
             );
+            expect("__ffvQuickColorSwitcherState" in switcher).toBe(false);
 
             initQuickColorSwitcher();
 
