@@ -46,6 +46,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Map polyline migration status: main/overlay map polyline registration and stored main bounds now go through `electron-app/utils/maps/state/mapPolylineRegistryState.ts` instead of `_mainPolyline`, `_mainPolylineOriginalBounds`, or `_overlayPolylines`.
 - Map activity-layer migration status: activity-layer group registration and data-point marker tracking now go through `electron-app/utils/maps/state/mapActivityLayerState.ts` instead of `_ffvActivityLayerGroup` or `_ffvDataPointMarkers`.
 - Map data-point filter migration status: filter config and last summary result now go through `electron-app/utils/maps/state/mapDataPointFilterState.ts` instead of `mapDataPointFilter` or `mapDataPointFilterLastResult` globals.
+- Active main map-file migration status: the selected main-file index now goes through `electron-app/utils/maps/state/mapActiveMainFileState.ts` instead of `_activeMainFileIdx`.
 - Next removal step: replace the remaining vendor-runtime compatibility globals with typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`

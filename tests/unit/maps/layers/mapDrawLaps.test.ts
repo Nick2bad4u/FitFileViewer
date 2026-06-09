@@ -20,6 +20,7 @@ import {
     getRegisteredMapDataPointMarkers,
     resetMapActivityLayerStateForTests,
 } from "../../../../electron-app/utils/maps/state/mapActivityLayerState.js";
+import { resetActiveMainMapFileIndexForTests } from "../../../../electron-app/utils/maps/state/mapActiveMainFileState.js";
 import { resetMapDataPointFilterStateForTests } from "../../../../electron-app/utils/maps/state/mapDataPointFilterState.js";
 import {
     getMainMapPolyline,
@@ -81,7 +82,6 @@ declare global {
     interface Window {
         L?: any;
     }
-    var _activeMainFileIdx: number;
 }
 
 describe("mapDrawLaps", () => {
@@ -174,8 +174,8 @@ describe("mapDrawLaps", () => {
         // Initialize global state
         resetMapPolylineRegistryForTests();
         resetMapActivityLayerStateForTests();
+        resetActiveMainMapFileIndexForTests();
         resetMapDataPointFilterStateForTests();
-        (globalThis as any)._activeMainFileIdx = 0;
         setMapMarkerCount(10);
         setHighlightedOverlayIndex(null);
     });
@@ -185,6 +185,7 @@ describe("mapDrawLaps", () => {
         resetMapMarkerCount();
         resetMapPolylineRegistryForTests();
         resetMapActivityLayerStateForTests();
+        resetActiveMainMapFileIndexForTests();
         resetMapDataPointFilterStateForTests();
     });
 

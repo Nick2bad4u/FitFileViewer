@@ -27,6 +27,7 @@ import {
     resetRegisteredMapDataPointMarkers,
     setRegisteredMapActivityLayerGroup,
 } from "../state/mapActivityLayerState.js";
+import { getActiveMainMapFileIndex } from "../state/mapActiveMainFileState.js";
 import {
     getMapDataPointFilter,
     setMapDataPointFilterLastResult,
@@ -105,10 +106,6 @@ type LeafletRuntimeLike = {
 type FitDataLike = {
     lapMesgs?: LapMesg[];
     recordMesgs?: RecordMesg[];
-};
-
-type MapDrawWindowLike = typeof globalThis & {
-    _activeMainFileIdx?: number;
 };
 
 type MetricFilterSummary = MapDataPointFilterLastResult;
@@ -420,7 +417,6 @@ export function mapDrawLaps(
 ): void {
     // Resolve L dynamically for this invocation
     const L = getLeaflet();
-    const win = getWin();
     let lapIdx = requestedLapIdx;
 
     let activityGroup = getRegisteredMapActivityLayerGroup<LayerTargetLike>();
@@ -506,13 +502,14 @@ export function mapDrawLaps(
     }
 
     // --- If switching main files, ensure overlays are cleared and only the new main file is plotted ---
+    const activeMainFileIndex = getActiveMainMapFileIndex();
     if (
         getLoadedFitFiles().length > 1 &&
-        typeof win._activeMainFileIdx === "number" &&
-        win._activeMainFileIdx > 0
+        typeof activeMainFileIndex === "number" &&
+        activeMainFileIndex > 0
     ) {
         try {
-            keepOnlyLoadedFitFileAt(win._activeMainFileIdx, "mapDrawLaps");
+            keepOnlyLoadedFitFileAt(activeMainFileIndex, "mapDrawLaps");
         } catch (error) {
             console.warn(
                 "[mapDrawLaps] Failed to sync loadedFitFiles state:",
@@ -1467,10 +1464,6 @@ function getMarkerLimit(): number {
 function getPolylineSmoothFactor(): number {
     const markerLimit = getMarkerLimit();
     return markerLimit === 0 ? 0 : 1;
-}
-
-function getWin(): MapDrawWindowLike {
-    return globalThis.window === undefined ? globalThis : globalThis.window;
 }
 
 function normalizeLeafletBounds(
