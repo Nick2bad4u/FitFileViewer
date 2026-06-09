@@ -251,6 +251,8 @@ const directAddFitOverlayButtonGlobalPattern =
     /\b(?:window|globalThis|globalRef)\.(?:__ffvAddFitOverlayButtonUpdate|__ffvAddFitOverlayButtonUnsubscribe)\b/u;
 const directMapThemeToggleGlobalPattern =
     /\b(?:window|globalThis|appGlobal)\.(?:__ffvMapThemeToggleListenersController|__ffvMapThemeToggleListenersInstalled|__ffvMapThemeToggleUpdate|updateMapTheme)\b/u;
+const directMapDocumentListenerGlobalPattern =
+    /\b(?:window|globalThis|windowExt|appGlobal|getMapDocumentGlobal\(\))\.(?:__ffvLayoutLayersControl|__ffvMapDocumentListenersController|__ffvMapDocumentListenersInstalled|__ffvMapTypeButton|__ffvMapZoomDraggingRef|__ffvRenderMapAbortController)\b/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1306,7 +1308,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(33);
+        expect.assertions(34);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1536,6 +1538,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directMapDocumentListenerGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directMapDocumentListenerGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1580,6 +1589,7 @@ describe("architecture boundaries", () => {
         expect(directActiveMainMapFileGlobalLookups).toStrictEqual([]);
         expect(directAddFitOverlayButtonGlobalLookups).toStrictEqual([]);
         expect(directMapThemeToggleGlobalLookups).toStrictEqual([]);
+        expect(directMapDocumentListenerGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

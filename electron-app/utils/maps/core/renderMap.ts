@@ -66,7 +66,10 @@ import {
 } from "../layers/mapDrawLaps.js";
 import { createEndIcon, createStartIcon } from "../layers/mapIcons.js";
 import { getLapColor } from "./mapColors.js";
-import { ensureMapDocumentListenersInstalled } from "./mapDocumentListeners.js";
+import {
+    ensureMapDocumentListenersInstalled,
+    setMapDocumentControlRefs,
+} from "./mapDocumentListeners.js";
 import {
     resolveLeafletRuntime,
     waitForLeafletRuntime,
@@ -161,10 +164,6 @@ type OverlayPolyline = Leaflet.Polyline & {
 
 type WindowExtensions = typeof globalThis & {
     [key: string]: unknown;
-    __ffvLayoutLayersControl?: () => void;
-    __ffvMapTypeButton?: HTMLElement;
-    __ffvRenderMapAbortController?: AbortController;
-    __ffvMapZoomDraggingRef?: { current: boolean };
     _drawControl?: DisposableControl | null;
     _drawnItems?: DrawnItemsLayerGroup | null;
     _miniMapControl?: DisposableControl | null;
@@ -221,6 +220,8 @@ const PREFERRED_BASE_LAYER_ORDER: BaseLayerKey[] = [
     "Esri_Topo",
     "Esri_WorldStreetMap",
 ];
+
+let renderMapAbortController: AbortController | null = null;
 
 function formatBaseLayerLabel(key: string): string {
     const overridden = BASE_LAYER_LABEL_OVERRIDES[key];
@@ -353,9 +354,9 @@ export function renderMap(): void {
     const L = LeafletLib;
     const runtimeBaseLayers = createBaseLayers(LeafletLib);
     resetOverlayMapPolylines();
-    windowExt.__ffvRenderMapAbortController?.abort();
+    renderMapAbortController?.abort();
     const renderAbortController = new AbortController();
-    windowExt.__ffvRenderMapAbortController = renderAbortController;
+    renderMapAbortController = renderAbortController;
     const listenerOptions: AddEventListenerOptions = {
         signal: renderAbortController.signal,
     };
@@ -683,10 +684,11 @@ export function renderMap(): void {
         leafletMapDiv2.append(mapTypeBtn);
     }
 
-    // Update global reference for the map type button used by the shared document listener.
-    windowExt.__ffvMapTypeButton = mapTypeBtn;
-    windowExt.__ffvLayoutLayersControl = () =>
-        layoutLayersControl({ layersControlEl: null });
+    setMapDocumentControlRefs({
+        layoutLayersControl: () =>
+            layoutLayersControl({ layersControlEl: null }),
+        mapTypeButton: mapTypeBtn,
+    });
     ensureMapDocumentListenersInstalled();
 
     function getLayersControlEl(): HTMLElement | null {
@@ -837,9 +839,10 @@ export function renderMap(): void {
             ".leaflet-control-layers-list"
         );
 
-        // Keep a global ref so the shared document listeners can re-run layout on resize.
-        windowExt.__ffvLayoutLayersControl = () =>
-            layoutLayersControl({ layersControlEl: layersEl });
+        setMapDocumentControlRefs({
+            layoutLayersControl: () =>
+                layoutLayersControl({ layersControlEl: layersEl }),
+        });
 
         // Only apply layout rules when the panel is expanded.
         if (!layersEl.classList.contains("leaflet-control-layers-expanded")) {
@@ -993,7 +996,7 @@ export function renderMap(): void {
     // Fix jank: Only update map zoom on change, and update slider on zoomend.
     // Use a shared ref so document-level end events can reset dragging without leaking listeners.
     const zoomDraggingRef = { current: false };
-    windowExt.__ffvMapZoomDraggingRef = zoomDraggingRef;
+    setMapDocumentControlRefs({ zoomDraggingRef });
     // Debounce function to limit the frequency of updates
     function debounce<Args extends unknown[]>(
         func: (...args: Args) => void,

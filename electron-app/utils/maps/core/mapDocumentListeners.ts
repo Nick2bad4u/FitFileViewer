@@ -3,23 +3,27 @@
  *
  * This module centralizes document event listeners used by the Leaflet map UI.
  * The map UI is frequently re-rendered (e.g. overlay changes), so listeners
- * must be installed once and use global references that are updated per
+ * must be installed once and use module-owned references that are updated per
  * render.
  */
 
 type MapZoomDraggingRef = { current: boolean };
 
-type MapDocumentGlobal = typeof globalThis & {
-    __ffvLayoutLayersControl?: () => void;
-    __ffvMapDocumentListenersController?: AbortController;
-    __ffvMapDocumentListenersInstalled?: boolean;
-    __ffvMapTypeButton?: unknown;
-    __ffvMapZoomDraggingRef?: unknown;
+type MapDocumentControlRefs = {
+    layoutLayersControl: (() => void) | null;
+    mapTypeButton: HTMLElement | null;
+    zoomDraggingRef: MapZoomDraggingRef | null;
 };
 
-function getMapDocumentGlobal(): MapDocumentGlobal {
-    return globalThis;
-}
+let mapDocumentListenerController: AbortController | null = null;
+
+let mapDocumentListenersInstalled = false;
+
+let mapDocumentControlRefs: MapDocumentControlRefs = {
+    layoutLayersControl: null,
+    mapTypeButton: null,
+    zoomDraggingRef: null,
+};
 
 function isMapZoomDraggingRef(value: unknown): value is MapZoomDraggingRef {
     if (typeof value !== "object" || value === null) {
@@ -31,8 +35,7 @@ function isMapZoomDraggingRef(value: unknown): value is MapZoomDraggingRef {
 
 function collapseLayersPanelIfClickOutside(event: MouseEvent): void {
     try {
-        const appGlobal = getMapDocumentGlobal();
-        const mapTypeBtn = appGlobal.__ffvMapTypeButton;
+        const mapTypeBtn = mapDocumentControlRefs.mapTypeButton;
         if (!(mapTypeBtn instanceof HTMLElement)) {
             return;
         }
@@ -90,7 +93,7 @@ function layoutLayersPanelOnResize(): void {
             return;
         }
 
-        const layoutFn = getMapDocumentGlobal().__ffvLayoutLayersControl;
+        const layoutFn = mapDocumentControlRefs.layoutLayersControl;
         if (typeof layoutFn === "function") {
             layoutFn();
         }
@@ -101,7 +104,7 @@ function layoutLayersPanelOnResize(): void {
 
 function resetMapZoomDraggingRef(): void {
     try {
-        const ref = getMapDocumentGlobal().__ffvMapZoomDraggingRef;
+        const ref = mapDocumentControlRefs.zoomDraggingRef;
         if (isMapZoomDraggingRef(ref)) {
             ref.current = false;
         }
@@ -111,23 +114,31 @@ function resetMapZoomDraggingRef(): void {
 }
 
 /**
+ * Updates the current render-owned map controls consumed by document-level map
+ * listeners.
+ *
+ * @param refs - Current control refs from renderMap().
+ */
+export function setMapDocumentControlRefs(
+    refs: Partial<MapDocumentControlRefs>
+): void {
+    mapDocumentControlRefs = {
+        ...mapDocumentControlRefs,
+        ...refs,
+    };
+}
+
+/**
  * Install document-level map listeners once to avoid leaks when renderMap() is
  * invoked repeatedly.
- *
- * The handlers rely on global references that are updated on each render:
- *
- * - GlobalThis.__ffvMapTypeButton: HTMLElement
- * - GlobalThis.__ffvMapZoomDraggingRef: object with a boolean current flag
  */
 export function ensureMapDocumentListenersInstalled(): void {
-    const appGlobal = getMapDocumentGlobal();
-
-    if (appGlobal.__ffvMapDocumentListenersInstalled === true) {
+    if (mapDocumentListenersInstalled) {
         return;
     }
-    appGlobal.__ffvMapDocumentListenersInstalled = true;
+    mapDocumentListenersInstalled = true;
     const listenerController = new AbortController();
-    appGlobal.__ffvMapDocumentListenersController = listenerController;
+    mapDocumentListenerController = listenerController;
     const { signal } = listenerController;
 
     // Collapse the Leaflet layers panel when clicking outside.
@@ -147,4 +158,18 @@ export function ensureMapDocumentListenersInstalled(): void {
         passive: true,
         signal,
     });
+}
+
+/**
+ * Reset module state for isolated tests.
+ */
+export function resetMapDocumentListenersForTests(): void {
+    mapDocumentListenerController?.abort();
+    mapDocumentListenerController = null;
+    mapDocumentListenersInstalled = false;
+    mapDocumentControlRefs = {
+        layoutLayersControl: null,
+        mapTypeButton: null,
+        zoomDraggingRef: null,
+    };
 }

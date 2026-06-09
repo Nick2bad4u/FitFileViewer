@@ -1,22 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { ensureMapDocumentListenersInstalled } from "../../../../../electron-app/utils/maps/core/mapDocumentListeners.js";
-
-type MapDocumentListenerTestGlobal = typeof globalThis & {
-    __ffvLayoutLayersControl?: () => void;
-    __ffvMapDocumentListenersController?: AbortController;
-    __ffvMapDocumentListenersInstalled?: boolean;
-    __ffvMapTypeButton?: unknown;
-    __ffvMapZoomDraggingRef?: { current: boolean };
-};
+import {
+    ensureMapDocumentListenersInstalled,
+    resetMapDocumentListenersForTests,
+    setMapDocumentControlRefs,
+} from "../../../../../electron-app/utils/maps/core/mapDocumentListeners.js";
 
 function cleanupFixture(): void {
-    const appGlobal = globalThis as MapDocumentListenerTestGlobal;
-    appGlobal.__ffvMapDocumentListenersController?.abort();
-    delete appGlobal.__ffvLayoutLayersControl;
-    delete appGlobal.__ffvMapDocumentListenersController;
-    delete appGlobal.__ffvMapDocumentListenersInstalled;
-    delete appGlobal.__ffvMapTypeButton;
-    delete appGlobal.__ffvMapZoomDraggingRef;
+    resetMapDocumentListenersForTests();
     document.body.replaceChildren();
 }
 
@@ -46,19 +36,18 @@ function mouseDown(target: EventTarget): void {
 
 describe(ensureMapDocumentListenersInstalled, () => {
     it("installs listeners once and collapses expanded layer panels on outside clicks", () => {
-        expect.assertions(9);
+        expect.assertions(7);
 
         cleanupFixture();
 
         try {
-            const appGlobal = globalThis as MapDocumentListenerTestGlobal;
             const addDocumentListenerSpy = vi.spyOn(
                 document,
                 "addEventListener"
             );
             const mapTypeButton = document.createElement("button");
             const outsideButton = document.createElement("button");
-            appGlobal.__ffvMapTypeButton = mapTypeButton;
+            setMapDocumentControlRefs({ mapTypeButton });
             document.body.append(mapTypeButton, outsideButton);
             const layersPanel = createExpandedLayersPanel();
             const layersList = layersPanel.querySelector<HTMLElement>(
@@ -68,12 +57,6 @@ describe(ensureMapDocumentListenersInstalled, () => {
             ensureMapDocumentListenersInstalled();
             ensureMapDocumentListenersInstalled();
 
-            expect(appGlobal).toMatchObject({
-                __ffvMapDocumentListenersInstalled: true,
-            });
-            expect(
-                appGlobal.__ffvMapDocumentListenersController
-            ).toBeInstanceOf(AbortController);
             expect(addDocumentListenerSpy).toHaveBeenCalledTimes(3);
 
             mouseDown(mapTypeButton);
@@ -102,17 +85,18 @@ describe(ensureMapDocumentListenersInstalled, () => {
     });
 
     it("delegates layout on resize and resets the zoom dragging ref on interaction end", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         cleanupFixture();
 
         try {
-            const appGlobal = globalThis as MapDocumentListenerTestGlobal;
             const layoutLayersControl = vi.fn<() => void>();
             const zoomDraggingRef = { current: true };
-            appGlobal.__ffvLayoutLayersControl = layoutLayersControl;
-            appGlobal.__ffvMapTypeButton = document.createElement("button");
-            appGlobal.__ffvMapZoomDraggingRef = zoomDraggingRef;
+            setMapDocumentControlRefs({
+                layoutLayersControl,
+                mapTypeButton: document.createElement("button"),
+                zoomDraggingRef,
+            });
             createExpandedLayersPanel();
 
             ensureMapDocumentListenersInstalled();
@@ -128,12 +112,7 @@ describe(ensureMapDocumentListenersInstalled, () => {
             zoomDraggingRef.current = true;
             document.dispatchEvent(new Event("touchend"));
 
-            expect(appGlobal.__ffvMapZoomDraggingRef).toStrictEqual({
-                current: false,
-            });
-            expect(appGlobal).toMatchObject({
-                __ffvMapDocumentListenersInstalled: true,
-            });
+            expect(zoomDraggingRef).toStrictEqual({ current: false });
         } finally {
             cleanupFixture();
         }
