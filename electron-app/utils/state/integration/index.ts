@@ -3,20 +3,13 @@
  * Re-exports all modules in the state/integration category.
  */
 
-import "./mainProcessStateManager.js";
-
 type MainProcessStateManagerExports = {
     MainProcessState?: unknown;
     mainProcessState?: unknown;
 };
 
-type MainProcessStateManagerGlobal = typeof globalThis & {
-    __FFV_mainProcessStateManagerExports?: MainProcessStateManagerExports;
-};
-
-const mainProcessStateManagerExports = (
-    globalThis as MainProcessStateManagerGlobal
-).__FFV_mainProcessStateManagerExports;
+const mainProcessStateManagerExports =
+    require("./mainProcessStateManager.js") as MainProcessStateManagerExports;
 
 /**
  * Main-process state manager constructor exposed through the legacy CommonJS

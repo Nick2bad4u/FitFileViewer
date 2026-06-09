@@ -1647,21 +1647,3 @@ const __mpExports = { mainProcessState, MainProcessState };
 if (typeof module !== "undefined" && module && module.exports) {
     module.exports = __mpExports;
 }
-
-// Also attach to a global shim so ESM barrels in renderer can recover without touching module
-try {
-    if (typeof globalThis !== "undefined") {
-        Object.defineProperty(
-            globalThis,
-            "__FFV_mainProcessStateManagerExports",
-            {
-                configurable: true,
-                enumerable: false,
-                value: __mpExports,
-                writable: true,
-            }
-        );
-    }
-} catch {
-    /* ignore */
-}

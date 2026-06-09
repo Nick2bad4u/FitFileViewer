@@ -60,6 +60,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Map lap selector migration status: multi-lap drag mouseup replacement and disposal now stays in `electron-app/utils/maps/controls/mapLapSelector.ts` module state instead of `__ffvLapSelectorMouseupHandler` on the global object.
 - App menu export migration status: `createAppMenu` now uses ordinary module exports through `electron-app/utils/app/menu/createAppMenu.ts` and `electron-app/utils/app/menu/index.ts` instead of the `__FFV_createAppMenuExports` global bridge.
 - FIT file state manager migration status: file-open and render flows now import the typed `fitFileStateManager` singleton directly instead of resolving `__FFV_fitFileStateManager` from the global object.
+- Main-process state manager export migration status: `electron-app/utils/state/integration/index.ts` now resolves `mainProcessStateManager.ts` through its CommonJS module exports instead of the `__FFV_mainProcessStateManagerExports` global bridge.
 - Next removal step: replace the remaining vendor-runtime compatibility globals with typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`
