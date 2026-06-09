@@ -261,6 +261,8 @@ const directMenuForwardRegistryGlobalPattern =
     /\b(?:window|globalThis|holder|testGlobal|getMenuIpcGlobal\(\))\.__ffvMenuForwardRegistry\b/u;
 const directAppMenuExportsGlobalPattern =
     /\b(?:window|globalThis|getMenuGlobal\(\))\.__FFV_createAppMenuExports\b|["']__FFV_createAppMenuExports["']/u;
+const directFitFileStateManagerGlobalPattern =
+    /\b(?:window|globalThis|getFileOpenGlobal\(\)|getOpenFitFileGlobal\(\)|getShowFitDataGlobal\(\))\.__FFV_fitFileStateManager\b|["']__FFV_fitFileStateManager["']/u;
 const directFilenameAutoScrollStateExpandoPattern =
     /\b(?:filenameElement|element)\.__ffvFilenameAutoScrollState\b/u;
 const directQuickColorSwitcherStateExpandoPattern =
@@ -1326,7 +1328,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(43);
+        expect.assertions(44);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1591,6 +1593,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directFitFileStateManagerGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directFitFileStateManagerGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directFilenameAutoScrollStateExpandoLookups = scannedFiles
             .filter((relativeFile) =>
                 directFilenameAutoScrollStateExpandoPattern.test(
@@ -1675,6 +1684,7 @@ describe("architecture boundaries", () => {
         expect(directFullscreenHandlerGlobalLookups).toStrictEqual([]);
         expect(directMenuForwardRegistryGlobalLookups).toStrictEqual([]);
         expect(directAppMenuExportsGlobalLookups).toStrictEqual([]);
+        expect(directFitFileStateManagerGlobalLookups).toStrictEqual([]);
         expect(directFilenameAutoScrollStateExpandoLookups).toStrictEqual([]);
         expect(directQuickColorSwitcherStateExpandoLookups).toStrictEqual([]);
         expect(directMapActionCleanupExpandoLookups).toStrictEqual([]);

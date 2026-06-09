@@ -17,6 +17,7 @@ import {
     waitForMapLeafletRuntime,
 } from "../../maps/core/renderMap.js";
 import { setState } from "../../state/core/stateManager.js";
+import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { getActiveFitTableData } from "../../state/domain/fitTableDataState.js";
 import { setTabButtonsEnabled } from "../../ui/controls/enableTabButtons.js";
 import { updateActiveTab } from "../../ui/tabs/updateActiveTab.js";
@@ -75,7 +76,6 @@ type FitFileStateManagerLike = {
 type EstimatedPowerInput = Parameters<typeof applyEstimatedPowerToRecords>[0];
 
 type ShowFitDataGlobal = typeof globalThis & {
-    __FFV_fitFileStateManager?: unknown;
     electronAPI?: ElectronApiLike;
     isMapRendered?: boolean;
 };
@@ -388,16 +388,15 @@ function integrateFitState(data: FitDataObject, filePath?: string): void {
 }
 
 function resolveFitFileStateManager(): FitFileStateManagerLike | null {
-    const candidate = getShowFitDataGlobal().__FFV_fitFileStateManager;
+    const candidate = fitFileStateManager;
 
     if (
         candidate &&
         typeof candidate === "object" &&
         "handleFileLoaded" in candidate &&
-        typeof (candidate as { handleFileLoaded?: unknown })
-            .handleFileLoaded === "function"
+        typeof candidate.handleFileLoaded === "function"
     ) {
-        return candidate as FitFileStateManagerLike;
+        return candidate;
     }
 
     return null;

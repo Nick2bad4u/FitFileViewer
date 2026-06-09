@@ -18,6 +18,7 @@ vi.mock(
 );
 
 import { openFitFileFromPath } from "../../../../../electron-app/utils/files/import/openFitFileFromPath.js";
+import { fitFileStateManager } from "../../../../../electron-app/utils/state/domain/fitFileState.js";
 
 type ShowNotification = (
     message: string,
@@ -41,14 +42,13 @@ type LoadingPhase =
     | "validating";
 
 type OpenFitFileFromPathTestGlobal = typeof globalThis & {
-    __FFV_fitFileStateManager?: unknown;
     electronAPI?: TestElectronAPI;
 };
 
 function cleanupFixture(): void {
     const appGlobal = globalThis as OpenFitFileFromPathTestGlobal;
-    delete appGlobal.__FFV_fitFileStateManager;
     delete appGlobal.electronAPI;
+    vi.restoreAllMocks();
     renderDecodedFitDataMock.mockReset();
     renderDecodedFitDataMock.mockResolvedValue(undefined);
     sendFitFileToAltFitReaderMock.mockReset();
@@ -140,11 +140,18 @@ describe(openFitFileFromPath, () => {
                 parseFitFile,
                 readFile,
             };
-            appGlobal.__FFV_fitFileStateManager = {
-                handleFileLoadingError: vi.fn<(error: Error) => void>(),
-                startFileLoading,
-                transitionLoadingPhase,
-            };
+            vi.spyOn(
+                fitFileStateManager,
+                "handleFileLoadingError"
+            ).mockImplementation(vi.fn<(error: Error) => void>());
+            vi.spyOn(
+                fitFileStateManager,
+                "startFileLoading"
+            ).mockImplementation(startFileLoading);
+            vi.spyOn(
+                fitFileStateManager,
+                "transitionLoadingPhase"
+            ).mockImplementation(transitionLoadingPhase);
 
             const result = await openFitFileFromPath({
                 filePath,
@@ -217,8 +224,11 @@ describe(openFitFileFromPath, () => {
             const filePath = "C:\\activities\\empty.fit";
 
             readFile.mockResolvedValue(new ArrayBuffer(0));
-            appGlobal.__FFV_fitFileStateManager = { handleFileLoadingError };
             appGlobal.electronAPI = { parseFitFile, readFile };
+            vi.spyOn(
+                fitFileStateManager,
+                "handleFileLoadingError"
+            ).mockImplementation(handleFileLoadingError);
 
             const result = await openFitFileFromPath({
                 filePath,

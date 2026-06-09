@@ -10,6 +10,7 @@ vi.mock(
 );
 
 import { openFitFileFromPath } from "../../../../electron-app/utils/files/import/openFitFileFromPath.js";
+import { fitFileStateManager } from "../../../../electron-app/utils/state/domain/fitFileState.js";
 
 type HandleFileLoadingError = (error: Error) => void;
 type NotifyFitFileLoaded = (filePath: string) => void;
@@ -51,7 +52,6 @@ async function withOpenFitFileHarness(
     runTest: (harness: Harness) => Promise<void>
 ): Promise<void> {
     const originalElectronAPI = globalThis.electronAPI;
-    const originalFitFileStateManager = globalThis.__FFV_fitFileStateManager;
     const harness = createHarness();
 
     renderDecodedFitDataMock.mockReset();
@@ -61,15 +61,14 @@ async function withOpenFitFileHarness(
         parseFitFile: harness.parseFitFile,
         readFile: harness.readFile,
     } as typeof globalThis.electronAPI;
-    globalThis.__FFV_fitFileStateManager = {
-        handleFileLoadingError: harness.handleFileLoadingError,
-    };
+    vi.spyOn(fitFileStateManager, "handleFileLoadingError").mockImplementation(
+        harness.handleFileLoadingError
+    );
 
     try {
         await runTest(harness);
     } finally {
         globalThis.electronAPI = originalElectronAPI;
-        globalThis.__FFV_fitFileStateManager = originalFitFileStateManager;
         vi.restoreAllMocks();
     }
 }

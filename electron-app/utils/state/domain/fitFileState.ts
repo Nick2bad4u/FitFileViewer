@@ -149,10 +149,6 @@ type LoadingPhaseTransitionOptions = {
     source?: string;
 };
 
-type FitFileGlobal = typeof globalThis & {
-    __FFV_fitFileStateManager?: FitFileStateManager;
-};
-
 const SOURCE_CLEAR_FILE_STATE = "FitFileStateManager.clearFileState";
 const FIT_FILE_LOADING_PHASES = [
     "idle",
@@ -1086,14 +1082,3 @@ export const FitFileSelectors = {
 
 /** Shared singleton used by file import, drag/drop, and rendering flows. */
 export const fitFileStateManager = new FitFileStateManager();
-
-if (typeof globalThis !== "undefined") {
-    const fitFileGlobal = globalThis as FitFileGlobal;
-
-    Object.defineProperty(fitFileGlobal, "__FFV_fitFileStateManager", {
-        configurable: true,
-        enumerable: false,
-        value: fitFileStateManager,
-        writable: true,
-    });
-}

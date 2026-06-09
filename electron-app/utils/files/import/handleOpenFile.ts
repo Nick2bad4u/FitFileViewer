@@ -11,6 +11,7 @@ import {
 import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import * as stateManager from "../../state/core/stateManager.js";
+import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { clearAllNotifications } from "../../ui/notifications/showNotification.js";
 import {
     type FitParsePayload,
@@ -64,7 +65,6 @@ type FileOpenElectronAPI = Pick<ElectronAPI, "readFile"> & {
 };
 
 type FileOpenRendererGlobal = typeof globalThis & {
-    __FFV_fitFileStateManager?: unknown;
     electronAPI?: Partial<FileOpenElectronAPI>;
 };
 
@@ -145,16 +145,15 @@ function showFileOpenErrorNotification(
 }
 
 const resolveFitFileStateManager = (): FitFileStateManagerFacade | null => {
-    const candidate = getFileOpenGlobal().__FFV_fitFileStateManager;
+    const candidate = fitFileStateManager;
 
     if (
         candidate &&
         typeof candidate === "object" &&
         "handleFileLoadingError" in candidate &&
-        typeof (candidate as { handleFileLoadingError?: unknown })
-            .handleFileLoadingError === "function"
+        typeof candidate.handleFileLoadingError === "function"
     ) {
-        return candidate as FitFileStateManagerFacade;
+        return candidate;
     }
 
     return null;
@@ -411,10 +410,7 @@ function notifyFileLoadPhase(
 ): boolean {
     try {
         const manager = resolveFitFileStateManager();
-        if (
-            !manager ||
-            typeof manager.transitionLoadingPhase !== "function"
-        ) {
+        if (!manager || typeof manager.transitionLoadingPhase !== "function") {
             return false;
         }
 

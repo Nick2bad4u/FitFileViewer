@@ -14,6 +14,7 @@ import { sendFitFileToAltFitReader } from "./sendFitFileToAltFitReader.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
+import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 
 type FitFileStateManagerLike = {
     handleFileLoadingError: (error: Error) => void;
@@ -37,7 +38,6 @@ type FitFileElectronAPI = Pick<ElectronAPI, "readFile"> &
     };
 
 type OpenFitFileGlobal = typeof globalThis & {
-    __FFV_fitFileStateManager?: unknown;
     electronAPI?: Partial<FitFileElectronAPI>;
 };
 
@@ -179,18 +179,17 @@ function resolveFitFileElectronAPI(): FitFileElectronAPI | undefined {
  * This is used only for reporting errors into the app state pipeline.
  */
 function resolveFitFileStateManager(): FitFileStateManagerLike | undefined {
-    const candidate = getOpenFitFileGlobal().__FFV_fitFileStateManager;
+    const candidate = fitFileStateManager;
 
     if (!candidate || typeof candidate !== "object") {
         return undefined;
     }
 
-    const mgr = candidate as { handleFileLoadingError?: unknown };
-    if (typeof mgr.handleFileLoadingError !== "function") {
+    if (typeof candidate.handleFileLoadingError !== "function") {
         return undefined;
     }
 
-    return candidate as FitFileStateManagerLike;
+    return candidate;
 }
 
 function notifyFileLoadPhase(
