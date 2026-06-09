@@ -4,8 +4,10 @@ import {
     ensureProcessNextTick,
     getGlobalChartInstances,
     isDevelopmentEnvironment,
+    isLoadingStateSuppressed,
     isNodeEnv,
     isTestEnvironment,
+    setLoadingStateSuppressed,
 } from "../../../../electron-app/utils/charts/core/renderChartRuntimeHelpers.js";
 import {
     clearChartInstanceRegistryForTests,
@@ -56,6 +58,8 @@ describe("render chart runtime helpers", () => {
     );
 
     afterEach(() => {
+        setLoadingStateSuppressed(false);
+        Reflect.deleteProperty(globalThis, "__FFV_suppressLoadingState");
         restoreGlobalProcess();
         clearChartInstanceRegistryForTests();
         if (originalWindowDescriptor) {
@@ -169,5 +173,29 @@ describe("render chart runtime helpers", () => {
         clearRegisteredChartInstances();
 
         expect(getGlobalChartInstances("invalid")).toStrictEqual([]);
+    });
+
+    it("tracks loading suppression without reading the legacy global flag", () => {
+        expect.assertions(5);
+
+        expect(isLoadingStateSuppressed()).toBe(false);
+
+        Object.defineProperty(globalThis, "__FFV_suppressLoadingState", {
+            configurable: true,
+            value: true,
+        });
+
+        expect(isLoadingStateSuppressed()).toBe(false);
+
+        setLoadingStateSuppressed(true);
+
+        expect(isLoadingStateSuppressed()).toBe(true);
+
+        setLoadingStateSuppressed(false);
+
+        expect(isLoadingStateSuppressed()).toBe(false);
+        expect(Reflect.get(globalThis, "__FFV_suppressLoadingState")).toBe(
+            true
+        );
     });
 });

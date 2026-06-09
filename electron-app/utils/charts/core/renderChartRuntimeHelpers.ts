@@ -16,7 +16,6 @@ interface ProcessShim {
 
 interface RenderChartRuntimeGlobal {
     __FFV_debugCharts?: unknown;
-    __FFV_suppressLoadingState?: unknown;
     __chartjs_dev?: unknown;
     _fitFileViewerChartListener?: unknown;
     _fitFileViewerSharedConfigurationAbortController?: AbortController;
@@ -50,6 +49,8 @@ interface ChartActionsBridge {
 interface PanelVisibilityBridge {
     updatePanelVisibility(panelId: string, visible: boolean): void;
 }
+
+let loadingStateSuppressed = false;
 
 function hasDebouncedRender(
     value: unknown
@@ -136,11 +137,17 @@ export function isTestEnvironment(): boolean {
 }
 
 /**
- * Reads the background-render loading suppression flag from the renderer
- * global.
+ * Reads the background-render loading suppression flag.
  */
 export function isLoadingStateSuppressed(): boolean {
-    return Boolean(getMutableChartRuntimeGlobal().__FFV_suppressLoadingState);
+    return loadingStateSuppressed;
+}
+
+/**
+ * Sets the background-render loading suppression flag.
+ */
+export function setLoadingStateSuppressed(value: boolean): void {
+    loadingStateSuppressed = value;
 }
 
 /**
