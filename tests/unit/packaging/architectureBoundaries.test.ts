@@ -253,6 +253,8 @@ const directMapThemeToggleGlobalPattern =
     /\b(?:window|globalThis|appGlobal)\.(?:__ffvMapThemeToggleListenersController|__ffvMapThemeToggleListenersInstalled|__ffvMapThemeToggleUpdate|updateMapTheme)\b/u;
 const directMapDocumentListenerGlobalPattern =
     /\b(?:window|globalThis|windowExt|appGlobal|getMapDocumentGlobal\(\))\.(?:__ffvLayoutLayersControl|__ffvMapDocumentListenersController|__ffvMapDocumentListenersInstalled|__ffvMapTypeButton|__ffvMapZoomDraggingRef|__ffvRenderMapAbortController)\b/u;
+const directFileBrowserLibraryCacheGlobalPattern =
+    /\b(?:window|globalThis|appGlobal|getFitBrowserGlobal\(\))\.__ffvLibraryCache\b/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1308,7 +1310,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(34);
+        expect.assertions(35);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1545,6 +1547,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directFileBrowserLibraryCacheGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directFileBrowserLibraryCacheGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1590,6 +1599,7 @@ describe("architecture boundaries", () => {
         expect(directAddFitOverlayButtonGlobalLookups).toStrictEqual([]);
         expect(directMapThemeToggleGlobalLookups).toStrictEqual([]);
         expect(directMapDocumentListenerGlobalLookups).toStrictEqual([]);
+        expect(directFileBrowserLibraryCacheGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

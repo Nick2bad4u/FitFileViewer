@@ -20,6 +20,11 @@ import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import {
+    type FitBrowserLibraryCachePayload,
+    readFitBrowserLibraryCache,
+    writeFitBrowserLibraryCache,
+} from "./fileBrowserLibraryCache.js";
+import {
     type AppIconName,
     createAppIconElement,
 } from "../icons/iconFactory.js";
@@ -54,7 +59,6 @@ type CalendarState = {
 type DistanceUnit = "km" | "mi";
 
 type FitBrowserGlobal = typeof globalThis & {
-    __ffvLibraryCache?: Record<string, FitLibraryCachePayload>;
     electronAPI?: FitBrowserElectronAPI;
 };
 
@@ -77,10 +81,7 @@ type FitBrowserListApi = Required<
     Pick<FitBrowserElectronAPI, "listFitBrowserFolder">
 >;
 
-type FitLibraryCachePayload = {
-    items: FitLibraryItem[];
-    scannedAt: number;
-};
+type FitLibraryCachePayload = FitBrowserLibraryCachePayload<FitLibraryItem>;
 
 type FitLibraryFile = {
     fullPath: string;
@@ -394,9 +395,7 @@ function formatLoadedAt(): string {
 }
 
 function setBrowserStatus(message: string, loading = false): void {
-    const statusEl = document.querySelector<HTMLElement>(
-        "#fit-browser-status"
-    );
+    const statusEl = document.querySelector<HTMLElement>("#fit-browser-status");
     if (statusEl instanceof HTMLElement) {
         statusEl.hidden = message.length === 0;
         statusEl.classList.toggle("file-browser__status--loading", loading);
@@ -808,8 +807,7 @@ function loadPersistedLibraryCache(
 }
 
 function loadSessionLibraryCache(root: string): FitLibraryCachePayload | null {
-    const cachedForRoot = getFitBrowserGlobal().__ffvLibraryCache?.[root];
-    return cachedForRoot ?? null;
+    return readFitBrowserLibraryCache(root);
 }
 
 function parentRelPath(relPath: string): string {
@@ -2209,9 +2207,5 @@ function writeSessionLibraryCache(
     root: string,
     payload: FitLibraryCachePayload
 ): void {
-    const appGlobal = getFitBrowserGlobal();
-    if (!appGlobal.__ffvLibraryCache) {
-        appGlobal.__ffvLibraryCache = {};
-    }
-    appGlobal.__ffvLibraryCache[root] = payload;
+    writeFitBrowserLibraryCache(root, payload);
 }
