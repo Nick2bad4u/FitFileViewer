@@ -8,11 +8,24 @@ import type {
 } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 
 const openFileSelectorMock = vi.hoisted(() => vi.fn<() => void>());
+const updateChartsMock = vi.hoisted(() =>
+    vi.fn<(reason: string) => Promise<boolean>>((reason) => {
+        document.body.dataset.chartUpdateReason = reason;
+        return Promise.resolve(true);
+    })
+);
 
 vi.mock(
     import("../../../electron-app/utils/files/import/openFileSelector.js"),
     () => ({
         openFileSelector: openFileSelectorMock,
+    })
+);
+
+vi.mock(
+    import("../../../electron-app/utils/charts/core/chartUpdater.js"),
+    () => ({
+        updateCharts: updateChartsMock,
     })
 );
 
@@ -31,9 +44,6 @@ type TestElectronAPI = {
 };
 
 type TestGlobal = typeof globalThis & {
-    ChartUpdater?: {
-        updateCharts: Mock<(reason: string) => void>;
-    };
     __ffvMenuForwardRegistry?: unknown;
     electronAPI?: TestElectronAPI;
     renderChartJS?: unknown;
@@ -76,15 +86,14 @@ describe("utils/app/lifecycle/listeners.js", () => {
         // Clean any previous window properties
         Object.assign(getTestWindow(), {
             electronAPI: undefined,
-            ChartUpdater: undefined,
             renderChartJS: undefined,
         });
         Object.assign(getTestGlobal(), {
             __ffvMenuForwardRegistry: undefined,
             electronAPI: undefined,
-            ChartUpdater: undefined,
             renderChartJS: undefined,
         });
+        updateChartsMock.mockClear();
     });
 
     function mount(openRecentReturn: string[] | null = null): {
@@ -193,7 +202,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
         expect(document.getElementById("recent-files-menu")).toBeNull();
     });
 
-    it("resize while chart tab active triggers ChartUpdater.updateCharts if available", async () => {
+    it("resize while chart tab active triggers the typed chart updater", async () => {
         expect.assertions(2);
 
         // create active chart tab
@@ -201,20 +210,13 @@ describe("utils/app/lifecycle/listeners.js", () => {
         tab.id = "tab-chart";
         tab.classList.add("active");
         document.body.append(tab);
-        const updateCharts = vi
-            .fn<(reason: string) => void>()
-            .mockImplementation((reason) => {
-                document.body.dataset.chartUpdateReason = reason;
-            });
-        getTestWindow().ChartUpdater = { updateCharts };
-
         mount([]);
 
         vi.useFakeTimers();
         window.dispatchEvent(new Event("resize"));
         // Allow debounce timeout of 200ms
         vi.advanceTimersByTime(210);
-        expect(updateCharts).toHaveBeenCalledWith("window-resize");
+        expect(updateChartsMock).toHaveBeenCalledWith("window-resize");
         expect(document.body.dataset.chartUpdateReason).toBe("window-resize");
         vi.useRealTimers();
     });

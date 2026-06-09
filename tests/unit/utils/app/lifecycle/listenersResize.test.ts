@@ -1,9 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
+
+const updateChartsMock = vi.hoisted(() =>
+    vi.fn<(reason: string) => Promise<boolean>>(() => Promise.resolve(true))
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/charts/core/chartUpdater.js"),
+    () => ({
+        updateCharts: updateChartsMock,
+    })
+);
+
 import { registerChartResizeListener } from "../../../../../electron-app/utils/app/lifecycle/listenersResize.js";
 
 type ResizeListenerTestGlobal = typeof globalThis & {
     Chart?: { getChart?: (canvas: HTMLCanvasElement) => unknown };
-    ChartUpdater?: { updateCharts?: (reason: string) => void };
     renderChart?: () => void;
     renderChartJS?: () => Promise<boolean> | void;
 };
@@ -15,9 +26,9 @@ function cleanupFixture(cleanupCallbacks: Array<() => void> = []): void {
 
     const chartGlobal = globalThis as ResizeListenerTestGlobal;
     delete chartGlobal.Chart;
-    delete chartGlobal.ChartUpdater;
     delete chartGlobal.renderChart;
     delete chartGlobal.renderChartJS;
+    updateChartsMock.mockClear();
     Reflect.deleteProperty(document, "fullscreenElement");
     document.body.replaceChildren();
     vi.restoreAllMocks();
@@ -50,10 +61,6 @@ describe(registerChartResizeListener, () => {
         try {
             vi.useFakeTimers();
             createTab("tab_chart", true);
-            const updateCharts = vi.fn<(reason: string) => void>();
-            (globalThis as ResizeListenerTestGlobal).ChartUpdater = {
-                updateCharts,
-            };
 
             registerChartResizeListener({ cleanupCallbacks });
             window.dispatchEvent(new Event("resize"));
@@ -64,11 +71,11 @@ describe(registerChartResizeListener, () => {
 
             vi.advanceTimersByTime(199);
 
-            expect(updateCharts).not.toHaveBeenCalled();
+            expect(updateChartsMock).not.toHaveBeenCalled();
 
             vi.advanceTimersByTime(1);
 
-            expect(updateCharts).toHaveBeenCalledExactlyOnceWith(
+            expect(updateChartsMock).toHaveBeenCalledExactlyOnceWith(
                 "window-resize"
             );
         } finally {
@@ -90,16 +97,12 @@ describe(registerChartResizeListener, () => {
             canvas.className = "chart-canvas";
             document.body.append(canvas);
             let resizeCount = 0;
-            const updateCharts = vi.fn<(reason: string) => void>();
             (globalThis as ResizeListenerTestGlobal).Chart = {
                 getChart: () => ({
                     resize: () => {
                         resizeCount += 1;
                     },
                 }),
-            };
-            (globalThis as ResizeListenerTestGlobal).ChartUpdater = {
-                updateCharts,
             };
 
             registerChartResizeListener({ cleanupCallbacks });
@@ -113,7 +116,7 @@ describe(registerChartResizeListener, () => {
 
             expect({ resizeCount }).toStrictEqual({ resizeCount: 2 });
 
-            expect(updateCharts).not.toHaveBeenCalled();
+            expect(updateChartsMock).not.toHaveBeenCalled();
 
             expect(cleanupCallbacks).toHaveLength(1);
         } finally {

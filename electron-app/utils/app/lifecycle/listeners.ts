@@ -116,7 +116,6 @@ type LifecycleElectronAPI = Partial<
 };
 
 type LifecycleGlobal = typeof globalThis & {
-    ChartUpdater?: { updateCharts?: (reason?: string) => unknown };
     __ffvLifecycleListenersCleanup?: () => void;
     electronAPI?: LifecycleElectronAPI;
 };

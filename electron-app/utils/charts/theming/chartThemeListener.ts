@@ -1,18 +1,10 @@
 import { chartStateManager as importedChartStateManager } from "../core/chartStateManager.js";
+import { updateCharts } from "../core/chartUpdater.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
-interface ChartUpdateAdapter {
-    updateAll(reason: string): void;
-}
-
 interface ThemeChangeDetail {
     theme?: string;
-}
-
-interface LegacyChartWindow extends Window {
-    ChartUpdater?: unknown;
-    chartUpdater?: unknown;
 }
 
 type ThemeChangeHandler = ((event: Event) => void) & {
@@ -20,18 +12,6 @@ type ThemeChangeHandler = ((event: Event) => void) & {
 };
 
 let chartThemeListener: EventListener | undefined;
-
-function getGlobalWindow(): LegacyChartWindow | undefined {
-    return globalThis.window === undefined ? undefined : globalThis.window;
-}
-
-function hasUpdateAll(value: unknown): value is ChartUpdateAdapter {
-    return (
-        isObjectRecord(value) &&
-        "updateAll" in value &&
-        typeof value["updateAll"] === "function"
-    );
-}
 
 function getThemeFromEvent(event: Event): string | undefined {
     if (!(event instanceof CustomEvent)) {
@@ -51,24 +31,15 @@ function updateChartsForTheme(
     theme?: string
 ): void {
     const stateManager = importedChartStateManager;
-    const globalWindow = getGlobalWindow();
 
     if (stateManager) {
         stateManager.handleThemeChange(theme);
         return;
     }
 
-    if (hasUpdateAll(globalWindow?.ChartUpdater)) {
-        globalWindow.ChartUpdater.updateAll(reason);
-        return;
-    }
-
-    if (hasUpdateAll(globalWindow?.chartUpdater)) {
-        globalWindow.chartUpdater.updateAll(reason);
-        return;
-    }
-
-    console.warn(unavailableMessage);
+    void updateCharts(reason).catch((error: unknown) => {
+        console.warn(unavailableMessage, error);
+    });
 }
 
 function hasChartData(): boolean {

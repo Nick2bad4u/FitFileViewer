@@ -229,6 +229,8 @@ const directOverlayHighlightGlobalPattern =
     /\b(?:window|globalThis|windowExt|w|getWin\(\)|overlayGlobal|getOverlayGlobal\(\)|getMapActionButtonsGlobal\(\))\._highlightedOverlayIdx\b|Object\.defineProperty\(\s*[^,\n]+,\s*["'](?:_highlightedOverlayIdx|updateOverlayHighlights)["']/u;
 const directShownFilesListGlobalPattern =
     /\b(?:window|globalThis|windowExt|overlayGlobal|getShownFilesGlobal\(\))\.updateShownFilesList\s*=/u;
+const directChartUpdaterGlobalPattern =
+    /\b(?:window|globalThis|windowExt|chartGlobal|globalWindow|lifecycleGlobal|getChartResizeGlobal\(\))\.(?:ChartUpdater|chartUpdater)\b/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1284,7 +1286,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(22);
+        expect.assertions(23);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1437,6 +1439,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directChartUpdaterGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directChartUpdaterGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1470,6 +1479,7 @@ describe("architecture boundaries", () => {
         expect(directAltFitGlobalSenderLookups).toStrictEqual([]);
         expect(directOverlayHighlightGlobalLookups).toStrictEqual([]);
         expect(directShownFilesListGlobalLookups).toStrictEqual([]);
+        expect(directChartUpdaterGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

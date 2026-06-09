@@ -55,6 +55,11 @@ const altFitMocks = vi.hoisted(() => ({
 const chartRenderMocks = vi.hoisted(() => ({
     renderChartJS: vi.fn<() => Promise<boolean> | boolean>(() => true),
 }));
+const chartUpdateMocks = vi.hoisted(() => ({
+    updateCharts: vi.fn<(reason: string) => Promise<boolean>>(() =>
+        Promise.resolve(true)
+    ),
+}));
 
 vi.mock(
     import("../../../../../../electron-app/utils/files/import/openFileSelector.js"),
@@ -93,6 +98,11 @@ vi.mock(
     () => chartRenderMocks
 );
 
+vi.mock(
+    import("../../../../../../electron-app/utils/charts/core/chartUpdater.js"),
+    () => chartUpdateMocks
+);
+
 const openFileSelectorMock = dependencyMocks.openFileSelector;
 
 // Import the module under test
@@ -110,7 +120,6 @@ declare global {
     interface Window {
         electronAPI: any;
         showFitData?: (...args: any[]) => any;
-        ChartUpdater?: { updateCharts: (reason?: string) => any };
         renderChartJS?: () => any;
         globalData?: any;
         showKeyboardShortcutsModal?: () => void;
@@ -266,6 +275,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         altFitMocks.sendFitFileToAltFitReader.mockReset();
         chartRenderMocks.renderChartJS.mockReset();
         chartRenderMocks.renderChartJS.mockReturnValue(true);
+        chartUpdateMocks.updateCharts.mockReset();
+        chartUpdateMocks.updateCharts.mockResolvedValue(true);
     });
 
     afterEach(() => {
@@ -283,7 +294,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         delete (globalThis as any).globalData;
         delete (globalThis as any).showFitData;
         delete (globalThis as any).sendFitFileToAltFitReader;
-        delete (globalThis as any).ChartUpdater;
         delete (globalThis as any).renderChartJS;
         delete (globalThis as any).copyTableAsCSV;
 
@@ -458,7 +468,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(openFileBtn.disabled).toBe(false);
     });
 
-    it("window resize triggers ChartUpdater.updateCharts when tab active", async () => {
+    it("window resize triggers typed chart updates when tab active", async () => {
         expect.hasAssertions();
 
         // Prepare active tab
@@ -466,10 +476,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         tab.id = "tab-chart";
         tab.classList.add("active");
         document.body.appendChild(tab);
-
-        window.ChartUpdater = {
-            updateCharts: vi.fn<(reason?: string) => void>(),
-        };
 
         setupListeners({
             openFileBtn,
@@ -484,13 +490,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.useFakeTimers();
         window.dispatchEvent(new Event("resize"));
         // run debounce timer
-        vi.advanceTimersByTime(210);
+        await vi.advanceTimersByTimeAsync(210);
         vi.useRealTimers();
 
         expect(
             document.getElementById("tab-chart")?.classList.contains("active")
         ).toBe(true);
-        expect(window.ChartUpdater.updateCharts).toHaveBeenCalledWith(
+        expect(chartUpdateMocks.updateCharts).toHaveBeenCalledWith(
             "window-resize"
         );
     });
@@ -1232,22 +1238,18 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        window.ChartUpdater = {
-            updateCharts: vi.fn<(reason?: string) => void>(),
-        };
-
         vi.useFakeTimers();
         window.dispatchEvent(new Event("resize"));
         // run debounce timer
-        vi.advanceTimersByTime(210);
+        await vi.advanceTimersByTimeAsync(210);
         vi.useRealTimers();
 
         // Should not call chart update when no chart tabs are active
         expect(document.getElementById("tab-chart")).toBeNull();
-        expect(window.ChartUpdater.updateCharts).not.toHaveBeenCalled();
+        expect(chartUpdateMocks.updateCharts).not.toHaveBeenCalled();
     });
 
-    it("window resize: chart tab active uses imported chart render fallback", async () => {
+    it("window resize: chart tab active uses imported chart render fallback when typed update fails", async () => {
         expect.hasAssertions();
 
         // Prepare active chart tab
@@ -1256,9 +1258,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         tab.classList.add("active");
         document.body.appendChild(tab);
 
-        (window as any).ChartUpdater = undefined;
-        (window as any).renderChartJS = undefined;
-
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1269,17 +1268,20 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
+        chartUpdateMocks.updateCharts.mockRejectedValueOnce(
+            new Error("update failed")
+        );
         vi.useFakeTimers();
         window.dispatchEvent(new Event("resize"));
         // run debounce timer
-        vi.advanceTimersByTime(210);
+        await vi.advanceTimersByTimeAsync(210);
         vi.useRealTimers();
 
         expect(tab.classList.contains("active")).toBe(true);
         expect(chartRenderMocks.renderChartJS).toHaveBeenCalledWith();
     });
 
-    it("window resize: chartjs tab active uses imported chart render fallback", async () => {
+    it("window resize: chartjs tab active uses imported chart render fallback when typed update fails", async () => {
         expect.hasAssertions();
 
         // Prepare active chartjs tab
@@ -1288,8 +1290,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         tab.classList.add("active");
         document.body.appendChild(tab);
 
-        (window as any).ChartUpdater = undefined;
-
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1300,10 +1300,13 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
+        chartUpdateMocks.updateCharts.mockRejectedValueOnce(
+            new Error("update failed")
+        );
         vi.useFakeTimers();
         window.dispatchEvent(new Event("resize"));
         // run debounce timer
-        vi.advanceTimersByTime(210);
+        await vi.advanceTimersByTimeAsync(210);
         vi.useRealTimers();
 
         expect(tab.id).toBe("tab-chartjs");
@@ -1948,10 +1951,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         tab.classList.add("active");
         document.body.appendChild(tab);
 
-        window.ChartUpdater = {
-            updateCharts: vi.fn<(reason?: string) => void>(),
-        };
-
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1974,7 +1973,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.useRealTimers();
 
         expect(tab.classList.contains("active")).toBe(true);
-        expect(window.ChartUpdater.updateCharts).toHaveBeenCalledWith(
+        expect(chartUpdateMocks.updateCharts).toHaveBeenCalledWith(
             "window-resize"
         );
     });

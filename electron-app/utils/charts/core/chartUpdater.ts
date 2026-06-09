@@ -2,11 +2,6 @@ import { chartStateManager } from "./chartStateManager.js";
 import { destroyRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import { renderChartJS } from "./renderChartJS.js";
 
-type ChartUpdaterGlobal = typeof globalThis & {
-    ChartUpdater?: typeof ChartUpdater;
-    chartUpdater?: typeof ChartUpdater;
-};
-
 /**
  * Snapshot of chart updater availability and runtime wiring.
  */
@@ -17,8 +12,6 @@ export type ChartUpdateSystemStatus = {
     readonly renderChartJSAvailable: boolean;
     readonly timestamp: string;
 };
-
-const chartGlobal = globalThis as ChartUpdaterGlobal;
 
 /**
  * Get status information about the chart update system.
@@ -185,10 +178,5 @@ export const ChartUpdater = {
     themeChange: updateChartsForThemeChange,
     update: updateCharts,
 };
-
-if (globalThis.window !== undefined) {
-    chartGlobal.ChartUpdater = ChartUpdater;
-    chartGlobal.chartUpdater = ChartUpdater;
-}
 
 export default ChartUpdater;

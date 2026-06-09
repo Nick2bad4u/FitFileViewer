@@ -2,11 +2,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 type ThemeChangeHandler = (theme?: string) => void;
-type UpdateAllHandler = (reason: string) => void;
+type UpdateChartsHandler = (reason: string) => Promise<boolean>;
 
 interface TestWindow extends Window {
-    ChartUpdater?: { updateAll: ReturnType<typeof vi.fn<UpdateAllHandler>> };
-    chartUpdater?: { updateAll: ReturnType<typeof vi.fn<UpdateAllHandler>> };
     globalData?: Record<string, never>;
 }
 
@@ -15,6 +13,9 @@ const { mockedChartStateManager } = vi.hoisted(() => ({
         handleThemeChange: vi.fn<ThemeChangeHandler>(),
     },
 }));
+const updateChartsMock = vi.hoisted(() =>
+    vi.fn<UpdateChartsHandler>(() => Promise.resolve(true))
+);
 
 vi.mock(
     import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
@@ -22,6 +23,22 @@ vi.mock(
         chartStateManager: mockedChartStateManager,
     })
 );
+
+vi.mock(
+    import("../../../../../electron-app/utils/charts/core/chartUpdater.js"),
+    () => ({
+        updateCharts: updateChartsMock,
+    })
+);
+
+function mockChartUpdaterModule(): void {
+    vi.doMock(
+        import("../../../../../electron-app/utils/charts/core/chartUpdater.js"),
+        () => ({
+            updateCharts: updateChartsMock,
+        })
+    );
+}
 
 async function importModule(): Promise<
     typeof import("../../../../../electron-app/utils/charts/theming/chartThemeListener.js")
@@ -53,8 +70,6 @@ function resetDocumentBody(): void {
 function resetGlobals(): void {
     const currentWindow = testWindow();
 
-    delete currentWindow.ChartUpdater;
-    delete currentWindow.chartUpdater;
     delete currentWindow.globalData;
 }
 
@@ -134,6 +149,8 @@ async function runWithCleanEnvironment(
     resetDocumentBody();
     resetGlobals();
     mockedChartStateManager.handleThemeChange.mockReset();
+    updateChartsMock.mockReset();
+    updateChartsMock.mockResolvedValue(true);
     vi.spyOn(console, "error").mockReturnValue(undefined);
     vi.spyOn(console, "log").mockReturnValue(undefined);
     vi.spyOn(console, "warn").mockReturnValue(undefined);
@@ -205,7 +222,7 @@ describe("chartThemeListener", () => {
         });
     });
 
-    it("falls back to ChartUpdater when chartStateManager is unavailable", async () => {
+    it("uses typed chart updates when chartStateManager is unavailable", async () => {
         expect.assertions(7);
 
         await runWithCleanEnvironment(async () => {
@@ -214,12 +231,11 @@ describe("chartThemeListener", () => {
                 import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
                 () => ({ chartStateManager: null })
             );
+            mockChartUpdaterModule();
 
             const { setupChartThemeListener } = await importModule();
             const settings = buildSettingsDOM();
-            const updateAll = vi.fn<UpdateAllHandler>();
             await setManagedGlobalData({ recordMesgs: [{}] });
-            testWindow().ChartUpdater = { updateAll };
 
             vi.useFakeTimers();
             setupChartThemeListener(document.createElement("div"), settings);
@@ -227,8 +243,10 @@ describe("chartThemeListener", () => {
                 new CustomEvent("themechange", { detail: { theme: "dark" } })
             );
             vi.advanceTimersByTime(200);
+            await Promise.resolve();
+            await Promise.resolve();
 
-            expect(updateAll).toHaveBeenCalledWith("Theme change");
+            expect(updateChartsMock).toHaveBeenCalledWith("Theme change");
 
             expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
 
@@ -236,7 +254,7 @@ describe("chartThemeListener", () => {
         });
     });
 
-    it("falls back to chartUpdater when ChartUpdater is unavailable", async () => {
+    it("warns when typed chart updates fail", async () => {
         expect.assertions(7);
 
         await runWithCleanEnvironment(async () => {
@@ -245,40 +263,12 @@ describe("chartThemeListener", () => {
                 import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
                 () => ({ chartStateManager: null })
             );
+            mockChartUpdaterModule();
 
             const { setupChartThemeListener } = await importModule();
             const settings = buildSettingsDOM();
-            const updateAll = vi.fn<UpdateAllHandler>();
-            await setManagedGlobalData({ recordMesgs: [{}] });
-            testWindow().chartUpdater = { updateAll };
-
-            vi.useFakeTimers();
-            setupChartThemeListener(document.createElement("div"), settings);
-            document.body.dispatchEvent(
-                new CustomEvent("themechange", { detail: { theme: "dark" } })
-            );
-            vi.advanceTimersByTime(200);
-
-            expect(updateAll).toHaveBeenCalledWith("Theme change");
-
-            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
-
-            expectSettingsThemeApplied(settings);
-        });
-    });
-
-    it("warns when no chart update mechanism is available", async () => {
-        expect.assertions(7);
-
-        await runWithCleanEnvironment(async () => {
-            vi.resetModules();
-            vi.doMock(
-                import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
-                () => ({ chartStateManager: null })
-            );
-
-            const { setupChartThemeListener } = await importModule();
-            const settings = buildSettingsDOM();
+            const error = new Error("update failed");
+            updateChartsMock.mockRejectedValueOnce(error);
             await setManagedGlobalData({ recordMesgs: [{}] });
 
             vi.useFakeTimers();
@@ -287,9 +277,47 @@ describe("chartThemeListener", () => {
                 new CustomEvent("themechange", { detail: { theme: "dark" } })
             );
             vi.advanceTimersByTime(200);
+            await Promise.resolve();
+            await Promise.resolve();
 
             expect(console.warn).toHaveBeenCalledWith(
-                "[ChartThemeListener] No chart update mechanism available"
+                "[ChartThemeListener] No chart update mechanism available",
+                error
+            );
+
+            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
+
+            expectSettingsThemeApplied(settings);
+        });
+    });
+
+    it("does not warn when typed fallback chart updates succeed", async () => {
+        expect.assertions(7);
+
+        await runWithCleanEnvironment(async () => {
+            vi.resetModules();
+            vi.doMock(
+                import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
+                () => ({ chartStateManager: null })
+            );
+            mockChartUpdaterModule();
+
+            const { setupChartThemeListener } = await importModule();
+            const settings = buildSettingsDOM();
+            await setManagedGlobalData({ recordMesgs: [{}] });
+
+            vi.useFakeTimers();
+            setupChartThemeListener(document.createElement("div"), settings);
+            document.body.dispatchEvent(
+                new CustomEvent("themechange", { detail: { theme: "dark" } })
+            );
+            vi.advanceTimersByTime(200);
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(console.warn).not.toHaveBeenCalledWith(
+                "[ChartThemeListener] No chart update mechanism available",
+                expect.anything()
             );
 
             expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
@@ -334,16 +362,17 @@ describe("chartThemeListener", () => {
                 import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
                 () => ({ chartStateManager: null })
             );
+            mockChartUpdaterModule();
 
             const { forceUpdateChartTheme } = await importModule();
-            const updateAll = vi.fn<UpdateAllHandler>();
             const settings = buildSettingsDOM();
             await setManagedGlobalData({ recordMesgs: [{}] });
-            testWindow().ChartUpdater = { updateAll };
 
             forceUpdateChartTheme(document.createElement("div"), settings);
+            await Promise.resolve();
+            await Promise.resolve();
 
-            expect(updateAll).toHaveBeenCalledWith("Force theme update");
+            expect(updateChartsMock).toHaveBeenCalledWith("Force theme update");
 
             expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
 
@@ -351,7 +380,7 @@ describe("chartThemeListener", () => {
         });
     });
 
-    it("force update falls back to chartUpdater", async () => {
+    it("force update warns when typed chart update fails", async () => {
         expect.assertions(8);
 
         await runWithCleanEnvironment(async () => {
@@ -360,45 +389,56 @@ describe("chartThemeListener", () => {
                 import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
                 () => ({ chartStateManager: null })
             );
+            mockChartUpdaterModule();
 
             const { forceUpdateChartTheme } = await importModule();
-            const updateAll = vi.fn<UpdateAllHandler>();
+            const error = new Error("force update failed");
             const settings = buildSettingsDOM();
-            await setManagedGlobalData({ recordMesgs: [{}] });
-            testWindow().chartUpdater = { updateAll };
-
-            expect(() =>
-                forceUpdateChartTheme(document.createElement("div"), settings)
-            ).not.toThrow();
-
-            expect(updateAll).toHaveBeenCalledWith("Force theme update");
-
-            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
-
-            expectSettingsThemeApplied(settings);
-        });
-    });
-
-    it("force update warns when no chart update mechanism is available", async () => {
-        expect.assertions(8);
-
-        await runWithCleanEnvironment(async () => {
-            vi.resetModules();
-            vi.doMock(
-                import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
-                () => ({ chartStateManager: null })
-            );
-
-            const { forceUpdateChartTheme } = await importModule();
-            const settings = buildSettingsDOM();
+            updateChartsMock.mockRejectedValueOnce(error);
             await setManagedGlobalData({ recordMesgs: [{}] });
 
             expect(() =>
                 forceUpdateChartTheme(document.createElement("div"), settings)
             ).not.toThrow();
+
+            await Promise.resolve();
+            await Promise.resolve();
 
             expect(console.warn).toHaveBeenCalledWith(
-                "[ChartThemeListener] No chart update mechanism available for force update"
+                "[ChartThemeListener] No chart update mechanism available for force update",
+                error
+            );
+
+            expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);
+
+            expectSettingsThemeApplied(settings);
+        });
+    });
+
+    it("force update does not warn when typed fallback chart updates succeed", async () => {
+        expect.assertions(8);
+
+        await runWithCleanEnvironment(async () => {
+            vi.resetModules();
+            vi.doMock(
+                import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
+                () => ({ chartStateManager: null })
+            );
+            mockChartUpdaterModule();
+
+            const { forceUpdateChartTheme } = await importModule();
+            const settings = buildSettingsDOM();
+            await setManagedGlobalData({ recordMesgs: [{}] });
+
+            expect(() =>
+                forceUpdateChartTheme(document.createElement("div"), settings)
+            ).not.toThrow();
+            await Promise.resolve();
+            await Promise.resolve();
+
+            expect(console.warn).not.toHaveBeenCalledWith(
+                "[ChartThemeListener] No chart update mechanism available for force update",
+                expect.anything()
             );
 
             expect(settings.querySelectorAll(".toggle-switch")).toHaveLength(2);

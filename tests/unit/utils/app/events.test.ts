@@ -117,9 +117,6 @@ type TestElectronAPI = {
 };
 
 type TestGlobals = typeof globalThis & {
-    ChartUpdater?: {
-        updateCharts: ReturnType<typeof vi.fn<(reason?: string) => unknown>>;
-    };
     electronAPI?: TestElectronAPI;
     globalData?: unknown;
     loadedFitFiles?: unknown[];
@@ -284,9 +281,6 @@ describe(setupListeners, () => {
         delete (globalAny as { __ffvMenuForwardRegistry?: Set<string> })
             .__ffvMenuForwardRegistry;
         defineGlobalValue("electronAPI", electronAPI);
-        defineGlobalValue("ChartUpdater", {
-            updateCharts: vi.fn<(reason?: string) => unknown>(),
-        });
         setActiveFitRawData({ recordMesgs: [] }, { source: "test" });
         csvExportMocks.serializeTableToCSV.mockReset();
         csvExportMocks.serializeTableToCSV.mockReturnValue("header\nvalue");
@@ -314,7 +308,6 @@ describe(setupListeners, () => {
         document.body.replaceChildren();
         globalAny.electronAPI = undefined;
         delete globalAny.showFitData;
-        delete globalAny.ChartUpdater;
         delete globalAny.globalData;
         delete globalAny.loadedFitFiles;
         delete globalAny.showKeyboardShortcutsModal;
