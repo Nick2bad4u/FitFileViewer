@@ -17,15 +17,15 @@ vi.mock(
 type CreateMapThemeToggleModule =
     typeof import("../../../../../electron-app/utils/theming/specific/createMapThemeToggle.js");
 
-type MapThemeToggleGlobal = typeof globalThis & {
-    __ffvMapThemeToggleListenersController?: AbortController;
-    __ffvMapThemeToggleListenersInstalled?: boolean;
-    __ffvMapThemeToggleUpdate?: () => void;
-    updateMapTheme?: () => void;
-};
-
 async function importCreateMapThemeToggle(): Promise<CreateMapThemeToggleModule> {
     return import("../../../../../electron-app/utils/theming/specific/createMapThemeToggle.js");
+}
+
+async function resetMapThemeToggleState(): Promise<void> {
+    const { resetMapThemeToggleStateForTests } =
+        await import("../../../../../electron-app/utils/theming/specific/mapThemeToggleState.js");
+
+    resetMapThemeToggleStateForTests();
 }
 
 async function importShowNotificationMock(): Promise<
@@ -46,15 +46,8 @@ function requireElement<TElement extends Element>(
 }
 
 describe("createMapThemeToggle", () => {
-    beforeEach(() => {
-        const appGlobal = globalThis as MapThemeToggleGlobal;
-
-        appGlobal.__ffvMapThemeToggleListenersController?.abort();
-        delete appGlobal.__ffvMapThemeToggleListenersController;
-        delete appGlobal.__ffvMapThemeToggleListenersInstalled;
-        delete appGlobal.__ffvMapThemeToggleUpdate;
-        delete appGlobal.updateMapTheme;
-
+    beforeEach(async () => {
+        await resetMapThemeToggleState();
         localStorage.clear();
         document.body.className = "theme-light";
         document.body.replaceChildren();
@@ -91,9 +84,8 @@ describe("createMapThemeToggle", () => {
     });
 
     it("creates button and toggles state with click", async () => {
-        expect.assertions(14);
+        expect.assertions(13);
 
-        const appGlobal = globalThis as MapThemeToggleGlobal;
         const eventController = new AbortController();
         const eventSpy = vi.fn<(event: Event) => void>();
         const { createMapThemeToggle, MAP_THEME_EVENTS } =
@@ -111,10 +103,6 @@ describe("createMapThemeToggle", () => {
             requireElement<SVGPathElement>(btn, "svg path").getAttribute("d")
         ).toBe("M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z");
 
-        appGlobal.updateMapTheme = () => {};
-        const updateMapThemeSpy = vi
-            .spyOn(appGlobal, "updateMapTheme")
-            .mockImplementation();
         document.addEventListener(MAP_THEME_EVENTS.CHANGED, eventSpy, {
             signal: eventController.signal,
         });
@@ -132,7 +120,6 @@ describe("createMapThemeToggle", () => {
             detail: { inverted: false },
             type: MAP_THEME_EVENTS.CHANGED,
         });
-        expect(updateMapThemeSpy).toHaveBeenCalledOnce();
         expect(showNotification).toHaveBeenCalledWith(
             "Map theme set to light",
             "success"

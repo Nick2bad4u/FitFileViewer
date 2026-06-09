@@ -249,6 +249,8 @@ const directActiveMainMapFileGlobalPattern =
     /\b(?:window|globalThis|windowExt|win|getWin\(\))\._activeMainFileIdx\b/u;
 const directAddFitOverlayButtonGlobalPattern =
     /\b(?:window|globalThis|globalRef)\.(?:__ffvAddFitOverlayButtonUpdate|__ffvAddFitOverlayButtonUnsubscribe)\b/u;
+const directMapThemeToggleGlobalPattern =
+    /\b(?:window|globalThis|appGlobal)\.(?:__ffvMapThemeToggleListenersController|__ffvMapThemeToggleListenersInstalled|__ffvMapThemeToggleUpdate|updateMapTheme)\b/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1304,7 +1306,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(32);
+        expect.assertions(33);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1527,6 +1529,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directMapThemeToggleGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directMapThemeToggleGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1570,6 +1579,7 @@ describe("architecture boundaries", () => {
         expect(directMapDataPointFilterGlobalLookups).toStrictEqual([]);
         expect(directActiveMainMapFileGlobalLookups).toStrictEqual([]);
         expect(directAddFitOverlayButtonGlobalLookups).toStrictEqual([]);
+        expect(directMapThemeToggleGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

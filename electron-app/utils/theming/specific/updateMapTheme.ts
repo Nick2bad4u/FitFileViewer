@@ -6,10 +6,8 @@
  * application theme.
  */
 
-import {
-    getMapThemeInverted,
-    MAP_THEME_EVENTS,
-} from "./createMapThemeToggle.js";
+import { getMapThemeInverted } from "./createMapThemeToggle.js";
+import { MAP_THEME_EVENTS } from "./mapThemeToggleState.js";
 
 let updateMapThemeListener: (() => void) | null = null;
 

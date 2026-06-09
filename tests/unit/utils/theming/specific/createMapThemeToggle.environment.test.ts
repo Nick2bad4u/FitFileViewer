@@ -31,14 +31,11 @@ vi.mock(
     })
 );
 
-function resetMapThemeToggleGlobals(): void {
-    Reflect.deleteProperty(
-        globalThis,
-        "__ffvMapThemeToggleListenersController"
-    );
-    Reflect.deleteProperty(globalThis, "__ffvMapThemeToggleListenersInstalled");
-    Reflect.deleteProperty(globalThis, "__ffvMapThemeToggleUpdate");
-    Reflect.deleteProperty(globalThis, "updateMapTheme");
+async function resetMapThemeToggleState(): Promise<void> {
+    const { resetMapThemeToggleStateForTests } =
+        await import("../../../../../electron-app/utils/theming/specific/mapThemeToggleState.js");
+
+    resetMapThemeToggleStateForTests();
 }
 
 function getMapThemeToggleState(button: HTMLElement): {
@@ -60,18 +57,18 @@ function getMapThemeToggleState(button: HTMLElement): {
 }
 
 describe("createMapThemeToggle environment handling", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         document.body.replaceChildren();
-        resetMapThemeToggleGlobals();
+        await resetMapThemeToggleState();
         getMapThemeSetting.mockReturnValue(true);
         setMapThemeSetting.mockClear();
         showNotification.mockClear();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         vi.restoreAllMocks();
         vi.unstubAllGlobals();
-        resetMapThemeToggleGlobals();
+        await resetMapThemeToggleState();
     });
 
     it("creates the toggle when global process is unavailable", async () => {

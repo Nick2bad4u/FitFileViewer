@@ -12,13 +12,10 @@ import {
 } from "../../state/domain/settingsStateManager.js";
 import { isTestEnvironment as isRuntimeTestEnvironment } from "../../runtime/processEnvironment.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-
-type MapThemeToggleGlobal = typeof globalThis & {
-    __ffvMapThemeToggleListenersController?: AbortController;
-    __ffvMapThemeToggleListenersInstalled?: boolean;
-    __ffvMapThemeToggleUpdate?: () => void;
-    updateMapTheme?: () => void;
-};
+import {
+    MAP_THEME_EVENTS,
+    registerMapThemeToggleUpdater,
+} from "./mapThemeToggleState.js";
 
 type MapThemeIconVariant = "moon" | "sun";
 type SvgRayCoordinates = readonly [
@@ -28,10 +25,6 @@ type SvgRayCoordinates = readonly [
     string,
 ];
 
-function getMapThemeToggleGlobal(): MapThemeToggleGlobal {
-    return globalThis;
-}
-
 function isTestEnvironment(): boolean {
     return isRuntimeTestEnvironment();
 }
@@ -40,12 +33,7 @@ function getThemeColorValue(value: unknown, fallback: string): string {
     return typeof value === "string" && value.length > 0 ? value : fallback;
 }
 
-/**
- * Custom map theme event names emitted by the map theme toggle.
- */
-export const MAP_THEME_EVENTS = {
-    CHANGED: "mapThemeChanged",
-} as const;
+export { MAP_THEME_EVENTS } from "./mapThemeToggleState.js";
 
 /**
  * Local storage key used for the map theme preference.
@@ -54,17 +42,6 @@ export const MAP_THEME_EVENTS = {
  */
 export const MAP_THEME_STORAGE_KEY = "ffv-map-theme-inverted";
 
-const mapThemeToggleUpdateTimers = new Set<ReturnType<typeof setTimeout>>();
-
-function scheduleMapThemeToggleUpdate(callback: () => void): void {
-    const timeout = setTimeout(() => {
-        mapThemeToggleUpdateTimers.delete(timeout);
-        callback();
-    }, 50);
-
-    mapThemeToggleUpdateTimers.add(timeout);
-}
-
 /**
  * Creates a map theme toggle button for controlling map inversion.
  *
@@ -72,8 +49,6 @@ function scheduleMapThemeToggleUpdate(callback: () => void): void {
  */
 export function createMapThemeToggle(): HTMLElement {
     try {
-        const appGlobal = getMapThemeToggleGlobal();
-
         // Prevent duplicate toggle creation when renderMap is invoked multiple times.
         const existing = document.querySelector(".map-theme-toggle");
         if (existing && existing instanceof HTMLElement) {
@@ -267,11 +242,6 @@ export function createMapThemeToggle(): HTMLElement {
                     setMapThemeInverted(newInverted);
                     updateButtonState();
 
-                    // Apply the theme change immediately
-                    if (appGlobal.updateMapTheme) {
-                        appGlobal.updateMapTheme();
-                    }
-
                     const action = newInverted ? "dark" : "light";
                     showNotification(`Map theme set to ${action}`, "success");
 
@@ -289,13 +259,9 @@ export function createMapThemeToggle(): HTMLElement {
             { signal: listenerController.signal }
         );
 
-        // Install global listeners once and register the updater for the currently-mounted toggle.
+        // Install document listeners once and register the updater for the currently-mounted toggle.
         // This avoids leaking document/body listeners when the map UI is re-rendered.
-        ensureMapThemeToggleGlobalListenersInstalled();
-        appGlobal.__ffvMapThemeToggleUpdate = () => {
-            // Small delay to ensure theme change is complete (CSS variables/classes applied)
-            scheduleMapThemeToggleUpdate(updateButtonState);
-        };
+        registerMapThemeToggleUpdater(updateButtonState);
 
         // Initial state update
         updateButtonState();
@@ -355,44 +321,5 @@ export function setMapThemeInverted(inverted: boolean): void {
             error
         );
         showNotification("Failed to save map theme preference", "error");
-    }
-}
-
-/**
- * Install global listeners once to avoid leaks when the map UI is re-rendered.
- * The listeners call a global callback reference that is replaced on each
- * toggle creation.
- */
-function ensureMapThemeToggleGlobalListenersInstalled(): void {
-    const appGlobal = getMapThemeToggleGlobal();
-
-    if (appGlobal.__ffvMapThemeToggleListenersInstalled === true) {
-        return;
-    }
-
-    appGlobal.__ffvMapThemeToggleListenersInstalled = true;
-
-    const listenerController = new AbortController();
-    appGlobal.__ffvMapThemeToggleListenersController = listenerController;
-
-    const invoke = (): void => {
-        try {
-            const fn = appGlobal.__ffvMapThemeToggleUpdate;
-            if (typeof fn === "function") {
-                fn();
-            }
-        } catch {
-            /* ignore */
-        }
-    };
-
-    // Use document-level listeners (themechange is dispatched on body, but document receives bubbled events too).
-    if (typeof document !== "undefined" && document) {
-        document.addEventListener("themechange", invoke, {
-            signal: listenerController.signal,
-        });
-        document.addEventListener(MAP_THEME_EVENTS.CHANGED, invoke, {
-            signal: listenerController.signal,
-        });
     }
 }
