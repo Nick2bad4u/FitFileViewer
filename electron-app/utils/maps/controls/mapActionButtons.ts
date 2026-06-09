@@ -65,10 +65,6 @@ type MapActionLeafletRuntime = {
 };
 
 type MapActionButtonsGlobal = typeof globalThis & {
-    __centerMainAttempts?: number;
-    __centerRetryHandle?: ReturnType<typeof setTimeout> | null;
-    __centerStatusNotified?: number;
-    __mainPolylineHighlightToken?: number;
     _leafletMapInstance?: LeafletMapInstance | null;
     _mainPolyline?: MapPolyline | null;
     _mainPolylineOriginalBounds?: MapBounds | null;
@@ -82,6 +78,10 @@ type ActiveFileNameElement = HTMLElement & {
 const activeTimers = new Set<ReturnType<typeof setTimeout>>();
 const CENTER_MAIN_MAX_ATTEMPTS = 8;
 const MAIN_POLYLINE_HIGHLIGHT_COLOR = "#1976d2";
+let centerMainAttempts = 0;
+let centerRetryHandle: ReturnType<typeof setTimeout> | null = null;
+let centerStatusNotified = 0;
+let mainPolylineHighlightToken = 0;
 
 function getMapActionButtonsGlobal(): MapActionButtonsGlobal {
     return globalThis;
@@ -94,7 +94,9 @@ function isMapLayer(value: unknown): value is MapLayer {
 function isMapActionLeafletRuntime(
     value: unknown
 ): value is MapActionLeafletRuntime {
-    return typeof value === "object" && value !== null && "CircleMarker" in value;
+    return (
+        typeof value === "object" && value !== null && "CircleMarker" in value
+    );
 }
 
 function scheduleMapActionTimeout(callback: () => void, delayMs: number): void {
@@ -105,26 +107,23 @@ function scheduleMapActionTimeout(callback: () => void, delayMs: number): void {
     activeTimers.add(handle);
 }
 
-function clearCenterRetryTimer(w: MapActionButtonsGlobal): void {
-    if (w.__centerRetryHandle) {
-        globalThis.clearTimeout(w.__centerRetryHandle);
+function clearCenterRetryTimer(): void {
+    if (centerRetryHandle) {
+        globalThis.clearTimeout(centerRetryHandle);
     }
-    w.__centerRetryHandle = null;
+    centerRetryHandle = null;
 }
 
-function scheduleCenterMapRetry(w: MapActionButtonsGlobal): void {
-    clearCenterRetryTimer(w);
-    w.__centerRetryHandle = globalThis.setTimeout(() => {
-        w.__centerRetryHandle = null;
+function scheduleCenterMapRetry(): void {
+    clearCenterRetryTimer();
+    centerRetryHandle = globalThis.setTimeout(() => {
+        centerRetryHandle = null;
         _centerMapOnMainFile();
     }, 150);
 }
 
-function getCenterMapAttempts(w: MapActionButtonsGlobal): number {
-    return typeof w.__centerMainAttempts === "number" &&
-        Number.isInteger(w.__centerMainAttempts)
-        ? w.__centerMainAttempts
-        : 0;
+function getCenterMapAttempts(): number {
+    return centerMainAttempts;
 }
 
 function getMainPolyline(w: MapActionButtonsGlobal): MapPolyline | null {
@@ -143,10 +142,10 @@ function hasValidMainPolylineBounds(w: MapActionButtonsGlobal): boolean {
     );
 }
 
-function resetCenterMapState(w: MapActionButtonsGlobal): void {
-    clearCenterRetryTimer(w);
-    w.__centerMainAttempts = 0;
-    w.__centerStatusNotified = 0;
+function resetCenterMapState(): void {
+    clearCenterRetryTimer();
+    centerMainAttempts = 0;
+    centerStatusNotified = 0;
 }
 
 function handleMissingMainPolyline(
@@ -154,17 +153,17 @@ function handleMissingMainPolyline(
     attempts: number
 ): void {
     if (attempts === 0) {
-        w.__centerStatusNotified = Date.now();
+        centerStatusNotified = Date.now();
         void showNotification("Centering map on main track...", "info");
     }
 
     if (w._leafletMapInstance && attempts < CENTER_MAIN_MAX_ATTEMPTS) {
-        w.__centerMainAttempts = attempts + 1;
-        scheduleCenterMapRetry(w);
+        centerMainAttempts = attempts + 1;
+        scheduleCenterMapRetry();
         return;
     }
 
-    resetCenterMapState(w);
+    resetCenterMapState();
 
     const noMap = !w._leafletMapInstance;
     const logFn = noMap ? console.info : console.warn;
@@ -176,8 +175,9 @@ function handleMissingMainPolyline(
 }
 
 function bringAssociatedMarkersToFront(polyline: MapPolyline): void {
-    const circleMarker = resolveLeafletRuntime(isMapActionLeafletRuntime)
-        ?.CircleMarker;
+    const circleMarker = resolveLeafletRuntime(
+        isMapActionLeafletRuntime
+    )?.CircleMarker;
     if (!circleMarker || !polyline._map?._layers) {
         return;
     }
@@ -197,10 +197,7 @@ function bringAssociatedMarkersToFront(polyline: MapPolyline): void {
     }
 }
 
-function highlightMainPolyline(
-    w: MapActionButtonsGlobal,
-    polyline: MapPolyline
-): void {
+function highlightMainPolyline(polyline: MapPolyline): void {
     const polyElem = polyline.getElement?.();
     if (!polyElem) {
         return;
@@ -211,11 +208,10 @@ function highlightMainPolyline(
     polyElem.style.filter = `drop-shadow(0 0 16px ${color})`;
 
     const highlightToken = Date.now();
-    w.__mainPolylineHighlightToken = highlightToken;
+    mainPolylineHighlightToken = highlightToken;
 
     scheduleMapActionTimeout(() => {
-        const w2 = getMapActionButtonsGlobal();
-        if (w2.__mainPolylineHighlightToken === highlightToken) {
+        if (mainPolylineHighlightToken === highlightToken) {
             polyElem.style.filter = `drop-shadow(0 0 8px ${color})`;
         }
     }, 250);
@@ -311,7 +307,7 @@ function _centerMapOnMainFile(): void {
         console.log("[mapActionButtons] Attempting to zoom to main polyline");
         const w = getMapActionButtonsGlobal();
 
-        const attempts = getCenterMapAttempts(w);
+        const attempts = getCenterMapAttempts();
         const mainPolyline = getMainPolyline(w);
         const hasValidBounds = hasValidMainPolylineBounds(w);
 
@@ -320,10 +316,10 @@ function _centerMapOnMainFile(): void {
             return;
         }
 
-        clearCenterRetryTimer(w);
-        w.__centerMainAttempts = 0;
-        const statusPending = Boolean(w.__centerStatusNotified);
-        w.__centerStatusNotified = 0;
+        clearCenterRetryTimer();
+        centerMainAttempts = 0;
+        const statusPending = Boolean(centerStatusNotified);
+        centerStatusNotified = 0;
 
         const polyline = mainPolyline;
 
@@ -331,10 +327,10 @@ function _centerMapOnMainFile(): void {
         polyline.bringToFront?.();
 
         // Bring associated markers to front
-    bringAssociatedMarkersToFront(polyline);
+        bringAssociatedMarkersToFront(polyline);
 
         // Add visual highlighting effect
-        highlightMainPolyline(w, polyline);
+        highlightMainPolyline(polyline);
 
         // Fit map bounds to main polyline only
         fitMapToMainPolyline(w, polyline, hasValidBounds);

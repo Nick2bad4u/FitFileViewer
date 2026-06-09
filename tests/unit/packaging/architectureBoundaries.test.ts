@@ -233,6 +233,8 @@ const directChartUpdaterGlobalPattern =
     /\b(?:window|globalThis|windowExt|chartGlobal|globalWindow|lifecycleGlobal|getChartResizeGlobal\(\))\.(?:ChartUpdater|chartUpdater)\b/u;
 const directMapMarkerCountGlobalPattern =
     /\b(?:window|globalThis|windowExt|globalRef|win|getWin\(\))\.mapMarkerCount\b/u;
+const directMapActionTimerGlobalPattern =
+    /\b(?:window|globalThis|windowExt|w|w2|getMapActionButtonsGlobal\(\))\.(?:__centerMainAttempts|__centerRetryHandle|__centerStatusNotified|__mainPolylineHighlightToken)\b/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1288,7 +1290,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(24);
+        expect.assertions(25);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1455,6 +1457,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directMapActionTimerGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directMapActionTimerGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1490,6 +1499,7 @@ describe("architecture boundaries", () => {
         expect(directShownFilesListGlobalLookups).toStrictEqual([]);
         expect(directChartUpdaterGlobalLookups).toStrictEqual([]);
         expect(directMapMarkerCountGlobalLookups).toStrictEqual([]);
+        expect(directMapActionTimerGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });
