@@ -7,10 +7,6 @@ type FilenameAutoScrollState = {
     timers: TimerHandle[];
 };
 
-type FilenameElementWithState = HTMLElement & {
-    __ffvFilenameAutoScrollState?: FilenameAutoScrollState;
-};
-
 const FILENAME_CONTAINER_RESERVED_WIDTH_PX = 50;
 const FILENAME_LABEL_GAP_PX = 8;
 const FILENAME_SCROLL_PADDING_PX = 20;
@@ -21,6 +17,11 @@ const CONTROL_BAR_RETRY_DELAY_MS = 100;
 const CONTROL_BAR_MAX_RETRIES = 50;
 
 const controlBarTimers = new Set<TimerHandle>();
+const filenameAutoScrollStates = new WeakMap<
+    HTMLElement,
+    FilenameAutoScrollState
+>();
+const trackedFilenameAutoScrollElements = new Set<HTMLElement>();
 
 function clearControlBarTimers(): void {
     for (const timer of controlBarTimers) {
@@ -41,17 +42,15 @@ function scheduleControlBarCheck(
     return timer;
 }
 
-function getActiveFilenameElement(): FilenameElementWithState | null {
-    const candidate = document.querySelector<FilenameElementWithState>(
-        "#active_file_name"
-    );
+function getActiveFilenameElement(): HTMLElement | null {
+    const candidate = document.querySelector<HTMLElement>("#active_file_name");
     return candidate instanceof HTMLElement ? candidate : null;
 }
 
 function cleanupExistingFilenameAutoScrollState(
-    filenameElement: FilenameElementWithState
+    filenameElement: HTMLElement
 ): void {
-    const existingState = filenameElement.__ffvFilenameAutoScrollState;
+    const existingState = filenameAutoScrollStates.get(filenameElement);
     if (!existingState) {
         return;
     }
@@ -62,7 +61,16 @@ function cleanupExistingFilenameAutoScrollState(
     for (const timer of existingState.timers) {
         globalThis.clearTimeout(timer);
     }
-    delete filenameElement.__ffvFilenameAutoScrollState;
+    filenameAutoScrollStates.delete(filenameElement);
+    trackedFilenameAutoScrollElements.delete(filenameElement);
+}
+
+export function resetUnifiedControlBarStateForTests(): void {
+    clearControlBarTimers();
+    for (const filenameElement of trackedFilenameAutoScrollElements) {
+        cleanupExistingFilenameAutoScrollState(filenameElement);
+    }
+    trackedFilenameAutoScrollElements.clear();
 }
 
 /**
@@ -133,13 +141,14 @@ export function initFilenameAutoScroll() {
         globalThis.setTimeout(checkScroll, FILENAME_SCROLL_SECONDARY_DELAY_MS),
     ];
 
-    // Store idempotency + cleanup state on the element.
-    filenameElement.__ffvFilenameAutoScrollState = {
+    // Keep idempotency and cleanup state private to this module.
+    filenameAutoScrollStates.set(filenameElement, {
         abortController,
         disconnect: () => observer.disconnect(),
         resizeHandler,
         timers,
-    };
+    });
+    trackedFilenameAutoScrollElements.add(filenameElement);
 }
 
 /**

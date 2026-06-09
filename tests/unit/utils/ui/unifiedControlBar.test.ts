@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
     initFilenameAutoScroll,
     initUnifiedControlBar,
+    resetUnifiedControlBarStateForTests,
 } from "../../../../electron-app/utils/ui/unifiedControlBar.js";
 
 type ObservedMutation = {
@@ -21,6 +22,7 @@ function setElementWidth(
 }
 
 function cleanupDomAndMocks(): void {
+    resetUnifiedControlBarStateForTests();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
     document.body.replaceChildren();
@@ -40,17 +42,13 @@ function getRequiredElement<T extends Element>(
 }
 
 function getFilenameScrollState(
-    filenameElement: HTMLElement & {
-        __ffvFilenameAutoScrollState?: { timers?: unknown[] };
-    },
+    filenameElement: HTMLElement,
     filenameText: HTMLElement
 ) {
     return {
         classList: [...filenameElement.classList],
         scrollDistance:
             filenameText.style.getPropertyValue("--scroll-distance"),
-        timerCount:
-            filenameElement.__ffvFilenameAutoScrollState?.timers?.length,
     };
 }
 
@@ -143,8 +141,8 @@ describe(initUnifiedControlBar, () => {
 });
 
 describe(initFilenameAutoScroll, () => {
-    it("enables filename scrolling and records observer cleanup state", () => {
-        expect.assertions(4);
+    it("enables filename scrolling and cleans up the previous observer on reinit", () => {
+        expect.assertions(5);
 
         vi.useFakeTimers();
 
@@ -174,9 +172,7 @@ describe(initFilenameAutoScroll, () => {
         vi.stubGlobal("MutationObserver", MutationObserverMock);
 
         const container = document.createElement("div");
-        const filenameElement = document.createElement("div") as HTMLElement & {
-            __ffvFilenameAutoScrollState?: unknown;
-        };
+        const filenameElement = document.createElement("div");
         const label = document.createElement("span");
         const filenameText = document.createElement("span");
         filenameElement.id = "active_file_name";
@@ -209,8 +205,10 @@ describe(initFilenameAutoScroll, () => {
             ).toStrictEqual({
                 classList: ["scrolling"],
                 scrollDistance: "218px",
-                timerCount: 2,
             });
+            expect("__ffvFilenameAutoScrollState" in filenameElement).toBe(
+                false
+            );
 
             initFilenameAutoScroll();
 
@@ -272,7 +270,6 @@ describe(initFilenameAutoScroll, () => {
             ).toStrictEqual({
                 classList: [],
                 scrollDistance: "",
-                timerCount: 2,
             });
             expect(filenameElement.classList.contains("scrolling")).not.toBe(
                 true

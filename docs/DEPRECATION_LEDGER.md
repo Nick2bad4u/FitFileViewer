@@ -53,6 +53,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - File-browser library cache migration status: decoded library scan payloads now go through `electron-app/utils/ui/browser/fileBrowserLibraryCache.ts` instead of the `__ffvLibraryCache` global.
 - Fullscreen button listener migration status: keydown and native fullscreen-change handler refs now stay in `electron-app/utils/ui/controls/addFullScreenButton.ts` module state instead of `__ffvFullscreenKeydownHandler` or `__ffvNativeFullscreenChangeHandler`.
 - Menu IPC forwarder migration status: duplicate-registration tracking for menu Save As and Export forwarding now stays in `electron-app/utils/app/lifecycle/menuIpcListeners.ts` module state instead of `__ffvMenuForwardRegistry`.
+- Filename auto-scroll migration status: active filename observer, resize, and timer cleanup state now stays in `electron-app/utils/ui/unifiedControlBar.ts` module state instead of `__ffvFilenameAutoScrollState` on the DOM element.
 - Next removal step: replace the remaining vendor-runtime compatibility globals with typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`
