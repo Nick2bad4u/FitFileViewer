@@ -39,6 +39,11 @@ import {
     subscribe,
 } from "../../../electron-app/utils/state/core/stateManager.js";
 import {
+    getRegisteredLeafletMapInstance,
+    resetRegisteredLeafletMapInstanceForTests,
+    setRegisteredLeafletMapInstance,
+} from "../../../electron-app/utils/maps/state/mapLeafletInstanceState.js";
+import {
     getVisibleTabContent,
     hideAllTabContent,
     initializeTabVisibilityState,
@@ -47,9 +52,6 @@ import {
 } from "../../../electron-app/utils/ui/tabs/updateTabVisibility.js";
 
 type GlobalWithMap = typeof globalThis & {
-    _leafletMapInstance?: {
-        invalidateSize: ReturnType<typeof vi.fn<InvalidateSize>>;
-    } | null;
     _miniMapControl?: {
         _miniMap?: {
             invalidateSize: ReturnType<typeof vi.fn<InvalidateSize>>;
@@ -160,13 +162,14 @@ describe(updateTabVisibility, () => {
     beforeEach(() => {
         vi.clearAllMocks();
         appendContentSections();
+        resetRegisteredLeafletMapInstanceForTests();
         warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         mockGetState.mockReturnValue("summary");
     });
 
     afterEach(() => {
         const globals = globalThis as GlobalWithMap;
-        delete globals._leafletMapInstance;
+        resetRegisteredLeafletMapInstanceForTests();
         delete globals._miniMapControl;
         warnSpy.mockRestore();
         document.body.replaceChildren();
@@ -336,9 +339,10 @@ describe(updateTabVisibility, () => {
 
         vi.useFakeTimers();
         const globals = globalThis as GlobalWithMap;
-        globals._leafletMapInstance = {
+        const mapInstance = {
             invalidateSize: vi.fn<InvalidateSize>(),
         };
+        setRegisteredLeafletMapInstance(mapInstance);
         globals._miniMapControl = {
             _miniMap: { invalidateSize: vi.fn<InvalidateSize>() },
         };
@@ -349,9 +353,11 @@ describe(updateTabVisibility, () => {
         expect(getContentSectionState("content_map")).toStrictEqual(
             getVisibleContentState("content_map")
         );
-        expect(globals._leafletMapInstance.invalidateSize).toHaveBeenCalledWith(
-            EXPECTED_INVALIDATE_SIZE_OPTIONS
-        );
+        expect(
+            getRegisteredLeafletMapInstance<{
+                invalidateSize: ReturnType<typeof vi.fn<InvalidateSize>>;
+            }>()?.invalidateSize
+        ).toHaveBeenCalledWith(EXPECTED_INVALIDATE_SIZE_OPTIONS);
         expect(
             globals._miniMapControl._miniMap?.invalidateSize
         ).toHaveBeenCalledWith();

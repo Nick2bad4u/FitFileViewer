@@ -237,6 +237,8 @@ const directMapActionTimerGlobalPattern =
     /\b(?:window|globalThis|windowExt|w|w2|getMapActionButtonsGlobal\(\))\.(?:__centerMainAttempts|__centerRetryHandle|__centerStatusNotified|__mainPolylineHighlightToken)\b/u;
 const directMapMeasureControlGlobalPattern =
     /\b(?:window|globalThis|windowExt|overlayGlobal|getShownFilesGlobal\(\))\._measureControl\b/u;
+const directLeafletMapInstanceGlobalPattern =
+    /\b(?:window|globalThis|windowExt|globals|rendererGlobal|overlayGlobal|getOverlayGlobal\(\)|getMapActionButtonsGlobal\(\))\._leafletMapInstance\b/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1292,7 +1294,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(26);
+        expect.assertions(27);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1473,6 +1475,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directLeafletMapInstanceGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directLeafletMapInstanceGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1510,6 +1519,7 @@ describe("architecture boundaries", () => {
         expect(directMapMarkerCountGlobalLookups).toStrictEqual([]);
         expect(directMapActionTimerGlobalLookups).toStrictEqual([]);
         expect(directMapMeasureControlGlobalLookups).toStrictEqual([]);
+        expect(directLeafletMapInstanceGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

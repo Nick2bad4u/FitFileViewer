@@ -6,6 +6,11 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
+    getRegisteredLeafletMapInstance,
+    resetRegisteredLeafletMapInstanceForTests,
+    setRegisteredLeafletMapInstance,
+} from "../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js";
+import {
     resetRegisteredMapMeasureControlForTests,
     setRegisteredMapMeasureControl,
 } from "../../../../electron-app/utils/maps/state/mapMeasureControlState.js";
@@ -180,6 +185,23 @@ function getOverlayState(): {
     };
 }
 
+function getRegisteredOverlayMapInstance(): {
+    fitBounds: ReturnType<
+        typeof vi.fn<(bounds: unknown, options: unknown) => void>
+    >;
+} {
+    const mapInstance = getRegisteredLeafletMapInstance<{
+        fitBounds: ReturnType<
+            typeof vi.fn<(bounds: unknown, options: unknown) => void>
+        >;
+    }>();
+    if (!mapInstance) {
+        throw new Error("Expected registered map instance");
+    }
+
+    return mapInstance;
+}
+
 function resetMapDrawLapsMocks(): void {
     mapDrawLapsMocks.highlightedOverlayIndex = null;
     mapDrawLapsMocks.getHighlightedOverlayIndex.mockImplementation(
@@ -336,6 +358,7 @@ describe("createShownFilesList", () => {
         // Reset mock functions and re-establish default return values
         vi.clearAllMocks();
         resetMapDrawLapsMocks();
+        resetRegisteredLeafletMapInstanceForTests();
         resetRegisteredMapMeasureControlForTests();
 
         // Re-establish default mock returns after clearing
@@ -349,7 +372,6 @@ describe("createShownFilesList", () => {
         const windowMock = global.window as any;
         loadedFitFilesFixture.files = [];
         windowMock._overlayPolylines = [];
-        windowMock._leafletMapInstance = null;
         windowMock._overlayTooltipTimeout = null;
         Object.assign(windowMock, {
             renderMap: vi.fn<() => void>(),
@@ -373,6 +395,7 @@ describe("createShownFilesList", () => {
     afterEach(() => {
         vi.clearAllMocks();
         vi.clearAllTimers();
+        resetRegisteredLeafletMapInstanceForTests();
         resetRegisteredMapMeasureControlForTests();
     });
 
@@ -1635,9 +1658,9 @@ describe("createShownFilesList", () => {
             };
 
             (global.window as any)._overlayPolylines = [null, mockPolyline];
-            (global.window as any)._leafletMapInstance = {
+            setRegisteredLeafletMapInstance({
                 fitBounds: vi.fn<(bounds: unknown, options: unknown) => void>(),
-            };
+            });
 
             loadedFitFilesFixture.files = [
                 { data: {}, filePath: "main.fit" },
@@ -1720,7 +1743,7 @@ describe("createShownFilesList", () => {
 
             expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(
-                (global.window as any)._leafletMapInstance.fitBounds
+                getRegisteredOverlayMapInstance().fitBounds
             ).toHaveBeenCalledWith(mockPolyline.getBounds(), {
                 padding: [20, 20],
             });
@@ -1741,13 +1764,13 @@ describe("createShownFilesList", () => {
             expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(mockUpdateOverlayHighlights).toHaveBeenCalledWith();
             expect(
-                (global.window as any)._leafletMapInstance.fitBounds
+                getRegisteredOverlayMapInstance().fitBounds
             ).not.toHaveBeenCalled();
         });
 
         it("handles missing map instance gracefully", () => {
             expect.assertions(3);
-            (global.window as any)._leafletMapInstance = null;
+            resetRegisteredLeafletMapInstanceForTests();
 
             const container = createShownFilesList();
             updateShownFilesList();
@@ -1777,7 +1800,7 @@ describe("createShownFilesList", () => {
             expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
             expect(
-                (global.window as any)._leafletMapInstance.fitBounds
+                getRegisteredOverlayMapInstance().fitBounds
             ).toHaveBeenCalledWith(mockPolyline.getBounds(), {
                 padding: [20, 20],
             });
@@ -1798,7 +1821,7 @@ describe("createShownFilesList", () => {
             expect(getOverlayState().highlightedOverlayIdx).toBe(1);
             expect(mockPolyline.bringToFront).toHaveBeenCalledWith();
             expect(
-                (global.window as any)._leafletMapInstance.fitBounds
+                getRegisteredOverlayMapInstance().fitBounds
             ).not.toHaveBeenCalled();
         });
     });

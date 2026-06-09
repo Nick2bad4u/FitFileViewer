@@ -39,14 +39,6 @@ type MapPolyline = {
 };
 
 type MapActionButtonTestGlobal = typeof globalThis & {
-    _leafletMapInstance?: {
-        fitBounds: (
-            bounds: MapBounds,
-            options: { padding: [number, number] }
-        ) => void;
-        getCenter: () => { lat: number; lng: number };
-        getZoom: () => number;
-    };
     _mainPolyline?: MapPolyline;
 };
 
@@ -65,7 +57,6 @@ function resetMapActionFixture(): void {
     document.body.replaceChildren();
 
     const testGlobal = getTestGlobal();
-    delete testGlobal._leafletMapInstance;
     delete testGlobal._mainPolyline;
     vi.clearAllMocks();
     mocks.highlightedOverlayIndex = null;
@@ -113,6 +104,14 @@ function installMapGlobals(): {
             (bounds: MapBounds, options: { padding: [number, number] }) => void
         >
     >;
+    mapInstance: {
+        fitBounds: (
+            bounds: MapBounds,
+            options: { padding: [number, number] }
+        ) => void;
+        getCenter: () => { lat: number; lng: number };
+        getZoom: () => number;
+    };
     polylineBringToFront: ReturnType<typeof vi.fn<() => void>>;
 } {
     const bounds: MapBounds = {
@@ -124,13 +123,13 @@ function installMapGlobals(): {
         vi.fn<
             (bounds: MapBounds, options: { padding: [number, number] }) => void
         >();
+    const mapInstance = {
+        fitBounds,
+        getCenter: () => ({ lat: 40, lng: -73 }),
+        getZoom: () => 12,
+    };
 
     Object.assign(getTestGlobal(), {
-        _leafletMapInstance: {
-            fitBounds,
-            getCenter: () => ({ lat: 40, lng: -73 }),
-            getZoom: () => 12,
-        },
         _mainPolyline: {
             bringToFront: polylineBringToFront,
             getBounds: () => bounds,
@@ -142,6 +141,7 @@ function installMapGlobals(): {
     return {
         bounds,
         fitBounds,
+        mapInstance,
         polylineBringToFront,
     };
 }
@@ -156,15 +156,18 @@ describe("mapActionButtons", () => {
 
         try {
             const { activeFileName, tabClicks } = mountMapActionDom();
-            const { bounds, fitBounds, polylineBringToFront } =
+            const { bounds, fitBounds, mapInstance, polylineBringToFront } =
                 installMapGlobals();
 
             const { setupActiveFileNameMapActions } =
                 await import("../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+            const { setRegisteredLeafletMapInstance } =
+                await import("../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js");
             const { setShownFilesListUpdater, updateShownFilesList } =
                 await import("../../../../electron-app/utils/rendering/components/shownFilesListUpdater.js");
             const listUpdater = vi.fn<() => void>();
             const disposeListUpdater = setShownFilesListUpdater(listUpdater);
+            setRegisteredLeafletMapInstance(mapInstance);
 
             expect(activeFileName.style.cursor).toBe("pointer");
             expect(activeFileName.title).toBe(

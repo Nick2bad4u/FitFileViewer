@@ -27,6 +27,10 @@ import {
     updateMapTheme,
 } from "../../theming/specific/updateMapTheme.js";
 import {
+    removeRegisteredLeafletMapInstance,
+    setRegisteredLeafletMapInstance,
+} from "../state/mapLeafletInstanceState.js";
+import {
     removeRegisteredMapMeasureControl,
     setRegisteredMapMeasureControl,
 } from "../state/mapMeasureControlState.js";
@@ -159,7 +163,6 @@ type WindowExtensions = typeof globalThis & {
     __ffvMapZoomDraggingRef?: { current: boolean };
     _drawControl?: DisposableControl | null;
     _drawnItems?: DrawnItemsLayerGroup | null;
-    _leafletMapInstance?: Leaflet.Map | null;
     _mainPolylineOriginalBounds?: LooseRecord | null;
     _miniMapControl?: DisposableControl | null;
     _overlayPolylines?: Record<string, OverlayPolyline> | null;
@@ -486,10 +489,7 @@ export function renderMap(): void {
     windowExt._miniMapControl = null;
 
     // Fix: Remove any previous Leaflet map instance to avoid grey background bug
-    if (windowExt._leafletMapInstance && windowExt._leafletMapInstance.remove) {
-        windowExt._leafletMapInstance.remove();
-        windowExt._leafletMapInstance = null;
-    }
+    removeRegisteredLeafletMapInstance();
 
     // If an old shown-files list exists, invoke its cleanup hook before removing DOM.
     try {
@@ -629,7 +629,7 @@ export function renderMap(): void {
     };
 
     const map = LeafletLib.map("leaflet-map", mapOptions);
-    windowExt._leafletMapInstance = map;
+    setRegisteredLeafletMapInstance(map);
 
     LeafletLib.control
         .layers(baseLayersForControl, undefined, {

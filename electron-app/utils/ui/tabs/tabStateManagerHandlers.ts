@@ -8,6 +8,7 @@ import {
     renderMap,
     waitForMapLeafletRuntime,
 } from "../../maps/core/renderMap.js";
+import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInstanceState.js";
 import { createTables } from "../../rendering/components/createTables.js";
 import { renderSummary } from "../../rendering/core/renderSummary.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
@@ -33,10 +34,6 @@ type LeafletMapInstance = {
     invalidateSize: (options?: { pan?: boolean }) => void;
 };
 
-type RendererGlobal = typeof globalThis & {
-    _leafletMapInstance?: LeafletMapInstance | null;
-};
-
 let mapInvalidationFrameId: number | undefined;
 let mapInvalidationSecondFrameId: number | undefined;
 let mapInvalidationTimeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -60,10 +57,6 @@ function clearPendingMapInvalidation(): void {
         clearTimeout(mapInvalidationTimeoutId);
         mapInvalidationTimeoutId = undefined;
     }
-}
-
-function getRendererGlobal(): RendererGlobal {
-    return globalThis;
 }
 
 function hasRenderedFlag(value: unknown): value is { isRendered?: boolean } {
@@ -254,7 +247,6 @@ export async function handleMapTab(
         return;
     }
 
-    const rendererGlobal = getRendererGlobal();
     const mapState = getStateMgr().getState("map");
     const isMapRendered =
         hasRenderedFlag(mapState) && mapState.isRendered === true;
@@ -267,7 +259,7 @@ export async function handleMapTab(
         return;
     }
 
-    const mapInstance = rendererGlobal._leafletMapInstance;
+    const mapInstance = getRegisteredLeafletMapInstance<LeafletMapInstance>();
 
     if (!mapInstance || typeof mapInstance.invalidateSize !== "function") {
         return;

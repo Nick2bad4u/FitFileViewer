@@ -4,6 +4,11 @@ import {
     clearLeafletRuntimeForTests,
     setLeafletRuntime,
 } from "../../../../../electron-app/utils/maps/core/leafletRuntime.js";
+import {
+    getRegisteredLeafletMapInstance,
+    resetRegisteredLeafletMapInstanceForTests,
+    setRegisteredLeafletMapInstance,
+} from "../../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js";
 import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import {
     __resetStateManagerForTests,
@@ -58,7 +63,6 @@ type BaseLayerLeafletStub = {
 };
 
 type RenderMapWindow = Window & {
-    _leafletMapInstance: LeafletMapStub | null;
     _overlayPolylines: Record<string, unknown>;
     globalData: { recordMesgs: unknown[]; sessionMesgs?: unknown[] };
     loadedFitFiles: unknown[];
@@ -310,6 +314,7 @@ describe("renderMap core", () => {
         __resetStateManagerForTests();
         vi.restoreAllMocks();
         clearLeafletRuntimeForTests();
+        resetRegisteredLeafletMapInstanceForTests();
         document.body.replaceChildren();
 
         // Ensure a container exists by default
@@ -321,7 +326,6 @@ describe("renderMap core", () => {
         const w = window as RenderMapWindow;
         setActiveFitTestData({ recordMesgs: [] });
         w._overlayPolylines = {};
-        w._leafletMapInstance = null;
         w.loadedFitFiles = [];
         mockCreateTables.mockReset();
         mockInvalidateChartRenderCache.mockReset();
@@ -432,13 +436,13 @@ describe("renderMap core", () => {
 
         // Seed previous map instance
         const previousMap = { remove: vi.fn<() => void>() };
-        (window as RenderMapWindow)._leafletMapInstance = previousMap;
+        setRegisteredLeafletMapInstance(previousMap);
 
         renderMap();
 
         // Previous instance removed and container cleared then repopulated
         expect(previousMap.remove).toHaveBeenCalledOnce();
-        expect((window as RenderMapWindow)._leafletMapInstance).toBe(map);
+        expect(getRegisteredLeafletMapInstance()).toBe(map);
         expect((container.firstChild as HTMLElement).id).toBe("leaflet-map");
     });
 

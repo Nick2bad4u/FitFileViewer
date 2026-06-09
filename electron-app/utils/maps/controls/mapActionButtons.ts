@@ -25,6 +25,7 @@ import { addEventListenerWithCleanup } from "../../ui/events/eventListenerManage
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
 import { setHighlightedOverlayIndex } from "../layers/mapDrawLaps.js";
+import { getRegisteredLeafletMapInstance } from "../state/mapLeafletInstanceState.js";
 
 type MapBounds = {
     isValid?: () => boolean;
@@ -65,7 +66,6 @@ type MapActionLeafletRuntime = {
 };
 
 type MapActionButtonsGlobal = typeof globalThis & {
-    _leafletMapInstance?: LeafletMapInstance | null;
     _mainPolyline?: MapPolyline | null;
     _mainPolylineOriginalBounds?: MapBounds | null;
     _overlayPolylines?: OverlayPolylineCollection;
@@ -148,16 +148,14 @@ function resetCenterMapState(): void {
     centerStatusNotified = 0;
 }
 
-function handleMissingMainPolyline(
-    w: MapActionButtonsGlobal,
-    attempts: number
-): void {
+function handleMissingMainPolyline(attempts: number): void {
     if (attempts === 0) {
         centerStatusNotified = Date.now();
         void showNotification("Centering map on main track...", "info");
     }
 
-    if (w._leafletMapInstance && attempts < CENTER_MAIN_MAX_ATTEMPTS) {
+    const mapInstance = getRegisteredLeafletMapInstance<LeafletMapInstance>();
+    if (mapInstance && attempts < CENTER_MAIN_MAX_ATTEMPTS) {
         centerMainAttempts = attempts + 1;
         scheduleCenterMapRetry();
         return;
@@ -165,7 +163,7 @@ function handleMissingMainPolyline(
 
     resetCenterMapState();
 
-    const noMap = !w._leafletMapInstance;
+    const noMap = !mapInstance;
     const logFn = noMap ? console.info : console.warn;
     const message = noMap
         ? "Map not ready for centering"
@@ -235,11 +233,11 @@ function getMainPolylineBounds(
     return null;
 }
 
-function logMapCenterAfterFit(w: MapActionButtonsGlobal): void {
+function logMapCenterAfterFit(mapInstance: LeafletMapInstance): void {
     scheduleMapActionTimeout(() => {
         try {
-            const center = w._leafletMapInstance?.getCenter?.();
-            const zoom = w._leafletMapInstance?.getZoom?.();
+            const center = mapInstance.getCenter?.();
+            const zoom = mapInstance.getZoom?.();
             const latitude = center ? String(center.lat) : "unknown";
             const longitude = center ? String(center.lng) : "unknown";
             const zoomText =
@@ -256,21 +254,22 @@ function logMapCenterAfterFit(w: MapActionButtonsGlobal): void {
 }
 
 function fitMapToMainPolyline(
-    w: MapActionButtonsGlobal,
     polyline: MapPolyline,
     hasValidBounds: boolean
 ): void {
-    if (!w._leafletMapInstance) {
+    const mapInstance = getRegisteredLeafletMapInstance<LeafletMapInstance>();
+    if (!mapInstance) {
         console.warn("[mapActionButtons] Leaflet map instance not available");
         void showNotification("Map not ready for centering", "warning");
         return;
     }
 
+    const w = getMapActionButtonsGlobal();
     const bounds = getMainPolylineBounds(w, polyline, hasValidBounds);
     if (bounds?.isValid?.()) {
         console.log("[mapActionButtons] Fitting map to bounds");
-        w._leafletMapInstance.fitBounds(bounds, { padding: [20, 20] });
-        logMapCenterAfterFit(w);
+        mapInstance.fitBounds(bounds, { padding: [20, 20] });
+        logMapCenterAfterFit(mapInstance);
         return;
     }
 
@@ -312,7 +311,7 @@ function _centerMapOnMainFile(): void {
         const hasValidBounds = hasValidMainPolylineBounds(w);
 
         if (!mainPolyline) {
-            handleMissingMainPolyline(w, attempts);
+            handleMissingMainPolyline(attempts);
             return;
         }
 
@@ -333,7 +332,7 @@ function _centerMapOnMainFile(): void {
         highlightMainPolyline(polyline);
 
         // Fit map bounds to main polyline only
-        fitMapToMainPolyline(w, polyline, hasValidBounds);
+        fitMapToMainPolyline(polyline, hasValidBounds);
 
         if (statusPending) {
             void showNotification("Centered on main track.", "success");

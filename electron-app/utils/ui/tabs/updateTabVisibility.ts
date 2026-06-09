@@ -3,6 +3,7 @@
  */
 
 import * as __StateMgr from "../../state/core/stateManager.js";
+import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInstanceState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import {
     buildIdVariants,
@@ -35,7 +36,6 @@ type StateManagerCandidate = Partial<StateManagerAccess>;
 type EffectiveGlobals = typeof globalThis & {
     __vitest_effective_document__?: Document;
     __vitest_effective_stateManager__?: unknown;
-    _leafletMapInstance?: LeafletMapInstance | null;
     _miniMapControl?: {
         _miniMap?: LeafletMiniMap | null;
     } | null;
@@ -355,7 +355,7 @@ export function updateTabVisibility(
  */
 function scheduleMapReflowRefresh(): void {
     const globals = getEffectiveGlobals();
-    const map = globals._leafletMapInstance;
+    const map = getRegisteredLeafletMapInstance<LeafletMapInstance>();
 
     if (!map || typeof map.invalidateSize !== "function") {
         return;

@@ -3,6 +3,7 @@ import {
     setHighlightedOverlayIndex,
 } from "../../maps/layers/mapDrawLaps.js";
 import { resolveLeafletRuntime } from "../../maps/core/leafletRuntime.js";
+import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInstanceState.js";
 import { removeLoadedFitFileAt } from "../../state/domain/loadedFitFilesState.js";
 import { updateShownFilesList } from "./shownFilesListUpdater.js";
 
@@ -49,17 +50,18 @@ type OverlayPolyline = {
 };
 
 type OverlayGlobal = typeof globalThis & {
-    _leafletMapInstance?: {
-        fitBounds: (
-            bounds: unknown,
-            options: {
-                padding: [number, number];
-            }
-        ) => void;
-    };
     _overlayPolylines?: readonly (OverlayPolyline | undefined)[];
     _overlayTooltipTimeout?: null | ReturnType<typeof setTimeout>;
     renderMap?: () => void;
+};
+
+type OverlayMapInstance = {
+    fitBounds: (
+        bounds: unknown,
+        options: {
+            padding: [number, number];
+        }
+    ) => void;
 };
 
 function getOverlayGlobal(): OverlayGlobal {
@@ -121,9 +123,9 @@ function bringMatchingOverlayMarkersToFront(polyline: OverlayPolyline): void {
 }
 
 function focusOverlayOnMap(polyline: OverlayPolyline): void {
-    const overlayGlobal = getOverlayGlobal();
-    if (polyline.getBounds && overlayGlobal._leafletMapInstance) {
-        overlayGlobal._leafletMapInstance.fitBounds(polyline.getBounds(), {
+    const mapInstance = getRegisteredLeafletMapInstance<OverlayMapInstance>();
+    if (polyline.getBounds && mapInstance) {
+        mapInstance.fitBounds(polyline.getBounds(), {
             padding: [20, 20],
         });
     }

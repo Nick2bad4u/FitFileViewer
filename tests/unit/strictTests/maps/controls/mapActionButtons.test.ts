@@ -44,7 +44,6 @@ describe("mapActionButtons", () => {
         document.body.replaceChildren(activeFileName, mapButton);
         Object.assign(window, {
             _overlayPolylines: [],
-            _leafletMapInstance: null,
             _mainPolylineOriginalBounds: null,
         });
         (window as any).L = undefined;
@@ -85,7 +84,9 @@ describe("mapActionButtons", () => {
         const fitBounds = vi.fn<FitBoundsFn>();
         const getCenter = vi.fn<GetCenterFn>(() => ({ lat: 1, lng: 2 }));
         const getZoom = vi.fn<GetZoomFn>(() => 10);
-        (window as any)._leafletMapInstance = { fitBounds, getCenter, getZoom };
+        const { setRegisteredLeafletMapInstance } =
+            await import("../../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js");
+        setRegisteredLeafletMapInstance({ fitBounds, getCenter, getZoom });
         const bounds = { isValid: () => true };
         (window as any)._mainPolylineOriginalBounds = bounds;
         const polylineElement = document.createElement("div");
@@ -115,11 +116,13 @@ describe("mapActionButtons", () => {
         expect.assertions(4);
 
         const fitBounds = vi.fn<FitBoundsFn>();
-        (window as any)._leafletMapInstance = {
+        const { setRegisteredLeafletMapInstance } =
+            await import("../../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js");
+        setRegisteredLeafletMapInstance({
             fitBounds,
             getCenter: vi.fn<GetCenterFn>(),
             getZoom: vi.fn<GetZoomFn>(),
-        };
+        });
         const poly = {
             options: { color: "#1976d2" },
             getBounds: () => ({ isValid: () => false }),
@@ -149,7 +152,9 @@ describe("mapActionButtons", () => {
         const fitBounds = vi.fn<FitBoundsFn>();
         const getCenter = vi.fn<GetCenterFn>(() => ({ lat: 0, lng: 0 }));
         const getZoom = vi.fn<GetZoomFn>(() => 12);
-        (window as any)._leafletMapInstance = { fitBounds, getCenter, getZoom };
+        const { setRegisteredLeafletMapInstance } =
+            await import("../../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js");
+        setRegisteredLeafletMapInstance({ fitBounds, getCenter, getZoom });
         const bounds = { isValid: () => true };
         (window as any)._mainPolylineOriginalBounds = bounds;
 
@@ -211,11 +216,13 @@ describe("mapActionButtons", () => {
 
             const fitBounds = vi.fn<FitBoundsFn>();
             const bounds = { isValid: () => true };
-            (window as any)._leafletMapInstance = {
+            const { setRegisteredLeafletMapInstance } =
+                await import("../../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js");
+            setRegisteredLeafletMapInstance({
                 fitBounds,
                 getCenter: vi.fn<GetCenterFn>(),
                 getZoom: vi.fn<GetZoomFn>(),
-            };
+            });
             (window as any)._mainPolylineOriginalBounds = bounds;
             (window as any)._overlayPolylines = [
                 {
