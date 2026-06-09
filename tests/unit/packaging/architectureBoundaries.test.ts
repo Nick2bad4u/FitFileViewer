@@ -235,6 +235,8 @@ const directMapMarkerCountGlobalPattern =
     /\b(?:window|globalThis|windowExt|globalRef|win|getWin\(\))\.mapMarkerCount\b/u;
 const directMapActionTimerGlobalPattern =
     /\b(?:window|globalThis|windowExt|w|w2|getMapActionButtonsGlobal\(\))\.(?:__centerMainAttempts|__centerRetryHandle|__centerStatusNotified|__mainPolylineHighlightToken)\b/u;
+const directMapMeasureControlGlobalPattern =
+    /\b(?:window|globalThis|windowExt|overlayGlobal|getShownFilesGlobal\(\))\._measureControl\b/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1290,7 +1292,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(25);
+        expect.assertions(26);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1464,6 +1466,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directMapMeasureControlGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directMapMeasureControlGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1500,6 +1509,7 @@ describe("architecture boundaries", () => {
         expect(directChartUpdaterGlobalLookups).toStrictEqual([]);
         expect(directMapMarkerCountGlobalLookups).toStrictEqual([]);
         expect(directMapActionTimerGlobalLookups).toStrictEqual([]);
+        expect(directMapMeasureControlGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

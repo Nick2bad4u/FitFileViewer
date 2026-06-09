@@ -5,6 +5,7 @@ import {
     getLoadedFitFiles,
     setLoadedFitFiles,
 } from "../../state/domain/loadedFitFilesState.js";
+import { clearRegisteredMapMeasurements } from "../../maps/state/mapMeasureControlState.js";
 import { attachOverlayListItemHandlers } from "./shownFilesListItemHandlers.js";
 import {
     setShownFilesListUpdater,
@@ -12,9 +13,6 @@ import {
 } from "./shownFilesListUpdater.js";
 
 type ShownFilesGlobal = typeof globalThis & {
-    _measureControl?: {
-        clearMeasurements?: () => void;
-    };
     _overlayTooltipTimeout?: null | ReturnType<typeof setTimeout>;
     renderMap?: () => void;
 };
@@ -528,7 +526,7 @@ export function createShownFilesList(): HTMLElement {
                     event.stopPropagation();
 
                     try {
-                        overlayGlobal._measureControl?.clearMeasurements?.();
+                        clearRegisteredMapMeasurements();
                     } catch {
                         // Ignore optional map measurement cleanup failures.
                     }

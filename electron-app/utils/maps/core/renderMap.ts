@@ -26,6 +26,10 @@ import {
     installUpdateMapThemeListeners,
     updateMapTheme,
 } from "../../theming/specific/updateMapTheme.js";
+import {
+    removeRegisteredMapMeasureControl,
+    setRegisteredMapMeasureControl,
+} from "../state/mapMeasureControlState.js";
 import { createAddFitFileToMapButton } from "../../ui/controls/createAddFitFileToMapButton.js";
 import { createDataPointFilterControl } from "../../ui/controls/createDataPointFilterControl.js";
 import { createElevationProfileButton } from "../../ui/controls/createElevationProfileButton.js";
@@ -157,7 +161,6 @@ type WindowExtensions = typeof globalThis & {
     _drawnItems?: DrawnItemsLayerGroup | null;
     _leafletMapInstance?: Leaflet.Map | null;
     _mainPolylineOriginalBounds?: LooseRecord | null;
-    _measureControl?: DisposableControl | null;
     _miniMapControl?: DisposableControl | null;
     _overlayPolylines?: Record<string, OverlayPolyline> | null;
 };
@@ -450,16 +453,10 @@ export function renderMap(): void {
     // Cleanup old plugin controls/references to avoid retaining old map instances via control closures.
     // Leaflet's map.remove() should handle most cleanup, but plugins occasionally attach document listeners.
     try {
-        if (
-            windowExt._measureControl &&
-            typeof windowExt._measureControl.remove === "function"
-        ) {
-            windowExt._measureControl.remove();
-        }
+        removeRegisteredMapMeasureControl();
     } catch {
         /* ignore */
     }
-    windowExt._measureControl = null;
 
     try {
         if (
@@ -1259,7 +1256,7 @@ export function renderMap(): void {
 
     const measureControl = addLeafletMeasurePluginControl(L, map);
     if (measureControl) {
-        windowExt._measureControl = measureControl;
+        setRegisteredMapMeasureControl(measureControl);
     }
 
     const drawPluginSetup = addLeafletDrawPluginControl({

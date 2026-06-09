@@ -5,6 +5,10 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import {
+    resetRegisteredMapMeasureControlForTests,
+    setRegisteredMapMeasureControl,
+} from "../../../../electron-app/utils/maps/state/mapMeasureControlState.js";
 
 type MockComputedStyle = { color: string };
 type MockGetComputedStyle = ReturnType<
@@ -332,6 +336,7 @@ describe("createShownFilesList", () => {
         // Reset mock functions and re-establish default return values
         vi.clearAllMocks();
         resetMapDrawLapsMocks();
+        resetRegisteredMapMeasureControlForTests();
 
         // Re-establish default mock returns after clearing
         mockGetThemeColors.mockReturnValue({
@@ -368,6 +373,7 @@ describe("createShownFilesList", () => {
     afterEach(() => {
         vi.clearAllMocks();
         vi.clearAllTimers();
+        resetRegisteredMapMeasureControlForTests();
     });
 
     describe("basic DOM Creation", () => {
@@ -1157,8 +1163,10 @@ describe("createShownFilesList", () => {
             });
         });
 
-        it("removes all overlays when clear all clicked", () => {
-            expect.assertions(4);
+        it("removes all overlays and measurements when clear all clicked", () => {
+            expect.assertions(5);
+            const clearMeasurements = vi.fn<() => void>();
+            setRegisteredMapMeasureControl({ clearMeasurements });
             const container = createShownFilesList();
             updateShownFilesList();
 
@@ -1167,6 +1175,7 @@ describe("createShownFilesList", () => {
             expect(loadedFitFilesFixture.files).toStrictEqual([
                 { data: {}, filePath: "main.fit" },
             ]);
+            expect(clearMeasurements).toHaveBeenCalledOnce();
             expect((global.window as any).renderMap).toHaveBeenCalledWith();
             expect(getOverlayItems(container)).toStrictEqual([]);
             expect(
