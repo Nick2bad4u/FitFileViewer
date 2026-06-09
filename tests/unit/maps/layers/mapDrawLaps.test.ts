@@ -16,6 +16,11 @@ import {
     setMapMarkerCount,
 } from "../../../../electron-app/utils/maps/state/mapMarkerCountState.js";
 import {
+    getRegisteredMapActivityLayerGroup,
+    getRegisteredMapDataPointMarkers,
+    resetMapActivityLayerStateForTests,
+} from "../../../../electron-app/utils/maps/state/mapActivityLayerState.js";
+import {
     getMainMapPolyline,
     getMainMapPolylineOriginalBounds,
     getOverlayMapPolylines,
@@ -167,7 +172,7 @@ describe("mapDrawLaps", () => {
 
         // Initialize global state
         resetMapPolylineRegistryForTests();
-        (globalThis as any)._ffvActivityLayerGroup = undefined;
+        resetMapActivityLayerStateForTests();
         (globalThis as any)._activeMainFileIdx = 0;
         setMapMarkerCount(10);
         setHighlightedOverlayIndex(null);
@@ -177,6 +182,7 @@ describe("mapDrawLaps", () => {
         clearLeafletRuntimeForTests();
         resetMapMarkerCount();
         resetMapPolylineRegistryForTests();
+        resetMapActivityLayerStateForTests();
     });
 
     const getPolylineCall = (
@@ -650,9 +656,7 @@ describe("mapDrawLaps", () => {
             });
             const activityGroup =
                 mockLeaflet.featureGroup.mock.results[0]?.value;
-            expect(activityGroup).toBe(
-                (globalThis as any).window._ffvActivityLayerGroup
-            );
+            expect(activityGroup).toBe(getRegisteredMapActivityLayerGroup());
             expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
 
             // Verify bounds handling
@@ -678,9 +682,7 @@ describe("mapDrawLaps", () => {
                 color: "#1976d2",
                 fillColor: "#fff",
             });
-            expect(
-                (globalThis as any).window._ffvDataPointMarkers
-            ).toHaveLength(3);
+            expect(getRegisteredMapDataPointMarkers()).toHaveLength(3);
 
             // Cleanup
             document.body.removeChild(mapContainer);
@@ -846,7 +848,7 @@ describe("mapDrawLaps", () => {
                 const activityGroup =
                     mockLeaflet.featureGroup.mock.results[0]?.value;
                 expect(activityGroup).toBe(
-                    (globalThis as any).window._ffvActivityLayerGroup
+                    getRegisteredMapActivityLayerGroup()
                 );
                 expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
             }
@@ -939,7 +941,7 @@ describe("mapDrawLaps", () => {
                 const activityGroup =
                     mockLeaflet.featureGroup.mock.results[0]?.value;
                 expect(activityGroup).toBe(
-                    (globalThis as any).window._ffvActivityLayerGroup
+                    getRegisteredMapActivityLayerGroup()
                 );
                 expect(mockPolyline.addTo).toHaveBeenCalledWith(activityGroup);
             }

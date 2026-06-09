@@ -20,6 +20,13 @@ import {
     type MapDataPointFilterConfig,
     type MetricRecord,
 } from "../filters/mapMetricFilter.js";
+import {
+    getRegisteredMapActivityLayerGroup,
+    getRegisteredMapDataPointMarkers,
+    registerMapDataPointMarker,
+    resetRegisteredMapDataPointMarkers,
+    setRegisteredMapActivityLayerGroup,
+} from "../state/mapActivityLayerState.js";
 import { getMapMarkerCount } from "../state/mapMarkerCountState.js";
 import {
     clearMainMapPolyline,
@@ -97,8 +104,6 @@ type FitDataLike = {
 
 type MapDrawWindowLike = typeof globalThis & {
     _activeMainFileIdx?: number;
-    _ffvActivityLayerGroup?: LayerTargetLike | null;
-    _ffvDataPointMarkers?: LeafletLayerLike[];
     mapDataPointFilter?: MapDataPointFilterConfig | null;
     mapDataPointFilterLastResult?: MetricFilterSummary | null;
 };
@@ -427,10 +432,10 @@ export function mapDrawLaps(
 ): void {
     // Resolve L dynamically for this invocation
     const L = getLeaflet();
+    const win = getWin();
     let lapIdx = requestedLapIdx;
 
-    const win = getWin();
-    let activityGroup = win._ffvActivityLayerGroup;
+    let activityGroup = getRegisteredMapActivityLayerGroup<LayerTargetLike>();
 
     if (!activityGroup || typeof activityGroup.clearLayers !== "function") {
         try {
@@ -446,7 +451,7 @@ export function mapDrawLaps(
         }
 
         if (activityGroup) {
-            win._ffvActivityLayerGroup = activityGroup;
+            setRegisteredMapActivityLayerGroup(activityGroup);
         }
     }
 
@@ -480,14 +485,11 @@ export function mapDrawLaps(
 
     // --- Always reset main polyline state at the start of a redraw ---
     clearMainMapPolyline();
-    getWin()._ffvDataPointMarkers = [];
+    resetRegisteredMapDataPointMarkers();
 
     const registerDataPointMarker = (marker: LeafletLayerLike): void => {
         try {
-            const reg = getWin()._ffvDataPointMarkers;
-            if (Array.isArray(reg)) {
-                reg.push(marker);
-            }
+            registerMapDataPointMarker(marker);
         } catch {
             /* ignore */
         }
@@ -495,11 +497,7 @@ export function mapDrawLaps(
 
     const bringDataPointMarkersToFront = () => {
         try {
-            const reg = getWin()._ffvDataPointMarkers;
-            if (!Array.isArray(reg)) {
-                return;
-            }
-            for (const m of reg) {
+            for (const m of getRegisteredMapDataPointMarkers<LeafletLayerLike>()) {
                 try {
                     m?.bringToFront?.();
                 } catch {
@@ -1738,12 +1736,7 @@ function applyOverlayPolylineHighlights(highlightedIdx?: number): void {
 }
 
 function bringRegisteredDataPointMarkersToFront(): void {
-    const markers = getWin()._ffvDataPointMarkers;
-    if (!Array.isArray(markers)) {
-        return;
-    }
-
-    for (const marker of markers) {
+    for (const marker of getRegisteredMapDataPointMarkers<LeafletLayerLike>()) {
         safelyBringLayerToFront(marker);
     }
 }
