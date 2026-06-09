@@ -25,10 +25,6 @@ vi.mock(
     () => processEnvironmentMock
 );
 
-declare global {
-    interface Window {}
-}
-
 // Hoisted module mocks for all imports used by main-ui.js
 const applyTheme = vi.fn<(theme: string) => void>();
 let listenCb: ((t: string) => void) | null = null;
