@@ -308,9 +308,30 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
                 return openButton !== null && !openButton.disabled;
             });
             await noNodeEnvPage.locator("#open_file_btn").click();
-            await expect(
-                noNodeEnvPage.locator("#active_file_name")
-            ).toContainText(sampleFitFileName);
+            await expect
+                .poll(async () => {
+                    const [uiState, activityDataCounts] = await Promise.all([
+                        noNodeEnvPage.evaluate(() => ({
+                            activeFileName:
+                                document
+                                    .querySelector("#active_file_name")
+                                    ?.textContent?.trim() ?? "",
+                            title: document.title,
+                        })),
+                        getRendererActivityDataCounts(noNodeEnvPage),
+                    ]);
+
+                    return {
+                        ...uiState,
+                        ...activityDataCounts,
+                    };
+                })
+                .toStrictEqual({
+                    activeFileName: sampleFitActivityState.activeFileName,
+                    recordCount: sampleFitActivityState.recordCount,
+                    sessionCount: sampleFitActivityState.sessionCount,
+                    title: sampleFitActivityState.title,
+                });
             const loadedState = await noNodeEnvPage.evaluate(() => {
                 const rendererGlobal = globalThis as typeof globalThis & {
                     process?: { env?: Record<string, string | undefined> };
