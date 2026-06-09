@@ -123,7 +123,6 @@ declare global {
         showFitData?: (...args: any[]) => any;
         renderChartJS?: () => any;
         globalData?: any;
-        showKeyboardShortcutsModal?: () => void;
     }
 }
 
@@ -796,15 +795,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         expect(dependencyMocks.keyboardShortcutsModal).toHaveBeenCalledWith();
 
-        // Second time: provide function so it calls directly
-        const showKeyboardShortcutsModal = vi.fn<KeyboardShortcutsModalMock>();
-        Object.defineProperty(globalThis, "showKeyboardShortcutsModal", {
-            configurable: true,
-            value: showKeyboardShortcutsModal,
-            writable: true,
-        });
-        window.electronAPI.emit("menu-keyboard-shortcuts");
-        expect(showKeyboardShortcutsModal).toHaveBeenCalledWith();
+        await window.electronAPI.emit("menu-keyboard-shortcuts");
+        expect(dependencyMocks.keyboardShortcutsModal).toHaveBeenCalledTimes(2);
+        expect("showKeyboardShortcutsModal" in globalThis).toBe(false);
     });
 
     it("updater events forward to showUpdateNotification", async () => {
@@ -2170,9 +2163,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     it("menu events: handles keyboard shortcuts without script function (lines 402-409)", async () => {
         expect.hasAssertions();
 
-        // Remove any existing script function to trigger the error path
-        delete (window as any).showKeyboardShortcutsModal;
-
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -2183,20 +2173,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        // First time - should try to load script
         electronAPI.emit("menu-keyboard-shortcuts");
 
-        // Wait for script loading attempt and error handling
         await vi.waitFor(() => {
             expect(
                 dependencyMocks.keyboardShortcutsModal
             ).toHaveBeenCalledWith();
         });
-        expect((globalThis as any).showKeyboardShortcutsModal).toBe(
-            dependencyMocks.keyboardShortcutsModal
-        );
+        expect("showKeyboardShortcutsModal" in globalThis).toBe(false);
 
-        // Second time - should go through already loaded path
         electronAPI.emit("menu-keyboard-shortcuts");
 
         await vi.waitFor(() => {

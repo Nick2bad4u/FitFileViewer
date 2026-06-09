@@ -121,9 +121,6 @@ type TestGlobals = typeof globalThis & {
     electronAPI?: TestElectronAPI;
     globalData?: unknown;
     loadedFitFiles?: unknown[];
-    showKeyboardShortcutsModal?: ReturnType<
-        typeof vi.fn<ShowKeyboardShortcutsModal>
-    >;
 };
 
 const globalAny = globalThis as TestGlobals;
@@ -310,7 +307,6 @@ describe(setupListeners, () => {
         delete globalAny.showFitData;
         delete globalAny.globalData;
         delete globalAny.loadedFitFiles;
-        delete globalAny.showKeyboardShortcutsModal;
     });
 
     it("delegates open file clicks to the provided handler", () => {
@@ -792,7 +788,6 @@ describe(setupListeners, () => {
 
     it("loads keyboard shortcuts module and invokes the modal presenter when available", async () => {
         expect.assertions(2);
-        delete globalAny.showKeyboardShortcutsModal;
 
         const handler = ipcHandlers.get("menu-keyboard-shortcuts");
         await handler?.();
@@ -800,14 +795,11 @@ describe(setupListeners, () => {
         expect(
             keyboardShortcutsModalMock.showKeyboardShortcutsModal
         ).toHaveBeenCalledOnce();
-        expect(globalAny.showKeyboardShortcutsModal).toBe(
-            keyboardShortcutsModalMock.showKeyboardShortcutsModal
-        );
+        expect("showKeyboardShortcutsModal" in globalAny).toBe(false);
     });
 
     it("does not use script tag injection for keyboard shortcuts", async () => {
         expect.assertions(3);
-        delete globalAny.showKeyboardShortcutsModal;
         const shortcutsHandler = requireHandler(
             ipcHandlers.get("menu-keyboard-shortcuts"),
             "menu-keyboard-shortcuts"
@@ -836,23 +828,17 @@ describe(setupListeners, () => {
         expect(showAboutModal).not.toHaveBeenCalled();
     });
 
-    it("invokes showKeyboardShortcutsModal when script already present", () => {
+    it("reuses the cached keyboard shortcuts module presenter", async () => {
         expect.assertions(2);
-        const showKeyboardShortcutsModal = vi.fn<ShowKeyboardShortcutsModal>(
-            () => {
-                document.body.dataset.shortcutsModal = "opened";
-            }
-        );
-        defineGlobalValue(
-            "showKeyboardShortcutsModal",
-            showKeyboardShortcutsModal
-        );
         const handler = requireHandler(
             ipcHandlers.get("menu-keyboard-shortcuts"),
             "menu-keyboard-shortcuts"
         );
-        handler();
-        expect(document.body.dataset.shortcutsModal).toBe("opened");
-        expect(globalAny.showKeyboardShortcutsModal).toHaveBeenCalledOnce();
+        await handler();
+        await handler();
+        expect(
+            keyboardShortcutsModalMock.showKeyboardShortcutsModal
+        ).toHaveBeenCalledTimes(2);
+        expect("showKeyboardShortcutsModal" in globalAny).toBe(false);
     });
 });

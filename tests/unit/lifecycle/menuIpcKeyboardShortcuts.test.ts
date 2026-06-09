@@ -5,6 +5,7 @@ import {
     registerMenuIpcListeners,
     resetMenuIpcListenerStateForTests,
 } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
+import { closeKeyboardShortcutsModal } from "../../../electron-app/utils/ui/modals/keyboardShortcutsModal.js";
 
 const modalFocusTrapMock = vi.hoisted(() => ({
     cleanup: vi.fn<() => void>(),
@@ -42,9 +43,7 @@ type MenuElectronApi = {
 };
 
 type MenuTestGlobal = typeof globalThis & {
-    closeKeyboardShortcutsModal?: () => void;
     electronAPI?: MenuElectronApi;
-    showKeyboardShortcutsModal?: () => void;
 };
 
 function getTestGlobal(): MenuTestGlobal {
@@ -88,9 +87,7 @@ function resetKeyboardShortcutsFixture(): void {
 
     const testGlobal = getTestGlobal();
     resetMenuIpcListenerStateForTests();
-    delete testGlobal.closeKeyboardShortcutsModal;
     delete testGlobal.electronAPI;
-    delete testGlobal.showKeyboardShortcutsModal;
 }
 
 function registerTestMenuListeners(): {
@@ -181,9 +178,7 @@ describe("menu keyboard shortcuts IPC listener", () => {
                 ],
                 modalDisplay: "flex",
             });
-            expect(getTestGlobal().showKeyboardShortcutsModal).toBeTypeOf(
-                "function"
-            );
+            expect("showKeyboardShortcutsModal" in getTestGlobal()).toBe(false);
             expect(
                 modalFocusTrapMock.createModalFocusTrap
             ).toHaveBeenCalledWith(
@@ -211,7 +206,7 @@ describe("menu keyboard shortcuts IPC listener", () => {
             );
 
             await keyboardShortcutsHandler();
-            getTestGlobal().closeKeyboardShortcutsModal?.();
+            closeKeyboardShortcutsModal();
 
             expect(modalFocusTrapMock.cleanup).toHaveBeenCalledTimes(1);
 

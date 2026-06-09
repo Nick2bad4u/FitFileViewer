@@ -9,6 +9,12 @@ const keyboardShortcutsModalMock = vi.hoisted(() => ({
     moduleHasExport: true,
     showKeyboardShortcutsModal: vi.fn<() => void>(),
 }));
+const accentColorPickerMock = vi.hoisted(() => ({
+    moduleHasExport: true,
+    openAccentColorPicker: vi.fn<() => void>(() => {
+        document.body.dataset["accentColorPicker"] = "opened";
+    }),
+}));
 
 vi.mock(
     import("../../../../../electron-app/utils/files/import/openFileSelector.js"),
@@ -23,6 +29,17 @@ vi.mock(
         get showKeyboardShortcutsModal() {
             return keyboardShortcutsModalMock.moduleHasExport
                 ? keyboardShortcutsModalMock.showKeyboardShortcutsModal
+                : undefined;
+        },
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/ui/modals/accentColorPicker.js"),
+    () => ({
+        get openAccentColorPicker() {
+            return accentColorPickerMock.moduleHasExport
+                ? accentColorPickerMock.openAccentColorPicker
                 : undefined;
         },
     })
@@ -62,8 +79,6 @@ type TestMenuElectronAPI = {
 
 type MenuIpcTestGlobal = typeof globalThis & {
     electronAPI?: TestMenuElectronAPI;
-    showAccentColorPicker?: () => void;
-    showKeyboardShortcutsModal?: () => void;
 };
 
 type MenuFixture = {
@@ -85,10 +100,10 @@ function cleanupFixture(): void {
     const holder = globalThis as MenuIpcTestGlobal;
     resetMenuIpcListenerStateForTests();
     delete holder.electronAPI;
-    delete holder.showAccentColorPicker;
-    delete holder.showKeyboardShortcutsModal;
     document.head.replaceChildren();
     openFileSelectorMock.mockReset();
+    accentColorPickerMock.moduleHasExport = true;
+    accentColorPickerMock.openAccentColorPicker.mockReset();
     keyboardShortcutsModalMock.moduleHasExport = true;
     keyboardShortcutsModalMock.showKeyboardShortcutsModal.mockReset();
     vi.restoreAllMocks();
@@ -174,29 +189,29 @@ describe(registerMenuIpcListeners, () => {
         }
     });
 
-    it("runs update, forwarding, about, and accent picker handlers", () => {
-        expect.assertions(5);
+    it("runs update, forwarding, about, and accent picker handlers", async () => {
+        expect.assertions(6);
 
         const fixture = setupFixture();
-        let accentPickerOpened = false;
-        (globalThis as MenuIpcTestGlobal).showAccentColorPicker = () => {
-            accentPickerOpened = true;
-        };
 
         try {
             getRequiredHandler(fixture.handlers, "menu-restart-update")();
             getRequiredHandler(fixture.handlers, "menu-save-as")();
             getRequiredHandler(fixture.handlers, "menu-export")();
             getRequiredHandler(fixture.handlers, "menu-about")();
-            getRequiredHandler(fixture.handlers, "open-accent-color-picker")();
+            await getRequiredHandler(
+                fixture.handlers,
+                "open-accent-color-picker"
+            )();
 
             expect(fixture.electronAPI.installUpdate).toHaveBeenCalledOnce();
             expect(fixture.electronAPI.requestSaveAs).toHaveBeenCalledOnce();
             expect(fixture.electronAPI.requestExport).toHaveBeenCalledOnce();
             expect(fixture.showAboutModal).toHaveBeenCalledOnce();
-            expect({ accentPickerOpened }).toStrictEqual({
-                accentPickerOpened: true,
-            });
+            expect(document.body.dataset["accentColorPicker"]).toBe("opened");
+            expect(
+                accentColorPickerMock.openAccentColorPicker
+            ).toHaveBeenCalledOnce();
         } finally {
             cleanupFixture();
         }
@@ -222,7 +237,7 @@ describe(registerMenuIpcListeners, () => {
         }
     });
 
-    it("loads the keyboard shortcuts module when the global modal is missing", async () => {
+    it("loads and caches the keyboard shortcuts module presenter", async () => {
         expect.assertions(3);
 
         const fixture = setupFixture();
@@ -236,9 +251,7 @@ describe(registerMenuIpcListeners, () => {
             expect(
                 keyboardShortcutsModalMock.showKeyboardShortcutsModal
             ).toHaveBeenCalledOnce();
-            expect(
-                (globalThis as MenuIpcTestGlobal).showKeyboardShortcutsModal
-            ).toBe(keyboardShortcutsModalMock.showKeyboardShortcutsModal);
+            expect("showKeyboardShortcutsModal" in globalThis).toBe(false);
             expect(fixture.debugMenuLog).toHaveBeenCalledWith(
                 "Keyboard shortcuts modal not loaded, importing dynamically..."
             );

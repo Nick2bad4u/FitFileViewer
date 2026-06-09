@@ -24,8 +24,6 @@ type MenuElectronAPI = Partial<
 
 type MenuIpcGlobal = typeof globalThis & {
     electronAPI?: MenuElectronAPI;
-    showAccentColorPicker?: () => void;
-    showKeyboardShortcutsModal?: () => void;
 };
 
 type RegisterMenuIpcListenersParams = {
@@ -55,6 +53,8 @@ const accentColorPickerModulePath =
 const keyboardShortcutsModalModulePath =
     "../../ui/modals/keyboardShortcutsModal.js" as const;
 
+let cachedAccentColorPicker: (() => void) | undefined;
+let cachedKeyboardShortcutsModal: (() => void) | undefined;
 const menuForwardRegistry = new Set<MenuSendChannel>();
 
 function getMenuIpcGlobal(): MenuIpcGlobal {
@@ -78,10 +78,8 @@ async function openAccentColorPickerFromModule({
             accentColorPickerModulePath
         )) as AccentColorPickerModule;
         if (typeof mod.openAccentColorPicker === "function") {
-            getMenuIpcGlobal().showAccentColorPicker = () => {
-                mod.openAccentColorPicker?.();
-            };
-            getMenuIpcGlobal().showAccentColorPicker?.();
+            cachedAccentColorPicker = mod.openAccentColorPicker;
+            cachedAccentColorPicker();
             return;
         }
 
@@ -130,9 +128,8 @@ async function openKeyboardShortcutsModalFromModule({
             keyboardShortcutsModalModulePath
         )) as KeyboardShortcutsModalModule;
         if (typeof mod.showKeyboardShortcutsModal === "function") {
-            getMenuIpcGlobal().showKeyboardShortcutsModal =
-                mod.showKeyboardShortcutsModal;
-            mod.showKeyboardShortcutsModal();
+            cachedKeyboardShortcutsModal = mod.showKeyboardShortcutsModal;
+            cachedKeyboardShortcutsModal();
             return;
         }
 
@@ -225,9 +222,8 @@ export function registerMenuIpcListeners({
 
     trackMenuEvent("onOpenAccentColorPicker", async () => {
         debugMenuLog("Opening accent color picker");
-        const globalAccentPicker = getMenuIpcGlobal().showAccentColorPicker;
-        if (typeof globalAccentPicker === "function") {
-            globalAccentPicker();
+        if (cachedAccentColorPicker) {
+            cachedAccentColorPicker();
             return;
         }
 
@@ -240,8 +236,7 @@ export function registerMenuIpcListeners({
     trackMenuEvent("onMenuKeyboardShortcuts", async () => {
         debugMenuLog("Keyboard shortcuts menu clicked - starting handler");
 
-        const globalKeyboardShortcutsModal =
-            getMenuIpcGlobal().showKeyboardShortcutsModal;
+        const globalKeyboardShortcutsModal = cachedKeyboardShortcutsModal;
         if (typeof globalKeyboardShortcutsModal !== "function") {
             debugMenuLog(
                 "Keyboard shortcuts modal not loaded, importing dynamically..."
@@ -264,5 +259,7 @@ export function registerMenuIpcListeners({
  * Reset module-owned listener registry state for isolated tests.
  */
 export function resetMenuIpcListenerStateForTests(): void {
+    cachedAccentColorPicker = undefined;
+    cachedKeyboardShortcutsModal = undefined;
     menuForwardRegistry.clear();
 }

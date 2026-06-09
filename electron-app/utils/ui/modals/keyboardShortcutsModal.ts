@@ -15,11 +15,6 @@ type ShortcutItem = {
     keys: string;
 };
 
-type KeyboardShortcutsGlobal = typeof globalThis & {
-    closeKeyboardShortcutsModal?: () => void;
-    showKeyboardShortcutsModal?: () => void;
-};
-
 let closeTimer: ReturnType<typeof setTimeout> | null = null;
 let focusTrapCleanup: (() => void) | undefined;
 let lastFocusedElement: HTMLElement | null = null;
@@ -764,9 +759,3 @@ export function showKeyboardShortcutsModal(): void {
     document.body.style.overflow = "hidden";
     console.log("Body scroll prevented");
 }
-
-// Also expose functions globally for direct access
-const keyboardShortcutsGlobal = globalThis as KeyboardShortcutsGlobal;
-keyboardShortcutsGlobal.showKeyboardShortcutsModal = showKeyboardShortcutsModal;
-keyboardShortcutsGlobal.closeKeyboardShortcutsModal =
-    closeKeyboardShortcutsModal;
