@@ -390,17 +390,6 @@ function getDragDropHandler(mainUiModule: MainUiModule) {
     return handler as DragDropHandlerUnderTest;
 }
 
-function getWindowFunction<T extends (...args: never[]) => unknown>(
-    name: string
-) {
-    const fn = Reflect.get(window, name);
-    if (typeof fn !== "function") {
-        throw new TypeError(`Expected window.${name} to be a function`);
-    }
-
-    return fn as T;
-}
-
 // Basic globals
 const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => {});
 const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
@@ -725,32 +714,26 @@ describe("main-ui.js core flows", () => {
         );
     });
 
-    it("does not expose development helpers in production mode", async () => {
+    it("does not expose development helpers as window globals", async () => {
         expect.assertions(2);
 
-        processEnvironmentMock.isTestEnvironment.mockReturnValue(false);
         await importMainUI();
 
         expect(Reflect.has(window, "devCleanup")).toBe(false);
         expect(Reflect.has(window, "injectMenu")).toBe(false);
     });
 
-    it("dev helpers injectMenu and devCleanup work", async () => {
+    it("development helper exports inject menu and cleanup", async () => {
         expect.assertions(6);
 
         const api = installElectronAPI();
-        await importMainUI();
-        const injectMenu =
-            getWindowFunction<(theme: string, fitFilePath: string) => void>(
-                "injectMenu"
-            );
-        injectMenu("dark", "path.fit");
+        const mainUiModule = await importMainUI();
+        mainUiModule.requestMainUiMenuInjection("dark", "path.fit");
         expect(api.injectMenu).toHaveBeenCalledWith("dark", "path.fit");
 
         mockState["charts.isRendered"] = true;
         mockState["ui.dragCounter"] = 3;
-        const devCleanup = getWindowFunction<() => void>("devCleanup");
-        devCleanup();
+        mainUiModule.runMainUiDevelopmentCleanup();
         expect(AppActions.clearData).toHaveBeenCalledOnce();
         expect(chartTabIntegration.destroy).toHaveBeenCalledOnce();
         expect(setState).toHaveBeenCalledWith("charts.isRendered", false, {

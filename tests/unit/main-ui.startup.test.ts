@@ -281,14 +281,16 @@ describe("main-ui.js - UI Controller and State Management", () => {
         vi.clearAllMocks();
         mocks.loadTheme.mockReturnValue("dark");
         vi.resetModules();
+        Reflect.deleteProperty(globalThis, "devCleanup");
         Reflect.deleteProperty(globalThis, "electronAPI");
+        Reflect.deleteProperty(globalThis, "injectMenu");
         Reflect.deleteProperty(globalThis, "showFitData");
         Reflect.deleteProperty(globalThis, "renderChartJS");
         Reflect.deleteProperty(globalThis, "cleanupEventListeners");
     });
 
     it("does not register renderer compatibility globals", async () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         await import("../../electron-app/main-ui.js");
         const mainUiGlobal = getMainUiTestGlobal();
@@ -298,6 +300,8 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect("renderChartJS" in mainUiGlobal).toBe(false);
         expect("cleanupEventListeners" in mainUiGlobal).toBe(false);
         expect("dragDropHandler" in mainUiGlobal).toBe(false);
+        expect("injectMenu" in mainUiGlobal).toBe(false);
+        expect("devCleanup" in mainUiGlobal).toBe(false);
     });
 
     it("initializes UI side effects when loaded", async () => {

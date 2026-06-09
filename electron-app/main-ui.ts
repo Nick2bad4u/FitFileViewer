@@ -8,10 +8,6 @@ import { resourceManager } from "./utils/app/lifecycle/resourceManager.js";
 import { chartTabIntegration } from "./utils/charts/core/chartTabIntegration.js";
 import { UI_CONSTANTS } from "./utils/config/constants.js";
 import { performanceMonitor } from "./utils/debug/stateDevTools.js";
-import {
-    isDevelopmentEnvironment,
-    isTestEnvironment,
-} from "./utils/runtime/processEnvironment.js";
 // State Management Integration
 import { setState } from "./utils/state/core/stateManager.js";
 import { fitFileStateManager } from "./utils/state/domain/fitFileState.js";
@@ -34,13 +30,6 @@ import { showNotification } from "./utils/ui/notifications/showNotification.js";
 import { setupExternalLinkHandlers } from "./utils/ui/setupExternalLinkHandlers.js";
 /* eslint-enable import-x/max-dependencies -- Keep the exception limited to the legacy composition imports above. */
 
-type MainUiGlobal = typeof globalThis & {
-    chartTabIntegration?: { destroy?: () => void };
-    devCleanup?: () => void;
-    electronAPI?: ElectronAPIWithDevFlags;
-    injectMenu?: (theme?: null | string, fitFilePath?: null | string) => void;
-};
-
 interface PerformanceMonitorLike {
     readonly endTimer?: (operationId: string) => void;
     readonly isEnabled?: (() => boolean) | boolean;
@@ -54,10 +43,6 @@ function getElectronAPI(): ElectronAPIWithDevFlags | undefined {
     return typeof api === "object" && api !== null
         ? (api as ElectronAPIWithDevFlags)
         : undefined;
-}
-
-function getMainUiGlobal(): MainUiGlobal {
-    return globalThis;
 }
 
 function isPerformanceMonitorEnabled(monitor: PerformanceMonitorLike): boolean {
@@ -309,92 +294,58 @@ if (document.readyState === "loading") {
     initializeExternalLinkHandlers();
 }
 
-function installDevelopmentHelpers(): void {
-    // Enhanced development helper function with better error handling
-    getMainUiGlobal().injectMenu = function injectMenu(
-        theme: null | string = null,
-        fitFilePath: null | string = null
-    ) {
-        try {
-            const api = getElectronAPI();
-            if (typeof api?.injectMenu === "function") {
-                void api.injectMenu(theme, fitFilePath);
-                logMainUi(
-                    "info",
-                    "[injectMenu] Requested menu injection with theme:",
-                    theme,
-                    "fitFilePath:",
-                    fitFilePath
-                );
-            } else {
-                logMainUi(
-                    "warn",
-                    "[injectMenu] electronAPI.injectMenu is not available."
-                );
-            }
-        } catch (error) {
+export function requestMainUiMenuInjection(
+    theme: null | string = null,
+    fitFilePath: null | string = null
+): void {
+    try {
+        const api = getElectronAPI();
+        if (typeof api?.injectMenu === "function") {
+            void api.injectMenu(theme, fitFilePath);
             logMainUi(
-                "error",
-                "[injectMenu] Error during menu injection:",
-                error
+                "info",
+                "[injectMenu] Requested menu injection with theme:",
+                theme,
+                "fitFilePath:",
+                fitFilePath
+            );
+        } else {
+            logMainUi(
+                "warn",
+                "[injectMenu] electronAPI.injectMenu is not available."
             );
         }
-    };
-
-    // Add cleanup function to development helpers with state management integration
-    getMainUiGlobal().devCleanup = function devCleanup(): void {
-        cleanupEventListeners();
-
-        // Clear state using the new system
-        AppActions.clearData();
-        setState("charts.isRendered", false, {
-            silent: false,
-            source: "devCleanup",
-        });
-        setState("ui.dragCounter", 0, {
-            silent: false,
-            source: "devCleanup",
-        });
-
-        // Clean up our new state managers
-        if (typeof chartTabIntegration.destroy === "function") {
-            chartTabIntegration.destroy();
-        }
-
-        // Cleanup all resources via resource manager
-        resourceManager.cleanupAll();
-
-        logMainUi(
-            "info",
-            "[devCleanup] Application state and event listeners cleaned up"
-        );
-    };
-
-    logMainUi("info", "[DEV] Development helpers available:");
-    logMainUi(
-        "info",
-        "- window.injectMenu(theme, fitFilePath) - Inject menu with specified theme and file path"
-    );
-    logMainUi(
-        "info",
-        "- window.devCleanup() - Clean up application state and event listeners"
-    );
-    logMainUi(
-        "info",
-        "- window.cleanupEventListeners() - Clean up all event listeners"
-    );
+    } catch (error) {
+        logMainUi("error", "[injectMenu] Error during menu injection:", error);
+    }
 }
 
-if (isDevelopmentEnvironment() || isTestEnvironment()) {
-    installDevelopmentHelpers();
-} else {
-    const mainUiGlobal = getMainUiGlobal();
-    if ("injectMenu" in mainUiGlobal) {
-        delete mainUiGlobal.injectMenu;
+export function runMainUiDevelopmentCleanup(): void {
+    cleanupEventListeners();
+
+    // Clear state using the new system
+    AppActions.clearData();
+    setState("charts.isRendered", false, {
+        silent: false,
+        source: "devCleanup",
+    });
+    setState("ui.dragCounter", 0, {
+        silent: false,
+        source: "devCleanup",
+    });
+
+    // Clean up our new state managers
+    if (typeof chartTabIntegration.destroy === "function") {
+        chartTabIntegration.destroy();
     }
-    if ("devCleanup" in mainUiGlobal) {
-        delete mainUiGlobal.devCleanup;
-    }
+
+    // Cleanup all resources via resource manager
+    resourceManager.cleanupAll();
+
+    logMainUi(
+        "info",
+        "[devCleanup] Application state and event listeners cleaned up"
+    );
 }
 
 // Initialize state managers
