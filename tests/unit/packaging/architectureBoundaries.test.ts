@@ -259,6 +259,8 @@ const directFullscreenHandlerGlobalPattern =
     /\b(?:window|globalThis|testGlobal|getFullscreenGlobal\(\))\.(?:__ffvFullscreenKeydownHandler|__ffvNativeFullscreenChangeHandler)\b/u;
 const directMenuForwardRegistryGlobalPattern =
     /\b(?:window|globalThis|holder|testGlobal|getMenuIpcGlobal\(\))\.__ffvMenuForwardRegistry\b/u;
+const directAppMenuExportsGlobalPattern =
+    /\b(?:window|globalThis|getMenuGlobal\(\))\.__FFV_createAppMenuExports\b|["']__FFV_createAppMenuExports["']/u;
 const directFilenameAutoScrollStateExpandoPattern =
     /\b(?:filenameElement|element)\.__ffvFilenameAutoScrollState\b/u;
 const directQuickColorSwitcherStateExpandoPattern =
@@ -1324,7 +1326,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(42);
+        expect.assertions(43);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1582,6 +1584,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directAppMenuExportsGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directAppMenuExportsGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directFilenameAutoScrollStateExpandoLookups = scannedFiles
             .filter((relativeFile) =>
                 directFilenameAutoScrollStateExpandoPattern.test(
@@ -1665,6 +1674,7 @@ describe("architecture boundaries", () => {
         expect(directFileBrowserLibraryCacheGlobalLookups).toStrictEqual([]);
         expect(directFullscreenHandlerGlobalLookups).toStrictEqual([]);
         expect(directMenuForwardRegistryGlobalLookups).toStrictEqual([]);
+        expect(directAppMenuExportsGlobalLookups).toStrictEqual([]);
         expect(directFilenameAutoScrollStateExpandoLookups).toStrictEqual([]);
         expect(directQuickColorSwitcherStateExpandoLookups).toStrictEqual([]);
         expect(directMapActionCleanupExpandoLookups).toStrictEqual([]);

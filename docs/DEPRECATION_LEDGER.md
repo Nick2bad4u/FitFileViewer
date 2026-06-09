@@ -58,6 +58,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Map action button migration status: active filename click, keyboard, hover, and cleanup listener state now stays in `electron-app/utils/maps/controls/mapActionButtons.ts` module state instead of `__ffvMapActionCleanup` on the DOM element.
 - Map measurement Escape-key migration status: measurement Escape handler replacement and disposal now stays in `electron-app/utils/maps/controls/mapMeasureTool.ts` module state instead of `__ffvMapMeasureEscapeHandler` on the global object.
 - Map lap selector migration status: multi-lap drag mouseup replacement and disposal now stays in `electron-app/utils/maps/controls/mapLapSelector.ts` module state instead of `__ffvLapSelectorMouseupHandler` on the global object.
+- App menu export migration status: `createAppMenu` now uses ordinary module exports through `electron-app/utils/app/menu/createAppMenu.ts` and `electron-app/utils/app/menu/index.ts` instead of the `__FFV_createAppMenuExports` global bridge.
 - Next removal step: replace the remaining vendor-runtime compatibility globals with typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`

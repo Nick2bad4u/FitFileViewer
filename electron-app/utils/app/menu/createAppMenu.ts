@@ -73,7 +73,6 @@ type FileAccessPolicy = {
 
 type FitFileViewerGlobal = typeof globalThis & {
     __electronHoistedMock?: ElectronLike;
-    __FFV_createAppMenuExports?: { createAppMenu: typeof createAppMenu };
     __FFV_debugMenu?: boolean;
     __lastBuiltMenuTemplate?: MenuItemLike[];
     __mockRecentFiles?: unknown;
@@ -1160,22 +1159,6 @@ function setTheme(theme: string): void {
     getConf().set("theme", theme);
 }
 
-const createAppMenuExports = { createAppMenu };
-
-if (typeof globalThis !== "undefined") {
-    try {
-        Object.defineProperty(globalThis, "__FFV_createAppMenuExports", {
-            configurable: true,
-            enumerable: false,
-            value: createAppMenuExports,
-            writable: true,
-        });
-    } catch {
-        // Fallback if defineProperty fails (e.g., frozen globalThis)
-        getMenuGlobal().__FFV_createAppMenuExports = createAppMenuExports;
-    }
-}
-
 if (typeof module !== "undefined" && module && module.exports) {
-    module.exports = createAppMenuExports;
+    module.exports = { createAppMenu };
 }

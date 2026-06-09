@@ -10,19 +10,6 @@ type LoadRecentFiles = () => string[];
 
 const createMock = (): Mock<AnyMockFn> => vi.fn<AnyMockFn>();
 
-function getRequiredMockResult<T>(
-    results: Array<{ type: string; value?: T }>,
-    index: number
-): { type: string; value?: T } {
-    const result = results[index];
-
-    if (!result) {
-        throw new Error(`Expected mock result ${index}`);
-    }
-
-    return result;
-}
-
 function pickMenuFields(
     item: Record<string, unknown>,
     fields: string[]
@@ -76,9 +63,6 @@ describe("createAppMenu", () => {
     beforeEach(() => {
         capturedTemplate = null;
         vi.resetModules();
-        try {
-            delete (globalThis as any).__FFV_createAppMenuExports;
-        } catch {}
         // Default recent files mock for most tests (can be overridden in a specific test)
         vi.doMock(
             import("../../../electron-app/utils/files/recent/recentFiles"),
@@ -1280,9 +1264,6 @@ describe("createAppMenu - additional robust branches", () => {
     beforeEach(() => {
         capturedTemplate = null;
         vi.resetModules();
-        try {
-            delete (globalThis as any).__FFV_createAppMenuExports;
-        } catch {}
         vi.doMock(
             import("../../../electron-app/utils/files/recent/recentFiles"),
             () => ({
@@ -1722,53 +1703,17 @@ describe("createAppMenu - additional robust branches", () => {
         });
     });
 
-    it("falls back to assigning exports when defineProperty throws", () => {
-        expect.assertions(3);
-        const originalDefineProperty = Object.defineProperty;
-        const defineSpy = vi
-            .spyOn(Object, "defineProperty")
-            .mockImplementation(
-                (
-                    target: any,
-                    property: PropertyKey,
-                    descriptor: PropertyDescriptor
-                ) => {
-                    if (property === "__FFV_createAppMenuExports") {
-                        throw new Error("defineProperty blocked");
-                    }
-                    return originalDefineProperty(target, property, descriptor);
-                }
-            );
+    it("exports createAppMenu without publishing a global bridge", () => {
+        expect.assertions(2);
+        const modulePath =
+            require.resolve("../../../electron-app/utils/app/menu/createAppMenu.js");
+        delete require.cache[modulePath];
 
-        try {
-            delete (globalThis as any).__FFV_createAppMenuExports;
-            const modulePath =
-                require.resolve("../../../electron-app/utils/app/menu/createAppMenu.js");
-            delete require.cache[modulePath];
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const mod = require("../../../electron-app/utils/app/menu/createAppMenu.js");
-            expect(mod.createAppMenu).toBeTypeOf("function");
-            const defineMock = vi.mocked(defineSpy);
-            const calls = defineMock.mock.calls as Array<
-                [
-                    any,
-                    PropertyKey,
-                    PropertyDescriptor,
-                ]
-            >;
-            const targetedIndex = calls.findIndex(
-                ([, prop]) => prop === "__FFV_createAppMenuExports"
-            );
-            expect(targetedIndex).not.toBe(-1);
-            const results = defineMock.mock.results as Array<{ type: string }>;
-            expect(getRequiredMockResult(results, targetedIndex).type).toBe(
-                "throw"
-            );
-        } finally {
-            defineSpy.mockRestore();
-            delete (globalThis as any).__FFV_createAppMenuExports;
-            vi.resetModules();
-        }
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const mod = require("../../../electron-app/utils/app/menu/createAppMenu.js");
+
+        expect(mod.createAppMenu).toBeTypeOf("function");
+        expect((globalThis as any).__FFV_createAppMenuExports).toBeUndefined();
     });
 
     it("executes all menu click handlers without throwing", async () => {
