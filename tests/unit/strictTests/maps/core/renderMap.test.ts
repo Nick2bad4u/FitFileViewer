@@ -129,6 +129,7 @@ vi.mock(
     import("../../../../../electron-app/utils/maps/layers/mapDrawLaps.js"),
     () => ({
         drawOverlayForFitFile: vi.fn<() => void>(),
+        getHighlightedOverlayIndex: vi.fn<() => null | number>(() => null),
         mapDrawLaps: vi.fn<() => void>(),
         updateOverlayHighlights: vi.fn<() => void>(),
     })

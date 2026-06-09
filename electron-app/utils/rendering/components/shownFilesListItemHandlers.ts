@@ -1,4 +1,7 @@
-import { updateOverlayHighlights } from "../../maps/layers/mapDrawLaps.js";
+import {
+    getHighlightedOverlayIndex,
+    setHighlightedOverlayIndex,
+} from "../../maps/layers/mapDrawLaps.js";
 import { resolveLeafletRuntime } from "../../maps/core/leafletRuntime.js";
 import { removeLoadedFitFileAt } from "../../state/domain/loadedFitFilesState.js";
 import { updateShownFilesList } from "./shownFilesListUpdater.js";
@@ -46,7 +49,6 @@ type OverlayPolyline = {
 };
 
 type OverlayGlobal = typeof globalThis & {
-    _highlightedOverlayIdx?: number | null;
     _leafletMapInstance?: {
         fitBounds: (
             bounds: unknown,
@@ -140,7 +142,7 @@ function highlightPolylineElement(
     polylineElement.style.transition = "filter 0.2s";
     polylineElement.style.filter = `drop-shadow(0 0 16px ${color})`;
     return setTimeout(() => {
-        if (getOverlayGlobal()._highlightedOverlayIdx === overlayIndex) {
+        if (getHighlightedOverlayIndex() === overlayIndex) {
             polylineElement.style.filter = `drop-shadow(0 0 8px ${color})`;
         }
     }, 250);
@@ -161,7 +163,7 @@ function showOverlayTooltip({
     overlayIndex: number;
     showWarning: boolean;
 }): void {
-    if (getOverlayGlobal()._highlightedOverlayIdx !== overlayIndex) {
+    if (getHighlightedOverlayIndex() !== overlayIndex) {
         return;
     }
 
@@ -292,10 +294,8 @@ export function attachOverlayListItemHandlers({
     listItem.addEventListener(
         "click",
         () => {
-            const overlayGlobal = getOverlayGlobal();
             assignKeyboardFocus(overlayIndex);
-            overlayGlobal._highlightedOverlayIdx = overlayIndex;
-            updateOverlayHighlights();
+            setHighlightedOverlayIndex(overlayIndex);
             listItem._tooltipRemover?.();
 
             const polyline = getOverlayPolyline(overlayIndex);
@@ -323,8 +323,7 @@ export function attachOverlayListItemHandlers({
         "mouseenter",
         (event) => {
             const overlayGlobal = getOverlayGlobal();
-            overlayGlobal._highlightedOverlayIdx = overlayIndex;
-            updateOverlayHighlights();
+            setHighlightedOverlayIndex(overlayIndex);
             removeBtn.style.opacity = "1";
 
             clearOverlayTooltipTimeout();
@@ -347,8 +346,7 @@ export function attachOverlayListItemHandlers({
     listItem.addEventListener(
         "mouseleave",
         () => {
-            getOverlayGlobal()._highlightedOverlayIdx = null;
-            updateOverlayHighlights();
+            setHighlightedOverlayIndex(null);
             removeBtn.style.opacity = "0";
             clearOverlayTooltipTimeout();
             listItem._tooltipRemover?.();

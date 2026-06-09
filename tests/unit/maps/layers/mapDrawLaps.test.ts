@@ -52,7 +52,12 @@ vi.mock(
 // Import the module under test
 const mapDrawLapsModule =
     await import("../../../../electron-app/utils/maps/layers/mapDrawLaps.js");
-const { drawOverlayForFitFile, mapDrawLaps } = mapDrawLapsModule;
+const {
+    drawOverlayForFitFile,
+    getHighlightedOverlayIndex,
+    mapDrawLaps,
+    setHighlightedOverlayIndex,
+} = mapDrawLapsModule;
 
 declare global {
     interface Window {
@@ -62,8 +67,6 @@ declare global {
     var _mainPolylineOriginalBounds: any;
     var _activeMainFileIdx: number;
     var mapMarkerCount: number;
-    var _highlightedOverlayIdx: number;
-    var updateOverlayHighlights: any;
 }
 
 describe("mapDrawLaps", () => {
@@ -159,8 +162,7 @@ describe("mapDrawLaps", () => {
         (globalThis as any)._ffvActivityLayerGroup = undefined;
         (globalThis as any)._activeMainFileIdx = 0;
         (globalThis as any).mapMarkerCount = 10;
-        (globalThis as any)._highlightedOverlayIdx = -1;
-        (globalThis as any).updateOverlayHighlights = mockFn();
+        setHighlightedOverlayIndex(null);
     });
 
     afterEach(() => {
@@ -537,7 +539,7 @@ describe("mapDrawLaps", () => {
             });
         });
 
-        it("should update overlay highlights when function exists", () => {
+        it("keeps overlay highlights in typed module state", () => {
             expect.assertions(1);
 
             const mapContainer = document.createElement("div");
@@ -555,16 +557,12 @@ describe("mapDrawLaps", () => {
             });
 
             expect({
-                highlightedOverlayIndex: (globalThis as any)
-                    ._highlightedOverlayIdx,
-                overlayHighlightType: typeof (globalThis as any)
-                    .updateOverlayHighlights,
+                highlightedOverlayIndex: getHighlightedOverlayIndex(),
                 overlayPolylineKeys: Object.keys(
                     (globalThis as any)._overlayPolylines
                 ),
             }).toStrictEqual({
-                highlightedOverlayIndex: -1,
-                overlayHighlightType: "function",
+                highlightedOverlayIndex: null,
                 overlayPolylineKeys: [],
             });
         });

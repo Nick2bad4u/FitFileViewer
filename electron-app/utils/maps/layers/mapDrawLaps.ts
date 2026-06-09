@@ -86,18 +86,15 @@ type FitDataLike = {
 };
 
 type MapDrawWindowLike = typeof globalThis & {
-    __realUpdateOverlayHighlights?: () => unknown;
     _activeMainFileIdx?: number;
     _ffvActivityLayerGroup?: LayerTargetLike | null;
     _ffvDataPointMarkers?: LeafletLayerLike[];
-    _highlightedOverlayIdx?: number;
     _mainPolyline?: LeafletLayerLike | undefined;
     _mainPolylineOriginalBounds?: LeafletBoundsLike | undefined;
     _overlayPolylines?: Record<string, LeafletLayerLike>;
     mapDataPointFilter?: MapDataPointFilterConfig | null;
     mapDataPointFilterLastResult?: MetricFilterSummary | null;
     mapMarkerCount?: number;
-    updateOverlayHighlights?: (...args: unknown[]) => unknown;
 };
 
 type MetricFilterSummary = {
@@ -273,7 +270,7 @@ export function drawOverlayForFitFile({
     if (coords.length > 0) {
         const isHighlighted =
             typeof overlayIdx === "number" &&
-            getWin()._highlightedOverlayIdx === overlayIdx;
+            getHighlightedOverlayIndex() === overlayIdx;
         const paletteColor =
             Array.isArray(chartOverlayColorPalette) &&
             chartOverlayColorPalette.length > 0 &&
@@ -1743,21 +1740,6 @@ function bringRegisteredDataPointMarkersToFront(): void {
     }
 }
 
-function callOverlayHighlightStub(
-    userAssigned: ((...args: unknown[]) => unknown) | undefined,
-    args: unknown[]
-): unknown {
-    if (typeof userAssigned !== "function") {
-        return undefined;
-    }
-
-    try {
-        return userAssigned.apply(getWin(), args);
-    } catch {
-        return undefined;
-    }
-}
-
 function getLayerColor(layer: LeafletLayerLike): string {
     return layer.options.color || "#1976d2";
 }
@@ -1770,73 +1752,29 @@ function safelyBringLayerToFront(layer: LeafletLayerLike): void {
     }
 }
 
-function updateTrackHighlights(
-    highlightedIdx = getWin()._highlightedOverlayIdx
-): void {
-    applyOverlayPolylineHighlights(highlightedIdx);
-    applyMainPolylineHighlight(highlightedIdx);
+let highlightedOverlayIndex: null | number = null;
+
+function updateTrackHighlights(highlightedIdx = highlightedOverlayIndex): void {
+    const normalizedIndex =
+        typeof highlightedIdx === "number" ? highlightedIdx : undefined;
+    applyOverlayPolylineHighlights(normalizedIndex);
+    applyMainPolylineHighlight(normalizedIndex);
 }
 
-let userAssignedOverlayHighlightStub:
-    | ((...args: unknown[]) => unknown)
-    | undefined;
+export function getHighlightedOverlayIndex(): null | number {
+    return highlightedOverlayIndex;
+}
 
-// Add global function to update overlay highlights without redrawing the map.
-function __realUpdateOverlayHighlights(): void {
+export function setHighlightedOverlayIndex(
+    overlayIndex: null | number | undefined
+): void {
+    highlightedOverlayIndex =
+        typeof overlayIndex === "number" && Number.isFinite(overlayIndex)
+            ? overlayIndex
+            : null;
+    updateTrackHighlights(highlightedOverlayIndex);
+}
+
+export function updateOverlayHighlights(): void {
     updateTrackHighlights();
 }
-
-export function updateOverlayHighlights(...args: unknown[]): unknown {
-    getWin().__realUpdateOverlayHighlights?.();
-
-    return callOverlayHighlightStub(userAssignedOverlayHighlightStub, args);
-}
-
-// Install a stable reference that won't be replaced accidentally.
-getWin().__realUpdateOverlayHighlights = __realUpdateOverlayHighlights;
-
-// Public shim accessor that preserves any assigned stub but always invokes the real implementation first
-(() => {
-    try {
-        Object.defineProperty(getWin(), "updateOverlayHighlights", {
-            configurable: true,
-            enumerable: true,
-            get() {
-                return updateOverlayHighlights;
-            },
-            set(v: ((...args: unknown[]) => unknown) | undefined) {
-                userAssignedOverlayHighlightStub = v;
-            },
-        });
-    } catch {
-        /* Ignore errors */
-    }
-})();
-
-// Define a reactive setter so changing highlighted overlay index updates styles even if the
-// global update function was stubbed in tests.
-(() => {
-    try {
-        let _val = getWin()._highlightedOverlayIdx ?? -1;
-        const desc = Object.getOwnPropertyDescriptor(
-            getWin(),
-            "_highlightedOverlayIdx"
-        );
-        // Only install if not already an accessor
-        if (!desc || "value" in desc) {
-            Object.defineProperty(getWin(), "_highlightedOverlayIdx", {
-                configurable: true,
-                enumerable: true,
-                get() {
-                    return _val;
-                },
-                set(v: number | undefined) {
-                    _val = v ?? -1;
-                    updateTrackHighlights(_val);
-                },
-            });
-        }
-    } catch {
-        /* Ignore errors */
-    }
-})();

@@ -48,6 +48,7 @@ import { addSimpleMeasureTool } from "../controls/mapMeasureTool.js";
 import { baseLayers, createBaseLayers } from "../layers/mapBaseLayers.js";
 import {
     drawOverlayForFitFile,
+    getHighlightedOverlayIndex,
     mapDrawLaps,
     updateOverlayHighlights,
 } from "../layers/mapDrawLaps.js";
@@ -154,7 +155,6 @@ type WindowExtensions = typeof globalThis & {
     __ffvMapZoomDraggingRef?: { current: boolean };
     _drawControl?: DisposableControl | null;
     _drawnItems?: DrawnItemsLayerGroup | null;
-    _highlightedOverlayIdx?: number;
     _leafletMapInstance?: Leaflet.Map | null;
     _mainPolylineOriginalBounds?: LooseRecord | null;
     _measureControl?: DisposableControl | null;
@@ -1519,7 +1519,7 @@ export function renderMap(): void {
     // Restore highlight after overlays are drawn, if any
     console.log(
         "[FFV] [renderMap] Calling updateOverlayHighlights, highlightedOverlayIdx:",
-        windowExt._highlightedOverlayIdx
+        getHighlightedOverlayIndex()
     );
     updateOverlayHighlights();
     console.log(

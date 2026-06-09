@@ -225,6 +225,8 @@ const migratedRendererUtilityGlobalLookupPattern =
     /\b(?:appGlobal|chartGlobal|window|globalThis|showFitGlobal|windowExt|zoneColorGlobal|getZoneColorSelectorGlobal\(\))\.(?:createTables|invalidateChartRenderCache|renderChartJS|renderMap|renderSummary|setTabButtonsEnabled|setupActiveFileNameMapActions|setupOverlayFileNameMapActions|updateActiveTab|updateOverlayHighlights|updateShownFilesList|updateTabVisibility)\b/u;
 const directAltFitGlobalSenderPattern =
     /\b(?:appGlobal|window|globalThis|lifecycleGlobal|showFitGlobal|windowExt|getDragDropGlobal\(\)|getFileOpenGlobal\(\)|getOpenFitFileGlobal\(\))\.sendFitFileToAltFitReader\b/u;
+const directOverlayHighlightGlobalPattern =
+    /\b(?:window|globalThis|windowExt|w|getWin\(\)|overlayGlobal|getOverlayGlobal\(\)|getMapActionButtonsGlobal\(\))\._highlightedOverlayIdx\b|Object\.defineProperty\(\s*[^,\n]+,\s*["'](?:_highlightedOverlayIdx|updateOverlayHighlights)["']/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1280,7 +1282,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(20);
+        expect.assertions(21);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1419,6 +1421,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directOverlayHighlightGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directOverlayHighlightGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1450,6 +1459,7 @@ describe("architecture boundaries", () => {
         expect(legacyLoadedFitFilesStatePathUsages).toStrictEqual([]);
         expect(legacyLoadedFitFilesGlobalLookups).toStrictEqual([]);
         expect(directAltFitGlobalSenderLookups).toStrictEqual([]);
+        expect(directOverlayHighlightGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

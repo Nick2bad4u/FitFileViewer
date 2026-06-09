@@ -24,7 +24,7 @@ import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../../ui/events/eventListenerManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
-import { updateOverlayHighlights } from "../layers/mapDrawLaps.js";
+import { setHighlightedOverlayIndex } from "../layers/mapDrawLaps.js";
 
 type MapBounds = {
     isValid?: () => boolean;
@@ -69,7 +69,6 @@ type MapActionButtonsGlobal = typeof globalThis & {
     __centerRetryHandle?: ReturnType<typeof setTimeout> | null;
     __centerStatusNotified?: number;
     __mainPolylineHighlightToken?: number;
-    _highlightedOverlayIdx?: null | number;
     _leafletMapInstance?: LeafletMapInstance | null;
     _mainPolyline?: MapPolyline | null;
     _mainPolylineOriginalBounds?: MapBounds | null;
@@ -440,9 +439,7 @@ export function setupActiveFileNameMapActions(): void {
                 try {
                     console.log("[mapActionButtons] Active file name hover");
                     activeFileName.classList.add("highlighted");
-                    const w = getMapActionButtonsGlobal();
-                    w._highlightedOverlayIdx = 0;
-                    updateOverlayHighlights();
+                    setHighlightedOverlayIndex(0);
                 } catch (error) {
                     console.error(
                         "[mapActionButtons] Error in mouseenter:",
@@ -455,9 +452,7 @@ export function setupActiveFileNameMapActions(): void {
                 try {
                     console.log("[mapActionButtons] Active file name unhover");
                     activeFileName.classList.remove("highlighted");
-                    const w = getMapActionButtonsGlobal();
-                    w._highlightedOverlayIdx = null;
-                    updateOverlayHighlights();
+                    setHighlightedOverlayIndex(null);
                 } catch (error) {
                     console.error(
                         "[mapActionButtons] Error in mouseleave:",

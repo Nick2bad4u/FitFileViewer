@@ -2,12 +2,25 @@
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+    highlightedOverlayIndex: null as null | number,
+    getHighlightedOverlayIndex: vi.fn<() => null | number>(),
+    setHighlightedOverlayIndex: vi.fn<(overlayIndex?: null | number) => void>(),
     updateOverlayHighlights: vi.fn<() => void>(),
 }));
+mocks.getHighlightedOverlayIndex.mockImplementation(
+    () => mocks.highlightedOverlayIndex
+);
+mocks.setHighlightedOverlayIndex.mockImplementation((overlayIndex) => {
+    mocks.highlightedOverlayIndex =
+        typeof overlayIndex === "number" ? overlayIndex : null;
+    mocks.updateOverlayHighlights();
+});
 
 vi.mock(
     import("../../../../electron-app/utils/maps/layers/mapDrawLaps.js"),
     () => ({
+        getHighlightedOverlayIndex: mocks.getHighlightedOverlayIndex,
+        setHighlightedOverlayIndex: mocks.setHighlightedOverlayIndex,
         updateOverlayHighlights: mocks.updateOverlayHighlights,
     })
 );
@@ -26,7 +39,6 @@ type MapPolyline = {
 };
 
 type MapActionButtonTestGlobal = typeof globalThis & {
-    _highlightedOverlayIdx?: null | number;
     _leafletMapInstance?: {
         fitBounds: (
             bounds: MapBounds,
@@ -53,10 +65,18 @@ function resetMapActionFixture(): void {
     document.body.replaceChildren();
 
     const testGlobal = getTestGlobal();
-    delete testGlobal._highlightedOverlayIdx;
     delete testGlobal._leafletMapInstance;
     delete testGlobal._mainPolyline;
     vi.clearAllMocks();
+    mocks.highlightedOverlayIndex = null;
+    mocks.getHighlightedOverlayIndex.mockImplementation(
+        () => mocks.highlightedOverlayIndex
+    );
+    mocks.setHighlightedOverlayIndex.mockImplementation((overlayIndex) => {
+        mocks.highlightedOverlayIndex =
+            typeof overlayIndex === "number" ? overlayIndex : null;
+        mocks.updateOverlayHighlights();
+    });
 }
 
 function mountMapActionDom(): {
@@ -161,7 +181,7 @@ describe("mapActionButtons", () => {
             expect({
                 highlightedClassPresent:
                     activeFileName.classList.contains("highlighted"),
-                highlightedOverlayIndex: getTestGlobal()._highlightedOverlayIdx,
+                highlightedOverlayIndex: mocks.highlightedOverlayIndex,
             }).toStrictEqual({
                 highlightedClassPresent: true,
                 highlightedOverlayIndex: 0,
@@ -175,7 +195,7 @@ describe("mapActionButtons", () => {
             expect(activeFileName.classList.contains("highlighted")).toBe(
                 false
             );
-            expect(getTestGlobal()._highlightedOverlayIdx).toBeNull();
+            expect(mocks.highlightedOverlayIndex).toBeNull();
             expect(mocks.updateOverlayHighlights).toHaveBeenCalledOnce();
 
             activeFileName.click();

@@ -26,7 +26,13 @@ const defaultMockChartOverlayColorPalette = [
     "#d32f2f",
 ];
 const mockChartOverlayColorPalette = [...defaultMockChartOverlayColorPalette];
-const mockUpdateOverlayHighlights = vi.fn<() => void>();
+const mapDrawLapsMocks = vi.hoisted(() => ({
+    highlightedOverlayIndex: null as null | number,
+    getHighlightedOverlayIndex: vi.fn<() => null | number>(),
+    setHighlightedOverlayIndex: vi.fn<(overlayIndex?: null | number) => void>(),
+    updateOverlayHighlights: vi.fn<() => void>(),
+}));
+const mockUpdateOverlayHighlights = mapDrawLapsMocks.updateOverlayHighlights;
 const mockSetLoadedFiles =
     vi.fn<(files: readonly unknown[], source?: string) => void>();
 const loadedFitFilesFixture = vi.hoisted(() => ({
@@ -50,7 +56,9 @@ vi.mock(
 vi.mock(
     import("../../../../electron-app/utils/maps/layers/mapDrawLaps.js"),
     () => ({
-        updateOverlayHighlights: mockUpdateOverlayHighlights,
+        getHighlightedOverlayIndex: mapDrawLapsMocks.getHighlightedOverlayIndex,
+        setHighlightedOverlayIndex: mapDrawLapsMocks.setHighlightedOverlayIndex,
+        updateOverlayHighlights: mapDrawLapsMocks.updateOverlayHighlights,
     })
 );
 
@@ -163,9 +171,23 @@ function getOverlayState(): {
     overlayTooltipTimeout: unknown;
 } {
     return {
-        highlightedOverlayIdx: (global.window as any)._highlightedOverlayIdx,
+        highlightedOverlayIdx: mapDrawLapsMocks.highlightedOverlayIndex,
         overlayTooltipTimeout: (global.window as any)._overlayTooltipTimeout,
     };
+}
+
+function resetMapDrawLapsMocks(): void {
+    mapDrawLapsMocks.highlightedOverlayIndex = null;
+    mapDrawLapsMocks.getHighlightedOverlayIndex.mockImplementation(
+        () => mapDrawLapsMocks.highlightedOverlayIndex
+    );
+    mapDrawLapsMocks.setHighlightedOverlayIndex.mockImplementation(
+        (overlayIndex) => {
+            mapDrawLapsMocks.highlightedOverlayIndex =
+                typeof overlayIndex === "number" ? overlayIndex : null;
+            mapDrawLapsMocks.updateOverlayHighlights();
+        }
+    );
 }
 
 function getComputedStyleSpan(
@@ -308,6 +330,7 @@ describe("createShownFilesList", () => {
 
         // Reset mock functions and re-establish default return values
         vi.clearAllMocks();
+        resetMapDrawLapsMocks();
 
         // Re-establish default mock returns after clearing
         mockGetThemeColors.mockReturnValue({
@@ -321,11 +344,9 @@ describe("createShownFilesList", () => {
         loadedFitFilesFixture.files = [];
         windowMock._overlayPolylines = [];
         windowMock._leafletMapInstance = null;
-        windowMock._highlightedOverlayIdx = null;
         windowMock._overlayTooltipTimeout = null;
         Object.assign(windowMock, {
             renderMap: vi.fn<() => void>(),
-            updateOverlayHighlights: mockUpdateOverlayHighlights,
             updateShownFilesList: vi.fn<() => void>(),
         });
         windowMock.L = {
@@ -1239,9 +1260,7 @@ describe("createShownFilesList", () => {
             firstItem.click();
 
             expect(getOverlayState().highlightedOverlayIdx).toBe(1);
-            expect(
-                (global.window as any).updateOverlayHighlights
-            ).toHaveBeenCalledWith();
+            expect(mockUpdateOverlayHighlights).toHaveBeenCalledWith();
         });
 
         it("handles mouse enter events on list items", () => {
@@ -1313,7 +1332,7 @@ describe("createShownFilesList", () => {
             vi.advanceTimersByTime(10);
 
             expect(tooltipRemover).toHaveBeenCalledWith();
-            expect((global.window as any)._highlightedOverlayIdx).toBeNull();
+            expect(getOverlayState().highlightedOverlayIdx).toBeNull();
 
             vi.useRealTimers();
         });
@@ -1571,7 +1590,7 @@ describe("createShownFilesList", () => {
             );
 
             // Change highlighted index before timeout
-            (global.window as any)._highlightedOverlayIdx = 999;
+            mapDrawLapsMocks.highlightedOverlayIndex = 999;
 
             vi.advanceTimersByTime(350);
 
@@ -1715,9 +1734,7 @@ describe("createShownFilesList", () => {
             firstItem.click();
 
             expect(getOverlayState().highlightedOverlayIdx).toBe(1);
-            expect(
-                (global.window as any).updateOverlayHighlights
-            ).toHaveBeenCalledWith();
+            expect(mockUpdateOverlayHighlights).toHaveBeenCalledWith();
             expect(
                 (global.window as any)._leafletMapInstance.fitBounds
             ).not.toHaveBeenCalled();
