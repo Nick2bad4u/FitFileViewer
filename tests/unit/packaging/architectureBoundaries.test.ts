@@ -299,6 +299,8 @@ const directFileAccessPolicyStateGlobalPattern =
     /\b(?:window|globalThis|g)\.__ffvFileAccessPolicyState\b|["']__ffvFileAccessPolicyState["']/u;
 const directTabButtonsEnabledGlobalPattern =
     /\b(?:window|globalThis|getTabButtonsGlobal\(\)|global\.window)\.tabButtonsCurrentlyEnabled\b|["']tabButtonsCurrentlyEnabled["']/u;
+const directTabStateManagerGlobalPattern =
+    /\b(?:window|globalThis)\.tabStateManager\b|\(\s*globalThis\s+as\s+TabStateManagerGlobal\s*\)\.tabStateManager\b/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1354,7 +1356,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(57);
+        expect.assertions(58);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1752,6 +1754,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directTabStateManagerGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directTabStateManagerGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/globalApiExposure.ts",
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
@@ -1827,6 +1836,7 @@ describe("architecture boundaries", () => {
         );
         expect(directFileAccessPolicyStateGlobalLookups).toStrictEqual([]);
         expect(directTabButtonsEnabledGlobalLookups).toStrictEqual([]);
+        expect(directTabStateManagerGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

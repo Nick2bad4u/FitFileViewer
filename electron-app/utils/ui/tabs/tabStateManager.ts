@@ -47,10 +47,6 @@ type DisableableElement = HTMLElement & {
     disabled?: boolean;
 };
 
-type TabStateManagerGlobal = typeof globalThis & {
-    tabStateManager?: TabStateManager;
-};
-
 function asActivityData(value: unknown): ActivityData | null | undefined {
     if (value === null || value === undefined) {
         return value;
@@ -700,10 +696,5 @@ export const tabStateManager = new TabStateManager();
 
 /** Tab configuration metadata keyed by tab name. */
 export { TAB_CONFIG };
-
-// Expose globally for debugging
-if (globalThis.window !== undefined) {
-    (globalThis as TabStateManagerGlobal).tabStateManager = tabStateManager;
-}
 
 export default tabStateManager;

@@ -166,6 +166,17 @@ describe("tabStateManager.behavior", () => {
         expect(tabStateManager.extractTabName("invalid")).toBeNull();
     });
 
+    it("does not publish the singleton on the global object", () => {
+        expect.assertions(1);
+
+        expect(
+            "tabStateManager" in
+                (globalThis as typeof globalThis & {
+                    tabStateManager?: unknown;
+                })
+        ).toBe(false);
+    });
+
     it("handleTabButtonClick ignores disabled buttons and prevents event", () => {
         expect.assertions(4);
         const btn = document.createElement("button");

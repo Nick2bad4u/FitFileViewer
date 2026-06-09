@@ -69,6 +69,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - State manager singleton subscription migration status: duplicate-subscription cleanup now stays in `electron-app/utils/state/core/stateManager.ts` module state instead of `__ffvSingletonStateSubscriptions` on the global object.
 - File-access policy migration status: approved FIT-file paths now stay in `electron-app/main/security/fileAccessPolicyState.ts` module state instead of `__ffvFileAccessPolicyState` on the global object.
 - Tab-button enabled-state migration status: private tab-button enabled bookkeeping now stays in `electron-app/utils/ui/controls/enableTabButtons.ts` module state instead of `tabButtonsCurrentlyEnabled` on the global object.
+- Tab-state manager migration status: the tab-state manager singleton now stays behind `electron-app/utils/ui/tabs/tabStateManager.ts` module exports instead of `tabStateManager` on the global object.
 - Gyazo startup timer migration status: deferred OAuth startup timer cleanup now stays in `electron-app/main/app/gyazoStartupTimerState.ts` module state instead of `__ffvGyazoStartupTimer` on the global object.
 - Resource manager migration status: cleanup/resource tracking now stays behind the typed `electron-app/utils/app/lifecycle/resourceManager.ts` module exports instead of publishing `resourceManager` on the global object.
 - Legacy app-state handle migration status: `electron-app/utils/state/domain/appState.ts` now exposes its singleton only through module exports instead of assigning `__appState` on the global object.
