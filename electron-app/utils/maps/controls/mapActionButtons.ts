@@ -65,11 +65,9 @@ type MapActionLeafletRuntime = {
     CircleMarker?: CircleMarkerConstructor;
 };
 
-type ActiveFileNameElement = HTMLElement & {
-    __ffvMapActionCleanup?: () => void;
-};
-
 const activeTimers = new Set<ReturnType<typeof setTimeout>>();
+const activeFileNameCleanupCallbacks = new WeakMap<HTMLElement, () => void>();
+const trackedActiveFileNameElements = new Set<HTMLElement>();
 const CENTER_MAIN_MAX_ATTEMPTS = 8;
 const MAIN_POLYLINE_HIGHLIGHT_COLOR = "#1976d2";
 let centerMainAttempts = 0;
@@ -133,6 +131,34 @@ function resetCenterMapState(): void {
     clearCenterRetryTimer();
     centerMainAttempts = 0;
     centerStatusNotified = 0;
+}
+
+function clearActiveMapActionTimers(): void {
+    for (const timer of activeTimers) {
+        globalThis.clearTimeout(timer);
+    }
+    activeTimers.clear();
+}
+
+function cleanupActiveFileNameMapActions(activeFileName: HTMLElement): void {
+    const existingCleanup = activeFileNameCleanupCallbacks.get(activeFileName);
+    if (!existingCleanup) {
+        return;
+    }
+
+    existingCleanup();
+    activeFileNameCleanupCallbacks.delete(activeFileName);
+    trackedActiveFileNameElements.delete(activeFileName);
+}
+
+export function resetMapActionButtonStateForTests(): void {
+    for (const activeFileName of trackedActiveFileNameElements) {
+        cleanupActiveFileNameMapActions(activeFileName);
+    }
+    trackedActiveFileNameElements.clear();
+    clearActiveMapActionTimers();
+    resetCenterMapState();
+    mainPolylineHighlightToken = 0;
 }
 
 function handleMissingMainPolyline(attempts: number): void {
@@ -359,8 +385,7 @@ export function setupActiveFileNameMapActions(): void {
         activeFileName.setAttribute("aria-label", "Center map on main file");
 
         // Remove any previous listeners to avoid stacking
-        const activeFileNameElement = activeFileName as ActiveFileNameElement;
-        activeFileNameElement.__ffvMapActionCleanup?.();
+        cleanupActiveFileNameMapActions(activeFileName);
 
         function centerMapFromActiveFileName(): void {
             try {
@@ -440,12 +465,14 @@ export function setupActiveFileNameMapActions(): void {
             }),
         ];
 
-        activeFileNameElement.__ffvMapActionCleanup = () => {
+        activeFileNameCleanupCallbacks.set(activeFileName, () => {
             for (const cleanup of cleanupCallbacks) {
                 cleanup();
             }
-            delete activeFileNameElement.__ffvMapActionCleanup;
-        };
+            activeFileNameCleanupCallbacks.delete(activeFileName);
+            trackedActiveFileNameElements.delete(activeFileName);
+        });
+        trackedActiveFileNameElements.add(activeFileName);
     } catch (error) {
         console.error(
             "[mapActionButtons] Error setting up active filename actions:",

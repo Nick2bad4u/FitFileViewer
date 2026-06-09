@@ -55,6 +55,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Menu IPC forwarder migration status: duplicate-registration tracking for menu Save As and Export forwarding now stays in `electron-app/utils/app/lifecycle/menuIpcListeners.ts` module state instead of `__ffvMenuForwardRegistry`.
 - Filename auto-scroll migration status: active filename observer, resize, and timer cleanup state now stays in `electron-app/utils/ui/unifiedControlBar.ts` module state instead of `__ffvFilenameAutoScrollState` on the DOM element.
 - Quick color switcher migration status: listener lifecycle and delayed-close timer state now stays in `electron-app/utils/ui/quickColorSwitcher.ts` module state instead of `__ffvQuickColorSwitcherState` on the DOM element.
+- Map action button migration status: active filename click, keyboard, hover, and cleanup listener state now stays in `electron-app/utils/maps/controls/mapActionButtons.ts` module state instead of `__ffvMapActionCleanup` on the DOM element.
 - Next removal step: replace the remaining vendor-runtime compatibility globals with typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`

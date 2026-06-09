@@ -38,14 +38,10 @@ type MapPolyline = {
     };
 };
 
-type ActiveFileNameElement = HTMLElement & {
-    __ffvMapActionCleanup?: () => void;
-};
+let resetMapActionButtonStateForTests: undefined | (() => void);
 
 function resetMapActionFixture(): void {
-    const activeFileName =
-        document.querySelector<ActiveFileNameElement>("#active_file_name");
-    activeFileName?.__ffvMapActionCleanup?.();
+    resetMapActionButtonStateForTests?.();
     document.body.replaceChildren();
 
     vi.clearAllMocks();
@@ -138,7 +134,7 @@ async function installMapGlobals(): Promise<{
 
 describe("mapActionButtons", () => {
     it("wires active filename actions without stacking duplicate listeners", async () => {
-        expect.assertions(15);
+        expect.assertions(16);
 
         vi.useFakeTimers();
         vi.resetModules();
@@ -149,8 +145,11 @@ describe("mapActionButtons", () => {
             const { bounds, fitBounds, mapInstance, polylineBringToFront } =
                 await installMapGlobals();
 
-            const { setupActiveFileNameMapActions } =
+            const mapActionButtons =
                 await import("../../../../electron-app/utils/maps/controls/mapActionButtons.js");
+            const { setupActiveFileNameMapActions } = mapActionButtons;
+            resetMapActionButtonStateForTests =
+                mapActionButtons.resetMapActionButtonStateForTests;
             const { setRegisteredLeafletMapInstance } =
                 await import("../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js");
             const { setShownFilesListUpdater, updateShownFilesList } =
@@ -168,6 +167,7 @@ describe("mapActionButtons", () => {
             expect(activeFileName.getAttribute("aria-label")).toBe(
                 "Center map on main file"
             );
+            expect("__ffvMapActionCleanup" in activeFileName).toBe(false);
 
             activeFileName.dispatchEvent(new MouseEvent("mouseenter"));
 
