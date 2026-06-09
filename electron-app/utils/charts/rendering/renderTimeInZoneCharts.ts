@@ -1,6 +1,10 @@
 import { getHRZoneVisibilitySettings } from "../../ui/controls/createHRZoneControls.js";
 import { getPowerZoneVisibilitySettings } from "../../ui/controls/createPowerZoneControls.js";
 import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
+import {
+    getHeartRateZones,
+    getPowerZones,
+} from "../../data/zones/zoneDataState.js";
 import type { ZoneData } from "../../types/sharedChartTypes.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { renderZoneChart } from "./renderZoneChart.js";
@@ -16,8 +20,6 @@ interface TimeInZoneChartOptions {
 
 interface TimeInZoneRuntimeGlobal {
     readonly __FFV_debugCharts?: unknown;
-    readonly heartRateZones?: unknown;
-    readonly powerZones?: unknown;
 }
 
 interface ZoneVisibilitySettings {
@@ -46,7 +48,7 @@ export function renderTimeInZoneCharts(
             console.log("[ChartJS] renderTimeInZoneCharts called");
         }
 
-        const hrZones = getZoneData(chartGlobal.heartRateZones),
+        const hrZones = getZoneData(getHeartRateZones()),
             hrZoneSettings = getVisibleZoneSettings(
                 getHRZoneVisibilitySettings()
             );
@@ -72,7 +74,7 @@ export function renderTimeInZoneCharts(
             );
         }
 
-        const powerZones = getZoneData(chartGlobal.powerZones),
+        const powerZones = getZoneData(getPowerZones()),
             powerZoneSettings = getVisibleZoneSettings(
                 getPowerZoneVisibilitySettings()
             );

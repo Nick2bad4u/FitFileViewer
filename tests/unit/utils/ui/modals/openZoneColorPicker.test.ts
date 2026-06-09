@@ -88,7 +88,14 @@ vi.mock(
 
 async function loadModule() {
     await vi.resetModules();
-    return await import("../../../../../electron-app/utils/ui/modals/openZoneColorPicker.js");
+    const zoneDataStateModule =
+        await import("../../../../../electron-app/utils/data/zones/zoneDataState.js");
+    const zoneColorPickerModule =
+        await import("../../../../../electron-app/utils/ui/modals/openZoneColorPicker.js");
+    return {
+        ...zoneDataStateModule,
+        ...zoneColorPickerModule,
+    };
 }
 
 function requireElement<T extends Element>(element: T | null, message: string) {
@@ -168,8 +175,6 @@ describe("openZoneColorPicker", () => {
         document.body.replaceChildren();
         document.head.replaceChildren();
         localStorage.clear();
-        delete (globalThis as any).heartRateZones;
-        delete (globalThis as any).powerZones;
         delete (globalThis as any).clearZoneColorData;
         delete (globalThis as any).updateInlineZoneColorSelectors;
         delete (globalThis as any).resetAllSettings;
@@ -198,8 +203,6 @@ describe("openZoneColorPicker", () => {
     });
 
     afterEach(() => {
-        delete (globalThis as any).heartRateZones;
-        delete (globalThis as any).powerZones;
         delete (globalThis as any).clearZoneColorData;
         delete (globalThis as any).updateInlineZoneColorSelectors;
         delete (globalThis as any).resetAllSettings;
@@ -226,8 +229,8 @@ describe("openZoneColorPicker", () => {
     it("warns when zone data is unavailable", async () => {
         expect.assertions(3);
 
-        const { openZoneColorPicker } = await loadModule();
-        (globalThis as any).heartRateZones = [];
+        const { clearZoneDataState, openZoneColorPicker } = await loadModule();
+        clearZoneDataState();
 
         openZoneColorPicker("hr_zone");
 
@@ -253,10 +256,11 @@ describe("openZoneColorPicker", () => {
         settingsWrapper.append(toggle);
         document.body.append(settingsWrapper);
 
-        (globalThis as any).heartRateZones = [
+        const { openZoneColorPicker, setZoneDataByType } = await loadModule();
+        setZoneDataByType("hr", [
             { zone: 1, time: 60, label: "Zone 1" },
             { zone: 2, time: 90, label: "Zone 2" },
-        ];
+        ]);
         const inlineSelectorsMock = vi.fn<(root: HTMLElement) => void>();
         const resetAllSettingsMock = vi.fn<() => void>();
         const globalNotificationMock =
@@ -266,9 +270,7 @@ describe("openZoneColorPicker", () => {
         (globalThis as any).resetAllSettings = resetAllSettingsMock;
         (globalThis as any).showNotification = globalNotificationMock;
 
-        const module = await loadModule();
-
-        module.openZoneColorPicker("hr_zone");
+        openZoneColorPicker("hr_zone");
 
         const overlay = document.querySelector<HTMLDivElement>(
             "#zone-color-picker-overlay"
@@ -420,12 +422,11 @@ describe("openZoneColorPicker", () => {
         document.body.append(opener);
         opener.focus();
 
-        (globalThis as any).heartRateZones = [
+        const { openZoneColorPicker, setZoneDataByType } = await loadModule();
+        setZoneDataByType("hr", [
             { zone: 1, time: 60, label: "Zone 1" },
             { zone: 2, time: 90, label: "Zone 2" },
-        ];
-
-        const { openZoneColorPicker } = await loadModule();
+        ]);
 
         openZoneColorPicker("hr_zone");
 

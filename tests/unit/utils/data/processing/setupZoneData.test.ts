@@ -10,8 +10,6 @@ interface ZoneTestEntry {
 interface ZoneTestGlobals {
     __FFV_debugCharts?: unknown;
     __FFV_debugChartsVerbose?: unknown;
-    heartRateZones?: ZoneTestEntry[];
-    powerZones?: ZoneTestEntry[];
 }
 
 const testGlobal = globalThis as typeof globalThis & ZoneTestGlobals;
@@ -54,19 +52,24 @@ vi.mock(
 
 const loadModule = async () => {
     vi.resetModules();
-    return await import("../../../../../electron-app/utils/data/processing/setupZoneData.js");
+    const setupZoneDataModule =
+        await import("../../../../../electron-app/utils/data/processing/setupZoneData.js");
+    const zoneDataStateModule =
+        await import("../../../../../electron-app/utils/data/zones/zoneDataState.js");
+    return {
+        ...setupZoneDataModule,
+        ...zoneDataStateModule,
+    };
 };
 
 function resetTestState(): void {
     vi.clearAllMocks();
-    delete testGlobal.heartRateZones;
-    delete testGlobal.powerZones;
     delete testGlobal.__FFV_debugCharts;
     delete testGlobal.__FFV_debugChartsVerbose;
 }
 
 describe("setupZoneData", () => {
-    it("returns existing global zones when global data is unavailable", async () => {
+    it("returns existing stored zones when global data is unavailable", async () => {
         expect.assertions(3);
 
         resetTestState();
@@ -74,10 +77,10 @@ describe("setupZoneData", () => {
         const existingPowerZones = [
             { label: "Existing Power", time: 20, zone: 1 },
         ];
-        testGlobal.heartRateZones = existingHrZones;
-        testGlobal.powerZones = existingPowerZones;
 
-        const { setupZoneData } = await loadModule();
+        const { setZoneDataByType, setupZoneData } = await loadModule();
+        setZoneDataByType("hr", existingHrZones);
+        setZoneDataByType("power", existingPowerZones);
         const result = setupZoneData(null);
 
         expect(result).toStrictEqual({
@@ -94,11 +97,12 @@ describe("setupZoneData", () => {
         ).not.toHaveBeenCalled();
     });
 
-    it("builds session time-in-zone HR and power globals", async () => {
+    it("builds session time-in-zone HR and power state", async () => {
         expect.assertions(7);
 
         resetTestState();
-        const { setupZoneData } = await loadModule();
+        const { getHeartRateZones, getPowerZones, setupZoneData } =
+            await loadModule();
 
         const result = setupZoneData({
             timeInZoneMesgs: [
@@ -128,8 +132,8 @@ describe("setupZoneData", () => {
             { color: "power-1", label: "Zone 1", time: 50, zone: 1 },
             { color: "power-3", label: "Zone 3", time: 75, zone: 3 },
         ]);
-        expect(testGlobal.heartRateZones).toBe(result.heartRateZones);
-        expect(testGlobal.powerZones).toBe(result.powerZones);
+        expect(getHeartRateZones()).toBe(result.heartRateZones);
+        expect(getPowerZones()).toBe(result.powerZones);
         expect(
             zoneDataMocks.updateHRZoneControlsVisibility
         ).toHaveBeenCalledWith(true);

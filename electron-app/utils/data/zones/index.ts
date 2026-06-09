@@ -5,4 +5,5 @@
 export * from "./chartZoneColorUtils.js";
 export * from "./renderSingleHRZoneBar.js";
 export * from "./renderSinglePowerZoneBar.js";
+export * from "./zoneDataState.js";
 /* eslint-enable no-barrel-files/no-barrel-files */

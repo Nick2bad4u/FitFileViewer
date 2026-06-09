@@ -5,6 +5,10 @@ import {
     applyZoneColors,
     type ZoneData,
 } from "../zones/chartZoneColorUtils.js";
+import {
+    getZoneDataByType,
+    setZoneDataByType,
+} from "../zones/zoneDataState.js";
 
 interface ZoneEntry extends ZoneData {
     color?: string;
@@ -38,8 +42,6 @@ interface FitZoneActivityData {
 interface ZoneGlobals {
     readonly __FFV_debugCharts?: unknown;
     readonly __FFV_debugChartsVerbose?: unknown;
-    heartRateZones?: ZoneEntry[];
-    powerZones?: ZoneEntry[];
 }
 
 interface SetupZoneDataResult {
@@ -118,18 +120,12 @@ function hasPositiveZoneTimes(zoneTimes: readonly number[]): boolean {
 }
 
 function getExistingZones(zoneType: ZoneType): ZoneEntry[] {
-    const zones =
-        zoneType === "hr" ? zoneGlobal.heartRateZones : zoneGlobal.powerZones;
-    return Array.isArray(zones) ? zones : [];
+    const zones = getZoneDataByType(zoneType);
+    return Array.isArray(zones) ? (zones as ZoneEntry[]) : [];
 }
 
-function setGlobalZones(zoneType: ZoneType, zones: ZoneEntry[]): void {
-    if (zoneType === "hr") {
-        zoneGlobal.heartRateZones = zones;
-        return;
-    }
-
-    zoneGlobal.powerZones = zones;
+function setZones(zoneType: ZoneType, zones: ZoneEntry[]): ZoneEntry[] {
+    return setZoneDataByType(zoneType, zones) as ZoneEntry[];
 }
 
 function logZoneData(message: string, data?: unknown): void {
@@ -245,15 +241,15 @@ function applyZoneTimes(
         return;
     }
 
-    setGlobalZones(zoneType, zones);
+    const storedZones = setZones(zoneType, zones);
     if (zoneType === "hr") {
-        state.heartRateZones = zones;
+        state.heartRateZones = storedZones;
         state.hasHRZoneData = true;
         logZoneData(logMessage, state.heartRateZones);
         return;
     }
 
-    state.powerZones = zones;
+    state.powerZones = storedZones;
     state.hasPowerZoneData = true;
     logZoneData(logMessage, state.powerZones);
 }
@@ -384,8 +380,7 @@ function toSetupZoneDataResult(state: ZoneDataState): SetupZoneDataResult {
 }
 
 /**
- * Extracts zone data from FIT activity data and updates window.heartRateZones /
- * window.powerZones for existing chart modules.
+ * Extracts zone data from FIT activity data and stores it for chart modules.
  */
 export function setupZoneData(activityData: unknown): SetupZoneDataResult {
     const state = createInitialZoneState();

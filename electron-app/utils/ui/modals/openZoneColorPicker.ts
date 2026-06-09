@@ -13,6 +13,10 @@ import {
     setChartColorScheme,
     type ZoneData,
 } from "../../data/zones/chartZoneColorUtils.js";
+import {
+    getHeartRateZones,
+    getPowerZones,
+} from "../../data/zones/zoneDataState.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
@@ -32,8 +36,6 @@ type ChartInstance = {
 
 type ZoneColorPickerGlobal = typeof globalThis & {
     clearZoneColorData?: (field: string, zoneCount: number) => void;
-    heartRateZones?: ZoneData[];
-    powerZones?: ZoneData[];
     resetAllSettings?: () => void;
     showNotification?: (message: string, type?: string) => void;
     updateInlineZoneColorSelectors?: (root: ParentNode) => void;
@@ -104,7 +106,7 @@ export function openZoneColorPicker(field: string): void {
             field === "hr_zone"
         ) {
             zoneType = "Heart Rate";
-            zoneData = zoneColorGlobal.heartRateZones ?? null;
+            zoneData = getHeartRateZones();
             defaultColors = DEFAULT_HR_ZONE_COLORS;
 
             // Determine specific chart type for HR zones
@@ -134,7 +136,7 @@ export function openZoneColorPicker(field: string): void {
             field === "power_zone"
         ) {
             zoneType = "Power";
-            zoneData = zoneColorGlobal.powerZones ?? null;
+            zoneData = getPowerZones();
             defaultColors = DEFAULT_POWER_ZONE_COLORS;
 
             // Determine specific chart type for Power zones

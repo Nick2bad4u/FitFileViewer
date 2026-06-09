@@ -157,6 +157,7 @@
         "electron-app/utils/data/processing/setupZoneData.ts",
         "electron-app/utils/data/processing/index.ts",
         "electron-app/utils/data/zones/chartZoneColorUtils.ts",
+        "electron-app/utils/data/zones/zoneDataState.ts",
         "electron-app/utils/data/zones/renderSingleHRZoneBar.ts",
         "electron-app/utils/data/zones/renderSinglePowerZoneBar.ts",
         "electron-app/utils/data/zones/index.ts",

@@ -1,15 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ZoneData } from "../../../../../electron-app/utils/types/sharedChartTypes.js";
+import {
+    clearZoneDataState,
+    setZoneDataByType,
+} from "../../../../../electron-app/utils/data/zones/zoneDataState.js";
 
 interface RenderZoneChartOptions {
     readonly chartType?: string;
     readonly showLegend?: boolean;
-}
-
-interface TimeInZoneTestGlobal {
-    heartRateZones?: ZoneData[];
-    powerZones?: ZoneData[];
 }
 
 interface ZoneVisibilitySettings {
@@ -59,11 +58,11 @@ vi.mock(
 );
 
 describe("renderTimeInZoneCharts", () => {
-    const chartGlobal = globalThis as typeof globalThis & TimeInZoneTestGlobal,
-        heartRateZones: ZoneData[] = [{ label: "Z1", time: 10 }],
+    const heartRateZones: ZoneData[] = [{ label: "Z1", time: 10 }],
         powerZones: ZoneData[] = [{ label: "Z2", time: 20 }];
 
     beforeEach(() => {
+        clearZoneDataState();
         vi.clearAllMocks();
         visibilityMocks.getHRZoneVisibilitySettings.mockReturnValue({
             doughnutVisible: true,
@@ -71,8 +70,8 @@ describe("renderTimeInZoneCharts", () => {
         visibilityMocks.getPowerZoneVisibilitySettings.mockReturnValue({
             doughnutVisible: true,
         });
-        chartGlobal.heartRateZones = heartRateZones;
-        chartGlobal.powerZones = powerZones;
+        setZoneDataByType("hr", heartRateZones);
+        setZoneDataByType("power", powerZones);
     });
 
     it("renders both HR and power when visible and data exists", async () => {
@@ -157,7 +156,7 @@ describe("renderTimeInZoneCharts", () => {
         visibilityMocks.getHRZoneVisibilitySettings.mockReturnValue({
             doughnutVisible: false,
         });
-        chartGlobal.powerZones = undefined;
+        setZoneDataByType("power", []);
         const { renderZoneChart } =
             await import("../../../../../electron-app/utils/charts/rendering/renderZoneChart.js");
         const { renderTimeInZoneCharts } =

@@ -25,6 +25,10 @@ import {
     saveZoneColor,
     setChartColorScheme,
 } from "../../data/zones/chartZoneColorUtils.js";
+import {
+    getHeartRateZones,
+    getPowerZones,
+} from "../../data/zones/zoneDataState.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { showNotification } from "../notifications/showNotification.js";
 
@@ -54,11 +58,6 @@ type ZoneColorSelectorElement = HTMLElement & {
     _updateDisplay?: () => void;
 };
 
-type ZoneColorSelectorGlobal = typeof globalThis & {
-    heartRateZones?: ZoneDataItem[];
-    powerZones?: ZoneDataItem[];
-};
-
 type ZoneSelectorConfig = {
     defaultColors: string[];
     zoneData: ZoneDataItem[];
@@ -66,10 +65,6 @@ type ZoneSelectorConfig = {
 };
 
 const zoneColorSelectorTimers = new Set<ReturnType<typeof setTimeout>>();
-
-function getZoneColorSelectorGlobal(): ZoneColorSelectorGlobal {
-    return globalThis;
-}
 
 function dispatchChartRenderRequest(reason: string): void {
     globalThis.dispatchEvent(
@@ -154,16 +149,11 @@ function getDisplayZoneColor(
               getDefaultZoneColor(defaultColors, activeZoneIndex);
 }
 
-function getZoneSelectorConfig(
-    field: string,
-    zoneColorGlobal: ZoneColorSelectorGlobal
-): null | ZoneSelectorConfig {
+function getZoneSelectorConfig(field: string): null | ZoneSelectorConfig {
     if (isHeartRateZoneField(field)) {
         return {
             defaultColors: DEFAULT_HR_ZONE_COLORS,
-            zoneData: Array.isArray(zoneColorGlobal.heartRateZones)
-                ? zoneColorGlobal.heartRateZones
-                : [],
+            zoneData: getHeartRateZones(),
             zoneType: "hr",
         };
     }
@@ -171,9 +161,7 @@ function getZoneSelectorConfig(
     if (isPowerZoneField(field)) {
         return {
             defaultColors: DEFAULT_POWER_ZONE_COLORS,
-            zoneData: Array.isArray(zoneColorGlobal.powerZones)
-                ? zoneColorGlobal.powerZones
-                : [],
+            zoneData: getPowerZones(),
             zoneType: "power",
         };
     }
@@ -243,12 +231,11 @@ export function createInlineZoneColorSelector(
     container: HTMLElement
 ): HTMLElement | null {
     try {
-        const zoneColorGlobal = getZoneColorSelectorGlobal();
         console.log(
             `[ZoneColorSelector] Creating inline selector for field: ${field}`
         );
 
-        const zoneConfig = getZoneSelectorConfig(field, zoneColorGlobal);
+        const zoneConfig = getZoneSelectorConfig(field);
         if (!zoneConfig) {
             console.warn(
                 `[ZoneColorSelector] Unknown zone field type: ${field}`

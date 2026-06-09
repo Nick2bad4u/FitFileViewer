@@ -2,6 +2,10 @@ import { getZoneColor } from "../../data/zones/chartZoneColorUtils.js";
 import { renderSingleHRZoneBar } from "../../data/zones/renderSingleHRZoneBar.js";
 import { renderSinglePowerZoneBar } from "../../data/zones/renderSinglePowerZoneBar.js";
 import {
+    getHeartRateZones,
+    getPowerZones,
+} from "../../data/zones/zoneDataState.js";
+import {
     isDevelopmentEnvironment,
     isTestEnvironment,
 } from "../../runtime/processEnvironment.js";
@@ -35,8 +39,6 @@ interface LapZoneEntry {
 interface LapZoneRuntimeGlobal {
     readonly __FFV_debugCharts?: unknown;
     readonly __FFV_debugChartsVerbose?: unknown;
-    readonly heartRateZones?: unknown;
-    readonly powerZones?: unknown;
     readonly showNotification?: (message: string, type: string) => void;
 }
 
@@ -156,7 +158,6 @@ export function renderLapZoneCharts(
             visibility,
             hrZoneData.laps,
             pwrZoneData.laps,
-            runtimeGlobal,
             debug
         );
 
@@ -388,7 +389,6 @@ function renderIndividualLapZoneCharts(
     visibility: LapZoneVisibility,
     hrZoneData: readonly LapZoneEntry[],
     pwrZoneData: readonly LapZoneEntry[],
-    runtimeGlobal: LapZoneRuntimeGlobal,
     debug: ReturnType<typeof getDebugState>
 ): void {
     if (visibility.hrIndividualVisible) {
@@ -396,7 +396,7 @@ function renderIndividualLapZoneCharts(
             container,
             "hr",
             hrZoneData,
-            runtimeGlobal.heartRateZones,
+            getHeartRateZones(),
             debug
         );
     }
@@ -406,7 +406,7 @@ function renderIndividualLapZoneCharts(
             container,
             "power",
             pwrZoneData,
-            runtimeGlobal.powerZones,
+            getPowerZones(),
             debug
         );
     }
@@ -429,8 +429,8 @@ function renderIndividualZoneChart(
                 [`${zoneKind === "hr" ? "hr" : "pwr"}ZoneDataLength`]:
                     lapZoneData.length,
                 [zoneKind === "hr"
-                    ? "windowHeartRateZones"
-                    : "windowPowerZones"]: rawSessionZones,
+                    ? "storedHeartRateZones"
+                    : "storedPowerZones"]: rawSessionZones,
             }
         );
     }

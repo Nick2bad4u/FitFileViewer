@@ -14,6 +14,10 @@ import {
 import { renderLapZoneCharts } from "../../../electron-app/utils/charts/rendering/renderLapZoneCharts.js";
 import { setActiveFitRawData } from "../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../electron-app/utils/state/core/stateManager.js";
+import {
+    clearZoneDataState,
+    setZoneDataByType,
+} from "../../../electron-app/utils/data/zones/zoneDataState.js";
 
 // Mock dependencies
 vi.mock(import("../../../electron-app/utils/theming/core/theme.js"), () => ({
@@ -92,9 +96,7 @@ describe(renderLapZoneCharts, () => {
         lapZoneGlobalData = { timeInZoneMesgs: [] };
         setActiveFitRawData(lapZoneGlobalData, { source: "test" });
 
-        // Setup zone data globals
-        window.heartRateZones = [];
-        window.powerZones = [];
+        clearZoneDataState();
         clearChartInstanceRegistryForTests();
 
         // Mock console methods
@@ -1234,13 +1236,14 @@ describe(renderLapZoneCharts, () => {
             });
         });
 
-        it("should use window.heartRateZones for HR individual chart when available", () => {
+        it("should use stored heart-rate zones for HR individual chart when available", () => {
             expect.assertions(2);
 
-            window.heartRateZones = [
+            const heartRateZones = [
                 { label: "Zone 1", value: 100, color: "red" },
                 { label: "Zone 2", value: 200, color: "blue" },
             ];
+            setZoneDataByType("hr", heartRateZones);
 
             lapZoneGlobalData.timeInZoneMesgs = [
                 {
@@ -1253,7 +1256,7 @@ describe(renderLapZoneCharts, () => {
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] Using session HR zone data:",
-                window.heartRateZones
+                heartRateZones
             );
             expect(getCanvasIds()).toContain("chartjs-canvas-single-lap-hr");
         });
@@ -1261,10 +1264,10 @@ describe(renderLapZoneCharts, () => {
         it("should convert time property to value for HR zones", () => {
             expect.assertions(3);
 
-            window.heartRateZones = [
+            setZoneDataByType("hr", [
                 { label: "Zone 1", time: 100, color: "red" },
                 { label: "Zone 2", time: 200, color: "blue" },
-            ];
+            ]);
 
             lapZoneGlobalData.timeInZoneMesgs = [
                 {
@@ -1299,7 +1302,7 @@ describe(renderLapZoneCharts, () => {
         it("should aggregate HR zone data from laps when session data not available", () => {
             expect.assertions(4);
 
-            delete window.heartRateZones;
+            setZoneDataByType("hr", []);
             getZoneColorMock.mockImplementation(
                 (type: string, index: number) => `${type}-zone-${index}`
             );
@@ -1344,13 +1347,14 @@ describe(renderLapZoneCharts, () => {
             expect(getCanvasIds()).toContain("chartjs-canvas-single-lap-hr");
         });
 
-        it("should use window.powerZones for Power individual chart when available", () => {
+        it("should use stored power zones for Power individual chart when available", () => {
             expect.assertions(2);
 
-            window.powerZones = [
+            const powerZones = [
                 { label: "Zone 1", value: 50, color: "green" },
                 { label: "Zone 2", value: 150, color: "yellow" },
             ];
+            setZoneDataByType("power", powerZones);
 
             lapZoneGlobalData.timeInZoneMesgs = [
                 {
@@ -1363,7 +1367,7 @@ describe(renderLapZoneCharts, () => {
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] Using session Power zone data:",
-                window.powerZones
+                powerZones
             );
             expect(getCanvasIds()).toContain("chartjs-canvas-single-lap-power");
         });
@@ -1371,7 +1375,7 @@ describe(renderLapZoneCharts, () => {
         it("should aggregate Power zone data from laps when session data not available", () => {
             expect.assertions(4);
 
-            delete window.powerZones;
+            setZoneDataByType("power", []);
             getZoneColorMock.mockImplementation(
                 (type: string, index: number) => `${type}-zone-${index}`
             );
@@ -1431,15 +1435,15 @@ describe(renderLapZoneCharts, () => {
                 },
             });
 
-            window.heartRateZones = [
+            setZoneDataByType("hr", [
                 { label: "HR Zone 1", value: 120, color: "#ff0000" },
                 { label: "HR Zone 2", value: 240, color: "#00ff00" },
-            ];
+            ]);
 
-            window.powerZones = [
+            setZoneDataByType("power", [
                 { label: "Power Zone 1", value: 60, color: "#0000ff" },
                 { label: "Power Zone 2", value: 180, color: "#ffff00" },
-            ];
+            ]);
 
             lapZoneGlobalData.timeInZoneMesgs = [
                 {

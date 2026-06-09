@@ -8,10 +8,6 @@ interface TestZone {
 }
 
 type ZoneKind = "hr" | "power";
-type FitWindow = Window & {
-    heartRateZones?: TestZone[];
-    powerZones?: TestZone[];
-};
 
 vi.mock(
     import("../../../../../electron-app/utils/ui/controls/createPowerZoneControls.js"),
@@ -38,27 +34,33 @@ vi.mock(
 
 type SetupZoneDataModule =
     typeof import("../../../../../electron-app/utils/data/processing/setupZoneData.js");
+type ZoneDataStateModule =
+    typeof import("../../../../../electron-app/utils/data/zones/zoneDataState.js");
 
-async function importSetupZoneData(): Promise<SetupZoneDataModule> {
-    return import("../../../../../electron-app/utils/data/processing/setupZoneData.js");
-}
-
-function getFitWindow(): FitWindow {
-    return globalThis.window as FitWindow;
+async function importSetupZoneData(): Promise<
+    SetupZoneDataModule & ZoneDataStateModule
+> {
+    const setupZoneDataModule =
+        await import("../../../../../electron-app/utils/data/processing/setupZoneData.js");
+    const zoneDataStateModule =
+        await import("../../../../../electron-app/utils/data/zones/zoneDataState.js");
+    return {
+        ...setupZoneDataModule,
+        ...zoneDataStateModule,
+    };
 }
 
 describe("setupZoneData", () => {
     beforeEach(() => {
-        getFitWindow().heartRateZones = [];
-        getFitWindow().powerZones = [];
         vi.resetModules();
     });
 
-    it("returns existing globals when no data", async () => {
+    it("returns existing stored zones when no data", async () => {
         expect.assertions(3);
 
-        getFitWindow().heartRateZones = [{ zone: 1, time: 10 }];
-        const { setupZoneData } = await importSetupZoneData();
+        const { setZoneDataByType, setupZoneData } =
+            await importSetupZoneData();
+        setZoneDataByType("hr", [{ zone: 1, time: 10 }]);
         const res = setupZoneData(null);
         expect(res.hasHRZoneData).toBe(true);
         expect(res.hasPowerZoneData).toBe(false);
@@ -68,7 +70,8 @@ describe("setupZoneData", () => {
     it("uses timeInZoneMesgs session aggregate", async () => {
         expect.assertions(5);
 
-        const { setupZoneData } = await importSetupZoneData();
+        const { getHeartRateZones, setupZoneData } =
+            await importSetupZoneData();
         const res = setupZoneData({
             timeInZoneMesgs: [
                 {
@@ -91,7 +94,7 @@ describe("setupZoneData", () => {
         expect(res.hasPowerZoneData).toBe(true);
         expect(res.heartRateZones.map((z) => z.zone)).toEqual([1, 3]);
         expect(res.powerZones.map((z) => z.zone)).toEqual([2]);
-        expect(getFitWindow().heartRateZones?.length).toBeGreaterThan(0);
+        expect(getHeartRateZones().length).toBeGreaterThan(0);
     });
 
     it("falls back to sessionMesgs when no timeInZoneMesgs", async () => {

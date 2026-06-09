@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { clearChartInstanceRegistryForTests } from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import {
+    clearZoneDataState,
+    setZoneDataByType,
+} from "../../../../../electron-app/utils/data/zones/zoneDataState.js";
 
 type ZoneFixture = {
     label: string;
@@ -11,11 +15,6 @@ type ZoneType = "hr" | "power";
 
 type InlineZoneSelectorElement = HTMLDivElement & {
     _updateDisplay: () => void;
-};
-
-type ZoneSelectorWindow = typeof window & {
-    heartRateZones?: ZoneFixture[];
-    powerZones?: ZoneFixture[];
 };
 
 // Hoisted mocks to satisfy Vitest's hoisting of vi.mock
@@ -202,21 +201,20 @@ describe(createInlineZoneColorSelector, () => {
         vi.useFakeTimers();
         vi.clearAllMocks();
         document.body.replaceChildren();
-        const zoneWindow = window as ZoneSelectorWindow;
         clearChartInstanceRegistryForTests();
+        clearZoneDataState();
         localStorage.clear();
-        // Default zones on window
-        zoneWindow.heartRateZones = [
+        setZoneDataByType("hr", [
             { label: "Z1", zone: 1, time: 10 },
             { label: "Z2", zone: 2, time: 20 },
             { label: "Z3", zone: 3, time: 30 },
-        ];
-        zoneWindow.powerZones = [
+        ]);
+        setZoneDataByType("power", [
             { label: "P1", zone: 1, time: 5 },
             { label: "P2", zone: 2, time: 15 },
             { label: "P3", zone: 3, time: 25 },
             { label: "P4", zone: 4, time: 35 },
-        ];
+        ]);
     });
 
     afterEach(() => {
