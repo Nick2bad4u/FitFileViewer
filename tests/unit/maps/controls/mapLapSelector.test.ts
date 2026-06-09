@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { addLapSelector } from "../../../../electron-app/utils/maps/controls/mapLapSelector.js";
+import {
+    addLapSelector,
+    resetMapLapSelectorStateForTests,
+} from "../../../../electron-app/utils/maps/controls/mapLapSelector.js";
 import { setActiveFitRawData } from "../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
 
@@ -8,12 +11,14 @@ type LapSelection = "all" | string[];
 type DrawLaps = (selection: LapSelection) => void;
 
 function createContainer(): HTMLElement {
+    resetMapLapSelectorStateForTests();
     const container = document.createElement("div");
     document.body.append(container);
     return container;
 }
 
 function removeContainer(container: HTMLElement): void {
+    resetMapLapSelectorStateForTests();
     container.remove();
     __resetStateManagerForTests();
 }
@@ -68,7 +73,7 @@ describe("mapLapSelector", () => {
     });
 
     it("renders a selector option for each lap plus the all option", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         setActiveFitRawData(
             {
@@ -86,6 +91,7 @@ describe("mapLapSelector", () => {
 
         const select = getRequiredSelect(container);
 
+        expect("__ffvLapSelectorMouseupHandler" in globalThis).toBe(false);
         expect(
             container.querySelectorAll(".custom-lap-control-container")
         ).toHaveLength(1);

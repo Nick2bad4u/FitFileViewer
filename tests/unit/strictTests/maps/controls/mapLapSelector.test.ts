@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
@@ -10,7 +10,9 @@ async function loadModule() {
 }
 
 describe("mapLapSelector", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
+        const { resetMapLapSelectorStateForTests } = await loadModule();
+        resetMapLapSelectorStateForTests();
         __resetStateManagerForTests();
         const container = document.createElement("div");
         container.id = "container";
@@ -25,6 +27,11 @@ describe("mapLapSelector", () => {
             },
             { source: "test" }
         );
+    });
+
+    afterEach(async () => {
+        const { resetMapLapSelectorStateForTests } = await loadModule();
+        resetMapLapSelectorStateForTests();
     });
 
     it("adds control and handles single vs multi select changes", async () => {

@@ -267,6 +267,8 @@ const directMapActionCleanupExpandoPattern =
     /\b(?:activeFileName|activeFileNameElement|element)\.__ffvMapActionCleanup\b/u;
 const directMapMeasureEscapeHandlerGlobalPattern =
     /\b(?:window|globalThis|g|getMeasureToolGlobal\(\))\.__ffvMapMeasureEscapeHandler\b|["']__ffvMapMeasureEscapeHandler["']/u;
+const directLapSelectorMouseupHandlerGlobalPattern =
+    /\b(?:window|globalThis|g|getLapSelectorGlobal\(\))\.__ffvLapSelectorMouseupHandler\b|["']__ffvLapSelectorMouseupHandler["']/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1322,7 +1324,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(41);
+        expect.assertions(42);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1608,6 +1610,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directLapSelectorMouseupHandlerGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directLapSelectorMouseupHandlerGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1660,6 +1669,7 @@ describe("architecture boundaries", () => {
         expect(directQuickColorSwitcherStateExpandoLookups).toStrictEqual([]);
         expect(directMapActionCleanupExpandoLookups).toStrictEqual([]);
         expect(directMapMeasureEscapeHandlerGlobalLookups).toStrictEqual([]);
+        expect(directLapSelectorMouseupHandlerGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

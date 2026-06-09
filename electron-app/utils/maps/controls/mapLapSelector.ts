@@ -9,10 +9,6 @@ import {
 type LapSelection = "all" | string[];
 type MapDrawLaps = (selection: LapSelection) => void;
 
-type MapLapSelectorGlobal = typeof globalThis & {
-    __ffvLapSelectorMouseupHandler?: (event: MouseEvent) => void;
-};
-
 type HelpTooltipOptions = {
     force?: boolean;
     pinned?: boolean;
@@ -23,8 +19,32 @@ type LapControlIconName = Extract<
     "circleHelp" | "circleX" | "route" | "timer"
 >;
 
-function getLapSelectorGlobal(): MapLapSelectorGlobal {
-    return globalThis;
+let lapSelectorMouseupHandler: null | ((event: MouseEvent) => void) = null;
+
+function replaceLapSelectorMouseupHandler(
+    handler: (event: MouseEvent) => void
+): void {
+    if (lapSelectorMouseupHandler) {
+        document.removeEventListener("mouseup", lapSelectorMouseupHandler);
+    }
+    lapSelectorMouseupHandler = handler;
+}
+
+function clearLapSelectorMouseupHandler(
+    handler: (event: MouseEvent) => void
+): void {
+    if (lapSelectorMouseupHandler !== handler) {
+        return;
+    }
+    document.removeEventListener("mouseup", handler);
+    lapSelectorMouseupHandler = null;
+}
+
+export function resetMapLapSelectorStateForTests(): void {
+    if (lapSelectorMouseupHandler) {
+        document.removeEventListener("mouseup", lapSelectorMouseupHandler);
+    }
+    lapSelectorMouseupHandler = null;
 }
 
 // Lap selection UI and logic for Leaflet map
@@ -43,7 +63,6 @@ export function addLapSelector(
     container: HTMLElement,
     mapDrawLaps: MapDrawLaps
 ): void {
-    const windowWithData = getLapSelectorGlobal();
     const lapMesgs = FitFileSelectors.getLapMessages();
     if (lapMesgs.length === 0) {
         return;
@@ -405,23 +424,16 @@ export function addLapSelector(
     );
 
     // Avoid leaking document-level handlers if the map is re-rendered.
-    const g = windowWithData;
-    const mouseupKey = "__ffvLapSelectorMouseupHandler" as const;
-    if (typeof g[mouseupKey] === "function") {
-        document.removeEventListener("mouseup", g[mouseupKey]);
-    }
-    g[mouseupKey] = () => {
+    const mouseupHandler = () => {
         dragSelecting = false;
         dragSelectValue = null;
     };
-    document.addEventListener("mouseup", g[mouseupKey], { signal });
+    replaceLapSelectorMouseupHandler(mouseupHandler);
+    document.addEventListener("mouseup", mouseupHandler, { signal });
     signal.addEventListener(
         "abort",
         () => {
-            if (g[mouseupKey]) {
-                document.removeEventListener("mouseup", g[mouseupKey]);
-                delete g[mouseupKey];
-            }
+            clearLapSelectorMouseupHandler(mouseupHandler);
             hideHelpTooltip({ force: true });
         },
         { once: true, signal }
