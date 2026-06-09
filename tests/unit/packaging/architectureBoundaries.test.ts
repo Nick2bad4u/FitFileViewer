@@ -293,6 +293,8 @@ const directRendererApiExposureGlobalPattern =
     /\b(?:window|globalThis|scope)\.(?:APP_INFO|createExportGPXButton|__resetRendererStateInitializationForTests)\b|Reflect\.set\(\s*scope\s*,\s*["'](?:APP_INFO|createExportGPXButton|__resetRendererStateInitializationForTests)["']/u;
 const directStateManagerApiGlobalPattern =
     /\b(?:window|globalThis|globalState|getMasterGlobal\(\))\.__STATE_MANAGER_API__\b|Object\.defineProperty\(\s*globalState\s*,\s*["']__STATE_MANAGER_API__["']/u;
+const directSingletonStateSubscriptionsGlobalPattern =
+    /\b(?:window|globalThis|globalState)\.__ffvSingletonStateSubscriptions\b|["']__ffvSingletonStateSubscriptions["']/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1348,7 +1350,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(54);
+        expect.assertions(55);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1725,6 +1727,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directSingletonStateSubscriptionsGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directSingletonStateSubscriptionsGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/globalApiExposure.ts",
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
@@ -1795,6 +1804,9 @@ describe("architecture boundaries", () => {
         expect(directResourceManagerGlobalLookups).toStrictEqual([]);
         expect(directRendererApiExposureGlobalLookups).toStrictEqual([]);
         expect(directStateManagerApiGlobalLookups).toStrictEqual([]);
+        expect(directSingletonStateSubscriptionsGlobalLookups).toStrictEqual(
+            []
+        );
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

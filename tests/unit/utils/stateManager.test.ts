@@ -8,6 +8,7 @@ import {
     resetState,
     setState,
     subscribe,
+    subscribeSingleton,
     updateState,
     type StateListener,
 } from "../../../electron-app/utils/state/core/stateManager.js";
@@ -293,6 +294,38 @@ describe("state manager core", () => {
             undefined,
             "test.multiple"
         );
+    });
+
+    it("replaces singleton subscriptions without publishing a global registry", () => {
+        expect.assertions(5);
+
+        resetStateManager();
+
+        const firstSubscriber = createStateListener();
+        const secondSubscriber = createStateListener();
+
+        subscribeSingleton("test.singleton", "same-id", firstSubscriber);
+        subscribeSingleton("test.singleton", "same-id", secondSubscriber);
+
+        setState("test.singleton", "value");
+
+        expect(firstSubscriber).not.toHaveBeenCalled();
+        expect(secondSubscriber).toHaveBeenCalledWith(
+            "value",
+            undefined,
+            "test.singleton"
+        );
+        expect(
+            getSubscriptions().subscriptionDetails["test.singleton"]
+        ).toStrictEqual({
+            hasListeners: true,
+            listenerCount: 1,
+        });
+        expect("__ffvSingletonStateSubscriptions" in globalThis).toBe(false);
+
+        resetStateManager();
+
+        expect(getSubscriptions().paths).not.toContain("test.singleton");
     });
 
     it("removes subscribers through the unsubscribe callback", () => {

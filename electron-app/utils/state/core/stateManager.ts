@@ -47,10 +47,6 @@ type StateManagerInitState = {
     initialized: boolean;
 };
 
-type StateManagerGlobal = typeof globalThis & {
-    __ffvSingletonStateSubscriptions?: Record<string, Unsubscribe>;
-};
-
 const MAX_HISTORY_SIZE = 50;
 const DEFAULT_PERSISTED_PATHS = [
     "ui",
@@ -61,6 +57,7 @@ const DEFAULT_PERSISTED_PATHS = [
 
 const stateListeners = new Map<string, Set<StateListener>>();
 const stateManagerInitState: StateManagerInitState = { initialized: false };
+const singletonStateSubscriptions = createSubscriptionRegistry();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -72,6 +69,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export function __clearAllListenersForTests(): void {
     try {
         stateListeners.clear();
+        clearSubscriptionRegistry(singletonStateSubscriptions);
         if (!isTestEnvironment()) {
             console.log("[StateManager] All listeners cleared (tests)");
         }
@@ -429,6 +427,14 @@ function createSubscriptionRegistry(): Record<string, Unsubscribe> {
     return registry;
 }
 
+function clearSubscriptionRegistry(
+    registry: Record<string, Unsubscribe>
+): void {
+    for (const key of Object.keys(registry)) {
+        delete registry[key];
+    }
+}
+
 /**
  * Subscribes to state changes using a singleton id to avoid duplicate active
  * subscriptions.
@@ -444,16 +450,6 @@ export function subscribeSingleton(
     id: string,
     callback: StateListener
 ): Unsubscribe {
-    const globalState = globalThis as StateManagerGlobal;
-    if (
-        globalState.__ffvSingletonStateSubscriptions === undefined ||
-        globalState.__ffvSingletonStateSubscriptions === null
-    ) {
-        globalState.__ffvSingletonStateSubscriptions =
-            createSubscriptionRegistry();
-    }
-
-    const registry = globalState.__ffvSingletonStateSubscriptions;
     const key = id.trim();
 
     if (!key) {
@@ -461,7 +457,7 @@ export function subscribeSingleton(
     }
 
     try {
-        const existingUnsubscribe = registry[key];
+        const existingUnsubscribe = singletonStateSubscriptions[key];
         if (typeof existingUnsubscribe === "function") {
             existingUnsubscribe();
         }
@@ -470,12 +466,12 @@ export function subscribeSingleton(
     }
 
     const unsubscribe = subscribe(path, callback);
-    registry[key] = unsubscribe;
+    singletonStateSubscriptions[key] = unsubscribe;
 
     return () => {
         try {
-            if (registry[key] === unsubscribe) {
-                delete registry[key];
+            if (singletonStateSubscriptions[key] === unsubscribe) {
+                delete singletonStateSubscriptions[key];
             }
         } catch {
             // Ignore registry cleanup errors.
