@@ -90,12 +90,8 @@ const rendererStateStartup = createRendererStateStartup({
     subscribe,
     toModuleRecord,
 });
-const {
-    getAppState,
-    initializeStateManager,
-    isOpeningFileRef,
-    resetStateInitializationForTests,
-} = rendererStateStartup;
+const { getAppState, initializeStateManager, isOpeningFileRef } =
+    rendererStateStartup;
 
 const domAccess = createRendererDomAccess({
     documentTarget: document,
@@ -210,7 +206,6 @@ installRendererGlobalSurfaces({
     isOpeningFileRef,
     logRenderer,
     performanceMonitor: PerformanceMonitor,
-    resetStateInitializationForTests,
     validateDOMElements: domAccess.validateDOMElements,
 });
 

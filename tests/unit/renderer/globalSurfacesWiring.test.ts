@@ -2,20 +2,12 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { installRendererGlobalSurfaces } from "../../../electron-app/renderer/globalSurfacesWiring.js";
 import type { RendererPerformanceMonitor } from "../../../electron-app/renderer/startupPerformanceMonitor.js";
-import { createExportGPXButton } from "../../../electron-app/utils/files/export/createExportGPXButton.js";
 
 vi.mock(
     "../../../electron-app/utils/app/initialization/rendererEnvironment.js",
     () => ({
         getEnvironment: () => "test",
         isDevelopmentMode: () => false,
-    })
-);
-
-vi.mock(
-    "../../../electron-app/utils/files/export/createExportGPXButton.js",
-    () => ({
-        createExportGPXButton: vi.fn(),
     })
 );
 
@@ -33,8 +25,8 @@ describe("renderer global surfaces wiring", () => {
         vi.restoreAllMocks();
     });
 
-    it("installs legacy globals and logs startup through one renderer surface", () => {
-        expect.assertions(5);
+    it("installs development globals and logs startup through one renderer surface", () => {
+        expect.assertions(4);
 
         const scope = {} as typeof globalThis;
         const logRenderer =
@@ -44,8 +36,6 @@ describe("renderer global surfaces wiring", () => {
                     ...args: unknown[]
                 ) => void
             >();
-        const resetStateInitializationForTests = vi.fn();
-
         installRendererGlobalSurfaces({
             appState: null,
             cleanup: vi.fn(),
@@ -54,21 +44,12 @@ describe("renderer global surfaces wiring", () => {
             isOpeningFileRef: { value: false },
             logRenderer,
             performanceMonitor: createPerformanceMonitor(),
-            resetStateInitializationForTests,
             scope,
             validateDOMElements: () => true,
         });
 
-        expect(Reflect.get(scope, "createExportGPXButton")).toBe(
-            createExportGPXButton
-        );
-        expect(
-            Reflect.get(scope, "__resetRendererStateInitializationForTests")
-        ).toBe(resetStateInitializationForTests);
-        expect(Reflect.get(scope, "APP_INFO")).toMatchObject({
-            name: "FIT File Viewer",
-            version: "21.1.0",
-        });
+        expect(Reflect.get(scope, "createExportGPXButton")).toBeUndefined();
+        expect(Reflect.get(scope, "APP_INFO")).toBeUndefined();
         expect(logRenderer).toHaveBeenCalledWith("log", "Environment:", "test");
         expect(Reflect.get(scope, "__renderer_dev")).toBeUndefined();
     });
