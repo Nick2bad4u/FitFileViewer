@@ -14,14 +14,7 @@
         readonly [key: symbol]: unknown;
     };
 
-    interface BeforeExitGlobalRegistry {
-        __ffv_preload_beforeExitRegistry__?:
-            | null
-            | WeakMap<NodeJS.Process, BeforeExitCallback>;
-    }
-
     interface RegisterPreloadBeforeExitHandlerOptions {
-        globalScope?: BeforeExitGlobalRegistry;
         isDevelopmentMode: () => boolean;
         preloadLog: PreloadLog;
         processRef?: NodeJS.Process;
@@ -30,34 +23,10 @@
     const BEFORE_EXIT_LISTENER_SYMBOL = Symbol.for(
         "ffv.preload.beforeExitListener"
     );
-    const BEFORE_EXIT_REGISTRY_KEY = "__ffv_preload_beforeExitRegistry__";
-
-    function getProcessRegistry(
-        globalScope: BeforeExitGlobalRegistry,
-        preloadLog: PreloadLog
-    ): null | WeakMap<NodeJS.Process, BeforeExitCallback> {
-        const existing = globalScope[BEFORE_EXIT_REGISTRY_KEY];
-        if (existing) {
-            return existing;
-        }
-
-        try {
-            const registry = new WeakMap<
-                NodeJS.Process,
-                BeforeExitCallback
-            >();
-            globalScope[BEFORE_EXIT_REGISTRY_KEY] = registry;
-            return registry;
-        } catch (error) {
-            preloadLog(
-                "warn",
-                "[preload.js] Unable to initialize beforeExit registry:",
-                error
-            );
-            globalScope[BEFORE_EXIT_REGISTRY_KEY] = null;
-            return null;
-        }
-    }
+    const beforeExitRegistry = new WeakMap<
+        NodeJS.Process,
+        BeforeExitCallback
+    >();
 
     function getRegisteredBeforeExitWrapper(
         processRef: NodeJS.Process,
@@ -130,13 +99,10 @@
     }
 
     function registerPreloadBeforeExitHandler({
-        globalScope = globalThis as BeforeExitGlobalRegistry,
         isDevelopmentMode,
         preloadLog,
         processRef = process,
     }: RegisterPreloadBeforeExitHandlerOptions): void {
-        const registry = getProcessRegistry(globalScope, preloadLog);
-
         const handleBeforeExit: BeforeExitCallback = () => {
             if (isDevelopmentMode()) {
                 preloadLog(
@@ -145,12 +111,8 @@
                 );
             }
 
-            if (!registry) {
-                return;
-            }
-
-            const existingWrapper = registry.get(processRef);
-            registry.delete(processRef);
+            const existingWrapper = beforeExitRegistry.get(processRef);
+            beforeExitRegistry.delete(processRef);
             if (existingWrapper) {
                 removeBeforeExitListener(
                     processRef,
@@ -161,7 +123,11 @@
             }
         };
 
-        removeRegisteredBeforeExitWrapper(processRef, registry, preloadLog);
+        removeRegisteredBeforeExitWrapper(
+            processRef,
+            beforeExitRegistry,
+            preloadLog
+        );
         pruneTrackedBeforeExitListeners(
             processRef,
             handleBeforeExit,
@@ -169,15 +135,13 @@
         );
         processRef.once("beforeExit", handleBeforeExit);
 
-        if (registry) {
-            const storedWrapper = getRegisteredBeforeExitWrapper(
-                processRef,
-                handleBeforeExit,
-                preloadLog
-            );
-            markBeforeExitWrapper(storedWrapper);
-            registry.set(processRef, storedWrapper);
-        }
+        const storedWrapper = getRegisteredBeforeExitWrapper(
+            processRef,
+            handleBeforeExit,
+            preloadLog
+        );
+        markBeforeExitWrapper(storedWrapper);
+        beforeExitRegistry.set(processRef, storedWrapper);
     }
 
     function removeBeforeExitListener(
@@ -195,10 +159,10 @@
 
     function removeRegisteredBeforeExitWrapper(
         processRef: NodeJS.Process,
-        registry: null | WeakMap<NodeJS.Process, BeforeExitCallback>,
+        registry: WeakMap<NodeJS.Process, BeforeExitCallback>,
         preloadLog: PreloadLog
     ): void {
-        const existingWrapper = registry?.get(processRef);
+        const existingWrapper = registry.get(processRef);
         if (existingWrapper === undefined) {
             return;
         }
@@ -209,7 +173,7 @@
             "[preload.js] Unable to remove stale beforeExit listener:",
             preloadLog
         );
-        registry?.delete(processRef);
+        registry.delete(processRef);
     }
 
     module.exports = {

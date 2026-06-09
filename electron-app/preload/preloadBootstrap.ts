@@ -77,7 +77,6 @@
         });
 
         registerPreloadBeforeExitHandler({
-            globalScope,
             isDevelopmentMode,
             preloadLog,
             processRef,

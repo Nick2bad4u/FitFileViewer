@@ -261,6 +261,8 @@ const directFullscreenHandlerGlobalPattern =
     /\b(?:window|globalThis|testGlobal|getFullscreenGlobal\(\))\.(?:__ffvFullscreenKeydownHandler|__ffvNativeFullscreenChangeHandler)\b/u;
 const directMenuForwardRegistryGlobalPattern =
     /\b(?:window|globalThis|holder|testGlobal|getMenuIpcGlobal\(\))\.__ffvMenuForwardRegistry\b/u;
+const directPreloadBeforeExitRegistryGlobalPattern =
+    /\b(?:window|globalThis|globalScope)\.__ffv_preload_beforeExitRegistry__\b|["']__ffv_preload_beforeExitRegistry__["']/u;
 const directAppMenuExportsGlobalPattern =
     /\b(?:window|globalThis|getMenuGlobal\(\))\.__FFV_createAppMenuExports\b|["']__FFV_createAppMenuExports["']/u;
 const directFitFileStateManagerGlobalPattern =
@@ -1368,7 +1370,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(64);
+        expect.assertions(65);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1633,6 +1635,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directPreloadBeforeExitRegistryGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directPreloadBeforeExitRegistryGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directAppMenuExportsGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directAppMenuExportsGlobalPattern.test(
@@ -1865,6 +1874,7 @@ describe("architecture boundaries", () => {
         expect(directFileBrowserLibraryCacheGlobalLookups).toStrictEqual([]);
         expect(directFullscreenHandlerGlobalLookups).toStrictEqual([]);
         expect(directMenuForwardRegistryGlobalLookups).toStrictEqual([]);
+        expect(directPreloadBeforeExitRegistryGlobalLookups).toStrictEqual([]);
         expect(directAppMenuExportsGlobalLookups).toStrictEqual([]);
         expect(directFitFileStateManagerGlobalLookups).toStrictEqual([]);
         expect(directMainProcessStateManagerExportsGlobalLookups).toStrictEqual(
