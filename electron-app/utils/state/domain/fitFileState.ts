@@ -455,7 +455,6 @@ export class FitFileStateManager {
         stateCore.setState("fitFile.loadedFiles", [], {
             source: SOURCE_CLEAR_FILE_STATE,
         });
-        Reflect.deleteProperty(globalThis, "loadedFitFiles");
 
         console.log("[FitFileState] File state cleared");
     }

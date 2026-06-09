@@ -157,10 +157,9 @@ describe("fitFileStateManager - domain logic and selectors", () => {
     });
 
     it("clearFileState sets all related paths and logs", () => {
-        expect.assertions(13);
+        expect.assertions(12);
 
         const mgr = new FitFileStateManager();
-        Reflect.set(globalThis, "loadedFitFiles", [{ filePath: "stale.fit" }]);
         const spy = vi.spyOn(stateManager, "setState");
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         mgr.clearFileState();
@@ -179,7 +178,6 @@ describe("fitFileStateManager - domain logic and selectors", () => {
             "fitFile.loadedFiles",
         ].forEach((p) => expect(calls).toContain(p));
         expect(stateManager.getState("fitFile.loadedFiles")).toStrictEqual([]);
-        expect(Reflect.has(globalThis, "loadedFitFiles")).toBe(false);
         expect(logSpy).toHaveBeenCalledWith(
             "[FitFileState] File state cleared"
         );

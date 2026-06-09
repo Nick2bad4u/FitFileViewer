@@ -215,7 +215,7 @@ const directFitFileRawDataSelectorPattern =
 const legacyLoadedFitFilesStatePathPattern =
     /["']globalData\.loadedFitFiles["']/u;
 const legacyLoadedFitFilesGlobalLookupPattern =
-    /\b(?:appGlobal|lifecycleGlobal|overlayGlobal|windowExt|win|window|globalThis)\.loadedFitFiles\b/u;
+    /\b(?:appGlobal|lifecycleGlobal|overlayGlobal|windowExt|win|window|globalThis)\.loadedFitFiles\b|Reflect\.deleteProperty\(\s*globalThis\s*,\s*["']loadedFitFiles["']\s*\)/u;
 const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const directShowFitDataGlobalPattern =
