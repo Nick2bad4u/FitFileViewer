@@ -4,13 +4,11 @@ import {
     type MetricRecord,
     type MetricStatistics,
 } from "../../../maps/filters/mapMetricFilter.js";
+import {
+    getMapDataPointFilter,
+    setMapDataPointFilter,
+} from "../../../maps/state/mapDataPointFilterState.js";
 import { FitFileSelectors } from "../../../state/domain/fitFileState.js";
-
-type DataPointFilterGlobal = typeof globalThis & {
-    mapDataPointFilter?:
-        | Partial<MapDataPointFilterConfig>
-        | ResolvedDataPointFilterConfig;
-};
 
 type RangeValues = {
     readonly max: number;
@@ -168,8 +166,9 @@ export function resolveInitialConfig(
     defaultMetric: string,
     defaultPercent: string
 ): ResolvedDataPointFilterConfig {
-    const win = globalThis as DataPointFilterGlobal;
-    const existing = win.mapDataPointFilter;
+    const existing = getMapDataPointFilter<
+        Partial<MapDataPointFilterConfig> | ResolvedDataPointFilterConfig
+    >();
     const metricKey =
         typeof existing?.metric === "string" ? existing.metric : defaultMetric;
     const mode = existing?.mode === "valueRange" ? "valueRange" : "topPercent";
@@ -208,6 +207,5 @@ export function toSliderString(value: number, decimals: number): string {
 export function updateGlobalFilter(
     config: MapDataPointFilterConfig | ResolvedDataPointFilterConfig
 ): void {
-    const win = globalThis as DataPointFilterGlobal;
-    win.mapDataPointFilter = { ...config };
+    setMapDataPointFilter(config);
 }

@@ -2,30 +2,10 @@
  * Summary refresh helper for the data point filter control.
  */
 
-type DataPointFilterState = {
-    readonly enabled?: boolean;
-};
-
-type LastFilterResult = {
-    readonly applied?: boolean;
-    readonly appliedMax?: number | null;
-    readonly appliedMin?: number | null;
-    readonly coverage?: number | null;
-    readonly maxCandidate?: number | null;
-    readonly metric?: string;
-    readonly metricLabel?: string | null;
-    readonly minCandidate?: number | null;
-    readonly mode?: string;
-    readonly percent?: number | null;
-    readonly reason?: unknown;
-    readonly selectedCount?: number;
-    readonly totalCandidates?: number;
-};
-
-type SummaryRefresherGlobal = typeof globalThis & {
-    mapDataPointFilter?: DataPointFilterState;
-    mapDataPointFilterLastResult?: LastFilterResult | null;
-};
+import {
+    getMapDataPointFilter,
+    getMapDataPointFilterLastResult,
+} from "../../../maps/state/mapDataPointFilterState.js";
 
 /** Dependencies required to render the data-point filter summary text. */
 export type CreateSummaryRefresherParams = {
@@ -42,8 +22,7 @@ export function createSummaryRefresher({
 }: CreateSummaryRefresherParams): () => void {
     return function refreshSummary(): void {
         try {
-            const win = globalThis as SummaryRefresherGlobal;
-            const last = win.mapDataPointFilterLastResult;
+            const last = getMapDataPointFilterLastResult();
             if (last && last.applied) {
                 if (last.mode === "valueRange") {
                     const appliedMin = getNumberOrDefault(
@@ -84,7 +63,8 @@ export function createSummaryRefresher({
                 summary.textContent = formatReason(last.reason);
                 return;
             }
-            if (!win.mapDataPointFilter || !win.mapDataPointFilter.enabled) {
+            const filter = getMapDataPointFilter();
+            if (!filter || !filter.enabled) {
                 summary.textContent =
                     "Highlight the most intense sections of your ride.";
             }
@@ -106,7 +86,7 @@ function getCount(value: number | undefined): number {
 
 function getMetricDisplayName(
     metricLabel: string | null | undefined,
-    metric: string | undefined
+    metric: string | null | undefined
 ): string {
     return metricLabel ?? metric ?? "selected metric";
 }

@@ -12,6 +12,11 @@ import {
 } from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.js";
 import { setActiveFitRawData } from "../../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../../electron-app/utils/state/core/stateManager.js";
+import {
+    getMapDataPointFilter,
+    resetMapDataPointFilterStateForTests,
+    setMapDataPointFilter,
+} from "../../../../../../electron-app/utils/maps/state/mapDataPointFilterState.js";
 
 type DataPointFilterConfig = {
     enabled: boolean;
@@ -28,19 +33,14 @@ type MetricStats = {
     min: number;
 };
 
-type StateHelpersTestGlobal = typeof globalThis & {
-    mapDataPointFilter?: DataPointFilterConfig;
-};
-
 const originalConsoleError = console.error;
-const testGlobal = globalThis as StateHelpersTestGlobal;
 
 describe("stateHelpers", () => {
     beforeEach(() => {
         __resetStateManagerForTests();
         vi.restoreAllMocks();
         console.error = originalConsoleError;
-        Reflect.deleteProperty(testGlobal, "mapDataPointFilter");
+        resetMapDataPointFilterStateForTests();
         setActiveFitRawData({ recordMesgs: [] }, { source: "test" });
     });
 
@@ -48,7 +48,7 @@ describe("stateHelpers", () => {
         __resetStateManagerForTests();
         vi.restoreAllMocks();
         console.error = originalConsoleError;
-        Reflect.deleteProperty(testGlobal, "mapDataPointFilter");
+        resetMapDataPointFilterStateForTests();
     });
 
     it("clampPercent restricts values to 1-100 and truncates decimals", () => {
@@ -73,14 +73,14 @@ describe("stateHelpers", () => {
     it("resolveInitialConfig honors persisted window configuration", () => {
         expect.hasAssertions();
 
-        testGlobal.mapDataPointFilter = {
+        setMapDataPointFilter({
             enabled: true,
             maxValue: 750,
             metric: "power",
             minValue: 200,
             mode: "valueRange",
             percent: 5,
-        };
+        });
         const config = resolveInitialConfig("speed", "10");
         expect(config).toEqual({
             enabled: true,
@@ -180,6 +180,6 @@ describe("stateHelpers", () => {
             percent: 10,
         };
         updateGlobalFilter(config);
-        expect(testGlobal.mapDataPointFilter).toEqual(config);
+        expect(getMapDataPointFilter()).toEqual(config);
     });
 });

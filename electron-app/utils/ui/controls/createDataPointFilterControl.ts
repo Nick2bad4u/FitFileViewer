@@ -4,6 +4,7 @@ import {
     type MetricFilterResult,
     type MetricStatistics,
 } from "../../maps/filters/mapMetricFilter.js";
+import { getMapDataPointFilter } from "../../maps/state/mapDataPointFilterState.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { createFilterControlElements } from "./dataPointFilterControl/elementFactory.js";
 import {
@@ -34,12 +35,6 @@ type CurrentRangeValues = {
 
 type RangeStatsOptions = {
     preserveSelection?: boolean;
-};
-
-type DataPointFilterGlobal = typeof globalThis & {
-    mapDataPointFilter?:
-        | MapDataPointFilterConfig
-        | ResolvedDataPointFilterConfig;
 };
 
 type FilterChangePayload = {
@@ -197,7 +192,7 @@ export function createDataPointFilterControl(
     updateModeSelectionState();
     updateRangeStats({ preserveSelection: true });
 
-    if (!getDataPointFilterGlobal().mapDataPointFilter || shouldDisable) {
+    if (!getMapDataPointFilter() || shouldDisable) {
         updateGlobalFilter(toMapFilterConfig(initialConfig));
     }
 
@@ -633,10 +628,6 @@ export function createDataPointFilterControl(
     );
 
     return container;
-}
-
-function getDataPointFilterGlobal(): DataPointFilterGlobal {
-    return globalThis;
 }
 
 function toCompleteRangeValues(

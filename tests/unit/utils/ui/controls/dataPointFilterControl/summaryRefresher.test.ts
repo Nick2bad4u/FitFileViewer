@@ -1,18 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { createSummaryRefresher } from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/summaryRefresher.js";
-
-type MutableDataPointFilterGlobal = typeof globalThis & {
-    mapDataPointFilter?: { enabled?: boolean };
-    mapDataPointFilterLastResult?: unknown;
-};
-
-const testGlobal = globalThis as MutableDataPointFilterGlobal;
+import {
+    resetMapDataPointFilterStateForTests,
+    setMapDataPointFilter,
+    setMapDataPointFilterLastResult,
+} from "../../../../../../electron-app/utils/maps/state/mapDataPointFilterState.js";
 
 function runWithSummaryFixture(callback: (summary: HTMLElement) => void): void {
     try {
-        Reflect.deleteProperty(testGlobal, "mapDataPointFilter");
-        Reflect.deleteProperty(testGlobal, "mapDataPointFilterLastResult");
+        resetMapDataPointFilterStateForTests();
         document.body.replaceChildren();
 
         const summary = document.createElement("p");
@@ -20,8 +17,7 @@ function runWithSummaryFixture(callback: (summary: HTMLElement) => void): void {
 
         callback(summary);
     } finally {
-        Reflect.deleteProperty(testGlobal, "mapDataPointFilter");
-        Reflect.deleteProperty(testGlobal, "mapDataPointFilterLastResult");
+        resetMapDataPointFilterStateForTests();
         document.body.replaceChildren();
     }
 }
@@ -39,7 +35,7 @@ describe(createSummaryRefresher, () => {
         expect.assertions(1);
 
         runWithSummaryFixture((summary) => {
-            testGlobal.mapDataPointFilterLastResult = {
+            setMapDataPointFilterLastResult({
                 applied: true,
                 appliedMax: 42,
                 appliedMin: Number.NaN,
@@ -52,7 +48,7 @@ describe(createSummaryRefresher, () => {
                 percent: 37.5,
                 selectedCount: 7,
                 totalCandidates: 20,
-            };
+            });
 
             createRefreshSummary(summary)();
 
@@ -66,14 +62,14 @@ describe(createSummaryRefresher, () => {
         expect.assertions(1);
 
         runWithSummaryFixture((summary) => {
-            testGlobal.mapDataPointFilterLastResult = {
+            setMapDataPointFilterLastResult({
                 applied: true,
                 metric: "power",
                 mode: "topPercent",
                 percent: 15,
                 selectedCount: 3,
                 totalCandidates: 30,
-            };
+            });
 
             createRefreshSummary(summary)();
 
@@ -87,9 +83,9 @@ describe(createSummaryRefresher, () => {
         expect.assertions(1);
 
         runWithSummaryFixture((summary) => {
-            testGlobal.mapDataPointFilterLastResult = {
+            setMapDataPointFilterLastResult({
                 reason: "No matching points",
-            };
+            });
 
             createRefreshSummary(summary)();
 
@@ -101,7 +97,7 @@ describe(createSummaryRefresher, () => {
         expect.assertions(1);
 
         runWithSummaryFixture((summary) => {
-            testGlobal.mapDataPointFilter = { enabled: false };
+            setMapDataPointFilter({ enabled: false });
 
             createRefreshSummary(summary)();
 
@@ -124,12 +120,12 @@ describe(createSummaryRefresher, () => {
                 summary,
             });
             summary.textContent = "existing";
-            testGlobal.mapDataPointFilterLastResult = {
+            setMapDataPointFilterLastResult({
                 applied: true,
                 appliedMax: 2,
                 appliedMin: 1,
                 mode: "valueRange",
-            };
+            });
 
             refreshSummary();
 

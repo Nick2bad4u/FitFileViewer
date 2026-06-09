@@ -80,6 +80,11 @@ vi.mock(
 import { createDataPointFilterControl } from "../../../../../electron-app/utils/ui/controls/createDataPointFilterControl.js";
 import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import {
+    resetMapDataPointFilterStateForTests,
+    setMapDataPointFilter,
+    setMapDataPointFilterLastResult,
+} from "../../../../../electron-app/utils/maps/state/mapDataPointFilterState.js";
 import { showNotification } from "../../../../../electron-app/utils/ui/notifications/showNotification.js";
 import {
     computeRangeState,
@@ -127,8 +132,7 @@ beforeEach(() => {
     (showNotification as any).mockReset?.();
 
     document.body.replaceChildren();
-    globalThis.mapDataPointFilter = undefined;
-    globalThis.mapDataPointFilterLastResult = undefined;
+    resetMapDataPointFilterStateForTests();
     setActiveFitRawData(
         {
             recordMesgs: [
@@ -169,6 +173,7 @@ beforeEach(() => {
 
 afterEach(() => {
     __resetStateManagerForTests();
+    resetMapDataPointFilterStateForTests();
     globalThis.requestAnimationFrame = originalRAF;
     globalThis.cancelAnimationFrame = originalCancelRAF;
     globalThis.queueMicrotask = originalQueueMicrotask;
@@ -214,12 +219,12 @@ describe(createDataPointFilterControl, () => {
     it("uses persisted configuration to seed summary without overwriting", async () => {
         expect.assertions(2);
 
-        globalThis.mapDataPointFilter = {
+        setMapDataPointFilter({
             enabled: true,
             metric: "power",
             mode: "topPercent",
             percent: 12,
-        };
+        });
         previewFilterResult.mockReturnValueOnce({
             isActive: true,
             metric: "power",
@@ -896,10 +901,10 @@ describe(createDataPointFilterControl, () => {
         const summaryElement = requireElement(summary, "summary");
 
         summaryElement.textContent = "Original summary";
-        globalThis.mapDataPointFilterLastResult = {
+        setMapDataPointFilterLastResult({
             applied: false,
             reason: "Fallback microtask refresh",
-        } as any;
+        });
 
         const metricSelect = document.body.querySelector<HTMLSelectElement>(
             ".data-point-filter-control__select"
@@ -918,12 +923,12 @@ describe(createDataPointFilterControl, () => {
     it("promotes slider interaction to value range mode when starting in top-percent", async () => {
         expect.assertions(3);
 
-        globalThis.mapDataPointFilter = {
+        setMapDataPointFilter({
             enabled: true,
             metric: "power",
             mode: "topPercent",
             percent: 15,
-        };
+        });
         computeRangeState.mockReturnValue({
             rangeValues: { min: 120, max: 340 },
             sliderValues: { min: "120", max: "340" },
@@ -1648,7 +1653,7 @@ describe(createDataPointFilterControl, () => {
         const summaryElement = requireElement(summary, "summary");
         expect(summaryElement.tagName).toBe("P");
 
-        globalThis.mapDataPointFilterLastResult = {
+        setMapDataPointFilterLastResult({
             applied: true,
             appliedMax: 300,
             appliedMin: 150,
@@ -1658,11 +1663,11 @@ describe(createDataPointFilterControl, () => {
             percent: 40,
             selectedCount: 12,
             totalCandidates: 30,
-        };
+        });
         (container as any).refreshSummary();
         expect(summaryElement.textContent).toContain("12 of 30");
 
-        globalThis.mapDataPointFilterLastResult = {
+        setMapDataPointFilterLastResult({
             applied: true,
             metric: "speed",
             metricLabel: "Speed",
@@ -1670,16 +1675,16 @@ describe(createDataPointFilterControl, () => {
             percent: 20,
             selectedCount: 6,
             totalCandidates: 24,
-        };
+        });
         (container as any).refreshSummary();
         expect(summaryElement.textContent).toContain("top 20%");
 
-        globalThis.mapDataPointFilterLastResult = { reason: "Disabled" };
+        setMapDataPointFilterLastResult({ reason: "Disabled" });
         (container as any).refreshSummary();
         expect(summaryElement.textContent).toBe("Disabled");
 
-        globalThis.mapDataPointFilter = { enabled: false };
-        globalThis.mapDataPointFilterLastResult = null;
+        setMapDataPointFilter({ enabled: false });
+        setMapDataPointFilterLastResult(null);
         (container as any).refreshSummary();
         expect(summaryElement.textContent).toBe(
             "Highlight the most intense sections of your ride."
@@ -1713,7 +1718,7 @@ describe(createDataPointFilterControl, () => {
             "Highlight the most intense sections of your ride."
         );
 
-        globalThis.mapDataPointFilterLastResult = {
+        setMapDataPointFilterLastResult({
             applied: true,
             maxCandidate: 672.4,
             metric: "altitude",
@@ -1723,11 +1728,11 @@ describe(createDataPointFilterControl, () => {
             percent: 37,
             selectedCount: 4,
             totalCandidates: 9,
-        };
+        });
         (container as any).refreshSummary();
         expect(summaryElement.textContent).toContain("37% coverage");
 
-        globalThis.mapDataPointFilterLastResult = {
+        setMapDataPointFilterLastResult({
             applied: true,
             maxCandidate: 12,
             metric: "speed",
@@ -1736,7 +1741,7 @@ describe(createDataPointFilterControl, () => {
             percent: "n/a",
             selectedCount: 1,
             totalCandidates: 10,
-        };
+        } as any);
         (container as any).refreshSummary();
         expect(summaryElement.textContent).toContain("0% coverage");
     });
@@ -1758,8 +1763,8 @@ describe(createDataPointFilterControl, () => {
 
         summaryElement.textContent = "Original summary";
 
-        globalThis.mapDataPointFilter = { enabled: true };
-        globalThis.mapDataPointFilterLastResult = null;
+        setMapDataPointFilter({ enabled: true });
+        setMapDataPointFilterLastResult(null);
         (container as any).refreshSummary();
         expect(summaryElement.textContent).toBe("Original summary");
 
@@ -1769,14 +1774,14 @@ describe(createDataPointFilterControl, () => {
                 throw new Error("format failure");
             });
 
-        globalThis.mapDataPointFilterLastResult = {
+        setMapDataPointFilterLastResult({
             applied: true,
             metric: "speed",
             metricLabel: "Speed",
             mode: "valueRange",
             selectedCount: 0,
             totalCandidates: 0,
-        } as any;
+        } as any);
 
         summaryElement.textContent = "Stable summary";
         expect(() => (container as any).refreshSummary()).not.toThrow();

@@ -27,6 +27,11 @@ import {
     resetRegisteredMapDataPointMarkers,
     setRegisteredMapActivityLayerGroup,
 } from "../state/mapActivityLayerState.js";
+import {
+    getMapDataPointFilter,
+    setMapDataPointFilterLastResult,
+    type MapDataPointFilterLastResult,
+} from "../state/mapDataPointFilterState.js";
 import { getMapMarkerCount } from "../state/mapMarkerCountState.js";
 import {
     clearMainMapPolyline,
@@ -104,26 +109,9 @@ type FitDataLike = {
 
 type MapDrawWindowLike = typeof globalThis & {
     _activeMainFileIdx?: number;
-    mapDataPointFilter?: MapDataPointFilterConfig | null;
-    mapDataPointFilterLastResult?: MetricFilterSummary | null;
 };
 
-type MetricFilterSummary = {
-    applied: boolean;
-    appliedMax?: number | null;
-    appliedMin?: number | null;
-    coverage?: number;
-    maxCandidate?: number | null;
-    metric?: string | null;
-    metricLabel?: string | null;
-    minCandidate?: number | null;
-    mode?: string;
-    percent?: number;
-    reason?: string | null;
-    selectedCount?: number;
-    threshold?: number | null;
-    totalCandidates?: number;
-};
+type MetricFilterSummary = MapDataPointFilterLastResult;
 
 type CoordTuple = [
     number,
@@ -1581,15 +1569,14 @@ function selectMarkerCoordinatesForDataset(
     shouldUpdateSummary = true
 ): CoordTuple[] {
     const markerLimit = getMarkerLimit();
-    const win = getWin();
-    const filterConfig = win.mapDataPointFilter;
+    const filterConfig = getMapDataPointFilter<MapDataPointFilterConfig>();
 
     const updateSummary = (summary: MetricFilterSummary | null): void => {
         if (!shouldUpdateSummary) {
             return;
         }
         try {
-            win.mapDataPointFilterLastResult = summary;
+            setMapDataPointFilterLastResult(summary);
         } catch {
             /* ignore summary persistence errors */
         }

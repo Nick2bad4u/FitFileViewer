@@ -20,6 +20,7 @@ import {
     getRegisteredMapDataPointMarkers,
     resetMapActivityLayerStateForTests,
 } from "../../../../electron-app/utils/maps/state/mapActivityLayerState.js";
+import { resetMapDataPointFilterStateForTests } from "../../../../electron-app/utils/maps/state/mapDataPointFilterState.js";
 import {
     getMainMapPolyline,
     getMainMapPolylineOriginalBounds,
@@ -173,6 +174,7 @@ describe("mapDrawLaps", () => {
         // Initialize global state
         resetMapPolylineRegistryForTests();
         resetMapActivityLayerStateForTests();
+        resetMapDataPointFilterStateForTests();
         (globalThis as any)._activeMainFileIdx = 0;
         setMapMarkerCount(10);
         setHighlightedOverlayIndex(null);
@@ -183,6 +185,7 @@ describe("mapDrawLaps", () => {
         resetMapMarkerCount();
         resetMapPolylineRegistryForTests();
         resetMapActivityLayerStateForTests();
+        resetMapDataPointFilterStateForTests();
     });
 
     const getPolylineCall = (
