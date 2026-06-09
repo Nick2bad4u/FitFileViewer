@@ -1690,8 +1690,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.mocked(electronAPI.parseFitFile).mockResolvedValue(parseResult);
         vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
         const showFitData = vi.fn<ShowFitDataMock>();
-        const sendFitFileToAltFitReader =
-            altFitMocks.sendFitFileToAltFitReader;
+        const sendFitFileToAltFitReader = altFitMocks.sendFitFileToAltFitReader;
 
         Object.defineProperty(window, "showFitData", {
             value: showFitData,
@@ -1746,8 +1745,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         );
         vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
 
-        const sendFitFileToAltFitReader =
-            altFitMocks.sendFitFileToAltFitReader;
+        const sendFitFileToAltFitReader = altFitMocks.sendFitFileToAltFitReader;
 
         setupListeners({
             openFileBtn,
@@ -1810,8 +1808,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         );
 
         // Mock the integration function
-        const sendFitFileToAltFitReader =
-            altFitMocks.sendFitFileToAltFitReader;
+        const sendFitFileToAltFitReader = altFitMocks.sendFitFileToAltFitReader;
         const showFitData = vi.fn<ShowFitDataMock>();
         Object.defineProperty(globalThis, "showFitData", {
             configurable: true,

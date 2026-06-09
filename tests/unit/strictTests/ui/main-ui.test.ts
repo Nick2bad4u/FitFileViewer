@@ -26,8 +26,7 @@ vi.mock(
 );
 
 declare global {
-    interface Window {
-    }
+    interface Window {}
 }
 
 // Hoisted module mocks for all imports used by main-ui.js

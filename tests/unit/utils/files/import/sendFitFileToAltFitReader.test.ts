@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { sendFitFileToAltFitReader } from "../../../../../electron-app/utils/files/import/sendFitFileToAltFitReader.js";
-import { FILE_CONSTANTS, UI_CONSTANTS } from "../../../../../electron-app/utils/config/constants.js";
+import {
+    FILE_CONSTANTS,
+    UI_CONSTANTS,
+} from "../../../../../electron-app/utils/config/constants.js";
 
 const IFRAME_ID = UI_CONSTANTS.DOM_IDS.ALT_FIT_IFRAME;
 const IFRAME_PATH = FILE_CONSTANTS.IFRAME_PATHS.ALT_FIT;
