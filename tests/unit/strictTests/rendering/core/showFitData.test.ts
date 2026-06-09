@@ -8,15 +8,21 @@ import {
     type Mock,
 } from "vitest";
 
+const stateManagerMocks = vi.hoisted(() => ({
+    getState: vi.fn<(path?: string) => unknown>(() => undefined),
+    setState:
+        vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
+    subscribe: vi.fn<(key: string, listener: unknown) => () => void>(
+        () => () => undefined
+    ),
+}));
+
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
-        getState: vi.fn<() => undefined>(() => undefined),
-        setState:
-            vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
-        subscribe: vi.fn<(key: string, listener: unknown) => () => void>(
-            () => () => undefined
-        ),
+        getState: stateManagerMocks.getState,
+        setState: stateManagerMocks.setState,
+        subscribe: stateManagerMocks.subscribe,
     })
 );
 
@@ -94,7 +100,6 @@ type ShowFitDataTestGlobal = typeof globalThis & {
     electronAPI?: {
         notifyFitFileLoaded: Mock<(filePath: string) => void>;
     };
-    isMapRendered?: boolean;
 };
 
 async function loadModule() {
@@ -122,7 +127,9 @@ describe("showFitData", () => {
         showFitGlobal.electronAPI = {
             notifyFitFileLoaded: vi.fn<(filePath: string) => void>(),
         };
-        showFitGlobal.isMapRendered = false;
+        stateManagerMocks.getState.mockReturnValue(undefined);
+        stateManagerMocks.setState.mockClear();
+        stateManagerMocks.subscribe.mockClear();
         rendererDependencyMocks.createTables.mockClear();
         rendererDependencyMocks.renderMap.mockClear();
         rendererDependencyMocks.renderSummary.mockClear();
@@ -143,7 +150,6 @@ describe("showFitData", () => {
         vi.resetModules();
         const showFitGlobal = getShowFitDataTestGlobal();
         delete showFitGlobal.electronAPI;
-        delete showFitGlobal.isMapRendered;
         vi.clearAllMocks();
     });
 
@@ -197,13 +203,14 @@ describe("showFitData", () => {
     });
 
     it("does not render the map again when it is already rendered", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const { showFitData } = await loadModule();
         const data: Record<string, unknown> = {};
         const filePath = "C:/tmp/file.fit";
-        const showFitGlobal = getShowFitDataTestGlobal();
-        showFitGlobal.isMapRendered = true;
+        stateManagerMocks.getState.mockImplementation((path?: string) =>
+            path === "map.isRendered" ? true : undefined
+        );
 
         showFitData(data, filePath);
 
@@ -213,7 +220,13 @@ describe("showFitData", () => {
         expect(rendererDependencyMocks.updateActiveTab).toHaveBeenCalledWith(
             "tab_map"
         );
-        expect(showFitGlobal.isMapRendered).toBe(true);
+        expect(data).toMatchObject({
+            cachedFileName: "file.fit",
+            cachedFilePath: filePath,
+        });
+        expect(stateManagerMocks.getState).toHaveBeenCalledWith(
+            "map.isRendered"
+        );
         expect(rendererDependencyMocks.renderMap).not.toHaveBeenCalled();
     });
 

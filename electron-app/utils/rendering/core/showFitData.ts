@@ -16,7 +16,7 @@ import {
     renderMap,
     waitForMapLeafletRuntime,
 } from "../../maps/core/renderMap.js";
-import { setState } from "../../state/core/stateManager.js";
+import { getState, setState } from "../../state/core/stateManager.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { getActiveFitTableData } from "../../state/domain/fitTableDataState.js";
 import { setTabButtonsEnabled } from "../../ui/controls/enableTabButtons.js";
@@ -77,7 +77,6 @@ type EstimatedPowerInput = Parameters<typeof applyEstimatedPowerToRecords>[0];
 
 type ShowFitDataGlobal = typeof globalThis & {
     electronAPI?: ElectronApiLike;
-    isMapRendered?: boolean;
 };
 
 function getShowFitDataGlobal(): ShowFitDataGlobal {
@@ -254,7 +253,7 @@ function switchToMapTabOnLoad(): void {
 }
 
 async function renderMapIfReady(): Promise<void> {
-    if (getShowFitDataGlobal().isMapRendered) {
+    if (getState<boolean>("map.isRendered") === true) {
         return;
     }
 
@@ -276,7 +275,9 @@ async function renderMapIfReady(): Promise<void> {
 }
 
 function setMapRenderedFlag(isRendered: boolean): void {
-    getShowFitDataGlobal().isMapRendered = isRendered;
+    setState("map.isRendered", isRendered, {
+        source: "showFitData.renderMapIfReady",
+    });
 }
 
 /** Enables tab buttons and notifies the main process. */

@@ -220,6 +220,8 @@ const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const directShowFitDataGlobalPattern =
     /\b(?:window|globalThis)\.showFitData\s*=/u;
+const directShowFitDataMapRenderedGlobalPattern =
+    /\b(?:window|globalThis|getShowFitDataGlobal\(\)|showFitGlobal)\.isMapRendered\b/u;
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
 const migratedRendererUtilityGlobalLookupPattern =
     /\b(?:appGlobal|chartGlobal|window|globalThis|showFitGlobal|windowExt|zoneColorGlobal|getZoneColorSelectorGlobal\(\))\.(?:createTables|invalidateChartRenderCache|renderChartJS|renderMap|renderSummary|setTabButtonsEnabled|setupActiveFileNameMapActions|setupOverlayFileNameMapActions|updateActiveTab|updateOverlayHighlights|updateShownFilesList|updateTabVisibility)\b/u;
@@ -1360,7 +1362,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(60);
+        expect.assertions(61);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1398,6 +1400,13 @@ describe("architecture boundaries", () => {
         const directShowFitDataGlobals = scannedFiles
             .filter((relativeFile) =>
                 directShowFitDataGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const directShowFitDataMapRenderedGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directShowFitDataMapRenderedGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -1797,6 +1806,7 @@ describe("architecture boundaries", () => {
         expect(directGlobalDataPropertyDefinitions).toStrictEqual([]);
         expect(directGlobalDataReactiveProperties).toStrictEqual([]);
         expect(directShowFitDataGlobals).toStrictEqual([]);
+        expect(directShowFitDataMapRenderedGlobalLookups).toStrictEqual([]);
         expect(legacyAppStateGlobalDataUsages).toStrictEqual([]);
         expect(legacyAppStateCompatibilityUsages).toStrictEqual([]);
         expect(legacyIsChartRenderedGlobalUsages).toStrictEqual([]);
