@@ -73,11 +73,6 @@ type DebugInfo = {
     volatileKeys: readonly string[];
 };
 
-type AppStateGlobal = typeof globalThis & {
-    __appState?: AppStateManager;
-    window?: Window;
-};
-
 const PERSISTENT_KEYS = [
     "ui.theme",
     "ui.activeTab",
@@ -599,13 +594,6 @@ class AppStateManager {
 }
 
 const appState = new AppStateManager();
-const stateGlobal = globalThis as AppStateGlobal;
-
-if (stateGlobal.window !== undefined) {
-    stateGlobal.__appState = appState;
-
-    console.log("[AppState] Global app state handle configured");
-}
 
 /** Adds an error entry to app state and error history. */
 export function addError(error: Error | string, context = ""): void {

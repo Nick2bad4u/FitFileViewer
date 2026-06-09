@@ -265,6 +265,8 @@ const directFitFileStateManagerGlobalPattern =
     /\b(?:window|globalThis|getFileOpenGlobal\(\)|getOpenFitFileGlobal\(\)|getShowFitDataGlobal\(\))\.__FFV_fitFileStateManager\b|["']__FFV_fitFileStateManager["']/u;
 const directMainProcessStateManagerExportsGlobalPattern =
     /\b(?:window|globalThis)\.__FFV_mainProcessStateManagerExports\b|["']__FFV_mainProcessStateManagerExports["']/u;
+const directLegacyAppStateHandleGlobalPattern =
+    /\b(?:window|globalThis|stateGlobal)\.__appState\b|["']__appState["']/u;
 const directFilenameAutoScrollStateExpandoPattern =
     /\b(?:filenameElement|element)\.__ffvFilenameAutoScrollState\b/u;
 const directQuickColorSwitcherStateExpandoPattern =
@@ -1330,7 +1332,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(45);
+        expect.assertions(46);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1609,6 +1611,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directLegacyAppStateHandleGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directLegacyAppStateHandleGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directFilenameAutoScrollStateExpandoLookups = scannedFiles
             .filter((relativeFile) =>
                 directFilenameAutoScrollStateExpandoPattern.test(
@@ -1697,6 +1706,7 @@ describe("architecture boundaries", () => {
         expect(directMainProcessStateManagerExportsGlobalLookups).toStrictEqual(
             []
         );
+        expect(directLegacyAppStateHandleGlobalLookups).toStrictEqual([]);
         expect(directFilenameAutoScrollStateExpandoLookups).toStrictEqual([]);
         expect(directQuickColorSwitcherStateExpandoLookups).toStrictEqual([]);
         expect(directMapActionCleanupExpandoLookups).toStrictEqual([]);
