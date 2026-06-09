@@ -8,6 +8,11 @@
         require("../../shared/fitFilePathPolicy") as {
             validateFitFilePathInput: (filePath: unknown) => string;
         };
+    const { getFileAccessPolicyState, resetFileAccessPolicyState } =
+        require("./fileAccessPolicyState") as {
+            getFileAccessPolicyState: () => FileAccessPolicyState;
+            resetFileAccessPolicyState: () => void;
+        };
 
     interface ApprovalOptions {
         source?: string;
@@ -17,10 +22,6 @@
         approved: Set<string>;
     }
 
-    type FileAccessPolicyGlobal = typeof globalThis & {
-        __ffvFileAccessPolicyState?: FileAccessPolicyState;
-    };
-
     // Defensive cap: prevents unbounded growth if approval is triggered repeatedly.
     const MAX_APPROVED_FIT_FILES = 500;
 
@@ -28,7 +29,7 @@
      * TEST-ONLY: clears approvals to keep suites isolated.
      */
     function __resetForTests(): void {
-        getState().approved.clear();
+        resetFileAccessPolicyState();
     }
 
     /**
@@ -112,20 +113,7 @@
     }
 
     function getState(): FileAccessPolicyState {
-        const g = globalThis as FileAccessPolicyGlobal;
-        const existingState = g.__ffvFileAccessPolicyState;
-        if (existingState && typeof existingState === "object") {
-            return existingState;
-        }
-
-        const initializedState = { approved: new Set<string>() };
-        Object.defineProperty(g, "__ffvFileAccessPolicyState", {
-            configurable: true,
-            enumerable: false,
-            value: initializedState,
-            writable: true,
-        });
-        return initializedState;
+        return getFileAccessPolicyState();
     }
 
     function hasFitExtension(filePath: string): boolean {

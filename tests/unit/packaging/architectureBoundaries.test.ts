@@ -295,6 +295,8 @@ const directStateManagerApiGlobalPattern =
     /\b(?:window|globalThis|globalState|getMasterGlobal\(\))\.__STATE_MANAGER_API__\b|Object\.defineProperty\(\s*globalState\s*,\s*["']__STATE_MANAGER_API__["']/u;
 const directSingletonStateSubscriptionsGlobalPattern =
     /\b(?:window|globalThis|globalState)\.__ffvSingletonStateSubscriptions\b|["']__ffvSingletonStateSubscriptions["']/u;
+const directFileAccessPolicyStateGlobalPattern =
+    /\b(?:window|globalThis|g)\.__ffvFileAccessPolicyState\b|["']__ffvFileAccessPolicyState["']/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1350,7 +1352,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(55);
+        expect.assertions(56);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1734,6 +1736,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directFileAccessPolicyStateGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directFileAccessPolicyStateGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/globalApiExposure.ts",
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
@@ -1807,6 +1816,7 @@ describe("architecture boundaries", () => {
         expect(directSingletonStateSubscriptionsGlobalLookups).toStrictEqual(
             []
         );
+        expect(directFileAccessPolicyStateGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

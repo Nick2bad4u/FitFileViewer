@@ -102,6 +102,23 @@ describe("fileAccessPolicy", () => {
         });
     });
 
+    it("keeps approvals in module state without publishing a global registry", async () => {
+        expect.assertions(3);
+
+        const mod =
+            await import("../../../../electron-app/main/security/fileAccessPolicy.js");
+        mod.__resetForTests?.();
+
+        const approvedPath = mod.approveFilePath("C:/rides/activity.fit");
+
+        expect(mod.isApprovedFilePath(approvedPath)).toBe(true);
+        expect("__ffvFileAccessPolicyState" in globalThis).toBe(false);
+
+        mod.__resetForTests?.();
+
+        expect(mod.isApprovedFilePath(approvedPath)).toBe(false);
+    });
+
     it("uses realpath for approvals and invalidates if the symlink retargets", async () => {
         expect.assertions(2);
 
