@@ -32,16 +32,6 @@ type SummaryContainer = HTMLElement & {
     _summaryVirtualCleanup?: (() => void) | undefined;
 };
 
-type SummaryGlobal = typeof globalThis & {
-    activeFitFileName?: string;
-    window?:
-        | (Window &
-              typeof globalThis & {
-                  activeFitFileName?: string;
-              })
-        | null;
-};
-
 function isDateInput(value: unknown): value is Date | number | string {
     return (
         value instanceof Date ||
@@ -116,10 +106,7 @@ export function getStorageKey(
 ): string {
     let fpath: null | string = null;
     try {
-        const summaryGlobal = globalThis as SummaryGlobal;
-        const windowGlobal = summaryGlobal.window;
         fpath = getActiveFitFileMetadata({
-            fallbackName: windowGlobal?.activeFitFileName,
             sourceData: data && typeof data === "object" ? data : null,
         }).storageIdentity;
     } catch {

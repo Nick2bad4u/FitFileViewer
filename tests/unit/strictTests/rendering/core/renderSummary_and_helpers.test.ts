@@ -14,15 +14,6 @@ async function importRenderSummary() {
     return await import("../../../../../electron-app/utils/rendering/core/renderSummary.js");
 }
 
-type SummaryWindow = Window &
-    typeof globalThis & {
-        activeFitFileName?: string;
-    };
-
-function getSummaryWindow(): SummaryWindow {
-    return window as SummaryWindow;
-}
-
 function createSummaryContainer(): HTMLElement {
     const container = document.createElement("div");
     container.id = "content-summary";
@@ -52,24 +43,20 @@ describe("renderSummary helpers + renderSummary", () => {
         __resetStateManagerForTests();
         createSummaryContainer();
         localStorage.clear();
-        delete getSummaryWindow().activeFitFileName;
     });
     afterEach(() => {
         vi.resetModules();
         __resetStateManagerForTests();
-        delete getSummaryWindow().activeFitFileName;
         document.body.replaceChildren();
     });
 
-    it("getStorageKey prefers active FIT metadata then data.cachedFilePath then activeFitFileName", async () => {
+    it("getStorageKey prefers active FIT metadata then data.cachedFilePath", async () => {
         expect.assertions(5);
 
         const { getStorageKey } = await importHelpers();
-        const summaryWindow = getSummaryWindow();
 
         expect(getStorageKey({}, [])).toBe("summaryColSel_default");
 
-        summaryWindow.activeFitFileName = "active.fit";
         expect(getStorageKey({ cachedFilePath: "/a/b/c.fit" }, [])).toBe(
             `summaryColSel_${encodeURIComponent("/a/b/c.fit")}`
         );
@@ -92,9 +79,13 @@ describe("renderSummary helpers + renderSummary", () => {
 
         setState("fitFile.currentFile", null, { source: "test.clear" });
         setState("fitFile.rawData", null, { source: "test.clear" });
-        expect(getStorageKey({}, [])).toBe(
-            `summaryColSel_${encodeURIComponent("active.fit")}`
-        );
+        Object.defineProperty(window, "activeFitFileName", {
+            configurable: true,
+            value: "active.fit",
+            writable: true,
+        });
+        expect(getStorageKey({}, [])).toBe("summaryColSel_default");
+        Reflect.deleteProperty(window, "activeFitFileName");
     });
 
     it("save/load column preferences roundtrip", async () => {

@@ -11,19 +11,9 @@ import {
     setState,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
-type SummaryWindow = Window &
-    typeof globalThis & {
-        activeFitFileName?: string;
-    };
-
-function getSummaryWindow(): SummaryWindow {
-    return window as SummaryWindow;
-}
-
 function resetSummaryFixture(): void {
     __resetStateManagerForTests();
     localStorage.clear();
-    delete getSummaryWindow().activeFitFileName;
 }
 
 describe("renderSummaryHelpers core functions", () => {
@@ -42,7 +32,6 @@ describe("renderSummaryHelpers core functions", () => {
 
         try {
             const preferredFilePath = "C:/Users/Me/My Activity.fit";
-            getSummaryWindow().activeFitFileName = "IgnoredName.fit";
             setState(
                 "fitFile.rawData",
                 { cachedFilePath: preferredFilePath },
@@ -58,7 +47,7 @@ describe("renderSummaryHelpers core functions", () => {
                 `summaryColSel_${encodeURIComponent(preferredFilePath)}`
             );
             expect(key).not.toContain(encodeURIComponent("/tmp/ignored.fit"));
-            expect(key).not.toContain(encodeURIComponent("IgnoredName.fit"));
+            expect(key).toContain(encodeURIComponent("My Activity.fit"));
         } finally {
             resetSummaryFixture();
         }
@@ -71,7 +60,6 @@ describe("renderSummaryHelpers core functions", () => {
 
         try {
             const dataFilePath = "/tmp/äctivity file.fit";
-            getSummaryWindow().activeFitFileName = "IgnoredName.fit";
             setState("fitFile.rawData", {}, { source: "test" });
 
             const key = getStorageKey({ cachedFilePath: dataFilePath });
@@ -79,28 +67,30 @@ describe("renderSummaryHelpers core functions", () => {
             expect(key).toBe(
                 `summaryColSel_${encodeURIComponent(dataFilePath)}`
             );
-            expect(key).not.toContain(encodeURIComponent("IgnoredName.fit"));
+            expect(key).toContain(encodeURIComponent("äctivity file.fit"));
         } finally {
             resetSummaryFixture();
         }
     });
 
-    it("getStorageKey falls back to window.activeFitFileName when no cached path exists", () => {
+    it("getStorageKey uses the default key when only legacy global file names exist", () => {
         expect.assertions(2);
 
         resetSummaryFixture();
 
         try {
-            const activeFileName = "JustAName.fit";
-            getSummaryWindow().activeFitFileName = activeFileName;
+            Object.defineProperty(window, "activeFitFileName", {
+                configurable: true,
+                value: "LegacyName.fit",
+                writable: true,
+            });
 
-            expect(getStorageKey()).toBe(
-                `summaryColSel_${encodeURIComponent(activeFileName)}`
-            );
+            expect(getStorageKey()).toBe("summaryColSel_default");
             expect(getStorageKey({ other: "value" })).toBe(
-                `summaryColSel_${encodeURIComponent(activeFileName)}`
+                "summaryColSel_default"
             );
         } finally {
+            Reflect.deleteProperty(window, "activeFitFileName");
             resetSummaryFixture();
         }
     });
