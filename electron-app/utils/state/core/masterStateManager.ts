@@ -73,7 +73,6 @@ type StateDebug = {
 type MasterStateGlobal = typeof globalThis & {
     __DEVELOPMENT__?: boolean;
     __FFV_MOCKS__?: Record<string, unknown>;
-    __STATE_MANAGER_API__?: Partial<StateManagerApi>;
     __state_debug?: StateDebug;
     electronAPI?: ElectronRendererAPI;
 };
@@ -1203,7 +1202,9 @@ function getStateIntegrationModule(): {
     return { initializeCompleteStateSystem };
 }
 
-function getAnyCachedStateManagerApi(cache: ModuleCache): StateManagerApi | null {
+function getAnyCachedStateManagerApi(
+    cache: ModuleCache
+): StateManagerApi | null {
     for (const moduleRecord of Object.values(cache)) {
         const exportsValue = moduleRecord?.exports;
         if (isStateManagerApi(exportsValue)) {
@@ -1267,19 +1268,22 @@ function getRequiredStateManagerApi(req: CjsRequire): StateManagerApi | null {
 
 function getStateManagerRequireCandidates(nodePath: NodePathLike): string[] {
     const cwd = getCurrentWorkingDirectory();
-    return ["stateManager.js", "stateManager.cjs", "stateManager.mjs"].map(
-        (fileName) =>
-            nodePath.join(cwd, "utils", "state", "core", fileName)
-    );
+    return [
+        "stateManager.js",
+        "stateManager.cjs",
+        "stateManager.mjs",
+    ].map((fileName) => nodePath.join(cwd, "utils", "state", "core", fileName));
 }
 
 function getStateManagerAPI(): StateManagerApi {
     try {
-        // Direct global override for tests
-        const direct = getMasterGlobal().__STATE_MANAGER_API__;
-        if (isStateManagerApi(direct)) {
-            return direct;
+        const mocked = getModuleExportsFromCache(
+            "/utils/state/core/statemanager.js"
+        );
+        if (isStateManagerApi(mocked)) {
+            return mocked;
         }
+
         const req = getCjsRequire();
         const cache = (req && req.cache) || getNodeModuleCache();
         if (cache) {

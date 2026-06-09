@@ -291,6 +291,8 @@ const directResourceManagerGlobalPattern =
     /\b(?:window|globalThis)\.resourceManager\b|\{\s*resourceManager\?:\s*ResourceManager\s*\}\)\.resourceManager/u;
 const directRendererApiExposureGlobalPattern =
     /\b(?:window|globalThis|scope)\.(?:APP_INFO|createExportGPXButton|__resetRendererStateInitializationForTests)\b|Reflect\.set\(\s*scope\s*,\s*["'](?:APP_INFO|createExportGPXButton|__resetRendererStateInitializationForTests)["']/u;
+const directStateManagerApiGlobalPattern =
+    /\b(?:window|globalThis|globalState|getMasterGlobal\(\))\.__STATE_MANAGER_API__\b|Object\.defineProperty\(\s*globalState\s*,\s*["']__STATE_MANAGER_API__["']/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1346,7 +1348,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(53);
+        expect.assertions(54);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1716,6 +1718,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directStateManagerApiGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directStateManagerApiGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/globalApiExposure.ts",
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
@@ -1785,6 +1794,7 @@ describe("architecture boundaries", () => {
         expect(directGyazoStartupTimerGlobalLookups).toStrictEqual([]);
         expect(directResourceManagerGlobalLookups).toStrictEqual([]);
         expect(directRendererApiExposureGlobalLookups).toStrictEqual([]);
+        expect(directStateManagerApiGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

@@ -151,7 +151,6 @@ type HarnessOptions = {
 type MasterStateGlobal = typeof globalThis & {
     __DEVELOPMENT__?: boolean;
     __FFV_MOCKS__?: Record<string, unknown>;
-    __STATE_MANAGER_API__?: StateManagerApiMock;
     electronAPI?: {
         __devMode?: boolean;
         getAppVersion?: () => Promise<string>;
@@ -162,7 +161,6 @@ type MasterStateGlobal = typeof globalThis & {
 const globalKeys = [
     "__DEVELOPMENT__",
     "__FFV_MOCKS__",
-    "__STATE_MANAGER_API__",
     "addEventListener",
     "clearInterval",
     "dispatchEvent",
@@ -758,6 +756,7 @@ function createModuleMocks(mocks: HarnessMocks): Record<string, unknown> {
             mocks.updateControlsState,
         "C:/fit/utils/state/core/computedStateManager.js":
             mocks.computedStateManager,
+        "C:/fit/utils/state/core/stateManager.js": mocks.stateManager,
         "C:/fit/utils/state/core/stateMiddleware.js": mocks.stateMiddleware,
         "C:/fit/utils/state/domain/fitFileState.js": mocks.fitFileState,
         "C:/fit/utils/state/domain/settingsStateManager.js":
@@ -911,11 +910,6 @@ async function withMasterStateHarness(
         defineGlobalValue(descriptors, "window", windowMock);
         defineGlobalValue(descriptors, "location", location);
         defineGlobalValue(descriptors, "__FFV_MOCKS__", moduleMocks);
-        defineGlobalValue(
-            descriptors,
-            "__STATE_MANAGER_API__",
-            mocks.stateManager
-        );
         defineGlobalValue(descriptors, "electronAPI", electronAPI);
         defineGlobalValue(
             descriptors,

@@ -1,4 +1,5 @@
 import { AppState, type AppStateShape } from "./stateManagerDefaults.js";
+export { AppState as __debugState } from "./stateManagerDefaults.js";
 import {
     clearStateHistory as clearStateHistoryImpl,
     getStateHistory as getStateHistoryImpl,
@@ -48,26 +49,6 @@ type StateManagerInitState = {
 
 type StateManagerGlobal = typeof globalThis & {
     __ffvSingletonStateSubscriptions?: Record<string, Unsubscribe>;
-    __STATE_MANAGER_API__?: StateManagerApi;
-};
-
-type StateManagerApi = {
-    readonly __clearAllListenersForTests: () => void;
-    readonly __debugState: AppStateShape;
-    readonly __resetStateManagerForTests: () => void;
-    readonly clearStateHistory: typeof clearStateHistory;
-    readonly createReactiveProperty: typeof createReactiveProperty;
-    readonly getState: typeof getState;
-    readonly getStateHistory: typeof getStateHistory;
-    readonly getSubscriptions: typeof getSubscriptions;
-    readonly initializeStateManager: typeof initializeStateManager;
-    readonly loadPersistedState: typeof loadPersistedState;
-    readonly persistState: typeof persistState;
-    readonly resetState: typeof resetState;
-    readonly setState: typeof setState;
-    readonly subscribe: typeof subscribe;
-    readonly subscribeSingleton: typeof subscribeSingleton;
-    readonly updateState: typeof updateState;
 };
 
 const MAX_HISTORY_SIZE = 50;
@@ -520,11 +501,6 @@ export function updateState(
 }
 
 /**
- * Debug reference to the root state object.
- */
-export const __debugState = AppState;
-
-/**
  * Clears state history through the state manager facade.
  */
 export function clearStateHistory(): void {
@@ -601,42 +577,4 @@ function getMergedStateValue(
     return merge && isRecord(oldValue) && isRecord(value)
         ? { ...oldValue, ...value }
         : undefined;
-}
-
-try {
-    const globalState = globalThis as StateManagerGlobal;
-    const api: StateManagerApi = {
-        __clearAllListenersForTests,
-        __debugState,
-        __resetStateManagerForTests,
-        clearStateHistory,
-        createReactiveProperty,
-        getState,
-        getStateHistory,
-        getSubscriptions,
-        initializeStateManager,
-        loadPersistedState,
-        persistState,
-        resetState,
-        setState,
-        subscribe,
-        subscribeSingleton,
-        updateState,
-    };
-
-    if (
-        globalState.__STATE_MANAGER_API__ === undefined ||
-        globalState.__STATE_MANAGER_API__ === null
-    ) {
-        Object.defineProperty(globalState, "__STATE_MANAGER_API__", {
-            configurable: true,
-            enumerable: false,
-            value: api,
-            writable: true,
-        });
-    } else {
-        Object.assign(globalState.__STATE_MANAGER_API__, api);
-    }
-} catch {
-    // Ignore global exposure errors.
 }
