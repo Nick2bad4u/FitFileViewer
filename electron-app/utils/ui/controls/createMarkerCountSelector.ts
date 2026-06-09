@@ -1,30 +1,23 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
+import {
+    DEFAULT_MAP_MARKER_COUNT,
+    MAP_MARKER_COUNT_OPTIONS,
+    getMapMarkerCount,
+    setMapMarkerCount,
+} from "../../maps/state/mapMarkerCountState.js";
 import { updateShownFilesList } from "../../rendering/components/shownFilesListUpdater.js";
 import { showNotification } from "../notifications/showNotification.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-const DEFAULT_MARKER_COUNT = 50;
-const NUMERIC_MARKER_COUNT_OPTIONS = [
-    10,
-    25,
-    50,
-    100,
-    200,
-    500,
-    1000,
-] as const;
-const MARKER_COUNT_OPTIONS = [...NUMERIC_MARKER_COUNT_OPTIONS, "all"] as const;
-const MARKER_COUNT_OPTION_SET: ReadonlySet<number> = new Set(
-    NUMERIC_MARKER_COUNT_OPTIONS
-);
-
-type MarkerCountOption = (typeof MARKER_COUNT_OPTIONS)[number];
+type MarkerCountOption = (typeof MAP_MARKER_COUNT_OPTIONS)[number];
 type NumericMarkerCountOption = Extract<MarkerCountOption, number>;
 type ThemeColors = ReturnType<typeof getThemeColors>;
-
-type MarkerCountGlobal = typeof globalThis & {
-    mapMarkerCount?: number;
-};
+const MAP_MARKER_COUNT_OPTION_SET: ReadonlySet<number> = new Set(
+    MAP_MARKER_COUNT_OPTIONS.filter(
+        (option): option is NumericMarkerCountOption =>
+            typeof option === "number"
+    )
+);
 
 function createMarkerCountIcon(themeColors: ThemeColors): SVGSVGElement {
     const icon = document.createElementNS(SVG_NS, "svg");
@@ -64,13 +57,13 @@ function getThemeColorValue(colors: ThemeColors, key: string): string {
 
 /**
  * Creates a marker count selector for controlling data point density on the
- * map. Adds wheel support and persists a global `window.mapMarkerCount` value
- * used by map rendering.
+ * map. Adds wheel support and persists the shared map marker-count state used
+ * by map rendering.
  *
  * Contract:
  *
  * - `onChange` is called with 0 to mean "all" markers, else the numeric limit.
- * - Global `window.mapMarkerCount` is always kept in sync; 0 means all.
+ * - Shared map marker-count state is always kept in sync; 0 means all.
  * - Returned element is a container div with a label + select.
  *
  * @param onChange - Callback invoked when selection changes.
@@ -97,21 +90,20 @@ export function createMarkerCountSelector(
         select.id = "marker-count-select";
         select.className = "marker-count-select";
 
-        for (const val of MARKER_COUNT_OPTIONS) {
+        for (const val of MAP_MARKER_COUNT_OPTIONS) {
             const opt = document.createElement("option");
             opt.value = String(val);
             opt.textContent = val === "all" ? "All" : String(val);
             select.append(opt);
         }
 
-        const g = globalThis as MarkerCountGlobal;
-        select.value = resolveInitialMarkerCount(g);
+        select.value = resolveInitialMarkerCount();
 
         // Handle selection changes
         select.addEventListener(
             "change",
             () => {
-                handleMarkerCountChange(select, g, onChange);
+                handleMarkerCountChange(select, onChange);
             },
             { signal: listenerController.signal }
         );
@@ -146,14 +138,14 @@ export function createMarkerCountSelector(
 
 function handleMarkerCountChange(
     select: HTMLSelectElement,
-    globalRef: MarkerCountGlobal,
     onChange: ((count: number) => void) | undefined
 ): void {
     try {
-        globalRef.mapMarkerCount =
+        const selectedCount =
             select.value === "all" ? 0 : Number.parseInt(select.value, 10);
+        const markerCount = setMapMarkerCount(selectedCount);
 
-        onChange?.(globalRef.mapMarkerCount);
+        onChange?.(markerCount);
         updateShownFilesList();
     } catch (error) {
         console.error(
@@ -197,13 +189,8 @@ function dispatchMarkerCountChange(select: HTMLSelectElement): void {
     );
 }
 
-function resolveInitialMarkerCount(globalRef: MarkerCountGlobal): string {
-    const current = globalRef.mapMarkerCount;
-
-    if (typeof current !== "number") {
-        globalRef.mapMarkerCount = DEFAULT_MARKER_COUNT;
-        return String(DEFAULT_MARKER_COUNT);
-    }
+function resolveInitialMarkerCount(): string {
+    const current = getMapMarkerCount();
 
     if (current === 0) {
         return "all";
@@ -213,10 +200,10 @@ function resolveInitialMarkerCount(globalRef: MarkerCountGlobal): string {
         return String(current);
     }
 
-    globalRef.mapMarkerCount = DEFAULT_MARKER_COUNT;
-    return String(DEFAULT_MARKER_COUNT);
+    setMapMarkerCount(DEFAULT_MAP_MARKER_COUNT);
+    return String(DEFAULT_MAP_MARKER_COUNT);
 }
 
 function isMarkerCountOption(value: number): value is NumericMarkerCountOption {
-    return MARKER_COUNT_OPTION_SET.has(value);
+    return MAP_MARKER_COUNT_OPTION_SET.has(value);
 }

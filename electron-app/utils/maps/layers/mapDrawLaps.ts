@@ -20,6 +20,7 @@ import {
     type MapDataPointFilterConfig,
     type MetricRecord,
 } from "../filters/mapMetricFilter.js";
+import { getMapMarkerCount } from "../state/mapMarkerCountState.js";
 
 type FitValue = unknown;
 
@@ -94,7 +95,6 @@ type MapDrawWindowLike = typeof globalThis & {
     _overlayPolylines?: Record<string, LeafletLayerLike>;
     mapDataPointFilter?: MapDataPointFilterConfig | null;
     mapDataPointFilterLastResult?: MetricFilterSummary | null;
-    mapMarkerCount?: number;
 };
 
 type MetricFilterSummary = {
@@ -700,7 +700,7 @@ export function mapDrawLaps(
             // Replace loops adding markers where c may be undefined
             const markerCoords = selectMarkerCoordinatesForDataset(coords);
             console.log(
-                `[mapDrawLaps] Creating markers: requested=${getWin().mapMarkerCount ?? ""} actual=${markerCoords.length}, coords.length=${coords.length}`
+                `[mapDrawLaps] Creating markers: requested=${getMapMarkerCount()} actual=${markerCoords.length}, coords.length=${coords.length}`
             );
 
             let markersCreated = 0;
@@ -1462,8 +1462,7 @@ function getManagedFitData(): FitDataLike | null {
 }
 
 function getMarkerLimit(): number {
-    const win = getWin();
-    const value = Number(win.mapMarkerCount);
+    const value = Number(getMapMarkerCount());
     if (!Number.isFinite(value) || value < 0) {
         return 0;
     }

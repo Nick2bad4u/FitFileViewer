@@ -11,6 +11,10 @@ import {
     setState,
 } from "../../../../electron-app/utils/state/core/stateManager.js";
 import { setLoadedFitFiles } from "../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
+import {
+    resetMapMarkerCount,
+    setMapMarkerCount,
+} from "../../../../electron-app/utils/maps/state/mapMarkerCountState.js";
 
 type MockFunction = (...args: any[]) => any;
 
@@ -66,7 +70,6 @@ declare global {
     var _overlayPolylines: any;
     var _mainPolylineOriginalBounds: any;
     var _activeMainFileIdx: number;
-    var mapMarkerCount: number;
 }
 
 describe("mapDrawLaps", () => {
@@ -161,12 +164,13 @@ describe("mapDrawLaps", () => {
         (globalThis as any)._mainPolylineOriginalBounds = undefined;
         (globalThis as any)._ffvActivityLayerGroup = undefined;
         (globalThis as any)._activeMainFileIdx = 0;
-        (globalThis as any).mapMarkerCount = 10;
+        setMapMarkerCount(10);
         setHighlightedOverlayIndex(null);
     });
 
     afterEach(() => {
         clearLeafletRuntimeForTests();
+        resetMapMarkerCount();
     });
 
     const getPolylineCall = (
@@ -621,7 +625,7 @@ describe("mapDrawLaps", () => {
                 },
                 { source: "test" }
             );
-            (globalThis as any).mapMarkerCount = 10;
+            setMapMarkerCount(10);
 
             // Setup map container
             const mapContainer = document.createElement("div");
@@ -709,7 +713,7 @@ describe("mapDrawLaps", () => {
                 },
                 { source: "test" }
             );
-            (globalThis as any).mapMarkerCount = 10;
+            setMapMarkerCount(10);
 
             const mapContainer = document.createElement("div");
             document.body.append(mapContainer);
@@ -750,7 +754,7 @@ describe("mapDrawLaps", () => {
                 },
                 { source: "test" }
             );
-            (globalThis as any).mapMarkerCount = 0;
+            setMapMarkerCount(0);
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;
@@ -823,7 +827,7 @@ describe("mapDrawLaps", () => {
                 },
                 { source: "test" }
             );
-            (globalThis as any).mapMarkerCount = 5;
+            setMapMarkerCount(10);
 
             const mapContainer = document.createElement("div");
             mockMap._container = mapContainer;

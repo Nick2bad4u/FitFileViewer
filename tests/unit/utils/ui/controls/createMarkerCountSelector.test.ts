@@ -28,20 +28,17 @@ vi.mock(
 );
 
 import { createMarkerCountSelector } from "../../../../../electron-app/utils/ui/controls/createMarkerCountSelector.js";
-
-type MarkerCountGlobal = typeof globalThis & {
-    mapMarkerCount?: number;
-};
-
-function getGlobal(): MarkerCountGlobal {
-    return globalThis as MarkerCountGlobal;
-}
+import {
+    getMapMarkerCount,
+    resetMapMarkerCount,
+    setMapMarkerCount,
+} from "../../../../../electron-app/utils/maps/state/mapMarkerCountState.js";
 
 function resetFixture(): void {
     vi.restoreAllMocks();
     vi.clearAllMocks();
     document.body.replaceChildren();
-    delete getGlobal().mapMarkerCount;
+    resetMapMarkerCount();
     mocks.getThemeColors.mockReturnValue({
         primary: "#2563eb",
         surface: "#ffffff",
@@ -175,7 +172,7 @@ describe(createMarkerCountSelector, () => {
                 selectId: "marker-count-select",
                 selectValue: "50",
             });
-            expect(getGlobal().mapMarkerCount).toBe(50);
+            expect(getMapMarkerCount()).toBe(50);
         } finally {
             resetFixture();
         }
@@ -185,13 +182,13 @@ describe(createMarkerCountSelector, () => {
         expect.assertions(2);
 
         resetFixture();
-        getGlobal().mapMarkerCount = 0;
+        setMapMarkerCount(0);
 
         try {
             const select = getSelect(createMarkerCountSelector());
 
             expect(select.value).toBe("all");
-            expect(getGlobal().mapMarkerCount).toBe(0);
+            expect(getMapMarkerCount()).toBe(0);
         } finally {
             resetFixture();
         }
@@ -201,13 +198,13 @@ describe(createMarkerCountSelector, () => {
         expect.assertions(2);
 
         resetFixture();
-        getGlobal().mapMarkerCount = 999;
+        setMapMarkerCount(999);
 
         try {
             const select = getSelect(createMarkerCountSelector());
 
             expect(select.value).toBe("50");
-            expect(getGlobal().mapMarkerCount).toBe(50);
+            expect(getMapMarkerCount()).toBe(50);
         } finally {
             resetFixture();
         }
@@ -225,14 +222,14 @@ describe(createMarkerCountSelector, () => {
 
             dispatchChange(select);
 
-            expect(getGlobal().mapMarkerCount).toBe(200);
+            expect(getMapMarkerCount()).toBe(200);
             expect(onChange).toHaveBeenCalledExactlyOnceWith(200);
             expect(mocks.updateShownFilesList).toHaveBeenCalledOnce();
 
             select.value = "all";
             dispatchChange(select);
 
-            expect(getGlobal().mapMarkerCount).toBe(0);
+            expect(getMapMarkerCount()).toBe(0);
             expect(onChange).toHaveBeenLastCalledWith(0);
         } finally {
             resetFixture();
@@ -251,7 +248,7 @@ describe(createMarkerCountSelector, () => {
             dispatchWheel(select, 1);
 
             expect(select.value).toBe("100");
-            expect(getGlobal().mapMarkerCount).toBe(100);
+            expect(getMapMarkerCount()).toBe(100);
 
             dispatchWheel(select, -1);
 
@@ -280,7 +277,7 @@ describe(createMarkerCountSelector, () => {
 
             dispatchChange(select);
 
-            expect(getGlobal().mapMarkerCount).toBe(25);
+            expect(getMapMarkerCount()).toBe(25);
             expect(errorSpy).toHaveBeenCalledWith(
                 "[mapActionButtons] Error in marker count change:",
                 error

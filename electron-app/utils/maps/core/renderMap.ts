@@ -160,7 +160,6 @@ type WindowExtensions = typeof globalThis & {
     _measureControl?: DisposableControl | null;
     _miniMapControl?: DisposableControl | null;
     _overlayPolylines?: Record<string, OverlayPolyline> | null;
-    mapMarkerCount?: number;
 };
 
 type ShownFilesListElement = Element & {

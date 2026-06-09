@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-
-type MarkerCountWindow = Window & {
-    mapMarkerCount?: number;
-};
+import {
+    getMapMarkerCount,
+    resetMapMarkerCount,
+    setMapMarkerCount,
+} from "../../../../../electron-app/utils/maps/state/mapMarkerCountState.js";
 
 vi.mock(
     import("../../../../../electron-app/utils/charts/theming/getThemeColors.js"),
@@ -22,7 +23,7 @@ vi.mock(
 describe("createMarkerCountSelector", () => {
     beforeEach(() => {
         document.body.replaceChildren();
-        delete (window as MarkerCountWindow).mapMarkerCount;
+        resetMapMarkerCount();
     });
 
     function getRequiredSelect(container: HTMLElement): HTMLSelectElement {
@@ -47,15 +48,14 @@ describe("createMarkerCountSelector", () => {
         expect(select.value).toBe("50");
         select.value = "all";
         select.dispatchEvent(new Event("change"));
-        expect((window as MarkerCountWindow).mapMarkerCount).toBe(0);
+        expect(getMapMarkerCount()).toBe(0);
         expect(onChange).toHaveBeenCalledWith(0);
     });
 
     it("falls back to the default for invalid marker count values", async () => {
         expect.assertions(4);
 
-        const markerWindow = window as MarkerCountWindow;
-        markerWindow.mapMarkerCount = 999;
+        setMapMarkerCount(999);
 
         const { createMarkerCountSelector } =
             await import("../../../../../electron-app/utils/ui/controls/createMarkerCountSelector.js");
@@ -65,7 +65,7 @@ describe("createMarkerCountSelector", () => {
         expect(select).toBeInstanceOf(HTMLSelectElement);
         expect(select.value).toBe("50");
         expect(select.value).not.toBe("999");
-        expect(markerWindow.mapMarkerCount).toBe(50);
+        expect(getMapMarkerCount()).toBe(50);
     });
 
     it("supports wheel to change selection up/down", async () => {
