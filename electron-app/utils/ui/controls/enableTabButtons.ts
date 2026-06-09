@@ -38,7 +38,6 @@ type TabButtonsGlobal = typeof globalThis & {
     forceFixTabButtons?: typeof forceFixTabButtons;
     setTabButtonsEnabled?: typeof setTabButtonsEnabled;
     tabButtonObserver?: TabButtonObserver;
-    tabButtonsCurrentlyEnabled?: boolean;
     testTabButtonClicks?: typeof testTabButtonClicks;
 };
 
@@ -62,6 +61,13 @@ type TabButtonElement = HTMLElement & {
 
 const TAB_DISABLED_CLASS = "tab-disabled";
 const finalStateLogTimers = new Set<ReturnType<typeof setTimeout>>();
+let tabButtonsCurrentlyEnabled: boolean | undefined;
+
+/** TEST-ONLY: reset module state between suites. */
+export function __resetTabButtonStateForTests(): void {
+    tabButtonsCurrentlyEnabled = undefined;
+    clearFinalStateLogTimers();
+}
 
 // Ensure console.trace exists for tests/environments where it is missing.
 if (typeof console !== "undefined" && typeof console.trace !== "function") {
@@ -138,19 +144,14 @@ export function initializeTabButtonState(): void {
 
     ensureObserverInstalled();
 
-    const globals = getTabButtonsGlobal();
     if (globalThis.window === undefined) {
         setTabButtonsEnabled(false);
-    } else if (globals.tabButtonsCurrentlyEnabled === undefined) {
+    } else if (tabButtonsCurrentlyEnabled === undefined) {
         setTabButtonsEnabled(false);
     } else {
-        setState(
-            "ui.tabButtonsEnabled",
-            Boolean(globals.tabButtonsCurrentlyEnabled),
-            {
-                source: "initializeTabButtonState",
-            }
-        );
+        setState("ui.tabButtonsEnabled", tabButtonsCurrentlyEnabled, {
+            source: "initializeTabButtonState",
+        });
     }
 
     const subscribeSingletonFn = getSubscribeSingleton();
@@ -194,9 +195,7 @@ export function initializeTabButtonState(): void {
 export function setTabButtonsEnabled(enabled: boolean): void {
     console.log(`[TabButtons] setTabButtonsEnabled(${enabled}) called`);
 
-    if (globalThis.window !== undefined) {
-        getTabButtonsGlobal().tabButtonsCurrentlyEnabled = enabled;
-    }
+    tabButtonsCurrentlyEnabled = enabled;
 
     ensureObserverInstalled();
 
@@ -428,7 +427,7 @@ function handleMutation(mutation: MutationRecord): void {
     }
 
     const hasDisabled = target.hasAttribute("disabled");
-    const isEnabled = getTabButtonsGlobal().tabButtonsCurrentlyEnabled === true;
+    const isEnabled = tabButtonsCurrentlyEnabled === true;
 
     if (hasDisabled && isEnabled) {
         console.warn(

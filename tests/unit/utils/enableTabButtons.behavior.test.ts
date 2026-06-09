@@ -37,6 +37,7 @@ import {
     testTabButtonClicks,
     debugTabState,
     forceFixTabButtons,
+    __resetTabButtonStateForTests,
 } from "../../../electron-app/utils/ui/controls/enableTabButtons.js";
 
 import {
@@ -127,6 +128,7 @@ describe("enableTabButtons behavior", () => {
     let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
+        __resetTabButtonStateForTests();
         // Reset all mocks
         vi.clearAllMocks();
 
@@ -172,23 +174,6 @@ describe("enableTabButtons behavior", () => {
 
         // CRITICAL: Sync globalThis.window to match global.window for scope consistency
         globalThis.window = global.window;
-
-        // CRITICAL: Property descriptor pattern for tabButtonsCurrentlyEnabled scope synchronization
-        let tabButtonsCurrentlyEnabledValue: boolean | undefined;
-        Object.defineProperty(global.window, "tabButtonsCurrentlyEnabled", {
-            get: () => tabButtonsCurrentlyEnabledValue,
-            set: (value) => {
-                tabButtonsCurrentlyEnabledValue = value;
-            },
-            configurable: true,
-        });
-        Object.defineProperty(globalThis, "tabButtonsCurrentlyEnabled", {
-            get: () => tabButtonsCurrentlyEnabledValue,
-            set: (value) => {
-                tabButtonsCurrentlyEnabledValue = value;
-            },
-            configurable: true,
-        });
     });
 
     afterEach(() => {
@@ -205,6 +190,11 @@ describe("enableTabButtons behavior", () => {
         if ((global as any).window.tabButtonsCurrentlyEnabled !== undefined) {
             delete (global as any).window.tabButtonsCurrentlyEnabled;
         }
+        delete (
+            globalThis as typeof globalThis & {
+                tabButtonsCurrentlyEnabled?: boolean;
+            }
+        ).tabButtonsCurrentlyEnabled;
         if ((global as any).window.tabButtonObserver) {
             delete (global as any).window.tabButtonObserver;
         }
@@ -306,7 +296,7 @@ describe("enableTabButtons behavior", () => {
             });
         });
 
-        it("should set window global state for debugging", () => {
+        it("should update state without publishing private enabled state globally", () => {
             expect.assertions(1);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
@@ -336,16 +326,16 @@ describe("enableTabButtons behavior", () => {
                 windowTabButtonsEnabled:
                     tabButtonWindow.tabButtonsCurrentlyEnabled,
             }).toStrictEqual({
-                globalThisTabButtonsEnabled: true,
+                globalThisTabButtonsEnabled: undefined,
                 globalThisWindowIsNodeGlobalWindow: true,
-                nodeGlobalWindowTabButtonsEnabled: true,
+                nodeGlobalWindowTabButtonsEnabled: undefined,
                 stateWrite: [
                     "ui.tabButtonsEnabled",
                     true,
                     { source: "setTabButtonsEnabled" },
                 ],
                 windowIsNodeGlobalWindow: true,
-                windowTabButtonsEnabled: true,
+                windowTabButtonsEnabled: undefined,
             });
         });
 
@@ -1062,7 +1052,7 @@ describe("enableTabButtons behavior", () => {
 
             global.MutationObserver = MockObserverClass as any;
             global.window.MutationObserver = MockObserverClass as any;
-            (global as any).window.tabButtonsCurrentlyEnabled = true;
+            setTabButtonsEnabled(true);
 
             initializeTabButtonState();
 
