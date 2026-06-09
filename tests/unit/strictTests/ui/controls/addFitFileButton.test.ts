@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock(
     import("../../../../../electron-app/utils/charts/theming/getThemeColors.js"),
@@ -8,6 +8,12 @@ vi.mock(
 );
 
 describe("createAddFitFileToMapButton", () => {
+    afterEach(async () => {
+        const { resetAddFitOverlayButtonStateForTests } =
+            await import("../../../../../electron-app/utils/ui/controls/addFitOverlayButtonState.js");
+        resetAddFitOverlayButtonStateForTests();
+    });
+
     it("invokes openFileSelector on click and handles error by notifying", async () => {
         expect.assertions(5);
 

@@ -1,16 +1,11 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { openFileSelector } from "../../files/import/openFileSelector.js";
 import { isTestEnvironment } from "../../runtime/processEnvironment.js";
-import { subscribe } from "../../state/core/stateManager.js";
 import { hasActiveFitRouteData } from "../../state/domain/fitRouteDataState.js";
 import { showNotification } from "../notifications/showNotification.js";
+import { registerAddFitOverlayButtonAvailabilityUpdater } from "./addFitOverlayButtonState.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
-
-type AddFitOverlayGlobal = typeof globalThis & {
-    __ffvAddFitOverlayButtonUnsubscribe?: () => void;
-    __ffvAddFitOverlayButtonUpdate?: () => void;
-};
 
 /**
  * Creates a button to add FIT files as overlays to the map.
@@ -19,8 +14,6 @@ type AddFitOverlayGlobal = typeof globalThis & {
  */
 export function createAddFitFileToMapButton(): HTMLButtonElement {
     try {
-        const globalRef = globalThis as AddFitOverlayGlobal;
-
         const runningInTest = isTestEnvironment();
 
         const addOverlayBtn = document.createElement("button");
@@ -82,26 +75,7 @@ export function createAddFitFileToMapButton(): HTMLButtonElement {
 
         updateAvailability();
 
-        // Prevent subscription leaks: renderMap clears and recreates controls, so this button can be destroyed.
-        // Install a single subscription and always point it at the current button's updater.
-        globalRef.__ffvAddFitOverlayButtonUpdate = updateAvailability;
-        if (
-            typeof globalRef.__ffvAddFitOverlayButtonUnsubscribe !== "function"
-        ) {
-            globalRef.__ffvAddFitOverlayButtonUnsubscribe = subscribe(
-                "fitFile.rawData",
-                () => {
-                    try {
-                        const fn = globalRef.__ffvAddFitOverlayButtonUpdate;
-                        if (typeof fn === "function") {
-                            fn();
-                        }
-                    } catch {
-                        /* ignore */
-                    }
-                }
-            );
-        }
+        registerAddFitOverlayButtonAvailabilityUpdater(updateAvailability);
 
         addOverlayBtn.addEventListener(
             "click",

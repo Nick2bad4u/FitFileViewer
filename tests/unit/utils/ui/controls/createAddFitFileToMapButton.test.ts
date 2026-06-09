@@ -44,19 +44,13 @@ vi.mock(
 );
 
 import { createAddFitFileToMapButton } from "../../../../../electron-app/utils/ui/controls/createAddFitFileToMapButton.js";
-
-type AddFitOverlayGlobal = typeof globalThis & {
-    __ffvAddFitOverlayButtonUnsubscribe?: unknown;
-    __ffvAddFitOverlayButtonUpdate?: unknown;
-};
+import { resetAddFitOverlayButtonStateForTests } from "../../../../../electron-app/utils/ui/controls/addFitOverlayButtonState.js";
 
 function resetFixture(): void {
+    resetAddFitOverlayButtonStateForTests();
     vi.restoreAllMocks();
     vi.clearAllMocks();
     document.body.replaceChildren();
-    const globalRef = globalThis as AddFitOverlayGlobal;
-    delete globalRef.__ffvAddFitOverlayButtonUnsubscribe;
-    delete globalRef.__ffvAddFitOverlayButtonUpdate;
     mocks.getThemeColors.mockReturnValue({ primary: "#2563eb" });
     mocks.hasActiveFitRouteData.mockReturnValue(false);
     mocks.openFileSelector.mockResolvedValue();

@@ -47,6 +47,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Map activity-layer migration status: activity-layer group registration and data-point marker tracking now go through `electron-app/utils/maps/state/mapActivityLayerState.ts` instead of `_ffvActivityLayerGroup` or `_ffvDataPointMarkers`.
 - Map data-point filter migration status: filter config and last summary result now go through `electron-app/utils/maps/state/mapDataPointFilterState.ts` instead of `mapDataPointFilter` or `mapDataPointFilterLastResult` globals.
 - Active main map-file migration status: the selected main-file index now goes through `electron-app/utils/maps/state/mapActiveMainFileState.ts` instead of `_activeMainFileIdx`.
+- Add-FIT-overlay button migration status: overlay button availability refresh and the single FIT-data subscription now go through `electron-app/utils/ui/controls/addFitOverlayButtonState.ts` instead of `__ffvAddFitOverlayButtonUpdate` or `__ffvAddFitOverlayButtonUnsubscribe`.
 - Next removal step: replace the remaining vendor-runtime compatibility globals with typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`
