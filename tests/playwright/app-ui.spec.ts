@@ -1,7 +1,9 @@
 import { expect, test, _electron as electron } from "@playwright/test";
 import type { ElectronApplication, Page } from "@playwright/test";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 
 type ActivityUiState = {
     activeFileName: string;
@@ -69,6 +71,73 @@ type CapturedDownload = {
     href: string;
 };
 
+type ElectronLaunchProfile = {
+    args: string[];
+    userDataDir: string;
+};
+
+const ELECTRON_EVALUATE_RETRY_ATTEMPTS = 3;
+const ELECTRON_EVALUATE_RETRY_DELAY_MS = 250;
+
+function createElectronLaunchProfile(): ElectronLaunchProfile {
+    const userDataDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "fitfileviewer-playwright-")
+    );
+
+    return {
+        args: [
+            repositoryRoot,
+            "--disable-http-cache",
+            `--user-data-dir=${userDataDir}`,
+        ],
+        userDataDir,
+    };
+}
+
+function removeElectronLaunchProfile(profile: ElectronLaunchProfile): void {
+    fs.rmSync(profile.userDataDir, { force: true, recursive: true });
+}
+
+async function closeElectronApp(app: ElectronApplication): Promise<void> {
+    try {
+        await app.close();
+    } catch {
+        /* The app may already be closed after a failed Electron smoke path. */
+    }
+}
+
+function isTransientElectronEvaluateError(error: unknown): boolean {
+    const message = error instanceof Error ? error.message : String(error);
+    return message.includes("Execution context was destroyed");
+}
+
+async function evaluateElectronAppWithRetry<T>(
+    evaluate: () => Promise<T>
+): Promise<T> {
+    let lastError: unknown;
+
+    for (
+        let attempt = 1;
+        attempt <= ELECTRON_EVALUATE_RETRY_ATTEMPTS;
+        attempt += 1
+    ) {
+        try {
+            return await evaluate();
+        } catch (error) {
+            lastError = error;
+            if (
+                attempt >= ELECTRON_EVALUATE_RETRY_ATTEMPTS ||
+                !isTransientElectronEvaluateError(error)
+            ) {
+                throw error;
+            }
+            await delay(ELECTRON_EVALUATE_RETRY_DELAY_MS);
+        }
+    }
+
+    throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
+
 function createElectronLaunchEnv({
     nodeEnvironment = "production",
 }: {
@@ -120,39 +189,43 @@ async function mockOpenFileDialogForApp(
         filePaths: string[];
     }
 ): Promise<void> {
-    await electronApp.evaluate(({ dialog }, result) => {
-        const mainGlobal = globalThis as typeof globalThis & {
-            __ffvPlaywrightOpenFileDialogCalls?: number;
-            __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
-        };
+    await evaluateElectronAppWithRetry(() =>
+        electronApp.evaluate(({ dialog }, result) => {
+            const mainGlobal = globalThis as typeof globalThis & {
+                __ffvPlaywrightOpenFileDialogCalls?: number;
+                __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
+            };
 
-        mainGlobal.__ffvPlaywrightOriginalShowOpenDialog ??=
-            dialog.showOpenDialog;
-        mainGlobal.__ffvPlaywrightOpenFileDialogCalls = 0;
-        dialog.showOpenDialog = async () => {
-            mainGlobal.__ffvPlaywrightOpenFileDialogCalls =
-                (mainGlobal.__ffvPlaywrightOpenFileDialogCalls ?? 0) + 1;
-            return result;
-        };
-    }, dialogResult);
+            mainGlobal.__ffvPlaywrightOriginalShowOpenDialog ??=
+                dialog.showOpenDialog;
+            mainGlobal.__ffvPlaywrightOpenFileDialogCalls = 0;
+            dialog.showOpenDialog = async () => {
+                mainGlobal.__ffvPlaywrightOpenFileDialogCalls =
+                    (mainGlobal.__ffvPlaywrightOpenFileDialogCalls ?? 0) + 1;
+                return result;
+            };
+        }, dialogResult)
+    );
 }
 
 async function restoreOpenFileDialogForApp(
     electronApp: ElectronApplication
 ): Promise<void> {
-    await electronApp.evaluate(({ dialog }) => {
-        const mainGlobal = globalThis as typeof globalThis & {
-            __ffvPlaywrightOpenFileDialogCalls?: number;
-            __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
-        };
+    await evaluateElectronAppWithRetry(() =>
+        electronApp.evaluate(({ dialog }) => {
+            const mainGlobal = globalThis as typeof globalThis & {
+                __ffvPlaywrightOpenFileDialogCalls?: number;
+                __ffvPlaywrightOriginalShowOpenDialog?: typeof dialog.showOpenDialog;
+            };
 
-        if (mainGlobal.__ffvPlaywrightOriginalShowOpenDialog) {
-            dialog.showOpenDialog =
-                mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
-            delete mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
-        }
-        delete mainGlobal.__ffvPlaywrightOpenFileDialogCalls;
-    });
+            if (mainGlobal.__ffvPlaywrightOriginalShowOpenDialog) {
+                dialog.showOpenDialog =
+                    mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
+                delete mainGlobal.__ffvPlaywrightOriginalShowOpenDialog;
+            }
+            delete mainGlobal.__ffvPlaywrightOpenFileDialogCalls;
+        })
+    );
 }
 
 const mapTileHosts = new Set([
@@ -271,8 +344,9 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
     test("loads map controls when NODE_ENV is unset", async () => {
         const rendererMessages: string[] = [];
         const pageErrors: string[] = [];
+        const noNodeEnvProfile = createElectronLaunchProfile();
         const noNodeEnvApp = await electron.launch({
-            args: [repositoryRoot, "--disable-http-cache"],
+            args: noNodeEnvProfile.args,
             cwd: repositoryRoot,
             env: createElectronLaunchEnv({ nodeEnvironment: "unset" }),
         });
@@ -309,23 +383,28 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
             });
             await noNodeEnvPage.locator("#open_file_btn").click();
             await expect
-                .poll(async () => {
-                    const [uiState, activityDataCounts] = await Promise.all([
-                        noNodeEnvPage.evaluate(() => ({
-                            activeFileName:
-                                document
-                                    .querySelector("#active_file_name")
-                                    ?.textContent?.trim() ?? "",
-                            title: document.title,
-                        })),
-                        getRendererActivityDataCounts(noNodeEnvPage),
-                    ]);
+                .poll(
+                    async () => {
+                        const [uiState, activityDataCounts] = await Promise.all(
+                            [
+                                noNodeEnvPage.evaluate(() => ({
+                                    activeFileName:
+                                        document
+                                            .querySelector("#active_file_name")
+                                            ?.textContent?.trim() ?? "",
+                                    title: document.title,
+                                })),
+                                getRendererActivityDataCounts(noNodeEnvPage),
+                            ]
+                        );
 
-                    return {
-                        ...uiState,
-                        ...activityDataCounts,
-                    };
-                })
+                        return {
+                            ...uiState,
+                            ...activityDataCounts,
+                        };
+                    },
+                    { timeout: 60_000 }
+                )
                 .toStrictEqual({
                     activeFileName: sampleFitActivityState.activeFileName,
                     recordCount: sampleFitActivityState.recordCount,
@@ -448,8 +527,16 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
             );
             expectNoCollectedEntries("NODE_ENV-unset page errors", pageErrors);
         } finally {
-            await restoreOpenFileDialogForApp(noNodeEnvApp);
-            await noNodeEnvApp.close();
+            try {
+                await restoreOpenFileDialogForApp(noNodeEnvApp);
+            } catch {
+                /* The app may already be closed after a failed smoke path. */
+            }
+            try {
+                await closeElectronApp(noNodeEnvApp);
+            } finally {
+                removeElectronLaunchProfile(noNodeEnvProfile);
+            }
         }
     });
 });
@@ -479,6 +566,7 @@ test.describe("FitFileViewer Playwright fixtures", () => {
 
 test.describe("FitFileViewer Electron UI", () => {
     let electronApp: ElectronApplication;
+    let electronProfile: ElectronLaunchProfile | undefined;
     let page: Page;
     const failedRequests: string[] = [];
     const rendererMessages: string[] = [];
@@ -718,8 +806,9 @@ test.describe("FitFileViewer Electron UI", () => {
     }
 
     test.beforeAll(async () => {
+        electronProfile = createElectronLaunchProfile();
         electronApp = await electron.launch({
-            args: [repositoryRoot, "--disable-http-cache"],
+            args: electronProfile.args,
             cwd: repositoryRoot,
             env: createElectronLaunchEnv(),
         });
@@ -752,7 +841,12 @@ test.describe("FitFileViewer Electron UI", () => {
     });
 
     test.afterAll(async () => {
-        await electronApp?.close();
+        if (electronApp) {
+            await closeElectronApp(electronApp);
+        }
+        if (electronProfile) {
+            removeElectronLaunchProfile(electronProfile);
+        }
     });
 
     test("starts with the main controls visible", async () => {

@@ -965,15 +965,18 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps the Electron Playwright smoke launch rooted at the app manifest", () => {
-        expect.assertions(4);
+        expect.assertions(7);
 
         const appUiSpec = readFileSync(
             path.join(process.cwd(), rootPlaywrightAppUiSpecPath),
             "utf8"
         );
 
+        expect(appUiSpec).toContain("function createElectronLaunchProfile()");
+        expect(appUiSpec).toContain("args: noNodeEnvProfile.args");
+        expect(appUiSpec).toContain("args: electronProfile.args");
         expect(appUiSpec).toContain(
-            'args: [repositoryRoot, "--disable-http-cache"]'
+            'repositoryRoot,\n            "--disable-http-cache",\n            `--user-data-dir=${userDataDir}`,'
         );
         expect(appUiSpec).toContain("cwd: repositoryRoot");
         expect(appUiSpec).not.toContain(
