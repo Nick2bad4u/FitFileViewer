@@ -34,7 +34,6 @@ type ZoneColorPickerGlobal = typeof globalThis & {
     clearZoneColorData?: (field: string, zoneCount: number) => void;
     heartRateZones?: ZoneData[];
     powerZones?: ZoneData[];
-    renderChartJS?: () => void;
     resetAllSettings?: () => void;
     showNotification?: (message: string, type?: string) => void;
     updateInlineZoneColorSelectors?: (root: ParentNode) => void;
@@ -60,6 +59,28 @@ function isChartInstance(value: unknown): value is ChartInstance {
 
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
+}
+
+function dispatchChartRenderRequest(reason: string): void {
+    globalThis.dispatchEvent(
+        new CustomEvent("ffv:request-render-charts", {
+            detail: { reason },
+        })
+    );
+}
+
+function requestDirectChartRender(reason: string): void {
+    void import("../../charts/core/renderChartJS.js")
+        .then(({ renderChartJS }) => {
+            void renderChartJS();
+        })
+        .catch((error: unknown) => {
+            console.warn(
+                "[ZoneColorPicker] Direct chart render import failed; dispatching render request event",
+                error
+            );
+            dispatchChartRenderRequest(reason);
+        });
 }
 
 /**
@@ -623,10 +644,8 @@ export function openZoneColorPicker(field: string): void {
                 // Trigger chart re-render through state management instead of direct call
                 if (chartStateManager) {
                     chartStateManager.debouncedRender("Zone colors reset");
-                } else if (
-                    typeof zoneColorGlobal.renderChartJS === "function"
-                ) {
-                    zoneColorGlobal.renderChartJS(); // Fallback for compatibility
+                } else {
+                    requestDirectChartRender("zone-colors-reset");
                 }
 
                 if (typeof zoneColorGlobal.showNotification === "function") {
@@ -678,14 +697,8 @@ export function openZoneColorPicker(field: string): void {
             // Trigger chart re-render through state management instead of direct call
             if (chartStateManager) {
                 chartStateManager.debouncedRender("Zone colors applied");
-            } else if (typeof zoneColorGlobal.renderChartJS === "function") {
-                zoneColorGlobal.renderChartJS();
             } else {
-                globalThis.dispatchEvent(
-                    new CustomEvent("ffv:request-render-charts", {
-                        detail: { reason: "zone-colors-applied" },
-                    })
-                );
+                requestDirectChartRender("zone-colors-applied");
             }
 
             showNotification(`${zoneType} zone colors updated`, "success");

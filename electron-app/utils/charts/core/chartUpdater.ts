@@ -5,7 +5,6 @@ import { renderChartJS } from "./renderChartJS.js";
 type ChartUpdaterGlobal = typeof globalThis & {
     ChartUpdater?: typeof ChartUpdater;
     chartUpdater?: typeof ChartUpdater;
-    renderChartJS?: unknown;
 };
 
 /**
@@ -29,7 +28,7 @@ const chartGlobal = globalThis as ChartUpdaterGlobal;
 export function getChartUpdateSystemStatus(): ChartUpdateSystemStatus {
     return {
         chartStateManager: Boolean(chartStateManager),
-        globalRenderChartJS: typeof chartGlobal.renderChartJS === "function",
+        globalRenderChartJS: false,
         modernSystemAvailable: isModernChartSystemAvailable(),
         renderChartJSAvailable: typeof renderChartJS === "function",
         timestamp: new Date().toISOString(),

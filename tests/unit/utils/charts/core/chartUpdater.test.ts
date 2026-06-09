@@ -9,10 +9,6 @@ type ChartStateManagerMock = {
     isInitialized: boolean;
 };
 
-type ChartUpdaterTestGlobal = typeof globalThis & {
-    renderChartJS?: unknown;
-};
-
 const clearChartStateMock = vi.hoisted(() => vi.fn<() => void>());
 const debouncedRenderMock = vi.hoisted(() =>
     vi.fn<(reason?: string) => void>()
@@ -65,8 +61,6 @@ import {
     updateChartsForThemeChange,
 } from "../../../../../electron-app/utils/charts/core/chartUpdater.js";
 
-const testGlobal = globalThis as ChartUpdaterTestGlobal;
-
 function resetMocks(): void {
     chartStateManagerMock.debouncedRender = debouncedRenderMock;
     chartStateManagerMock.handleThemeChange = handleThemeChangeMock;
@@ -78,7 +72,6 @@ function resetMocks(): void {
     handleThemeChangeMock.mockClear();
     renderChartJSMock.mockReset();
     clearChartInstanceRegistryForTests();
-    delete testGlobal.renderChartJS;
 }
 
 describe("chartUpdater", () => {
@@ -86,7 +79,6 @@ describe("chartUpdater", () => {
         expect.assertions(3);
 
         resetMocks();
-        testGlobal.renderChartJS = () => true;
 
         const status = getChartUpdateSystemStatus();
 
@@ -95,13 +87,11 @@ describe("chartUpdater", () => {
         }).toStrictEqual({ available: true });
         expect(status).toMatchObject({
             chartStateManager: true,
-            globalRenderChartJS: true,
+            globalRenderChartJS: false,
             modernSystemAvailable: true,
             renderChartJSAvailable: true,
         });
         expect(status.timestamp).toBeTypeOf("string");
-
-        delete testGlobal.renderChartJS;
     });
 
     it("uses the chart state manager for regular chart updates", async () => {

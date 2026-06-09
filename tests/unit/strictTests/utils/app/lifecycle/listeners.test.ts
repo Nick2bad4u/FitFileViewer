@@ -52,6 +52,9 @@ const fitDataRendererMocks = vi.hoisted(() => ({
 const altFitMocks = vi.hoisted(() => ({
     sendFitFileToAltFitReader: vi.fn<SendFitFileToAltFitReaderMock>(),
 }));
+const chartRenderMocks = vi.hoisted(() => ({
+    renderChartJS: vi.fn<() => Promise<boolean> | boolean>(() => true),
+}));
 
 vi.mock(
     import("../../../../../../electron-app/utils/files/import/openFileSelector.js"),
@@ -83,6 +86,11 @@ vi.mock(
 vi.mock(
     import("../../../../../../electron-app/utils/files/import/sendFitFileToAltFitReader.js"),
     () => altFitMocks
+);
+
+vi.mock(
+    import("../../../../../../electron-app/utils/charts/core/renderChartJS.js"),
+    () => chartRenderMocks
 );
 
 const openFileSelectorMock = dependencyMocks.openFileSelector;
@@ -256,6 +264,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         fitDataRendererMocks.renderDecodedFitData.mockReset();
         fitDataRendererMocks.renderDecodedFitData.mockResolvedValue(undefined);
         altFitMocks.sendFitFileToAltFitReader.mockReset();
+        chartRenderMocks.renderChartJS.mockReset();
+        chartRenderMocks.renderChartJS.mockReturnValue(true);
     });
 
     afterEach(() => {
@@ -275,7 +285,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         delete (globalThis as any).sendFitFileToAltFitReader;
         delete (globalThis as any).ChartUpdater;
         delete (globalThis as any).renderChartJS;
-        delete (globalThis as any).renderChart;
         delete (globalThis as any).copyTableAsCSV;
 
         // Clear any remaining timeouts that might interfere with subsequent tests
@@ -1238,7 +1247,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(window.ChartUpdater.updateCharts).not.toHaveBeenCalled();
     });
 
-    it("window resize: chart tab active with legacy renderChart fallback", async () => {
+    it("window resize: chart tab active uses imported chart render fallback", async () => {
         expect.hasAssertions();
 
         // Prepare active chart tab
@@ -1247,13 +1256,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         tab.classList.add("active");
         document.body.appendChild(tab);
 
-        // Mock legacy renderChart fallback and ensure ChartUpdater and renderChartJS don't exist
-        const renderChart = vi.fn<() => void>();
-        Object.defineProperty(window, "renderChart", {
-            configurable: true,
-            value: renderChart,
-            writable: true,
-        });
         (window as any).ChartUpdater = undefined;
         (window as any).renderChartJS = undefined;
 
@@ -1274,10 +1276,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.useRealTimers();
 
         expect(tab.classList.contains("active")).toBe(true);
-        expect(renderChart).toHaveBeenCalledWith();
+        expect(chartRenderMocks.renderChartJS).toHaveBeenCalledWith();
     });
 
-    it("window resize: chartjs tab active with renderChartJS fallback", async () => {
+    it("window resize: chartjs tab active uses imported chart render fallback", async () => {
         expect.hasAssertions();
 
         // Prepare active chartjs tab
@@ -1286,13 +1288,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         tab.classList.add("active");
         document.body.appendChild(tab);
 
-        // Mock renderChartJS fallback and ensure ChartUpdater doesn't exist
-        const renderChartJS = vi.fn<() => void>();
-        Object.defineProperty(window, "renderChartJS", {
-            configurable: true,
-            value: renderChartJS,
-            writable: true,
-        });
         (window as any).ChartUpdater = undefined;
 
         setupListeners({
@@ -1312,7 +1307,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.useRealTimers();
 
         expect(tab.id).toBe("tab-chartjs");
-        expect(renderChartJS).toHaveBeenCalledWith();
+        expect(chartRenderMocks.renderChartJS).toHaveBeenCalledWith();
     });
 
     it("decoder-options-changed: handles error during file reload", async () => {

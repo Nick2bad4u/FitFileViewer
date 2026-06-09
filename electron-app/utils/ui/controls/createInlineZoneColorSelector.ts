@@ -57,7 +57,6 @@ type ZoneColorSelectorElement = HTMLElement & {
 type ZoneColorSelectorGlobal = typeof globalThis & {
     heartRateZones?: ZoneDataItem[];
     powerZones?: ZoneDataItem[];
-    renderChartJS?: () => unknown;
 };
 
 type ZoneSelectorConfig = {
@@ -70,6 +69,28 @@ const zoneColorSelectorTimers = new Set<ReturnType<typeof setTimeout>>();
 
 function getZoneColorSelectorGlobal(): ZoneColorSelectorGlobal {
     return globalThis;
+}
+
+function dispatchChartRenderRequest(reason: string): void {
+    globalThis.dispatchEvent(
+        new CustomEvent("ffv:request-render-charts", {
+            detail: { reason },
+        })
+    );
+}
+
+function requestDirectChartRender(reason: string): void {
+    void import("../../charts/core/renderChartJS.js")
+        .then(({ renderChartJS }) => {
+            void renderChartJS();
+        })
+        .catch((error: unknown) => {
+            console.warn(
+                "[ZoneColorSelector] Direct chart render import failed; dispatching render request event",
+                error
+            );
+            dispatchChartRenderRequest(reason);
+        });
 }
 
 function isChartLike(value: unknown): value is ChartLike {
@@ -765,17 +786,7 @@ function createColorSchemeSelector(
                         `Zone scheme change: ${scheme}`
                     );
                 } else {
-                    const renderChartJS =
-                        getZoneColorSelectorGlobal().renderChartJS;
-                    if (typeof renderChartJS === "function") {
-                        renderChartJS();
-                    } else {
-                        globalThis.dispatchEvent(
-                            new CustomEvent("ffv:request-render-charts", {
-                                detail: { reason: "zone-scheme-change" },
-                            })
-                        );
-                    }
+                    requestDirectChartRender("zone-scheme-change");
                 }
             } catch (error) {
                 console.error(
@@ -859,17 +870,7 @@ function createResetButton(
                         `Zone colors reset for ${zoneType}`
                     );
                 } else {
-                    const renderChartJS =
-                        getZoneColorSelectorGlobal().renderChartJS;
-                    if (typeof renderChartJS === "function") {
-                        renderChartJS();
-                    } else {
-                        globalThis.dispatchEvent(
-                            new CustomEvent("ffv:request-render-charts", {
-                                detail: { reason: "zone-reset" },
-                            })
-                        );
-                    }
+                    requestDirectChartRender("zone-reset");
                 }
 
                 console.log(
@@ -1066,17 +1067,7 @@ function createZoneColorItem(
                         `Zone color change: zone ${zoneIndex}`
                     );
                 } else {
-                    const renderChartJS =
-                        getZoneColorSelectorGlobal().renderChartJS;
-                    if (typeof renderChartJS === "function") {
-                        renderChartJS();
-                    } else {
-                        globalThis.dispatchEvent(
-                            new CustomEvent("ffv:request-render-charts", {
-                                detail: { reason: "zone-color" },
-                            })
-                        );
-                    }
+                    requestDirectChartRender("zone-color");
                 }
             } catch (error) {
                 console.error(

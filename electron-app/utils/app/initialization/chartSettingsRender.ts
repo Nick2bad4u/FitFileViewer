@@ -21,7 +21,6 @@ type ChartRenderManagerLike = {
 type ChartSettingsGlobal = typeof globalThis & {
     chartActions?: unknown;
     chartStateManager?: unknown;
-    renderChartJS?: (target?: Element | null) => unknown;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -170,28 +169,40 @@ function removeExistingChartCanvases(): void {
     }
 }
 
-function runGlobalRenderFallback(
+function dispatchChartRenderRequest(
     chartGlobal: ChartSettingsGlobal,
-    settingName: string
+    reason: string
+): void {
+    chartGlobal.dispatchEvent(
+        new CustomEvent("ffv:request-render-charts", {
+            detail: { reason },
+        })
+    );
+}
+
+function runDirectRenderFallback(
+    chartGlobal: ChartSettingsGlobal,
+    reason: string,
+    target?: Element | null
 ): void {
     const container = getChartRenderContainer(document);
     console.log(
         `${LOG_PREFIX} Using container: ${container ? container.id : "none found"}`
     );
 
-    if (typeof chartGlobal.renderChartJS === "function") {
-        const target =
-            container || getChartRenderContainer(document) || document.body;
-        chartGlobal.renderChartJS(target);
-        return;
-    }
-
-    console.log(`${LOG_PREFIX} Dispatching render request event fallback`);
-    chartGlobal.dispatchEvent(
-        new CustomEvent("ffv:request-render-charts", {
-            detail: { reason: `setting-change:${settingName}` },
+    const renderTarget =
+        target || container || getChartRenderContainer(document) || document.body;
+    void import("../../charts/core/renderChartJS.js")
+        .then(({ renderChartJS }) => {
+            void renderChartJS(renderTarget);
         })
-    );
+        .catch((error: unknown) => {
+            console.warn(
+                `${LOG_PREFIX} Direct chart render import failed; dispatching render request event`,
+                error
+            );
+            dispatchChartRenderRequest(chartGlobal, reason);
+        });
 }
 
 /**
@@ -243,7 +254,10 @@ export function reRenderChartsAfterSettingChange(
 
         clearLegacyChartRenderState(actions);
         removeExistingChartCanvases();
-        runGlobalRenderFallback(chartGlobal, settingName);
+        runDirectRenderFallback(
+            chartGlobal,
+            `setting-change:${settingName}`
+        );
 
         console.log(
             `${LOG_PREFIX} Chart re-render completed for ${settingName} change (fallback path)`
@@ -301,17 +315,11 @@ export function reRenderChartsAfterReset(): void {
         // Force a complete re-render through modern state management
         if (isChartRenderManagerLike(chartStateManager)) {
             chartStateManager.debouncedRender("Settings reset");
-        } else if (typeof chartGlobal.renderChartJS === "function") {
-            const target =
-                chartsContainer ||
-                getChartRenderContainer(document) ||
-                document.body;
-            chartGlobal.renderChartJS(target);
         } else {
-            chartGlobal.dispatchEvent(
-                new CustomEvent("ffv:request-render-charts", {
-                    detail: { reason: "settings-reset" },
-                })
+            runDirectRenderFallback(
+                chartGlobal,
+                "settings-reset",
+                chartsContainer || getChartRenderContainer(document)
             );
         }
     } catch (error) {

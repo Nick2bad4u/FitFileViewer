@@ -119,8 +119,6 @@ type LifecycleGlobal = typeof globalThis & {
     ChartUpdater?: { updateCharts?: (reason?: string) => unknown };
     __ffvLifecycleListenersCleanup?: () => void;
     electronAPI?: LifecycleElectronAPI;
-    renderChart?: () => unknown;
-    renderChartJS?: () => unknown;
 };
 
 /** Mutable flag shared with the file-opening workflow. */

@@ -1,4 +1,5 @@
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
+import { renderChartJS } from "../../charts/core/renderChartJS.js";
 
 type ResizableChart = { resize: () => void };
 type ChartRegistry = { getChart?: (canvas: HTMLCanvasElement) => unknown };
@@ -7,8 +8,6 @@ type LegacyChartCanvas = HTMLCanvasElement & { __chartjs?: unknown };
 type ChartResizeGlobal = typeof globalThis & {
     Chart?: ChartRegistry;
     ChartUpdater?: { updateCharts?: (reason: string) => void };
-    renderChart?: () => void;
-    renderChartJS?: () => Promise<boolean> | undefined;
 };
 
 type ChartResizeListenerParams = {
@@ -91,11 +90,8 @@ export function registerChartResizeListener({
                     chartGlobal.ChartUpdater.updateCharts
                 ) {
                     chartGlobal.ChartUpdater.updateCharts("window-resize");
-                } else if (chartGlobal.renderChartJS) {
-                    void chartGlobal.renderChartJS();
-                } else if (chartGlobal.renderChart) {
-                    // Legacy fallback for older renderer bundles.
-                    chartGlobal.renderChart();
+                } else {
+                    void renderChartJS();
                 }
             }, 200);
         }
