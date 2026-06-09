@@ -30,6 +30,7 @@ vi.mock(
 );
 
 import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listeners.js";
+import { resetMenuIpcListenerStateForTests } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 
 type TestElectronAPI = {
     addRecentFile: Mock<ElectronAPI["addRecentFile"]>;
@@ -44,7 +45,6 @@ type TestElectronAPI = {
 };
 
 type TestGlobal = typeof globalThis & {
-    __ffvMenuForwardRegistry?: unknown;
     electronAPI?: TestElectronAPI;
     renderChartJS?: unknown;
 };
@@ -89,10 +89,10 @@ describe("utils/app/lifecycle/listeners.js", () => {
             renderChartJS: undefined,
         });
         Object.assign(getTestGlobal(), {
-            __ffvMenuForwardRegistry: undefined,
             electronAPI: undefined,
             renderChartJS: undefined,
         });
+        resetMenuIpcListenerStateForTests();
         updateChartsMock.mockClear();
     });
 

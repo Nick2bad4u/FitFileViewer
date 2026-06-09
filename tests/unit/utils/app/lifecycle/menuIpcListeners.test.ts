@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { registerMenuIpcListeners } from "../../../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
+import {
+    registerMenuIpcListeners,
+    resetMenuIpcListenerStateForTests,
+} from "../../../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 import { openFileSelector } from "../../../../../electron-app/utils/files/import/openFileSelector.js";
 
 const keyboardShortcutsModalMock = vi.hoisted(() => ({
@@ -58,7 +61,6 @@ type TestMenuElectronAPI = {
 };
 
 type MenuIpcTestGlobal = typeof globalThis & {
-    __ffvMenuForwardRegistry?: Set<string>;
     electronAPI?: TestMenuElectronAPI;
     showAccentColorPicker?: () => void;
     showKeyboardShortcutsModal?: () => void;
@@ -81,7 +83,7 @@ const openFileSelectorMock = vi.mocked(openFileSelector);
 
 function cleanupFixture(): void {
     const holder = globalThis as MenuIpcTestGlobal;
-    delete holder.__ffvMenuForwardRegistry;
+    resetMenuIpcListenerStateForTests();
     delete holder.electronAPI;
     delete holder.showAccentColorPicker;
     delete holder.showKeyboardShortcutsModal;

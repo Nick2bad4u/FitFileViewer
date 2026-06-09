@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
-import { registerMenuIpcListeners } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
+import {
+    registerMenuIpcListeners,
+    resetMenuIpcListenerStateForTests,
+} from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 
 const modalFocusTrapMock = vi.hoisted(() => ({
     cleanup: vi.fn<() => void>(),
@@ -39,7 +42,6 @@ type MenuElectronApi = {
 };
 
 type MenuTestGlobal = typeof globalThis & {
-    __ffvMenuForwardRegistry?: Set<MenuSendChannel>;
     closeKeyboardShortcutsModal?: () => void;
     electronAPI?: MenuElectronApi;
     showKeyboardShortcutsModal?: () => void;
@@ -85,7 +87,7 @@ function resetKeyboardShortcutsFixture(): void {
     document.body.style.overflow = "";
 
     const testGlobal = getTestGlobal();
-    delete testGlobal.__ffvMenuForwardRegistry;
+    resetMenuIpcListenerStateForTests();
     delete testGlobal.closeKeyboardShortcutsModal;
     delete testGlobal.electronAPI;
     delete testGlobal.showKeyboardShortcutsModal;

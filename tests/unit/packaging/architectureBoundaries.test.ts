@@ -257,6 +257,8 @@ const directFileBrowserLibraryCacheGlobalPattern =
     /\b(?:window|globalThis|appGlobal|getFitBrowserGlobal\(\))\.__ffvLibraryCache\b/u;
 const directFullscreenHandlerGlobalPattern =
     /\b(?:window|globalThis|testGlobal|getFullscreenGlobal\(\))\.(?:__ffvFullscreenKeydownHandler|__ffvNativeFullscreenChangeHandler)\b/u;
+const directMenuForwardRegistryGlobalPattern =
+    /\b(?:window|globalThis|holder|testGlobal|getMenuIpcGlobal\(\))\.__ffvMenuForwardRegistry\b/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1312,7 +1314,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(36);
+        expect.assertions(37);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1563,6 +1565,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directMenuForwardRegistryGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directMenuForwardRegistryGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1610,6 +1619,7 @@ describe("architecture boundaries", () => {
         expect(directMapDocumentListenerGlobalLookups).toStrictEqual([]);
         expect(directFileBrowserLibraryCacheGlobalLookups).toStrictEqual([]);
         expect(directFullscreenHandlerGlobalLookups).toStrictEqual([]);
+        expect(directMenuForwardRegistryGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

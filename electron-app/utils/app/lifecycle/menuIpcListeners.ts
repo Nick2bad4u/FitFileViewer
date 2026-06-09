@@ -23,7 +23,6 @@ type MenuElectronAPI = Partial<
 >;
 
 type MenuIpcGlobal = typeof globalThis & {
-    __ffvMenuForwardRegistry?: Set<MenuSendChannel>;
     electronAPI?: MenuElectronAPI;
     showAccentColorPicker?: () => void;
     showKeyboardShortcutsModal?: () => void;
@@ -56,17 +55,14 @@ const accentColorPickerModulePath =
 const keyboardShortcutsModalModulePath =
     "../../ui/modals/keyboardShortcutsModal.js" as const;
 
+const menuForwardRegistry = new Set<MenuSendChannel>();
+
 function getMenuIpcGlobal(): MenuIpcGlobal {
     return globalThis;
 }
 
 function getMenuForwardRegistry(): Set<MenuSendChannel> {
-    const holder = getMenuIpcGlobal();
-    if (!(holder.__ffvMenuForwardRegistry instanceof Set)) {
-        holder.__ffvMenuForwardRegistry = new Set<MenuSendChannel>();
-    }
-
-    return holder.__ffvMenuForwardRegistry;
+    return menuForwardRegistry;
 }
 
 async function openAccentColorPickerFromModule({
@@ -262,4 +258,11 @@ export function registerMenuIpcListeners({
         );
         globalKeyboardShortcutsModal();
     });
+}
+
+/**
+ * Reset module-owned listener registry state for isolated tests.
+ */
+export function resetMenuIpcListenerStateForTests(): void {
+    menuForwardRegistry.clear();
 }

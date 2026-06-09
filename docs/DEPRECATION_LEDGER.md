@@ -52,6 +52,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Map document listener migration status: basemap panel layout refs, map-type button refs, zoom-dragging refs, document listener lifecycle, and the render abort controller now stay in typed module state instead of `__ffvLayoutLayersControl`, `__ffvMapTypeButton`, `__ffvMapZoomDraggingRef`, `__ffvMapDocumentListenersController`, `__ffvMapDocumentListenersInstalled`, or `__ffvRenderMapAbortController`.
 - File-browser library cache migration status: decoded library scan payloads now go through `electron-app/utils/ui/browser/fileBrowserLibraryCache.ts` instead of the `__ffvLibraryCache` global.
 - Fullscreen button listener migration status: keydown and native fullscreen-change handler refs now stay in `electron-app/utils/ui/controls/addFullScreenButton.ts` module state instead of `__ffvFullscreenKeydownHandler` or `__ffvNativeFullscreenChangeHandler`.
+- Menu IPC forwarder migration status: duplicate-registration tracking for menu Save As and Export forwarding now stays in `electron-app/utils/app/lifecycle/menuIpcListeners.ts` module state instead of `__ffvMenuForwardRegistry`.
 - Next removal step: replace the remaining vendor-runtime compatibility globals with typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`

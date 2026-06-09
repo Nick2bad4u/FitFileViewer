@@ -107,6 +107,7 @@ const openFileSelectorMock = dependencyMocks.openFileSelector;
 
 // Import the module under test
 import { setupListeners } from "../../../../../../electron-app/utils/app/lifecycle/listeners.js";
+import { resetMenuIpcListenerStateForTests } from "../../../../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 import {
     getActiveFitRawData,
     setActiveFitRawData,
@@ -244,8 +245,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         __resetStateManagerForTests();
         openFileSelectorMock.mockReset();
         openFileSelectorMock.mockResolvedValue(undefined);
-        Reflect.deleteProperty(globalThis, "__ffvMenuForwardRegistry");
-        Reflect.deleteProperty(window, "__ffvMenuForwardRegistry");
+        resetMenuIpcListenerStateForTests();
         document.body.innerHTML = "";
         openFileBtn = createButton();
         electronAPI = createElectronAPIMock();

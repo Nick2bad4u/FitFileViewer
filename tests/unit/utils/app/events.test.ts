@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SetupListenersOptions } from "../../../../electron-app/utils/app/lifecycle/listeners.js";
+import { resetMenuIpcListenerStateForTests } from "../../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 import { setActiveFitRawData } from "../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
 import { setLoadedFitFiles } from "../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
@@ -278,8 +279,7 @@ describe(setupListeners, () => {
             requestSaveAs: vi.fn<() => void>(),
         };
 
-        delete (globalAny as { __ffvMenuForwardRegistry?: Set<string> })
-            .__ffvMenuForwardRegistry;
+        resetMenuIpcListenerStateForTests();
         defineGlobalValue("electronAPI", electronAPI);
         setActiveFitRawData({ recordMesgs: [] }, { source: "test" });
         csvExportMocks.serializeTableToCSV.mockReset();
