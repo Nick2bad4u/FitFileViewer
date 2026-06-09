@@ -26,6 +26,11 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
 import { setHighlightedOverlayIndex } from "../layers/mapDrawLaps.js";
 import { getRegisteredLeafletMapInstance } from "../state/mapLeafletInstanceState.js";
+import {
+    getMainMapPolyline,
+    getMainMapPolylineOriginalBounds,
+    getOverlayMapPolyline,
+} from "../state/mapPolylineRegistryState.js";
 
 type MapBounds = {
     isValid?: () => boolean;
@@ -46,11 +51,6 @@ type MapPolyline = MapLayer & {
     getElement?: () => HTMLElement | SVGElement | null;
 };
 
-type OverlayPolylineCollection = {
-    [index: number]: MapPolyline | null | undefined;
-    [key: string]: MapPolyline | null | undefined;
-};
-
 type LeafletMapInstance = {
     fitBounds: (
         bounds: MapBounds,
@@ -65,12 +65,6 @@ type MapActionLeafletRuntime = {
     CircleMarker?: CircleMarkerConstructor;
 };
 
-type MapActionButtonsGlobal = typeof globalThis & {
-    _mainPolyline?: MapPolyline | null;
-    _mainPolylineOriginalBounds?: MapBounds | null;
-    _overlayPolylines?: OverlayPolylineCollection;
-};
-
 type ActiveFileNameElement = HTMLElement & {
     __ffvMapActionCleanup?: () => void;
 };
@@ -82,10 +76,6 @@ let centerMainAttempts = 0;
 let centerRetryHandle: ReturnType<typeof setTimeout> | null = null;
 let centerStatusNotified = 0;
 let mainPolylineHighlightToken = 0;
-
-function getMapActionButtonsGlobal(): MapActionButtonsGlobal {
-    return globalThis;
-}
 
 function isMapLayer(value: unknown): value is MapLayer {
     return typeof value === "object" && value !== null;
@@ -126,20 +116,17 @@ function getCenterMapAttempts(): number {
     return centerMainAttempts;
 }
 
-function getMainPolyline(w: MapActionButtonsGlobal): MapPolyline | null {
-    if (w._mainPolyline) {
-        return w._mainPolyline;
-    }
-
-    const overlayCollection = w._overlayPolylines;
-    return overlayCollection?.[0] ?? overlayCollection?.["0"] ?? null;
+function getMainPolyline(): MapPolyline | null {
+    return (
+        getMainMapPolyline<MapPolyline>() ??
+        getOverlayMapPolyline<MapPolyline>(0) ??
+        null
+    );
 }
 
-function hasValidMainPolylineBounds(w: MapActionButtonsGlobal): boolean {
-    return Boolean(
-        w._mainPolylineOriginalBounds?.isValid &&
-        w._mainPolylineOriginalBounds.isValid()
-    );
+function hasValidMainPolylineBounds(): boolean {
+    const bounds = getMainMapPolylineOriginalBounds<MapBounds>();
+    return Boolean(bounds?.isValid && bounds.isValid());
 }
 
 function resetCenterMapState(): void {
@@ -216,13 +203,12 @@ function highlightMainPolyline(polyline: MapPolyline): void {
 }
 
 function getMainPolylineBounds(
-    w: MapActionButtonsGlobal,
     polyline: MapPolyline,
     hasValidBounds: boolean
 ): MapBounds | null | undefined {
     if (hasValidBounds) {
         console.log("[mapActionButtons] Using stored main polyline bounds");
-        return w._mainPolylineOriginalBounds;
+        return getMainMapPolylineOriginalBounds<MapBounds>();
     }
 
     if (polyline.getBounds) {
@@ -264,8 +250,7 @@ function fitMapToMainPolyline(
         return;
     }
 
-    const w = getMapActionButtonsGlobal();
-    const bounds = getMainPolylineBounds(w, polyline, hasValidBounds);
+    const bounds = getMainPolylineBounds(polyline, hasValidBounds);
     if (bounds?.isValid?.()) {
         console.log("[mapActionButtons] Fitting map to bounds");
         mapInstance.fitBounds(bounds, { padding: [20, 20] });
@@ -304,11 +289,9 @@ export function showLoadingOverlay(progressText: string, fileName = ""): void {
 function _centerMapOnMainFile(): void {
     try {
         console.log("[mapActionButtons] Attempting to zoom to main polyline");
-        const w = getMapActionButtonsGlobal();
-
         const attempts = getCenterMapAttempts();
-        const mainPolyline = getMainPolyline(w);
-        const hasValidBounds = hasValidMainPolylineBounds(w);
+        const mainPolyline = getMainPolyline();
+        const hasValidBounds = hasValidMainPolylineBounds();
 
         if (!mainPolyline) {
             handleMissingMainPolyline(attempts);

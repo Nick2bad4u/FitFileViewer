@@ -32,7 +32,7 @@ function getActiveFileName(): HTMLElement {
 }
 
 describe("mapActionButtons", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         const activeFileName = document.createElement("div");
         activeFileName.id = "activeFileName";
         activeFileName.textContent = "main.fit";
@@ -42,19 +42,21 @@ describe("mapActionButtons", () => {
         mapButton.type = "button";
 
         document.body.replaceChildren(activeFileName, mapButton);
-        Object.assign(window, {
-            _overlayPolylines: [],
-            _mainPolylineOriginalBounds: null,
-        });
         (window as any).L = undefined;
         vi.resetModules();
         vi.clearAllMocks();
         vi.useFakeTimers();
+        const { resetMapPolylineRegistryForTests } =
+            await import("../../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js");
+        resetMapPolylineRegistryForTests();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
+        const { resetMapPolylineRegistryForTests } =
+            await import("../../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js");
+        resetMapPolylineRegistryForTests();
         document.body.replaceChildren();
     });
 
@@ -87,14 +89,16 @@ describe("mapActionButtons", () => {
         const { setRegisteredLeafletMapInstance } =
             await import("../../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js");
         setRegisteredLeafletMapInstance({ fitBounds, getCenter, getZoom });
+        const { registerOverlayMapPolyline, setMainMapPolylineOriginalBounds } =
+            await import("../../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js");
         const bounds = { isValid: () => true };
-        (window as any)._mainPolylineOriginalBounds = bounds;
+        setMainMapPolylineOriginalBounds(bounds);
         const polylineElement = document.createElement("div");
         const poly = {
             options: { color: "#1976d2" },
             getElement: () => polylineElement,
         } as any;
-        (window as any)._overlayPolylines = [poly];
+        registerOverlayMapPolyline(0, poly);
         await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
         const showNotificationMock = await getShowNotificationMock();
         const name = getActiveFileName();
@@ -128,7 +132,9 @@ describe("mapActionButtons", () => {
             getBounds: () => ({ isValid: () => false }),
             getElement: () => ({ style: {} as any }),
         } as any;
-        (window as any)._overlayPolylines = [poly];
+        const { registerOverlayMapPolyline } =
+            await import("../../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js");
+        registerOverlayMapPolyline(0, poly);
 
         await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
         const showNotificationMock = await getShowNotificationMock();
@@ -155,8 +161,10 @@ describe("mapActionButtons", () => {
         const { setRegisteredLeafletMapInstance } =
             await import("../../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js");
         setRegisteredLeafletMapInstance({ fitBounds, getCenter, getZoom });
+        const { registerOverlayMapPolyline, setMainMapPolylineOriginalBounds } =
+            await import("../../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js");
         const bounds = { isValid: () => true };
-        (window as any)._mainPolylineOriginalBounds = bounds;
+        setMainMapPolylineOriginalBounds(bounds);
 
         const bringToFrontMarker = vi.fn<VoidFn>();
         const skipMarker = vi.fn<VoidFn>();
@@ -185,7 +193,7 @@ describe("mapActionButtons", () => {
             getBounds: () => bounds,
         } as any;
 
-        (window as any)._overlayPolylines = [poly];
+        registerOverlayMapPolyline(0, poly);
         await import("../../../../../electron-app/utils/maps/controls/mapActionButtons.js");
         const name = getActiveFileName();
         name.dispatchEvent(new Event("click"));
@@ -223,14 +231,17 @@ describe("mapActionButtons", () => {
                 getCenter: vi.fn<GetCenterFn>(),
                 getZoom: vi.fn<GetZoomFn>(),
             });
-            (window as any)._mainPolylineOriginalBounds = bounds;
-            (window as any)._overlayPolylines = [
-                {
-                    options: { color: "#1976d2" },
-                    getBounds: () => bounds,
-                    getElement: () => ({ style: {} }),
-                },
-            ];
+            const {
+                registerOverlayMapPolyline,
+                setMainMapPolylineOriginalBounds,
+            } =
+                await import("../../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js");
+            setMainMapPolylineOriginalBounds(bounds);
+            registerOverlayMapPolyline(0, {
+                options: { color: "#1976d2" },
+                getBounds: () => bounds,
+                getElement: () => ({ style: {} }),
+            });
             const name = getActiveFileName();
 
             expect(name.textContent).toBe("changed.fit");

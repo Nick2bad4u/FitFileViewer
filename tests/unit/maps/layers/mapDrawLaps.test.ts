@@ -15,6 +15,14 @@ import {
     resetMapMarkerCount,
     setMapMarkerCount,
 } from "../../../../electron-app/utils/maps/state/mapMarkerCountState.js";
+import {
+    getMainMapPolyline,
+    getMainMapPolylineOriginalBounds,
+    getOverlayMapPolylines,
+    registerOverlayMapPolyline,
+    resetMapPolylineRegistryForTests,
+    setMainMapPolylineOriginalBounds,
+} from "../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js";
 
 type MockFunction = (...args: any[]) => any;
 
@@ -67,8 +75,6 @@ declare global {
     interface Window {
         L?: any;
     }
-    var _overlayPolylines: any;
-    var _mainPolylineOriginalBounds: any;
     var _activeMainFileIdx: number;
 }
 
@@ -160,8 +166,7 @@ describe("mapDrawLaps", () => {
         mockGetLapNumForIdx = mockFn().mockReturnValue(1);
 
         // Initialize global state
-        (globalThis as any)._overlayPolylines = {};
-        (globalThis as any)._mainPolylineOriginalBounds = undefined;
+        resetMapPolylineRegistryForTests();
         (globalThis as any)._ffvActivityLayerGroup = undefined;
         (globalThis as any)._activeMainFileIdx = 0;
         setMapMarkerCount(10);
@@ -171,6 +176,7 @@ describe("mapDrawLaps", () => {
     afterEach(() => {
         clearLeafletRuntimeForTests();
         resetMapMarkerCount();
+        resetMapPolylineRegistryForTests();
     });
 
     const getPolylineCall = (
@@ -349,12 +355,10 @@ describe("mapDrawLaps", () => {
             });
 
             expect(result).toBe(mockLatLngBounds);
-            expect((globalThis as any).window._overlayPolylines).toStrictEqual({
+            expect(getOverlayMapPolylines()).toStrictEqual({
                 "2": mockPolyline,
             });
-            expect(
-                (globalThis as any).window._overlayPolylines
-            ).not.toHaveProperty("0");
+            expect(getOverlayMapPolylines()).not.toHaveProperty("0");
             const [coordinates, polylineOptions] = getPolylineCall();
             expect(coordinates).toHaveLength(2);
             expect(
@@ -403,13 +407,8 @@ describe("mapDrawLaps", () => {
         it("should not clear overlay state (overlays/tool layers persist)", () => {
             expect.assertions(1);
 
-            (globalThis as any)._overlayPolylines = { existing: "data" };
-            (globalThis as any)._mainPolylineOriginalBounds = {
-                existing: "bounds",
-            };
-            (globalThis as any).window._mainPolylineOriginalBounds = {
-                existing: "bounds",
-            };
+            registerOverlayMapPolyline("existing", { existing: "data" });
+            setMainMapPolylineOriginalBounds({ existing: "bounds" });
 
             mapDrawLaps(0, {
                 map: mockMap,
@@ -424,13 +423,12 @@ describe("mapDrawLaps", () => {
             });
 
             expect({
-                mainPolylineBounds: (globalThis as any).window
-                    ._mainPolylineOriginalBounds,
-                overlayPolylines: (globalThis as any)._overlayPolylines,
+                mainPolylineBounds: getMainMapPolylineOriginalBounds(),
+                overlayPolylines: getOverlayMapPolylines(),
             }).toStrictEqual({
-                mainPolylineBounds: undefined,
+                mainPolylineBounds: null,
                 overlayPolylines: {
-                    existing: "data",
+                    existing: { existing: "data" },
                 },
             });
         });
@@ -500,9 +498,7 @@ describe("mapDrawLaps", () => {
 
             expect({
                 mapMessage: mapContainer.textContent,
-                overlayPolylineKeys: Object.keys(
-                    (globalThis as any)._overlayPolylines
-                ),
+                overlayPolylineKeys: Object.keys(getOverlayMapPolylines()),
                 polylineCalls: mockLeaflet.polyline.mock.calls.length,
             }).toStrictEqual({
                 mapMessage:
@@ -531,9 +527,7 @@ describe("mapDrawLaps", () => {
 
             expect({
                 mapMessage: mapContainer.textContent,
-                overlayPolylineKeys: Object.keys(
-                    (globalThis as any)._overlayPolylines
-                ),
+                overlayPolylineKeys: Object.keys(getOverlayMapPolylines()),
                 polylineCalls: mockLeaflet.polyline.mock.calls.length,
             }).toStrictEqual({
                 mapMessage:
@@ -562,9 +556,7 @@ describe("mapDrawLaps", () => {
 
             expect({
                 highlightedOverlayIndex: getHighlightedOverlayIndex(),
-                overlayPolylineKeys: Object.keys(
-                    (globalThis as any)._overlayPolylines
-                ),
+                overlayPolylineKeys: Object.keys(getOverlayMapPolylines()),
             }).toStrictEqual({
                 highlightedOverlayIndex: null,
                 overlayPolylineKeys: [],
@@ -996,10 +988,8 @@ describe("mapDrawLaps", () => {
             expect(pickOptions(polylineOptions, ["dashArray"])).toStrictEqual({
                 dashArray: "6, 8",
             });
-            expect((globalThis as any).window._mainPolyline).toBe(mockPolyline);
-            expect((globalThis as any).window._mainPolylineOriginalBounds).toBe(
-                mockLatLngBounds
-            );
+            expect(getMainMapPolyline()).toBe(mockPolyline);
+            expect(getMainMapPolylineOriginalBounds()).toBe(mockLatLngBounds);
             expect(
                 pickOptions(polylineOptions, ["dashArray", "weight"])
             ).toStrictEqual({
@@ -1077,7 +1067,7 @@ describe("mapDrawLaps", () => {
                 color: "#1976d2",
             });
             expect(mockLeaflet.polyline).toHaveBeenCalledTimes(2);
-            expect((globalThis as any).window._overlayPolylines).toStrictEqual({
+            expect(getOverlayMapPolylines()).toStrictEqual({
                 "1": mockPolyline,
             });
             expect(mockMap.fitBounds).toHaveBeenCalledWith(mockLatLngBounds, {
@@ -1126,7 +1116,7 @@ describe("mapDrawLaps", () => {
             expect(pickOptions(polylineOptions, ["color"])).toStrictEqual({
                 color: "#1976d2",
             });
-            expect((globalThis as any).window._mainPolyline).toBe(mockPolyline);
+            expect(getMainMapPolyline()).toBe(mockPolyline);
             expect(mapContainer.textContent).not.toContain(
                 "Lap index out of bounds or invalid."
             );

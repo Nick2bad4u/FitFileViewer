@@ -63,7 +63,6 @@ type BaseLayerLeafletStub = {
 };
 
 type RenderMapWindow = Window & {
-    _overlayPolylines: Record<string, unknown>;
     globalData: { recordMesgs: unknown[]; sessionMesgs?: unknown[] };
     loadedFitFiles: unknown[];
 };
@@ -325,7 +324,6 @@ describe("renderMap core", () => {
         // Reset window extensions used by the module
         const w = window as RenderMapWindow;
         setActiveFitTestData({ recordMesgs: [] });
-        w._overlayPolylines = {};
         w.loadedFitFiles = [];
         mockCreateTables.mockReset();
         mockInvalidateChartRenderCache.mockReset();

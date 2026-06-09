@@ -38,17 +38,9 @@ type MapPolyline = {
     };
 };
 
-type MapActionButtonTestGlobal = typeof globalThis & {
-    _mainPolyline?: MapPolyline;
-};
-
 type ActiveFileNameElement = HTMLElement & {
     __ffvMapActionCleanup?: () => void;
 };
-
-function getTestGlobal(): MapActionButtonTestGlobal {
-    return globalThis as MapActionButtonTestGlobal;
-}
 
 function resetMapActionFixture(): void {
     const activeFileName =
@@ -56,8 +48,6 @@ function resetMapActionFixture(): void {
     activeFileName?.__ffvMapActionCleanup?.();
     document.body.replaceChildren();
 
-    const testGlobal = getTestGlobal();
-    delete testGlobal._mainPolyline;
     vi.clearAllMocks();
     mocks.highlightedOverlayIndex = null;
     mocks.getHighlightedOverlayIndex.mockImplementation(
@@ -97,7 +87,7 @@ function mountMapActionDom(): {
     };
 }
 
-function installMapGlobals(): {
+async function installMapGlobals(): Promise<{
     bounds: MapBounds;
     fitBounds: ReturnType<
         typeof vi.fn<
@@ -113,7 +103,7 @@ function installMapGlobals(): {
         getZoom: () => number;
     };
     polylineBringToFront: ReturnType<typeof vi.fn<() => void>>;
-} {
+}> {
     const bounds: MapBounds = {
         isValid: () => true,
     };
@@ -128,14 +118,14 @@ function installMapGlobals(): {
         getCenter: () => ({ lat: 40, lng: -73 }),
         getZoom: () => 12,
     };
+    const { setMainMapPolyline } =
+        await import("../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js");
 
-    Object.assign(getTestGlobal(), {
-        _mainPolyline: {
-            bringToFront: polylineBringToFront,
-            getBounds: () => bounds,
-            getElement: () => polylineElement,
-            options: { color: "#1976d2" },
-        },
+    setMainMapPolyline({
+        bringToFront: polylineBringToFront,
+        getBounds: () => bounds,
+        getElement: () => polylineElement,
+        options: { color: "#1976d2" },
     });
 
     return {
@@ -157,7 +147,7 @@ describe("mapActionButtons", () => {
         try {
             const { activeFileName, tabClicks } = mountMapActionDom();
             const { bounds, fitBounds, mapInstance, polylineBringToFront } =
-                installMapGlobals();
+                await installMapGlobals();
 
             const { setupActiveFileNameMapActions } =
                 await import("../../../../electron-app/utils/maps/controls/mapActionButtons.js");

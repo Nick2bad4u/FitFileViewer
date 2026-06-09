@@ -14,6 +14,10 @@ import {
     resetRegisteredMapMeasureControlForTests,
     setRegisteredMapMeasureControl,
 } from "../../../../electron-app/utils/maps/state/mapMeasureControlState.js";
+import {
+    registerOverlayMapPolyline,
+    resetMapPolylineRegistryForTests,
+} from "../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js";
 
 type MockComputedStyle = { color: string };
 type MockGetComputedStyle = ReturnType<
@@ -360,6 +364,7 @@ describe("createShownFilesList", () => {
         resetMapDrawLapsMocks();
         resetRegisteredLeafletMapInstanceForTests();
         resetRegisteredMapMeasureControlForTests();
+        resetMapPolylineRegistryForTests();
 
         // Re-establish default mock returns after clearing
         mockGetThemeColors.mockReturnValue({
@@ -371,7 +376,6 @@ describe("createShownFilesList", () => {
         // Mock all window properties
         const windowMock = global.window as any;
         loadedFitFilesFixture.files = [];
-        windowMock._overlayPolylines = [];
         windowMock._overlayTooltipTimeout = null;
         Object.assign(windowMock, {
             renderMap: vi.fn<() => void>(),
@@ -397,6 +401,7 @@ describe("createShownFilesList", () => {
         vi.clearAllTimers();
         resetRegisteredLeafletMapInstanceForTests();
         resetRegisteredMapMeasureControlForTests();
+        resetMapPolylineRegistryForTests();
     });
 
     describe("basic DOM Creation", () => {
@@ -1657,7 +1662,7 @@ describe("createShownFilesList", () => {
                 },
             };
 
-            (global.window as any)._overlayPolylines = [null, mockPolyline];
+            registerOverlayMapPolyline(1, mockPolyline);
             setRegisteredLeafletMapInstance({
                 fitBounds: vi.fn<(bounds: unknown, options: unknown) => void>(),
             });
@@ -1751,7 +1756,7 @@ describe("createShownFilesList", () => {
 
         it("handles missing polyline gracefully", () => {
             expect.assertions(3);
-            (global.window as any)._overlayPolylines = [];
+            resetMapPolylineRegistryForTests();
 
             const container = createShownFilesList();
             updateShownFilesList();

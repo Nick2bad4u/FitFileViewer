@@ -21,6 +21,15 @@ import {
     type MetricRecord,
 } from "../filters/mapMetricFilter.js";
 import { getMapMarkerCount } from "../state/mapMarkerCountState.js";
+import {
+    clearMainMapPolyline,
+    getMainMapPolyline,
+    getMainMapPolylineOriginalBounds,
+    getOverlayMapPolylines,
+    registerOverlayMapPolyline,
+    setMainMapPolyline,
+    setMainMapPolylineOriginalBounds,
+} from "../state/mapPolylineRegistryState.js";
 
 type FitValue = unknown;
 
@@ -90,9 +99,6 @@ type MapDrawWindowLike = typeof globalThis & {
     _activeMainFileIdx?: number;
     _ffvActivityLayerGroup?: LayerTargetLike | null;
     _ffvDataPointMarkers?: LeafletLayerLike[];
-    _mainPolyline?: LeafletLayerLike | undefined;
-    _mainPolylineOriginalBounds?: LeafletBoundsLike | undefined;
-    _overlayPolylines?: Record<string, LeafletLayerLike>;
     mapDataPointFilter?: MapDataPointFilterConfig | null;
     mapDataPointFilterLastResult?: MetricFilterSummary | null;
 };
@@ -291,9 +297,7 @@ export function drawOverlayForFitFile({
         ).addTo(map);
 
         if (typeof overlayIdx === "number") {
-            const overlayPolylines = getWin()._overlayPolylines ?? {};
-            getWin()._overlayPolylines = overlayPolylines;
-            overlayPolylines[String(overlayIdx)] = polyline;
+            registerOverlayMapPolyline(overlayIdx, polyline);
         }
 
         if (isHighlighted) {
@@ -475,8 +479,7 @@ export function mapDrawLaps(
     const activityLayerTarget: unknown = activityGroup || map;
 
     // --- Always reset main polyline state at the start of a redraw ---
-    getWin()._mainPolylineOriginalBounds = undefined;
-    getWin()._mainPolyline = undefined;
+    clearMainMapPolyline();
     getWin()._ffvDataPointMarkers = [];
 
     const registerDataPointMarker = (marker: LeafletLayerLike): void => {
@@ -592,7 +595,7 @@ export function mapDrawLaps(
         scheduleFitRetry();
     }
     // --- Store original main polyline bounds for zooming ---
-    getWin()._mainPolylineOriginalBounds = undefined;
+    setMainMapPolylineOriginalBounds(null);
 
     // If lapIdx is an array with one element (not "all"), treat as single lap
     if (Array.isArray(lapIdx) && lapIdx.length === 1 && lapIdx[0] !== "all") {
@@ -654,8 +657,8 @@ export function mapDrawLaps(
             // Avoid relying on addTo return value for mock compatibility
             polyline.addTo(activityLayerTarget);
 
-            // Note: do not add main track to _overlayPolylines; only overlays belong there.
-            getWin()._mainPolyline = polyline;
+            // Note: do not add main track to overlay polylines; only overlays belong there.
+            setMainMapPolyline(polyline);
 
             // --- Store original bounds for main polyline ---
             const origBounds = polyline.getBounds();
@@ -667,12 +670,14 @@ export function mapDrawLaps(
             } catch {
                 /* Ignore errors */
             }
-            getWin()._mainPolylineOriginalBounds =
+            const originalBoundsToStore =
                 typeof origBounds.clone === "function"
                     ? origBounds.clone()
                     : L.latLngBounds(origBounds);
+            setMainMapPolylineOriginalBounds(originalBoundsToStore);
             map.invalidateSize();
-            const originalBounds = getWin()._mainPolylineOriginalBounds;
+            const originalBounds =
+                getMainMapPolylineOriginalBounds<LeafletBoundsLike>();
             if (originalBounds) {
                 // Use safeFitBounds to handle invisible container timing and resized containers
                 safeFitBounds(map, originalBounds, { padding: [20, 20] });
@@ -808,7 +813,7 @@ export function mapDrawLaps(
                     })
                 );
                 polyline.addTo(activityLayerTarget);
-                getWin()._mainPolyline = polyline;
+                setMainMapPolyline(polyline);
                 // --- Store original bounds for main polyline ---
                 const origBounds = polyline.getBounds();
                 // Immediate fit using the original bounds reference to ensure at least one call is recorded
@@ -817,12 +822,14 @@ export function mapDrawLaps(
                 } catch {
                     /* Ignore errors */
                 }
-                getWin()._mainPolylineOriginalBounds =
+                const originalBoundsToStore =
                     typeof origBounds.clone === "function"
                         ? origBounds.clone()
                         : L.latLngBounds(origBounds);
+                setMainMapPolylineOriginalBounds(originalBoundsToStore);
                 map.invalidateSize();
-                const originalBounds = getWin()._mainPolylineOriginalBounds;
+                const originalBounds =
+                    getMainMapPolylineOriginalBounds<LeafletBoundsLike>();
                 if (originalBounds) {
                     // Use safeFitBounds to handle invisible container timing
                     safeFitBounds(map, originalBounds, { padding: [20, 20] });
@@ -1110,7 +1117,7 @@ export function mapDrawLaps(
         );
 
         const polyline = polylineWithTarget;
-        getWin()._mainPolyline = polyline;
+        setMainMapPolyline(polyline);
         console.log("[mapDrawLaps] DEBUG final polyline:", polyline);
         console.log(
             "[mapDrawLaps] DEBUG polyline.getBounds exists?",
@@ -1126,14 +1133,16 @@ export function mapDrawLaps(
 
         // --- Store original bounds for main polyline ---
         const origBounds = polyline.getBounds();
-        getWin()._mainPolylineOriginalBounds =
+        const originalBoundsToStore =
             typeof origBounds.clone === "function"
                 ? origBounds.clone()
                 : L.latLngBounds(origBounds);
+        setMainMapPolylineOriginalBounds(originalBoundsToStore);
 
         // Fix: Ensure map is sized before fitBounds
         map.invalidateSize();
-        const originalBounds = getWin()._mainPolylineOriginalBounds;
+        const originalBounds =
+            getMainMapPolylineOriginalBounds<LeafletBoundsLike>();
         if (originalBounds) {
             map.fitBounds(originalBounds, { padding: [20, 20] });
         }
@@ -1675,7 +1684,7 @@ function selectMarkerCoordinatesForDataset(
 }
 
 function applyMainPolylineHighlight(highlightedIdx?: number): void {
-    const main = getWin()._mainPolyline;
+    const main = getMainMapPolyline<LeafletLayerLike>();
     if (!main) {
         return;
     }
@@ -1718,7 +1727,7 @@ function applyOverlayPolylineHighlight(
 }
 
 function applyOverlayPolylineHighlights(highlightedIdx?: number): void {
-    const overlayPolylines = getWin()._overlayPolylines;
+    const overlayPolylines = getOverlayMapPolylines<LeafletLayerLike>();
     if (!overlayPolylines) {
         return;
     }

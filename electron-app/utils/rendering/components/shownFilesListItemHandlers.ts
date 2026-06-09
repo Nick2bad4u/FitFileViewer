@@ -4,6 +4,7 @@ import {
 } from "../../maps/layers/mapDrawLaps.js";
 import { resolveLeafletRuntime } from "../../maps/core/leafletRuntime.js";
 import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInstanceState.js";
+import { getOverlayMapPolyline } from "../../maps/state/mapPolylineRegistryState.js";
 import { removeLoadedFitFileAt } from "../../state/domain/loadedFitFilesState.js";
 import { updateShownFilesList } from "./shownFilesListUpdater.js";
 
@@ -50,7 +51,6 @@ type OverlayPolyline = {
 };
 
 type OverlayGlobal = typeof globalThis & {
-    _overlayPolylines?: readonly (OverlayPolyline | undefined)[];
     _overlayTooltipTimeout?: null | ReturnType<typeof setTimeout>;
     renderMap?: () => void;
 };
@@ -98,7 +98,7 @@ function clearOverlayTooltipTimeout(): void {
 }
 
 function getOverlayPolyline(overlayIndex: number): OverlayPolyline | undefined {
-    return getOverlayGlobal()._overlayPolylines?.[overlayIndex];
+    return getOverlayMapPolyline<OverlayPolyline>(overlayIndex);
 }
 
 function bringMatchingOverlayMarkersToFront(polyline: OverlayPolyline): void {

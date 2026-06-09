@@ -34,6 +34,10 @@ import {
     removeRegisteredMapMeasureControl,
     setRegisteredMapMeasureControl,
 } from "../state/mapMeasureControlState.js";
+import {
+    getOverlayMapPolylines,
+    resetOverlayMapPolylines,
+} from "../state/mapPolylineRegistryState.js";
 import { createAddFitFileToMapButton } from "../../ui/controls/createAddFitFileToMapButton.js";
 import { createDataPointFilterControl } from "../../ui/controls/createDataPointFilterControl.js";
 import { createElevationProfileButton } from "../../ui/controls/createElevationProfileButton.js";
@@ -163,9 +167,7 @@ type WindowExtensions = typeof globalThis & {
     __ffvMapZoomDraggingRef?: { current: boolean };
     _drawControl?: DisposableControl | null;
     _drawnItems?: DrawnItemsLayerGroup | null;
-    _mainPolylineOriginalBounds?: LooseRecord | null;
     _miniMapControl?: DisposableControl | null;
-    _overlayPolylines?: Record<string, OverlayPolyline> | null;
 };
 
 type ShownFilesListElement = Element & {
@@ -350,7 +352,7 @@ export function renderMap(): void {
     }
     const L = LeafletLib;
     const runtimeBaseLayers = createBaseLayers(LeafletLib);
-    windowExt._overlayPolylines = {};
+    resetOverlayMapPolylines();
     windowExt.__ffvRenderMapAbortController?.abort();
     const renderAbortController = new AbortController();
     windowExt.__ffvRenderMapAbortController = renderAbortController;
@@ -1452,7 +1454,7 @@ export function renderMap(): void {
             loadedFitFiles.length
         );
         // Clear overlay polylines tracking before drawing
-        windowExt._overlayPolylines = {};
+        resetOverlayMapPolylines();
         for (const [idx, fitFile] of loadedFitFiles.entries()) {
             // Skip index 0 (main file) here to avoid duplicating the main track as an overlay
             if (idx === 0) {
@@ -1498,7 +1500,10 @@ export function renderMap(): void {
         }
         // --- Bring overlay markers to front so they appear above all polylines ---
         setCleanupTimeout(() => {
-            bringOverlayMarkersToFront(L, windowExt._overlayPolylines);
+            bringOverlayMarkersToFront(
+                L,
+                getOverlayMapPolylines<OverlayPolyline>()
+            );
         }, 10);
         console.log(
             "[renderMap] Overlay logic complete. No fitBounds/zoom called here."
