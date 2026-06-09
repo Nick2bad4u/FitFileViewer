@@ -255,6 +255,8 @@ const directMapDocumentListenerGlobalPattern =
     /\b(?:window|globalThis|windowExt|appGlobal|getMapDocumentGlobal\(\))\.(?:__ffvLayoutLayersControl|__ffvMapDocumentListenersController|__ffvMapDocumentListenersInstalled|__ffvMapTypeButton|__ffvMapZoomDraggingRef|__ffvRenderMapAbortController)\b/u;
 const directFileBrowserLibraryCacheGlobalPattern =
     /\b(?:window|globalThis|appGlobal|getFitBrowserGlobal\(\))\.__ffvLibraryCache\b/u;
+const directFullscreenHandlerGlobalPattern =
+    /\b(?:window|globalThis|testGlobal|getFullscreenGlobal\(\))\.(?:__ffvFullscreenKeydownHandler|__ffvNativeFullscreenChangeHandler)\b/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1310,7 +1312,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(35);
+        expect.assertions(36);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1554,6 +1556,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directFullscreenHandlerGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directFullscreenHandlerGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1600,6 +1609,7 @@ describe("architecture boundaries", () => {
         expect(directMapThemeToggleGlobalLookups).toStrictEqual([]);
         expect(directMapDocumentListenerGlobalLookups).toStrictEqual([]);
         expect(directFileBrowserLibraryCacheGlobalLookups).toStrictEqual([]);
+        expect(directFullscreenHandlerGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

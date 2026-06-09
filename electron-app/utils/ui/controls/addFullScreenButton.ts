@@ -10,15 +10,10 @@ import type { ElectronAPI } from "../../../shared/preloadApi.js";
 type ElectronFullscreenAPI = Partial<Pick<ElectronAPI, "setFullScreen">>;
 
 type FullscreenGlobal = typeof globalThis & {
-    __ffvFullscreenKeydownHandler?: null | ((event: Event) => void);
-    __ffvNativeFullscreenChangeHandler?: null | ((event: Event) => void);
     electronAPI?: ElectronFullscreenAPI;
 };
 
 type StoredEventHandler = (event: Event) => void;
-type StoredHandlerKey =
-    | "__ffvFullscreenKeydownHandler"
-    | "__ffvNativeFullscreenChangeHandler";
 
 type VendorFullscreenDocument = Document & {
     MSFullscreenElement?: Element | null;
@@ -45,8 +40,6 @@ const REQUIRED_CONTENT_IDS = [
     "content-summary",
     "content-altfit",
 ];
-const KEYDOWN_HANDLER_KEY = "__ffvFullscreenKeydownHandler";
-const NATIVE_FULLSCREEN_HANDLER_KEY = "__ffvNativeFullscreenChangeHandler";
 const NATIVE_FULLSCREEN_EVENTS = [
     "fullscreenchange",
     "webkitfullscreenchange",
@@ -55,6 +48,8 @@ const NATIVE_FULLSCREEN_EVENTS = [
 ];
 const SVG_NS = "http://www.w3.org/2000/svg";
 let isWindowFullscreenRequested = false;
+let fullscreenKeydownHandler: null | StoredEventHandler = null;
+let nativeFullscreenChangeHandler: null | StoredEventHandler = null;
 
 const getFullscreenGlobal = (): FullscreenGlobal => globalThis;
 
@@ -63,23 +58,6 @@ const getElectronAPI = (): ElectronFullscreenAPI | undefined =>
 
 const getScreenfullInstance = (): ScreenfullRuntime | undefined =>
     resolveScreenfullRuntime();
-
-const getStoredHandler = (key: StoredHandlerKey): null | StoredEventHandler => {
-    const handler = getFullscreenGlobal()[key];
-    return typeof handler === "function" ? handler : null;
-};
-
-const setStoredHandler = (
-    key: StoredHandlerKey,
-    handler: null | StoredEventHandler
-): void => {
-    Object.defineProperty(globalThis, key, {
-        configurable: true,
-        enumerable: false,
-        value: handler ?? null,
-        writable: true,
-    });
-};
 const isFullscreenActive = (): boolean => {
     const instance = getScreenfullInstance();
     if (instance && instance.isEnabled) {
@@ -221,17 +199,18 @@ export function setupDOMContentLoaded(): void {
 export function setupFullscreenListeners(): void {
     try {
         const screenfull = getScreenfullInstance();
-        const previousKeyHandler = getStoredHandler(KEYDOWN_HANDLER_KEY);
-        if (typeof previousKeyHandler === "function") {
-            globalThis.removeEventListener("keydown", previousKeyHandler);
+        if (fullscreenKeydownHandler) {
+            globalThis.removeEventListener("keydown", fullscreenKeydownHandler);
+            fullscreenKeydownHandler = null;
         }
-        const previousNativeHandler = getStoredHandler(
-            NATIVE_FULLSCREEN_HANDLER_KEY
-        );
-        if (typeof previousNativeHandler === "function") {
+        if (nativeFullscreenChangeHandler) {
             for (const evt of NATIVE_FULLSCREEN_EVENTS) {
-                document.removeEventListener(evt, previousNativeHandler);
+                document.removeEventListener(
+                    evt,
+                    nativeFullscreenChangeHandler
+                );
             }
+            nativeFullscreenChangeHandler = null;
         }
         globalThis.removeEventListener(
             "DOMContentLoaded",
@@ -256,8 +235,8 @@ export function setupFullscreenListeners(): void {
             globalThis.addEventListener("keydown", keyHandler, {
                 signal: keyListener.signal,
             });
-            setStoredHandler(KEYDOWN_HANDLER_KEY, keyHandler);
-            setStoredHandler(NATIVE_FULLSCREEN_HANDLER_KEY, null);
+            fullscreenKeydownHandler = keyHandler;
+            nativeFullscreenChangeHandler = null;
             if (document.readyState === "loading") {
                 const domReadyListener = new AbortController();
                 globalThis.addEventListener(
@@ -289,7 +268,7 @@ export function setupFullscreenListeners(): void {
                 signal: nativeListener.signal,
             });
         }
-        setStoredHandler(NATIVE_FULLSCREEN_HANDLER_KEY, nativeHandler);
+        nativeFullscreenChangeHandler = nativeHandler;
         const keyHandler = (event: Event): void => {
             if (event instanceof KeyboardEvent) {
                 handleKeyboardShortcuts(event);
@@ -299,7 +278,7 @@ export function setupFullscreenListeners(): void {
         globalThis.addEventListener("keydown", keyHandler, {
             signal: keyListener.signal,
         });
-        setStoredHandler(KEYDOWN_HANDLER_KEY, keyHandler);
+        fullscreenKeydownHandler = keyHandler;
         if (document.readyState === "loading") {
             const domReadyListener = new AbortController();
             globalThis.addEventListener(
@@ -320,6 +299,29 @@ export function setupFullscreenListeners(): void {
             "error"
         );
     }
+}
+
+/**
+ * Reset fullscreen listener state for isolated tests.
+ */
+export function resetFullscreenListenerStateForTests(): void {
+    if (fullscreenKeydownHandler) {
+        globalThis.removeEventListener("keydown", fullscreenKeydownHandler);
+        fullscreenKeydownHandler = null;
+    }
+
+    if (nativeFullscreenChangeHandler) {
+        for (const eventName of NATIVE_FULLSCREEN_EVENTS) {
+            document.removeEventListener(
+                eventName,
+                nativeFullscreenChangeHandler
+            );
+        }
+        nativeFullscreenChangeHandler = null;
+    }
+
+    globalThis.removeEventListener("DOMContentLoaded", handleDOMContentLoaded);
+    isWindowFullscreenRequested = false;
 }
 /** Creates the icon wrapper used by the fullscreen button. */
 function createFullscreenIconWrapper(state: "enter" | "exit"): HTMLSpanElement {

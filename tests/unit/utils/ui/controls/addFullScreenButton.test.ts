@@ -30,8 +30,6 @@ type TestElectronAPI = {
 };
 
 type FullscreenTestGlobal = typeof globalThis & {
-    __ffvFullscreenKeydownHandler?: EventListener | null;
-    __ffvNativeFullscreenChangeHandler?: EventListener | null;
     electronAPI?: TestElectronAPI;
 };
 
@@ -66,7 +64,7 @@ describe("addFullScreenButton", () => {
     it("creates fallback fullscreen button when screenfull is unavailable", async () => {
         expect.assertions(4);
 
-        resetTestState();
+        await resetTestState();
         controlMocks.getActiveTabContent.mockReturnValue(null);
         const requestFullscreen = vi.fn<() => void>();
         defineDocumentElementMethod("requestFullscreen", requestFullscreen);
@@ -100,14 +98,14 @@ describe("addFullScreenButton", () => {
 
             expect(requestFullscreen).toHaveBeenCalledOnce();
         } finally {
-            cleanupTestState();
+            await cleanupTestState();
         }
     });
 
     it("uses Electron fullscreen IPC when available and updates overlay state", async () => {
         expect.assertions(9);
 
-        resetTestState();
+        await resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
         setScreenfullRuntime(screenfullMock);
@@ -167,14 +165,14 @@ describe("addFullScreenButton", () => {
                 controlMocks.removeExitFullscreenOverlay
             ).toHaveBeenCalledWith(activeContent);
         } finally {
-            cleanupTestState();
+            await cleanupTestState();
         }
     });
 
     it("handles F11 keyboard shortcut with IPC and native fallback", async () => {
         expect.assertions(7);
 
-        resetTestState();
+        await resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
         setScreenfullRuntime(screenfullMock);
@@ -205,7 +203,7 @@ describe("addFullScreenButton", () => {
             expect(setFullScreen).toHaveBeenCalledWith(false);
             expect(button.title).toBe("Toggle Full Screen (F11)");
 
-            resetTestState();
+            await resetTestState();
             const nativeRequest = vi.fn<() => void>();
             defineDocumentElementMethod("requestFullscreen", nativeRequest);
             controlMocks.getActiveTabContent.mockReturnValue(null);
@@ -233,7 +231,7 @@ describe("addFullScreenButton", () => {
 
             expect(nativeRequest).toHaveBeenCalledOnce();
         } finally {
-            cleanupTestState();
+            await cleanupTestState();
         }
     });
 });
@@ -242,35 +240,13 @@ async function loadModule(): Promise<AddFullScreenButtonModule> {
     return import("../../../../../electron-app/utils/ui/controls/addFullScreenButton.js");
 }
 
-function cleanupStoredEventHandlers(): void {
-    const testGlobal = getTestGlobal();
-    if (testGlobal.__ffvFullscreenKeydownHandler) {
-        globalThis.removeEventListener(
-            "keydown",
-            testGlobal.__ffvFullscreenKeydownHandler
-        );
-    }
-
-    if (testGlobal.__ffvNativeFullscreenChangeHandler) {
-        for (const eventName of [
-            "fullscreenchange",
-            "webkitfullscreenchange",
-            "mozfullscreenchange",
-            "MSFullscreenChange",
-        ]) {
-            document.removeEventListener(
-                eventName,
-                testGlobal.__ffvNativeFullscreenChangeHandler
-            );
-        }
-    }
-
-    Reflect.deleteProperty(testGlobal, "__ffvFullscreenKeydownHandler");
-    Reflect.deleteProperty(testGlobal, "__ffvNativeFullscreenChangeHandler");
+async function cleanupStoredEventHandlers(): Promise<void> {
+    const module = await loadModule();
+    module.resetFullscreenListenerStateForTests();
 }
 
-function cleanupTestState(): void {
-    cleanupStoredEventHandlers();
+async function cleanupTestState(): Promise<void> {
+    await cleanupStoredEventHandlers();
     clearScreenfullRuntimeForTests();
     Reflect.deleteProperty(getTestGlobal(), "electronAPI");
     document.body.replaceChildren();
@@ -377,8 +353,8 @@ function resetReadyState(): void {
     });
 }
 
-function resetTestState(): void {
-    cleanupTestState();
+async function resetTestState(): Promise<void> {
+    await cleanupTestState();
     vi.clearAllMocks();
     controlMocks.addExitFullscreenOverlay.mockReset();
     controlMocks.getActiveTabContent.mockReset();
