@@ -309,6 +309,8 @@ const directMainUiDevelopmentHelperGlobalPattern =
     /\b(?:window|globalThis|getMainUiGlobal\(\)|mainUiGlobal)\.(?:injectMenu|devCleanup)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:injectMenu|devCleanup)["']\s*\)/u;
 const directMenuModalPresenterGlobalPattern =
     /\b(?:window|globalThis|getMenuIpcGlobal\(\)|keyboardShortcutsGlobal|menuGlobal)\.(?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)["']\s*\)/u;
+const directAboutModalDevHelperGlobalPattern =
+    /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
 const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
 const directChartConstructorGlobalPattern =
@@ -1366,7 +1368,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(63);
+        expect.assertions(64);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1799,6 +1801,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directAboutModalDevHelperGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directAboutModalDevHelperGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directActiveFitFileNameGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directActiveFitFileNameGlobalPattern.test(
@@ -1886,6 +1895,7 @@ describe("architecture boundaries", () => {
         expect(directMainUiDragDropHandlerGlobalLookups).toStrictEqual([]);
         expect(directMainUiDevelopmentHelperGlobalLookups).toStrictEqual([]);
         expect(directMenuModalPresenterGlobalLookups).toStrictEqual([]);
+        expect(directAboutModalDevHelperGlobalLookups).toStrictEqual([]);
         expect(directActiveFitFileNameGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });

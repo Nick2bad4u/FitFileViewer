@@ -5,7 +5,6 @@
 
 import { loadVersionInfo } from "../../app/initialization/loadVersionInfo.js";
 import { exportUtils } from "../../files/export/exportUtils.js";
-import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
 import { showNotification } from "../notifications/showNotification.js";
@@ -838,7 +837,7 @@ function parseAboutBodyHtml(html: string): DocumentFragment {
 /**
  * Development helpers for testing and debugging
  */
-const devHelpers = {
+export const aboutModalDevHelpers = {
     /**
      * Show modal with sample content for testing
      */ /**
@@ -887,18 +886,9 @@ const devHelpers = {
                     "transform 1000ms cubic-bezier(0.34, 1.56, 0.64, 1)";
             }
         }
-        devHelpers.showSample();
+        aboutModalDevHelpers.showSample();
     },
 };
-
-// Export development helpers in development mode
-if (isDevelopmentEnvironment()) {
-    (
-        globalThis as typeof globalThis & {
-            aboutModalDevHelpers?: typeof devHelpers;
-        }
-    ).aboutModalDevHelpers = devHelpers;
-}
 
 // Initialize modal styles when module loads
 if (typeof document !== "undefined" && document.readyState === "loading") {
