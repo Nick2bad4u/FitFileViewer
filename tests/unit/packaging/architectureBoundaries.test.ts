@@ -265,6 +265,8 @@ const directQuickColorSwitcherStateExpandoPattern =
     /\b(?:switcher|element)\.__ffvQuickColorSwitcherState\b/u;
 const directMapActionCleanupExpandoPattern =
     /\b(?:activeFileName|activeFileNameElement|element)\.__ffvMapActionCleanup\b/u;
+const directMapMeasureEscapeHandlerGlobalPattern =
+    /\b(?:window|globalThis|g|getMeasureToolGlobal\(\))\.__ffvMapMeasureEscapeHandler\b|["']__ffvMapMeasureEscapeHandler["']/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1320,7 +1322,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(40);
+        expect.assertions(41);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1599,6 +1601,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directMapMeasureEscapeHandlerGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directMapMeasureEscapeHandlerGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
@@ -1650,6 +1659,7 @@ describe("architecture boundaries", () => {
         expect(directFilenameAutoScrollStateExpandoLookups).toStrictEqual([]);
         expect(directQuickColorSwitcherStateExpandoLookups).toStrictEqual([]);
         expect(directMapActionCleanupExpandoLookups).toStrictEqual([]);
+        expect(directMapMeasureEscapeHandlerGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

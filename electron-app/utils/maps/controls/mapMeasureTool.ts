@@ -22,14 +22,12 @@ type MeasureLeaflet = Pick<
     "divIcon" | "latLng" | "marker" | "polyline"
 >;
 
-type MeasureToolGlobal = typeof globalThis & {
-    __ffvMapMeasureEscapeHandler?: (event: KeyboardEvent) => void;
-};
-
 type ThemeColors = {
     primary?: unknown;
     surface?: unknown;
 };
+
+let mapMeasureEscapeHandler: null | ((event: KeyboardEvent) => void) = null;
 
 function isMeasureLeaflet(value: unknown): value is MeasureLeaflet {
     if (typeof value !== "object" || value === null) {
@@ -55,8 +53,30 @@ function hasFunctionProperty(
     return typeof value[key as keyof typeof value] === "function";
 }
 
-function getMeasureToolGlobal(): MeasureToolGlobal {
-    return globalThis;
+function replaceMapMeasureEscapeHandler(
+    handler: (event: KeyboardEvent) => void
+): void {
+    if (mapMeasureEscapeHandler) {
+        document.removeEventListener("keydown", mapMeasureEscapeHandler);
+    }
+    mapMeasureEscapeHandler = handler;
+}
+
+function clearMapMeasureEscapeHandler(
+    handler: (event: KeyboardEvent) => void
+): void {
+    if (mapMeasureEscapeHandler !== handler) {
+        return;
+    }
+    document.removeEventListener("keydown", handler);
+    mapMeasureEscapeHandler = null;
+}
+
+export function resetMapMeasureToolStateForTests(): void {
+    if (mapMeasureEscapeHandler) {
+        document.removeEventListener("keydown", mapMeasureEscapeHandler);
+    }
+    mapMeasureEscapeHandler = null;
 }
 
 function getLeaflet(): MeasureLeaflet | null {
@@ -292,12 +312,7 @@ export function addSimpleMeasureTool(
 
     // Add Escape key handler to clear measurement.
     // Idempotent: avoid leaking duplicate handlers if the map is re-rendered.
-    const g = getMeasureToolGlobal();
-    const escapeKey = "__ffvMapMeasureEscapeHandler" as const;
-    if (typeof g[escapeKey] === "function") {
-        document.removeEventListener("keydown", g[escapeKey]);
-    }
-    g[escapeKey] = (event: KeyboardEvent) => {
+    const escapeHandler = (event: KeyboardEvent) => {
         const { key } = event;
         if (key === "Escape") {
             clearMeasure();
@@ -307,7 +322,8 @@ export function addSimpleMeasureTool(
             }
         }
     };
-    document.addEventListener("keydown", g[escapeKey], { signal });
+    replaceMapMeasureEscapeHandler(escapeHandler);
+    document.addEventListener("keydown", escapeHandler, { signal });
     signal.addEventListener(
         "abort",
         () => {
@@ -315,6 +331,7 @@ export function addSimpleMeasureTool(
                 clearTimeout(disableTimer);
                 disableTimer = null;
             }
+            clearMapMeasureEscapeHandler(escapeHandler);
         },
         { once: true, signal }
     );

@@ -4,7 +4,10 @@
 /* eslint-disable vitest/no-conditional-in-test -- The final DOM narrowing mirrors the user interaction being tested. */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { addSimpleMeasureTool } from "../../../../electron-app/utils/maps/controls/mapMeasureTool.js";
+import {
+    addSimpleMeasureTool,
+    resetMapMeasureToolStateForTests,
+} from "../../../../electron-app/utils/maps/controls/mapMeasureTool.js";
 import {
     clearLeafletRuntimeForTests,
     setLeafletRuntime,
@@ -18,6 +21,7 @@ describe("mapMeasureTool.js", () => {
     let addedLayers: any[] = [];
 
     beforeEach(() => {
+        resetMapMeasureToolStateForTests();
         // Create map element
         mapDiv = document.createElement("div");
         mapDiv.id = "leaflet-map";
@@ -107,6 +111,7 @@ describe("mapMeasureTool.js", () => {
         }
 
         addedLayers = [];
+        resetMapMeasureToolStateForTests();
         clearLeafletRuntimeForTests();
 
         vi.clearAllMocks();
@@ -257,6 +262,8 @@ describe("mapMeasureTool.js", () => {
         addSimpleMeasureTool(mockMap, controlsDiv);
 
         const button = getMeasureButton();
+
+        expect("__ffvMapMeasureEscapeHandler" in globalThis).toBe(false);
 
         // Enable measurement mode
         button.click();
