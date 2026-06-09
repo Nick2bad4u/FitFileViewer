@@ -373,8 +373,10 @@ function getCurrentElectronAPI(): ReturnType<typeof installElectronAPI> {
     return api as ReturnType<typeof installElectronAPI>;
 }
 
-function getDragDropHandler() {
-    const handler = Reflect.get(window, "dragDropHandler");
+type MainUiModule = Awaited<ReturnType<typeof importMainUI>>;
+
+function getDragDropHandler(mainUiModule: MainUiModule) {
+    const handler = mainUiModule.mainUiDragDropHandler;
 
     if (
         !handler ||
@@ -382,7 +384,7 @@ function getDragDropHandler() {
         typeof handler.readFileAsArrayBuffer !== "function" ||
         typeof handler.showDropOverlay !== "function"
     ) {
-        throw new TypeError("Expected window.dragDropHandler test double");
+        throw new TypeError("Expected mainUiDragDropHandler test double");
     }
 
     return handler as DragDropHandlerUnderTest;
@@ -535,13 +537,13 @@ describe("main-ui.js core flows", () => {
     it("drag and drop overlay shows/hides", async () => {
         expect.assertions(8);
 
-        await importMainUI();
+        const mainUiModule = await importMainUI();
 
         const overlay = getRequiredElement("drop_overlay", HTMLElement);
         const alt = getRequiredElement("altfit-iframe", HTMLElement);
         const zwift = getRequiredElement("zwift-iframe", HTMLElement);
 
-        const handler = getDragDropHandler();
+        const handler = getDragDropHandler(mainUiModule);
         handler.showDropOverlay();
         expect(overlay.style.display).toBe("flex");
         expect(alt.style.pointerEvents).toBe("none");
@@ -568,8 +570,8 @@ describe("main-ui.js core flows", () => {
     it("processDroppedFile handles valid and invalid files and toggles loading", async () => {
         expect.assertions(15);
 
-        await importMainUI();
-        const handler = getDragDropHandler();
+        const mainUiModule = await importMainUI();
+        const handler = getDragDropHandler(mainUiModule);
         const notifications: string[] = [];
         showNotification.mockImplementation((message: string, type: string) => {
             notifications.push(`${type}:${message}`);

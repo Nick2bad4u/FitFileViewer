@@ -301,6 +301,8 @@ const directTabButtonsEnabledGlobalPattern =
     /\b(?:window|globalThis|getTabButtonsGlobal\(\)|global\.window)\.tabButtonsCurrentlyEnabled\b|["']tabButtonsCurrentlyEnabled["']/u;
 const directTabStateManagerGlobalPattern =
     /\b(?:window|globalThis)\.tabStateManager\b|\(\s*globalThis\s+as\s+TabStateManagerGlobal\s*\)\.tabStateManager\b/u;
+const directMainUiDragDropHandlerGlobalPattern =
+    /\b(?:window|globalThis)\.dragDropHandler\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["']dragDropHandler["']\s*\)/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1356,7 +1358,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(58);
+        expect.assertions(59);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1761,6 +1763,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directMainUiDragDropHandlerGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directMainUiDragDropHandlerGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/globalApiExposure.ts",
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
@@ -1837,6 +1846,7 @@ describe("architecture boundaries", () => {
         expect(directFileAccessPolicyStateGlobalLookups).toStrictEqual([]);
         expect(directTabButtonsEnabledGlobalLookups).toStrictEqual([]);
         expect(directTabStateManagerGlobalLookups).toStrictEqual([]);
+        expect(directMainUiDragDropHandlerGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

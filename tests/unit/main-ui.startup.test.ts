@@ -15,7 +15,6 @@ type ExternalLinkOptions = {
 
 type MainUiTestGlobal = typeof globalThis & {
     cleanupEventListeners?: () => void;
-    dragDropHandler?: DragDropInstance;
     electronAPI?: Partial<
         Pick<
             ElectronAPIWithDevFlags,
@@ -282,7 +281,6 @@ describe("main-ui.js - UI Controller and State Management", () => {
         vi.clearAllMocks();
         mocks.loadTheme.mockReturnValue("dark");
         vi.resetModules();
-        Reflect.deleteProperty(globalThis, "dragDropHandler");
         Reflect.deleteProperty(globalThis, "electronAPI");
         Reflect.deleteProperty(globalThis, "showFitData");
         Reflect.deleteProperty(globalThis, "renderChartJS");
@@ -290,7 +288,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
     });
 
     it("does not register renderer compatibility globals", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         await import("../../electron-app/main-ui.js");
         const mainUiGlobal = getMainUiTestGlobal();
@@ -299,6 +297,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect("showFitData" in mainUiGlobal).toBe(false);
         expect("renderChartJS" in mainUiGlobal).toBe(false);
         expect("cleanupEventListeners" in mainUiGlobal).toBe(false);
+        expect("dragDropHandler" in mainUiGlobal).toBe(false);
     });
 
     it("initializes UI side effects when loaded", async () => {
@@ -334,7 +333,8 @@ describe("main-ui.js - UI Controller and State Management", () => {
             sendThemeChanged,
         };
 
-        await import("../../electron-app/main-ui.js");
+        const { mainUiDragDropHandler } =
+            await import("../../electron-app/main-ui.js");
         const { resourceManager } =
             await import("../../electron-app/utils/app/lifecycle/resourceManager.js");
         const { chartTabIntegration } =
@@ -373,7 +373,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
 
         expect(dragDropHandlerMock).toHaveBeenCalledOnce();
         const dragDropInstance = dragDropHandlerMock.mock.results[0]?.value;
-        expect(getMainUiTestGlobal().dragDropHandler).toBe(dragDropInstance);
+        expect(mainUiDragDropHandler).toBe(dragDropInstance);
         expect(dragDropInstance.dispose).toBe(mocks.dragDropDispose);
         expect(onOpenSummaryColumnSelector).toHaveBeenCalledOnce();
         expect(onUnloadFitFile).toHaveBeenCalledOnce();

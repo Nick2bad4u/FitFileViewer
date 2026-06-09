@@ -37,7 +37,6 @@ import { setupExternalLinkHandlers } from "./utils/ui/setupExternalLinkHandlers.
 type MainUiGlobal = typeof globalThis & {
     chartTabIntegration?: { destroy?: () => void };
     devCleanup?: () => void;
-    dragDropHandler?: unknown;
     electronAPI?: ElectronAPIWithDevFlags;
     injectMenu?: (theme?: null | string, fitFilePath?: null | string) => void;
 };
@@ -261,10 +260,7 @@ if (unloadBtn) {
 // In utils/ui/controls/enableTabButtons.js
 
 // Initialize drag and drop handler
-const dragDropHandler = new DragDropHandler();
-
-// Expose dragDropHandler for cleanup if needed
-getMainUiGlobal().dragDropHandler = dragDropHandler;
+export const mainUiDragDropHandler = new DragDropHandler();
 
 // Move event listener setup to utility functions
 // Sets up event listeners to handle fullscreen mode toggling for the application.
