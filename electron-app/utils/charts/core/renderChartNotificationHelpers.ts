@@ -16,9 +16,10 @@ interface RenderChartNotificationOptions extends NotificationOptions {
 }
 
 interface RenderChartNotificationGlobal {
-    __FFV_suppressNotifications?: boolean;
     showNotification?: unknown;
 }
+
+let notificationSuppressed: boolean | undefined;
 
 function isNotificationInvoker(value: unknown): value is NotificationInvoker {
     return typeof value === "function";
@@ -55,24 +56,17 @@ function resolveNotificationInvoker(
 }
 
 /**
- * Returns the current global chart-notification suppression flag.
+ * Returns the current chart-notification suppression flag.
  */
 export function getNotificationSuppressed(): boolean | undefined {
-    return (globalThis as RenderChartNotificationGlobal)
-        .__FFV_suppressNotifications;
+    return notificationSuppressed;
 }
 
 /**
- * Sets or clears the global chart-notification suppression flag.
+ * Sets or clears the chart-notification suppression flag.
  */
 export function setNotificationSuppressed(value: boolean | undefined): void {
-    const chartGlobal = globalThis as RenderChartNotificationGlobal;
-    if (typeof value === "boolean") {
-        chartGlobal.__FFV_suppressNotifications = value;
-        return;
-    }
-
-    delete chartGlobal.__FFV_suppressNotifications;
+    notificationSuppressed = typeof value === "boolean" ? value : undefined;
 }
 
 /**
@@ -97,7 +91,13 @@ export async function notify(
             chartGlobal.showNotification
         );
         if (globalNotifier) {
-            await invokeNotification(globalNotifier, message, type, duration, options);
+            await invokeNotification(
+                globalNotifier,
+                message,
+                type,
+                duration,
+                options
+            );
             return;
         }
 
