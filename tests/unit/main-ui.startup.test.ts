@@ -289,27 +289,16 @@ describe("main-ui.js - UI Controller and State Management", () => {
         Reflect.deleteProperty(globalThis, "cleanupEventListeners");
     });
 
-    it("registers the remaining legacy globals", async () => {
+    it("does not register renderer compatibility globals", async () => {
         expect.assertions(4);
 
         await import("../../electron-app/main-ui.js");
-        const { addEventListenerWithCleanup } =
-            await import("../../electron-app/utils/ui/mainUiDomUtils.js");
         const mainUiGlobal = getMainUiTestGlobal();
 
         expect(document.querySelectorAll(".tab-button")).toHaveLength(3);
         expect("showFitData" in mainUiGlobal).toBe(false);
-
-        const targetContainer = createElement("div", { id: "chart-target" });
-        mainUiGlobal.renderChartJS?.(targetContainer);
-        expect(mocks.renderChartJS).toHaveBeenCalledWith(targetContainer);
-
-        const cleanupTarget = createElement("button");
-        const cleanupListener = vi.fn<() => void>();
-        addEventListenerWithCleanup(cleanupTarget, "click", cleanupListener);
-        mainUiGlobal.cleanupEventListeners?.();
-        cleanupTarget.click();
-        expect(cleanupListener).not.toHaveBeenCalled();
+        expect("renderChartJS" in mainUiGlobal).toBe(false);
+        expect("cleanupEventListeners" in mainUiGlobal).toBe(false);
     });
 
     it("initializes UI side effects when loaded", async () => {

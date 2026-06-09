@@ -27,7 +27,6 @@ vi.mock(
 
 declare global {
     interface Window {
-        sendFitFileToAltFitReader: (buffer: ArrayBuffer) => Promise<void>;
     }
 }
 
@@ -59,6 +58,14 @@ vi.mock(
     import("../../../../electron-app/utils/formatting/converters/convertArrayBufferToBase64.js"),
     () => ({
         convertArrayBufferToBase64,
+    })
+);
+
+const sendFitFileToAltFitReader = vi.fn<(buffer: ArrayBuffer) => void>();
+vi.mock(
+    import("../../../../electron-app/utils/files/import/sendFitFileToAltFitReader.js"),
+    () => ({
+        sendFitFileToAltFitReader,
     })
 );
 
@@ -522,30 +529,12 @@ describe("main-ui.js core flows", () => {
         listenerController.abort();
     });
 
-    it("sends fit file to Alt FIT iframe with proper base64", async () => {
-        expect.assertions(4);
+    it("does not expose the Alt FIT handoff as a window global", async () => {
+        expect.assertions(1);
 
         await importMainUI();
-        const iframe = getRequiredElement("altfit-iframe", HTMLIFrameElement);
-        const postMessage =
-            vi.fn<(message: unknown, targetOrigin: string) => void>();
-        Object.defineProperty(iframe, "contentWindow", {
-            value: { postMessage },
-            configurable: true,
-        });
 
-        const buf = new ArrayBuffer(8);
-        const fn = getWindowFunction<(ab: ArrayBuffer) => Promise<void>>(
-            "sendFitFileToAltFitReader"
-        );
-        await fn(buf);
-        expect(iframe.src).toContain("ffv/index.html");
-        iframe.dispatchEvent(new Event("load"));
-        expect(convertArrayBufferToBase64).toHaveBeenCalledWith(buf);
-        expect(postMessage).toHaveBeenCalledWith(
-            { type: "fit-file", base64: "BASE64DATA" },
-            window.location.origin
-        );
+        expect("sendFitFileToAltFitReader" in window).toBe(false);
     });
 
     it("drag and drop overlay shows/hides", async () => {
@@ -611,9 +600,7 @@ describe("main-ui.js core flows", () => {
             recordMesgs: [{ positionLat: 1, positionLong: 2 }],
         };
         api.decodeFitFile.mockResolvedValue(decodedFitData);
-        const sendAltSpy = vi
-            .spyOn(window, "sendFitFileToAltFitReader")
-            .mockResolvedValue(undefined);
+        sendFitFileToAltFitReader.mockReset();
 
         const absoluteFile = {
             name: "activity.fit",
@@ -621,7 +608,9 @@ describe("main-ui.js core flows", () => {
         };
         await handler.processDroppedFile(absoluteFile);
         expect(api.decodeFitFile).toHaveBeenCalledWith(droppedFileBuffer);
-        expect(sendAltSpy).toHaveBeenCalledWith(droppedFileBuffer);
+        expect(sendFitFileToAltFitReader).toHaveBeenCalledWith(
+            droppedFileBuffer
+        );
         expect(fitFileStateManager.startFileLoading).toHaveBeenLastCalledWith(
             "C:/rides/activity.fit"
         );

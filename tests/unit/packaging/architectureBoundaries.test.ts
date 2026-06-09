@@ -223,6 +223,8 @@ const directShowFitDataGlobalPattern =
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
 const migratedRendererUtilityGlobalLookupPattern =
     /\b(?:appGlobal|window|globalThis|showFitGlobal|windowExt)\.(?:createTables|invalidateChartRenderCache|renderChartJS|renderMap|renderSummary|setTabButtonsEnabled|setupActiveFileNameMapActions|setupOverlayFileNameMapActions|updateActiveTab|updateOverlayHighlights|updateShownFilesList|updateTabVisibility)\b/u;
+const directAltFitGlobalSenderPattern =
+    /\b(?:appGlobal|window|globalThis|lifecycleGlobal|showFitGlobal|windowExt|getDragDropGlobal\(\)|getFileOpenGlobal\(\)|getOpenFitFileGlobal\(\))\.sendFitFileToAltFitReader\b/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directDataTableGlobalPattern =
@@ -1278,7 +1280,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(19);
+        expect.assertions(20);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1410,11 +1412,19 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directAltFitGlobalSenderLookups = scannedFiles
+            .filter((relativeFile) =>
+                directAltFitGlobalSenderPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const deletedCompatibilityFiles = [
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",
             "electron-app/utils.ts",
             "electron-app/utils/app/initialization/rendererUtils.ts",
+            "electron-app/utils/ui/mainUiGlobals.ts",
             "electron-app/utils/legacy/globalUtilityRegistry.ts",
             "electron-app/utils/legacy/globalUtilityRendering.ts",
             "electron-app/utils/legacy/globalUtilityTheming.ts",
@@ -1439,6 +1449,7 @@ describe("architecture boundaries", () => {
         expect(migratedRendererUtilityCallerViolations).toStrictEqual([]);
         expect(legacyLoadedFitFilesStatePathUsages).toStrictEqual([]);
         expect(legacyLoadedFitFilesGlobalLookups).toStrictEqual([]);
+        expect(directAltFitGlobalSenderLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
     });
 });

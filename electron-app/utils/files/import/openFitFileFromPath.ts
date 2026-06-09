@@ -10,6 +10,7 @@ import {
     type FitParsePayload,
     unwrapFitParseMessages,
 } from "./fitParsePayload.js";
+import { sendFitFileToAltFitReader } from "./sendFitFileToAltFitReader.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
@@ -38,7 +39,6 @@ type FitFileElectronAPI = Pick<ElectronAPI, "readFile"> &
 type OpenFitFileGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
     electronAPI?: Partial<FitFileElectronAPI>;
-    sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
 };
 
 type ShowNotification = (
@@ -69,7 +69,6 @@ export async function openFitFileFromPath({
         return false;
     }
 
-    const appGlobal = getOpenFitFileGlobal();
     const api = resolveFitFileElectronAPI();
     if (!api) {
         showNotification("Electron file API unavailable.", "error");
@@ -120,9 +119,7 @@ export async function openFitFileFromPath({
         });
         await renderDecodedFitData(data, filePath);
 
-        if (typeof appGlobal.sendFitFileToAltFitReader === "function") {
-            appGlobal.sendFitFileToAltFitReader(arrayBuffer);
-        }
+        sendFitFileToAltFitReader(arrayBuffer);
 
         try {
             if (typeof api.notifyFitFileLoaded === "function") {

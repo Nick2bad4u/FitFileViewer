@@ -16,9 +16,15 @@ import {
 const renderDecodedFitDataMock = vi.hoisted(() =>
     vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
 );
+const sendFitFileToAltFitReaderMock = vi.hoisted(() =>
+    vi.fn<(buffer: ArrayBuffer) => void>()
+);
 
 vi.mock("../../rendering/core/loadShowFitData.js", () => ({
     renderDecodedFitData: renderDecodedFitDataMock,
+}));
+vi.mock("./sendFitFileToAltFitReader.js", () => ({
+    sendFitFileToAltFitReader: sendFitFileToAltFitReaderMock,
 }));
 
 type HandleOpenFileModule = Awaited<typeof import("./handleOpenFile.js")>;
@@ -39,12 +45,10 @@ interface MockElectronAPI {
 
 interface MockFileOpenWindow {
     electronAPI: MockElectronAPI;
-    sendFitFileToAltFitReader: ReturnType<typeof vi.fn>;
 }
 
 type HandleOpenFileTestGlobal = typeof globalThis & {
     electronAPI?: unknown;
-    sendFitFileToAltFitReader?: unknown;
 };
 
 const handleOpenFileGlobal = globalThis as HandleOpenFileTestGlobal;
@@ -75,7 +79,6 @@ const mockElectronAPI = {
 
 const mockWindow: MockFileOpenWindow = {
     electronAPI: mockElectronAPI,
-    sendFitFileToAltFitReader: vi.fn(),
 };
 
 Object.defineProperty(global, "window", {
@@ -100,14 +103,11 @@ beforeEach(() => {
     mockConsoleError.mockClear();
     renderDecodedFitDataMock.mockReset();
     renderDecodedFitDataMock.mockResolvedValue(undefined);
+    sendFitFileToAltFitReaderMock.mockReset();
 
     // Reset window.electronAPI and map to globalThis for modules using globalThis.electronAPI
     mockWindow.electronAPI = { ...mockElectronAPI };
     handleOpenFileGlobal.electronAPI = mockWindow.electronAPI;
-
-    // Map alternate reader helper used by handleOpenFile to globalThis.
-    handleOpenFileGlobal.sendFitFileToAltFitReader =
-        mockWindow.sendFitFileToAltFitReader;
 
     // Setup mock functions
     mockShowNotification = vi.fn();
@@ -606,7 +606,7 @@ describe("handleOpenFile.js", () => {
                 "/path/to/file.fit"
             );
             // Implementation passes the ArrayBuffer contents to the alternate reader
-            expect(mockWindow.sendFitFileToAltFitReader).toHaveBeenCalledWith(
+            expect(sendFitFileToAltFitReaderMock).toHaveBeenCalledWith(
                 expect.any(ArrayBuffer)
             );
         });
@@ -642,7 +642,7 @@ describe("handleOpenFile.js", () => {
                 "Error displaying FIT data: Display error",
                 "error"
             );
-            expect(mockWindow.sendFitFileToAltFitReader).not.toHaveBeenCalled();
+            expect(sendFitFileToAltFitReaderMock).not.toHaveBeenCalled();
         });
 
         it("should handle array file paths", async () => {

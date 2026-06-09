@@ -6,8 +6,7 @@ import { setupWindow } from "./utils/app/initialization/setupWindow.js";
 import { AppActions } from "./utils/app/lifecycle/appActions.js";
 import { resourceManager } from "./utils/app/lifecycle/resourceManager.js";
 import { chartTabIntegration } from "./utils/charts/core/chartTabIntegration.js";
-import { renderChartJS } from "./utils/charts/core/renderChartJS.js";
-import { FILE_CONSTANTS, UI_CONSTANTS } from "./utils/config/constants.js";
+import { UI_CONSTANTS } from "./utils/config/constants.js";
 import { performanceMonitor } from "./utils/debug/stateDevTools.js";
 import {
     isDevelopmentEnvironment,
@@ -31,7 +30,6 @@ import {
     cleanupEventListeners,
     validateElement,
 } from "./utils/ui/mainUiDomUtils.js";
-import { registerLegacyGlobals } from "./utils/ui/mainUiGlobals.js";
 import { showNotification } from "./utils/ui/notifications/showNotification.js";
 import { setupExternalLinkHandlers } from "./utils/ui/setupExternalLinkHandlers.js";
 /* eslint-enable import-x/max-dependencies -- Keep the exception limited to the legacy composition imports above. */
@@ -82,7 +80,6 @@ function logMainUi(
 
 const CONSTANTS = {
     DOM_IDS: UI_CONSTANTS.DOM_IDS,
-    IFRAME_PATHS: FILE_CONSTANTS.IFRAME_PATHS,
     SELECTORS: {
         SUMMARY_GEAR_BTN: ".summary-gear-btn",
     },
@@ -194,16 +191,6 @@ function unloadFitFile(): void {
         }
     }
 }
-
-// Register legacy globals for backwards compatibility
-registerLegacyGlobals({
-    cleanupEventListeners,
-    constants: CONSTANTS,
-    renderChartJS: (targetContainer) => {
-        void renderChartJS(targetContainer);
-    },
-    validateElement,
-});
 
 // Enhanced theme change handling with state management integration
 const electronAPI = getElectronAPI();

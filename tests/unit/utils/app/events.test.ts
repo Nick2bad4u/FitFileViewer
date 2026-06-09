@@ -14,6 +14,9 @@ const fitDataRendererMocks = vi.hoisted(() => ({
         (data: unknown, filePath: string) => Promise<void>
     >(async () => {}),
 }));
+const altFitMocks = vi.hoisted(() => ({
+    sendFitFileToAltFitReader: vi.fn<(arrayBuffer: ArrayBuffer) => void>(),
+}));
 
 vi.mock(
     import("../../../../electron-app/utils/files/export/copyTableAsCSV.js"),
@@ -26,6 +29,13 @@ vi.mock(
 vi.mock(
     import("../../../../electron-app/utils/rendering/core/loadShowFitData.js"),
     () => ({ renderDecodedFitData: fitDataRendererMocks.renderDecodedFitData })
+);
+
+vi.mock(
+    import("../../../../electron-app/utils/files/import/sendFitFileToAltFitReader.js"),
+    () => ({
+        sendFitFileToAltFitReader: altFitMocks.sendFitFileToAltFitReader,
+    })
 );
 
 import { setupListeners } from "../../../../electron-app/utils/app/events.js";
@@ -113,9 +123,6 @@ type TestGlobals = typeof globalThis & {
     electronAPI?: TestElectronAPI;
     globalData?: unknown;
     loadedFitFiles?: unknown[];
-    sendFitFileToAltFitReader?: ReturnType<
-        typeof vi.fn<(arrayBuffer: ArrayBuffer) => unknown>
-    >;
     showKeyboardShortcutsModal?: ReturnType<
         typeof vi.fn<ShowKeyboardShortcutsModal>
     >;
@@ -277,10 +284,6 @@ describe(setupListeners, () => {
         delete (globalAny as { __ffvMenuForwardRegistry?: Set<string> })
             .__ffvMenuForwardRegistry;
         defineGlobalValue("electronAPI", electronAPI);
-        defineGlobalValue(
-            "sendFitFileToAltFitReader",
-            vi.fn<(arrayBuffer: ArrayBuffer) => unknown>()
-        );
         defineGlobalValue("ChartUpdater", {
             updateCharts: vi.fn<(reason?: string) => unknown>(),
         });
@@ -289,6 +292,7 @@ describe(setupListeners, () => {
         csvExportMocks.serializeTableToCSV.mockReturnValue("header\nvalue");
         fitDataRendererMocks.renderDecodedFitData.mockReset();
         fitDataRendererMocks.renderDecodedFitData.mockResolvedValue(undefined);
+        altFitMocks.sendFitFileToAltFitReader.mockReset();
         keyboardShortcutsModalMock.showKeyboardShortcutsModal.mockReset();
         defineGlobalValue("loadedFitFiles", []);
 
@@ -310,7 +314,6 @@ describe(setupListeners, () => {
         document.body.replaceChildren();
         globalAny.electronAPI = undefined;
         delete globalAny.showFitData;
-        delete globalAny.sendFitFileToAltFitReader;
         delete globalAny.ChartUpdater;
         delete globalAny.globalData;
         delete globalAny.loadedFitFiles;
@@ -369,7 +372,7 @@ describe(setupListeners, () => {
     });
 
     it("loads and opens a recent file from the context menu", async () => {
-        expect.assertions(10);
+        expect.assertions(11);
         electronAPI.recentFiles.mockResolvedValueOnce(["C:/rides/demo.fit"]);
         const arrayBuffer = new ArrayBuffer(16);
         electronAPI.readFile.mockResolvedValueOnce(arrayBuffer);
@@ -423,6 +426,9 @@ describe(setupListeners, () => {
         expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
             { recordMesgs: [{ speed: 10 }] },
             "C:/rides/demo.fit"
+        );
+        expect(altFitMocks.sendFitFileToAltFitReader).toHaveBeenCalledWith(
+            arrayBuffer
         );
         expect(electronAPI.addRecentFile).toHaveBeenCalledWith(
             "C:/rides/demo.fit"
@@ -531,9 +537,10 @@ describe(setupListeners, () => {
     });
 
     it("responds to menu open recent file requests", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
         const handler = requireHandler(recentOpenHandler, "open recent file");
-        electronAPI.readFile.mockResolvedValueOnce(new ArrayBuffer(8));
+        const arrayBuffer = new ArrayBuffer(8);
+        electronAPI.readFile.mockResolvedValueOnce(arrayBuffer);
         electronAPI.parseFitFile.mockResolvedValueOnce({ recordMesgs: [] });
         await handler("C:/rides/other.fit");
         expect(setLoading).toHaveBeenNthCalledWith(1, true);
@@ -546,6 +553,9 @@ describe(setupListeners, () => {
         expect(fitDataRendererMocks.renderDecodedFitData).toHaveBeenCalledWith(
             { recordMesgs: [] },
             "C:/rides/other.fit"
+        );
+        expect(altFitMocks.sendFitFileToAltFitReader).toHaveBeenCalledWith(
+            arrayBuffer
         );
     });
 

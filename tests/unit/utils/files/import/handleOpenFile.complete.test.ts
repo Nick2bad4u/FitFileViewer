@@ -4,10 +4,17 @@ import type { FitDecodeResult } from "../../../../../electron-app/shared/fit";
 const renderDecodedFitDataMock = vi.hoisted(() =>
     vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
 );
+const sendFitFileToAltFitReaderMock = vi.hoisted(() =>
+    vi.fn<(buffer: ArrayBuffer) => void>()
+);
 
 vi.mock(
     import("../../../../../electron-app/utils/rendering/core/loadShowFitData.js"),
     () => ({ renderDecodedFitData: renderDecodedFitDataMock })
+);
+vi.mock(
+    import("../../../../../electron-app/utils/files/import/sendFitFileToAltFitReader.js"),
+    () => ({ sendFitFileToAltFitReader: sendFitFileToAltFitReaderMock })
 );
 
 type StateManagerModule =
@@ -38,7 +45,6 @@ type MockElectronAPI = {
 type TestWindow = Window &
     typeof globalThis & {
         electronAPI?: Partial<MockElectronAPI>;
-        sendFitFileToAltFitReader?: (buffer: ArrayBuffer) => void;
         showFitData?: (data: unknown, fileName?: string) => void;
     };
 type TestOpenFileParams = {
@@ -129,6 +135,7 @@ describe("handleOpenFile Module", () => {
         vi.clearAllMocks();
         renderDecodedFitDataMock.mockReset();
         renderDecodedFitDataMock.mockResolvedValue(undefined);
+        sendFitFileToAltFitReaderMock.mockReset();
 
         // Mock console methods
         vi.spyOn(console, "info").mockImplementation(() => {});
@@ -151,14 +158,8 @@ describe("handleOpenFile Module", () => {
         testWindow.showFitData = (_data: unknown, _fileName?: string): void => {
             // Stubbed for tests and spied on below.
         };
-        testWindow.sendFitFileToAltFitReader = (_buffer: ArrayBuffer): void => {
-            // Stubbed for tests and spied on below.
-        };
         vi.spyOn(testWindow, "showFitData").mockImplementation(
             (_data: unknown, _fileName?: string): void => {}
-        );
-        vi.spyOn(testWindow, "sendFitFileToAltFitReader").mockImplementation(
-            (_buffer: ArrayBuffer): void => {}
         );
 
         // Import the module under test

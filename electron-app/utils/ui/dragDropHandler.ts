@@ -5,6 +5,7 @@ import {
     getFitParseErrorMessage,
     unwrapFitParseMessages,
 } from "../files/import/fitParsePayload.js";
+import { sendFitFileToAltFitReader } from "../files/import/sendFitFileToAltFitReader.js";
 import { showFitData } from "../rendering/core/showFitData.js";
 import { getState, setState } from "../state/core/stateManager.js";
 import { fitFileStateManager } from "../state/domain/fitFileState.js";
@@ -23,7 +24,6 @@ type ElectronApiLike = Partial<Pick<ElectronAPI, "decodeFitFile">>;
 type DragDropGlobal = typeof globalThis & {
     electronAPI?: ElectronApiLike;
     enableDragAndDrop?: unknown;
-    sendFitFileToAltFitReader?: (buffer: ArrayBuffer) => void;
 };
 
 type PerformanceMonitorLike = {
@@ -147,7 +147,7 @@ export class DragDropHandler {
             if (result && !parseErrorMessage) {
                 const fitData = unwrapFitParseMessages(result);
                 showFitData(fitData, filePath);
-                getDragDropGlobal().sendFitFileToAltFitReader?.(arrayBuffer);
+                sendFitFileToAltFitReader(arrayBuffer);
                 showNotification(
                     `File "${file.name}" loaded successfully`,
                     "success"

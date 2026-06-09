@@ -11,6 +11,7 @@ import {
     type FitParsePayload,
     unwrapFitParseMessages,
 } from "../../files/import/fitParsePayload.js";
+import { sendFitFileToAltFitReader } from "../../files/import/sendFitFileToAltFitReader.js";
 import {
     buildDownloadFilename,
     sanitizeFileExtension,
@@ -120,7 +121,6 @@ type LifecycleGlobal = typeof globalThis & {
     electronAPI?: LifecycleElectronAPI;
     renderChart?: () => unknown;
     renderChartJS?: () => unknown;
-    sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => unknown;
 };
 
 /** Mutable flag shared with the file-opening workflow. */
@@ -681,15 +681,7 @@ export function setupListeners({
                     // Display the data with proper error handling
                     try {
                         await renderDecodedFitData(fitData, filePathString);
-
-                        if (
-                            typeof lifecycleGlobal.sendFitFileToAltFitReader ===
-                            "function"
-                        ) {
-                            lifecycleGlobal.sendFitFileToAltFitReader(
-                                arrayBuffer
-                            );
-                        }
+                        sendFitFileToAltFitReader(arrayBuffer);
                     } catch (displayError) {
                         showNotification(
                             `Error displaying FIT data: ${String(displayError)}`,

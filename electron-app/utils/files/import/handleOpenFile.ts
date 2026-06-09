@@ -19,6 +19,7 @@ import {
     unwrapFitParseMessages,
 } from "./fitParsePayload.js";
 import { getFitFileBufferValidationError } from "./fitFileValidation.js";
+import { sendFitFileToAltFitReader } from "./sendFitFileToAltFitReader.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
 
@@ -65,7 +66,6 @@ type FileOpenElectronAPI = Pick<ElectronAPI, "readFile"> & {
 type FileOpenRendererGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
     electronAPI?: Partial<FileOpenElectronAPI>;
-    sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
 };
 
 type FitFileStateManagerFacade = {
@@ -362,11 +362,7 @@ async function handleOpenFile(
                 source: "handleOpenFile.rendering",
             });
             await renderDecodedFitData(fitData, filePathString);
-
-            const { sendFitFileToAltFitReader } = getFileOpenGlobal();
-            if (typeof sendFitFileToAltFitReader === "function") {
-                sendFitFileToAltFitReader(arrayBuffer);
-            }
+            sendFitFileToAltFitReader(arrayBuffer);
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : String(error);

@@ -49,6 +49,9 @@ const fitDataRendererMocks = vi.hoisted(() => ({
         (data: unknown, filePath: string) => Promise<void>
     >(async () => {}),
 }));
+const altFitMocks = vi.hoisted(() => ({
+    sendFitFileToAltFitReader: vi.fn<SendFitFileToAltFitReaderMock>(),
+}));
 
 vi.mock(
     import("../../../../../../electron-app/utils/files/import/openFileSelector.js"),
@@ -75,6 +78,11 @@ vi.mock(
 vi.mock(
     import("../../../../../../electron-app/utils/rendering/core/loadShowFitData.js"),
     () => ({ renderDecodedFitData: fitDataRendererMocks.renderDecodedFitData })
+);
+
+vi.mock(
+    import("../../../../../../electron-app/utils/files/import/sendFitFileToAltFitReader.js"),
+    () => altFitMocks
 );
 
 const openFileSelectorMock = dependencyMocks.openFileSelector;
@@ -247,6 +255,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         csvExportMocks.serializeTableToCSV.mockReturnValue("a,b\n1,2");
         fitDataRendererMocks.renderDecodedFitData.mockReset();
         fitDataRendererMocks.renderDecodedFitData.mockResolvedValue(undefined);
+        altFitMocks.sendFitFileToAltFitReader.mockReset();
     });
 
     afterEach(() => {
@@ -1687,7 +1696,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
         const showFitData = vi.fn<ShowFitDataMock>();
         const sendFitFileToAltFitReader =
-            vi.fn<SendFitFileToAltFitReaderMock>();
+            altFitMocks.sendFitFileToAltFitReader;
 
         Object.defineProperty(window, "showFitData", {
             value: showFitData,
@@ -1699,18 +1708,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             writable: true,
             configurable: true,
         });
-
-        Object.defineProperty(window, "sendFitFileToAltFitReader", {
-            value: sendFitFileToAltFitReader,
-            writable: true,
-            configurable: true,
-        });
-        Object.defineProperty(globalThis, "sendFitFileToAltFitReader", {
-            value: sendFitFileToAltFitReader,
-            writable: true,
-            configurable: true,
-        });
-
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1755,12 +1752,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
 
         const sendFitFileToAltFitReader =
-            vi.fn<SendFitFileToAltFitReaderMock>();
-        Object.defineProperty(globalThis, "sendFitFileToAltFitReader", {
-            value: sendFitFileToAltFitReader,
-            writable: true,
-            configurable: true,
-        });
+            altFitMocks.sendFitFileToAltFitReader;
 
         setupListeners({
             openFileBtn,
@@ -1824,13 +1816,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Mock the integration function
         const sendFitFileToAltFitReader =
-            vi.fn<SendFitFileToAltFitReaderMock>();
+            altFitMocks.sendFitFileToAltFitReader;
         const showFitData = vi.fn<ShowFitDataMock>();
-        Object.defineProperty(globalThis, "sendFitFileToAltFitReader", {
-            configurable: true,
-            value: sendFitFileToAltFitReader,
-            writable: true,
-        });
         Object.defineProperty(globalThis, "showFitData", {
             configurable: true,
             value: showFitData,

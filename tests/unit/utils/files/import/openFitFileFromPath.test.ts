@@ -3,10 +3,18 @@ import { describe, expect, it, vi } from "vitest";
 const renderDecodedFitDataMock = vi.hoisted(() =>
     vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
 );
+const sendFitFileToAltFitReaderMock = vi.hoisted(() =>
+    vi.fn<(arrayBuffer: ArrayBuffer) => void>()
+);
 
 vi.mock(
     import("../../../../../electron-app/utils/rendering/core/loadShowFitData.js"),
     () => ({ renderDecodedFitData: renderDecodedFitDataMock })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/files/import/sendFitFileToAltFitReader.js"),
+    () => ({ sendFitFileToAltFitReader: sendFitFileToAltFitReaderMock })
 );
 
 import { openFitFileFromPath } from "../../../../../electron-app/utils/files/import/openFitFileFromPath.js";
@@ -35,16 +43,15 @@ type LoadingPhase =
 type OpenFitFileFromPathTestGlobal = typeof globalThis & {
     __FFV_fitFileStateManager?: unknown;
     electronAPI?: TestElectronAPI;
-    sendFitFileToAltFitReader?: (arrayBuffer: ArrayBuffer) => void;
 };
 
 function cleanupFixture(): void {
     const appGlobal = globalThis as OpenFitFileFromPathTestGlobal;
     delete appGlobal.__FFV_fitFileStateManager;
     delete appGlobal.electronAPI;
-    delete appGlobal.sendFitFileToAltFitReader;
     renderDecodedFitDataMock.mockReset();
     renderDecodedFitDataMock.mockResolvedValue(undefined);
+    sendFitFileToAltFitReaderMock.mockReset();
 }
 
 describe(openFitFileFromPath, () => {
@@ -111,8 +118,6 @@ describe(openFitFileFromPath, () => {
                 vi.fn<(arrayBuffer: ArrayBuffer) => Promise<unknown>>();
             const readFile =
                 vi.fn<(filePath: string) => Promise<ArrayBuffer>>();
-            const sendFitFileToAltFitReader =
-                vi.fn<(arrayBuffer: ArrayBuffer) => void>();
             const showNotification = vi.fn<ShowNotification>();
             const startFileLoading = vi.fn<(path: string) => void>();
             const transitionLoadingPhase = vi.fn<
@@ -140,7 +145,6 @@ describe(openFitFileFromPath, () => {
                 startFileLoading,
                 transitionLoadingPhase,
             };
-            appGlobal.sendFitFileToAltFitReader = sendFitFileToAltFitReader;
 
             const result = await openFitFileFromPath({
                 filePath,
@@ -179,7 +183,9 @@ describe(openFitFileFromPath, () => {
                 fitData,
                 filePath
             );
-            expect(sendFitFileToAltFitReader).toHaveBeenCalledWith(fitBuffer);
+            expect(sendFitFileToAltFitReaderMock).toHaveBeenCalledWith(
+                fitBuffer
+            );
             expect(notifyFitFileLoaded).toHaveBeenCalledWith(filePath);
             expect(showNotification).toHaveBeenCalledWith(
                 "File loaded successfully!",
