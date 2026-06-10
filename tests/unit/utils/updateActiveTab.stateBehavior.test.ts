@@ -28,6 +28,7 @@ import {
     initializeActiveTabState,
     updateActiveTab,
 } from "../../../electron-app/utils/ui/tabs/updateActiveTab.js";
+import { setTabTestEnvironmentForTests } from "../../../electron-app/utils/ui/tabs/tabTestEnvironment.js";
 
 const { mockGetState, mockSetState, mockSubscribe } = vi.hoisted(() => ({
     mockGetState: vi.fn<GetState>(),
@@ -144,8 +145,8 @@ describe("updateActiveTab state behavior", () => {
 
         mockGetState.mockReturnValue("summary");
         mockSubscribe.mockReturnValue(() => undefined);
-        Object.assign(globalThis, {
-            __vitest_effective_stateManager__: {
+        setTabTestEnvironmentForTests({
+            stateManager: {
                 getState: mockGetState,
                 setState: mockSetState,
                 subscribe: mockSubscribe,
@@ -159,7 +160,7 @@ describe("updateActiveTab state behavior", () => {
 
     afterEach(() => {
         testContainer.remove();
-        Reflect.deleteProperty(globalThis, "__vitest_effective_stateManager__");
+        setTabTestEnvironmentForTests(null);
         vi.restoreAllMocks();
         vi.resetAllMocks();
     });

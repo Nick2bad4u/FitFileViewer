@@ -1,5 +1,4 @@
-// Vitest may provide a cross-realm document for tab-manager suites.
-declare const __vitest_effective_document__: Document | undefined;
+import { getTabTestDocumentForTests } from "./tabTestEnvironment.js";
 
 function isDocumentLike(candidate: unknown): candidate is Document {
     return (
@@ -19,16 +18,9 @@ function isDocumentLike(candidate: unknown): candidate is Document {
 export function getDoc(): Document {
     const candidates: unknown[] = [];
 
-    // Prefer Vitest effective document, if present
-    try {
-        if (
-            __vitest_effective_document__ !== undefined &&
-            __vitest_effective_document__
-        ) {
-            candidates.push(__vitest_effective_document__);
-        }
-    } catch {
-        /* ignore */
+    const testDocument = getTabTestDocumentForTests();
+    if (testDocument) {
+        candidates.push(testDocument);
     }
 
     // Local realm document (JSDOM/Electron)

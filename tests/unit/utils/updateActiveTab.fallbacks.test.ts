@@ -32,6 +32,16 @@ const resetAll = async () => {
     vi.resetModules();
 };
 
+async function setTabTestEnvironment(
+    environment: Parameters<
+        typeof import("../../../electron-app/utils/ui/tabs/tabTestEnvironment.js").setTabTestEnvironmentForTests
+    >[0]
+): Promise<void> {
+    const { setTabTestEnvironmentForTests } =
+        await import("../../../electron-app/utils/ui/tabs/tabTestEnvironment.js");
+    setTabTestEnvironmentForTests(environment);
+}
+
 function getRequiredSubscriptionCall(
     calls: SubscriptionCall[],
     path: string
@@ -101,35 +111,31 @@ describe("updateActiveTab.js - environment fallbacks", () => {
     });
 
     afterEach(async () => {
-        // Restore globals mutated during tests
-        try {
-            delete (globalThis as any).__vitest_effective_document__;
-        } catch {}
-        try {
-            delete (globalThis as any).__vitest_effective_stateManager__;
-        } catch {}
+        await setTabTestEnvironment(null);
         await resetAll();
     });
 
-    it("uses __vitest_effective_stateManager__ when module functions are unavailable", async () => {
+    it("uses the tab test state manager when module functions are unavailable", async () => {
         expect.assertions(3);
 
         // Arrange a normal JSDOM document for DOM operations
         document.body.replaceChildren();
         appendTabButton({ id: "tab-summary", label: "Summary" });
 
-        // Provide a global effective state manager (distinct spies)
+        // Provide an effective state manager override with distinct spies.
         const effSetState = vi.fn<SetState>();
         const effGetState = vi.fn<GetState>().mockReturnValue("summary");
         const effSubscribe = vi.fn<Subscribe>();
-        (globalThis as any).__vitest_effective_stateManager__ = {
-            setState: effSetState,
-            getState: effGetState,
-            subscribe: effSubscribe,
-        };
+        await setTabTestEnvironment({
+            stateManager: {
+                setState: effSetState,
+                getState: effGetState,
+                subscribe: effSubscribe,
+            },
+        });
 
         // Mock the module path used within updateActiveTab.js to export no functions,
-        // forcing getStateMgr() to pick up the global effective state manager.
+        // forcing getStateMgr() to pick up the tab test state manager.
         vi.doMock(
             import("../../../electron-app/utils/state/core/stateManager.js"),
             () => ({})
@@ -149,15 +155,14 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         expect(effSubscribe).not.toHaveBeenCalled();
     });
 
-    it("falls back to __vitest_effective_document__ when document/window are unavailable/invalid", async () => {
+    it("falls back to the tab test document when document/window are unavailable/invalid", async () => {
         expect.assertions(3);
 
         // Create a separate JSDOM to act as the effective document
         const effDom = new JSDOM(
             '<!doctype html><html><body><button id="tab-chart" class="tab-button">Chart</button></body></html>'
         );
-        (globalThis as any).__vitest_effective_document__ =
-            effDom.window.document;
+        await setTabTestEnvironment({ document: effDom.window.document });
 
         // Invalidate the standard globals so getDoc() prefers the effective document
         // Note: typeof checks in getDoc guard these assignments.
@@ -186,9 +191,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         expect(setState).toHaveBeenCalledWith("ui.activeTab", "chart", {
             source: "updateActiveTab",
         });
-        const effectiveDocument = (globalThis as any)
-            .__vitest_effective_document__ as Document;
-        expect(getTabButtonState(effectiveDocument, "tab-chart")).toEqual({
+        expect(getTabButtonState(effDom.window.document, "tab-chart")).toEqual({
             ariaDisabled: null,
             ariaSelected: null,
             classes: ["tab-button", "active"],

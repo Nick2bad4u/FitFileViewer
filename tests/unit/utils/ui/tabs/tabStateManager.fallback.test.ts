@@ -18,9 +18,6 @@ type EffectiveStateManager = {
     setState: ReturnType<typeof vi.fn<SetState>>;
     subscribe: ReturnType<typeof vi.fn<Subscribe>>;
 };
-type TestGlobal = typeof globalThis & {
-    __vitest_effective_stateManager__?: EffectiveStateManager;
-};
 
 const activeFitData: ActivityData = {
     recordMesgs: [{ timestamp: 1 }, { timestamp: 2 }],
@@ -30,33 +27,35 @@ const { mockRenderSummary } = vi.hoisted(() => ({
     mockRenderSummary: vi.fn<RenderSummary>(),
 }));
 
+const { effectiveStateManagerRef } = vi.hoisted(() => ({
+    effectiveStateManagerRef: {
+        current: null as EffectiveStateManager | null,
+    },
+}));
+
 function noop(): void {
     return;
 }
 
 function getEffectiveStateManager(): EffectiveStateManager {
-    // eslint-disable-next-line no-underscore-dangle
-    const eff = (globalThis as TestGlobal).__vitest_effective_stateManager__;
+    const eff = effectiveStateManagerRef.current;
     if (!eff) {
         throw new Error("effective state manager was not installed");
     }
     return eff;
 }
 
-// This suite specifically validates the getStateMgr() fallback path via
-// __vitest_effective_stateManager__, independent of the normal module mocks.
-// We avoid mocking the module path here; instead we inject the global and
-// dynamically import the module under test.
+// This suite specifically validates the getStateMgr() fallback path via the
+// tab test environment, independent of the normal module mocks.
 
-// Mock the state manager module with missing/non-functional `subscribe` so getStateMgr() must use
-// the __vitest_effective_stateManager__ fallback branch, while still providing the named exports
-// required by transitive imports.
+// Mock the state manager module with missing/non-functional `subscribe` so
+// getStateMgr() must use the tab test-environment fallback branch, while still
+// providing the named exports required by transitive imports.
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
         getState: vi.fn<GetState>((key) => {
-            const stateManager = (globalThis as TestGlobal)
-                .__vitest_effective_stateManager__;
+            const stateManager = effectiveStateManagerRef.current;
             return stateManager?.getState(key) ?? null;
         }),
         setState: undefined,
@@ -74,7 +73,7 @@ vi.mock(
 );
 
 describe("tabStateManager.fallback", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.resetModules();
         mockRenderSummary.mockReset();
         mockRenderSummary.mockImplementation(noop);
@@ -82,9 +81,7 @@ describe("tabStateManager.fallback", () => {
         vi.spyOn(console, "warn").mockImplementation(noop);
         vi.spyOn(console, "error").mockImplementation(noop);
 
-        // Inject a minimal effective state manager
-        // eslint-disable-next-line no-underscore-dangle
-        (globalThis as TestGlobal).__vitest_effective_stateManager__ = {
+        effectiveStateManagerRef.current = {
             getState: vi.fn<GetState>((key) => {
                 if (key === "ui.activeTab") {
                     return "summary";
@@ -100,15 +97,22 @@ describe("tabStateManager.fallback", () => {
             setState: vi.fn<SetState>(),
             subscribe: vi.fn<Subscribe>(() => noop),
         };
+        const { setTabTestEnvironmentForTests } =
+            await import("../../../../../electron-app/utils/ui/tabs/tabTestEnvironment.js");
+        setTabTestEnvironmentForTests({
+            stateManager: effectiveStateManagerRef.current,
+        });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         vi.restoreAllMocks();
-        // eslint-disable-next-line no-underscore-dangle
-        delete (globalThis as TestGlobal).__vitest_effective_stateManager__;
+        const { setTabTestEnvironmentForTests } =
+            await import("../../../../../electron-app/utils/ui/tabs/tabTestEnvironment.js");
+        setTabTestEnvironmentForTests(null);
+        effectiveStateManagerRef.current = null;
     });
 
-    it("uses global fallback state manager and renders summary path", async () => {
+    it("uses tab test state manager fallback and renders summary path", async () => {
         expect.assertions(6);
 
         const mod =

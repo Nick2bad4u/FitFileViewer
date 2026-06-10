@@ -120,15 +120,6 @@ describe("tabStateManager.behavior", () => {
             }
         });
 
-        // Ensure tabStateManager uses our mocks via its global fallback
-        // eslint-disable-next-line no-underscore-dangle
-        /* @type {any} */ globalThis.__vitest_effective_stateManager__ = {
-            getState: mockGetState,
-            setState: mockSetState,
-            subscribe: mockSubscribe,
-            updateState: mockUpdateState,
-        };
-
         // Quiet logs for deterministic tests
         originalConsoleLog = console.log;
         originalConsoleWarn = console.warn;
@@ -148,10 +139,6 @@ describe("tabStateManager.behavior", () => {
         console.warn = /* @type {any} */ originalConsoleWarn;
         console.error = /* @type {any} */ originalConsoleError;
         vi.resetAllMocks();
-        // Cleanup global fallback
-        // eslint-disable-next-line no-underscore-dangle
-        // @ts-ignore
-        delete (/* @type {any} */ globalThis.__vitest_effective_stateManager__);
     });
 
     it("extractTabName returns known ids and patterns, null for unknown", () => {

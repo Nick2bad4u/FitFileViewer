@@ -3,6 +3,10 @@ import * as __StateMgr from "../../state/core/stateManager.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { extractTabNameFromButtonId } from "./tabIdUtils.js";
+import {
+    getTabTestDocumentForTests,
+    getTabTestStateManagerForTests,
+} from "./tabTestEnvironment.js";
 
 type StateUpdateOptions = {
     readonly source: string;
@@ -38,11 +42,6 @@ type TabButtonLike = EventTarget & {
     readonly setAttribute?: (qualifiedName: string, value: string) => void;
 };
 
-type EffectiveGlobals = typeof globalThis & {
-    __vitest_effective_document__?: Document;
-    __vitest_effective_stateManager__?: unknown;
-};
-
 let activeTabUnsubscribe: (() => void) | null = null;
 
 function canUseDocument(candidate: unknown): candidate is Document {
@@ -54,10 +53,6 @@ function canUseDocument(candidate: unknown): candidate is Document {
         "querySelectorAll" in candidate &&
         typeof candidate.querySelectorAll === "function"
     );
-}
-
-function getEffectiveGlobals(): EffectiveGlobals {
-    return globalThis as EffectiveGlobals;
 }
 
 function getWindowDocument(): Document | undefined {
@@ -81,11 +76,7 @@ function getGlobalDocument(): Document | undefined {
 }
 
 function getEffectiveDocument(): Document | undefined {
-    try {
-        return getEffectiveGlobals().__vitest_effective_document__;
-    } catch {
-        return undefined;
-    }
+    return getTabTestDocumentForTests();
 }
 
 function getDoc(): Document {
@@ -149,7 +140,7 @@ function getStateMgr(): StateManagerAccess {
 
     try {
         const effectiveStateManager = asStateManagerCandidate(
-            getEffectiveGlobals().__vitest_effective_stateManager__
+            getTabTestStateManagerForTests()
         );
         const fallbackStateManager = asStateManagerCandidate(__StateMgr);
         const getState =
@@ -204,8 +195,7 @@ function getButtonId(button: TabButtonLike): string {
 }
 
 function isDisabledButton(button: TabButtonLike): boolean {
-    const hasDisabledClass =
-        button.classList?.contains?.("tab-disabled");
+    const hasDisabledClass = button.classList?.contains?.("tab-disabled");
 
     return (
         button.disabled === true ||

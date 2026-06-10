@@ -4,6 +4,10 @@
 
 // Prefer dynamic state manager accessor to avoid stale imports across suites
 import * as __StateMgr from "../../state/core/stateManager.js";
+import {
+    getTabTestDocumentForTests,
+    getTabTestStateManagerForTests,
+} from "./tabTestEnvironment.js";
 
 type StateGetter = typeof __StateMgr.getState;
 type StateSetter = typeof __StateMgr.setState;
@@ -14,9 +18,6 @@ type StateManagerAccess = {
     setState: StateSetter;
     subscribe: StateSubscriber;
 };
-
-declare const __vitest_effective_document__: Document | undefined;
-declare const __vitest_effective_stateManager__: unknown;
 
 function isDocumentLike(candidate: unknown): candidate is Document {
     return (
@@ -33,26 +34,15 @@ function isRecord(candidate: unknown): candidate is Record<string, unknown> {
     return candidate !== null && typeof candidate === "object";
 }
 
-// Resolve document by preferring the canonical test-provided document
-// (`__vitest_effective_document__`) first, then falling back to the active
-// global/window document. This avoids cross-realm mismatches across the full
-// test suite.
 /**
  * Resolve the active document used by the tab-state manager.
  */
 export function getDoc(): Document {
     const candidates: unknown[] = [];
 
-    // Canonical Vitest document (preferred)
-    try {
-        if (
-            __vitest_effective_document__ !== undefined &&
-            __vitest_effective_document__
-        ) {
-            candidates.push(__vitest_effective_document__);
-        }
-    } catch {
-        /* ignore */
+    const testDocument = getTabTestDocumentForTests();
+    if (testDocument) {
+        candidates.push(testDocument);
     }
 
     // Local realm document (JSDOM/Electron)
@@ -87,13 +77,11 @@ export function getDoc(): Document {
     return document;
 }
 
-// Retrieve state manager functions. Prefer the module namespace (so Vitest mocks are respected),
-// And only fall back to a canonical global mock if module functions are unavailable.
 /**
  * Retrieve state manager functions.
  *
  * Prefer the module namespace so Vitest mocks are respected, then fall back to
- * the canonical effective mock when tests provide one.
+ * a module-local test override when tests provide one.
  */
 export function getStateMgr(): StateManagerAccess {
     try {
@@ -116,9 +104,7 @@ export function getStateMgr(): StateManagerAccess {
         /* Ignore errors */
     }
     try {
-        const eff =
-            __vitest_effective_stateManager__ !== undefined &&
-            __vitest_effective_stateManager__;
+        const eff = getTabTestStateManagerForTests();
         if (isRecord(eff)) {
             const getState =
                 typeof eff["getState"] === "function"

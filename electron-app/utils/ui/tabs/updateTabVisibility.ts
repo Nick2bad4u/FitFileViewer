@@ -14,6 +14,10 @@ import {
     extractTabNameFromContentId,
     getContentIdFromTabName,
 } from "./tabIdUtils.js";
+import {
+    getTabTestDocumentForTests,
+    getTabTestStateManagerForTests,
+} from "./tabTestEnvironment.js";
 
 type StateUpdateOptions = {
     readonly source: string;
@@ -33,11 +37,6 @@ type StateManagerAccess = {
 };
 
 type StateManagerCandidate = Partial<StateManagerAccess>;
-
-type EffectiveGlobals = typeof globalThis & {
-    __vitest_effective_document__?: Document;
-    __vitest_effective_stateManager__?: unknown;
-};
 
 type LeafletMiniMap = {
     invalidateSize: () => void;
@@ -74,10 +73,6 @@ function canUseDocument(candidate: unknown): candidate is Document {
     );
 }
 
-function getEffectiveGlobals(): EffectiveGlobals {
-    return globalThis as EffectiveGlobals;
-}
-
 function getGlobalDocument(): Document | undefined {
     try {
         return globalThis.document === undefined
@@ -89,11 +84,7 @@ function getGlobalDocument(): Document | undefined {
 }
 
 function getEffectiveDocument(): Document | undefined {
-    try {
-        return getEffectiveGlobals().__vitest_effective_document__;
-    } catch {
-        return undefined;
-    }
+    return getTabTestDocumentForTests();
 }
 
 function getDoc(): Document {
@@ -156,7 +147,7 @@ function getStateMgr(): StateManagerAccess {
 
     try {
         const effectiveStateManager = asStateManagerCandidate(
-            getEffectiveGlobals().__vitest_effective_stateManager__
+            getTabTestStateManagerForTests()
         );
         const fallbackStateManager = asStateManagerCandidate(__StateMgr);
         const getState =

@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-// We'll mock stateManager with incomplete exports to force __vitest_effective_stateManager__ fallback
-
 type StateManagerShim = {
     getState: ReturnType<typeof vi.fn<(path?: string) => unknown>>;
     setState: ReturnType<
@@ -16,9 +14,15 @@ type StateManagerShim = {
     subscribe: ReturnType<typeof vi.fn<(path: string) => () => void>>;
 };
 
-type GlobalWithStateManagerShim = typeof globalThis & {
-    __vitest_effective_stateManager__?: StateManagerShim;
-};
+async function setTabTestEnvironment(
+    environment: Parameters<
+        typeof import("../../../electron-app/utils/ui/tabs/tabTestEnvironment.js").setTabTestEnvironmentForTests
+    >[0]
+): Promise<void> {
+    const { setTabTestEnvironmentForTests } =
+        await import("../../../electron-app/utils/ui/tabs/tabTestEnvironment.js");
+    setTabTestEnvironmentForTests(environment);
+}
 
 describe("updateTabVisibility - additional branches", () => {
     const contentIds = [
@@ -64,10 +68,8 @@ describe("updateTabVisibility - additional branches", () => {
         );
     });
 
-    afterEach(() => {
-        // cleanup the global shim if set
-        const effectiveGlobals = globalThis as GlobalWithStateManagerShim;
-        delete effectiveGlobals.__vitest_effective_stateManager__;
+    afterEach(async () => {
+        await setTabTestEnvironment(null);
         vi.restoreAllMocks();
     });
 
@@ -153,7 +155,7 @@ describe("updateTabVisibility - additional branches", () => {
         }
     });
 
-    it("falls back to __vitest_effective_stateManager__ when module exports are unavailable", async () => {
+    it("falls back to the tab test state manager when module exports are unavailable", async () => {
         expect.assertions(3);
 
         // Mock module with missing methods to fail the primary branch
@@ -172,12 +174,13 @@ describe("updateTabVisibility - additional branches", () => {
             >();
         const effGet = vi.fn<(path?: string) => unknown>();
         const effSub = vi.fn<(path: string) => () => void>();
-        const effectiveGlobals = globalThis as GlobalWithStateManagerShim;
-        effectiveGlobals.__vitest_effective_stateManager__ = {
-            setState: effSet,
-            getState: effGet,
-            subscribe: effSub,
-        };
+        await setTabTestEnvironment({
+            stateManager: {
+                setState: effSet,
+                getState: effGet,
+                subscribe: effSub,
+            },
+        });
 
         const { updateTabVisibility } =
             await import("../../../electron-app/utils/ui/tabs/updateTabVisibility.js");
