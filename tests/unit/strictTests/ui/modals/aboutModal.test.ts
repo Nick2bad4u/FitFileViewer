@@ -1,20 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+    registerRendererElectronApiCandidate as registerElectronApiCandidate,
+    resetRendererElectronApiCandidate as resetElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
 type AboutModalModules =
     typeof import("../../../../../electron-app/utils/ui/modals/ensureAboutModal.js") &
         typeof import("../../../../../electron-app/utils/ui/modals/aboutModal.js");
 
 type AboutElectronApi = {
-    getAppVersion: () => Promise<string>;
-    getChromeVersion: () => Promise<string>;
-    getElectronVersion: () => Promise<string>;
-    getLicenseInfo: () => Promise<string>;
-    getNodeVersion: () => Promise<string>;
-    getPlatformInfo: () => Promise<{ arch: string; platform: string }>;
     openExternal: (url: string) => void;
 };
-
-type AboutWindow = Window & { electronAPI: AboutElectronApi };
 
 // Mock heavy side-effect modules before importing the subject under test
 vi.mock(
@@ -78,10 +75,23 @@ function getRequiredExternalLink(selector: string): HTMLAnchorElement {
     return link;
 }
 
+function registerAboutElectronApi(): AboutElectronApi {
+    const electronAPI = {
+        openExternal: vi.fn<(url: string) => void>(),
+    };
+
+    registerElectronApiCandidate(electronAPI);
+
+    return electronAPI;
+}
+
 describe("about modal UI behaviors", () => {
+    let aboutElectronAPI: AboutElectronApi;
+
     beforeEach(() => {
         vi.restoreAllMocks();
         vi.useFakeTimers();
+        resetElectronApiCandidate();
         document.body.replaceChildren();
 
         // Provide a focusable element to verify focus restoration
@@ -90,29 +100,7 @@ describe("about modal UI behaviors", () => {
         document.body.appendChild(focusable);
         focusable.focus();
 
-        const aboutWindow = window as AboutWindow;
-        aboutWindow.electronAPI = {
-            openExternal: vi.fn<(url: string) => void>(),
-            getAppVersion: vi.fn<() => Promise<string>>(async () => "1.2.3"),
-            getElectronVersion: vi.fn<() => Promise<string>>(
-                async () => "38.1.0"
-            ),
-            getNodeVersion: vi.fn<() => Promise<string>>(
-                async () => process.versions?.node ?? "18.0.0"
-            ),
-            getChromeVersion: vi.fn<() => Promise<string>>(
-                async () => process.versions?.chrome ?? "128.0.0"
-            ),
-            getPlatformInfo: vi.fn<
-                () => Promise<{ arch: string; platform: string }>
-            >(async () => ({
-                arch: "x64",
-                platform: "testOS",
-            })),
-            getLicenseInfo: vi.fn<() => Promise<string>>(
-                async () => "Unlicense"
-            ),
-        };
+        aboutElectronAPI = registerAboutElectronApi();
 
         rafImmediate();
     });
@@ -122,7 +110,7 @@ describe("about modal UI behaviors", () => {
         vi.useRealTimers();
         vi.restoreAllMocks();
         document.body.replaceChildren();
-        Reflect.deleteProperty(window, "electronAPI");
+        resetElectronApiCandidate();
     });
 
     it("ensures modal creation, shows with content, and closes via close button", async () => {
@@ -201,7 +189,6 @@ describe("about modal UI behaviors", () => {
         expect.assertions(2);
 
         const { ensureAboutModal, showAboutModal } = await importModules();
-        const aboutWindow = window as AboutWindow;
 
         ensureAboutModal();
         showAboutModal();
@@ -212,7 +199,7 @@ describe("about modal UI behaviors", () => {
         expect(link).toBeInstanceOf(HTMLAnchorElement);
 
         link.click();
-        expect(aboutWindow.electronAPI.openExternal).toHaveBeenCalledWith(
+        expect(aboutElectronAPI.openExternal).toHaveBeenCalledWith(
             "https://electronjs.org/"
         );
     });
