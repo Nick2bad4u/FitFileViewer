@@ -1,5 +1,6 @@
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 
 type CleanupFunction = () => void;
 
@@ -9,14 +10,6 @@ type AttachExternalLinkHandlersOptions = {
 };
 
 type ElectronApiWithExternalOpen = Partial<Pick<ElectronAPI, "openExternal">>;
-
-type GlobalWithElectronApi = typeof globalThis & {
-    readonly electronAPI?: unknown;
-};
-
-type WindowWithElectronApi = Window & {
-    readonly electronAPI?: unknown;
-};
 
 /**
  * Wires click and keyboard activation for links marked with
@@ -124,18 +117,7 @@ function openExternal(
 }
 
 function getOpenExternalApi(): ElectronApiWithExternalOpen | null {
-    const globalApi = (globalThis as GlobalWithElectronApi).electronAPI;
-    const windowApi =
-        typeof globalThis.window === "object"
-            ? (globalThis.window as WindowWithElectronApi).electronAPI
-            : undefined;
-    const api = globalApi ?? windowApi;
-
-    if (api === null || typeof api !== "object") {
-        return null;
-    }
-
-    return isElectronApiWithExternalOpen(api) ? api : null;
+    return getRendererElectronApi(isElectronApiWithExternalOpen);
 }
 
 function isElectronApiWithExternalOpen(

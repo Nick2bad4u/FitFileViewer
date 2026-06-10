@@ -175,6 +175,9 @@ const migratedExportZipRuntimeFiles = [
 const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
+const migratedElectronApiAccessorFiles = [
+    "electron-app/utils/ui/links/externalLinkHandlers.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -374,6 +377,8 @@ const rendererVendorBundleGlobalMarkerPattern =
     /\b__FFV_RENDERER_VENDOR_BUNDLE__\b/u;
 const rendererRuntimeGlobalFallbackPattern =
     /\b(?:__fitFileViewerRuntimeGlobalFallbackForTests|runtimeGlobalFallbackFlag|getGlobalRuntimeCandidate|getWindowRuntimeCandidate)\b/u;
+const directElectronApiGlobalReadPattern =
+    /\b(?:globalThis|window)\.electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -1279,6 +1284,20 @@ describe("architecture boundaries", () => {
         expect(vendorCoreEntry).not.toContain(
             'defineMissingGlobal("screenfull"'
         );
+    });
+
+    it("keeps migrated renderer Electron API callers on the typed accessor", () => {
+        expect.assertions(1);
+
+        const violations = migratedElectronApiAccessorFiles
+            .filter((relativeFile) =>
+                directElectronApiGlobalReadPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps migrated map helpers on the Leaflet runtime adapter", () => {

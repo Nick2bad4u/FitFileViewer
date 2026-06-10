@@ -1,0 +1,80 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
+type ExternalOpenApi = {
+    openExternal: (url: string) => Promise<boolean>;
+};
+
+function isExternalOpenApi(value: unknown): value is ExternalOpenApi {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        "openExternal" in value &&
+        typeof value.openExternal === "function"
+    );
+}
+
+describe("electronApiRuntime", () => {
+    afterEach(() => {
+        Reflect.deleteProperty(globalThis, "electronAPI");
+    });
+
+    it("resolves a matching API from an explicit scope", () => {
+        expect.assertions(1);
+
+        const api = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+        const scope: RendererElectronApiScope = { electronAPI: api };
+
+        expect(getRendererElectronApi(isExternalOpenApi, scope)).toBe(api);
+    });
+
+    it("falls back to a matching window API from an explicit scope", () => {
+        expect.assertions(1);
+
+        const api = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+        const scope: RendererElectronApiScope = {
+            window: { electronAPI: api },
+        };
+
+        expect(getRendererElectronApi(isExternalOpenApi, scope)).toBe(api);
+    });
+
+    it("ignores missing or malformed APIs", () => {
+        expect.assertions(4);
+
+        expect(getRendererElectronApi(isExternalOpenApi, {})).toBeNull();
+        expect(
+            getRendererElectronApi(isExternalOpenApi, { electronAPI: null })
+        ).toBeNull();
+        expect(
+            getRendererElectronApi(isExternalOpenApi, { electronAPI: {} })
+        ).toBeNull();
+        expect(
+            getRendererElectronApi(isExternalOpenApi, {
+                window: { electronAPI: { openExternal: "nope" } },
+            })
+        ).toBeNull();
+    });
+
+    it("uses globalThis as the default scope", () => {
+        expect.assertions(1);
+
+        const api = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+        Object.defineProperty(globalThis, "electronAPI", {
+            configurable: true,
+            value: api,
+        });
+
+        expect(getRendererElectronApi(isExternalOpenApi)).toBe(api);
+    });
+});
