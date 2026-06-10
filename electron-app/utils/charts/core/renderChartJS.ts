@@ -70,8 +70,8 @@ import {
     isLoadingStateSuppressed,
     isTestEnvironment,
     notifyChartRenderComplete,
-    setGlobalChartActions,
 } from "./renderChartRuntimeHelpers.js";
+import { registerChartActions } from "./chartActionsRegistry.js";
 import {
     createDataSettingsSignature,
     DATA_SIGNATURE_SOURCES,
@@ -280,6 +280,7 @@ export const chartActions = createChartActions({
     setState: callSetState,
     updateState: callUpdateState,
 });
+registerChartActions(chartActions);
 
 const chartStateManagementApi = createChartStateManagementApi({
     chartActions,
@@ -292,9 +293,7 @@ const chartStateManagementApi = createChartStateManagementApi({
 });
 
 registerChartStartup({
-    chartActions,
     loadSharedConfiguration,
-    setGlobalChartActions,
 });
 
 /** Exports rendered chart artifacts using current state. */

@@ -5,9 +5,7 @@ import {
 } from "./chartListenerState.js";
 
 interface RegisterChartStartupParams {
-    chartActions: unknown;
     loadSharedConfiguration(): unknown;
-    setGlobalChartActions(actions: unknown): void;
 }
 
 function registerSharedConfigurationLoader(
@@ -40,17 +38,10 @@ function registerSharedConfigurationLoader(
 }
 
 /**
- * Registers renderer startup bridges that still need global runtime
- * integration.
+ * Registers renderer startup bridges.
  *
  * @param params - Startup dependencies supplied by renderChartJS.
  */
 export function registerChartStartup(params: RegisterChartStartupParams): void {
     registerSharedConfigurationLoader(() => params.loadSharedConfiguration());
-
-    try {
-        params.setGlobalChartActions(params.chartActions);
-    } catch {
-        // Ignore legacy bridge exposure failures in SSR and tests.
-    }
 }

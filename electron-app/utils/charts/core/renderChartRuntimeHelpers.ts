@@ -1,6 +1,7 @@
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import { isChartDebugLoggingEnabled } from "./chartDebugState.js";
+import { getRegisteredChartActions } from "./chartActionsRegistry.js";
 import { getRegisteredChartStateManager } from "./chartStateManagerRegistry.js";
 import {
     isDevelopmentEnvironment as isDevelopmentRuntimeEnvironment,
@@ -19,7 +20,6 @@ interface ProcessShim {
 interface RenderChartRuntimeGlobal {
     __chartjs_dev?: unknown;
     process?: ProcessShim;
-    chartActions?: unknown;
     chartjsPluginZoom?: unknown;
     Chart?: unknown;
     ChartZoom?: unknown;
@@ -163,23 +163,10 @@ export function getDebouncedChartStateManager(): DebouncedChartStateManager | nu
     return hasDebouncedRender(chartStateManager) ? chartStateManager : null;
 }
 
-/**
- * Returns globally exposed chart actions when the legacy bridge is available.
- */
+/** Returns registered chart actions for legacy render lifecycle helpers. */
 export function getGlobalChartActions(): ChartActionsBridge | null {
-    const chartGlobal = getMutableChartRuntimeGlobal();
-    return hasChartAction(chartGlobal.chartActions)
-        ? chartGlobal.chartActions
-        : null;
-}
-
-/**
- * Exposes chart actions for legacy event paths that still resolve them through
- * globalThis.
- */
-export function setGlobalChartActions(actions: unknown): void {
-    const chartGlobal = getMutableChartRuntimeGlobal();
-    chartGlobal.chartActions = actions;
+    const chartActions = getRegisteredChartActions();
+    return hasChartAction(chartActions) ? chartActions : null;
 }
 
 /**

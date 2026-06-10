@@ -331,6 +331,8 @@ const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
     /\b(?:window|globalThis|chartGlobal|runtimeGlobal)\.chartStateManager\b|\(\s*globalThis\s+as\s+ChartStateGlobal\s*\)\.chartStateManager\b/u;
+const directChartActionsGlobalPattern =
+    /\b(?:window|globalThis|chartGlobal|runtimeGlobal)\.chartActions\b/u;
 const directMainUiDragDropHandlerGlobalPattern =
     /\b(?:window|globalThis)\.dragDropHandler\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["']dragDropHandler["']\s*\)/u;
 const directMainUiDevelopmentHelperGlobalPattern =
@@ -1426,7 +1428,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(72);
+        expect.assertions(73);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1894,6 +1896,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directChartActionsGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directChartActionsGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directMainUiDragDropHandlerGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directMainUiDragDropHandlerGlobalPattern.test(
@@ -2014,6 +2023,7 @@ describe("architecture boundaries", () => {
         expect(directTabStateManagerGlobalLookups).toStrictEqual([]);
         expect(directChartTabIntegrationGlobalLookups).toStrictEqual([]);
         expect(directChartStateManagerGlobalLookups).toStrictEqual([]);
+        expect(directChartActionsGlobalLookups).toStrictEqual([]);
         expect(directMainUiDragDropHandlerGlobalLookups).toStrictEqual([]);
         expect(directMainUiDevelopmentHelperGlobalLookups).toStrictEqual([]);
         expect(directMenuModalPresenterGlobalLookups).toStrictEqual([]);

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
     ensureProcessNextTick,
     getDebouncedChartStateManager,
+    getGlobalChartActions,
     getGlobalChartInstances,
     isDevelopmentEnvironment,
     isLoadingStateSuppressed,
@@ -10,6 +11,10 @@ import {
     isTestEnvironment,
     setLoadingStateSuppressed,
 } from "../../../../electron-app/utils/charts/core/renderChartRuntimeHelpers.js";
+import {
+    registerChartActions,
+    resetChartActionsRegistryForTests,
+} from "../../../../electron-app/utils/charts/core/chartActionsRegistry.js";
 import {
     registerChartStateManager,
     resetChartStateManagerRegistryForTests,
@@ -65,7 +70,9 @@ describe("render chart runtime helpers", () => {
     afterEach(() => {
         setLoadingStateSuppressed(false);
         Reflect.deleteProperty(globalThis, "__FFV_suppressLoadingState");
+        Reflect.deleteProperty(globalThis, "chartActions");
         Reflect.deleteProperty(globalThis, "chartStateManager");
+        resetChartActionsRegistryForTests();
         resetChartStateManagerRegistryForTests();
         restoreGlobalProcess();
         clearChartInstanceRegistryForTests();
@@ -202,6 +209,25 @@ describe("render chart runtime helpers", () => {
         expect(Reflect.get(globalThis, "chartStateManager")).not.toBe(
             registeredManager
         );
+    });
+
+    it("returns registered chart actions without reading a renderer global", () => {
+        expect.assertions(3);
+
+        const globalActions = { completeRendering: () => undefined },
+            registeredActions = { completeRendering: () => undefined };
+
+        Object.defineProperty(globalThis, "chartActions", {
+            configurable: true,
+            value: globalActions,
+        });
+
+        expect(getGlobalChartActions()).toBeNull();
+
+        registerChartActions(registeredActions);
+
+        expect(getGlobalChartActions()).toBe(registeredActions);
+        expect(Reflect.get(globalThis, "chartActions")).toBe(globalActions);
     });
 
     it("tracks loading suppression without reading the legacy global flag", () => {

@@ -9,18 +9,11 @@ import { setState } from "../../state/core/stateManager.js";
 import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
-type ChartActionsLike = {
-    clearCharts?: () => unknown;
-    requestRerender?: (reason: string) => unknown;
-};
-
 type ChartRenderManagerLike = {
     debouncedRender: (reason: string) => unknown;
 };
 
-type ChartSettingsGlobal = typeof globalThis & {
-    chartActions?: unknown;
-};
+type ChartSettingsGlobal = typeof globalThis;
 
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
@@ -64,17 +57,6 @@ function hasChartData(): boolean {
     return hasActiveFitChartData();
 }
 
-function isChartActionsLike(value: unknown): value is ChartActionsLike {
-    if (typeof value !== "object" || value === null) {
-        return false;
-    }
-
-    return (
-        hasFunctionProperty(value, "clearCharts") ||
-        hasFunctionProperty(value, "requestRerender")
-    );
-}
-
 function isChartRenderManagerLike(
     value: unknown
 ): value is ChartRenderManagerLike {
@@ -85,10 +67,7 @@ function isChartRenderManagerLike(
     return hasFunctionProperty(value, "debouncedRender");
 }
 
-function hasFunctionProperty(
-    value: object,
-    key: "clearCharts" | "debouncedRender" | "requestRerender"
-): boolean {
+function hasFunctionProperty(value: object, key: "debouncedRender"): boolean {
     if (!(key in value)) {
         return false;
     }
@@ -115,29 +94,7 @@ function requestRerenderViaManager(reason: string): boolean {
     return true;
 }
 
-function requestRerenderViaActions(
-    actions: ChartActionsLike | undefined,
-    reason: string
-): boolean {
-    if (typeof actions?.requestRerender !== "function") {
-        return false;
-    }
-
-    actions.requestRerender(reason);
-    console.log(
-        `${LOG_PREFIX} Delegated re-render via chartActions.requestRerender`
-    );
-    return true;
-}
-
-function clearLegacyChartRenderState(
-    actions: ChartActionsLike | undefined
-): void {
-    if (typeof actions?.clearCharts === "function") {
-        actions.clearCharts();
-        return;
-    }
-
+function clearLegacyChartRenderState(): void {
     const chartCount = getRegisteredChartInstanceCount();
     if (chartCount === 0) {
         return;
@@ -242,14 +199,7 @@ export function reRenderChartsAfterSettingChange(
             return;
         }
 
-        const actions = isChartActionsLike(chartGlobal.chartActions)
-            ? chartGlobal.chartActions
-            : undefined;
-        if (requestRerenderViaActions(actions, reason)) {
-            return;
-        }
-
-        clearLegacyChartRenderState(actions);
+        clearLegacyChartRenderState();
         removeExistingChartCanvases();
         runDirectRenderFallback(chartGlobal, `setting-change:${settingName}`);
 
