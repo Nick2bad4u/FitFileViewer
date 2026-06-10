@@ -1,4 +1,5 @@
 import { openFileSelector } from "../../files/import/openFileSelector.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type MenuSendChannel = "menu-export" | "menu-save-as";
@@ -21,10 +22,6 @@ type MenuElectronAPI = Partial<
         | "requestSaveAs"
     >
 >;
-
-type MenuIpcGlobal = typeof globalThis & {
-    electronAPI?: MenuElectronAPI;
-};
 
 type RegisterMenuIpcListenersParams = {
     debugMenuLog: (...args: unknown[]) => void;
@@ -57,8 +54,32 @@ let cachedAccentColorPicker: (() => void) | undefined;
 let cachedKeyboardShortcutsModal: (() => void) | undefined;
 const menuForwardRegistry = new Set<MenuSendChannel>();
 
-function getMenuIpcGlobal(): MenuIpcGlobal {
-    return globalThis;
+function getMenuElectronApi(): MenuElectronAPI | null {
+    return getRendererElectronApi(isMenuElectronApi);
+}
+
+function isMenuElectronApi(value: unknown): value is MenuElectronAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const api = value as Record<string, unknown>;
+
+    return [
+        "installUpdate",
+        "onMenuAbout",
+        "onMenuExport",
+        "onMenuKeyboardShortcuts",
+        "onMenuOpenOverlay",
+        "onMenuRestartUpdate",
+        "onMenuSaveAs",
+        "onOpenAccentColorPicker",
+        "requestExport",
+        "requestSaveAs",
+    ].every((methodName) => {
+        const method = api[methodName];
+        return method === undefined || typeof method === "function";
+    });
 }
 
 function getMenuForwardRegistry(): Set<MenuSendChannel> {
@@ -154,8 +175,7 @@ export function registerMenuIpcListeners({
     showNotification,
     trackUnsubscribe,
 }: RegisterMenuIpcListenersParams): void {
-    const menuGlobal = getMenuIpcGlobal();
-    const electronAPI = menuGlobal.electronAPI;
+    const electronAPI = getMenuElectronApi();
     if (!electronAPI) {
         return;
     }
@@ -172,7 +192,7 @@ export function registerMenuIpcListeners({
 
     trackMenuEvent("onMenuRestartUpdate", () => {
         try {
-            getMenuIpcGlobal().electronAPI?.installUpdate?.();
+            electronAPI.installUpdate?.();
         } catch {
             /* ignore */
         }
@@ -203,11 +223,11 @@ export function registerMenuIpcListeners({
             channel === "menu-save-as" ? "onMenuSaveAs" : "onMenuExport",
             () => {
                 if (channel === "menu-save-as") {
-                    getMenuIpcGlobal().electronAPI?.requestSaveAs?.();
+                    electronAPI.requestSaveAs?.();
                     return;
                 }
 
-                getMenuIpcGlobal().electronAPI?.requestExport?.();
+                electronAPI.requestExport?.();
             }
         );
     };

@@ -176,6 +176,7 @@ const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
 const migratedElectronApiAccessorFiles = [
+    "electron-app/utils/app/lifecycle/menuIpcListeners.ts",
     "electron-app/utils/app/lifecycle/recentFilesContextMenu.ts",
     "electron-app/utils/ui/dragDropHandler.ts",
     "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",
@@ -383,7 +384,7 @@ const rendererVendorBundleGlobalMarkerPattern =
 const rendererRuntimeGlobalFallbackPattern =
     /\b(?:__fitFileViewerRuntimeGlobalFallbackForTests|runtimeGlobalFallbackFlag|getGlobalRuntimeCandidate|getWindowRuntimeCandidate)\b/u;
 const directElectronApiGlobalReadPattern =
-    /\b(?:globalThis|window)\.electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI/u;
+    /\b(?:globalThis|window)\.electronAPI\b|\.\s*electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
