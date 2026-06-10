@@ -4,6 +4,10 @@ import {
     __setTestDeps as setRawTestDeps,
     exportUtils as rawExportUtils,
 } from "../../../electron-app/utils/files/export/exportUtils.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type NotificationType = "error" | "info" | "success";
 
@@ -85,10 +89,6 @@ type ElectronApiMock = {
     writeClipboardPngDataUrl: ReturnType<
         typeof vi.fn<(dataUrl: string) => boolean | Promise<boolean>>
     >;
-};
-
-type TestGlobal = typeof globalThis & {
-    electronAPI?: ElectronApiMock;
 };
 
 const dependencyMocks = vi.hoisted(() => ({
@@ -203,7 +203,7 @@ Object.defineProperty(globalThis, "ClipboardItem", {
 const createRealElement = document.createElement.bind(document);
 const exportUtils = rawExportUtils as ExportUtilsUnderTest;
 const setTestDeps = setRawTestDeps as (deps: Partial<TestDeps>) => void;
-const testGlobal = globalThis as TestGlobal;
+let electronApiMock: ElectronApiMock | undefined;
 
 function createMockContext(): MockContext {
     return {
@@ -292,7 +292,21 @@ function installClipboard(write: ClipboardApi["write"]): void {
 }
 
 function clearElectronApi(): void {
-    delete testGlobal.electronAPI;
+    electronApiMock = undefined;
+    resetRendererElectronApiCandidate();
+}
+
+function getElectronApiMock(): ElectronApiMock {
+    if (!electronApiMock) {
+        throw new Error("electronAPI mock was not installed");
+    }
+
+    return electronApiMock;
+}
+
+function installElectronApi(api: ElectronApiMock): void {
+    electronApiMock = api;
+    registerRendererElectronApiCandidate(api);
 }
 
 function expectCanvasSize(
@@ -812,11 +826,11 @@ describe("exportUtils chart export helpers", () => {
             >(async () => {
                 throw new Error("Permission denied");
             });
-            testGlobal.electronAPI = {
+            installElectronApi({
                 writeClipboardPngDataUrl: vi.fn<(dataUrl: string) => boolean>(
                     () => false
                 ),
-            };
+            });
             queueCanvas(exportCanvas);
             installClipboard(writeClipboard);
 
@@ -824,7 +838,7 @@ describe("exportUtils chart export helpers", () => {
 
             expect(exportCanvas.context.fillStyle).toBe("#ffffff");
             expect(
-                testGlobal.electronAPI.writeClipboardPngDataUrl
+                getElectronApiMock().writeClipboardPngDataUrl
             ).toHaveBeenCalledWith("data:image/png;base64,bW9jaw==");
             expect(writeClipboard).toHaveBeenCalledOnce();
             expect(dependencyMocks.showNotification).toHaveBeenCalledWith(
@@ -877,11 +891,11 @@ describe("exportUtils chart export helpers", () => {
                 0,
                 "data:image/png;base64,Y29tYmluZWQ="
             );
-            testGlobal.electronAPI = {
+            installElectronApi({
                 writeClipboardPngDataUrl: vi.fn<(dataUrl: string) => boolean>(
                     () => true
                 ),
-            };
+            });
             queueCanvas(combinedCanvas, createCanvasFixture());
 
             await exportUtils.copyCombinedChartsToClipboard([
@@ -890,7 +904,7 @@ describe("exportUtils chart export helpers", () => {
 
             expect(combinedCanvas.context.fillStyle).toBe("#ffffff");
             expect(
-                testGlobal.electronAPI.writeClipboardPngDataUrl
+                getElectronApiMock().writeClipboardPngDataUrl
             ).toHaveBeenCalledWith("data:image/png;base64,Y29tYmluZWQ=");
             expectCanvasSize(combinedCanvas.canvas, {
                 height: 400,
