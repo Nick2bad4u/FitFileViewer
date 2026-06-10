@@ -1080,6 +1080,168 @@ test.describe("FitFileViewer Electron UI", () => {
         }
     });
 
+    test("clears distance and area map measurements through the registered measure control", async () => {
+        await expect(ensureSampleFitLoaded()).resolves.toMatchObject({
+            activeFileName: sampleFitActivityState.activeFileName,
+        });
+
+        await page.locator("#tab_map").click();
+        await expect(page.locator("#leaflet-map")).toBeVisible();
+        await expect
+            .poll(async () =>
+                page.evaluate(async () => {
+                    const moduleUrl = new URL(
+                        "./utils/maps/state/mapMeasureControlState.js",
+                        window.location.href
+                    ).href;
+                    // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used to inspect explicit renderer map measurement state in Playwright smoke tests.
+                    const mapMeasurementStateModule = (await import(
+                        moduleUrl
+                    )) as {
+                        getRegisteredMapMeasureControl: () => unknown;
+                    };
+
+                    return (
+                        mapMeasurementStateModule.getRegisteredMapMeasureControl() !==
+                        null
+                    );
+                })
+            )
+            .toBe(true);
+
+        const clearResult = await page.evaluate(async () => {
+            type LeafletRuntime = {
+                latLng?: (lat: number, lng: number) => unknown;
+            };
+            type LayerGroupRuntime = {
+                getLayers?: () => unknown[];
+            };
+            type LeafletMeasureControlRuntime = {
+                _finishMeasure?: () => void;
+                _latlngs?: unknown[];
+                _map?: {
+                    getContainer?: () => HTMLElement;
+                };
+                _measurementRunningTotal?: number;
+                _resultLayer?: LayerGroupRuntime;
+                _segmentMeters?: number[];
+                _startMeasure?: () => void;
+                clearMeasurements?: () => void;
+            };
+            const moduleUrl = new URL(
+                "./utils/maps/state/mapMeasureControlState.js",
+                window.location.href
+            ).href;
+            // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used to exercise explicit renderer map measurement state in Playwright smoke tests.
+            const mapMeasurementStateModule = (await import(moduleUrl)) as {
+                clearRegisteredMapMeasurements: () => void;
+                getRegisteredMapMeasureControl: () => LeafletMeasureControlRuntime | null;
+            };
+            const globalWindow = window as Window & { L?: LeafletRuntime };
+            const control =
+                mapMeasurementStateModule.getRegisteredMapMeasureControl();
+            const leafletRuntime = globalWindow.L;
+
+            if (!control) {
+                throw new Error("Map measure control was not registered");
+            }
+            if (
+                !leafletRuntime ||
+                typeof leafletRuntime.latLng !== "function"
+            ) {
+                throw new Error("Leaflet runtime was not exposed");
+            }
+            if (
+                typeof control._startMeasure !== "function" ||
+                typeof control._finishMeasure !== "function" ||
+                typeof control.clearMeasurements !== "function"
+            ) {
+                throw new Error("Registered map measure control is incomplete");
+            }
+
+            function createLatLng(lat: number, lng: number): unknown {
+                return leafletRuntime.latLng?.(lat, lng) ?? { lat, lng };
+            }
+
+            function completeMeasurement(
+                latLngs: unknown[],
+                segmentMeters: number[]
+            ): void {
+                control._startMeasure?.();
+                control._latlngs = latLngs;
+                control._segmentMeters = segmentMeters;
+                control._measurementRunningTotal =
+                    Math.sumPrecise(segmentMeters);
+                control._finishMeasure?.();
+            }
+
+            completeMeasurement(
+                [createLatLng(42, -83), createLatLng(42.001, -83.001)],
+                [100]
+            );
+            completeMeasurement(
+                [
+                    createLatLng(42, -83),
+                    createLatLng(42.001, -83),
+                    createLatLng(42.001, -83.001),
+                    createLatLng(42, -83),
+                ],
+                [
+                    100,
+                    100,
+                    100,
+                ]
+            );
+
+            const mapContainer =
+                control._map?.getContainer?.() ??
+                document.querySelector<HTMLElement>("#leaflet-map");
+            const popupElement = document.createElement("div");
+            popupElement.className = "leaflet-popup";
+            const popupBody = document.createElement("div");
+            popupBody.className = "leaflet-measure-resultpopup";
+            popupBody.textContent = "Area measurement";
+            popupElement.append(popupBody);
+            mapContainer?.append(popupElement);
+
+            const before = {
+                completedLayerCount:
+                    control._resultLayer?.getLayers?.().length ?? 0,
+                popupDomCount:
+                    mapContainer?.querySelectorAll(
+                        ".leaflet-measure-resultpopup"
+                    ).length ?? 0,
+            };
+
+            mapMeasurementStateModule.clearRegisteredMapMeasurements();
+
+            return {
+                after: {
+                    completedLayerCount:
+                        control._resultLayer?.getLayers?.().length ?? 0,
+                    latLngCount: control._latlngs?.length ?? null,
+                    popupDomCount:
+                        mapContainer?.querySelectorAll(
+                            ".leaflet-measure-resultpopup"
+                        ).length ?? 0,
+                    runningTotal: control._measurementRunningTotal ?? null,
+                    segmentCount: control._segmentMeters?.length ?? null,
+                },
+                before,
+            };
+        });
+
+        expect(clearResult.before.completedLayerCount).toBeGreaterThan(0);
+        expect(clearResult.before.popupDomCount).toBe(1);
+        expect(clearResult.after).toStrictEqual({
+            completedLayerCount: 0,
+            latLngCount: 0,
+            popupDomCount: 0,
+            runningTotal: 0,
+            segmentCount: 0,
+        });
+    });
+
     test("shows loading and loaded states for an empty Browser folder", async () => {
         await expect(ensureSampleFitLoaded()).resolves.toMatchObject({
             activeFileName: sampleFitActivityState.activeFileName,
