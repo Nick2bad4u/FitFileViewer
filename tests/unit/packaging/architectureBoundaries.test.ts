@@ -183,6 +183,7 @@ const migratedElectronApiAccessorFiles = [
     "electron-app/utils/files/export/exportUtils.ts",
     "electron-app/utils/rendering/core/showFitData.ts",
     "electron-app/utils/state/integration/mainProcessStateClient.ts",
+    "electron-app/utils/state/integration/rendererStateIntegration.ts",
     "electron-app/utils/ui/dragDropHandler.ts",
     "electron-app/utils/ui/browser/fileBrowserTab.ts",
     "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",

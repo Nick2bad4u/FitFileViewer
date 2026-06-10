@@ -12,6 +12,7 @@ import { getActiveFitChartData } from "../domain/fitChartDataState.js";
 import { getActiveFitRouteData } from "../domain/fitRouteDataState.js";
 import { getActiveFitTableData } from "../domain/fitTableDataState.js";
 import { UIActions } from "../domain/uiStateManager.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 // At the top of renderer.js, add these imports:
 import { initializeCompleteStateSystem } from "./stateIntegration.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
@@ -20,11 +21,22 @@ type Unsubscribe = () => void;
 
 type RendererElectronAPI = Partial<Pick<ElectronAPI, "onFileOpened">>;
 
-type RendererStateIntegrationGlobal = typeof globalThis & {
-    electronAPI?: RendererElectronAPI;
-};
-
 let stateAwareEventHandlersAbortController: AbortController | undefined;
+
+function isRendererElectronAPI(value: unknown): value is RendererElectronAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const onFileOpened = (value as Readonly<Record<string, unknown>>)[
+        "onFileOpened"
+    ];
+    return onFileOpened === undefined || typeof onFileOpened === "function";
+}
+
+function getRendererStateElectronAPI(): RendererElectronAPI | null {
+    return getRendererElectronApi(isRendererElectronAPI);
+}
 
 /**
  * Example of how to use the state system in your existing functions
@@ -311,11 +323,11 @@ function setupReactiveUI(): void {
  * Set up event handlers that work with the state system
  */
 function setupStateAwareEventHandlers(): void {
-    const integrationGlobal = getRendererStateIntegrationGlobal();
+    const electronAPI = getRendererStateElectronAPI();
 
     // File open handler (optional in preload API)
-    if (integrationGlobal.electronAPI?.onFileOpened) {
-        integrationGlobal.electronAPI.onFileOpened((fileData, filePath) => {
+    if (electronAPI?.onFileOpened) {
+        electronAPI.onFileOpened((fileData, filePath) => {
             void AppActions.loadFile(fileData, filePath);
         });
     }
@@ -399,10 +411,6 @@ function updateAllComponents(newData: unknown): void {
 function updateSummaryTab(data: unknown): void {
     // Your existing summary update logic here
     console.log("[Renderer] Summary updated with new data", data);
-}
-
-function getRendererStateIntegrationGlobal(): RendererStateIntegrationGlobal {
-    return globalThis;
 }
 
 // Export for use in renderer.js
