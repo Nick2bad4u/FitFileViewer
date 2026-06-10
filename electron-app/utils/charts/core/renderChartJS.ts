@@ -77,7 +77,6 @@ import {
     DATA_SIGNATURE_SOURCES,
 } from "./renderChartSettingsSignature.js";
 import { getThemeConfigSafe } from "./renderChartThemeHelpers.js";
-import { addHoverEffectsToExistingCharts } from "../plugins/addChartHoverEffects.js";
 import {
     resetChartNotificationState as resetChartNotificationStateCompat,
     updatePreviousChartState as updatePreviousChartStateCompat,
@@ -658,9 +657,7 @@ async function renderChartsWithData(
 }
 
 exposeChartDevTools({
-    addHoverEffectsToExistingCharts,
     chartActions,
-    chartGlobal,
     chartPerformanceMonitor,
     chartSettingsManager,
     chartState,

@@ -336,6 +336,8 @@ const directChartDebugGlobalPattern =
     /\b(?:window|globalThis|chartGlobal|runtimeGlobal|zoneGlobal|debugGlobal|chartHoverGlobal)\.(?:__FFV_debugCharts|__FFV_debugChartsVerbose|__FFV_traceFullscreen)\b/u;
 const directChartListenerStateGlobalPattern =
     /\b(?:window|globalThis|chartGlobal|runtimeGlobal)\.(?:_fitFileViewerChartListener|_fitFileViewerChartListenerAbortController|_fitFileViewerSharedConfigurationListener|_fitFileViewerSharedConfigurationAbortController)\b/u;
+const directChartDevToolsGlobalPattern =
+    /\b(?:window|globalThis|chartGlobal|runtimeGlobal|getFieldToggleGlobal\(\))\.(?:__chartjs_dev|addHoverEffectsToExistingCharts)\b/u;
 const directGyazoStartupTimerGlobalPattern =
     /\b(?:window|globalThis|testGlobals)\.__ffvGyazoStartupTimer\b|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']__ffvGyazoStartupTimer["']/u;
 const directPrimeTestEnvironmentTimerGlobalPattern =
@@ -1551,7 +1553,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(81);
+        expect.assertions(82);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1963,6 +1965,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directChartDevToolsGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directChartDevToolsGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directGyazoStartupTimerGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directGyazoStartupTimerGlobalPattern.test(
@@ -2196,6 +2205,7 @@ describe("architecture boundaries", () => {
         expect(directChartLoadingSuppressionGlobalLookups).toStrictEqual([]);
         expect(directChartDebugGlobalLookups).toStrictEqual([]);
         expect(directChartListenerStateGlobalLookups).toStrictEqual([]);
+        expect(directChartDevToolsGlobalLookups).toStrictEqual([]);
         expect(directGyazoStartupTimerGlobalLookups).toStrictEqual([]);
         expect(directPrimeTestEnvironmentTimerGlobalLookups).toStrictEqual([]);
         expect(directResourceManagerGlobalLookups).toStrictEqual([]);

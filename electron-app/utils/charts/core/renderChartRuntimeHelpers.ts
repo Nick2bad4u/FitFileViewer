@@ -18,12 +18,10 @@ interface ProcessShim {
 }
 
 interface RenderChartRuntimeGlobal {
-    __chartjs_dev?: unknown;
     process?: ProcessShim;
     chartjsPluginZoom?: unknown;
     Chart?: unknown;
     ChartZoom?: unknown;
-    addHoverEffectsToExistingCharts?: unknown;
     getThemeConfig?: unknown;
     window?: unknown;
 }

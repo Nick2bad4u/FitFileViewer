@@ -2,6 +2,10 @@ import {
     getRegisteredChartInstanceCount,
     getRegisteredChartInstances,
 } from "./chartInstanceRegistry.js";
+import {
+    getRegisteredChartDevTools,
+    registerChartDevTools,
+} from "./chartDevToolsRegistry.js";
 import type {
     StateListener,
     StateUpdateOptions,
@@ -11,11 +15,6 @@ import { getActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 interface ChartActionsAccess {
     readonly clearCharts?: unknown;
     readonly requestRerender?: unknown;
-}
-
-interface ChartRuntimeGlobal {
-    addHoverEffectsToExistingCharts?: unknown;
-    __chartjs_dev?: unknown;
 }
 
 interface ChartSettingsManagerAccess {
@@ -43,9 +42,7 @@ type SetStateFunction = (
 type SubscribeFunction = (path: string, callback: StateListener) => unknown;
 
 interface ChartDevToolsDependencies {
-    readonly addHoverEffectsToExistingCharts: unknown;
     readonly chartActions: ChartActionsAccess;
-    readonly chartGlobal: ChartRuntimeGlobal;
     readonly chartPerformanceMonitor: PerformanceMonitorAccess;
     readonly chartSettingsManager: ChartSettingsManagerAccess;
     readonly chartState: unknown;
@@ -85,7 +82,7 @@ function formatFieldVisibility(value: unknown): string {
 }
 
 /**
- * Exposes state-aware chart development helpers on the runtime global.
+ * Registers state-aware chart development helpers for typed diagnostics.
  */
 export function exposeChartDevTools(
     dependencies: ChartDevToolsDependencies
@@ -96,17 +93,13 @@ export function exposeChartDevTools(
 
     const {
         chartActions,
-        chartGlobal,
         chartPerformanceMonitor,
         chartSettingsManager,
         getComputedStateManager,
         getState,
     } = dependencies;
 
-    chartGlobal.addHoverEffectsToExistingCharts =
-        dependencies.addHoverEffectsToExistingCharts;
-
-    if (chartGlobal.__chartjs_dev) {
+    if (getRegisteredChartDevTools()) {
         return;
     }
 
@@ -173,10 +166,10 @@ export function exposeChartDevTools(
         },
     };
 
-    chartGlobal.__chartjs_dev = devTools;
+    registerChartDevTools(devTools);
 
     console.log(
-        "[ChartJS] Enhanced development tools available at chartGlobal.__chartjs_dev"
+        "[ChartJS] Enhanced development tools registered in chartDevToolsRegistry"
     );
     console.log("[ChartJS] Available commands:", Object.keys(devTools));
 }

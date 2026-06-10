@@ -1,4 +1,5 @@
 import { reRenderChartsAfterSettingChange } from "../../app/initialization/getCurrentSettings.js";
+import { getRegisteredChartActions } from "../../charts/core/chartActionsRegistry.js";
 import { updateAllChartStatusIndicators } from "../../charts/components/chartStatusIndicator.js";
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { extractDeveloperFieldsList } from "../../data/processing/extractDeveloperFieldsList.js";
@@ -43,14 +44,6 @@ type FieldToggleFitData = {
     timeInZoneMesgs: ZoneMessage[];
 };
 
-type FieldToggleGlobal = typeof globalThis & {
-    __chartjs_dev?: { requestRerender?: (reason: string) => void };
-};
-
-function getFieldToggleGlobal(): FieldToggleGlobal {
-    return globalThis;
-}
-
 function getManagedFieldToggleFitData(): FieldToggleFitData {
     const activityData =
         getActiveFitActivityData() as Partial<FieldToggleFitData>;
@@ -61,10 +54,8 @@ function getManagedFieldToggleFitData(): FieldToggleFitData {
     };
 }
 
-function getChartDev():
-    | { requestRerender?: (reason: string) => void }
-    | undefined {
-    return getFieldToggleGlobal().__chartjs_dev;
+function requestChartRerenderFallback(reason: string): void {
+    getRegisteredChartActions()?.requestRerender?.(reason);
 }
 
 function parseFiniteNumber(value: unknown): number | null {
@@ -533,7 +524,7 @@ function createFieldToggle(field: string): HTMLDivElement {
                 chartStateManager.debouncedRender(`Field toggle: ${field}`);
             } else {
                 // Fallback without importing renderChartJS to avoid circular deps
-                getChartDev()?.requestRerender?.("Field toggle fallback");
+                requestChartRerenderFallback("Field toggle fallback");
                 globalThis.dispatchEvent(
                     new CustomEvent("ffv:request-render-charts", {
                         detail: { reason: "field-toggle" },
@@ -633,7 +624,7 @@ function toggleAllFields(enable: boolean): void {
         if (chartStateManager) {
             chartStateManager.debouncedRender(`All fields ${action}`);
         } else {
-            getChartDev()?.requestRerender?.("Settings change fallback");
+            requestChartRerenderFallback("Settings change fallback");
             globalThis.dispatchEvent(
                 new CustomEvent("ffv:request-render-charts", {
                     detail: { reason: "settings-change" },
