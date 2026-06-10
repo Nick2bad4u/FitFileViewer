@@ -13,10 +13,9 @@ type StopGyazoServer = () => Promise<void>;
 type TestGlobal = typeof globalThis & {
     __vitest_manual_mocks__?: ManualMockRegistry;
     confirm: (message?: string) => boolean;
-    electronAPI?: {
-        stopGyazoServer: ReturnType<typeof vi.fn<StopGyazoServer>>;
-    };
 };
+
+let stopGyazoServerMock: ReturnType<typeof vi.fn<StopGyazoServer>> | undefined;
 
 async function loadExportUtils() {
     return await import("../../../../../electron-app/utils/files/export/exportUtils.js");
@@ -38,12 +37,10 @@ function getShowNotificationMock(): ReturnType<typeof vi.fn<ShowNotification>> {
 }
 
 function getStopGyazoServerMock(): ReturnType<typeof vi.fn<StopGyazoServer>> {
-    const stopGyazoServer = (globalThis as TestGlobal).electronAPI
-        ?.stopGyazoServer;
-    if (!stopGyazoServer) {
+    if (!stopGyazoServerMock) {
         throw new Error("stopGyazoServer mock was not installed");
     }
-    return stopGyazoServer;
+    return stopGyazoServerMock;
 }
 
 function installBaseMocks() {
@@ -112,8 +109,10 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         installBaseMocks();
     });
 
-    afterEach(function cleanupExportUiTest(): void {
+    afterEach(async function cleanupExportUiTest(): Promise<void> {
         document.body.replaceChildren();
+        stopGyazoServerMock = undefined;
+        await resetRegisteredElectronApi();
     });
 
     it("imgur account manager: save, setup guide, clear, close, ESC and click-outside", async () => {
@@ -493,11 +492,10 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         expect.assertions(3);
 
         const { exportUtils } = await loadExportUtils();
-        (globalThis as TestGlobal).electronAPI = {
-            stopGyazoServer: vi
-                .fn<StopGyazoServer>()
-                .mockResolvedValue(undefined),
-        };
+        stopGyazoServerMock = vi
+            .fn<StopGyazoServer>()
+            .mockResolvedValue(undefined);
+        await registerElectronApi({ stopGyazoServer: stopGyazoServerMock });
 
         const overlay = exportUtils.createGyazoAuthModal(
             "https://auth",
@@ -545,3 +543,19 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
         );
     });
 });
+
+async function registerElectronApi(api: {
+    readonly stopGyazoServer: ReturnType<typeof vi.fn<StopGyazoServer>>;
+}): Promise<void> {
+    const { registerRendererElectronApiCandidate } = await import(
+        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
+    );
+    registerRendererElectronApiCandidate(api);
+}
+
+async function resetRegisteredElectronApi(): Promise<void> {
+    const { resetRendererElectronApiCandidate } = await import(
+        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
+    );
+    resetRendererElectronApiCandidate();
+}
