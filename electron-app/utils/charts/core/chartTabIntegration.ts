@@ -11,11 +11,6 @@ type DisableableTabButton = HTMLElement & {
     disabled?: boolean;
 };
 
-type ChartTabIntegrationGlobal = typeof globalThis & {
-    chartTabIntegration?: ChartTabIntegration;
-    window?: Window | undefined;
-};
-
 type ChartTabIntegrationStatus = {
     readonly chartState: ReturnType<typeof chartStateManager.getChartInfo>;
     readonly chartTabActive: boolean;
@@ -202,9 +197,6 @@ export class ChartTabIntegration {
                 this.checkAndRenderCharts();
             }
         });
-
-        const chartGlobal = globalThis as ChartTabIntegrationGlobal;
-        chartGlobal.chartTabIntegration = this;
     }
 
     /**
@@ -233,10 +225,5 @@ function asDisableableTabButton(
  * Singleton chart tab integration used by the legacy UI bootstrap.
  */
 export const chartTabIntegration = new ChartTabIntegration();
-
-const chartGlobal = globalThis as ChartTabIntegrationGlobal;
-if (chartGlobal.window !== undefined) {
-    chartGlobal.chartTabIntegration = chartTabIntegration;
-}
 
 export default chartTabIntegration;

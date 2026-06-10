@@ -92,12 +92,6 @@ vi.mock(
 
 import { ChartTabIntegration } from "../../../../../electron-app/utils/charts/core/chartTabIntegration.js";
 
-type ChartTabIntegrationTestGlobal = typeof globalThis & {
-    chartTabIntegration?: ChartTabIntegration;
-};
-
-const testGlobal = globalThis as ChartTabIntegrationTestGlobal;
-
 function resetState(): void {
     stateValues.clear();
     stateListeners.clear();
@@ -113,7 +107,7 @@ function resetState(): void {
     getRawDataMock.mockClear();
     getRawDataMock.mockImplementation(() => stateValues.get("fitFile.rawData"));
     document.body.replaceChildren();
-    delete testGlobal.chartTabIntegration;
+    Reflect.deleteProperty(globalThis, "chartTabIntegration");
 }
 
 describe(ChartTabIntegration, () => {
@@ -162,7 +156,7 @@ describe(ChartTabIntegration, () => {
         logSpy.mockRestore();
     });
 
-    it("subscribes to state changes and exposes the singleton-compatible global", () => {
+    it("subscribes to state changes without exposing a global singleton", () => {
         expect.assertions(7);
 
         resetState();
@@ -193,7 +187,7 @@ describe(ChartTabIntegration, () => {
         expect(firstSubscribeCall?.[1]).toBeTypeOf("function");
         expect(secondSubscribeCall?.[0]).toBe("app.isOpeningFile");
         expect(secondSubscribeCall?.[1]).toBeTypeOf("function");
-        expect(testGlobal.chartTabIntegration).toBe(integration);
+        expect(Reflect.has(globalThis, "chartTabIntegration")).toBe(false);
         expect(debouncedRenderMock).toHaveBeenCalledWith(
             "Integration check after file load"
         );

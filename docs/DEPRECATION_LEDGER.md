@@ -73,6 +73,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Master state performance monitoring migration status: state-change counting now uses typed state-manager subscription cleanup instead of monkey-patching `__state_debug.setState`.
 - State devtools debug-console migration status: `stateDevTools.ts` now exposes debugging and performance helpers only through typed module exports instead of publishing `window.__stateDebug`.
 - State integration development debug migration status: state integration startup no longer publishes `__state_debug`; development diagnostics use typed module APIs instead of renderer globals.
+- Chart tab integration migration status: chart-tab lifecycle coordination now stays on the typed `chartTabIntegration` module singleton instead of publishing `window.chartTabIntegration`.
 - File-access policy migration status: approved FIT-file paths now stay in `electron-app/main/security/fileAccessPolicyState.ts` module state instead of `__ffvFileAccessPolicyState` on the global object.
 - Tab-button enabled-state migration status: private tab-button enabled bookkeeping now stays in `electron-app/utils/ui/controls/enableTabButtons.ts` module state instead of `tabButtonsCurrentlyEnabled` on the global object.
 - Tab-state manager migration status: the tab-state manager singleton now stays behind `electron-app/utils/ui/tabs/tabStateManager.ts` module exports instead of `tabStateManager` on the global object.
