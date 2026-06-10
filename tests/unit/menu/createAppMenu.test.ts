@@ -32,6 +32,12 @@ function restoreProcessPlatform(
     if (descriptor) Object.defineProperty(process, "platform", descriptor);
 }
 
+let recentFilesOverrideForNextImport: null | readonly string[] = null;
+
+function setRecentFilesOverrideForTests(files: null | readonly string[]): void {
+    recentFilesOverrideForNextImport = files;
+}
+
 // Provide an Electron mock that always proxies to the hoisted global mock
 // This keeps behavior deterministic and avoids import-order pitfalls
 vi.mock(import("electron"), () => {
@@ -76,6 +82,10 @@ describe("createAppMenu", () => {
                 ),
             })
         );
+        setRecentFilesOverrideForTests([
+            "C:/Users/Test/Documents/activity1.fit",
+            "C:/Users/Test/Documents/activity2.fit",
+        ]);
         // Do NOT reassign these spies — the electron mock captures the original references.
         // Instead, clear existing calls so expectations remain accurate per-test.
         const sendSpy = (globalThis as any).__electronSendSpy;
@@ -99,11 +109,6 @@ describe("createAppMenu", () => {
         (globalThis as any).__shellOpenCalls = [];
         (globalThis as any).__shellRevealCalls = [];
         (globalThis as any).__clipboardWrites = [];
-        // Inject recent files via global hook consumed by createAppMenu
-        (globalThis as any).__mockRecentFiles = [
-            "C:/Users/Test/Documents/activity1.fit",
-            "C:/Users/Test/Documents/activity2.fit",
-        ];
         // Seed hoisted fallback electron mock for environments where require("electron") may fail
         (globalThis as any).__electronHoistedMock = {
             Menu: {
@@ -165,15 +170,25 @@ describe("createAppMenu", () => {
 
     afterEach(() => {
         capturedTemplate = null;
-        // Cleanup injected global
-        try {
-            delete (globalThis as any).__mockRecentFiles;
-        } catch {}
+        setRecentFilesOverrideForTests(null);
     });
 
     function importCreateAppMenu() {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod = require("../../../electron-app/utils/app/menu/createAppMenu.js");
+        const mod =
+            require("../../../electron-app/utils/app/menu/createAppMenu.js") as {
+                createAppMenu: (
+                    mainWindow: any,
+                    currentTheme?: string,
+                    loadedFitFilePath?: string | null
+                ) => void;
+                setCreateAppMenuRecentFilesOverrideForTests: (
+                    files: null | readonly string[]
+                ) => void;
+            };
+        mod.setCreateAppMenuRecentFilesOverrideForTests(
+            recentFilesOverrideForNextImport
+        );
         return mod.createAppMenu as (
             mainWindow: any,
             currentTheme?: string,
@@ -616,8 +631,8 @@ describe("createAppMenu", () => {
 
     it("disables Clear Recent Files when none exist (robust)", async () => {
         expect.assertions(2);
-        // Ensure determinism: force the recent files module to return an empty list and clear globals
-        (globalThis as any).__mockRecentFiles = [];
+        // Ensure determinism: force the recent files module to return an empty list.
+        setRecentFilesOverrideForTests([]);
         (globalThis as any).__lastBuiltMenuTemplate = undefined;
         vi.resetModules();
         // Also reset the default mock from beforeEach so it doesn't override
@@ -1276,6 +1291,10 @@ describe("createAppMenu - additional robust branches", () => {
                 ),
             })
         );
+        setRecentFilesOverrideForTests([
+            "C:/Users/Test/Documents/activity1.fit",
+            "C:/Users/Test/Documents/activity2.fit",
+        ]);
         // reset spies and call logs
         const sendSpy = (globalThis as any).__electronSendSpy;
         if (sendSpy && typeof sendSpy.mockReset === "function")
@@ -1297,10 +1316,6 @@ describe("createAppMenu - additional robust branches", () => {
         (globalThis as any).__shellOpenCalls = [];
         (globalThis as any).__shellRevealCalls = [];
         (globalThis as any).__clipboardWrites = [];
-        (globalThis as any).__mockRecentFiles = [
-            "C:/Users/Test/Documents/activity1.fit",
-            "C:/Users/Test/Documents/activity2.fit",
-        ];
         (globalThis as any).__electronHoistedMock = {
             Menu: {
                 buildFromTemplate: (template: any[]) => {
@@ -1362,14 +1377,25 @@ describe("createAppMenu - additional robust branches", () => {
 
     afterEach(() => {
         capturedTemplate = null;
-        try {
-            delete (globalThis as any).__mockRecentFiles;
-        } catch {}
+        setRecentFilesOverrideForTests(null);
     });
 
     function importCreateAppMenu() {
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod = require("../../../electron-app/utils/app/menu/createAppMenu.js");
+        const mod =
+            require("../../../electron-app/utils/app/menu/createAppMenu.js") as {
+                createAppMenu: (
+                    mainWindow?: any,
+                    currentTheme?: string,
+                    loadedFitFilePath?: string | null
+                ) => void;
+                setCreateAppMenuRecentFilesOverrideForTests: (
+                    files: null | readonly string[]
+                ) => void;
+            };
+        mod.setCreateAppMenuRecentFilesOverrideForTests(
+            recentFilesOverrideForNextImport
+        );
         return mod.createAppMenu as (
             mainWindow?: any,
             currentTheme?: string,

@@ -72,9 +72,7 @@ type FileAccessPolicy = {
 };
 
 type FitFileViewerGlobal = typeof globalThis & {
-    __FFV_debugMenu?: boolean;
     __lastBuiltMenuTemplate?: MenuItemLike[];
-    __mockRecentFiles?: unknown;
 };
 
 function getMenuGlobal(): FitFileViewerGlobal {
@@ -123,8 +121,8 @@ function hasUsableElectronReference(
 ): candidate is ElectronLike {
     return Boolean(
         candidate?.["Menu"] ||
-            candidate?.["app"] ||
-            candidate?.["BrowserWindow"]
+        candidate?.["app"] ||
+        candidate?.["BrowserWindow"]
     );
 }
 
@@ -173,6 +171,19 @@ function getConf(): ConfLike {
 // Persistent reference to prevent menu GC/disappearance on Linux.
 // See: https://github.com/electron/electron/issues/18397
 let mainMenu: unknown = null;
+let recentFilesOverrideForTests: null | string[] = null;
+
+function setCreateAppMenuRecentFilesOverrideForTests(
+    files: null | readonly string[]
+): void {
+    recentFilesOverrideForTests = files === null ? null : [...files];
+}
+
+function getRecentFilesOverrideForTests(): null | string[] {
+    return recentFilesOverrideForTests === null
+        ? null
+        : [...recentFilesOverrideForTests];
+}
 
 // Determine if verbose createAppMenu debug logging should be enabled.
 function getMenuProcessEnvironmentValue(name: string): string | undefined {
@@ -189,12 +200,7 @@ function getMenuProcessEnvironmentValue(name: string): string | undefined {
 
 function shouldLogMenuDebug() {
     try {
-        const envFlag =
-            getMenuProcessEnvironmentValue("FFV_DEBUG_MENU") === "1";
-        const globalFlag =
-            typeof globalThis !== "undefined" &&
-            Boolean(getMenuGlobal().__FFV_debugMenu);
-        return envFlag || globalFlag;
+        return getMenuProcessEnvironmentValue("FFV_DEBUG_MENU") === "1";
     } catch {
         return false;
     }
@@ -279,23 +285,6 @@ function createAppMenu(
     ): boolean => sendToWindow(resolveTargetWindow(), channel, ...args);
     const usingPassedTheme = typeof currentTheme === "string";
     const theme = usingPassedTheme ? currentTheme : getTheme();
-    // Allow tests to inject recent files deterministically via a global hook
-    let injectedRecentFiles: string[] = [];
-    let hasInjectedRecentFiles = false;
-    try {
-        const gf =
-            typeof globalThis === "undefined"
-                ? undefined
-                : getMenuGlobal().__mockRecentFiles;
-        if (Array.isArray(gf)) {
-            injectedRecentFiles = gf.filter(
-                (entry): entry is string => typeof entry === "string"
-            );
-            hasInjectedRecentFiles = true;
-        }
-    } catch {
-        /* Ignore errors */
-    }
     // Lazy import recent files utils to ensure vi.mock hooks correctly
     let recentUtils: RecentFilesUtils;
     try {
@@ -311,11 +300,8 @@ function createAppMenu(
             };
         }
     }
-    // If tests injected recent files (even an empty array), honor that verbatim.
-    // Otherwise, fall back to loading from recent files utility.
-    const recentFiles = hasInjectedRecentFiles
-        ? injectedRecentFiles
-        : recentUtils.loadRecentFiles();
+    const recentFiles =
+        getRecentFilesOverrideForTests() ?? recentUtils.loadRecentFiles();
 
     // Best-effort file access policy integration.
     // This module is used in the main process; approving here ensures renderer readFile calls
@@ -1141,5 +1127,8 @@ function setTheme(theme: string): void {
 }
 
 if (typeof module !== "undefined" && module && module.exports) {
-    module.exports = { createAppMenu };
+    module.exports = {
+        createAppMenu,
+        setCreateAppMenuRecentFilesOverrideForTests,
+    };
 }
