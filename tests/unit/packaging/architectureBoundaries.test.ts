@@ -365,6 +365,8 @@ const directMainUiDragDropHandlerGlobalPattern =
     /\b(?:window|globalThis)\.dragDropHandler\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["']dragDropHandler["']\s*\)/u;
 const directMainUiDevelopmentHelperGlobalPattern =
     /\b(?:window|globalThis|getMainUiGlobal\(\)|mainUiGlobal)\.(?:injectMenu|devCleanup)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:injectMenu|devCleanup)["']\s*\)/u;
+const directMainProcessDevHelpersGlobalPattern =
+    /\b(?:window|globalThis)\.devHelpers\b|Object\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)/u;
 const directMenuModalPresenterGlobalPattern =
     /\b(?:window|globalThis|getMenuIpcGlobal\(\)|keyboardShortcutsGlobal|menuGlobal)\.(?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)["']\s*\)/u;
 const directAboutModalDevHelperGlobalPattern =
@@ -1530,7 +1532,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(76);
+        expect.assertions(77);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -2040,6 +2042,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directMainProcessDevHelpersGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directMainProcessDevHelpersGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directMenuModalPresenterGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directMenuModalPresenterGlobalPattern.test(
@@ -2152,6 +2161,7 @@ describe("architecture boundaries", () => {
         expect(directUiStateManagerGlobalLookups).toStrictEqual([]);
         expect(directMainUiDragDropHandlerGlobalLookups).toStrictEqual([]);
         expect(directMainUiDevelopmentHelperGlobalLookups).toStrictEqual([]);
+        expect(directMainProcessDevHelpersGlobalLookups).toStrictEqual([]);
         expect(directMenuModalPresenterGlobalLookups).toStrictEqual([]);
         expect(directAboutModalDevHelperGlobalLookups).toStrictEqual([]);
         expect(directActiveFitFileNameGlobalLookups).toStrictEqual([]);

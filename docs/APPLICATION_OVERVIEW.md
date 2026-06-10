@@ -55,7 +55,7 @@ Launcher → main.ts → BrowserWindow preload:dist/preload.js → renderer dist
 - **Auto updates:** `setupAutoUpdater()` configures electron-updater, hooks download progress events, and surfaces notifications via IPC.
 - **Gyazo OAuth helper:** Embedded HTTP server start/stop actions support screenshot sharing workflows.
 - **Security:** Navigation and new-window guards restrict content to trusted origins.
-- **Dev utilities:** `exposeDevHelpers()` publishes diagnostic hooks when running with `NODE_ENV=development` or `--dev`.
+- **Dev utilities:** `exposeDevHelpers()` returns diagnostic hooks when running with `NODE_ENV=development` or `--dev`.
 
 ## Preload Bridge (`electronAPI`)
 
@@ -182,7 +182,7 @@ Artifacts are configured via `electron-builder` to include NSIS, Squirrel, AppIm
 ## Development Tips
 
 - Renderer debug helpers are module-owned test/development tools, not renderer console globals.
-- Main process exposes `globalThis.devHelpers` (in dev/test) for window state debugging.
+- Main-process development helpers are returned from `exposeDevHelpers()` instead of being published on `globalThis`.
 - Vitest uses the root `tests/vitest/stubs/electron-virtual.cjs` alias plus targeted `vi.doMock` calls to simulate Electron APIs.
 - Scripts in `scripts/` (PowerShell/Node) automate cleanup, changelog updates, and testing migrations.
 

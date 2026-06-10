@@ -82,11 +82,9 @@
     };
 
     /**
-     * Attaches debugging helpers to the global object for development builds.
-     * Mirroring the legacy behaviour keeps the devtools workflow untouched
-     * while allowing the logic to live outside main.js.
+     * Creates debugging helpers for development builds.
      */
-    function exposeDevHelpers(): void {
+    function exposeDevHelpers(): DevHelpers {
         const devHelpers: DevHelpers = {
             cleanupEventHandlers,
             getAppState: () => mainProcessState.data,
@@ -114,17 +112,9 @@
             },
         };
 
-        Object.defineProperty(globalThis, "devHelpers", {
-            configurable: true,
-            enumerable: false,
-            value: devHelpers,
-            writable: true,
-        });
+        logWithContext("info", "Development helpers initialized");
 
-        logWithContext(
-            "info",
-            "Development helpers exposed on global.devHelpers"
-        );
+        return devHelpers;
     }
 
     module.exports = { exposeDevHelpers };

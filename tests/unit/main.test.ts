@@ -346,6 +346,7 @@ type MainModule = {
         DEFAULT_THEME: string;
         PLATFORMS: Record<string, string>;
     };
+    exposeDevHelpers: () => DevHelpers;
     getAppState: (key: string) => unknown;
     initializeApplication: (...args: unknown[]) => unknown;
     isWindowUsable: (window: unknown) => boolean;
@@ -377,7 +378,6 @@ type TestGlobals = typeof globalThis & {
     __electronHoistedMock?: typeof mockElectron;
     __ffvTestKeepalive?: TimerHandle;
     __ffvTestRetryTimers?: TimerHandle[];
-    devHelpers?: DevHelpers;
 };
 
 const testGlobals = globalThis as TestGlobals;
@@ -418,16 +418,6 @@ function getRequiredWebContentsOnCall(
     }
 
     return call;
-}
-
-function getRequiredDevHelpers(): DevHelpers {
-    const { devHelpers } = testGlobals;
-
-    if (!devHelpers) {
-        throw new TypeError("Expected development helpers");
-    }
-
-    return devHelpers;
 }
 
 function getRequiredWarnCall(): unknown[] {
@@ -551,7 +541,7 @@ describe("main.js - Electron Main Process", () => {
     afterEach(() => {
         vi.clearAllMocks();
         delete testGlobals.__electronHoistedMock;
-        delete testGlobals.devHelpers;
+        Reflect.deleteProperty(globalThis, "devHelpers");
         const keepalive = testGlobals.__ffvTestKeepalive;
         if (keepalive) {
             clearInterval(keepalive);
@@ -721,7 +711,7 @@ describe("main.js - Electron Main Process", () => {
         });
 
         it("should handle development flag", async () => {
-            expect.assertions(6);
+            expect.assertions(7);
 
             // Mock command line arguments
             const originalArgv = process.argv;
@@ -733,7 +723,7 @@ describe("main.js - Electron Main Process", () => {
 
             try {
                 const mainModule = await importMainModule();
-                const devHelpers = getRequiredDevHelpers();
+                const devHelpers = mainModule.exposeDevHelpers();
 
                 expect(Object.keys(devHelpers).sort()).toStrictEqual([
                     "cleanupEventHandlers",
@@ -741,6 +731,7 @@ describe("main.js - Electron Main Process", () => {
                     "logState",
                     "rebuildMenu",
                 ]);
+                expect(testGlobals).not.toHaveProperty("devHelpers");
 
                 mainModule.setAppState("loadedFitFilePath", "dev-activity.fit");
                 const devState = devHelpers.getAppState();

@@ -23,7 +23,7 @@
     interface MainLifecycleDependencies {
         appRef: () => unknown;
         browserWindowRef: () => unknown;
-        exposeDevHelpers: () => void;
+        exposeDevHelpers: () => unknown;
         getAppState: GetAppState;
         initializeApplication: InitializeApplication;
         logWithContext: LogWithContext;
@@ -41,7 +41,7 @@
         CONSTANTS: MainConstants;
     };
     const { exposeDevHelpers } = mainRequire("./main/dev/exposeDevHelpers") as {
-        exposeDevHelpers: () => void;
+        exposeDevHelpers: () => unknown;
     };
     const { sendToRenderer } = mainRequire("./main/ipc/sendToRenderer") as {
         sendToRenderer: (...args: unknown[]) => void;

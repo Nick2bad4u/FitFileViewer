@@ -18,7 +18,7 @@
     type LifecycleDependencies = {
         appRef: () => AppLike | undefined;
         browserWindowRef: () => BrowserWindowLike | undefined;
-        exposeDevHelpers: () => void;
+        exposeDevHelpers: () => unknown;
         getAppState: (key: string) => unknown;
         initializeApplication: () =>
             | Promise<WindowLike | undefined>
