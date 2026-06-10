@@ -10,6 +10,10 @@ vi.mock(
 );
 
 import { attachRecentFilesContextMenu } from "../../../electron-app/utils/app/lifecycle/recentFilesContextMenu.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type AddRecentFile = (file: string) => Promise<void>;
 type ApproveRecentFile = (file: string) => Promise<boolean>;
@@ -43,7 +47,6 @@ async function flushAsyncEvents(): Promise<void> {
 async function withRecentFilesHarness(
     runTest: (harness: Harness) => Promise<void>
 ): Promise<void> {
-    const originalElectronAPI = globalThis.electronAPI;
     const openFileBtn = document.createElement("button");
 
     document.body.append(openFileBtn);
@@ -62,13 +65,13 @@ async function withRecentFilesHarness(
         showNotification: vi.fn<ShowNotification>(),
     };
 
-    globalThis.electronAPI = {
+    registerRendererElectronApiCandidate({
         addRecentFile: harness.addRecentFile,
         approveRecentFile: harness.approveRecentFile,
         parseFitFile: harness.parseFitFile,
         readFile: harness.readFile,
         recentFiles: harness.recentFiles,
-    } as typeof globalThis.electronAPI;
+    });
 
     harness.cleanup = attachRecentFilesContextMenu({
         openFileBtn,
@@ -84,7 +87,7 @@ async function withRecentFilesHarness(
         harness.cleanup();
         document.querySelector("#recent-files-menu")?.remove();
         openFileBtn.remove();
-        globalThis.electronAPI = originalElectronAPI;
+        resetRendererElectronApiCandidate();
         vi.restoreAllMocks();
     }
 }
