@@ -41,13 +41,14 @@ const stateDomainRoots = ["electron-app/utils/state/domain"] as const;
 const stateCoreRoots = ["electron-app/utils/state/core"] as const;
 const rendererEntrypointFiles = ["electron-app/renderer.ts"] as const;
 const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
-const fitFileImportElectronApiRegressionTests = [
+const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
     "tests/unit/files/import/loadSingleOverlayFile.fitPayload.test.ts",
     "tests/unit/files/import/openFitFileFromPath.test.ts",
     "tests/unit/lifecycle/listeners.fitPayload.test.ts",
     "tests/unit/lifecycle/recentFilesContextMenu.fitPayload.test.ts",
     "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
+    "tests/unit/utils/theming/core/theme.additional.test.ts",
 ] as const;
 const testSourceRoots = ["tests/unit", "tests/playwright"] as const;
 
@@ -2464,18 +2465,19 @@ describe("architecture boundaries", () => {
         expect(directShowFitDataTestGlobals).toStrictEqual([]);
     });
 
-    it("keeps FIT file flow tests on the registered Electron API runtime", () => {
+    it("keeps migrated renderer tests on the registered Electron API runtime", () => {
         expect.assertions(2);
 
-        const directElectronApiGlobals = fitFileImportElectronApiRegressionTests
-            .filter((relativeFile) =>
-                directElectronApiGlobalReadPattern.test(
-                    stripComments(readRepositoryFile(relativeFile))
+        const directElectronApiGlobals =
+            rendererElectronApiRuntimeRegressionTests
+                .filter((relativeFile) =>
+                    directElectronApiGlobalReadPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
                 )
-            )
-            .sort();
+                .sort();
         const missingRuntimeRegistration =
-            fitFileImportElectronApiRegressionTests
+            rendererElectronApiRuntimeRegressionTests
                 .filter((relativeFile) => {
                     const source = stripComments(
                         readRepositoryFile(relativeFile)

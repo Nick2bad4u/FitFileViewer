@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Note: use relative path from this test folder to module under test
 import * as theme from "../../../../../electron-app/utils/theming/core/theme.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate as clearElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function getBodyClasses(): string[] {
     return [...document.body.classList];
@@ -9,7 +13,6 @@ function getBodyClasses(): string[] {
 
 describe("utils/theming/core/theme.js - additional coverage", () => {
     const originalMatchMedia = globalThis.matchMedia as any;
-    const originalElectronAPI = (globalThis as any).electronAPI;
     let originalGetComputedStyle: any;
 
     beforeEach(() => {
@@ -19,14 +22,14 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         localStorage.clear();
         // restore matchMedia default
         (globalThis as any).matchMedia = originalMatchMedia;
-        // restore electronAPI
-        (globalThis as any).electronAPI = originalElectronAPI;
+        clearElectronApiCandidate();
         // save getComputedStyle
         originalGetComputedStyle = (globalThis as any).getComputedStyle;
     });
 
     afterEach(() => {
         vi.useRealTimers();
+        clearElectronApiCandidate();
         // restore getComputedStyle
         (globalThis as any).getComputedStyle = originalGetComputedStyle;
     });
@@ -176,7 +179,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
             }
         );
         const sendThemeChanged = vi.fn<(theme: string) => void>();
-        (globalThis as any).electronAPI = { onSetTheme, sendThemeChanged };
+        registerRendererElectronApiCandidate({ onSetTheme, sendThemeChanged });
 
         const observedThemes: string[] = [];
         const onThemeChange = (nextTheme: string) => {
