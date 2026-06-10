@@ -53,13 +53,6 @@ declare global {
             duration?: number,
             options?: unknown
         ) => Promise<void>;
-        // --- Zone color / controls utilities ---
-        updateInlineZoneColorSelectors?: (root?: HTMLElement) => void;
-        clearZoneColorData?: (field: string, zoneCount: number) => void;
-        resetAllSettings?: () => void;
-        updateMapTheme?: () => void;
-        _mapThemeListener?: EventListener;
-
         // --- Tab button / UI state debugging helpers ---
         setTabButtonsEnabled?: (enabled: boolean) => void;
         areTabButtonsEnabled?: () => boolean;
