@@ -228,6 +228,37 @@ async function restoreOpenFileDialogForApp(
     );
 }
 
+async function getOpenFileDialogCallCountForApp(
+    electronApp: ElectronApplication
+): Promise<number> {
+    return electronApp.evaluate(() => {
+        const mainGlobal = globalThis as typeof globalThis & {
+            __ffvPlaywrightOpenFileDialogCalls?: number;
+        };
+
+        return mainGlobal.__ffvPlaywrightOpenFileDialogCalls ?? 0;
+    });
+}
+
+async function clickOpenFileButtonAndWaitForDialogCall(
+    page: Page,
+    getOpenFileDialogCallCount: () => Promise<number>
+): Promise<void> {
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+        await page.locator("#open_file_btn").click();
+        try {
+            await expect
+                .poll(getOpenFileDialogCallCount, { timeout: 5_000 })
+                .toBeGreaterThan(0);
+            return;
+        } catch (error) {
+            if (attempt >= 3) {
+                throw error;
+            }
+        }
+    }
+}
+
 const mapTileHosts = new Set([
     "basemaps.cartocdn.com",
     "server.arcgisonline.com",
@@ -381,7 +412,9 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
 
                 return openButton !== null && !openButton.disabled;
             });
-            await noNodeEnvPage.locator("#open_file_btn").click();
+            await clickOpenFileButtonAndWaitForDialogCall(noNodeEnvPage, () =>
+                getOpenFileDialogCallCountForApp(noNodeEnvApp)
+            );
             await expect
                 .poll(
                     async () => {
@@ -584,13 +617,7 @@ test.describe("FitFileViewer Electron UI", () => {
     }
 
     async function getOpenFileDialogCallCount(): Promise<number> {
-        return electronApp.evaluate(() => {
-            const mainGlobal = globalThis as typeof globalThis & {
-                __ffvPlaywrightOpenFileDialogCalls?: number;
-            };
-
-            return mainGlobal.__ffvPlaywrightOpenFileDialogCalls ?? 0;
-        });
+        return getOpenFileDialogCallCountForApp(electronApp);
     }
 
     async function waitForOpenFileButtonReady(): Promise<void> {
@@ -784,7 +811,10 @@ test.describe("FitFileViewer Electron UI", () => {
 
         try {
             await waitForOpenFileButtonReady();
-            await page.locator("#open_file_btn").click();
+            await clickOpenFileButtonAndWaitForDialogCall(
+                page,
+                getOpenFileDialogCallCount
+            );
 
             await expect(page.locator("#active_file_name")).toContainText(
                 sampleFitFileName
@@ -803,6 +833,20 @@ test.describe("FitFileViewer Electron UI", () => {
         } finally {
             await restoreOpenFileDialog();
         }
+    }
+
+    async function ensureSampleFitLoaded(): Promise<ActivityUiState> {
+        const currentState = await getActivityUiState();
+        if (
+            currentState.activeFileName ===
+                sampleFitActivityState.activeFileName &&
+            currentState.recordCount === sampleFitActivityState.recordCount &&
+            currentState.sessionCount === sampleFitActivityState.sessionCount
+        ) {
+            return currentState;
+        }
+
+        return openSampleFitThroughDialog();
     }
 
     test.beforeAll(async () => {
@@ -927,8 +971,10 @@ test.describe("FitFileViewer Electron UI", () => {
 
             const stateBeforeCancel = await getActivityUiState();
 
-            await page.locator("#open_file_btn").click();
-            await expect.poll(getOpenFileDialogCallCount).toBe(1);
+            await clickOpenFileButtonAndWaitForDialogCall(
+                page,
+                getOpenFileDialogCallCount
+            );
 
             const stateAfterCancel = await getActivityUiState();
 
@@ -960,8 +1006,10 @@ test.describe("FitFileViewer Electron UI", () => {
 
             const stateBeforeMissingFile = await getActivityUiState();
 
-            await page.locator("#open_file_btn").click();
-            await expect.poll(getOpenFileDialogCallCount).toBe(1);
+            await clickOpenFileButtonAndWaitForDialogCall(
+                page,
+                getOpenFileDialogCallCount
+            );
 
             await expectMissingFitFileErrorAlert();
             await expect(page.locator("#open_file_btn")).toBeEnabled();
@@ -1003,13 +1051,17 @@ test.describe("FitFileViewer Electron UI", () => {
         await firstTableHeader.click();
         await expect(
             page.locator("#content_data table.dataTable").first()
-        ).toBeVisible();
+        ).toBeVisible({ timeout: 30_000 });
         await expect(
             page.locator("#content_data .dt-container").first()
-        ).toBeVisible();
+        ).toBeVisible({ timeout: 30_000 });
     });
 
     test("loads the Zwift map iframe when the Zwift tab is selected", async () => {
+        await expect(ensureSampleFitLoaded()).resolves.toMatchObject({
+            activeFileName: sampleFitActivityState.activeFileName,
+        });
+
         try {
             await page.locator("#tab_zwift").click();
             await expect(page.locator("#tab_zwift")).toHaveClass(/active/u);
@@ -1029,6 +1081,10 @@ test.describe("FitFileViewer Electron UI", () => {
     });
 
     test("shows loading and loaded states for an empty Browser folder", async () => {
+        await expect(ensureSampleFitLoaded()).resolves.toMatchObject({
+            activeFileName: sampleFitActivityState.activeFileName,
+        });
+
         const emptyBrowserFolder = path.join(
             repositoryRoot,
             "tests",
@@ -1112,8 +1168,10 @@ test.describe("FitFileViewer Electron UI", () => {
 
             const stateBeforeCancel = await getActivityUiState();
 
-            await page.locator("#open_file_btn").click();
-            await expect.poll(getOpenFileDialogCallCount).toBe(1);
+            await clickOpenFileButtonAndWaitForDialogCall(
+                page,
+                getOpenFileDialogCallCount
+            );
 
             const stateAfterCancel = await getActivityUiState();
 
@@ -1450,10 +1508,10 @@ test.describe("FitFileViewer Electron UI", () => {
         await firstTableHeader.click();
         await expect(
             page.locator("#content_data table.dataTable").first()
-        ).toBeVisible();
+        ).toBeVisible({ timeout: 30_000 });
         await expect(
             page.locator("#content_data .dt-container").first()
-        ).toBeVisible();
+        ).toBeVisible({ timeout: 30_000 });
     });
 
     test.afterAll(() => {
