@@ -35,16 +35,12 @@ declare global {
         heartRateZones?: ZoneInfo[];
         powerZones?: ZoneInfo[];
         _chartjsInstances?: unknown[];
-        ChartUpdater?: unknown;
-        chartUpdater?: unknown;
         Chart?: unknown;
 
         // --- UI helpers & rendering functions (legacy; slated for removal) ---
         showFitData?: (data: FitDecodeResult, fileName?: string) => void;
         renderChartJS?: (...args: unknown[]) => void;
         renderMap?: (...args: unknown[]) => void;
-        renderSummary?: (...args: unknown[]) => void;
-        createTables?: (...args: unknown[]) => void;
 
         // --- Notification & modals ---
         showNotification?: (
