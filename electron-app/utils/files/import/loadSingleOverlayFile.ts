@@ -10,6 +10,7 @@ import {
 } from "./fitParsePayload.js";
 import type { FitMessageRow, FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 
 /** Decoded FIT data used by map overlay loading. */
 export type OverlayFitData = {
@@ -30,11 +31,7 @@ export type OverlayLoadResult =
           success: false;
       };
 
-type OverlayElectronAPI = Partial<Pick<ElectronAPI, "decodeFitFile">>;
-
-type OverlayFileGlobal = typeof globalThis & {
-    electronAPI?: OverlayElectronAPI;
-};
+type OverlayElectronAPI = Required<Pick<ElectronAPI, "decodeFitFile">>;
 
 type OverlayFileLike = {
     arrayBuffer?: () => Promise<ArrayBuffer>;
@@ -138,21 +135,24 @@ function isFitName(name: unknown): boolean {
         : true;
 }
 
-function getOverlayFileGlobal(): OverlayFileGlobal {
-    return globalThis;
-}
-
-function resolveOverlayElectronAPI():
-    | Required<Pick<OverlayElectronAPI, "decodeFitFile">>
-    | undefined {
-    const { electronAPI } = getOverlayFileGlobal();
-    if (!electronAPI || typeof electronAPI.decodeFitFile !== "function") {
+function resolveOverlayElectronAPI(): OverlayElectronAPI | undefined {
+    const electronAPI =
+        getRendererElectronApi<OverlayElectronAPI>(isOverlayElectronAPI);
+    if (!electronAPI) {
         return undefined;
     }
 
     return {
         decodeFitFile: electronAPI.decodeFitFile,
     };
+}
+
+function isOverlayElectronAPI(value: unknown): value is OverlayElectronAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    return typeof (value as OverlayElectronAPI).decodeFitFile === "function";
 }
 
 async function readOverlayArrayBuffer(

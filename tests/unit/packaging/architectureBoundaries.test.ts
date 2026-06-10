@@ -182,6 +182,7 @@ const migratedElectronApiAccessorFiles = [
     "electron-app/utils/app/lifecycle/menuIpcListeners.ts",
     "electron-app/utils/app/lifecycle/recentFilesContextMenu.ts",
     "electron-app/utils/files/export/exportUtils.ts",
+    "electron-app/utils/files/import/loadSingleOverlayFile.ts",
     "electron-app/utils/files/import/openFileSelector.ts",
     "electron-app/utils/rendering/core/showFitData.ts",
     "electron-app/utils/state/core/masterStateManager.ts",
