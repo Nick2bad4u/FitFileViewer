@@ -1,4 +1,25 @@
 export type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
+export type ElectronApiDiagnosticsApi =
+    import("../shared/preloadApi").ElectronApiDiagnosticsApi;
+export type ElectronAppInfoApi =
+    import("../shared/preloadApi").ElectronAppInfoApi;
+export type ElectronClipboardApi =
+    import("../shared/preloadApi").ElectronClipboardApi;
+export type ElectronDevtoolsMenuApi =
+    import("../shared/preloadApi").ElectronDevtoolsMenuApi;
+export type ElectronExternalApi =
+    import("../shared/preloadApi").ElectronExternalApi;
+export type ElectronFileApi = import("../shared/preloadApi").ElectronFileApi;
+export type ElectronFitBrowserApi =
+    import("../shared/preloadApi").ElectronFitBrowserApi;
+export type ElectronMainStateApi =
+    import("../shared/preloadApi").ElectronMainStateApi;
+export type ElectronMenuEventApi =
+    import("../shared/preloadApi").ElectronMenuEventApi;
+export type ElectronPreloadEventApi =
+    import("../shared/preloadApi").ElectronPreloadEventApi;
+export type ElectronThemeApi =
+    import("../shared/preloadApi").ElectronThemeApi;
 export type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
 export type IpcRequestPayload = import("../shared/ipc").IpcRequestPayload;
 export type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
@@ -15,9 +36,9 @@ export type IpcEventListener = (
     event: object,
     ...args: IpcResponsePayload[]
 ) => void;
-export type PreloadApiFactory<Keys extends keyof ElectronAPI> = (
+export type PreloadApiFactory<Api> = (
     options: Record<string, unknown>
-) => Pick<ElectronAPI, Keys>;
+) => Api;
 export type PreloadModuleRequire = (moduleId: string) => unknown;
 export type CreateElectronApi = (
     options: Record<string, unknown>
@@ -138,58 +159,15 @@ export interface IpcBridgeCatalog {
 }
 
 export interface PreloadModuleRegistry {
-    createApiDiagnostics: PreloadApiFactory<"getChannelInfo" | "validateAPI">;
-    createAppInfoApi: PreloadApiFactory<
-        | "getAppVersion"
-        | "getChromeVersion"
-        | "getElectronVersion"
-        | "getLicenseInfo"
-        | "getNodeVersion"
-        | "getPlatformInfo"
-    >;
-    createClipboardBridge: PreloadApiFactory<
-        "writeClipboardPngDataUrl" | "writeClipboardText"
-    >;
-    createDevtoolsMenuApi: PreloadApiFactory<"injectMenu">;
-    createExternalApi: PreloadApiFactory<
-        | "onGyazoOAuthCallback"
-        | "openExternal"
-        | "startGyazoServer"
-        | "stopGyazoServer"
-    >;
-    createFileApi: PreloadApiFactory<
-        | "addRecentFile"
-        | "approveRecentFile"
-        | "decodeFitFile"
-        | "openFile"
-        | "openFileDialog"
-        | "openOverlayDialog"
-        | "parseFitFile"
-        | "readFile"
-        | "recentFiles"
-    >;
-    createFitBrowserApi: PreloadApiFactory<
-        | "getFitBrowserFolder"
-        | "isFitBrowserEnabled"
-        | "listFitBrowserFolder"
-        | "onFitBrowserEnabledChanged"
-        | "setFitBrowserEnabled"
-        | "setFitBrowserFolder"
-    >;
-    createPreloadEventApi: PreloadApiFactory<
-        "notifyFitFileLoaded" | "onUpdateEvent"
-    >;
-    createMainStateApi: PreloadApiFactory<
-        | "getErrors"
-        | "getMainState"
-        | "getMetrics"
-        | "getOperation"
-        | "getOperations"
-        | "listenToMainState"
-        | "setMainState"
-        | "subscribeToMainState"
-        | "unlistenFromMainState"
-    >;
+    createApiDiagnostics: PreloadApiFactory<ElectronApiDiagnosticsApi>;
+    createAppInfoApi: PreloadApiFactory<ElectronAppInfoApi>;
+    createClipboardBridge: PreloadApiFactory<ElectronClipboardApi>;
+    createDevtoolsMenuApi: PreloadApiFactory<ElectronDevtoolsMenuApi>;
+    createExternalApi: PreloadApiFactory<ElectronExternalApi>;
+    createFileApi: PreloadApiFactory<ElectronFileApi>;
+    createFitBrowserApi: PreloadApiFactory<ElectronFitBrowserApi>;
+    createPreloadEventApi: PreloadApiFactory<ElectronPreloadEventApi>;
+    createMainStateApi: PreloadApiFactory<ElectronMainStateApi>;
     createMainStateBridge: (options: Record<string, unknown>) => {
         listenToMainState: (
             path: string,
@@ -200,33 +178,7 @@ export interface PreloadModuleRegistry {
             callback: (change: MainStateChange) => void
         ) => Promise<boolean>;
     };
-    createMenuEventApi: PreloadApiFactory<
-        | "checkForUpdates"
-        | "installUpdate"
-        | "onDecoderOptionsChanged"
-        | "onExportFile"
-        | "onMenuAbout"
-        | "onMenuCheckForUpdates"
-        | "onMenuExport"
-        | "onMenuKeyboardShortcuts"
-        | "onMenuOpenFile"
-        | "onMenuOpenOverlay"
-        | "onMenuPrint"
-        | "onMenuRestartUpdate"
-        | "onMenuSaveAs"
-        | "onOpenAccentColorPicker"
-        | "onOpenRecentFile"
-        | "onOpenSummaryColumnSelector"
-        | "onSetFontSize"
-        | "onSetHighContrast"
-        | "onSetTheme"
-        | "onShowNotification"
-        | "onUnloadFitFile"
-        | "requestExport"
-        | "requestSaveAs"
-        | "sendThemeChanged"
-        | "setFullScreen"
-    >;
+    createMenuEventApi: PreloadApiFactory<ElectronMenuEventApi>;
     createPreloadIpcHelpers: (options: Record<string, unknown>) => {
         createSafeEventHandler: <Callback>(
             channel: string,
@@ -265,7 +217,7 @@ export interface PreloadModuleRegistry {
             methodName: string
         ) => value is string;
     };
-    createThemeApi: PreloadApiFactory<"getTheme">;
+    createThemeApi: PreloadApiFactory<ElectronThemeApi>;
     exposeDevelopmentToolsGlobal: (options: Record<string, unknown>) => boolean;
     exposeElectronApi: (options: Record<string, unknown>) => boolean;
     ipcBridgeCatalog: IpcBridgeCatalog;
@@ -309,99 +261,25 @@ export interface PreloadApiAssemblyContext {
 }
 
 export interface PreloadAppApiDomain {
-    apiDiagnostics: Pick<ElectronAPI, "getChannelInfo" | "validateAPI">;
-    appInfoApi: Pick<
-        ElectronAPI,
-        | "getAppVersion"
-        | "getChromeVersion"
-        | "getElectronVersion"
-        | "getLicenseInfo"
-        | "getNodeVersion"
-        | "getPlatformInfo"
-    >;
-    clipboardBridge: Pick<
-        ElectronAPI,
-        "writeClipboardPngDataUrl" | "writeClipboardText"
-    >;
-    devtoolsMenuApi: Pick<ElectronAPI, "injectMenu">;
-    externalApi: Pick<
-        ElectronAPI,
-        | "onGyazoOAuthCallback"
-        | "openExternal"
-        | "startGyazoServer"
-        | "stopGyazoServer"
-    >;
-    themeApi: Pick<ElectronAPI, "getTheme">;
+    apiDiagnostics: ElectronApiDiagnosticsApi;
+    appInfoApi: ElectronAppInfoApi;
+    clipboardBridge: ElectronClipboardApi;
+    devtoolsMenuApi: ElectronDevtoolsMenuApi;
+    externalApi: ElectronExternalApi;
+    themeApi: ElectronThemeApi;
 }
 
 export interface PreloadFileApiDomain {
-    fileApi: Pick<
-        ElectronAPI,
-        | "addRecentFile"
-        | "approveRecentFile"
-        | "decodeFitFile"
-        | "openFile"
-        | "openFileDialog"
-        | "openOverlayDialog"
-        | "parseFitFile"
-        | "readFile"
-        | "recentFiles"
-    >;
-    fitBrowserApi: Pick<
-        ElectronAPI,
-        | "getFitBrowserFolder"
-        | "isFitBrowserEnabled"
-        | "listFitBrowserFolder"
-        | "onFitBrowserEnabledChanged"
-        | "setFitBrowserEnabled"
-        | "setFitBrowserFolder"
-    >;
+    fileApi: ElectronFileApi;
+    fitBrowserApi: ElectronFitBrowserApi;
     openFolderDialog: ElectronAPI["openFolderDialog"];
 }
 
 export interface PreloadIpcEventApiDomain {
-    preloadEventApi: Pick<ElectronAPI, "notifyFitFileLoaded" | "onUpdateEvent">;
-    menuEventApi: Pick<
-        ElectronAPI,
-        | "checkForUpdates"
-        | "installUpdate"
-        | "onDecoderOptionsChanged"
-        | "onExportFile"
-        | "onMenuAbout"
-        | "onMenuCheckForUpdates"
-        | "onMenuExport"
-        | "onMenuKeyboardShortcuts"
-        | "onMenuOpenFile"
-        | "onMenuOpenOverlay"
-        | "onMenuPrint"
-        | "onMenuRestartUpdate"
-        | "onMenuSaveAs"
-        | "onOpenAccentColorPicker"
-        | "onOpenRecentFile"
-        | "onOpenSummaryColumnSelector"
-        | "onSetFontSize"
-        | "onSetHighContrast"
-        | "onSetTheme"
-        | "onShowNotification"
-        | "onUnloadFitFile"
-        | "requestExport"
-        | "requestSaveAs"
-        | "sendThemeChanged"
-        | "setFullScreen"
-    >;
+    preloadEventApi: ElectronPreloadEventApi;
+    menuEventApi: ElectronMenuEventApi;
 }
 
 export interface PreloadStateApiDomain {
-    mainStateApi: Pick<
-        ElectronAPI,
-        | "getErrors"
-        | "getMainState"
-        | "getMetrics"
-        | "getOperation"
-        | "getOperations"
-        | "listenToMainState"
-        | "setMainState"
-        | "subscribeToMainState"
-        | "unlistenFromMainState"
-    >;
+    mainStateApi: ElectronMainStateApi;
 }

@@ -5,7 +5,7 @@ export type RendererElectronApiScope = {
     readonly window?: unknown;
 };
 
-export type RendererElectronApiCandidate = Partial<ElectronAPI>;
+export type RendererElectronApiCandidate = object;
 
 let registeredRendererElectronApi: unknown;
 let hasRegisteredRendererElectronApi = false;
@@ -28,7 +28,9 @@ export function resetRendererElectronApiCandidate(): void {
 /**
  * Resolves the preload-exposed Electron API through a single typed boundary.
  */
-export function getRendererElectronApi<T extends RendererElectronApiCandidate>(
+export function getRendererElectronApi<
+    T extends RendererElectronApiCandidate = Partial<ElectronAPI>,
+>(
     isExpectedApi: (value: unknown) => value is T,
     scope: RendererElectronApiScope = globalThis
 ): T | null {

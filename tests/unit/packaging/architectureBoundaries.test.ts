@@ -36,6 +36,10 @@ const preloadInjectedRequireFiles = [
     "electron-app/preload/preloadIpcModuleLoader.ts",
     "electron-app/preload/preloadStateModuleLoader.ts",
 ] as const;
+const preloadDomainContractFiles = [
+    "electron-app/preload/electronApiFactory.ts",
+    "electron-app/preload/preloadModuleTypes.ts",
+] as const;
 
 const stateDomainRoots = ["electron-app/utils/state/domain"] as const;
 const stateCoreRoots = ["electron-app/utils/state/core"] as const;
@@ -496,6 +500,7 @@ const bundledBrowserVendorImportPattern =
     /(?:from\s*["']|import\(\s*["']|require\(\s*["'])(?:chart\.js\/auto|chartjs-plugin-zoom|datatables\.net-dt)/u;
 const rendererGenericPreloadIpcPattern =
     /\belectronAPI\.(?:invoke|onIpc|send)\b/u;
+const localPreloadElectronApiPickPattern = /\bPick<\s*ElectronAPI\s*,/u;
 const missingRendererVendorGlobalShimPattern = /\bdefineMissingGlobal\b/u;
 const rendererVendorBundleGlobalMarkerPattern =
     /\b__FFV_RENDERER_VENDOR_BUNDLE__\b/u;
@@ -897,6 +902,32 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps preload API domain contracts in the shared preload API module", () => {
+        expect.assertions(4);
+
+        const localDomainContracts = preloadDomainContractFiles
+            .filter((relativeFile) =>
+                localPreloadElectronApiPickPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sharedPreloadApiSource = stripComments(
+            readRepositoryFile("electron-app/shared/preloadApi.ts")
+        );
+
+        expect(localDomainContracts).toStrictEqual([]);
+        expect(sharedPreloadApiSource).toContain(
+            "export type ElectronFileApi"
+        );
+        expect(sharedPreloadApiSource).toContain(
+            "export type ElectronMenuEventApi"
+        );
+        expect(sharedPreloadApiSource).toContain(
+            "export type ElectronMainStateApi"
+        );
     });
 
     it("keeps the preload event helper free of generic IPC methods", () => {

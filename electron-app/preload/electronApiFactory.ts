@@ -1,108 +1,39 @@
 {
     type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
-
-    type ApiDiagnostics = Pick<ElectronAPI, "getChannelInfo" | "validateAPI">;
-    type AppInfoApi = Pick<
-        ElectronAPI,
-        | "getAppVersion"
-        | "getChromeVersion"
-        | "getElectronVersion"
-        | "getLicenseInfo"
-        | "getNodeVersion"
-        | "getPlatformInfo"
-    >;
-    type ClipboardBridge = Pick<
-        ElectronAPI,
-        "writeClipboardPngDataUrl" | "writeClipboardText"
-    >;
-    type DevtoolsMenuApi = Pick<ElectronAPI, "injectMenu">;
-    type ExternalApi = Pick<
-        ElectronAPI,
-        | "onGyazoOAuthCallback"
-        | "openExternal"
-        | "startGyazoServer"
-        | "stopGyazoServer"
-    >;
-    type FileApi = Pick<
-        ElectronAPI,
-        | "addRecentFile"
-        | "approveRecentFile"
-        | "decodeFitFile"
-        | "openFile"
-        | "openFileDialog"
-        | "openOverlayDialog"
-        | "parseFitFile"
-        | "readFile"
-        | "recentFiles"
-    >;
-    type FitBrowserApi = Pick<
-        ElectronAPI,
-        | "getFitBrowserFolder"
-        | "isFitBrowserEnabled"
-        | "listFitBrowserFolder"
-        | "onFitBrowserEnabledChanged"
-        | "setFitBrowserEnabled"
-        | "setFitBrowserFolder"
-    >;
-    type PreloadEventApi = Pick<
-        ElectronAPI,
-        "notifyFitFileLoaded" | "onUpdateEvent"
-    >;
-    type MainStateApi = Pick<
-        ElectronAPI,
-        | "getErrors"
-        | "getMainState"
-        | "getMetrics"
-        | "getOperation"
-        | "getOperations"
-        | "listenToMainState"
-        | "setMainState"
-        | "subscribeToMainState"
-        | "unlistenFromMainState"
-    >;
-    type MenuEventApi = Pick<
-        ElectronAPI,
-        | "checkForUpdates"
-        | "installUpdate"
-        | "onDecoderOptionsChanged"
-        | "onExportFile"
-        | "onMenuAbout"
-        | "onMenuCheckForUpdates"
-        | "onMenuExport"
-        | "onMenuKeyboardShortcuts"
-        | "onMenuOpenFile"
-        | "onMenuOpenOverlay"
-        | "onMenuPrint"
-        | "onMenuRestartUpdate"
-        | "onMenuSaveAs"
-        | "onOpenAccentColorPicker"
-        | "onOpenRecentFile"
-        | "onOpenSummaryColumnSelector"
-        | "onSetFontSize"
-        | "onSetHighContrast"
-        | "onSetTheme"
-        | "onShowNotification"
-        | "onUnloadFitFile"
-        | "requestExport"
-        | "requestSaveAs"
-        | "sendThemeChanged"
-        | "setFullScreen"
-    >;
-    type ThemeApi = Pick<ElectronAPI, "getTheme">;
+    type ElectronApiDiagnosticsApi =
+        import("../shared/preloadApi").ElectronApiDiagnosticsApi;
+    type ElectronAppInfoApi =
+        import("../shared/preloadApi").ElectronAppInfoApi;
+    type ElectronClipboardApi =
+        import("../shared/preloadApi").ElectronClipboardApi;
+    type ElectronDevtoolsMenuApi =
+        import("../shared/preloadApi").ElectronDevtoolsMenuApi;
+    type ElectronExternalApi =
+        import("../shared/preloadApi").ElectronExternalApi;
+    type ElectronFileApi = import("../shared/preloadApi").ElectronFileApi;
+    type ElectronFitBrowserApi =
+        import("../shared/preloadApi").ElectronFitBrowserApi;
+    type ElectronMainStateApi =
+        import("../shared/preloadApi").ElectronMainStateApi;
+    type ElectronMenuEventApi =
+        import("../shared/preloadApi").ElectronMenuEventApi;
+    type ElectronPreloadEventApi =
+        import("../shared/preloadApi").ElectronPreloadEventApi;
+    type ElectronThemeApi = import("../shared/preloadApi").ElectronThemeApi;
 
     interface ElectronApiFactoryOptions {
-        apiDiagnostics: ApiDiagnostics;
-        appInfoApi: AppInfoApi;
-        clipboardBridge: ClipboardBridge;
-        devtoolsMenuApi: DevtoolsMenuApi;
-        externalApi: ExternalApi;
-        fileApi: FileApi;
-        fitBrowserApi: FitBrowserApi;
-        mainStateApi: MainStateApi;
-        menuEventApi: MenuEventApi;
+        apiDiagnostics: ElectronApiDiagnosticsApi;
+        appInfoApi: ElectronAppInfoApi;
+        clipboardBridge: ElectronClipboardApi;
+        devtoolsMenuApi: ElectronDevtoolsMenuApi;
+        externalApi: ElectronExternalApi;
+        fileApi: ElectronFileApi;
+        fitBrowserApi: ElectronFitBrowserApi;
+        mainStateApi: ElectronMainStateApi;
+        menuEventApi: ElectronMenuEventApi;
         openFolderDialog: ElectronAPI["openFolderDialog"];
-        preloadEventApi: PreloadEventApi;
-        themeApi: ThemeApi;
+        preloadEventApi: ElectronPreloadEventApi;
+        themeApi: ElectronThemeApi;
     }
 
     function createElectronApi({

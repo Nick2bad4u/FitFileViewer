@@ -210,6 +210,108 @@ export interface ElectronAPI {
     validateAPI: () => boolean;
 }
 
+export type ElectronApiDiagnosticsApi = Pick<
+    ElectronAPI,
+    "getChannelInfo" | "validateAPI"
+>;
+
+export type ElectronAppInfoApi = Pick<
+    ElectronAPI,
+    | "getAppVersion"
+    | "getChromeVersion"
+    | "getElectronVersion"
+    | "getLicenseInfo"
+    | "getNodeVersion"
+    | "getPlatformInfo"
+>;
+
+export type ElectronClipboardApi = Pick<
+    ElectronAPI,
+    "writeClipboardPngDataUrl" | "writeClipboardText"
+>;
+
+export type ElectronDevtoolsMenuApi = Pick<ElectronAPI, "injectMenu">;
+
+export type ElectronExternalApi = Pick<
+    ElectronAPI,
+    | "onGyazoOAuthCallback"
+    | "openExternal"
+    | "startGyazoServer"
+    | "stopGyazoServer"
+>;
+
+export type ElectronFileApi = Pick<
+    ElectronAPI,
+    | "addRecentFile"
+    | "approveRecentFile"
+    | "decodeFitFile"
+    | "openFile"
+    | "openFileDialog"
+    | "openOverlayDialog"
+    | "parseFitFile"
+    | "readFile"
+    | "recentFiles"
+>;
+
+export type ElectronFitBrowserApi = Pick<
+    ElectronAPI,
+    | "getFitBrowserFolder"
+    | "isFitBrowserEnabled"
+    | "listFitBrowserFolder"
+    | "onFitBrowserEnabledChanged"
+    | "setFitBrowserEnabled"
+    | "setFitBrowserFolder"
+>;
+
+export type ElectronPreloadEventApi = Pick<
+    ElectronAPI,
+    "notifyFitFileLoaded" | "onUpdateEvent"
+>;
+
+export type ElectronMainStateApi = Pick<
+    ElectronAPI,
+    | "getErrors"
+    | "getMainState"
+    | "getMetrics"
+    | "getOperation"
+    | "getOperations"
+    | "listenToMainState"
+    | "setMainState"
+    | "subscribeToMainState"
+    | "unlistenFromMainState"
+>;
+
+export type ElectronMenuEventApi = Pick<
+    ElectronAPI,
+    | "checkForUpdates"
+    | "installUpdate"
+    | "onDecoderOptionsChanged"
+    | "onExportFile"
+    | "onMenuAbout"
+    | "onMenuCheckForUpdates"
+    | "onMenuExport"
+    | "onMenuKeyboardShortcuts"
+    | "onMenuOpenFile"
+    | "onMenuOpenOverlay"
+    | "onMenuPrint"
+    | "onMenuRestartUpdate"
+    | "onMenuSaveAs"
+    | "onOpenAccentColorPicker"
+    | "onOpenRecentFile"
+    | "onOpenSummaryColumnSelector"
+    | "onSetFontSize"
+    | "onSetHighContrast"
+    | "onSetTheme"
+    | "onShowNotification"
+    | "onUnloadFitFile"
+    | "requestExport"
+    | "requestSaveAs"
+    | "sendThemeChanged"
+    | "setFullScreen"
+>;
+
+export type ElectronThemeApi = Pick<ElectronAPI, "getTheme">;
+
 /** Internal flags attached during migration and development diagnostics. */
 export type ElectronAPIWithDevFlags = ElectronAPI & {
     _summaryColListenerAdded?: boolean;
