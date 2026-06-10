@@ -8,7 +8,6 @@ import {
 import {
     getFitMessagesSessionCount,
     getFitParseErrorMessage,
-    type FitParsePayload,
     unwrapFitParseMessages,
 } from "../../files/import/fitParsePayload.js";
 import { sendFitFileToAltFitReader } from "../../files/import/sendFitFileToAltFitReader.js";
@@ -20,6 +19,7 @@ import {
     getProcessEnvironmentValue,
     isDevelopmentEnvironment,
 } from "../../runtime/processEnvironment.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
@@ -78,8 +78,6 @@ type UpdateProgress = {
 
 type RecentFileCandidate = unknown;
 
-type FitParseResult = FitParsePayload;
-
 type FitData = {
     cachedFilePath?: string;
     recordMesgs?: GpxRecord[];
@@ -87,12 +85,7 @@ type FitData = {
     [key: string]: unknown;
 };
 
-type Unsubscribe = () => void;
 type TrackUnsubscribe = (maybeUnsubscribe: unknown) => void;
-
-type OpenRecentFilePath = Parameters<
-    Parameters<ElectronAPI["onOpenRecentFile"]>[0]
->[0];
 
 type LifecycleElectronAPI = Partial<
     Pick<
@@ -104,6 +97,7 @@ type LifecycleElectronAPI = Partial<
         | "onMenuCheckForUpdates"
         | "onMenuOpenFile"
         | "onMenuPrint"
+        | "onOpenRecentFile"
         | "onUpdateEvent"
         | "onSetFontSize"
         | "onSetHighContrast"
@@ -111,18 +105,7 @@ type LifecycleElectronAPI = Partial<
         | "readFile"
     >
 > & {
-    onOpenRecentFile?: (
-        callback: (
-            filePath: OpenRecentFilePath | OpenRecentFilePath[]
-        ) => Promise<void> | void
-    ) => Unsubscribe | undefined;
-    parseFitFile?: (
-        arrayBuffer: Parameters<ElectronAPI["parseFitFile"]>[0]
-    ) => Promise<FitParseResult>;
-};
-
-type LifecycleGlobal = typeof globalThis & {
-    electronAPI?: LifecycleElectronAPI;
+    parseFitFile?: ElectronAPI["parseFitFile"];
 };
 
 /** Mutable flag shared with the file-opening workflow. */
@@ -159,7 +142,48 @@ export type SetupListenersOptions = {
     ) => unknown;
 };
 
-const lifecycleGlobal = globalThis as LifecycleGlobal;
+const lifecycleGlobal = globalThis;
+
+function hasOptionalLifecycleElectronFunction(
+    record: Readonly<Record<string, unknown>>,
+    key: keyof LifecycleElectronAPI
+): boolean {
+    const value = record[key];
+    return value === undefined || typeof value === "function";
+}
+
+function isLifecycleElectronAPI(value: unknown): value is LifecycleElectronAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const api = value as Readonly<Record<string, unknown>>;
+    return [
+        "addRecentFile",
+        "checkForUpdates",
+        "onDecoderOptionsChanged",
+        "onExportFile",
+        "onMenuCheckForUpdates",
+        "onMenuOpenFile",
+        "onMenuPrint",
+        "onOpenRecentFile",
+        "onSetFontSize",
+        "onSetHighContrast",
+        "onShowNotification",
+        "onUpdateEvent",
+        "parseFitFile",
+        "readFile",
+    ].every((key) =>
+        hasOptionalLifecycleElectronFunction(
+            api,
+            key as keyof LifecycleElectronAPI
+        )
+    );
+}
+
+function getLifecycleElectronAPI(): LifecycleElectronAPI | null {
+    return getRendererElectronApi(isLifecycleElectronAPI);
+}
 
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
@@ -590,7 +614,7 @@ export function setupListeners({
     // Window resize for chart rendering - use modern state management
     registerChartResizeListener({ cleanupCallbacks });
 
-    const electronAPI = lifecycleGlobal.electronAPI;
+    const electronAPI = getLifecycleElectronAPI();
 
     // Electron IPC and menu listeners
     if (
