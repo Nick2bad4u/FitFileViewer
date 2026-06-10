@@ -934,6 +934,22 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps the core state manager free of reactive global property bridges", () => {
+        expect.assertions(3);
+
+        const stateManagerSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
+        );
+
+        expect(stateManagerSource).not.toContain(
+            "export function createReactiveProperty"
+        );
+        expect(stateManagerSource).not.toContain(
+            "Object.defineProperty(globalThis"
+        );
+        expect(stateManagerSource).not.toContain("Reflect.get(globalThis");
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 

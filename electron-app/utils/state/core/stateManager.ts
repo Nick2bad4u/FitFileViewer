@@ -104,67 +104,6 @@ export function __resetStateManagerForTests(): void {
 }
 
 /**
- * Creates a reactive global property that maps reads and writes to a state
- * path.
- *
- * @param propertyName - Global property name.
- * @param statePath - State path to bind to the property.
- */
-export function createReactiveProperty(
-    propertyName: string,
-    statePath: string
-): void {
-    try {
-        const descriptor = Object.getOwnPropertyDescriptor(
-            globalThis,
-            propertyName
-        );
-
-        if (descriptor) {
-            if (descriptor.get && descriptor.set) {
-                console.log(
-                    `[StateManager] Property ${propertyName} is already reactive`
-                );
-                return;
-            }
-
-            const currentValue = readGlobalProperty(propertyName);
-            if (currentValue !== undefined && currentValue !== null) {
-                setState(statePath, currentValue, {
-                    source: `createReactiveProperty.${propertyName}`,
-                });
-            }
-        }
-
-        Object.defineProperty(globalThis, propertyName, {
-            configurable: true,
-            get() {
-                return getState(statePath);
-            },
-            set(value: unknown) {
-                setState(statePath, value, {
-                    source: `window.${propertyName}`,
-                });
-            },
-        });
-
-        console.log(
-            `[StateManager] Created reactive property: ${propertyName} -> ${statePath}`
-        );
-    } catch (error) {
-        console.warn(
-            `[StateManager] Failed to create reactive property ${propertyName}:`,
-            error
-        );
-        if (getState(statePath) === undefined) {
-            setState(statePath, null, {
-                source: `createReactiveProperty.fallback.${propertyName}`,
-            });
-        }
-    }
-}
-
-/**
  * Gets state by dot-notation path.
  *
  * @param path - Dot-notation path to a state property.
@@ -559,10 +498,6 @@ function notifyListeners(
             }
         }
     }
-}
-
-function readGlobalProperty(propertyName: string): unknown {
-    return Reflect.get(globalThis, propertyName);
 }
 
 function getMergedStateValue(
