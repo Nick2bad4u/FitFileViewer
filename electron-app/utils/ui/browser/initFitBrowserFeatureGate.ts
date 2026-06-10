@@ -1,4 +1,5 @@
 import { getState, setState } from "../../state/core/stateManager.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 const BROWSER_TAB_BUTTON_ID = "tab_browser";
@@ -8,10 +9,6 @@ type FitBrowserFeatureGateApi = Required<
     Pick<ElectronAPI, "isFitBrowserEnabled">
 > &
     Partial<Pick<ElectronAPI, "onFitBrowserEnabledChanged">>;
-
-type GlobalWithElectronApi = typeof globalThis & {
-    readonly electronAPI?: unknown;
-};
 
 /**
  * Initialize Browser tab feature gating.
@@ -64,16 +61,21 @@ function applyBrowserTabVisibility(enabled: boolean): void {
 }
 
 function getElectronAPI(): FitBrowserFeatureGateApi | null {
-    const api = (globalThis as GlobalWithElectronApi).electronAPI;
+    return getRendererElectronApi(isFitBrowserFeatureGateApi);
+}
 
-    if (
-        api === null ||
-        typeof api !== "object" ||
-        typeof (api as Partial<FitBrowserFeatureGateApi>)
-            .isFitBrowserEnabled !== "function"
-    ) {
-        return null;
+function isFitBrowserFeatureGateApi(
+    api: unknown
+): api is FitBrowserFeatureGateApi {
+    if (api === null || typeof api !== "object") {
+        return false;
     }
 
-    return api as FitBrowserFeatureGateApi;
+    const featureGateApi = api as Partial<FitBrowserFeatureGateApi>;
+
+    return (
+        typeof featureGateApi.isFitBrowserEnabled === "function" &&
+        (featureGateApi.onFitBrowserEnabledChanged === undefined ||
+            typeof featureGateApi.onFitBrowserEnabledChanged === "function")
+    );
 }
