@@ -53,10 +53,6 @@ declare global {
             duration?: number,
             options?: unknown
         ) => Promise<void>;
-        showKeyboardShortcutsModal?: () => void;
-        closeKeyboardShortcutsModal?: () => void;
-        aboutModalDevHelpers?: unknown;
-
         // --- Zone color / controls utilities ---
         updateInlineZoneColorSelectors?: (root?: HTMLElement) => void;
         clearZoneColorData?: (field: string, zoneCount: number) => void;
