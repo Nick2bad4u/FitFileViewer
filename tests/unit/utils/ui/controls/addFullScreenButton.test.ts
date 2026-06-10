@@ -29,10 +29,6 @@ type TestElectronAPI = {
     setFullScreen: ReturnType<typeof vi.fn<(flag: boolean) => void>>;
 };
 
-type FullscreenTestGlobal = typeof globalThis & {
-    electronAPI?: TestElectronAPI;
-};
-
 const controlMocks = vi.hoisted(() => ({
     addExitFullscreenOverlay: vi.fn<(content: HTMLElement) => void>(),
     getActiveTabContent: vi.fn<() => HTMLElement | null>(),
@@ -116,7 +112,7 @@ describe("addFullScreenButton", () => {
         controlMocks.getActiveTabContent.mockReturnValue(activeContent);
 
         const setFullScreen = vi.fn<(flag: boolean) => void>();
-        getTestGlobal().electronAPI = { setFullScreen };
+        await registerFullscreenApi({ setFullScreen });
 
         try {
             const module = await loadModule();
@@ -183,7 +179,7 @@ describe("addFullScreenButton", () => {
         controlMocks.getActiveTabContent.mockReturnValue(activeContent);
 
         const setFullScreen = vi.fn<(flag: boolean) => void>();
-        getTestGlobal().electronAPI = { setFullScreen };
+        await registerFullscreenApi({ setFullScreen });
 
         try {
             const module = await loadModule();
@@ -247,8 +243,8 @@ async function cleanupStoredEventHandlers(): Promise<void> {
 
 async function cleanupTestState(): Promise<void> {
     await cleanupStoredEventHandlers();
+    await resetRegisteredElectronApi();
     clearScreenfullRuntimeForTests();
-    Reflect.deleteProperty(getTestGlobal(), "electronAPI");
     document.body.replaceChildren();
     document.body.style.overflow = "";
     vi.resetModules();
@@ -322,8 +318,18 @@ function getFullscreenButtonState(button: HTMLButtonElement) {
     };
 }
 
-function getTestGlobal(): FullscreenTestGlobal {
-    return globalThis as FullscreenTestGlobal;
+async function registerFullscreenApi(api: TestElectronAPI): Promise<void> {
+    const { registerRendererElectronApiCandidate } = await import(
+        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
+    );
+    registerRendererElectronApiCandidate(api);
+}
+
+async function resetRegisteredElectronApi(): Promise<void> {
+    const { resetRendererElectronApiCandidate } = await import(
+        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
+    );
+    resetRendererElectronApiCandidate();
 }
 
 function resetDocumentFullscreenMethods(): void {
