@@ -178,6 +178,7 @@ const migratedScreenfullRuntimeFiles = [
 const migratedElectronApiAccessorFiles = [
     "electron-app/utils/app/lifecycle/menuIpcListeners.ts",
     "electron-app/utils/app/lifecycle/recentFilesContextMenu.ts",
+    "electron-app/utils/rendering/core/showFitData.ts",
     "electron-app/utils/ui/dragDropHandler.ts",
     "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",
     "electron-app/utils/ui/mainUiDomUtils.ts",

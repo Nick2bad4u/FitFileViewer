@@ -22,6 +22,7 @@ import { getActiveFitTableData } from "../../state/domain/fitTableDataState.js";
 import { setTabButtonsEnabled } from "../../ui/controls/enableTabButtons.js";
 import { updateActiveTab } from "../../ui/tabs/updateActiveTab.js";
 import { updateTabVisibility } from "../../ui/tabs/updateTabVisibility.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { ensureRendererVendorBundle } from "../../../renderer/vendorBundleLoader.js";
 import { createTables } from "../components/createTables.js";
@@ -75,12 +76,22 @@ type FitFileStateManagerLike = {
 
 type EstimatedPowerInput = Parameters<typeof applyEstimatedPowerToRecords>[0];
 
-type ShowFitDataGlobal = typeof globalThis & {
-    electronAPI?: ElectronApiLike;
-};
+function getShowFitDataElectronApi(): ElectronApiLike | null {
+    return getRendererElectronApi(isShowFitDataElectronApi);
+}
 
-function getShowFitDataGlobal(): ShowFitDataGlobal {
-    return globalThis;
+function isShowFitDataElectronApi(value: unknown): value is ElectronApiLike {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const notifyFitFileLoaded = (value as Record<string, unknown>)[
+        "notifyFitFileLoaded"
+    ];
+    return (
+        notifyFitFileLoaded === undefined ||
+        typeof notifyFitFileLoaded === "function"
+    );
 }
 
 /**
@@ -287,10 +298,7 @@ function enableTabsAndNotify(filePath: string): void {
         setTabButtonsEnabled(true);
 
         // Notify main process via IPC
-        const showFitGlobal = getShowFitDataGlobal();
-        if (showFitGlobal.electronAPI?.notifyFitFileLoaded) {
-            showFitGlobal.electronAPI.notifyFitFileLoaded(filePath);
-        }
+        getShowFitDataElectronApi()?.notifyFitFileLoaded?.(filePath);
 
         // Dispatch custom event for other components
         const event = new CustomEvent(
