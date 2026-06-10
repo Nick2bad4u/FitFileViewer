@@ -1,6 +1,10 @@
 // @ts-nocheck
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
+import {
+    registerRendererElectronApiCandidate as registerElectronApiCandidate,
+    resetRendererElectronApiCandidate as resetElectronApiCandidate,
+} from "../../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type AddRecentFileMock = (filePath: string) => Promise<void>;
 type AnchorClickMock = () => void;
@@ -115,15 +119,6 @@ import { __resetStateManagerForTests } from "../../../../../../electron-app/util
 
 type IpcHandler = (...args: any[]) => any;
 
-declare global {
-    // extend window for tests
-    interface Window {
-        electronAPI: any;
-        renderChartJS?: () => any;
-        globalData?: any;
-    }
-}
-
 function installURLMocks() {
     const createObjectURL = vi.fn<CreateObjectUrlMock>(() => "blob:mock");
     const revokeObjectURL = vi.fn<RevokeObjectUrlMock>();
@@ -201,6 +196,12 @@ function createElectronAPIMock() {
     };
 }
 
+function registerLifecycleElectronAPI(api: any) {
+    resetElectronApiCandidate();
+    registerElectronApiCandidate(api);
+    return api;
+}
+
 function createButton(): HTMLButtonElement {
     const btn = document.createElement("button");
     btn.id = "open-file-btn";
@@ -245,19 +246,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         resetMenuIpcListenerStateForTests();
         document.body.innerHTML = "";
         openFileBtn = createButton();
-        electronAPI = createElectronAPIMock();
-
-        // Synchronize electronAPI between window and globalThis scopes using property descriptor pattern
-        Object.defineProperty(window, "electronAPI", {
-            value: electronAPI as any,
-            writable: true,
-            configurable: true,
-        });
-        Object.defineProperty(globalThis, "electronAPI", {
-            value: electronAPI as any,
-            writable: true,
-            configurable: true,
-        });
+        electronAPI = registerLifecycleElectronAPI(createElectronAPIMock());
 
         setLoading = vi.fn<SetLoadingMock>();
         showNotification = vi.fn<ShowNotificationMock>();
@@ -278,6 +267,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
     afterEach(() => {
         __resetStateManagerForTests();
+        resetElectronApiCandidate();
         // Clean up any dynamically created context menus
         const existingMenu = document.querySelector("#recent-files-menu");
         if (existingMenu) {
@@ -287,7 +277,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Clean up all DOM elements thoroughly
         document.body.innerHTML = "";
 
-        // Clear any global state that might interfere (but preserve electronAPI)
+        // Clear any global state that might interfere.
         delete (globalThis as any).globalData;
         delete (globalThis as any).sendFitFileToAltFitReader;
         delete (globalThis as any).renderChartJS;
@@ -347,7 +337,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect.hasAssertions();
 
         // Remove recentFiles so early return triggers
-        window.electronAPI.recentFiles = undefined;
+        electronAPI.recentFiles = undefined;
 
         setupListeners({
             openFileBtn,
@@ -370,7 +360,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
     it("contextmenu: empty recent files -> shows info notification", async () => {
         expect.hasAssertions();
 
-        vi.mocked(window.electronAPI.recentFiles).mockResolvedValue([]);
+        vi.mocked(electronAPI.recentFiles).mockResolvedValue([]);
 
         setupListeners({
             openFileBtn,
@@ -510,7 +500,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        window.electronAPI.emit("decoder-options-changed", { speed: true });
+        electronAPI.emit("decoder-options-changed", { speed: true });
         expect(openFileBtn.disabled).toBe(false);
         expect(showNotification).toHaveBeenCalledWith(
             "Decoder options updated.",
@@ -518,7 +508,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             2000
         );
         // Should not attempt read/parse
-        expect(window.electronAPI.readFile).not.toHaveBeenCalled();
+        expect(electronAPI.readFile).not.toHaveBeenCalled();
     });
 
     it("ipc: decoder-options-changed reloads cached file and renders decoded FIT data", async () => {
@@ -529,9 +519,9 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             { cachedFilePath: "C:/tmp/sample.fit" },
             { source: "test" }
         );
-        vi.mocked(window.electronAPI.readFile).mockResolvedValue(arrayBuf);
+        vi.mocked(electronAPI.readFile).mockResolvedValue(arrayBuf);
         const parsed = createFitMessages();
-        vi.mocked(window.electronAPI.parseFitFile).mockResolvedValue(parsed);
+        vi.mocked(electronAPI.parseFitFile).mockResolvedValue(parsed);
 
         setupListeners({
             openFileBtn,
@@ -543,16 +533,16 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        window.electronAPI.emit("decoder-options-changed", { foo: 1 });
+        electronAPI.emit("decoder-options-changed", { foo: 1 });
         // Let promised chain resolve (flush a couple microtasks first)
         await Promise.resolve();
         await Promise.resolve();
 
         await vi.waitFor(() => {
-            expect(window.electronAPI.readFile).toHaveBeenCalledWith(
+            expect(electronAPI.readFile).toHaveBeenCalledWith(
                 "C:/tmp/sample.fit"
             );
-            expect(window.electronAPI.parseFitFile).toHaveBeenCalledWith(
+            expect(electronAPI.parseFitFile).toHaveBeenCalledWith(
                 arrayBuf
             );
             expect(
@@ -599,7 +589,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             { source: "test" }
         );
 
-        await window.electronAPI.emit("export-file", "C:/tmp/out.csv");
+        await electronAPI.emit("export-file", "C:/tmp/out.csv");
 
         expect(csvExportMocks.serializeTableToCSV).toHaveBeenCalledWith([
             { a: 1, b: 2 },
@@ -651,7 +641,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             { source: "test" }
         );
 
-        await window.electronAPI.emit("export-file", "C:/tmp/out.gpx");
+        await electronAPI.emit("export-file", "C:/tmp/out.gpx");
         expect(getActiveFitRawData()?.recordMesgs).toHaveLength(2);
         expect(clickSpy).toHaveBeenCalledOnce();
 
@@ -663,7 +653,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             },
             { source: "test" }
         );
-        await window.electronAPI.emit("export-file", "C:/tmp/out.gpx");
+        await electronAPI.emit("export-file", "C:/tmp/out.gpx");
         expect(showNotification).toHaveBeenCalledWith(
             "No valid coordinates found for GPX export.",
             "info",
@@ -672,7 +662,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Case 3: no data available
         setActiveFitRawData({}, { source: "test" });
-        await window.electronAPI.emit("export-file", "C:/tmp/out.gpx");
+        await electronAPI.emit("export-file", "C:/tmp/out.gpx");
         expect(showNotification).toHaveBeenCalledWith(
             "No data available for GPX export.",
             "info",
@@ -693,7 +683,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        window.electronAPI.emit("show-notification", "Hello", undefined);
+        electronAPI.emit("show-notification", "Hello", undefined);
         expect(openFileBtn.disabled).toBe(false);
         expect(showNotification).toHaveBeenCalledWith("Hello", "info", 3000);
     });
@@ -715,16 +705,16 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        window.electronAPI.emit("menu-print");
+        electronAPI.emit("menu-print");
         expect(openFileBtn.isConnected).toBe(true);
         expect(printSpy).toHaveBeenCalledWith();
 
-        window.electronAPI.emit("menu-check-for-updates");
-        window.electronAPI.emit("menu-save-as");
-        window.electronAPI.emit("menu-export");
-        expect(window.electronAPI.checkForUpdates).toHaveBeenCalledWith();
-        expect(window.electronAPI.requestSaveAs).toHaveBeenCalledWith();
-        expect(window.electronAPI.requestExport).toHaveBeenCalledWith();
+        electronAPI.emit("menu-check-for-updates");
+        electronAPI.emit("menu-save-as");
+        electronAPI.emit("menu-export");
+        expect(electronAPI.checkForUpdates).toHaveBeenCalledWith();
+        expect(electronAPI.requestSaveAs).toHaveBeenCalledWith();
+        expect(electronAPI.requestExport).toHaveBeenCalledWith();
     });
 
     it("ipc: menu-open-overlay triggers openFileSelector", async () => {
@@ -740,7 +730,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        await window.electronAPI.emit("menu-open-overlay");
+        await electronAPI.emit("menu-open-overlay");
         expect(openFileBtn.disabled).toBe(false);
         expect(openFileSelectorMock).toHaveBeenCalledOnce();
         expect(showNotification).not.toHaveBeenCalled();
@@ -761,7 +751,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        await window.electronAPI.emit("menu-open-overlay");
+        await electronAPI.emit("menu-open-overlay");
         expect(openFileBtn.disabled).toBe(false);
         expect(showNotification).toHaveBeenCalledWith(
             "Failed to open overlay selector.",
@@ -784,15 +774,15 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         // menu-about calls showAboutModal with no args
-        window.electronAPI.emit("menu-about");
+        electronAPI.emit("menu-about");
         expect(openFileBtn.isConnected).toBe(true);
         expect(showAboutModal).toHaveBeenCalledWith();
 
-        await window.electronAPI.emit("menu-keyboard-shortcuts");
+        await electronAPI.emit("menu-keyboard-shortcuts");
 
         expect(dependencyMocks.keyboardShortcutsModal).toHaveBeenCalledWith();
 
-        await window.electronAPI.emit("menu-keyboard-shortcuts");
+        await electronAPI.emit("menu-keyboard-shortcuts");
         expect(dependencyMocks.keyboardShortcutsModal).toHaveBeenCalledTimes(2);
         expect("showKeyboardShortcutsModal" in globalThis).toBe(false);
     });
@@ -810,34 +800,34 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        window.electronAPI.emitUpdate("update-checking");
+        electronAPI.emitUpdate("update-checking");
         expect(showUpdateNotification).toHaveBeenCalledWith(
             "Checking for updates...",
             "info",
             3000
         );
 
-        window.electronAPI.emitUpdate("update-available");
+        electronAPI.emitUpdate("update-available");
         expect(showUpdateNotification).toHaveBeenCalledWith(
             "Update available! Downloading...",
             4000
         );
 
-        window.electronAPI.emitUpdate("update-not-available");
+        electronAPI.emitUpdate("update-not-available");
         expect(showUpdateNotification).toHaveBeenCalledWith(
             "You are using the latest version.",
             "success",
             4000
         );
 
-        window.electronAPI.emitUpdate("update-error", new Error("boom"));
+        electronAPI.emitUpdate("update-error", new Error("boom"));
         expect(
             showUpdateNotification.mock.calls.some((c: any[]) =>
                 String(c[0]).includes("Update error:")
             )
         ).toBe(true);
 
-        window.electronAPI.emitUpdate("update-download-progress", {
+        electronAPI.emitUpdate("update-download-progress", {
             percent: 42.2,
         });
         expect(showUpdateNotification).toHaveBeenCalledWith(
@@ -846,14 +836,14 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             2000
         );
 
-        window.electronAPI.emitUpdate("update-download-progress", {});
+        electronAPI.emitUpdate("update-download-progress", {});
         expect(showUpdateNotification).toHaveBeenCalledWith(
             "Downloading update: progress information unavailable.",
             "info",
             2000
         );
 
-        window.electronAPI.emitUpdate("update-downloaded");
+        electronAPI.emitUpdate("update-downloaded");
         expect(showUpdateNotification).toHaveBeenCalledWith(
             "Update downloaded! Restart to install the update now, or choose Later to finish your work.",
             "success",
@@ -876,17 +866,17 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         // Font size
-        window.electronAPI.emit("set-font-size", "small");
+        electronAPI.emit("set-font-size", "small");
         expect(document.body.classList.contains("font-small")).toBe(true);
 
         // High contrast modes
-        window.electronAPI.emit("set-high-contrast", "black");
+        electronAPI.emit("set-high-contrast", "black");
         expect(document.body.classList.contains("high-contrast")).toBe(true);
-        window.electronAPI.emit("set-high-contrast", "white");
+        electronAPI.emit("set-high-contrast", "white");
         expect(document.body.classList.contains("high-contrast-white")).toBe(
             true
         );
-        window.electronAPI.emit("set-high-contrast", "yellow");
+        electronAPI.emit("set-high-contrast", "yellow");
         expect(document.body.classList.contains("high-contrast-yellow")).toBe(
             true
         );
@@ -899,11 +889,11 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // For open recent path success
         const arrayBuf = new ArrayBuffer(32);
-        vi.mocked(window.electronAPI.readFile).mockResolvedValue(arrayBuf);
-        vi.mocked(window.electronAPI.parseFitFile).mockResolvedValue(
+        vi.mocked(electronAPI.readFile).mockResolvedValue(arrayBuf);
+        vi.mocked(electronAPI.parseFitFile).mockResolvedValue(
             createFitMessages()
         );
-        vi.mocked(window.electronAPI.addRecentFile).mockResolvedValue(
+        vi.mocked(electronAPI.addRecentFile).mockResolvedValue(
             undefined
         );
 
@@ -918,24 +908,24 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         });
 
         // Trigger menu open file
-        window.electronAPI.triggerMenuOpenFile();
+        electronAPI.triggerMenuOpenFile();
         expect(handleOpenFile).toHaveBeenCalledOnce();
 
         // Success case
-        await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
-        expect(window.electronAPI.approveRecentFile).not.toHaveBeenCalled();
-        expect(window.electronAPI.readFile).toHaveBeenCalledWith(
+        await electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
+        expect(electronAPI.approveRecentFile).not.toHaveBeenCalled();
+        expect(electronAPI.readFile).toHaveBeenCalledWith(
             "C:/tmp/recent.fit"
         );
-        expect(window.electronAPI.addRecentFile).toHaveBeenCalledWith(
+        expect(electronAPI.addRecentFile).toHaveBeenCalledWith(
             "C:/tmp/recent.fit"
         );
 
         // Error case
-        vi.mocked(window.electronAPI.parseFitFile)
+        vi.mocked(electronAPI.parseFitFile)
             .mockReset()
             .mockResolvedValue({ error: "bad" });
-        await window.electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
+        await electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
         expect(
             showNotification.mock.calls.some((c: any[]) =>
                 String(c[0]).includes("Error:")
@@ -1500,16 +1490,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             // Missing onMenuOpenFile and onOpenRecentFile
         };
 
-        Object.defineProperty(window, "electronAPI", {
-            value: limitedElectronAPI,
-            writable: true,
-            configurable: true,
-        });
-        Object.defineProperty(globalThis, "electronAPI", {
-            value: limitedElectronAPI,
-            writable: true,
-            configurable: true,
-        });
+        electronAPI = registerLifecycleElectronAPI(limitedElectronAPI);
 
         // Should not crash when electronAPI is missing methods
         expect(() => {
@@ -1524,39 +1505,18 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             });
         }).not.toThrow();
 
-        // Restore full electronAPI
-        electronAPI = createElectronAPIMock();
-        Object.defineProperty(window, "electronAPI", {
-            value: electronAPI,
-            writable: true,
-            configurable: true,
-        });
-        Object.defineProperty(globalThis, "electronAPI", {
-            value: electronAPI,
-            writable: true,
-            configurable: true,
-        });
+        electronAPI = registerLifecycleElectronAPI(createElectronAPIMock());
     });
 
     it("menu: handles missing named request methods in electronAPI", async () => {
         expect.hasAssertions();
 
-        const limitedElectronAPI = {
-            ...electronAPI,
+        const limitedElectronAPI = Object.assign({}, electronAPI, {
             requestExport: undefined,
             requestSaveAs: undefined,
-        };
+        });
 
-        Object.defineProperty(window, "electronAPI", {
-            value: limitedElectronAPI,
-            writable: true,
-            configurable: true,
-        });
-        Object.defineProperty(globalThis, "electronAPI", {
-            value: limitedElectronAPI,
-            writable: true,
-            configurable: true,
-        });
+        electronAPI = registerLifecycleElectronAPI(limitedElectronAPI);
 
         setupListeners({
             openFileBtn,
@@ -1575,18 +1535,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             electronAPI.emit("menu-export");
         }).not.toThrow();
 
-        // Restore full electronAPI
-        electronAPI = createElectronAPIMock();
-        Object.defineProperty(window, "electronAPI", {
-            value: electronAPI,
-            writable: true,
-            configurable: true,
-        });
-        Object.defineProperty(globalThis, "electronAPI", {
-            value: electronAPI,
-            writable: true,
-            configurable: true,
-        });
+        electronAPI = registerLifecycleElectronAPI(createElectronAPIMock());
     });
 
     it("recent files context menu: removes old menu if exists", async () => {
