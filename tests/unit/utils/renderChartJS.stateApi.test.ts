@@ -71,6 +71,7 @@ function updateMockStateValue(path: string, value: ChartStateValue): void {
 vi.mock(
     import("../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
+        getStateHistory: vi.fn<() => unknown[]>(() => []),
         getState: vi.fn<(path: string) => ChartStateValue>((path: string) =>
             getMockStateValue(path)
         ),

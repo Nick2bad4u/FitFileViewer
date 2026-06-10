@@ -288,8 +288,7 @@ describe("handleOpenFile Module", () => {
                 apiAvailable: handleOpenFileModule.validateElectronAPI(),
             }).toStrictEqual({ apiAvailable: false });
             expect(console.error).toHaveBeenCalledWith(
-                "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: Missing Electron API methods",
-                '{"methods":["openFile"]}'
+                "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: Electron API not available"
             );
             getTestWindow().electronAPI = originalElectronAPI;
         });

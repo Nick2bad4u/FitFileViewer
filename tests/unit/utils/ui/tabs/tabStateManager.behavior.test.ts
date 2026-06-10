@@ -32,6 +32,7 @@ const {
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager"),
     () => ({
+        getStateHistory: vi.fn<() => unknown[]>(() => []),
         getState: mockGetState,
         setState: mockSetState,
         subscribe: mockSubscribe,

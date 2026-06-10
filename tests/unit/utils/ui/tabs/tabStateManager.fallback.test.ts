@@ -54,6 +54,7 @@ function getEffectiveStateManager(): EffectiveStateManager {
 vi.mock(
     import("../../../../../electron-app/utils/state/core/stateManager.js"),
     () => ({
+        getStateHistory: vi.fn<() => unknown[]>(() => []),
         getState: vi.fn<GetState>((key) => {
             const stateManager = effectiveStateManagerRef.current;
             return stateManager?.getState(key) ?? null;

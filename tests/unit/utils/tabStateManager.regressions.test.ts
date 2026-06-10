@@ -22,6 +22,7 @@ const { mockEnsureRendererVendorBundle } = vi.hoisted(() => ({
 
 // Mock dependencies with proper hoisting
 vi.mock(import("../../../electron-app/utils/state/core/stateManager"), () => ({
+    getStateHistory: vi.fn<() => unknown[]>(() => []),
     getState: vi.fn<GetState>(),
     setState: vi.fn<SetState>(),
     subscribe: vi.fn<Subscribe>(() => vi.fn<() => void>()),

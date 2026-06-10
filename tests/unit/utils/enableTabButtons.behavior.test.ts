@@ -221,10 +221,7 @@ describe("enableTabButtons behavior", () => {
                 globalThis,
                 "forceEnableTabButtons"
             ),
-            forceFixTabButtons: Reflect.has(
-                globalThis,
-                "forceFixTabButtons"
-            ),
+            forceFixTabButtons: Reflect.has(globalThis, "forceFixTabButtons"),
             setTabButtonsEnabled: Reflect.has(
                 globalThis,
                 "setTabButtonsEnabled"
