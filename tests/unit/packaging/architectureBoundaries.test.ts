@@ -173,6 +173,7 @@ const migratedChartImportFiles = [
     "electron-app/utils/data/zones/renderSinglePowerZoneBar.ts",
 ] as const;
 const migratedChartNotificationCallerFiles = [
+    "electron-app/utils/charts/core/renderChartNotificationHelpers.ts",
     "electron-app/utils/charts/rendering/renderLapZoneChart.ts",
     "electron-app/utils/charts/rendering/renderLapZoneCharts.ts",
     "electron-app/utils/data/zones/renderSingleHRZoneBar.ts",

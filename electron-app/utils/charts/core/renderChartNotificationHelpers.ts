@@ -15,10 +15,6 @@ interface RenderChartNotificationOptions extends NotificationOptions {
     silent?: boolean;
 }
 
-interface RenderChartNotificationGlobal {
-    showNotification?: unknown;
-}
-
 let notificationSuppressed: boolean | undefined;
 
 function isNotificationInvoker(value: unknown): value is NotificationInvoker {
@@ -80,24 +76,9 @@ export async function notify(
     options: RenderChartNotificationOptions = {}
 ): Promise<void> {
     try {
-        const chartGlobal = globalThis as RenderChartNotificationGlobal;
         const suppress =
             options.silent === true || getNotificationSuppressed() === true;
         if (suppress) {
-            return;
-        }
-
-        const globalNotifier = resolveNotificationInvoker(
-            chartGlobal.showNotification
-        );
-        if (globalNotifier) {
-            await invokeNotification(
-                globalNotifier,
-                message,
-                type,
-                duration,
-                options
-            );
             return;
         }
 
