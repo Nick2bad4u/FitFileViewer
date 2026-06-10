@@ -34,6 +34,7 @@ const clearZoneColorDataMock =
     vi.fn<(field: string, zoneCount: number) => void>();
 const updateInlineZoneColorSelectorsMock =
     vi.fn<(container: HTMLElement) => void>();
+const resetAllSettingsMock = vi.fn<() => boolean>();
 
 const chartStateManagerRef: {
     current: { debouncedRender: typeof debouncedRenderMock } | null;
@@ -94,6 +95,12 @@ vi.mock(
     () => ({
         clearZoneColorData: clearZoneColorDataMock,
         updateInlineZoneColorSelectors: updateInlineZoneColorSelectorsMock,
+    })
+);
+vi.mock(
+    import("../../../../../electron-app/utils/app/initialization/getCurrentSettings.js"),
+    () => ({
+        resetAllSettings: resetAllSettingsMock,
     })
 );
 
@@ -188,7 +195,6 @@ describe("openZoneColorPicker", () => {
         localStorage.clear();
         delete (globalThis as any).clearZoneColorData;
         delete (globalThis as any).updateInlineZoneColorSelectors;
-        delete (globalThis as any).resetAllSettings;
         delete (globalThis as any).renderChartJS;
         delete (globalThis as any).showNotification;
         clearChartInstanceRegistryForTests();
@@ -205,6 +211,8 @@ describe("openZoneColorPicker", () => {
         showNotificationMock.mockClear();
         clearZoneColorDataMock.mockClear();
         updateInlineZoneColorSelectorsMock.mockClear();
+        resetAllSettingsMock.mockReset();
+        resetAllSettingsMock.mockReturnValue(true);
 
         applyZoneColorsMock.mockImplementation(
             (zones: Array<Record<string, unknown>>) =>
@@ -218,7 +226,6 @@ describe("openZoneColorPicker", () => {
     afterEach(() => {
         delete (globalThis as any).clearZoneColorData;
         delete (globalThis as any).updateInlineZoneColorSelectors;
-        delete (globalThis as any).resetAllSettings;
         delete (globalThis as any).renderChartJS;
         delete (globalThis as any).showNotification;
         clearChartInstanceRegistryForTests();
@@ -275,12 +282,10 @@ describe("openZoneColorPicker", () => {
             { zone: 2, time: 90, label: "Zone 2" },
         ]);
         const inlineSelectorsMock = vi.fn<(root: HTMLElement) => void>();
-        const resetAllSettingsMock = vi.fn<() => void>();
         const globalNotificationMock =
             vi.fn<(message: string, level: string) => void>();
         (globalThis as any).updateInlineZoneColorSelectors =
             inlineSelectorsMock;
-        (globalThis as any).resetAllSettings = resetAllSettingsMock;
         (globalThis as any).showNotification = globalNotificationMock;
 
         openZoneColorPicker("hr_zone");

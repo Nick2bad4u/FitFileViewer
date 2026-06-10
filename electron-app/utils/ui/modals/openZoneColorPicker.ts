@@ -1,6 +1,7 @@
 import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { getRegisteredChartInstances } from "../../charts/core/chartInstanceRegistry.js";
 import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
+import { resetAllSettings } from "../../app/initialization/getCurrentSettings.js";
 // Avoid direct import to prevent circular dependency during SSR; use event-based request
 import {
     applyZoneColors,
@@ -35,12 +36,6 @@ type ChartInstance = {
     };
     update: (mode?: string) => void;
 };
-
-type ZoneColorPickerGlobal = typeof globalThis & {
-    resetAllSettings?: () => void;
-};
-
-const zoneColorGlobal = globalThis as ZoneColorPickerGlobal;
 
 function isChartInstance(value: unknown): value is ChartInstance {
     if (value === null || typeof value !== "object") {
@@ -601,10 +596,7 @@ export function openZoneColorPicker(field: string): void {
                     }
                 }
 
-                // Call global resetAllSettings if available (for full reset)
-                if (typeof zoneColorGlobal.resetAllSettings === "function") {
-                    zoneColorGlobal.resetAllSettings();
-                }
+                resetAllSettings();
 
                 // Update UI and chart to reflect reset state
                 updateInlineZoneColorSelectors(document.body);

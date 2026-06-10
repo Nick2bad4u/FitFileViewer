@@ -269,7 +269,7 @@ const directShowFitDataMapRenderedGlobalPattern =
     /\b(?:window|globalThis|getShowFitDataGlobal\(\)|showFitGlobal)\.isMapRendered\b/u;
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
 const migratedRendererUtilityGlobalLookupPattern =
-    /\b(?:appGlobal|chartGlobal|window|globalThis|showFitGlobal|windowExt|zoneColorGlobal|getZoneColorSelectorGlobal\(\))\.(?:clearZoneColorData|createTables|invalidateChartRenderCache|renderChartJS|renderMap|renderSummary|setTabButtonsEnabled|setupActiveFileNameMapActions|setupOverlayFileNameMapActions|updateActiveTab|updateOverlayHighlights|updateInlineZoneColorSelectors|updateShownFilesList|updateTabVisibility)\b/u;
+    /\b(?:appGlobal|chartGlobal|window|globalThis|showFitGlobal|windowExt|zoneColorGlobal|getZoneColorSelectorGlobal\(\))\.(?:clearZoneColorData|createTables|invalidateChartRenderCache|renderChartJS|renderMap|renderSummary|resetAllSettings|setTabButtonsEnabled|setupActiveFileNameMapActions|setupOverlayFileNameMapActions|updateActiveTab|updateOverlayHighlights|updateInlineZoneColorSelectors|updateShownFilesList|updateTabVisibility)\b/u;
 const directAltFitGlobalSenderPattern =
     /\b(?:appGlobal|window|globalThis|lifecycleGlobal|showFitGlobal|windowExt|getDragDropGlobal\(\)|getFileOpenGlobal\(\)|getOpenFitFileGlobal\(\))\.sendFitFileToAltFitReader\b/u;
 const directOverlayHighlightGlobalPattern =
