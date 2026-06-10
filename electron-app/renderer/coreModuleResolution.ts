@@ -92,8 +92,8 @@ export async function ensureCoreModules(): Promise<RendererCoreModules> {
         "../utils/app/lifecycle/appActions.js"
     );
     const appDomainMod = await resolveCoreModule(
-        "../../utils/state/domain/appState.js",
-        "../utils/state/domain/appState.js"
+        "../../utils/state/domain/appDomainState.js",
+        "../utils/state/domain/appDomainState.js"
     );
     const uiStateMod = await resolveCoreModule(
         "../../utils/state/domain/uiStateManager.js",
@@ -105,7 +105,7 @@ export async function ensureCoreModules(): Promise<RendererCoreModules> {
         AppActions: resolveAppActionsModule(appActionsMod),
         applyTheme: toApplyTheme(themeMod["applyTheme"]),
         getAppDomainState: toUnknownRendererFunction(
-            resolveDefaultableExport(appDomainMod, "getState")
+            resolveDefaultableExport(appDomainMod, "getAppDomainState")
         ),
         handleOpenFile: toUnknownRendererFunction(
             openFileMod["handleOpenFile"]
@@ -125,7 +125,7 @@ export async function ensureCoreModules(): Promise<RendererCoreModules> {
             updateNotifMod["showUpdateNotification"]
         ),
         subscribeAppDomain: toUnknownRendererFunction(
-            resolveDefaultableExport(appDomainMod, "subscribe")
+            resolveDefaultableExport(appDomainMod, "subscribeAppDomain")
         ),
         uiStateManager:
             resolveDefaultableExport(uiStateMod, "uiStateManager") ??
@@ -209,8 +209,8 @@ async function importRendererModule(realPath: string): Promise<unknown> {
         case "../utils/state/core/masterStateManager.js": {
             return /** @type {Promise<unknown>} */ import("../utils/state/core/masterStateManager.js");
         }
-        case "../utils/state/domain/appState.js": {
-            return /** @type {Promise<unknown>} */ import("../utils/state/domain/appState.js");
+        case "../utils/state/domain/appDomainState.js": {
+            return /** @type {Promise<unknown>} */ import("../utils/state/domain/appDomainState.js");
         }
         case "../utils/state/domain/uiStateManager.js": {
             return /** @type {Promise<unknown>} */ import("../utils/state/domain/uiStateManager.js");

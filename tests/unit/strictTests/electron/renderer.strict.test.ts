@@ -173,10 +173,10 @@ const importRendererFresh = async () => {
         })
     );
     vi.doMock(
-        import("../../../electron-app/utils/state/domain/appState.js"),
+        import("../../../electron-app/utils/state/domain/appDomainState.js"),
         () => ({
-            getState: getAppDomainState,
-            subscribe: subscribeAppDomain,
+            getAppDomainState,
+            subscribeAppDomain,
         })
     );
 
@@ -213,9 +213,8 @@ const importRendererFresh = async () => {
 };
 
 async function getRendererDevToolsForStrictTest(): Promise<any> {
-    const { getRendererDevelopmentDebugToolsForTests } = await import(
-        "../../../../electron-app/renderer/developmentDebugGlobals.js"
-    );
+    const { getRendererDevelopmentDebugToolsForTests } =
+        await import("../../../../electron-app/renderer/developmentDebugGlobals.js");
 
     return getRendererDevelopmentDebugToolsForTests()?.rendererDev;
 }
@@ -346,7 +345,7 @@ describe("renderer.js strict behavior", () => {
                 reinitialize: typeof dev.reinitialize,
                 validateDOM: typeof dev.validateDOM,
             },
-            appState: dev.appState,
+            hasAppState: Object.hasOwn(dev, "appState"),
         }).toStrictEqual({
             APP_INFO: {
                 author: "FIT File Viewer Team",
@@ -373,7 +372,7 @@ describe("renderer.js strict behavior", () => {
                 reinitialize: "function",
                 validateDOM: "function",
             },
-            appState: null,
+            hasAppState: false,
         });
         dev.PerformanceMonitor.start("strict_test_operation");
         const duration = dev.PerformanceMonitor.end("strict_test_operation");

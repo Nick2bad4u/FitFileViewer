@@ -114,8 +114,11 @@ describe("renderer core module resolution", () => {
                 ],
                 ["../../utils/app/lifecycle/appActions.js", { AppActions }],
                 [
-                    "../../utils/state/domain/appState.js",
-                    { getState, subscribe },
+                    "../../utils/state/domain/appDomainState.js",
+                    {
+                        getAppDomainState: getState,
+                        subscribeAppDomain: subscribe,
+                    },
                 ],
                 [
                     "../../utils/state/domain/uiStateManager.js",

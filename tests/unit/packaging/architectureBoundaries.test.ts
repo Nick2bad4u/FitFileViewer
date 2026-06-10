@@ -1036,6 +1036,21 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer core module resolution on the app-domain state facade", () => {
+        expect.assertions(2);
+
+        const coreModuleResolutionSource = stripComments(
+            readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
+        );
+
+        expect(coreModuleResolutionSource).toContain(
+            "state/domain/appDomainState.js"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
+            "state/domain/appState.js"
+        );
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 
