@@ -45,6 +45,7 @@
     };
 
     const PROBE_EVENT = "__test_probe__";
+    const PROBE_INSTALLED_APPS = new WeakSet<object>();
 
     function asReflectTarget(value: unknown): object | null {
         if (
@@ -179,20 +180,13 @@
             typeof appLike.listenerCount === "function"
                 ? appLike.listenerCount(PROBE_EVENT)
                 : 0;
-        return (
-            listenerCount > 0 ||
-            getProperty(appLike, "__ffvTestProbeInstalled") === true
-        );
+        return listenerCount > 0 || PROBE_INSTALLED_APPS.has(appLike);
     }
 
     function markProbeInstalled(app: unknown): void {
         const record = asReflectTarget(app);
         if (!record) return;
-        try {
-            Reflect.set(record, "__ffvTestProbeInstalled", true);
-        } catch {
-            /* ignore */
-        }
+        PROBE_INSTALLED_APPS.add(record);
     }
 
     let testKeepaliveTimer: ReturnType<typeof setInterval> | undefined;
