@@ -183,6 +183,7 @@ const migratedElectronApiAccessorFiles = [
     "electron-app/utils/ui/dragDropHandler.ts",
     "electron-app/utils/ui/browser/fileBrowserTab.ts",
     "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",
+    "electron-app/utils/ui/controls/addFullScreenButton.ts",
     "electron-app/utils/ui/mainUiDomUtils.ts",
     "electron-app/utils/ui/settingsModal.ts",
     "electron-app/utils/ui/links/externalLinkHandlers.ts",

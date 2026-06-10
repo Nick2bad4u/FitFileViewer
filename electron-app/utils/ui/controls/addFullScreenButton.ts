@@ -5,13 +5,10 @@ import {
     resolveScreenfullRuntime,
     type ScreenfullRuntime,
 } from "./screenfullRuntime.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type ElectronFullscreenAPI = Partial<Pick<ElectronAPI, "setFullScreen">>;
-
-type FullscreenGlobal = typeof globalThis & {
-    electronAPI?: ElectronFullscreenAPI;
-};
 
 type StoredEventHandler = (event: Event) => void;
 
@@ -51,10 +48,19 @@ let isWindowFullscreenRequested = false;
 let fullscreenKeydownHandler: null | StoredEventHandler = null;
 let nativeFullscreenChangeHandler: null | StoredEventHandler = null;
 
-const getFullscreenGlobal = (): FullscreenGlobal => globalThis;
-
 const getElectronAPI = (): ElectronFullscreenAPI | undefined =>
-    getFullscreenGlobal().electronAPI;
+    getRendererElectronApi(isElectronFullscreenApi) ?? undefined;
+
+function isElectronFullscreenApi(
+    value: unknown
+): value is ElectronFullscreenAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const setFullScreen = (value as Record<string, unknown>)["setFullScreen"];
+    return setFullScreen === undefined || typeof setFullScreen === "function";
+}
 
 const getScreenfullInstance = (): ScreenfullRuntime | undefined =>
     resolveScreenfullRuntime();
