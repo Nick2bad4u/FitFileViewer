@@ -1,18 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { resetChartDebugStateForTests } from "../../../../../electron-app/utils/charts/core/chartDebugState.js";
+
 interface ZoneTestEntry {
     color?: string;
     label: string;
     time: number;
     zone: number;
 }
-
-interface ZoneTestGlobals {
-    __FFV_debugCharts?: unknown;
-    __FFV_debugChartsVerbose?: unknown;
-}
-
-const testGlobal = globalThis as typeof globalThis & ZoneTestGlobals;
 
 const zoneDataMocks = vi.hoisted(() => ({
     applyZoneColors: vi.fn<
@@ -64,8 +59,7 @@ const loadModule = async () => {
 
 function resetTestState(): void {
     vi.clearAllMocks();
-    delete testGlobal.__FFV_debugCharts;
-    delete testGlobal.__FFV_debugChartsVerbose;
+    resetChartDebugStateForTests();
 }
 
 describe("setupZoneData", () => {

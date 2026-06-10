@@ -1,5 +1,6 @@
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
+import { isChartDebugLoggingEnabled } from "./chartDebugState.js";
 import {
     isDevelopmentEnvironment as isDevelopmentRuntimeEnvironment,
     isNodeEnvironment,
@@ -15,7 +16,6 @@ interface ProcessShim {
 }
 
 interface RenderChartRuntimeGlobal {
-    __FFV_debugCharts?: unknown;
     __chartjs_dev?: unknown;
     _fitFileViewerChartListener?: unknown;
     _fitFileViewerSharedConfigurationAbortController?: AbortController;
@@ -151,10 +151,10 @@ export function setLoadingStateSuppressed(value: boolean): void {
 }
 
 /**
- * Reads the chart debug flag from the renderer global.
+ * Reads the chart debug flag from typed renderer state.
  */
 export function isChartDebugEnabled(): boolean {
-    return Boolean(getMutableChartRuntimeGlobal().__FFV_debugCharts);
+    return isChartDebugLoggingEnabled();
 }
 
 /**

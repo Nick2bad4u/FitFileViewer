@@ -1,5 +1,5 @@
-import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { isChartDebugLoggingEnabled } from "../core/chartDebugState.js";
 import { resolveChartRuntime } from "../core/chartRuntime.js";
 import { updateChartAnimations } from "../core/updateChartAnimations.js";
 import { detectCurrentTheme } from "../theming/chartThemeUtils.js";
@@ -16,12 +16,6 @@ type ChartConstructor = new (
     config: EnhancedChartConfig
 ) => EnhancedChartInstance;
 
-interface ChartDebugGlobal {
-    readonly __FFV_debugCharts?: unknown;
-}
-
-const chartGlobal = globalThis as typeof globalThis & ChartDebugGlobal;
-
 function isChartConstructor(value: unknown): value is ChartConstructor {
     return typeof value === "function";
 }
@@ -35,7 +29,7 @@ function logThemeDebug(
     theme: string | undefined,
     currentTheme: string
 ): void {
-    if (!isDevelopmentEnvironment() || !chartGlobal.__FFV_debugCharts) {
+    if (!isChartDebugLoggingEnabled()) {
         return;
     }
 

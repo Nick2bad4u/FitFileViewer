@@ -5,9 +5,12 @@ import {
     addHoverEffectsToExistingCharts,
     type ChartHoverThemeConfig,
 } from "../../../electron-app/utils/charts/plugins/addChartHoverEffects.js";
+import {
+    resetChartDebugStateForTests,
+    setChartDebugLoggingEnabled,
+} from "../../../electron-app/utils/charts/core/chartDebugState.js";
 
 type ChartHoverTestGlobal = typeof globalThis & {
-    __FFV_debugCharts?: boolean;
     getThemeConfig?: () => ChartHoverThemeConfig;
 };
 
@@ -97,10 +100,10 @@ describe(addChartHoverEffects, () => {
 
     beforeEach(() => {
         // Ensure debug logging is enabled for deterministic log assertions.
-        // The implementation only logs when NODE_ENV=development and __FFV_debugCharts is truthy.
+        // The implementation only logs when NODE_ENV=development and chart debug logging is enabled.
         originalNodeEnv = process.env.NODE_ENV;
         process.env.NODE_ENV = "development";
-        chartHoverTestGlobal.__FFV_debugCharts = true;
+        setChartDebugLoggingEnabled(true);
 
         // Spy console methods *after* Vitest has patched them.
         mockConsoleWarn = vi
@@ -145,8 +148,7 @@ describe(addChartHoverEffects, () => {
         mockConsoleWarn?.mockRestore();
         mockConsoleLog?.mockRestore();
         process.env.NODE_ENV = originalNodeEnv;
-        // eslint-disable-next-line no-underscore-dangle
-        delete chartHoverTestGlobal.__FFV_debugCharts;
+        resetChartDebugStateForTests();
 
         vi.clearAllMocks();
     });

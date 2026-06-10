@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { detectCurrentTheme } from "../../../../../electron-app/utils/charts/theming/chartThemeUtils.js";
+import { resetChartDebugStateForTests } from "../../../../../electron-app/utils/charts/core/chartDebugState.js";
 import type { EffectiveTheme } from "../../../../../electron-app/utils/theming/core/theme.js";
 
 const { getEffectiveThemeMock } = vi.hoisted(() => ({
@@ -14,18 +15,12 @@ vi.mock(
     })
 );
 
-interface ChartDebugGlobal {
-    __FFV_debugCharts?: boolean;
-}
-
 function resetThemeEnvironment(): void {
     document.body.className = "";
     localStorage.clear();
     getEffectiveThemeMock.mockReset();
     getEffectiveThemeMock.mockReturnValue("light");
-
-    const debugGlobal = globalThis as typeof globalThis & ChartDebugGlobal;
-    delete debugGlobal.__FFV_debugCharts;
+    resetChartDebugStateForTests();
 
     Object.defineProperty(globalThis, "matchMedia", {
         configurable: true,

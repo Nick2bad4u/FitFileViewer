@@ -301,6 +301,8 @@ const directChartNotificationSuppressionGlobalPattern =
     /\b(?:window|globalThis|chartGlobal|notificationGlobal)\.__FFV_suppressNotifications\b|["']__FFV_suppressNotifications["']/u;
 const directChartLoadingSuppressionGlobalPattern =
     /\b(?:window|globalThis|chartGlobal|runtimeGlobal)\.__FFV_suppressLoadingState\b|["']__FFV_suppressLoadingState["']/u;
+const directChartDebugGlobalPattern =
+    /\b(?:window|globalThis|chartGlobal|runtimeGlobal|zoneGlobal|debugGlobal|chartHoverGlobal)\.(?:__FFV_debugCharts|__FFV_debugChartsVerbose|__FFV_traceFullscreen)\b/u;
 const directGyazoStartupTimerGlobalPattern =
     /\b(?:window|globalThis|testGlobals)\.__ffvGyazoStartupTimer\b|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']__ffvGyazoStartupTimer["']/u;
 const directResourceManagerGlobalPattern =
@@ -1418,7 +1420,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(68);
+        expect.assertions(69);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1802,6 +1804,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directChartDebugGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directChartDebugGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directGyazoStartupTimerGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directGyazoStartupTimerGlobalPattern.test(
@@ -1964,6 +1973,7 @@ describe("architecture boundaries", () => {
             []
         );
         expect(directChartLoadingSuppressionGlobalLookups).toStrictEqual([]);
+        expect(directChartDebugGlobalLookups).toStrictEqual([]);
         expect(directGyazoStartupTimerGlobalLookups).toStrictEqual([]);
         expect(directResourceManagerGlobalLookups).toStrictEqual([]);
         expect(directRendererApiExposureGlobalLookups).toStrictEqual([]);

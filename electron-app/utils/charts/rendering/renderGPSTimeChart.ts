@@ -2,11 +2,9 @@ import {
     getThemeConfig,
     type ThemeColorMap,
 } from "../../theming/core/theme.js";
-import {
-    isDevelopmentEnvironment,
-    isTestEnvironment,
-} from "../../runtime/processEnvironment.js";
+import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
+import { isChartDebugLoggingEnabled } from "../core/chartDebugState.js";
 import {
     createManagedChart,
     type ManagedChartConfig,
@@ -29,10 +27,6 @@ interface GPSTimePoint {
     readonly timestamp: Date | number | string;
     readonly x: number;
     readonly y: number;
-}
-
-interface GPSTimeRuntimeGlobal {
-    readonly __FFV_debugCharts?: unknown;
 }
 
 interface GPSTimeThemeColors {
@@ -536,11 +530,5 @@ function limitGpsTimePoints(
 }
 
 function shouldLogDebugMessages(): boolean {
-    const runtimeGlobal = globalThis as typeof globalThis &
-        GPSTimeRuntimeGlobal;
-
-    return (
-        isTestEnvironment() ||
-        (isDevelopmentEnvironment() && Boolean(runtimeGlobal.__FFV_debugCharts))
-    );
+    return isTestEnvironment() || isChartDebugLoggingEnabled();
 }

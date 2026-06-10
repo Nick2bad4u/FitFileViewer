@@ -1,6 +1,9 @@
 import { updateHRZoneControlsVisibility } from "../../ui/controls/createHRZoneControls.js";
 import { updatePowerZoneControlsVisibility } from "../../ui/controls/createPowerZoneControls.js";
-import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
+import {
+    isChartDebugLoggingEnabled,
+    isChartVerboseDebugLoggingEnabled,
+} from "../../charts/core/chartDebugState.js";
 import {
     applyZoneColors,
     type ZoneData,
@@ -39,11 +42,6 @@ interface FitZoneActivityData {
     readonly timeInZoneMesgs?: readonly TimeInZoneMesg[];
 }
 
-interface ZoneGlobals {
-    readonly __FFV_debugCharts?: unknown;
-    readonly __FFV_debugChartsVerbose?: unknown;
-}
-
 interface SetupZoneDataResult {
     readonly hasHRZoneData: boolean;
     readonly hasPowerZoneData: boolean;
@@ -62,16 +60,12 @@ interface ZoneDataState {
     powerZones: ZoneEntry[];
 }
 
-const zoneGlobal = globalThis as typeof globalThis & ZoneGlobals;
-
 function isDebugLoggingEnabled(): boolean {
-    return isDevelopmentEnvironment() && Boolean(zoneGlobal.__FFV_debugCharts);
+    return isChartDebugLoggingEnabled();
 }
 
 function shouldLogVerboseZoneData(): boolean {
-    return (
-        isDebugLoggingEnabled() && Boolean(zoneGlobal.__FFV_debugChartsVerbose)
-    );
+    return isChartVerboseDebugLoggingEnabled();
 }
 
 function buildZones(zoneTimes: readonly NullishNumber[]): ZoneEntry[] {

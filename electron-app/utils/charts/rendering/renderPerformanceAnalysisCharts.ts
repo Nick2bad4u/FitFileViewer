@@ -1,7 +1,7 @@
 import { renderAltitudeProfileChart } from "./renderAltitudeProfileChart.js";
 import { renderPowerVsHeartRateChart } from "./renderPowerVsHeartRateChart.js";
 import { renderSpeedVsDistanceChart } from "./renderSpeedVsDistanceChart.js";
-import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
+import { isChartDebugLoggingEnabled } from "../core/chartDebugState.js";
 
 interface PerformanceAnalysisOptions {
     animationStyle?: string;
@@ -24,12 +24,6 @@ interface PerformanceAnalysisOptions {
 
 type PerformanceAnalysisDatum = Record<string, unknown>;
 
-interface PerformanceAnalysisRuntimeGlobal {
-    __FFV_debugCharts?: unknown;
-}
-
-const chartGlobal = globalThis as PerformanceAnalysisRuntimeGlobal;
-
 /**
  * Render performance analysis charts.
  */
@@ -40,9 +34,7 @@ export function renderPerformanceAnalysisCharts(
     options: PerformanceAnalysisOptions
 ): void {
     try {
-        const isDebugLoggingEnabled =
-            isDevelopmentEnvironment() &&
-            Boolean(chartGlobal.__FFV_debugCharts);
+        const isDebugLoggingEnabled = isChartDebugLoggingEnabled();
         if (isDebugLoggingEnabled) {
             console.log("[ChartJS] renderPerformanceAnalysisCharts called");
         }

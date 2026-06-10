@@ -1,6 +1,6 @@
 import { getHRZoneVisibilitySettings } from "../../ui/controls/createHRZoneControls.js";
 import { getPowerZoneVisibilitySettings } from "../../ui/controls/createPowerZoneControls.js";
-import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
+import { isChartDebugLoggingEnabled } from "../core/chartDebugState.js";
 import {
     getHeartRateZones,
     getPowerZones,
@@ -18,15 +18,9 @@ interface TimeInZoneChartOptions {
     readonly [key: string]: unknown;
 }
 
-interface TimeInZoneRuntimeGlobal {
-    readonly __FFV_debugCharts?: unknown;
-}
-
 interface ZoneVisibilitySettings {
     readonly doughnutVisible?: boolean;
 }
-
-const chartGlobal = globalThis as typeof globalThis & TimeInZoneRuntimeGlobal;
 
 /**
  * Render HR / Power time-in-zone charts into a container.
@@ -36,9 +30,7 @@ export function renderTimeInZoneCharts(
     options: TimeInZoneChartOptions = {}
 ): void {
     try {
-        const isDebugLoggingEnabled =
-            isDevelopmentEnvironment() &&
-            Boolean(chartGlobal.__FFV_debugCharts);
+        const isDebugLoggingEnabled = isChartDebugLoggingEnabled();
 
         if (!container) {
             return;

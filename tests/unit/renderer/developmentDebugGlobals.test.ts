@@ -9,6 +9,12 @@ import {
     isRendererDebugLoggingEnabled,
     setRendererDebugLoggingEnabled,
 } from "../../../electron-app/utils/debug/rendererDebugLoggingState.js";
+import {
+    isChartDebugLoggingEnabled,
+    isChartFullscreenTraceEnabled,
+    isChartVerboseDebugLoggingEnabled,
+    resetChartDebugStateForTests,
+} from "../../../electron-app/utils/charts/core/chartDebugState.js";
 
 vi.mock("../../../electron-app/utils/debug/debugSensorInfo.js", () => ({
     checkDataAvailability: vi.fn(),
@@ -24,6 +30,17 @@ vi.mock("../../../electron-app/utils/debug/debugChartFormatting.js", () => ({
     testFaveroStringCase: vi.fn(),
     testNewFormatting: vi.fn(),
 }));
+
+const originalNodeEnv = process.env.NODE_ENV;
+
+function restoreNodeEnv(): void {
+    if (originalNodeEnv === undefined) {
+        Reflect.deleteProperty(process.env, "NODE_ENV");
+        return;
+    }
+
+    process.env.NODE_ENV = originalNodeEnv;
+}
 
 function createPerformanceMonitor(): RendererPerformanceMonitor {
     return {
@@ -43,6 +60,8 @@ describe("renderer development debug globals", () => {
         Reflect.deleteProperty(globalThis, "__renderer_dev");
         Reflect.deleteProperty(globalThis, "__sensorDebug");
         setRendererDebugLoggingEnabled(false);
+        resetChartDebugStateForTests();
+        restoreNodeEnv();
         vi.restoreAllMocks();
     });
 
@@ -66,7 +85,7 @@ describe("renderer development debug globals", () => {
     });
 
     it("installs renderer dev/debug globals and resolves core debug functions", async () => {
-        expect.assertions(14);
+        expect.assertions(21);
 
         const handleOpenFile = vi.fn<(...args: unknown[]) => string>(
             () => "opened"
@@ -78,6 +97,7 @@ describe("renderer development debug globals", () => {
         };
         const performanceMonitor = createPerformanceMonitor();
         const logRenderer = vi.fn();
+        process.env.NODE_ENV = "development";
 
         installRendererDevelopmentDebugGlobals({
             appState: null,
@@ -103,6 +123,9 @@ describe("renderer development debug globals", () => {
         const rendererDev = Reflect.get(globalThis, "__renderer_dev") as {
             APP_INFO: typeof APP_INFO;
             AppActions?: unknown;
+            chartDebug: boolean;
+            chartDebugVerbose: boolean;
+            chartFullscreenTrace: boolean;
             debug: boolean;
             debugState: () => void;
             getPerformanceMetrics: () => Record<string, number>;
@@ -125,6 +148,17 @@ describe("renderer development debug globals", () => {
         expect(rendererDev.debug).toBe(false);
         rendererDev.debug = true;
         expect(isRendererDebugLoggingEnabled()).toBe(true);
+        expect(rendererDev.chartDebug).toBe(false);
+        rendererDev.chartDebug = true;
+        expect(isChartDebugLoggingEnabled()).toBe(true);
+        expect(rendererDev.chartDebugVerbose).toBe(false);
+        rendererDev.chartDebugVerbose = true;
+        expect(isChartVerboseDebugLoggingEnabled()).toBe(true);
+        expect(rendererDev.chartFullscreenTrace).toBe(true);
+        rendererDev.chartFullscreenTrace = false;
+        expect(isChartFullscreenTraceEnabled()).toBe(false);
+        rendererDev.chartFullscreenTrace = "auto";
+        expect(isChartFullscreenTraceEnabled()).toBe(true);
         expect(rendererDev.getPerformanceMetrics()).toStrictEqual({
             app_initialization: 12,
         });

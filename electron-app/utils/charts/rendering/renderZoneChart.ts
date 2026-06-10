@@ -7,10 +7,13 @@ import {
     getThemeConfig,
     type ThemeColorMap,
 } from "../../theming/core/theme.js";
-import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import type { ZoneData } from "../../types/sharedChartTypes.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import { registerChartInstance } from "../core/chartInstanceRegistry.js";
+import {
+    isChartDebugLoggingEnabled,
+    isChartVerboseDebugLoggingEnabled,
+} from "../core/chartDebugState.js";
 import { resolveChartRuntime } from "../core/chartRuntime.js";
 import { chartBackgroundColorPlugin } from "../plugins/chartBackgroundColorPlugin.js";
 import {
@@ -21,11 +24,6 @@ import {
 interface RenderZoneChartOptions {
     readonly chartType?: string;
     readonly showLegend?: boolean;
-}
-
-interface ZoneChartRuntimeGlobal {
-    readonly __FFV_debugCharts?: unknown;
-    readonly __FFV_debugChartsVerbose?: unknown;
 }
 
 interface ZoneChartInstance {
@@ -131,14 +129,8 @@ export function renderZoneChart(
     chartId: string,
     options: RenderZoneChartOptions = {}
 ): void {
-    const runtimeGlobal = globalThis as typeof globalThis &
-            ZoneChartRuntimeGlobal,
-        isDebugLoggingEnabled =
-            isDevelopmentEnvironment() &&
-            Boolean(runtimeGlobal.__FFV_debugCharts),
-        isVerboseDebugLoggingEnabled =
-            isDebugLoggingEnabled &&
-            Boolean(runtimeGlobal.__FFV_debugChartsVerbose);
+    const isDebugLoggingEnabled = isChartDebugLoggingEnabled(),
+        isVerboseDebugLoggingEnabled = isChartVerboseDebugLoggingEnabled();
 
     if (!(container instanceof HTMLElement)) {
         console.warn("renderZoneChart: invalid container", container);

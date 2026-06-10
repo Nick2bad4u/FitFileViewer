@@ -5,13 +5,14 @@ import {
     getHeartRateZones,
     getPowerZones,
 } from "../../data/zones/zoneDataState.js";
-import {
-    isDevelopmentEnvironment,
-    isTestEnvironment,
-} from "../../runtime/processEnvironment.js";
+import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
+import {
+    isChartDebugLoggingEnabled,
+    isChartVerboseDebugLoggingEnabled,
+} from "../core/chartDebugState.js";
 import { registerChartInstance as registerRegisteredChartInstance } from "../core/chartInstanceRegistry.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { renderLapZoneChart } from "./renderLapZoneChart.js";
@@ -37,8 +38,6 @@ interface LapZoneEntry {
 }
 
 interface LapZoneRuntimeGlobal {
-    readonly __FFV_debugCharts?: unknown;
-    readonly __FFV_debugChartsVerbose?: unknown;
     readonly showNotification?: (message: string, type: string) => void;
 }
 
@@ -84,7 +83,7 @@ export function renderLapZoneCharts(
     options: LapZoneChartsOptions | null = {}
 ): void {
     const runtimeGlobal = getRuntimeGlobal(),
-        debug = getDebugState(runtimeGlobal);
+        debug = getDebugState();
 
     try {
         if (debug.isDebugLoggingEnabled) {
@@ -253,19 +252,14 @@ function createLapZoneEntry(
     };
 }
 
-function getDebugState(runtimeGlobal: LapZoneRuntimeGlobal): {
+function getDebugState(): {
     readonly isDebugLoggingEnabled: boolean;
     readonly isVerboseDebugLoggingEnabled: boolean;
 } {
     const isTestRuntime = isTestEnvironment(),
-        isDebugLoggingEnabled =
-            isTestRuntime ||
-            (isDevelopmentEnvironment() &&
-                Boolean(runtimeGlobal.__FFV_debugCharts)),
+        isDebugLoggingEnabled = isTestRuntime || isChartDebugLoggingEnabled(),
         isVerboseDebugLoggingEnabled =
-            isTestRuntime ||
-            (isDebugLoggingEnabled &&
-                Boolean(runtimeGlobal.__FFV_debugChartsVerbose));
+            isTestRuntime || isChartVerboseDebugLoggingEnabled();
 
     return {
         isDebugLoggingEnabled,

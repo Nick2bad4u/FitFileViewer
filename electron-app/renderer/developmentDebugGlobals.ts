@@ -3,6 +3,14 @@ import {
     isRendererDebugLoggingEnabled,
     setRendererDebugLoggingEnabled,
 } from "../utils/debug/rendererDebugLoggingState.js";
+import {
+    isChartDebugLoggingEnabled,
+    isChartFullscreenTraceEnabled,
+    isChartVerboseDebugLoggingEnabled,
+    setChartDebugLoggingEnabled,
+    setChartFullscreenTraceEnabled,
+    setChartVerboseDebugLoggingEnabled,
+} from "../utils/charts/core/chartDebugState.js";
 
 type DevelopmentDebugLogLevel = "log" | "warn";
 type DevelopmentDebugLogger = (
@@ -95,6 +103,26 @@ function createRendererDevTools(
         },
         set debug(value: unknown) {
             setRendererDebugLoggingEnabled(value === true);
+        },
+        get chartDebug() {
+            return isChartDebugLoggingEnabled();
+        },
+        set chartDebug(value: unknown) {
+            setChartDebugLoggingEnabled(value === true);
+        },
+        get chartDebugVerbose() {
+            return isChartVerboseDebugLoggingEnabled();
+        },
+        set chartDebugVerbose(value: unknown) {
+            setChartVerboseDebugLoggingEnabled(value === true);
+        },
+        get chartFullscreenTrace() {
+            return isChartFullscreenTraceEnabled();
+        },
+        set chartFullscreenTrace(value: unknown) {
+            setChartFullscreenTraceEnabled(
+                typeof value === "boolean" ? value : null
+            );
         },
         debugState: () => {
             void logRendererDebugState(options);

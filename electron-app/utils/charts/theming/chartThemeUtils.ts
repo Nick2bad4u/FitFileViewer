@@ -1,19 +1,13 @@
 import { getEffectiveTheme } from "../../theming/core/theme.js";
-import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
+import { isChartDebugLoggingEnabled } from "../core/chartDebugState.js";
 
 /**
  * Concrete theme values that chart rendering can consume.
  */
 export type ChartTheme = "dark" | "light";
 
-interface ChartDebugGlobal {
-    __FFV_debugCharts?: boolean;
-}
-
 function shouldLogDebugMessages(): boolean {
-    const debugGlobal = globalThis as typeof globalThis & ChartDebugGlobal;
-
-    return isDevelopmentEnvironment() && debugGlobal.__FFV_debugCharts === true;
+    return isChartDebugLoggingEnabled();
 }
 
 function logThemeDetection(message: string, detectedTheme?: ChartTheme): void {

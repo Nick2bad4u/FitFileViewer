@@ -2,8 +2,11 @@ import {
     getThemeConfig,
     type ThemeColorValue,
 } from "../../theming/core/theme.js";
-import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 import type { AppIconName } from "../../ui/icons/iconFactory.js";
+import {
+    isChartDebugLoggingEnabled,
+    isChartFullscreenTraceEnabled,
+} from "../core/chartDebugState.js";
 import { resolveChartRuntime } from "../core/chartRuntime.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { resolveChartTitleIconName } from "./chartTitleOverlayUtils.js";
@@ -59,8 +62,6 @@ interface LegacyChartCanvas extends HTMLCanvasElement {
 }
 
 interface ChartHoverGlobal {
-    __FFV_debugCharts?: unknown;
-    __FFV_traceFullscreen?: unknown;
     getThemeConfig?: unknown;
 }
 
@@ -222,11 +223,7 @@ function resolveChartHoverThemeConfig(value: unknown): ChartHoverThemeConfig {
 }
 
 function isFullscreenTraceEnabled(): boolean {
-    const override = chartHoverGlobal.__FFV_traceFullscreen;
-    if (typeof override === "boolean") {
-        return override;
-    }
-    return isDevelopmentEnvironment();
+    return isChartFullscreenTraceEnabled();
 }
 
 function describeElement(element: Element | null): string {
@@ -260,10 +257,7 @@ function getChartInstanceFromCanvas(
     canvas: HTMLCanvasElement
 ): ChartInstanceLike | null {
     const chartGlobal = resolveChartRuntime(isChartGlobalLike);
-    if (
-        chartGlobal &&
-        typeof chartGlobal.getChart === "function"
-    ) {
+    if (chartGlobal && typeof chartGlobal.getChart === "function") {
         const chart = chartGlobal.getChart(canvas);
         return isChartInstanceLike(chart) ? chart : null;
     }
@@ -399,9 +393,7 @@ export function addChartHoverEffects(
     const chartCanvases =
         chartContainer.querySelectorAll<HTMLElement>(".chart-canvas");
 
-    const isDebugLoggingEnabled =
-        isDevelopmentEnvironment() &&
-        Boolean(chartHoverGlobal.__FFV_debugCharts);
+    const isDebugLoggingEnabled = isChartDebugLoggingEnabled();
 
     let appliedCount = 0;
     for (const canvas of chartCanvases) {
