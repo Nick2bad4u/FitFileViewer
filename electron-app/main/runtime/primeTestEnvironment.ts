@@ -87,17 +87,12 @@
         return asElectronLike(value);
     }
 
-    function getHoistedElectronMock(): PrimeTestElectronLike | null {
-        if (typeof globalThis === "undefined") return null;
-        return asElectronLike(getProperty(globalThis, "__electronHoistedMock"));
-    }
-
     function isTestEnvironment(): boolean {
         return Boolean(
             (typeof process !== "undefined" &&
                 process.env &&
                 process.env["NODE_ENV"] === "test") ||
-            getHoistedElectronMock()
+            hasElectronApis(getElectronOverride())
         );
     }
 
@@ -364,13 +359,21 @@
         try {
             if (isTestEnvironment()) {
                 try {
-                    const hoisted = getHoistedElectronMock();
-                    if (hoisted && !getElectronOverride()) {
-                        setElectronOverride(hoisted);
+                    const override = resolveElectronModule(
+                        getElectronOverride()
+                    );
+                    const runtimeElectron = hasElectronApis(override)
+                        ? override
+                        : resolveElectronModule(getRuntimeElectron());
+                    if (
+                        hasElectronApis(runtimeElectron) &&
+                        !getElectronOverride()
+                    ) {
+                        setElectronOverride(runtimeElectron);
                     }
-                    callWhenReady(getApp(hoisted));
+                    callWhenReady(getApp(runtimeElectron));
                     setFirstWindowIfMissing(
-                        getAllWindows(getBrowserWindow(hoisted)),
+                        getAllWindows(getBrowserWindow(runtimeElectron)),
                         initializeApplication,
                         true
                     );

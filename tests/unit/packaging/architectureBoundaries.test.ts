@@ -396,7 +396,6 @@ const directMainProcessDevHelpersGlobalPattern =
     /\b(?:window|globalThis)\.devHelpers\b|Object\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)/u;
 const directElectronHoistedMockGlobalAllowedFiles = new Set([
     "electron-app/main/runtime/electronAccess.ts",
-    "electron-app/main/runtime/primeTestEnvironment.ts",
     "electron-app/preload/electronBridge.ts",
     "electron-app/preload/preloadBootstrap.ts",
 ] as const);
