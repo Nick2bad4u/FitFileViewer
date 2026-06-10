@@ -4,6 +4,10 @@ import {
     resetMenuIpcListenerStateForTests,
 } from "../../../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 import { openFileSelector } from "../../../../../electron-app/utils/files/import/openFileSelector.js";
+import {
+    registerRendererElectronApiCandidate as registerElectronApiCandidate,
+    resetRendererElectronApiCandidate as resetElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const keyboardShortcutsModalMock = vi.hoisted(() => ({
     moduleHasExport: true,
@@ -77,14 +81,10 @@ type TestMenuElectronAPI = {
     requestSaveAs: ReturnType<typeof vi.fn<() => void>>;
 };
 
-type MenuIpcTestGlobal = typeof globalThis & {
-    electronAPI?: TestMenuElectronAPI;
-};
-
 type MenuFixture = {
     debugMenuLog: ReturnType<typeof vi.fn<(...args: unknown[]) => void>>;
-    electronAPI: TestMenuElectronAPI;
     handlers: Map<TestMenuChannel, TestMenuHandler>;
+    menuApi: TestMenuElectronAPI;
     showAboutModal: ReturnType<typeof vi.fn<(html?: string) => void>>;
     showNotification: ReturnType<
         typeof vi.fn<
@@ -97,9 +97,8 @@ type MenuFixture = {
 const openFileSelectorMock = vi.mocked(openFileSelector);
 
 function cleanupFixture(): void {
-    const holder = globalThis as MenuIpcTestGlobal;
     resetMenuIpcListenerStateForTests();
-    delete holder.electronAPI;
+    resetElectronApiCandidate();
     document.head.replaceChildren();
     openFileSelectorMock.mockReset();
     accentColorPickerMock.moduleHasExport = true;
@@ -130,8 +129,8 @@ function setupFixture(): MenuFixture {
     };
     const fixture: MenuFixture = {
         debugMenuLog: vi.fn<(...args: unknown[]) => void>(),
-        electronAPI,
         handlers,
+        menuApi: electronAPI,
         showAboutModal: vi.fn<(html?: string) => void>(),
         showNotification:
             vi.fn<
@@ -141,7 +140,7 @@ function setupFixture(): MenuFixture {
     };
 
     vi.spyOn(console, "error").mockImplementation(() => {});
-    (globalThis as MenuIpcTestGlobal).electronAPI = electronAPI;
+    registerElectronApiCandidate(electronAPI);
     openFileSelectorMock.mockResolvedValue(undefined);
 
     registerMenuIpcListeners({
@@ -204,9 +203,9 @@ describe(registerMenuIpcListeners, () => {
                 "open-accent-color-picker"
             )();
 
-            expect(fixture.electronAPI.installUpdate).toHaveBeenCalledOnce();
-            expect(fixture.electronAPI.requestSaveAs).toHaveBeenCalledOnce();
-            expect(fixture.electronAPI.requestExport).toHaveBeenCalledOnce();
+            expect(fixture.menuApi.installUpdate).toHaveBeenCalledOnce();
+            expect(fixture.menuApi.requestSaveAs).toHaveBeenCalledOnce();
+            expect(fixture.menuApi.requestExport).toHaveBeenCalledOnce();
             expect(fixture.showAboutModal).toHaveBeenCalledOnce();
             expect(document.body.dataset["accentColorPicker"]).toBe("opened");
             expect(
