@@ -17,6 +17,8 @@
  *
  * @returns {void}
  */
+let activeLeafletMeasureLiteEscapeHandler = null;
+
 export function installLeafletMeasureLite(L) {
     if (!L) {
         throw new Error("Leaflet runtime is required for leaflet-measure-lite");
@@ -495,14 +497,15 @@ export function installLeafletMeasureLite(L) {
         },
 
         _installEscapeKeyHandler: function _installEscapeKeyHandler() {
-            /** @type {any} */
-            const g = globalThis;
-            const key = "__ffvLeafletMeasureLiteEscapeHandler";
-
             // Remove an existing handler from a prior map render.
             try {
-                if (typeof g[key] === "function") {
-                    document.removeEventListener("keydown", g[key]);
+                if (
+                    typeof activeLeafletMeasureLiteEscapeHandler === "function"
+                ) {
+                    document.removeEventListener(
+                        "keydown",
+                        activeLeafletMeasureLiteEscapeHandler
+                    );
                 }
             } catch {
                 /* ignore */
@@ -522,7 +525,7 @@ export function installLeafletMeasureLite(L) {
                 }
             };
 
-            g[key] = handler;
+            activeLeafletMeasureLiteEscapeHandler = handler;
             this._escapeHandler = handler;
             document.addEventListener("keydown", handler);
         },
@@ -537,6 +540,9 @@ export function installLeafletMeasureLite(L) {
                 }
             } catch {
                 /* ignore */
+            }
+            if (activeLeafletMeasureLiteEscapeHandler === this._escapeHandler) {
+                activeLeafletMeasureLiteEscapeHandler = null;
             }
             this._escapeHandler = null;
         },

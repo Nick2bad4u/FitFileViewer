@@ -339,7 +339,7 @@ const directMapActionCleanupExpandoPattern =
 const directLifecycleListenerCleanupExpandoPattern =
     /\b(?:openFileBtn|openButton|button|element|btnAny)\.__ffvLifecycleListenersCleanup\b|["']__ffvLifecycleListenersCleanup["']/u;
 const directMapMeasureEscapeHandlerGlobalPattern =
-    /\b(?:window|globalThis|g|getMeasureToolGlobal\(\))\.__ffvMapMeasureEscapeHandler\b|["']__ffvMapMeasureEscapeHandler["']/u;
+    /\b(?:window|globalThis|g|getMeasureToolGlobal\(\))\.(?:__ffvMapMeasureEscapeHandler|__ffvLeafletMeasureLiteEscapeHandler)\b|["'](?:__ffvMapMeasureEscapeHandler|__ffvLeafletMeasureLiteEscapeHandler)["']/u;
 const directLapSelectorMouseupHandlerGlobalPattern =
     /\b(?:window|globalThis|g|getLapSelectorGlobal\(\))\.__ffvLapSelectorMouseupHandler\b|["']__ffvLapSelectorMouseupHandler["']/u;
 const directZoneDataGlobalPattern =

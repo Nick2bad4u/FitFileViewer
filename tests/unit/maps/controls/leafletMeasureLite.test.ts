@@ -233,6 +233,39 @@ describe("leafletMeasureLite", () => {
             mapContainer.querySelector(".leaflet-measure-resultpopup")
         ).toBeNull();
     });
+
+    it("keeps Escape handler replacement in module state", () => {
+        expect.assertions(4);
+
+        const createdPopups: PopupMock[] = [];
+        const firstMapContainer = document.createElement("div");
+        const secondMapContainer = document.createElement("div");
+        document.body.append(firstMapContainer, secondMapContainer);
+        const firstMap = createMapMock(firstMapContainer);
+        const secondMap = createMapMock(secondMapContainer);
+        const leaflet = createLeafletMock(createdPopups);
+
+        installLeafletMeasureLite(leaflet);
+        const firstControl = leaflet.control.measure();
+        const secondControl = leaflet.control.measure();
+        firstControl.addTo(firstMap);
+        secondControl.addTo(secondMap);
+
+        firstControl._expand();
+        secondControl._expand();
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+
+        expect("__ffvLeafletMeasureLiteEscapeHandler" in globalThis).toBe(
+            false
+        );
+        expect(firstControl._expanded).toBe(true);
+        expect(secondControl._expanded).toBe(false);
+
+        secondControl.remove();
+        expect("__ffvLeafletMeasureLiteEscapeHandler" in globalThis).toBe(
+            false
+        );
+    });
 });
 
 /* eslint-enable @typescript-eslint/no-explicit-any */
