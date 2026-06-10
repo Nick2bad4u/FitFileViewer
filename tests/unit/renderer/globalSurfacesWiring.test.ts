@@ -36,7 +36,6 @@ describe("renderer global surfaces wiring", () => {
                 ) => void
             >();
         installRendererGlobalSurfaces({
-            appState: null,
             cleanup: vi.fn(),
             ensureCoreModules: async () => ({}),
             initializeApplication: async () => undefined,
@@ -46,7 +45,9 @@ describe("renderer global surfaces wiring", () => {
             validateDOMElements: () => true,
         });
 
-        expect(Reflect.get(globalThis, "createExportGPXButton")).toBeUndefined();
+        expect(
+            Reflect.get(globalThis, "createExportGPXButton")
+        ).toBeUndefined();
         expect(Reflect.get(globalThis, "APP_INFO")).toBeUndefined();
         expect(logRenderer).toHaveBeenCalledWith("log", "Environment:", "test");
         expect(Reflect.get(globalThis, "__renderer_dev")).toBeUndefined();

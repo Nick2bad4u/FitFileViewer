@@ -17,7 +17,6 @@ type RendererGlobalSurfacesLogger = (
 ) => void;
 
 type RendererGlobalSurfacesOptions = {
-    readonly appState: unknown;
     readonly cleanup: () => void;
     readonly ensureCoreModules: () => Promise<Record<string, unknown>>;
     readonly initializeApplication: () => Promise<void>;
@@ -37,7 +36,6 @@ export function installRendererGlobalSurfaces(
     });
 
     createRendererDevelopmentDebugTools({
-        appState: options.appState,
         cleanup: options.cleanup,
         ensureCoreModules: options.ensureCoreModules,
         initializeApplication: options.initializeApplication,

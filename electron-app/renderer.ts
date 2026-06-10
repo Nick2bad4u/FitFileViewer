@@ -4,19 +4,14 @@
  * @file Main renderer process entry point for FIT File Viewer Handles
  *   application initialization, module loading, and event setup
  *
- *   STATE MANAGEMENT MIGRATION: This file has been updated to use the new
- *   centralized state management system. The legacy appState object is
- *   maintained for backward compatibility but now proxies to the new state
- *   manager. Key changes:
+ *   STATE MANAGEMENT MIGRATION: This file initializes the centralized state
+ *   management system before wiring renderer lifecycle handlers. Key paths:
  *
  *   1. Imports masterStateManager, appActions, and uiStateManager
  *   2. Initializes state management system before other components
  *   3. Uses appActions.setInitialized() instead of direct state mutation
  *   4. Uses showNotification() for consistent UI notifications
- *   5. Exposes state debugging utilities in development mode
- *
- *   Legacy components will continue to work through the appState proxy and
- *   isOpeningFileRef, but new code should use the state manager directly.
+ *   5. Creates module-owned state debugging utilities in development mode
  */
 
 // ==========================================
@@ -199,7 +194,6 @@ registerRendererApplicationLifecycle({
 });
 
 installRendererGlobalSurfaces({
-    appState: getAppState(),
     cleanup,
     ensureCoreModules,
     initializeApplication,

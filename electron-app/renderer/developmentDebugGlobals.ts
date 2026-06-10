@@ -24,7 +24,6 @@ type RendererDevelopmentDebugTools = {
 };
 
 interface RendererDevelopmentDebugGlobalsOptions {
-    appState: unknown;
     cleanup: () => void;
     ensureCoreModules: DevelopmentCoreModuleResolver;
     initializeApplication: () => Promise<void>;
@@ -68,10 +67,7 @@ export function createRendererDevelopmentDebugTools(
 
     void loadDevelopmentDebugUtilities(rendererDevTools, options);
 
-    options.logRenderer(
-        "log",
-        "[Renderer] Development utilities initialized"
-    );
+    options.logRenderer("log", "[Renderer] Development utilities initialized");
     options.logRenderer(
         "log",
         "[Renderer] Performance metrics:",
@@ -108,7 +104,6 @@ function createRendererDevTools(
 ): Record<string, unknown> {
     return {
         APP_INFO,
-        appState: options.appState,
         cleanup: options.cleanup,
         get debug() {
             return isRendererDebugLoggingEnabled();

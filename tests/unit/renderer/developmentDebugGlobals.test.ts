@@ -70,7 +70,6 @@ describe("renderer development debug globals", () => {
 
         expect(
             createRendererDevelopmentDebugTools({
-                appState: null,
                 cleanup: vi.fn(),
                 ensureCoreModules: async () => ({}),
                 initializeApplication: async () => {},
@@ -85,7 +84,7 @@ describe("renderer development debug globals", () => {
     });
 
     it("creates renderer dev/debug tools without publishing globals", async () => {
-        expect.assertions(24);
+        expect.assertions(25);
 
         const handleOpenFile = vi.fn<(...args: unknown[]) => string>(
             () => "opened"
@@ -100,7 +99,6 @@ describe("renderer development debug globals", () => {
         process.env.NODE_ENV = "development";
 
         const debugTools = createRendererDevelopmentDebugTools({
-            appState: null,
             cleanup: vi.fn(),
             ensureCoreModules: async () => ({
                 AppActions: { setInitialized: vi.fn() },
@@ -151,6 +149,7 @@ describe("renderer development debug globals", () => {
         expect(
             Reflect.get(globalThis, "__debugChartFormatting")
         ).toBeUndefined();
+        expect(Object.hasOwn(rendererDev, "appState")).toBe(false);
         expect(rendererDev.APP_INFO).toBe(APP_INFO);
         expect(rendererDev.debug).toBe(false);
         rendererDev.debug = true;
