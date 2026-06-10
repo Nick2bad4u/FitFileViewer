@@ -1,6 +1,6 @@
 /* eslint-disable import-x/max-dependencies -- main-ui is the legacy renderer composition root; migration keeps dependency cleanup scoped to extracted modules. */
 /** Main renderer UI composition root with state-management integration. */
-import type { ElectronAPIWithDevFlags } from "./shared/preloadApi.js";
+import type { ElectronAPI } from "./shared/preloadApi.js";
 
 import { setupWindow } from "./utils/app/initialization/setupWindow.js";
 import { AppActions } from "./utils/app/lifecycle/appActions.js";
@@ -11,6 +11,7 @@ import { performanceMonitor } from "./utils/debug/stateDevTools.js";
 // State Management Integration
 import { setState } from "./utils/state/core/stateManager.js";
 import { fitFileStateManager } from "./utils/state/domain/fitFileState.js";
+import { getRendererElectronApi } from "./utils/runtime/electronApiRuntime.js";
 import { UIActions } from "./utils/state/domain/uiStateManager.js";
 // This file is part of the Electron app that interacts with the main process and the UI.
 import {
@@ -36,13 +37,48 @@ interface PerformanceMonitorLike {
     readonly startTimer?: (operationId: string) => void;
 }
 
+type MainUiElectronApi = Partial<
+    Pick<
+        ElectronAPI,
+        | "injectMenu"
+        | "notifyFitFileLoaded"
+        | "onOpenSummaryColumnSelector"
+        | "onSetTheme"
+        | "onUnloadFitFile"
+        | "sendThemeChanged"
+    >
+>;
+
 const mainUiConsole = globalThis.console;
 
-function getElectronAPI(): ElectronAPIWithDevFlags | undefined {
-    const api: unknown = Reflect.get(globalThis, "electronAPI");
-    return typeof api === "object" && api !== null
-        ? (api as ElectronAPIWithDevFlags)
-        : undefined;
+function hasOptionalFunction(
+    record: Readonly<Record<string, unknown>>,
+    key: keyof MainUiElectronApi
+): boolean {
+    const value = record[key];
+    return value === undefined || typeof value === "function";
+}
+
+function isMainUiElectronApi(value: unknown): value is MainUiElectronApi {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const api = value as Readonly<Record<string, unknown>>;
+    return [
+        "injectMenu",
+        "notifyFitFileLoaded",
+        "onOpenSummaryColumnSelector",
+        "onSetTheme",
+        "onUnloadFitFile",
+        "sendThemeChanged",
+    ].every((key) =>
+        hasOptionalFunction(api, key as keyof MainUiElectronApi)
+    );
+}
+
+function getElectronAPI(): MainUiElectronApi | null {
+    return getRendererElectronApi(isMainUiElectronApi);
 }
 
 function isPerformanceMonitorEnabled(monitor: PerformanceMonitorLike): boolean {

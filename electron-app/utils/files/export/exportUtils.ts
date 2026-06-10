@@ -5,6 +5,7 @@ import {
     isAbortError,
     truncateErrorText,
 } from "../../net/networkUtils.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import { getChartSetting } from "../../state/domain/settingsStateManager.js";
 import {
@@ -46,9 +47,6 @@ type ElectronApiLike = Partial<
         | "writeClipboardText"
     >
 >;
-type ExportRuntimeGlobal = typeof globalThis & {
-    electronAPI?: ElectronApiLike;
-};
 type ChartDataPoint = {
     x?: LooseRecord;
     y?: LooseRecord;
@@ -141,8 +139,33 @@ type ExportModalAccessibilityOptions = {
 
 let exportModalTitleCounter = 0;
 
-function getExportRuntimeGlobal(): ExportRuntimeGlobal {
-    return globalThis;
+function hasOptionalElectronFunction(
+    record: Readonly<Record<string, unknown>>,
+    key: keyof ElectronApiLike
+): boolean {
+    const value = record[key];
+    return value === undefined || typeof value === "function";
+}
+
+function isExportElectronApi(value: unknown): value is ElectronApiLike {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const api = value as Readonly<Record<string, unknown>>;
+    return [
+        "onGyazoOAuthCallback",
+        "startGyazoServer",
+        "stopGyazoServer",
+        "writeClipboardPngDataUrl",
+        "writeClipboardText",
+    ].every((key) =>
+        hasOptionalElectronFunction(api, key as keyof ElectronApiLike)
+    );
+}
+
+function getExportElectronApi(): ElectronApiLike | null {
+    return getRendererElectronApi(isExportElectronApi);
 }
 
 function setupExportModalAccessibility({
@@ -215,8 +238,7 @@ function setupExportModalAccessibility({
 }
 
 async function stopGyazoServerIfAvailable(): Promise<void> {
-    const stopGyazoServer =
-        getExportRuntimeGlobal().electronAPI?.stopGyazoServer;
+    const stopGyazoServer = getExportElectronApi()?.stopGyazoServer;
     if (typeof stopGyazoServer === "function") {
         await stopGyazoServer();
     }
@@ -1070,7 +1092,7 @@ export const exportUtils = {
             );
         }
 
-        const { electronAPI } = getExportRuntimeGlobal();
+        const electronAPI = getExportElectronApi();
         if (
             !electronAPI ||
             typeof electronAPI.startGyazoServer !== "function" ||
@@ -1269,7 +1291,7 @@ export const exportUtils = {
     async copyTextToClipboard(text: string) {
         // 1) Electron bridge (preferred)
         try {
-            const { electronAPI: api } = getExportRuntimeGlobal();
+            const api = getExportElectronApi();
             if (api && typeof api.writeClipboardText === "function") {
                 const ok = Boolean(await api.writeClipboardText(text));
                 if (ok) return true;
@@ -1305,7 +1327,7 @@ export const exportUtils = {
     async copyPngDataUrlToClipboard(pngDataUrl: string) {
         // 1) Electron bridge (preferred)
         try {
-            const { electronAPI: api } = getExportRuntimeGlobal();
+            const api = getExportElectronApi();
             if (api && typeof api.writeClipboardPngDataUrl === "function") {
                 const ok = Boolean(
                     await api.writeClipboardPngDataUrl(pngDataUrl)
