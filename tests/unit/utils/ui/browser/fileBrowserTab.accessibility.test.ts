@@ -5,14 +5,10 @@ import {
     __resetStateManagerForTests,
     getState,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
-
-type BrowserTabTestGlobal = typeof globalThis & {
-    electronAPI?: unknown;
-};
-
-function getTestGlobal(): BrowserTabTestGlobal {
-    return globalThis as BrowserTabTestGlobal;
-}
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function getRequiredElement<T extends Element>(
     selector: string,
@@ -25,7 +21,7 @@ function getRequiredElement<T extends Element>(
 
 afterEach(() => {
     document.body.replaceChildren();
-    delete getTestGlobal().electronAPI;
+    resetRendererElectronApiCandidate();
     __resetStateManagerForTests();
 });
 
@@ -80,7 +76,7 @@ describe("fileBrowserTab accessibility", () => {
         container.id = "content_browser";
         document.body.append(container);
 
-        getTestGlobal().electronAPI = {
+        registerRendererElectronApiCandidate({
             getFitBrowserFolder: async () => "C:\\rides",
             listFitBrowserFolder: async () => ({
                 entries: [
@@ -100,7 +96,7 @@ describe("fileBrowserTab accessibility", () => {
                 relPath: "",
                 root: "C:\\rides",
             }),
-        };
+        });
 
         await renderFileBrowserTab();
 
