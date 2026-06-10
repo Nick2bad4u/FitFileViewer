@@ -522,7 +522,7 @@ describe("masterStateManager comprehensive behavior", () => {
     });
 
     it("connects error handling, integrations, performance monitoring, and cleanup", async () => {
-        expect.assertions(14);
+        expect.assertions(16);
 
         await withMasterStateHarness(
             async ({
@@ -588,7 +588,18 @@ describe("masterStateManager comprehensive behavior", () => {
                 manager.components.set("middleware", {});
                 manager.components.set(devToolsComponentName, {});
                 manager.isInitialized = true;
+                const performanceUnsubscribe = vi.fn<() => void>();
+                mocks.stateManager.subscribe.mockImplementation((path) =>
+                    path === "" ? performanceUnsubscribe : vi.fn<() => void>()
+                );
                 manager.setupPerformanceMonitoring();
+                const performanceSubscription = [
+                    ...mocks.stateManager.subscribe.mock.calls,
+                ]
+                    .reverse()
+                    .find(([path]) => path === "")?.[1];
+                performanceSubscription?.(undefined);
+                performanceSubscription?.(undefined);
                 intervalHandlers.at(-1)?.();
                 manager.cleanup();
 
@@ -596,13 +607,19 @@ describe("masterStateManager comprehensive behavior", () => {
                     expect.any(Function),
                     60_000
                 );
+                expect(mocks.stateManager.subscribe).toHaveBeenCalledWith(
+                    "",
+                    expect.any(Function)
+                );
                 expect(mocks.stateManager.setState).toHaveBeenCalledWith(
                     "system.performance",
                     expect.objectContaining({
                         memoryUsage: { total: 95, used: 48 },
+                        stateChangesPerMinute: expect.any(Number),
                     }),
                     { source: "performanceMonitor" }
                 );
+                expect(performanceUnsubscribe).toHaveBeenCalledOnce();
                 expect(
                     mocks.settingsStateManager.settingsStateManager.cleanup
                 ).toHaveBeenCalledOnce();

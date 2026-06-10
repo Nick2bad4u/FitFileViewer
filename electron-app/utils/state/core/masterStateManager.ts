@@ -66,14 +66,9 @@ type ElectronRendererAPI = Partial<
     >
 >;
 
-type StateDebug = {
-    setState?: (...args: unknown[]) => unknown;
-};
-
 type MasterStateGlobal = typeof globalThis & {
     __DEVELOPMENT__?: boolean;
     __FFV_MOCKS__?: Record<string, unknown>;
-    __state_debug?: StateDebug;
     electronAPI?: ElectronRendererAPI;
 };
 
@@ -227,6 +222,8 @@ export class MasterStateManager {
     private performanceMonitorInterval: ReturnType<typeof setInterval> | null =
         null;
 
+    private performanceMonitorUnsubscribe: (() => void) | null = null;
+
     constructor() {
         this.components = new Map();
         this.initializationOrder = [
@@ -255,6 +252,11 @@ export class MasterStateManager {
         if (this.performanceMonitorInterval !== null) {
             clearInterval(this.performanceMonitorInterval);
             this.performanceMonitorInterval = null;
+        }
+
+        if (this.performanceMonitorUnsubscribe !== null) {
+            this.performanceMonitorUnsubscribe();
+            this.performanceMonitorUnsubscribe = null;
         }
 
         const stateAPI = getStateManagerAPI();
@@ -887,22 +889,18 @@ export class MasterStateManager {
         let lastResetTime = Date.now(),
             stateChangeCount = 0;
 
-        // Use type assertion for window debug state
-        const windowExt = getMasterGlobal(),
-            originalSetState = windowExt.__state_debug?.setState;
-        if (
-            originalSetState && // Wrap setState to count changes
-            windowExt.__state_debug
-        ) {
-            windowExt.__state_debug.setState = (...args: unknown[]) => {
-                stateChangeCount += 1;
-                return originalSetState(...args);
-            };
+        if (this.performanceMonitorUnsubscribe !== null) {
+            this.performanceMonitorUnsubscribe();
+            this.performanceMonitorUnsubscribe = null;
         }
+
+        const stateAPI = getStateManagerAPI();
+        this.performanceMonitorUnsubscribe = stateAPI.subscribe("", () => {
+            stateChangeCount += 1;
+        });
 
         // Reset counter every minute
         this.performanceMonitorInterval = setInterval(() => {
-            const stateAPI = getStateManagerAPI();
             const now = Date.now(),
                 elapsed = now - lastResetTime;
 

@@ -127,6 +127,9 @@ const migratedRendererDebugLoggingStateFiles = [
     "electron-app/utils/charts/plugins/chartZoomResetPlugin.ts",
     "electron-app/utils/debug/lastAnimLog.ts",
 ] as const;
+const migratedStateDebugGlobalFreeFiles = [
+    "electron-app/utils/state/core/masterStateManager.ts",
+] as const;
 const rendererVendorBrowserPackageImportAllowedFiles = [
     "electron-app/renderer/vendorGlobalsChartData.ts",
     "electron-app/renderer/vendorGlobalsMap.ts",
@@ -306,6 +309,8 @@ const directChartControlsStateGlobalPattern =
     /\b(?:window|globalThis|integrationGlobal)\.chartControlsState\b|["']chartControlsState["']/u;
 const directStateIntegrationTimerGlobalPattern =
     /\b(?:window|globalThis|integrationGlobal)\.(?:__performanceMonitoringInterval|__persistenceTimeout)\b|["'](?:__performanceMonitoringInterval|__persistenceTimeout)["']/u;
+const directStateDebugGlobalPattern =
+    /\b(?:window|globalThis|windowExt|globalState|getMasterGlobal\(\))\.__state_debug\b|["']__state_debug["']/u;
 const directSingletonStateSubscriptionsGlobalPattern =
     /\b(?:window|globalThis|globalState)\.__ffvSingletonStateSubscriptions\b|["']__ffvSingletonStateSubscriptions["']/u;
 const directFileAccessPolicyStateGlobalPattern =
@@ -1045,6 +1050,20 @@ describe("architecture boundaries", () => {
         const violations = migratedRendererDebugLoggingStateFiles
             .filter((relativeFile) =>
                 directRendererDevGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps migrated master state monitoring off state debug globals", () => {
+        expect.assertions(1);
+
+        const violations = migratedStateDebugGlobalFreeFiles
+            .filter((relativeFile) =>
+                directStateDebugGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
