@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { exportUtils } from "../../../../../electron-app/utils/files/export/exportUtils.js";
 
 type GyazoServerResult = {
@@ -36,10 +40,6 @@ describe("exportUtils OAuth state generation", () => {
                 globalThis,
                 "crypto"
             ),
-            electronApiDescriptor = Object.getOwnPropertyDescriptor(
-                globalThis,
-                "electronAPI"
-            ),
             startGyazoServer = vi.fn<TestElectronAPI["startGyazoServer"]>(),
             testElectronAPI: TestElectronAPI = {
                 onGyazoOAuthCallback: vi.fn<
@@ -54,11 +54,7 @@ describe("exportUtils OAuth state generation", () => {
                 configurable: true,
                 value: undefined,
             });
-            Object.defineProperty(globalThis, "electronAPI", {
-                configurable: true,
-                value: testElectronAPI,
-                writable: true,
-            });
+            registerRendererElectronApiCandidate(testElectronAPI);
 
             await expect(exportUtils.authenticateWithGyazo()).rejects.toThrow(
                 "Secure random number generation is unavailable"
@@ -66,7 +62,7 @@ describe("exportUtils OAuth state generation", () => {
             expect(startGyazoServer).not.toHaveBeenCalled();
         } finally {
             restoreGlobalProperty("crypto", cryptoDescriptor);
-            restoreGlobalProperty("electronAPI", electronApiDescriptor);
+            resetRendererElectronApiCandidate();
         }
     });
 });
