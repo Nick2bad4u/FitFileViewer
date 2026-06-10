@@ -318,6 +318,8 @@ const directShowFitDataGlobalPattern =
     /\b(?:window|globalThis)\.showFitData\s*=/u;
 const directShowFitDataGlobalDefinitionPattern =
     /\bObject\.defineProperty\(\s*(?:window|globalThis)\s*,\s*["']showFitData["']/u;
+const directShowFitDataRendererImportPattern =
+    /\bimport\s*\{\s*showFitData\s*\}\s*from\s*["'][^"']*showFitData\.js["']/u;
 const directShowFitDataMapRenderedGlobalPattern =
     /\b(?:window|globalThis|getShowFitDataGlobal\(\)|showFitGlobal)\.isMapRendered\b/u;
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
@@ -2526,6 +2528,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directShowFitDataTestGlobals).toStrictEqual([]);
+    });
+
+    it("keeps production FIT file entrypoints on the lazy decoded renderer", () => {
+        expect.assertions(1);
+
+        const directShowFitDataImports = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter((relativeFile) =>
+                directShowFitDataRendererImportPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directShowFitDataImports).toStrictEqual([]);
     });
 
     it("keeps migrated renderer tests on the registered Electron API runtime", () => {

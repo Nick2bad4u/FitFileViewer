@@ -22,7 +22,8 @@ const mocks = vi.hoisted(() => ({
     isEnabled: vi.fn<() => boolean>(),
     setFileOpening: vi.fn<(isOpening: boolean) => void>(),
     setState: vi.fn<(key: string, value: unknown, options?: unknown) => void>(),
-    showFitData: vi.fn<(data: unknown, filePath: string) => void>(),
+    renderDecodedFitData:
+        vi.fn<(data: unknown, filePath: string) => Promise<void>>(),
     showNotification:
         vi.fn<(message: string, type?: string) => Promise<void> | void>(),
     startFileLoading: vi.fn<(filePath: string) => void>(),
@@ -49,9 +50,9 @@ vi.mock(import("../../../electron-app/utils/debug/stateDevTools.js"), () => ({
 }));
 
 vi.mock(
-    import("../../../electron-app/utils/rendering/core/showFitData.js"),
+    import("../../../electron-app/utils/rendering/core/loadShowFitData.js"),
     () => ({
-        showFitData: mocks.showFitData,
+        renderDecodedFitData: mocks.renderDecodedFitData,
     })
 );
 
@@ -99,6 +100,7 @@ function resetHarnessMocks(): void {
     vi.clearAllMocks();
     mocks.getState.mockReturnValue(undefined);
     mocks.isEnabled.mockReturnValue(false);
+    mocks.renderDecodedFitData.mockResolvedValue(undefined);
     mocks.validateElectronAPI.mockReturnValue(true);
     mocks.validateElement.mockReturnValue(null);
 }
@@ -127,7 +129,7 @@ describe(DragDropHandler, () => {
                 await handler.processDroppedFile(createDroppedFile());
 
             expect({ outcome }).toStrictEqual({ outcome: undefined });
-            expect(mocks.showFitData).not.toHaveBeenCalled();
+            expect(mocks.renderDecodedFitData).not.toHaveBeenCalled();
             expect(mocks.showNotification).toHaveBeenCalledWith(
                 "Failed to load FIT file",
                 "error"

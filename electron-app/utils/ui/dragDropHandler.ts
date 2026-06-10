@@ -6,7 +6,7 @@ import {
     unwrapFitParseMessages,
 } from "../files/import/fitParsePayload.js";
 import { sendFitFileToAltFitReader } from "../files/import/sendFitFileToAltFitReader.js";
-import { showFitData } from "../rendering/core/showFitData.js";
+import { renderDecodedFitData } from "../rendering/core/loadShowFitData.js";
 import { getRendererElectronApi } from "../runtime/electronApiRuntime.js";
 import { getState, setState } from "../state/core/stateManager.js";
 import { fitFileStateManager } from "../state/domain/fitFileState.js";
@@ -155,7 +155,7 @@ export class DragDropHandler {
                 : null;
             if (result && !parseErrorMessage) {
                 const fitData = unwrapFitParseMessages(result);
-                showFitData(fitData, filePath);
+                await renderDecodedFitData(fitData, filePath);
                 sendFitFileToAltFitReader(arrayBuffer);
                 showNotification(
                     `File "${file.name}" loaded successfully`,
