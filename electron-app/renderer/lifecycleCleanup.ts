@@ -10,18 +10,11 @@ interface RendererCleanupCoreModules {
     masterStateManager: unknown;
 }
 
-export interface RendererLifecycleAppState {
-    isInitialized: boolean;
-    isOpeningFile: boolean;
-    startTime: number | undefined;
-}
-
 interface RendererLifecycleCleanupOptions {
     errorHandlers: Pick<
         RendererErrorEventHandlers,
         "onUncaughtErrorEvent" | "onUnhandledRejectionEvent"
     >;
-    getAppState: () => null | RendererLifecycleAppState;
     getCoreModules: () => Promise<RendererCleanupCoreModules>;
     isOpeningFileRef: { value: boolean };
     logRenderer: RendererCleanupLogger;
@@ -49,12 +42,12 @@ export async function cleanupRendererStateManagerState(
     try {
         const { AppActions, masterStateManager } =
             await options.getCoreModules();
+        const appActions = toRecord(AppActions);
+        callBooleanAppAction(appActions, "setInitialized", false);
+        callBooleanAppAction(appActions, "setFileOpening", false);
+
         const masterStateManagerRecord = toRecord(masterStateManager);
         if (masterStateManagerRecord["isInitialized"] === true) {
-            const appActions = toRecord(AppActions);
-            callBooleanAppAction(appActions, "setInitialized", false);
-            callBooleanAppAction(appActions, "setFileOpening", false);
-
             const cleanupStateManager = masterStateManagerRecord["cleanup"];
             if (typeof cleanupStateManager === "function") {
                 const cleanupStateManagerFn = cleanupStateManager as (
@@ -65,23 +58,15 @@ export async function cleanupRendererStateManagerState(
             return;
         }
 
-        resetRendererLegacyOpeningState(options);
+        resetRendererOpeningState(options);
     } catch {
-        resetRendererLegacyOpeningState(options);
+        resetRendererOpeningState(options);
     }
 }
 
-export function resetRendererLegacyOpeningState(
-    options: Pick<
-        RendererLifecycleCleanupOptions,
-        "getAppState" | "isOpeningFileRef"
-    >
+export function resetRendererOpeningState(
+    options: Pick<RendererLifecycleCleanupOptions, "isOpeningFileRef">
 ): void {
-    const appState = options.getAppState();
-    if (appState !== null) {
-        appState.isInitialized = false;
-        appState.isOpeningFile = false;
-    }
     options.isOpeningFileRef.value = false;
 }
 

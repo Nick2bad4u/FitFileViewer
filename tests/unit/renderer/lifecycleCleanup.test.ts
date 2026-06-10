@@ -3,8 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
     cleanupRendererStateManagerState,
     createRendererLifecycleCleanup,
-    resetRendererLegacyOpeningState,
-    type RendererLifecycleAppState,
+    resetRendererOpeningState,
 } from "../../../electron-app/renderer/lifecycleCleanup.js";
 
 function createErrorHandlers() {
@@ -33,7 +32,6 @@ describe("renderer lifecycle cleanup", () => {
         const lifecycle = {
             execute: createRendererLifecycleCleanup({
                 errorHandlers: createErrorHandlers(),
-                getAppState: () => null,
                 getCoreModules: () =>
                     Promise.resolve({
                         AppActions: {
@@ -72,22 +70,24 @@ describe("renderer lifecycle cleanup", () => {
         ]);
     });
 
-    it("resets legacy opening state when the state manager is not initialized", async () => {
+    it("resets lifecycle state through actions when the state manager is not initialized", async () => {
         expect.assertions(2);
 
-        const appState: RendererLifecycleAppState = {
-            isInitialized: true,
-            isOpeningFile: true,
-            startTime: 1,
-        };
+        const actions: Array<[string, boolean]> = [];
         const isOpeningFileRef = { value: true };
 
         await cleanupRendererStateManagerState({
             errorHandlers: createErrorHandlers(),
-            getAppState: () => appState,
             getCoreModules: () =>
                 Promise.resolve({
-                    AppActions: {},
+                    AppActions: {
+                        setFileOpening(value: boolean): void {
+                            actions.push(["setFileOpening", value]);
+                        },
+                        setInitialized(value: boolean): void {
+                            actions.push(["setInitialized", value]);
+                        },
+                    },
                     masterStateManager: { isInitialized: false },
                 }),
             isOpeningFileRef,
@@ -95,53 +95,38 @@ describe("renderer lifecycle cleanup", () => {
             removeEventListener: () => {},
         });
 
-        expect(appState).toStrictEqual({
-            isInitialized: false,
-            isOpeningFile: false,
-            startTime: 1,
-        });
+        expect(actions).toStrictEqual([
+            ["setInitialized", false],
+            ["setFileOpening", false],
+        ]);
         expect(isOpeningFileRef.value).toBe(false);
     });
 
-    it("resets legacy opening state when core module cleanup fails", async () => {
-        expect.assertions(2);
+    it("resets local opening state when core module cleanup fails", async () => {
+        expect.assertions(1);
 
-        const appState: RendererLifecycleAppState = {
-            isInitialized: true,
-            isOpeningFile: true,
-            startTime: 2,
-        };
         const isOpeningFileRef = { value: true };
 
         await cleanupRendererStateManagerState({
             errorHandlers: createErrorHandlers(),
-            getAppState: () => appState,
             getCoreModules: () => Promise.reject(new Error("missing modules")),
             isOpeningFileRef,
             logRenderer: () => {},
             removeEventListener: () => {},
         });
 
-        expect(appState.isInitialized).toBe(false);
         expect(isOpeningFileRef.value).toBe(false);
     });
 
-    it("resets legacy opening state directly", () => {
-        expect.assertions(2);
+    it("resets local opening state directly", () => {
+        expect.assertions(1);
 
-        const appState: RendererLifecycleAppState = {
-            isInitialized: true,
-            isOpeningFile: true,
-            startTime: 3,
-        };
         const isOpeningFileRef = { value: true };
 
-        resetRendererLegacyOpeningState({
-            getAppState: () => appState,
+        resetRendererOpeningState({
             isOpeningFileRef,
         });
 
-        expect(appState.isOpeningFile).toBe(false);
         expect(isOpeningFileRef.value).toBe(false);
     });
 
@@ -153,7 +138,6 @@ describe("renderer lifecycle cleanup", () => {
         const lifecycle = {
             execute: createRendererLifecycleCleanup({
                 errorHandlers: createErrorHandlers(),
-                getAppState: () => null,
                 getCoreModules: () =>
                     Promise.resolve({
                         AppActions: {},

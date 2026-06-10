@@ -50,7 +50,7 @@ import { createRendererDomAccess } from "./renderer/domElementAccess.js";
 import { setLoading } from "./utils/ui/loading/syncRendererLoading.js";
 // Avoid static import of AppActions because tests sometimes mock the module
 // without exporting the named symbol. Always resolve via ensureCoreModules().
-import { getState, subscribe } from "./utils/state/core/stateManager.js";
+import { subscribe } from "./utils/state/core/stateManager.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
 
 type LogRendererLevel = "error" | "group" | "groupEnd" | "log" | "warn";
@@ -80,13 +80,11 @@ function logRenderer(level: LogRendererLevel, ...args: unknown[]): void {
 
 const rendererStateStartup = createRendererStateStartup({
     ensureCoreModules,
-    getState,
     logRenderer,
     subscribe,
     toModuleRecord,
 });
-const { getAppState, initializeStateManager, isOpeningFileRef } =
-    rendererStateStartup;
+const { initializeStateManager, isOpeningFileRef } = rendererStateStartup;
 
 const domAccess = createRendererDomAccess({
     documentTarget: document,
@@ -178,7 +176,6 @@ const initializeApplication = createRendererApplicationStartup({
 
 const cleanup = createRendererLifecycleCleanup({
     errorHandlers: rendererErrorHandlers,
-    getAppState,
     getCoreModules: ensureCoreModules,
     isOpeningFileRef,
     logRenderer,
