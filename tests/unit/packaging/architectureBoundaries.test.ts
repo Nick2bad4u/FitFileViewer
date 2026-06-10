@@ -61,6 +61,7 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/app/lifecycle/menuIpcListeners.test.ts",
     "tests/unit/utils/exportUtils.chartExport.test.ts",
     "tests/unit/utils/ui/browser/fileBrowserTab.accessibility.test.ts",
+    "tests/unit/utils/ui/browser/initFitBrowserFeatureGate.test.ts",
     "tests/unit/utils/ui/controls/addFullScreenButton.test.ts",
     "tests/unit/utils/ui/modals/keyboardShortcutsModal.test.ts",
     "tests/unit/utils/ui/settingsModal.test.ts",

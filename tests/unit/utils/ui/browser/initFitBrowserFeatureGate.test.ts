@@ -5,6 +5,10 @@ import {
     getState,
     setState,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { initFitBrowserFeatureGate } from "../../../../../electron-app/utils/ui/browser/initFitBrowserFeatureGate.js";
 
 type FitBrowserFeatureGateListener = (enabled: boolean) => void;
@@ -42,15 +46,11 @@ function getBrowserTabElements(): {
 
 function installElectronApi(api: TestElectronApi | undefined): void {
     if (api === undefined) {
-        Reflect.deleteProperty(globalThis, "electronAPI");
+        resetRendererElectronApiCandidate();
         return;
     }
 
-    Object.defineProperty(globalThis, "electronAPI", {
-        configurable: true,
-        value: api,
-        writable: true,
-    });
+    registerRendererElectronApiCandidate(api);
 }
 
 async function runWithBrowserTabFixture(
@@ -60,12 +60,13 @@ async function runWithBrowserTabFixture(
     }) => Promise<void> | void
 ): Promise<void> {
     try {
+        resetRendererElectronApiCandidate();
         __resetStateManagerForTests();
         const fixture = getBrowserTabElements();
 
         await scenario(fixture);
     } finally {
-        Reflect.deleteProperty(globalThis, "electronAPI");
+        resetRendererElectronApiCandidate();
         document.body.replaceChildren();
         vi.restoreAllMocks();
     }
