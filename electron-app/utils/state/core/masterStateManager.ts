@@ -16,6 +16,7 @@ import { showNotification } from "../../ui/notifications/syncRendererNotificatio
 import { initializeRendererStateBindings } from "../../ui/rendererStateBindings.js";
 import { initializeActiveTabState } from "../../ui/tabs/updateActiveTab.js";
 import { initializeTabVisibilityState } from "../../ui/tabs/updateTabVisibility.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPIWithDevFlags } from "../../../shared/preloadApi.js";
 import { fitFileStateManager } from "../domain/fitFileState.js";
 import { settingsStateManager } from "../domain/settingsStateManager.js";
@@ -69,7 +70,6 @@ type ElectronRendererAPI = Partial<
 type MasterStateGlobal = typeof globalThis & {
     __DEVELOPMENT__?: boolean;
     __FFV_MOCKS__?: Record<string, unknown>;
-    electronAPI?: ElectronRendererAPI;
 };
 
 type ModuleCache = Record<string, { exports?: unknown } | undefined>;
@@ -121,6 +121,40 @@ const STATE_MANAGER_CACHE_SUFFIXES = [
 
 function getMasterGlobal(): MasterStateGlobal {
     return globalThis;
+}
+
+function hasOptionalMasterElectronFunction(
+    record: Readonly<Record<string, unknown>>,
+    key: "getAppVersion" | "openFile" | "openFileDialog"
+): boolean {
+    const value = record[key];
+    return value === undefined || typeof value === "function";
+}
+
+function isElectronRendererAPI(value: unknown): value is ElectronRendererAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const api = value as Readonly<Record<string, unknown>>;
+    const devMode = api["__devMode"];
+    return (
+        (devMode === undefined || typeof devMode === "boolean") &&
+        [
+            "getAppVersion",
+            "openFile",
+            "openFileDialog",
+        ].every((key) =>
+            hasOptionalMasterElectronFunction(
+                api,
+                key as "getAppVersion" | "openFile" | "openFileDialog"
+            )
+        )
+    );
+}
+
+function getMasterElectronAPI(): ElectronRendererAPI | null {
+    return getRendererElectronApi(isElectronRendererAPI);
 }
 
 function isDynamicModule(value: unknown): value is DynamicModule {
@@ -191,10 +225,10 @@ function hasDevelopmentModeAttribute(): boolean {
     );
 }
 
-function hasElectronDevelopmentFlag(masterGlobal: MasterStateGlobal): boolean {
+function hasElectronDevelopmentFlag(): boolean {
     return (
         globalThis.window !== undefined &&
-        masterGlobal.electronAPI?.__devMode !== undefined
+        getMasterElectronAPI()?.__devMode !== undefined
     );
 }
 
@@ -494,7 +528,7 @@ export class MasterStateManager {
         // Prefer Electron-provided API if available; otherwise use known package version
         let appVersion = "26.5.0"; // Fallback to current package version for deterministic tests
         try {
-            const electronAPI = getMasterGlobal().electronAPI;
+            const electronAPI = getMasterElectronAPI();
             if (
                 electronAPI &&
                 typeof electronAPI.getAppVersion === "function"
@@ -662,7 +696,7 @@ export class MasterStateManager {
                 hash.includes("debug") ||
                 hasDevelopmentModeAttribute() ||
                 protocol === "file:" ||
-                hasElectronDevelopmentFlag(masterGlobal) ||
+                hasElectronDevelopmentFlag() ||
                 href.includes("electron")
             );
         } catch {
@@ -834,7 +868,7 @@ export class MasterStateManager {
                 // Ctrl/Cmd + O - Open file
                 if ((event.ctrlKey || event.metaKey) && event.key === "o") {
                     event.preventDefault();
-                    void getMasterGlobal().electronAPI?.openFileDialog?.();
+                    void getMasterElectronAPI()?.openFileDialog?.();
                 }
 
                 // Ctrl/Cmd + T - Toggle theme
