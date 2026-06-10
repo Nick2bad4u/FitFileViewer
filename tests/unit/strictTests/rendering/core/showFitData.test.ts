@@ -5,7 +5,6 @@ import {
     expect,
     it,
     vi,
-    type Mock,
 } from "vitest";
 
 const stateManagerMocks = vi.hoisted(() => ({
@@ -96,22 +95,34 @@ vi.mock(
     })
 );
 
-type ShowFitDataTestGlobal = typeof globalThis & {
-    electronAPI?: {
-        notifyFitFileLoaded: Mock<(filePath: string) => void>;
-    };
+type ShowFitDataElectronApi = {
+    notifyFitFileLoaded: ReturnType<typeof vi.fn<(filePath: string) => void>>;
 };
 
 async function loadModule() {
     return await import("../../../../../electron-app/utils/rendering/core/showFitData.js");
 }
 
-function getShowFitDataTestGlobal(): ShowFitDataTestGlobal {
-    return globalThis as ShowFitDataTestGlobal;
+async function registerShowFitDataApi(
+    api: ShowFitDataElectronApi
+): Promise<void> {
+    const { registerRendererElectronApiCandidate } = await import(
+        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
+    );
+    registerRendererElectronApiCandidate(api);
+}
+
+async function resetRegisteredElectronApi(): Promise<void> {
+    const { resetRendererElectronApiCandidate } = await import(
+        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
+    );
+    resetRendererElectronApiCandidate();
 }
 
 describe("showFitData", () => {
-    beforeEach(() => {
+    let showFitDataElectronApi: ShowFitDataElectronApi;
+
+    beforeEach(async () => {
         const activeFileNameContainer = document.createElement("div");
         activeFileNameContainer.id = "activeFileNameContainer";
         const activeFileName = document.createElement("span");
@@ -123,10 +134,10 @@ describe("showFitData", () => {
             activeFileName,
             unloadFileButton
         );
-        const showFitGlobal = getShowFitDataTestGlobal();
-        showFitGlobal.electronAPI = {
+        showFitDataElectronApi = {
             notifyFitFileLoaded: vi.fn<(filePath: string) => void>(),
         };
+        await registerShowFitDataApi(showFitDataElectronApi);
         stateManagerMocks.getState.mockReturnValue(undefined);
         stateManagerMocks.setState.mockClear();
         stateManagerMocks.subscribe.mockClear();
@@ -144,12 +155,11 @@ describe("showFitData", () => {
         );
         vi.useFakeTimers();
     });
-    afterEach(() => {
+    afterEach(async () => {
         document.body.replaceChildren();
         vi.useRealTimers();
+        await resetRegisteredElectronApi();
         vi.resetModules();
-        const showFitGlobal = getShowFitDataTestGlobal();
-        delete showFitGlobal.electronAPI;
         vi.clearAllMocks();
     });
 
@@ -168,7 +178,6 @@ describe("showFitData", () => {
                 throw new Error("Expected map render");
             }
         });
-        const showFitGlobal = getShowFitDataTestGlobal();
 
         expect(data).toMatchObject({
             cachedFileName: "file.fit",
@@ -197,9 +206,9 @@ describe("showFitData", () => {
         );
 
         // IPC send
-        expect(
-            showFitGlobal.electronAPI?.notifyFitFileLoaded
-        ).toHaveBeenCalledWith(filePath);
+        expect(showFitDataElectronApi.notifyFitFileLoaded).toHaveBeenCalledWith(
+            filePath
+        );
     });
 
     it("does not render the map again when it is already rendered", async () => {

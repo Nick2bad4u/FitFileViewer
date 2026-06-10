@@ -48,6 +48,7 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/lifecycle/listeners.fitPayload.test.ts",
     "tests/unit/lifecycle/recentFilesContextMenu.fitPayload.test.ts",
     "tests/unit/strictTests/app/initialization/loadVersionInfo.test.ts",
+    "tests/unit/strictTests/rendering/core/showFitData.test.ts",
     "tests/unit/strictTests/ui/modals/aboutModal.test.ts",
     "tests/unit/strictTests/ui/notifications/showUpdateNotification.test.ts",
     "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
