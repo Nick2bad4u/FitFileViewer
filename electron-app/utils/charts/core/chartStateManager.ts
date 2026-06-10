@@ -20,6 +20,7 @@ import {
 } from "./chartInstanceRegistry.js";
 import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
+import { registerChartStateManager } from "./chartStateManagerRegistry.js";
 
 type ChartInfo = {
     instanceCount: number;
@@ -36,11 +37,6 @@ type ChartState = {
     lastRenderTime?: number;
     selectedChart?: string;
     tabActive?: boolean;
-};
-
-type ChartStateGlobal = typeof globalThis & {
-    chartStateManager?: ChartStateManager;
-    window?: Window | undefined;
 };
 
 /**
@@ -504,10 +500,6 @@ function assignStringProperty(
  * Singleton chart state manager instance used by legacy chart modules.
  */
 export const chartStateManager = new ChartStateManager();
-
-const chartGlobal = globalThis as ChartStateGlobal;
-if (chartGlobal.window !== undefined) {
-    chartGlobal.chartStateManager = chartStateManager;
-}
+registerChartStateManager(chartStateManager);
 
 export default chartStateManager;

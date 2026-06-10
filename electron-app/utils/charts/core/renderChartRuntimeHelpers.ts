@@ -1,6 +1,7 @@
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import { isChartDebugLoggingEnabled } from "./chartDebugState.js";
+import { getRegisteredChartStateManager } from "./chartStateManagerRegistry.js";
 import {
     isDevelopmentEnvironment as isDevelopmentRuntimeEnvironment,
     isNodeEnvironment,
@@ -17,7 +18,6 @@ interface ProcessShim {
 
 interface RenderChartRuntimeGlobal {
     __chartjs_dev?: unknown;
-    chartStateManager?: unknown;
     process?: ProcessShim;
     chartActions?: unknown;
     chartjsPluginZoom?: unknown;
@@ -155,13 +155,12 @@ export function isChartDebugEnabled(): boolean {
 }
 
 /**
- * Returns the global chart state manager when it exposes debounced rendering.
+ * Returns the registered chart state manager when it exposes debounced
+ * rendering.
  */
 export function getDebouncedChartStateManager(): DebouncedChartStateManager | null {
-    const chartGlobal = getMutableChartRuntimeGlobal();
-    return hasDebouncedRender(chartGlobal.chartStateManager)
-        ? chartGlobal.chartStateManager
-        : null;
+    const chartStateManager = getRegisteredChartStateManager();
+    return hasDebouncedRender(chartStateManager) ? chartStateManager : null;
 }
 
 /**

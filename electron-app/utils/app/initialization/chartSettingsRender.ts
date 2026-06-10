@@ -20,7 +20,6 @@ type ChartRenderManagerLike = {
 
 type ChartSettingsGlobal = typeof globalThis & {
     chartActions?: unknown;
-    chartStateManager?: unknown;
 };
 
 function getErrorMessage(error: unknown): string {
@@ -97,12 +96,8 @@ function hasFunctionProperty(
     return typeof value[key as keyof typeof value] === "function";
 }
 
-function getPreferredRenderManager(
-    chartGlobal: ChartSettingsGlobal
-): ChartRenderManagerLike | undefined {
-    const managerCandidate = isChartRenderManagerLike(chartStateManager)
-        ? chartStateManager
-        : chartGlobal.chartStateManager;
+function getPreferredRenderManager(): ChartRenderManagerLike | undefined {
+    const managerCandidate: unknown = chartStateManager;
 
     return isChartRenderManagerLike(managerCandidate)
         ? managerCandidate
@@ -110,8 +105,7 @@ function getPreferredRenderManager(
 }
 
 function requestRerenderViaManager(reason: string): boolean {
-    const chartGlobal = getChartSettingsGlobal();
-    const manager = getPreferredRenderManager(chartGlobal);
+    const manager = getPreferredRenderManager();
     if (!manager) {
         return false;
     }
@@ -191,7 +185,10 @@ function runDirectRenderFallback(
     );
 
     const renderTarget =
-        target || container || getChartRenderContainer(document) || document.body;
+        target ||
+        container ||
+        getChartRenderContainer(document) ||
+        document.body;
     void import("../../charts/core/renderChartJS.js")
         .then(({ renderChartJS }) => {
             void renderChartJS(renderTarget);
@@ -254,10 +251,7 @@ export function reRenderChartsAfterSettingChange(
 
         clearLegacyChartRenderState(actions);
         removeExistingChartCanvases();
-        runDirectRenderFallback(
-            chartGlobal,
-            `setting-change:${settingName}`
-        );
+        runDirectRenderFallback(chartGlobal, `setting-change:${settingName}`);
 
         console.log(
             `${LOG_PREFIX} Chart re-render completed for ${settingName} change (fallback path)`

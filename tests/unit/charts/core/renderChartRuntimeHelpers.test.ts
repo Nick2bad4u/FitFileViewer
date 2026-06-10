@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
     ensureProcessNextTick,
+    getDebouncedChartStateManager,
     getGlobalChartInstances,
     isDevelopmentEnvironment,
     isLoadingStateSuppressed,
@@ -9,6 +10,10 @@ import {
     isTestEnvironment,
     setLoadingStateSuppressed,
 } from "../../../../electron-app/utils/charts/core/renderChartRuntimeHelpers.js";
+import {
+    registerChartStateManager,
+    resetChartStateManagerRegistryForTests,
+} from "../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js";
 import {
     clearChartInstanceRegistryForTests,
     clearRegisteredChartInstances,
@@ -60,6 +65,8 @@ describe("render chart runtime helpers", () => {
     afterEach(() => {
         setLoadingStateSuppressed(false);
         Reflect.deleteProperty(globalThis, "__FFV_suppressLoadingState");
+        Reflect.deleteProperty(globalThis, "chartStateManager");
+        resetChartStateManagerRegistryForTests();
         restoreGlobalProcess();
         clearChartInstanceRegistryForTests();
         if (originalWindowDescriptor) {
@@ -173,6 +180,28 @@ describe("render chart runtime helpers", () => {
         clearRegisteredChartInstances();
 
         expect(getGlobalChartInstances("invalid")).toStrictEqual([]);
+    });
+
+    it("returns the registered chart state manager without reading a renderer global", () => {
+        expect.assertions(3);
+
+        const globalRender = () => undefined,
+            registeredRender = () => undefined,
+            registeredManager = { debouncedRender: registeredRender };
+
+        Object.defineProperty(globalThis, "chartStateManager", {
+            configurable: true,
+            value: { debouncedRender: globalRender },
+        });
+
+        expect(getDebouncedChartStateManager()).toBeNull();
+
+        registerChartStateManager(registeredManager);
+
+        expect(getDebouncedChartStateManager()).toBe(registeredManager);
+        expect(Reflect.get(globalThis, "chartStateManager")).not.toBe(
+            registeredManager
+        );
     });
 
     it("tracks loading suppression without reading the legacy global flag", () => {

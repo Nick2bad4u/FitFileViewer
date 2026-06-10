@@ -19,12 +19,6 @@ type DestroyableChart = {
     destroy: Mock<() => void>;
 };
 
-type ChartStateManagerTestGlobal = typeof globalThis & {
-    chartStateManager?: unknown;
-};
-
-const testGlobal = globalThis as ChartStateManagerTestGlobal;
-
 const mockModules = vi.hoisted(() => ({
     getRawData: vi.fn<() => unknown>(),
     getState: vi.fn<(path?: string) => unknown>(),
@@ -120,6 +114,7 @@ import {
     getRegisteredChartInstances,
     setRegisteredChartInstances,
 } from "../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import { getRegisteredChartStateManager } from "../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js";
 
 // Import the module being tested
 import chartStateManager, {
@@ -146,8 +141,6 @@ describe("chartStateManager", () => {
         // Use fake timers
         vi.useFakeTimers();
 
-        // Reset global state
-        testGlobal.chartStateManager = undefined;
         clearChartInstanceRegistryForTests();
         chartStateManager.isRendering = false;
         chartStateManager.pendingRenderReason = null;
@@ -172,9 +165,10 @@ describe("chartStateManager", () => {
 
     describe("constructor and Initialization", () => {
         it("should create a ChartStateManager instance", () => {
-            expect.assertions(3);
+            expect.assertions(4);
 
             expect(chartStateManager).toBeInstanceOf(ChartStateManager);
+            expect(getRegisteredChartStateManager()).toBe(chartStateManager);
             expect({
                 isInitialized: chartStateManager.isInitialized,
                 renderDebounceTime: chartStateManager.renderDebounceTime,
