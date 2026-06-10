@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { loadSingleOverlayFile } from "../../../../../electron-app/utils/files/import/loadSingleOverlayFile.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type FallbackOverlayFitData = {
     recordMesgs?: unknown[];
@@ -10,27 +14,17 @@ type DecodeFitFile = (
     arrayBuffer: ArrayBuffer
 ) => Promise<FallbackOverlayFitData>;
 
-type FallbackTestGlobal = typeof globalThis & {
-    electronAPI?: {
-        decodeFitFile?: DecodeFitFile;
-    };
-};
-
 type FallbackGlobalSnapshot = {
     decodeFitFile: ReturnType<typeof vi.fn<DecodeFitFile>>;
-    originalElectronAPI: FallbackTestGlobal["electronAPI"];
     originalFileReader: typeof globalThis.FileReader;
     originalResponse: typeof globalThis.Response;
 };
-
-const testGlobal = globalThis as FallbackTestGlobal;
 
 function installFallbackGlobals(): FallbackGlobalSnapshot {
     const snapshot = {
         decodeFitFile: vi.fn<DecodeFitFile>(async () => ({
             recordMesgs: [{ positionLat: 1, positionLong: 2 }],
         })),
-        originalElectronAPI: testGlobal.electronAPI,
         originalFileReader: globalThis.FileReader,
         originalResponse: globalThis.Response,
     };
@@ -40,9 +34,9 @@ function installFallbackGlobals(): FallbackGlobalSnapshot {
         configurable: true,
         value: undefined,
     });
-    testGlobal.electronAPI = {
+    registerRendererElectronApiCandidate({
         decodeFitFile: snapshot.decodeFitFile,
-    };
+    });
 
     return snapshot;
 }
@@ -56,7 +50,7 @@ function restoreFallbackGlobals(snapshot: FallbackGlobalSnapshot): void {
         configurable: true,
         value: snapshot.originalResponse,
     });
-    testGlobal.electronAPI = snapshot.originalElectronAPI;
+    resetRendererElectronApiCandidate();
     vi.restoreAllMocks();
 }
 
