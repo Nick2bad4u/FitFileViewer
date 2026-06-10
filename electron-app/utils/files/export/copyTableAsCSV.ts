@@ -4,6 +4,7 @@
  * @readonly
  */
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 
 const CSV_CONFIG = {
     HEADER_ENABLED: true,
@@ -31,11 +32,7 @@ type ObjectsTable = {
     objects: () => TableRow[];
 };
 
-type ClipboardElectronAPI = Partial<Pick<ElectronAPI, "writeClipboardText">>;
-
-type CopyCsvGlobal = typeof globalThis & {
-    electronAPI?: ClipboardElectronAPI;
-};
+type ClipboardElectronAPI = Required<Pick<ElectronAPI, "writeClipboardText">>;
 
 /**
  * Copies the contents of a table as a CSV string to the clipboard
@@ -61,7 +58,8 @@ export async function copyTableAsCSV(table: unknown): Promise<void> {
 }
 
 /**
- * Serializes table-like row data to a CSV string without touching the clipboard.
+ * Serializes table-like row data to a CSV string without touching the
+ * clipboard.
  *
  * IMPORTANT: Do not use Arquero's `toCSV()` here. Arquero's CSV implementation
  * can rely on runtime function generation in some builds, which violates
@@ -112,11 +110,8 @@ function buildCsvString(
 async function copyToClipboard(text: string): Promise<void> {
     // Prefer Electron native clipboard bridge when available (reliable in file:// contexts).
     try {
-        const { electronAPI } = getCopyCsvGlobal();
-        if (
-            electronAPI &&
-            typeof electronAPI.writeClipboardText === "function"
-        ) {
+        const electronAPI = getCopyCsvElectronAPI();
+        if (electronAPI) {
             const { writeClipboardText } = electronAPI;
             const ok = Boolean(await writeClipboardText(text));
             if (ok) {
@@ -268,8 +263,18 @@ function processTableRows(rows: TableRow[]): TableRow[] {
     });
 }
 
-function getCopyCsvGlobal(): CopyCsvGlobal {
-    return globalThis;
+function getCopyCsvElectronAPI(): ClipboardElectronAPI | null {
+    return getRendererElectronApi<ClipboardElectronAPI>(isClipboardElectronAPI);
+}
+
+function isClipboardElectronAPI(value: unknown): value is ClipboardElectronAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    return (
+        typeof (value as ClipboardElectronAPI).writeClipboardText === "function"
+    );
 }
 
 function normalizeTableRows(table: unknown): TableRow[] {
