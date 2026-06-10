@@ -122,6 +122,12 @@ const migratedChartImportFiles = [
     "electron-app/utils/data/zones/renderSingleHRZoneBar.ts",
     "electron-app/utils/data/zones/renderSinglePowerZoneBar.ts",
 ] as const;
+const migratedChartNotificationCallerFiles = [
+    "electron-app/utils/charts/rendering/renderLapZoneChart.ts",
+    "electron-app/utils/charts/rendering/renderLapZoneCharts.ts",
+    "electron-app/utils/data/zones/renderSingleHRZoneBar.ts",
+    "electron-app/utils/data/zones/renderSinglePowerZoneBar.ts",
+] as const;
 const migratedRendererDebugLoggingStateFiles = [
     "electron-app/utils/charts/plugins/chartBackgroundColorPlugin.ts",
     "electron-app/utils/charts/plugins/chartZoomResetPlugin.ts",
@@ -398,6 +404,8 @@ const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
+const directShowNotificationGlobalLookupPattern =
+    /\b(?:window|globalThis|chartGlobal|runtimeGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
 const directRendererDevGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.__renderer_dev\b|["']__renderer_dev["']/u;
 const rendererDevelopmentDebugGlobalPattern =
@@ -1137,6 +1145,20 @@ describe("architecture boundaries", () => {
             .flatMap(collectSourceFiles)
             .filter((relativeFile) =>
                 directChartConstructorGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps migrated chart notification callers on typed imports", () => {
+        expect.assertions(1);
+
+        const violations = migratedChartNotificationCallerFiles
+            .filter((relativeFile) =>
+                directShowNotificationGlobalLookupPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )

@@ -3,6 +3,7 @@ import { chartBackgroundColorPlugin } from "../../charts/plugins/chartBackground
 import { chartZoomResetPlugin } from "../../charts/plugins/chartZoomResetPlugin.js";
 import { detectCurrentTheme } from "../../charts/theming/chartThemeUtils.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getUnitSymbol } from "../lookups/getUnitSymbol.js";
 import { getChartZoneColors } from "./chartZoneColorUtils.js";
 
@@ -25,11 +26,10 @@ interface SingleZoneBarOptions {
     readonly title?: string;
 }
 
-type ChartConstructor = new (canvas: HTMLCanvasElement, config: SingleZoneBarChartConfig) => unknown;
-
-interface ZoneBarNotificationGlobal {
-    readonly showNotification?: (message: string, type: "error") => void;
-}
+type ChartConstructor = new (
+    canvas: HTMLCanvasElement,
+    config: SingleZoneBarChartConfig
+) => unknown;
 
 interface SingleZoneBarDataset {
     backgroundColor: string;
@@ -193,8 +193,6 @@ export function renderSingleHRZoneBar(
     zoneData: readonly ZoneBarDataPoint[] | readonly unknown[],
     options: SingleZoneBarOptions = {}
 ): unknown | null {
-    const chartGlobal = globalThis as typeof globalThis &
-        ZoneBarNotificationGlobal;
     const ChartConstructor = resolveChartRuntime(isChartConstructor);
     try {
         if (!ChartConstructor) {
@@ -372,12 +370,7 @@ export function renderSingleHRZoneBar(
 
         return new ChartConstructor(canvas, chartConfig);
     } catch (error) {
-        if (chartGlobal.showNotification) {
-            chartGlobal.showNotification(
-                "Failed to render HR zone bar",
-                "error"
-            );
-        }
+        void showNotification("Failed to render HR zone bar", "error");
         console.error("[renderSingleHRZoneBar] Error:", error);
         return null;
     }

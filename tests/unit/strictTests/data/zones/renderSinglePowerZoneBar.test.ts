@@ -15,8 +15,17 @@ const ChartMock = vi.hoisted(() =>
         return { config, destroy: vi.fn<() => void>() };
     })
 );
+const notificationMocks = vi.hoisted(() => ({
+    showNotification: vi.fn<(message: string, type?: string) => void>(),
+}));
 
 vi.mock("chart.js/auto", () => ({ default: ChartMock }));
+vi.mock(
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: notificationMocks.showNotification,
+    })
+);
 
 vi.mock(
     import("../../../../../electron-app/utils/charts/theming/chartThemeUtils.js"),
@@ -91,19 +100,12 @@ interface ChartView {
     readonly destroy: () => void;
 }
 
-interface RenderSinglePowerZoneBarTestGlobal {
-    showNotification?: (message: string, type: "error") => void;
-}
-
-const testGlobal = globalThis as typeof globalThis &
-    RenderSinglePowerZoneBarTestGlobal;
-
 describe("renderSinglePowerZoneBar", () => {
     beforeEach(() => {
         document.body.replaceChildren();
         setChartRuntime(ChartMock);
-        delete testGlobal.showNotification;
         ChartMock.mockClear();
+        notificationMocks.showNotification.mockReset();
     });
 
     afterEach(() => {
@@ -149,9 +151,6 @@ describe("renderSinglePowerZoneBar", () => {
         expect.assertions(2);
 
         vi.spyOn(console, "error").mockReturnValue(undefined);
-        const showNotification =
-            vi.fn<(message: string, type: "error") => void>();
-        testGlobal.showNotification = showNotification;
 
         const view = renderSinglePowerZoneBar(
             null as unknown as HTMLCanvasElement,
@@ -159,7 +158,7 @@ describe("renderSinglePowerZoneBar", () => {
         );
 
         expect(view).toBeNull();
-        expect(showNotification).toHaveBeenCalledWith(
+        expect(notificationMocks.showNotification).toHaveBeenCalledWith(
             "Failed to render power zone bar",
             "error"
         );

@@ -129,16 +129,24 @@ const chartModuleMock = vi.hoisted(() => {
 
     return { Chart, state };
 });
+const notificationMocks = vi.hoisted(() => ({
+    showNotification: vi.fn<ShowNotification>(),
+}));
 
 // Define types for our global extensions
 declare global {
     interface Window {
         Chart?: ChartMock;
-        showNotification?: ReturnType<typeof vi.fn<ShowNotification>>;
     }
 }
 
 vi.mock("chart.js/auto", () => ({ default: chartModuleMock.Chart }));
+vi.mock(
+    import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: notificationMocks.showNotification,
+    })
+);
 
 // Mock dependencies before importing the module
 vi.mock(
@@ -210,9 +218,6 @@ import * as chartZoneColorUtils from "../../../../../electron-app/utils/data/zon
 describe(renderSingleHRZoneBar, () => {
     let canvas: HTMLCanvasElement;
     let originalChart: ChartMock | undefined;
-    let originalShowNotification:
-        | ReturnType<typeof vi.fn<ShowNotification>>
-        | undefined;
     let mockChartInstance: ChartInstance;
     let lastChartConfig: ChartConfig | undefined;
     let dom: JSDOM;
@@ -236,7 +241,6 @@ describe(renderSingleHRZoneBar, () => {
 
         // Save original globals
         originalChart = window.Chart;
-        originalShowNotification = window.showNotification;
 
         // Create a complete mock Chart instance with all required structures
         mockChartInstance = {
@@ -289,23 +293,7 @@ describe(renderSingleHRZoneBar, () => {
             configurable: true,
         });
 
-        // Mock showNotification
-        Object.defineProperty(window, "showNotification", {
-            configurable: true,
-            value: vi.fn<ShowNotification>(),
-            writable: true,
-        });
-
-        // Sync showNotification between window and globalThis
-        Object.defineProperty(globalThis, "showNotification", {
-            get() {
-                return window.showNotification;
-            },
-            set(value: ReturnType<typeof vi.fn<ShowNotification>> | undefined) {
-                window.showNotification = value;
-            },
-            configurable: true,
-        });
+        notificationMocks.showNotification.mockReset();
 
         // Mock console methods
         global.console = {
@@ -328,7 +316,6 @@ describe(renderSingleHRZoneBar, () => {
     afterEach(() => {
         // Restore original globals
         window.Chart = originalChart;
-        window.showNotification = originalShowNotification;
 
         // Clean up DOM
         if (global.document && global.document.body) {
@@ -495,7 +482,9 @@ describe(renderSingleHRZoneBar, () => {
         expect(
             renderSingleHRZoneBar(null as unknown as HTMLCanvasElement, [])
         ).toBeNull();
-        expect(window.showNotification).toHaveBeenCalledExactlyOnceWith(
+        expect(
+            notificationMocks.showNotification
+        ).toHaveBeenCalledExactlyOnceWith(
             "Failed to render HR zone bar",
             "error"
         );
@@ -509,7 +498,7 @@ describe(renderSingleHRZoneBar, () => {
             renderSingleHRZoneBar(canvas, null as unknown as readonly unknown[])
         ).toBeNull();
         expect(canvas.classList.contains("chart-canvas")).toBe(false);
-        expect(window.showNotification.mock.calls).toStrictEqual([
+        expect(notificationMocks.showNotification.mock.calls).toStrictEqual([
             ["Failed to render HR zone bar", "error"],
         ]);
 

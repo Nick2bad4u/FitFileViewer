@@ -10,10 +10,19 @@ import { getZoneColor } from "../../../electron-app/utils/data/zones/chartZoneCo
 const chartJsMocks = vi.hoisted(() => ({
     Chart: vi.fn<() => ChartMockInstance>(),
 }));
+const notificationMocks = vi.hoisted(() => ({
+    showNotification: vi.fn<(message: string, type?: string) => void>(),
+}));
 
 vi.mock(import("chart.js/auto"), () => ({
     default: chartJsMocks.Chart,
 }));
+vi.mock(
+    import("../../../electron-app/utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: notificationMocks.showNotification,
+    })
+);
 
 interface ChartConfig {
     data: {
@@ -52,11 +61,9 @@ interface ChartMockInstance {
 }
 
 type ChartMock = ReturnType<typeof vi.fn<() => ChartMockInstance>>;
-type ShowNotificationMock = ReturnType<typeof vi.fn<() => void>>;
 
 type LapZoneChartTestGlobal = typeof globalThis & {
     Chart?: ChartMock;
-    showNotification?: ShowNotificationMock;
 };
 
 type FormatTime = (seconds: number) => string;
@@ -81,15 +88,6 @@ function getLatestChartConfig(): ChartConfig {
         throw new TypeError("Chart mock was not called");
     }
     return chartConfig;
-}
-
-function getShowNotificationMock(): ShowNotificationMock {
-    const showNotification = (globalThis as LapZoneChartTestGlobal)
-        .showNotification;
-    if (showNotification === undefined) {
-        throw new TypeError("showNotification mock is not installed");
-    }
-    return showNotification;
 }
 
 // Mock dependencies
@@ -191,10 +189,7 @@ describe(renderLapZoneChart, () => {
             value: chartJsMocks.Chart,
         });
         setChartRuntime(chartJsMocks.Chart);
-        Object.defineProperty(globalThis, "showNotification", {
-            configurable: true,
-            value: vi.fn<() => void>(),
-        });
+        notificationMocks.showNotification.mockReset();
     });
 
     afterEach(() => {
@@ -208,7 +203,6 @@ describe(renderLapZoneChart, () => {
         // Remove Chart.js mock
         clearChartRuntimeForTests();
         delete (globalThis as LapZoneChartTestGlobal).Chart;
-        delete (globalThis as LapZoneChartTestGlobal).showNotification;
     });
 
     it("should return null when Chart.js chart creation fails", () => {
@@ -221,7 +215,7 @@ describe(renderLapZoneChart, () => {
         const view = renderLapZoneChart(mockCanvas, []);
 
         expect(view).toBeNull();
-        expect(getShowNotificationMock()).toHaveBeenCalledWith(
+        expect(notificationMocks.showNotification).toHaveBeenCalledWith(
             "Failed to render lap zone chart",
             "error"
         );
@@ -236,7 +230,7 @@ describe(renderLapZoneChart, () => {
         );
 
         expect(view).toBeNull();
-        expect(getShowNotificationMock()).toHaveBeenCalledWith(
+        expect(notificationMocks.showNotification).toHaveBeenCalledWith(
             "Failed to render lap zone chart",
             "error"
         );
@@ -251,7 +245,7 @@ describe(renderLapZoneChart, () => {
         );
 
         expect(view).toBeNull();
-        expect(getShowNotificationMock()).toHaveBeenCalledWith(
+        expect(notificationMocks.showNotification).toHaveBeenCalledWith(
             "Failed to render lap zone chart",
             "error"
         );

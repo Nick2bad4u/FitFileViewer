@@ -5,6 +5,7 @@ import {
     getThemeConfig,
     type ThemeColorMap,
 } from "../../theming/core/theme.js";
+import { showNotification } from "../../ui/notifications/showNotification.js";
 import {
     createManagedChart,
     type ManagedChartConfig,
@@ -27,10 +28,6 @@ interface LapZoneDatum {
 interface LapZoneEntry {
     readonly lapLabel: string;
     readonly zones: readonly LapZoneDatum[];
-}
-
-interface LapZoneRuntimeGlobal {
-    readonly showNotification?: (message: string, type: string) => void;
 }
 
 interface LapZoneThemeColors {
@@ -157,10 +154,7 @@ export function renderLapZoneChart(
 
         return chart;
     } catch (error) {
-        getRuntimeGlobal().showNotification?.(
-            "Failed to render lap zone chart",
-            "error"
-        );
+        void showNotification("Failed to render lap zone chart", "error");
         console.error("[renderLapZoneChart] Error:", error);
         return null;
     }
@@ -407,10 +401,6 @@ function getLapZoneThemeConfig(): LapZoneThemeConfig {
         },
         name: getThemeName(themeConfig),
     };
-}
-
-function getRuntimeGlobal(): LapZoneRuntimeGlobal {
-    return globalThis as LapZoneRuntimeGlobal;
 }
 
 function getThemeColor(

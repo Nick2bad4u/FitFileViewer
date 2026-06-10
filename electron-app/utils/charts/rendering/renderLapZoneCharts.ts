@@ -8,6 +8,7 @@ import {
 import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
+import { showNotification } from "../../ui/notifications/showNotification.js";
 import { createChartCanvas } from "../components/createChartCanvas.js";
 import {
     isChartDebugLoggingEnabled,
@@ -35,10 +36,6 @@ interface LapZoneDatum {
 interface LapZoneEntry {
     readonly lapLabel: string;
     readonly zones: readonly LapZoneDatum[];
-}
-
-interface LapZoneRuntimeGlobal {
-    readonly showNotification?: (message: string, type: string) => void;
 }
 
 interface LapZoneVisibility {
@@ -82,8 +79,7 @@ export function renderLapZoneCharts(
     container: HTMLElement | null | undefined,
     options: LapZoneChartsOptions | null = {}
 ): void {
-    const runtimeGlobal = getRuntimeGlobal(),
-        debug = getDebugState();
+    const debug = getDebugState();
 
     try {
         if (debug.isDebugLoggingEnabled) {
@@ -165,10 +161,7 @@ export function renderLapZoneCharts(
         }
     } catch (error) {
         console.error("[ChartJS] Error rendering lap zone charts:", error);
-        runtimeGlobal.showNotification?.(
-            "Failed to render lap zone charts",
-            "error"
-        );
+        void showNotification("Failed to render lap zone charts", "error");
     }
 }
 
@@ -288,10 +281,6 @@ function getMeaningfulZoneIndexes(
     return [...zoneTotals.entries()]
         .filter(([, total]) => total > 0)
         .map(([zoneIndex]) => zoneIndex);
-}
-
-function getRuntimeGlobal(): LapZoneRuntimeGlobal {
-    return globalThis as LapZoneRuntimeGlobal;
 }
 
 function getTimeInZoneMessages(): readonly unknown[] | null {

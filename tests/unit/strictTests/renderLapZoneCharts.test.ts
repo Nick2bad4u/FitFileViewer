@@ -19,10 +19,20 @@ import {
     setZoneDataByType,
 } from "../../../electron-app/utils/data/zones/zoneDataState.js";
 
+const notificationMocks = vi.hoisted(() => ({
+    showNotification: vi.fn<(message: string, type?: string) => void>(),
+}));
+
 // Mock dependencies
 vi.mock(import("../../../electron-app/utils/theming/core/theme.js"), () => ({
     getThemeConfig: vi.fn<() => unknown>(),
 }));
+vi.mock(
+    import("../../../electron-app/utils/ui/notifications/showNotification.js"),
+    () => ({
+        showNotification: notificationMocks.showNotification,
+    })
+);
 
 vi.mock(
     import("../../../electron-app/utils/charts/rendering/renderLapZoneChart.js"),
@@ -106,11 +116,11 @@ describe(renderLapZoneCharts, () => {
             .mockImplementation(() => {});
 
         // Mock notification
-        mockShowNotification = vi.fn<(message: string, type: string) => void>();
-        window.showNotification = mockShowNotification;
+        mockShowNotification = notificationMocks.showNotification;
 
         // Reset mocks
         vi.clearAllMocks();
+        notificationMocks.showNotification.mockReset();
     });
 
     afterEach(() => {
@@ -1029,8 +1039,8 @@ describe(renderLapZoneCharts, () => {
             });
         });
 
-        it("should continue execution when showNotification is not available", () => {
-            expect.assertions(2);
+        it("uses the imported notification helper without the global bridge", () => {
+            expect.assertions(3);
 
             delete window.showNotification;
             const testError = new Error("Test error");
@@ -1048,6 +1058,10 @@ describe(renderLapZoneCharts, () => {
 
             renderLapZoneCharts(container);
 
+            expect(mockShowNotification).toHaveBeenCalledWith(
+                "Failed to render lap zone charts",
+                "error"
+            );
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering lap zone charts:",
                 testError
