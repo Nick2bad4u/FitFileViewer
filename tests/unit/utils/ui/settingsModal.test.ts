@@ -84,12 +84,13 @@ import {
     closeSettingsModal,
     showSettingsModal,
 } from "../../../../electron-app/utils/ui/settingsModal.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type SettingsModalTestGlobal = typeof globalThis & {
     closeSettingsModal?: typeof closeSettingsModal;
-    electronAPI?: {
-        sendThemeChanged?: (theme: string) => void;
-    };
     showSettingsModal?: typeof showSettingsModal;
 };
 
@@ -135,9 +136,9 @@ function resetFixture(): void {
     mocks.loadTheme.mockReturnValue("dark");
     mocks.resetAccentColor.mockReturnValue("#3b82f6");
     mocks.setAccentColor.mockReturnValue(true);
-    (globalThis as SettingsModalTestGlobal).electronAPI = {
+    registerRendererElectronApiCandidate({
         sendThemeChanged: mocks.sendThemeChanged,
-    };
+    });
     delete (globalThis as SettingsModalTestGlobal).closeSettingsModal;
     delete (globalThis as SettingsModalTestGlobal).showSettingsModal;
 }
@@ -147,7 +148,7 @@ function cleanupFixture(): void {
     vi.clearAllMocks();
     document.body.replaceChildren();
     document.head.replaceChildren();
-    delete (globalThis as SettingsModalTestGlobal).electronAPI;
+    resetRendererElectronApiCandidate();
     delete (globalThis as SettingsModalTestGlobal).closeSettingsModal;
     delete (globalThis as SettingsModalTestGlobal).showSettingsModal;
 }

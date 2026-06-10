@@ -54,6 +54,7 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/files/import/openFitFileFromPath.test.ts",
     "tests/unit/utils/files/import/openFileSelector.test.ts",
     "tests/unit/utils/ui/controls/addFullScreenButton.test.ts",
+    "tests/unit/utils/ui/settingsModal.test.ts",
     "tests/unit/utils/theming/core/theme.additional.test.ts",
 ] as const;
 const testSourceRoots = ["tests/unit", "tests/playwright"] as const;
