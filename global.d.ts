@@ -31,9 +31,7 @@ declare global {
         rendererUtils?: Record<string, unknown>;
         loadedFitFiles?: FitDecodeResult[];
 
-        // --- Zone / chart related data ---
-        heartRateZones?: ZoneInfo[];
-        powerZones?: ZoneInfo[];
+        // --- Chart related data ---
         _chartjsInstances?: unknown[];
         Chart?: unknown;
 
@@ -81,21 +79,6 @@ declare global {
             L?: typeof Leaflet;
         }
     }
-}
-
-/** Basic shape for a zone (heart rate or power) after processing */
-export interface ZoneInfo {
-    zone?: number;
-    /** Label for display, e.g. "Zone 1" */
-    label?: string;
-    /** Total seconds in zone */
-    time?: number;
-    /** Percentage (0-100) */
-    percent?: number;
-    /** Optional count/value metrics */
-    value?: number;
-    /** Color string applied to the zone */
-    color?: string;
 }
 
 export {};
