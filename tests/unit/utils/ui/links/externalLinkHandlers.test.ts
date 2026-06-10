@@ -2,6 +2,10 @@
 
 import { describe, expect, it, vi } from "vitest";
 
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { attachExternalLinkHandlers } from "../../../../../electron-app/utils/ui/links/externalLinkHandlers.js";
 
 type OpenExternal = (url: string) => Promise<boolean>;
@@ -74,14 +78,11 @@ function dispatchSpace(anchor: HTMLAnchorElement): KeyboardEvent {
 }
 
 function setElectronApi(openExternal: OpenExternal): void {
-    Object.defineProperty(globalThis, "electronAPI", {
-        configurable: true,
-        value: { openExternal },
-    });
+    registerRendererElectronApiCandidate({ openExternal });
 }
 
 function clearElectronApi(): void {
-    Reflect.deleteProperty(globalThis, "electronAPI");
+    resetRendererElectronApiCandidate();
 }
 
 function countParentEvents(
