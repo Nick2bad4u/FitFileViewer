@@ -11,21 +11,6 @@ import {
 
 type StateRecord = Record<string, unknown>;
 type StateHistory = unknown[];
-type StateDebugGlobal = {
-    disableMonitoring: () => void;
-    enableMonitoring: () => void;
-    findSlowSubscribers: () => unknown[];
-    getHistory: () => StateHistory;
-    getMetrics: () => PerformanceMetricsSnapshot;
-    getReport: () => string;
-    getState: () => unknown;
-    logState: () => void;
-    resetMetrics: () => void;
-    validateState: () => ValidationResult;
-};
-type StateDevToolsGlobal = typeof globalThis & {
-    __stateDebug?: StateDebugGlobal;
-};
 type BrowserMemoryInfo = {
     jsHeapSizeLimit: number;
     totalJSHeapSize: number;
@@ -96,10 +81,6 @@ const PERFORMANCE_CONFIG = {
     memoryCheckInterval: 30_000, // 30 seconds
     slowOperationThreshold: 10, // Ms
 };
-
-function getStateDevToolsGlobal(): StateDevToolsGlobal {
-    return globalThis;
-}
 
 /**
  * Checks whether a value is a plain state record.
@@ -232,10 +213,6 @@ class StateDebugUtilities {
     disableDebugMode(): void {
         this.isDebugMode = false;
         console.log("[StateDebug] Debug mode disabled");
-
-        if (globalThis.window !== undefined) {
-            delete getStateDevToolsGlobal().__stateDebug;
-        }
     }
 
     /**
@@ -244,23 +221,6 @@ class StateDebugUtilities {
     enableDebugMode(): void {
         this.isDebugMode = true;
         console.log("[StateDebug] Debug mode enabled");
-
-        // Expose debug utilities globally
-        if (globalThis.window !== undefined) {
-            // Use a distinct property name to minimize clash with existing global typedefs
-            getStateDevToolsGlobal().__stateDebug = {
-                disableMonitoring: () => performanceMonitor.disable(),
-                enableMonitoring: () => performanceMonitor.enable(),
-                findSlowSubscribers: () => this.findSlowSubscribers(),
-                getHistory: () => getStateHistory(),
-                getMetrics: () => performanceMonitor.getMetrics(),
-                getReport: () => performanceMonitor.getReport(),
-                getState: () => getState(""),
-                logState: () => this.logCurrentState(),
-                resetMetrics: () => performanceMonitor.resetMetrics(),
-                validateState: () => this.validateState(),
-            };
-        }
     }
 
     /**
@@ -673,18 +633,12 @@ export function initializeStateDevTools(enableInProduction = false): void {
 
         console.log("[StateDevTools] Development tools initialized");
         console.log("Available commands:");
-        console.log("- window.__stateDebug.getState() - Get current state");
-        console.log("- window.__stateDebug.getHistory() - Get state history");
+        console.log("- debugUtilities.logCurrentState() - Log current state");
+        console.log("- debugUtilities.validateState() - Validate state");
         console.log(
-            "- window.__stateDebug.getReport() - Get performance report"
+            "- performanceMonitor.getReport() - Get performance report"
         );
-        console.log(
-            "- window.__stateDebug.enableMonitoring() - Enable performance monitoring"
-        );
-        console.log("- window.__stateDebug.logState() - Log current state");
-        console.log(
-            "- window.__stateDebug.validateState() - Validate state integrity"
-        );
+        console.log("- performanceMonitor.enable() - Enable monitoring");
     }
 }
 

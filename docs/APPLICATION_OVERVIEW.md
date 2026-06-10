@@ -129,7 +129,7 @@ runtime renderer output:
 ## Logging & Diagnostics
 
 - `logWithLevel.js` centralizes log formatting (timestamps, severity).
-- `stateDevTools.js` exposes `performanceMonitor` and renderer dev helpers (`__renderer_dev`) for introspection.
+- `stateDevTools.js` exposes typed `performanceMonitor` utilities, and renderer dev helpers remain behind the dedicated renderer debug module.
 - Main process logs contextual messages via `logWithContext` and ensures errors are captured even when mocks intercept Electron APIs.
 
 ## IPC Reference (selected)

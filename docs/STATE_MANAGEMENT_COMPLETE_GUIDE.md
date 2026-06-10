@@ -51,7 +51,8 @@ Extensible middleware for state operations:
 Debugging and performance monitoring utilities:
 
 - **Performance Monitoring**: Track state operation timing and memory usage
-- **Debug Console**: Global debugging functions exposed on `window.__stateDebug`
+- **Debug Console**: Typed debugging functions exposed through `debugUtilities`
+  and `performanceMonitor`
 - **State Validation**: Integrity checking and structure validation
 - **Snapshots**: Create and compare state snapshots
 - **Error Tracking**: Centralized error logging and reporting
@@ -184,9 +185,7 @@ const cleanup = addComputed(
  (state) => {
   const rawFitData = state.fitFile?.rawData;
   return (
-   rawFitData &&
-   rawFitData.recordMesgs &&
-   rawFitData.recordMesgs.length > 0
+   rawFitData && rawFitData.recordMesgs && rawFitData.recordMesgs.length > 0
   );
  },
  ["fitFile.rawData.recordMesgs"]
@@ -222,22 +221,22 @@ registerMiddleware("audit", auditMiddleware, 15);
 ### Development Debugging
 
 ```javascript
-// These are automatically available in development mode:
+// Import the typed utilities from stateDevTools.js in development code.
 
 // Get current state
-window.__stateDebug.getState();
+debugUtilities.logCurrentState();
 
 // Get state change history
-window.__stateDebug.getHistory();
+getStateHistory();
 
 // Get performance report
-window.__stateDebug.getReport();
+performanceMonitor.getReport();
 
 // Validate state integrity
-window.__stateDebug.validateState();
+debugUtilities.validateState();
 
 // Enable performance monitoring
-window.__stateDebug.enableMonitoring();
+performanceMonitor.enable();
 ```
 
 ## Integration with Existing Code
@@ -355,7 +354,8 @@ const PERFORMANCE_CONFIG = {
 **Development tools not available:**
 
 - Ensure running in development mode
-- Check `window.__stateDebug` availability
+- Verify the typed `debugUtilities` and `performanceMonitor` imports are
+  available
 - Verify initializeStateDevTools was called
 - Check console for initialization errors
 
@@ -363,16 +363,16 @@ const PERFORMANCE_CONFIG = {
 
 ```javascript
 // Check if state system is working
-window.__stateDebug.validateState();
+debugUtilities.validateState();
 
 // Get performance metrics
-window.__stateDebug.getMetrics();
+performanceMonitor.getMetrics();
 
 // View current state
-window.__stateDebug.logState();
+debugUtilities.logCurrentState();
 
 // Reset performance counters
-window.__stateDebug.resetMetrics();
+performanceMonitor.resetMetrics();
 ```
 
 ## Future Enhancements
