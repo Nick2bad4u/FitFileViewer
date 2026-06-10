@@ -280,6 +280,7 @@ const directOverlayFilesLoaderGlobalPattern =
     /\b(?:window|globalThis|appGlobal|getFileSelectorGlobal\(\))\.loadOverlayFiles\b/u;
 const directOverlayTooltipTimeoutGlobalPattern =
     /\b(?:window|globalThis|windowExt|overlayGlobal|getOverlayGlobal\(\)|getShownFilesGlobal\(\))\._overlayTooltipTimeout\b/u;
+const directOverlayTooltipTimeoutExpandoPattern = /\b_tooltipTimeout\b/u;
 const directChartUpdaterGlobalPattern =
     /\b(?:window|globalThis|windowExt|chartGlobal|globalWindow|lifecycleGlobal|getChartResizeGlobal\(\))\.(?:ChartUpdater|chartUpdater)\b/u;
 const directMapMarkerCountGlobalPattern =
@@ -1216,6 +1217,20 @@ describe("architecture boundaries", () => {
         const violations = migratedStateDebugGlobalFreeFiles
             .filter((relativeFile) =>
                 directStateDebugGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps overlay tooltip timeout state off DOM expandos", () => {
+        expect.assertions(1);
+
+        const violations = migratedRendererUtilityCallerFiles
+            .filter((relativeFile) =>
+                directOverlayTooltipTimeoutExpandoPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )

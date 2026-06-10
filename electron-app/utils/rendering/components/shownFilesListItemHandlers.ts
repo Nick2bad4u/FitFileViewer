@@ -15,7 +15,6 @@ import {
 type OverlayListItem = HTMLLIElement & {
     _overlayListItemCleanup?: (() => void) | null;
     _tooltipRemover?: (() => void) | null;
-    _tooltipTimeout?: ReturnType<typeof setTimeout> | null;
 };
 
 type AttachOverlayListItemHandlersParams = {
@@ -250,7 +249,6 @@ export function attachOverlayListItemHandlers({
     };
     listItem._overlayListItemCleanup?.();
     listItem._overlayListItemCleanup = cleanup;
-    listItem._tooltipTimeout = null;
     listItem._tooltipRemover = null;
 
     removeBtn.addEventListener(
