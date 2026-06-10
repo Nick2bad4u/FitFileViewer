@@ -15,6 +15,12 @@ type ShowNotification = (
     duration?: number
 ) => void;
 type TestWindowHook = () => Promise<void> | void;
+type TestWindowHooks = Window & {
+    createTables?: TestWindowHook;
+    renderChartJS?: TestWindowHook;
+    renderMap?: TestWindowHook;
+    renderSummary?: TestWindowHook;
+};
 
 const { mockEnsureRendererVendorBundle } = vi.hoisted(() => ({
     mockEnsureRendererVendorBundle: vi.fn(() => Promise.resolve()),
@@ -68,6 +74,10 @@ function getRequiredElement(id: string): HTMLElement {
     }
 
     return element;
+}
+
+function getTestWindowHooks(): TestWindowHooks {
+    return window as TestWindowHooks;
 }
 
 const tabDomFixtures = [
@@ -153,7 +163,7 @@ describe("tabStateManager regressions", () => {
 
         mockGetState.mockReturnValue("summary");
 
-        Object.assign(window, {
+        Object.assign(getTestWindowHooks(), {
             createTables: vi.fn<TestWindowHook>(),
             renderChartJS: vi.fn<TestWindowHook>(),
             renderMap: vi.fn<TestWindowHook>(),
@@ -506,7 +516,7 @@ describe("tabStateManager regressions", () => {
                 "Error loading Charts tab",
                 "error"
             );
-            expect(window.renderChartJS).not.toHaveBeenCalled();
+            expect(getTestWindowHooks().renderChartJS).not.toHaveBeenCalled();
 
             manager.cleanup();
             consoleSpy.mockRestore();

@@ -36,8 +36,6 @@ declare global {
         Chart?: unknown;
 
         // --- UI helpers & rendering functions (legacy; slated for removal) ---
-        showFitData?: (data: FitDecodeResult, fileName?: string) => void;
-        renderChartJS?: (...args: unknown[]) => void;
         renderMap?: (...args: unknown[]) => void;
 
         // --- Notification & modals ---
