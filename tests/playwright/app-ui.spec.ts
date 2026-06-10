@@ -648,6 +648,17 @@ test.describe("FitFileViewer Electron UI", () => {
         };
     }
 
+    async function expectLoadedActivityStatePreserved(
+        context: string
+    ): Promise<void> {
+        await expect
+            .poll(getActivityUiState, {
+                message: `loaded activity state after ${context}`,
+                timeout: 30_000,
+            })
+            .toStrictEqual(sampleFitActivityState);
+    }
+
     async function expectMissingFitFileErrorAlert(): Promise<void> {
         const errorAlert = page.getByRole("alert", {
             name: /Error: Error reading file: File not found\./u,
@@ -1356,6 +1367,7 @@ test.describe("FitFileViewer Electron UI", () => {
         expect(loadResult.activeFileName).not.toBe("");
 
         await page.locator("#tab_map").click();
+        await expectLoadedActivityStatePreserved("switching to Map");
         await expect(page.locator("#leaflet-map")).toBeVisible();
         await expect(page.locator(".leaflet-control-layers")).toBeAttached();
         await expect(page.locator(".leaflet-control-scale")).toBeVisible();
@@ -1598,6 +1610,7 @@ test.describe("FitFileViewer Electron UI", () => {
         });
 
         await page.locator("#tab_chartjs").click();
+        await expectLoadedActivityStatePreserved("switching to Charts");
         await expect(page.locator("#tab_chartjs")).toHaveClass(/active/u);
         await expect(page.locator("#content_chartjs")).toBeAttached();
         await expect(
@@ -1656,6 +1669,7 @@ test.describe("FitFileViewer Electron UI", () => {
 
         for (const tabId of ["#tab_data", "#tab_summary"]) {
             await page.locator(tabId).click();
+            await expectLoadedActivityStatePreserved(`switching to ${tabId}`);
             await expect(page.locator(tabId)).toHaveClass(/active/u);
         }
 
@@ -1663,6 +1677,9 @@ test.describe("FitFileViewer Electron UI", () => {
         await expect(page.locator("#content_summary")).toBeAttached();
 
         await page.locator("#tab_data").click();
+        await expectLoadedActivityStatePreserved(
+            "returning to Raw Data after Summary"
+        );
         const firstTableHeader = page
             .locator("#content_data .table-header")
             .first();
