@@ -17,6 +17,7 @@ import {
     unwrapFitParseMessages,
 } from "../../files/import/fitParsePayload.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { getState, setState } from "../../state/core/stateManager.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import {
@@ -57,10 +58,6 @@ type CalendarState = {
 };
 
 type DistanceUnit = "km" | "mi";
-
-type FitBrowserGlobal = typeof globalThis & {
-    electronAPI?: FitBrowserElectronAPI;
-};
 
 type FitBrowserElectronAPI = Partial<
     Pick<
@@ -573,16 +570,29 @@ function getCalendarState(): CalendarState {
     }
 }
 
-function getFitBrowserGlobal(): FitBrowserGlobal {
-    return globalThis;
+function getElectronAPI(): FitBrowserElectronAPI | null {
+    return getRendererElectronApi(isFitBrowserElectronApi);
 }
 
-function getElectronAPI(): FitBrowserElectronAPI | null {
-    const api = getFitBrowserGlobal().electronAPI;
-    if (!api || typeof api !== "object") {
-        return null;
+function isFitBrowserElectronApi(
+    value: unknown
+): value is FitBrowserElectronAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
     }
-    return api;
+
+    const api = value as Record<string, unknown>;
+
+    return [
+        "decodeFitFile",
+        "getFitBrowserFolder",
+        "listFitBrowserFolder",
+        "openFolderDialog",
+        "readFile",
+    ].every((methodName) => {
+        const method = api[methodName];
+        return method === undefined || typeof method === "function";
+    });
 }
 
 function getLibraryPrefs(): FitLibraryPrefs {
