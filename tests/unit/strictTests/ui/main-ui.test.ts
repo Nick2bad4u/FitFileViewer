@@ -307,9 +307,17 @@ function installBaseDOM() {
     externalLink.textContent = "ext";
 }
 
-function installElectronAPI() {
+type TestElectronAPI = ReturnType<typeof createElectronAPI>;
+type ElectronApiRuntimeModule = typeof import("../../../../electron-app/utils/runtime/electronApiRuntime.js");
+
+let currentElectronAPI: TestElectronAPI | undefined;
+let registerElectronApiCandidate: ElectronApiRuntimeModule["registerRendererElectronApiCandidate"];
+let resetElectronApiCandidate: ElectronApiRuntimeModule["resetRendererElectronApiCandidate"];
+
+function createElectronAPI() {
     const ipc = new Map<string, IpcCallback>();
-    const electronAPI = {
+
+    return {
         decodeFitFile: vi.fn<(buffer: ArrayBuffer) => Promise<unknown>>(),
         emit: (channel: string, ...args: unknown[]) =>
             ipc.get(channel)?.(...args),
@@ -333,9 +341,12 @@ function installElectronAPI() {
         send: vi.fn<(channel: string, payload?: unknown) => void>(),
         sendThemeChanged: vi.fn<(theme: string) => void>(),
     };
-    Reflect.set(window, "electronAPI", electronAPI);
-    Reflect.set(globalThis, "electronAPI", electronAPI);
-    return electronAPI;
+}
+
+function installElectronAPI() {
+    currentElectronAPI = createElectronAPI();
+    registerElectronApiCandidate(currentElectronAPI);
+    return currentElectronAPI;
 }
 
 function getRequiredElement<T extends Element>(
@@ -356,8 +367,8 @@ function getRequiredSelector<T extends Element>(
     return element as T;
 }
 
-function getCurrentElectronAPI(): ReturnType<typeof installElectronAPI> {
-    const api = Reflect.get(window, "electronAPI");
+function getCurrentElectronAPI(): TestElectronAPI {
+    const api = currentElectronAPI;
 
     if (
         !api ||
@@ -367,10 +378,10 @@ function getCurrentElectronAPI(): ReturnType<typeof installElectronAPI> {
         typeof api.openExternal !== "function" ||
         typeof api.send !== "function"
     ) {
-        throw new TypeError("Expected window.electronAPI test double");
+        throw new TypeError("Expected Electron API test double");
     }
 
-    return api as ReturnType<typeof installElectronAPI>;
+    return api;
 }
 
 type MainUiModule = Awaited<ReturnType<typeof importMainUI>>;
@@ -400,9 +411,16 @@ async function importMainUI() {
 }
 
 describe("main-ui.js core flows", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.useFakeTimers();
         vi.resetModules();
+        const electronApiRuntime = await import(
+            "../../../../electron-app/utils/runtime/electronApiRuntime.js"
+        );
+        registerElectronApiCandidate =
+            electronApiRuntime.registerRendererElectronApiCandidate;
+        resetElectronApiCandidate =
+            electronApiRuntime.resetRendererElectronApiCandidate;
         vi.clearAllMocks();
         processEnvironmentMock.isDevelopmentEnvironment.mockReturnValue(false);
         processEnvironmentMock.isTestEnvironment.mockReturnValue(true);
@@ -415,6 +433,7 @@ describe("main-ui.js core flows", () => {
         Reflect.set(globalThis, "enableDragAndDrop", true);
         Reflect.deleteProperty(globalThis, "devCleanup");
         Reflect.deleteProperty(globalThis, "injectMenu");
+        resetElectronApiCandidate();
         installElectronAPI();
         // Simulate DOMContentLoaded so external link handlers attach
         Object.defineProperty(document, "readyState", {
@@ -425,6 +444,8 @@ describe("main-ui.js core flows", () => {
 
     afterEach(() => {
         vi.useRealTimers();
+        resetElectronApiCandidate();
+        currentElectronAPI = undefined;
         document.body.replaceChildren();
     });
 

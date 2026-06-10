@@ -51,6 +51,7 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/strictTests/rendering/core/showFitData.test.ts",
     "tests/unit/strictTests/ui/modals/aboutModal.test.ts",
     "tests/unit/strictTests/ui/notifications/showUpdateNotification.test.ts",
+    "tests/unit/strictTests/ui/main-ui.test.ts",
     "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
     "tests/unit/utils/files/export/copyTableAsCSV.test.ts",
     "tests/unit/utils/files/export/exportUtils.oauthState.test.ts",
