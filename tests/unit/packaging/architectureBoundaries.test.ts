@@ -369,6 +369,14 @@ const directMainUiDevelopmentHelperGlobalPattern =
     /\b(?:window|globalThis|getMainUiGlobal\(\)|mainUiGlobal)\.(?:injectMenu|devCleanup)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:injectMenu|devCleanup)["']\s*\)/u;
 const directMainProcessDevHelpersGlobalPattern =
     /\b(?:window|globalThis)\.devHelpers\b|Object\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)/u;
+const directElectronHoistedMockGlobalAllowedFiles = new Set([
+    "electron-app/main/runtime/electronAccess.ts",
+    "electron-app/main/runtime/primeTestEnvironment.ts",
+    "electron-app/preload/electronBridge.ts",
+    "electron-app/preload/preloadBootstrap.ts",
+] as const);
+const directElectronHoistedMockGlobalPattern =
+    /\b(?:window|globalThis|getMenuGlobal\(\))\.__electronHoistedMock\b|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']__electronHoistedMock["']/u;
 const directMenuModalPresenterGlobalPattern =
     /\b(?:window|globalThis|getMenuIpcGlobal\(\)|keyboardShortcutsGlobal|menuGlobal)\.(?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)["']\s*\)/u;
 const directAboutModalDevHelperGlobalPattern =
@@ -1534,7 +1542,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(78);
+        expect.assertions(79);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -2058,6 +2066,17 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directElectronHoistedMockGlobalLookups = scannedFiles
+            .filter(
+                (relativeFile) =>
+                    !directElectronHoistedMockGlobalAllowedFiles.has(
+                        relativeFile
+                    ) &&
+                    directElectronHoistedMockGlobalPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+            )
+            .sort();
         const directMenuModalPresenterGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directMenuModalPresenterGlobalPattern.test(
@@ -2172,6 +2191,7 @@ describe("architecture boundaries", () => {
         expect(directMainUiDragDropHandlerGlobalLookups).toStrictEqual([]);
         expect(directMainUiDevelopmentHelperGlobalLookups).toStrictEqual([]);
         expect(directMainProcessDevHelpersGlobalLookups).toStrictEqual([]);
+        expect(directElectronHoistedMockGlobalLookups).toStrictEqual([]);
         expect(directMenuModalPresenterGlobalLookups).toStrictEqual([]);
         expect(directAboutModalDevHelperGlobalLookups).toStrictEqual([]);
         expect(directActiveFitFileNameGlobalLookups).toStrictEqual([]);

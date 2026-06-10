@@ -72,7 +72,6 @@ type FileAccessPolicy = {
 };
 
 type FitFileViewerGlobal = typeof globalThis & {
-    __electronHoistedMock?: ElectronLike;
     __FFV_debugMenu?: boolean;
     __lastBuiltMenuTemplate?: MenuItemLike[];
     __mockRecentFiles?: unknown;
@@ -119,48 +118,30 @@ const { getElectron: getRuntimeElectron } =
     };
 
 let __electronCached: ElectronLike | null = null;
+function hasUsableElectronReference(
+    candidate: ElectronLike | null
+): candidate is ElectronLike {
+    return Boolean(
+        candidate?.["Menu"] ||
+            candidate?.["app"] ||
+            candidate?.["BrowserWindow"]
+    );
+}
+
 function getElectron(): ElectronLike {
-    // Prefer the latest hoisted mock in test environments to avoid stale caches
-    try {
-        const hoisted =
-            typeof globalThis === "undefined"
-                ? null
-                : getMenuGlobal().__electronHoistedMock;
-        if (hoisted) {
-            __electronCached = hoisted;
-            return hoisted;
-        }
-    } catch {
-        /* ignore */
-    }
-    if (
-        __electronCached &&
-        (__electronCached["Menu"] ||
-            __electronCached["app"] ||
-            __electronCached["BrowserWindow"])
-    ) {
-        return __electronCached;
-    }
     try {
         const e = getRuntimeElectron();
         __electronCached = e;
         return e;
     } catch {
-        try {
-            // Fallback to hoisted mock if available
-            const hoisted2 =
-                typeof globalThis === "undefined"
-                    ? null
-                    : getMenuGlobal().__electronHoistedMock;
-            if (hoisted2) {
-                __electronCached = hoisted2;
-                return hoisted2;
-            }
-        } catch {
-            /* ignore */
-        }
-        return {};
+        /* ignore */
     }
+
+    if (hasUsableElectronReference(__electronCached)) {
+        return __electronCached;
+    }
+
+    return {};
 }
 
 // Lazily initialize configuration to avoid import-time side effects in tests
