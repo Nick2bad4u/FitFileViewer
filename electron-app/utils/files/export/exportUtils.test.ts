@@ -5,6 +5,10 @@ import {
     clearExportZipRuntimeForTests,
     setExportZipRuntime,
 } from "./exportZipRuntime.js";
+import {
+    registerRendererElectronApiCandidate as registerElectronApiCandidate,
+    resetRendererElectronApiCandidate as resetElectronApiCandidate,
+} from "../../runtime/electronApiRuntime.js";
 
 // Mock dependencies
 vi.mock("../../charts/theming/chartThemeUtils.js", () => ({
@@ -40,24 +44,19 @@ function createElectronIpcUnsubscribe(): () => void {
     return noopElectronIpcUnsubscribe;
 }
 
-Object.defineProperty(globalThis, "electronAPI", {
-    value: {
-        showSaveDialog: vi.fn(() => Promise.resolve({ filePath: "test.png" })),
-        showOpenDialog: vi.fn(() =>
-            Promise.resolve({ filePaths: ["test.fit"] })
-        ),
-        writeFileSync: vi.fn(),
-        readFileSync: vi.fn(() => "mock file content"),
-        startGyazoServer: vi.fn(() =>
-            Promise.resolve({ success: true, port: 3000 })
-        ),
-        stopGyazoServer: vi.fn(() => Promise.resolve()),
-        openExternal: vi.fn(() => Promise.resolve()),
-        // Provide an OAuth callback mock used by authenticateWithGyazo
-        onGyazoOAuthCallback: vi.fn(createElectronIpcUnsubscribe),
-    },
-    writable: true,
-});
+const electronApiMock = {
+    showSaveDialog: vi.fn(() => Promise.resolve({ filePath: "test.png" })),
+    showOpenDialog: vi.fn(() => Promise.resolve({ filePaths: ["test.fit"] })),
+    writeFileSync: vi.fn(),
+    readFileSync: vi.fn(() => "mock file content"),
+    startGyazoServer: vi.fn(() =>
+        Promise.resolve({ success: true, port: 3000 })
+    ),
+    stopGyazoServer: vi.fn(() => Promise.resolve()),
+    openExternal: vi.fn(() => Promise.resolve()),
+    // Provide an OAuth callback mock used by authenticateWithGyazo.
+    onGyazoOAuthCallback: vi.fn(createElectronIpcUnsubscribe),
+};
 
 Object.defineProperty(globalThis, "localStorage", {
     value: {
@@ -241,9 +240,12 @@ describe("exportUtils", () => {
         createdAnchors.length = 0;
         vi.clearAllMocks();
         resetLocalStorageMock();
+        resetElectronApiCandidate();
+        registerElectronApiCandidate(electronApiMock);
     });
 
     afterEach(() => {
+        resetElectronApiCandidate();
         clearExportZipRuntimeForTests();
         vi.restoreAllMocks();
     });
@@ -315,9 +317,7 @@ describe("exportUtils", () => {
                 }
             );
 
-            vi.mocked(
-                (globalThis as any).electronAPI.startGyazoServer
-            ).mockResolvedValue({
+            vi.mocked(electronApiMock.startGyazoServer).mockResolvedValue({
                 success: true,
                 port: 3000,
             });
@@ -325,9 +325,9 @@ describe("exportUtils", () => {
             // Mock the authentication flow
             const authPromise = exportUtils.authenticateWithGyazo();
 
-            expect(
-                (globalThis as any).electronAPI.startGyazoServer
-            ).toHaveBeenCalledWith(3000);
+            expect(electronApiMock.startGyazoServer).toHaveBeenCalledWith(
+                3000
+            );
             // Allow microtask where setItem is called
             await Promise.resolve();
             expect(globalThis.localStorage.setItem).toHaveBeenCalledWith(
@@ -346,23 +346,20 @@ describe("exportUtils", () => {
         it("cleans up state and subscriptions when user cancels", async () => {
             const unsubscribe = vi.fn();
             let capturedHandler: ((data: any) => void) | null = null;
-            vi.mocked(
-                (globalThis as any).electronAPI.onGyazoOAuthCallback
-            ).mockImplementation((handler: any) => {
-                capturedHandler = handler;
-                return unsubscribe;
-            });
+            vi.mocked(electronApiMock.onGyazoOAuthCallback).mockImplementation(
+                (handler: any) => {
+                    capturedHandler = handler;
+                    return unsubscribe;
+                }
+            );
 
-            vi.mocked(
-                (globalThis as any).electronAPI.startGyazoServer
-            ).mockResolvedValue({
+            vi.mocked(electronApiMock.startGyazoServer).mockResolvedValue({
                 success: true,
                 port: 3000,
             });
-            vi.mocked(
-                (globalThis as any).electronAPI.stopGyazoServer
-            ).mockResolvedValue(undefined);
-
+            vi.mocked(electronApiMock.stopGyazoServer).mockResolvedValue(
+                undefined
+            );
             // Ensure config has creds
             vi.mocked(globalThis.localStorage.getItem).mockImplementation(
                 (key) => {
@@ -386,9 +383,7 @@ describe("exportUtils", () => {
                 "User cancelled authentication"
             );
             expect(unsubscribe).toHaveBeenCalled();
-            expect(
-                (globalThis as any).electronAPI.stopGyazoServer
-            ).toHaveBeenCalled();
+            expect(electronApiMock.stopGyazoServer).toHaveBeenCalled();
             expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
                 "gyazo_oauth_state"
             );
@@ -403,22 +398,20 @@ describe("exportUtils", () => {
             const unsubscribe = vi.fn();
             let capturedHandler: ((data: any) => void) | null = null;
 
-            vi.mocked(
-                (globalThis as any).electronAPI.onGyazoOAuthCallback
-            ).mockImplementation((handler: any) => {
-                capturedHandler = handler;
-                return unsubscribe;
-            });
+            vi.mocked(electronApiMock.onGyazoOAuthCallback).mockImplementation(
+                (handler: any) => {
+                    capturedHandler = handler;
+                    return unsubscribe;
+                }
+            );
 
-            vi.mocked(
-                (globalThis as any).electronAPI.startGyazoServer
-            ).mockResolvedValue({
+            vi.mocked(electronApiMock.startGyazoServer).mockResolvedValue({
                 success: true,
                 port: 3000,
             });
-            vi.mocked(
-                (globalThis as any).electronAPI.stopGyazoServer
-            ).mockResolvedValue(undefined);
+            vi.mocked(electronApiMock.stopGyazoServer).mockResolvedValue(
+                undefined
+            );
 
             // Ensure config has creds
             vi.mocked(globalThis.localStorage.getItem).mockImplementation(
@@ -429,16 +422,12 @@ describe("exportUtils", () => {
                     return null;
                 }
             );
-
-            // Make token exchange succeed
-            vi.mocked(globalThis.fetch as any).mockImplementationOnce(() =>
-                Promise.resolve({
-                    ok: true,
-                    status: 200,
-                    json: () => Promise.resolve({ access_token: "test-token" }),
-                    text: () => Promise.resolve("ok"),
-                })
-            );
+            vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                json: () => Promise.resolve({ access_token: "test-token" }),
+                text: () => Promise.resolve("ok"),
+            } as any);
 
             // Capture state set in localStorage
             let storedState: string | null = null;
@@ -460,9 +449,7 @@ describe("exportUtils", () => {
             await expect(authPromise).resolves.toBe("test-token");
 
             expect(unsubscribe).toHaveBeenCalled();
-            expect(
-                (globalThis as any).electronAPI.stopGyazoServer
-            ).toHaveBeenCalled();
+            expect(electronApiMock.stopGyazoServer).toHaveBeenCalled();
             expect(globalThis.localStorage.removeItem).toHaveBeenCalledWith(
                 "gyazo_oauth_state"
             );

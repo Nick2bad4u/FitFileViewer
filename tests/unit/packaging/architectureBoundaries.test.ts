@@ -56,6 +56,7 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/files/export/exportUtils.oauthState.test.ts",
     "tests/unit/utils/files/export/exportUtils.test.ts",
     "tests/unit/utils/files/export/exportUtils.ui.test.ts",
+    "electron-app/utils/files/export/exportUtils.test.ts",
     "tests/unit/utils/files/import/loadSingleOverlayFile.fallbacks.test.ts",
     "tests/unit/utils/files/import/loadSingleOverlayFile.test.ts",
     "tests/unit/utils/files/import/openFitFileFromPath.test.ts",
