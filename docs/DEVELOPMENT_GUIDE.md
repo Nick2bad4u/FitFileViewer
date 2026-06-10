@@ -65,7 +65,7 @@ npm run lint:css           # Run Stylelint on CSS
 npm run lint:css:fix       # Fix Stylelint issues
 npm run typecheck         # TypeScript type checking
 npm run verify:fast       # Fast local readiness gate
-npm run verify:release    # Full release readiness gate
+npm run verify:release    # Full release readiness gate, including signing preflight
 npm run release:verify    # Alias used by release automation
 
 # Build & Package
@@ -425,9 +425,10 @@ npm run build:win7
 
 ### Signing Preflight
 
-Use `npm run release:check-signing` before signed packaging when
-`REQUIRE_CODE_SIGNING=true`. The command fails before electron-builder starts
-and lists each missing variable.
+`npm run verify:release` runs `npm run release:check-signing` before packaging.
+Use the same preflight directly before ad hoc signed packaging when
+`REQUIRE_CODE_SIGNING=true`; it fails before electron-builder starts and lists
+each missing variable.
 
 - Local `npm run package` and release rehearsal builds are unsigned by
   default. The electron-builder wrapper strips signing variables and disables

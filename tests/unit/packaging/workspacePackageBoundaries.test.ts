@@ -270,7 +270,7 @@ const expectedRootToolingScripts = {
     "verify:fast":
         "npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
     "verify:full":
-        "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run package && npm run test:packaged",
+        "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run release:check-signing && npm run package && npm run test:packaged",
     "verify:release": "npm run verify:full",
 } as const;
 
