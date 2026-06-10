@@ -13,7 +13,6 @@ function createBootstrap(
         scheduleImportTimeListenersSetup: vi.fn(),
         scheduleImportTimeStateInitialization: vi.fn(),
         scheduleImportTimeThemeSetup: vi.fn(),
-        touchManualAppStartTime: vi.fn(),
         ...overrides,
     };
 }
@@ -36,9 +35,6 @@ describe("renderer import-time bootstrap", () => {
             scheduleImportTimeThemeSetup: vi.fn(() => {
                 calls.push("theme");
             }),
-            touchManualAppStartTime: vi.fn(() => {
-                calls.push("manual");
-            }),
         });
 
         runRendererImportTimeBootstrap(bootstrap);
@@ -49,7 +45,6 @@ describe("renderer import-time bootstrap", () => {
             "listeners",
             "coverage",
             "coverage",
-            "manual",
         ]);
     });
 

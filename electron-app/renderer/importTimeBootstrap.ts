@@ -17,7 +17,6 @@ export interface RendererImportTimeBootstrap {
     scheduleImportTimeListenersSetup: () => void;
     scheduleImportTimeStateInitialization: () => void;
     scheduleImportTimeThemeSetup: () => void;
-    touchManualAppStartTime: () => void;
 }
 
 export function createRendererImportTimeBootstrap({
@@ -40,18 +39,10 @@ export function createRendererImportTimeBootstrap({
             /* Ignore errors */
         }
         await initializeManualMasterStateManager();
-        touchManualAppStartTime();
     }
 
     async function initializeManualMasterStateManager(): Promise<void> {
         await callRecordMethod(resolveManualMasterStateManager(), "initialize");
-    }
-
-    function resolveManualAppStateModule(): unknown {
-        return (
-            resolveExactManualMock("../../utils/state/domain/appState.js") ??
-            resolveManualMock("/utils/state/domain/appState.js")
-        );
     }
 
     function resolveManualMasterStateManager(): unknown {
@@ -137,15 +128,6 @@ export function createRendererImportTimeBootstrap({
         }
     }
 
-    function touchManualAppStartTime(): void {
-        const domainModule = toModuleRecord(resolveManualAppStateModule());
-        const getStateFn =
-            domainModule["getState"] ??
-            toModuleRecord(domainModule["default"])["getState"];
-
-        callUnknownFunction(getStateFn, ["app.startTime"]);
-    }
-
     function callRecordMethod(
         target: unknown,
         methodName: string,
@@ -166,7 +148,6 @@ export function createRendererImportTimeBootstrap({
         scheduleImportTimeListenersSetup,
         scheduleImportTimeStateInitialization,
         scheduleImportTimeThemeSetup,
-        touchManualAppStartTime,
     };
 }
 
@@ -200,7 +181,6 @@ export function runRendererImportTimeBootstrap(
             } catch {
                 /* Ignore errors */
             }
-            bootstrap.touchManualAppStartTime();
         } catch {
             /* Ignore errors */
         }

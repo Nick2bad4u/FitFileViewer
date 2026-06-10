@@ -1021,6 +1021,21 @@ describe("architecture boundaries", () => {
         expect(appStateSource).not.toContain("Object.defineProperty");
     });
 
+    it("keeps renderer import-time bootstrap off legacy appState manual mocks", () => {
+        expect.assertions(2);
+
+        const importTimeBootstrapSource = stripComments(
+            readRepositoryFile("electron-app/renderer/importTimeBootstrap.ts")
+        );
+
+        expect(importTimeBootstrapSource).not.toContain(
+            "state/domain/appState.js"
+        );
+        expect(importTimeBootstrapSource).not.toContain(
+            "touchManualAppStartTime"
+        );
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 
