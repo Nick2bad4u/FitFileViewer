@@ -1,9 +1,7 @@
 import { LoadingOverlay } from "../../ui/components/LoadingOverlay.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import {
-    loadOverlayFiles,
-    type OverlayInputFile,
-} from "./loadOverlayFiles.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import { loadOverlayFiles, type OverlayInputFile } from "./loadOverlayFiles.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type FileSelectorElectronAPI = Partial<
@@ -27,7 +25,6 @@ type OverlayFilesLoader = (
 ) => Promise<void> | void;
 
 type FileSelectorGlobal = typeof globalThis & {
-    electronAPI?: FileSelectorElectronAPI;
     loadOverlayFiles?: OverlayFilesLoader;
 };
 
@@ -68,7 +65,7 @@ const PATH_SEPARATOR_REGEX = /[/\\]+/g;
  * @example // Open file selector for overlay files. openFileSelector();
  */
 export async function openFileSelector(): Promise<void> {
-    const { electronAPI } = getFileSelectorGlobal();
+    const electronAPI = getFileSelectorElectronApi();
 
     if (electronAPI && typeof electronAPI.openOverlayDialog === "function") {
         try {
@@ -124,6 +121,26 @@ export async function openFileSelector(): Promise<void> {
 
 function getFileSelectorGlobal(): FileSelectorGlobal {
     return globalThis;
+}
+
+function isFileSelectorElectronApi(
+    value: unknown
+): value is FileSelectorElectronAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const api = value as FileSelectorElectronAPI;
+    return (
+        typeof api.openOverlayDialog === "function" ||
+        typeof api.readFile === "function"
+    );
+}
+
+function getFileSelectorElectronApi(): FileSelectorElectronAPI | null {
+    return getRendererElectronApi<FileSelectorElectronAPI>(
+        isFileSelectorElectronApi
+    );
 }
 
 /**
@@ -203,7 +220,7 @@ function createNativeFileFacade(filePath: string): NativeFileFacade {
     const name = getFileNameFromPath(filePath);
     return {
         arrayBuffer: async () => {
-            const { electronAPI: api } = getFileSelectorGlobal();
+            const api = getFileSelectorElectronApi();
             if (!api || typeof api.readFile !== "function") {
                 throw new Error("readFile bridge unavailable");
             }
