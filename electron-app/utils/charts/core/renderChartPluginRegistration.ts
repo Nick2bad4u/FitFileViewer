@@ -21,12 +21,10 @@ interface ChartLike extends Record<string, unknown> {
 
 type ChartPluginGlobal = Record<string, unknown>;
 
+const registeredChartPluginRuntimes = new WeakSet<ChartLike>();
+
 function isChartRegistered(chart: unknown): boolean {
-    return Boolean(
-        isObjectRecord(chart) &&
-        "__ffvPluginsRegistered" in chart &&
-        chart["__ffvPluginsRegistered"]
-    );
+    return isObjectRecord(chart) && registeredChartPluginRuntimes.has(chart);
 }
 
 function markChartRegistered(chart: unknown): void {
@@ -34,14 +32,7 @@ function markChartRegistered(chart: unknown): void {
         return;
     }
 
-    try {
-        Object.defineProperty(chart, "__ffvPluginsRegistered", {
-            configurable: true,
-            value: true,
-        });
-    } catch {
-        // Ignore defineProperty errors from test doubles or locked objects.
-    }
+    registeredChartPluginRuntimes.add(chart);
 }
 
 function registerBundledPlugins(chart: ChartLike): void {

@@ -657,7 +657,6 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
     beforeEach(async () => {
         vi.resetModules();
         vi.clearAllMocks();
-        delete chartJsModuleMocks.Chart.__ffvPluginsRegistered;
         chartJsModuleMocks.Chart.registry.plugins.get.mockReturnValue(false);
         mocks = injectChartJSMocks();
         const { setChartRuntime } =
