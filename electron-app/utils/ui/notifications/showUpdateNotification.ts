@@ -1,19 +1,13 @@
 /** Specialized utility for showing update-related notifications with actions. */
 
 import { createRendererLogger } from "../../logging/rendererLogger.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type UpdateNotificationAction = boolean | string;
 
 type ElectronUpdateAPI = Partial<Pick<ElectronAPI, "installUpdate">>;
-
-type UpdateGlobal = typeof globalThis & {
-    electronAPI?: ElectronUpdateAPI;
-    window?: Window & {
-        electronAPI?: ElectronUpdateAPI;
-    };
-};
 
 // Constants for better maintainability
 const BUTTON_TEXTS = {
@@ -282,11 +276,19 @@ function validateElectronAPI(): boolean {
 }
 
 function getInstallUpdate(): (() => void) | null {
-    const appGlobal = globalThis as UpdateGlobal,
-        electronAPI = appGlobal.electronAPI ?? appGlobal.window?.electronAPI,
-        installUpdate = electronAPI?.installUpdate;
+    const installUpdate =
+        getRendererElectronApi(isElectronUpdateApi)?.installUpdate;
 
     return typeof installUpdate === "function" ? installUpdate : null;
+}
+
+function isElectronUpdateApi(value: unknown): value is ElectronUpdateAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const installUpdate = (value as Record<string, unknown>)["installUpdate"];
+    return installUpdate === undefined || typeof installUpdate === "function";
 }
 
 function clearAutoHideTimer(notification: HTMLElement): void {

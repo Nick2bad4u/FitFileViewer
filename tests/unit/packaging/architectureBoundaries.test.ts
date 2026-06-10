@@ -185,6 +185,7 @@ const migratedElectronApiAccessorFiles = [
     "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
     "electron-app/utils/ui/mainUiDomUtils.ts",
+    "electron-app/utils/ui/notifications/showUpdateNotification.ts",
     "electron-app/utils/ui/settingsModal.ts",
     "electron-app/utils/ui/links/externalLinkHandlers.ts",
 ] as const;
