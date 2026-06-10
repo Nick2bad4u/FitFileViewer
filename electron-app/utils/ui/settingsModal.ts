@@ -25,11 +25,6 @@ const SETTINGS_MODAL_ID = "settings-modal";
 const ANIMATION_DURATION = 300;
 const SVG_NS = "http://www.w3.org/2000/svg";
 
-type SettingsModalGlobal = typeof globalThis & {
-    closeSettingsModal?: typeof closeSettingsModal;
-    showSettingsModal?: typeof showSettingsModal;
-};
-
 type SettingsModalElectronApi = Partial<Pick<ElectronAPI, "sendThemeChanged">>;
 
 let closeAnimationTimer: ReturnType<typeof setTimeout> | undefined;
@@ -640,7 +635,11 @@ function setupSettingsModalHandlers(
     );
 
     if (closeBtn) {
-        addEventListenerWithCleanup(closeBtn, "click", handleCloseSettingsModal);
+        addEventListenerWithCleanup(
+            closeBtn,
+            "click",
+            handleCloseSettingsModal
+        );
     }
 
     if (closeFooterBtn) {
@@ -781,11 +780,4 @@ function setupSettingsModalHandlers(
             }
         });
     }
-}
-
-// Export globally for menu integration
-if (typeof globalThis !== "undefined") {
-    const settingsModalGlobal = globalThis as SettingsModalGlobal;
-    settingsModalGlobal.showSettingsModal = showSettingsModal;
-    settingsModalGlobal.closeSettingsModal = closeSettingsModal;
 }

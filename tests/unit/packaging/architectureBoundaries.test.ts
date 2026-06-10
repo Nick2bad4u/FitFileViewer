@@ -417,6 +417,8 @@ const directElectronHoistedMockGlobalPattern =
     /\b(?:window|globalThis|getMenuGlobal\(\))\.__electronHoistedMock\b|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']__electronHoistedMock["']/u;
 const directMenuModalPresenterGlobalPattern =
     /\b(?:window|globalThis|getMenuIpcGlobal\(\)|keyboardShortcutsGlobal|menuGlobal)\.(?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)["']\s*\)/u;
+const directSettingsModalGlobalPattern =
+    /\b(?:window|globalThis|settingsModalGlobal)\.(?:showSettingsModal|closeSettingsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showSettingsModal|closeSettingsModal)["']\s*\)/u;
 const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
 const directActiveFitFileNameGlobalPattern =
@@ -1674,7 +1676,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(90);
+        expect.assertions(91);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directRuntimeGlobalDataMentions = scannedFiles
@@ -2295,6 +2297,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directSettingsModalGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directSettingsModalGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directAboutModalDevHelperGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directAboutModalDevHelperGlobalPattern.test(
@@ -2415,6 +2424,7 @@ describe("architecture boundaries", () => {
         expect(directMainProcessDevHelpersGlobalLookups).toStrictEqual([]);
         expect(directElectronHoistedMockGlobalLookups).toStrictEqual([]);
         expect(directMenuModalPresenterGlobalLookups).toStrictEqual([]);
+        expect(directSettingsModalGlobalLookups).toStrictEqual([]);
         expect(directAboutModalDevHelperGlobalLookups).toStrictEqual([]);
         expect(directActiveFitFileNameGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);

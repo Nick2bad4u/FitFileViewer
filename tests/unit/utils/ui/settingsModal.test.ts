@@ -86,9 +86,11 @@ import {
 } from "../../../../electron-app/utils/ui/settingsModal.js";
 
 type SettingsModalTestGlobal = typeof globalThis & {
+    closeSettingsModal?: typeof closeSettingsModal;
     electronAPI?: {
         sendThemeChanged?: (theme: string) => void;
     };
+    showSettingsModal?: typeof showSettingsModal;
 };
 
 function change(element: HTMLElement): void {
@@ -136,6 +138,8 @@ function resetFixture(): void {
     (globalThis as SettingsModalTestGlobal).electronAPI = {
         sendThemeChanged: mocks.sendThemeChanged,
     };
+    delete (globalThis as SettingsModalTestGlobal).closeSettingsModal;
+    delete (globalThis as SettingsModalTestGlobal).showSettingsModal;
 }
 
 function cleanupFixture(): void {
@@ -144,10 +148,12 @@ function cleanupFixture(): void {
     document.body.replaceChildren();
     document.head.replaceChildren();
     delete (globalThis as SettingsModalTestGlobal).electronAPI;
+    delete (globalThis as SettingsModalTestGlobal).closeSettingsModal;
+    delete (globalThis as SettingsModalTestGlobal).showSettingsModal;
 }
 
 describe("settingsModal", () => {
-    it("creates the modal, injects styles, and exposes global menu hooks", async () => {
+    it("creates the modal, injects styles, and keeps menu hooks module-scoped", async () => {
         expect.assertions(14);
 
         resetFixture();
@@ -182,8 +188,8 @@ describe("settingsModal", () => {
                 document.querySelectorAll("#settings-modal-styles")
             ).toHaveLength(1);
             expect(mocks.injectModalStyles).toHaveBeenCalledOnce();
-            expect(globalThis.showSettingsModal).toBe(showSettingsModal);
-            expect(globalThis.closeSettingsModal).toBe(closeSettingsModal);
+            expect(globalThis.showSettingsModal).toBeUndefined();
+            expect(globalThis.closeSettingsModal).toBeUndefined();
         } finally {
             cleanupFixture();
         }
