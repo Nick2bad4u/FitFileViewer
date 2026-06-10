@@ -69,7 +69,6 @@ type ElectronRendererAPI = Partial<
 
 type MasterStateGlobal = typeof globalThis & {
     __DEVELOPMENT__?: boolean;
-    __FFV_MOCKS__?: Record<string, unknown>;
 };
 
 type ModuleCache = Record<string, { exports?: unknown } | undefined>;
@@ -112,6 +111,8 @@ type ErrorDetails = {
 // Avoid importing Node core modules in the renderer; acquire lazily only when available (tests/CJS).
 let __lazyNodePath: NodePathLike | null = null;
 let __lazyModule: typeof NodeModule | null = null;
+let masterStateManagerModuleMocksForTests: Record<string, unknown> | null =
+    null;
 
 const STATE_MANAGER_CACHE_SUFFIXES = [
     "/utils/state/core/statemanager.js",
@@ -1042,6 +1043,12 @@ export async function initializeFitFileViewerState() {
     await masterStateManager.initialize();
 }
 
+export function setMasterStateManagerModuleMocksForTests(
+    mocks: Record<string, unknown> | null
+): void {
+    masterStateManagerModuleMocksForTests = mocks;
+}
+
 function getAppLifecycleModule() {
     const mocked = getModuleExportsFromCache(
         "/utils/app/lifecycle/appactions.js"
@@ -1129,24 +1136,25 @@ function getEnableTabButtonsModule(): {
     return { initializeTabButtonState };
 }
 
-// Obtain the global Node module cache directly; compatible with require.cache mutations in tests
-// Generic helper to read a mocked module's exports from require.cache by path suffix
-// Supports Windows paths by normalizing to forward slashes and lowercasing
+// Generic helper to read a mocked module's exports by path suffix. Tests may
+// install module-local overrides; otherwise this falls back to the CJS cache.
 function getModuleExportsFromCache(
     pathSuffixLower: string
 ): DynamicModule | null {
     try {
-        // Prefer an explicit global mocks registry if tests provided one
-        const globalMocks = getMasterGlobal().__FFV_MOCKS__;
-        if (globalMocks && typeof globalMocks === "object") {
-            const key = Object.keys(globalMocks).find((p) =>
-                String(p)
-                    .replaceAll("\\", "/")
-                    .toLowerCase()
-                    .endsWith(pathSuffixLower)
+        if (masterStateManagerModuleMocksForTests) {
+            const key = Object.keys(masterStateManagerModuleMocksForTests).find(
+                (p) =>
+                    String(p)
+                        .replaceAll("\\", "/")
+                        .toLowerCase()
+                        .endsWith(pathSuffixLower)
             );
-            if (key && isDynamicModule(globalMocks[key])) {
-                return globalMocks[key];
+            if (
+                key &&
+                isDynamicModule(masterStateManagerModuleMocksForTests[key])
+            ) {
+                return masterStateManagerModuleMocksForTests[key];
             }
         }
         const req = getCjsRequire();

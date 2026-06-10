@@ -41,6 +41,7 @@ import {
     initializeFitFileViewerState,
     MasterStateManager,
     masterStateManager,
+    setMasterStateManagerModuleMocksForTests,
 } from "../../../../../electron-app/utils/state/core/masterStateManager.js";
 
 type StateOptions = {
@@ -150,7 +151,6 @@ type HarnessOptions = {
 
 type MasterStateGlobal = typeof globalThis & {
     __DEVELOPMENT__?: boolean;
-    __FFV_MOCKS__?: Record<string, unknown>;
     electronAPI?: {
         __devMode?: boolean;
         getAppVersion?: () => Promise<string>;
@@ -160,7 +160,6 @@ type MasterStateGlobal = typeof globalThis & {
 
 const globalKeys = [
     "__DEVELOPMENT__",
-    "__FFV_MOCKS__",
     "addEventListener",
     "clearInterval",
     "dispatchEvent",
@@ -922,11 +921,12 @@ async function withMasterStateHarness(
         openFileDialog: vi.fn<() => void>(),
     };
 
+    setMasterStateManagerModuleMocksForTests(moduleMocks);
+
     try {
         defineGlobalValue(descriptors, "document", documentMock);
         defineGlobalValue(descriptors, "window", windowMock);
         defineGlobalValue(descriptors, "location", location);
-        defineGlobalValue(descriptors, "__FFV_MOCKS__", moduleMocks);
         defineGlobalValue(descriptors, "electronAPI", electronAPI);
         defineGlobalValue(
             descriptors,
@@ -990,6 +990,7 @@ async function withMasterStateHarness(
             windowListeners,
         });
     } finally {
+        setMasterStateManagerModuleMocksForTests(null);
         restoreGlobals(descriptors);
         vi.restoreAllMocks();
     }

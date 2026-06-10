@@ -358,6 +358,8 @@ const directRendererApiExposureGlobalPattern =
     /\b(?:window|globalThis|scope)\.(?:APP_INFO|createExportGPXButton|__resetRendererStateInitializationForTests)\b|Reflect\.set\(\s*scope\s*,\s*["'](?:APP_INFO|createExportGPXButton|__resetRendererStateInitializationForTests)["']/u;
 const directStateManagerApiGlobalPattern =
     /\b(?:window|globalThis|globalState|getMasterGlobal\(\))\.__STATE_MANAGER_API__\b|Object\.defineProperty\(\s*globalState\s*,\s*["']__STATE_MANAGER_API__["']/u;
+const directMasterStateManagerMockGlobalPattern =
+    /\b(?:window|globalThis|getMasterGlobal\(\))\.__FFV_MOCKS__\b|["']__FFV_MOCKS__["']/u;
 const directChartControlsStateGlobalPattern =
     /\b(?:window|globalThis|integrationGlobal)\.chartControlsState\b|["']chartControlsState["']/u;
 const directStateIntegrationTimerGlobalPattern =
@@ -1579,7 +1581,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(83);
+        expect.assertions(84);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -2040,6 +2042,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directMasterStateManagerMockGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directMasterStateManagerMockGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directSingletonStateSubscriptionsGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directSingletonStateSubscriptionsGlobalPattern.test(
@@ -2245,6 +2254,7 @@ describe("architecture boundaries", () => {
         expect(directResourceManagerGlobalLookups).toStrictEqual([]);
         expect(directRendererApiExposureGlobalLookups).toStrictEqual([]);
         expect(directStateManagerApiGlobalLookups).toStrictEqual([]);
+        expect(directMasterStateManagerMockGlobalLookups).toStrictEqual([]);
         expect(directSingletonStateSubscriptionsGlobalLookups).toStrictEqual(
             []
         );
