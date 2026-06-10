@@ -1,17 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+    registerRendererElectronApiCandidate as registerElectronApiCandidate,
+    resetRendererElectronApiCandidate as resetElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
 type UpdateElectronApi = {
     installUpdate: () => void;
 };
-
-type UpdateWindow = Window & { electronAPI?: UpdateElectronApi };
 
 const installUpdateApi = (): UpdateElectronApi => {
     const api = {
         installUpdate: vi.fn<() => void>(),
     };
 
-    (window as UpdateWindow).electronAPI = api;
+    registerElectronApiCandidate(api);
 
     return api;
 };
@@ -48,13 +51,14 @@ describe("showUpdateNotification", () => {
     beforeEach(() => {
         document.body.replaceChildren();
         vi.useFakeTimers();
-        delete (window as UpdateWindow).electronAPI;
+        resetElectronApiCandidate();
     });
 
     afterEach(() => {
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
         vi.restoreAllMocks();
+        resetElectronApiCandidate();
     });
 
     it("returns early when notification element missing", async () => {
