@@ -288,7 +288,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
     });
 
     it("registers session permission handlers once per session object", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const handlers = new Map<string, AppEventHandler>();
         const mockSession: MockSession = {
@@ -329,8 +329,38 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         webContentsCreatedHandler({}, contents);
         webContentsCreatedHandler({}, contents);
 
+        const requestHandler =
+            mockSession.setPermissionRequestHandler.mock.calls[0]?.[0];
+        const checkHandler =
+            mockSession.setPermissionCheckHandler.mock.calls[0]?.[0];
+        assertFunction<PermissionRequestHandler>(
+            requestHandler,
+            "permission request handler"
+        );
+        assertFunction<CheckPermissionHandler>(
+            checkHandler,
+            "permission check handler"
+        );
+
+        let geolocationDecision: boolean | null = null;
+        requestHandler({}, "geolocation", (allowed) => {
+            geolocationDecision = allowed;
+        });
+
         expect(mockSession.setPermissionRequestHandler).toHaveBeenCalledOnce();
         expect(mockSession.setPermissionCheckHandler).toHaveBeenCalledOnce();
+        expect({
+            geolocationDecision,
+            trustedCheckAllowed: checkHandler(
+                {},
+                "geolocation",
+                "file:///app/index.html",
+                { requestingUrl: "file:///app/index.html" }
+            ),
+        }).toStrictEqual({
+            geolocationDecision: true,
+            trustedCheckAllowed: true,
+        });
     });
 
     it("replaces app listeners (no EventEmitter listener leaks)", async () => {
