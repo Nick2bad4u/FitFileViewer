@@ -2,6 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SetupListenersOptions } from "../../../../electron-app/utils/app/lifecycle/listeners.js";
 import { resetMenuIpcListenerStateForTests } from "../../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
+import {
+    registerRendererElectronApiCandidate as registerElectronApiCandidate,
+    resetRendererElectronApiCandidate as resetElectronApiCandidate,
+} from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { setActiveFitRawData } from "../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../electron-app/utils/state/core/stateManager.js";
 import { setLoadedFitFiles } from "../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
@@ -118,7 +122,6 @@ type TestElectronAPI = {
 };
 
 type TestGlobals = typeof globalThis & {
-    electronAPI?: TestElectronAPI;
     globalData?: unknown;
     loadedFitFiles?: unknown[];
 };
@@ -277,7 +280,8 @@ describe(setupListeners, () => {
         };
 
         resetMenuIpcListenerStateForTests();
-        defineGlobalValue("electronAPI", electronAPI);
+        resetElectronApiCandidate();
+        registerElectronApiCandidate(electronAPI);
         setActiveFitRawData({ recordMesgs: [] }, { source: "test" });
         csvExportMocks.serializeTableToCSV.mockReset();
         csvExportMocks.serializeTableToCSV.mockReturnValue("header\nvalue");
@@ -303,7 +307,7 @@ describe(setupListeners, () => {
         vi.restoreAllMocks();
         vi.useRealTimers();
         document.body.replaceChildren();
-        globalAny.electronAPI = undefined;
+        resetElectronApiCandidate();
         delete globalAny.globalData;
         delete globalAny.loadedFitFiles;
     });
