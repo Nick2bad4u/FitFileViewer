@@ -61,6 +61,7 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/utils/files/import/loadSingleOverlayFile.test.ts",
     "tests/unit/utils/files/import/openFitFileFromPath.test.ts",
     "tests/unit/utils/files/import/openFileSelector.test.ts",
+    "electron-app/utils/files/import/handleOpenFile.test.ts",
     "tests/unit/utils/app/lifecycle/menuIpcListeners.test.ts",
     "tests/unit/utils/app/events.test.ts",
     "tests/unit/utils/exportUtils.chartExport.test.ts",
