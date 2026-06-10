@@ -26,7 +26,6 @@ import { renderGPSTrackChart } from "../rendering/renderGPSTrackChart.js";
 import { renderLapZoneCharts } from "../rendering/renderLapZoneCharts.js";
 import { renderPerformanceAnalysisCharts } from "../rendering/renderPerformanceAnalysisCharts.js";
 import { renderTimeInZoneCharts } from "../rendering/renderTimeInZoneCharts.js";
-import { getGlobalPanelVisibilityManager } from "./renderChartRuntimeHelpers.js";
 
 interface ComputedStateManagerAccess {
     define?(key: string, compute: () => unknown): unknown;
@@ -141,18 +140,12 @@ export function getSetupZoneDataSafe(): SetupZoneDataFunction {
     return setupZoneData;
 }
 
-/** Returns the UI state manager when the app or tests expose one. */
+/**
+ * Returns no optional panel manager; chart controls visibility is state-driven
+ * through ChartStateManager subscriptions.
+ */
 export function getUIStateManagerMaybe(): UIStateManagerAccess | null {
-    try {
-        const ui = getGlobalPanelVisibilityManager();
-        if (ui) {
-            return ui as UIStateManagerAccess;
-        }
-
-        return null;
-    } catch {
-        return null;
-    }
+    return null;
 }
 
 /** Returns the render-notification policy. */

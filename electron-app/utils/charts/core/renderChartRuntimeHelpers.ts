@@ -25,7 +25,6 @@ interface RenderChartRuntimeGlobal {
     ChartZoom?: unknown;
     addHoverEffectsToExistingCharts?: unknown;
     getThemeConfig?: unknown;
-    uiStateManager?: unknown;
     window?: unknown;
 }
 
@@ -41,10 +40,6 @@ interface ChartActionsBridge {
         renderTime?: number
     ) => void;
     startRendering?: () => void;
-}
-
-interface PanelVisibilityBridge {
-    updatePanelVisibility(panelId: string, visible: boolean): void;
 }
 
 let loadingStateSuppressed = false;
@@ -63,15 +58,6 @@ function hasChartAction(value: unknown): value is ChartActionsBridge {
         (typeof value["clearCharts"] === "function" ||
             typeof value["completeRendering"] === "function" ||
             typeof value["startRendering"] === "function")
-    );
-}
-
-function hasUpdatePanelVisibility(
-    value: unknown
-): value is PanelVisibilityBridge {
-    return (
-        isObjectRecord(value) &&
-        typeof value["updatePanelVisibility"] === "function"
     );
 }
 
@@ -167,17 +153,6 @@ export function getDebouncedChartStateManager(): DebouncedChartStateManager | nu
 export function getGlobalChartActions(): ChartActionsBridge | null {
     const chartActions = getRegisteredChartActions();
     return hasChartAction(chartActions) ? chartActions : null;
-}
-
-/**
- * Returns a globally exposed UI state manager when it can update panel
- * visibility.
- */
-export function getGlobalPanelVisibilityManager(): PanelVisibilityBridge | null {
-    const chartGlobal = getMutableChartRuntimeGlobal();
-    return hasUpdatePanelVisibility(chartGlobal.uiStateManager)
-        ? chartGlobal.uiStateManager
-        : null;
 }
 
 /**

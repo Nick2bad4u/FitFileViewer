@@ -257,12 +257,6 @@ function injectChartJSMocks() {
                 updateChartSettings: vi.fn<MockFn>(),
             },
         },
-        uiStateManager: {
-            uiStateManager: {
-                updatePanelVisibility: vi.fn<MockFn>(),
-            },
-        },
-
         // Theme management
         theme: {
             getThemeConfig: vi.fn<MockFn>().mockReturnValue({
@@ -344,7 +338,6 @@ function injectChartJSMocks() {
     resetChartListenerStateForTests();
     vi.stubGlobal("JSZip", vi.fn<MockFn>());
     globalThis.showNotification = mocks.showNotification.showNotification;
-    globalThis.uiStateManager = mocks.uiStateManager.uiStateManager;
 
     vi.doMock(
         import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js"),
@@ -1104,7 +1097,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         });
 
         it("should toggle controls visibility", async () => {
-            expect.assertions(3);
+            expect.assertions(2);
             const { chartActions } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
@@ -1115,9 +1108,6 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
                 false,
                 expect.any(Object)
             );
-            expect(
-                mocks.uiStateManager.uiStateManager.updatePanelVisibility
-            ).toHaveBeenCalledWith("chart-controls", false);
             const controlsVisibleCalls =
                 mocks.stateManager.setState.mock.calls.filter(
                     ([path, value]) =>
