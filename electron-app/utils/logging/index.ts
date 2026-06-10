@@ -3,6 +3,7 @@ import {
     type ErrorInfo,
 } from "./getErrorInfo.js";
 import {
+    getObjectKeysThrowAllowedForTests as getObjectKeysThrowAllowedForTestsImpl,
     logWithLevel as logWithLevelImpl,
     type LogLevel,
 } from "./logWithLevel.js";
@@ -33,10 +34,15 @@ export function logWithLevel(
     logWithLevelImpl(level, message, context);
 }
 
+export function getObjectKeysThrowAllowedForTests(): boolean {
+    return getObjectKeysThrowAllowedForTestsImpl();
+}
+
 /**
  * Namespace default keeps compatibility with existing default imports.
  */
 export default {
     getErrorInfo,
+    getObjectKeysThrowAllowedForTests,
     logWithLevel,
 };

@@ -12,7 +12,6 @@ describe("logWithLevel.strict", () => {
     afterEach(() => {
         vi.useRealTimers();
         vi.restoreAllMocks();
-        Reflect.deleteProperty(globalThis, "__vitest_object_keys_allow_throw");
     });
 
     it("logs at all levels with and without payload", async () => {
@@ -21,7 +20,8 @@ describe("logWithLevel.strict", () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date("2026-01-02T03:04:05.006Z"));
 
-        const { logWithLevel } = await fresh();
+        const { getObjectKeysThrowAllowedForTests, logWithLevel } =
+            await fresh();
         const clog = vi.spyOn(console, "log").mockImplementation(() => {});
         const cinfo = vi.spyOn(console, "info").mockImplementation(() => {});
         const cwarn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -46,13 +46,14 @@ describe("logWithLevel.strict", () => {
             unknown
         >); // array -> not treated as object
         expect(cerr).toHaveBeenCalledWith("2026-01-02T03:04:05.006Z [FFV] e");
-        expect(globalThis.__vitest_object_keys_allow_throw).toBe(false);
+        expect(getObjectKeysThrowAllowedForTests()).toBe(false);
     });
 
     it("falls back to minimal line when Object.keys throws", async () => {
         expect.assertions(3);
 
-        const { logWithLevel } = await fresh();
+        const { getObjectKeysThrowAllowedForTests, logWithLevel } =
+            await fresh();
         const baseLog = vi.spyOn(console, "log").mockImplementation(() => {});
         const ctx: Record<string, unknown> = { a: 1 };
         // Make Object.keys throw only for our specific context object
@@ -68,7 +69,7 @@ describe("logWithLevel.strict", () => {
         expect(baseLog).toHaveBeenCalledWith(
             "[FFV][logWithLevel] Logging failure"
         );
-        expect(globalThis.__vitest_object_keys_allow_throw).toBe(false);
+        expect(getObjectKeysThrowAllowedForTests()).toBe(false);
 
         keysSpy.mockRestore();
     });

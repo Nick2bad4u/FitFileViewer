@@ -380,6 +380,8 @@ const directTabStateManagerGlobalPattern =
     /\b(?:window|globalThis)\.tabStateManager\b|\(\s*globalThis\s+as\s+TabStateManagerGlobal\s*\)\.tabStateManager\b/u;
 const directTabVitestEnvironmentGlobalPattern =
     /\b__vitest_effective_(?:document|stateManager)__\b/u;
+const directVitestObjectKeysThrowGlobalPattern =
+    /\b__vitest_object_keys_allow_throw\b/u;
 const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
@@ -1582,7 +1584,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(85);
+        expect.assertions(86);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -2099,6 +2101,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directVitestObjectKeysThrowGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestObjectKeysThrowGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directChartTabIntegrationGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directChartTabIntegrationGlobalPattern.test(
@@ -2272,6 +2281,7 @@ describe("architecture boundaries", () => {
         expect(directTabButtonHelperGlobalLookups).toStrictEqual([]);
         expect(directTabStateManagerGlobalLookups).toStrictEqual([]);
         expect(directTabVitestEnvironmentGlobalLookups).toStrictEqual([]);
+        expect(directVitestObjectKeysThrowGlobalLookups).toStrictEqual([]);
         expect(directChartTabIntegrationGlobalLookups).toStrictEqual([]);
         expect(directChartStateManagerGlobalLookups).toStrictEqual([]);
         expect(directChartActionsGlobalLookups).toStrictEqual([]);

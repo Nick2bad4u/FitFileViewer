@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { logWithLevel } from "../../../electron-app/utils/logging/index.js";
+import {
+    getObjectKeysThrowAllowedForTests,
+    logWithLevel,
+} from "../../../electron-app/utils/logging/index.js";
 
 const fixedTimestamp = "2023-01-01T12:00:00.000Z";
 const expectedBase = `${fixedTimestamp} [FFV]`;
@@ -50,11 +53,6 @@ describe(logWithLevel, () => {
     afterEach(() => {
         vi.useRealTimers();
         vi.restoreAllMocks();
-        delete (
-            globalThis as typeof globalThis & {
-                __vitest_object_keys_allow_throw?: boolean;
-            }
-        ).__vitest_object_keys_allow_throw;
     });
 
     it("routes each supported level to the matching console method", () => {
@@ -163,11 +161,7 @@ describe(logWithLevel, () => {
             },
         ]);
         expect({
-            objectKeysAllowThrow: (
-                globalThis as typeof globalThis & {
-                    __vitest_object_keys_allow_throw?: boolean;
-                }
-            ).__vitest_object_keys_allow_throw,
+            objectKeysAllowThrow: getObjectKeysThrowAllowedForTests(),
         }).toStrictEqual({
             objectKeysAllowThrow: false,
         });

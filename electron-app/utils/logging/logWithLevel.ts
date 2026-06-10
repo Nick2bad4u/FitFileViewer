@@ -3,9 +3,7 @@
  */
 export type LogLevel = "error" | "info" | "log" | "warn";
 
-type LoggingGlobal = typeof globalThis & {
-    __vitest_object_keys_allow_throw?: boolean;
-};
+let objectKeysThrowAllowed = false;
 
 /**
  * Logs a message with a timestamped FitFileViewer prefix and optional shallow
@@ -104,9 +102,9 @@ function createLogPayload(
 }
 
 function setObjectKeysThrowFlag(value: boolean): void {
-    try {
-        (globalThis as LoggingGlobal).__vitest_object_keys_allow_throw = value;
-    } catch {
-        // Ignore test-hook cleanup failures.
-    }
+    objectKeysThrowAllowed = value;
+}
+
+export function getObjectKeysThrowAllowedForTests(): boolean {
+    return objectKeysThrowAllowed;
 }
