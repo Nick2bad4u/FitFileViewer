@@ -98,7 +98,7 @@ describe("renderer development debug globals", () => {
         const logRenderer = vi.fn();
         process.env.NODE_ENV = "development";
 
-        const debugTools = createRendererDevelopmentDebugTools({
+        const view = createRendererDevelopmentDebugTools({
             cleanup: vi.fn(),
             ensureCoreModules: async () => ({
                 AppActions: { setInitialized: vi.fn() },
@@ -115,10 +115,10 @@ describe("renderer development debug globals", () => {
         });
         await vi.dynamicImportSettled();
 
-        const rendererDebug = debugTools?.rendererDebug as {
+        const rendererDebug = view?.rendererDebug as {
             handleOpenFile: (...args: unknown[]) => Promise<unknown>;
         };
-        const rendererDev = debugTools?.rendererDev as {
+        const rendererDev = view?.rendererDev as {
             APP_INFO: typeof APP_INFO;
             AppActions?: unknown;
             chartDebug: boolean;

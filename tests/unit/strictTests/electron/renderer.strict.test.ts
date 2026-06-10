@@ -291,9 +291,9 @@ describe("renderer.js strict behavior", () => {
 
         const { spies } = await importRendererFresh();
         // Ensure global error handlers are attached via full initialization
-        const dev = await getRendererDevToolsForStrictTest();
-        expect(dev.reinitialize).toBeTypeOf("function");
-        await dev.reinitialize();
+        const view = await getRendererDevToolsForStrictTest();
+        expect(view.reinitialize).toBeTypeOf("function");
+        await view.reinitialize();
         // Give any queued work a chance to attach listeners
         await Promise.resolve();
         vi.runOnlyPendingTimers();
@@ -324,28 +324,28 @@ describe("renderer.js strict behavior", () => {
         expect.assertions(4);
 
         await importRendererFresh();
-        const dev = await getRendererDevToolsForStrictTest();
+        const view = await getRendererDevToolsForStrictTest();
         expect({
             APP_INFO: {
-                ...dev.APP_INFO,
-                getRuntimeInfo: typeof dev.APP_INFO.getRuntimeInfo,
+                ...view.APP_INFO,
+                getRuntimeInfo: typeof view.APP_INFO.getRuntimeInfo,
             },
             PerformanceMonitor: {
-                end: typeof dev.PerformanceMonitor.end,
-                getMetrics: typeof dev.PerformanceMonitor.getMetrics,
-                metricsIsMap: dev.PerformanceMonitor.metrics instanceof Map,
-                start: typeof dev.PerformanceMonitor.start,
+                end: typeof view.PerformanceMonitor.end,
+                getMetrics: typeof view.PerformanceMonitor.getMetrics,
+                metricsIsMap: view.PerformanceMonitor.metrics instanceof Map,
+                start: typeof view.PerformanceMonitor.start,
             },
             helpers: {
-                cleanup: typeof dev.cleanup,
-                debugState: typeof dev.debugState,
-                getPerformanceMetrics: typeof dev.getPerformanceMetrics,
-                getState: typeof dev.getState,
-                getStateHistory: typeof dev.getStateHistory,
-                reinitialize: typeof dev.reinitialize,
-                validateDOM: typeof dev.validateDOM,
+                cleanup: typeof view.cleanup,
+                debugState: typeof view.debugState,
+                getPerformanceMetrics: typeof view.getPerformanceMetrics,
+                getState: typeof view.getState,
+                getStateHistory: typeof view.getStateHistory,
+                reinitialize: typeof view.reinitialize,
+                validateDOM: typeof view.validateDOM,
             },
-            hasAppState: Object.hasOwn(dev, "appState"),
+            hasAppState: Object.hasOwn(view, "appState"),
         }).toStrictEqual({
             APP_INFO: {
                 author: "FIT File Viewer Team",
@@ -374,9 +374,9 @@ describe("renderer.js strict behavior", () => {
             },
             hasAppState: false,
         });
-        dev.PerformanceMonitor.start("strict_test_operation");
-        const duration = dev.PerformanceMonitor.end("strict_test_operation");
-        const metrics = dev.getPerformanceMetrics();
+        view.PerformanceMonitor.start("strict_test_operation");
+        const duration = view.PerformanceMonitor.end("strict_test_operation");
+        const metrics = view.getPerformanceMetrics();
         expect(metrics.strict_test_operation).toBe(duration);
         expect(metrics.strict_test_operation).toBeTypeOf("number");
         expect(
