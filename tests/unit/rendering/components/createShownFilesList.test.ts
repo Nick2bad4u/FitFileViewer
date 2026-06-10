@@ -22,6 +22,10 @@ import {
     registerOverlayMapPolyline,
     resetMapPolylineRegistryForTests,
 } from "../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js";
+import {
+    clearOverlayTooltipTimeout,
+    getOverlayTooltipTimeout,
+} from "../../../../electron-app/utils/rendering/components/shownFilesListTooltipState.js";
 
 type MockComputedStyle = { color: string };
 type MockGetComputedStyle = ReturnType<
@@ -189,7 +193,7 @@ function getOverlayState(): {
 } {
     return {
         highlightedOverlayIdx: mapDrawLapsMocks.highlightedOverlayIndex,
-        overlayTooltipTimeout: (global.window as any)._overlayTooltipTimeout,
+        overlayTooltipTimeout: getOverlayTooltipTimeout(),
     };
 }
 
@@ -380,7 +384,7 @@ describe("createShownFilesList", () => {
         // Mock all window properties
         const windowMock = global.window as any;
         loadedFitFilesFixture.files = [];
-        windowMock._overlayTooltipTimeout = null;
+        clearOverlayTooltipTimeout();
         Object.assign(windowMock, {
             renderMap: vi.fn<() => void>(),
         });
@@ -407,6 +411,7 @@ describe("createShownFilesList", () => {
         resetRegisteredLeafletMapInstanceForTests();
         resetRegisteredMapMeasureControlForTests();
         resetMapPolylineRegistryForTests();
+        clearOverlayTooltipTimeout();
         clearLeafletRuntimeForTests();
     });
 

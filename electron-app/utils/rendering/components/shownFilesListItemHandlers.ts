@@ -7,6 +7,10 @@ import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInst
 import { getOverlayMapPolyline } from "../../maps/state/mapPolylineRegistryState.js";
 import { removeLoadedFitFileAt } from "../../state/domain/loadedFitFilesState.js";
 import { updateShownFilesList } from "./shownFilesListUpdater.js";
+import {
+    clearOverlayTooltipTimeout,
+    setOverlayTooltipTimeout,
+} from "./shownFilesListTooltipState.js";
 
 type OverlayListItem = HTMLLIElement & {
     _overlayListItemCleanup?: (() => void) | null;
@@ -51,7 +55,6 @@ type OverlayPolyline = {
 };
 
 type OverlayGlobal = typeof globalThis & {
-    _overlayTooltipTimeout?: null | ReturnType<typeof setTimeout>;
     renderMap?: () => void;
 };
 
@@ -87,14 +90,6 @@ function scheduleTooltipCleanup(): ReturnType<typeof setTimeout> {
     return setTimeout(() => {
         removeOverlayFilenameTooltips();
     }, 10);
-}
-
-function clearOverlayTooltipTimeout(): void {
-    const overlayGlobal = getOverlayGlobal();
-    if (overlayGlobal._overlayTooltipTimeout) {
-        clearTimeout(overlayGlobal._overlayTooltipTimeout);
-        overlayGlobal._overlayTooltipTimeout = null;
-    }
 }
 
 function getOverlayPolyline(overlayIndex: number): OverlayPolyline | undefined {
@@ -324,7 +319,6 @@ export function attachOverlayListItemHandlers({
     listItem.addEventListener(
         "mouseenter",
         (event) => {
-            const overlayGlobal = getOverlayGlobal();
             setHighlightedOverlayIndex(overlayIndex);
             removeBtn.style.opacity = "1";
 
@@ -332,16 +326,18 @@ export function attachOverlayListItemHandlers({
             removeOverlayFilenameTooltips();
             listItem._tooltipRemover?.();
 
-            overlayGlobal._overlayTooltipTimeout = setTimeout(() => {
-                showOverlayTooltip({
-                    fullPath,
-                    initialEvent: event,
-                    isDark,
-                    li: listItem,
-                    overlayIndex,
-                    showWarning,
-                });
-            }, 350);
+            setOverlayTooltipTimeout(
+                setTimeout(() => {
+                    showOverlayTooltip({
+                        fullPath,
+                        initialEvent: event,
+                        isDark,
+                        li: listItem,
+                        overlayIndex,
+                        showWarning,
+                    });
+                }, 350)
+            );
         },
         { signal }
     );

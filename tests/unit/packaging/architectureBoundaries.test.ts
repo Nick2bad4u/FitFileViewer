@@ -270,6 +270,8 @@ const directShownFilesListGlobalPattern =
     /\b(?:window|globalThis|windowExt|overlayGlobal|getShownFilesGlobal\(\))\.updateShownFilesList\s*=/u;
 const directOverlayFilesLoaderGlobalPattern =
     /\b(?:window|globalThis|appGlobal|getFileSelectorGlobal\(\))\.loadOverlayFiles\b/u;
+const directOverlayTooltipTimeoutGlobalPattern =
+    /\b(?:window|globalThis|windowExt|overlayGlobal|getOverlayGlobal\(\)|getShownFilesGlobal\(\))\._overlayTooltipTimeout\b/u;
 const directChartUpdaterGlobalPattern =
     /\b(?:window|globalThis|windowExt|chartGlobal|globalWindow|lifecycleGlobal|getChartResizeGlobal\(\))\.(?:ChartUpdater|chartUpdater)\b/u;
 const directMapMarkerCountGlobalPattern =
@@ -1549,7 +1551,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(80);
+        expect.assertions(81);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1726,6 +1728,13 @@ describe("architecture boundaries", () => {
         const directOverlayFilesLoaderGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directOverlayFilesLoaderGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const directOverlayTooltipTimeoutGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directOverlayTooltipTimeoutGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -2150,6 +2159,7 @@ describe("architecture boundaries", () => {
         expect(directOverlayHighlightGlobalLookups).toStrictEqual([]);
         expect(directShownFilesListGlobalLookups).toStrictEqual([]);
         expect(directOverlayFilesLoaderGlobalLookups).toStrictEqual([]);
+        expect(directOverlayTooltipTimeoutGlobalLookups).toStrictEqual([]);
         expect(directChartUpdaterGlobalLookups).toStrictEqual([]);
         expect(directMapMarkerCountGlobalLookups).toStrictEqual([]);
         expect(directMapActionTimerGlobalLookups).toStrictEqual([]);

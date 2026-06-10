@@ -11,9 +11,9 @@ import {
     setShownFilesListUpdater,
     updateShownFilesList,
 } from "./shownFilesListUpdater.js";
+import { clearOverlayTooltipTimeout } from "./shownFilesListTooltipState.js";
 
 type ShownFilesGlobal = typeof globalThis & {
-    _overlayTooltipTimeout?: null | ReturnType<typeof setTimeout>;
     renderMap?: () => void;
 };
 
@@ -220,10 +220,7 @@ export function createShownFilesList(): HTMLElement {
     container._dispose = () => {
         lifecycle.abort();
 
-        if (overlayGlobal._overlayTooltipTimeout) {
-            clearTimeout(overlayGlobal._overlayTooltipTimeout);
-            overlayGlobal._overlayTooltipTimeout = null;
-        }
+        clearOverlayTooltipTimeout();
 
         for (const item of getOverlayItems(container)) {
             item._overlayListItemCleanup?.();
