@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
 type FileSelectorElectronAPI = {
     openOverlayDialog?: () => Promise<string[]>;
     readFile?: (filePath: string) => Promise<ArrayBuffer>;
@@ -15,10 +20,6 @@ type NativeFileFacade = {
 type OverlayFilesLoader = (
     files: Array<File | NativeFileFacade>
 ) => Promise<void> | void;
-
-type FileSelectorTestGlobal = typeof globalThis & {
-    electronAPI?: FileSelectorElectronAPI;
-};
 
 const mocks = vi.hoisted(() => ({
     loadingHide: vi.fn<() => void>(),
@@ -52,10 +53,8 @@ vi.mock(
 const { openFileSelector } =
     await import("../../../../../electron-app/utils/files/import/openFileSelector.js");
 
-const appGlobal = globalThis as FileSelectorTestGlobal;
-
 function cleanupGlobals() {
-    delete appGlobal.electronAPI;
+    resetRendererElectronApiCandidate();
     document.body.replaceChildren();
     vi.restoreAllMocks();
     vi.clearAllMocks();
@@ -85,7 +84,10 @@ describe(openFileSelector, () => {
         );
 
         try {
-            appGlobal.electronAPI = { openOverlayDialog, readFile };
+            registerRendererElectronApiCandidate({
+                openOverlayDialog,
+                readFile,
+            } satisfies FileSelectorElectronAPI);
 
             await openFileSelector();
 
@@ -115,7 +117,9 @@ describe(openFileSelector, () => {
         });
 
         try {
-            appGlobal.electronAPI = { openOverlayDialog };
+            registerRendererElectronApiCandidate({
+                openOverlayDialog,
+            } satisfies FileSelectorElectronAPI);
 
             await openFileSelector();
 

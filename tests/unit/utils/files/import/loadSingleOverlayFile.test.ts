@@ -1,15 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { loadSingleOverlayFile } from "../../../../../electron-app/utils/files/import/loadSingleOverlayFile.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import type { FitDecodeResult } from "../../../../../electron-app/shared/fit.js";
-
-type OverlayTestGlobal = typeof globalThis & {
-    electronAPI?: {
-        decodeFitFile?: (
-            arrayBuffer: ArrayBuffer
-        ) => Promise<FitDecodeResult | undefined>;
-    };
-};
 
 function makeFitFile(
     bytes = new Uint8Array([
@@ -28,11 +24,11 @@ function setDecodeFitFile(
         arrayBuffer: ArrayBuffer
     ) => Promise<FitDecodeResult | undefined>
 ): void {
-    (globalThis as OverlayTestGlobal).electronAPI = { decodeFitFile };
+    registerRendererElectronApiCandidate({ decodeFitFile });
 }
 
 function clearElectronApi(): void {
-    delete (globalThis as OverlayTestGlobal).electronAPI;
+    resetRendererElectronApiCandidate();
 }
 
 describe(loadSingleOverlayFile, () => {
