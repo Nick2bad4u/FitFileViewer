@@ -13,6 +13,10 @@ vi.mock(
 import { getLifecycleListenerCleanup } from "../../../electron-app/utils/app/lifecycle/lifecycleListenerCleanupRegistry.js";
 import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 import type { SetupListenersOptions } from "../../../electron-app/utils/app/lifecycle/listeners.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type AddRecentFile = (filePath: string) => Promise<void>;
 type ApproveRecentFile = (filePath: string) => Promise<boolean>;
@@ -80,13 +84,12 @@ function createHarness(): Harness {
 async function withListenersHarness(
     runTest: (harness: Harness) => Promise<void>
 ): Promise<void> {
-    const originalElectronAPI = globalThis.electronAPI;
     const harness = createHarness();
 
     renderDecodedFitDataMock.mockReset();
     renderDecodedFitDataMock.mockResolvedValue(undefined);
     document.body.append(harness.openFileBtn);
-    globalThis.electronAPI = {
+    registerRendererElectronApiCandidate({
         addRecentFile: harness.addRecentFile,
         approveRecentFile: harness.approveRecentFile,
         onMenuOpenFile: harness.onMenuOpenFile,
@@ -94,7 +97,7 @@ async function withListenersHarness(
         parseFitFile: harness.parseFitFile,
         readFile: harness.readFile,
         recentFiles: harness.recentFiles,
-    } as typeof globalThis.electronAPI;
+    });
 
     setupListeners({
         handleOpenFile: harness.handleOpenFile,
@@ -116,7 +119,7 @@ async function withListenersHarness(
     } finally {
         harness.cleanup();
         harness.openFileBtn.remove();
-        globalThis.electronAPI = originalElectronAPI;
+        resetRendererElectronApiCandidate();
         vi.restoreAllMocks();
     }
 }

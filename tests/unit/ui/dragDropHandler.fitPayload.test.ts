@@ -2,6 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import { DragDropHandler } from "../../../electron-app/utils/ui/dragDropHandler.js";
 import type { FitDecodeResult } from "../../../electron-app/shared/fit";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const mocks = vi.hoisted(() => ({
     addEventListenerWithCleanup:
@@ -109,10 +113,9 @@ describe(DragDropHandler, () => {
             details: "invalid CRC",
             error: "FIT decode failed",
         });
-        const originalElectronAPI = globalThis.electronAPI;
-        globalThis.electronAPI = {
+        registerRendererElectronApiCandidate({
             decodeFitFile,
-        } as typeof globalThis.electronAPI;
+        });
 
         try {
             const handler = new DragDropHandler();
@@ -141,7 +144,7 @@ describe(DragDropHandler, () => {
             expect(mocks.setFileOpening).toHaveBeenCalledWith(true);
             expect(mocks.setFileOpening).toHaveBeenLastCalledWith(false);
         } finally {
-            globalThis.electronAPI = originalElectronAPI;
+            resetRendererElectronApiCandidate();
         }
     });
 });

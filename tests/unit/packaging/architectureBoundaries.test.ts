@@ -45,7 +45,9 @@ const fitFileImportElectronApiRegressionTests = [
     "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
     "tests/unit/files/import/loadSingleOverlayFile.fitPayload.test.ts",
     "tests/unit/files/import/openFitFileFromPath.test.ts",
+    "tests/unit/lifecycle/listeners.fitPayload.test.ts",
     "tests/unit/lifecycle/recentFilesContextMenu.fitPayload.test.ts",
+    "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
 ] as const;
 const testSourceRoots = ["tests/unit", "tests/playwright"] as const;
 
