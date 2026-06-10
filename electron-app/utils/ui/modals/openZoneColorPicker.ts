@@ -7,8 +7,6 @@ import {
     DEFAULT_HR_ZONE_COLORS,
     DEFAULT_POWER_ZONE_COLORS,
     getChartSpecificZoneColor,
-    removeChartSpecificZoneColor,
-    removeZoneColor,
     saveChartSpecificZoneColor,
     setChartColorScheme,
     type ZoneData,
@@ -18,6 +16,10 @@ import {
     getPowerZones,
 } from "../../data/zones/zoneDataState.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
+import {
+    clearZoneColorData,
+    updateInlineZoneColorSelectors,
+} from "../controls/createInlineZoneColorSelector.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { createModalFocusTrap } from "./modalFocusTrap.js";
@@ -35,9 +37,7 @@ type ChartInstance = {
 };
 
 type ZoneColorPickerGlobal = typeof globalThis & {
-    clearZoneColorData?: (field: string, zoneCount: number) => void;
     resetAllSettings?: () => void;
-    updateInlineZoneColorSelectors?: (root: ParentNode) => void;
 };
 
 const zoneColorGlobal = globalThis as ZoneColorPickerGlobal;
@@ -447,14 +447,7 @@ export function openZoneColorPicker(field: string): void {
                 updateZoneColorPreview(field, zoneIndex, newColor);
 
                 // Update the inline zone color selector UIs to show the scheme changed to custom
-                if (
-                    typeof zoneColorGlobal.updateInlineZoneColorSelectors ===
-                    "function"
-                ) {
-                    zoneColorGlobal.updateInlineZoneColorSelectors(
-                        document.body
-                    );
-                }
+                updateInlineZoneColorSelectors(document.body);
             });
 
             // Click handler for color preview
@@ -519,14 +512,7 @@ export function openZoneColorPicker(field: string): void {
                 }
 
                 // Update the inline zone color selector UIs to show the scheme changed to custom
-                if (
-                    typeof zoneColorGlobal.updateInlineZoneColorSelectors ===
-                    "function"
-                ) {
-                    zoneColorGlobal.updateInlineZoneColorSelectors(
-                        document.body
-                    );
-                }
+                updateInlineZoneColorSelectors(document.body);
             });
 
             addEventListenerWithCleanup(resetButton, "mouseenter", () => {
@@ -600,19 +586,7 @@ export function openZoneColorPicker(field: string): void {
                 // Also set for the current field in case it's not in the above list
                 setChartColorScheme(field, "custom");
 
-                // Clear all saved zone color data for this field
-                if (zoneColorGlobal.clearZoneColorData) {
-                    zoneColorGlobal.clearZoneColorData(field, zoneData.length);
-                } else {
-                    // Fallback: remove per-zone color keys
-                    const fallbackZoneType = field.includes("hr")
-                        ? "hr"
-                        : "power";
-                    for (let i = 0; i < zoneData.length; i++) {
-                        removeChartSpecificZoneColor(field, i);
-                        removeZoneColor(fallbackZoneType, i);
-                    }
-                }
+                clearZoneColorData(field, zoneData.length);
 
                 // Enable all chart fields (set all toggles to visible)
                 const settingsWrapper = getChartSettingsWrapper(document);
@@ -633,14 +607,7 @@ export function openZoneColorPicker(field: string): void {
                 }
 
                 // Update UI and chart to reflect reset state
-                if (
-                    typeof zoneColorGlobal.updateInlineZoneColorSelectors ===
-                    "function"
-                ) {
-                    zoneColorGlobal.updateInlineZoneColorSelectors(
-                        document.body
-                    );
-                }
+                updateInlineZoneColorSelectors(document.body);
 
                 // Trigger chart re-render through state management instead of direct call
                 if (chartStateManager) {

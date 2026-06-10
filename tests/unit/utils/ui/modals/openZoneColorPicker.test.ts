@@ -30,6 +30,10 @@ const setChartColorSchemeMock =
     vi.fn<(field: string, scheme: string) => void>();
 const showNotificationMock =
     vi.fn<(message: string, level: "error" | "success" | "warning") => void>();
+const clearZoneColorDataMock =
+    vi.fn<(field: string, zoneCount: number) => void>();
+const updateInlineZoneColorSelectorsMock =
+    vi.fn<(container: HTMLElement) => void>();
 
 const chartStateManagerRef: {
     current: { debouncedRender: typeof debouncedRenderMock } | null;
@@ -83,6 +87,13 @@ vi.mock(
     import("../../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
         showNotification: showNotificationMock,
+    })
+);
+vi.mock(
+    import("../../../../../electron-app/utils/ui/controls/createInlineZoneColorSelector.js"),
+    () => ({
+        clearZoneColorData: clearZoneColorDataMock,
+        updateInlineZoneColorSelectors: updateInlineZoneColorSelectorsMock,
     })
 );
 
@@ -192,6 +203,8 @@ describe("openZoneColorPicker", () => {
         saveChartSpecificZoneColorMock.mockClear();
         setChartColorSchemeMock.mockClear();
         showNotificationMock.mockClear();
+        clearZoneColorDataMock.mockClear();
+        updateInlineZoneColorSelectorsMock.mockClear();
 
         applyZoneColorsMock.mockImplementation(
             (zones: Array<Record<string, unknown>>) =>
@@ -243,7 +256,7 @@ describe("openZoneColorPicker", () => {
     });
 
     it("renders modal, updates colors, and applies changes for heart rate zones", async () => {
-        expect.assertions(21);
+        expect.assertions(23);
 
         const settingsWrapper = document.createElement("div");
         settingsWrapper.id = "chartjs-settings-wrapper";
@@ -353,7 +366,10 @@ describe("openZoneColorPicker", () => {
         expect(renderedColorPreview.style.background.toLowerCase()).toBe(
             "rgb(18, 52, 86)"
         );
-        expect(inlineSelectorsMock).toHaveBeenCalledWith(document.body);
+        expect(inlineSelectorsMock).not.toHaveBeenCalled();
+        expect(updateInlineZoneColorSelectorsMock).toHaveBeenCalledWith(
+            document.body
+        );
 
         const resetAllButton =
             renderedOverlay.querySelector<HTMLButtonElement>(".reset-all-btn");
@@ -382,11 +398,12 @@ describe("openZoneColorPicker", () => {
             ["power_lap_zone_individual", "custom"],
             ["hr_zone", "custom"],
         ]);
-        expect(removeChartSpecificZoneColorMock).toHaveBeenCalledWith(
+        expect(clearZoneColorDataMock).toHaveBeenCalledWith("hr_zone", 2);
+        expect(removeChartSpecificZoneColorMock).not.toHaveBeenCalledWith(
             "hr_zone",
             0
         );
-        expect(removeZoneColorMock).toHaveBeenCalledWith("hr", 0);
+        expect(removeZoneColorMock).not.toHaveBeenCalledWith("hr", 0);
         expect(checkbox).toHaveProperty("checked", true);
         expect(resetAllSettingsMock).toHaveBeenCalledWith();
         expect(debouncedRenderMock).toHaveBeenCalledWith("Zone colors reset");
