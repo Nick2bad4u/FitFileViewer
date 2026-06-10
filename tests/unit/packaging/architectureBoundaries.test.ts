@@ -265,6 +265,8 @@ const directMapThemeToggleGlobalPattern =
     /\b(?:window|globalThis|appGlobal)\.(?:__ffvMapThemeToggleListenersController|__ffvMapThemeToggleListenersInstalled|__ffvMapThemeToggleUpdate|updateMapTheme)\b/u;
 const directMapDocumentListenerGlobalPattern =
     /\b(?:window|globalThis|windowExt|appGlobal|getMapDocumentGlobal\(\))\.(?:__ffvLayoutLayersControl|__ffvMapDocumentListenersController|__ffvMapDocumentListenersInstalled|__ffvMapTypeButton|__ffvMapZoomDraggingRef|__ffvRenderMapAbortController)\b/u;
+const directMapPluginControlGlobalPattern =
+    /\b(?:window|globalThis|windowExt|globals|getMapPluginControlGlobal\(\))\.(?:_drawControl|_drawnItems|_miniMapControl)\b/u;
 const directFileBrowserLibraryCacheGlobalPattern =
     /\b(?:window|globalThis|appGlobal|getFitBrowserGlobal\(\))\.__ffvLibraryCache\b/u;
 const directFullscreenHandlerGlobalPattern =
@@ -1416,7 +1418,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(67);
+        expect.assertions(68);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1670,6 +1672,13 @@ describe("architecture boundaries", () => {
         const directMapDocumentListenerGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directMapDocumentListenerGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const directMapPluginControlGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directMapPluginControlGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -1933,6 +1942,7 @@ describe("architecture boundaries", () => {
         expect(directAddFitOverlayButtonGlobalLookups).toStrictEqual([]);
         expect(directMapThemeToggleGlobalLookups).toStrictEqual([]);
         expect(directMapDocumentListenerGlobalLookups).toStrictEqual([]);
+        expect(directMapPluginControlGlobalLookups).toStrictEqual([]);
         expect(directFileBrowserLibraryCacheGlobalLookups).toStrictEqual([]);
         expect(directFullscreenHandlerGlobalLookups).toStrictEqual([]);
         expect(directMenuForwardRegistryGlobalLookups).toStrictEqual([]);

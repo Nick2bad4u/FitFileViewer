@@ -9,6 +9,7 @@ import {
     resetRegisteredLeafletMapInstanceForTests,
     setRegisteredLeafletMapInstance,
 } from "../../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js";
+import { resetRegisteredMapPluginControlsForTests } from "../../../../../electron-app/utils/maps/state/mapPluginControlState.js";
 import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import {
     __resetStateManagerForTests,
@@ -314,6 +315,7 @@ describe("renderMap core", () => {
         vi.restoreAllMocks();
         clearLeafletRuntimeForTests();
         resetRegisteredLeafletMapInstanceForTests();
+        resetRegisteredMapPluginControlsForTests();
         document.body.replaceChildren();
 
         // Ensure a container exists by default

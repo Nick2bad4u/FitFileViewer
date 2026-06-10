@@ -44,20 +44,16 @@ import {
     setRegisteredLeafletMapInstance,
 } from "../../../electron-app/utils/maps/state/mapLeafletInstanceState.js";
 import {
+    resetRegisteredMapPluginControlsForTests,
+    setRegisteredMapMiniMapControl,
+} from "../../../electron-app/utils/maps/state/mapPluginControlState.js";
+import {
     getVisibleTabContent,
     hideAllTabContent,
     initializeTabVisibilityState,
     showTabContent,
     updateTabVisibility,
 } from "../../../electron-app/utils/ui/tabs/updateTabVisibility.js";
-
-type GlobalWithMap = typeof globalThis & {
-    _miniMapControl?: {
-        _miniMap?: {
-            invalidateSize: ReturnType<typeof vi.fn<InvalidateSize>>;
-        } | null;
-    } | null;
-};
 
 const contentIds = [
     "content_data",
@@ -163,14 +159,14 @@ describe(updateTabVisibility, () => {
         vi.clearAllMocks();
         appendContentSections();
         resetRegisteredLeafletMapInstanceForTests();
+        resetRegisteredMapPluginControlsForTests();
         warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         mockGetState.mockReturnValue("summary");
     });
 
     afterEach(() => {
-        const globals = globalThis as GlobalWithMap;
         resetRegisteredLeafletMapInstanceForTests();
-        delete globals._miniMapControl;
+        resetRegisteredMapPluginControlsForTests();
         warnSpy.mockRestore();
         document.body.replaceChildren();
         vi.useRealTimers();
@@ -338,14 +334,14 @@ describe(updateTabVisibility, () => {
         expect.assertions(3);
 
         vi.useFakeTimers();
-        const globals = globalThis as GlobalWithMap;
         const mapInstance = {
             invalidateSize: vi.fn<InvalidateSize>(),
         };
+        const miniMapInvalidateSize = vi.fn<InvalidateSize>();
         setRegisteredLeafletMapInstance(mapInstance);
-        globals._miniMapControl = {
-            _miniMap: { invalidateSize: vi.fn<InvalidateSize>() },
-        };
+        setRegisteredMapMiniMapControl({
+            _miniMap: { invalidateSize: miniMapInvalidateSize },
+        });
 
         updateTabVisibility("content_map");
         vi.runAllTimers();
@@ -358,8 +354,6 @@ describe(updateTabVisibility, () => {
                 invalidateSize: ReturnType<typeof vi.fn<InvalidateSize>>;
             }>()?.invalidateSize
         ).toHaveBeenCalledWith(EXPECTED_INVALIDATE_SIZE_OPTIONS);
-        expect(
-            globals._miniMapControl._miniMap?.invalidateSize
-        ).toHaveBeenCalledWith();
+        expect(miniMapInvalidateSize).toHaveBeenCalledWith();
     });
 });

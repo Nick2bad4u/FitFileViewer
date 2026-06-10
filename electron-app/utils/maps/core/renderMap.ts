@@ -35,6 +35,15 @@ import {
     setRegisteredMapMeasureControl,
 } from "../state/mapMeasureControlState.js";
 import {
+    getRegisteredMapDrawnItems,
+    getRegisteredMapMiniMapControl,
+    removeRegisteredMapDrawControl,
+    removeRegisteredMapMiniMapControl,
+    setRegisteredMapDrawControl,
+    setRegisteredMapDrawnItems,
+    setRegisteredMapMiniMapControl,
+} from "../state/mapPluginControlState.js";
+import {
     getOverlayMapPolylines,
     resetOverlayMapPolylines,
 } from "../state/mapPolylineRegistryState.js";
@@ -160,13 +169,6 @@ type OverlayPolyline = Leaflet.Polyline & {
     options: Leaflet.PolylineOptions & {
         color?: string;
     };
-};
-
-type WindowExtensions = typeof globalThis & {
-    [key: string]: unknown;
-    _drawControl?: DisposableControl | null;
-    _drawnItems?: DrawnItemsLayerGroup | null;
-    _miniMapControl?: DisposableControl | null;
 };
 
 type ShownFilesListElement = Element & {
@@ -343,7 +345,6 @@ function restoreDrawnLayer({
  */
 export function renderMap(): void {
     // Reset overlay polylines to prevent stale references and memory leaks
-    const windowExt = globalThis as WindowExtensions;
     const LeafletLib = resolveLeafletRuntime(isLeafletRuntime);
     if (!LeafletLib) {
         console.warn(
@@ -409,9 +410,11 @@ export function renderMap(): void {
 
     // Save drawn items before destroying map
     let savedDrawnLayers: DrawnLayerSnapshot[] = [];
-    if (windowExt._drawnItems && windowExt._drawnItems.getLayers) {
+    const registeredDrawnItems =
+        getRegisteredMapDrawnItems<DrawnItemsLayerGroup>();
+    if (registeredDrawnItems?.getLayers) {
         try {
-            const drawnLayers = windowExt._drawnItems
+            const drawnLayers = registeredDrawnItems
                 .getLayers()
                 .filter(isDrawnLayer);
             savedDrawnLayers = drawnLayers
@@ -465,31 +468,19 @@ export function renderMap(): void {
     }
 
     try {
-        if (
-            windowExt._drawControl &&
-            typeof windowExt._drawControl.remove === "function"
-        ) {
-            windowExt._drawControl.remove();
-        }
+        removeRegisteredMapDrawControl();
     } catch {
         /* ignore */
     }
-    windowExt._drawControl = null;
 
     // Clear old drawnItems reference now that we've snapshot the geoJSON.
-    windowExt._drawnItems = null;
+    setRegisteredMapDrawnItems(null);
 
     try {
-        if (
-            windowExt._miniMapControl &&
-            typeof windowExt._miniMapControl.remove === "function"
-        ) {
-            windowExt._miniMapControl.remove();
-        }
+        removeRegisteredMapMiniMapControl();
     } catch {
         /* ignore */
     }
-    windowExt._miniMapControl = null;
 
     // Fix: Remove any previous Leaflet map instance to avoid grey background bug
     removeRegisteredLeafletMapInstance();
@@ -1256,7 +1247,7 @@ export function renderMap(): void {
 
     const miniMap = addLeafletMiniMapPluginControl(L, map, setCleanupTimeout);
     if (miniMap) {
-        windowExt._miniMapControl = miniMap;
+        setRegisteredMapMiniMapControl(miniMap);
     }
 
     const measureControl = addLeafletMeasurePluginControl(L, map);
@@ -1276,7 +1267,7 @@ export function renderMap(): void {
     if (drawPluginSetup) {
         const { drawnItems } = drawPluginSetup;
         const drawControl = drawPluginSetup.drawControl as DisposableControl;
-        windowExt._drawControl = drawControl;
+        setRegisteredMapDrawControl(drawControl);
 
         // UX fix: Leaflet.draw's tooltip says "Click last point to finish line", but in practice
         // the click target (vertex marker) is tiny. If the user clicks *near* the last point, we
@@ -1392,7 +1383,7 @@ export function renderMap(): void {
         }
 
         // Store reference to drawn items for persistence
-        windowExt._drawnItems = drawnItems;
+        setRegisteredMapDrawnItems(drawnItems);
 
         // Restore previously drawn items
         if (savedDrawnLayers && savedDrawnLayers.length > 0) {
@@ -1548,7 +1539,8 @@ export function renderMap(): void {
         }
 
         try {
-            const miniMapInstance = windowExt._miniMapControl?._miniMap;
+            const miniMapInstance =
+                getRegisteredMapMiniMapControl<DisposableControl>()?._miniMap;
             if (
                 miniMapInstance &&
                 typeof miniMapInstance.invalidateSize === "function"

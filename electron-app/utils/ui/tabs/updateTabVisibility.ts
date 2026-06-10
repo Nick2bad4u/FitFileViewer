@@ -4,6 +4,7 @@
 
 import * as __StateMgr from "../../state/core/stateManager.js";
 import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInstanceState.js";
+import { getRegisteredMapMiniMapControl } from "../../maps/state/mapPluginControlState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import {
     buildIdVariants,
@@ -36,9 +37,6 @@ type StateManagerCandidate = Partial<StateManagerAccess>;
 type EffectiveGlobals = typeof globalThis & {
     __vitest_effective_document__?: Document;
     __vitest_effective_stateManager__?: unknown;
-    _miniMapControl?: {
-        _miniMap?: LeafletMiniMap | null;
-    } | null;
 };
 
 type LeafletMiniMap = {
@@ -354,7 +352,6 @@ export function updateTabVisibility(
  * Force Leaflet to recompute map layout after tab visibility changes.
  */
 function scheduleMapReflowRefresh(): void {
-    const globals = getEffectiveGlobals();
     const map = getRegisteredLeafletMapInstance<LeafletMapInstance>();
 
     if (!map || typeof map.invalidateSize !== "function") {
@@ -378,7 +375,9 @@ function scheduleMapReflowRefresh(): void {
         }
 
         try {
-            const miniMap = globals._miniMapControl?._miniMap;
+            const miniMap = getRegisteredMapMiniMapControl<{
+                _miniMap?: LeafletMiniMap | null;
+            }>()?._miniMap;
             if (miniMap && typeof miniMap.invalidateSize === "function") {
                 miniMap.invalidateSize();
             }
