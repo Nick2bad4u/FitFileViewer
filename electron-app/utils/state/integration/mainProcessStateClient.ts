@@ -5,6 +5,7 @@ import type {
     MainStateSetValue,
 } from "../../../shared/ipc.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { isDevelopmentEnvironment } from "../../runtime/processEnvironment.js";
 
 type Operation = MainStateIpcValue;
@@ -28,22 +29,27 @@ type MainStateElectronAPI = Pick<
     | "setMainState"
 >;
 
-type MainStateWindow = {
-    electronAPI?: MainStateElectronAPI;
-};
-
-type MainStateGlobal = typeof globalThis & {
-    electronAPI?: MainStateElectronAPI;
-    window?: MainStateWindow;
-};
-
-function getMainStateElectronAPI(): MainStateElectronAPI | undefined {
-    const stateGlobal = globalThis as MainStateGlobal;
-    if (stateGlobal.window === undefined) {
-        return undefined;
+function isMainStateElectronAPI(
+    value: unknown
+): value is MainStateElectronAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
     }
 
-    return stateGlobal.electronAPI ?? stateGlobal.window.electronAPI;
+    const api = value as Readonly<Record<string, unknown>>;
+    return [
+        "getErrors",
+        "getMainState",
+        "getMetrics",
+        "getOperation",
+        "getOperations",
+        "listenToMainState",
+        "setMainState",
+    ].every((key) => typeof api[key] === "function");
+}
+
+function getMainStateElectronAPI(): MainStateElectronAPI | null {
+    return getRendererElectronApi(isMainStateElectronAPI);
 }
 
 function isMainStateRecord(
