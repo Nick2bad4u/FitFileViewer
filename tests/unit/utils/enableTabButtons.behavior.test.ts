@@ -195,11 +195,50 @@ describe("enableTabButtons behavior", () => {
                 tabButtonsCurrentlyEnabled?: boolean;
             }
         ).tabButtonsCurrentlyEnabled;
-        if ((global as any).window.tabButtonObserver) {
-            delete (global as any).window.tabButtonObserver;
-        }
+        Reflect.deleteProperty(globalThis, "areTabButtonsEnabled");
+        Reflect.deleteProperty(globalThis, "debugTabButtons");
+        Reflect.deleteProperty(globalThis, "debugTabState");
+        Reflect.deleteProperty(globalThis, "forceEnableTabButtons");
+        Reflect.deleteProperty(globalThis, "forceFixTabButtons");
+        Reflect.deleteProperty(globalThis, "setTabButtonsEnabled");
+        Reflect.deleteProperty(globalThis, "tabButtonObserver");
+        Reflect.deleteProperty(globalThis, "testTabButtonClicks");
 
         vi.resetAllMocks();
+    });
+
+    it("does not publish tab-button helpers globally", () => {
+        expect.assertions(1);
+
+        expect({
+            areTabButtonsEnabled: Reflect.has(
+                globalThis,
+                "areTabButtonsEnabled"
+            ),
+            debugTabButtons: Reflect.has(globalThis, "debugTabButtons"),
+            debugTabState: Reflect.has(globalThis, "debugTabState"),
+            forceEnableTabButtons: Reflect.has(
+                globalThis,
+                "forceEnableTabButtons"
+            ),
+            forceFixTabButtons: Reflect.has(
+                globalThis,
+                "forceFixTabButtons"
+            ),
+            setTabButtonsEnabled: Reflect.has(
+                globalThis,
+                "setTabButtonsEnabled"
+            ),
+            testTabButtonClicks: Reflect.has(globalThis, "testTabButtonClicks"),
+        }).toStrictEqual({
+            areTabButtonsEnabled: false,
+            debugTabButtons: false,
+            debugTabState: false,
+            forceEnableTabButtons: false,
+            forceFixTabButtons: false,
+            setTabButtonsEnabled: false,
+            testTabButtonClicks: false,
+        });
     });
 
     describe("setTabButtonsEnabled function", () => {
@@ -507,19 +546,10 @@ describe("enableTabButtons behavior", () => {
         });
 
         it("should set up MutationObserver when window is available", () => {
-            expect.assertions(4);
+            expect.assertions(3);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             const mockObserver = createMutationObserverMock();
-
-            // Ensure clean state - the key is to ensure no existing observer
-            delete (global as any).window.tabButtonObserver;
-            delete (global as any).tabButtonObserver;
-
-            // Verify clean state
-            expect(
-                Object.hasOwn((global as any).window, "tabButtonObserver")
-            ).toStrictEqual(false);
 
             // Mock both global and window MutationObserver (implementation checks both)
             const originalMutationObserver = global.MutationObserver;
@@ -554,28 +584,35 @@ describe("enableTabButtons behavior", () => {
                     attributes: true,
                 }
             );
-            expect((globalThis as any).tabButtonObserver).toBe(mockObserver);
+            expect(Reflect.has(globalThis, "tabButtonObserver")).toBe(false);
         });
 
         it("should not create duplicate MutationObserver", () => {
             expect.assertions(2);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
-            // Set up existing observer
-            const existingObserver = { existing: true };
-            (globalThis as any).tabButtonObserver = existingObserver;
-
             const mockObserver = createMutationObserverMock();
-            vi.spyOn(global.window, "MutationObserver").mockReturnValue(
-                mockObserver
-            );
+            const originalMutationObserver = global.MutationObserver;
+            const originalWindowMutationObserver =
+                global.window.MutationObserver;
+            const mutationObserverSpy = vi
+                .fn<(callback: MutationCallback) => MutationObserver>()
+                .mockImplementation(function MutationObserverMock(callback) {
+                    void callback;
+                    return mockObserver as MutationObserver;
+                });
+
+            global.MutationObserver = mutationObserverSpy as any;
+            global.window.MutationObserver = mutationObserverSpy as any;
 
             initializeTabButtonState();
+            initializeTabButtonState();
 
-            expect(global.window.MutationObserver).not.toHaveBeenCalled();
-            expect((globalThis as any).tabButtonObserver).toBe(
-                existingObserver
-            );
+            global.MutationObserver = originalMutationObserver;
+            global.window.MutationObserver = originalWindowMutationObserver;
+
+            expect(mutationObserverSpy).toHaveBeenCalledOnce();
+            expect(Reflect.has(globalThis, "tabButtonObserver")).toBe(false);
         });
     });
 
@@ -1030,10 +1067,6 @@ describe("enableTabButtons behavior", () => {
         it("should handle MutationObserver callback for unauthorized changes", () => {
             expect.assertions(4);
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
-
-            // Ensure clean state first
-            delete (global as any).window.tabButtonObserver;
-            delete (global as any).tabButtonObserver;
 
             let mutationCallback:
                 | ((mutations: readonly Partial<MutationRecord>[]) => void)

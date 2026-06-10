@@ -347,6 +347,10 @@ const directFileAccessPolicyStateGlobalPattern =
     /\b(?:window|globalThis|g)\.__ffvFileAccessPolicyState\b|["']__ffvFileAccessPolicyState["']/u;
 const directTabButtonsEnabledGlobalPattern =
     /\b(?:window|globalThis|getTabButtonsGlobal\(\)|global\.window)\.tabButtonsCurrentlyEnabled\b|["']tabButtonsCurrentlyEnabled["']/u;
+const directTabButtonObserverGlobalPattern =
+    /\b(?:window|globalThis|getTabButtonsGlobal\(\)|global\.window)\.tabButtonObserver\b|["']tabButtonObserver["']/u;
+const directTabButtonHelperGlobalPattern =
+    /\b(?:window|globalThis|getTabButtonsGlobal\(\)|global\.window)\.(?:areTabButtonsEnabled|debugTabButtons|debugTabState|forceEnableTabButtons|forceFixTabButtons|setTabButtonsEnabled|testTabButtonClicks)\b/u;
 const directTabStateManagerGlobalPattern =
     /\b(?:window|globalThis)\.tabStateManager\b|\(\s*globalThis\s+as\s+TabStateManagerGlobal\s*\)\.tabStateManager\b/u;
 const directChartTabIntegrationGlobalPattern =
@@ -1526,7 +1530,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(74);
+        expect.assertions(76);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1973,6 +1977,20 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directTabButtonObserverGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directTabButtonObserverGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const directTabButtonHelperGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directTabButtonHelperGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directTabStateManagerGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directTabStateManagerGlobalPattern.test(
@@ -2125,6 +2143,8 @@ describe("architecture boundaries", () => {
         );
         expect(directFileAccessPolicyStateGlobalLookups).toStrictEqual([]);
         expect(directTabButtonsEnabledGlobalLookups).toStrictEqual([]);
+        expect(directTabButtonObserverGlobalLookups).toStrictEqual([]);
+        expect(directTabButtonHelperGlobalLookups).toStrictEqual([]);
         expect(directTabStateManagerGlobalLookups).toStrictEqual([]);
         expect(directChartTabIntegrationGlobalLookups).toStrictEqual([]);
         expect(directChartStateManagerGlobalLookups).toStrictEqual([]);

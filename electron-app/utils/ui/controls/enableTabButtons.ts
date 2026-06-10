@@ -31,14 +31,7 @@ export function testTabButtonClicks(): void {
 }
 
 type TabButtonsGlobal = typeof globalThis & {
-    areTabButtonsEnabled?: typeof areTabButtonsEnabled;
-    debugTabButtons?: typeof debugTabButtons;
-    debugTabState?: typeof debugTabState;
-    forceEnableTabButtons?: typeof forceEnableTabButtons;
-    forceFixTabButtons?: typeof forceFixTabButtons;
-    setTabButtonsEnabled?: typeof setTabButtonsEnabled;
-    tabButtonObserver?: TabButtonObserver;
-    testTabButtonClicks?: typeof testTabButtonClicks;
+    MutationObserver?: MutationObserverConstructorLike;
 };
 
 type TabButtonObserver = {
@@ -62,10 +55,12 @@ type TabButtonElement = HTMLElement & {
 const TAB_DISABLED_CLASS = "tab-disabled";
 const finalStateLogTimers = new Set<ReturnType<typeof setTimeout>>();
 let tabButtonsCurrentlyEnabled: boolean | undefined;
+let tabButtonObserver: TabButtonObserver | undefined;
 
 /** TEST-ONLY: reset module state between suites. */
 export function __resetTabButtonStateForTests(): void {
     tabButtonsCurrentlyEnabled = undefined;
+    tabButtonObserver = undefined;
     clearFinalStateLogTimers();
 }
 
@@ -232,10 +227,9 @@ function ensureObserverInstalled(): void {
         return;
     }
 
-    const globals = getTabButtonsGlobal();
     const observerConstructor = resolveMutationObserverConstructor();
 
-    if (!globals.tabButtonObserver && observerConstructor !== undefined) {
+    if (!tabButtonObserver && observerConstructor !== undefined) {
         const callback: MutationCallback = (mutations) => {
             for (const mutation of mutations) {
                 handleMutation(mutation);
@@ -258,10 +252,10 @@ function ensureObserverInstalled(): void {
                 /* Ignore errors */
             }
         }
-        globals.tabButtonObserver = observer;
+        tabButtonObserver = observer;
     }
 
-    const observer = globals.tabButtonObserver;
+    const observer = tabButtonObserver;
     if (observer) {
         for (const button of safeQueryTabButtons()) {
             try {
@@ -482,25 +476,3 @@ function isMutationObserverConstructorLike(
 function getTabButtonsGlobal(): TabButtonsGlobal {
     return globalThis;
 }
-
-function exposeGlobalFunctions(): void {
-    try {
-        if (globalThis.window !== undefined) {
-            const globals = getTabButtonsGlobal();
-            globals.setTabButtonsEnabled = setTabButtonsEnabled;
-            globals.areTabButtonsEnabled = areTabButtonsEnabled;
-            globals.debugTabButtons = debugTabButtons;
-            globals.forceEnableTabButtons = forceEnableTabButtons;
-            globals.testTabButtonClicks = testTabButtonClicks;
-            globals.debugTabState = debugTabState;
-            globals.forceFixTabButtons = forceFixTabButtons;
-            console.log(
-                "[TabButtons] Functions exposed globally for compatibility"
-            );
-        }
-    } catch {
-        // Ignore if window is not available or assignment fails.
-    }
-}
-
-exposeGlobalFunctions();
