@@ -20,7 +20,6 @@ type TestGlobal = typeof globalThis & {
     performanceMonitor?: {
         recordError: ReturnType<typeof vi.fn>;
     };
-    showNotification?: ReturnType<typeof vi.fn>;
 };
 
 const globalRef = globalThis as TestGlobal;
@@ -29,7 +28,6 @@ describe("error handling utilities", () => {
     // eslint-disable-next-line vitest/no-hooks -- Shared global cleanup keeps integration mocks isolated.
     afterEach(() => {
         Reflect.deleteProperty(globalRef, "performanceMonitor");
-        Reflect.deleteProperty(globalRef, "showNotification");
         vi.restoreAllMocks();
     });
 
@@ -102,7 +100,7 @@ describe("error handling utilities", () => {
             ).toStrictEqual(context);
         });
 
-        it("routes notifications and isolates notification failures", () => {
+        it("routes explicit notifications and isolates notification failures", () => {
             expect.assertions(3);
 
             const notificationType: NotificationType = "error";
@@ -113,14 +111,10 @@ describe("error handling utilities", () => {
                 .spyOn(console, "warn")
                 .mockReturnValue(undefined);
             vi.spyOn(console, "error").mockReturnValue(undefined);
-            const showNotification = vi.fn<
+            const notifyUser = vi.fn<
                 (message: string, type: NotificationType) => void
             >(() => {
                 throw notificationError;
-            });
-            Object.defineProperty(globalRef, "showNotification", {
-                configurable: true,
-                value: showNotification,
             });
 
             const handler = createErrorHandler({
@@ -128,10 +122,11 @@ describe("error handling utilities", () => {
                 fallback: null,
                 notificationType,
                 notify: true,
+                notifyUser,
             });
 
             expect(handler(new Error("Notify user"))).toBeNull();
-            expect(showNotification).toHaveBeenCalledWith(
+            expect(notifyUser).toHaveBeenCalledWith(
                 "Notify user",
                 notificationType
             );

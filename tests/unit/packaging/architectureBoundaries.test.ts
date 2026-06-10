@@ -481,7 +481,7 @@ const directActiveFitFileNameGlobalPattern =
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directShowNotificationGlobalLookupPattern =
-    /\b(?:window|globalThis|chartGlobal|runtimeGlobal|zoneColorGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
+    /\b(?:window|globalThis|chartGlobal|globalRef|runtimeGlobal|zoneColorGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
 const directRendererDevGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.__renderer_dev\b|["']__renderer_dev["']/u;
 const rendererDevelopmentDebugGlobalPattern =
@@ -1302,6 +1302,19 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps shared error handling on explicit notification callbacks", () => {
+        expect.assertions(2);
+
+        const errorHandlingSource = stripComments(
+            readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
+        );
+
+        expect(
+            directShowNotificationGlobalLookupPattern.test(errorHandlingSource)
+        ).toBe(false);
+        expect(errorHandlingSource).toContain("notifyUser");
     });
 
     it("keeps migrated renderer debug logging callers on typed state", () => {

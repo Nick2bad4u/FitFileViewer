@@ -43,6 +43,11 @@ export type ErrorContext = {
     path?: string;
 };
 
+export type ErrorNotificationSink = (
+    message: string,
+    type: NotificationType
+) => void;
+
 /**
  * Options that control whether handled errors throw, log, notify, or fallback.
  */
@@ -53,6 +58,7 @@ export type ErrorHandlingOptions<Fallback = null> = {
     logLevel?: LogLevel;
     notificationType?: NotificationType;
     notify?: boolean;
+    notifyUser?: ErrorNotificationSink;
 };
 
 /**
@@ -88,7 +94,6 @@ type GlobalWithErrorIntegrations = typeof globalThis & {
     performanceMonitor?: {
         recordError(error: Error, operation: string): void;
     };
-    showNotification?: (message: string, type: NotificationType) => void;
 };
 
 type MaybePromise<T> = Promise<T> | T;
@@ -196,6 +201,7 @@ export function createErrorHandler<Fallback = null>(
         logLevel: "error" as LogLevel,
         notificationType: "error" as NotificationType,
         notify: false,
+        notifyUser: undefined as ErrorNotificationSink | undefined,
         ...options,
     };
 
@@ -220,12 +226,9 @@ export function createErrorHandler<Fallback = null>(
             console[config.logLevel](`[ErrorHandler] ${message}`, err);
         }
 
-        if (config.notify && typeof globalRef.showNotification === "function") {
+        if (config.notify && typeof config.notifyUser === "function") {
             try {
-                globalRef.showNotification(
-                    err.message,
-                    config.notificationType
-                );
+                config.notifyUser(err.message, config.notificationType);
             } catch (notificationError) {
                 console.warn(
                     "[ErrorHandler] Failed to show notification:",
