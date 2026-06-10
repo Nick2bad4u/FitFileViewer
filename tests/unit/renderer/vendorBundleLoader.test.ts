@@ -5,6 +5,11 @@ import {
     type RendererVendorBundleEntry,
 } from "../../../electron-app/renderer/vendorBundleLoader.js";
 import {
+    isRendererVendorBundleEntry,
+    rendererVendorBundleEntries,
+    rendererVendorBundleFileByEntry,
+} from "../../../electron-app/renderer/vendorBundleManifest.js";
+import {
     markRendererVendorEntryLoaded,
     resetRendererVendorBundleState,
 } from "../../../electron-app/renderer/vendorGlobalsShared.js";
@@ -51,6 +56,23 @@ describe("renderer vendor bundle loader", () => {
         ).resolves.toBeUndefined();
     });
 
+    it("keeps the split vendor manifest explicit", () => {
+        expect.assertions(4);
+
+        expect(rendererVendorBundleEntries).toStrictEqual([
+            "chart-data",
+            "core",
+            "map",
+        ]);
+        expect(rendererVendorBundleFileByEntry).toStrictEqual({
+            "chart-data": "vendor-globals-chart-data.js",
+            core: "vendor-globals-core.js",
+            map: "vendor-globals-map.js",
+        });
+        expect(isRendererVendorBundleEntry("map")).toBe(true);
+        expect(isRendererVendorBundleEntry("summary")).toBe(false);
+    });
+
     it("injects one module script and resolves after the bundle marks itself loaded", async () => {
         expect.assertions(5);
 
@@ -86,6 +108,31 @@ describe("renderer vendor bundle loader", () => {
             const script = getVendorScript("map");
 
             script.dispatchEvent(new Event("load"));
+            await vi.advanceTimersByTimeAsync(20);
+
+            markEntryLoaded("map");
+            await vi.advanceTimersByTimeAsync(20);
+
+            await expect(vendorReadiness[0]).resolves.toBeUndefined();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("ignores malformed readiness events while waiting for the matching entry", async () => {
+        expect.assertions(1);
+
+        vi.useFakeTimers();
+        try {
+            const vendorReadiness = [ensureVendorBundle("map")];
+            const script = getVendorScript("map");
+
+            script.dispatchEvent(new Event("load"));
+            globalThis.dispatchEvent(
+                new CustomEvent("ffv-renderer-vendor-entry-loaded", {
+                    detail: { entryName: "summary" },
+                })
+            );
             await vi.advanceTimersByTimeAsync(20);
 
             markEntryLoaded("map");

@@ -1,17 +1,15 @@
 import {
     isRendererVendorEntryLoaded,
     rendererVendorEntryLoadedEventName,
-    type RendererVendorBundleEntry,
     type RendererVendorEntryLoadedEventDetail,
 } from "./vendorGlobalsShared.js";
+import {
+    isRendererVendorBundleEntry,
+    rendererVendorBundleFileByEntry,
+    type RendererVendorBundleEntry,
+} from "./vendorBundleManifest.js";
 
-export type { RendererVendorBundleEntry } from "./vendorGlobalsShared.js";
-
-const bundleFileByEntry: Record<RendererVendorBundleEntry, string> = {
-    "chart-data": "vendor-globals-chart-data.js",
-    core: "vendor-globals-core.js",
-    map: "vendor-globals-map.js",
-};
+export type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
 
 const inFlightLoads = new Map<RendererVendorBundleEntry, Promise<void>>();
 const vendorEntryMarkerPollMs = 20;
@@ -24,7 +22,10 @@ function isRendererVendorBundleLoaded(
 }
 
 function createVendorScriptUrl(entryName: RendererVendorBundleEntry): string {
-    return new URL(bundleFileByEntry[entryName], import.meta.url).href;
+    return new URL(
+        rendererVendorBundleFileByEntry[entryName],
+        import.meta.url
+    ).href;
 }
 
 function waitForRendererVendorEntry(
@@ -63,6 +64,7 @@ function waitForRendererVendorEntry(
             event: Event
         ): event is CustomEvent<RendererVendorEntryLoadedEventDetail> =>
             event instanceof CustomEvent &&
+            isRendererVendorBundleEntry(event.detail?.entryName) &&
             event.detail?.entryName === entryName;
         const onEntryLoaded = (event: Event): void => {
             if (!isMatchingEntryEvent(event)) {
@@ -152,7 +154,7 @@ export async function ensureRendererVendorBundle(
             cleanup();
             reject(
                 new Error(
-                    `Failed to load renderer vendor bundle: ${bundleFileByEntry[entryName]}`
+                    `Failed to load renderer vendor bundle: ${rendererVendorBundleFileByEntry[entryName]}`
                 )
             );
         };

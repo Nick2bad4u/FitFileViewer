@@ -1,4 +1,6 @@
-export type RendererVendorBundleEntry = "chart-data" | "core" | "map";
+import type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
+
+export type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
 
 export type RendererVendorBundleState = Readonly<{
     loaded: true;
