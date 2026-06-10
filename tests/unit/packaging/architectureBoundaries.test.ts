@@ -302,6 +302,8 @@ const directRendererApiExposureGlobalPattern =
     /\b(?:window|globalThis|scope)\.(?:APP_INFO|createExportGPXButton|__resetRendererStateInitializationForTests)\b|Reflect\.set\(\s*scope\s*,\s*["'](?:APP_INFO|createExportGPXButton|__resetRendererStateInitializationForTests)["']/u;
 const directStateManagerApiGlobalPattern =
     /\b(?:window|globalThis|globalState|getMasterGlobal\(\))\.__STATE_MANAGER_API__\b|Object\.defineProperty\(\s*globalState\s*,\s*["']__STATE_MANAGER_API__["']/u;
+const directChartControlsStateGlobalPattern =
+    /\b(?:window|globalThis|integrationGlobal)\.chartControlsState\b|["']chartControlsState["']/u;
 const directSingletonStateSubscriptionsGlobalPattern =
     /\b(?:window|globalThis|globalState)\.__ffvSingletonStateSubscriptions\b|["']__ffvSingletonStateSubscriptions["']/u;
 const directFileAccessPolicyStateGlobalPattern =
@@ -1391,7 +1393,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(65);
+        expect.assertions(66);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1457,6 +1459,13 @@ describe("architecture boundaries", () => {
         const legacyIsChartRenderedGlobalUsages = scannedFiles
             .filter((relativeFile) =>
                 legacyIsChartRenderedGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const directChartControlsStateGlobalUsages = scannedFiles
+            .filter((relativeFile) =>
+                directChartControlsStateGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -1867,6 +1876,7 @@ describe("architecture boundaries", () => {
         expect(legacyAppStateGlobalDataUsages).toStrictEqual([]);
         expect(legacyAppStateCompatibilityUsages).toStrictEqual([]);
         expect(legacyIsChartRenderedGlobalUsages).toStrictEqual([]);
+        expect(directChartControlsStateGlobalUsages).toStrictEqual([]);
         expect(legacyGlobalDataBridgeFunctionUsages).toStrictEqual([]);
         expect(directGlobalDataStateReads).toStrictEqual([]);
         expect(globalDataWriterQuarantineViolations).toStrictEqual([]);

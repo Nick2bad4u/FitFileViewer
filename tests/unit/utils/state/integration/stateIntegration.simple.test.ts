@@ -212,11 +212,12 @@ describe("stateIntegration.js - Essential Coverage", () => {
         resetTestEnvironment();
     });
 
-    it("migrates legacy chart controls to reactive state accessors", () => {
+    it("leaves retired legacy chart controls globals untouched", () => {
         expect.assertions(3);
         resetTestEnvironment();
 
         const testGlobal = globalThis as StateIntegrationTestGlobal;
+        setState("charts.controlsVisible", true);
         testGlobal.chartControlsState = { isVisible: true };
 
         stateIntegration.migrateChartControlsState();
@@ -229,16 +230,21 @@ describe("stateIntegration.js - Essential Coverage", () => {
             stateVisible: true,
         });
 
-        testGlobal.chartControlsState = testGlobal.chartControlsState ?? {};
-        testGlobal.chartControlsState.isVisible = false;
-        expect({
-            stateVisible: getState("charts.controlsVisible"),
-        }).toStrictEqual({ stateVisible: false });
-
-        setState("charts.controlsVisible", true);
+        testGlobal.chartControlsState = { isVisible: false };
         expect({
             legacyVisible: testGlobal.chartControlsState.isVisible,
-        }).toStrictEqual({ legacyVisible: true });
+            stateVisible: getState("charts.controlsVisible"),
+        }).toStrictEqual({
+            legacyVisible: false,
+            stateVisible: true,
+        });
+        expect(
+            Object.getOwnPropertyDescriptor(testGlobal, "chartControlsState")
+        ).toMatchObject({
+            configurable: true,
+            value: { isVisible: false },
+            writable: true,
+        });
 
         resetTestEnvironment();
     });

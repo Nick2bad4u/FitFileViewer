@@ -16,10 +16,6 @@ import { uiStateManager } from "../domain/uiStateManager.js";
 type MigrationFunction = () => Promise<unknown> | unknown;
 type Unsubscribe = () => void;
 
-type ChartControlsState = {
-    isVisible?: unknown;
-};
-
 type PerformanceMemory = {
     jsHeapSizeLimit: number;
     totalJSHeapSize: number;
@@ -45,7 +41,6 @@ type StateIntegrationGlobal = typeof globalThis & {
     __performanceMonitoringInterval?: ReturnType<typeof setInterval>;
     __persistenceTimeout?: ReturnType<typeof setTimeout>;
     __state_debug?: DebugUtilities;
-    chartControlsState?: ChartControlsState;
     electronAPI?: Partial<Pick<ElectronAPIWithDevFlags, "__devMode">>;
 };
 
@@ -120,7 +115,6 @@ export function initializeAppState(): void {
  */
 export function initializeCompleteStateSystem(): void {
     initializeAppState();
-    migrateChartControlsState();
     setupStatePersistence();
     setupStatePerformanceMonitoring();
 
@@ -128,36 +122,10 @@ export function initializeCompleteStateSystem(): void {
 }
 
 /**
- * Helper to convert existing chartControlsState to new system
+ * Deprecated compatibility shim retained for existing imports.
  */
 export function migrateChartControlsState(): void {
-    const integrationGlobal = getIntegrationGlobal();
-    if (!integrationGlobal.chartControlsState) {
-        return;
-    }
-
-    console.log("[StateMigration] Migrating chartControlsState...");
-
-    setState(
-        "charts.controlsVisible",
-        integrationGlobal.chartControlsState.isVisible,
-        {
-            source: "migration",
-        }
-    );
-
-    integrationGlobal.chartControlsState = {
-        get isVisible() {
-            return getState("charts.controlsVisible");
-        },
-        set isVisible(value: unknown) {
-            setState("charts.controlsVisible", value, {
-                source: "chartControlsState",
-            });
-        },
-    };
-
-    console.log("[StateMigration] chartControlsState migrated");
+    // State now flows directly through charts.controlsVisible.
 }
 
 /**

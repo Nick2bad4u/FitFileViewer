@@ -345,8 +345,8 @@ describe("stateIntegration comprehensive coverage", () => {
     });
 
     describe("integration functions", () => {
-        it("should migrate chartControlsState when available (smoke)", async () => {
-            expect.assertions(5);
+        it("should leave retired chartControlsState compatibility globals untouched", async () => {
+            expect.assertions(4);
 
             const { migrateChartControlsState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -359,35 +359,12 @@ describe("stateIntegration comprehensive coverage", () => {
 
             migrateChartControlsState();
 
-            expect(consoleSpy).toHaveBeenCalledWith(
-                "[StateMigration] Migrating chartControlsState..."
-            );
-            expect(consoleSpy).toHaveBeenCalledWith(
-                "[StateMigration] chartControlsState migrated"
-            );
-
-            expect(mockStateManager.setState).toHaveBeenCalledWith(
-                "charts.controlsVisible",
-                true,
-                {
-                    source: "migration",
-                }
-            );
-
-            // Test getter/setter functionality
-            mockStateManager.getState.mockReturnValue(false);
-            expect({
-                chartControlsVisible: globalThis.chartControlsState.isVisible,
-            }).toStrictEqual({ chartControlsVisible: false });
-
-            globalThis.chartControlsState.isVisible = true;
-            expect(mockStateManager.setState).toHaveBeenCalledWith(
-                "charts.controlsVisible",
-                true,
-                {
-                    source: "chartControlsState",
-                }
-            );
+            expect(globalThis.chartControlsState).toStrictEqual({
+                isVisible: true,
+            });
+            expect(mockStateManager.setState).not.toHaveBeenCalled();
+            expect(mockStateManager.getState).not.toHaveBeenCalled();
+            expect(consoleSpy).not.toHaveBeenCalled();
 
             consoleSpy.mockRestore();
         });

@@ -95,7 +95,7 @@ export function ensureChartSettingsDropdowns(
         // Setup chart status indicator automatic updates
         setupChartStatusUpdates();
 
-        // Update state management system instead of chartControlsState
+        // Record chart control initialization in managed state.
         updateState(
             "charts",
             {
