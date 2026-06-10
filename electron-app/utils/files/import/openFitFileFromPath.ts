@@ -6,13 +6,11 @@
  */
 
 import { getFitFileBufferValidationError } from "./fitFileValidation.js";
-import {
-    type FitParsePayload,
-    unwrapFitParseMessages,
-} from "./fitParsePayload.js";
+import { unwrapFitParseMessages } from "./fitParsePayload.js";
 import { sendFitFileToAltFitReader } from "./sendFitFileToAltFitReader.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 
@@ -30,16 +28,8 @@ type FitFileStateManagerLike = {
     ) => boolean;
 };
 
-type FitFileElectronAPI = Pick<ElectronAPI, "readFile"> &
-    Partial<Pick<ElectronAPI, "notifyFitFileLoaded">> & {
-        parseFitFile: (
-            arrayBuffer: Parameters<ElectronAPI["parseFitFile"]>[0]
-        ) => Promise<FitParsePayload>;
-    };
-
-type OpenFitFileGlobal = typeof globalThis & {
-    electronAPI?: Partial<FitFileElectronAPI>;
-};
+type FitFileElectronAPI = Pick<ElectronAPI, "parseFitFile" | "readFile"> &
+    Partial<Pick<ElectronAPI, "notifyFitFileLoaded">>;
 
 type ShowNotification = (
     message: string,
@@ -154,24 +144,25 @@ function isNonEmptyString(value: unknown): value is string {
     return typeof value === "string" && value.trim().length > 0;
 }
 
-function getOpenFitFileGlobal(): OpenFitFileGlobal {
-    return globalThis;
+function resolveFitFileElectronAPI(): FitFileElectronAPI | undefined {
+    return (
+        getRendererElectronApi<FitFileElectronAPI>(isFitFileElectronAPI) ??
+        undefined
+    );
 }
 
-function resolveFitFileElectronAPI(): FitFileElectronAPI | undefined {
-    const { electronAPI } = getOpenFitFileGlobal();
-    if (!electronAPI || typeof electronAPI !== "object") {
-        return undefined;
+function isFitFileElectronAPI(value: unknown): value is FitFileElectronAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
     }
 
-    if (
-        typeof electronAPI.readFile !== "function" ||
-        typeof electronAPI.parseFitFile !== "function"
-    ) {
-        return undefined;
-    }
-
-    return electronAPI as FitFileElectronAPI;
+    const api = value as Partial<FitFileElectronAPI>;
+    return (
+        typeof api.readFile === "function" &&
+        typeof api.parseFitFile === "function" &&
+        (api.notifyFitFileLoaded === undefined ||
+            typeof api.notifyFitFileLoaded === "function")
+    );
 }
 
 /**

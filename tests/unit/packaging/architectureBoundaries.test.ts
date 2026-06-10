@@ -184,6 +184,7 @@ const migratedElectronApiAccessorFiles = [
     "electron-app/utils/files/export/copyTableAsCSV.ts",
     "electron-app/utils/files/export/exportUtils.ts",
     "electron-app/utils/files/import/loadSingleOverlayFile.ts",
+    "electron-app/utils/files/import/openFitFileFromPath.ts",
     "electron-app/utils/files/import/openFileSelector.ts",
     "electron-app/utils/rendering/core/showFitData.ts",
     "electron-app/utils/state/core/masterStateManager.ts",
