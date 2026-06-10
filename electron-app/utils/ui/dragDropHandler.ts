@@ -7,11 +7,11 @@ import {
 } from "../files/import/fitParsePayload.js";
 import { sendFitFileToAltFitReader } from "../files/import/sendFitFileToAltFitReader.js";
 import { showFitData } from "../rendering/core/showFitData.js";
+import { getRendererElectronApi } from "../runtime/electronApiRuntime.js";
 import { getState, setState } from "../state/core/stateManager.js";
 import { fitFileStateManager } from "../state/domain/fitFileState.js";
 import {
     addEventListenerWithCleanup,
-    validateElectronAPI,
     validateElement,
 } from "./mainUiDomUtils.js";
 import { showNotification } from "./notifications/showNotification.js";
@@ -19,10 +19,9 @@ import type { ElectronAPI } from "../../shared/preloadApi.js";
 
 type DroppedFile = File & { path?: string };
 
-type ElectronApiLike = Partial<Pick<ElectronAPI, "decodeFitFile">>;
+type ElectronApiLike = Required<Pick<ElectronAPI, "decodeFitFile">>;
 
 type DragDropGlobal = typeof globalThis & {
-    electronAPI?: ElectronApiLike;
     enableDragAndDrop?: unknown;
 };
 
@@ -34,6 +33,18 @@ type PerformanceMonitorLike = {
 
 function getDragDropGlobal(): DragDropGlobal {
     return globalThis;
+}
+
+function getDragDropElectronApi(): ElectronApiLike | null {
+    return getRendererElectronApi(isDragDropElectronApi);
+}
+
+function isDragDropElectronApi(value: unknown): value is ElectronApiLike {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    return typeof (value as Partial<ElectronApiLike>).decodeFitFile === "function";
 }
 
 function getPerformanceMonitor(): PerformanceMonitorLike {
@@ -130,17 +141,15 @@ export class DragDropHandler {
                 return;
             }
 
-            if (!validateElectronAPI()) {
+            const electronAPI = getDragDropElectronApi();
+            if (!electronAPI) {
                 const message =
                     "FIT file decoding is not supported in this environment.";
                 showNotification(message, "error");
                 return;
             }
 
-            const result =
-                await getDragDropGlobal().electronAPI?.decodeFitFile?.(
-                    arrayBuffer
-                );
+            const result = await electronAPI.decodeFitFile(arrayBuffer);
             const parseErrorMessage = result
                 ? getFitParseErrorMessage(result)
                 : null;

@@ -3,11 +3,10 @@
  */
 
 import { getElementByIdFlexible } from "./dom/elementIdUtils.js";
+import { getRendererElectronApi } from "../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../shared/preloadApi.js";
 
-type ElectronApiCandidate = {
-    readonly electronAPI?: Partial<Pick<ElectronAPI, "decodeFitFile">> | null;
-};
+type ElectronApiCandidate = Partial<Pick<ElectronAPI, "decodeFitFile">>;
 
 type EventListenerEntry = {
     readonly abortController: AbortController;
@@ -67,9 +66,17 @@ export function cleanupEventListeners(): void {
  * Validate Electron API availability for FIT decoding.
  */
 export function validateElectronAPI(): boolean {
-    const candidate = globalThis as typeof globalThis & ElectronApiCandidate;
+    return getRendererElectronApi(isDecodeFitFileApi) !== null;
+}
 
-    return typeof candidate.electronAPI?.decodeFitFile === "function";
+function isDecodeFitFileApi(value: unknown): value is ElectronApiCandidate {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    return (
+        typeof (value as ElectronApiCandidate).decodeFitFile === "function"
+    );
 }
 
 /**
