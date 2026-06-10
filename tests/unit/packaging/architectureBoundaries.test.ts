@@ -457,7 +457,7 @@ const directMainUiDragDropHandlerGlobalPattern =
 const directDragDropEnableGlobalPattern =
     /\b(?:window|globalThis)\.enableDragAndDrop\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["']enableDragAndDrop["']\s*\)|\benableDragAndDrop\?:/u;
 const retiredRendererAmbientGlobalPattern =
-    /\b(?:devCleanup|dragDropHandler|enableDragAndDrop|injectMenu|screenfull)\?:/u;
+    /\b(?:devCleanup|dragDropHandler|enableDragAndDrop|injectMenu|mapMarkerCount|screenfull)\?:/u;
 const directMainUiDevelopmentHelperGlobalPattern =
     /\b(?:window|globalThis|getMainUiGlobal\(\)|mainUiGlobal)\.(?:injectMenu|devCleanup)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:injectMenu|devCleanup)["']\s*\)/u;
 const directMainProcessDevHelpersGlobalPattern =

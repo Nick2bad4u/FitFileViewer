@@ -79,7 +79,6 @@ declare global {
         __persistenceTimeout?: ReturnType<typeof setTimeout>;
 
         // --- Map / markers ---
-        mapMarkerCount?: number;
         /** Leaflet global (present when Leaflet library loaded) */
         L?: typeof Leaflet;
     }
