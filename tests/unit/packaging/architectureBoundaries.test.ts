@@ -304,6 +304,8 @@ const directStateManagerApiGlobalPattern =
     /\b(?:window|globalThis|globalState|getMasterGlobal\(\))\.__STATE_MANAGER_API__\b|Object\.defineProperty\(\s*globalState\s*,\s*["']__STATE_MANAGER_API__["']/u;
 const directChartControlsStateGlobalPattern =
     /\b(?:window|globalThis|integrationGlobal)\.chartControlsState\b|["']chartControlsState["']/u;
+const directStateIntegrationTimerGlobalPattern =
+    /\b(?:window|globalThis|integrationGlobal)\.(?:__performanceMonitoringInterval|__persistenceTimeout)\b|["'](?:__performanceMonitoringInterval|__persistenceTimeout)["']/u;
 const directSingletonStateSubscriptionsGlobalPattern =
     /\b(?:window|globalThis|globalState)\.__ffvSingletonStateSubscriptions\b|["']__ffvSingletonStateSubscriptions["']/u;
 const directFileAccessPolicyStateGlobalPattern =
@@ -1393,7 +1395,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(66);
+        expect.assertions(67);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1466,6 +1468,13 @@ describe("architecture boundaries", () => {
         const directChartControlsStateGlobalUsages = scannedFiles
             .filter((relativeFile) =>
                 directChartControlsStateGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const directStateIntegrationTimerGlobalUsages = scannedFiles
+            .filter((relativeFile) =>
+                directStateIntegrationTimerGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -1877,6 +1886,7 @@ describe("architecture boundaries", () => {
         expect(legacyAppStateCompatibilityUsages).toStrictEqual([]);
         expect(legacyIsChartRenderedGlobalUsages).toStrictEqual([]);
         expect(directChartControlsStateGlobalUsages).toStrictEqual([]);
+        expect(directStateIntegrationTimerGlobalUsages).toStrictEqual([]);
         expect(legacyGlobalDataBridgeFunctionUsages).toStrictEqual([]);
         expect(directGlobalDataStateReads).toStrictEqual([]);
         expect(globalDataWriterQuarantineViolations).toStrictEqual([]);

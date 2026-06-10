@@ -430,9 +430,9 @@ describe("stateIntegration comprehensive coverage", () => {
                     source: "performanceMonitoring",
                 }
             );
-            expect(globalThis.__performanceMonitoringInterval).toBeTypeOf(
-                "object"
-            );
+            expect(
+                Object.hasOwn(globalThis, "__performanceMonitoringInterval")
+            ).toBe(false);
 
             consoleSpy.mockRestore();
             vi.useRealTimers();
@@ -455,7 +455,9 @@ describe("stateIntegration comprehensive coverage", () => {
             // Fast forward timers
             vi.advanceTimersByTime(60000);
 
-            expect(globalThis.__performanceMonitoringInterval).toBeUndefined();
+            expect(
+                Object.hasOwn(globalThis, "__performanceMonitoringInterval")
+            ).toBe(false);
             expect(mockStateManager.setState).not.toHaveBeenCalledWith(
                 "performance.memoryUsage",
                 expect.anything(),
@@ -560,7 +562,9 @@ describe("stateIntegration comprehensive coverage", () => {
                 "[StateIntegration] Failed to load persisted state:",
                 expect.any(Error)
             );
-            expect(globalThis.__persistenceTimeout).toBeUndefined();
+            expect(Object.hasOwn(globalThis, "__persistenceTimeout")).toBe(
+                false
+            );
 
             consoleSpy.mockRestore();
         });
@@ -583,7 +587,9 @@ describe("stateIntegration comprehensive coverage", () => {
                 "[StateIntegration] Failed to load persisted state:",
                 expect.any(Error)
             );
-            expect(globalThis.__persistenceTimeout).toBeUndefined();
+            expect(Object.hasOwn(globalThis, "__persistenceTimeout")).toBe(
+                false
+            );
 
             consoleSpy.mockRestore();
         });

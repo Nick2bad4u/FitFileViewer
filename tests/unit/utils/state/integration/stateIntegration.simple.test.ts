@@ -41,8 +41,6 @@ type StateDebugApi = {
 
 type StateIntegrationTestGlobal = typeof globalThis & {
     __DEVELOPMENT__?: boolean;
-    __performanceMonitoringInterval?: ReturnType<typeof setInterval>;
-    __persistenceTimeout?: ReturnType<typeof setTimeout>;
     __state_debug?: StateDebugApi;
     chartControlsState?: ChartControlsState;
 };
@@ -108,20 +106,6 @@ function installPerformanceMemory(memory: PerformanceMemory): void {
 
 function resetTestEnvironment(): void {
     const testGlobal = globalThis as StateIntegrationTestGlobal;
-
-    if (
-        testGlobal.__performanceMonitoringInterval !== undefined &&
-        typeof globalThis.clearInterval === "function"
-    ) {
-        globalThis.clearInterval(testGlobal.__performanceMonitoringInterval);
-    }
-
-    if (
-        testGlobal.__persistenceTimeout !== undefined &&
-        typeof globalThis.clearTimeout === "function"
-    ) {
-        globalThis.clearTimeout(testGlobal.__persistenceTimeout);
-    }
 
     vi.useRealTimers();
     vi.restoreAllMocks();

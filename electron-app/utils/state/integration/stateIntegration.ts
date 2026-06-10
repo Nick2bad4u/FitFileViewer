@@ -38,8 +38,6 @@ type DebugUtilities = {
 
 type StateIntegrationGlobal = typeof globalThis & {
     __DEVELOPMENT__?: boolean;
-    __performanceMonitoringInterval?: ReturnType<typeof setInterval>;
-    __persistenceTimeout?: ReturnType<typeof setTimeout>;
     __state_debug?: DebugUtilities;
     electronAPI?: Partial<Pick<ElectronAPIWithDevFlags, "__devMode">>;
 };
@@ -54,6 +52,9 @@ const PERSISTED_PATHS = [
     "map.showElevationProfile",
     "tables.pageSize",
 ] as const;
+
+let performanceMonitoringInterval: ReturnType<typeof setInterval> | undefined,
+    persistenceTimeout: ReturnType<typeof setTimeout> | undefined;
 
 /**
  * Migration helper to convert old state patterns to new system
@@ -159,12 +160,12 @@ export function setupStatePerformanceMonitoring(): void {
         return;
     }
 
-    const integrationGlobal = getIntegrationGlobal();
-    if (integrationGlobal.__performanceMonitoringInterval !== undefined) {
-        clearInterval(integrationGlobal.__performanceMonitoringInterval);
+    if (performanceMonitoringInterval !== undefined) {
+        clearInterval(performanceMonitoringInterval);
+        performanceMonitoringInterval = undefined;
     }
 
-    integrationGlobal.__performanceMonitoringInterval = setInterval(() => {
+    performanceMonitoringInterval = setInterval(() => {
         const memory = perfMemory.memory,
             memoryInfo = {
                 limit: Math.round((memory?.jsHeapSizeLimit ?? 0) / 1024 / 1024),
@@ -191,12 +192,13 @@ export function setupStatePersistence(): void {
     // Set up auto-persistence for these paths
     for (const path of PERSISTED_PATHS) {
         subscribe(path, () => {
-            const integrationGlobal = getIntegrationGlobal();
-            if (integrationGlobal.__persistenceTimeout !== undefined) {
-                clearTimeout(integrationGlobal.__persistenceTimeout);
+            if (persistenceTimeout !== undefined) {
+                clearTimeout(persistenceTimeout);
+                persistenceTimeout = undefined;
             }
 
-            integrationGlobal.__persistenceTimeout = setTimeout(() => {
+            persistenceTimeout = setTimeout(() => {
+                persistenceTimeout = undefined;
                 try {
                     const stateToSave: Record<string, unknown> = {};
                     for (const persistedPath of PERSISTED_PATHS) {
