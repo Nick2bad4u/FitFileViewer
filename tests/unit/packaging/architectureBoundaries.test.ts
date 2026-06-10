@@ -950,6 +950,18 @@ describe("architecture boundaries", () => {
         expect(stateManagerSource).not.toContain("Reflect.get(globalThis");
     });
 
+    it("keeps the legacy appState manager free of reactive descriptor bridges", () => {
+        expect.assertions(3);
+
+        const appStateSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/domain/appState.ts")
+        );
+
+        expect(appStateSource).not.toContain("setupReactiveProperties");
+        expect(appStateSource).not.toContain("createReactiveProperty");
+        expect(appStateSource).not.toContain("Object.defineProperty");
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 

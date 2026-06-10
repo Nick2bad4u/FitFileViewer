@@ -226,7 +226,6 @@ class AppStateManager {
     private readonly validators = new Map<string, StateValidator>();
 
     public constructor() {
-        this.setupReactiveProperties();
         this.loadPersistedState();
         this.setupAutoPersistence();
 
@@ -449,7 +448,6 @@ class AppStateManager {
         }
 
         this.state = createDefaultState();
-        this.setupReactiveProperties();
 
         this.emit("state-reset", {});
         console.log("[AppState] State reset to defaults");
@@ -474,9 +472,26 @@ class AppStateManager {
             }
 
             const finalKey = keys.at(-1);
-            if (finalKey) {
-                setProperty(current, finalKey, value);
+            if (!finalKey || !isRecord(current)) {
+                return false;
             }
+
+            const oldValue = readProperty(current, finalKey);
+            const validator = this.validators.get(path);
+            if (validator && !validator(value, oldValue)) {
+                console.warn(`[AppState] Validation failed for ${path}:`, value);
+                return false;
+            }
+
+            setProperty(current, finalKey, value);
+
+            this.emit(`${path}-changed`, {
+                newValue: value,
+                oldValue,
+                path,
+                timestamp: Date.now(),
+            });
+            this.emitSpecificEvents(path, value, oldValue);
 
             return true;
         } catch (error) {
@@ -491,23 +506,6 @@ class AppStateManager {
             this.on(`${path}-changed`, () => {
                 this.persistState(path);
             });
-        }
-    }
-
-    /** Defines reactive properties for selected state paths. */
-    public setupReactiveProperties(): void {
-        const reactivePaths = [
-            "data.rawFitData",
-            "data.isLoaded",
-            "file.isOpening",
-            "ui.activeTab",
-            "ui.theme",
-            "charts.controlsVisible",
-            "charts.isRendered",
-        ];
-
-        for (const path of reactivePaths) {
-            this.createReactiveProperty(this.state, path, this.get(path));
         }
     }
 
@@ -528,68 +526,6 @@ class AppStateManager {
         } catch (error) {
             console.error("[AppState] Error in batch update:", error);
         }
-    }
-
-    private createReactiveProperty(
-        obj: unknown,
-        path: string,
-        initialValue: unknown
-    ): void {
-        const keys = getPathSegments(path);
-        let current = obj;
-
-        for (const key of keys.slice(0, -1)) {
-            if (!isRecord(current)) {
-                return;
-            }
-
-            if (!isRecord(current[key])) {
-                current[key] = {};
-            }
-
-            current = current[key];
-        }
-
-        const finalKey = keys.at(-1);
-        if (!finalKey || !isRecord(current)) {
-            return;
-        }
-
-        const descriptor = Object.getOwnPropertyDescriptor(current, finalKey);
-        if (descriptor?.get && descriptor.set) {
-            return;
-        }
-
-        let value = initialValue;
-
-        Object.defineProperty(current, finalKey, {
-            configurable: true,
-            enumerable: true,
-            get() {
-                return value;
-            },
-            set: (newValue: unknown) => {
-                const oldValue = value;
-                const validator = this.validators.get(path);
-                if (validator && !validator(newValue, oldValue)) {
-                    console.warn(
-                        `[AppState] Validation failed for ${path}:`,
-                        newValue
-                    );
-                    return;
-                }
-
-                value = newValue;
-
-                this.emit(`${path}-changed`, {
-                    newValue,
-                    oldValue,
-                    path,
-                    timestamp: Date.now(),
-                });
-                this.emitSpecificEvents(path, newValue, oldValue);
-            },
-        });
     }
 }
 
