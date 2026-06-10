@@ -425,14 +425,18 @@ npm run build:win7
 
 ### Signing Preflight
 
-`npm run verify:release` runs `npm run release:check-signing` before packaging.
-Use the same preflight directly before ad hoc signed packaging when
-`REQUIRE_CODE_SIGNING=true`; it fails before electron-builder starts and lists
-each missing variable.
+`npm run verify:release` runs `npm run release:check-signing` before unsigned
+local packaging. Use `npm run release:check-signing:required` before ad hoc
+signed packaging; it fails before electron-builder starts and lists each
+missing variable.
 
-- Local `npm run package` and release rehearsal builds are unsigned by
-  default. The electron-builder wrapper strips signing variables and disables
-  Windows executable signing unless `REQUIRE_CODE_SIGNING=true`.
+- Local `npm run package`, `npm run package:unsigned`, and release rehearsal
+  builds are unsigned by default. The electron-builder wrapper strips signing
+  variables and disables Windows executable signing unless
+  `REQUIRE_CODE_SIGNING=true`.
+- Use `npm run package:signed` for a signed current-platform release package.
+  It runs the required signing preflight, then starts electron-builder with
+  `REQUIRE_CODE_SIGNING=true`.
 - Windows signed builds require `WIN_CSC_LINK` or `CSC_LINK`, plus
   `CSC_KEY_PASSWORD`.
 - macOS signed builds require `CSC_LINK`, `CSC_KEY_PASSWORD`,

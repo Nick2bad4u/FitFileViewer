@@ -11,6 +11,7 @@ const runnerOsToPlatform = {
 
 export function parseArgs(argv) {
     let platform;
+    let requireSigning;
     let runnerOs;
 
     for (let index = 0; index < argv.length; index += 1) {
@@ -54,10 +55,20 @@ export function parseArgs(argv) {
             continue;
         }
 
+        if (arg === "--require-signing") {
+            requireSigning = true;
+            continue;
+        }
+
+        if (arg === "--optional-signing") {
+            requireSigning = false;
+            continue;
+        }
+
         throw new Error(`Unknown argument: ${arg}`);
     }
 
-    return { platform, runnerOs };
+    return { platform, requireSigning, runnerOs };
 }
 
 export function resolveSigningPlatform({ platform, runnerOs } = {}) {
@@ -78,14 +89,24 @@ export function resolveSigningPlatform({ platform, runnerOs } = {}) {
 
 export function getSigningPreflightReport(
     environment = process.env,
-    platform = resolveSigningPlatform()
+    platform = resolveSigningPlatform(),
+    options = {}
 ) {
-    const errors = getCodeSigningValidationErrors(environment, platform);
+    const signingRequired =
+        options.requireSigning ?? environment.REQUIRE_CODE_SIGNING === "true";
+    const validationEnvironment = {
+        ...environment,
+        REQUIRE_CODE_SIGNING: signingRequired ? "true" : "false",
+    };
+    const errors = getCodeSigningValidationErrors(
+        validationEnvironment,
+        platform
+    );
 
     return {
         errors,
         platform,
-        signingRequired: environment.REQUIRE_CODE_SIGNING === "true",
+        signingRequired,
         valid: errors.length === 0,
     };
 }
@@ -98,10 +119,11 @@ export function runSigningPreflight(
         log: console.log,
     }
 ) {
-    const { platform, runnerOs } = parseArgs(argv);
+    const { platform, requireSigning, runnerOs } = parseArgs(argv);
     const report = getSigningPreflightReport(
         environment,
-        resolveSigningPlatform({ platform, runnerOs })
+        resolveSigningPlatform({ platform, runnerOs }),
+        { requireSigning }
     );
 
     if (!report.signingRequired) {

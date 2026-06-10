@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 type CheckSigningEnvModule = {
     getSigningPreflightReport: (
         environment?: NodeJS.ProcessEnv,
-        platform?: NodeJS.Platform | string
+        platform?: NodeJS.Platform | string,
+        options?: { requireSigning?: boolean }
     ) => {
         errors: string[];
         platform: string;
@@ -12,6 +13,7 @@ type CheckSigningEnvModule = {
     };
     parseArgs: (argv: string[]) => {
         platform: string | undefined;
+        requireSigning: boolean | undefined;
         runnerOs: string | undefined;
     };
     resolveSigningPlatform: (options?: {
@@ -33,19 +35,31 @@ async function importCheckSigningEnv(): Promise<CheckSigningEnvModule> {
 }
 
 describe("check-signing-env script", () => {
-    it("parses direct platform and GitHub runner OS arguments", async () => {
-        expect.assertions(4);
+    it("parses direct platform, signing mode, and GitHub runner OS arguments", async () => {
+        expect.assertions(6);
 
         const { parseArgs, resolveSigningPlatform } =
             await importCheckSigningEnv();
 
         expect(parseArgs(["--platform", "win32"])).toStrictEqual({
             platform: "win32",
+            requireSigning: undefined,
             runnerOs: undefined,
         });
         expect(parseArgs(["--runner-os=macOS"])).toStrictEqual({
             platform: undefined,
+            requireSigning: undefined,
             runnerOs: "macOS",
+        });
+        expect(parseArgs(["--require-signing"])).toStrictEqual({
+            platform: undefined,
+            requireSigning: true,
+            runnerOs: undefined,
+        });
+        expect(parseArgs(["--optional-signing"])).toStrictEqual({
+            platform: undefined,
+            requireSigning: false,
+            runnerOs: undefined,
         });
         expect(resolveSigningPlatform({ runnerOs: "Windows" })).toBe("win32");
         expect(resolveSigningPlatform({ platform: "darwin" })).toBe("darwin");
@@ -79,6 +93,40 @@ describe("check-signing-env script", () => {
                 output
             )
         ).toBe(1);
+    });
+
+    it("allows required signing checks without mutating the caller environment", async () => {
+        expect.assertions(3);
+
+        const { getSigningPreflightReport, runSigningPreflight } =
+            await importCheckSigningEnv();
+        const environment = { REQUIRE_CODE_SIGNING: "false" };
+        const output = {
+            error: vi.fn<(message: string) => void>(),
+            log: vi.fn<(message: string) => void>(),
+        };
+
+        expect(
+            getSigningPreflightReport(environment, "win32", {
+                requireSigning: true,
+            })
+        ).toMatchObject({
+            platform: "win32",
+            signingRequired: true,
+            valid: false,
+        });
+        expect(
+            runSigningPreflight(
+                [
+                    "--platform",
+                    "win32",
+                    "--require-signing",
+                ],
+                environment,
+                output
+            )
+        ).toBe(1);
+        expect(environment.REQUIRE_CODE_SIGNING).toBe("false");
     });
 
     it("accepts macOS notarization credential alternatives", async () => {

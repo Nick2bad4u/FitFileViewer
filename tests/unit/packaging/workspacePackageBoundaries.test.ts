@@ -257,7 +257,14 @@ const expectedRootToolingScripts = {
     "perf:trend":
         "npm run build:runtime-ts && node scripts/run-performance-baseline.mjs --compare-if-exists artifacts/performance-baseline.previous.json --output artifacts/performance-baseline-cache/performance-baseline.json",
     "prepare:electron": "node scripts/ensure-electron-binary.mjs",
+    package: "npm run package:unsigned",
+    "package:signed":
+        "npm run release:check-signing:required && cross-env REQUIRE_CODE_SIGNING=true node scripts/build-package.mjs --dir",
+    "package:unsigned":
+        "cross-env FFV_FORCE_UNSIGNED_PACKAGE=true CSC_IDENTITY_AUTO_DISCOVERY=false REQUIRE_CODE_SIGNING=false node scripts/build-package.mjs --dir",
     "release:check-signing": "node scripts/check-signing-env.mjs",
+    "release:check-signing:required":
+        "node scripts/check-signing-env.mjs --require-signing",
     pretest: "npm run prepare:electron && npm run build:runtime-ts",
     "release:verify": "npm run verify:release",
     "test:packaged": "node scripts/run-packaged-smoke.mjs",
@@ -270,7 +277,7 @@ const expectedRootToolingScripts = {
     "verify:fast":
         "npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
     "verify:full":
-        "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run release:check-signing && npm run package && npm run test:packaged",
+        "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run release:check-signing && npm run package:unsigned && npm run test:packaged",
     "verify:release": "npm run verify:full",
 } as const;
 
