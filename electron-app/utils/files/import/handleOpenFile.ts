@@ -14,7 +14,6 @@ import * as stateManager from "../../state/core/stateManager.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { clearAllNotifications } from "../../ui/notifications/showNotification.js";
 import {
-    type FitParsePayload,
     getFitMessagesSessionCount,
     getFitParseErrorMessage,
     unwrapFitParseMessages,
@@ -22,6 +21,7 @@ import {
 import { getFitFileBufferValidationError } from "./fitFileValidation.js";
 import { sendFitFileToAltFitReader } from "./sendFitFileToAltFitReader.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
 
 const __TEST_ONLY_exposedStateManager = stateManager;
@@ -51,22 +51,12 @@ type HandleOpenFileOptions = {
     validateFileSize?: boolean;
 };
 
-type FileParseResult = FitParsePayload;
+type FileParseResult = Awaited<ReturnType<ElectronAPI["parseFitFile"]>>;
 
-type FileOpenDialogResult =
-    | Awaited<ReturnType<ElectronAPI["openFile"]>>
-    | string[];
-
-type FileOpenElectronAPI = Pick<ElectronAPI, "readFile"> & {
-    openFile: () => Promise<FileOpenDialogResult>;
-    parseFitFile: (
-        arrayBuffer: Parameters<ElectronAPI["parseFitFile"]>[0]
-    ) => Promise<FileParseResult>;
-};
-
-type FileOpenRendererGlobal = typeof globalThis & {
-    electronAPI?: Partial<FileOpenElectronAPI>;
-};
+type FileOpenElectronAPI = Pick<
+    ElectronAPI,
+    "openFile" | "parseFitFile" | "readFile"
+>;
 
 type FitFileStateManagerFacade = {
     handleFileLoadingError: (error: Error) => void;
@@ -105,16 +95,15 @@ const REQUIRED_ELECTRON_API_METHODS = [
     FILE_OPEN_CONSTANTS.ELECTRON_API_METHODS.READ_FILE,
 ] satisfies readonly (keyof FileOpenElectronAPI)[];
 
-function isFileOpenElectronAPI(
-    electronAPI: Partial<FileOpenElectronAPI>
-): electronAPI is FileOpenElectronAPI {
+function isFileOpenElectronAPI(value: unknown): value is FileOpenElectronAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const electronAPI = value as Partial<FileOpenElectronAPI>;
     return REQUIRED_ELECTRON_API_METHODS.every(
         (method) => typeof electronAPI[method] === "function"
     );
-}
-
-function getFileOpenGlobal(): FileOpenRendererGlobal {
-    return globalThis;
 }
 
 function isMissingFileError(error: unknown): boolean {
@@ -552,19 +541,12 @@ function updateUIState(
 
 /** Validates that all required Electron API methods are available. */
 function getValidatedElectronAPI(): FileOpenElectronAPI | null {
-    const { electronAPI } = getFileOpenGlobal();
+    const electronAPI = getRendererElectronApi<FileOpenElectronAPI>(
+        isFileOpenElectronAPI
+    );
 
     if (!electronAPI) {
         log("error", "Electron API not available");
-        return null;
-    }
-
-    if (!isFileOpenElectronAPI(electronAPI)) {
-        log("error", "Missing Electron API methods", {
-            methods: REQUIRED_ELECTRON_API_METHODS.filter(
-                (method) => typeof electronAPI[method] !== "function"
-            ),
-        });
         return null;
     }
 
