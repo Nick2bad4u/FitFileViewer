@@ -176,6 +176,7 @@ const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
 const migratedElectronApiAccessorFiles = [
+    "electron-app/utils/app/lifecycle/recentFilesContextMenu.ts",
     "electron-app/utils/ui/settingsModal.ts",
     "electron-app/utils/ui/links/externalLinkHandlers.ts",
 ] as const;

@@ -13,19 +13,19 @@ import {
     getProcessEnvironmentValue,
     isDevelopmentEnvironment,
 } from "../../runtime/processEnvironment.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
-type RecentFilesElectronApi = Pick<ElectronAPI, "readFile" | "recentFiles"> &
+type RecentFilesElectronApi = Pick<
+    ElectronAPI,
+    "parseFitFile" | "readFile" | "recentFiles"
+> &
     Partial<Pick<ElectronAPI, "addRecentFile">> & {
         parseFitFile: (
             data: Parameters<ElectronAPI["parseFitFile"]>[0]
         ) => Promise<FitParsePayload>;
     };
-
-type RecentFilesGlobal = typeof globalThis & {
-    electronAPI?: RecentFilesElectronApi;
-};
 
 type AttachRecentFilesContextMenuParams = {
     openFileBtn: HTMLButtonElement;
@@ -37,8 +37,26 @@ type AttachRecentFilesContextMenuParams = {
     ) => void;
 };
 
-function getRecentFilesGlobal(): RecentFilesGlobal {
-    return globalThis;
+function getRecentFilesElectronApi(): RecentFilesElectronApi | null {
+    return getRendererElectronApi(isRecentFilesElectronApi);
+}
+
+function isRecentFilesElectronApi(
+    value: unknown
+): value is RecentFilesElectronApi {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const api = value as Partial<RecentFilesElectronApi>;
+
+    return (
+        typeof api.recentFiles === "function" &&
+        typeof api.readFile === "function" &&
+        typeof api.parseFitFile === "function" &&
+        (api.addRecentFile === undefined ||
+            typeof api.addRecentFile === "function")
+    );
 }
 
 function isMissingFileError(error: unknown): boolean {
@@ -89,9 +107,8 @@ export function attachRecentFilesContextMenu({
         "contextmenu",
         async (event: MouseEvent) => {
             event.preventDefault();
-            const appGlobal = getRecentFilesGlobal();
-            const electronAPI = appGlobal.electronAPI;
-            if (!electronAPI || typeof electronAPI.recentFiles !== "function") {
+            const electronAPI = getRecentFilesElectronApi();
+            if (!electronAPI) {
                 return;
             }
             const activeElectronAPI = electronAPI;
