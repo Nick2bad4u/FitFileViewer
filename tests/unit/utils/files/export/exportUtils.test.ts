@@ -12,6 +12,10 @@ import {
     clearExportZipRuntimeForTests,
     setExportZipRuntime,
 } from "../../../../../electron-app/utils/files/export/exportZipRuntime.js";
+import {
+    registerRendererElectronApiCandidate as registerElectronApiCandidate,
+    resetRendererElectronApiCandidate as resetElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import type { ExportableChart } from "../../../../../electron-app/utils/files/export/exportUtils.js";
 
 type AddCombinedCsvZip = Parameters<typeof exportUtils.addCombinedCSVToZip>[0];
@@ -255,11 +259,9 @@ describe("exportUtils", () => {
         mockLocalStorage.getItem.mockReturnValue(null);
         mockURL.createObjectURL.mockReturnValue("blob:mock-url");
 
-        // Setup global mocks
-        Object.defineProperty(globalThis, "electronAPI", {
-            value: mockElectronAPI,
-            writable: true,
-        });
+        // Setup global/runtime mocks
+        resetElectronApiCandidate();
+        registerElectronApiCandidate(mockElectronAPI);
 
         Object.defineProperty(globalThis, "localStorage", {
             value: mockLocalStorage,
@@ -301,6 +303,7 @@ describe("exportUtils", () => {
     });
 
     afterEach(() => {
+        resetElectronApiCandidate();
         clearExportZipRuntimeForTests();
     });
 
