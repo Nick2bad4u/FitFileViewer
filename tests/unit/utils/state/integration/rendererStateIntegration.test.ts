@@ -101,6 +101,30 @@ async function importTarget() {
     return import("../../../../../electron-app/utils/state/integration/rendererStateIntegration.js");
 }
 
+type RendererStateElectronApi = {
+    onFileOpened: ReturnType<
+        typeof vi.fn<
+            (handler: (data: unknown, path: string) => void) => void
+        >
+    >;
+};
+
+async function registerRendererStateApi(
+    api: RendererStateElectronApi
+): Promise<void> {
+    const { registerRendererElectronApiCandidate } = await import(
+        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
+    );
+    registerRendererElectronApiCandidate(api);
+}
+
+async function resetRegisteredElectronApi(): Promise<void> {
+    const { resetRendererElectronApiCandidate } = await import(
+        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
+    );
+    resetRendererElectronApiCandidate();
+}
+
 function getHandlers(key: string): SubscriptionHandler[] {
     return subscriptionHandlers.get(key) ?? [];
 }
@@ -113,8 +137,9 @@ function requireValue<T>(value: T | undefined, message: string): T {
     return value;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
     vi.resetModules();
+    await resetRegisteredElectronApi();
     vi.clearAllMocks();
 
     subscriptionHandlers = new Map();
@@ -163,14 +188,13 @@ beforeEach(() => {
 
     document.body.replaceChildren();
     document.head.replaceChildren();
-    delete (globalThis as any).electronAPI;
 });
 
-afterEach(() => {
+afterEach(async () => {
     vi.useRealTimers();
     document.body.replaceChildren();
     document.head.replaceChildren();
-    delete (globalThis as any).electronAPI;
+    await resetRegisteredElectronApi();
 });
 
 describe("rendererStateIntegration", () => {
@@ -252,22 +276,23 @@ describe("rendererStateIntegration", () => {
         let fileOpenCallback:
             | ((data: unknown, path: string) => void)
             | undefined;
-        (globalThis as any).electronAPI = {
+        const rendererStateApi: RendererStateElectronApi = {
             onFileOpened: vi.fn<
                 (handler: (data: unknown, path: string) => void) => void
             >((handler: (data: unknown, path: string) => void) => {
                 fileOpenCallback = handler;
             }),
         };
+        await registerRendererStateApi(rendererStateApi);
 
         const module = await importTarget();
 
         module.initializeRendererWithNewStateSystem();
 
         expect(initializeCompleteStateSystemMock).toHaveBeenCalledWith();
-        expect(
-            (globalThis as any).electronAPI.onFileOpened
-        ).toHaveBeenCalledWith(expect.any(Function));
+        expect(rendererStateApi.onFileOpened).toHaveBeenCalledWith(
+            expect.any(Function)
+        );
 
         requireValue(
             fileOpenCallback,
