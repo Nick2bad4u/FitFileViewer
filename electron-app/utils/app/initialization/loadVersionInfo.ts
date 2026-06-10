@@ -1,4 +1,5 @@
 import { getErrorInfo, logWithLevel } from "../../logging/index.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { type SystemInfoField, updateSystemInfo } from "./updateSystemInfo.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
@@ -15,10 +16,6 @@ type VersionInfoElectronAPI = Partial<
         | "getPlatformInfo"
     >
 >;
-
-type GlobalWithVersionInfoElectronAPI = typeof globalThis & {
-    electronAPI?: VersionInfoElectronAPI;
-};
 
 type VersionInfoSource = "electronAPI" | "fallback";
 
@@ -202,13 +199,33 @@ function updateVersionDisplay(version: string): void {
 }
 
 function getVersionInfoElectronAPI(): VersionInfoElectronAPI | undefined {
-    const candidate = (globalThis as GlobalWithVersionInfoElectronAPI)
-        .electronAPI;
-
-    if (candidate && typeof candidate === "object") {
-        return candidate;
+    const electronAPI = getRendererElectronApi(isVersionInfoElectronAPI);
+    if (electronAPI) {
+        return electronAPI;
     }
 
     logWithContext("warn", "electronAPI not available");
     return undefined;
+}
+
+function isVersionInfoElectronAPI(
+    value: unknown
+): value is VersionInfoElectronAPI {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const api = value as Record<string, unknown>;
+
+    return [
+        "getAppVersion",
+        "getChromeVersion",
+        "getElectronVersion",
+        "getLicenseInfo",
+        "getNodeVersion",
+        "getPlatformInfo",
+    ].every((methodName) => {
+        const method = api[methodName];
+        return method === undefined || typeof method === "function";
+    });
 }
