@@ -3,11 +3,7 @@
  */
 
 import { isDevelopmentEnvironment } from "../runtime/processEnvironment.js";
-
-type RendererGlobal = typeof globalThis & {
-    __renderer_dev?: unknown;
-    window?: unknown;
-};
+import { isRendererDebugLoggingEnabled } from "./rendererDebugLoggingState.js";
 
 /**
  * Checks whether renderer animation debug logging should be enabled.
@@ -15,10 +11,8 @@ type RendererGlobal = typeof globalThis & {
  * @returns True when development logging is enabled.
  */
 function isDevelopmentMode(): boolean {
-    const globalScope = globalThis as RendererGlobal;
     return (
-        (globalScope.window !== undefined &&
-            Boolean(globalScope.__renderer_dev)) ||
+        (globalThis.window !== undefined && isRendererDebugLoggingEnabled()) ||
         isDevelopmentEnvironment()
     );
 }

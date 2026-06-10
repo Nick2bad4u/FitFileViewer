@@ -122,9 +122,10 @@ const migratedChartImportFiles = [
     "electron-app/utils/data/zones/renderSingleHRZoneBar.ts",
     "electron-app/utils/data/zones/renderSinglePowerZoneBar.ts",
 ] as const;
-const migratedChartPluginDebugStateFiles = [
+const migratedRendererDebugLoggingStateFiles = [
     "electron-app/utils/charts/plugins/chartBackgroundColorPlugin.ts",
     "electron-app/utils/charts/plugins/chartZoomResetPlugin.ts",
+    "electron-app/utils/debug/lastAnimLog.ts",
 ] as const;
 const rendererVendorBrowserPackageImportAllowedFiles = [
     "electron-app/renderer/vendorGlobalsChartData.ts",
@@ -1034,10 +1035,10 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps migrated chart plugins on typed renderer debug state", () => {
+    it("keeps migrated renderer debug logging callers on typed state", () => {
         expect.assertions(1);
 
-        const violations = migratedChartPluginDebugStateFiles
+        const violations = migratedRendererDebugLoggingStateFiles
             .filter((relativeFile) =>
                 directRendererDevGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
