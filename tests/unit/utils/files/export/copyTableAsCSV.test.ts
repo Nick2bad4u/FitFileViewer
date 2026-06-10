@@ -1,19 +1,21 @@
 import { describe, expect, it } from "vitest";
 
 import { copyTableAsCSV } from "../../../../../electron-app/utils/files/export/copyTableAsCSV.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type ClipboardElectronAPI = {
     writeClipboardText?: (text: string) => boolean | Promise<boolean>;
 };
 
-type CopyCsvTestGlobal = typeof globalThis & {
-    electronAPI?: ClipboardElectronAPI;
-};
-
-const appGlobal = globalThis as CopyCsvTestGlobal;
-
 function cleanupGlobals() {
-    delete appGlobal.electronAPI;
+    resetRendererElectronApiCandidate();
+}
+
+function registerClipboardApi(api: ClipboardElectronAPI): void {
+    registerRendererElectronApiCandidate(api);
 }
 
 describe(copyTableAsCSV, () => {
@@ -23,12 +25,12 @@ describe(copyTableAsCSV, () => {
         let clipboardText = "";
 
         try {
-            appGlobal.electronAPI = {
+            registerClipboardApi({
                 writeClipboardText: async (text) => {
                     clipboardText = text;
                     return true;
                 },
-            };
+            });
 
             await copyTableAsCSV([
                 {
@@ -61,12 +63,12 @@ describe(copyTableAsCSV, () => {
         let clipboardText = "";
 
         try {
-            appGlobal.electronAPI = {
+            registerClipboardApi({
                 writeClipboardText: (text) => {
                     clipboardText = text;
                     return true;
                 },
-            };
+            });
 
             await copyTableAsCSV({
                 objects: () => [

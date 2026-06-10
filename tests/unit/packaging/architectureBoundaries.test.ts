@@ -48,6 +48,7 @@ const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/lifecycle/listeners.fitPayload.test.ts",
     "tests/unit/lifecycle/recentFilesContextMenu.fitPayload.test.ts",
     "tests/unit/ui/dragDropHandler.fitPayload.test.ts",
+    "tests/unit/utils/files/export/copyTableAsCSV.test.ts",
     "tests/unit/utils/files/import/loadSingleOverlayFile.fallbacks.test.ts",
     "tests/unit/utils/files/import/loadSingleOverlayFile.test.ts",
     "tests/unit/utils/files/import/openFitFileFromPath.test.ts",
