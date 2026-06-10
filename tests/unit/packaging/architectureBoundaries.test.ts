@@ -1032,7 +1032,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active FIT raw-data storage on the explicit raw-data state slice", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const globalDataStorePath =
             "electron-app/utils/state/core/globalDataStore.ts";
@@ -1058,7 +1058,10 @@ describe("architecture boundaries", () => {
         expect(stateManagerDefaultsSource).toContain("rawData: null");
         expect(stateManagerDefaultsSource).not.toContain("globalData: null");
         expect(unifiedStateManagerSource).toContain(
-            'const UNSUPPORTED_LEGACY_PATHS = new Set(["globalData"]);'
+            'const BLOCKED_STATE_PATHS = new Set(["globalData"]);'
+        );
+        expect(unifiedStateManagerSource).not.toContain(
+            "UNSUPPORTED_LEGACY_PATHS"
         );
         expect(unifiedStateManagerSource).not.toContain(
             '"globalData", "fitFile.rawData"'

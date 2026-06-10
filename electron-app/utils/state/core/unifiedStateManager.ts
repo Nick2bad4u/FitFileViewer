@@ -48,11 +48,10 @@ type Unsubscribe = () => void;
 
 const LEGACY_PATHS = new Set([
     "autoUpdaterInitialized",
-    "globalData",
     "loadedFitFilePath",
     "mainWindow",
 ]);
-const UNSUPPORTED_LEGACY_PATHS = new Set(["globalData"]);
+const BLOCKED_STATE_PATHS = new Set(["globalData"]);
 
 /**
  * Single interface for routing state access during the legacy-to-modern state
@@ -60,6 +59,8 @@ const UNSUPPORTED_LEGACY_PATHS = new Set(["globalData"]);
  */
 export class UnifiedStateManager {
     private debugMode = false;
+
+    private readonly blockedWarningsShown = new Set<string>();
 
     private readonly legacyWarningsShown = new Set<string>();
 
@@ -79,6 +80,11 @@ export class UnifiedStateManager {
     /** Gets a state value through the unified routing facade. */
     public get(path: string, defaultValue?: unknown): unknown {
         try {
+            if (this.isBlockedStatePath(path)) {
+                this.warnBlockedStatePathOnce(path, "Accessing");
+                return defaultValue;
+            }
+
             if (this.isLegacyPath(path)) {
                 return this.getLegacyState(path, defaultValue);
             }
@@ -131,12 +137,16 @@ export class UnifiedStateManager {
         } satisfies Required<UnifiedStateOptions>;
 
         try {
+            if (this.isBlockedStatePath(path)) {
+                this.warnBlockedStatePathOnce(path, "Setting");
+                return;
+            }
+
             if (this.isLegacyPath(path)) {
-                const legacySyncPath = this.getLegacySyncPath(path);
                 this.setLegacyState(path);
 
-                if (legacySyncPath && opts.syncLegacy && this.syncEnabled) {
-                    setNewState(legacySyncPath, value, {
+                if (opts.syncLegacy && this.syncEnabled) {
+                    setNewState(path, value, {
                         source: `${opts.source}-legacy-sync`,
                         silent: opts.silent,
                     } satisfies StateUpdateOptions);
@@ -178,6 +188,13 @@ export class UnifiedStateManager {
         path: string,
         callback: (newValue: unknown, oldValue: unknown, path: string) => void
     ): Unsubscribe {
+        if (this.isBlockedStatePath(path)) {
+            this.warnBlockedStatePathOnce(path, "Subscribing to");
+            return () => {
+                // Retired state paths are intentionally unsupported.
+            };
+        }
+
         if (this.isLegacyPath(path)) {
             console.warn(
                 `[UnifiedState] Legacy path "${path}" subscriptions not fully supported`
@@ -197,14 +214,8 @@ export class UnifiedStateManager {
 
         for (const legacyPath of LEGACY_PATHS) {
             try {
-                const newPath = this.getLegacySyncPath(legacyPath);
-
-                if (!newPath) {
-                    continue;
-                }
-
                 const legacyValue = this.getLegacyState(legacyPath);
-                const newValue = getNewState(newPath);
+                const newValue = getNewState(legacyPath);
 
                 if (
                     legacyValue !== undefined &&
@@ -238,21 +249,32 @@ export class UnifiedStateManager {
 
     private getLegacyState(path: string, defaultValue?: unknown): unknown {
         this.warnLegacyPathOnce(path, "Accessing");
-
-        const legacySyncPath = this.getLegacySyncPath(path);
-        if (legacySyncPath) {
-            return getNewState(legacySyncPath) ?? defaultValue;
-        }
-
-        return defaultValue;
-    }
-
-    private getLegacySyncPath(path: string): string | undefined {
-        return UNSUPPORTED_LEGACY_PATHS.has(path) ? undefined : path;
+        return getNewState(path) ?? defaultValue;
     }
 
     private setLegacyState(path: string): void {
         this.warnLegacyPathOnce(path, "Setting");
+    }
+
+    private isBlockedStatePath(path: string): boolean {
+        const [rootPath] = path.split(".");
+        return (
+            typeof rootPath === "string" && BLOCKED_STATE_PATHS.has(rootPath)
+        );
+    }
+
+    private warnBlockedStatePathOnce(
+        path: string,
+        action: "Accessing" | "Setting" | "Subscribing to"
+    ): void {
+        if (this.blockedWarningsShown.has(path)) {
+            return;
+        }
+
+        console.warn(
+            `[UnifiedState] ${action} retired state path "${path}". Use the explicit FIT state slices instead.`
+        );
+        this.blockedWarningsShown.add(path);
     }
 
     private warnLegacyPathOnce(
