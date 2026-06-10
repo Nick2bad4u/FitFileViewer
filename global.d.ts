@@ -1,4 +1,4 @@
-/* eslint-disable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
+/* eslint-disable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
 import type {
     FitDecodeResult,
 } from "./electron-app/shared/fit";
@@ -74,14 +74,6 @@ declare global {
         debugTabState?: (...args: unknown[]) => void;
         forceFixTabButtons?: () => void;
 
-        // --- Drag & drop / misc ---
-        dragDropHandler?: unknown;
-        injectMenu?: (
-            theme?: string | null,
-            fitFilePath?: string | null
-        ) => void;
-        devCleanup?: () => void;
-
         // --- Internal flags / timeouts ---
         __DEVELOPMENT__?: boolean;
         __state_debug?: boolean;
@@ -127,4 +119,4 @@ export interface ZoneInfo {
 }
 
 export {};
-/* eslint-enable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, perfectionist/sort-union-types, unicorn/require-module-specifiers, vars-on-top -- Re-enable legacy ambient declaration lint rules. */
+/* eslint-enable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, unicorn/require-module-specifiers, vars-on-top -- Re-enable legacy ambient declaration lint rules. */

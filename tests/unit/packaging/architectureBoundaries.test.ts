@@ -456,6 +456,8 @@ const directMainUiDragDropHandlerGlobalPattern =
     /\b(?:window|globalThis)\.dragDropHandler\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["']dragDropHandler["']\s*\)/u;
 const directDragDropEnableGlobalPattern =
     /\b(?:window|globalThis)\.enableDragAndDrop\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["']enableDragAndDrop["']\s*\)|\benableDragAndDrop\?:/u;
+const retiredRendererAmbientGlobalPattern =
+    /\b(?:devCleanup|dragDropHandler|enableDragAndDrop|injectMenu)\?:/u;
 const directMainUiDevelopmentHelperGlobalPattern =
     /\b(?:window|globalThis|getMainUiGlobal\(\)|mainUiGlobal)\.(?:injectMenu|devCleanup)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:injectMenu|devCleanup)["']\s*\)/u;
 const directMainProcessDevHelpersGlobalPattern =
@@ -2553,6 +2555,16 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directShowFitDataImports).toStrictEqual([]);
+    });
+
+    it("keeps retired renderer globals out of ambient Window declarations", () => {
+        expect.assertions(1);
+
+        expect(
+            retiredRendererAmbientGlobalPattern.test(
+                stripComments(readRepositoryFile("global.d.ts"))
+            )
+        ).toBe(false);
     });
 
     it("keeps migrated renderer tests on the registered Electron API runtime", () => {
