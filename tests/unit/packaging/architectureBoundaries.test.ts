@@ -255,6 +255,7 @@ const directGlobalDataStateReadPattern =
     /\b(?:getState|getStateMgr\(\)\.getState|stateManager\.getState)\(\s*["']globalData["']\s*\)/u;
 const directGlobalDataStateWritePattern =
     /\b(?:setState|getStateMgr\(\)\.setState|stateManager\.setState)\(\s*["']globalData["']\s*,/u;
+const legacyStateHistoryStatePathPattern = /["']__stateHistory["']/u;
 const directFitFileRawDataSelectorPattern =
     /\bFitFileSelectors\.getRawData\(\)/u;
 const legacyLoadedFitFilesStatePathPattern =
@@ -1217,6 +1218,21 @@ describe("architecture boundaries", () => {
         const violations = migratedStateDebugGlobalFreeFiles
             .filter((relativeFile) =>
                 directStateDebugGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps migrated state history readers on the typed history API", () => {
+        expect.assertions(1);
+
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter((relativeFile) =>
+                legacyStateHistoryStatePathPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )

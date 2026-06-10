@@ -52,6 +52,7 @@ interface ChartDevToolsDependencies {
     readonly getChartStatus: unknown;
     readonly getComputedStateManager: () => ComputedStateAccess;
     readonly getState: (path: string) => unknown;
+    readonly getStateHistory: () => unknown;
     readonly initializeChartStateManagement: unknown;
     readonly isWindowAvailable: boolean;
     readonly refreshChartsIfNeeded: unknown;
@@ -139,7 +140,7 @@ export function exposeChartDevTools(
         getPerformanceMetrics: () => getState("performance"),
         getPerformanceSummary: () => chartPerformanceMonitor.getSummary(),
         getState: (path: string) => getState(path),
-        getStateHistory: () => getState("__stateHistory") || [],
+        getStateHistory: dependencies.getStateHistory,
         initializeStateManagement: dependencies.initializeChartStateManagement,
         performance: chartPerformanceMonitor,
         refreshCharts: dependencies.refreshChartsIfNeeded,

@@ -32,6 +32,7 @@ import { formatChartFields } from "../../formatting/display/formatChartFields.js
 // State management imports
 import {
     getState,
+    getStateHistory,
     setState,
     subscribe,
     updateState,
@@ -667,6 +668,7 @@ exposeChartDevTools({
     getChartStatus,
     getComputedStateManager: getComputedStateManagerSafe,
     getState,
+    getStateHistory,
     initializeChartStateManagement,
     isWindowAvailable: globalThis.window !== undefined,
     refreshChartsIfNeeded,

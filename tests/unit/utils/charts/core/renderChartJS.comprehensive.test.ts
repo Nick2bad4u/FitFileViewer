@@ -207,6 +207,7 @@ function injectChartJSMocks() {
         },
         stateManager: {
             getState: vi.fn<MockFn>(),
+            getStateHistory: vi.fn<MockFn>().mockReturnValue([]),
             setState: vi.fn<MockFn>(),
             subscribe: vi.fn<MockFn>(() => () => {}),
             updateState: vi.fn<MockFn>(),
@@ -376,6 +377,7 @@ function injectChartJSMocks() {
         import("../../../../../electron-app/utils/state/core/stateManager.js"),
         () => ({
             getState: mocks.stateManager.getState,
+            getStateHistory: mocks.stateManager.getStateHistory,
             setState: mocks.stateManager.setState,
             subscribe: mocks.stateManager.subscribe,
             updateState: mocks.stateManager.updateState,
