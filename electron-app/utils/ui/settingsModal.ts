@@ -19,6 +19,7 @@ import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
 import { createAppIconElement } from "./icons/iconFactory.js";
 import { createModalFocusTrap } from "./modals/modalFocusTrap.js";
 import type { ElectronAPI } from "../../shared/preloadApi.js";
+import { getRendererElectronApi } from "../runtime/electronApiRuntime.js";
 
 const SETTINGS_MODAL_ID = "settings-modal";
 const ANIMATION_DURATION = 300;
@@ -26,9 +27,10 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 
 type SettingsModalGlobal = typeof globalThis & {
     closeSettingsModal?: typeof closeSettingsModal;
-    electronAPI?: Partial<Pick<ElectronAPI, "sendThemeChanged">>;
     showSettingsModal?: typeof showSettingsModal;
 };
+
+type SettingsModalElectronApi = Partial<Pick<ElectronAPI, "sendThemeChanged">>;
 
 let closeAnimationTimer: ReturnType<typeof setTimeout> | undefined;
 let focusTrapCleanup: (() => void) | undefined;
@@ -64,6 +66,24 @@ function restoreLastFocusedElement(): void {
     } finally {
         lastFocusedElement = undefined;
     }
+}
+
+function getSettingsModalElectronApi(): SettingsModalElectronApi | null {
+    return getRendererElectronApi(isSettingsModalElectronApi);
+}
+
+function isSettingsModalElectronApi(
+    value: unknown
+): value is SettingsModalElectronApi {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    return (
+        !("sendThemeChanged" in value) ||
+        typeof (value as SettingsModalElectronApi).sendThemeChanged ===
+            "function"
+    );
 }
 
 /**
@@ -683,9 +703,7 @@ function setupSettingsModalHandlers(
             // Keep the main process in sync so it doesn't override the renderer's
             // theme later (e.g., after focus/menu interactions).
             try {
-                (
-                    globalThis as SettingsModalGlobal
-                ).electronAPI?.sendThemeChanged?.(newTheme);
+                getSettingsModalElectronApi()?.sendThemeChanged?.(newTheme);
             } catch {
                 /* ignore */
             }
