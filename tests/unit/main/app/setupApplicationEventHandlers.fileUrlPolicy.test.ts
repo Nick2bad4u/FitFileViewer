@@ -306,4 +306,47 @@ describe("setupApplicationEventHandlers file:// policy", () => {
             blobPreventCount: 0,
         });
     });
+
+    it("registers the download policy once per session object", async () => {
+        expect.assertions(1);
+
+        const handlers = new Map<string, AppEventHandler>();
+        const mockElectron = createMockElectron(handlers);
+
+        testGlobal.__electronHoistedMock = mockElectron;
+
+        const { setElectronOverride } =
+            await import("../../../../electron-app/main/runtime/electronAccess.js");
+        setElectronOverride(testGlobal.__electronHoistedMock);
+
+        const { setupApplicationEventHandlers } =
+            await import("../../../../electron-app/main/app/setupApplicationEventHandlers.js");
+        setupApplicationEventHandlers();
+
+        const webContentsCreatedHandler = handlers.get("web-contents-created");
+        assertFunction<WebContentsCreatedHandler>(
+            webContentsCreatedHandler,
+            "web-contents-created handler"
+        );
+
+        const mockSession = {
+            on: vi.fn<(eventName: string, callback: DownloadHandler) => void>(),
+        };
+
+        const contents: MockWebContents = {
+            on: vi.fn<
+                (eventName: string, handler: NavigationHandler) => void
+            >(),
+            session: mockSession,
+            setWindowOpenHandler: vi.fn<(handler: WindowOpenHandler) => void>(),
+        };
+
+        webContentsCreatedHandler({}, contents);
+        webContentsCreatedHandler({}, contents);
+
+        expect(mockSession.on).toHaveBeenCalledExactlyOnceWith(
+            "will-download",
+            expect.any(Function)
+        );
+    });
 });

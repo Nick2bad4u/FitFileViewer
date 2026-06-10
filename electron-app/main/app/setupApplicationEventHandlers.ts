@@ -164,10 +164,13 @@
         validateWindow: (win?: unknown, context?: string) => boolean;
     };
 
-    const SESSION_PERMISSIONS_MARKER =
-        "__ffvSessionPermissionHandlersRegistered";
-    const SESSION_DOWNLOAD_MARKER = "__ffvSessionDownloadHandlersRegistered";
     const APP_LISTENER_REGISTRY = new Map<string, AppListener>();
+    const SESSION_HANDLER_REGISTRY = new WeakMap<
+        object,
+        Set<SessionHandlerRegistration>
+    >();
+
+    type SessionHandlerRegistration = "download" | "permissions";
 
     type ReflectTarget = object & Record<PropertyKey, unknown>;
 
@@ -195,7 +198,7 @@
         session: SessionLike | null | undefined
     ): void {
         if (!session || typeof session !== "object") return;
-        if (!markOnce(session, SESSION_DOWNLOAD_MARKER)) return;
+        if (!markSessionHandlerOnce(session, "download")) return;
         if (typeof session.on !== "function") return;
 
         try {
@@ -347,7 +350,7 @@
         session: SessionLike | null | undefined
     ): void {
         if (!session || typeof session !== "object") return;
-        if (!markOnce(session, SESSION_PERMISSIONS_MARKER)) return;
+        if (!markSessionHandlerOnce(session, "permissions")) return;
 
         try {
             if (typeof session.setPermissionRequestHandler === "function") {
@@ -529,26 +532,21 @@
         );
     }
 
-    function markOnce(target: object, key: string): boolean {
+    function markSessionHandlerOnce(
+        target: object,
+        registration: SessionHandlerRegistration
+    ): boolean {
         if (!target || typeof target !== "object") return true;
 
-        if (Object.hasOwn(target, key) && Boolean(Reflect.get(target, key))) {
+        const existingRegistrations = SESSION_HANDLER_REGISTRY.get(target);
+        if (existingRegistrations?.has(registration)) {
             return false;
         }
-        try {
-            Object.defineProperty(target, key, {
-                configurable: true,
-                enumerable: false,
-                value: true,
-                writable: true,
-            });
-        } catch {
-            try {
-                Reflect.set(target, key, true);
-            } catch {
-                /* ignore */
-            }
-        }
+
+        const registrations = existingRegistrations ?? new Set();
+        registrations.add(registration);
+        SESSION_HANDLER_REGISTRY.set(target, registrations);
+
         return true;
     }
 

@@ -287,6 +287,52 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         ).toBe(false);
     });
 
+    it("registers session permission handlers once per session object", async () => {
+        expect.assertions(2);
+
+        const handlers = new Map<string, AppEventHandler>();
+        const mockSession: MockSession = {
+            setPermissionRequestHandler:
+                vi.fn<(handler: PermissionRequestHandler) => void>(),
+            setPermissionCheckHandler:
+                vi.fn<(handler: CheckPermissionHandler) => void>(),
+        };
+
+        const electronAccess = requireElectronAccess();
+        electronAccess.setElectronOverride({
+            app: {
+                on: vi.fn<
+                    (eventName: string, callback: AppEventHandler) => void
+                >((eventName, callback) => {
+                    handlers.set(eventName, callback);
+                }),
+                quit: vi.fn<() => void>(),
+            },
+            shell: { openExternal: vi.fn<(url: string) => Promise<void>>() },
+        });
+
+        const { setupApplicationEventHandlers } = requireSetupHandlers();
+        setupApplicationEventHandlers();
+
+        const webContentsCreatedHandler = handlers.get("web-contents-created");
+        assertFunction<WebContentsCreatedHandler>(
+            webContentsCreatedHandler,
+            "web-contents-created handler"
+        );
+
+        const contents: MockWebContents = {
+            on: vi.fn<(eventName: string, handler: AppEventHandler) => void>(),
+            session: mockSession,
+            setWindowOpenHandler: vi.fn<(handler: AppEventHandler) => void>(),
+        };
+
+        webContentsCreatedHandler({}, contents);
+        webContentsCreatedHandler({}, contents);
+
+        expect(mockSession.setPermissionRequestHandler).toHaveBeenCalledOnce();
+        expect(mockSession.setPermissionCheckHandler).toHaveBeenCalledOnce();
+    });
+
     it("replaces app listeners (no EventEmitter listener leaks)", async () => {
         expect.assertions(1);
 

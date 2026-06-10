@@ -352,6 +352,8 @@ const directGyazoStartupTimerGlobalPattern =
     /\b(?:window|globalThis|testGlobals)\.__ffvGyazoStartupTimer\b|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']__ffvGyazoStartupTimer["']/u;
 const directPrimeTestEnvironmentTimerGlobalPattern =
     /\b(?:window|globalThis|testGlobals)\.(?:__ffvTestKeepalive|__ffvTestRetryTimers)\b|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:__ffvTestKeepalive|__ffvTestRetryTimers)["']/u;
+const directSessionHandlerMarkerGlobalPattern =
+    /\b__ffvSession(?:Permission|Download)HandlersRegistered\b/u;
 const directResourceManagerGlobalPattern =
     /\b(?:window|globalThis)\.resourceManager\b|\{\s*resourceManager\?:\s*ResourceManager\s*\}\)\.resourceManager/u;
 const directRendererApiExposureGlobalPattern =
@@ -1584,7 +1586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(86);
+        expect.assertions(87);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -2024,6 +2026,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directSessionHandlerMarkerGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directSessionHandlerMarkerGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directResourceManagerGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directResourceManagerGlobalPattern.test(
@@ -2268,6 +2277,7 @@ describe("architecture boundaries", () => {
         expect(directChartDevToolsGlobalLookups).toStrictEqual([]);
         expect(directGyazoStartupTimerGlobalLookups).toStrictEqual([]);
         expect(directPrimeTestEnvironmentTimerGlobalLookups).toStrictEqual([]);
+        expect(directSessionHandlerMarkerGlobalLookups).toStrictEqual([]);
         expect(directResourceManagerGlobalLookups).toStrictEqual([]);
         expect(directRendererApiExposureGlobalLookups).toStrictEqual([]);
         expect(directStateManagerApiGlobalLookups).toStrictEqual([]);
