@@ -249,7 +249,7 @@ describe(createElevationProfileButton, () => {
         ]);
     });
 
-    it("should handle globalData when no loadedFitFiles available", async () => {
+    it("should handle active FIT raw data when no loadedFitFiles are available", async () => {
         expect.assertions(4);
 
         setActiveFitRawData(
@@ -312,7 +312,7 @@ describe(createElevationProfileButton, () => {
         ]);
     });
 
-    it("should handle globalData without recordMesgs", async () => {
+    it("should handle active FIT raw data without recordMesgs", async () => {
         expect.assertions(3);
 
         setActiveFitRawData(
