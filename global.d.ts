@@ -35,9 +35,6 @@ declare global {
         _chartjsInstances?: unknown[];
         Chart?: unknown;
 
-        // --- UI helpers & rendering functions (legacy; slated for removal) ---
-        renderMap?: (...args: unknown[]) => void;
-
         // --- Notification & modals ---
         showNotification?: (
             message: string,

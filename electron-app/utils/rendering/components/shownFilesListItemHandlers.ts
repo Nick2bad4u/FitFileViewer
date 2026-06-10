@@ -7,6 +7,7 @@ import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInst
 import { getOverlayMapPolyline } from "../../maps/state/mapPolylineRegistryState.js";
 import { removeLoadedFitFileAt } from "../../state/domain/loadedFitFilesState.js";
 import { updateShownFilesList } from "./shownFilesListUpdater.js";
+import { scheduleOverlayMapRender } from "./scheduleOverlayMapRender.js";
 import {
     clearOverlayTooltipTimeout,
     setOverlayTooltipTimeout,
@@ -53,10 +54,6 @@ type OverlayPolyline = {
     };
 };
 
-type OverlayGlobal = typeof globalThis & {
-    renderMap?: () => void;
-};
-
 type OverlayMapInstance = {
     fitBounds: (
         bounds: unknown,
@@ -65,10 +62,6 @@ type OverlayMapInstance = {
         }
     ) => void;
 };
-
-function getOverlayGlobal(): OverlayGlobal {
-    return globalThis;
-}
 
 function isCircleMarkerLeafletRuntime(
     value: unknown
@@ -271,7 +264,6 @@ export function attachOverlayListItemHandlers({
         "click",
         (event) => {
             event.stopPropagation();
-            const overlayGlobal = getOverlayGlobal();
             removeLoadedFitFileAt(
                 overlayIndex,
                 "shownFilesListItemHandlers.remove"
@@ -279,7 +271,7 @@ export function attachOverlayListItemHandlers({
             scheduleOverlayStateSync();
             const nextFocusIndex = overlayIndex > 1 ? overlayIndex - 1 : -1;
             assignKeyboardFocus(nextFocusIndex);
-            overlayGlobal.renderMap?.();
+            scheduleOverlayMapRender("shownFilesListItemHandlers.remove");
             updateShownFilesList();
             scheduleManagedTooltipCleanup();
         },

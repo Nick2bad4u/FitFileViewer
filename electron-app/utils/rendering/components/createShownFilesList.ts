@@ -7,15 +7,12 @@ import {
 } from "../../state/domain/loadedFitFilesState.js";
 import { clearRegisteredMapMeasurements } from "../../maps/state/mapMeasureControlState.js";
 import { attachOverlayListItemHandlers } from "./shownFilesListItemHandlers.js";
+import { scheduleOverlayMapRender } from "./scheduleOverlayMapRender.js";
 import {
     setShownFilesListUpdater,
     updateShownFilesList,
 } from "./shownFilesListUpdater.js";
 import { clearOverlayTooltipTimeout } from "./shownFilesListTooltipState.js";
-
-type ShownFilesGlobal = typeof globalThis & {
-    renderMap?: () => void;
-};
 
 type ShownFilesContainer = HTMLDivElement & {
     _dispose?: () => void;
@@ -35,10 +32,6 @@ type Rgb = readonly [
     number,
     number,
 ];
-
-function getShownFilesGlobal(): ShownFilesGlobal {
-    return globalThis;
-}
 
 function removeOverlayFilenameTooltips(): void {
     const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
@@ -167,7 +160,6 @@ function getStringThemeColor(
 export function createShownFilesList(): HTMLElement {
     const container: ShownFilesContainer = document.createElement("div");
     const lifecycle = new AbortController();
-    const overlayGlobal = getShownFilesGlobal();
 
     container.className = "shown-files-list map-controls-secondary-card";
     container.style.margin = "0";
@@ -530,7 +522,7 @@ export function createShownFilesList(): HTMLElement {
 
                     clearOverlayLoadedFitFiles("createShownFilesList.clearAll");
                     assignKeyboardFocus(-1);
-                    overlayGlobal.renderMap?.();
+                    scheduleOverlayMapRender("createShownFilesList.clearAll");
                     updateShownFilesList();
                     queueMicrotask(removeOverlayFilenameTooltips);
                 },

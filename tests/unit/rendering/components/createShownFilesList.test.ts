@@ -59,6 +59,9 @@ const mockSetLoadedFiles =
 const loadedFitFilesFixture = vi.hoisted(() => ({
     files: undefined as null | unknown[] | undefined,
 }));
+const renderMapMocks = vi.hoisted(() => ({
+    renderMap: vi.fn<() => void>(),
+}));
 
 vi.mock(
     import("../../../../electron-app/utils/charts/theming/getThemeColors.js"),
@@ -80,6 +83,13 @@ vi.mock(
         getHighlightedOverlayIndex: mapDrawLapsMocks.getHighlightedOverlayIndex,
         setHighlightedOverlayIndex: mapDrawLapsMocks.setHighlightedOverlayIndex,
         updateOverlayHighlights: mapDrawLapsMocks.updateOverlayHighlights,
+    })
+);
+
+vi.mock(
+    import("../../../../electron-app/utils/maps/core/renderMap.js"),
+    () => ({
+        renderMap: renderMapMocks.renderMap,
     })
 );
 
@@ -381,13 +391,10 @@ describe("createShownFilesList", () => {
             border: "#cccccc",
         });
 
-        // Mock all window properties
         const windowMock = global.window as any;
         loadedFitFilesFixture.files = [];
         clearOverlayTooltipTimeout();
-        Object.assign(windowMock, {
-            renderMap: vi.fn<() => void>(),
-        });
+        renderMapMocks.renderMap.mockClear();
         windowMock.L = {
             CircleMarker: class MockCircleMarker {
                 constructor(public options: any) {}
@@ -1043,7 +1050,7 @@ describe("createShownFilesList", () => {
             ];
         });
 
-        it("removes individual overlay when remove button clicked", () => {
+        it("removes individual overlay when remove button clicked", async () => {
             expect.assertions(4);
             const container = createShownFilesList();
 
@@ -1060,7 +1067,12 @@ describe("createShownFilesList", () => {
             expect(loadedFitFilesFixture.files[1].filePath).toBe(
                 "overlay2.fit"
             );
-            expect((global.window as any).renderMap).toHaveBeenCalledWith();
+            await vi.waitFor(() => {
+                if (renderMapMocks.renderMap.mock.calls.length === 0) {
+                    throw new Error("Expected renderMap to be scheduled");
+                }
+            });
+            expect(renderMapMocks.renderMap).toHaveBeenCalledWith();
             expect(getOverlayText(container)).toStrictEqual([
                 "File: overlay2.fit×",
             ]);
@@ -1202,7 +1214,7 @@ describe("createShownFilesList", () => {
             });
         });
 
-        it("removes all overlays and measurements when clear all clicked", () => {
+        it("removes all overlays and measurements when clear all clicked", async () => {
             expect.assertions(5);
             const clearMeasurements = vi.fn<() => void>();
             setRegisteredMapMeasureControl({ clearMeasurements });
@@ -1215,7 +1227,12 @@ describe("createShownFilesList", () => {
                 { data: {}, filePath: "main.fit" },
             ]);
             expect(clearMeasurements).toHaveBeenCalledOnce();
-            expect((global.window as any).renderMap).toHaveBeenCalledWith();
+            await vi.waitFor(() => {
+                if (renderMapMocks.renderMap.mock.calls.length === 0) {
+                    throw new Error("Expected renderMap to be scheduled");
+                }
+            });
+            expect(renderMapMocks.renderMap).toHaveBeenCalledWith();
             expect(getOverlayItems(container)).toStrictEqual([]);
             expect(
                 container.querySelector(".overlay-clear-all-btn")

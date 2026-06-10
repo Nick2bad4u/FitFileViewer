@@ -16,10 +16,7 @@ type ShowNotification = (
 ) => void;
 type TestWindowHook = () => Promise<void> | void;
 type TestWindowHooks = Window & {
-    createTables?: TestWindowHook;
     renderChartJS?: TestWindowHook;
-    renderMap?: TestWindowHook;
-    renderSummary?: TestWindowHook;
 };
 
 const { mockEnsureRendererVendorBundle } = vi.hoisted(() => ({
@@ -164,10 +161,7 @@ describe("tabStateManager regressions", () => {
         mockGetState.mockReturnValue("summary");
 
         Object.assign(getTestWindowHooks(), {
-            createTables: vi.fn<TestWindowHook>(),
             renderChartJS: vi.fn<TestWindowHook>(),
-            renderMap: vi.fn<TestWindowHook>(),
-            renderSummary: vi.fn<TestWindowHook>(),
         });
     });
 
