@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
+
 type VersionInfoElectronAPI = {
     getAppVersion?: () => Promise<string>;
     getChromeVersion?: () => Promise<string>;
@@ -7,10 +12,6 @@ type VersionInfoElectronAPI = {
     getLicenseInfo?: () => Promise<string>;
     getNodeVersion?: () => Promise<string>;
     getPlatformInfo?: () => Promise<{ arch: string; platform: string }>;
-};
-
-type VersionInfoGlobal = typeof globalThis & {
-    electronAPI?: VersionInfoElectronAPI;
 };
 
 type LoadVersionInfoModule =
@@ -55,14 +56,12 @@ async function importLoadVersionInfoModule(): Promise<LoadVersionInfoModule> {
 }
 
 function setElectronAPI(electronAPI?: VersionInfoElectronAPI): void {
-    const versionInfoGlobal = globalThis as VersionInfoGlobal;
-
     if (electronAPI) {
-        versionInfoGlobal.electronAPI = electronAPI;
+        registerRendererElectronApiCandidate(electronAPI);
         return;
     }
 
-    delete versionInfoGlobal.electronAPI;
+    resetRendererElectronApiCandidate();
 }
 
 function getVersionNumberElement(): HTMLElement {
