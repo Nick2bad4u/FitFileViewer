@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import type { FitDecodeResult } from "../../../../../electron-app/shared/fit";
+import {
+    registerRendererElectronApiCandidate as registerElectronApiCandidate,
+    resetRendererElectronApiCandidate as resetElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 const renderDecodedFitDataMock = vi.hoisted(() =>
     vi.fn<(data: unknown, filePath: string) => Promise<void>>(async () => {})
@@ -42,10 +46,6 @@ type MockElectronAPI = {
     >;
     recentFiles: ReturnType<typeof vi.fn<() => Promise<string[]>>>;
 };
-type TestWindow = Window &
-    typeof globalThis & {
-        electronAPI?: Partial<MockElectronAPI>;
-    };
 type TestOpenFileParams = {
     isOpeningFileRef: { value: boolean };
     openFileBtn: HTMLButtonElement;
@@ -82,17 +82,13 @@ vi.mock(
 
 // Variables to hold the imported module functions
 let handleOpenFileModule: HandleOpenFileModule;
-
-function getTestWindow(): TestWindow {
-    return globalThis.window as TestWindow;
-}
+let currentElectronApi: Partial<MockElectronAPI> | undefined;
 
 function getElectronAPI(): MockElectronAPI {
-    const { electronAPI } = getTestWindow();
-    if (!electronAPI) {
+    if (!currentElectronApi) {
         throw new Error("electronAPI was not configured for the test");
     }
-    return electronAPI as MockElectronAPI;
+    return currentElectronApi as MockElectronAPI;
 }
 
 function createElectronAPIMock(): MockElectronAPI {
@@ -148,10 +144,10 @@ describe("handleOpenFile Module", () => {
             env: { NODE_ENV: "development" },
         };
 
-        const testWindow = getTestWindow();
-
-        // Assign the mock to window.electronAPI
-        testWindow.electronAPI = createElectronAPIMock();
+        // Register the preload API candidate used by handleOpenFile.
+        resetElectronApiCandidate();
+        currentElectronApi = createElectronAPIMock();
+        registerElectronApiCandidate(currentElectronApi);
 
         // Import the module under test
         handleOpenFileModule =
@@ -160,6 +156,7 @@ describe("handleOpenFile Module", () => {
 
     afterEach(() => {
         vi.useRealTimers();
+        resetElectronApiCandidate();
         vi.restoreAllMocks();
     });
 
@@ -243,7 +240,7 @@ describe("handleOpenFile Module", () => {
     });
 
     describe("validateElectronAPI", () => {
-        it("should return true when electronAPI is available", () => {
+        it("should return true when Electron API is available", () => {
             expect.assertions(2);
 
             expect({
@@ -252,36 +249,34 @@ describe("handleOpenFile Module", () => {
             expect(console.error).not.toHaveBeenCalled();
         });
 
-        it("should return false when electronAPI is not available", () => {
+        it("should return false when Electron API is not available", () => {
             expect.assertions(2);
 
-            const originalElectronAPI = getTestWindow().electronAPI;
-            getTestWindow().electronAPI = undefined;
+            resetElectronApiCandidate();
+            currentElectronApi = undefined;
             expect({
                 apiAvailable: handleOpenFileModule.validateElectronAPI(),
             }).toStrictEqual({ apiAvailable: false });
             expect(console.error).toHaveBeenCalledWith(
                 "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: Electron API not available"
             );
-            getTestWindow().electronAPI = originalElectronAPI;
         });
 
         it("should return false when required methods are missing", () => {
             expect.assertions(2);
 
-            const originalElectronAPI = getTestWindow().electronAPI;
-            getTestWindow().electronAPI = {
+            currentElectronApi = {
                 readFile: vi.fn<(filePath: string) => Promise<ArrayBuffer>>(),
                 parseFitFile:
                     vi.fn<(buffer: ArrayBuffer) => Promise<FitDecodeResult>>(),
             }; // Missing openFile
+            registerElectronApiCandidate(currentElectronApi);
             expect({
                 apiAvailable: handleOpenFileModule.validateElectronAPI(),
             }).toStrictEqual({ apiAvailable: false });
             expect(console.error).toHaveBeenCalledWith(
                 "[2026-01-02T03:04:05.006Z] [renderer] HandleOpenFile: Electron API not available"
             );
-            getTestWindow().electronAPI = originalElectronAPI;
         });
     });
 
@@ -741,11 +736,11 @@ describe("handleOpenFile Module", () => {
             expect(mockParams.isOpeningFileRef).toHaveProperty("value", false);
         });
 
-        it("should handle invalid electronAPI", async () => {
+        it("should handle invalid Electron API", async () => {
             expect.assertions(2);
 
-            const originalElectronAPI = getTestWindow().electronAPI;
-            getTestWindow().electronAPI = undefined;
+            resetElectronApiCandidate();
+            currentElectronApi = undefined;
 
             const mockParams = createOpenFileParams();
 
@@ -760,8 +755,6 @@ describe("handleOpenFile Module", () => {
                 "error",
                 expect.any(Number)
             );
-
-            getTestWindow().electronAPI = originalElectronAPI;
         });
     });
 });
