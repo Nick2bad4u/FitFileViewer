@@ -4,7 +4,6 @@ import type {
 } from "./electron-app/shared/fit";
 import type { ElectronAPIWithDevFlags } from "./electron-app/shared/preloadApi";
 import type * as Leaflet from "leaflet";
-import type screenfull from "screenfull";
 
 /*
  Global ambient type augmentation for values injected via the Electron preload script.
@@ -78,9 +77,6 @@ declare global {
         __DEVELOPMENT__?: boolean;
         __state_debug?: boolean;
         __persistenceTimeout?: ReturnType<typeof setTimeout>;
-
-        // --- External libs exposed globally ---
-        screenfull?: typeof screenfull;
 
         // --- Map / markers ---
         mapMarkerCount?: number;
