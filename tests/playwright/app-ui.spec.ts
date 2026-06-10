@@ -17,6 +17,11 @@ type ActivityDataCounts = {
     sessionCount: number;
 };
 
+type TabReadinessSnapshot = {
+    error: null | string;
+    status: string;
+};
+
 type FitFixtureFileState =
     | {
           byteLength: number;
@@ -659,6 +664,48 @@ test.describe("FitFileViewer Electron UI", () => {
             .toStrictEqual(sampleFitActivityState);
     }
 
+    async function getTabReadinessSnapshot(
+        tabName: string
+    ): Promise<TabReadinessSnapshot> {
+        return page.evaluate(async (requestedTabName) => {
+            const moduleUrl = new URL(
+                "./utils/state/core/stateManager.js",
+                window.location.href
+            ).href;
+            // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used to inspect explicit renderer tab readiness state in Playwright smoke tests.
+            const stateManagerModule = (await import(moduleUrl)) as {
+                getState: <T = unknown>(path?: string) => T | undefined;
+            };
+            const readiness = stateManagerModule.getState<{
+                error?: null | string;
+                status?: string;
+            }>(`ui.tabReadiness.${requestedTabName}`);
+
+            return {
+                error:
+                    typeof readiness?.error === "string"
+                        ? readiness.error
+                        : null,
+                status:
+                    typeof readiness?.status === "string"
+                        ? readiness.status
+                        : "missing",
+            };
+        }, tabName);
+    }
+
+    async function expectTabReady(tabName: string): Promise<void> {
+        await expect
+            .poll(async () => getTabReadinessSnapshot(tabName), {
+                message: `${tabName} tab readiness`,
+                timeout: 30_000,
+            })
+            .toStrictEqual({
+                error: null,
+                status: "ready",
+            });
+    }
+
     async function expectMissingFitFileErrorAlert(): Promise<void> {
         const errorAlert = page.getByRole("alert", {
             name: /Error: Error reading file: File not found\./u,
@@ -1083,6 +1130,7 @@ test.describe("FitFileViewer Electron UI", () => {
             await expect(zwiftFrame).toBeVisible();
             await expect(zwiftFrame).toHaveAttribute("allow", "geolocation");
             await expect(zwiftFrame).toHaveClass(/fullsize-container/u);
+            await expectTabReady("zwift");
         } finally {
             await page.evaluate(() => {
                 document.querySelector("#zwift_iframe")?.remove();
@@ -1368,6 +1416,7 @@ test.describe("FitFileViewer Electron UI", () => {
 
         await page.locator("#tab_map").click();
         await expectLoadedActivityStatePreserved("switching to Map");
+        await expectTabReady("map");
         await expect(page.locator("#leaflet-map")).toBeVisible();
         await expect(page.locator(".leaflet-control-layers")).toBeAttached();
         await expect(page.locator(".leaflet-control-scale")).toBeVisible();
@@ -1611,6 +1660,7 @@ test.describe("FitFileViewer Electron UI", () => {
 
         await page.locator("#tab_chartjs").click();
         await expectLoadedActivityStatePreserved("switching to Charts");
+        await expectTabReady("chartjs");
         await expect(page.locator("#tab_chartjs")).toHaveClass(/active/u);
         await expect(page.locator("#content_chartjs")).toBeAttached();
         await expect(
@@ -1671,6 +1721,7 @@ test.describe("FitFileViewer Electron UI", () => {
             await page.locator(tabId).click();
             await expectLoadedActivityStatePreserved(`switching to ${tabId}`);
             await expect(page.locator(tabId)).toHaveClass(/active/u);
+            await expectTabReady(tabId === "#tab_data" ? "data" : "summary");
         }
 
         await expect(page.locator("#content_data")).toBeAttached();
@@ -1680,6 +1731,7 @@ test.describe("FitFileViewer Electron UI", () => {
         await expectLoadedActivityStatePreserved(
             "returning to Raw Data after Summary"
         );
+        await expectTabReady("data");
         const firstTableHeader = page
             .locator("#content_data .table-header")
             .first();
