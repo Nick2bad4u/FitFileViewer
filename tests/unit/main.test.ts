@@ -7,6 +7,10 @@ const { clearGyazoStartupTimer, getGyazoStartupTimer } =
         clearGyazoStartupTimer: () => void;
         getGyazoStartupTimer: () => ReturnType<typeof setTimeout> | undefined;
     };
+const { clearPrimeTestEnvironmentTimers } =
+    require("../../electron-app/main/runtime/primeTestEnvironment") as {
+        clearPrimeTestEnvironmentTimers: () => void;
+    };
 
 type MockWindow = {
     isDestroyed: () => boolean;
@@ -361,8 +365,6 @@ type MainImport = {
     default: MainModule;
 };
 
-type TimerHandle = ReturnType<typeof setTimeout>;
-
 type DevHelpers = {
     cleanupEventHandlers: () => void;
     getAppState: () => {
@@ -376,8 +378,6 @@ type DevHelpers = {
 
 type TestGlobals = typeof globalThis & {
     __electronHoistedMock?: typeof mockElectron;
-    __ffvTestKeepalive?: TimerHandle;
-    __ffvTestRetryTimers?: TimerHandle[];
 };
 
 const testGlobals = globalThis as TestGlobals;
@@ -542,18 +542,7 @@ describe("main.js - Electron Main Process", () => {
         vi.clearAllMocks();
         delete testGlobals.__electronHoistedMock;
         Reflect.deleteProperty(globalThis, "devHelpers");
-        const keepalive = testGlobals.__ffvTestKeepalive;
-        if (keepalive) {
-            clearInterval(keepalive);
-        }
-        delete testGlobals.__ffvTestKeepalive;
-        const retryTimers = testGlobals.__ffvTestRetryTimers;
-        if (Array.isArray(retryTimers)) {
-            for (const timer of retryTimers) {
-                clearTimeout(timer);
-            }
-        }
-        delete testGlobals.__ffvTestRetryTimers;
+        clearPrimeTestEnvironmentTimers();
         clearGyazoStartupTimer();
 
         // Clear the main module from cache to reset its state

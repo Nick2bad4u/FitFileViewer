@@ -200,14 +200,11 @@
         }
     }
 
+    let testKeepaliveTimer: ReturnType<typeof setInterval> | undefined;
+    const testRetryTimers = new Set<ReturnType<typeof setTimeout>>();
+
     function rememberTestTimer(handle: ReturnType<typeof setTimeout>): void {
-        const timerKey = "__ffvTestRetryTimers";
-        const existing = getProperty(globalThis, timerKey);
-        const timers = Array.isArray(existing)
-            ? (existing as Array<ReturnType<typeof setTimeout>>)
-            : [];
-        timers.push(handle);
-        Reflect.set(globalThis, timerKey, timers);
+        testRetryTimers.add(handle);
     }
 
     function scheduleTestRetry(callback: () => void): void {
@@ -334,18 +331,26 @@
     }
 
     function installTestKeepalive(): void {
-        if (getProperty(globalThis, "__ffvTestKeepalive")) {
+        if (testKeepaliveTimer) {
             return;
         }
 
         keepaliveTick();
-        Reflect.set(
-            globalThis,
-            "__ffvTestKeepalive",
-            setInterval(() => {
-                keepaliveTick();
-            }, 1)
-        );
+        testKeepaliveTimer = setInterval(() => {
+            keepaliveTick();
+        }, 1);
+    }
+
+    function clearPrimeTestEnvironmentTimers(): void {
+        if (testKeepaliveTimer) {
+            clearInterval(testKeepaliveTimer);
+            testKeepaliveTimer = undefined;
+        }
+
+        for (const timer of testRetryTimers) {
+            clearTimeout(timer);
+        }
+        testRetryTimers.clear();
     }
 
     /**
@@ -408,5 +413,8 @@
         }
     }
 
-    module.exports = { primeTestEnvironment };
+    module.exports = {
+        clearPrimeTestEnvironmentTimers,
+        primeTestEnvironment,
+    };
 }

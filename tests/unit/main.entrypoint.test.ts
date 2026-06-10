@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
+const { clearPrimeTestEnvironmentTimers } =
+    require("../../electron-app/main/runtime/primeTestEnvironment") as {
+        clearPrimeTestEnvironmentTimers: () => void;
+    };
+
 type Listener = (...args: unknown[]) => void;
 
 type EventMap = Map<string, Set<Listener>>;
@@ -398,19 +403,7 @@ const originalPlatformDescriptor: PlatformDescriptor =
     Object.getOwnPropertyDescriptor(process, "platform");
 
 function clearRuntimeTimers(): void {
-    const keepalive = Reflect.get(globalThis, "__ffvTestKeepalive");
-    if (keepalive) {
-        clearInterval(keepalive as ReturnType<typeof setInterval>);
-        Reflect.deleteProperty(globalThis, "__ffvTestKeepalive");
-    }
-
-    const retryTimers = Reflect.get(globalThis, "__ffvTestRetryTimers");
-    if (Array.isArray(retryTimers)) {
-        for (const timer of retryTimers as ReturnType<typeof setTimeout>[]) {
-            clearTimeout(timer);
-        }
-        Reflect.deleteProperty(globalThis, "__ffvTestRetryTimers");
-    }
+    clearPrimeTestEnvironmentTimers();
 }
 
 function restorePlatform(): void {
