@@ -181,7 +181,7 @@ Artifacts are configured via `electron-builder` to include NSIS, Squirrel, AppIm
 
 ## Development Tips
 
-- Use `__renderer_dev` (renderer console) to inspect state snapshots and performance metrics.
+- Renderer debug helpers are module-owned test/development tools, not renderer console globals.
 - Main process exposes `globalThis.devHelpers` (in dev/test) for window state debugging.
 - Vitest uses the root `tests/vitest/stubs/electron-virtual.cjs` alias plus targeted `vi.doMock` calls to simulate Electron APIs.
 - Scripts in `scripts/` (PowerShell/Node) automate cleanup, changelog updates, and testing migrations.

@@ -25,10 +25,9 @@ describe("renderer global surfaces wiring", () => {
         vi.restoreAllMocks();
     });
 
-    it("installs development globals and logs startup through one renderer surface", () => {
+    it("logs startup without installing renderer globals", () => {
         expect.assertions(4);
 
-        const scope = {} as typeof globalThis;
         const logRenderer =
             vi.fn<
                 (
@@ -44,13 +43,12 @@ describe("renderer global surfaces wiring", () => {
             isOpeningFileRef: { value: false },
             logRenderer,
             performanceMonitor: createPerformanceMonitor(),
-            scope,
             validateDOMElements: () => true,
         });
 
-        expect(Reflect.get(scope, "createExportGPXButton")).toBeUndefined();
-        expect(Reflect.get(scope, "APP_INFO")).toBeUndefined();
+        expect(Reflect.get(globalThis, "createExportGPXButton")).toBeUndefined();
+        expect(Reflect.get(globalThis, "APP_INFO")).toBeUndefined();
         expect(logRenderer).toHaveBeenCalledWith("log", "Environment:", "test");
-        expect(Reflect.get(scope, "__renderer_dev")).toBeUndefined();
+        expect(Reflect.get(globalThis, "__renderer_dev")).toBeUndefined();
     });
 });

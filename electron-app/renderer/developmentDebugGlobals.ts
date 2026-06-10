@@ -18,6 +18,10 @@ type DevelopmentDebugLogger = (
     ...args: unknown[]
 ) => void;
 type DevelopmentCoreModuleResolver = () => Promise<Record<string, unknown>>;
+type RendererDevelopmentDebugTools = {
+    readonly rendererDebug: Record<string, unknown>;
+    readonly rendererDev: Record<string, unknown>;
+};
 
 interface RendererDevelopmentDebugGlobalsOptions {
     appState: unknown;
@@ -28,7 +32,6 @@ interface RendererDevelopmentDebugGlobalsOptions {
     isOpeningFileRef: { value: boolean };
     logRenderer: DevelopmentDebugLogger;
     performanceMonitor: RendererPerformanceMonitor;
-    scope?: typeof globalThis;
     validateDOMElements: () => boolean;
 }
 
@@ -44,25 +47,30 @@ const APP_INFO = {
 
 export { APP_INFO };
 
-export function installRendererDevelopmentDebugGlobals(
+let latestRendererDevelopmentDebugTools: RendererDevelopmentDebugTools | null =
+    null;
+
+export function createRendererDevelopmentDebugTools(
     options: RendererDevelopmentDebugGlobalsOptions
-): Record<string, unknown> | null {
+): RendererDevelopmentDebugTools | null {
     if (!options.isDevelopmentMode()) {
+        latestRendererDevelopmentDebugTools = null;
         return null;
     }
 
-    const scope = options.scope ?? globalThis;
     const rendererDebugTools = createRendererDebugTools(options);
-    Reflect.set(scope, "__renderer_debug", rendererDebugTools);
-
     const rendererDevTools = createRendererDevTools(options);
-    Reflect.set(scope, "__renderer_dev", rendererDevTools);
+    const debugTools = {
+        rendererDebug: rendererDebugTools,
+        rendererDev: rendererDevTools,
+    };
+    latestRendererDevelopmentDebugTools = debugTools;
 
     void loadDevelopmentDebugUtilities(rendererDevTools, options);
 
     options.logRenderer(
         "log",
-        "[Renderer] Development utilities available at window.__renderer_dev"
+        "[Renderer] Development utilities initialized"
     );
     options.logRenderer(
         "log",
@@ -70,7 +78,11 @@ export function installRendererDevelopmentDebugGlobals(
         options.performanceMonitor.getMetrics()
     );
 
-    return rendererDevTools;
+    return debugTools;
+}
+
+export function getRendererDevelopmentDebugToolsForTests(): RendererDevelopmentDebugTools | null {
+    return latestRendererDevelopmentDebugTools;
 }
 
 function createRendererDebugTools(
@@ -214,20 +226,20 @@ async function loadDevelopmentDebugUtilities(
             { testFaveroCase, testFaveroStringCase, testNewFormatting } =
                 await import("../utils/debug/debugChartFormatting.js");
 
-        Reflect.set(options.scope ?? globalThis, "__sensorDebug", {
+        rendererDevTools["sensorDebug"] = {
             checkDataAvailability,
             debugSensorInfo,
             showDataKeys,
             showSensorNames,
             testManufacturerId,
             testProductId,
-        });
+        };
 
-        Reflect.set(options.scope ?? globalThis, "__debugChartFormatting", {
+        rendererDevTools["debugChartFormatting"] = {
             testFaveroCase,
             testFaveroStringCase,
             testNewFormatting,
-        });
+        };
 
         logDevelopmentDebugCommands(options.logRenderer);
     } catch (error) {
@@ -384,76 +396,7 @@ function getRuntimeInfo(): Record<string, unknown> {
 function logDevelopmentDebugCommands(
     logRenderer: DevelopmentDebugLogger
 ): void {
-    logRenderer("log", "🛠️  Debug utilities loaded!");
-    logRenderer("log", "📊 Sensor Debug Commands:");
-    logRenderer(
-        "log",
-        "  __sensorDebug.checkDataAvailability()     - Check if FIT data is loaded"
-    );
-    logRenderer(
-        "log",
-        "  __sensorDebug.debugSensorInfo()           - Full sensor analysis"
-    );
-    logRenderer(
-        "log",
-        "  __sensorDebug.debugSensorInfo(true)       - Verbose sensor analysis"
-    );
-    logRenderer(
-        "log",
-        "  __sensorDebug.showSensorNames()           - Quick sensor name list"
-    );
-    logRenderer(
-        "log",
-        "  __sensorDebug.testManufacturerId(269)     - Test manufacturer ID (e.g., Favero)"
-    );
-    logRenderer(
-        "log",
-        "  __sensorDebug.testProductId(269, 12)      - Test product ID (e.g., Favero assioma_duo)"
-    );
-    logRenderer(
-        "log",
-        "  __sensorDebug.showDataKeys()              - Show all available data keys"
-    );
-    logRenderer("log", "");
-    logRenderer("log", "🧪 Format Testing Commands:");
-    logRenderer(
-        "log",
-        "  __debugChartFormatting.testNewFormatting()      - Test all formatting scenarios"
-    );
-    logRenderer(
-        "log",
-        "  __debugChartFormatting.testFaveroCase()         - Test the specific Favero case"
-    );
-    logRenderer(
-        "log",
-        "  __debugChartFormatting.testFaveroStringCase()   - Test Favero with string manufacturer name"
-    );
-    logRenderer("log", "");
-    logRenderer("log", "🏗️  State Management Debug Commands:");
-    logRenderer(
-        "log",
-        "  __renderer_dev.debugState()               - Show current state and history"
-    );
-    logRenderer(
-        "log",
-        "  __renderer_dev.getState()                 - Get current application state"
-    );
-    logRenderer(
-        "log",
-        "  __renderer_dev.getStateHistory()          - Get state change history"
-    );
-    logRenderer(
-        "log",
-        "  __renderer_dev.stateManager               - Access state manager directly"
-    );
-    logRenderer(
-        "log",
-        "  __renderer_dev.AppActions                 - Access app actions"
-    );
-    logRenderer(
-        "log",
-        "  __renderer_dev.uiStateManager             - Access UI state manager"
-    );
+    logRenderer("log", "Renderer development debug utilities loaded");
 }
 
 function toModuleRecord(value: unknown): Record<string, unknown> {

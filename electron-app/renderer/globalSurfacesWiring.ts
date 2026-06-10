@@ -4,7 +4,7 @@ import {
 } from "../utils/app/initialization/rendererEnvironment.js";
 import {
     APP_INFO,
-    installRendererDevelopmentDebugGlobals,
+    createRendererDevelopmentDebugTools,
 } from "./developmentDebugGlobals.js";
 import { logRendererStartupInfo } from "./rendererStartupInfo.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
@@ -24,22 +24,19 @@ type RendererGlobalSurfacesOptions = {
     readonly isOpeningFileRef: { value: boolean };
     readonly logRenderer: RendererGlobalSurfacesLogger;
     readonly performanceMonitor: RendererPerformanceMonitor;
-    readonly scope?: typeof globalThis;
     readonly validateDOMElements: () => boolean;
 };
 
 export function installRendererGlobalSurfaces(
     options: RendererGlobalSurfacesOptions
 ): void {
-    const scope = options.scope ?? globalThis;
-
     logRendererStartupInfo({
         appInfo: APP_INFO,
         environment: getEnvironment(),
         logRenderer: options.logRenderer,
     });
 
-    installRendererDevelopmentDebugGlobals({
+    createRendererDevelopmentDebugTools({
         appState: options.appState,
         cleanup: options.cleanup,
         ensureCoreModules: options.ensureCoreModules,
@@ -48,7 +45,6 @@ export function installRendererGlobalSurfaces(
         isOpeningFileRef: options.isOpeningFileRef,
         logRenderer: options.logRenderer,
         performanceMonitor: options.performanceMonitor,
-        scope,
         validateDOMElements: options.validateDOMElements,
     });
 }

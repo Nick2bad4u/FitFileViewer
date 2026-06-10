@@ -212,6 +212,14 @@ const importRendererFresh = async () => {
     };
 };
 
+async function getRendererDevToolsForStrictTest(): Promise<any> {
+    const { getRendererDevelopmentDebugToolsForTests } = await import(
+        "../../../../electron-app/renderer/developmentDebugGlobals.js"
+    );
+
+    return getRendererDevelopmentDebugToolsForTests()?.rendererDev;
+}
+
 describe("renderer.js strict behavior", () => {
     let errors: string[] = [];
     let logs: string[] = [];
@@ -284,7 +292,7 @@ describe("renderer.js strict behavior", () => {
 
         const { spies } = await importRendererFresh();
         // Ensure global error handlers are attached via full initialization
-        const dev: any = (window as any).__renderer_dev;
+        const dev = await getRendererDevToolsForStrictTest();
         expect(dev.reinitialize).toBeTypeOf("function");
         await dev.reinitialize();
         // Give any queued work a chance to attach listeners
@@ -317,7 +325,7 @@ describe("renderer.js strict behavior", () => {
         expect.assertions(4);
 
         await importRendererFresh();
-        const dev = (window as any).__renderer_dev;
+        const dev = await getRendererDevToolsForStrictTest();
         expect({
             APP_INFO: {
                 ...dev.APP_INFO,

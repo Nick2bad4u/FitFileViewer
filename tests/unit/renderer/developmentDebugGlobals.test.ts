@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     APP_INFO,
-    installRendererDevelopmentDebugGlobals,
+    createRendererDevelopmentDebugTools,
 } from "../../../electron-app/renderer/developmentDebugGlobals.js";
 import type { RendererPerformanceMonitor } from "../../../electron-app/renderer/startupPerformanceMonitor.js";
 import {
@@ -69,7 +69,7 @@ describe("renderer development debug globals", () => {
         expect.assertions(2);
 
         expect(
-            installRendererDevelopmentDebugGlobals({
+            createRendererDevelopmentDebugTools({
                 appState: null,
                 cleanup: vi.fn(),
                 ensureCoreModules: async () => ({}),
@@ -84,8 +84,8 @@ describe("renderer development debug globals", () => {
         expect(Reflect.get(globalThis, "__renderer_dev")).toBeUndefined();
     });
 
-    it("installs renderer dev/debug globals and resolves core debug functions", async () => {
-        expect.assertions(21);
+    it("creates renderer dev/debug tools without publishing globals", async () => {
+        expect.assertions(24);
 
         const handleOpenFile = vi.fn<(...args: unknown[]) => string>(
             () => "opened"
@@ -99,7 +99,7 @@ describe("renderer development debug globals", () => {
         const logRenderer = vi.fn();
         process.env.NODE_ENV = "development";
 
-        installRendererDevelopmentDebugGlobals({
+        const debugTools = createRendererDevelopmentDebugTools({
             appState: null,
             cleanup: vi.fn(),
             ensureCoreModules: async () => ({
@@ -117,19 +117,21 @@ describe("renderer development debug globals", () => {
         });
         await vi.dynamicImportSettled();
 
-        const rendererDebug = Reflect.get(globalThis, "__renderer_debug") as {
+        const rendererDebug = debugTools?.rendererDebug as {
             handleOpenFile: (...args: unknown[]) => Promise<unknown>;
         };
-        const rendererDev = Reflect.get(globalThis, "__renderer_dev") as {
+        const rendererDev = debugTools?.rendererDev as {
             APP_INFO: typeof APP_INFO;
             AppActions?: unknown;
             chartDebug: boolean;
             chartDebugVerbose: boolean;
+            debugChartFormatting?: Record<string, unknown>;
             chartFullscreenTrace: boolean;
             debug: boolean;
             debugState: () => void;
             getPerformanceMetrics: () => Record<string, number>;
             getState: () => Promise<unknown>;
+            sensorDebug?: Record<string, unknown>;
             stateManager: Promise<unknown>;
             uiStateManager?: unknown;
         };
@@ -143,7 +145,12 @@ describe("renderer development debug globals", () => {
         rendererDev.debugState();
         await Promise.resolve();
 
-        expect(Reflect.get(globalThis, "__renderer_dev")).toBe(rendererDev);
+        expect(Reflect.get(globalThis, "__renderer_debug")).toBeUndefined();
+        expect(Reflect.get(globalThis, "__renderer_dev")).toBeUndefined();
+        expect(Reflect.get(globalThis, "__sensorDebug")).toBeUndefined();
+        expect(
+            Reflect.get(globalThis, "__debugChartFormatting")
+        ).toBeUndefined();
         expect(rendererDev.APP_INFO).toBe(APP_INFO);
         expect(rendererDev.debug).toBe(false);
         rendererDev.debug = true;
@@ -169,14 +176,12 @@ describe("renderer development debug globals", () => {
         expect(masterStateManager.getState).toHaveBeenCalled();
         expect(masterStateManager.getHistory).toHaveBeenCalled();
         expect(masterStateManager.getSubscriptions).toHaveBeenCalled();
-        expect(Reflect.get(globalThis, "__sensorDebug")).toMatchObject({
+        expect(rendererDev.sensorDebug).toMatchObject({
             checkDataAvailability: expect.any(Function),
         });
-        expect(Reflect.get(globalThis, "__debugChartFormatting")).toMatchObject(
-            {
-                testNewFormatting: expect.any(Function),
-            }
-        );
+        expect(rendererDev.debugChartFormatting).toMatchObject({
+            testNewFormatting: expect.any(Function),
+        });
     });
 
     it("reports runtime information without assuming browser-only globals", () => {

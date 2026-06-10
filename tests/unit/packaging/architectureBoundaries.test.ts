@@ -371,6 +371,8 @@ const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const directRendererDevGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.__renderer_dev\b|["']__renderer_dev["']/u;
+const rendererDevelopmentDebugGlobalPattern =
+    /\b(?:window|globalThis|rendererGlobal)\.(?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)\b|["'](?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)["']/u;
 const directDataTableGlobalPattern =
     /\b(?:window|globalThis|tableGlobal|renderTableGlobal)\.(?:\$|jQuery|DataTable)\b|\.jQuery\b/u;
 const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
@@ -1120,6 +1122,21 @@ describe("architecture boundaries", () => {
         const violations = migratedRendererDebugLoggingStateFiles
             .filter((relativeFile) =>
                 directRendererDevGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps renderer development debug helpers off global surfaces", () => {
+        expect.assertions(1);
+
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter((relativeFile) =>
+                rendererDevelopmentDebugGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
