@@ -1,3 +1,5 @@
+import { getRendererElectronApi } from "../utils/runtime/electronApiRuntime.js";
+
 export type RendererApplyTheme = (
     theme: string,
     withTransition?: boolean
@@ -66,7 +68,18 @@ export function getElectronApiHooksFromValue(
 export function getElectronApiStartupHooks(
     scope: typeof globalThis = globalThis
 ): ElectronApiStartupHooks | null {
-    return getElectronApiHooksFromValue(Reflect.get(scope, "electronAPI"));
+    const electronApi = getRendererElectronApi(
+        isElectronApiStartupHookSource,
+        scope
+    );
+
+    return getElectronApiHooksFromValue(electronApi);
+}
+
+function isElectronApiStartupHookSource(
+    value: unknown
+): value is Record<string, unknown> {
+    return getElectronApiHooksFromValue(value) !== null;
 }
 
 export function probeDevelopmentMode(apiHooks: ElectronApiStartupHooks): void {

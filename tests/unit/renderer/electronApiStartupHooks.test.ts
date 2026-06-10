@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getElectronApiHooksFromValue,
@@ -6,8 +6,17 @@ import {
     probeDevelopmentMode,
     registerStartupElectronHooks,
 } from "../../../electron-app/renderer/electronApiStartupHooks.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 describe("renderer Electron API startup hooks", () => {
+    afterEach(() => {
+        resetRendererElectronApiCandidate();
+        vi.restoreAllMocks();
+    });
+
     it("extracts only callable startup hooks from an Electron API object", () => {
         expect.assertions(1);
 
@@ -40,6 +49,24 @@ describe("renderer Electron API startup hooks", () => {
 
         expect(getElectronApiHooksFromValue(undefined)).toBeNull();
         expect(getElectronApiStartupHooks({} as typeof globalThis)).toBeNull();
+    });
+
+    it("reads startup hooks from the registered Electron API candidate", () => {
+        expect.assertions(1);
+
+        const checkForUpdates = vi.fn<() => void>();
+        const recentFiles = vi.fn<() => Promise<string[]>>();
+        registerRendererElectronApiCandidate({
+            checkForUpdates,
+            recentFiles,
+        });
+
+        expect(getElectronApiStartupHooks({} as typeof globalThis)).toEqual(
+            expect.objectContaining({
+                checkForUpdates,
+                recentFiles,
+            })
+        );
     });
 
     it("wires menu and theme callbacks while isolating callback failures", async () => {

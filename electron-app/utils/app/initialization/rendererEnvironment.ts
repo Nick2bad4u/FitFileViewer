@@ -1,4 +1,9 @@
 /** Runtime environment names used by the renderer bootstrap. */
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../../runtime/electronApiRuntime.js";
+
 export type RendererEnvironmentName = "development" | "production";
 
 interface RendererLocationParts {
@@ -41,9 +46,12 @@ function hasDocumentDevModeFlag(globalScope: object): boolean {
 }
 
 function hasElectronDevModeFlag(globalScope: object): boolean {
-    const electronApi = toRecord(Reflect.get(globalScope, "electronAPI"));
-
-    return Reflect.get(electronApi, "__devMode") !== undefined;
+    return (
+        getRendererElectronApi(
+            isElectronDevModeApi,
+            globalScope as RendererElectronApiScope
+        ) !== null
+    );
 }
 
 function isDebugRendererLocation(locationParts: RendererLocationParts): boolean {
@@ -66,6 +74,12 @@ function toRecord(value: unknown): Record<string, unknown> {
     return typeof value === "object" && value !== null
         ? (value as Record<string, unknown>)
         : {};
+}
+
+function isElectronDevModeApi(value: unknown): value is {
+    readonly __devMode: unknown;
+} {
+    return Reflect.get(toRecord(value), "__devMode") !== undefined;
 }
 
 /**

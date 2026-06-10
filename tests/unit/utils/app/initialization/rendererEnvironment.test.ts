@@ -1,9 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
 import {
     getEnvironment,
     isDevelopmentMode,
 } from "../../../../../electron-app/utils/app/initialization/rendererEnvironment.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function createScope(overrides: Record<string, unknown> = {}): object {
     return {
@@ -18,6 +22,10 @@ function createScope(overrides: Record<string, unknown> = {}): object {
 }
 
 describe("rendererEnvironment", () => {
+    afterEach(() => {
+        resetRendererElectronApiCandidate();
+    });
+
     it("classifies a remote app URL without flags as production", () => {
         expect.assertions(2);
 
@@ -145,6 +153,18 @@ describe("rendererEnvironment", () => {
         }).toStrictEqual({
             development: false,
         });
+    });
+
+    it("reads electron __devMode from the registered Electron API candidate", () => {
+        expect.assertions(1);
+
+        registerRendererElectronApiCandidate({ __devMode: false });
+
+        expect({ development: isDevelopmentMode(createScope()) }).toStrictEqual(
+            {
+                development: true,
+            }
+        );
     });
 
     it("defaults to production when global inspection throws", () => {

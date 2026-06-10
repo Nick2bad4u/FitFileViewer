@@ -41,6 +41,10 @@ const stateDomainRoots = ["electron-app/utils/state/domain"] as const;
 const stateCoreRoots = ["electron-app/utils/state/core"] as const;
 const rendererEntrypointFiles = ["electron-app/renderer.ts"] as const;
 const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
+const rendererElectronApiRuntimeSourceFiles = [
+    "electron-app/renderer/electronApiStartupHooks.ts",
+    "electron-app/utils/app/initialization/rendererEnvironment.ts",
+] as const;
 const rendererElectronApiRuntimeRegressionTests = [
     "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
     "tests/unit/files/import/loadSingleOverlayFile.fitPayload.test.ts",
@@ -2521,5 +2525,26 @@ describe("architecture boundaries", () => {
 
         expect(directElectronApiGlobals).toStrictEqual([]);
         expect(missingRuntimeRegistration).toStrictEqual([]);
+    });
+
+    it("keeps migrated renderer source on the registered Electron API runtime", () => {
+        expect.assertions(2);
+
+        const directElectronApiGlobals = rendererElectronApiRuntimeSourceFiles
+            .filter((relativeFile) =>
+                directElectronApiGlobalReadPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const missingRuntimeLookup = rendererElectronApiRuntimeSourceFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return !source.includes("getRendererElectronApi");
+            })
+            .sort();
+
+        expect(directElectronApiGlobals).toStrictEqual([]);
+        expect(missingRuntimeLookup).toStrictEqual([]);
     });
 });
