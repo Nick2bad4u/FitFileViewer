@@ -188,6 +188,8 @@ const migratedElectronApiAccessorFiles = [
     "electron-app/utils/ui/notifications/showUpdateNotification.ts",
     "electron-app/utils/ui/settingsModal.ts",
     "electron-app/utils/ui/links/externalLinkHandlers.ts",
+    "electron-app/utils/theming/core/setupTheme.ts",
+    "electron-app/utils/theming/core/theme.ts",
 ] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",

@@ -8,6 +8,7 @@ import {
     setState,
     subscribe,
 } from "../../state/core/stateManager.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 /** Canonical persisted theme values understood by the theme setup flow. */
@@ -26,9 +27,7 @@ type ListenForThemeChangeCallback = (
     callback: (theme: unknown) => void
 ) => void;
 type LogLevel = "error" | "info" | "warn";
-type ThemeSetupGlobal = typeof globalThis & {
-    electronAPI?: Partial<Pick<ElectronAPI, "getTheme">>;
-};
+type ThemeSetupElectronApi = Partial<Pick<ElectronAPI, "getTheme">>;
 
 // Constants for better maintainability
 const THEME_CONSTANTS = {
@@ -228,9 +227,9 @@ function applyAndTrackTheme(
 
 async function fetchThemeFromMainProcess(): Promise<ThemePreference> {
     const { DEFAULT_THEME, TIMEOUT } = THEME_CONSTANTS;
-    const themeGlobal = globalThis as ThemeSetupGlobal;
+    const electronAPI = getRendererElectronApi(isThemeSetupElectronApi);
 
-    if (!themeGlobal.electronAPI?.getTheme) {
+    if (!electronAPI?.getTheme) {
         logWithContext(
             "ElectronAPI getTheme not available, using default theme",
             "warn"
@@ -240,9 +239,7 @@ async function fetchThemeFromMainProcess(): Promise<ThemePreference> {
 
     try {
         let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
-        const themePromise = Promise.resolve(
-                themeGlobal.electronAPI.getTheme()
-            ),
+        const themePromise = Promise.resolve(electronAPI.getTheme()),
             timeoutPromise = new Promise<never>((_, reject) => {
                 timeoutHandle = setTimeout(
                     () => reject(new Error("Theme fetch timeout")),
@@ -277,6 +274,17 @@ async function fetchThemeFromMainProcess(): Promise<ThemePreference> {
         );
         return DEFAULT_THEME;
     }
+}
+
+function isThemeSetupElectronApi(
+    value: unknown
+): value is ThemeSetupElectronApi {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const getTheme = (value as Record<string, unknown>)["getTheme"];
+    return getTheme === undefined || typeof getTheme === "function";
 }
 
 function isValidTheme(theme: unknown): theme is ThemePreference {

@@ -1,4 +1,5 @@
 import { initializeAccentColor } from "./accentColor.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 /**
@@ -467,8 +468,7 @@ export function listenForSystemThemeChange(): (() => void) | undefined {
 export function listenForThemeChange(
     onThemeChange: (theme: string) => void
 ): void {
-    const electronAPI = (globalThis as { electronAPI?: RendererThemeApi })
-        .electronAPI;
+    const electronAPI = getRendererElectronApi(isRendererThemeApi);
     if (
         electronAPI &&
         typeof electronAPI.onSetTheme === "function" &&
@@ -490,6 +490,21 @@ export function listenForThemeChange(
             "Electron API is not available. Theme change listener is not active."
         );
     }
+}
+
+function isRendererThemeApi(value: unknown): value is RendererThemeApi {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const api = value as Record<string, unknown>;
+    const onSetTheme = api["onSetTheme"];
+    const sendThemeChanged = api["sendThemeChanged"];
+    return (
+        (onSetTheme === undefined || typeof onSetTheme === "function") &&
+        (sendThemeChanged === undefined ||
+            typeof sendThemeChanged === "function")
+    );
 }
 
 /**
