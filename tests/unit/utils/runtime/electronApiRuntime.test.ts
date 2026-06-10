@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getRendererElectronApi,
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
     type RendererElectronApiScope,
 } from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
@@ -20,6 +22,7 @@ function isExternalOpenApi(value: unknown): value is ExternalOpenApi {
 
 describe("electronApiRuntime", () => {
     afterEach(() => {
+        resetRendererElectronApiCandidate();
         Reflect.deleteProperty(globalThis, "electronAPI");
     });
 
@@ -76,5 +79,26 @@ describe("electronApiRuntime", () => {
         });
 
         expect(getRendererElectronApi(isExternalOpenApi)).toBe(api);
+    });
+
+    it("prefers a registered API candidate over ambient globals", () => {
+        expect.assertions(2);
+
+        const ambientApi = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+        const registeredApi = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+        Object.defineProperty(globalThis, "electronAPI", {
+            configurable: true,
+            value: ambientApi,
+        });
+
+        registerRendererElectronApiCandidate(registeredApi);
+        expect(getRendererElectronApi(isExternalOpenApi)).toBe(registeredApi);
+
+        resetRendererElectronApiCandidate();
+        expect(getRendererElectronApi(isExternalOpenApi)).toBe(ambientApi);
     });
 });

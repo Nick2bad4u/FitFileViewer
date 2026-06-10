@@ -41,6 +41,11 @@ const stateDomainRoots = ["electron-app/utils/state/domain"] as const;
 const stateCoreRoots = ["electron-app/utils/state/core"] as const;
 const rendererEntrypointFiles = ["electron-app/renderer.ts"] as const;
 const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
+const fitFileImportElectronApiRegressionTests = [
+    "tests/unit/files/import/handleOpenFile.decodePayload.test.ts",
+    "tests/unit/files/import/loadSingleOverlayFile.fitPayload.test.ts",
+    "tests/unit/files/import/openFitFileFromPath.test.ts",
+] as const;
 const testSourceRoots = ["tests/unit", "tests/playwright"] as const;
 
 const sourceExtensions = new Set([
@@ -2454,5 +2459,34 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directShowFitDataTestGlobals).toStrictEqual([]);
+    });
+
+    it("keeps FIT file import tests on the registered Electron API runtime", () => {
+        expect.assertions(2);
+
+        const directElectronApiGlobals = fitFileImportElectronApiRegressionTests
+            .filter((relativeFile) =>
+                directElectronApiGlobalReadPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const missingRuntimeRegistration =
+            fitFileImportElectronApiRegressionTests
+                .filter((relativeFile) => {
+                    const source = stripComments(
+                        readRepositoryFile(relativeFile)
+                    );
+                    return (
+                        !source.includes(
+                            "registerRendererElectronApiCandidate"
+                        ) ||
+                        !source.includes("resetRendererElectronApiCandidate")
+                    );
+                })
+                .sort();
+
+        expect(directElectronApiGlobals).toStrictEqual([]);
+        expect(missingRuntimeRegistration).toStrictEqual([]);
     });
 });

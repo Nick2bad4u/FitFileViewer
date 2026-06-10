@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { loadSingleOverlayFile } from "../../../../electron-app/utils/files/import/loadSingleOverlayFile.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 import type { FitDecodeResult } from "../../../../electron-app/shared/fit";
 
 type DecodeFitFile = (
@@ -32,19 +36,18 @@ function createOverlayFile(name = "overlay.fit"): {
 async function withOverlayHarness(
     runTest: (harness: Harness) => Promise<void>
 ): Promise<void> {
-    const originalElectronAPI = globalThis.electronAPI;
     const harness: Harness = {
         decodeFitFile: vi.fn<DecodeFitFile>(),
     };
 
-    globalThis.electronAPI = {
+    registerRendererElectronApiCandidate({
         decodeFitFile: harness.decodeFitFile,
-    } as typeof globalThis.electronAPI;
+    });
 
     try {
         await runTest(harness);
     } finally {
-        globalThis.electronAPI = originalElectronAPI;
+        resetRendererElectronApiCandidate();
         vi.restoreAllMocks();
     }
 }

@@ -1,4 +1,5 @@
 import { getElectronApiHooksFromValue } from "./electronApiStartupHooks.js";
+import { registerRendererElectronApiCandidate } from "../utils/runtime/electronApiRuntime.js";
 
 type DefineProperty = typeof Object.defineProperty;
 type IntervalHandle = ReturnType<typeof setInterval>;
@@ -104,6 +105,8 @@ export function registerRendererElectronAPI(
     options: RendererElectronApiRegistrationOptions
 ): void {
     try {
+        registerRendererElectronApiCandidate(api);
+
         const hooks = getElectronApiHooksFromValue(api);
         if (hooks === null) {
             return;

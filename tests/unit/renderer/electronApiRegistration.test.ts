@@ -8,6 +8,10 @@ import {
     registerRendererElectronAPIFromPropertyDescriptor,
     startRendererElectronAPITestPolling,
 } from "../../../electron-app/renderer/electronApiRegistration.js";
+import {
+    getRendererElectronApi,
+    resetRendererElectronApiCandidate,
+} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function createOptions(scope: typeof globalThis = {} as typeof globalThis) {
     const state = {
@@ -80,11 +84,12 @@ describe("renderer Electron API registration", () => {
 
     afterEach(() => {
         Object.defineProperty = originalDefineProperty;
+        resetRendererElectronApiCandidate();
         vi.restoreAllMocks();
     });
 
     it("registers menu, theme, and development hooks from an Electron API", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const { api, emitMenu, emitTheme, isDevelopment } = createElectronApi();
         const { options, state } = createOptions();
@@ -98,6 +103,11 @@ describe("renderer Electron API registration", () => {
         expect(state.themeChanges).toStrictEqual(["dark"]);
         expect(state.scheduledCount).toBe(1);
         expect(isDevelopment).toHaveBeenCalledOnce();
+        expect(
+            getRendererElectronApi(
+                (value): value is typeof api => value === api
+            )
+        ).toBe(api);
     });
 
     it("installs an electronAPI accessor that registers reassigned API values", () => {
