@@ -243,7 +243,7 @@ describe("openZoneColorPicker", () => {
     });
 
     it("renders modal, updates colors, and applies changes for heart rate zones", async () => {
-        expect.assertions(20);
+        expect.assertions(21);
 
         const settingsWrapper = document.createElement("div");
         settingsWrapper.id = "chartjs-settings-wrapper";
@@ -390,7 +390,8 @@ describe("openZoneColorPicker", () => {
         expect(checkbox).toHaveProperty("checked", true);
         expect(resetAllSettingsMock).toHaveBeenCalledWith();
         expect(debouncedRenderMock).toHaveBeenCalledWith("Zone colors reset");
-        expect(globalNotificationMock).toHaveBeenCalledWith(
+        expect(globalNotificationMock).not.toHaveBeenCalled();
+        expect(showNotificationMock).toHaveBeenCalledWith(
             "Zone colors and settings reset to defaults",
             "success"
         );

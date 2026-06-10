@@ -37,7 +37,6 @@ type ChartInstance = {
 type ZoneColorPickerGlobal = typeof globalThis & {
     clearZoneColorData?: (field: string, zoneCount: number) => void;
     resetAllSettings?: () => void;
-    showNotification?: (message: string, type?: string) => void;
     updateInlineZoneColorSelectors?: (root: ParentNode) => void;
 };
 
@@ -650,19 +649,15 @@ export function openZoneColorPicker(field: string): void {
                     requestDirectChartRender("zone-colors-reset");
                 }
 
-                if (typeof zoneColorGlobal.showNotification === "function") {
-                    zoneColorGlobal.showNotification(
-                        "Zone colors and settings reset to defaults",
-                        "success"
-                    );
-                }
+                showNotification(
+                    "Zone colors and settings reset to defaults",
+                    "success"
+                );
             } catch (error) {
-                if (typeof zoneColorGlobal.showNotification === "function") {
-                    zoneColorGlobal.showNotification(
-                        `Failed to reset zone colors: ${getErrorMessage(error)}`,
-                        "error"
-                    );
-                }
+                showNotification(
+                    `Failed to reset zone colors: ${getErrorMessage(error)}`,
+                    "error"
+                );
                 console.error("[ZoneColorPicker] Reset all failed:", error);
             }
         });
