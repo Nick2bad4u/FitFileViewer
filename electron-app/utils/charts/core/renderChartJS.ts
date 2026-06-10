@@ -293,7 +293,6 @@ const chartStateManagementApi = createChartStateManagementApi({
 
 registerChartStartup({
     chartActions,
-    chartGlobal,
     loadSharedConfiguration,
     setGlobalChartActions,
 });

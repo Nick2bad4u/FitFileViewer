@@ -17,9 +17,6 @@ interface ProcessShim {
 
 interface RenderChartRuntimeGlobal {
     __chartjs_dev?: unknown;
-    _fitFileViewerChartListener?: unknown;
-    _fitFileViewerSharedConfigurationAbortController?: AbortController;
-    _fitFileViewerSharedConfigurationListener?: unknown;
     chartStateManager?: unknown;
     process?: ProcessShim;
     chartActions?: unknown;

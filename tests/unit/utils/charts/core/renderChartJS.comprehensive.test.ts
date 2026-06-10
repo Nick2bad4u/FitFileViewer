@@ -22,6 +22,7 @@ import {
     getRegisteredChartInstances,
     setRegisteredChartInstances,
 } from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import { resetChartListenerStateForTests } from "../../../../../electron-app/utils/charts/core/chartListenerState.js";
 
 type MockFn = (...args: unknown[]) => unknown;
 type VoidFn = (...args: unknown[]) => void;
@@ -140,7 +141,6 @@ declare global {
         Chart?: any;
         chartjsPluginZoom?: any;
         ChartZoom?: any;
-        _fitFileViewerChartListener?: boolean;
         JSZip?: any;
         performance: {
             now: () => number;
@@ -154,7 +154,6 @@ declare global {
     var Chart: any;
     var chartjsPluginZoom: any;
     var ChartZoom: any;
-    var _fitFileViewerChartListener: boolean;
     var JSZip: any;
 }
 
@@ -342,7 +341,7 @@ function injectChartJSMocks() {
     globalThis.chartjsPluginZoom = {};
     globalThis.ChartZoom = {};
     clearChartInstanceRegistryForTests();
-    globalThis._fitFileViewerChartListener = false;
+    resetChartListenerStateForTests();
     vi.stubGlobal("JSZip", vi.fn<MockFn>());
     globalThis.showNotification = mocks.showNotification.showNotification;
     globalThis.uiStateManager = mocks.uiStateManager.uiStateManager;
@@ -679,7 +678,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         globalThis.Chart = chartJsModuleMocks.Chart;
         globalThis.ChartZoom = chartJsModuleMocks.zoomPlugin;
         clearChartInstanceRegistryForTests();
-        globalThis._fitFileViewerChartListener = false;
+        resetChartListenerStateForTests();
 
         // Setup default state responses
         mocks.stateManager.getState.mockImplementation((path) => {

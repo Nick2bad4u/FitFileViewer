@@ -35,7 +35,6 @@ export function initializeChartRuntimeBootstrap(
 
     registerChartJsPlugins(chartGlobal as ChartPluginGlobal);
     registerChartRequestListener({
-        chartGlobal,
         getChartStateManager: () => dependencies.getChartStateManager(),
         renderChart: (container) => dependencies.renderChart(container),
     });

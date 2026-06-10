@@ -1,16 +1,14 @@
+import {
+    isChartRequestListenerRegistered,
+    registerChartRequestListenerController,
+} from "./chartListenerState.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
-
-interface ChartRequestListenerGlobal {
-    _fitFileViewerChartListenerAbortController?: AbortController;
-    _fitFileViewerChartListener?: unknown;
-}
 
 interface ChartRequestStateManager {
     debouncedRender(reason: string): void;
 }
 
 interface RegisterChartRequestListenerParams {
-    chartGlobal: ChartRequestListenerGlobal;
     getChartStateManager(): ChartRequestStateManager | null;
     renderChart(container: HTMLElement): unknown;
 }
@@ -45,14 +43,11 @@ function getFallbackChartContainer(): HTMLElement {
 export function registerChartRequestListener(
     params: RegisterChartRequestListenerParams
 ): void {
-    const { chartGlobal } = params;
-    if (chartGlobal._fitFileViewerChartListener === true) {
+    if (isChartRequestListenerRegistered()) {
         return;
     }
 
-    chartGlobal._fitFileViewerChartListener = true;
-    chartGlobal._fitFileViewerChartListenerAbortController =
-        new AbortController();
+    const signal = registerChartRequestListenerController();
 
     console.log(
         "[ChartJS] Chart state management is now handled by chartStateManager"
@@ -87,8 +82,7 @@ export function registerChartRequestListener(
                     });
             },
             {
-                signal: chartGlobal._fitFileViewerChartListenerAbortController
-                    .signal,
+                signal,
             }
         );
     } catch (listenerError) {

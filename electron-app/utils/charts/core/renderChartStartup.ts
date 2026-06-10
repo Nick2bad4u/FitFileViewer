@@ -1,31 +1,27 @@
-interface ChartStartupGlobal {
-    _fitFileViewerSharedConfigurationAbortController?: AbortController;
-    _fitFileViewerSharedConfigurationListener?: unknown;
-}
+import {
+    abortSharedConfigurationListener,
+    isSharedConfigurationListenerRegistered,
+    registerSharedConfigurationListenerController,
+} from "./chartListenerState.js";
 
 interface RegisterChartStartupParams {
     chartActions: unknown;
-    chartGlobal: ChartStartupGlobal;
     loadSharedConfiguration(): unknown;
     setGlobalChartActions(actions: unknown): void;
 }
 
 function registerSharedConfigurationLoader(
-    chartGlobal: ChartStartupGlobal,
     loadSharedConfiguration: () => unknown
 ): void {
     if (
         globalThis.window === undefined ||
         typeof globalThis.addEventListener !== "function" ||
-        chartGlobal._fitFileViewerSharedConfigurationListener
+        isSharedConfigurationListenerRegistered()
     ) {
         return;
     }
 
-    const abortController = new AbortController();
-    chartGlobal._fitFileViewerSharedConfigurationAbortController =
-        abortController;
-    chartGlobal._fitFileViewerSharedConfigurationListener = true;
+    const signal = registerSharedConfigurationListenerController();
 
     globalThis.addEventListener(
         "DOMContentLoaded",
@@ -33,12 +29,12 @@ function registerSharedConfigurationLoader(
             try {
                 loadSharedConfiguration();
             } finally {
-                abortController.abort();
+                abortSharedConfigurationListener();
             }
         },
         {
             once: true,
-            signal: abortController.signal,
+            signal,
         }
     );
 }
@@ -50,9 +46,7 @@ function registerSharedConfigurationLoader(
  * @param params - Startup dependencies supplied by renderChartJS.
  */
 export function registerChartStartup(params: RegisterChartStartupParams): void {
-    registerSharedConfigurationLoader(params.chartGlobal, () =>
-        params.loadSharedConfiguration()
-    );
+    registerSharedConfigurationLoader(() => params.loadSharedConfiguration());
 
     try {
         params.setGlobalChartActions(params.chartActions);
