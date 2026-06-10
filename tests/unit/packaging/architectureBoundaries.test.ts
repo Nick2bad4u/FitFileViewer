@@ -122,6 +122,10 @@ const migratedChartImportFiles = [
     "electron-app/utils/data/zones/renderSingleHRZoneBar.ts",
     "electron-app/utils/data/zones/renderSinglePowerZoneBar.ts",
 ] as const;
+const migratedChartPluginDebugStateFiles = [
+    "electron-app/utils/charts/plugins/chartBackgroundColorPlugin.ts",
+    "electron-app/utils/charts/plugins/chartZoomResetPlugin.ts",
+] as const;
 const rendererVendorBrowserPackageImportAllowedFiles = [
     "electron-app/renderer/vendorGlobalsChartData.ts",
     "electron-app/renderer/vendorGlobalsMap.ts",
@@ -317,6 +321,8 @@ const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
+const directRendererDevGlobalPattern =
+    /\b(?:window|globalThis|rendererGlobal)\.__renderer_dev\b|["']__renderer_dev["']/u;
 const directDataTableGlobalPattern =
     /\b(?:window|globalThis|tableGlobal|renderTableGlobal)\.(?:\$|jQuery|DataTable)\b|\.jQuery\b/u;
 const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
@@ -1020,6 +1026,20 @@ describe("architecture boundaries", () => {
             .flatMap(collectSourceFiles)
             .filter((relativeFile) =>
                 directChartConstructorGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps migrated chart plugins on typed renderer debug state", () => {
+        expect.assertions(1);
+
+        const violations = migratedChartPluginDebugStateFiles
+            .filter((relativeFile) =>
+                directRendererDevGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )

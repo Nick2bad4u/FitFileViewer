@@ -5,6 +5,10 @@ import {
     installRendererDevelopmentDebugGlobals,
 } from "../../../electron-app/renderer/developmentDebugGlobals.js";
 import type { RendererPerformanceMonitor } from "../../../electron-app/renderer/startupPerformanceMonitor.js";
+import {
+    isRendererDebugLoggingEnabled,
+    setRendererDebugLoggingEnabled,
+} from "../../../electron-app/utils/debug/rendererDebugLoggingState.js";
 
 vi.mock("../../../electron-app/utils/debug/debugSensorInfo.js", () => ({
     checkDataAvailability: vi.fn(),
@@ -38,6 +42,7 @@ describe("renderer development debug globals", () => {
         Reflect.deleteProperty(globalThis, "__renderer_debug");
         Reflect.deleteProperty(globalThis, "__renderer_dev");
         Reflect.deleteProperty(globalThis, "__sensorDebug");
+        setRendererDebugLoggingEnabled(false);
         vi.restoreAllMocks();
     });
 
@@ -61,7 +66,7 @@ describe("renderer development debug globals", () => {
     });
 
     it("installs renderer dev/debug globals and resolves core debug functions", async () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const handleOpenFile = vi.fn<(...args: unknown[]) => string>(
             () => "opened"
@@ -98,6 +103,7 @@ describe("renderer development debug globals", () => {
         const rendererDev = Reflect.get(globalThis, "__renderer_dev") as {
             APP_INFO: typeof APP_INFO;
             AppActions?: unknown;
+            debug: boolean;
             debugState: () => void;
             getPerformanceMetrics: () => Record<string, number>;
             getState: () => Promise<unknown>;
@@ -116,6 +122,9 @@ describe("renderer development debug globals", () => {
 
         expect(Reflect.get(globalThis, "__renderer_dev")).toBe(rendererDev);
         expect(rendererDev.APP_INFO).toBe(APP_INFO);
+        expect(rendererDev.debug).toBe(false);
+        rendererDev.debug = true;
+        expect(isRendererDebugLoggingEnabled()).toBe(true);
         expect(rendererDev.getPerformanceMetrics()).toStrictEqual({
             app_initialization: 12,
         });

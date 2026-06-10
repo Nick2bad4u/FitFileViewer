@@ -1,4 +1,8 @@
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
+import {
+    isRendererDebugLoggingEnabled,
+    setRendererDebugLoggingEnabled,
+} from "../utils/debug/rendererDebugLoggingState.js";
 
 type DevelopmentDebugLogLevel = "log" | "warn";
 type DevelopmentDebugLogger = (
@@ -86,6 +90,12 @@ function createRendererDevTools(
         APP_INFO,
         appState: options.appState,
         cleanup: options.cleanup,
+        get debug() {
+            return isRendererDebugLoggingEnabled();
+        },
+        set debug(value: unknown) {
+            setRendererDebugLoggingEnabled(value === true);
+        },
         debugState: () => {
             void logRendererDebugState(options);
         },

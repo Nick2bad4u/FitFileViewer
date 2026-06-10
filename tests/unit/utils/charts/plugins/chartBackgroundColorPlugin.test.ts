@@ -4,12 +4,7 @@ import {
     chartBackgroundColorPlugin,
     type ChartBackgroundColorChart,
 } from "../../../../../electron-app/utils/charts/plugins/chartBackgroundColorPlugin.js";
-
-interface RendererDevGlobal {
-    __renderer_dev?: {
-        debug?: boolean;
-    };
-}
+import { setRendererDebugLoggingEnabled } from "../../../../../electron-app/utils/debug/rendererDebugLoggingState.js";
 
 interface MockCanvasContext {
     fillRect: ReturnType<
@@ -43,13 +38,11 @@ function createChart(
 }
 
 function setRendererDebugEnabled(debug: boolean): void {
-    const rendererGlobal = globalThis as typeof globalThis & RendererDevGlobal;
-    rendererGlobal.__renderer_dev = { debug };
+    setRendererDebugLoggingEnabled(debug);
 }
 
 function clearRendererDebug(): void {
-    const rendererGlobal = globalThis as typeof globalThis & RendererDevGlobal;
-    delete rendererGlobal.__renderer_dev;
+    setRendererDebugLoggingEnabled(false);
 }
 
 describe("chartBackgroundColorPlugin", () => {

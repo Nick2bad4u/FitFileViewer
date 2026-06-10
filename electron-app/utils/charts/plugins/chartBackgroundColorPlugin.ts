@@ -1,3 +1,5 @@
+import { isRendererDebugLoggingEnabled } from "../../debug/rendererDebugLoggingState.js";
+
 /**
  * Plugin options accepted by the background color chart plugin.
  */
@@ -12,12 +14,6 @@ interface ChartBackgroundColorPluginConfig {
 interface ChartBackgroundColorChartOptions {
     plugins?: {
         chartBackgroundColorPlugin?: ChartBackgroundColorPluginConfig;
-    };
-}
-
-interface RendererDevGlobal {
-    __renderer_dev?: {
-        debug?: boolean;
     };
 }
 
@@ -78,12 +74,7 @@ function getCanvasBackgroundColor(
 }
 
 function shouldLogDebugMessages(): boolean {
-    const rendererGlobal = globalThis as typeof globalThis & RendererDevGlobal;
-
-    return (
-        globalThis.window !== undefined &&
-        rendererGlobal.__renderer_dev?.debug === true
-    );
+    return globalThis.window !== undefined && isRendererDebugLoggingEnabled();
 }
 
 /**
