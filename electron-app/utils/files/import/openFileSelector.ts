@@ -20,14 +20,6 @@ type FileSelectorInput = HTMLInputElement & {
     selectedFiles?: ArrayLike<File>;
 };
 
-type OverlayFilesLoader = (
-    files: Array<File | NativeFileFacade>
-) => Promise<void> | void;
-
-type FileSelectorGlobal = typeof globalThis & {
-    loadOverlayFiles?: OverlayFilesLoader;
-};
-
 type InputProcessingController = {
     done: Promise<void>;
     run: (origin?: string) => Promise<void>;
@@ -117,10 +109,6 @@ export async function openFileSelector(): Promise<void> {
         );
         LoadingOverlay.hide();
     }
-}
-
-function getFileSelectorGlobal(): FileSelectorGlobal {
-    return globalThis;
 }
 
 function isFileSelectorElectronApi(
@@ -268,9 +256,7 @@ async function handleFilesFromInput(input: HTMLInputElement): Promise<void> {
     console.debug(
         `${FILE_SELECTOR_CONFIG.LOG_PREFIX} Processing ${fileArray.length} selected file(s)`
     );
-    // Support test-time injection via window.loadOverlayFiles
-    const loader = resolveOverlayFilesLoader();
-    await loader(fileArray);
+    await loadOverlayFiles(fileArray);
 }
 
 function appendFileSource(
@@ -286,13 +272,6 @@ function appendFileSource(
             target.push(file);
         }
     }
-}
-
-function resolveOverlayFilesLoader(): OverlayFilesLoader {
-    const { loadOverlayFiles: injectedLoader } = getFileSelectorGlobal();
-    return typeof injectedLoader === "function"
-        ? injectedLoader
-        : loadOverlayFiles;
 }
 
 function setupFileInputHandler(

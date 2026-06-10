@@ -18,7 +18,6 @@ type OverlayFilesLoader = (
 
 type FileSelectorTestGlobal = typeof globalThis & {
     electronAPI?: FileSelectorElectronAPI;
-    loadOverlayFiles?: OverlayFilesLoader;
 };
 
 const mocks = vi.hoisted(() => ({
@@ -57,7 +56,6 @@ const appGlobal = globalThis as FileSelectorTestGlobal;
 
 function cleanupGlobals() {
     delete appGlobal.electronAPI;
-    delete appGlobal.loadOverlayFiles;
     document.body.replaceChildren();
     vi.restoreAllMocks();
     vi.clearAllMocks();
@@ -133,11 +131,10 @@ describe(openFileSelector, () => {
         }
     });
 
-    it("uses injected browser file input selections when native dialog is unavailable", async () => {
+    it("uses the imported overlay loader for browser file input selections when native dialog is unavailable", async () => {
         expect.assertions(4);
 
         const file = new File([new Uint8Array([1])], "overlay.fit");
-        const injectedLoader = vi.fn<OverlayFilesLoader>();
         const clickSpy = vi
             .spyOn(HTMLInputElement.prototype, "click")
             .mockImplementation(function selectFile(this: HTMLInputElement) {
@@ -149,12 +146,10 @@ describe(openFileSelector, () => {
             });
 
         try {
-            appGlobal.loadOverlayFiles = injectedLoader;
-
             await openFileSelector();
 
             expect(clickSpy).toHaveBeenCalledOnce();
-            expect(injectedLoader).toHaveBeenCalledWith([file]);
+            expect(mocks.loadOverlayFiles).toHaveBeenCalledWith([file]);
             expect(mocks.loadingHide).toHaveBeenCalledOnce();
             expect(document.body.childElementCount).toBe(0);
         } finally {

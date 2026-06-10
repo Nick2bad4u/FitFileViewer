@@ -268,6 +268,8 @@ const directOverlayHighlightGlobalPattern =
     /\b(?:window|globalThis|windowExt|w|getWin\(\)|overlayGlobal|getOverlayGlobal\(\)|getMapActionButtonsGlobal\(\))\._highlightedOverlayIdx\b|Object\.defineProperty\(\s*[^,\n]+,\s*["'](?:_highlightedOverlayIdx|updateOverlayHighlights)["']/u;
 const directShownFilesListGlobalPattern =
     /\b(?:window|globalThis|windowExt|overlayGlobal|getShownFilesGlobal\(\))\.updateShownFilesList\s*=/u;
+const directOverlayFilesLoaderGlobalPattern =
+    /\b(?:window|globalThis|appGlobal|getFileSelectorGlobal\(\))\.loadOverlayFiles\b/u;
 const directChartUpdaterGlobalPattern =
     /\b(?:window|globalThis|windowExt|chartGlobal|globalWindow|lifecycleGlobal|getChartResizeGlobal\(\))\.(?:ChartUpdater|chartUpdater)\b/u;
 const directMapMarkerCountGlobalPattern =
@@ -1547,7 +1549,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(79);
+        expect.assertions(80);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directGlobalDataWrites = scannedFiles
@@ -1717,6 +1719,13 @@ describe("architecture boundaries", () => {
         const directShownFilesListGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directShownFilesListGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const directOverlayFilesLoaderGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directOverlayFilesLoaderGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -2140,6 +2149,7 @@ describe("architecture boundaries", () => {
         expect(directAltFitGlobalSenderLookups).toStrictEqual([]);
         expect(directOverlayHighlightGlobalLookups).toStrictEqual([]);
         expect(directShownFilesListGlobalLookups).toStrictEqual([]);
+        expect(directOverlayFilesLoaderGlobalLookups).toStrictEqual([]);
         expect(directChartUpdaterGlobalLookups).toStrictEqual([]);
         expect(directMapMarkerCountGlobalLookups).toStrictEqual([]);
         expect(directMapActionTimerGlobalLookups).toStrictEqual([]);
