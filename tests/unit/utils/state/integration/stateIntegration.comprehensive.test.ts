@@ -7,7 +7,6 @@ declare global {
     var isChartRendered: any;
     var AppState: any;
     var chartControlsState: any;
-    var __state_debug: any;
     var __persistenceTimeout: any;
     var __performanceMonitoringInterval: any;
     var __DEVELOPMENT__: any;
@@ -36,16 +35,6 @@ vi.mock(
         uiStateManager: { initialize: vi.fn<() => void>() },
     })
 );
-vi.mock(
-    import("../../../../../electron-app/utils/app/lifecycle/appActions.js"),
-    () => ({
-        AppActions: {
-            testAction: vi.fn<(...args: unknown[]) => unknown>(),
-            anotherAction: vi.fn<(...args: unknown[]) => unknown>(),
-        },
-    })
-);
-
 // Get references to the mocked functions
 const mockStateManager = vi.mocked(
     await import("../../../../../electron-app/utils/state/core/stateManager.js")
@@ -53,9 +42,6 @@ const mockStateManager = vi.mocked(
 const mockUIStateManager = vi.mocked(
     await import("../../../../../electron-app/utils/state/domain/uiStateManager.js")
 ).uiStateManager;
-const mockAppActions = vi.mocked(
-    await import("../../../../../electron-app/utils/app/lifecycle/appActions.js")
-).AppActions;
 
 import { initializeAppState } from "../../../../../electron-app/utils/state/integration/stateIntegration.js";
 
@@ -63,28 +49,6 @@ const originalLocationDescriptor = Object.getOwnPropertyDescriptor(
     globalThis,
     "location"
 );
-
-const expectedDebugKeys = [
-    "AppActions",
-    "getState",
-    "logState",
-    "setState",
-    "triggerAction",
-    "uiStateManager",
-    "watchState",
-];
-
-function expectDebugUtilitiesConfigured(): void {
-    expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
-        expectedDebugKeys
-    );
-    expect(globalThis.__state_debug).toMatchObject({
-        AppActions: mockAppActions,
-        getState: mockStateManager.getState,
-        setState: mockStateManager.setState,
-        uiStateManager: mockUIStateManager,
-    });
-}
 
 // Mock localStorage
 const mockLocalStorage = {
@@ -140,7 +104,7 @@ describe("stateIntegration comprehensive coverage", () => {
         delete globalThis.isChartRendered;
         delete globalThis.AppState;
         delete globalThis.chartControlsState;
-        delete globalThis.__state_debug;
+        Reflect.deleteProperty(globalThis, "__state_debug");
         delete globalThis.__persistenceTimeout;
         delete globalThis.__performanceMonitoringInterval;
         delete globalThis.__DEVELOPMENT__;
@@ -157,7 +121,7 @@ describe("stateIntegration comprehensive coverage", () => {
         delete globalThis.isChartRendered;
         delete globalThis.AppState;
         delete globalThis.chartControlsState;
-        delete globalThis.__state_debug;
+        Reflect.deleteProperty(globalThis, "__state_debug");
         delete globalThis.__persistenceTimeout;
         delete globalThis.__performanceMonitoringInterval;
         delete globalThis.__DEVELOPMENT__;
@@ -284,13 +248,15 @@ describe("stateIntegration comprehensive coverage", () => {
             expect(
                 Object.getOwnPropertyDescriptor(globalThis, "globalData")
             ).toBeUndefined();
-            expect(globalThis.__state_debug).toBeUndefined();
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+            ).toBeUndefined();
 
             consoleSpy.mockRestore();
         });
 
         it("should initialize app state in development mode (smoke)", async () => {
-            expect.assertions(5);
+            expect.assertions(3);
 
             // Set development mode
             globalThis.__DEVELOPMENT__ = true;
@@ -308,11 +274,9 @@ describe("stateIntegration comprehensive coverage", () => {
                 mockStateManager.initializeStateManager
             ).toHaveBeenCalledOnce();
             expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
-
-            expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
-                expectedDebugKeys
-            );
-            expectDebugUtilitiesConfigured();
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+            ).toBeUndefined();
 
             consoleSpy.mockRestore();
         });
@@ -629,8 +593,8 @@ describe("stateIntegration comprehensive coverage", () => {
             });
         });
 
-        it("should detect development mode correctly - localhost", async () => {
-            expect.assertions(3);
+        it("should initialize localhost without publishing state debug globals", async () => {
+            expect.assertions(2);
 
             // Mock window.location for localhost
             Object.defineProperty(globalThis, "location", {
@@ -649,14 +613,16 @@ describe("stateIntegration comprehensive coverage", () => {
 
             initializeAppState();
 
-            expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
-                expectedDebugKeys
-            );
-            expectDebugUtilitiesConfigured();
+            expect(
+                mockStateManager.initializeStateManager
+            ).toHaveBeenCalledOnce();
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+            ).toBeUndefined();
         });
 
-        it("should detect development mode correctly - dev flag", async () => {
-            expect.assertions(3);
+        it("should initialize development mode without publishing state debug globals", async () => {
+            expect.assertions(2);
 
             globalThis.__DEVELOPMENT__ = true;
 
@@ -665,14 +631,16 @@ describe("stateIntegration comprehensive coverage", () => {
 
             initializeAppState();
 
-            expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
-                expectedDebugKeys
-            );
-            expectDebugUtilitiesConfigured();
+            expect(
+                mockStateManager.initializeStateManager
+            ).toHaveBeenCalledOnce();
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+            ).toBeUndefined();
         });
 
-        it("should detect development mode correctly - debug param", async () => {
-            expect.assertions(3);
+        it("should initialize debug param mode without publishing state debug globals", async () => {
+            expect.assertions(2);
 
             Object.defineProperty(globalThis, "location", {
                 value: {
@@ -690,13 +658,15 @@ describe("stateIntegration comprehensive coverage", () => {
 
             initializeAppState();
 
-            expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
-                expectedDebugKeys
-            );
-            expectDebugUtilitiesConfigured();
+            expect(
+                mockStateManager.initializeStateManager
+            ).toHaveBeenCalledOnce();
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+            ).toBeUndefined();
         });
 
-        it("should handle development mode detection errors", async () => {
+        it("should initialize when location access throws", async () => {
             expect.assertions(1);
 
             // Create a location object that throws on property access
@@ -712,8 +682,10 @@ describe("stateIntegration comprehensive coverage", () => {
 
             initializeAppState();
 
-            // Should not crash and should not set up debugging
-            expect(globalThis.__state_debug).toBeUndefined();
+            // Startup should not depend on browser location access.
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+            ).toBeUndefined();
         });
     });
 
@@ -791,7 +763,7 @@ describe("stateIntegration comprehensive coverage", () => {
     });
 
     describe("debug utilities", () => {
-        it("should set up debug utilities in development mode", async () => {
+        it("should keep state debug globals absent in development mode", async () => {
             expect.assertions(3);
 
             globalThis.__DEVELOPMENT__ = true;
@@ -801,65 +773,35 @@ describe("stateIntegration comprehensive coverage", () => {
 
             initializeAppState();
 
-            expect(Object.keys(globalThis.__state_debug).sort()).toEqual(
-                expectedDebugKeys
-            );
-            expectDebugUtilitiesConfigured();
+            expect(
+                mockStateManager.initializeStateManager
+            ).toHaveBeenCalledOnce();
+            expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
+            expect(
+                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+            ).toBeUndefined();
         });
 
-        it("should expose debug utility functions and reject unknown actions", async () => {
-            expect.assertions(6);
+        it("should not expose global debug utility actions", async () => {
+            expect.assertions(4);
 
             globalThis.__DEVELOPMENT__ = true;
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            const logSpy = vi
-                .spyOn(console, "log")
-                .mockImplementation(() => {});
-            const warnSpy = vi
-                .spyOn(console, "warn")
-                .mockImplementation(() => {});
-            const unsubscribe = vi.fn<StateUnsubscribe>();
-            let watchCallback: StateSubscriber | undefined;
-
             mockStateManager.getState.mockReturnValue({ id: 1 });
-            mockStateManager.subscribe.mockImplementation((path, callback) => {
-                watchCallback = callback;
-                return unsubscribe;
-            });
-            mockAppActions.testAction.mockReturnValue("action-result");
 
             initializeAppState();
 
-            expect(globalThis.__state_debug.logState("ui.theme")).toEqual({
-                id: 1,
-            });
             expect(
-                globalThis.__state_debug.triggerAction("testAction", 42)
-            ).toBe("action-result");
+                mockStateManager.initializeStateManager
+            ).toHaveBeenCalledOnce();
+            expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
+            expect(mockStateManager.getState).not.toHaveBeenCalled();
             expect(
-                globalThis.__state_debug.triggerAction("missingAction")
+                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
             ).toBeUndefined();
-            expect(warnSpy).toHaveBeenCalledWith(
-                "[StateDebug] Unknown action: missingAction"
-            );
-
-            expect(globalThis.__state_debug.watchState("ui.theme")).toBe(
-                unsubscribe
-            );
-            watchCallback?.("dark", "light");
-            expect(logSpy).toHaveBeenCalledWith(
-                "[StateDebug] ui.theme changed:",
-                {
-                    newValue: "dark",
-                    oldValue: "light",
-                }
-            );
-
-            logSpy.mockRestore();
-            warnSpy.mockRestore();
         });
     });
 });

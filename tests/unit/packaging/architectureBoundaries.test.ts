@@ -130,6 +130,7 @@ const migratedRendererDebugLoggingStateFiles = [
 const migratedStateDebugGlobalFreeFiles = [
     "electron-app/utils/debug/stateDevTools.ts",
     "electron-app/utils/state/core/masterStateManager.ts",
+    "electron-app/utils/state/integration/stateIntegration.ts",
 ] as const;
 const rendererVendorBrowserPackageImportAllowedFiles = [
     "electron-app/renderer/vendorGlobalsChartData.ts",

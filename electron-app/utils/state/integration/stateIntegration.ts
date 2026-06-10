@@ -3,8 +3,6 @@
  * new centralized system
  */
 
-import { AppActions } from "../../app/lifecycle/appActions.js";
-import type { ElectronAPIWithDevFlags } from "../../../shared/preloadApi.js";
 import {
     getState,
     initializeStateManager,
@@ -14,7 +12,6 @@ import {
 import { uiStateManager } from "../domain/uiStateManager.js";
 
 type MigrationFunction = () => Promise<unknown> | unknown;
-type Unsubscribe = () => void;
 
 type PerformanceMemory = {
     jsHeapSizeLimit: number;
@@ -24,22 +21,6 @@ type PerformanceMemory = {
 
 type PerformanceWithMemory = Performance & {
     memory?: PerformanceMemory;
-};
-
-type DebugUtilities = {
-    AppActions: typeof AppActions;
-    getState: typeof getState;
-    logState: (path?: string) => unknown;
-    setState: typeof setState;
-    triggerAction: (actionName: string, ...args: unknown[]) => unknown;
-    uiStateManager: typeof uiStateManager;
-    watchState: (path: string) => Unsubscribe;
-};
-
-type StateIntegrationGlobal = typeof globalThis & {
-    __DEVELOPMENT__?: boolean;
-    __state_debug?: DebugUtilities;
-    electronAPI?: Partial<Pick<ElectronAPIWithDevFlags, "__devMode">>;
 };
 
 const PERSISTED_STATE_KEY = "fitFileViewer_uiState";
@@ -102,11 +83,6 @@ export function initializeAppState(): void {
     initializeStateManager();
     // Initialize UI state manager
     uiStateManager.initialize();
-
-    // Set up state debugging in development
-    if (isDevelopmentMode()) {
-        setupStateDebugging();
-    }
 
     console.log("[StateIntegration] Application state management initialized");
 }
@@ -251,96 +227,6 @@ export function setupStatePersistence(): void {
             error
         );
     }
-}
-
-/**
- * Detects if the application is running in development mode Since process is
- * not available in renderer, we use alternative methods
- *
- * @returns True if in development mode.
- */
-function isDevelopmentMode(): boolean {
-    // Guarded access for jsdom/mocked environments
-    try {
-        const integrationGlobal = getIntegrationGlobal(),
-            loc =
-                integrationGlobal.window === undefined
-                    ? undefined
-                    : integrationGlobal.location,
-            hostname = typeof loc?.hostname === "string" ? loc.hostname : "",
-            search = typeof loc?.search === "string" ? loc.search : "",
-            hash = typeof loc?.hash === "string" ? loc.hash : "",
-            protocol = typeof loc?.protocol === "string" ? loc.protocol : "",
-            href = typeof loc?.href === "string" ? loc.href : "";
-
-        return (
-            hostname === "localhost" ||
-            hostname === "127.0.0.1" ||
-            (hostname !== "" && hostname.includes("dev")) ||
-            integrationGlobal.__DEVELOPMENT__ === true ||
-            (search !== "" && search.includes("debug=true")) ||
-            (hash !== "" && hash.includes("debug")) ||
-            (typeof document !== "undefined" &&
-                document.documentElement &&
-                Object.hasOwn(document.documentElement.dataset, "devMode")) ||
-            protocol === "file:" ||
-            (integrationGlobal.window !== undefined &&
-                integrationGlobal.electronAPI?.__devMode !== undefined) ||
-            (typeof console !== "undefined" && href.includes("electron"))
-        );
-    } catch {
-        // Default to non-dev on any unexpected error
-        return false;
-    }
-}
-
-/**
- * Sets up debug utilities for development mode
- */
-function setupStateDebugging(): void {
-    const debugUtilities: DebugUtilities = {
-        AppActions,
-        getState,
-        logState(path?: string) {
-            const state = path ? getState(path) : getState("data");
-            console.log(
-                `[StateDebug] Current state${path ? ` for ${path}` : ""}:`,
-                state
-            );
-            return state;
-        },
-        setState,
-        triggerAction(actionName: string, ...args: unknown[]) {
-            const action = Reflect.get(AppActions, actionName);
-
-            if (typeof action === "function") {
-                console.log(
-                    `[StateDebug] Triggering action: ${actionName}`,
-                    args
-                );
-                return action(...args);
-            }
-
-            console.warn(`[StateDebug] Unknown action: ${actionName}`);
-            return undefined;
-        },
-        uiStateManager,
-        watchState(path: string) {
-            console.log(`[StateDebug] Watching state changes for: ${path}`);
-            return subscribe(path, (newValue, oldValue) => {
-                console.log(`[StateDebug] ${path} changed:`, {
-                    newValue,
-                    oldValue,
-                });
-            });
-        },
-    };
-
-    getIntegrationGlobal().__state_debug = debugUtilities;
-}
-
-function getIntegrationGlobal(): StateIntegrationGlobal {
-    return globalThis;
 }
 
 function getNestedValue(obj: unknown, path: string): unknown {

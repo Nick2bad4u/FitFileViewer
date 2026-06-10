@@ -32,16 +32,8 @@ type PerformanceMemory = {
     usedJSHeapSize: number;
 };
 
-type StateDebugApi = {
-    logState: (path?: string) => unknown;
-    setState: typeof setState;
-    triggerAction: (actionName: string, ...args: unknown[]) => unknown;
-    watchState: (path: string) => () => void;
-};
-
 type StateIntegrationTestGlobal = typeof globalThis & {
     __DEVELOPMENT__?: boolean;
-    __state_debug?: StateDebugApi;
     chartControlsState?: ChartControlsState;
 };
 
@@ -319,8 +311,8 @@ describe("stateIntegration.js - Essential Coverage", () => {
         resetTestEnvironment();
     });
 
-    it("keeps legacy compatibility globals removed while installing development debug utilities", () => {
-        expect.assertions(11);
+    it("keeps legacy compatibility globals removed in development mode", () => {
+        expect.assertions(8);
         resetTestEnvironment();
 
         const testGlobal = globalThis as StateIntegrationTestGlobal;
@@ -350,14 +342,7 @@ describe("stateIntegration.js - Essential Coverage", () => {
             source: "stateIntegration.simple.test",
         });
         expect(getState("charts.isRendered")).toBe(true);
-        expect(testGlobal.__state_debug?.logState).toBeTypeOf("function");
-        expect(testGlobal.__state_debug?.setState).toBe(setState);
-        expect(testGlobal.__state_debug?.triggerAction("missingAction")).toBe(
-            undefined
-        );
-        expect(testGlobal.__state_debug?.watchState("ui.theme")).toBeTypeOf(
-            "function"
-        );
+        expect(Object.hasOwn(testGlobal, "__state_debug")).toBe(false);
 
         resetTestEnvironment();
     });
