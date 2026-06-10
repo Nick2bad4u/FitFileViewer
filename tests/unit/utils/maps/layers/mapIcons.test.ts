@@ -1,9 +1,13 @@
 import type { DivIconOptions } from "leaflet";
 
 import { describe, expect, it, vi } from "vitest";
+import {
+    clearLeafletRuntimeForTests,
+    setLeafletRuntime,
+} from "../../../../../electron-app/utils/maps/core/leafletRuntime.js";
 
 describe("map marker icons", () => {
-    it("creates start and end icons through the Leaflet global", async () => {
+    it("creates start and end icons through the registered Leaflet runtime", async () => {
         expect.assertions(3);
 
         const divIcon = vi.fn<
@@ -12,7 +16,7 @@ describe("map marker icons", () => {
 
         try {
             vi.resetModules();
-            vi.stubGlobal("L", {
+            setLeafletRuntime({
                 divIcon,
             });
 
@@ -39,6 +43,7 @@ describe("map marker icons", () => {
             });
             expect(divIcon).toHaveBeenCalledTimes(2);
         } finally {
+            clearLeafletRuntimeForTests();
             vi.unstubAllGlobals();
             vi.resetModules();
         }
@@ -48,6 +53,7 @@ describe("map marker icons", () => {
         expect.assertions(2);
 
         vi.resetModules();
+        clearLeafletRuntimeForTests();
         vi.unstubAllGlobals();
         const { createEndIcon, createStartIcon } =
             await import("../../../../../electron-app/utils/maps/layers/mapIcons.js");
@@ -56,7 +62,7 @@ describe("map marker icons", () => {
         expect(createEndIcon()).toStrictEqual({});
     });
 
-    it("uses Leaflet when it becomes available after module import", async () => {
+    it("uses Leaflet when the runtime is registered after module import", async () => {
         expect.assertions(2);
 
         const divIcon = vi.fn<
@@ -65,12 +71,13 @@ describe("map marker icons", () => {
 
         try {
             vi.resetModules();
+            clearLeafletRuntimeForTests();
             vi.unstubAllGlobals();
 
             const { createStartIcon } =
                 await import("../../../../../electron-app/utils/maps/layers/mapIcons.js");
 
-            vi.stubGlobal("L", {
+            setLeafletRuntime({
                 divIcon,
             });
 
@@ -85,6 +92,7 @@ describe("map marker icons", () => {
             });
             expect(divIcon).toHaveBeenCalledTimes(1);
         } finally {
+            clearLeafletRuntimeForTests();
             vi.unstubAllGlobals();
             vi.resetModules();
         }

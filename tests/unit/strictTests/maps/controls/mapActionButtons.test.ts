@@ -1,4 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+    clearLeafletRuntimeForTests,
+    setLeafletRuntime,
+} from "../../../../../electron-app/utils/maps/core/leafletRuntime.js";
 
 type FitBoundsFn = (
     bounds: unknown,
@@ -43,6 +47,7 @@ describe("mapActionButtons", () => {
 
         document.body.replaceChildren(activeFileName, mapButton);
         (window as any).L = undefined;
+        clearLeafletRuntimeForTests();
         vi.resetModules();
         vi.clearAllMocks();
         vi.useFakeTimers();
@@ -57,6 +62,7 @@ describe("mapActionButtons", () => {
         const { resetMapPolylineRegistryForTests } =
             await import("../../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js");
         resetMapPolylineRegistryForTests();
+        clearLeafletRuntimeForTests();
         document.body.replaceChildren();
     });
 
@@ -170,6 +176,7 @@ describe("mapActionButtons", () => {
         const skipMarker = vi.fn<VoidFn>();
         const CircleMarker = function (this: any) {} as any;
         (window as any).L = { CircleMarker };
+        setLeafletRuntime({ CircleMarker });
         const polylineElement = document.createElement("div");
         const matchingMarker = Object.assign(new CircleMarker(), {
             bringToFront: bringToFrontMarker,

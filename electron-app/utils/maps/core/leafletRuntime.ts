@@ -3,8 +3,6 @@ interface LeafletRuntimeRegistry {
 }
 
 const leafletRuntimeRegistryKey = Symbol.for("fitfileviewer.leafletRuntime");
-const runtimeGlobalFallbackFlag =
-    "__fitFileViewerRuntimeGlobalFallbackForTests";
 
 export function setLeafletRuntime(runtime: unknown): void {
     getLeafletRuntimeRegistry().runtime = runtime;
@@ -54,13 +52,7 @@ export async function waitForLeafletRuntime<T>(
 
 function getLeafletRuntimeCandidates(): unknown[] {
     const registry = getLeafletRuntimeRegistry();
-    return isRuntimeGlobalFallbackEnabled()
-        ? [
-              registry.runtime,
-              getGlobalRuntimeCandidate("L"),
-              getWindowRuntimeCandidate("L"),
-          ]
-        : [registry.runtime];
+    return [registry.runtime];
 }
 
 function getLeafletRuntimeRegistry(): LeafletRuntimeRegistry {
@@ -68,19 +60,4 @@ function getLeafletRuntimeRegistry(): LeafletRuntimeRegistry {
         Record<symbol, LeafletRuntimeRegistry | undefined>;
     leafletGlobal[leafletRuntimeRegistryKey] ??= {};
     return leafletGlobal[leafletRuntimeRegistryKey];
-}
-
-function isRuntimeGlobalFallbackEnabled(): boolean {
-    return Reflect.get(globalThis, runtimeGlobalFallbackFlag) === true;
-}
-
-function getGlobalRuntimeCandidate(name: string): unknown {
-    return Reflect.get(globalThis, name);
-}
-
-function getWindowRuntimeCandidate(name: string): unknown {
-    const windowRef = Reflect.get(globalThis, "window");
-    return windowRef && typeof windowRef === "object"
-        ? Reflect.get(windowRef, name)
-        : undefined;
 }

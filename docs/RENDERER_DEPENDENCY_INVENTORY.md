@@ -26,7 +26,9 @@ compatibility bundles:
 - The root `package.json` no longer includes a `vendor/` tree in the npm
   package file list.
 - Renderer modules consume migrated browser libraries through runtime adapters
-  instead of persistent browser-library globals.
+  instead of persistent browser-library globals; the Chart.js, DataTables, and
+  Leaflet adapters resolve only explicitly registered runtimes and no longer
+  fall back to `globalThis` or `window` browser-library names.
   Migrated HTML sanitizing resolves DOMPurify through
   `electron-app/utils/dom/domPurifyRuntime.ts`, migrated export ZIP creation
   resolves JSZip through `electron-app/utils/files/export/exportZipRuntime.ts`,

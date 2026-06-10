@@ -4,8 +4,6 @@ interface ChartRuntimeRegistry {
 }
 
 const chartRuntimeRegistryKey = Symbol.for("fitfileviewer.chartRuntime");
-const runtimeGlobalFallbackFlag =
-    "__fitFileViewerRuntimeGlobalFallbackForTests";
 
 export function setChartRuntime(runtime: unknown, zoomPlugin?: unknown): void {
     const registry = getChartRuntimeRegistry();
@@ -39,13 +37,7 @@ export function resolveChartZoomPlugin(): unknown {
 
 function getChartRuntimeCandidates(): unknown[] {
     const registry = getChartRuntimeRegistry();
-    return isRuntimeGlobalFallbackEnabled()
-        ? [
-              registry.runtime,
-              getGlobalRuntimeCandidate("Chart"),
-              getWindowRuntimeCandidate("Chart"),
-          ]
-        : [registry.runtime];
+    return [registry.runtime];
 }
 
 function getChartRuntimeRegistry(): ChartRuntimeRegistry {
@@ -53,19 +45,4 @@ function getChartRuntimeRegistry(): ChartRuntimeRegistry {
         Record<symbol, ChartRuntimeRegistry | undefined>;
     chartGlobal[chartRuntimeRegistryKey] ??= {};
     return chartGlobal[chartRuntimeRegistryKey];
-}
-
-function isRuntimeGlobalFallbackEnabled(): boolean {
-    return Reflect.get(globalThis, runtimeGlobalFallbackFlag) === true;
-}
-
-function getGlobalRuntimeCandidate(name: string): unknown {
-    return Reflect.get(globalThis, name);
-}
-
-function getWindowRuntimeCandidate(name: string): unknown {
-    const windowRef = Reflect.get(globalThis, "window");
-    return windowRef && typeof windowRef === "object"
-        ? Reflect.get(windowRef, name)
-        : undefined;
 }

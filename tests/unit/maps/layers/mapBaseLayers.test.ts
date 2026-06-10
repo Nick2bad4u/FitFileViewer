@@ -1,4 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+    clearLeafletRuntimeForTests,
+    setLeafletRuntime,
+} from "../../../../electron-app/utils/maps/core/leafletRuntime.js";
 
 const EXPECTED_LAYER_NAMES = [
     "CartoDB_DarkMatter",
@@ -38,7 +42,8 @@ const EXPECTED_LAYER_NAMES = [
 
 async function importBaseLayersWithLeaflet(leaflet: unknown) {
     vi.resetModules();
-    (globalThis as { L?: unknown }).L = leaflet;
+    clearLeafletRuntimeForTests();
+    setLeafletRuntime(leaflet);
 
     return import("../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
 }
@@ -58,7 +63,7 @@ type MockTileLayerFactory = (
 describe("mapBaseLayers", () => {
     afterEach(() => {
         vi.resetModules();
-        delete (globalThis as { L?: unknown }).L;
+        clearLeafletRuntimeForTests();
     });
 
     it("exports the full ordered base layer catalog", async () => {

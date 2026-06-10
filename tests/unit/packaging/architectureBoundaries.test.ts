@@ -372,6 +372,8 @@ const rendererGenericPreloadIpcPattern =
 const missingRendererVendorGlobalShimPattern = /\bdefineMissingGlobal\b/u;
 const rendererVendorBundleGlobalMarkerPattern =
     /\b__FFV_RENDERER_VENDOR_BUNDLE__\b/u;
+const rendererRuntimeGlobalFallbackPattern =
+    /\b(?:__fitFileViewerRuntimeGlobalFallbackForTests|runtimeGlobalFallbackFlag|getGlobalRuntimeCandidate|getWindowRuntimeCandidate)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -1406,7 +1408,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer vendor global state shims removed", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const missingGlobalShimViolations = sourceRoots
             .flatMap(collectSourceFiles)
@@ -1424,9 +1426,20 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const runtimeGlobalFallbackViolations = [
+            ...sourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ]
+            .filter((relativeFile) =>
+                rendererRuntimeGlobalFallbackPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
 
         expect(missingGlobalShimViolations).toStrictEqual([]);
         expect(globalMarkerViolations).toStrictEqual([]);
+        expect(runtimeGlobalFallbackViolations).toStrictEqual([]);
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {

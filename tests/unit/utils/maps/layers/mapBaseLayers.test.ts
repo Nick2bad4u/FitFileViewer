@@ -40,9 +40,6 @@ const EXPECTED_LAYER_NAMES = [
     "WaymarkedTrails_Slopes",
 ];
 
-const runtimeGlobalFallbackFlag =
-    "__fitFileViewerRuntimeGlobalFallbackForTests";
-
 describe("mapBaseLayers", () => {
     type MockLayer = { readonly kind: string };
 
@@ -55,29 +52,16 @@ describe("mapBaseLayers", () => {
         clearLeafletRuntimeForTests();
     });
 
-    it("uses shim when global L is not present", async () => {
+    it("uses shim when a Leaflet runtime is not registered", async () => {
         expect.assertions(4);
 
-        const previousFallback = Reflect.get(
-            globalThis,
-            runtimeGlobalFallbackFlag
-        );
-        Reflect.set(globalThis, runtimeGlobalFallbackFlag, false);
-        try {
-            const mod =
-                await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
-            const { baseLayers } = mod;
-            expect(Object.keys(baseLayers)).toEqual(EXPECTED_LAYER_NAMES);
-            expect(baseLayers.OpenStreetMap).toStrictEqual({});
-            expect(baseLayers.CartoDB_Positron).toStrictEqual({});
-            expect(baseLayers.OpenFreeMap_Dark).toStrictEqual({});
-        } finally {
-            Reflect.set(
-                globalThis,
-                runtimeGlobalFallbackFlag,
-                previousFallback
-            );
-        }
+        const mod =
+            await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
+        const { baseLayers } = mod;
+        expect(Object.keys(baseLayers)).toEqual(EXPECTED_LAYER_NAMES);
+        expect(baseLayers.OpenStreetMap).toStrictEqual({});
+        expect(baseLayers.CartoDB_Positron).toStrictEqual({});
+        expect(baseLayers.OpenFreeMap_Dark).toStrictEqual({});
     });
 
     it("calls L.tileLayer and L.maplibreGL when present", async () => {
@@ -110,7 +94,7 @@ describe("mapBaseLayers", () => {
         });
     });
 
-    it("falls back to the shim when global L lacks tileLayer", async () => {
+    it("falls back to the shim when the registered runtime lacks tileLayer", async () => {
         expect.assertions(3);
 
         const maplibreGL = vi.fn<() => MockLayer>(() => ({ kind: "unused" }));
@@ -118,24 +102,11 @@ describe("mapBaseLayers", () => {
             maplibreGL,
             tileLayer: "not-a-function",
         });
-        const previousFallback = Reflect.get(
-            globalThis,
-            runtimeGlobalFallbackFlag
-        );
-        Reflect.set(globalThis, runtimeGlobalFallbackFlag, false);
-        try {
-            const mod =
-                await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
-            const { baseLayers } = mod;
-            expect(baseLayers.OpenStreetMap).toStrictEqual({});
-            expect(baseLayers.OpenFreeMap_Bright).toStrictEqual({});
-            expect(maplibreGL).not.toHaveBeenCalled();
-        } finally {
-            Reflect.set(
-                globalThis,
-                runtimeGlobalFallbackFlag,
-                previousFallback
-            );
-        }
+        const mod =
+            await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
+        const { baseLayers } = mod;
+        expect(baseLayers.OpenStreetMap).toStrictEqual({});
+        expect(baseLayers.OpenFreeMap_Bright).toStrictEqual({});
+        expect(maplibreGL).not.toHaveBeenCalled();
     });
 });

@@ -1424,8 +1424,6 @@ if (
     global.HTMLElement = window.HTMLElement;
 }
 
-globalThis.__fitFileViewerRuntimeGlobalFallbackForTests = true;
-
 if (typeof window !== "undefined") {
     window.L = leafletMock;
     // Ensure window.addEventListener is mocked

@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderLapZoneChart } from "../../../electron-app/utils/charts/rendering/renderLapZoneChart.js";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../electron-app/utils/charts/core/chartRuntime.js";
 import { getThemeConfig } from "../../../electron-app/utils/theming/core/theme.js";
 import { getZoneColor } from "../../../electron-app/utils/data/zones/chartZoneColorUtils.js";
 
@@ -186,6 +190,7 @@ describe(renderLapZoneChart, () => {
             configurable: true,
             value: chartJsMocks.Chart,
         });
+        setChartRuntime(chartJsMocks.Chart);
         Object.defineProperty(globalThis, "showNotification", {
             configurable: true,
             value: vi.fn<() => void>(),
@@ -201,6 +206,7 @@ describe(renderLapZoneChart, () => {
         vi.clearAllMocks();
 
         // Remove Chart.js mock
+        clearChartRuntimeForTests();
         delete (globalThis as LapZoneChartTestGlobal).Chart;
         delete (globalThis as LapZoneChartTestGlobal).showNotification;
     });

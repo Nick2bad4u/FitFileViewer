@@ -11,6 +11,10 @@ import {
     setRegisteredLeafletMapInstance,
 } from "../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js";
 import {
+    clearLeafletRuntimeForTests,
+    setLeafletRuntime,
+} from "../../../../electron-app/utils/maps/core/leafletRuntime.js";
+import {
     resetRegisteredMapMeasureControlForTests,
     setRegisteredMapMeasureControl,
 } from "../../../../electron-app/utils/maps/state/mapMeasureControlState.js";
@@ -386,6 +390,7 @@ describe("createShownFilesList", () => {
                 bringToFront = vi.fn<() => void>();
             },
         };
+        setLeafletRuntime(windowMock.L);
 
         // Import the function dynamically
         const module =
@@ -402,6 +407,7 @@ describe("createShownFilesList", () => {
         resetRegisteredLeafletMapInstanceForTests();
         resetRegisteredMapMeasureControlForTests();
         resetMapPolylineRegistryForTests();
+        clearLeafletRuntimeForTests();
     });
 
     describe("basic DOM Creation", () => {

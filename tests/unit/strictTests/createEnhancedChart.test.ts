@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import { JSDOM } from "jsdom";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../electron-app/utils/charts/core/chartRuntime.js";
 
 // Mock Chart.js
 interface ChartDatasetConfig {
@@ -153,6 +157,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         (globalThis as ChartTestGlobal).Chart = Chart;
         (globalThis.window as Window & { Chart?: ChartConstructorMock }).Chart =
             Chart;
+        setChartRuntime(Chart);
 
         // Mock all dependencies
         vi.doMock(
@@ -268,6 +273,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         delete globalThis.document;
         delete globalThis.HTMLCanvasElement;
         delete globalThis.HTMLElement;
+        clearChartRuntimeForTests();
         delete (globalThis as ChartTestGlobal).Chart;
         delete globalThis.console;
         delete globalThis.localStorage;
