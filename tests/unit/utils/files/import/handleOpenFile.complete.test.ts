@@ -45,7 +45,6 @@ type MockElectronAPI = {
 type TestWindow = Window &
     typeof globalThis & {
         electronAPI?: Partial<MockElectronAPI>;
-        showFitData?: (data: unknown, fileName?: string) => void;
     };
 type TestOpenFileParams = {
     isOpeningFileRef: { value: boolean };
@@ -153,14 +152,6 @@ describe("handleOpenFile Module", () => {
 
         // Assign the mock to window.electronAPI
         testWindow.electronAPI = createElectronAPIMock();
-
-        // Set up additional window functions
-        testWindow.showFitData = (_data: unknown, _fileName?: string): void => {
-            // Stubbed for tests and spied on below.
-        };
-        vi.spyOn(testWindow, "showFitData").mockImplementation(
-            (_data: unknown, _fileName?: string): void => {}
-        );
 
         // Import the module under test
         handleOpenFileModule =

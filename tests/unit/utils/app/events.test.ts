@@ -304,7 +304,6 @@ describe(setupListeners, () => {
         vi.useRealTimers();
         document.body.replaceChildren();
         globalAny.electronAPI = undefined;
-        delete globalAny.showFitData;
         delete globalAny.globalData;
         delete globalAny.loadedFitFiles;
     });

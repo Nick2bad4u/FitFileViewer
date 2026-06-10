@@ -27,7 +27,6 @@ type RevokeObjectUrlMock = (url: string) => void;
 type SendFitFileToAltFitReaderMock = (buffer: ArrayBuffer) => void;
 type SetLoadingMock = (isLoading: boolean) => void;
 type ShowAboutModalMock = () => void;
-type ShowFitDataMock = (data: unknown, filePath: string) => void;
 type ShowNotificationMock = (
     message: string,
     type?: string,
@@ -120,7 +119,6 @@ declare global {
     // extend window for tests
     interface Window {
         electronAPI: any;
-        showFitData?: (...args: any[]) => any;
         renderChartJS?: () => any;
         globalData?: any;
     }
@@ -291,7 +289,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
         // Clear any global state that might interfere (but preserve electronAPI)
         delete (globalThis as any).globalData;
-        delete (globalThis as any).showFitData;
         delete (globalThis as any).sendFitFileToAltFitReader;
         delete (globalThis as any).renderChartJS;
         delete (globalThis as any).copyTableAsCSV;
@@ -524,7 +521,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(window.electronAPI.readFile).not.toHaveBeenCalled();
     });
 
-    it("ipc: decoder-options-changed reloads cached file and calls showFitData", async () => {
+    it("ipc: decoder-options-changed reloads cached file and renders decoded FIT data", async () => {
         expect.hasAssertions();
 
         const arrayBuf = new ArrayBuffer(16);
@@ -1685,19 +1682,8 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         const parseResult = { data: createFitMessages() };
         vi.mocked(electronAPI.parseFitFile).mockResolvedValue(parseResult);
         vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
-        const showFitData = vi.fn<ShowFitDataMock>();
         const sendFitFileToAltFitReader = altFitMocks.sendFitFileToAltFitReader;
 
-        Object.defineProperty(window, "showFitData", {
-            value: showFitData,
-            writable: true,
-            configurable: true,
-        });
-        Object.defineProperty(globalThis, "showFitData", {
-            value: showFitData,
-            writable: true,
-            configurable: true,
-        });
         setupListeners({
             openFileBtn,
             isOpeningFileRef: { current: false },
@@ -1803,14 +1789,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             createFitMessages()
         );
 
-        // Mock the integration function
         const sendFitFileToAltFitReader = altFitMocks.sendFitFileToAltFitReader;
-        const showFitData = vi.fn<ShowFitDataMock>();
-        Object.defineProperty(globalThis, "showFitData", {
-            configurable: true,
-            value: showFitData,
-            writable: true,
-        });
 
         setupListeners({
             openFileBtn,

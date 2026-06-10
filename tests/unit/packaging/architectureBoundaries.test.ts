@@ -41,6 +41,7 @@ const stateDomainRoots = ["electron-app/utils/state/domain"] as const;
 const stateCoreRoots = ["electron-app/utils/state/core"] as const;
 const rendererEntrypointFiles = ["electron-app/renderer.ts"] as const;
 const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
+const testSourceRoots = ["tests/unit", "tests/playwright"] as const;
 
 const sourceExtensions = new Set([
     ".cjs",
@@ -270,6 +271,8 @@ const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const directShowFitDataGlobalPattern =
     /\b(?:window|globalThis)\.showFitData\s*=/u;
+const directShowFitDataGlobalDefinitionPattern =
+    /\bObject\.defineProperty\(\s*(?:window|globalThis)\s*,\s*["']showFitData["']/u;
 const directShowFitDataMapRenderedGlobalPattern =
     /\b(?:window|globalThis|getShowFitDataGlobal\(\)|showFitGlobal)\.isMapRendered\b/u;
 const rendererUtilsUsagePattern = /\brendererUtils\b/u;
@@ -2428,5 +2431,28 @@ describe("architecture boundaries", () => {
         expect(directAboutModalDevHelperGlobalLookups).toStrictEqual([]);
         expect(directActiveFitFileNameGlobalLookups).toStrictEqual([]);
         expect(deletedCompatibilityFiles).toStrictEqual([]);
+    });
+
+    it("does not recreate the retired showFitData global bridge in tests", () => {
+        expect.assertions(1);
+
+        const scannedFiles = testSourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    relativeFile !==
+                    "tests/unit/packaging/architectureBoundaries.test.ts"
+            );
+        const directShowFitDataTestGlobals = scannedFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return (
+                    directShowFitDataGlobalPattern.test(source) ||
+                    directShowFitDataGlobalDefinitionPattern.test(source)
+                );
+            })
+            .sort();
+
+        expect(directShowFitDataTestGlobals).toStrictEqual([]);
     });
 });
