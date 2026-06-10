@@ -429,8 +429,6 @@ describe("main-ui.js core flows", () => {
         mockState["ui.dragCounter"] = 0;
         mockState["ui.dropOverlay.visible"] = false;
         installBaseDOM();
-        Reflect.set(window, "enableDragAndDrop", true);
-        Reflect.set(globalThis, "enableDragAndDrop", true);
         Reflect.deleteProperty(globalThis, "devCleanup");
         Reflect.deleteProperty(globalThis, "injectMenu");
         resetElectronApiCandidate();

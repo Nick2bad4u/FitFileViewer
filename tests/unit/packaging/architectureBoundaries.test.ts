@@ -454,6 +454,8 @@ const directUiStateManagerGlobalPattern =
     /\b(?:window|globalThis|chartGlobal|runtimeGlobal)\.uiStateManager\b/u;
 const directMainUiDragDropHandlerGlobalPattern =
     /\b(?:window|globalThis)\.dragDropHandler\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["']dragDropHandler["']\s*\)/u;
+const directDragDropEnableGlobalPattern =
+    /\b(?:window|globalThis)\.enableDragAndDrop\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["']enableDragAndDrop["']\s*\)|\benableDragAndDrop\?:/u;
 const directMainUiDevelopmentHelperGlobalPattern =
     /\b(?:window|globalThis|getMainUiGlobal\(\)|mainUiGlobal)\.(?:injectMenu|devCleanup)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:injectMenu|devCleanup)["']\s*\)/u;
 const directMainProcessDevHelpersGlobalPattern =
@@ -1753,7 +1755,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(91);
+        expect.assertions(92);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directRuntimeGlobalDataMentions = scannedFiles
@@ -2342,6 +2344,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directDragDropEnableGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directDragDropEnableGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directMainUiDevelopmentHelperGlobalLookups = scannedFiles
             .filter((relativeFile) =>
                 directMainUiDevelopmentHelperGlobalPattern.test(
@@ -2497,6 +2506,7 @@ describe("architecture boundaries", () => {
         expect(directChartActionsGlobalLookups).toStrictEqual([]);
         expect(directUiStateManagerGlobalLookups).toStrictEqual([]);
         expect(directMainUiDragDropHandlerGlobalLookups).toStrictEqual([]);
+        expect(directDragDropEnableGlobalLookups).toStrictEqual([]);
         expect(directMainUiDevelopmentHelperGlobalLookups).toStrictEqual([]);
         expect(directMainProcessDevHelpersGlobalLookups).toStrictEqual([]);
         expect(directElectronHoistedMockGlobalLookups).toStrictEqual([]);

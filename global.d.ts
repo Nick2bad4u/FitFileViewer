@@ -81,7 +81,6 @@ declare global {
             fitFilePath?: string | null
         ) => void;
         devCleanup?: () => void;
-        enableDragAndDrop?: boolean;
 
         // --- Internal flags / timeouts ---
         __DEVELOPMENT__?: boolean;

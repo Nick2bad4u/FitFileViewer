@@ -21,19 +21,11 @@ type DroppedFile = File & { path?: string };
 
 type ElectronApiLike = Required<Pick<ElectronAPI, "decodeFitFile">>;
 
-type DragDropGlobal = typeof globalThis & {
-    enableDragAndDrop?: unknown;
-};
-
 type PerformanceMonitorLike = {
     endTimer?: (id: string) => void;
     isEnabled?: boolean | (() => boolean);
     startTimer?: (id: string) => void;
 };
-
-function getDragDropGlobal(): DragDropGlobal {
-    return globalThis;
-}
 
 function getDragDropElectronApi(): ElectronApiLike | null {
     return getRendererElectronApi(isDragDropElectronApi);
@@ -317,10 +309,8 @@ export class DragDropHandler {
             }
         });
 
-        // Prevent iframe from blocking drag/drop events if drag-and-drop is enabled
-        if (getDragDropGlobal().enableDragAndDrop) {
-            this.setupIframeEventListeners();
-        }
+        // Prevent app iframes from swallowing drag/drop events.
+        this.setupIframeEventListeners();
     }
 
     setupIframeEventListeners(): void {
