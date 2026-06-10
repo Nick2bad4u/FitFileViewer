@@ -51,6 +51,9 @@ const sourceExtensions = new Set([
 
 const allowedLegacyGlobalDataBridgeFiles = new Set<string>();
 const allowedGlobalDataWriterFiles = new Set<string>();
+const allowedRuntimeGlobalDataMentionFiles = new Set<string>([
+    "electron-app/utils/state/core/unifiedStateManager.ts",
+]);
 
 const migratedGlobalDataReaderFiles = [
     "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
@@ -255,6 +258,7 @@ const directGlobalDataStateReadPattern =
     /\b(?:getState|getStateMgr\(\)\.getState|stateManager\.getState)\(\s*["']globalData["']\s*\)/u;
 const directGlobalDataStateWritePattern =
     /\b(?:setState|getStateMgr\(\)\.setState|stateManager\.setState)\(\s*["']globalData["']\s*,/u;
+const runtimeGlobalDataMentionPattern = /\bglobalData\b/u;
 const legacyStateHistoryStatePathPattern = /["']__stateHistory["']/u;
 const directFitFileRawDataSelectorPattern =
     /\bFitFileSelectors\.getRawData\(\)/u;
@@ -1640,9 +1644,18 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(89);
+        expect.assertions(90);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
+        const directRuntimeGlobalDataMentions = scannedFiles
+            .filter(
+                (relativeFile) =>
+                    !allowedRuntimeGlobalDataMentionFiles.has(relativeFile) &&
+                    runtimeGlobalDataMentionPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
+            )
+            .sort();
         const directGlobalDataWrites = scannedFiles
             .filter(
                 (relativeFile) =>
@@ -2279,6 +2292,7 @@ describe("architecture boundaries", () => {
             "electron-app/utils/legacy/globalUtilityUi.ts",
         ].filter(hasRepositoryFile);
 
+        expect(directRuntimeGlobalDataMentions).toStrictEqual([]);
         expect(directGlobalDataWrites).toStrictEqual([]);
         expect(directRendererUtilsGlobals).toStrictEqual([]);
         expect(directGlobalDataPropertyDefinitions).toStrictEqual([]);
