@@ -4,6 +4,10 @@ type DestroyableChartInstance = {
 
 export type RegisteredChartInstance = object;
 
+type CanvasBackedChartInstance = RegisteredChartInstance & {
+    canvas?: unknown;
+};
+
 type ChartInstanceRegistry = {
     instances: RegisteredChartInstance[];
 };
@@ -40,6 +44,17 @@ export function getRegisteredChartInstances(): RegisteredChartInstance[] {
 
 export function getRegisteredChartInstanceCount(): number {
     return getRegisteredChartInstances().length;
+}
+
+export function getRegisteredChartInstanceForCanvas(
+    canvas: HTMLCanvasElement
+): RegisteredChartInstance | null {
+    return (
+        getRegisteredChartInstances().find(
+            (chart): chart is CanvasBackedChartInstance =>
+                (chart as CanvasBackedChartInstance).canvas === canvas
+        ) ?? null
+    );
 }
 
 export function registerChartInstance(chart: unknown): void {

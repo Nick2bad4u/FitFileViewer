@@ -9,6 +9,11 @@ import {
     resetChartDebugStateForTests,
     setChartDebugLoggingEnabled,
 } from "../../../electron-app/utils/charts/core/chartDebugState.js";
+import {
+    clearChartInstanceRegistryForTests,
+    registerChartInstance,
+} from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import { clearChartRuntimeForTests } from "../../../electron-app/utils/charts/core/chartRuntime.js";
 
 type ChartHoverTestGlobal = typeof globalThis & {
     getThemeConfig?: () => ChartHoverThemeConfig;
@@ -149,6 +154,8 @@ describe(addChartHoverEffects, () => {
         mockConsoleLog?.mockRestore();
         process.env.NODE_ENV = originalNodeEnv;
         resetChartDebugStateForTests();
+        clearChartInstanceRegistryForTests();
+        clearChartRuntimeForTests();
 
         vi.clearAllMocks();
     });
@@ -510,6 +517,51 @@ describe(addChartHoverEffects, () => {
                     "chart-wrapper--fullscreen",
                 ],
             });
+        });
+
+        it("should resize a registered chart when fullscreen starts without a Chart.js runtime lookup", async () => {
+            expect.assertions(2);
+
+            const resize = vi.fn<() => void>();
+            registerChartInstance({ canvas: mockCanvas, resize });
+            clearChartRuntimeForTests();
+
+            addChartHoverEffects(mockContainer, mockThemeConfig);
+
+            const wrapper = mockContainer.querySelector(
+                ".chart-wrapper"
+            ) as HTMLElement;
+            const fullscreenBtn = wrapper.querySelector(
+                ".chart-fullscreen-btn"
+            ) as HTMLButtonElement;
+
+            Object.defineProperty(wrapper, "requestFullscreen", {
+                configurable: true,
+                value: vi.fn<() => Promise<void> | void>(() => {
+                    throw new Error("Native fullscreen unavailable in test");
+                }),
+            });
+            Object.defineProperty(wrapper, "webkitRequestFullscreen", {
+                configurable: true,
+                value: undefined,
+            });
+            Object.defineProperty(wrapper, "mozRequestFullScreen", {
+                configurable: true,
+                value: undefined,
+            });
+            Object.defineProperty(wrapper, "msRequestFullscreen", {
+                configurable: true,
+                value: undefined,
+            });
+
+            fullscreenBtn.click();
+            await waitForTimers();
+            await waitForTimers();
+
+            expect(
+                wrapper.classList.contains("chart-wrapper--overlay-fullscreen")
+            ).toBe(true);
+            expect(resize).toHaveBeenCalled();
         });
 
         it("should exit overlay fullscreen when chart fullscreen button is clicked again", async () => {

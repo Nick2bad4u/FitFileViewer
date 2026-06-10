@@ -5,6 +5,7 @@ import {
     clearRegisteredChartInstances,
     destroyRegisteredChartInstances,
     getRegisteredChartInstanceCount,
+    getRegisteredChartInstanceForCanvas,
     getRegisteredChartInstances,
     registerChartInstance,
     setRegisteredChartInstances,
@@ -24,6 +25,21 @@ describe("chartInstanceRegistry", () => {
 
         expect(getRegisteredChartInstances()).toStrictEqual([chart]);
         expect(getRegisteredChartInstanceCount()).toBe(1);
+    });
+
+    it("finds registered chart instances by canvas", () => {
+        expect.assertions(3);
+
+        const canvas = document.createElement("canvas");
+        const otherCanvas = document.createElement("canvas");
+        const chart = { canvas, id: "chart" };
+
+        registerChartInstance({ id: "unrelated" });
+        registerChartInstance(chart);
+
+        expect(getRegisteredChartInstanceForCanvas(canvas)).toBe(chart);
+        expect(getRegisteredChartInstanceForCanvas(otherCanvas)).toBeNull();
+        expect(getRegisteredChartInstanceCount()).toBe(2);
     });
 
     it("replaces and clears registered chart instances", () => {

@@ -426,6 +426,7 @@ const rendererDevelopmentDebugGlobalPattern =
 const directDataTableGlobalPattern =
     /\b(?:window|globalThis|tableGlobal|renderTableGlobal)\.(?:\$|jQuery|DataTable)\b|\.jQuery\b/u;
 const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
+const directChartCanvasExpandoPattern = /\b__chartjs\b/u;
 const directDomPurifyGlobalPattern =
     /\b(?:window|globalThis|globalRef|testGlobal)\.DOMPurify\b|\bReflect\.get\(\s*globalThis\s*,\s*["']DOMPurify["']\s*\)|\{\s*DOMPurify\?:\s*unknown\s*\}\)\.DOMPurify/u;
 const directArqueroGlobalPattern =
@@ -1229,6 +1230,21 @@ describe("architecture boundaries", () => {
         const violations = migratedChartInstanceRegistryFiles
             .filter((relativeFile) =>
                 directChartInstanceGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps app source off legacy Chart.js canvas expandos", () => {
+        expect.assertions(1);
+
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter((relativeFile) =>
+                directChartCanvasExpandoPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )

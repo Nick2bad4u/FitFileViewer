@@ -1,10 +1,10 @@
 import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { renderChartJS } from "../../charts/core/renderChartJS.js";
+import { getRegisteredChartInstanceForCanvas } from "../../charts/core/chartInstanceRegistry.js";
 import { updateCharts } from "../../charts/core/chartUpdater.js";
 
 type ResizableChart = { resize: () => void };
 type ChartRegistry = { getChart?: (canvas: HTMLCanvasElement) => unknown };
-type LegacyChartCanvas = HTMLCanvasElement & { __chartjs?: unknown };
 
 type ChartResizeGlobal = typeof globalThis & {
     Chart?: ChartRegistry;
@@ -44,10 +44,6 @@ function isResizableChart(value: unknown): value is ResizableChart {
     }
 
     return "resize" in value && typeof value.resize === "function";
-}
-
-function getLegacyCanvasChart(canvas: LegacyChartCanvas): unknown {
-    return canvas.__chartjs;
 }
 
 /**
@@ -130,7 +126,7 @@ function resizeExistingCharts(): void {
             const chart =
                 chartRef && typeof chartRef.getChart === "function"
                     ? chartRef.getChart(canvas)
-                    : getLegacyCanvasChart(canvas);
+                    : getRegisteredChartInstanceForCanvas(canvas);
             if (isResizableChart(chart)) {
                 chart.resize();
             }

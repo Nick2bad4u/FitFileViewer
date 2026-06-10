@@ -7,6 +7,7 @@ import {
     isChartDebugLoggingEnabled,
     isChartFullscreenTraceEnabled,
 } from "../core/chartDebugState.js";
+import { getRegisteredChartInstanceForCanvas } from "../core/chartInstanceRegistry.js";
 import { resolveChartRuntime } from "../core/chartRuntime.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { resolveChartTitleIconName } from "./chartTitleOverlayUtils.js";
@@ -55,10 +56,6 @@ interface FullscreenHTMLElement extends HTMLElement {
     mozRequestFullScreen?: () => Promise<void> | void;
     msRequestFullscreen?: () => Promise<void> | void;
     webkitRequestFullscreen?: () => Promise<void> | void;
-}
-
-interface LegacyChartCanvas extends HTMLCanvasElement {
-    __chartjs?: unknown;
 }
 
 interface ChartHoverGlobal {
@@ -262,8 +259,8 @@ function getChartInstanceFromCanvas(
         return isChartInstanceLike(chart) ? chart : null;
     }
 
-    const legacyChart = (canvas as LegacyChartCanvas).__chartjs;
-    return isChartInstanceLike(legacyChart) ? legacyChart : null;
+    const registeredChart = getRegisteredChartInstanceForCanvas(canvas);
+    return isChartInstanceLike(registeredChart) ? registeredChart : null;
 }
 
 function requestChartResize(canvas: HTMLCanvasElement | null): void {

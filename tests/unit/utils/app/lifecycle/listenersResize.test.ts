@@ -12,6 +12,10 @@ vi.mock(
 );
 
 import { registerChartResizeListener } from "../../../../../electron-app/utils/app/lifecycle/listenersResize.js";
+import {
+    clearChartInstanceRegistryForTests,
+    registerChartInstance,
+} from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
 type ResizeListenerTestGlobal = typeof globalThis & {
     Chart?: { getChart?: (canvas: HTMLCanvasElement) => unknown };
@@ -28,6 +32,7 @@ function cleanupFixture(cleanupCallbacks: Array<() => void> = []): void {
     delete chartGlobal.Chart;
     delete chartGlobal.renderChart;
     delete chartGlobal.renderChartJS;
+    clearChartInstanceRegistryForTests();
     updateChartsMock.mockClear();
     Reflect.deleteProperty(document, "fullscreenElement");
     document.body.replaceChildren();
@@ -155,6 +160,35 @@ describe(registerChartResizeListener, () => {
             expect({ resizeCount }).toStrictEqual({ resizeCount: 0 });
 
             expect(cleanupCallbacks).toHaveLength(0);
+        } finally {
+            cleanupFixture(cleanupCallbacks);
+            vi.useRealTimers();
+        }
+    });
+
+    it("resizes registered charts when Chart.js runtime lookup is unavailable", () => {
+        expect.assertions(3);
+
+        const cleanupCallbacks: Array<() => void> = [];
+
+        try {
+            vi.useFakeTimers();
+            const chartTab = createTab("tab_chartjs", true);
+            setFullscreenElement(chartTab);
+            const canvas = document.createElement("canvas");
+            canvas.className = "chart-canvas";
+            document.body.append(canvas);
+            const resize = vi.fn<() => void>();
+            registerChartInstance({ canvas, resize });
+
+            registerChartResizeListener({ cleanupCallbacks });
+            window.dispatchEvent(new Event("resize"));
+
+            vi.advanceTimersByTime(120);
+
+            expect(resize).toHaveBeenCalledTimes(2);
+            expect(updateChartsMock).not.toHaveBeenCalled();
+            expect(cleanupCallbacks).toHaveLength(1);
         } finally {
             cleanupFixture(cleanupCallbacks);
             vi.useRealTimers();
