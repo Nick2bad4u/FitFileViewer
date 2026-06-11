@@ -498,6 +498,7 @@ const directRendererDevGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.__renderer_dev\b|["']__renderer_dev["']/u;
 const rendererDevelopmentDebugGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.(?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)\b|["'](?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)["']/u;
+const rawGlobalThisAnyCastPattern = /\(\s*globalThis\s+as\s+any\s*\)/u;
 const directDataTableGlobalPattern =
     /\b(?:window|globalThis|tableGlobal|renderTableGlobal)\.(?:\$|jQuery|DataTable)\b|\.jQuery\b/u;
 const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
@@ -2580,6 +2581,27 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directShowFitDataTestGlobals).toStrictEqual([]);
+    });
+
+    it("keeps raw globalThis any casts out of source and tests", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [...sourceRoots, ...testSourceRoots]
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    relativeFile !==
+                    "tests/unit/packaging/architectureBoundaries.test.ts"
+            );
+        const rawGlobalThisAnyCastFiles = scannedFiles
+            .filter((relativeFile) =>
+                rawGlobalThisAnyCastPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(rawGlobalThisAnyCastFiles).toStrictEqual([]);
     });
 
     it("keeps production FIT file entrypoints on the lazy decoded renderer", () => {
