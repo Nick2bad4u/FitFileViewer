@@ -11,16 +11,21 @@ import {
     cleanupGlobalChartStatusIndicatorFromCounts,
     createGlobalChartStatusIndicatorFromCounts,
 } from "./createGlobalChartStatusIndicatorFromCounts.js";
-import { getChartStatusIndicatorRuntime } from "./chartStatusIndicatorRuntime.js";
+import {
+    type ChartStatusIndicatorRuntime,
+    type ChartStatusIndicatorTimerHandle,
+    getChartStatusIndicatorRuntime,
+} from "./chartStatusIndicatorRuntime.js";
 
-const pendingStatusTimeouts = new Set<ReturnType<typeof setTimeout>>();
+const pendingStatusTimeouts = new Set<ChartStatusIndicatorTimerHandle>();
 const setupSubscriptions = new Set<() => void>();
 
 let setupController: AbortController | null = null;
 
 function clearPendingStatusTimeouts(): void {
+    const runtime = getChartStatusIndicatorRuntime();
     for (const timeoutId of pendingStatusTimeouts) {
-        clearTimeout(timeoutId);
+        runtime.clearTimeout(timeoutId);
     }
     pendingStatusTimeouts.clear();
 }
@@ -45,12 +50,13 @@ function trackSetupSubscription(unsubscribe: unknown): void {
 function scheduleChartStatusWork(
     delayMs: number,
     errorMessage: string,
-    callback: () => void
+    callback: () => void,
+    runtime: ChartStatusIndicatorRuntime = getChartStatusIndicatorRuntime()
 ): void {
-    const timeoutRef: { id?: ReturnType<typeof setTimeout> } = {};
-    let didRun = false;
-    timeoutRef.id = setTimeout(() => {
-        didRun = true;
+    const timeoutRef: { id?: ChartStatusIndicatorTimerHandle } = {};
+    const runState = { didRun: false };
+    timeoutRef.id = runtime.setTimeout(() => {
+        runState.didRun = true;
         if (timeoutRef.id !== undefined) {
             pendingStatusTimeouts.delete(timeoutRef.id);
         }
@@ -62,23 +68,33 @@ function scheduleChartStatusWork(
         return undefined;
     }, delayMs);
 
-    if (!didRun) {
+    if (!runState.didRun) {
         pendingStatusTimeouts.add(timeoutRef.id);
     }
 }
 
-function scheduleIndicatorRefresh(errorMessage: string, delayMs = 50): void {
-    scheduleChartStatusWork(delayMs, errorMessage, () => {
-        updateAllChartStatusIndicators();
-    });
+function scheduleIndicatorRefresh(
+    errorMessage: string,
+    delayMs = 50,
+    runtime: ChartStatusIndicatorRuntime = getChartStatusIndicatorRuntime()
+): void {
+    scheduleChartStatusWork(
+        delayMs,
+        errorMessage,
+        () => {
+            updateAllChartStatusIndicators();
+        },
+        runtime
+    );
 }
 
 function replaceIndicator(
     selector: string,
     createReplacement: () => HTMLElement | null,
-    cleanupCurrentIndicator?: (indicator: HTMLElement) => void
+    cleanupCurrentIndicator?: (indicator: HTMLElement) => void,
+    runtime: ChartStatusIndicatorRuntime = getChartStatusIndicatorRuntime()
 ): boolean {
-    const currentIndicator = document.querySelector(selector);
+    const currentIndicator = runtime.querySelector(selector);
     if (!currentIndicator) {
         return false;
     }
@@ -86,7 +102,7 @@ function replaceIndicator(
     const newIndicator = createReplacement();
     if (
         newIndicator &&
-        currentIndicator instanceof HTMLElement &&
+        runtime.isHTMLElement(currentIndicator) &&
         currentIndicator.parentNode
     ) {
         cleanupCurrentIndicator?.(currentIndicator);
@@ -104,14 +120,16 @@ export function setupChartStatusUpdates(): void {
         setupController?.abort();
         clearPendingStatusTimeouts();
         clearSetupSubscriptions();
-        setupController = new AbortController();
-        const { signal } = setupController;
         const runtime = getChartStatusIndicatorRuntime();
+        setupController = runtime.createAbortController();
+        const { signal } = setupController;
 
         trackSetupSubscription(
             subscribeToChartSettings(() => {
                 scheduleIndicatorRefresh(
-                    "[ChartStatus] Error in chart settings handler:"
+                    "[ChartStatus] Error in chart settings handler:",
+                    50,
+                    runtime
                 );
             })
         );
@@ -119,7 +137,8 @@ export function setupChartStatusUpdates(): void {
             subscribeToActiveFitRawData(() => {
                 scheduleIndicatorRefresh(
                     "[ChartStatus] Error in fitFile.rawData state handler:",
-                    100
+                    100,
+                    runtime
                 );
             })
         );
@@ -127,17 +146,20 @@ export function setupChartStatusUpdates(): void {
         runtime.addFieldToggleChangedListener(
             () => {
                 scheduleIndicatorRefresh(
-                    "[ChartStatus] Error in fieldToggleChanged handler:"
+                    "[ChartStatus] Error in fieldToggleChanged handler:",
+                    50,
+                    runtime
                 );
             },
             { signal }
         );
 
-        document.addEventListener(
-            "chartsRendered",
+        runtime.addChartsRenderedListener(
             () => {
                 scheduleIndicatorRefresh(
-                    "[ChartStatus] Error in chartsRendered handler:"
+                    "[ChartStatus] Error in chartsRendered handler:",
+                    50,
+                    runtime
                 );
             },
             { signal }
@@ -148,7 +170,8 @@ export function setupChartStatusUpdates(): void {
             "[ChartStatus] Error creating initial global indicator:",
             () => {
                 createGlobalChartStatusIndicator();
-            }
+            },
+            runtime
         );
     } catch (error) {
         console.error(
@@ -163,18 +186,21 @@ export function setupChartStatusUpdates(): void {
  */
 export function updateAllChartStatusIndicators(): void {
     try {
+        const runtime = getChartStatusIndicatorRuntime();
         const counts = getChartCounts();
 
         replaceIndicator(
             "#chart-status-indicator",
             () => createChartStatusIndicatorFromCounts(counts),
-            cleanupChartStatusIndicatorFromCounts
+            cleanupChartStatusIndicatorFromCounts,
+            runtime
         );
 
         const didUpdateGlobalIndicator = replaceIndicator(
             "#global-chart-status",
             () => createGlobalChartStatusIndicatorFromCounts(counts),
-            cleanupGlobalChartStatusIndicatorFromCounts
+            cleanupGlobalChartStatusIndicatorFromCounts,
+            runtime
         );
 
         if (!didUpdateGlobalIndicator) {
@@ -195,8 +221,9 @@ export function updateChartStatusIndicator(
     indicator: HTMLElement | null = null
 ): void {
     try {
+        const runtime = getChartStatusIndicatorRuntime();
         const target =
-            indicator ?? document.querySelector("#chart-status-indicator");
+            indicator ?? runtime.querySelector("#chart-status-indicator");
         if (!target) {
             return;
         }
@@ -204,7 +231,7 @@ export function updateChartStatusIndicator(
         const newIndicator = createChartStatusIndicator();
         if (
             newIndicator &&
-            target instanceof HTMLElement &&
+            runtime.isHTMLElement(target) &&
             target.parentNode
         ) {
             cleanupChartStatusIndicatorFromCounts(target);

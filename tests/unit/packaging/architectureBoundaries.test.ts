@@ -686,7 +686,7 @@ const directUpdateMapThemeRuntimeGlobalPattern =
 const directChartStatusViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
 const directChartStatusEventGlobalPattern =
-    /\b(?:globalThis|window)\.addEventListener\(\s*["']fieldToggleChanged["']/u;
+    /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\(\s*["']fieldToggleChanged["']|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
