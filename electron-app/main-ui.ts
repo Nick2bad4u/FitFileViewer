@@ -8,9 +8,9 @@ import { resourceManager } from "./utils/app/lifecycle/resourceManager.js";
 import { chartTabIntegration } from "./utils/charts/core/chartTabIntegration.js";
 import { UI_CONSTANTS } from "./utils/config/constants.js";
 import { performanceMonitor } from "./utils/debug/stateDevTools.js";
-// State Management Integration
-import { setState } from "./utils/state/core/stateManager.js";
 import { fitFileStateManager } from "./utils/state/domain/fitFileState.js";
+import { clearRendererActiveFileState } from "./utils/state/domain/rendererActiveFileState.js";
+import { setRendererChartsRendered } from "./utils/state/domain/rendererChartRenderState.js";
 import { setRendererDragCounter } from "./utils/state/domain/rendererDragDropState.js";
 import { getRendererElectronApi } from "./utils/runtime/electronApiRuntime.js";
 import { UIActions } from "./utils/state/domain/uiStateManager.js";
@@ -162,20 +162,7 @@ function unloadFitFile(): void {
         // Ensure domain-level fit state is cleared as well
         clearFitFileDomainState();
 
-        setState(
-            "ui.fileInfo",
-            {
-                displayName: "",
-                hasFile: false,
-                title: "",
-            },
-            { silent: false, source: "main-ui.unloadFitFile" }
-        );
-        setState("ui.unloadButtonVisible", false, {
-            silent: false,
-            source: "main-ui.unloadFitFile",
-        });
-        setState("currentFile", null, {
+        clearRendererActiveFileState({
             silent: false,
             source: "main-ui.unloadFitFile",
         });
@@ -360,7 +347,7 @@ export function runMainUiDevelopmentCleanup(): void {
 
     // Clear state using the new system
     AppActions.clearData();
-    setState("charts.isRendered", false, {
+    setRendererChartsRendered(false, {
         silent: false,
         source: "devCleanup",
     });
