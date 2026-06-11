@@ -5,6 +5,10 @@ import {
 } from "../../ui/icons/iconFactory.js";
 import { addEventListenerWithCleanup } from "../../ui/events/eventListenerManager.js";
 import { resolveDataTableRuntime } from "./dataTableRuntime.js";
+import {
+    getRenderTableRuntime,
+    type RenderTableTimerHandle,
+} from "./renderTableRuntime.js";
 
 /** Row shape accepted by the raw-data table renderer. */
 export type RenderTableRow = Record<string, unknown>;
@@ -77,27 +81,28 @@ export function renderTable(
     table: RenderTableData,
     index: number
 ): void {
-    const rows = table && Array.isArray(table.rows) ? table.rows : [];
+    const rows = Array.isArray(table.rows) ? table.rows : [];
     const normalized = normalizeRows(rows);
     const columns = getColumns(normalized);
+    const runtime = getRenderTableRuntime();
 
-    const section = document.createElement("div");
+    const section = runtime.createElement("div");
     const tableId = `datatable_${index}`;
     section.classList.add("table-section");
 
-    const header = document.createElement("div");
+    const header = runtime.createElement("div");
     header.classList.add("table-header");
 
-    const leftSpan = document.createElement("span");
+    const leftSpan = runtime.createElement("span");
     leftSpan.className = "table-header-title";
-    decorateSectionHeaderTitle(leftSpan, title);
+    decorateSectionHeaderTitle(leftSpan, title, runtime);
 
-    const rightContainer = document.createElement("div");
+    const rightContainer = runtime.createElement("div");
     rightContainer.style.display = "flex";
     rightContainer.style.alignItems = "center";
     rightContainer.style.gap = "10px";
 
-    const copyButton = document.createElement("button");
+    const copyButton = runtime.createElement("button");
     copyButton.textContent = "Copy as CSV";
     copyButton.classList.add("copy-btn");
     addEventListenerWithCleanup(copyButton, "click", (event) => {
@@ -107,7 +112,7 @@ export function renderTable(
         });
     });
 
-    const icon = document.createElement("span");
+    const icon = runtime.createElement("span");
     icon.textContent = "➕";
 
     rightContainer.append(copyButton);
@@ -115,27 +120,27 @@ export function renderTable(
     header.append(leftSpan);
     header.append(rightContainer);
 
-    let dataTableInitTimer: null | ReturnType<typeof setTimeout> = null;
+    let dataTableInitTimer: null | RenderTableTimerHandle = null;
 
-    const content = document.createElement("div");
+    const content = runtime.createElement("div");
     content.classList.add("table-content");
     content.id = `content_${tableId}`;
     content.style.display = "none";
 
-    const tableElement = document.createElement("table");
+    const tableElement = runtime.createElement("table");
     tableElement.id = tableId;
     tableElement.classList.add("display");
 
-    const thead = document.createElement("thead");
-    const headRow = document.createElement("tr");
+    const thead = runtime.createElement("thead");
+    const headRow = runtime.createElement("tr");
     for (const column of columns) {
-        const th = document.createElement("th");
-        decorateTableHeaderCell(th, column);
+        const th = runtime.createElement("th");
+        decorateTableHeaderCell(th, column, runtime);
         headRow.append(th);
     }
     thead.append(headRow);
     tableElement.append(thead);
-    tableElement.append(document.createElement("tbody"));
+    tableElement.append(runtime.createElement("tbody"));
 
     content.append(tableElement);
 
@@ -190,23 +195,23 @@ export function renderTable(
                 searching: true,
             });
 
-            const raf = globalThis.requestAnimationFrame;
-            if (typeof raf === "function") {
-                raf(() => {
-                    try {
-                        dt.columns.adjust();
-                        decorateTableHeaderCells(tableElement, columns);
-                    } catch {
-                        /* ignore */
-                    }
-                });
-            } else {
+            const animationFrameHandle = runtime.requestAnimationFrame(() => {
                 try {
                     dt.columns.adjust();
-                    decorateTableHeaderCells(tableElement, columns);
+                    decorateTableHeaderCells(tableElement, columns, runtime);
                 } catch {
                     /* ignore */
                 }
+            });
+            if (animationFrameHandle === undefined) {
+                try {
+                    dt.columns.adjust();
+                    decorateTableHeaderCells(tableElement, columns, runtime);
+                } catch {
+                    /* ignore */
+                }
+            } else {
+                void animationFrameHandle;
             }
         } catch (error) {
             console.error(
@@ -218,19 +223,19 @@ export function renderTable(
 
     const renderFallbackTableBody = (): void => {
         const tbody = tableElement.querySelector("tbody");
-        if (!(tbody instanceof HTMLElement)) {
+        if (!runtime.isHTMLElement(tbody)) {
             return;
         }
 
-        decorateTableHeaderCells(tableElement, columns);
+        decorateTableHeaderCells(tableElement, columns, runtime);
 
         tbody.replaceChildren();
         const limit = 500;
         const slice = normalized.slice(0, limit);
         for (const row of slice) {
-            const tr = document.createElement("tr");
+            const tr = runtime.createElement("tr");
             for (const column of columns) {
-                const td = document.createElement("td");
+                const td = runtime.createElement("td");
                 td.textContent = String(row[column] ?? "");
                 tr.append(td);
             }
@@ -239,21 +244,20 @@ export function renderTable(
     };
 
     const scheduleDataTableInit = (): void => {
-        if (dataTableInitTimer) {
+        if (dataTableInitTimer !== null) {
             return;
         }
 
-        dataTableInitTimer = setTimeout(() => {
+        dataTableInitTimer = runtime.setTimeout(() => {
             dataTableInitTimer = null;
 
-            const host = document.getElementById(`content_${tableId}`);
+            const host = runtime.getElementById(`content_${tableId}`);
             const isDisplayed =
-                host instanceof HTMLElement &&
-                typeof globalThis.getComputedStyle === "function" &&
-                globalThis.getComputedStyle(host).display !== "none";
+                host !== null &&
+                runtime.getComputedStyle(host)?.display !== "none";
 
             if (!isDisplayed) {
-                dataTableInitTimer = setTimeout(() => {
+                dataTableInitTimer = runtime.setTimeout(() => {
                     dataTableInitTimer = null;
                     initializeDataTableIfAvailable();
                 }, 50);
@@ -266,7 +270,7 @@ export function renderTable(
 
     addEventListenerWithCleanup(header, "click", () => {
         const isHidden =
-            globalThis.getComputedStyle(content).display === "none";
+            runtime.getComputedStyle(content)?.display === "none";
         content.style.display = isHidden ? "block" : "none";
         icon.textContent = isHidden ? "➖" : "➕";
 
@@ -286,9 +290,10 @@ function applyIconLabel(
     iconName: AppIconName,
     text: string,
     iconClass: string,
-    textClass: string
+    textClass: string,
+    runtime = getRenderTableRuntime()
 ): void {
-    const icon = document.createElement("span");
+    const icon = runtime.createElement("span");
     icon.className = iconClass;
     icon.append(
         createAppIconElement(iconName, {
@@ -298,7 +303,7 @@ function applyIconLabel(
         })
     );
 
-    const label = document.createElement("span");
+    const label = runtime.createElement("span");
     label.className = textClass;
     label.textContent = text;
 
@@ -307,9 +312,10 @@ function applyIconLabel(
 
 function decorateSectionHeaderTitle(
     container: HTMLElement,
-    title: string
+    title: string,
+    runtime = getRenderTableRuntime()
 ): void {
-    const icon = document.createElement("i");
+    const icon = runtime.createElement("i");
     icon.className = "table-header-title__icon";
     icon.append(
         createAppIconElement(resolveTableSectionIconName(title), {
@@ -319,7 +325,7 @@ function decorateSectionHeaderTitle(
         })
     );
 
-    const label = document.createElement("strong");
+    const label = runtime.createElement("strong");
     label.className = "table-header-title__text";
     label.textContent = title;
 
@@ -328,27 +334,34 @@ function decorateSectionHeaderTitle(
 
 function decorateTableHeaderCells(
     tableElement: HTMLTableElement,
-    columns: readonly string[]
+    columns: readonly string[],
+    runtime = getRenderTableRuntime()
 ): void {
     const headerCells = tableElement.querySelectorAll("thead th");
     for (const [index, cell] of headerCells.entries()) {
-        if (!(cell instanceof HTMLTableCellElement)) {
+        if (!runtime.isTableCellElement(cell)) {
             continue;
         }
-        decorateTableHeaderCell(cell, columns[index] ?? cell.textContent ?? "");
+        decorateTableHeaderCell(
+            cell,
+            columns[index] ?? cell.textContent ?? "",
+            runtime
+        );
     }
 }
 
 function decorateTableHeaderCell(
     cell: HTMLTableCellElement,
-    label: string
+    label: string,
+    runtime = getRenderTableRuntime()
 ): void {
     applyIconLabel(
         cell,
         resolveTableColumnIconName(label),
         label,
         "table-column-title__icon",
-        "table-column-title__text"
+        "table-column-title__text",
+        runtime
     );
 }
 

@@ -215,6 +215,9 @@ const rendererVendorBrowserPackageImportAllowedFiles = [
 const migratedDataTableImportFiles = [
     "electron-app/utils/rendering/core/renderTable.ts",
 ] as const;
+const migratedRenderTableRuntimeFiles = [
+    "electron-app/utils/rendering/core/renderTable.ts",
+] as const;
 const migratedChartInstanceRegistryFiles = [
     "electron-app/utils/charts/core/renderChartActions.ts",
     "electron-app/utils/charts/core/renderChartDataCharts.ts",
@@ -543,6 +546,8 @@ const rendererDevelopmentDebugGlobalPattern =
 const rawGlobalThisAnyCastPattern = /\(\s*globalThis\s+as\s+any\s*\)/u;
 const directDataTableGlobalPattern =
     /\b(?:window|globalThis|tableGlobal|renderTableGlobal)\.(?:\$|jQuery|DataTable)\b|\.jQuery\b/u;
+const directRenderTableRuntimeGlobalPattern =
+    /\b(?:document|globalThis)\.(?:createElement|getElementById|getComputedStyle|requestAnimationFrame)\b|(?:^|[^\w.])setTimeout\(|\binstanceof\s+(?:HTMLElement|HTMLTableCellElement)\b/u;
 const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
 const directChartCanvasExpandoPattern = /\b__chartjs\b/u;
 const directDomPurifyGlobalPattern =
@@ -1962,6 +1967,24 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps table renderer browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRenderTableRuntimeFiles
+            .filter((relativeFile) =>
+                directRenderTableRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const renderTableSource = stripComments(
+            readRepositoryFile("electron-app/utils/rendering/core/renderTable.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(renderTableSource).toContain("renderTableRuntime.js");
     });
 
     it("keeps direct DataTables global lookups out of runtime source", () => {
