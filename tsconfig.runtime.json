@@ -328,6 +328,7 @@
         "electron-app/utils/charts/core/renderChartStateManagementApi.ts",
         "electron-app/utils/charts/core/renderChartStateAccess.ts",
         "electron-app/utils/charts/core/renderChartStateView.ts",
+        "electron-app/utils/charts/core/renderChartStartupRuntime.ts",
         "electron-app/utils/charts/core/renderChartStartup.ts",
         "electron-app/utils/charts/core/renderChartTestRendererTouches.ts",
         "electron-app/utils/charts/core/renderChartThemeHelpers.ts",

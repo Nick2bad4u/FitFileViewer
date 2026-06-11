@@ -3,17 +3,22 @@ import {
     isSharedConfigurationListenerRegistered,
     registerSharedConfigurationListenerController,
 } from "./chartListenerState.js";
+import {
+    getRenderChartStartupRuntime,
+    type RenderChartStartupRuntime,
+} from "./renderChartStartupRuntime.js";
 
 interface RegisterChartStartupParams {
     loadSharedConfiguration(): unknown;
+    runtime?: RenderChartStartupRuntime | undefined;
 }
 
 function registerSharedConfigurationLoader(
-    loadSharedConfiguration: () => unknown
+    loadSharedConfiguration: () => unknown,
+    runtime: RenderChartStartupRuntime
 ): void {
     if (
-        globalThis.window === undefined ||
-        typeof globalThis.addEventListener !== "function" ||
+        !runtime.canRegisterDOMContentLoadedListener() ||
         isSharedConfigurationListenerRegistered()
     ) {
         return;
@@ -21,8 +26,7 @@ function registerSharedConfigurationLoader(
 
     const signal = registerSharedConfigurationListenerController();
 
-    globalThis.addEventListener(
-        "DOMContentLoaded",
+    runtime.addDOMContentLoadedListener(
         () => {
             try {
                 loadSharedConfiguration();
@@ -43,5 +47,10 @@ function registerSharedConfigurationLoader(
  * @param params - Startup dependencies supplied by renderChartJS.
  */
 export function registerChartStartup(params: RegisterChartStartupParams): void {
-    registerSharedConfigurationLoader(() => params.loadSharedConfiguration());
+    const runtime = params.runtime ?? getRenderChartStartupRuntime();
+
+    registerSharedConfigurationLoader(
+        () => params.loadSharedConfiguration(),
+        runtime
+    );
 }
