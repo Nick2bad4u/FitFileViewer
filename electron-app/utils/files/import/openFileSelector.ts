@@ -3,6 +3,10 @@ import { showNotification } from "../../ui/notifications/showNotification.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { loadOverlayFiles, type OverlayInputFile } from "./loadOverlayFiles.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import {
+    getOpenFileSelectorRuntime,
+    type OpenFileSelectorTimer,
+} from "./openFileSelectorRuntime.js";
 
 type FileSelectorElectronAPI = Partial<
     Pick<ElectronAPI, "openOverlayDialog" | "readFile">
@@ -135,13 +139,11 @@ function getFileSelectorElectronApi(): FileSelectorElectronAPI | null {
  * Creates and configures the file input element
  */
 function createFileInput(): HTMLInputElement {
-    const input = document.createElement("input");
+    const runtime = getOpenFileSelectorRuntime();
+    const input = runtime.createInput();
     // In JSDOM tests, setting type="file" can make the `files` property non-configurable,
     // Which prevents tests from redefining it. Detect JSDOM and skip setting type there.
-    const isJsdom =
-        typeof navigator !== "undefined" &&
-        /jsdom/i.test(navigator.userAgent || "");
-    if (!isJsdom) {
+    if (!runtime.isJsdom()) {
         input.type = FILE_SELECTOR_CONFIG.INPUT_TYPE;
     }
     input.accept = FILE_SELECTOR_CONFIG.ACCEPTED_EXTENSIONS;
@@ -299,41 +301,42 @@ async function triggerFileSelection(
     input: HTMLInputElement,
     controller: InputProcessingController
 ): Promise<void> {
+    const runtime = getOpenFileSelectorRuntime();
+
     // Temporarily add to DOM to enable click trigger
-    document.body.append(input);
+    runtime.appendToBody(input);
 
     try {
         input.click();
     } finally {
-        queueMicrotask(() => {
+        runtime.queueMicrotask(() => {
             controller.run("microtask").catch(() => {
                 /* handled in controller */
             });
         });
-        if (typeof globalThis.setTimeout === "function") {
-            const timeoutCleanupController = new AbortController();
-            const clearScheduledTimeout = (): void => {
-                globalThis.clearTimeout(timeoutHandle);
-                timeoutCleanupController.abort();
-                controller.signal.removeEventListener(
-                    "abort",
-                    clearScheduledTimeout
-                );
-            };
-            const timeoutHandle = globalThis.setTimeout(() => {
-                controller.signal.removeEventListener(
-                    "abort",
-                    clearScheduledTimeout
-                );
-                controller.run("timeout").catch(() => {
-                    /* handled in controller */
-                });
-            }, 0);
-            controller.signal.addEventListener("abort", clearScheduledTimeout, {
-                once: true,
-                signal: timeoutCleanupController.signal,
+        const timeoutCleanupController = new AbortController();
+        let timeoutHandle: OpenFileSelectorTimer;
+        const clearScheduledTimeout = (): void => {
+            runtime.clearTimeout(timeoutHandle);
+            timeoutCleanupController.abort();
+            controller.signal.removeEventListener(
+                "abort",
+                clearScheduledTimeout
+            );
+        };
+        timeoutHandle = runtime.setTimeout(() => {
+            controller.signal.removeEventListener(
+                "abort",
+                clearScheduledTimeout
+            );
+            controller.run("timeout").catch(() => {
+                /* handled in controller */
             });
-        }
+        }, 0);
+        controller.signal.addEventListener("abort", clearScheduledTimeout, {
+            once: true,
+            signal: timeoutCleanupController.signal,
+        });
     }
 
     await controller.done;
