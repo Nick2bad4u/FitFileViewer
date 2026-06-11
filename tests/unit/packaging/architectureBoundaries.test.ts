@@ -284,6 +284,9 @@ const migratedAltFitSenderRuntimeFiles = [
 const migratedLoadSharedConfigurationRuntimeFiles = [
     "electron-app/utils/app/initialization/loadSharedConfiguration.ts",
 ] as const;
+const migratedChartThemeRuntimeFiles = [
+    "electron-app/utils/charts/theming/chartThemeUtils.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -544,6 +547,8 @@ const directAltFitSenderRuntimeGlobalPattern =
     /\bglobalThis\.(?:console|document|location)\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.location\b/u;
+const directChartThemeRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2125,6 +2130,26 @@ describe("architecture boundaries", () => {
         expect(loadSharedConfigurationSource).toContain(
             "loadSharedConfigurationRuntime.js"
         );
+    });
+
+    it("keeps chart theme browser reads behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedChartThemeRuntimeFiles
+            .filter((relativeFile) =>
+                directChartThemeRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const chartThemeUtilsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/theming/chartThemeUtils.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(chartThemeUtilsSource).toContain("chartThemeRuntime.js");
     });
 
     it("keeps migrated map helpers on the Leaflet runtime adapter", () => {

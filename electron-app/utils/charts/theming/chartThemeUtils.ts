@@ -1,10 +1,14 @@
 import { getEffectiveTheme } from "../../theming/core/theme.js";
 import { isChartDebugLoggingEnabled } from "../core/chartDebugState.js";
+import {
+    type ChartTheme,
+    getChartThemeRuntime,
+} from "./chartThemeRuntime.js";
 
 /**
  * Concrete theme values that chart rendering can consume.
  */
-export type ChartTheme = "dark" | "light";
+export type { ChartTheme } from "./chartThemeRuntime.js";
 
 function shouldLogDebugMessages(): boolean {
     return isChartDebugLoggingEnabled();
@@ -27,25 +31,21 @@ function isChartTheme(value: null | string): value is ChartTheme {
     return value === "dark" || value === "light";
 }
 
-function getSystemPreferredTheme(): ChartTheme {
-    return globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-}
-
 /**
  * Detects the current chart theme using app classes, theme state, storage, and
  * system preference fallbacks.
  */
 export function detectCurrentTheme(): ChartTheme {
-    if (document.body.classList.contains("theme-dark")) {
+    const runtime = getChartThemeRuntime();
+
+    if (runtime.hasBodyThemeClass("theme-dark")) {
         logThemeDetection(
             "[ChartThemeUtils] Detected theme via body class: dark"
         );
         return "dark";
     }
 
-    if (document.body.classList.contains("theme-light")) {
+    if (runtime.hasBodyThemeClass("theme-light")) {
         logThemeDetection(
             "[ChartThemeUtils] Detected theme via body class: light"
         );
@@ -66,7 +66,7 @@ export function detectCurrentTheme(): ChartTheme {
     }
 
     try {
-        const savedTheme = localStorage.getItem("ffv-theme");
+        const savedTheme = runtime.getSavedTheme();
         if (isChartTheme(savedTheme)) {
             logThemeDetection(
                 "[ChartThemeUtils] Detected theme via localStorage:",
@@ -76,7 +76,7 @@ export function detectCurrentTheme(): ChartTheme {
         }
 
         if (savedTheme === "auto") {
-            const systemTheme = getSystemPreferredTheme();
+            const systemTheme = runtime.getSystemPreferredTheme();
             logThemeDetection(
                 `[ChartThemeUtils] Auto theme resolved to: ${systemTheme}`
             );
@@ -87,7 +87,7 @@ export function detectCurrentTheme(): ChartTheme {
     }
 
     try {
-        if (getSystemPreferredTheme() === "dark") {
+        if (runtime.getSystemPreferredTheme() === "dark") {
             logThemeDetection(
                 "[ChartThemeUtils] System preference fallback: dark"
             );

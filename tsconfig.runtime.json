@@ -360,6 +360,7 @@
         "electron-app/utils/charts/rendering/renderZoneChart.ts",
         "electron-app/utils/charts/rendering/index.ts",
         "electron-app/utils/charts/index.ts",
+        "electron-app/utils/charts/theming/chartThemeRuntime.ts",
         "electron-app/utils/charts/theming/chartThemeUtils.ts",
         "electron-app/utils/charts/theming/chartColorSchemes.ts",
         "electron-app/utils/charts/theming/chartOverlayColorPalette.ts",
