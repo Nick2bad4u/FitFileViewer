@@ -1,6 +1,10 @@
 import { getChartCounts } from "../core/getChartCounts.js";
 import { getChartContentContainer } from "../dom/chartDomUtils.js";
 import { createGlobalChartStatusIndicatorFromCounts } from "./createGlobalChartStatusIndicatorFromCounts.js";
+import {
+    type ChartStatusIndicatorRuntime,
+    getChartStatusIndicatorRuntime,
+} from "./chartStatusIndicatorRuntime.js";
 
 const GLOBAL_CHART_STATUS_ID = "global-chart-status";
 const LOG_PREFIX = "[GlobalChartStatus]";
@@ -48,33 +52,30 @@ function logWithContext(
     }
 }
 
-function getExistingIndicator(): HTMLElement | null {
-    const existingIndicator = document.querySelector(
-        `#${GLOBAL_CHART_STATUS_ID}`
-    );
-    return existingIndicator instanceof HTMLElement ? existingIndicator : null;
+function getExistingIndicator(
+    runtime: ChartStatusIndicatorRuntime
+): HTMLElement | null {
+    return runtime.querySelector(`#${GLOBAL_CHART_STATUS_ID}`);
 }
 
-function getChartContainer(): HTMLElement | null {
-    const snakeCaseElement = document.querySelector(
-        "#chartjs_chart_container"
-    );
-    if (snakeCaseElement instanceof HTMLElement) {
+function getChartContainer(
+    runtime: ChartStatusIndicatorRuntime
+): HTMLElement | null {
+    const snakeCaseElement = runtime.querySelector("#chartjs_chart_container");
+    if (snakeCaseElement) {
         return snakeCaseElement;
     }
 
-    const kebabCaseElement = document.querySelector(
-        "#chartjs-chart-container"
-    );
-    return kebabCaseElement instanceof HTMLElement ? kebabCaseElement : null;
+    return runtime.querySelector("#chartjs-chart-container");
 }
 
 function insertIndicatorIntoDom(
     globalIndicator: HTMLElement,
-    chartTabContent: HTMLElement
+    chartTabContent: HTMLElement,
+    runtime: ChartStatusIndicatorRuntime
 ): void {
     try {
-        const chartContainer = getChartContainer();
+        const chartContainer = getChartContainer(runtime);
 
         if (chartContainer) {
             chartContainer.before(globalIndicator);
@@ -105,6 +106,7 @@ function insertIndicatorIntoDom(
 export function createGlobalChartStatusIndicator(): HTMLElement | null {
     try {
         logWithContext("info", "Creating global chart status indicator");
+        const runtime = getChartStatusIndicatorRuntime();
 
         const chartTabContent = getChartContentContainer(document);
         if (!chartTabContent) {
@@ -114,7 +116,7 @@ export function createGlobalChartStatusIndicator(): HTMLElement | null {
             return null;
         }
 
-        const existingIndicator = getExistingIndicator();
+        const existingIndicator = getExistingIndicator(runtime);
         if (existingIndicator) {
             logWithContext(
                 "info",
@@ -132,7 +134,7 @@ export function createGlobalChartStatusIndicator(): HTMLElement | null {
             return null;
         }
 
-        insertIndicatorIntoDom(globalIndicator, chartTabContent);
+        insertIndicatorIntoDom(globalIndicator, chartTabContent, runtime);
 
         logWithContext(
             "info",
