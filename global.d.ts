@@ -22,7 +22,6 @@ declare global {
         electronAPI: ElectronAPIWithDevFlags;
 
         // --- Data / state objects ---
-        chartControlsState?: unknown;
         loadedFitFiles?: FitDecodeResult[];
 
         // --- Chart related data ---
