@@ -1304,6 +1304,22 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps chart state manager on chart and renderer state facades", () => {
+        expect.assertions(3);
+
+        const chartStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartStateManager.ts"
+            )
+        );
+
+        expect(chartStateManagerSource).toContain("rendererChartRenderState.js");
+        expect(chartStateManagerSource).toContain("rendererActiveTabState.js");
+        expect(chartStateManagerSource).not.toContain(
+            "state/core/stateManager.js"
+        );
+    });
+
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
         expect.assertions(2);
 

@@ -3,9 +3,15 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
     areRendererChartsRendered,
+    getRendererChartState,
     normalizeRendererChartsRendered,
+    setRendererChartLastRenderTime,
     setRendererChartPreviousState,
+    setRendererChartRendering,
+    setRendererChartTabActive,
     setRendererChartsRendered,
+    subscribeToRendererSelectedChart,
+    updateRendererChartState,
 } from "../../../../../electron-app/utils/state/domain/rendererChartRenderState.js";
 
 describe("rendererChartRenderState", () => {
@@ -31,6 +37,59 @@ describe("rendererChartRenderState", () => {
         expect(normalizeRendererChartsRendered(true)).toBe(true);
         expect(normalizeRendererChartsRendered(false)).toBe(false);
         expect(normalizeRendererChartsRendered("true")).toBe(false);
+    });
+
+    it("reads and updates the aggregate renderer chart state", () => {
+        expect.assertions(2);
+
+        expect(getRendererChartState()).toBeDefined();
+
+        updateRendererChartState(
+            {
+                chartData: null,
+                isRendered: false,
+                tabActive: false,
+            },
+            { source: "test" }
+        );
+
+        expect(getRendererChartState()).toMatchObject({
+            chartData: null,
+            isRendered: false,
+            tabActive: false,
+        });
+    });
+
+    it("writes chart rendering lifecycle flags", () => {
+        expect.assertions(3);
+
+        setRendererChartRendering(true, { source: "test" });
+        setRendererChartTabActive(true, { source: "test" });
+        setRendererChartLastRenderTime(1234, { source: "test" });
+
+        expect(stateManager.getState("charts.isRendering")).toBe(true);
+        expect(stateManager.getState("charts.tabActive")).toBe(true);
+        expect(stateManager.getState("charts.lastRenderTime")).toBe(1234);
+    });
+
+    it("subscribes to selected chart changes", () => {
+        expect.assertions(2);
+
+        const changes: unknown[] = [];
+        const unsubscribe = subscribeToRendererSelectedChart((newValue) => {
+            changes.push(newValue);
+        });
+
+        stateManager.setState("charts.selectedChart", "power", {
+            source: "test",
+        });
+        expect(changes).toStrictEqual(["power"]);
+
+        unsubscribe();
+        stateManager.setState("charts.selectedChart", "speed", {
+            source: "test",
+        });
+        expect(changes).toStrictEqual(["power"]);
     });
 
     it("writes previous chart render state", () => {

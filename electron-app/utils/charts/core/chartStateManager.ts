@@ -1,14 +1,24 @@
-import {
-    getState,
-    setState,
-    subscribe,
-    updateState,
-} from "../../state/core/stateManager.js";
+import { subscribeToActiveFitRawDataChange } from "../../state/domain/activeFitRawDataState.js";
 import {
     hasActiveFitChartData,
     hasFitChartRecordMessages,
 } from "../../state/domain/fitChartDataState.js";
 import {
+    getRendererActiveTab,
+    subscribeToRendererActiveTab,
+} from "../../state/domain/rendererActiveTabState.js";
+import { subscribeToRendererChartControlsVisibleState } from "../../state/domain/rendererChartControlsState.js";
+import {
+    getRendererChartState,
+    setRendererChartLastRenderTime,
+    setRendererChartRendering,
+    setRendererChartTabActive,
+    subscribeToRendererSelectedChart,
+    updateRendererChartState,
+} from "../../state/domain/rendererChartRenderState.js";
+import { subscribeToRendererTheme } from "../../state/domain/rendererThemeState.js";
+import {
+    setCachedChartSettings,
     type ChartSettings,
     subscribeToChartSettings,
 } from "../../state/domain/settingsStateManager.js";
@@ -70,8 +80,7 @@ export class ChartStateManager {
         invalidateChartRenderCache("ChartStateManager.clearChartState");
         this.destroyExistingCharts();
 
-        updateState(
-            "charts",
+        updateRendererChartState(
             {
                 chartData: null,
                 isRendered: false,
@@ -182,7 +191,7 @@ export class ChartStateManager {
 
         console.log("[ChartStateManager] Chart tab activated");
 
-        setState("charts.tabActive", true, {
+        setRendererChartTabActive(true, {
             source: "ChartStateManager.handleTabActivation",
         });
 
@@ -225,7 +234,7 @@ export class ChartStateManager {
      * Initializes reactive subscriptions for chart updates.
      */
     initializeSubscriptions(): void {
-        subscribe("ui.theme", (newTheme, oldTheme) => {
+        subscribeToRendererTheme((newTheme, oldTheme) => {
             if (
                 typeof newTheme === "string" &&
                 typeof oldTheme === "string" &&
@@ -239,23 +248,23 @@ export class ChartStateManager {
             }
         });
 
-        subscribe("ui.activeTab", (activeTab) => {
+        subscribeToRendererActiveTab((activeTab) => {
             if (activeTab === "chartjs" || activeTab === "chart") {
                 this.handleTabActivation();
             }
         });
 
-        subscribe("fitFile.rawData", (newData, oldData) => {
+        subscribeToActiveFitRawDataChange((newData, oldData) => {
             if (newData !== oldData) {
                 this.handleDataChange(newData);
             }
         });
 
-        subscribe("charts.selectedChart", (chartType) => {
+        subscribeToRendererSelectedChart((chartType) => {
             this.debouncedRender(`Chart type changed to ${String(chartType)}`);
         });
 
-        subscribe("charts.controlsVisible", (visible) => {
+        subscribeToRendererChartControlsVisibleState((visible) => {
             this.updateControlsVisibility(visible === true);
         });
 
@@ -271,7 +280,7 @@ export class ChartStateManager {
                 return;
             }
 
-            setState("settings.charts", nextSettings, {
+            setCachedChartSettings(nextSettings, {
                 source: "ChartStateManager.chartSettingsSubscription",
             });
 
@@ -287,7 +296,7 @@ export class ChartStateManager {
      * Checks if the chart tab is currently active.
      */
     isChartTabActive(): boolean {
-        const activeTab = getState("ui.activeTab");
+        const activeTab = getRendererActiveTab();
         return activeTab === "chartjs" || activeTab === "chart";
     }
 
@@ -310,7 +319,7 @@ export class ChartStateManager {
         this.isRendering = true;
 
         try {
-            setState("charts.isRendering", true, {
+            setRendererChartRendering(true, {
                 source: "ChartStateManager.performChartRender",
             });
 
@@ -318,7 +327,7 @@ export class ChartStateManager {
 
             if (!container) {
                 console.warn("[ChartStateManager] Chart container not found");
-                setState("charts.isRendering", false, {
+                setRendererChartRendering(false, {
                     source: "ChartStateManager.performChartRender",
                 });
                 return;
@@ -329,7 +338,7 @@ export class ChartStateManager {
             const success = await renderChartJS(container);
 
             if (success) {
-                setState("charts.lastRenderTime", Date.now(), {
+                setRendererChartLastRenderTime(Date.now(), {
                     source: "ChartStateManager.performChartRender",
                 });
                 console.log(
@@ -345,7 +354,7 @@ export class ChartStateManager {
             );
             void showNotification("Failed to render charts", "error");
         } finally {
-            setState("charts.isRendering", false, {
+            setRendererChartRendering(false, {
                 source: "ChartStateManager.performChartRender",
             });
 
@@ -433,7 +442,7 @@ function getChartInstanceCount(): number {
 }
 
 function getChartState(): ChartState | undefined {
-    const value = getState("charts");
+    const value = getRendererChartState();
     if (!isObjectRecord(value)) {
         return undefined;
     }

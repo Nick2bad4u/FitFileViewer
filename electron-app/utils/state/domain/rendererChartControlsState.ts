@@ -2,6 +2,7 @@ import {
     getState,
     setState,
     subscribe,
+    type StateListener,
     updateState,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
@@ -72,6 +73,12 @@ export function subscribeToRendererChartControlsVisible(
     return subscribe(RENDERER_CHART_CONTROLS_VISIBLE_STATE_PATH, (value) => {
         listener(normalizeRendererChartControlsVisible(value));
     });
+}
+
+export function subscribeToRendererChartControlsVisibleState(
+    listener: StateListener
+): () => void {
+    return subscribe(RENDERER_CHART_CONTROLS_VISIBLE_STATE_PATH, listener);
 }
 
 export function markRendererChartControlsInitialized(

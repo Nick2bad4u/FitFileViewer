@@ -24,6 +24,13 @@ const mockModules = vi.hoisted(() => ({
     getState: vi.fn<(path?: string) => unknown>(),
     invalidateChartRenderCache: vi.fn<(reason?: string) => void>(),
     renderChartJS: vi.fn<() => Promise<boolean> | boolean>(),
+    setCachedChartSettings:
+        vi.fn<
+            (
+                settings: Record<string, unknown>,
+                options?: StateUpdateOptions
+            ) => void
+        >(),
     setState:
         vi.fn<
             (path: string, value: unknown, options?: StateUpdateOptions) => void
@@ -83,6 +90,7 @@ vi.mock(
 vi.mock(
     import("../../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
+        setCachedChartSettings: mockModules.setCachedChartSettings,
         subscribeToChartSettings: mockModules.subscribeToChartSettings,
     })
 );
@@ -103,7 +111,10 @@ import {
     subscribe,
     updateState,
 } from "../../../../electron-app/utils/state/core/stateManager.js";
-import { subscribeToChartSettings } from "../../../../electron-app/utils/state/domain/settingsStateManager.js";
+import {
+    setCachedChartSettings,
+    subscribeToChartSettings,
+} from "../../../../electron-app/utils/state/domain/settingsStateManager.js";
 import { showNotification } from "../../../../electron-app/utils/ui/notifications/showNotification.js";
 import {
     invalidateChartRenderCache,
@@ -126,6 +137,7 @@ describe("chartStateManager", () => {
         // Reset all mocks
         vi.mocked(getState).mockReset();
         vi.mocked(setState).mockReset();
+        vi.mocked(setCachedChartSettings).mockReset();
         vi.mocked(subscribe)
             .mockReset()
             .mockReturnValue(() => {});
@@ -198,12 +210,15 @@ describe("chartStateManager", () => {
         });
 
         it("routes subscription callbacks to chart lifecycle behavior", () => {
-            expect.assertions(5);
+            expect.assertions(7);
 
             const manager = new ChartStateManager();
             const themeChangeSpy = vi.spyOn(manager, "handleThemeChange");
             const tabActivationSpy = vi.spyOn(manager, "handleTabActivation");
             const selectedChartRenderSpy = vi.spyOn(manager, "debouncedRender");
+            const isChartTabActiveSpy = vi
+                .spyOn(manager, "isChartTabActive")
+                .mockReturnValue(true);
             const subscriptionByPath = new Map(
                 vi
                     .mocked(subscribe)
@@ -236,11 +251,25 @@ describe("chartStateManager", () => {
                 "Chart type changed to power"
             );
             expect(controlsPanel.style.display).toBe("none");
+            const settingsListener = vi.mocked(subscribeToChartSettings).mock
+                .calls.at(-1)?.[0];
+            settingsListener?.(
+                { fieldVisibility: { speed: "hidden" } },
+                { fieldVisibility: { speed: "visible" } }
+            );
+            expect(setCachedChartSettings).toHaveBeenCalledWith(
+                { fieldVisibility: { speed: "hidden" } },
+                { source: "ChartStateManager.chartSettingsSubscription" }
+            );
+            expect(selectedChartRenderSpy).toHaveBeenCalledWith(
+                "Chart settings updated"
+            );
             expect(vi.getTimerCount()).toBe(1);
 
             themeChangeSpy.mockRestore();
             tabActivationSpy.mockRestore();
             selectedChartRenderSpy.mockRestore();
+            isChartTabActiveSpy.mockRestore();
         });
     });
 

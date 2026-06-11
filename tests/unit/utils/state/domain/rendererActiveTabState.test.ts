@@ -7,6 +7,7 @@ import {
     normalizeRendererActiveTab,
     replaceRendererActiveTab,
     setRendererActiveTab,
+    subscribeToRendererActiveTab,
 } from "../../../../../electron-app/utils/state/domain/rendererActiveTabState.js";
 
 describe("rendererActiveTabState", () => {
@@ -36,6 +37,22 @@ describe("rendererActiveTabState", () => {
 
         expect(replaceRendererActiveTab("browser", "map")).toBe(true);
         expect(getRendererActiveTab()).toBe("map");
+    });
+
+    it("subscribes to active renderer tab changes", () => {
+        expect.assertions(2);
+
+        const changes: unknown[] = [];
+        const unsubscribe = subscribeToRendererActiveTab((newValue) => {
+            changes.push(newValue);
+        });
+
+        setRendererActiveTab("chart", { source: "test" });
+        expect(changes).toStrictEqual(["chart"]);
+
+        unsubscribe();
+        setRendererActiveTab("map", { source: "test" });
+        expect(changes).toStrictEqual(["chart"]);
     });
 
     it("normalizes empty or non-string active-tab values", () => {

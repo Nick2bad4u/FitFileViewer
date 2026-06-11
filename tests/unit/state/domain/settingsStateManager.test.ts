@@ -181,6 +181,33 @@ describe("settingsStateManager.js - simplified coverage", () => {
             });
         });
 
+        describe("setCachedChartSettings", () => {
+            it("should replace cached chart settings through the settings state path", () => {
+                expect.assertions(1);
+
+                settingsStateManagerModule.setCachedChartSettings(
+                    {
+                        fieldVisibility: {
+                            speed: "visible",
+                        },
+                    },
+                    { source: "test.setCachedChartSettings" }
+                );
+
+                expect(mockSetState).toHaveBeenCalledWith(
+                    "settings.charts",
+                    {
+                        fieldVisibility: {
+                            speed: "visible",
+                        },
+                    },
+                    {
+                        source: "test.setCachedChartSettings",
+                    }
+                );
+            });
+        });
+
         describe("constructor", () => {
             it("should initialize with empty state", () => {
                 expect.assertions(5);

@@ -217,6 +217,19 @@ export function clearCachedChartSettings(
 }
 
 /**
+ * Replace the cached chart settings snapshot used by chart renderers.
+ */
+export function setCachedChartSettings(
+    settings: ChartSettings,
+    options: StateUpdateOptions = {}
+): void {
+    setState("settings.charts", settings, {
+        source: "SettingsStateManager.setCachedChartSettings",
+        ...options,
+    });
+}
+
+/**
  * Remove a chart setting (chartjs_* key) and update state.
  */
 export function removeChartSetting(key: string): boolean {

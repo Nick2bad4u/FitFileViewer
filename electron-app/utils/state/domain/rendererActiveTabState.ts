@@ -1,6 +1,8 @@
 import {
     getState,
     setState,
+    subscribe,
+    type StateListener,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
 
@@ -15,6 +17,12 @@ export function getRendererActiveTab(): string {
 
 export function isRendererActiveTab(tabName: string): boolean {
     return getRendererActiveTab() === tabName;
+}
+
+export function subscribeToRendererActiveTab(
+    callback: StateListener
+): () => void {
+    return subscribe(RENDERER_ACTIVE_TAB_STATE_PATH, callback);
 }
 
 export function setRendererActiveTab(

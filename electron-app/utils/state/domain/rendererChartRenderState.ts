@@ -1,12 +1,19 @@
 import {
     getState,
     setState,
+    subscribe,
+    type StateListener,
     updateState,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
 
+const RENDERER_CHART_STATE_PATH = "charts";
 const RENDERER_CHARTS_RENDERED_STATE_PATH = "charts.isRendered";
 const RENDERER_CHART_PREVIOUS_STATE_PATH = "charts.previousState";
+const RENDERER_CHART_RENDERING_STATE_PATH = "charts.isRendering";
+const RENDERER_CHART_LAST_RENDER_TIME_STATE_PATH = "charts.lastRenderTime";
+const RENDERER_CHART_SELECTED_STATE_PATH = "charts.selectedChart";
+const RENDERER_CHART_TAB_ACTIVE_STATE_PATH = "charts.tabActive";
 
 export type RendererChartPreviousState = {
     chartCount: number;
@@ -18,6 +25,41 @@ export function areRendererChartsRendered(): boolean {
     return normalizeRendererChartsRendered(
         getState(RENDERER_CHARTS_RENDERED_STATE_PATH)
     );
+}
+
+export function getRendererChartState(): Record<string, unknown> | undefined {
+    const chartState = getState(RENDERER_CHART_STATE_PATH);
+    return isRecord(chartState) ? chartState : undefined;
+}
+
+export function setRendererChartLastRenderTime(
+    timestamp: number,
+    options: StateUpdateOptions = {}
+): void {
+    setState(RENDERER_CHART_LAST_RENDER_TIME_STATE_PATH, timestamp, {
+        source: "rendererChartRenderState.setLastRenderTime",
+        ...options,
+    });
+}
+
+export function setRendererChartRendering(
+    rendering: boolean,
+    options: StateUpdateOptions = {}
+): void {
+    setState(RENDERER_CHART_RENDERING_STATE_PATH, rendering, {
+        source: "rendererChartRenderState.setRendering",
+        ...options,
+    });
+}
+
+export function setRendererChartTabActive(
+    active: boolean,
+    options: StateUpdateOptions = {}
+): void {
+    setState(RENDERER_CHART_TAB_ACTIVE_STATE_PATH, active, {
+        source: "rendererChartRenderState.setTabActive",
+        ...options,
+    });
 }
 
 export function setRendererChartsRendered(
@@ -34,6 +76,22 @@ export function setRendererChartsRendered(
     );
 }
 
+export function subscribeToRendererSelectedChart(
+    callback: StateListener
+): () => void {
+    return subscribe(RENDERER_CHART_SELECTED_STATE_PATH, callback);
+}
+
+export function updateRendererChartState(
+    chartState: Record<string, unknown>,
+    options: StateUpdateOptions = {}
+): void {
+    updateState(RENDERER_CHART_STATE_PATH, chartState, {
+        source: "rendererChartRenderState.update",
+        ...options,
+    });
+}
+
 export function setRendererChartPreviousState(
     previousState: RendererChartPreviousState,
     options: StateUpdateOptions = {}
@@ -46,4 +104,8 @@ export function setRendererChartPreviousState(
 
 export function normalizeRendererChartsRendered(value: unknown): boolean {
     return value === true;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
 }

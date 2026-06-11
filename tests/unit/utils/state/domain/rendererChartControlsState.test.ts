@@ -8,6 +8,7 @@ import {
     normalizeRendererChartControlsVisible,
     setRendererChartControlsVisible,
     subscribeToRendererChartControlsVisible,
+    subscribeToRendererChartControlsVisibleState,
     toggleRendererChartControlsVisible,
     toggleRendererChartControlsVisibleFromStoredState,
 } from "../../../../../electron-app/utils/state/domain/rendererChartControlsState.js";
@@ -88,6 +89,23 @@ describe("rendererChartControlsState", () => {
         unsubscribe();
         setRendererChartControlsVisible(false, { source: "test" });
         expect(values).toEqual([false, true]);
+    });
+
+    it("subscribes with raw controls visibility values", () => {
+        expect.assertions(1);
+
+        const values: unknown[] = [];
+        const unsubscribe = subscribeToRendererChartControlsVisibleState(
+            (visible) => values.push(visible)
+        );
+
+        stateManager.setState("charts.controlsVisible", undefined, {
+            source: "test",
+        });
+        setRendererChartControlsVisible(false, { source: "test" });
+        unsubscribe();
+
+        expect(values).toEqual([undefined, false]);
     });
 
     it("normalizes controls visibility values", () => {

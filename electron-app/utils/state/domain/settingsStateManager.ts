@@ -170,5 +170,6 @@ export {
     getThemeSetting,
     importAllSettings,
     removeChartSetting,
+    setCachedChartSettings,
     setChartFieldVisibility,
 } from "./settingsStateHelpers.js";
