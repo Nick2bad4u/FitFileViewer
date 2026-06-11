@@ -15,6 +15,7 @@ export * from "./fitUserDeviceDataState.js";
 export * from "./loadedFitFilesState.js";
 export * from "./rendererActiveFileState.js";
 export * from "./rendererActiveTabState.js";
+export * from "./rendererChartControlsState.js";
 export * from "./rendererChartRenderState.js";
 export * from "./rendererDragDropState.js";
 export * from "./rendererLoadingState.js";

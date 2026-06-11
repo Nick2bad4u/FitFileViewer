@@ -1214,6 +1214,19 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps chart settings dropdowns on the chart-controls state facade", () => {
+        expect.assertions(2);
+
+        const chartSettingsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/ensureChartSettingsDropdowns.ts"
+            )
+        );
+
+        expect(chartSettingsSource).toContain("rendererChartControlsState.js");
+        expect(chartSettingsSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 

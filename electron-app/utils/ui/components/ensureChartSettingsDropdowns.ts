@@ -12,10 +12,11 @@ import {
 } from "../../charts/dom/chartDomUtils.js";
 import { updateControlsState } from "../../rendering/helpers/updateControlsState.js";
 import {
-    getState,
-    setState,
-    updateState,
-} from "../../state/core/stateManager.js";
+    areRendererChartControlsVisible,
+    ensureRendererChartControlsVisibleState,
+    markRendererChartControlsInitialized,
+    toggleRendererChartControlsVisible,
+} from "../../state/domain/rendererChartControlsState.js";
 import {
     createHRZoneControls,
     moveHRZoneControlsToSection,
@@ -44,12 +45,9 @@ const deferredZoneControlTimers = new Set<ReturnType<typeof setTimeout>>();
 export function ensureChartSettingsDropdowns(
     targetContainer?: Element | string
 ): ChartSettings {
-    // Initialize chart controls state if not already set
-    if (getState("charts.controlsVisible") === undefined) {
-        setState("charts.controlsVisible", true, {
-            source: "ensureChartSettingsDropdowns.init",
-        });
-    }
+    ensureRendererChartControlsVisibleState({
+        source: "ensureChartSettingsDropdowns.init",
+    });
 
     const chartContainer = resolveChartContainer(document, targetContainer);
 
@@ -96,14 +94,9 @@ export function ensureChartSettingsDropdowns(
         setupChartStatusUpdates();
 
         // Record chart control initialization in managed state.
-        updateState(
-            "charts",
-            {
-                controlsInitialized: true,
-                controlsWrapper: wrapper.id, // Store wrapper ID instead of DOM reference
-            },
-            { merge: true, source: "ensureChartSettingsDropdowns" }
-        );
+        markRendererChartControlsInitialized(wrapper.id, {
+            source: "ensureChartSettingsDropdowns",
+        });
 
         console.log("[ChartJS] Controls panel created and hidden by default");
     }
@@ -132,7 +125,7 @@ function createControlsToggleButton(container: HTMLElement): HTMLElement {
     toggleBtn.className = "chart-controls-toggle-btn";
 
     // Set initial text based on current state
-    const controlsVisible = getState("charts.controlsVisible") !== false; // Default to true
+    const controlsVisible = areRendererChartControlsVisible();
     toggleBtn.textContent = controlsVisible
         ? "▼ Hide Controls"
         : "▶ Show Controls";
@@ -217,11 +210,7 @@ function toggleChartControls(): void {
     // First sync to ensure we're starting from the correct state
     updateControlsState();
 
-    // Use state management system to toggle controls visibility
-    const currentVisibility = getState<boolean>("charts.controlsVisible"),
-        newVisibility = !currentVisibility;
-
-    setState("charts.controlsVisible", newVisibility, {
+    const newVisibility = toggleRendererChartControlsVisible({
         source: "toggleChartControls",
     });
     wrapper.style.display = newVisibility ? "block" : "none";
