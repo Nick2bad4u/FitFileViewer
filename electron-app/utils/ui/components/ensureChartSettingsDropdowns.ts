@@ -160,7 +160,7 @@ function createControlsToggleButton(
 	`;
 
     // Add hover and focus effects
-    const listenerController = new AbortController();
+    const listenerController = runtime.createAbortController();
     toggleBtn.addEventListener(
         "mouseenter",
         () => {

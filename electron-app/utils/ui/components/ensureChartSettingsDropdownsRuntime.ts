@@ -5,6 +5,7 @@ export type EnsureChartSettingsDropdownsTimerHandle = ReturnType<
 type DeferredCallback = () => void;
 
 export interface EnsureChartSettingsDropdownsRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly document?: Document | undefined;
     readonly HTMLElement?: typeof HTMLElement | undefined;
     readonly setTimeout?:
@@ -17,6 +18,7 @@ export interface EnsureChartSettingsDropdownsRuntimeScope {
 
 export interface EnsureChartSettingsDropdownsRuntime {
     readonly document: Document;
+    createAbortController: () => AbortController;
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
@@ -26,6 +28,22 @@ export interface EnsureChartSettingsDropdownsRuntime {
         callback: DeferredCallback,
         delay: number
     ) => EnsureChartSettingsDropdownsTimerHandle;
+}
+
+function getAbortControllerConstructor(
+    scope: EnsureChartSettingsDropdownsRuntimeScope
+): typeof AbortController {
+    const AbortControllerConstructor =
+        scope.AbortController ??
+        scope.document?.defaultView?.AbortController ??
+        globalThis.AbortController;
+    if (typeof AbortControllerConstructor !== "function") {
+        throw new TypeError(
+            "ensureChartSettingsDropdowns requires an AbortController runtime"
+        );
+    }
+
+    return AbortControllerConstructor;
 }
 
 function getDocument(
@@ -78,6 +96,9 @@ export function getEnsureChartSettingsDropdownsRuntime(
 
     return {
         document: runtimeDocument,
+        createAbortController(): AbortController {
+            return new (getAbortControllerConstructor(scope))();
+        },
         createElement<K extends keyof HTMLElementTagNameMap>(
             tagName: K
         ): HTMLElementTagNameMap[K] {

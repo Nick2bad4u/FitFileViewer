@@ -51,8 +51,21 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
         expect(setTimeoutMock).toHaveBeenCalledWith(callback, 0);
     });
 
+    it("creates abort controllers through the injected runtime", () => {
+        expect.assertions(2);
+
+        const runtime = getEnsureChartSettingsDropdownsRuntime({
+            AbortController,
+            document,
+        });
+        const controller = runtime.createAbortController();
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(controller.signal.aborted).toBe(false);
+    });
+
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const runtime = getEnsureChartSettingsDropdownsRuntime({
             document: {
@@ -61,9 +74,20 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
             } as Document,
             HTMLElement: "HTMLElement" as unknown as typeof HTMLElement,
         });
+        const runtimeWithInvalidAbortController =
+            getEnsureChartSettingsDropdownsRuntime({
+                AbortController:
+                    "AbortController" as unknown as typeof AbortController,
+                document,
+            });
 
         expect(() => getEnsureChartSettingsDropdownsRuntime({})).toThrow(
             "ensureChartSettingsDropdowns requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithInvalidAbortController.createAbortController()
+        ).toThrow(
+            "ensureChartSettingsDropdowns requires an AbortController runtime"
         );
         expect(() => runtime.isHTMLElement(document.body)).toThrow(
             "ensureChartSettingsDropdowns requires an HTMLElement runtime"

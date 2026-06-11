@@ -680,7 +680,7 @@ const directUnifiedControlBarRuntimeGlobalPattern =
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
+    /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b/u;
 const directCreateExportGPXButtonRuntimeGlobalPattern =
