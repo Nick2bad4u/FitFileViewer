@@ -102,13 +102,12 @@ describe(registerChartResizeListener, () => {
             canvas.className = "chart-canvas";
             document.body.append(canvas);
             let resizeCount = 0;
-            (globalThis as ResizeListenerTestGlobal).Chart = {
-                getChart: () => ({
-                    resize: () => {
-                        resizeCount += 1;
-                    },
-                }),
-            };
+            registerChartInstance({
+                canvas,
+                resize: () => {
+                    resizeCount += 1;
+                },
+            });
 
             registerChartResizeListener({ cleanupCallbacks });
             window.dispatchEvent(new Event("resize"));
@@ -143,13 +142,12 @@ describe(registerChartResizeListener, () => {
             canvas.className = "chart-canvas";
             document.body.append(canvas);
             let resizeCount = 0;
-            (globalThis as ResizeListenerTestGlobal).Chart = {
-                getChart: () => ({
-                    resize: () => {
-                        resizeCount += 1;
-                    },
-                }),
-            };
+            registerChartInstance({
+                canvas,
+                resize: () => {
+                    resizeCount += 1;
+                },
+            });
 
             registerChartResizeListener({ cleanupCallbacks });
             window.dispatchEvent(new Event("resize"));
@@ -166,8 +164,8 @@ describe(registerChartResizeListener, () => {
         }
     });
 
-    it("resizes registered charts when Chart.js runtime lookup is unavailable", () => {
-        expect.assertions(3);
+    it("ignores legacy Chart.js globals and resizes registered charts", () => {
+        expect.assertions(4);
 
         const cleanupCallbacks: Array<() => void> = [];
 
@@ -179,6 +177,12 @@ describe(registerChartResizeListener, () => {
             canvas.className = "chart-canvas";
             document.body.append(canvas);
             const resize = vi.fn<() => void>();
+            const legacyGetChart = vi.fn<() => unknown>(() => {
+                throw new Error("legacy Chart.getChart should not be used");
+            });
+            (globalThis as ResizeListenerTestGlobal).Chart = {
+                getChart: legacyGetChart,
+            };
             registerChartInstance({ canvas, resize });
 
             registerChartResizeListener({ cleanupCallbacks });
@@ -187,6 +191,7 @@ describe(registerChartResizeListener, () => {
             vi.advanceTimersByTime(120);
 
             expect(resize).toHaveBeenCalledTimes(2);
+            expect(legacyGetChart).not.toHaveBeenCalled();
             expect(updateChartsMock).not.toHaveBeenCalled();
             expect(cleanupCallbacks).toHaveLength(1);
         } finally {

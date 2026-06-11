@@ -4,21 +4,12 @@ import { getRegisteredChartInstanceForCanvas } from "../../charts/core/chartInst
 import { updateCharts } from "../../charts/core/chartUpdater.js";
 
 type ResizableChart = { resize: () => void };
-type ChartRegistry = { getChart?: (canvas: HTMLCanvasElement) => unknown };
-
-type ChartResizeGlobal = typeof globalThis & {
-    Chart?: ChartRegistry;
-};
 
 type ChartResizeListenerParams = {
     cleanupCallbacks: Array<() => void>;
 };
 
 type TimerHandle = ReturnType<typeof setTimeout>;
-
-function getChartResizeGlobal(): ChartResizeGlobal {
-    return globalThis;
-}
 
 function getFullscreenElement(): Element | null {
     return (
@@ -122,11 +113,7 @@ function resizeExistingCharts(): void {
             if (!(canvas instanceof HTMLCanvasElement)) {
                 continue;
             }
-            const chartRef = getChartResizeGlobal().Chart;
-            const chart =
-                chartRef && typeof chartRef.getChart === "function"
-                    ? chartRef.getChart(canvas)
-                    : getRegisteredChartInstanceForCanvas(canvas);
+            const chart = getRegisteredChartInstanceForCanvas(canvas);
             if (isResizableChart(chart)) {
                 chart.resize();
             }
