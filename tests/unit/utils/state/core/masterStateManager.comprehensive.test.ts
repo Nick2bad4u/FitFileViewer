@@ -43,6 +43,10 @@ import {
     masterStateManager,
     setMasterStateManagerModuleMocksForTests,
 } from "../../../../../electron-app/utils/state/core/masterStateManager.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type StateOptions = {
     readonly source: string;
@@ -134,6 +138,7 @@ type ListenerMap = Map<string, EventListener[]>;
 type Harness = {
     bodyElement: HTMLElement;
     documentListeners: ListenerMap;
+    electronAPI: MasterStateElectronApi;
     globalListeners: ListenerMap;
     intervalHandlers: Array<() => void>;
     loadingElement: HTMLElement;
@@ -151,11 +156,12 @@ type HarnessOptions = {
 
 type MasterStateGlobal = typeof globalThis & {
     __DEVELOPMENT__?: boolean;
-    electronAPI?: {
-        __devMode?: boolean;
-        getAppVersion?: () => Promise<string>;
-        openFileDialog?: () => void;
-    };
+};
+
+type MasterStateElectronApi = {
+    __devMode?: boolean;
+    getAppVersion: ReturnType<typeof vi.fn<() => Promise<string>>>;
+    openFileDialog: ReturnType<typeof vi.fn<() => void>>;
 };
 
 const globalKeys = [
@@ -164,7 +170,6 @@ const globalKeys = [
     "clearInterval",
     "dispatchEvent",
     "document",
-    "electronAPI",
     "getComputedStyle",
     "localStorage",
     "location",
@@ -370,7 +375,7 @@ describe("masterStateManager comprehensive behavior", () => {
                 location.search = "";
                 location.hash = "";
                 delete (globalThis as MasterStateGlobal).__DEVELOPMENT__;
-                delete (globalThis as MasterStateGlobal).electronAPI;
+                resetRendererElectronApiCandidate();
 
                 expect({
                     developmentMode: manager.isDevelopmentMode(),
@@ -448,7 +453,12 @@ describe("masterStateManager comprehensive behavior", () => {
         expect.assertions(8);
 
         await withMasterStateHarness(
-            async ({ documentListeners, mocks, windowListeners }) => {
+            async ({
+                documentListeners,
+                electronAPI,
+                mocks,
+                windowListeners,
+            }) => {
                 const manager = new MasterStateManager();
 
                 manager.setupKeyboardShortcuts();
@@ -482,10 +492,7 @@ describe("masterStateManager comprehensive behavior", () => {
                     new Event("beforeunload")
                 );
 
-                expect(
-                    (globalThis as MasterStateGlobal).electronAPI
-                        ?.openFileDialog
-                ).toHaveBeenCalledOnce();
+                expect(electronAPI.openFileDialog).toHaveBeenCalledOnce();
                 expect(
                     mocks.uiStateManager.UIActions.setTheme
                 ).toHaveBeenCalledWith("dark");
@@ -919,7 +926,7 @@ async function withMasterStateHarness(
             .fn<() => Promise<string>>()
             .mockResolvedValue(options.appVersion ?? "26.5.0"),
         openFileDialog: vi.fn<() => void>(),
-    };
+    } satisfies MasterStateElectronApi;
 
     setMasterStateManagerModuleMocksForTests(moduleMocks);
 
@@ -927,7 +934,7 @@ async function withMasterStateHarness(
         defineGlobalValue(descriptors, "document", documentMock);
         defineGlobalValue(descriptors, "window", windowMock);
         defineGlobalValue(descriptors, "location", location);
-        defineGlobalValue(descriptors, "electronAPI", electronAPI);
+        registerRendererElectronApiCandidate(electronAPI);
         defineGlobalValue(
             descriptors,
             "__DEVELOPMENT__",
@@ -981,6 +988,7 @@ async function withMasterStateHarness(
         await callback({
             bodyElement,
             documentListeners,
+            electronAPI,
             globalListeners,
             intervalHandlers,
             loadingElement,
@@ -990,6 +998,7 @@ async function withMasterStateHarness(
             windowListeners,
         });
     } finally {
+        resetRendererElectronApiCandidate();
         setMasterStateManagerModuleMocksForTests(null);
         restoreGlobals(descriptors);
         vi.restoreAllMocks();
