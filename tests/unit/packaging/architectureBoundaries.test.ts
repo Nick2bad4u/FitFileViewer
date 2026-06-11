@@ -1270,6 +1270,23 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps chart notification state on the chart render-state facade", () => {
+        expect.assertions(2);
+
+        const chartNotificationStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartNotificationState.ts"
+            )
+        );
+
+        expect(chartNotificationStateSource).toContain(
+            "rendererChartRenderState.js"
+        );
+        expect(chartNotificationStateSource).not.toContain(
+            "state/core/stateManager.js"
+        );
+    });
+
     it("keeps tab-button debug reads on renderer state facades", () => {
         expect.assertions(3);
 

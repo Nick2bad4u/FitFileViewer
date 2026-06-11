@@ -1,13 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { updateState } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import type { setRendererChartPreviousState } from "../../../../../electron-app/utils/state/domain/rendererChartRenderState.js";
 
-const updateStateMock = vi.hoisted(() => vi.fn<typeof updateState>());
+const setRendererChartPreviousStateMock = vi.hoisted(() =>
+    vi.fn<typeof setRendererChartPreviousState>()
+);
 
 vi.mock(
-    import("../../../../../electron-app/utils/state/core/stateManager.js"),
+    import("../../../../../electron-app/utils/state/domain/rendererChartRenderState.js"),
     () => ({
-        updateState: updateStateMock,
+        setRendererChartPreviousState: setRendererChartPreviousStateMock,
     })
 );
 
@@ -18,7 +20,7 @@ import {
 } from "../../../../../electron-app/utils/charts/core/chartNotificationState.js";
 
 function seedPreviousChartState(): void {
-    updateStateMock.mockClear();
+    setRendererChartPreviousStateMock.mockClear();
     previousChartState.chartCount = 9;
     previousChartState.fieldsRendered = [true, true];
     previousChartState.lastRenderTimestamp = 1234;
@@ -37,8 +39,7 @@ describe("chartNotificationState", () => {
             fieldsRendered: [],
             lastRenderTimestamp: 0,
         });
-        expect(updateStateMock).toHaveBeenCalledWith(
-            "charts.previousState",
+        expect(setRendererChartPreviousStateMock).toHaveBeenCalledWith(
             {
                 chartCount: 0,
                 timestamp: 0,
@@ -64,8 +65,7 @@ describe("chartNotificationState", () => {
             ],
             lastRenderTimestamp: 9876,
         });
-        expect(updateStateMock).toHaveBeenCalledWith(
-            "charts.previousState",
+        expect(setRendererChartPreviousStateMock).toHaveBeenCalledWith(
             {
                 chartCount: 4,
                 timestamp: 9876,
@@ -83,8 +83,7 @@ describe("chartNotificationState", () => {
         updatePreviousChartState(2, Number.POSITIVE_INFINITY, 55);
 
         expect(previousChartState.fieldsRendered).toStrictEqual([]);
-        expect(updateStateMock).toHaveBeenCalledWith(
-            "charts.previousState",
+        expect(setRendererChartPreviousStateMock).toHaveBeenCalledWith(
             {
                 chartCount: 2,
                 timestamp: 55,

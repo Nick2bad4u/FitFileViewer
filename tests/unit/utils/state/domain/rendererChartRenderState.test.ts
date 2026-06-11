@@ -4,6 +4,7 @@ import * as stateManager from "../../../../../electron-app/utils/state/core/stat
 import {
     areRendererChartsRendered,
     normalizeRendererChartsRendered,
+    setRendererChartPreviousState,
     setRendererChartsRendered,
 } from "../../../../../electron-app/utils/state/domain/rendererChartRenderState.js";
 
@@ -30,5 +31,24 @@ describe("rendererChartRenderState", () => {
         expect(normalizeRendererChartsRendered(true)).toBe(true);
         expect(normalizeRendererChartsRendered(false)).toBe(false);
         expect(normalizeRendererChartsRendered("true")).toBe(false);
+    });
+
+    it("writes previous chart render state", () => {
+        expect.assertions(1);
+
+        setRendererChartPreviousState(
+            {
+                chartCount: 4,
+                timestamp: 1234,
+                visibleFields: 3,
+            },
+            { source: "test" }
+        );
+
+        expect(stateManager.getState("charts.previousState")).toEqual({
+            chartCount: 4,
+            timestamp: 1234,
+            visibleFields: 3,
+        });
     });
 });

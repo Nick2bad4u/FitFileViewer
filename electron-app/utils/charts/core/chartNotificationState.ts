@@ -1,4 +1,4 @@
-import { updateState } from "../../state/core/stateManager.js";
+import { setRendererChartPreviousState } from "../../state/domain/rendererChartRenderState.js";
 
 /**
  * Previous chart-render state used to decide whether render notifications are
@@ -36,8 +36,7 @@ export function resetChartNotificationState(): void {
     previousChartState.lastRenderTimestamp =
         emptyPreviousChartState.lastRenderTimestamp;
 
-    updateState(
-        "charts.previousState",
+    setRendererChartPreviousState(
         {
             chartCount: 0,
             timestamp: 0,
@@ -73,8 +72,7 @@ export function updatePreviousChartState(
     );
     previousChartState.lastRenderTimestamp = timestamp;
 
-    updateState(
-        "charts.previousState",
+    setRendererChartPreviousState(
         {
             chartCount,
             timestamp,
