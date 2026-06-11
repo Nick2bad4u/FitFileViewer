@@ -80,17 +80,11 @@ type ChartInstanceMock = {
 };
 
 type ChartTestGlobal = typeof globalThis & {
-    Chart?: ChartConstructorMock;
     HTMLCanvasElement?: typeof HTMLCanvasElement;
     HTMLElement?: typeof HTMLElement;
     localStorage?: StorageMock;
-    window?: ChartTestWindow;
+    window?: Window & typeof globalThis;
 };
-
-type ChartTestWindow = Window &
-    typeof globalThis & {
-        Chart?: ChartConstructorMock;
-    };
 
 type RenderSpeedVsDistanceChart = (
     container: HTMLElement,
@@ -135,12 +129,12 @@ function getChartTestGlobal(): ChartTestGlobal {
     return globalThis as ChartTestGlobal;
 }
 
-function getChartTestWindow(): ChartTestWindow {
-    return global.window as unknown as ChartTestWindow;
+function getChartTestWindow(): Window & typeof globalThis {
+    return global.window as unknown as Window & typeof globalThis;
 }
 
 function getLatestChartConfig(): ChartConfig {
-    const config = Chart.mock.calls[0]?.[1];
+    const config = chartMock.mock.calls[0]?.[1];
     if (!config) {
         throw new Error("Expected Chart to be called with a config");
     }
@@ -148,7 +142,7 @@ function getLatestChartConfig(): ChartConfig {
 }
 
 function getLatestChartCall(): [HTMLCanvasElement, ChartConfig] {
-    const call = Chart.mock.calls[0];
+    const call = chartMock.mock.calls[0];
     if (!call) {
         throw new Error("Expected Chart to be called");
     }
@@ -157,7 +151,7 @@ function getLatestChartCall(): [HTMLCanvasElement, ChartConfig] {
 }
 
 // Mock Chart.js
-let Chart: ChartConstructorMock;
+let chartMock: ChartConstructorMock;
 let chartInstanceMock: ChartInstanceMock;
 let renderSpeedVsDistanceChart: RenderSpeedVsDistanceChart;
 let mockLocalStorage: StorageMock;
@@ -211,26 +205,13 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
             getDatasetAtEvent: vi.fn<() => unknown[]>(() => []),
         };
 
-        Chart = chartJsMocks.Chart as ChartConstructorMock;
-        Chart.mockReset();
-        Chart.mockImplementation(function ChartConstructor() {
+        chartMock = chartJsMocks.Chart as ChartConstructorMock;
+        chartMock.mockReset();
+        chartMock.mockImplementation(function ChartConstructor() {
             return chartInstanceMock;
         });
-        getChartTestWindow().Chart = Chart;
-        getChartTestGlobal().Chart = Chart;
-        setChartRuntime(Chart);
+        setChartRuntime(chartMock);
         clearChartInstanceRegistryForTests();
-
-        // Sync Chart constructor between window and globalThis using property descriptor
-        Object.defineProperty(getChartTestGlobal(), "Chart", {
-            get() {
-                return getChartTestWindow().Chart;
-            },
-            set(value) {
-                getChartTestWindow().Chart = value as ChartConstructorMock;
-            },
-            configurable: true,
-        });
 
         // Load the module dynamically with fresh imports
         const module =
@@ -242,8 +223,6 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         vi.clearAllMocks();
         clearChartInstanceRegistryForTests();
         clearChartRuntimeForTests();
-        // Clean up property descriptor
-        delete getChartTestGlobal().Chart;
 
         // Clean up JSDOM
         if (global.window) {
@@ -276,9 +255,9 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect({
-                chartCalls: Chart.mock.calls.length,
+                chartCalls: chartMock.mock.calls.length,
                 childCount: container.children.length,
             }).toStrictEqual({
                 chartCalls: 0,
@@ -305,9 +284,9 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect({
-                chartCalls: Chart.mock.calls.length,
+                chartCalls: chartMock.mock.calls.length,
                 childCount: container.children.length,
             }).toStrictEqual({
                 chartCalls: 0,
@@ -338,9 +317,9 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
             renderSpeedVsDistanceChart(container, data, options);
 
             expect(visibilitySpy).toHaveBeenCalledWith("speed_vs_distance");
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect({
-                chartCalls: Chart.mock.calls.length,
+                chartCalls: chartMock.mock.calls.length,
                 childCount: container.children.length,
             }).toStrictEqual({
                 chartCalls: 0,
@@ -431,9 +410,9 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect({
-                chartCalls: Chart.mock.calls.length,
+                chartCalls: chartMock.mock.calls.length,
                 childCount: container.children.length,
             }).toStrictEqual({
                 chartCalls: 0,
@@ -1091,7 +1070,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
             mockLocalStorage.getItem.mockReturnValue(null);
             const chartCreationError = new Error("Chart creation failed");
-            Chart.mockImplementation(function ChartConstructor() {
+            chartMock.mockImplementation(function ChartConstructor() {
                 throw chartCreationError;
             });
 
@@ -1111,7 +1090,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
                 "[ChartJS] Error rendering speed vs distance chart:",
                 chartCreationError
             );
-            expect(Chart).toHaveBeenCalledOnce();
+            expect(chartMock).toHaveBeenCalledOnce();
             expect(getRegisteredChartInstances()).toStrictEqual([]);
             expect(
                 [...container.children].map((child) => child.tagName)
@@ -1126,7 +1105,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
                 .mockImplementation(() => {});
 
             const chartCreationError = new Error("Chart creation failed");
-            Chart.mockImplementationOnce(function ChartMock() {
+            chartMock.mockImplementationOnce(function ChartMock() {
                 throw chartCreationError;
             });
 
@@ -1139,7 +1118,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
                 "[ChartJS] Error rendering speed vs distance chart:",
                 chartCreationError
             );
-            expect(Chart).toHaveBeenCalledOnce();
+            expect(chartMock).toHaveBeenCalledOnce();
             expect(getRegisteredChartInstances()).toStrictEqual([]);
             expect(
                 [...container.children].map((child) => child.tagName)
@@ -1174,7 +1153,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
                 "[ChartJS] Error rendering speed vs distance chart:",
                 true,
             ]);
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect(getRegisteredChartInstances()).toStrictEqual([]);
         });
     });
@@ -1227,9 +1206,9 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
 
             renderSpeedVsDistanceChart(container, data, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect({
-                chartCalls: Chart.mock.calls.length,
+                chartCalls: chartMock.mock.calls.length,
                 childCount: container.children.length,
             }).toStrictEqual({
                 chartCalls: 0,

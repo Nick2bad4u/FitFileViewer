@@ -177,6 +177,8 @@ const migratedChartRuntimeTestFiles = [
     "tests/unit/strictTests/renderAltitudeProfileChart.test.ts",
     "tests/unit/strictTests/renderEventMessagesChart.test.ts",
     "tests/unit/strictTests/renderGPSTimeChart.test.ts",
+    "tests/unit/strictTests/renderPowerVsHeartRateChart.test.ts",
+    "tests/unit/strictTests/renderSpeedVsDistanceChart.test.ts",
     "tests/unit/strictTests/renderZoneChart.test.ts",
     "tests/unit/utils/charts/core/renderChartJS.comprehensive.test.ts",
     "tests/unit/utils/data/zones/renderSingleHRZoneBar.test.ts",

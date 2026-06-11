@@ -78,17 +78,11 @@ type ChartInstanceMock = {
 };
 
 type ChartTestGlobal = typeof globalThis & {
-    Chart?: ChartConstructorMock;
     HTMLCanvasElement?: typeof HTMLCanvasElement;
     HTMLElement?: typeof HTMLElement;
     localStorage?: StorageMock;
-    window?: ChartTestWindow;
+    window?: Window & typeof globalThis;
 };
-
-type ChartTestWindow = Window &
-    typeof globalThis & {
-        Chart?: ChartConstructorMock;
-    };
 
 type PowerHeartRateDatum = {
     heartRate?: null | number;
@@ -129,8 +123,8 @@ function getChartTestGlobal(): ChartTestGlobal {
     return globalThis as ChartTestGlobal;
 }
 
-function getChartTestWindow(): ChartTestWindow {
-    return global.window as unknown as ChartTestWindow;
+function getChartTestWindow(): Window & typeof globalThis {
+    return global.window as unknown as Window & typeof globalThis;
 }
 
 function getRequiredChartInstances(): ChartInstanceMock[] {
@@ -144,7 +138,7 @@ function getRequiredChartInstances(): ChartInstanceMock[] {
 }
 
 function getLatestChartConfig(): ChartConfig {
-    const config = Chart.mock.calls[0]?.[1];
+    const config = chartMock.mock.calls[0]?.[1];
     if (!config) {
         throw new Error("Expected Chart to be called with a config");
     }
@@ -162,7 +156,7 @@ function getRequiredDatasetData(dataset: ChartDataset): unknown[] {
 }
 
 function getLatestChartCall(): [HTMLCanvasElement, ChartConfig] {
-    const call = Chart.mock.calls[0];
+    const call = chartMock.mock.calls[0];
     if (!call) {
         throw new Error("Expected Chart to be called");
     }
@@ -175,13 +169,13 @@ function getRenderState(container: HTMLElement): {
     childCount: number;
 } {
     return {
-        chartCalls: Chart.mock.calls.length,
+        chartCalls: chartMock.mock.calls.length,
         childCount: container.children.length,
     };
 }
 
 // Mock Chart.js
-let Chart: ChartConstructorMock;
+let chartMock: ChartConstructorMock;
 let chartInstanceMock: ChartInstanceMock;
 let renderPowerVsHeartRateChart: RenderPowerVsHeartRateChart;
 let mockLocalStorage: StorageMock;
@@ -235,14 +229,12 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             getDatasetAtEvent: vi.fn<() => unknown[]>(() => []),
         };
 
-        Chart = chartJsMocks.Chart as ChartConstructorMock;
-        Chart.mockReset();
-        Chart.mockImplementation(function ChartConstructor() {
+        chartMock = chartJsMocks.Chart as ChartConstructorMock;
+        chartMock.mockReset();
+        chartMock.mockImplementation(function ChartConstructor() {
             return chartInstanceMock;
         });
-        getChartTestWindow().Chart = Chart;
-        getChartTestGlobal().Chart = Chart;
-        setChartRuntime(Chart);
+        setChartRuntime(chartMock);
         clearChartInstanceRegistryForTests();
 
         // Load the module dynamically with fresh imports
@@ -255,7 +247,6 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
         vi.clearAllMocks();
         clearChartInstanceRegistryForTests();
         clearChartRuntimeForTests();
-        delete getChartTestGlobal().Chart;
 
         // Clean up JSDOM
         if (global.window) {
@@ -282,7 +273,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect(getRenderState(container)).toStrictEqual({
                 chartCalls: 0,
                 childCount: 0,
@@ -302,7 +293,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect(getRenderState(container)).toStrictEqual({
                 chartCalls: 0,
                 childCount: 0,
@@ -326,7 +317,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
             renderPowerVsHeartRateChart(container, data, options);
 
             expect(visibilitySpy).toHaveBeenCalledWith("power_vs_hr");
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect(getRenderState(container)).toStrictEqual({
                 chartCalls: 0,
                 childCount: 0,
@@ -375,7 +366,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect(getRenderState(container)).toStrictEqual({
                 chartCalls: 0,
                 childCount: 0,
@@ -565,7 +556,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
                 labels: { color: "#fff" },
             });
 
-            Chart.mockClear();
+            chartMock.mockClear();
             container.innerHTML = "";
 
             // Test with legend disabled
@@ -605,7 +596,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
                 text: "Power vs Heart Rate",
             });
 
-            Chart.mockClear();
+            chartMock.mockClear();
             container.innerHTML = "";
 
             // Test with title disabled
@@ -643,7 +634,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
                 yGrid: true,
             });
 
-            Chart.mockClear();
+            chartMock.mockClear();
             container.innerHTML = "";
 
             // Test with grid disabled
@@ -681,7 +672,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
                 pointRadius: 2,
             });
 
-            Chart.mockClear();
+            chartMock.mockClear();
             container.innerHTML = "";
 
             // Test with points hidden
@@ -965,7 +956,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             mockLocalStorage.getItem.mockReturnValue(null);
             const chartCreationError = new Error("Chart creation failed");
-            Chart.mockImplementation(function ChartConstructor() {
+            chartMock.mockImplementation(function ChartConstructor() {
                 throw chartCreationError;
             });
 
@@ -995,7 +986,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect(getRenderState(container)).toStrictEqual({
                 chartCalls: 0,
                 childCount: 0,
@@ -1115,7 +1106,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
                 renderPowerVsHeartRateChart(container, data, options);
             }
 
-            expect(Chart).toHaveBeenCalledTimes(5);
+            expect(chartMock).toHaveBeenCalledTimes(5);
             expect(getRegisteredChartInstances()).toHaveLength(5);
         });
 
@@ -1151,7 +1142,7 @@ describe("renderPowerVsHeartRateChart.js - power vs heart rate chart utility", (
 
             renderPowerVsHeartRateChart(container, data, options);
 
-            expect(Chart).toHaveBeenCalledOnce();
+            expect(chartMock).toHaveBeenCalledOnce();
             expect(container.children).toHaveLength(1);
             expect(container.children[0].tagName).toBe("CANVAS");
             const fallbackDataset = getLatestChartConfig().data.datasets[0];
