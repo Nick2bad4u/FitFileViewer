@@ -11,6 +11,7 @@ import {
     cleanupGlobalChartStatusIndicatorFromCounts,
     createGlobalChartStatusIndicatorFromCounts,
 } from "./createGlobalChartStatusIndicatorFromCounts.js";
+import { getChartStatusIndicatorRuntime } from "./chartStatusIndicatorRuntime.js";
 
 const pendingStatusTimeouts = new Set<ReturnType<typeof setTimeout>>();
 const setupSubscriptions = new Set<() => void>();
@@ -105,6 +106,7 @@ export function setupChartStatusUpdates(): void {
         clearSetupSubscriptions();
         setupController = new AbortController();
         const { signal } = setupController;
+        const runtime = getChartStatusIndicatorRuntime();
 
         trackSetupSubscription(
             subscribeToChartSettings(() => {
@@ -122,8 +124,7 @@ export function setupChartStatusUpdates(): void {
             })
         );
 
-        globalThis.addEventListener(
-            "fieldToggleChanged",
+        runtime.addFieldToggleChangedListener(
             () => {
                 scheduleIndicatorRefresh(
                     "[ChartStatus] Error in fieldToggleChanged handler:"

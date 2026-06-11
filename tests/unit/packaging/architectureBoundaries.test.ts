@@ -290,6 +290,9 @@ const migratedChartThemeRuntimeFiles = [
 const migratedChartStatusViewportRuntimeFiles = [
     "electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.ts",
 ] as const;
+const migratedChartStatusEventRuntimeFiles = [
+    "electron-app/utils/charts/components/chartStatusIndicator.ts",
+] as const;
 const migratedSummaryColModalViewportRuntimeFiles = [
     "electron-app/utils/rendering/helpers/summaryColModal.ts",
 ] as const;
@@ -560,6 +563,8 @@ const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const directChartStatusViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
+const directChartStatusEventGlobalPattern =
+    /\b(?:globalThis|window)\.addEventListener\(\s*["']fieldToggleChanged["']/u;
 const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
@@ -2180,6 +2185,28 @@ describe("architecture boundaries", () => {
         const chartStatusIndicatorSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(chartStatusIndicatorSource).toContain(
+            "chartStatusIndicatorRuntime.js"
+        );
+    });
+
+    it("keeps chart status field-toggle listeners behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedChartStatusEventRuntimeFiles
+            .filter((relativeFile) =>
+                directChartStatusEventGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const chartStatusIndicatorSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/components/chartStatusIndicator.ts"
             )
         );
 

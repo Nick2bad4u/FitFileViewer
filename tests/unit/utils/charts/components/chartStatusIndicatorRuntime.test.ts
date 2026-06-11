@@ -3,6 +3,32 @@ import { describe, expect, it } from "vitest";
 import { getChartStatusIndicatorRuntime } from "../../../../../electron-app/utils/charts/components/chartStatusIndicatorRuntime.js";
 
 describe("getChartStatusIndicatorRuntime", () => {
+    it("registers field toggle listeners through an injected runtime scope", () => {
+        expect.assertions(2);
+
+        const target = new EventTarget();
+        const controller = new AbortController();
+        let fieldToggleEvents = 0;
+        const listener = (): void => {
+            fieldToggleEvents += 1;
+        };
+        const runtime = getChartStatusIndicatorRuntime({
+            addEventListener: target.addEventListener.bind(target),
+        });
+
+        runtime.addFieldToggleChangedListener(listener, {
+            signal: controller.signal,
+        });
+        target.dispatchEvent(new Event("fieldToggleChanged"));
+
+        expect(fieldToggleEvents).toBe(1);
+
+        controller.abort();
+        target.dispatchEvent(new Event("fieldToggleChanged"));
+
+        expect(fieldToggleEvents).toBe(1);
+    });
+
     it("reads viewport dimensions from an injected runtime scope", () => {
         expect.assertions(1);
 
