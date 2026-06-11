@@ -403,8 +403,8 @@ test.describe("FitFileViewer renderer environment fallbacks", () => {
 
             await noNodeEnvPage.waitForLoadState("domcontentloaded");
 
-            const mainNodeEnvironment = await noNodeEnvApp.evaluate(
-                () => process.env.NODE_ENV ?? null
+            const mainNodeEnvironment = await evaluateElectronAppWithRetry(() =>
+                noNodeEnvApp.evaluate(() => process.env.NODE_ENV ?? null)
             );
             await mockOpenFileDialogForApp(noNodeEnvApp, {
                 canceled: false,
