@@ -6,6 +6,7 @@ import {
 } from "../../maps/filters/mapMetricFilter.js";
 import { getMapDataPointFilter } from "../../maps/state/mapDataPointFilterState.js";
 import { showNotification } from "../notifications/showNotification.js";
+import { getCreateDataPointFilterControlRuntime } from "./createDataPointFilterControlRuntime.js";
 import { createFilterControlElements } from "./dataPointFilterControl/elementFactory.js";
 import {
     buildSummaryText,
@@ -57,6 +58,7 @@ type FilterMode = NonNullable<MapDataPointFilterConfig["mode"]>;
 export function createDataPointFilterControl(
     onFilterChange?: (payload: FilterChangePayload) => void
 ): HTMLDivElement {
+    const runtime = getCreateDataPointFilterControlRuntime();
     filterControlInstance += 1;
     const instanceId = filterControlInstance;
 
@@ -80,15 +82,10 @@ export function createDataPointFilterControl(
         metricSelect,
     } = createFilterControlElements(instanceId);
 
-    const eventController = new AbortController();
+    const eventController = runtime.createAbortController();
     const { signal } = eventController;
 
-    const scheduleMicrotask =
-        typeof queueMicrotask === "function"
-            ? queueMicrotask
-            : (callback: VoidFunction) => {
-                  void Promise.resolve().then(callback);
-              };
+    const { scheduleMicrotask } = runtime;
 
     const viewportPadding = 16;
     const { closePanel, openPanel } = createPanelController({
@@ -131,7 +128,7 @@ export function createDataPointFilterControl(
     metricSelect.replaceChildren();
 
     if (availableMetrics.length === 0) {
-        const emptyOption = document.createElement("option");
+        const emptyOption = runtime.createOption();
         emptyOption.value = "";
         emptyOption.textContent = "No metrics available";
         emptyOption.disabled = true;
@@ -144,7 +141,7 @@ export function createDataPointFilterControl(
         summary.textContent = "No map metrics available for this file.";
     } else {
         for (const metric of availableMetrics) {
-            const option = document.createElement("option");
+            const option = runtime.createOption();
             option.value = metric.key;
             option.textContent = metric.label;
             metricSelect.append(option);

@@ -272,6 +272,9 @@ const migratedCreatePowerEstimationButtonRuntimeFiles = [
 const migratedCreateMarkerCountSelectorRuntimeFiles = [
     "electron-app/utils/ui/controls/createMarkerCountSelector.ts",
 ] as const;
+const migratedCreateDataPointFilterControlRuntimeFiles = [
+    "electron-app/utils/ui/controls/createDataPointFilterControl.ts",
+] as const;
 const migratedDataPointFilterElementFactoryRuntimeFiles = [
     "electron-app/utils/ui/controls/dataPointFilterControl/elementFactory.ts",
 ] as const;
@@ -683,6 +686,8 @@ const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b/u;
 const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+Event\(/u;
+const directCreateDataPointFilterControlRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b|\btypeof\s+queueMicrotask\b|\bPromise\.resolve\(\)\.then\(/u;
 const directDataPointFilterElementFactoryRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
 const directDataPointFilterPanelControllerRuntimeGlobalPattern =
@@ -2386,6 +2391,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(createMarkerCountSelectorSource).toContain(
             "createMarkerCountSelectorRuntime.js"
+        );
+    });
+
+    it("keeps data-point filter control browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreateDataPointFilterControlRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateDataPointFilterControlRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const dataPointFilterControlSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createDataPointFilterControl.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(dataPointFilterControlSource).toContain(
+            "createDataPointFilterControlRuntime.js"
         );
     });
 

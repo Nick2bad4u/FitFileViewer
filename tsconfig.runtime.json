@@ -467,6 +467,7 @@
         "electron-app/utils/ui/controls/createPowerEstimationButton.ts",
         "electron-app/utils/ui/controls/createMarkerCountSelectorRuntime.ts",
         "electron-app/utils/ui/controls/createMarkerCountSelector.ts",
+        "electron-app/utils/ui/controls/createDataPointFilterControlRuntime.ts",
         "electron-app/utils/ui/controls/createDataPointFilterControl.ts",
         "electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.ts",
         "electron-app/utils/ui/controls/dataPointFilterControl/metricsPreview.ts",
