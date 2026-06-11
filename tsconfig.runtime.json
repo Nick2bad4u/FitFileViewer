@@ -478,6 +478,7 @@
         "electron-app/utils/ui/controls/dataPointFilterControl/summaryRefresher.ts",
         "electron-app/utils/ui/controls/dataPointFilterControl/elementFactoryRuntime.ts",
         "electron-app/utils/ui/controls/dataPointFilterControl/elementFactory.ts",
+        "electron-app/utils/ui/controls/createInlineZoneColorSelectorRuntime.ts",
         "electron-app/utils/ui/controls/createInlineZoneColorSelector.ts",
         "electron-app/utils/ui/controls/createHRZoneControlsRuntime.ts",
         "electron-app/utils/ui/controls/createHRZoneControls.ts",

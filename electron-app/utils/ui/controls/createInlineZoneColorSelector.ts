@@ -31,6 +31,10 @@ import {
 } from "../../data/zones/zoneDataState.js";
 import { formatTime } from "../../formatting/formatters/formatTime.js";
 import { showNotification } from "../notifications/showNotification.js";
+import {
+    getCreateInlineZoneColorSelectorRuntime,
+    type CreateInlineZoneColorSelectorRuntime,
+} from "./createInlineZoneColorSelectorRuntime.js";
 
 type ZoneType = "hr" | "power";
 
@@ -66,15 +70,21 @@ type ZoneSelectorConfig = {
 
 const zoneColorSelectorTimers = new Set<ReturnType<typeof setTimeout>>();
 
-function dispatchChartRenderRequest(reason: string): void {
-    globalThis.dispatchEvent(
-        new CustomEvent("ffv:request-render-charts", {
+function dispatchChartRenderRequest(
+    reason: string,
+    runtime: CreateInlineZoneColorSelectorRuntime = getCreateInlineZoneColorSelectorRuntime()
+): void {
+    runtime.dispatchEvent(
+        runtime.createCustomEvent("ffv:request-render-charts", {
             detail: { reason },
         })
     );
 }
 
-function requestDirectChartRender(reason: string): void {
+function requestDirectChartRender(
+    reason: string,
+    runtime: CreateInlineZoneColorSelectorRuntime = getCreateInlineZoneColorSelectorRuntime()
+): void {
     void import("../../charts/core/renderChartJS.js")
         .then(({ renderChartJS }) => {
             void renderChartJS();
@@ -84,7 +94,7 @@ function requestDirectChartRender(reason: string): void {
                 "[ZoneColorSelector] Direct chart render import failed; dispatching render request event",
                 error
             );
-            dispatchChartRenderRequest(reason);
+            dispatchChartRenderRequest(reason, runtime);
         });
 }
 
@@ -103,9 +113,10 @@ function isChartLike(value: unknown): value is ChartLike {
 
 function scheduleZoneColorSelectorTimer(
     callback: () => void,
-    delay: number
+    delay: number,
+    runtime: CreateInlineZoneColorSelectorRuntime = getCreateInlineZoneColorSelectorRuntime()
 ): void {
-    const timeout = setTimeout(() => {
+    const timeout = runtime.setTimeout(() => {
         zoneColorSelectorTimers.delete(timeout);
         callback();
     }, delay);
@@ -234,6 +245,7 @@ export function createInlineZoneColorSelector(
         console.log(
             `[ZoneColorSelector] Creating inline selector for field: ${field}`
         );
+        const runtime = getCreateInlineZoneColorSelectorRuntime();
 
         const zoneConfig = getZoneSelectorConfig(field);
         if (!zoneConfig) {
@@ -259,7 +271,7 @@ export function createInlineZoneColorSelector(
         }
 
         // Create main container
-        const selectorContainer = document.createElement("div");
+        const selectorContainer = runtime.createElement("div");
         selectorContainer.className = "inline-zone-color-selector";
         selectorContainer.style.cssText = `
             background: var(--color-glass);
@@ -269,7 +281,7 @@ export function createInlineZoneColorSelector(
             margin: 8px 0;
             backdrop-filter: var(--backdrop-blur);
         `; // Header
-        const header = document.createElement("div");
+        const header = runtime.createElement("div");
         header.style.cssText = `
             display: flex;
             justify-content: space-between;
@@ -279,7 +291,7 @@ export function createInlineZoneColorSelector(
             border-bottom: 1px solid var(--color-border);
         `;
 
-        const title = document.createElement("h4");
+        const title = runtime.createElement("h4");
         title.textContent = `${zoneType.toUpperCase()} Zone Colors`;
         title.style.cssText = `
             margin: 0;
@@ -294,7 +306,7 @@ export function createInlineZoneColorSelector(
         );
 
         // Zone colors grid (needs to be declared early for function references)
-        const zoneGrid = document.createElement("div");
+        const zoneGrid = runtime.createElement("div");
         zoneGrid.className = "zone-colors-grid";
         zoneGrid.style.cssText = `
             display: grid;
@@ -327,7 +339,7 @@ export function createInlineZoneColorSelector(
             const zoneItems = zoneGrid.children;
             let zoneItemIndex = 0;
             for (const child of zoneItems) {
-                if (!(child instanceof HTMLElement)) {
+                if (!runtime.isHTMLElement(child)) {
                     continue;
                 }
                 const item = child;
@@ -367,7 +379,7 @@ export function createInlineZoneColorSelector(
             scheduleZoneColorSelectorTimer(() => {
                 const zoneElems = zoneGrid.querySelectorAll(".zone-color-item");
                 for (const item of zoneElems) {
-                    if (!(item instanceof HTMLElement)) {
+                    if (!runtime.isHTMLElement(item)) {
                         continue;
                     }
                     const el = item;
@@ -376,14 +388,14 @@ export function createInlineZoneColorSelector(
 
                 scheduleZoneColorSelectorTimer(() => {
                     for (const item of zoneElems) {
-                        if (!(item instanceof HTMLElement)) {
+                        if (!runtime.isHTMLElement(item)) {
                             continue;
                         }
                         const el = item;
                         el.style.transform = "scale(1)";
                     }
-                }, 100);
-            }, 50);
+                }, 100, runtime);
+            }, 50, runtime);
         }
 
         // Update function for zone editability
@@ -392,7 +404,7 @@ export function createInlineZoneColorSelector(
                 zoneItems = zoneGrid.querySelectorAll(".zone-color-item");
 
             for (const item of zoneItems) {
-                if (!(item instanceof HTMLElement)) {
+                if (!runtime.isHTMLElement(item)) {
                     continue;
                 }
                 const el = item,
@@ -440,7 +452,8 @@ export function createInlineZoneColorSelector(
                 currentScheme = scheme;
                 updateZoneEditability();
             },
-            currentScheme
+            currentScheme,
+            runtime
         );
 
         header.append(title);
@@ -455,14 +468,15 @@ export function createInlineZoneColorSelector(
                         field,
                         zone,
                         zoneIndex,
-                        getCurrentScheme
+                        getCurrentScheme,
+                        runtime
                     );
                 zoneGrid.append(zoneItem);
             }
         }
 
         // Action buttons
-        const actions = document.createElement("div");
+        const actions = runtime.createElement("div");
         actions.style.cssText = `
             display: flex;
             gap: 8px;
@@ -474,7 +488,7 @@ export function createInlineZoneColorSelector(
         // Reset all button
         const resetButton = createResetButton(field, zoneType, zoneData, () => {
             updateZoneColorDisplay();
-        });
+        }, runtime);
         actions.append(resetButton);
 
         // Assemble selector
@@ -560,7 +574,7 @@ export function createInlineZoneColorSelector(
                     );
                 }
             }
-        }, 10);
+        }, 10, runtime);
 
         // Apply saved zone colors during initialization
         const detectedZoneType = getZoneTypeFromField(field);
@@ -568,7 +582,7 @@ export function createInlineZoneColorSelector(
             zoneData = applyZoneColors(zoneArray, detectedZoneType);
         }
 
-        if (container instanceof HTMLElement) {
+        if (runtime.isHTMLElement(container)) {
             container.append(selectorContainer);
         }
 
@@ -609,7 +623,8 @@ export function removeInlineZoneColorSelectors(container: HTMLElement): void {
  * Updates all inline zone color selectors in a container
  */
 export function updateInlineZoneColorSelectors(container: HTMLElement): void {
-    if (!(container instanceof HTMLElement)) {
+    const runtime = getCreateInlineZoneColorSelectorRuntime();
+    if (!runtime.isHTMLElement(container)) {
         return;
     }
     const selectors = container.querySelectorAll(".inline-zone-color-selector");
@@ -631,16 +646,17 @@ function createColorSchemeSelector(
     defaultColors: string[],
     onSchemeChange: () => void,
     onSchemeSelect: (scheme: string) => void,
-    initialScheme = "custom"
+    initialScheme = "custom",
+    runtime: CreateInlineZoneColorSelectorRuntime = getCreateInlineZoneColorSelectorRuntime()
 ): HTMLElement {
-    const container = document.createElement("div");
+    const container = runtime.createElement("div");
     container.style.cssText = `
         display: flex;
         align-items: center;
         gap: 8px;
     `;
 
-    const label = document.createElement("label");
+    const label = runtime.createElement("label");
     label.textContent = "Scheme:";
     label.style.cssText = `
         font-size: 12px;
@@ -648,7 +664,7 @@ function createColorSchemeSelector(
         font-weight: 500;
     `;
 
-    const select = document.createElement("select");
+    const select = runtime.createElement("select");
     select.style.cssText = `
         padding: 4px 8px;
         border: 1px solid var(--color-border);
@@ -683,7 +699,7 @@ function createColorSchemeSelector(
     };
 
     for (const [value, text] of Object.entries(schemes)) {
-        const option = document.createElement("option");
+        const option = runtime.createElement("option");
         option.value = value;
         option.textContent = text;
         select.append(option);
@@ -697,11 +713,11 @@ function createColorSchemeSelector(
     console.log(
         `[ZoneColorSelector] Set initial scheme to '${select.value}' for ${field}`
     );
-    const schemeListenerController = new AbortController();
+    const schemeListenerController = runtime.createAbortController();
     select.addEventListener(
         "change",
         (e) => {
-            if (!(e.target instanceof HTMLSelectElement)) {
+            if (!runtime.isHTMLSelectElement(e.target)) {
                 return;
             }
             const scheme = e.target.value;
@@ -756,8 +772,8 @@ function createColorSchemeSelector(
                 onSchemeChange();
             }
             try {
-                globalThis.dispatchEvent(
-                    new CustomEvent("fieldToggleChanged", {
+                runtime.dispatchEvent(
+                    runtime.createCustomEvent("fieldToggleChanged", {
                         detail: {
                             field,
                             scheme,
@@ -773,7 +789,7 @@ function createColorSchemeSelector(
                         `Zone scheme change: ${scheme}`
                     );
                 } else {
-                    requestDirectChartRender("zone-scheme-change");
+                    requestDirectChartRender("zone-scheme-change", runtime);
                 }
             } catch (error) {
                 console.error(
@@ -798,9 +814,10 @@ function createResetButton(
     field: string,
     zoneType: ZoneType,
     zoneData: ZoneDataItem[],
-    onReset: () => void
+    onReset: () => void,
+    runtime: CreateInlineZoneColorSelectorRuntime = getCreateInlineZoneColorSelectorRuntime()
 ): HTMLElement {
-    const button = document.createElement("button");
+    const button = runtime.createElement("button");
     button.type = "button";
     button.textContent = "↻ Reset";
     button.setAttribute("aria-label", "Reset all zone colors to defaults");
@@ -819,7 +836,7 @@ function createResetButton(
         align-items: center;
         gap: 4px;
     `;
-    const buttonListenerController = new AbortController();
+    const buttonListenerController = runtime.createAbortController();
     button.addEventListener(
         "click",
         () => {
@@ -836,7 +853,10 @@ function createResetButton(
             );
 
             // Update all inline zone color selector UIs to reflect the scheme change to custom
-            updateInlineZoneColorSelectors(document.body);
+            const body = runtime.getBody();
+            if (body) {
+                updateInlineZoneColorSelectors(body);
+            }
 
             // Use the exact same mechanism as metrics color changes
             try {
@@ -845,8 +865,8 @@ function createResetButton(
                 );
 
                 // Dispatch custom event for field toggle change (same as metrics)
-                globalThis.dispatchEvent(
-                    new CustomEvent("fieldToggleChanged", {
+                runtime.dispatchEvent(
+                    runtime.createCustomEvent("fieldToggleChanged", {
                         detail: { field, type: "zone-reset", value: "reset" },
                     })
                 );
@@ -857,7 +877,7 @@ function createResetButton(
                         `Zone colors reset for ${zoneType}`
                     );
                 } else {
-                    requestDirectChartRender("zone-reset");
+                    requestDirectChartRender("zone-reset", runtime);
                 }
 
                 console.log(
@@ -903,10 +923,11 @@ function createZoneColorItem(
     field: string,
     zone: ZoneDataItem,
     zoneIndex: number,
-    getCurrentScheme: () => string
+    getCurrentScheme: () => string,
+    runtime: CreateInlineZoneColorSelectorRuntime = getCreateInlineZoneColorSelectorRuntime()
 ): HTMLElement {
     const currentColor = getChartSpecificZoneColor(field, zoneIndex),
-        item = document.createElement("div");
+        item = runtime.createElement("div");
     item.className = "zone-color-item";
     item.style.cssText = `
         display: flex;
@@ -920,7 +941,7 @@ function createZoneColorItem(
     `;
 
     // Zone label
-    const label = document.createElement("div");
+    const label = runtime.createElement("div");
     label.className = "zone-label";
     label.style.cssText = `
         flex: 1;
@@ -935,11 +956,11 @@ function createZoneColorItem(
     // Security: do not use innerHTML with zone labels/times (these can be derived from file data).
     // Build DOM nodes and use textContent to prevent injection.
     label.replaceChildren();
-    const nameLine = document.createElement("div");
+    const nameLine = runtime.createElement("div");
     nameLine.textContent = String(zoneName);
     label.append(nameLine);
     if (zoneTime) {
-        const timeLine = document.createElement("div");
+        const timeLine = runtime.createElement("div");
         timeLine.textContent = String(zoneTime);
         timeLine.style.fontSize = "10px";
         timeLine.style.color = "var(--color-fg-alt)";
@@ -948,7 +969,7 @@ function createZoneColorItem(
     }
 
     // Color preview
-    const colorPreview = document.createElement("div");
+    const colorPreview = runtime.createElement("div");
     colorPreview.className = "zone-color-preview";
     colorPreview.style.cssText = `
         width: 24px;
@@ -986,7 +1007,7 @@ function createZoneColorItem(
     };
 
     // Hidden color input
-    const colorInput = document.createElement("input");
+    const colorInput = runtime.createElement("input");
     colorInput.type = "color";
     colorInput.value = toColorInputHex6(currentColor);
     colorInput.className = "zone-color-input";
@@ -998,13 +1019,13 @@ function createZoneColorItem(
         pointer-events: none;
     `;
 
-    const itemListenerController = new AbortController();
+    const itemListenerController = runtime.createAbortController();
 
     // Color change handler
     colorInput.addEventListener(
         "change",
         (e) => {
-            if (!(e.target instanceof HTMLInputElement)) {
+            if (!runtime.isHTMLInputElement(e.target)) {
                 return;
             }
             const newColor = e.target.value;
@@ -1028,7 +1049,10 @@ function createZoneColorItem(
             updateZoneColorPreview(field, zoneIndex, newColor);
 
             // Update all inline zone color selector UIs to reflect the scheme change to custom
-            updateInlineZoneColorSelectors(document.body);
+            const body = runtime.getBody();
+            if (body) {
+                updateInlineZoneColorSelectors(body);
+            }
 
             // Use the exact same mechanism as metrics color changes
             try {
@@ -1037,8 +1061,8 @@ function createZoneColorItem(
                 );
 
                 // Dispatch custom event for field toggle change (same as metrics)
-                globalThis.dispatchEvent(
-                    new CustomEvent("fieldToggleChanged", {
+                runtime.dispatchEvent(
+                    runtime.createCustomEvent("fieldToggleChanged", {
                         detail: {
                             field,
                             type: "zone-color",
@@ -1054,7 +1078,7 @@ function createZoneColorItem(
                         `Zone color change: zone ${zoneIndex}`
                     );
                 } else {
-                    requestDirectChartRender("zone-color");
+                    requestDirectChartRender("zone-color", runtime);
                 }
             } catch (error) {
                 console.error(

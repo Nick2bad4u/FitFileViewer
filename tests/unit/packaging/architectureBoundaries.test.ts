@@ -389,6 +389,9 @@ const migratedEnsureChartSettingsDropdownsRuntimeFiles = [
 const migratedCreateFieldTogglesSectionRuntimeFiles = [
     "electron-app/utils/ui/components/createFieldTogglesSection.ts",
 ] as const;
+const migratedCreateInlineZoneColorSelectorRuntimeFiles = [
+    "electron-app/utils/ui/controls/createInlineZoneColorSelector.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -691,6 +694,8 @@ const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directCreateFieldTogglesSectionRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|dispatchEvent|querySelectorAll)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+HTMLInputElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:body|createElement|dispatchEvent)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b/u;
 const directCreateExportGPXButtonRuntimeGlobalPattern =
@@ -1522,6 +1527,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(fieldTogglesSource).toContain(
             "createFieldTogglesSectionRuntime.js"
+        );
+    });
+
+    it("keeps inline zone selector browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateInlineZoneColorSelectorRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const inlineZoneSelectorSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createInlineZoneColorSelector.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(inlineZoneSelectorSource).toContain(
+            "createInlineZoneColorSelectorRuntime.js"
         );
     });
 
