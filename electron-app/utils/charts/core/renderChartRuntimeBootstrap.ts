@@ -1,6 +1,6 @@
 import { registerChartJsPlugins } from "./renderChartPluginRegistration.js";
 import { registerChartRequestListener } from "./renderChartRequestListener.js";
-import { getMutableChartRuntimeGlobal } from "./renderChartRuntimeHelpers.js";
+import { getMutableChartRuntimeEnvironment } from "./renderChartRuntimeHelpers.js";
 
 type ChartRequestStateManager = {
     debouncedRender(reason: string): void;
@@ -16,9 +16,9 @@ type InitializeChartRuntimeBootstrapDependencies = {
 
 type ChartPluginGlobal = Parameters<typeof registerChartJsPlugins>[0];
 
-/** Mutable global object used by the renderer chart runtime. */
-export type ChartRuntimeGlobal = ReturnType<
-    typeof getMutableChartRuntimeGlobal
+/** Mutable environment object used by the renderer chart runtime. */
+export type ChartRuntimeEnvironment = ReturnType<
+    typeof getMutableChartRuntimeEnvironment
 >;
 
 /**
@@ -26,18 +26,18 @@ export type ChartRuntimeGlobal = ReturnType<
  *
  * @param dependencies - Runtime render bridge dependencies.
  *
- * @returns Mutable chart runtime global.
+ * @returns Mutable chart runtime environment.
  */
 export function initializeChartRuntimeBootstrap(
     dependencies: InitializeChartRuntimeBootstrapDependencies
-): ChartRuntimeGlobal {
-    const chartGlobal = getMutableChartRuntimeGlobal();
+): ChartRuntimeEnvironment {
+    const chartEnvironment = getMutableChartRuntimeEnvironment();
 
-    registerChartJsPlugins(chartGlobal as ChartPluginGlobal);
+    registerChartJsPlugins(chartEnvironment as ChartPluginGlobal);
     registerChartRequestListener({
         getChartStateManager: () => dependencies.getChartStateManager(),
         renderChart: (container) => dependencies.renderChart(container),
     });
 
-    return chartGlobal;
+    return chartEnvironment;
 }

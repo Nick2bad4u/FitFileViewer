@@ -44,7 +44,7 @@ compatibility bundles:
 - `electron-app/renderer/vendorGlobalsCore.ts`,
   `electron-app/renderer/vendorGlobalsChartData.ts`, and
   `electron-app/renderer/vendorGlobalsMap.ts` import migrated renderer packages
-  from npm and install runtime adapters or compatibility globals by domain.
+  from npm and register runtime adapters by domain.
 - `electron-app/renderer/vendorGlobalsCore.ts` registers DOMPurify through
   `domPurifyRuntime.ts`; it no longer exposes a `DOMPurify` compatibility
   global.
@@ -199,7 +199,7 @@ directly from a `vendor/` path.
 - Remove one dependency group at a time and verify the affected feature.
 - Preserve script, CSS, and plugin ordering in the split bundle loader until
   imports make ordering explicit.
-- Keep compatibility globals temporarily where the existing renderer expects
-  them.
+- Keep the symbol-backed runtime registries limited to cross-bundle adapter
+  handoff paths; do not reintroduce public `window.*` vendor globals.
 - Keep `electron-app/renderer/leafletMeasureLite.js` unless a CSP-safe package
   replacement is proven.

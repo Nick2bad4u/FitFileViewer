@@ -123,12 +123,12 @@ function createVendorScript(
 }
 
 /**
- * Loads a split renderer vendor bundle once and waits until its globals are
- * registered.
+ * Loads a split renderer vendor bundle once and waits until its runtime
+ * adapters are registered.
  *
  * The index shell keeps only the small core vendor entry eager. Map and
  * chart/data vendors should call this from tab activation paths before touching
- * Leaflet, Chart.js, or other renderer compatibility globals.
+ * Leaflet, Chart.js, or other runtime-adapter dependencies.
  */
 export async function ensureRendererVendorBundle(
     entryName: RendererVendorBundleEntry

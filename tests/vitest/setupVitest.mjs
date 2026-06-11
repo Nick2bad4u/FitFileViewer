@@ -1,4 +1,3 @@
-// Mock Leaflet global L for all Vitest tests
 // eslint-disable-next-line import-x/no-unassigned-import -- ensure web storage shim registers before Storybook config executes
 import "./shims/nodeWebStorage";
 import fs from "node:fs";
@@ -11,6 +10,7 @@ import {
     afterAll as vitestAfterAll,
 } from "vitest";
 
+import { setLeafletRuntime } from "../../electron-app/utils/maps/core/leafletRuntime.js";
 import { appSourcePath } from "../../scripts/lib/workspaces.mjs";
 
 const electronAppRoot = appSourcePath;
@@ -1413,8 +1413,14 @@ const leafletMock = {
         remove: vi.fn(),
     })),
 };
-
-global.L = leafletMock;
+setLeafletRuntime(leafletMock);
+try {
+    vitestBeforeEach(() => {
+        setLeafletRuntime(leafletMock);
+    });
+} catch {
+    /* ignore: runner not yet available */
+}
 
 // Ensure HTMLElement is available globally for instanceof checks
 if (
@@ -1425,7 +1431,6 @@ if (
 }
 
 if (typeof window !== "undefined") {
-    window.L = leafletMock;
     // Ensure window.addEventListener is mocked
     if (!window.addEventListener) {
         window.addEventListener = vi.fn();

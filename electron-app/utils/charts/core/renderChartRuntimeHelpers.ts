@@ -17,7 +17,7 @@ interface ProcessShim {
     nextTick?: unknown;
 }
 
-interface RenderChartRuntimeGlobal {
+interface RenderChartRuntimeEnvironment {
     getThemeConfig?: unknown;
     process?: ProcessShim;
 }
@@ -62,9 +62,9 @@ function isChartRenderCompleteNotifier(
 }
 
 /**
- * Returns the renderer global through the local chart-runtime boundary.
+ * Returns the mutable environment object used for chart dependency shims.
  */
-export function getMutableChartRuntimeGlobal(): RenderChartRuntimeGlobal {
+export function getMutableChartRuntimeEnvironment(): RenderChartRuntimeEnvironment {
     return globalThis;
 }
 
@@ -74,14 +74,14 @@ export function getMutableChartRuntimeGlobal(): RenderChartRuntimeGlobal {
  * renderer.
  */
 export function ensureProcessNextTick(): void {
-    const chartGlobal = getMutableChartRuntimeGlobal();
-    chartGlobal.process ??= {};
+    const chartEnvironment = getMutableChartRuntimeEnvironment();
+    chartEnvironment.process ??= {};
 
-    if (typeof chartGlobal.process.nextTick === "function") {
+    if (typeof chartEnvironment.process.nextTick === "function") {
         return;
     }
 
-    chartGlobal.process.nextTick = (
+    chartEnvironment.process.nextTick = (
         callback: UnknownFunction,
         ...args: unknown[]
     ): void => {
@@ -150,7 +150,7 @@ export function getGlobalChartActions(): ChartActionsBridge | null {
 }
 
 /**
- * Returns Chart.js instances from either the renderer global or window mirror.
+ * Returns registered Chart.js instances, falling back to caller-provided values.
  */
 export function getGlobalChartInstances(fallbackInstances: unknown): unknown[] {
     const instances = getRegisteredChartInstances();

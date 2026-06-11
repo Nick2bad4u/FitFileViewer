@@ -787,7 +787,7 @@ describe("architecture boundaries", () => {
             "Renderer Global Data Bridge",
             "Legacy AppState Global",
             "Renderer Utility Globals",
-            "Vendor Globals",
+            "Vendor Runtime Adapters",
             "Runtime CommonJS Compatibility",
         ];
         const requiredSectionFields = [

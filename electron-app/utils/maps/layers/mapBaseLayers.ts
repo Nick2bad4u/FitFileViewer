@@ -6,8 +6,9 @@ import {
     type LeafletVectorLayerRuntime,
 } from "./mapVectorLayers.js";
 
-// Leaflet base layers module. Resolves the Leaflet global if present; otherwise
-// provides a minimal shim to keep imports safe in non-map/test environments.
+// Leaflet base layers module. Resolves the registered Leaflet runtime when
+// present; otherwise provides a minimal shim to keep imports safe in
+// non-map/test environments.
 
 type LeafletTileLayerOptions = TileLayerOptions & Record<string, unknown>;
 type LeafletTileLayerFactory = (
@@ -38,8 +39,8 @@ function hasFunctionProperty(value: object, key: "tileLayer"): boolean {
 }
 
 /**
- * Resolve the Leaflet global if present, else return a shim with minimal API
- * used in this module so tests can import without errors.
+ * Resolve the registered Leaflet runtime if present, else return a shim with
+ * the minimal API used in this module so tests can import without errors.
  */
 function getLeaflet(): LeafletMinimal {
     return (

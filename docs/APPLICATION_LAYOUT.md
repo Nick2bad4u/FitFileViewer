@@ -187,7 +187,7 @@ tests/vitest/
 ### Test Support Files
 
 ```text
-global.d.ts                          # Root-owned ambient app and renderer globals
+global.d.ts                          # Root-owned ambient preload API contract
 ```
 
 ## Documentation & Assets

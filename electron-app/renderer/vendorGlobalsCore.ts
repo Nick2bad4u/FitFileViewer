@@ -9,7 +9,7 @@ import { setDomPurifyRuntime } from "../utils/dom/domPurifyRuntime.js";
 import { setArqueroRuntime } from "../utils/rendering/helpers/arqueroRuntime.js";
 import { setScreenfullRuntime } from "../utils/ui/controls/screenfullRuntime.js";
 
-/** Installs renderer globals shared across tabs and export flows. */
+/** Registers renderer vendor runtimes shared across tabs and export flows. */
 export function installRendererCoreVendorGlobals(): void {
     setArqueroRuntime(arquero);
     setExportZipRuntime(JSZip);
