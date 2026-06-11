@@ -18,7 +18,6 @@ import {
 } from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
 type ResizeListenerTestGlobal = typeof globalThis & {
-    Chart?: { getChart?: (canvas: HTMLCanvasElement) => unknown };
     renderChart?: () => void;
     renderChartJS?: () => Promise<boolean> | void;
 };
@@ -29,7 +28,7 @@ function cleanupFixture(cleanupCallbacks: Array<() => void> = []): void {
     }
 
     const chartGlobal = globalThis as ResizeListenerTestGlobal;
-    delete chartGlobal.Chart;
+    Reflect.deleteProperty(globalThis, "Chart");
     delete chartGlobal.renderChart;
     delete chartGlobal.renderChartJS;
     clearChartInstanceRegistryForTests();
@@ -180,9 +179,7 @@ describe(registerChartResizeListener, () => {
             const legacyGetChart = vi.fn<() => unknown>(() => {
                 throw new Error("legacy Chart.getChart should not be used");
             });
-            (globalThis as ResizeListenerTestGlobal).Chart = {
-                getChart: legacyGetChart,
-            };
+            Reflect.set(globalThis, "Chart", { getChart: legacyGetChart });
             registerChartInstance({ canvas, resize });
 
             registerChartResizeListener({ cleanupCallbacks });
