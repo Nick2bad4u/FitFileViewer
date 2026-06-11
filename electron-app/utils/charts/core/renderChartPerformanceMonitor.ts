@@ -1,8 +1,9 @@
 import {
-    getState,
-    setState,
-    updateState,
-} from "../../state/core/stateManager.js";
+    appendRendererChartPerformanceHistory,
+    getRendererChartPerformanceHistory,
+    getRendererChartPerformanceTracking,
+    updateRendererChartPerformanceTracking,
+} from "../../state/domain/rendererChartPerformanceState.js";
 import { getRecordValue, isObjectRecord } from "./renderChartModuleHelpers.js";
 
 interface PerformanceTrackingRecord extends Record<string, unknown> {
@@ -20,8 +21,7 @@ export interface PerformanceSummary {
 }
 
 function getPerformanceHistory(): Record<string, unknown>[] {
-    const history = getState("performance.chartHistory");
-    return Array.isArray(history) ? history.filter(isObjectRecord) : [];
+    return getRendererChartPerformanceHistory();
 }
 
 function isPerformanceTrackingRecord(
@@ -47,7 +47,7 @@ export const chartPerformanceMonitor = {
         trackingId: string,
         additionalData: Record<string, unknown> = {}
     ): void {
-        const trackingData = getState(`performance.tracking.${trackingId}`);
+        const trackingData = getRendererChartPerformanceTracking(trackingId);
         if (!isPerformanceTrackingRecord(trackingData)) {
             return;
         }
@@ -62,22 +62,10 @@ export const chartPerformanceMonitor = {
             status: "completed",
         };
 
-        updateState(
-            "performance.tracking",
-            {
-                [trackingId]: performanceRecord,
-            },
-            { merge: true, source: "chartPerformanceMonitor.endTracking" }
-        );
-
-        const history = getPerformanceHistory();
-        history.push(performanceRecord);
-
-        if (history.length > 50) {
-            history.splice(0, history.length - 50);
-        }
-
-        setState("performance.chartHistory", history, {
+        updateRendererChartPerformanceTracking(trackingId, performanceRecord, {
+            source: "chartPerformanceMonitor.endTracking",
+        });
+        appendRendererChartPerformanceHistory(performanceRecord, {
             silent: false,
             source: "chartPerformanceMonitor.endTracking",
         });
@@ -137,16 +125,14 @@ export const chartPerformanceMonitor = {
         const startTime = performance.now();
         const trackingId = `chart-${operation}-${Date.now()}`;
 
-        updateState(
-            "performance.tracking",
+        updateRendererChartPerformanceTracking(
+            trackingId,
             {
-                [trackingId]: {
-                    operation,
-                    startTime,
-                    status: "running",
-                },
+                operation,
+                startTime,
+                status: "running",
             },
-            { merge: true, source: "chartPerformanceMonitor.startTracking" }
+            { source: "chartPerformanceMonitor.startTracking" }
         );
 
         return trackingId;

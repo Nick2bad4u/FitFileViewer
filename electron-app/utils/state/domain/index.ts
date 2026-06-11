@@ -17,6 +17,7 @@ export * from "./mapBaseLayerState.js";
 export * from "./rendererActiveFileState.js";
 export * from "./rendererActiveTabState.js";
 export * from "./rendererChartControlsState.js";
+export * from "./rendererChartPerformanceState.js";
 export * from "./rendererChartRenderState.js";
 export * from "./rendererDragDropState.js";
 export * from "./rendererLoadingState.js";

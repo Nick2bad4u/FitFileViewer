@@ -1287,6 +1287,23 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps chart performance monitoring on the chart performance state facade", () => {
+        expect.assertions(2);
+
+        const chartPerformanceMonitorSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartPerformanceMonitor.ts"
+            )
+        );
+
+        expect(chartPerformanceMonitorSource).toContain(
+            "rendererChartPerformanceState.js"
+        );
+        expect(chartPerformanceMonitorSource).not.toContain(
+            "state/core/stateManager.js"
+        );
+    });
+
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
         expect.assertions(2);
 
