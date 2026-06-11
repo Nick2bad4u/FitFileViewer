@@ -7,6 +7,11 @@ import {
     getChartControlsToggle,
     getChartSettingsWrapper,
 } from "../dom/chartDomUtils.js";
+import {
+    type ChartStatusIndicatorRuntime,
+    type ChartStatusIndicatorTimerHandle,
+    getChartStatusIndicatorRuntime,
+} from "./chartStatusIndicatorRuntime.js";
 
 const globalIndicatorCleanupCallbacks = new WeakMap<HTMLElement, () => void>();
 
@@ -189,12 +194,13 @@ function createBreakdown(
 
 function scheduleFieldSectionScroll(
     fieldsSection: HTMLElement,
-    pendingTimers: Set<ReturnType<typeof setTimeout>>
+    pendingTimers: Set<ChartStatusIndicatorTimerHandle>,
+    runtime: ChartStatusIndicatorRuntime
 ): void {
-    const timerRef: { id?: ReturnType<typeof setTimeout> } = {};
-    let didRun = false;
-    timerRef.id = setTimeout(() => {
-        didRun = true;
+    const timerRef: { id?: ChartStatusIndicatorTimerHandle } = {};
+    const runState = { didRun: false };
+    timerRef.id = runtime.setTimeout(() => {
+        runState.didRun = true;
         if (timerRef.id !== undefined) {
             pendingTimers.delete(timerRef.id);
         }
@@ -204,7 +210,7 @@ function scheduleFieldSectionScroll(
         });
     }, 100);
 
-    if (!didRun) {
+    if (!runState.didRun) {
         pendingTimers.add(timerRef.id);
     }
 }
@@ -235,6 +241,7 @@ export function createGlobalChartStatusIndicatorFromCounts(
     counts: ChartCounts
 ): HTMLElement | null {
     try {
+        const runtime = getChartStatusIndicatorRuntime();
         const chartTabContent = getChartContentContainer(document);
         if (!chartTabContent) {
             console.warn("[ChartStatus] Chart tab content not found");
@@ -294,14 +301,14 @@ export function createGlobalChartStatusIndicatorFromCounts(
             isAllVisible
         );
         const globalBreakdown = createBreakdown(counts, hasHiddenCharts);
-        const controller = new AbortController();
+        const controller = runtime.createAbortController();
         const { signal } = controller;
-        const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
+        const pendingTimers = new Set<ChartStatusIndicatorTimerHandle>();
 
         globalIndicatorCleanupCallbacks.set(globalIndicator, () => {
             controller.abort();
             for (const timer of pendingTimers) {
-                clearTimeout(timer);
+                runtime.clearTimeout(timer);
             }
             pendingTimers.clear();
         });
@@ -313,8 +320,8 @@ export function createGlobalChartStatusIndicatorFromCounts(
                     const toggleButton = getChartControlsToggle(document);
                     const wrapper = getChartSettingsWrapper(document);
                     if (
-                        !(wrapper instanceof HTMLElement) ||
-                        !(toggleButton instanceof HTMLElement)
+                        !runtime.isHTMLElement(wrapper) ||
+                        !runtime.isHTMLElement(toggleButton)
                     ) {
                         return;
                     }
@@ -323,12 +330,14 @@ export function createGlobalChartStatusIndicatorFromCounts(
                     toggleButton.textContent = "▼ Hide Controls";
                     toggleButton.setAttribute("aria-expanded", "true");
 
-                    const fieldsSection =
-                        document.querySelector(".fields-section");
-                    if (fieldsSection instanceof HTMLElement) {
+                    const fieldsSection = runtime.querySelector(
+                        ".fields-section"
+                    );
+                    if (fieldsSection) {
                         scheduleFieldSectionScroll(
                             fieldsSection,
-                            pendingTimers
+                            pendingTimers,
+                            runtime
                         );
                     }
                 },

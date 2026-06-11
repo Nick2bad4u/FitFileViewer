@@ -364,6 +364,7 @@ const migratedUpdateMapThemeRuntimeFiles = [
 ] as const;
 const migratedChartStatusCountsRuntimeFiles = [
     "electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.ts",
+    "electron-app/utils/charts/components/createGlobalChartStatusIndicatorFromCounts.ts",
 ] as const;
 const migratedChartStatusEventRuntimeFiles = [
     "electron-app/utils/charts/components/chartStatusIndicator.ts",
@@ -2950,16 +2951,17 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
-        const chartStatusIndicatorSource = stripComments(
-            readRepositoryFile(
-                "electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.ts"
+        const sourcesMissingRuntime = migratedChartStatusCountsRuntimeFiles
+            .filter(
+                (relativeFile) =>
+                    !stripComments(readRepositoryFile(relativeFile)).includes(
+                        "chartStatusIndicatorRuntime.js"
+                    )
             )
-        );
+            .sort();
 
         expect(violations).toStrictEqual([]);
-        expect(chartStatusIndicatorSource).toContain(
-            "chartStatusIndicatorRuntime.js"
-        );
+        expect(sourcesMissingRuntime).toStrictEqual([]);
     });
 
     it("keeps chart status field-toggle listeners behind the runtime facade", () => {
