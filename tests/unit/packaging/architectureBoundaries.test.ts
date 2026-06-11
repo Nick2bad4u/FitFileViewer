@@ -694,7 +694,7 @@ const directRemoveExitFullscreenOverlayRuntimeGlobalPattern =
 const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b/u;
 const directCreateMarkerCountSelectorRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+Event\(/u;
+    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+(?:AbortController|Event)\(/u;
 const directCreateDataPointFilterControlRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b|\btypeof\s+queueMicrotask\b|\bPromise\.resolve\(\)\.then\(/u;
 const directCreateHRZoneControlsRuntimeGlobalPattern =

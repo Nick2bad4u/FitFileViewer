@@ -83,7 +83,7 @@ export function createMarkerCountSelector(
 
     try {
         const container = runtime.createElement("div");
-        const listenerController = new AbortController();
+        const listenerController = runtime.createAbortController();
         const themeColors = getThemeColors();
         container.className = "map-action-btn marker-count-container";
 

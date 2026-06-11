@@ -1,9 +1,11 @@
 export interface CreateMarkerCountSelectorRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly document?: Document | undefined;
     readonly Event?: typeof Event | undefined;
 }
 
 export interface CreateMarkerCountSelectorRuntime {
+    createAbortController: () => AbortController;
     createChangeEvent: () => Event;
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
@@ -14,6 +16,22 @@ export interface CreateMarkerCountSelectorRuntime {
 }
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+
+function getAbortControllerConstructor(
+    scope: CreateMarkerCountSelectorRuntimeScope
+): typeof AbortController {
+    const AbortControllerConstructor =
+        scope.AbortController ??
+        scope.document?.defaultView?.AbortController ??
+        globalThis.AbortController;
+    if (typeof AbortControllerConstructor !== "function") {
+        throw new TypeError(
+            "createMarkerCountSelector requires an AbortController runtime"
+        );
+    }
+
+    return AbortControllerConstructor;
+}
 
 function getDocument(
     scope: CreateMarkerCountSelectorRuntimeScope
@@ -46,6 +64,9 @@ export function getCreateMarkerCountSelectorRuntime(
     scope: CreateMarkerCountSelectorRuntimeScope = globalThis
 ): CreateMarkerCountSelectorRuntime {
     return {
+        createAbortController(): AbortController {
+            return new (getAbortControllerConstructor(scope))();
+        },
         createChangeEvent(): Event {
             const EventConstructor = getEventConstructor(scope);
             return new EventConstructor("change", {

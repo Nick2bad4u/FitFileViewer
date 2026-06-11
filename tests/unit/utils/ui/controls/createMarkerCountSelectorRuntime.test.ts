@@ -32,10 +32,29 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         expect(event.cancelable).toBe(true);
     });
 
-    it("fails clearly when required runtimes are unavailable", () => {
+    it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 
+        const runtime = getCreateMarkerCountSelectorRuntime({
+            AbortController,
+            document,
+        });
+        const controller = runtime.createAbortController();
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(controller.signal.aborted).toBe(false);
+    });
+
+    it("fails clearly when required runtimes are unavailable", () => {
+        expect.assertions(3);
+
         const runtime = getCreateMarkerCountSelectorRuntime({});
+        const runtimeWithInvalidAbortController =
+            getCreateMarkerCountSelectorRuntime({
+                AbortController:
+                    "AbortController" as unknown as typeof AbortController,
+                document,
+            });
         const runtimeWithInvalidEvent = getCreateMarkerCountSelectorRuntime({
             document,
             Event: "Event" as unknown as typeof Event,
@@ -43,6 +62,11 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
 
         expect(() => runtime.createElement("div")).toThrow(
             "createMarkerCountSelector requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithInvalidAbortController.createAbortController()
+        ).toThrow(
+            "createMarkerCountSelector requires an AbortController runtime"
         );
         expect(() => runtimeWithInvalidEvent.createChangeEvent()).toThrow(
             "createMarkerCountSelector requires an Event runtime"
