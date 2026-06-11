@@ -1704,6 +1704,17 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps state development tools on the debug state access facade", () => {
+        expect.assertions(2);
+
+        const stateDevToolsSource = stripComments(
+            readRepositoryFile("electron-app/utils/debug/stateDevTools.ts")
+        );
+
+        expect(stateDevToolsSource).toContain("debugStateAccess.js");
+        expect(stateDevToolsSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps migrated state history readers on the typed history API", () => {
         expect.assertions(1);
 

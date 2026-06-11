@@ -4,10 +4,10 @@
  */
 
 import {
-    getState,
-    getStateHistory,
-    subscribe,
-} from "../state/core/stateManager.js";
+    getDebugStateHistory,
+    getDebugStateRoot,
+    subscribeToDebugStateChanges,
+} from "../state/domain/debugStateAccess.js";
 
 type StateRecord = Record<string, unknown>;
 type StateHistory = unknown[];
@@ -194,7 +194,7 @@ class StateDebugUtilities {
     createSnapshot(): StateSnapshot {
         const memory = getBrowserMemoryInfo();
         return {
-            history: getStateHistory().slice(-10), // Last 10 changes
+            history: getDebugStateHistory().slice(-10), // Last 10 changes
             memory: memory
                 ? {
                       total: memory.totalJSHeapSize,
@@ -202,7 +202,7 @@ class StateDebugUtilities {
                   }
                 : null,
             metrics: performanceMonitor.getMetrics(),
-            state: structuredClone(getState("")),
+            state: structuredClone(getDebugStateRoot()),
             timestamp: Date.now(),
         };
     }
@@ -241,14 +241,14 @@ class StateDebugUtilities {
      * Log current state
      */
     logCurrentState(): void {
-        const state = getState("");
+        const state = getDebugStateRoot();
         console.group("[StateDebug] Current State");
         console.log("Full State:", state);
         console.log(
             "State Keys:",
             isStateRecord(state) ? Object.keys(state) : []
         );
-        console.log("State History Length:", getStateHistory().length);
+        console.log("State History Length:", getDebugStateHistory().length);
         console.groupEnd();
     }
     /**
@@ -257,7 +257,7 @@ class StateDebugUtilities {
      * @returns Validation results.
      */
     validateState(): ValidationResult {
-        const state = getState(""),
+        const state = getDebugStateRoot(),
             validation: ValidationResult = {
                 errors: [],
                 isValid: true,
@@ -587,7 +587,7 @@ ${
      */
     subscribeToStateChanges(): void {
         // Monitor all state changes
-        subscribe("*", () => {
+        subscribeToDebugStateChanges(() => {
             this.metrics.stateChanges++;
         });
     }
