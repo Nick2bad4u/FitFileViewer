@@ -1588,22 +1588,38 @@ test.describe("FitFileViewer Electron UI", () => {
         });
 
         const elevationPopup = await page.evaluate(async () => {
-            const globalWindow = window as Window & { Chart?: unknown };
-            const originalChart = globalWindow.Chart;
+            type RuntimeFunction = (...args: unknown[]) => unknown;
+            type ChartRuntimeModule = {
+                clearChartRuntimeForTests: () => void;
+                resolveChartRuntime: <T>(
+                    isRuntime: (value: unknown) => value is T
+                ) => T | null;
+                setChartRuntime: (
+                    runtime: unknown,
+                    zoomPlugin?: unknown
+                ) => void;
+            };
+
+            const chartRuntimeModuleUrl = new URL(
+                "./utils/charts/core/chartRuntime.js",
+                window.location.href
+            ).href;
+            // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used to install an isolated chart runtime in the Playwright elevation popup smoke test.
+            const chartRuntimeModule = (await import(
+                chartRuntimeModuleUrl
+            )) as ChartRuntimeModule;
+            const originalChartRuntime =
+                chartRuntimeModule.resolveChartRuntime(
+                    (value): value is RuntimeFunction =>
+                        typeof value === "function"
+                );
             const popupDocument =
                 document.implementation.createHTMLDocument("");
             const originalOpen = window.open;
             const popupWindow = {
                 document: popupDocument,
             } as Window & { Chart?: unknown };
-            const chartConstructor = function chartConstructor(
-                context: CanvasRenderingContext2D,
-                config: unknown
-            ) {
-                void context;
-                void config;
-            };
-            const chartMock = Object.assign(chartConstructor, {
+            const chartMock = Object.assign(function chartConstructor() {}, {
                 helpers: {
                     color: (color: string) => ({
                         alpha: (opacity: number) => ({
@@ -1613,7 +1629,7 @@ test.describe("FitFileViewer Electron UI", () => {
                 },
             });
 
-            globalWindow.Chart = chartMock;
+            chartRuntimeModule.setChartRuntime(chartMock);
             window.open = (() => popupWindow) as typeof window.open;
 
             try {
@@ -1629,31 +1645,43 @@ test.describe("FitFileViewer Electron UI", () => {
                 }
 
                 elevationButton.click();
-                await new Promise((resolve) => setTimeout(resolve, 0));
+                for (let attempt = 0; attempt < 20; attempt += 1) {
+                    if (popupDocument.querySelector("#elevChartsContainer")) {
+                        break;
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 50));
+                }
 
                 return {
-                    assignedChart: popupWindow.Chart === chartMock,
                     canvasCount: popupDocument.querySelectorAll(
                         ".elev-profile-canvas"
                     ).length,
                     containerExists:
                         popupDocument.querySelector("#elevChartsContainer") !==
                         null,
+                    hasPopupChartGlobal: Object.prototype.hasOwnProperty.call(
+                        popupWindow,
+                        "Chart"
+                    ),
                     title: popupDocument.title,
                     vendorScriptCount: popupDocument.querySelectorAll(
                         "script[src*='vendor']"
                     ).length,
                 };
             } finally {
-                globalWindow.Chart = originalChart;
+                if (originalChartRuntime) {
+                    chartRuntimeModule.setChartRuntime(originalChartRuntime);
+                } else {
+                    chartRuntimeModule.clearChartRuntimeForTests();
+                }
                 window.open = originalOpen;
             }
         });
 
         expect(elevationPopup).toStrictEqual({
-            assignedChart: true,
             canvasCount: 1,
             containerExists: true,
+            hasPopupChartGlobal: false,
             title: "Elevation Profiles",
             vendorScriptCount: 0,
         });
