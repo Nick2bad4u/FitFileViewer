@@ -73,7 +73,6 @@ type GPSTimePoint = {
 };
 
 type GPSTimeTestGlobal = typeof globalThis & {
-    Chart?: ChartConstructorMock;
     HTMLCanvasElement?: typeof HTMLCanvasElement;
     HTMLElement?: typeof HTMLElement;
     localStorage?: StorageMock;
@@ -103,7 +102,7 @@ function getGPSTimeGlobal(): GPSTimeTestGlobal {
 }
 
 function getLatestChartConfig(): ChartConfig {
-    const config = Chart.mock.calls[0]?.[1];
+    const config = chartMock.mock.calls[0]?.[1];
     if (!config) {
         throw new Error("Expected Chart to be called with a config");
     }
@@ -122,7 +121,7 @@ function getRenderedCanvas(container: HTMLElement): HTMLCanvasElement {
 }
 
 let renderGPSTimeChart: RenderGPSTimeChart;
-let Chart: ChartConstructorMock;
+let chartMock: ChartConstructorMock;
 let chartInstanceMock: ChartInstanceMock;
 let mockLocalStorage: StorageMock;
 let mockChartSettingsManager: { getFieldVisibility: ReturnType<typeof vi.fn> };
@@ -181,14 +180,13 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
             update: vi.fn<() => void>(),
         };
 
-        Chart = vi.fn<() => ChartInstanceMock>(function ChartConstructor() {
+        chartMock = vi.fn<() => ChartInstanceMock>(function ChartConstructor() {
             return chartInstanceMock;
         }) as ChartConstructorMock;
         vi.doMock(import("chart.js/auto"), () => ({
-            default: Chart,
+            default: chartMock,
         }));
-        getGPSTimeGlobal().Chart = Chart;
-        setChartRuntime(Chart);
+        setChartRuntime(chartMock);
         clearChartInstanceRegistryForTests();
 
         createChartCanvasMock = vi.fn<() => HTMLCanvasElement>(() =>
@@ -240,7 +238,6 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         vi.clearAllMocks();
         clearChartRuntimeForTests();
         clearChartInstanceRegistryForTests();
-        delete getGPSTimeGlobal().Chart;
         delete getGPSTimeGlobal().window;
         delete getGPSTimeGlobal().document;
         delete getGPSTimeGlobal().HTMLCanvasElement;
@@ -258,7 +255,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
 
         renderGPSTimeChart(container, data, { maxPoints: "all" });
 
-        expect(Chart).not.toHaveBeenCalled();
+        expect(chartMock).not.toHaveBeenCalled();
         expect(Array.from(container.children)).toStrictEqual([]);
     });
 
@@ -278,7 +275,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
 
         renderGPSTimeChart(container, data, { maxPoints: "all" });
 
-        expect(Chart).not.toHaveBeenCalled();
+        expect(chartMock).not.toHaveBeenCalled();
         expect(Array.from(container.children)).toStrictEqual([]);
     });
 
@@ -315,7 +312,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         renderGPSTimeChart(container, data, options);
 
         expect(createChartCanvasMock).toHaveBeenCalledWith("gps-time", 0);
-        expect(Chart).toHaveBeenCalledOnce();
+        expect(chartMock).toHaveBeenCalledOnce();
 
         const config = getLatestChartConfig();
         const latitudeDataset = config.data.datasets[0];
