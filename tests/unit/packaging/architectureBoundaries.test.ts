@@ -320,6 +320,9 @@ const migratedUpdateTabVisibilityRuntimeFiles = [
 const migratedUnifiedControlBarRuntimeFiles = [
     "electron-app/utils/ui/unifiedControlBar.ts",
 ] as const;
+const migratedCreditsMarqueeRuntimeFiles = [
+    "electron-app/utils/ui/layout/enhanceCreditsSection.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -604,6 +607,8 @@ const directUpdateTabVisibilityRuntimeGlobalPattern =
     /\bglobalThis\.(?:document|requestAnimationFrame)\b|\breturn\s+document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+MutationObserver\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directCreditsMarqueeRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2434,6 +2439,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(unifiedControlBarSource).toContain(
             "unifiedControlBarRuntime.js"
+        );
+    });
+
+    it("keeps credits marquee browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreditsMarqueeRuntimeFiles
+            .filter((relativeFile) =>
+                directCreditsMarqueeRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const enhanceCreditsSectionSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/layout/enhanceCreditsSection.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(enhanceCreditsSectionSource).toContain(
+            "enhanceCreditsSectionRuntime.js"
         );
     });
 

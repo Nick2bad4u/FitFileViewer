@@ -4,6 +4,8 @@
  * that scrolls horizontally without wrapping to additional lines.
  */
 
+import { getCreditsMarqueeRuntime } from "./enhanceCreditsSectionRuntime.js";
+
 const CREDITS_SECTION_SELECTOR = "body > .credits-section";
 const MARQUEE_CLASS = "credits-marquee";
 const SECTION_ACTIVE_CLASS = "credits-section--marquee-active";
@@ -19,14 +21,15 @@ let cleanupCallbacks: (() => void)[] = [];
 export function setupCreditsMarquee(): void {
     teardownCreditsMarquee();
 
-    const sections = document.querySelectorAll(CREDITS_SECTION_SELECTOR);
+    const runtime = getCreditsMarqueeRuntime();
+    const sections = runtime.queryCreditsSections(CREDITS_SECTION_SELECTOR);
     for (const section of sections) {
         const footer = section.querySelector("footer");
-        if (!(footer instanceof HTMLElement)) {
+        if (!runtime.isHTMLElement(footer)) {
             continue;
         }
 
-        let resizeObserver: ResizeObserver | null = null;
+        let resizeObserver: ResizeObserver | undefined;
         /**
          * Applies or removes marquee styles based on computed overflow.
          */
@@ -68,41 +71,39 @@ export function setupCreditsMarquee(): void {
         };
 
         // Observe size/content changes
-        if (typeof ResizeObserver === "function") {
-            resizeObserver = new ResizeObserver(() => updateMarquee());
+        resizeObserver = runtime.createResizeObserver(() => updateMarquee());
+        if (resizeObserver) {
             resizeObserver.observe(section);
             resizeObserver.observe(footer);
         } else {
             const listenerController = new AbortController();
             const resizeHandler = (): void => updateMarquee();
-            window.addEventListener("resize", resizeHandler, {
+            runtime.addResizeListener(resizeHandler, {
                 passive: true,
                 signal: listenerController.signal,
             });
             cleanupCallbacks.push(() => {
                 listenerController.abort();
-                window.removeEventListener("resize", resizeHandler);
+                runtime.removeResizeListener(resizeHandler);
             });
         }
 
-        const mutationObserver = new MutationObserver(() => updateMarquee());
+        const mutationObserver = runtime.createMutationObserver(() =>
+            updateMarquee()
+        );
         mutationObserver.observe(footer, {
             childList: true,
             characterData: true,
             subtree: true,
         });
 
-        const animationHandle =
-            typeof requestAnimationFrame === "function"
-                ? requestAnimationFrame(() => updateMarquee())
-                : null;
+        const animationHandle = runtime.requestAnimationFrame(() =>
+            updateMarquee()
+        );
 
         cleanupCallbacks.push(() => {
-            if (
-                typeof cancelAnimationFrame === "function" &&
-                typeof animationHandle === "number"
-            ) {
-                cancelAnimationFrame(animationHandle);
+            if (animationHandle !== undefined) {
+                runtime.cancelAnimationFrame(animationHandle);
             }
             mutationObserver.disconnect();
             if (resizeObserver) {
