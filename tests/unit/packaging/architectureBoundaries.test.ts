@@ -706,7 +706,7 @@ const directCreatePowerZoneControlsSimpleRuntimeGlobalPattern =
 const directDataPointFilterElementFactoryRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
 const directDataPointFilterPanelControllerRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:addEventListener|body|innerHeight|innerWidth)\b|\binstanceof\s+Node\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|body|innerHeight|innerWidth)\b|\bnew\s+AbortController\b|\binstanceof\s+Node\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directLoadingOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|querySelector)\b/u;
 

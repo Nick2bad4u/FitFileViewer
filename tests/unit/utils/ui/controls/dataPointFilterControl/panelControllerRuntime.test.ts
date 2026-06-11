@@ -97,10 +97,29 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
         expect(cancelAnimationFrame).toHaveBeenCalledWith(13);
     });
 
+    it("creates abort controllers through the injected runtime", () => {
+        expect.assertions(2);
+
+        const runtime = getDataPointFilterPanelControllerRuntime({
+            AbortController,
+            document,
+        });
+        const controller = runtime.createAbortController();
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(controller.signal.aborted).toBe(false);
+    });
+
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const runtime = getDataPointFilterPanelControllerRuntime({});
+        const runtimeWithInvalidAbortController =
+            getDataPointFilterPanelControllerRuntime({
+                AbortController:
+                    "AbortController" as unknown as typeof AbortController,
+                document,
+            });
         const runtimeWithoutNode = getDataPointFilterPanelControllerRuntime({
             document: {
                 addEventListener: vi.fn(),
@@ -110,6 +129,11 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
 
         expect(() => runtime.getBody()).toThrow(
             "data point filter panel controller requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithInvalidAbortController.createAbortController()
+        ).toThrow(
+            "data point filter panel controller requires an AbortController runtime"
         );
         expect(() => runtimeWithoutNode.isNode(document.body)).toThrow(
             "data point filter panel controller requires a Node runtime"

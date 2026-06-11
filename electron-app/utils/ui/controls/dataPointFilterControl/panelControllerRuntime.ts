@@ -8,6 +8,7 @@ type ViewportEventTarget = Pick<Window, "addEventListener"> & {
 };
 
 export interface DataPointFilterPanelControllerRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly cancelAnimationFrame?:
         | ((handle: DataPointFilterPanelAnimationFrameHandle) => void)
         | undefined;
@@ -22,6 +23,7 @@ export interface DataPointFilterPanelControllerRuntimeScope {
 }
 
 export interface DataPointFilterPanelControllerRuntime {
+    createAbortController: () => AbortController;
     addDocumentKeydownListener: (
         listener: (event: KeyboardEvent) => void,
         options: AddEventListenerOptions
@@ -47,6 +49,22 @@ export interface DataPointFilterPanelControllerRuntime {
     requestAnimationFrame: (
         callback: PanelFrameRequestCallback
     ) => DataPointFilterPanelAnimationFrameHandle;
+}
+
+function getAbortControllerConstructor(
+    scope: DataPointFilterPanelControllerRuntimeScope
+): typeof AbortController {
+    const AbortControllerConstructor =
+        scope.AbortController ??
+        scope.document?.defaultView?.AbortController ??
+        globalThis.AbortController;
+    if (typeof AbortControllerConstructor !== "function") {
+        throw new TypeError(
+            "data point filter panel controller requires an AbortController runtime"
+        );
+    }
+
+    return AbortControllerConstructor;
 }
 
 function getDocument(
@@ -126,6 +144,9 @@ export function getDataPointFilterPanelControllerRuntime(
     scope: DataPointFilterPanelControllerRuntimeScope = globalThis
 ): DataPointFilterPanelControllerRuntime {
     return {
+        createAbortController(): AbortController {
+            return new (getAbortControllerConstructor(scope))();
+        },
         addDocumentKeydownListener(
             listener: (event: KeyboardEvent) => void,
             options: AddEventListenerOptions

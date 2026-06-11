@@ -145,7 +145,7 @@ export function createPanelController({
         container.classList.add("data-point-filter-control--open");
         toggleButton.setAttribute("aria-expanded", "true");
         removeOpenPanelListeners();
-        openPanelAbortController = new AbortController();
+        openPanelAbortController = runtime.createAbortController();
         const { signal } = openPanelAbortController;
         runtime.addDocumentMouseDownListener(handleOutsideClick, {
             capture: true,
