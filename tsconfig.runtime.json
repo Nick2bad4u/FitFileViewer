@@ -375,6 +375,7 @@
         "electron-app/utils/theming/core/theme.ts",
         "electron-app/utils/theming/core/index.ts",
         "electron-app/utils/theming/specific/createMapThemeToggle.ts",
+        "electron-app/utils/theming/specific/updateMapThemeRuntime.ts",
         "electron-app/utils/theming/specific/updateMapTheme.ts",
         "electron-app/utils/theming/specific/index.ts",
         "electron-app/utils/theming/index.ts",

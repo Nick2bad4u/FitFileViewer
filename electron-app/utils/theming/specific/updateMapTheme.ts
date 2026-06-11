@@ -8,6 +8,7 @@
 
 import { getMapThemeInverted } from "./createMapThemeToggle.js";
 import { MAP_THEME_EVENTS } from "./mapThemeToggleState.js";
+import { getUpdateMapThemeRuntime } from "./updateMapThemeRuntime.js";
 
 let updateMapThemeListener: (() => void) | null = null;
 
@@ -37,28 +38,23 @@ export function installUpdateMapThemeListeners(): void {
     const listenerOptions = {
         signal: updateMapThemeAbortController.signal,
     };
+    const runtime = getUpdateMapThemeRuntime();
 
-    if (typeof document !== "undefined") {
-        // themechange is dispatched on body in some places, but it bubbles and document receives it.
-        document.addEventListener(
-            "themechange",
-            updateMapThemeListener,
-            listenerOptions
-        );
-        document.addEventListener(
-            MAP_THEME_EVENTS.CHANGED,
-            updateMapThemeListener,
-            listenerOptions
-        );
-    }
-
-    if (globalThis.window !== undefined) {
-        window.addEventListener(
-            "beforeunload",
-            uninstallUpdateMapThemeListeners,
-            listenerOptions
-        );
-    }
+    // themechange is dispatched on body in some places, but it bubbles and document receives it.
+    runtime.addDocumentListener(
+        "themechange",
+        updateMapThemeListener,
+        listenerOptions
+    );
+    runtime.addDocumentListener(
+        MAP_THEME_EVENTS.CHANGED,
+        updateMapThemeListener,
+        listenerOptions
+    );
+    runtime.addWindowBeforeUnloadListener(
+        uninstallUpdateMapThemeListeners,
+        listenerOptions
+    );
 }
 
 /**
@@ -88,7 +84,8 @@ export function uninstallUpdateMapThemeListeners(): void {
  */
 export function updateMapTheme(): void {
     try {
-        const leafletMap = document.querySelector("#leaflet-map"),
+        const runtime = getUpdateMapThemeRuntime(),
+            leafletMap = runtime.queryLeafletMap(),
             mapShouldBeDark = getMapThemeInverted();
 
         if (leafletMap) {
@@ -108,7 +105,7 @@ export function updateMapTheme(): void {
                 : "none";
 
             // Ensure we never accidentally filter the full container.
-            if (leafletMap instanceof HTMLElement) {
+            if (runtime.isHTMLElement(leafletMap)) {
                 leafletMap.style.filter = "none";
             }
 
@@ -116,7 +113,7 @@ export function updateMapTheme(): void {
             for (const tilePane of leafletMap.querySelectorAll(
                 ".leaflet-tile-pane"
             )) {
-                if (tilePane instanceof HTMLElement) {
+                if (runtime.isHTMLElement(tilePane)) {
                     tilePane.style.filter = filter;
                 }
             }
