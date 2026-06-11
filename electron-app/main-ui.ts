@@ -2,6 +2,7 @@
 /** Main renderer UI composition root with state-management integration. */
 import type { ElectronAPI } from "./shared/preloadApi.js";
 
+import { getMainUiRuntimeEnvironment } from "./renderer/mainUiRuntimeEnvironment.js";
 import { setupWindow } from "./utils/app/initialization/setupWindow.js";
 import { AppActions } from "./utils/app/lifecycle/appActions.js";
 import { resourceManager } from "./utils/app/lifecycle/resourceManager.js";
@@ -50,7 +51,7 @@ type MainUiElectronApi = Partial<
     >
 >;
 
-const mainUiConsole = globalThis.console;
+const mainUiConsole = getMainUiRuntimeEnvironment().consoleRef;
 
 function hasOptionalFunction(
     record: Readonly<Record<string, unknown>>,

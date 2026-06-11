@@ -47,6 +47,9 @@ const preloadDomainContractFiles = [
 const stateDomainRoots = ["electron-app/utils/state/domain"] as const;
 const stateCoreRoots = ["electron-app/utils/state/core"] as const;
 const rendererEntrypointFiles = ["electron-app/renderer.ts"] as const;
+const rendererMainUiRuntimeEnvironmentFiles = [
+    "electron-app/renderer/mainUiRuntimeEnvironment.ts",
+] as const;
 const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
 const rendererElectronApiRuntimeSourceFiles = [
     "electron-app/renderer/electronApiStartupHooks.ts",
@@ -1223,15 +1226,33 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(3);
+        expect.assertions(7);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
         );
+        const mainUiSource = stripComments(
+            readRepositoryFile("electron-app/main-ui.ts")
+        );
+        const mainUiRuntimeGlobalPattern = /\bglobalThis\.console\b/u;
 
         expect(rendererEntrypointSource).toContain("runtimeEnvironment.js");
         expect(rendererEntrypointSource).not.toContain("globalThis.");
         expect(rendererEntrypointSource).not.toContain("document,");
+        expect(mainUiSource).toContain(
+            "renderer/mainUiRuntimeEnvironment.js"
+        );
+        expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
+        expect(rendererMainUiRuntimeEnvironmentFiles).toStrictEqual([
+            "electron-app/renderer/mainUiRuntimeEnvironment.ts",
+        ]);
+        expect(
+            rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
+                mainUiRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+        ).toBe(true);
     });
 
     it("keeps Browser feature gating on the active-tab state facade", () => {
