@@ -2,11 +2,16 @@
  * Toggles tab content section visibility and synchronizes visible-tab state.
  */
 
-import * as __StateMgr from "../../state/core/stateManager.js";
 import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInstanceState.js";
 import { getRegisteredMapMiniMapControl } from "../../maps/state/mapPluginControlState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { getRendererLoadingFromState } from "../../state/domain/rendererLoadingState.js";
+import {
+    getRendererCoreStateManager,
+    getRequiredRendererCoreStateManager,
+    toRendererStateManagerAccess,
+    type RendererStateManagerAccess,
+} from "../../state/domain/rendererStateManagerAccess.js";
 import {
     buildIdVariants,
     getElementByIdFlexible,
@@ -19,25 +24,6 @@ import {
     getTabTestDocumentForTests,
     getTabTestStateManagerForTests,
 } from "./tabTestEnvironment.js";
-
-type StateUpdateOptions = {
-    readonly source: string;
-};
-
-type StateManagerAccess = {
-    getState: (path?: string) => unknown;
-    setState: (
-        path: string,
-        value: unknown,
-        options?: StateUpdateOptions
-    ) => void;
-    subscribe: (
-        path: string,
-        callback: (newValue: unknown, oldValue?: unknown, path?: string) => void
-    ) => unknown;
-};
-
-type StateManagerCandidate = Partial<StateManagerAccess>;
 
 type LeafletMiniMap = {
     invalidateSize: () => void;
@@ -104,75 +90,28 @@ function getDoc(): Document {
     return document;
 }
 
-function asStateManagerCandidate(value: unknown): StateManagerCandidate {
-    return value !== null && typeof value === "object" ? value : {};
-}
-
-function getGetState(
-    candidate: StateManagerCandidate
-): StateManagerAccess["getState"] | undefined {
-    const value = candidate.getState;
-
-    return typeof value === "function" ? value : undefined;
-}
-
-function getSetState(
-    candidate: StateManagerCandidate
-): StateManagerAccess["setState"] | undefined {
-    const value = candidate.setState;
-
-    return typeof value === "function" ? value : undefined;
-}
-
-function getSubscribe(
-    candidate: StateManagerCandidate
-): StateManagerAccess["subscribe"] | undefined {
-    const value = candidate.subscribe;
-
-    return typeof value === "function" ? value : undefined;
-}
-
-function getStateMgr(): StateManagerAccess {
+function getStateMgr(): RendererStateManagerAccess {
     try {
-        const moduleStateManager = asStateManagerCandidate(__StateMgr);
-        const getState = getGetState(moduleStateManager);
-        const setState = getSetState(moduleStateManager);
-        const subscribe = getSubscribe(moduleStateManager);
-
-        if (getState && setState && subscribe) {
-            return { getState, setState, subscribe };
+        const stateManager = getRendererCoreStateManager();
+        if (stateManager) {
+            return stateManager;
         }
     } catch {
         /* Ignore errors */
     }
 
     try {
-        const effectiveStateManager = asStateManagerCandidate(
+        const stateManager = toRendererStateManagerAccess(
             getTabTestStateManagerForTests()
         );
-        const fallbackStateManager = asStateManagerCandidate(__StateMgr);
-        const getState =
-            getGetState(effectiveStateManager) ??
-            getGetState(fallbackStateManager);
-        const setState =
-            getSetState(effectiveStateManager) ??
-            getSetState(fallbackStateManager);
-        const subscribe =
-            getSubscribe(effectiveStateManager) ??
-            getSubscribe(fallbackStateManager);
-
-        if (getState && setState && subscribe) {
-            return { getState, setState, subscribe };
+        if (stateManager) {
+            return stateManager;
         }
     } catch {
         /* Ignore errors */
     }
 
-    return {
-        getState: __StateMgr.getState,
-        setState: __StateMgr.setState,
-        subscribe: __StateMgr.subscribe,
-    };
+    return getRequiredRendererCoreStateManager();
 }
 
 function getStringState(path: string): null | string {

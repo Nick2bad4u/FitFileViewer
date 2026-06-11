@@ -1294,6 +1294,23 @@ describe("architecture boundaries", () => {
         expect(updateActiveTabSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps tab visibility updates on the renderer state access facade", () => {
+        expect.assertions(2);
+
+        const updateTabVisibilitySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/updateTabVisibility.ts"
+            )
+        );
+
+        expect(updateTabVisibilitySource).toContain(
+            "rendererStateManagerAccess.js"
+        );
+        expect(updateTabVisibilitySource).not.toContain(
+            "state/core/stateManager.js"
+        );
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 
