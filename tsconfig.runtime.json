@@ -481,6 +481,7 @@
         "electron-app/utils/ui/controls/createHRZoneControls.ts",
         "electron-app/utils/ui/controls/createPowerZoneControlsRuntime.ts",
         "electron-app/utils/ui/controls/createPowerZoneControls.ts",
+        "electron-app/utils/ui/controls/createPowerZoneControlsSimpleRuntime.ts",
         "electron-app/utils/ui/controls/createPowerZoneControlsSimple.ts",
         "electron-app/utils/ui/controls/index.ts",
         "electron-app/utils/ui/index.ts",

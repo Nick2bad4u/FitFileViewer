@@ -4,6 +4,7 @@
  */
 
 import { getChartFieldVisibility } from "../../state/domain/settingsStateManager.js";
+import { getPowerZoneControlsSimpleRuntime } from "./createPowerZoneControlsSimpleRuntime.js";
 
 /** Current visibility state for the simple power zone chart controls. */
 export type SimplePowerZoneVisibilitySettings = {
@@ -16,14 +17,15 @@ export type SimplePowerZoneVisibilitySettings = {
 export function createPowerZoneControls(
     parentContainer: HTMLElement
 ): HTMLElement {
+    const runtime = getPowerZoneControlsSimpleRuntime();
     // Check if power zone controls already exist
-    const existingControls = document.querySelector("#power-zone-controls");
-    if (existingControls instanceof HTMLElement) {
+    const existingControls = runtime.querySelector("#power-zone-controls");
+    if (runtime.isHTMLElement(existingControls)) {
         return existingControls;
     }
 
     // Create main container
-    const powerZoneSection = document.createElement("div");
+    const powerZoneSection = runtime.createElement("div");
     powerZoneSection.id = "power-zone-controls";
     powerZoneSection.className = "power-zone-controls-section";
     powerZoneSection.style.cssText = `
@@ -38,7 +40,7 @@ export function createPowerZoneControls(
     `;
 
     // Create header
-    const header = document.createElement("div");
+    const header = runtime.createElement("div");
     header.className = "power-zone-header";
     header.style.cssText = `
         display: flex;
@@ -49,7 +51,7 @@ export function createPowerZoneControls(
         padding-bottom: 12px;
     `;
 
-    const title = document.createElement("h3");
+    const title = runtime.createElement("h3");
     title.textContent = "⚡ Power Zone Charts";
     title.style.cssText = `
         margin: 0;
@@ -62,7 +64,7 @@ export function createPowerZoneControls(
     `;
 
     // Create collapse toggle button
-    const collapseBtn = document.createElement("button");
+    const collapseBtn = runtime.createElement("button");
     collapseBtn.className = "power-zone-collapse-btn";
     collapseBtn.textContent = "▼";
     collapseBtn.setAttribute("aria-label", "Toggle power zone controls");
@@ -81,7 +83,7 @@ export function createPowerZoneControls(
     header.append(collapseBtn);
 
     // Create content container that will hold the moved controls
-    const content = document.createElement("div");
+    const content = runtime.createElement("div");
     content.className = "power-zone-content";
     content.id = "power-zone-content";
     content.style.cssText = `
@@ -91,15 +93,15 @@ export function createPowerZoneControls(
 
     // Add collapse functionality
     let isCollapsed =
-        localStorage.getItem("power-zone-controls-collapsed") === "true";
+        runtime.getStorageItem("power-zone-controls-collapsed") === "true";
     updateCollapseState();
 
-    const listenerController = new AbortController();
+    const listenerController = runtime.createAbortController();
     collapseBtn.addEventListener(
         "click",
         () => {
             isCollapsed = !isCollapsed;
-            localStorage.setItem(
+            runtime.setStorageItem(
                 "power-zone-controls-collapsed",
                 isCollapsed.toString()
             );
@@ -164,8 +166,9 @@ export function getPowerZoneVisibilitySettings(): SimplePowerZoneVisibilitySetti
  * should be called after the field toggles are created
  */
 export function movePowerZoneControlsToSection(): void {
-    const powerZoneContent = document.querySelector("#power-zone-content");
-    if (!(powerZoneContent instanceof HTMLElement)) {
+    const runtime = getPowerZoneControlsSimpleRuntime();
+    const powerZoneContent = runtime.querySelector("#power-zone-content");
+    if (!runtime.isHTMLElement(powerZoneContent)) {
         console.warn(
             "[PowerZoneControls] Power zone content container not found"
         );
@@ -178,7 +181,7 @@ export function movePowerZoneControlsToSection(): void {
 
     for (const fieldName of powerZoneFields) {
         // Look for the toggle by ID
-        const toggle = document.querySelector(`#field-toggle-${fieldName}`);
+        const toggle = runtime.querySelector(`#field-toggle-${fieldName}`);
         if (toggle && toggle.parentElement) {
             const controlContainer = toggle.parentElement;
 
@@ -200,7 +203,7 @@ export function movePowerZoneControlsToSection(): void {
         // Add some spacing between the controls
         const controls = [...powerZoneContent.children];
         for (const [index, el] of controls.entries()) {
-            if (index > 0 && el instanceof HTMLElement) {
+            if (index > 0 && runtime.isHTMLElement(el)) {
                 el.style.marginTop = "12px";
             }
         }
@@ -213,8 +216,9 @@ export function movePowerZoneControlsToSection(): void {
  * @param hasData - Whether power zone data is available.
  */
 export function updatePowerZoneControlsVisibility(hasData: boolean): void {
-    const controls = document.querySelector("#power-zone-controls");
-    if (!(controls instanceof HTMLElement)) {
+    const runtime = getPowerZoneControlsSimpleRuntime();
+    const controls = runtime.querySelector("#power-zone-controls");
+    if (!runtime.isHTMLElement(controls)) {
         return;
     }
 
