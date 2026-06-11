@@ -9,7 +9,10 @@ import {
     safeComputedStyle,
     safeQueryTabButtons,
 } from "./enableTabButtonsHelpers.js";
-import { getEnableTabButtonsDebugRuntime } from "./enableTabButtonsDebugRuntime.js";
+import {
+    getEnableTabButtonsDebugRuntime,
+    type EnableTabButtonsDebugRuntime,
+} from "./enableTabButtonsDebugRuntime.js";
 
 type TestClickRegistration = {
     readonly abortController: AbortController;
@@ -135,8 +138,8 @@ export function debugTabState(): void {
  */
 export function testTabButtonClicks(): void {
     console.log("[TabButtons] === TESTING TAB BUTTON CLICKS ===");
-    clearPendingTestClickTimers();
     const runtime = getEnableTabButtonsDebugRuntime();
+    clearPendingTestClickTimers(runtime);
 
     for (const element of safeQueryTabButtons()) {
         if (!isHTMLElement(element)) {
@@ -162,7 +165,7 @@ export function testTabButtonClicks(): void {
             abortController,
             button,
             handler: testHandler,
-            timer: setTimeout(() => {
+            timer: runtime.setTimeout(() => {
                 testClickRegistrations.delete(registration);
                 removeTestClickRegistration(registration);
                 console.log(
@@ -176,9 +179,11 @@ export function testTabButtonClicks(): void {
     console.log("[TabButtons] Test handlers added. Try clicking buttons now!");
 }
 
-function clearPendingTestClickTimers(): void {
+function clearPendingTestClickTimers(
+    runtime: EnableTabButtonsDebugRuntime = getEnableTabButtonsDebugRuntime()
+): void {
     for (const registration of testClickRegistrations) {
-        clearTimeout(registration.timer);
+        runtime.clearTimeout(registration.timer);
         removeTestClickRegistration(registration);
     }
     testClickRegistrations.clear();

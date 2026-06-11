@@ -42,6 +42,27 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
+    it("schedules and clears timers through injected timer functions", () => {
+        expect.assertions(3);
+
+        const timer = Symbol("timer") as unknown as ReturnType<typeof setTimeout>;
+        const timeoutMs = Number("30000");
+        const handler = vi.fn<() => void>();
+        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const runtime = getEnableTabButtonsDebugRuntime({
+            clearTimeout: clearTimeoutMock,
+            setTimeout: setTimeoutMock,
+            window: {},
+        });
+
+        expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+
+        expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+    });
+
     it("throws when no window runtime is available", () => {
         expect.assertions(1);
 

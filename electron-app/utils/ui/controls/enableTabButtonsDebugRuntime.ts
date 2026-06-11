@@ -1,14 +1,21 @@
 export interface EnableTabButtonsDebugRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
+    readonly clearTimeout?: typeof clearTimeout | undefined;
     readonly getComputedStyle?:
         | ((element: Element, pseudoElement?: null | string) => CSSStyleDeclaration)
         | undefined;
+    readonly setTimeout?: typeof setTimeout | undefined;
     readonly window?: unknown;
 }
 
 export interface EnableTabButtonsDebugRuntime {
+    clearTimeout: (timer: ReturnType<typeof setTimeout>) => void;
     createAbortController: () => AbortController;
     assertComputedStyleAvailable: (element: Element) => void;
+    setTimeout: (
+        handler: () => void,
+        timeout: number
+    ) => ReturnType<typeof setTimeout>;
 }
 
 function getAbortControllerConstructor(
@@ -54,6 +61,10 @@ export function getEnableTabButtonsDebugRuntime(
     scope: EnableTabButtonsDebugRuntimeScope = globalThis
 ): EnableTabButtonsDebugRuntime {
     return {
+        clearTimeout(timer: ReturnType<typeof setTimeout>): void {
+            const clearTimer = scope.clearTimeout ?? globalThis.clearTimeout;
+            clearTimer(timer);
+        },
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
         },
@@ -66,6 +77,13 @@ export function getEnableTabButtonsDebugRuntime(
             }
 
             scope.getComputedStyle(element);
+        },
+        setTimeout(
+            handler: () => void,
+            timeout: number
+        ): ReturnType<typeof setTimeout> {
+            const scheduleTimer = scope.setTimeout ?? globalThis.setTimeout;
+            return scheduleTimer(handler, timeout);
         },
     };
 }
