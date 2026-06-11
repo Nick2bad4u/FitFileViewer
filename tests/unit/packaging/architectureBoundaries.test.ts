@@ -293,6 +293,9 @@ const migratedDataPointFilterPanelControllerRuntimeFiles = [
 const migratedLoadingOverlayRuntimeFiles = [
     "electron-app/utils/ui/components/LoadingOverlay.ts",
 ] as const;
+const migratedSyncRendererLoadingRuntimeFiles = [
+    "electron-app/utils/ui/loading/syncRendererLoading.ts",
+] as const;
 const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
@@ -729,6 +732,8 @@ const directDataPointFilterPanelControllerRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|innerHeight|innerWidth)\b|\bnew\s+AbortController\b|\binstanceof\s+Node\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directLoadingOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|querySelector)\b/u;
+const directSyncRendererLoadingRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:body|querySelector|querySelectorAll)\b|\binstanceof\s+(?:HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2619,6 +2624,28 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(loadingOverlaySource).toContain("LoadingOverlayRuntime.js");
+    });
+
+    it("keeps renderer loading sync DOM APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedSyncRendererLoadingRuntimeFiles
+            .filter((relativeFile) =>
+                directSyncRendererLoadingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const syncRendererLoadingSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/loading/syncRendererLoading.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(syncRendererLoadingSource).toContain(
+            "syncRendererLoadingRuntime.js"
+        );
     });
 
     it("keeps migrated fullscreen controls on the screenfull runtime adapter", () => {

@@ -3,7 +3,7 @@ import {
     normalizeRendererLoading,
     setRendererLoading,
 } from "../../state/domain/rendererLoadingState.js";
-import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
+import { getSyncRendererLoadingRuntime } from "./syncRendererLoadingRuntime.js";
 
 /**
  * Get current loading state.
@@ -18,7 +18,8 @@ export function isLoading(): boolean {
 export function setLoading(loading: boolean): void {
     setRendererLoading(loading, { source: "setLoading" });
 
-    const overlay = querySelectorByIdFlexible(document, "#loading_overlay");
+    const runtime = getSyncRendererLoadingRuntime();
+    const overlay = runtime.getLoadingOverlay();
 
     if (!overlay) {
         console.warn("[RendererUtils] Loading overlay element not found");
@@ -26,9 +27,8 @@ export function setLoading(loading: boolean): void {
     }
 
     overlay.style.display = loading ? "flex" : "none";
-    document.body.style.cursor = loading ? "wait" : "";
     overlay.setAttribute("aria-hidden", String(!loading));
-    document.body.setAttribute("aria-busy", String(loading));
+    runtime.setBodyLoading(loading);
 
     console.log(`[RendererUtils] Loading state: ${String(loading)}`);
 }
@@ -38,21 +38,17 @@ export function updateLoadingFromState(loading: unknown): void {
 }
 
 function updateLoadingUI(loading: boolean): void {
-    const overlay = querySelectorByIdFlexible(document, "#loading_overlay");
+    const runtime = getSyncRendererLoadingRuntime();
+    const overlay = runtime.getLoadingOverlay();
 
     if (overlay) {
         overlay.style.display = loading ? "flex" : "none";
         overlay.setAttribute("aria-hidden", String(!loading));
     }
 
-    document.body.style.cursor = loading ? "wait" : "";
-    document.body.setAttribute("aria-busy", String(loading));
+    runtime.setBodyLoading(loading);
 
-    const interactiveElements = document.querySelectorAll(
-        "button, input, select, textarea"
-    );
-
-    for (const element of interactiveElements) {
+    for (const element of runtime.getInteractiveElements()) {
         if (element.id === "open_file_btn") {
             continue;
         }
@@ -61,7 +57,7 @@ function updateLoadingUI(loading: boolean): void {
             continue;
         }
 
-        if (isDisableableFormControl(element)) {
+        if (runtime.isDisableableFormControl(element)) {
             if (loading) {
                 element.dataset["wasDisabled"] = String(element.disabled);
                 element.disabled = true;
@@ -71,19 +67,4 @@ function updateLoadingUI(loading: boolean): void {
             }
         }
     }
-}
-
-function isDisableableFormControl(
-    element: Element
-): element is
-    | HTMLButtonElement
-    | HTMLInputElement
-    | HTMLSelectElement
-    | HTMLTextAreaElement {
-    return (
-        element instanceof HTMLButtonElement ||
-        element instanceof HTMLInputElement ||
-        element instanceof HTMLSelectElement ||
-        element instanceof HTMLTextAreaElement
-    );
 }

@@ -418,6 +418,8 @@
         "electron-app/utils/ui/components/ensureChartSettingsDropdowns.ts",
         "electron-app/utils/ui/components/createFieldTogglesSectionRuntime.ts",
         "electron-app/utils/ui/setupExternalLinkHandlers.ts",
+        "electron-app/utils/ui/loading/syncRendererLoadingRuntime.ts",
+        "electron-app/utils/ui/loading/syncRendererLoading.ts",
         "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",
         "electron-app/utils/ui/browser/fileBrowserTab.ts",
         "electron-app/utils/ui/links/externalLinkHandlersRuntime.ts",
