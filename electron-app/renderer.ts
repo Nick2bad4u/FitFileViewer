@@ -48,9 +48,6 @@ import { createRendererFileInputWiring } from "./renderer/fileInputWiring.js";
 import { registerRendererTestOnlyBootstrap } from "./renderer/testOnlyBootstrap.js";
 import { createRendererDomAccess } from "./renderer/domElementAccess.js";
 import { setLoading } from "./utils/ui/loading/syncRendererLoading.js";
-// Avoid static import of AppActions because tests sometimes mock the module
-// without exporting the named symbol. Always resolve via ensureCoreModules().
-import { subscribe } from "./utils/state/core/stateManager.js";
 import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js";
 
 type LogRendererLevel = "error" | "group" | "groupEnd" | "log" | "warn";
@@ -81,7 +78,6 @@ function logRenderer(level: LogRendererLevel, ...args: unknown[]): void {
 const rendererStateStartup = createRendererStateStartup({
     ensureCoreModules,
     logRenderer,
-    subscribe,
     toModuleRecord,
 });
 const { initializeStateManager, isOpeningFileRef } = rendererStateStartup;

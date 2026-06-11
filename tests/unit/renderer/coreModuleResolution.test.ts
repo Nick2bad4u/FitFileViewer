@@ -71,7 +71,7 @@ describe("renderer core module resolution", () => {
     });
 
     it("builds the core module facade from manual mocks", async () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const applyTheme = vi.fn();
         const handleOpenFile = vi.fn();
@@ -82,6 +82,7 @@ describe("renderer core module resolution", () => {
         const showNotification = vi.fn();
         const showUpdateNotification = vi.fn();
         const subscribe = vi.fn();
+        const subscribePath = vi.fn();
         const getState = vi.fn();
         const AppActions = { setInitialized: vi.fn() };
         const masterStateManager = { initialize: vi.fn() };
@@ -118,6 +119,7 @@ describe("renderer core module resolution", () => {
                     {
                         getAppDomainState: getState,
                         subscribeAppDomain: subscribe,
+                        subscribeAppDomainPath: subscribePath,
                     },
                 ],
                 [
@@ -137,6 +139,7 @@ describe("renderer core module resolution", () => {
         expect(coreModules.setupListeners).toBe(setupListeners);
         expect(coreModules.showNotification).toBe(showNotification);
         expect(coreModules.subscribeAppDomain).toBe(subscribe);
+        expect(coreModules.subscribeAppDomainPath).toBe(subscribePath);
         expect(coreModules.uiStateManager).toBe(uiStateManager);
     });
 });

@@ -6,7 +6,6 @@ type RendererStateStartupLogger = (
 interface RendererStateStartupOptions {
     ensureCoreModules: () => Promise<Record<string, unknown>>;
     logRenderer: RendererStateStartupLogger;
-    subscribe: (path: string, callback: (value: unknown) => void) => unknown;
     toModuleRecord: (target: unknown) => Record<string, unknown>;
 }
 
@@ -47,7 +46,7 @@ export function createRendererStateStartup(
                     "log",
                     "[Renderer] Initializing state management system..."
                 );
-                const { masterStateManager } =
+                const { masterStateManager, subscribeAppDomainPath } =
                     await options.ensureCoreModules();
                 const masterStateManagerRecord =
                     options.toModuleRecord(masterStateManager);
@@ -63,9 +62,21 @@ export function createRendererStateStartup(
                  */ initialize;
                 await initializeFn.call(masterStateManager);
 
-                options.subscribe("app.isOpeningFile", (isOpening) => {
-                    isOpeningFileRef.value = isOpening === true;
-                });
+                if (typeof subscribeAppDomainPath !== "function") {
+                    throw new TypeError("subscribeAppDomainPath missing");
+                }
+
+                const subscribeOpeningFile =
+                    subscribeAppDomainPath as (
+                        path: string,
+                        callback: (value: unknown) => void
+                    ) => unknown;
+                subscribeOpeningFile(
+                    "app.isOpeningFile",
+                    (isOpening: unknown) => {
+                        isOpeningFileRef.value = isOpening === true;
+                    }
+                );
 
                 stateInitTracker.initialized = true;
 

@@ -33,6 +33,7 @@ export interface RendererCoreModules {
     showNotification: ShowNotification | undefined;
     showUpdateNotification: ShowUpdateNotification | undefined;
     subscribeAppDomain: undefined | UnknownRendererFunction;
+    subscribeAppDomainPath: undefined | UnknownRendererFunction;
     uiStateManager: unknown;
 }
 
@@ -126,6 +127,9 @@ export async function ensureCoreModules(): Promise<RendererCoreModules> {
         ),
         subscribeAppDomain: toUnknownRendererFunction(
             resolveDefaultableExport(appDomainMod, "subscribeAppDomain")
+        ),
+        subscribeAppDomainPath: toUnknownRendererFunction(
+            resolveDefaultableExport(appDomainMod, "subscribeAppDomainPath")
         ),
         uiStateManager:
             resolveDefaultableExport(uiStateMod, "uiStateManager") ??

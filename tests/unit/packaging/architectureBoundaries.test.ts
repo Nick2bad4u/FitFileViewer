@@ -1170,6 +1170,22 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer startup subscriptions behind the app-domain facade", () => {
+        expect.assertions(2);
+
+        const rendererEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/renderer.ts")
+        );
+        const stateStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/stateManagerStartup.ts")
+        );
+
+        expect(rendererEntrypointSource).not.toContain(
+            "state/core/stateManager.js"
+        );
+        expect(stateStartupSource).toContain("subscribeAppDomainPath");
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 

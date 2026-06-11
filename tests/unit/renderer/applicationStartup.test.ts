@@ -21,6 +21,7 @@ function createCoreModules(
         showNotification: vi.fn(),
         showUpdateNotification: vi.fn(),
         subscribeAppDomain: vi.fn(),
+        subscribeAppDomainPath: vi.fn(),
         uiStateManager: {},
         ...overrides,
     };

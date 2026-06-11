@@ -13,11 +13,14 @@ describe("renderer state manager startup", () => {
                 masterStateManager: {
                     initialize,
                 },
+                subscribeAppDomainPath: (path: unknown, callback: unknown) => {
+                    subscribers.set(
+                        path as string,
+                        callback as (value: unknown) => void
+                    );
+                },
             }),
             logRenderer: vi.fn(),
-            subscribe: (path, callback) => {
-                subscribers.set(path, callback);
-            },
             toModuleRecord: (target) =>
                 target && typeof target === "object"
                     ? (target as Record<string, unknown>)
@@ -48,7 +51,6 @@ describe("renderer state manager startup", () => {
                 masterStateManager: {},
             }),
             logRenderer: vi.fn(),
-            subscribe: vi.fn(),
             toModuleRecord: (target) =>
                 target && typeof target === "object"
                     ? (target as Record<string, unknown>)
@@ -57,6 +59,29 @@ describe("renderer state manager startup", () => {
 
         await expect(utils.initializeStateManager()).rejects.toThrow(
             "masterStateManager.initialize missing"
+        );
+
+        expect(utils.isOpeningFileRef.value).toBe(false);
+    });
+
+    it("requires the app-domain path subscription facade", async () => {
+        expect.assertions(2);
+
+        const utils = createRendererStateStartup({
+            ensureCoreModules: async () => ({
+                masterStateManager: {
+                    initialize: vi.fn(),
+                },
+            }),
+            logRenderer: vi.fn(),
+            toModuleRecord: (target) =>
+                target && typeof target === "object"
+                    ? (target as Record<string, unknown>)
+                    : {},
+        });
+
+        await expect(utils.initializeStateManager()).rejects.toThrow(
+            "subscribeAppDomainPath missing"
         );
 
         expect(utils.isOpeningFileRef.value).toBe(false);

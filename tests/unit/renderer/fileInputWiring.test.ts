@@ -22,6 +22,7 @@ function createCoreModules(
         showNotification: undefined,
         showUpdateNotification: undefined,
         subscribeAppDomain: undefined,
+        subscribeAppDomainPath: undefined,
         uiStateManager: {},
     };
 }
