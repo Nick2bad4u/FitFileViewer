@@ -293,6 +293,9 @@ const migratedChartStatusViewportRuntimeFiles = [
 const migratedSummaryColModalViewportRuntimeFiles = [
     "electron-app/utils/rendering/helpers/summaryColModal.ts",
 ] as const;
+const migratedUpdateControlsStateRuntimeFiles = [
+    "electron-app/utils/rendering/helpers/updateControlsState.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -559,6 +562,8 @@ const directChartStatusViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
 const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
+const directUpdateControlsStateRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.getComputedStyle\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2202,6 +2207,28 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(summaryColModalSource).toContain("summaryColModalRuntime.js");
+    });
+
+    it("keeps controls-state computed style reads behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedUpdateControlsStateRuntimeFiles
+            .filter((relativeFile) =>
+                directUpdateControlsStateRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const updateControlsStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/helpers/updateControlsState.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(updateControlsStateSource).toContain(
+            "updateControlsStateRuntime.js"
+        );
     });
 
     it("keeps migrated map helpers on the Leaflet runtime adapter", () => {

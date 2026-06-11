@@ -7,6 +7,7 @@ import {
     subscribeToRendererChartControlsVisible,
     toggleRendererChartControlsVisibleFromStoredState,
 } from "../../state/domain/rendererChartControlsState.js";
+import { getUpdateControlsStateRuntime } from "./updateControlsStateRuntime.js";
 
 /**
  * Initialize chart controls state management.
@@ -52,10 +53,11 @@ export function updateControlsState(): void {
     }
 
     // Get the actual visibility from the DOM
-    const computedStyle = globalThis.getComputedStyle(wrapper),
+    const runtime = getUpdateControlsStateRuntime(),
+        computedDisplay = runtime.getComputedDisplay(wrapper),
         isActuallyVisible =
             wrapper.style.display !== "none" &&
-            computedStyle.display !== "none" &&
+            computedDisplay !== "none" &&
             wrapper.offsetParent !== null;
 
     // Update centralized state to match DOM reality

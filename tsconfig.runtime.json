@@ -382,6 +382,7 @@
         "electron-app/utils/rendering/helpers/summaryColModal.ts",
         "electron-app/utils/rendering/helpers/summaryColModalRuntime.ts",
         "electron-app/utils/rendering/helpers/updateControlsState.ts",
+        "electron-app/utils/rendering/helpers/updateControlsStateRuntime.ts",
         "electron-app/utils/rendering/helpers/index.ts",
         "electron-app/utils/rendering/core/dataTableRuntime.ts",
         "electron-app/utils/rendering/core/renderTable.ts",
