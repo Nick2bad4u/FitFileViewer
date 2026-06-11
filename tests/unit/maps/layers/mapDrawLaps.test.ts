@@ -32,6 +32,9 @@ import {
 } from "../../../../electron-app/utils/maps/state/mapPolylineRegistryState.js";
 
 type MockFunction = (...args: any[]) => any;
+type MapDrawLapsTestGlobal = typeof globalThis & {
+    window?: Window & typeof globalThis;
+};
 
 function mockFn<T extends MockFunction = MockFunction>(
     implementation?: T
@@ -42,6 +45,29 @@ function mockFn<T extends MockFunction = MockFunction>(
 function setActiveFitTestData(data: Record<string, unknown>): void {
     setActiveFitRawData(data, { source: "test" });
     setState("fitFile.rawData", data, { source: "test.fitFileRawData" });
+}
+
+function getMapDrawLapsTestGlobal(): MapDrawLapsTestGlobal {
+    return globalThis as unknown as MapDrawLapsTestGlobal;
+}
+
+function setTestWindowGlobal(): MapDrawLapsTestGlobal["window"] {
+    const testGlobal = getMapDrawLapsTestGlobal();
+    const previousWindow = testGlobal.window;
+    testGlobal.window = globalThis as Window & typeof globalThis;
+    return previousWindow;
+}
+
+function restoreTestWindowGlobal(
+    previousWindow: MapDrawLapsTestGlobal["window"]
+): void {
+    const testGlobal = getMapDrawLapsTestGlobal();
+    if (previousWindow) {
+        testGlobal.window = previousWindow;
+        return;
+    }
+
+    delete testGlobal.window;
 }
 
 // Mock dependencies
@@ -78,12 +104,6 @@ const {
     setHighlightedOverlayIndex,
 } = mapDrawLapsModule;
 
-declare global {
-    interface Window {
-        L?: any;
-    }
-}
-
 describe("mapDrawLaps", () => {
     let mockLeaflet: any;
     let mockMap: any;
@@ -95,11 +115,11 @@ describe("mapDrawLaps", () => {
     let mockGetLapColor: any;
     let mockFormatTooltipData: any;
     let mockGetLapNumForIdx: any;
+    let previousWindow: MapDrawLapsTestGlobal["window"];
 
     beforeEach(() => {
         __resetStateManagerForTests();
-        // Reset global state
-        (globalThis as any).window = globalThis;
+        previousWindow = setTestWindowGlobal();
 
         // Mock console methods
         vi.spyOn(console, "log").mockImplementation(() => {});
@@ -163,7 +183,6 @@ describe("mapDrawLaps", () => {
             latLngBounds: mockFn().mockReturnValue(mockLatLngBounds),
         };
 
-        (globalThis as any).window = globalThis;
         setLeafletRuntime(mockLeaflet);
 
         // Create mock functions
@@ -187,6 +206,7 @@ describe("mapDrawLaps", () => {
         resetMapActivityLayerStateForTests();
         resetActiveMainMapFileIndexForTests();
         resetMapDataPointFilterStateForTests();
+        restoreTestWindowGlobal(previousWindow);
     });
 
     const getPolylineCall = (
