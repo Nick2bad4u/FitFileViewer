@@ -166,6 +166,27 @@ Run `npm run release:check-signing` before signed packaging when
 `REQUIRE_CODE_SIGNING=true`. The command reports missing variables before
 electron-builder starts.
 
+Local and rehearsal builds are unsigned by default:
+
+```bash
+npm run package
+npm run package:unsigned
+```
+
+Both commands force `FFV_FORCE_UNSIGNED_PACKAGE=true`,
+`CSC_IDENTITY_AUTO_DISCOVERY=false`, and `REQUIRE_CODE_SIGNING=false` before
+electron-builder starts. Use them for local package validation and release
+rehearsals where credentials should not affect the result.
+
+Use the signed path only when the platform signing secrets are available:
+
+```bash
+npm run package:signed
+```
+
+That command runs `npm run release:check-signing:required` first, then starts
+electron-builder with `REQUIRE_CODE_SIGNING=true`.
+
 ### Windows
 
 Signed Windows builds require:
@@ -191,6 +212,17 @@ Notarization also requires one of these credential sets:
 Linux release builds do not require signing variables. Windows 7 compatibility
 artifacts are built through `build-win7.yml` and stay outside the primary signed
 release matrix.
+
+After signed Windows or macOS packaging, run:
+
+```bash
+npm run release:verify-signing-artifacts
+```
+
+The verifier checks Windows `.exe` and `.msi` files with
+`Get-AuthenticodeSignature`, checks macOS `.app` bundles with `codesign`, and
+writes `release-dist/signing-verification-report.json`. The primary release
+workflow uploads that report with the platform artifacts.
 
 ## Troubleshooting Builds
 

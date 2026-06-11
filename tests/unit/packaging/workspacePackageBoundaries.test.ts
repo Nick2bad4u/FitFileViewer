@@ -497,7 +497,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps release rehearsal manual and unsigned", () => {
-        expect.assertions(10);
+        expect.assertions(17);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const releaseRehearsalWorkflow = readFileSync(
@@ -529,6 +529,25 @@ describe("workspace package boundaries", () => {
             "npm run test:packaged"
         );
         expect(developmentGuide).toContain("### Release Rehearsal");
+        expect(developmentGuide).toContain("`npm run package:signed`");
+        expect(developmentGuide).toContain("`npm run package:unsigned`");
+        expect(developmentGuide).toContain(
+            "`npm run release:verify-signing-artifacts`"
+        );
+
+        const buildReleaseGuide = readFileSync(
+            path.join(process.cwd(), docusaurusDevelopmentBuildReleaseDocPath),
+            "utf8"
+        );
+
+        expect(buildReleaseGuide).toContain("npm run package:unsigned");
+        expect(buildReleaseGuide).toContain("npm run package:signed");
+        expect(buildReleaseGuide).toContain(
+            "npm run release:verify-signing-artifacts"
+        );
+        expect(buildReleaseGuide).toContain(
+            "release-dist/signing-verification-report.json"
+        );
     });
 
     it("keeps agent guidance aligned with the root-managed workspace", () => {
