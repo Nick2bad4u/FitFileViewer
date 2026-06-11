@@ -1,4 +1,5 @@
 import { subscribe } from "../state/core/stateManager.js";
+import { subscribeToCurrentRendererNotification } from "../state/domain/rendererNotificationState.js";
 import { updateLoadingFromState } from "./loading/syncRendererLoading.js";
 import { updateNotificationFromState } from "./notifications/syncRendererNotifications.js";
 
@@ -10,7 +11,7 @@ export function initializeRendererStateBindings(): void {
         updateLoadingFromState(loading);
     });
 
-    subscribe("ui.currentNotification", (notification) => {
+    subscribeToCurrentRendererNotification((notification) => {
         updateNotificationFromState(notification);
     });
 

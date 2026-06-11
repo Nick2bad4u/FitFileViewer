@@ -14,6 +14,7 @@ export * from "./fitRouteDataState.js";
 export * from "./fitTableDataState.js";
 export * from "./fitUserDeviceDataState.js";
 export * from "./loadedFitFilesState.js";
+export * from "./rendererNotificationState.js";
 export * from "./settingsStateManager.js";
 export * from "./uiStateManager.js";
 /* eslint-enable no-barrel-files/no-barrel-files */

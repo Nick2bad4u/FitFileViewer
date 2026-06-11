@@ -1,18 +1,17 @@
 import {
-    getState,
-    setState,
-} from "../../state/core/stateManager.js";
+    clearCurrentNotification,
+    getCurrentRendererNotification,
+    normalizeRendererNotification,
+    setCurrentRendererNotification,
+    type NotificationType,
+    type RendererNotification,
+} from "../../state/domain/rendererNotificationState.js";
 import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
 
-/** Notification variants rendered by renderer utility helpers. */
-export type NotificationType = "error" | "info" | "success" | "warning";
-
-/** Notification state stored under ui.currentNotification. */
-export type RendererNotification = {
-    message: string;
-    timestamp?: number;
-    type: NotificationType;
-};
+export type {
+    NotificationType,
+    RendererNotification,
+} from "../../state/domain/rendererNotificationState.js";
 
 let notificationHideTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -31,14 +30,14 @@ export function clearNotification(): void {
         notificationElement.style.display = "none";
     }
 
-    setState("ui.currentNotification", null, { source: "clearNotification" });
+    clearCurrentNotification({ source: "clearNotification" });
 }
 
 /**
  * Get current notification.
  */
 export function getCurrentNotification(): null | RendererNotification {
-    return normalizeNotification(getState("ui.currentNotification"));
+    return getCurrentRendererNotification();
 }
 
 /**
@@ -79,8 +78,7 @@ export function showNotification(
     notificationElement.className = `notification ${type}`;
     notificationElement.style.display = "block";
 
-    setState(
-        "ui.currentNotification",
+    setCurrentRendererNotification(
         {
             message,
             timestamp: Date.now(),
@@ -93,7 +91,7 @@ export function showNotification(
         notificationHideTimeout = setTimeout(() => {
             notificationHideTimeout = undefined;
             notificationElement.style.display = "none";
-            setState("ui.currentNotification", null, {
+            clearCurrentNotification({
                 source: "showNotification",
             });
         }, timeout);
@@ -117,7 +115,7 @@ export function showWarning(message: string, timeout = 4000): void {
 }
 
 export function updateNotificationFromState(notification: unknown): void {
-    const normalizedNotification = normalizeNotification(notification);
+    const normalizedNotification = normalizeRendererNotification(notification);
 
     if (normalizedNotification) {
         updateNotificationUI(normalizedNotification);
@@ -146,46 +144,4 @@ function updateNotificationUI(notification: RendererNotification): void {
     notificationElement.style.display = "block";
     notificationElement.setAttribute("role", "alert");
     notificationElement.setAttribute("aria-live", "polite");
-}
-
-function normalizeNotification(value: unknown): null | RendererNotification {
-    if (!value || typeof value !== "object" || Array.isArray(value)) {
-        return null;
-    }
-
-    const message = getNotificationProperty(value, "message");
-    const type = getNotificationProperty(value, "type");
-
-    if (typeof message === "string" && isNotificationType(type)) {
-        const timestamp = getNotificationProperty(value, "timestamp");
-
-        return typeof timestamp === "number"
-            ? {
-                  message,
-                  timestamp,
-                  type,
-              }
-            : {
-                  message,
-                  type,
-              };
-    }
-
-    return null;
-}
-
-function getNotificationProperty(
-    value: object,
-    key: "message" | "timestamp" | "type"
-): unknown {
-    return key in value ? value[key as keyof typeof value] : undefined;
-}
-
-function isNotificationType(value: unknown): value is NotificationType {
-    return (
-        value === "error" ||
-        value === "info" ||
-        value === "success" ||
-        value === "warning"
-    );
 }
