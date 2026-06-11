@@ -71,12 +71,6 @@ type ChartConstructor = (
     config: ChartConfig
 ) => ChartInstanceMock;
 
-type ChartMock = Mock<ChartConstructor> & {
-    mock: {
-        calls: [HTMLCanvasElement, ChartConfig][];
-    };
-};
-
 type EventChartPoint = {
     event: string;
     x: number;
@@ -95,34 +89,16 @@ type EventMessagesRawData = {
     eventMesgs?: EventMessage[] | unknown;
 };
 
-type EventMessagesWindow = Window &
-    typeof globalThis & {
-        Chart?: ChartMock;
-    };
-
-type EventMessagesGlobal = typeof globalThis & {
-    Chart?: ChartMock;
-    window: EventMessagesWindow;
-};
-
 type ThemeConfig = ReturnType<typeof getThemeConfig>;
 type GetChartSettingMock = Mock<(key: string) => string | undefined>;
 type ThemeConfigMock = Mock<() => ThemeConfig>;
-
-function getEventMessagesGlobal(): EventMessagesGlobal {
-    return globalThis as EventMessagesGlobal;
-}
-
-function getEventMessagesWindow(): EventMessagesWindow {
-    return window as EventMessagesWindow;
-}
 
 function setEventMessagesRawData(data: EventMessagesRawData | null): void {
     setState("fitFile.rawData", data, { source: "test" });
 }
 
 function getLatestChartConfig(): ChartConfig {
-    const config = getEventMessagesWindow().Chart?.mock.calls[0]?.[1];
+    const config = chartJsMocks.Chart.mock.calls[0]?.[1];
     if (!config) {
         throw new Error("Expected Chart to be called with a config");
     }
@@ -130,7 +106,7 @@ function getLatestChartConfig(): ChartConfig {
 }
 
 function getLatestChartCall(): [HTMLCanvasElement, ChartConfig] {
-    const call = getEventMessagesWindow().Chart?.mock.calls[0];
+    const call = chartJsMocks.Chart.mock.calls[0];
     if (!call) {
         throw new Error("Expected Chart to be called");
     }
@@ -165,7 +141,7 @@ function getRenderState(container: HTMLElement): {
     childCount: number;
 } {
     return {
-        chartCalls: getEventMessagesWindow().Chart?.mock.calls.length ?? 0,
+        chartCalls: chartJsMocks.Chart.mock.calls.length,
         childCount: container.children.length,
     };
 }
@@ -268,10 +244,6 @@ beforeEach(() => {
     setChartRuntime(chartJsMocks.Chart);
     clearChartInstanceRegistryForTests();
 
-    // Ensure window and global.window reference the same object
-    Object.assign(window, {
-        Chart: chartJsMocks.Chart,
-    });
     setEventMessagesRawData({
         eventMesgs: [
             {
@@ -294,9 +266,6 @@ beforeEach(() => {
     // Ensure global.window references the same object as window
     global.window = window;
 
-    // Ensure Chart is accessible from both window and globalThis
-    getEventMessagesGlobal().Chart = getEventMessagesWindow().Chart;
-
     // Mock console.error
     mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -309,7 +278,6 @@ afterEach(() => {
     clearChartRuntimeForTests();
     clearChartInstanceRegistryForTests();
     mockConsoleError.mockRestore();
-    delete window.Chart;
 });
 
 describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
@@ -326,7 +294,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 chartCalls: 0,
                 childCount: 0,
             });
-            expect(window.Chart).not.toHaveBeenCalled();
+            expect(chartJsMocks.Chart).not.toHaveBeenCalled();
         });
 
         it("should return early when eventMesgs is not an array", () => {
@@ -341,7 +309,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 chartCalls: 0,
                 childCount: 0,
             });
-            expect(window.Chart).not.toHaveBeenCalled();
+            expect(chartJsMocks.Chart).not.toHaveBeenCalled();
         });
 
         it("should return early when eventMesgs array is empty", () => {
@@ -356,7 +324,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 chartCalls: 0,
                 childCount: 0,
             });
-            expect(window.Chart).not.toHaveBeenCalled();
+            expect(chartJsMocks.Chart).not.toHaveBeenCalled();
         });
 
         it("should process event messages correctly with valid data", () => {
@@ -385,7 +353,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 chartCalls: 0,
                 childCount: 0,
             });
-            expect(window.Chart).not.toHaveBeenCalled();
+            expect(chartJsMocks.Chart).not.toHaveBeenCalled();
         });
 
         it("should extract event names from different fields", () => {
@@ -974,7 +942,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
 
             renderEventMessagesChart(container, {}, new Date());
 
-            expect(window.Chart).toHaveBeenCalledOnce();
+            expect(chartJsMocks.Chart).toHaveBeenCalledOnce();
             expect(getRegisteredChartInstances()).toStrictEqual([]);
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
@@ -1000,7 +968,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 chartCalls: 0,
                 childCount: 0,
             });
-            expect(window.Chart).not.toHaveBeenCalled();
+            expect(chartJsMocks.Chart).not.toHaveBeenCalled();
             expect(mockConsoleError).toHaveBeenCalledWith(
                 "[ChartJS] Error rendering event messages chart:",
                 themeConfigError
@@ -1021,7 +989,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 chartCalls: 0,
                 childCount: 0,
             });
-            expect(window.Chart).not.toHaveBeenCalled();
+            expect(chartJsMocks.Chart).not.toHaveBeenCalled();
         });
 
         it("should handle null Chart.js instance", () => {
@@ -1081,7 +1049,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 new Date()
             );
 
-            expect(window.Chart).not.toHaveBeenCalled();
+            expect(chartJsMocks.Chart).not.toHaveBeenCalled();
             expect(document.body.childElementCount).toBe(0);
             expect(getRegisteredChartInstances()).toStrictEqual([]);
             const [message, error] = mockConsoleError.mock.calls[0] ?? [];
@@ -1107,7 +1075,7 @@ describe("renderEventMessagesChart.js - Event Messages Chart Utility", () => {
                 chartCalls: 1,
                 childCount: 1,
             });
-            expect(window.Chart).toHaveBeenCalledOnce();
+            expect(chartJsMocks.Chart).toHaveBeenCalledOnce();
             expect(getRegisteredChartInstances()).toStrictEqual([mockChart]);
         });
 
