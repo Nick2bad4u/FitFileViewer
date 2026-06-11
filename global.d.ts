@@ -23,7 +23,6 @@ declare global {
 
         // --- Data / state objects ---
         AppState?: unknown;
-        __appState?: unknown;
         chartControlsState?: unknown;
         loadedFitFiles?: FitDecodeResult[];
 
