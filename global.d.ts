@@ -22,7 +22,6 @@ declare global {
         electronAPI: ElectronAPIWithDevFlags;
 
         // --- Data / state objects ---
-        globalData?: FitDecodeResult | null;
         AppState?: unknown;
         __appState?: unknown;
         chartControlsState?: unknown;
