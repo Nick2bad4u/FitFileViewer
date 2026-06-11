@@ -1,4 +1,4 @@
-import { subscribe } from "../state/core/stateManager.js";
+import { subscribeToRendererLoading } from "../state/domain/rendererLoadingState.js";
 import { subscribeToCurrentRendererNotification } from "../state/domain/rendererNotificationState.js";
 import { updateLoadingFromState } from "./loading/syncRendererLoading.js";
 import { updateNotificationFromState } from "./notifications/syncRendererNotifications.js";
@@ -7,7 +7,7 @@ import { updateNotificationFromState } from "./notifications/syncRendererNotific
  * Wires renderer UI helpers to state changes.
  */
 export function initializeRendererStateBindings(): void {
-    subscribe("isLoading", (loading) => {
+    subscribeToRendererLoading((loading) => {
         updateLoadingFromState(loading);
     });
 

@@ -1,6 +1,7 @@
 import { isHTMLElement } from "../../dom/index.js";
 import { getState } from "../../state/core/stateManager.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
+import { isRendererLoading } from "../../state/domain/rendererLoadingState.js";
 import {
     getTabButtonIdentity,
     isOpenFileButton,
@@ -72,7 +73,7 @@ export function debugTabButtons(): void {
     }
 
     const activeFitRawData = getActiveFitActivityData().rawData;
-    const isLoading = getState("isLoading");
+    const isLoading = isRendererLoading();
     const tabButtonsEnabled = getState("ui.tabButtonsEnabled");
 
     console.log("[TabButtons] Current state:", {

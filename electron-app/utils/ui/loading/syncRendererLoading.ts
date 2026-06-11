@@ -1,21 +1,22 @@
 import {
-    getState,
-    setState,
-} from "../../state/core/stateManager.js";
+    isRendererLoading,
+    normalizeRendererLoading,
+    setRendererLoading,
+} from "../../state/domain/rendererLoadingState.js";
 import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
 
 /**
  * Get current loading state.
  */
 export function isLoading(): boolean {
-    return getState("isLoading") === true;
+    return isRendererLoading();
 }
 
 /**
  * Shows or hides the loading overlay and updates the cursor style.
  */
 export function setLoading(loading: boolean): void {
-    setState("isLoading", loading, { source: "setLoading" });
+    setRendererLoading(loading, { source: "setLoading" });
 
     const overlay = querySelectorByIdFlexible(document, "#loading_overlay");
 
@@ -33,7 +34,7 @@ export function setLoading(loading: boolean): void {
 }
 
 export function updateLoadingFromState(loading: unknown): void {
-    updateLoadingUI(loading === true);
+    updateLoadingUI(normalizeRendererLoading(loading));
 }
 
 function updateLoadingUI(loading: boolean): void {

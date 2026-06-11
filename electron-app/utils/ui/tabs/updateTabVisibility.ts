@@ -6,6 +6,7 @@ import * as __StateMgr from "../../state/core/stateManager.js";
 import { getRegisteredLeafletMapInstance } from "../../maps/state/mapLeafletInstanceState.js";
 import { getRegisteredMapMiniMapControl } from "../../maps/state/mapPluginControlState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
+import { getRendererLoadingFromState } from "../../state/domain/rendererLoadingState.js";
 import {
     buildIdVariants,
     getElementByIdFlexible,
@@ -280,7 +281,9 @@ export function initializeTabVisibilityState(): void {
 
             const latestData = getActiveFitActivityData().rawData;
             const stillNoData = latestData === null || latestData === undefined;
-            const isLoading = Boolean(getStateMgr().getState("isLoading"));
+            const isLoading = getRendererLoadingFromState(
+                getStateMgr().getState
+            );
             const latestTab = getStringState("ui.activeTab") ?? "summary";
 
             if (stillNoData && !isLoading && latestTab !== "summary") {
