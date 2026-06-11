@@ -5,7 +5,6 @@
 export * from "./activeFitFileMetadataState.js";
 export * from "./activeFitRawDataState.js";
 export * from "./appDomainState.js";
-export * from "./appState.js";
 export * from "./browserState.js";
 export * from "./fitActivityDataState.js";
 export * from "./fitChartDataState.js";

@@ -939,9 +939,7 @@ describe("architecture boundaries", () => {
         );
 
         expect(localDomainContracts).toStrictEqual([]);
-        expect(sharedPreloadApiSource).toContain(
-            "export type ElectronFileApi"
-        );
+        expect(sharedPreloadApiSource).toContain("export type ElectronFileApi");
         expect(sharedPreloadApiSource).toContain(
             "export type ElectronMenuEventApi"
         );
@@ -1116,6 +1114,22 @@ describe("architecture boundaries", () => {
         expect(appStateSource).not.toContain("setupReactiveProperties");
         expect(appStateSource).not.toContain("createReactiveProperty");
         expect(appStateSource).not.toContain("Object.defineProperty");
+    });
+
+    it("keeps the legacy appState manager out of the public state-domain barrel", () => {
+        expect.assertions(2);
+
+        const domainBarrelSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/domain/index.ts")
+        );
+        const appDomainFacadeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/appDomainState.ts"
+            )
+        );
+
+        expect(domainBarrelSource).not.toContain("./appState.js");
+        expect(appDomainFacadeSource).toContain("./appState.js");
     });
 
     it("keeps renderer import-time bootstrap off legacy appState manual mocks", () => {
