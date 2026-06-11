@@ -36,7 +36,12 @@ export type LoadingIndicatorState = {
 /**
  * Explicit tab activation lifecycle phase.
  */
-export type TabReadinessStatus = "blocked" | "error" | "idle" | "loading" | "ready";
+export type TabReadinessStatus =
+    | "blocked"
+    | "error"
+    | "idle"
+    | "loading"
+    | "ready";
 
 /**
  * Readiness metadata for one tab content area.
@@ -133,11 +138,36 @@ export type BrowserListingState = {
 };
 
 /**
+ * Browser folder scan lifecycle phase.
+ */
+export type BrowserScanStatus =
+    | "completed"
+    | "decoding"
+    | "error"
+    | "idle"
+    | "listing"
+    | "unavailable";
+
+/**
+ * Folder scan metadata for the Browser tab Library and Calendar views.
+ */
+export type BrowserScanState = {
+    decodedActivityCount: number;
+    error: null | string;
+    fileCount: number;
+    processedFileCount: number;
+    root: null | string;
+    scannedAt: null | number;
+    status: BrowserScanStatus;
+};
+
+/**
  * Folder Browser tab state branch.
  */
 export type BrowserState = {
     listing: BrowserListingState;
     relPath: string;
+    scan: BrowserScanState;
     view: "calendar" | "files" | "library";
 };
 
@@ -280,6 +310,15 @@ export function createDefaultAppState(): AppStateShape {
                 status: "idle",
             },
             relPath: "",
+            scan: {
+                decodedActivityCount: 0,
+                error: null,
+                fileCount: 0,
+                processedFileCount: 0,
+                root: null,
+                scannedAt: null,
+                status: "idle",
+            },
             view: "files",
         },
         charts: {

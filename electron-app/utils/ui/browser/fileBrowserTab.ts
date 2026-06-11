@@ -52,6 +52,24 @@ type BrowserListingStateUpdate = {
     readonly status: BrowserListingStatus;
 };
 
+type BrowserScanStatus =
+    | "completed"
+    | "decoding"
+    | "error"
+    | "idle"
+    | "listing"
+    | "unavailable";
+
+type BrowserScanStateUpdate = {
+    readonly decodedActivityCount?: number;
+    readonly error?: null | string;
+    readonly fileCount?: number;
+    readonly processedFileCount?: number;
+    readonly root?: null | string;
+    readonly scannedAt?: null | number;
+    readonly status: BrowserScanStatus;
+};
+
 type CalendarState = {
     monthStart: Date;
     selectedDayKey: string;
@@ -125,6 +143,7 @@ type SportBadgeCount = SportBadge & {
 const TAB_STATE_PATH_REL = "browser.relPath";
 const TAB_STATE_VIEW = "browser.view";
 const TAB_STATE_LISTING = "browser.listing";
+const TAB_STATE_SCAN = "browser.scan";
 
 const LIB_PREFS_LAST_DAYS_KEY = "fitLibrary.lastDays";
 const LIB_PREFS_UNIT_KEY = "fitLibrary.unit";
@@ -415,6 +434,26 @@ function setBrowserListingState(update: BrowserListingStateUpdate): void {
         },
         { source: "fileBrowser.listing" }
     );
+}
+
+function setBrowserScanState(update: BrowserScanStateUpdate): void {
+    setState(
+        TAB_STATE_SCAN,
+        {
+            decodedActivityCount: update.decodedActivityCount ?? 0,
+            error: update.error ?? null,
+            fileCount: update.fileCount ?? 0,
+            processedFileCount: update.processedFileCount ?? 0,
+            root: update.root ?? null,
+            scannedAt: update.scannedAt ?? null,
+            status: update.status,
+        },
+        { source: "fileBrowser.scan" }
+    );
+}
+
+function getScanErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
 }
 
 function addMonths(monthStart: Date, deltaMonths: number): Date {
@@ -2124,6 +2163,11 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
         typeof api.decodeFitFile !== "function" ||
         typeof api.readFile !== "function"
     ) {
+        setBrowserScanState({
+            error: "Electron Browser scan API is unavailable.",
+            root,
+            status: "unavailable",
+        });
         showNotification(
             "Library scan is unavailable (Electron API missing).",
             "error"
@@ -2139,15 +2183,29 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
 
     try {
         setBrowserStatus("Scanning folder...", true);
+        setBrowserScanState({ root, status: "listing" });
         if (statusEl) statusEl.textContent = "Listing files…";
 
         const files = await listAllFitFiles(libraryApi);
         if (files.length === 0) {
+            const scannedAt = Date.now();
             if (statusEl) statusEl.textContent = "No .fit files found.";
-            renderLibraryResults(root, { items: [], scannedAt: Date.now() });
+            renderLibraryResults(root, { items: [], scannedAt });
             setBrowserStatus(`Scanned ${root}. No FIT files found.`);
+            setBrowserScanState({
+                fileCount: 0,
+                root,
+                scannedAt,
+                status: "completed",
+            });
             return;
         }
+
+        setBrowserScanState({
+            fileCount: files.length,
+            root,
+            status: "decoding",
+        });
 
         if (files.length > 500) {
             showNotification(
@@ -2174,26 +2232,47 @@ async function scanAndRenderLibrary(root: string): Promise<void> {
                 if (res) {
                     items.push(res);
                 }
+                setBrowserScanState({
+                    decodedActivityCount: items.length,
+                    fileCount: files.length,
+                    processedFileCount: Math.min(done, files.length),
+                    root,
+                    status: "decoding",
+                });
             })
         );
 
         await Promise.allSettled(tasks);
 
+        const scannedAt = Date.now();
         const payload = {
             items: sortLibraryItemsByStartTimeDesc(items),
-            scannedAt: Date.now(),
+            scannedAt,
         };
         writeSessionLibraryCache(root, payload);
         persistLibraryCache(root, payload);
         setBrowserStatus(
             `Decoded ${payload.items.length} activit${payload.items.length === 1 ? "y" : "ies"} from this folder at ${formatLoadedAt()}.`
         );
+        setBrowserScanState({
+            decodedActivityCount: payload.items.length,
+            fileCount: files.length,
+            processedFileCount: files.length,
+            root,
+            scannedAt,
+            status: "completed",
+        });
 
         renderLibraryResults(root, payload);
     } catch (error) {
         console.error("[fileBrowserTab] Library scan failed", error);
         if (statusEl) statusEl.textContent = "Scan failed.";
         setBrowserStatus("Folder scan failed.");
+        setBrowserScanState({
+            error: getScanErrorMessage(error),
+            root,
+            status: "error",
+        });
         showNotification("Failed to scan folder.", "error");
     }
 }

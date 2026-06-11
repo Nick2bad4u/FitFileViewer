@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { renderFileBrowserTab } from "../../../../../electron-app/utils/ui/browser/fileBrowserTab.js";
 import {
@@ -116,5 +116,71 @@ describe("fileBrowserTab accessibility", () => {
             root: "C:\\rides",
             status: "loaded",
         });
+    });
+
+    it("records folder scan progress in explicit Browser state", async () => {
+        const container = document.createElement("div");
+        container.id = "content_browser";
+        document.body.append(container);
+
+        registerRendererElectronApiCandidate({
+            decodeFitFile: async () => ({
+                sessionMesgs: [
+                    {
+                        sport: "cycling",
+                        start_time: "2026-01-02T03:04:05.000Z",
+                        total_distance: 1234,
+                    },
+                ],
+            }),
+            getFitBrowserFolder: async () => "C:\\rides",
+            listFitBrowserFolder: async () => ({
+                entries: [
+                    {
+                        fullPath: "C:\\rides\\activity.fit",
+                        kind: "file",
+                        name: "activity.fit",
+                        relPath: "activity.fit",
+                    },
+                ],
+                relPath: "",
+                root: "C:\\rides",
+            }),
+            readFile: async () => new ArrayBuffer(4),
+        });
+
+        await renderFileBrowserTab();
+        getRequiredElement(
+            "#fit-browser-view-library",
+            HTMLButtonElement
+        ).click();
+
+        await vi.waitFor(() => {
+            expect(getState("browser.view")).toBe("library");
+        });
+
+        getRequiredElement("#fit-library-scan", HTMLButtonElement).click();
+
+        await vi.waitFor(() => {
+            expect(getState("browser.scan")).toStrictEqual({
+                decodedActivityCount: 1,
+                error: null,
+                fileCount: 1,
+                processedFileCount: 1,
+                root: "C:\\rides",
+                scannedAt: expect.any(Number),
+                status: "completed",
+            });
+        });
+
+        expect(
+            document.querySelector("#fit-browser-status")?.textContent
+        ).toMatch(/^Decoded 1 activity from this folder at/u);
+        expect(
+            document.querySelector("#fit-library-status")?.textContent
+        ).toContain("Scanned");
+        expect(
+            document.querySelector("#fit-library-cards")?.textContent
+        ).toContain("Files1");
     });
 });
