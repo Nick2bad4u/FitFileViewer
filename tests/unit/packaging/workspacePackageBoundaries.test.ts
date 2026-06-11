@@ -341,6 +341,7 @@ describe("workspace package boundaries", () => {
             "css-minimizer-webpack-plugin": {
                 "serialize-javascript": "7.0.5",
             },
+            joi: "18.2.1",
             sockjs: {
                 uuid: "11.1.1",
             },
