@@ -449,6 +449,7 @@
         "electron-app/utils/ui/tabs/updateTabVisibilityRuntime.ts",
         "electron-app/utils/ui/tabs/updateTabVisibility.ts",
         "electron-app/utils/ui/tabs/index.ts",
+        "electron-app/utils/ui/controls/enableTabButtonsRuntime.ts",
         "electron-app/utils/ui/controls/enableTabButtons.ts",
         "electron-app/utils/ui/controls/enableTabButtonsDebug.ts",
         "electron-app/utils/ui/controls/enableTabButtonsDebugRuntime.ts",

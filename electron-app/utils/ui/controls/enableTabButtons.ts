@@ -13,6 +13,10 @@ import {
     getTabButtonIdentity,
     safeQueryTabButtons,
 } from "./enableTabButtonsHelpers.js";
+import {
+    getEnableTabButtonsRuntime,
+    type TabButtonObserver,
+} from "./enableTabButtonsRuntime.js";
 
 /** Debug function to manually test and fix tab button states. */
 export function debugTabButtons(): void {
@@ -28,18 +32,6 @@ export function debugTabState(): void {
 export function testTabButtonClicks(): void {
     testTabButtonClicksImpl();
 }
-
-type TabButtonsGlobal = typeof globalThis & {
-    MutationObserver?: MutationObserverConstructorLike;
-};
-
-type TabButtonObserver = {
-    observe?: (target: Element, options?: MutationObserverInit) => void;
-};
-
-type MutationObserverConstructorLike = new (
-    callback: MutationCallback
-) => TabButtonObserver;
 
 type TabButtonElement = HTMLElement & {
     disabled?: boolean;
@@ -131,8 +123,9 @@ export function initializeTabButtonState(): void {
     console.log("[TabButtons] Initializing proper tab button state management");
 
     ensureObserverInstalled();
+    const runtime = getEnableTabButtonsRuntime();
 
-    if (globalThis.window === undefined) {
+    if (!runtime.isWindowAvailable()) {
         setTabButtonsEnabled(false);
     } else if (tabButtonsCurrentlyEnabled === undefined) {
         setTabButtonsEnabled(false);
@@ -200,35 +193,22 @@ export function setTabButtonsEnabled(enabled: boolean): void {
  * Ensure MutationObserver is installed and observing current tab buttons.
  */
 function ensureObserverInstalled(): void {
-    if (globalThis.window === undefined) {
+    const runtime = getEnableTabButtonsRuntime();
+    if (!runtime.isWindowAvailable()) {
         return;
     }
 
-    const observerConstructor = resolveMutationObserverConstructor();
-
-    if (!tabButtonObserver && observerConstructor !== undefined) {
+    if (!tabButtonObserver) {
         const callback: MutationCallback = (mutations) => {
             for (const mutation of mutations) {
                 handleMutation(mutation);
             }
         };
 
-        const observer = new observerConstructor(callback);
-        const globalConstructor = getGlobalMutationObserverConstructor();
-        const windowConstructor = getWindowMutationObserverConstructor();
-        if (
-            globalConstructor &&
-            windowConstructor &&
-            globalConstructor !== windowConstructor
-        ) {
-            try {
-                // Preserve test coverage hooks that capture the callback through
-                // a mocked window.MutationObserver constructor.
-                Reflect.construct(windowConstructor, [callback]);
-            } catch {
-                /* Ignore errors */
-            }
-        }
+        const observer = runtime.createMutationObserver(callback);
+        // Preserve test coverage hooks that capture the callback through a
+        // mocked window.MutationObserver constructor.
+        runtime.createCompatibilityMutationObserver(callback);
         tabButtonObserver = observer;
     }
 
@@ -236,7 +216,7 @@ function ensureObserverInstalled(): void {
     if (observer) {
         for (const button of safeQueryTabButtons()) {
             try {
-                if (button && typeof observer.observe === "function") {
+                if (typeof observer.observe === "function") {
                     observer.observe(button, {
                         attributeFilter: ["disabled"],
                         attributes: true,
@@ -345,7 +325,8 @@ function scheduleFinalStateLog(
     tabButtons: readonly HTMLElement[]
 ): void {
     clearFinalStateLogTimers();
-    const handle = setTimeout(() => {
+    const runtime = getEnableTabButtonsRuntime();
+    const handle = runtime.setTimeout(() => {
         finalStateLogTimers.delete(handle);
         console.log(
             `[TabButtons] Final state after ${enabled ? "enable" : "disable"}:`
@@ -364,8 +345,9 @@ function scheduleFinalStateLog(
 }
 
 function clearFinalStateLogTimers(): void {
+    const runtime = getEnableTabButtonsRuntime();
     for (const handle of finalStateLogTimers) {
-        clearTimeout(handle);
+        runtime.clearTimeout(handle);
     }
     finalStateLogTimers.clear();
 }
@@ -397,46 +379,4 @@ function handleMutation(mutation: MutationRecord): void {
         target.removeAttribute("disabled");
         setButtonDisabled(target, false);
     }
-}
-
-function resolveMutationObserverConstructor():
-    | MutationObserverConstructorLike
-    | undefined {
-    const globalConstructor = getGlobalMutationObserverConstructor();
-    const windowConstructor = getWindowMutationObserverConstructor();
-
-    if (globalConstructor && windowConstructor) {
-        return globalConstructor === windowConstructor
-            ? windowConstructor
-            : globalConstructor;
-    }
-
-    return windowConstructor ?? globalConstructor;
-}
-
-function getGlobalMutationObserverConstructor():
-    | MutationObserverConstructorLike
-    | undefined {
-    return typeof MutationObserver !== "undefined" &&
-        isMutationObserverConstructorLike(MutationObserver)
-        ? MutationObserver
-        : undefined;
-}
-
-function getWindowMutationObserverConstructor():
-    | MutationObserverConstructorLike
-    | undefined {
-    const candidate = getTabButtonsGlobal().MutationObserver;
-
-    return isMutationObserverConstructorLike(candidate) ? candidate : undefined;
-}
-
-function isMutationObserverConstructorLike(
-    candidate: unknown
-): candidate is MutationObserverConstructorLike {
-    return typeof candidate === "function";
-}
-
-function getTabButtonsGlobal(): TabButtonsGlobal {
-    return globalThis;
 }

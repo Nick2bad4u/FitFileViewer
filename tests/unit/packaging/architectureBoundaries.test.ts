@@ -368,6 +368,9 @@ const migratedUpdateControlsStateRuntimeFiles = [
 const migratedEnableTabButtonsDebugRuntimeFiles = [
     "electron-app/utils/ui/controls/enableTabButtonsDebug.ts",
 ] as const;
+const migratedEnableTabButtonsRuntimeFiles = [
+    "electron-app/utils/ui/controls/enableTabButtons.ts",
+] as const;
 const migratedEnableTabButtonsHelpersRuntimeFiles = [
     "electron-app/utils/ui/controls/enableTabButtonsHelpers.ts",
 ] as const;
@@ -674,6 +677,8 @@ const directUpdateControlsStateRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.getComputedStyle\b/u;
 const directEnableTabButtonsDebugRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bnew\s+AbortController\b/u;
+const directEnableTabButtonsRuntimeGlobalPattern =
+    /\bglobalThis\.window\b|\btypeof\s+MutationObserver\b|\bReflect\.construct\b|\bgetTabButtonsGlobal\(\)|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directEnableTabButtonsHelpersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bReflect\.get\(\s*document\b|\btypeof\s+document\s*!==/u;
 const directUpdateTabVisibilityRuntimeGlobalPattern =
@@ -2933,6 +2938,26 @@ describe("architecture boundaries", () => {
         expect(enableTabButtonsDebugSource).toContain(
             "enableTabButtonsDebugRuntime.js"
         );
+    });
+
+    it("keeps tab-button state browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedEnableTabButtonsRuntimeFiles
+            .filter((relativeFile) =>
+                directEnableTabButtonsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const enableTabButtonsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/enableTabButtons.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(enableTabButtonsSource).toContain("enableTabButtonsRuntime.js");
     });
 
     it("keeps tab-button helper DOM reads behind the runtime facade", () => {
