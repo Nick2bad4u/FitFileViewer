@@ -1,24 +1,13 @@
+import {
+    getRenderChartTimerRuntime,
+    type RenderChartTimerRuntime,
+} from "./renderChartTimerRuntime.js";
+
 /** Minimum time between direct chart render attempts. */
 export const RENDER_DEBOUNCE_MS = 200;
 
 interface RenderTimingGate {
     waitIfRapidRender(): Promise<void>;
-}
-
-function wait(waitMs: number): Promise<void> {
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-    return new Promise<void>((resolve) => {
-        timeoutId = setTimeout(() => {
-            timeoutId = undefined;
-            resolve();
-        }, waitMs);
-    }).finally(() => {
-        if (timeoutId !== undefined) {
-            clearTimeout(timeoutId);
-            timeoutId = undefined;
-        }
-    });
 }
 
 /**
@@ -29,7 +18,8 @@ function wait(waitMs: number): Promise<void> {
  * @returns Render timing gate.
  */
 export function createRenderTimingGate(
-    waitMs = RENDER_DEBOUNCE_MS
+    waitMs = RENDER_DEBOUNCE_MS,
+    runtime: RenderChartTimerRuntime = getRenderChartTimerRuntime()
 ): RenderTimingGate {
     let lastRenderTime = 0;
 
@@ -40,7 +30,7 @@ export function createRenderTimingGate(
             lastRenderTime = now;
             if (elapsed < waitMs) {
                 console.log("[ChartJS] Debouncing rapid render calls");
-                await wait(waitMs);
+                await runtime.wait(waitMs);
             }
         },
     };

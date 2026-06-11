@@ -334,6 +334,7 @@
         "electron-app/utils/charts/core/renderChartTestRendererTouches.ts",
         "electron-app/utils/charts/core/renderChartThemeHelpers.ts",
         "electron-app/utils/charts/core/renderChartThemePlan.ts",
+        "electron-app/utils/charts/core/renderChartTimerRuntime.ts",
         "electron-app/utils/charts/core/renderChartTiming.ts",
         "electron-app/utils/charts/core/renderChartZoomConfig.ts",
         "electron-app/utils/charts/core/updateChartAnimations.ts",

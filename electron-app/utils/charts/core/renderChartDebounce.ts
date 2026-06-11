@@ -1,3 +1,9 @@
+import {
+    getRenderChartTimerRuntime,
+    type RenderChartTimerRuntime,
+    type RenderChartTimeout,
+} from "./renderChartTimerRuntime.js";
+
 /** Function returned by debounce with an explicit pending-call cancel hook. */
 export type DebouncedFunction<Arguments extends readonly unknown[]> = ((
     ...args: Arguments
@@ -8,16 +14,17 @@ export type DebouncedFunction<Arguments extends readonly unknown[]> = ((
 /** Returns a function that invokes callback only after calls stop for waitMs. */
 export function debounce<Arguments extends readonly unknown[]>(
     callback: (...args: Arguments) => void,
-    waitMs: number
+    waitMs: number,
+    runtime: RenderChartTimerRuntime = getRenderChartTimerRuntime()
 ): DebouncedFunction<Arguments> {
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let timeoutId: RenderChartTimeout | undefined;
 
     const debounced = ((...args: Arguments) => {
         if (timeoutId !== undefined) {
-            clearTimeout(timeoutId);
+            runtime.clearTimeout(timeoutId);
         }
 
-        timeoutId = setTimeout(() => {
+        timeoutId = runtime.setTimeout(() => {
             timeoutId = undefined;
             callback(...args);
         }, waitMs);
@@ -25,7 +32,7 @@ export function debounce<Arguments extends readonly unknown[]>(
 
     debounced.cancel = () => {
         if (timeoutId !== undefined) {
-            clearTimeout(timeoutId);
+            runtime.clearTimeout(timeoutId);
             timeoutId = undefined;
         }
     };

@@ -393,6 +393,12 @@ const migratedRenderChartStartupRuntimeFiles = [
 const migratedRenderChartJsTimerRuntimeFiles = [
     "electron-app/utils/charts/core/renderChartJS.ts",
 ] as const;
+const migratedRenderChartTimerRuntimeFiles = [
+    "electron-app/utils/charts/core/renderChartCachePrewarm.ts",
+    "electron-app/utils/charts/core/renderChartDebounce.ts",
+    "electron-app/utils/charts/core/renderChartNotificationFlow.ts",
+    "electron-app/utils/charts/core/renderChartTiming.ts",
+] as const;
 const migratedSummaryColModalViewportRuntimeFiles = [
     "electron-app/utils/rendering/helpers/summaryColModal.ts",
 ] as const;
@@ -725,6 +731,8 @@ const directRenderChartRequestListenerRuntimeGlobalPattern =
 const directRenderChartStartupRuntimeGlobalPattern =
     /\bglobalThis\.(?:addEventListener|window)\b/u;
 const directRenderChartJsTimerRuntimeGlobalPattern =
+    /(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directRenderChartTimerRuntimeGlobalPattern =
     /(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
@@ -3211,6 +3219,29 @@ describe("architecture boundaries", () => {
                 (relativeFile) =>
                     !stripComments(readRepositoryFile(relativeFile)).includes(
                         "renderChartDebounce.js"
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
+    });
+
+    it("keeps chart helper timer APIs behind the timer runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRenderChartTimerRuntimeFiles
+            .filter((relativeFile) =>
+                directRenderChartTimerRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedRenderChartTimerRuntimeFiles
+            .filter(
+                (relativeFile) =>
+                    !stripComments(readRepositoryFile(relativeFile)).includes(
+                        "renderChartTimerRuntime.js"
                     )
             )
             .sort();

@@ -1,4 +1,5 @@
 import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
+import { getRenderChartTimerRuntime } from "./renderChartTimerRuntime.js";
 
 type GetStateFunction = (path: string) => unknown;
 type NotifySuccessFunction = (message: string, type: "success") => unknown;
@@ -38,7 +39,7 @@ function createRenderSuccessMessage(totalChartsRendered: number): string {
 }
 
 const defaultSchedule: ScheduleFunction = (callback, delay) =>
-    setTimeout(callback, delay);
+    getRenderChartTimerRuntime().setTimeout(callback, delay);
 
 function notifySuccessLater(
     notifySuccess: NotifySuccessFunction,

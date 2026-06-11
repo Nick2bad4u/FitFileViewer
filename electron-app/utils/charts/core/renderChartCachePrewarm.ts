@@ -21,6 +21,10 @@ import {
 } from "./renderChartDependencyAccessors.js";
 import { isDevelopmentEnvironment } from "./renderChartRuntimeHelpers.js";
 import { ensureDataSettingsSignature } from "./renderChartDataSettingsCache.js";
+import {
+    getRenderChartTimerRuntime,
+    type RenderChartTimerRuntime,
+} from "./renderChartTimerRuntime.js";
 
 const CACHE_LOG_PREFIX = "[ChartJS Cache]";
 const MAX_FIELDS_BY_RECORD_COUNT = [
@@ -114,15 +118,6 @@ function isChartsTab(tab: unknown): boolean {
     return tab === "chart" || tab === "chartjs";
 }
 
-function waitForNextTask(): Promise<void> {
-    return new Promise((resolve) => {
-        const timeout = setTimeout(() => {
-            clearTimeout(timeout);
-            resolve();
-        }, 0);
-    });
-}
-
 interface PrewarmFieldProcessingInput {
     convert: (value: number, field: string) => number;
     dataSettingsSignature: string;
@@ -134,6 +129,7 @@ interface PrewarmFieldProcessingInput {
     processedFields: number;
     recordMesgs: readonly ChartDataRecord[];
     startIndex: number;
+    timerRuntime: RenderChartTimerRuntime;
     yieldEvery: number;
 }
 
@@ -179,7 +175,7 @@ async function processPrewarmFieldChunk(
         return processedFields;
     }
 
-    await waitForNextTask();
+    await input.timerRuntime.waitForNextTask();
     return processPrewarmFieldChunk({
         ...input,
         processedFields,
@@ -247,6 +243,7 @@ export async function prewarmChartRenderCaches(
         const fieldsToPrewarm = getFieldsToPrewarm(recordMesgs, (field) =>
             dependencies.getFieldVisibility(field)
         );
+        const timerRuntime = getRenderChartTimerRuntime();
 
         if (isDevelopmentEnvironment()) {
             console.log(
@@ -266,6 +263,7 @@ export async function prewarmChartRenderCaches(
             processedFields: 0,
             recordMesgs,
             startIndex: 0,
+            timerRuntime,
             yieldEvery,
         });
 
