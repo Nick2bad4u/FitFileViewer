@@ -2,22 +2,19 @@
  * Shared utilities for tab state management.
  */
 
-// Prefer dynamic state manager accessor to avoid stale imports across suites
-import * as __StateMgr from "../../state/core/stateManager.js";
+import {
+    getRendererCoreStateManager,
+    getRequiredRendererCoreStateManager,
+    toRendererStateManagerAccess,
+    type RendererStateGetter,
+    type RendererStateManagerAccess,
+    type RendererStateSetter,
+    type RendererStateSubscriber,
+} from "../../state/domain/rendererStateManagerAccess.js";
 import {
     getTabTestDocumentForTests,
     getTabTestStateManagerForTests,
 } from "./tabTestEnvironment.js";
-
-type StateGetter = typeof __StateMgr.getState;
-type StateSetter = typeof __StateMgr.setState;
-type StateSubscriber = typeof __StateMgr.subscribe;
-
-type StateManagerAccess = {
-    getState: StateGetter;
-    setState: StateSetter;
-    subscribe: StateSubscriber;
-};
 
 function isDocumentLike(candidate: unknown): candidate is Document {
     return (
@@ -79,54 +76,42 @@ export function getDoc(): Document {
 
 /**
  * Retrieve state manager functions.
- *
- * Prefer the module namespace so Vitest mocks are respected, then fall back to
- * a module-local test override when tests provide one.
  */
-export function getStateMgr(): StateManagerAccess {
+export function getStateMgr(): RendererStateManagerAccess {
     try {
-        const getState =
-            typeof __StateMgr.getState === "function"
-                ? __StateMgr.getState
-                : undefined;
-        const setState =
-            typeof __StateMgr.setState === "function"
-                ? __StateMgr.setState
-                : undefined;
-        const subscribe =
-            typeof __StateMgr.subscribe === "function"
-                ? __StateMgr.subscribe
-                : undefined;
-        if (getState && setState && subscribe) {
-            return { getState, setState, subscribe };
+        const stateManager = getRendererCoreStateManager();
+        if (stateManager) {
+            return stateManager;
         }
     } catch {
         /* Ignore errors */
     }
     try {
         const eff = getTabTestStateManagerForTests();
+        const effectiveStateManager = toRendererStateManagerAccess(eff);
+        if (effectiveStateManager) {
+            return effectiveStateManager;
+        }
+
         if (isRecord(eff)) {
+            const fallbackStateManager = getRequiredRendererCoreStateManager();
             const getState =
                 typeof eff["getState"] === "function"
-                    ? (eff["getState"] as StateGetter)
-                    : __StateMgr.getState;
+                    ? (eff["getState"] as RendererStateGetter)
+                    : fallbackStateManager.getState;
             const setState =
                 typeof eff["setState"] === "function"
-                    ? (eff["setState"] as StateSetter)
-                    : __StateMgr.setState;
+                    ? (eff["setState"] as RendererStateSetter)
+                    : fallbackStateManager.setState;
             const subscribe =
                 typeof eff["subscribe"] === "function"
-                    ? (eff["subscribe"] as StateSubscriber)
-                    : __StateMgr.subscribe;
+                    ? (eff["subscribe"] as RendererStateSubscriber)
+                    : fallbackStateManager.subscribe;
             return { getState, setState, subscribe };
         }
     } catch {
         /* Ignore errors */
     }
 
-    return {
-        getState: __StateMgr.getState,
-        setState: __StateMgr.setState,
-        subscribe: __StateMgr.subscribe,
-    };
+    return getRequiredRendererCoreStateManager();
 }

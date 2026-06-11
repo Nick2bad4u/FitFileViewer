@@ -1266,6 +1266,23 @@ describe("architecture boundaries", () => {
         expect(settingsModalSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps tab state-manager support on the renderer state access facade", () => {
+        expect.assertions(2);
+
+        const tabStateManagerSupportSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/tabStateManagerSupport.ts"
+            )
+        );
+
+        expect(tabStateManagerSupportSource).toContain(
+            "rendererStateManagerAccess.js"
+        );
+        expect(tabStateManagerSupportSource).not.toContain(
+            "state/core/stateManager.js"
+        );
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 
