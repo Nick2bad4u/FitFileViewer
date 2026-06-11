@@ -19,6 +19,29 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect(getComputedStyle).toHaveBeenCalledWith(element);
     });
 
+    it("creates abort controllers through the injected runtime", () => {
+        expect.assertions(2);
+
+        const runtime = getEnableTabButtonsDebugRuntime({
+            AbortController,
+            window: {},
+        });
+        const controller = runtime.createAbortController();
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(controller.signal.aborted).toBe(false);
+    });
+
+    it("creates abort controllers through the injected window runtime", () => {
+        expect.assertions(1);
+
+        const runtime = getEnableTabButtonsDebugRuntime({
+            window: { AbortController },
+        });
+
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("throws when no window runtime is available", () => {
         expect.assertions(1);
 
@@ -41,5 +64,18 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect(() =>
             runtime.assertComputedStyleAvailable(document.createElement("button"))
         ).toThrow("getComputedStyle not available");
+    });
+
+    it("throws when the injected abort-controller runtime is invalid", () => {
+        expect.assertions(1);
+
+        const runtime = getEnableTabButtonsDebugRuntime({
+            AbortController: "AbortController" as unknown as typeof AbortController,
+            window: {},
+        });
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "enableTabButtonsDebug requires an AbortController runtime"
+        );
     });
 });

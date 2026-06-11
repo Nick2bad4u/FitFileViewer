@@ -136,6 +136,7 @@ export function debugTabState(): void {
 export function testTabButtonClicks(): void {
     console.log("[TabButtons] === TESTING TAB BUTTON CLICKS ===");
     clearPendingTestClickTimers();
+    const runtime = getEnableTabButtonsDebugRuntime();
 
     for (const element of safeQueryTabButtons()) {
         if (!isHTMLElement(element)) {
@@ -150,7 +151,7 @@ export function testTabButtonClicks(): void {
 
         const testHandler = createTestClickHandler(buttonId);
 
-        const abortController = new AbortController();
+        const abortController = runtime.createAbortController();
         button.addEventListener("click", testHandler, {
             signal: abortController.signal,
         });

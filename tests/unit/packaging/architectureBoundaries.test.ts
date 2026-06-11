@@ -670,7 +670,7 @@ const directSummaryColModalViewportGlobalPattern =
 const directUpdateControlsStateRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.getComputedStyle\b/u;
 const directEnableTabButtonsDebugRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b/u;
+    /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bnew\s+AbortController\b/u;
 const directEnableTabButtonsHelpersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bReflect\.get\(\s*document\b|\btypeof\s+document\s*!==/u;
 const directUpdateTabVisibilityRuntimeGlobalPattern =
