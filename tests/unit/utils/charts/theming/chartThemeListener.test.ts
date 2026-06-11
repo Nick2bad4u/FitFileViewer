@@ -326,7 +326,7 @@ describe("chartThemeListener", () => {
         });
     });
 
-    it("removes the active theme listener", async () => {
+    it("removes the active theme listener and cancels pending theme updates", async () => {
         expect.assertions(2);
 
         await runWithCleanEnvironment(async () => {
@@ -337,9 +337,12 @@ describe("chartThemeListener", () => {
 
             vi.useFakeTimers();
             setupChartThemeListener(document.createElement("div"), settings);
-            removeChartThemeListener();
             document.body.dispatchEvent(
                 new CustomEvent("themechange", { detail: { theme: "dark" } })
+            );
+            removeChartThemeListener();
+            document.body.dispatchEvent(
+                new CustomEvent("themechange", { detail: { theme: "light" } })
             );
             vi.advanceTimersByTime(200);
 

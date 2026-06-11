@@ -350,6 +350,9 @@ const migratedListenersResizeRuntimeFiles = [
 const migratedChartThemeRuntimeFiles = [
     "electron-app/utils/charts/theming/chartThemeUtils.ts",
 ] as const;
+const migratedChartThemeListenerRuntimeFiles = [
+    "electron-app/utils/charts/theming/chartThemeListener.ts",
+] as const;
 const migratedUpdateMapThemeRuntimeFiles = [
     "electron-app/utils/theming/specific/updateMapTheme.ts",
 ] as const;
@@ -668,6 +671,8 @@ const directListenersResizeRuntimeGlobalPattern =
     /\b(?:document|window|globalThis)\.|\bReflect\.get\(|\binstanceof\s+(?:Element|HTMLCanvasElement)\b|\bquerySelectorByIdFlexible\(\s*document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
+const directChartThemeListenerRuntimeGlobalPattern =
+    /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusViewportGlobalPattern =
@@ -2837,6 +2842,28 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(chartThemeUtilsSource).toContain("chartThemeRuntime.js");
+    });
+
+    it("keeps chart theme listener browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedChartThemeListenerRuntimeFiles
+            .filter((relativeFile) =>
+                directChartThemeListenerRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const chartThemeListenerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/theming/chartThemeListener.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(chartThemeListenerSource).toContain(
+            "chartThemeListenerRuntime.js"
+        );
     });
 
     it("keeps map theme browser APIs behind the runtime facade", () => {

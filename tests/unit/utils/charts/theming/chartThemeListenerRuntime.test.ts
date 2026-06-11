@@ -1,0 +1,101 @@
+// @vitest-environment jsdom
+import { describe, expect, it, vi } from "vitest";
+
+import {
+    getChartThemeListenerRuntime,
+    type ChartThemeListenerTimerHandle,
+} from "../../../../../electron-app/utils/charts/theming/chartThemeListenerRuntime.js";
+
+describe("getChartThemeListenerRuntime", () => {
+    it("adds abortable themechange listeners through the injected body", () => {
+        expect.assertions(2);
+
+        const runtime = getChartThemeListenerRuntime({
+            AbortController,
+            document,
+        });
+        const listenerController = runtime.createAbortController();
+        let observedThemeEvents = 0;
+
+        runtime.addThemeChangeListener(
+            () => {
+                observedThemeEvents += 1;
+            },
+            { signal: listenerController.signal }
+        );
+        document.body.dispatchEvent(new Event("themechange"));
+        listenerController.abort();
+        document.body.dispatchEvent(new Event("themechange"));
+
+        expect(observedThemeEvents).toBe(1);
+        expect(listenerController.signal.aborted).toBe(true);
+    });
+
+    it("checks custom events through the injected constructor", () => {
+        expect.assertions(3);
+
+        const runtime = getChartThemeListenerRuntime({
+            CustomEvent,
+            document,
+        });
+
+        expect(runtime.isCustomEvent(new CustomEvent("themechange"))).toBe(
+            true
+        );
+        expect(runtime.isCustomEvent(new Event("themechange"))).toBe(false);
+        expect(
+            getChartThemeListenerRuntime({
+                CustomEvent: "CustomEvent" as unknown as typeof CustomEvent,
+                document,
+            }).isCustomEvent(new CustomEvent("themechange"))
+        ).toBe(false);
+    });
+
+    it("schedules and clears timers through injected timer functions", () => {
+        expect.assertions(3);
+
+        const timer = Symbol(
+            "theme-listener-timer"
+        ) as unknown as ChartThemeListenerTimerHandle;
+        const handler = vi.fn<() => void>();
+        const timeoutMs = Number("150");
+        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const runtime = getChartThemeListenerRuntime({
+            clearTimeout: clearTimeoutMock,
+            document,
+            setTimeout: setTimeoutMock,
+        });
+
+        expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+    });
+
+    it("fails clearly when required runtimes are unavailable", () => {
+        expect.assertions(3);
+
+        const runtime = getChartThemeListenerRuntime({});
+        const runtimeWithInvalidAbortController = getChartThemeListenerRuntime({
+            AbortController:
+                "AbortController" as unknown as typeof AbortController,
+            document,
+        });
+        const listenerController = new AbortController();
+
+        expect(() =>
+            runtime.addThemeChangeListener(() => undefined, {
+                signal: listenerController.signal,
+            })
+        ).toThrow(
+            "chartThemeListener requires a document body"
+        );
+        expect(() =>
+            runtimeWithInvalidAbortController.createAbortController()
+        ).toThrow(
+            "chartThemeListener requires an AbortController"
+        );
+        expect(runtime.isCustomEvent(new Event("themechange"))).toBe(false);
+    });
+});

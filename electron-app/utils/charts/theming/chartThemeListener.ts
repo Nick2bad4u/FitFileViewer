@@ -2,19 +2,28 @@ import { chartStateManager as importedChartStateManager } from "../core/chartSta
 import { updateCharts } from "../core/chartUpdater.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
+import {
+    getChartThemeListenerRuntime,
+    type ChartThemeListenerRuntime,
+    type ChartThemeListenerTimerHandle,
+} from "./chartThemeListenerRuntime.js";
 
 interface ThemeChangeDetail {
     theme?: string;
 }
 
 type ThemeChangeHandler = ((event: Event) => void) & {
-    timeout?: ReturnType<typeof setTimeout>;
+    timeout?: ChartThemeListenerTimerHandle;
 };
 
-let chartThemeListener: EventListener | undefined;
+let chartThemeListener: ThemeChangeHandler | undefined;
+let chartThemeListenerController: AbortController | undefined;
 
-function getThemeFromEvent(event: Event): string | undefined {
-    if (!(event instanceof CustomEvent)) {
+function getThemeFromEvent(
+    event: Event,
+    runtime: ChartThemeListenerRuntime
+): string | undefined {
+    if (!runtime.isCustomEvent(event)) {
         return undefined;
     }
 
@@ -75,8 +84,7 @@ export function removeChartThemeListener(): void {
         return;
     }
 
-    document.body.removeEventListener("themechange", chartThemeListener);
-    chartThemeListener = undefined;
+    disposeChartThemeListener(getChartThemeListenerRuntime());
     console.log("[ChartThemeListener] Theme listener removed");
 }
 
@@ -87,34 +95,51 @@ export function setupChartThemeListener(
     chartsContainer: HTMLElement | null,
     settingsContainer: HTMLElement | null
 ): void {
+    const runtime = getChartThemeListenerRuntime();
     if (chartThemeListener) {
-        document.body.removeEventListener("themechange", chartThemeListener);
+        disposeChartThemeListener(runtime);
     }
 
+    const listenerController = runtime.createAbortController();
     chartThemeListener = onChartThemeChangeFactory(
         chartsContainer,
-        settingsContainer
+        settingsContainer,
+        runtime
     );
-    document.body.addEventListener("themechange", chartThemeListener);
+    chartThemeListenerController = listenerController;
+    runtime.addThemeChangeListener(chartThemeListener, {
+        signal: listenerController.signal,
+    });
 
     console.log(
         "[ChartThemeListener] Theme listener set up for charts and settings"
     );
 }
 
+function disposeChartThemeListener(runtime: ChartThemeListenerRuntime): void {
+    if (chartThemeListener?.timeout !== undefined) {
+        runtime.clearTimeout(chartThemeListener.timeout);
+    }
+
+    chartThemeListenerController?.abort();
+    chartThemeListener = undefined;
+    chartThemeListenerController = undefined;
+}
+
 function onChartThemeChangeFactory(
     chartsContainer: HTMLElement | null,
-    settingsContainer: HTMLElement | null
+    settingsContainer: HTMLElement | null,
+    runtime: ChartThemeListenerRuntime
 ): ThemeChangeHandler {
     const handler: ThemeChangeHandler = (event) => {
-        const theme = getThemeFromEvent(event);
+        const theme = getThemeFromEvent(event, runtime);
         console.log("[ChartThemeListener] Theme changed to:", theme);
 
         if (handler.timeout) {
-            clearTimeout(handler.timeout);
+            runtime.clearTimeout(handler.timeout);
         }
 
-        handler.timeout = setTimeout(() => {
+        handler.timeout = runtime.setTimeout(() => {
             if (chartsContainer && hasChartData()) {
                 console.log(
                     "[ChartThemeListener] Re-rendering charts for theme change"
