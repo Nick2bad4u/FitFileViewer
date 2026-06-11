@@ -460,6 +460,7 @@
         "electron-app/utils/ui/controls/createAddFitFileToMapButton.ts",
         "electron-app/utils/ui/controls/createElevationProfileButtonRuntime.ts",
         "electron-app/utils/ui/controls/createElevationProfileButton.ts",
+        "electron-app/utils/ui/controls/createPowerEstimationButtonRuntime.ts",
         "electron-app/utils/ui/controls/createPowerEstimationButton.ts",
         "electron-app/utils/ui/controls/createMarkerCountSelector.ts",
         "electron-app/utils/ui/controls/createDataPointFilterControl.ts",

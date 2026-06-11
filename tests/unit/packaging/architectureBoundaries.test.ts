@@ -263,6 +263,9 @@ const migratedCreateAddFitFileToMapButtonRuntimeFiles = [
 const migratedAddExitFullscreenOverlayRuntimeFiles = [
     "electron-app/utils/ui/controls/addExitFullscreenOverlay.ts",
 ] as const;
+const migratedCreatePowerEstimationButtonRuntimeFiles = [
+    "electron-app/utils/ui/controls/createPowerEstimationButton.ts",
+] as const;
 const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
@@ -654,6 +657,8 @@ const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
 const directAddExitFullscreenOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|exitFullscreen|fullscreenElement)\b|\binstanceof\s+HTMLElement\b/u;
+const directCreatePowerEstimationButtonRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.createElement\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2263,6 +2268,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(addExitFullscreenOverlaySource).toContain(
             "addExitFullscreenOverlayRuntime.js"
+        );
+    });
+
+    it("keeps power-estimation button browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreatePowerEstimationButtonRuntimeFiles
+            .filter((relativeFile) =>
+                directCreatePowerEstimationButtonRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const createPowerEstimationButtonSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createPowerEstimationButton.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(createPowerEstimationButtonSource).toContain(
+            "createPowerEstimationButtonRuntime.js"
         );
     });
 

@@ -4,6 +4,7 @@ import {
     type PowerEstimationSettings,
 } from "../../data/processing/estimateCyclingPower.js";
 import { openPowerEstimationSettingsModal } from "../modals/openPowerEstimationSettingsModal.js";
+import { getCreatePowerEstimationButtonRuntime } from "./createPowerEstimationButtonRuntime.js";
 
 interface FitRecordContainer {
     readonly loadedFitFiles?: readonly {
@@ -24,7 +25,8 @@ export function createPowerEstimationButton({
     getData,
     onAfterApply,
 }: CreatePowerEstimationButtonParams): HTMLButtonElement {
-    const btn = document.createElement("button");
+    const runtime = getCreatePowerEstimationButtonRuntime();
+    const btn = runtime.createButton();
     const listenerController = new AbortController();
     btn.type = "button";
     btn.className = "map-action-btn";
