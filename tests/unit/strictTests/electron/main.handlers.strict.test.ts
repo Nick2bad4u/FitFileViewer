@@ -125,8 +125,7 @@ vi.mock(import("electron"), () => ({
     },
 }));
 // Expose synchronously for early CJS require paths inside main.js
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).__electronHoistedMock = {
+Reflect.set(globalThis, "__electronHoistedMock", {
     get app() {
         return mockApp;
     },
@@ -145,7 +144,7 @@ vi.mock(import("electron"), () => ({
     get shell() {
         return mockShell;
     },
-};
+});
 
 // electron-updater mock wired to shared emitter
 const mockLogger = {

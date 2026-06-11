@@ -12,8 +12,12 @@ function getBodyClasses(): string[] {
 }
 
 describe("utils/theming/core/theme.js - additional coverage", () => {
-    const originalMatchMedia = globalThis.matchMedia as any;
-    let originalGetComputedStyle: any;
+    const originalMatchMedia = Reflect.get(globalThis, "matchMedia") as
+        | typeof globalThis.matchMedia
+        | undefined;
+    let originalGetComputedStyle:
+        | typeof globalThis.getComputedStyle
+        | undefined;
 
     beforeEach(() => {
         document.body.className = "";
@@ -21,17 +25,20 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         // reset localStorage
         localStorage.clear();
         // restore matchMedia default
-        (globalThis as any).matchMedia = originalMatchMedia;
+        Reflect.set(globalThis, "matchMedia", originalMatchMedia);
         clearElectronApiCandidate();
         // save getComputedStyle
-        originalGetComputedStyle = (globalThis as any).getComputedStyle;
+        originalGetComputedStyle = Reflect.get(
+            globalThis,
+            "getComputedStyle"
+        ) as typeof globalThis.getComputedStyle | undefined;
     });
 
     afterEach(() => {
         vi.useRealTimers();
         clearElectronApiCandidate();
         // restore getComputedStyle
-        (globalThis as any).getComputedStyle = originalGetComputedStyle;
+        Reflect.set(globalThis, "getComputedStyle", originalGetComputedStyle);
     });
 
     it("loadTheme returns saved value and falls back to dark on error", () => {
@@ -46,12 +53,12 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
                 throw new Error("ls error");
             }),
         } as any;
-        const original = (globalThis as any).localStorage;
-        (globalThis as any).localStorage = badStorage;
+        const original = Reflect.get(globalThis, "localStorage") as Storage;
+        Reflect.set(globalThis, "localStorage", badStorage);
         try {
             expect(theme.loadTheme()).toBe("dark");
         } finally {
-            (globalThis as any).localStorage = original;
+            Reflect.set(globalThis, "localStorage", original);
         }
     });
 
@@ -98,7 +105,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect.assertions(1);
 
         // Configure environment so getSystemTheme() resolves to light
-        (globalThis as any).matchMedia = () => ({ matches: false }) as any;
+        Reflect.set(globalThis, "matchMedia", () => ({ matches: false }));
         theme.applyTheme(theme.THEME_MODES.AUTO, false);
         expect(getBodyClasses()).toContain("theme-light");
     });
@@ -119,12 +126,13 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect.assertions(2);
 
         // with matchMedia
-        (globalThis as any).matchMedia = (query: string) =>
-            ({ matches: false }) as any;
+        Reflect.set(globalThis, "matchMedia", (_query: string) => ({
+            matches: false,
+        }));
         expect(theme.getSystemTheme()).toBe("light");
 
         // without matchMedia
-        (globalThis as any).matchMedia = undefined;
+        Reflect.set(globalThis, "matchMedia", undefined);
         expect(theme.getSystemTheme()).toBe("dark"); // fallback
     });
 
@@ -138,10 +146,9 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
             ["--color-accent", "#123456"],
             ["--color-border", "#eeeeee"],
         ]);
-        (globalThis as any).getComputedStyle = () =>
-            ({
-                getPropertyValue: (k: string) => styles.get(k) || "",
-            }) as any;
+        Reflect.set(globalThis, "getComputedStyle", () => ({
+            getPropertyValue: (k: string) => styles.get(k) || "",
+        }));
 
         const cfg: any = theme.getThemeConfig();
         expect(cfg).toMatchObject({
@@ -165,7 +172,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     it("listenForSystemThemeChange returns undefined when matchMedia is unavailable", () => {
         expect.assertions(1);
 
-        (globalThis as any).matchMedia = undefined;
+        Reflect.set(globalThis, "matchMedia", undefined);
         const cleanup = theme.listenForSystemThemeChange();
         expect(cleanup).toBeUndefined();
     });
@@ -208,12 +215,11 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
 
         localStorage.setItem("ffv-theme", "dark");
         // Provide a minimal matchMedia impl so initializeTheme returns a cleanup function
-        (globalThis as any).matchMedia = () =>
-            ({
-                addEventListener: () => {},
-                removeEventListener: () => {},
-                matches: true,
-            }) as any;
+        Reflect.set(globalThis, "matchMedia", () => ({
+            addEventListener: () => {},
+            matches: true,
+            removeEventListener: () => {},
+        }));
 
         const cleanup = theme.initializeTheme();
         // body should reflect saved theme after initializeTheme

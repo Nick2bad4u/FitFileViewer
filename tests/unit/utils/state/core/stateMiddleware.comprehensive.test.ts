@@ -332,7 +332,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
             });
             await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, ctx);
         }
-        const perf = (globalThis as any)._statePerformance;
+        const perf = Reflect.get(globalThis, "_statePerformance");
         expect(perf).toBeInstanceOf(Array);
         expect(perf).toHaveLength(100);
     });

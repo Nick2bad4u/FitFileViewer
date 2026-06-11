@@ -105,6 +105,18 @@ function getTabButtonState(
     };
 }
 
+function getFallbackWindowDocument(): Document {
+    const fallbackWindow = Reflect.get(globalThis, "window") as
+        | Pick<Window, "document">
+        | undefined;
+
+    if (!fallbackWindow?.document) {
+        throw new Error("Expected global window document fallback");
+    }
+
+    return fallbackWindow.document;
+}
+
 describe("updateActiveTab.js - environment fallbacks", () => {
     beforeEach(async () => {
         await resetAll();
@@ -166,8 +178,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
         // Invalidate the standard globals so getDoc() prefers the effective document
         // Note: typeof checks in getDoc guard these assignments.
-        (globalThis as any).document = undefined;
-        (globalThis as any).window = undefined;
+        Reflect.set(globalThis, "document", undefined);
+        Reflect.set(globalThis, "window", undefined);
 
         // Provide a minimal viable state manager to satisfy calls
         const setState = vi.fn<SetState>();
@@ -208,10 +220,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         );
 
         // Invalidate document; provide window.document only
-        (globalThis as any).document = undefined;
-        (globalThis as any).window = {
-            document: dom.window.document,
-        } as unknown as Window;
+        Reflect.set(globalThis, "document", undefined);
+        Reflect.set(globalThis, "window", { document: dom.window.document });
 
         const setState = vi.fn<SetState>();
         const getState = vi.fn<GetState>().mockReturnValue("win");
@@ -233,10 +243,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         expect(setState).toHaveBeenCalledWith("ui.activeTab", "win", {
             source: "updateActiveTab",
         });
-        const el = getRequiredElement(
-            (globalThis as any).window.document,
-            "tab-win"
-        );
+        const el = getRequiredElement(getFallbackWindowDocument(), "tab-win");
         expect(getTabButtonState(el.ownerDocument, "tab-win")).toEqual({
             ariaDisabled: null,
             ariaSelected: null,

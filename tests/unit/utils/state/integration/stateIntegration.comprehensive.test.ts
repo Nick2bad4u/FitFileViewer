@@ -114,7 +114,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
         // Setup mocks
         globalThis.localStorage = mockLocalStorage;
-        (globalThis as any).performance = mockPerformance;
+        Reflect.set(globalThis, "performance", mockPerformance);
 
         // Clean up global state
         deleteRetiredGlobal("globalData");
@@ -131,7 +131,7 @@ describe("stateIntegration comprehensive coverage", () => {
     afterEach(() => {
         // Restore original globals
         globalThis.localStorage = originalLocalStorage;
-        (globalThis as any).performance = originalPerformance;
+        Reflect.set(globalThis, "performance", originalPerformance);
 
         // Clean up test globals
         deleteRetiredGlobal("globalData");
@@ -368,7 +368,7 @@ describe("stateIntegration comprehensive coverage", () => {
             expect.assertions(3);
 
             vi.useFakeTimers();
-            (globalThis as any).performance = mockPerformance;
+            Reflect.set(globalThis, "performance", mockPerformance);
 
             const { setupStatePerformanceMonitoring } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -423,7 +423,7 @@ describe("stateIntegration comprehensive coverage", () => {
             expect.assertions(3);
 
             vi.useFakeTimers();
-            (globalThis as any).performance = mockPerformance;
+            Reflect.set(globalThis, "performance", mockPerformance);
 
             // Remove memory from performance mock
             delete (globalThis.performance as any).memory;

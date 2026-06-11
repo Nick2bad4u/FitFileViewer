@@ -518,7 +518,7 @@ describe("uiStateManager - comprehensive coverage", () => {
             expect.assertions(1);
 
             const manager = new UIStateManager();
-            delete (globalThis as any).matchMedia;
+            Reflect.deleteProperty(globalThis, "matchMedia");
 
             manager.applyTheme("system");
 
