@@ -1,7 +1,4 @@
 /* eslint-disable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
-import type {
-    FitDecodeResult,
-} from "./electron-app/shared/fit";
 import type { ElectronAPIWithDevFlags } from "./electron-app/shared/preloadApi";
 import type * as Leaflet from "leaflet";
 
@@ -20,9 +17,6 @@ declare global {
     interface Window {
         /* Core preload API (optionally extended with internal dev flags) */
         electronAPI: ElectronAPIWithDevFlags;
-
-        // --- Data / state objects ---
-        loadedFitFiles?: FitDecodeResult[];
 
         // --- Chart related data ---
         Chart?: unknown;
