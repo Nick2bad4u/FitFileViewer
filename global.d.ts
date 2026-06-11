@@ -1,6 +1,5 @@
-/* eslint-disable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
+/* eslint-disable no-underscore-dangle, unicorn/require-module-specifiers, vars-on-top -- Ambient declarations mirror external global names and grouped API docs. */
 import type { ElectronAPIWithDevFlags } from "./electron-app/shared/preloadApi";
-import type * as Leaflet from "leaflet";
 
 /*
  Global ambient type augmentation for values injected via the Electron preload script.
@@ -17,26 +16,8 @@ declare global {
     interface Window {
         /* Core preload API (optionally extended with internal dev flags) */
         electronAPI: ElectronAPIWithDevFlags;
-
-        // --- Map / markers ---
-        /** Leaflet global (present when Leaflet library loaded) */
-        L?: typeof Leaflet;
-    }
-
-    /**
-     * Minimal ambient declaration for Leaflet global until modules are
-     * migrated. Provide both a global variable (for direct `L`) and properties
-     * on Window/Node globals so assignments like `global.L = ...` in Vitest
-     * setup and `window.L` in the renderer type-check without TS2339 errors.
-     */
-    var L: typeof Leaflet; // direct global variable access
-    namespace NodeJS {
-        interface Global {
-            // for test / Node environments
-            L?: typeof Leaflet;
-        }
     }
 }
 
 export {};
-/* eslint-enable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, unicorn/require-module-specifiers, vars-on-top -- Re-enable legacy ambient declaration lint rules. */
+/* eslint-enable no-underscore-dangle, unicorn/require-module-specifiers, vars-on-top -- Re-enable ambient declaration lint rules. */
