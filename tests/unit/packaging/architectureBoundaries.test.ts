@@ -1428,7 +1428,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const chartSettingsRenderSource = stripComments(
             readRepositoryFile(
@@ -1437,9 +1437,13 @@ describe("architecture boundaries", () => {
         );
 
         expect(chartSettingsRenderSource).toContain("settingsStateManager.js");
+        expect(chartSettingsRenderSource).toContain(
+            "chartSettingsRenderRuntime.js"
+        );
         expect(chartSettingsRenderSource).not.toContain(
             "state/core/stateManager.js"
         );
+        expect(chartSettingsRenderSource).not.toContain("globalThis");
     });
 
     it("keeps tab-button debug reads on renderer state facades", () => {

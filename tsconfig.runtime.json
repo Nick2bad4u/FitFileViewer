@@ -231,6 +231,7 @@
         "electron-app/utils/maps/controls/index.ts",
         "electron-app/utils/maps/layers/index.ts",
         "electron-app/utils/maps/index.ts",
+        "electron-app/utils/app/initialization/chartSettingsRenderRuntime.ts",
         "electron-app/utils/app/initialization/getCurrentSettingsParsing.ts",
         "electron-app/utils/app/initialization/getCurrentSettings.ts",
         "electron-app/utils/app/initialization/loadSharedConfiguration.ts",
