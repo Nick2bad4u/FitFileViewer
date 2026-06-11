@@ -463,6 +463,7 @@
         "electron-app/utils/ui/controls/createElevationProfileButton.ts",
         "electron-app/utils/ui/controls/createPowerEstimationButtonRuntime.ts",
         "electron-app/utils/ui/controls/createPowerEstimationButton.ts",
+        "electron-app/utils/ui/controls/createMarkerCountSelectorRuntime.ts",
         "electron-app/utils/ui/controls/createMarkerCountSelector.ts",
         "electron-app/utils/ui/controls/createDataPointFilterControl.ts",
         "electron-app/utils/ui/controls/dataPointFilterControl/stateHelpers.ts",

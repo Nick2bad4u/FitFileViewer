@@ -7,11 +7,14 @@ import {
 } from "../../maps/state/mapMarkerCountState.js";
 import { updateShownFilesList } from "../../rendering/components/shownFilesListUpdater.js";
 import { showNotification } from "../notifications/showNotification.js";
+import { getCreateMarkerCountSelectorRuntime } from "./createMarkerCountSelectorRuntime.js";
 
-const SVG_NS = "http://www.w3.org/2000/svg";
 type MarkerCountOption = (typeof MAP_MARKER_COUNT_OPTIONS)[number];
 type NumericMarkerCountOption = Extract<MarkerCountOption, number>;
 type ThemeColors = ReturnType<typeof getThemeColors>;
+type MarkerCountSelectorRuntime = ReturnType<
+    typeof getCreateMarkerCountSelectorRuntime
+>;
 const MAP_MARKER_COUNT_OPTION_SET: ReadonlySet<number> = new Set(
     MAP_MARKER_COUNT_OPTIONS.filter(
         (option): option is NumericMarkerCountOption =>
@@ -19,8 +22,11 @@ const MAP_MARKER_COUNT_OPTION_SET: ReadonlySet<number> = new Set(
     )
 );
 
-function createMarkerCountIcon(themeColors: ThemeColors): SVGSVGElement {
-    const icon = document.createElementNS(SVG_NS, "svg");
+function createMarkerCountIcon(
+    runtime: MarkerCountSelectorRuntime,
+    themeColors: ThemeColors
+): SVGSVGElement {
+    const icon = runtime.createSvgElement("svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 20 20");
     icon.setAttribute("width", "18");
@@ -35,7 +41,7 @@ function createMarkerCountIcon(themeColors: ThemeColors): SVGSVGElement {
         { height: "5", x: "12", y: "11" },
     ];
     for (const { height, x, y } of bars) {
-        const rect = document.createElementNS(SVG_NS, "rect");
+        const rect = runtime.createSvgElement("rect");
         rect.setAttribute("x", x);
         rect.setAttribute("y", y);
         rect.setAttribute("width", "2");
@@ -73,25 +79,27 @@ function getThemeColorValue(colors: ThemeColors, key: string): string {
 export function createMarkerCountSelector(
     onChange?: (count: number) => void
 ): HTMLDivElement {
+    const runtime = getCreateMarkerCountSelectorRuntime();
+
     try {
-        const container = document.createElement("div");
+        const container = runtime.createElement("div");
         const listenerController = new AbortController();
         const themeColors = getThemeColors();
         container.className = "map-action-btn marker-count-container";
 
-        const label = document.createElement("label");
-        const labelText = document.createElement("span");
+        const label = runtime.createElement("label");
+        const labelText = runtime.createElement("span");
         labelText.textContent = "Data Points:";
-        label.append(createMarkerCountIcon(themeColors), labelText);
+        label.append(createMarkerCountIcon(runtime, themeColors), labelText);
         label.setAttribute("for", "marker-count-select");
         label.className = "marker-count-label";
 
-        const select = document.createElement("select");
+        const select = runtime.createElement("select");
         select.id = "marker-count-select";
         select.className = "marker-count-select";
 
         for (const val of MAP_MARKER_COUNT_OPTIONS) {
-            const opt = document.createElement("option");
+            const opt = runtime.createElement("option");
             opt.value = String(val);
             opt.textContent = val === "all" ? "All" : String(val);
             select.append(opt);
@@ -112,7 +120,7 @@ export function createMarkerCountSelector(
         select.addEventListener(
             "wheel",
             (e) => {
-                handleMarkerCountWheel(e, select);
+                handleMarkerCountWheel(runtime, e, select);
             },
             { passive: false, signal: listenerController.signal }
         );
@@ -132,7 +140,7 @@ export function createMarkerCountSelector(
             "Failed to create marker count selector",
             "error"
         );
-        return document.createElement("div");
+        return runtime.createElement("div");
     }
 }
 
@@ -157,6 +165,7 @@ function handleMarkerCountChange(
 }
 
 function handleMarkerCountWheel(
+    runtime: MarkerCountSelectorRuntime,
     event: WheelEvent,
     select: HTMLSelectElement
 ): void {
@@ -169,24 +178,21 @@ function handleMarkerCountWheel(
 
         if (event.deltaY > 0 && idx < optionCount - 1) {
             select.selectedIndex = idx + 1;
-            dispatchMarkerCountChange(select);
+            dispatchMarkerCountChange(runtime, select);
         } else if (event.deltaY < 0 && idx > 0) {
             select.selectedIndex = idx - 1;
-            dispatchMarkerCountChange(select);
+            dispatchMarkerCountChange(runtime, select);
         }
     } catch (error) {
         console.error("[mapActionButtons] Error in wheel event:", error);
     }
 }
 
-function dispatchMarkerCountChange(select: HTMLSelectElement): void {
-    select.dispatchEvent(
-        new Event("change", {
-            bubbles: false,
-            cancelable: true,
-            composed: false,
-        })
-    );
+function dispatchMarkerCountChange(
+    runtime: MarkerCountSelectorRuntime,
+    select: HTMLSelectElement
+): void {
+    select.dispatchEvent(runtime.createChangeEvent());
 }
 
 function resolveInitialMarkerCount(): string {

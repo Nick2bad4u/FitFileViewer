@@ -269,6 +269,9 @@ const migratedRemoveExitFullscreenOverlayRuntimeFiles = [
 const migratedCreatePowerEstimationButtonRuntimeFiles = [
     "electron-app/utils/ui/controls/createPowerEstimationButton.ts",
 ] as const;
+const migratedCreateMarkerCountSelectorRuntimeFiles = [
+    "electron-app/utils/ui/controls/createMarkerCountSelector.ts",
+] as const;
 const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
@@ -664,6 +667,8 @@ const directRemoveExitFullscreenOverlayRuntimeGlobalPattern =
     /\binstanceof\s+HTMLElement\b/u;
 const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b/u;
+const directCreateMarkerCountSelectorRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+Event\(/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2317,6 +2322,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(createPowerEstimationButtonSource).toContain(
             "createPowerEstimationButtonRuntime.js"
+        );
+    });
+
+    it("keeps marker-count selector browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreateMarkerCountSelectorRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateMarkerCountSelectorRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const createMarkerCountSelectorSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createMarkerCountSelector.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(createMarkerCountSelectorSource).toContain(
+            "createMarkerCountSelectorRuntime.js"
         );
     });
 
