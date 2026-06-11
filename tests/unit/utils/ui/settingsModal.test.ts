@@ -11,20 +11,14 @@ const mocks = vi.hoisted(() => ({
     resetAccentColor: vi.fn<(theme: string) => string>(),
     sendThemeChanged: vi.fn<(theme: string) => void>(),
     setAccentColor: vi.fn<(color: string, theme: string) => boolean>(),
-    setState:
-        vi.fn<
-            (
-                path: string,
-                value: unknown,
-                options?: Record<string, unknown>
-            ) => void
-        >(),
+    setRendererTheme:
+        vi.fn<(theme: string, options?: Record<string, unknown>) => void>(),
 }));
 
 vi.mock(
-    import("../../../../electron-app/utils/state/core/stateManager.js"),
+    import("../../../../electron-app/utils/state/domain/rendererThemeState.js"),
     () => ({
-        setState: mocks.setState,
+        setRendererTheme: mocks.setRendererTheme,
     })
 );
 
@@ -281,7 +275,7 @@ describe("settingsModal", () => {
             mocks.getEffectiveTheme.mockReturnValue("light");
             change(themeSelect);
 
-            expect(mocks.setState).toHaveBeenCalledWith("ui.theme", "light", {
+            expect(mocks.setRendererTheme).toHaveBeenCalledWith("light", {
                 source: "settingsModal:theme-select",
             });
             expect(mocks.sendThemeChanged).toHaveBeenCalledWith("light");

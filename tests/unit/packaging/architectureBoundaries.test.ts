@@ -1241,6 +1241,17 @@ describe("architecture boundaries", () => {
         expect(tabButtonDebugSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps settings modal theme writes on the renderer theme state facade", () => {
+        expect.assertions(2);
+
+        const settingsModalSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/settingsModal.ts")
+        );
+
+        expect(settingsModalSource).toContain("rendererThemeState.js");
+        expect(settingsModalSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 

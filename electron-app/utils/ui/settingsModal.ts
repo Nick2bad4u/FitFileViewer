@@ -2,7 +2,7 @@
  * Provides a settings UI for theme and accent color customization.
  */
 
-import { setState } from "../state/core/stateManager.js";
+import { setRendererTheme } from "../state/domain/rendererThemeState.js";
 import {
     getEffectiveAccentColor,
     isValidHexColor,
@@ -691,7 +691,7 @@ function setupSettingsModalHandlers(
                 newTheme === THEME_MODES.AUTO ? "system" : newTheme;
 
             try {
-                setState("ui.theme", stateTheme, {
+                setRendererTheme(stateTheme, {
                     source: "settingsModal:theme-select",
                 });
             } catch {
