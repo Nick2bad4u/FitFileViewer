@@ -50,6 +50,9 @@ const rendererEntrypointFiles = ["electron-app/renderer.ts"] as const;
 const rendererMainUiRuntimeEnvironmentFiles = [
     "electron-app/renderer/mainUiRuntimeEnvironment.ts",
 ] as const;
+const migratedMainUiSummarySelectorRuntimeFiles = [
+    "electron-app/main-ui.ts",
+] as const;
 const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
 const rendererElectronApiRuntimeSourceFiles = [
     "electron-app/renderer/electronApiStartupHooks.ts",
@@ -734,6 +737,8 @@ const directRenderChartJsTimerRuntimeGlobalPattern =
     /(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directRenderChartTimerRuntimeGlobalPattern =
     /(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMainUiSummarySelectorRuntimeGlobalPattern =
+    /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -1507,6 +1512,29 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(true);
+    });
+
+    it("keeps main-ui summary selector DOM timers behind its runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedMainUiSummarySelectorRuntimeFiles
+            .filter((relativeFile) =>
+                directMainUiSummarySelectorRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedMainUiSummarySelectorRuntimeFiles
+            .filter(
+                (relativeFile) =>
+                    !stripComments(readRepositoryFile(relativeFile)).includes(
+                        "mainUiSummaryColumnSelector.js"
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
     });
 
     it("keeps Browser feature gating on the active-tab state facade", () => {

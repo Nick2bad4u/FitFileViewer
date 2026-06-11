@@ -3,6 +3,7 @@
 import type { ElectronAPI } from "./shared/preloadApi.js";
 
 import { getMainUiRuntimeEnvironment } from "./renderer/mainUiRuntimeEnvironment.js";
+import { createMainUiSummaryColumnSelectorHandler } from "./renderer/mainUiSummaryColumnSelector.js";
 import { setupWindow } from "./utils/app/initialization/setupWindow.js";
 import { AppActions } from "./utils/app/lifecycle/appActions.js";
 import { resourceManager } from "./utils/app/lifecycle/resourceManager.js";
@@ -100,9 +101,6 @@ function logMainUi(
 
 const CONSTANTS = {
     DOM_IDS: UI_CONSTANTS.DOM_IDS,
-    SELECTORS: {
-        SUMMARY_GEAR_BTN: ".summary-gear-btn",
-    },
     SUMMARY_COLUMN_SELECTOR_DELAY: UI_CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY,
 } as const;
 
@@ -221,36 +219,16 @@ applyTheme(loadTheme());
 
 // Register handler to show summary column selector from menu
 if (typeof electronAPI?.onOpenSummaryColumnSelector === "function") {
-    electronAPI.onOpenSummaryColumnSelector(() => {
-        try {
-            // Switch to summary tab if not already active
-            const tabSummary = validateElement(CONSTANTS.DOM_IDS.TAB_SUMMARY);
-            if (tabSummary && !tabSummary.classList.contains("active")) {
-                tabSummary.click();
-            }
-
-            // Wait for renderSummary to finish, then open the column selector
-            const summarySelectorTimer = setTimeout(() => {
-                const gearBtn = document.querySelector(
-                    CONSTANTS.SELECTORS.SUMMARY_GEAR_BTN
-                );
-                if (gearBtn instanceof HTMLElement) {
-                    gearBtn.click();
-                } else {
-                    logMainUi("warn", "Summary gear button not found");
-                }
-            }, CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY);
-            resourceManager.registerTimer(summarySelectorTimer, {
-                owner: "main-ui.summary-column-selector",
-            });
-        } catch (error) {
-            logMainUi(
-                "error",
-                "Error handling summary column selector:",
-                error
-            );
-        }
-    });
+    electronAPI.onOpenSummaryColumnSelector(
+        createMainUiSummaryColumnSelectorHandler({
+            delay: CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY,
+            gearButtonSelector: ".summary-gear-btn",
+            logMainUi,
+            registerTimer: (timer, options) =>
+                resourceManager.registerTimer(timer, options),
+            summaryTabId: CONSTANTS.DOM_IDS.TAB_SUMMARY,
+        })
+    );
 }
 
 // Listen for unload-fit-file event from main process

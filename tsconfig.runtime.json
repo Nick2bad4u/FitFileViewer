@@ -66,6 +66,7 @@
         "electron-app/preload/themeApi.ts",
         "electron-app/preload/validators.ts",
         "electron-app/renderer/mainUiRuntimeEnvironment.ts",
+        "electron-app/renderer/mainUiSummaryColumnSelector.ts",
         "electron-app/renderer/vendorBundleLoader.ts",
         "electron-app/shared/devtoolsMenuPolicy.ts",
         "electron-app/shared/externalUrlPolicy.ts",
