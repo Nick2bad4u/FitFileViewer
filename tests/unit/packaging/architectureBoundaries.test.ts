@@ -275,6 +275,9 @@ const migratedCreateMarkerCountSelectorRuntimeFiles = [
 const migratedCreateDataPointFilterControlRuntimeFiles = [
     "electron-app/utils/ui/controls/createDataPointFilterControl.ts",
 ] as const;
+const migratedCreateHRZoneControlsRuntimeFiles = [
+    "electron-app/utils/ui/controls/createHRZoneControls.ts",
+] as const;
 const migratedDataPointFilterElementFactoryRuntimeFiles = [
     "electron-app/utils/ui/controls/dataPointFilterControl/elementFactory.ts",
 ] as const;
@@ -688,6 +691,8 @@ const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+Event\(/u;
 const directCreateDataPointFilterControlRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b|\btypeof\s+queueMicrotask\b|\bPromise\.resolve\(\)\.then\(/u;
+const directCreateHRZoneControlsRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:createElement|querySelector)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|\blocalStorage\.(?:getItem|setItem)\b/u;
 const directDataPointFilterElementFactoryRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
 const directDataPointFilterPanelControllerRuntimeGlobalPattern =
@@ -2413,6 +2418,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(dataPointFilterControlSource).toContain(
             "createDataPointFilterControlRuntime.js"
+        );
+    });
+
+    it("keeps HR zone controls browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreateHRZoneControlsRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateHRZoneControlsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const hrZoneControlsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createHRZoneControls.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(hrZoneControlsSource).toContain(
+            "createHRZoneControlsRuntime.js"
         );
     });
 

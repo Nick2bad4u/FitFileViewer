@@ -477,6 +477,7 @@
         "electron-app/utils/ui/controls/dataPointFilterControl/elementFactoryRuntime.ts",
         "electron-app/utils/ui/controls/dataPointFilterControl/elementFactory.ts",
         "electron-app/utils/ui/controls/createInlineZoneColorSelector.ts",
+        "electron-app/utils/ui/controls/createHRZoneControlsRuntime.ts",
         "electron-app/utils/ui/controls/createHRZoneControls.ts",
         "electron-app/utils/ui/controls/createPowerZoneControls.ts",
         "electron-app/utils/ui/controls/createPowerZoneControlsSimple.ts",
