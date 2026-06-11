@@ -692,7 +692,7 @@ const directAddExitFullscreenOverlayRuntimeGlobalPattern =
 const directRemoveExitFullscreenOverlayRuntimeGlobalPattern =
     /\binstanceof\s+HTMLElement\b/u;
 const directCreatePowerEstimationButtonRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.createElement\b/u;
+    /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b/u;
 const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+Event\(/u;
 const directCreateDataPointFilterControlRuntimeGlobalPattern =

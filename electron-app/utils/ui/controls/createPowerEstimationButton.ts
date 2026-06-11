@@ -27,7 +27,7 @@ export function createPowerEstimationButton({
 }: CreatePowerEstimationButtonParams): HTMLButtonElement {
     const runtime = getCreatePowerEstimationButtonRuntime();
     const btn = runtime.createButton();
-    const listenerController = new AbortController();
+    const listenerController = runtime.createAbortController();
     btn.type = "button";
     btn.className = "map-action-btn";
     btn.title = "Estimated power settings";

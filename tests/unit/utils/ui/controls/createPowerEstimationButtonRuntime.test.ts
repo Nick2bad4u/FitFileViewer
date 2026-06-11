@@ -11,13 +11,37 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
         expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
     });
 
-    it("fails clearly when the document runtime is unavailable", () => {
-        expect.assertions(1);
+    it("creates abort controllers through the injected runtime", () => {
+        expect.assertions(2);
+
+        const runtime = getCreatePowerEstimationButtonRuntime({
+            AbortController,
+            document,
+        });
+        const controller = runtime.createAbortController();
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(controller.signal.aborted).toBe(false);
+    });
+
+    it("fails clearly when required runtimes are unavailable", () => {
+        expect.assertions(2);
 
         const runtime = getCreatePowerEstimationButtonRuntime({});
+        const runtimeWithInvalidAbortController =
+            getCreatePowerEstimationButtonRuntime({
+                AbortController:
+                    "AbortController" as unknown as typeof AbortController,
+                document,
+            });
 
         expect(() => runtime.createButton()).toThrow(
             "createPowerEstimationButton requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithInvalidAbortController.createAbortController()
+        ).toThrow(
+            "createPowerEstimationButton requires an AbortController runtime"
         );
     });
 });
