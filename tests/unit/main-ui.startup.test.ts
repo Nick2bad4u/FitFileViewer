@@ -300,7 +300,6 @@ describe("main-ui.js - UI Controller and State Management", () => {
         vi.resetModules();
         await resetRegisteredElectronApiCandidate();
         Reflect.deleteProperty(globalThis, "devCleanup");
-        Reflect.deleteProperty(globalThis, "electronAPI");
         Reflect.deleteProperty(globalThis, "injectMenu");
         Reflect.deleteProperty(globalThis, "showFitData");
         Reflect.deleteProperty(globalThis, "renderChartJS");

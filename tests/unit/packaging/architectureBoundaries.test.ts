@@ -696,7 +696,7 @@ const rendererVendorBundleGlobalMarkerPattern =
 const rendererRuntimeGlobalFallbackPattern =
     /\b(?:__fitFileViewerRuntimeGlobalFallbackForTests|runtimeGlobalFallbackFlag|getGlobalRuntimeCandidate|getWindowRuntimeCandidate)\b/u;
 const directElectronApiGlobalReadPattern =
-    /\b(?:globalThis|window)\.electronAPI\b|\.\s*electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI/u;
+    /\b(?:globalThis|window)\.electronAPI\b|\.\s*electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI|\b(?:Reflect\.deleteProperty|Object\.defineProperty)\(\s*(?:globalThis|window)\s*,\s*["']electronAPI["']/u;
 const directExternalLinkHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.open\b/u;
 const directMapActionButtonsRuntimeGlobalPattern =
