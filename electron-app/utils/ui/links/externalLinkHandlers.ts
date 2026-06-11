@@ -1,6 +1,7 @@
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import { getExternalLinkHandlersRuntime } from "./externalLinkHandlersRuntime.js";
 
 type CleanupFunction = () => void;
 
@@ -41,7 +42,7 @@ export function attachExternalLinkHandlers({
             event.preventDefault();
             event.stopPropagation();
 
-            if (validated) {
+            if (validated !== null) {
                 openExternal(validated, onOpenExternalError);
             }
         }),
@@ -66,7 +67,7 @@ export function attachExternalLinkHandlers({
             event.preventDefault();
             event.stopPropagation();
 
-            if (validated) {
+            if (validated !== null) {
                 openExternal(validated, onOpenExternalError);
             }
         }),
@@ -110,7 +111,11 @@ function openExternal(
     }
 
     try {
-        window.open(url, "_blank", "noopener,noreferrer");
+        getExternalLinkHandlersRuntime().openBrowserWindow(
+            url,
+            "_blank",
+            "noopener,noreferrer"
+        );
     } catch {
         // Ignore fallback failures outside normal browser contexts.
     }

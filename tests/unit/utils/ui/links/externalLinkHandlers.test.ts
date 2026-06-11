@@ -237,6 +237,37 @@ describe("externalLinkHandlers", () => {
         clearElectronApi();
     });
 
+    it("falls back to browser window opening when electronAPI is unavailable", () => {
+        expect.assertions(4);
+
+        clearElectronApi();
+        const openSpy = vi
+            .spyOn(window, "open")
+            .mockReturnValue(null as Window | null);
+
+        const { anchor, parent, root } = createExternalLinkDom(
+            "https://example.com/fallback",
+            "Fallback"
+        );
+        const parentClicks = countParentEvents(parent, "click");
+
+        const cleanup = attachExternalLinkHandlers({ root });
+        const event = dispatchClick(anchor);
+
+        expect(openSpy).toHaveBeenCalledWith(
+            "https://example.com/fallback",
+            "_blank",
+            "noopener,noreferrer"
+        );
+        expect(Number(event.defaultPrevented)).toBe(1);
+        expect(parentClicks.count()).toBe(0);
+        expect(anchor.parentElement).toBe(root);
+
+        cleanup();
+        parentClicks.abort();
+        openSpy.mockRestore();
+    });
+
     it("invokes onOpenExternalError when electronAPI.openExternal rejects", async () => {
         expect.assertions(5);
 

@@ -415,6 +415,7 @@
         "electron-app/utils/ui/setupExternalLinkHandlers.ts",
         "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",
         "electron-app/utils/ui/browser/fileBrowserTab.ts",
+        "electron-app/utils/ui/links/externalLinkHandlersRuntime.ts",
         "electron-app/utils/ui/links/externalLinkHandlers.ts",
         "electron-app/utils/ui/layout/enhanceCreditsSectionRuntime.ts",
         "electron-app/utils/ui/layout/enhanceCreditsSection.ts",
