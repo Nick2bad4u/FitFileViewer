@@ -11,13 +11,17 @@ import {
 } from "../../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js";
 import { resetRegisteredMapPluginControlsForTests } from "../../../../../electron-app/utils/maps/state/mapPluginControlState.js";
 import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
+import { getMapBaseLayer } from "../../../../../electron-app/utils/state/domain/mapBaseLayerState.js";
 import {
     __resetStateManagerForTests,
     setState,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
 
 type DomFactory = () => HTMLElement;
-type EventHandler = () => void;
+type LeafletMapEvent = {
+    readonly name?: string;
+};
+type EventHandler = (event?: LeafletMapEvent) => void;
 type MapEventRegistrar = (
     events: string,
     callback: EventHandler
@@ -421,6 +425,28 @@ describe("renderMap core", () => {
                 )
             )
         );
+    });
+
+    it("persists base-layer changes through map base-layer state", async () => {
+        expect.assertions(3);
+
+        const { L, handlers } = makeLeafletStub();
+        setLeafletRuntime(L);
+
+        const { renderMap } = await importSUT();
+        renderMap();
+
+        expect(document.getElementById("leaflet-map")).toBeInstanceOf(
+            HTMLDivElement
+        );
+
+        const baseLayerChangeHandlers = handlers.baselayerchange;
+        expect(baseLayerChangeHandlers).not.toHaveLength(0);
+        for (const callback of baseLayerChangeHandlers) {
+            callback({ name: "Satellite (Esri World Imagery)" });
+        }
+
+        expect(getMapBaseLayer()).toBe("Esri_WorldImagery");
     });
 
     it("removes previous map instance and children to avoid stale state", async () => {

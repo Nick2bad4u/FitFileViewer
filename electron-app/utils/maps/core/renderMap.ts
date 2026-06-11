@@ -15,13 +15,16 @@ import { createTables } from "../../rendering/components/createTables.js";
 import { createShownFilesList } from "../../rendering/components/createShownFilesList.js";
 import { updateShownFilesList } from "../../rendering/components/shownFilesListUpdater.js";
 import { renderSummary } from "../../rendering/core/renderSummary.js";
-import { getState, setState } from "../../state/core/stateManager.js";
 import {
     getActiveFitActivityData,
     getActiveFitPowerInput,
     hasActiveFitRecords,
 } from "../../state/domain/fitActivityDataState.js";
 import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
+import {
+    getMapBaseLayer,
+    setMapBaseLayer,
+} from "../../state/domain/mapBaseLayerState.js";
 import {
     installUpdateMapThemeListeners,
     updateMapTheme,
@@ -602,9 +605,7 @@ export function renderMap(): void {
             )
     );
 
-    const persistedBaseLayerKey = resolveBaseLayerKey(
-        getState("map.baseLayer")
-    );
+    const persistedBaseLayerKey = resolveBaseLayerKey(getMapBaseLayer());
     const persistedBaseLayer = runtimeBaseLayers[persistedBaseLayerKey];
     const openStreetMapLayer = runtimeBaseLayers["OpenStreetMap"];
     const initialBaseLayer = isLeafletLayer(LeafletLib, persistedBaseLayer)
@@ -647,7 +648,7 @@ export function renderMap(): void {
             if (!resolvedKey) {
                 return;
             }
-            setState("map.baseLayer", resolvedKey, {
+            setMapBaseLayer(resolvedKey, {
                 source: "renderMap.baselayerchange",
             });
         } catch {

@@ -1398,6 +1398,17 @@ describe("architecture boundaries", () => {
         expect(showFitDataSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps map base-layer persistence on the map base-layer state facade", () => {
+        expect.assertions(2);
+
+        const renderMapSource = stripComments(
+            readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
+        );
+
+        expect(renderMapSource).toContain("mapBaseLayerState.js");
+        expect(renderMapSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps file-open handling off direct core state-manager imports", () => {
         expect.assertions(1);
 

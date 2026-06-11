@@ -13,6 +13,7 @@ export * from "./fitRouteDataState.js";
 export * from "./fitTableDataState.js";
 export * from "./fitUserDeviceDataState.js";
 export * from "./loadedFitFilesState.js";
+export * from "./mapBaseLayerState.js";
 export * from "./rendererActiveFileState.js";
 export * from "./rendererActiveTabState.js";
 export * from "./rendererChartControlsState.js";
