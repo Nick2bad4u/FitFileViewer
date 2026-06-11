@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
     getRendererCoreStateManager,
+    getRendererCoreSubscribeSingleton,
     toRendererStateManagerAccess,
 } from "../../../../../electron-app/utils/state/domain/rendererStateManagerAccess.js";
 
@@ -35,5 +36,22 @@ describe("rendererStateManagerAccess", () => {
             toRendererStateManagerAccess({ getState: () => "summary" })
         ).toBeUndefined();
         expect(toRendererStateManagerAccess(null)).toBeUndefined();
+    });
+
+    it("exposes the singleton subscription function", () => {
+        expect.assertions(2);
+
+        const subscribeSingleton = getRendererCoreSubscribeSingleton();
+        const listener = () => undefined;
+        const unsubscribe = subscribeSingleton?.(
+            "ui.activeTab",
+            "rendererStateManagerAccess.test",
+            listener
+        );
+
+        expect(subscribeSingleton).toBeTypeOf("function");
+        expect(unsubscribe).toBeTypeOf("function");
+
+        unsubscribe?.();
     });
 });

@@ -14,6 +14,11 @@ export type RendererStateSubscriber = (
     path: string,
     callback: (newValue: unknown, oldValue?: unknown, path?: string) => void
 ) => unknown;
+export type RendererStateSubscribeSingleton = (
+    path: string,
+    key: string,
+    callback: (newValue: unknown, oldValue?: unknown, path?: string) => void
+) => unknown;
 
 export type RendererStateManagerAccess = {
     getState: RendererStateGetter;
@@ -27,6 +32,17 @@ export function getRendererCoreStateManager():
     | RendererStateManagerAccess
     | undefined {
     return toRendererStateManagerAccess(StateManager);
+}
+
+export function getRendererCoreSubscribeSingleton():
+    | RendererStateSubscribeSingleton
+    | undefined {
+    const candidate = StateManager as {
+        readonly subscribeSingleton?: unknown;
+    };
+    return typeof candidate.subscribeSingleton === "function"
+        ? (candidate.subscribeSingleton as RendererStateSubscribeSingleton)
+        : undefined;
 }
 
 export function getRequiredRendererCoreStateManager(): RendererStateManagerAccess {

@@ -1283,6 +1283,17 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps active-tab updates on the renderer state access facade", () => {
+        expect.assertions(2);
+
+        const updateActiveTabSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/tabs/updateActiveTab.ts")
+        );
+
+        expect(updateActiveTabSource).toContain("rendererStateManagerAccess.js");
+        expect(updateActiveTabSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 
