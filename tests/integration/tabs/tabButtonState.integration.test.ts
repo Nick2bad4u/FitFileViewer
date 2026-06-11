@@ -146,7 +146,6 @@ describe("tab button state integration", () => {
 
         await flushMutationObservers();
 
-        window.setTabButtonsEnabled = setTabButtonsEnabled;
         setTabButtonsEnabled(true);
 
         await flushMutationObservers();

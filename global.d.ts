@@ -31,15 +31,6 @@ declare global {
         // --- Chart related data ---
         Chart?: unknown;
 
-        // --- Tab button / UI state debugging helpers ---
-        setTabButtonsEnabled?: (enabled: boolean) => void;
-        areTabButtonsEnabled?: () => boolean;
-        debugTabButtons?: (...args: unknown[]) => void;
-        forceEnableTabButtons?: () => void;
-        testTabButtonClicks?: () => void;
-        debugTabState?: (...args: unknown[]) => void;
-        forceFixTabButtons?: () => void;
-
         // --- Internal flags / timeouts ---
         __DEVELOPMENT__?: boolean;
         __state_debug?: boolean;
