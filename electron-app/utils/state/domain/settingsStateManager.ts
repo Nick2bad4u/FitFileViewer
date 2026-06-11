@@ -1,17 +1,8 @@
 import { settingsStateManager as settingsStateManagerImpl } from "./settingsStateCore.js";
 import {
-    
-    
-    
     getChartSettings as getChartSettingsImpl,
-    
-    
-    
     getUserChartSettings as getUserChartSettingsImpl,
-    
-    
     resetChartSettings as resetChartSettingsImpl,
-    
     setChartSetting as setChartSettingImpl,
     setMapThemeSetting as setMapThemeSettingImpl,
     setPowerEstimationSetting as setPowerEstimationSettingImpl,
@@ -63,11 +54,6 @@ export interface SettingsStateManager {
  */
 export const settingsStateManager =
     settingsStateManagerImpl as SettingsStateManager;
-
-/**
- * Export all persisted settings into a serializable payload.
- */
-
 
 /**
  * Read a chart field visibility preference.
@@ -174,4 +160,15 @@ export const updateChartSettings = updateChartSettingsImpl as (
     updates: ChartSettings
 ) => ChartSettings;
 
-export {exportAllSettings, getChartFieldVisibility, getChartSetting, getMapThemeSetting, getPowerEstimationSetting, getThemeSetting, importAllSettings, removeChartSetting, setChartFieldVisibility} from "./settingsStateHelpers.js";
+export {
+    clearCachedChartSettings,
+    exportAllSettings,
+    getChartFieldVisibility,
+    getChartSetting,
+    getMapThemeSetting,
+    getPowerEstimationSetting,
+    getThemeSetting,
+    importAllSettings,
+    removeChartSetting,
+    setChartFieldVisibility,
+} from "./settingsStateHelpers.js";

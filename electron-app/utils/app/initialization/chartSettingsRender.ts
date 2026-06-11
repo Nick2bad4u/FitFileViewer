@@ -5,8 +5,8 @@ import {
 } from "../../charts/core/chartInstanceRegistry.js";
 import { getChartRenderContainer } from "../../charts/dom/chartDomUtils.js";
 import { queryAll } from "../../dom/index.js";
-import { setState } from "../../state/core/stateManager.js";
 import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
+import { clearCachedChartSettings } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 type ChartRenderManagerLike = {
@@ -183,16 +183,10 @@ export function reRenderChartsAfterSettingChange(
             `${LOG_PREFIX} Re-rendering charts after ${settingName} changed to ${formatLogValue(newValue)}`
         );
 
-        // CRITICAL: Clear cached settings from state management
-        // This ensures the chart rendering will read fresh settings from state manager
-        if (typeof setState === "function") {
-            setState("settings.charts", null, {
-                source: "reRenderChartsAfterSettingChange",
-            });
-            console.log(
-                `${LOG_PREFIX} Cleared cached chart settings from state`
-            );
-        }
+        clearCachedChartSettings({
+            source: "reRenderChartsAfterSettingChange",
+        });
+        console.log(`${LOG_PREFIX} Cleared cached chart settings from state`);
 
         const reason = `Setting change: ${settingName}`;
         if (requestRerenderViaManager(reason)) {
@@ -237,13 +231,9 @@ export function reRenderChartsAfterReset(): void {
 
         console.log(`${LOG_PREFIX} Re-rendering charts after settings reset`);
 
-        // CRITICAL: Clear cached settings so chart rendering re-reads fresh defaults from state manager.
-        // This mirrors the behavior of reRenderChartsAfterSettingChange.
-        if (typeof setState === "function") {
-            setState("settings.charts", null, {
-                source: "reRenderChartsAfterReset",
-            });
-        }
+        clearCachedChartSettings({
+            source: "reRenderChartsAfterReset",
+        });
 
         // Get the charts container
         const chartsContainer = getChartRenderContainer(document);

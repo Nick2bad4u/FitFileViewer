@@ -8,6 +8,8 @@ type GetCurrentSettingsModule =
     typeof import("../../../../../electron-app/utils/app/initialization/getCurrentSettings.js");
 
 const mocks = vi.hoisted(() => ({
+    clearCachedChartSettings:
+        vi.fn<(options?: { source?: string }) => void>(),
     debouncedRender: vi.fn<(reason: string) => void>(),
     destroyChart: vi.fn<() => void>(),
     getState: vi.fn<(path: string) => unknown>(),
@@ -109,6 +111,7 @@ vi.mock(
 vi.mock(
     import("../../../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
+        clearCachedChartSettings: mocks.clearCachedChartSettings,
         getChartSettings: readChartSettingsFromStorage,
         resetChartSettings: vi.fn<(_options?: { silent?: boolean }) => boolean>(
             () => {
@@ -211,7 +214,7 @@ describe("getCurrentSettings module", () => {
             await importGetCurrentSettings();
         reRenderChartsAfterSettingChange("showgrid", true);
 
-        expect(mocks.setState).toHaveBeenCalledWith("settings.charts", null, {
+        expect(mocks.clearCachedChartSettings).toHaveBeenCalledWith({
             source: "reRenderChartsAfterSettingChange",
         });
         expect(mocks.debouncedRender).toHaveBeenCalledWith(

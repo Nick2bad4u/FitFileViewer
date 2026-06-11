@@ -3,7 +3,12 @@
  * accessors).
  */
 
-import { getState, setState, subscribe } from "../core/stateManager.js";
+import {
+    getState,
+    setState,
+    subscribe,
+    type StateUpdateOptions,
+} from "../core/stateManager.js";
 import { SETTINGS_SCHEMA } from "./settingsStateSchema.js";
 import { settingsStateManager } from "./settingsStateCore.js";
 
@@ -197,6 +202,18 @@ export function getUserChartSettings(): NormalizedChartSettings {
  */
 export function importAllSettings(settingsData: unknown): boolean {
     return settingsStateManager.importSettings(settingsData);
+}
+
+/**
+ * Clear the cached chart settings snapshot used by chart renderers.
+ */
+export function clearCachedChartSettings(
+    options: StateUpdateOptions = {}
+): void {
+    setState("settings.charts", null, {
+        source: "SettingsStateManager.clearCachedChartSettings",
+        ...options,
+    });
 }
 
 /**

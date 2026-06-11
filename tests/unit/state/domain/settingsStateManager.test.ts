@@ -163,6 +163,24 @@ describe("settingsStateManager.js - simplified coverage", () => {
     });
 
     describe("settingsStateManager class", () => {
+        describe("clearCachedChartSettings", () => {
+            it("should clear cached chart settings through the settings state path", () => {
+                expect.assertions(1);
+
+                settingsStateManagerModule.clearCachedChartSettings({
+                    source: "test.clearCachedChartSettings",
+                });
+
+                expect(mockSetState).toHaveBeenCalledWith(
+                    "settings.charts",
+                    null,
+                    {
+                        source: "test.clearCachedChartSettings",
+                    }
+                );
+            });
+        });
+
         describe("constructor", () => {
             it("should initialize with empty state", () => {
                 expect.assertions(5);
