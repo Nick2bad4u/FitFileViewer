@@ -28,7 +28,6 @@ declare global {
         chartStateManager?: unknown;
         tabStateManager?: unknown;
         chartControlsState?: unknown;
-        rendererUtils?: Record<string, unknown>;
         loadedFitFiles?: FitDecodeResult[];
 
         // --- Chart related data ---
