@@ -204,6 +204,7 @@
         "electron-app/utils/errors/errorHandling.ts",
         "electron-app/utils/errors/index.ts",
         "electron-app/utils/app/async/cancellationToken.ts",
+        "electron-app/utils/app/performance/lazyRenderingRuntime.ts",
         "electron-app/utils/app/performance/lazyRenderingUtils.ts",
         "electron-app/utils/app/performance/performanceUtils.ts",
         "electron-app/utils/async/pLimitCompat.ts",

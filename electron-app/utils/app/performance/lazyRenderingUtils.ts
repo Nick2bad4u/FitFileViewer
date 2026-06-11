@@ -2,6 +2,8 @@
  * Provides utilities for deferring rendering until elements are visible
  */
 
+import { getLazyRenderingRuntime } from "./lazyRenderingRuntime.js";
+
 type AsyncVoidCallback = () => Promise<void> | void;
 
 type LazyRendererOptions = {
@@ -17,13 +19,6 @@ type LazyRendererControls = {
 
 type IdleOptions = {
     timeout?: number;
-};
-
-type IdleRequestGlobal = typeof globalThis & {
-    requestIdleCallback?: (
-        callback: IdleRequestCallback,
-        options?: IdleRequestOptions
-    ) => number;
 };
 
 function runAsyncVoidCallback(
@@ -45,22 +40,19 @@ function runAsyncVoidCallback(
 /**
  * Batch DOM reads to avoid layout thrashing
  */
-export function batchDOMReads<T>(readCallback: () => T[]): Promise<T[]> {
+export async function batchDOMReads<T>(readCallback: () => T[]): Promise<T[]> {
     return new Promise((resolve) => {
-        if (typeof globalThis.requestAnimationFrame === "function") {
-            const animationFrameHandle = globalThis.requestAnimationFrame(
-                () => {
-                    try {
-                        const results = readCallback();
-                        resolve(results);
-                    } catch (error) {
-                        console.error("[BatchDOMReads] Read error:", error);
-                        resolve([]);
-                    }
+        const animationFrameHandle =
+            getLazyRenderingRuntime().requestAnimationFrame(() => {
+                try {
+                    const results = readCallback();
+                    resolve(results);
+                } catch (error) {
+                    console.error("[BatchDOMReads] Read error:", error);
+                    resolve([]);
                 }
-            );
-            void animationFrameHandle;
-        } else {
+            });
+        if (animationFrameHandle === undefined) {
             // Fallback to immediate execution
             try {
                 const results = readCallback();
@@ -69,6 +61,8 @@ export function batchDOMReads<T>(readCallback: () => T[]): Promise<T[]> {
                 console.error("[BatchDOMReads] Read error:", error);
                 resolve([]);
             }
+        } else {
+            void animationFrameHandle;
         }
     });
 }
@@ -76,22 +70,19 @@ export function batchDOMReads<T>(readCallback: () => T[]): Promise<T[]> {
 /**
  * Batch DOM writes to avoid layout thrashing
  */
-export function batchDOMWrites(writeCallback: () => void): Promise<void> {
+export async function batchDOMWrites(writeCallback: () => void): Promise<void> {
     return new Promise((resolve) => {
-        if (typeof globalThis.requestAnimationFrame === "function") {
-            const animationFrameHandle = globalThis.requestAnimationFrame(
-                () => {
-                    try {
-                        writeCallback();
-                        resolve();
-                    } catch (error) {
-                        console.error("[BatchDOMWrites] Write error:", error);
-                        resolve();
-                    }
+        const animationFrameHandle =
+            getLazyRenderingRuntime().requestAnimationFrame(() => {
+                try {
+                    writeCallback();
+                    resolve();
+                } catch (error) {
+                    console.error("[BatchDOMWrites] Write error:", error);
+                    resolve();
                 }
-            );
-            void animationFrameHandle;
-        } else {
+            });
+        if (animationFrameHandle === undefined) {
             // Fallback to immediate execution
             try {
                 writeCallback();
@@ -100,6 +91,8 @@ export function batchDOMWrites(writeCallback: () => void): Promise<void> {
                 console.error("[BatchDOMWrites] Write error:", error);
                 resolve();
             }
+        } else {
+            void animationFrameHandle;
         }
     });
 }
@@ -139,7 +132,15 @@ export function createLazyRenderer(
     };
 
     const observe = (): void => {
-        if (typeof IntersectionObserver === "undefined") {
+        const nextObserver = getLazyRenderingRuntime().createIntersectionObserver(
+            handleIntersection,
+            {
+                rootMargin,
+                threshold,
+            }
+        );
+
+        if (!nextObserver) {
             // Fallback: immediately execute if IntersectionObserver not available
             console.warn(
                 "[LazyRenderer] IntersectionObserver not available, rendering immediately"
@@ -151,11 +152,7 @@ export function createLazyRenderer(
             return;
         }
 
-        observer = new IntersectionObserver(handleIntersection, {
-            rootMargin,
-            threshold,
-        });
-
+        observer = nextObserver;
         observer.observe(element);
     };
 
@@ -180,24 +177,22 @@ export function deferUntilIdle(
     options: IdleOptions = {}
 ): number | ReturnType<typeof setTimeout> {
     const { timeout = 2000 } = options;
-    const idleGlobal = globalThis as IdleRequestGlobal;
+    const runtime = getLazyRenderingRuntime();
+    const idleRequestId = runtime.requestIdleCallback(
+        () => {
+            runAsyncVoidCallback(callback, "[DeferUntilIdle] Callback error:");
+        },
+        { timeout }
+    );
 
-    if (typeof idleGlobal.requestIdleCallback === "function") {
-        return idleGlobal.requestIdleCallback(
-            () => {
-                runAsyncVoidCallback(
-                    callback,
-                    "[DeferUntilIdle] Callback error:"
-                );
-            },
-            { timeout }
-        );
+    if (idleRequestId !== undefined) {
+        return idleRequestId;
     }
 
     // Fallback to setTimeout
-    return setTimeout(() => {
+    return runtime.setTimeout(() => {
         runAsyncVoidCallback(callback, "[DeferUntilIdle] Callback error:");
-    }, 0);
+    });
 }
 
 /**
@@ -207,15 +202,14 @@ export function isElementVisible(
     element: Element | null | undefined,
     threshold = 0
 ): element is HTMLElement {
-    if (!element || !(element instanceof HTMLElement)) {
+    const runtime = getLazyRenderingRuntime();
+    if (!element || !runtime.isHTMLElement(element)) {
         return false;
     }
 
     const rect = element.getBoundingClientRect();
-    const viewportHeight =
-        globalThis.innerHeight || document.documentElement.clientHeight;
-    const viewportWidth =
-        globalThis.innerWidth || document.documentElement.clientWidth;
+    const { height: viewportHeight, width: viewportWidth } =
+        runtime.getViewport();
 
     const verticalVisible =
         rect.bottom >= viewportHeight * threshold &&

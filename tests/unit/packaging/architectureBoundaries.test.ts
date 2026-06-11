@@ -284,6 +284,9 @@ const migratedAltFitSenderRuntimeFiles = [
 const migratedLoadSharedConfigurationRuntimeFiles = [
     "electron-app/utils/app/initialization/loadSharedConfiguration.ts",
 ] as const;
+const migratedLazyRenderingRuntimeFiles = [
+    "electron-app/utils/app/performance/lazyRenderingUtils.ts",
+] as const;
 const migratedChartThemeRuntimeFiles = [
     "electron-app/utils/charts/theming/chartThemeUtils.ts",
 ] as const;
@@ -565,6 +568,8 @@ const directAltFitSenderRuntimeGlobalPattern =
     /\bglobalThis\.(?:console|document|location)\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.location\b/u;
+const directLazyRenderingRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:innerHeight|innerWidth|requestAnimationFrame|requestIdleCallback|setTimeout)\b|\bdocument\.documentElement\b|\btypeof\s+IntersectionObserver\b|\bnew\s+IntersectionObserver\b|\belement\s+instanceof\s+HTMLElement\b|\breturn\s+setTimeout\(/u;
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const directChartStatusViewportGlobalPattern =
@@ -2160,6 +2165,26 @@ describe("architecture boundaries", () => {
         expect(loadSharedConfigurationSource).toContain(
             "loadSharedConfigurationRuntime.js"
         );
+    });
+
+    it("keeps lazy rendering browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedLazyRenderingRuntimeFiles
+            .filter((relativeFile) =>
+                directLazyRenderingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const lazyRenderingUtilsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/performance/lazyRenderingUtils.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(lazyRenderingUtilsSource).toContain("lazyRenderingRuntime.js");
     });
 
     it("keeps chart theme browser reads behind the runtime facade", () => {
