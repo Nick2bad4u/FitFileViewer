@@ -76,17 +76,11 @@ type ChartSettingsManagerMock = {
 };
 
 type ChartTestGlobal = typeof globalThis & {
-    Chart?: ChartConstructorMock;
     HTMLCanvasElement?: typeof HTMLCanvasElement;
     HTMLElement?: typeof HTMLElement;
     localStorage?: StorageMock;
-    window?: ChartTestWindow;
+    window?: Window & typeof globalThis;
 };
-
-type ChartTestWindow = Window &
-    typeof globalThis & {
-        Chart?: ChartConstructorMock;
-    };
 
 type RenderAltitudeProfileChart = (
     container: HTMLElement,
@@ -106,12 +100,8 @@ function getChartTestGlobal(): ChartTestGlobal {
     return globalThis as ChartTestGlobal;
 }
 
-function getChartTestWindow(): ChartTestWindow {
-    return global.window as unknown as ChartTestWindow;
-}
-
 function getLatestChartConfig(): ChartConfig {
-    const config = Chart.mock.calls[0]?.[1];
+    const config = chartMock.mock.calls[0]?.[1];
     if (!config) {
         throw new Error("Expected Chart to be called with a config");
     }
@@ -119,7 +109,7 @@ function getLatestChartConfig(): ChartConfig {
 }
 
 function getLatestChartCall(): [HTMLCanvasElement, ChartConfig] {
-    const call = Chart.mock.calls[0];
+    const call = chartMock.mock.calls[0];
     if (!call) {
         throw new Error("Expected Chart to be called");
     }
@@ -141,7 +131,7 @@ function getRenderedCanvas(container: HTMLElement): HTMLCanvasElement {
 }
 
 // Mock Chart.js
-let Chart: ChartConstructorMock;
+let chartMock: ChartConstructorMock;
 let chartInstanceMock: ChartInstanceMock;
 let renderAltitudeProfileChart: RenderAltitudeProfileChart;
 let mockLocalStorage: StorageMock;
@@ -194,20 +184,16 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             toBase64Image: vi.fn<() => string>(),
         };
 
-        Chart = vi
+        chartMock = vi
             .fn<ChartConstructor>()
             .mockImplementation(function ChartConstructor() {
                 return chartInstanceMock;
             }) as ChartConstructorMock;
         vi.doMock(import("chart.js/auto"), () => ({
-            default: Chart,
+            default: chartMock,
         }));
-        getChartTestWindow().Chart = Chart;
-        setChartRuntime(Chart);
+        setChartRuntime(chartMock);
         clearChartInstanceRegistryForTests();
-
-        // Ensure Chart is accessible from both window and globalThis
-        getChartTestGlobal().Chart = Chart;
 
         // Mock all dependencies
         mockChartSettingsManager = {
@@ -304,7 +290,6 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
     afterEach(() => {
         clearChartInstanceRegistryForTests();
         clearChartRuntimeForTests();
-        delete getChartTestGlobal().Chart;
 
         vi.clearAllMocks();
         vi.resetAllMocks();
@@ -333,9 +318,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect({
-                chartCalls: Chart.mock.calls.length,
+                chartCalls: chartMock.mock.calls.length,
                 childCount: container.children.length,
             }).toStrictEqual({
                 chartCalls: 0,
@@ -363,9 +348,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect({
-                chartCalls: Chart.mock.calls.length,
+                chartCalls: chartMock.mock.calls.length,
                 childCount: container.children.length,
             }).toStrictEqual({
                 chartCalls: 0,
@@ -446,9 +431,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect({
-                chartCalls: Chart.mock.calls.length,
+                chartCalls: chartMock.mock.calls.length,
                 childCount: container.children.length,
             }).toStrictEqual({
                 chartCalls: 0,
@@ -1120,7 +1105,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             expect.assertions(3);
 
             const chartCreationError = new Error("Chart creation failed");
-            Chart.mockImplementationOnce(function ChartConstructor() {
+            chartMock.mockImplementationOnce(function ChartConstructor() {
                 throw chartCreationError;
             });
 
@@ -1163,9 +1148,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
 
             renderAltitudeProfileChart(container, data, labels, options);
 
-            expect(Chart).not.toHaveBeenCalled();
+            expect(chartMock).not.toHaveBeenCalled();
             expect({
-                chartCalls: Chart.mock.calls.length,
+                chartCalls: chartMock.mock.calls.length,
                 childCount: container.children.length,
             }).toStrictEqual({
                 chartCalls: 0,

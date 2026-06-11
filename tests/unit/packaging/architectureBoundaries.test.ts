@@ -174,6 +174,7 @@ const migratedChartImportFiles = [
 ] as const;
 const migratedChartRuntimeTestFiles = [
     "tests/unit/strictTests/createEnhancedChart.test.ts",
+    "tests/unit/strictTests/renderAltitudeProfileChart.test.ts",
     "tests/unit/strictTests/renderEventMessagesChart.test.ts",
     "tests/unit/strictTests/renderGPSTimeChart.test.ts",
     "tests/unit/strictTests/renderZoneChart.test.ts",
