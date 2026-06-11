@@ -1,3 +1,5 @@
+import { getRemoveExitFullscreenOverlayRuntime } from "./removeExitFullscreenOverlayRuntime.js";
+
 /**
  * Fullscreen overlay removal configuration.
  */
@@ -27,9 +29,13 @@ const overlayCache = new WeakMap<HTMLElement, HTMLElement>();
  *
  * @throws TypeError If container is not a valid DOM element.
  */
-export function removeExitFullscreenOverlay(container: HTMLElement): void {
+export function removeExitFullscreenOverlay(
+    container: HTMLElement | null | undefined
+): void {
+    const runtime = getRemoveExitFullscreenOverlayRuntime();
+
     // Input validation
-    if (!container || !(container instanceof HTMLElement)) {
+    if (!container || !runtime.isHTMLElement(container)) {
         throw new TypeError(OVERLAY_CONFIG.MESSAGES.INVALID_CONTAINER);
     }
 
@@ -85,6 +91,5 @@ function removeOverlayElement(overlay: HTMLElement): void {
         return;
     }
 
-    // eslint-disable-next-line unicorn/prefer-dom-node-remove -- This branch is only used when the element-level remove() API is unavailable.
     overlay.parentNode?.removeChild(overlay);
 }

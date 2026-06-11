@@ -263,6 +263,9 @@ const migratedCreateAddFitFileToMapButtonRuntimeFiles = [
 const migratedAddExitFullscreenOverlayRuntimeFiles = [
     "electron-app/utils/ui/controls/addExitFullscreenOverlay.ts",
 ] as const;
+const migratedRemoveExitFullscreenOverlayRuntimeFiles = [
+    "electron-app/utils/ui/controls/removeExitFullscreenOverlay.ts",
+] as const;
 const migratedCreatePowerEstimationButtonRuntimeFiles = [
     "electron-app/utils/ui/controls/createPowerEstimationButton.ts",
 ] as const;
@@ -657,6 +660,8 @@ const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
 const directAddExitFullscreenOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|exitFullscreen|fullscreenElement)\b|\binstanceof\s+HTMLElement\b/u;
+const directRemoveExitFullscreenOverlayRuntimeGlobalPattern =
+    /\binstanceof\s+HTMLElement\b/u;
 const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b/u;
 
@@ -2268,6 +2273,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(addExitFullscreenOverlaySource).toContain(
             "addExitFullscreenOverlayRuntime.js"
+        );
+    });
+
+    it("keeps exit-fullscreen overlay removal browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRemoveExitFullscreenOverlayRuntimeFiles
+            .filter((relativeFile) =>
+                directRemoveExitFullscreenOverlayRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const removeExitFullscreenOverlaySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/removeExitFullscreenOverlay.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(removeExitFullscreenOverlaySource).toContain(
+            "removeExitFullscreenOverlayRuntime.js"
         );
     });
 
