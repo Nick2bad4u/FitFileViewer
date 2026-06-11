@@ -22,17 +22,11 @@ declare global {
         electronAPI: ElectronAPIWithDevFlags;
 
         // --- Data / state objects ---
-        AppState?: unknown;
         chartControlsState?: unknown;
         loadedFitFiles?: FitDecodeResult[];
 
         // --- Chart related data ---
         Chart?: unknown;
-
-        // --- Internal flags / timeouts ---
-        __DEVELOPMENT__?: boolean;
-        __state_debug?: boolean;
-        __persistenceTimeout?: ReturnType<typeof setTimeout>;
 
         // --- Map / markers ---
         /** Leaflet global (present when Leaflet library loaded) */
