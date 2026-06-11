@@ -5,6 +5,10 @@ import {
     registerMenuIpcListeners,
     resetMenuIpcListenerStateForTests,
 } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 import { closeKeyboardShortcutsModal } from "../../../electron-app/utils/ui/modals/keyboardShortcutsModal.js";
 
 const modalFocusTrapMock = vi.hoisted(() => ({
@@ -42,14 +46,6 @@ type MenuElectronApi = {
     requestSaveAs: () => void;
 };
 
-type MenuTestGlobal = typeof globalThis & {
-    electronAPI?: MenuElectronApi;
-};
-
-function getTestGlobal(): MenuTestGlobal {
-    return globalThis as MenuTestGlobal;
-}
-
 function getRequiredHandler(
     handlers: Map<MenuIpcChannel, MenuIpcCallback>,
     channel: MenuIpcChannel
@@ -85,9 +81,8 @@ function resetKeyboardShortcutsFixture(): void {
     }
     document.body.style.overflow = "";
 
-    const testGlobal = getTestGlobal();
     resetMenuIpcListenerStateForTests();
-    delete testGlobal.electronAPI;
+    resetRendererElectronApiCandidate();
 }
 
 function registerTestMenuListeners(): {
@@ -113,7 +108,7 @@ function registerTestMenuListeners(): {
         vi.fn<(message: string, type?: string, durationMs?: number) => void>();
     const trackUnsubscribe = vi.fn<(maybeUnsubscribe: unknown) => void>();
 
-    getTestGlobal().electronAPI = {
+    registerRendererElectronApiCandidate({
         onMenuAbout: vi.fn(register("menu-about")),
         onMenuExport: vi.fn(register("menu-export")),
         onMenuKeyboardShortcuts: vi.fn(register("menu-keyboard-shortcuts")),
@@ -123,7 +118,7 @@ function registerTestMenuListeners(): {
         onOpenAccentColorPicker: vi.fn(register("open-accent-color-picker")),
         requestExport: vi.fn<() => void>(),
         requestSaveAs: vi.fn<() => void>(),
-    };
+    });
 
     registerMenuIpcListeners({
         debugMenuLog,
@@ -178,7 +173,7 @@ describe("menu keyboard shortcuts IPC listener", () => {
                 ],
                 modalDisplay: "flex",
             });
-            expect("showKeyboardShortcutsModal" in getTestGlobal()).toBe(false);
+            expect("showKeyboardShortcutsModal" in globalThis).toBe(false);
             expect(
                 modalFocusTrapMock.createModalFocusTrap
             ).toHaveBeenCalledWith(
