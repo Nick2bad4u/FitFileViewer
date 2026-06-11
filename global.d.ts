@@ -29,7 +29,6 @@ declare global {
         loadedFitFiles?: FitDecodeResult[];
 
         // --- Chart related data ---
-        _chartjsInstances?: unknown[];
         Chart?: unknown;
 
         // --- Tab button / UI state debugging helpers ---
