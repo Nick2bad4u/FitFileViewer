@@ -1,0 +1,62 @@
+import { describe, expect, it, vi } from "vitest";
+
+import { getAddExitFullscreenOverlayRuntime } from "../../../../../electron-app/utils/ui/controls/addExitFullscreenOverlayRuntime.js";
+
+function setFullscreenElement(element: Element | null): void {
+    Object.defineProperty(document, "fullscreenElement", {
+        configurable: true,
+        value: element,
+    });
+}
+
+function setExitFullscreen(
+    implementation: () => Promise<void>
+): ReturnType<typeof vi.fn<() => Promise<void>>> {
+    const exitFullscreen = vi.fn<() => Promise<void>>(implementation);
+    Object.defineProperty(document, "exitFullscreen", {
+        configurable: true,
+        value: exitFullscreen,
+    });
+
+    return exitFullscreen;
+}
+
+describe("getAddExitFullscreenOverlayRuntime", () => {
+    it("creates HTML and SVG elements through the injected document", () => {
+        expect.assertions(3);
+
+        const runtime = getAddExitFullscreenOverlayRuntime({ document });
+
+        expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
+        expect(runtime.createElement("span")).toBeInstanceOf(HTMLSpanElement);
+        expect(runtime.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
+    });
+
+    it("uses the injected document fullscreen API", async () => {
+        expect.assertions(3);
+
+        const fullscreenElement = document.createElement("div");
+        const exitFullscreen = setExitFullscreen(() => Promise.resolve());
+        setFullscreenElement(fullscreenElement);
+        const runtime = getAddExitFullscreenOverlayRuntime({ document });
+
+        await runtime.exitFullscreen();
+
+        expect(runtime.getFullscreenElement()).toBe(fullscreenElement);
+        expect(exitFullscreen).toHaveBeenCalledOnce();
+        expect(runtime.isHTMLElement(fullscreenElement)).toBe(true);
+    });
+
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(2);
+
+        const runtime = getAddExitFullscreenOverlayRuntime({});
+
+        expect(() => runtime.createButton()).toThrow(
+            "addExitFullscreenOverlay requires a document runtime"
+        );
+        expect(() => runtime.isHTMLElement({})).toThrow(
+            "addExitFullscreenOverlay requires a document runtime"
+        );
+    });
+});

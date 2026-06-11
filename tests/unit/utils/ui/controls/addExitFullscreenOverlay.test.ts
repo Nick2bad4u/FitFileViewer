@@ -111,7 +111,7 @@ describe(addExitFullscreenOverlay, () => {
                 height: "28",
                 paths: [
                     {
-                        d: "M9 19H5V23",
+                        d: "M9 9H5V5",
                         linecap: "round",
                         linejoin: "round",
                         stroke: "currentColor",
@@ -125,14 +125,14 @@ describe(addExitFullscreenOverlay, () => {
                         strokeWidth: "2",
                     },
                     {
-                        d: "M19 19H23V23",
+                        d: "M9 19H5V23",
                         linecap: "round",
                         linejoin: "round",
                         stroke: "currentColor",
                         strokeWidth: "2",
                     },
                     {
-                        d: "M9 9H5V5",
+                        d: "M19 19H23V23",
                         linecap: "round",
                         linejoin: "round",
                         stroke: "currentColor",

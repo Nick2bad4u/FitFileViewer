@@ -260,6 +260,9 @@ const migratedCreateExportGPXButtonRuntimeFiles = [
 const migratedCreateAddFitFileToMapButtonRuntimeFiles = [
     "electron-app/utils/ui/controls/createAddFitFileToMapButton.ts",
 ] as const;
+const migratedAddExitFullscreenOverlayRuntimeFiles = [
+    "electron-app/utils/ui/controls/addExitFullscreenOverlay.ts",
+] as const;
 const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
@@ -649,6 +652,8 @@ const directCreateExportGPXButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|setTimeout)\b|\bURL\.(?:createObjectURL|revokeObjectURL)\b/u;
 const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
+const directAddExitFullscreenOverlayRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|exitFullscreen|fullscreenElement)\b|\binstanceof\s+HTMLElement\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2236,6 +2241,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(createAddFitFileToMapButtonSource).toContain(
             "createAddFitFileToMapButtonRuntime.js"
+        );
+    });
+
+    it("keeps exit-fullscreen overlay browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedAddExitFullscreenOverlayRuntimeFiles
+            .filter((relativeFile) =>
+                directAddExitFullscreenOverlayRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const addExitFullscreenOverlaySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/addExitFullscreenOverlay.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(addExitFullscreenOverlaySource).toContain(
+            "addExitFullscreenOverlayRuntime.js"
         );
     });
 

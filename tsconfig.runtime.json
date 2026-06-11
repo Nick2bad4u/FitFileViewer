@@ -453,6 +453,7 @@
         "electron-app/utils/ui/controls/enableTabButtonsHelpersRuntime.ts",
         "electron-app/utils/ui/controls/addFullScreenButton.ts",
         "electron-app/utils/ui/controls/screenfullRuntime.ts",
+        "electron-app/utils/ui/controls/addExitFullscreenOverlayRuntime.ts",
         "electron-app/utils/ui/controls/addExitFullscreenOverlay.ts",
         "electron-app/utils/ui/controls/removeExitFullscreenOverlay.ts",
         "electron-app/utils/ui/controls/createAddFitFileToMapButtonRuntime.ts",

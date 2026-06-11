@@ -1,3 +1,8 @@
+import {
+    getAddExitFullscreenOverlayRuntime,
+    type AddExitFullscreenOverlayRuntime,
+} from "./addExitFullscreenOverlayRuntime.js";
+
 const FULLSCREEN_CONFIG = {
     BUTTON_TITLE: "Exit Fullscreen",
     CSS_CLASSES: {
@@ -18,12 +23,11 @@ const FULLSCREEN_CONFIG = {
     },
 } as const;
 
-const SVG_NS = "http://www.w3.org/2000/svg";
 const ICON_PATHS = [
-    "M9 19H5V23",
-    "M19 9H23V5",
-    "M19 19H23V23",
     "M9 9H5V5",
+    "M19 9H23V5",
+    "M9 19H5V23",
+    "M19 19H23V23",
 ] as const;
 
 /**
@@ -38,9 +42,13 @@ const ICON_PATHS = [
  *
  * @throws TypeError If container is not a valid DOM element.
  */
-export function addExitFullscreenOverlay(container: HTMLElement): void {
+export function addExitFullscreenOverlay(
+    container: HTMLElement | null | undefined
+): void {
+    const runtime = getAddExitFullscreenOverlayRuntime();
+
     // Input validation
-    if (!container || !(container instanceof HTMLElement)) {
+    if (container == null || !runtime.isHTMLElement(container)) {
         throw new TypeError("Container must be a valid DOM element");
     }
 
@@ -56,7 +64,7 @@ export function addExitFullscreenOverlay(container: HTMLElement): void {
     }
 
     try {
-        const exitButton = createExitButton();
+        const exitButton = createExitButton(runtime);
         container.append(exitButton);
     } catch (error) {
         console.error(
@@ -70,25 +78,27 @@ export function addExitFullscreenOverlay(container: HTMLElement): void {
 /**
  * Creates the DOM content for the exit fullscreen button.
  */
-function createButtonContent(): HTMLSpanElement {
+function createButtonContent(
+    runtime: AddExitFullscreenOverlayRuntime
+): HTMLSpanElement {
     const { HEIGHT, STROKE_WIDTH, WIDTH } = FULLSCREEN_CONFIG.ICON_SIZE;
-    const icon = document.createElement("span");
+    const icon = runtime.createElement("span");
     icon.className = FULLSCREEN_CONFIG.CSS_CLASSES.ICON;
     icon.setAttribute("aria-hidden", "true");
 
-    const svg = document.createElementNS(SVG_NS, "svg");
+    const svg = runtime.createSvgElement("svg");
     svg.classList.add(FULLSCREEN_CONFIG.CSS_CLASSES.INLINE_SVG);
     svg.setAttribute("width", String(WIDTH));
     svg.setAttribute("height", String(HEIGHT));
     svg.setAttribute("viewBox", `0 0 ${WIDTH} ${HEIGHT}`);
     svg.setAttribute("fill", "none");
 
-    const title = document.createElementNS(SVG_NS, "title");
+    const title = runtime.createSvgElement("title");
     title.textContent = "Exit Fullscreen Icon";
     svg.append(title);
 
     for (const d of ICON_PATHS) {
-        const path = document.createElementNS(SVG_NS, "path");
+        const path = runtime.createSvgElement("path");
         path.setAttribute("d", d);
         path.setAttribute("stroke", "currentColor");
         path.setAttribute("stroke-width", String(STROKE_WIDTH));
@@ -106,8 +116,10 @@ function createButtonContent(): HTMLSpanElement {
  * Creates the exit fullscreen button element with proper styling and event
  * handling.
  */
-function createExitButton(): HTMLButtonElement {
-    const button = document.createElement("button");
+function createExitButton(
+    runtime: AddExitFullscreenOverlayRuntime
+): HTMLButtonElement {
+    const button = runtime.createButton();
     const listenerController = new AbortController();
     button.type = "button";
 
@@ -120,12 +132,18 @@ function createExitButton(): HTMLButtonElement {
 
     button.title = FULLSCREEN_CONFIG.BUTTON_TITLE;
     button.setAttribute("aria-label", FULLSCREEN_CONFIG.BUTTON_TITLE);
-    button.append(createButtonContent());
+    button.append(createButtonContent(runtime));
 
     // Add click event handler
-    button.addEventListener("click", handleExitFullscreen, {
-        signal: listenerController.signal,
-    });
+    button.addEventListener(
+        "click",
+        (event) => {
+            void handleExitFullscreen(event, runtime);
+        },
+        {
+            signal: listenerController.signal,
+        }
+    );
 
     return button;
 }
@@ -133,14 +151,15 @@ function createExitButton(): HTMLButtonElement {
 /**
  * Handles the exit fullscreen button click event.
  */
-function handleExitFullscreen(event: Event): void {
+async function handleExitFullscreen(
+    event: Event,
+    runtime: AddExitFullscreenOverlayRuntime
+): Promise<void> {
     event.stopPropagation();
 
     try {
-        if (document.fullscreenElement) {
-            void document.exitFullscreen().catch((error: unknown) => {
-                logExitError(error);
-            });
+        if (runtime.getFullscreenElement()) {
+            await runtime.exitFullscreen();
         } else {
             console.warn(
                 `[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.NO_FULLSCREEN_WARNING}`
@@ -152,11 +171,4 @@ function handleExitFullscreen(event: Event): void {
             error
         );
     }
-}
-
-function logExitError(error: unknown): void {
-    console.error(
-        `[addExitFullscreenOverlay] ${FULLSCREEN_CONFIG.MESSAGES.EXIT_ERROR}`,
-        error
-    );
 }
