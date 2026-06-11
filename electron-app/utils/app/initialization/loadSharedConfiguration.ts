@@ -6,6 +6,7 @@ import {
     setChartSetting,
 } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { getLoadSharedConfigurationRuntime } from "./loadSharedConfigurationRuntime.js";
 
 type SharedChartConfiguration = Record<string, unknown> & {
     visibleFields?: Record<string, unknown>;
@@ -90,7 +91,8 @@ function showSharedConfigurationNotification(
  */
 export function loadSharedConfiguration(): void {
     try {
-        const urlParams = new URLSearchParams(globalThis.location.search);
+        const { locationSearch } = getLoadSharedConfigurationRuntime();
+        const urlParams = new URLSearchParams(locationSearch);
         const configParam = urlParams.get("chartConfig");
 
         if (!configParam) {

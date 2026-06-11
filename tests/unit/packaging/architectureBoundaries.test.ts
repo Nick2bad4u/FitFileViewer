@@ -281,6 +281,9 @@ const migratedElectronApiAccessorFiles = [
 const migratedAltFitSenderRuntimeFiles = [
     "electron-app/utils/files/import/sendFitFileToAltFitReader.ts",
 ] as const;
+const migratedLoadSharedConfigurationRuntimeFiles = [
+    "electron-app/utils/app/initialization/loadSharedConfiguration.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -539,6 +542,8 @@ const directElectronApiGlobalReadPattern =
     /\b(?:globalThis|window)\.electronAPI\b|\.\s*electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI/u;
 const directAltFitSenderRuntimeGlobalPattern =
     /\bglobalThis\.(?:console|document|location)\b/u;
+const directLoadSharedConfigurationRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.location\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2098,6 +2103,28 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps shared configuration URL reads behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedLoadSharedConfigurationRuntimeFiles
+            .filter((relativeFile) =>
+                directLoadSharedConfigurationRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const loadSharedConfigurationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/loadSharedConfiguration.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(loadSharedConfigurationSource).toContain(
+            "loadSharedConfigurationRuntime.js"
+        );
     });
 
     it("keeps migrated map helpers on the Leaflet runtime adapter", () => {
