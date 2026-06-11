@@ -1,5 +1,8 @@
+import { getChartListenerStateRuntime } from "./chartListenerStateRuntime.js";
+
 let chartRequestListenerController: AbortController | null = null;
 let chartRequestListenerRegistered = false;
+const chartListenerStateRuntime = getChartListenerStateRuntime();
 let sharedConfigurationListenerController: AbortController | null = null;
 let sharedConfigurationListenerRegistered = false;
 
@@ -19,7 +22,8 @@ export function isSharedConfigurationListenerRegistered(): boolean {
 
 export function registerChartRequestListenerController(): AbortSignal {
     chartRequestListenerController?.abort();
-    chartRequestListenerController = new AbortController();
+    chartRequestListenerController =
+        chartListenerStateRuntime.createAbortController();
     chartRequestListenerRegistered = true;
 
     return chartRequestListenerController.signal;
@@ -27,7 +31,8 @@ export function registerChartRequestListenerController(): AbortSignal {
 
 export function registerSharedConfigurationListenerController(): AbortSignal {
     sharedConfigurationListenerController?.abort();
-    sharedConfigurationListenerController = new AbortController();
+    sharedConfigurationListenerController =
+        chartListenerStateRuntime.createAbortController();
     sharedConfigurationListenerRegistered = true;
 
     return sharedConfigurationListenerController.signal;

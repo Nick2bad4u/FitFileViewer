@@ -375,6 +375,9 @@ const migratedGlobalChartStatusUpdaterRuntimeFiles = [
 const migratedChartStatusEventRuntimeFiles = [
     "electron-app/utils/charts/components/chartStatusIndicator.ts",
 ] as const;
+const migratedChartListenerStateRuntimeFiles = [
+    "electron-app/utils/charts/core/chartListenerState.ts",
+] as const;
 const migratedSummaryColModalViewportRuntimeFiles = [
     "electron-app/utils/rendering/helpers/summaryColModal.ts",
 ] as const;
@@ -698,6 +701,8 @@ const directGlobalChartStatusUpdaterRuntimeGlobalPattern =
     /\bdocument\.(?:body|querySelector)\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusEventGlobalPattern =
     /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\(\s*["']fieldToggleChanged["']|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directChartListenerStateAbortControllerPattern =
+    /\bnew\s+AbortController\b/u;
 const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
@@ -3049,6 +3054,29 @@ describe("architecture boundaries", () => {
         expect(chartStatusIndicatorSource).toContain(
             "chartStatusIndicatorRuntime.js"
         );
+    });
+
+    it("keeps chart listener AbortController creation behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedChartListenerStateRuntimeFiles
+            .filter((relativeFile) =>
+                directChartListenerStateAbortControllerPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedChartListenerStateRuntimeFiles
+            .filter(
+                (relativeFile) =>
+                    !stripComments(readRepositoryFile(relativeFile)).includes(
+                        "chartListenerStateRuntime.js"
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
     });
 
     it("keeps summary column modal viewport reads behind the runtime facade", () => {

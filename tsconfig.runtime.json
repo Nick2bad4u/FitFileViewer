@@ -256,6 +256,7 @@
         "electron-app/utils/app/menu/index.ts",
         "electron-app/utils/app/events.ts",
         "electron-app/utils/app/index.ts",
+        "electron-app/utils/charts/core/chartListenerStateRuntime.ts",
         "electron-app/utils/charts/core/chartNotificationState.ts",
         "electron-app/utils/charts/core/chartInstanceRegistry.ts",
         "electron-app/utils/charts/core/createManagedChart.ts",
