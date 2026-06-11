@@ -302,6 +302,9 @@ const migratedMapActionButtonsRuntimeFiles = [
 const migratedOpenFileSelectorRuntimeFiles = [
     "electron-app/utils/files/import/openFileSelector.ts",
 ] as const;
+const migratedCreateElevationProfileButtonRuntimeFiles = [
+    "electron-app/utils/ui/controls/createElevationProfileButton.ts",
+] as const;
 const migratedLazyRenderingRuntimeFiles = [
     "electron-app/utils/app/performance/lazyRenderingUtils.ts",
 ] as const;
@@ -605,6 +608,8 @@ const directMapActionButtonsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
+const directCreateElevationProfileButtonRuntimeGlobalPattern =
+    /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b/u;
 const directAltFitSenderRuntimeGlobalPattern =
     /\bglobalThis\.(?:console|document|location)\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =
@@ -2309,6 +2314,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(openFileSelectorSource).toContain(
             "openFileSelectorRuntime.js"
+        );
+    });
+
+    it("keeps elevation profile button browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreateElevationProfileButtonRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateElevationProfileButtonRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const createElevationProfileButtonSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createElevationProfileButton.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(createElevationProfileButtonSource).toContain(
+            "createElevationProfileButtonRuntime.js"
         );
     });
 

@@ -456,6 +456,7 @@
         "electron-app/utils/ui/controls/addExitFullscreenOverlay.ts",
         "electron-app/utils/ui/controls/removeExitFullscreenOverlay.ts",
         "electron-app/utils/ui/controls/createAddFitFileToMapButton.ts",
+        "electron-app/utils/ui/controls/createElevationProfileButtonRuntime.ts",
         "electron-app/utils/ui/controls/createElevationProfileButton.ts",
         "electron-app/utils/ui/controls/createPowerEstimationButton.ts",
         "electron-app/utils/ui/controls/createMarkerCountSelector.ts",

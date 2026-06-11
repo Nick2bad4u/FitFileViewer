@@ -4,8 +4,10 @@ import { sanitizeCssColorToken } from "../../dom/index.js";
 import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
-
-const SVG_NS = "http://www.w3.org/2000/svg";
+import {
+    getCreateElevationProfileButtonRuntime,
+    type CreateElevationProfileButtonRuntime,
+} from "./createElevationProfileButtonRuntime.js";
 
 interface ElevationFitData {
     cachedFilePath?: unknown;
@@ -47,10 +49,6 @@ interface ElevationPopupThemeColors {
     readonly text: string;
     readonly textSecondary: string;
 }
-
-type ElevationGlobal = typeof globalThis & {
-    chartOverlayColorPalette?: unknown;
-};
 
 interface ChartColorBuilder {
     alpha: (opacity: number) => {
@@ -134,14 +132,17 @@ interface ChartTooltipContext {
     readonly dataIndex: number;
 }
 
-function createElevationIcon(color: string): SVGSVGElement {
-    const icon = document.createElementNS(SVG_NS, "svg");
+function createElevationIcon(
+    runtime: CreateElevationProfileButtonRuntime,
+    color: string
+): SVGSVGElement {
+    const icon = runtime.createSvgElement("svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 20 20");
     icon.setAttribute("width", "18");
     icon.setAttribute("height", "18");
 
-    const polyline = document.createElementNS(SVG_NS, "polyline");
+    const polyline = runtime.createSvgElement("polyline");
     polyline.setAttribute("points", "2,16 6,10 10,14 14,6 18,12");
     polyline.setAttribute("fill", "none");
     polyline.setAttribute("stroke", color);
@@ -156,7 +157,7 @@ function createElevationIcon(color: string): SVGSVGElement {
         ["18", "12"],
     ];
     for (const [cx, cy] of points) {
-        const circle = document.createElementNS(SVG_NS, "circle");
+        const circle = runtime.createSvgElement("circle");
         circle.setAttribute("cx", cx);
         circle.setAttribute("cy", cy);
         circle.setAttribute("r", "1.5");
@@ -171,13 +172,14 @@ function createElevationIcon(color: string): SVGSVGElement {
  * Creates the map toolbar button that opens an elevation profile popup.
  */
 export function createElevationProfileButton(): HTMLButtonElement {
-    const btn = document.createElement("button");
+    const runtime = getCreateElevationProfileButtonRuntime();
+    const btn = runtime.createButton();
     btn.className = "map-action-btn";
     const themeColorsInit = getThemeColors(),
         p = sanitizeCssColorToken(themeColorsInit["primary"], "#3b82f6");
-    const label = document.createElement("span");
+    const label = runtime.createElement("span");
     label.textContent = "Elevation";
-    btn.append(createElevationIcon(p), label);
+    btn.append(createElevationIcon(runtime, p), label);
     btn.title = "Show Elevation Profile";
 
     const buttonListener = new AbortController();
@@ -197,13 +199,14 @@ export function createElevationProfileButton(): HTMLButtonElement {
 }
 
 async function openElevationProfilePopup(): Promise<void> {
+    const runtime = getCreateElevationProfileButtonRuntime();
     const fitFiles = getElevationFitFiles();
-    const chartWin = window.open(
+    const chartWin = runtime.openPopupWindow(
             "",
             "Elevation Profile",
             "width=900,height=600"
         ),
-        isDark = document.body.classList.contains("theme-dark"),
+        isDark = runtime.isDarkTheme(),
         themeColors = getThemeColors();
     if (!chartWin) {
         return;
@@ -306,10 +309,6 @@ function getElevationFitFiles(): ElevationFitFile[] {
     return [];
 }
 
-function getElevationGlobal(): ElevationGlobal {
-    return globalThis;
-}
-
 async function resolveElevationChartConstructor(): Promise<
     ElevationChartConstructor | undefined
 > {
@@ -332,7 +331,8 @@ function getElevationPoints(file: ElevationFitFile): ElevationPoint[] {
 }
 
 function getOverlayColor(idx: number): string {
-    const { chartOverlayColorPalette } = getElevationGlobal();
+    const chartOverlayColorPalette =
+        getCreateElevationProfileButtonRuntime().getChartOverlayColorPalette();
     if (
         Array.isArray(chartOverlayColorPalette) &&
         chartOverlayColorPalette.length > 0
