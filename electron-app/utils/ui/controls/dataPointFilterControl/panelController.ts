@@ -2,6 +2,11 @@
  * Panel positioning and open/close controller for the data point filter UI.
  */
 
+import {
+    getDataPointFilterPanelControllerRuntime,
+    type DataPointFilterPanelAnimationFrameHandle,
+} from "./panelControllerRuntime.js";
+
 interface PanelController {
     closePanel: () => void;
     openPanel: () => void;
@@ -25,11 +30,12 @@ export function createPanelController({
     metricSelect,
     viewportPadding,
 }: PanelControllerParams): PanelController {
+    const runtime = getDataPointFilterPanelControllerRuntime();
     let openPanelAbortController: AbortController | null = null;
-    let pendingFrame = 0;
+    let pendingFrame: DataPointFilterPanelAnimationFrameHandle = 0;
 
     function handleOutsideClick(event: MouseEvent): void {
-        const target = event.target instanceof Node ? event.target : null;
+        const target = runtime.isNode(event.target) ? event.target : null;
         if (
             !panel.hidden &&
             target &&
@@ -47,7 +53,7 @@ export function createPanelController({
     }
 
     function ensurePanelAttached(): void {
-        const { body } = document;
+        const body = runtime.getBody();
         if (body && panel.parentElement !== body) {
             body.append(panel);
             return;
@@ -63,8 +69,8 @@ export function createPanelController({
         }
         const buttonRect = toggleButton.getBoundingClientRect();
         const panelRect = panel.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
+        const { height: viewportHeight, width: viewportWidth } =
+            runtime.getViewportSize();
 
         if (panelRect.width === 0 || panelRect.height === 0) {
             return;
@@ -109,8 +115,8 @@ export function createPanelController({
         if (panel.hidden) {
             return;
         }
-        cancelAnimationFrame(pendingFrame);
-        pendingFrame = requestAnimationFrame(repositionPanel);
+        runtime.cancelAnimationFrame(pendingFrame);
+        pendingFrame = runtime.requestAnimationFrame(repositionPanel);
     }
 
     function removeOpenPanelListeners(): void {
@@ -131,7 +137,7 @@ export function createPanelController({
             return;
         }
         ensurePanelAttached();
-        cancelAnimationFrame(pendingFrame);
+        runtime.cancelAnimationFrame(pendingFrame);
         pendingFrame = 0;
         panel.hidden = false;
         panel.style.opacity = "0";
@@ -141,17 +147,17 @@ export function createPanelController({
         removeOpenPanelListeners();
         openPanelAbortController = new AbortController();
         const { signal } = openPanelAbortController;
-        document.addEventListener("mousedown", handleOutsideClick, {
+        runtime.addDocumentMouseDownListener(handleOutsideClick, {
             capture: true,
             signal,
         });
-        document.addEventListener("keydown", handleEscapeKey, { signal });
-        window.addEventListener("resize", handleViewportResize, { signal });
-        window.addEventListener("scroll", handleViewportScroll, {
+        runtime.addDocumentKeydownListener(handleEscapeKey, { signal });
+        runtime.addViewportResizeListener(handleViewportResize, { signal });
+        runtime.addViewportScrollListener(handleViewportScroll, {
             capture: true,
             signal,
         });
-        pendingFrame = requestAnimationFrame(() => {
+        pendingFrame = runtime.requestAnimationFrame(() => {
             pendingFrame = 0;
             repositionPanel();
             panel.style.opacity = "";
@@ -164,7 +170,7 @@ export function createPanelController({
         if (!panel.hidden) {
             panel.hidden = true;
         }
-        cancelAnimationFrame(pendingFrame);
+        runtime.cancelAnimationFrame(pendingFrame);
         pendingFrame = 0;
         removeOpenPanelListeners();
         container.classList.remove("data-point-filter-control--open");

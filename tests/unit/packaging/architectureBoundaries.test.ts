@@ -275,6 +275,9 @@ const migratedCreateMarkerCountSelectorRuntimeFiles = [
 const migratedDataPointFilterElementFactoryRuntimeFiles = [
     "electron-app/utils/ui/controls/dataPointFilterControl/elementFactory.ts",
 ] as const;
+const migratedDataPointFilterPanelControllerRuntimeFiles = [
+    "electron-app/utils/ui/controls/dataPointFilterControl/panelController.ts",
+] as const;
 const migratedLoadingOverlayRuntimeFiles = [
     "electron-app/utils/ui/components/LoadingOverlay.ts",
 ] as const;
@@ -682,6 +685,8 @@ const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+Event\(/u;
 const directDataPointFilterElementFactoryRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
+const directDataPointFilterPanelControllerRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:addEventListener|body|innerHeight|innerWidth)\b|\binstanceof\s+Node\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directLoadingOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|querySelector)\b/u;
 
@@ -2402,6 +2407,26 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(elementFactorySource).toContain("elementFactoryRuntime.js");
+    });
+
+    it("keeps data-point filter panel browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedDataPointFilterPanelControllerRuntimeFiles
+            .filter((relativeFile) =>
+                directDataPointFilterPanelControllerRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const panelControllerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/dataPointFilterControl/panelController.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(panelControllerSource).toContain("panelControllerRuntime.js");
     });
 
     it("keeps loading overlay browser APIs behind the runtime facade", () => {
