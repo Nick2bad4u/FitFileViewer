@@ -74,6 +74,9 @@ const preloadEnvironment = requireFromTest(
 const preloadExternalApi = requireFromTest(
     "../../../electron-app/preload/externalApi.js"
 );
+const preloadGyazoExternalApi = requireFromTest(
+    "../../../electron-app/preload/gyazoExternalApi.js"
+);
 const preloadEventApi = requireFromTest(
     "../../../electron-app/preload/preloadEventApi.js"
 );
@@ -106,6 +109,9 @@ const preloadValidators = requireFromTest(
 );
 const preloadStateModuleLoader = requireFromTest(
     "../../../electron-app/preload/preloadStateModuleLoader.js"
+);
+const preloadShellExternalApi = requireFromTest(
+    "../../../electron-app/preload/shellExternalApi.js"
 );
 
 export function resolvePreloadScriptRequire(
@@ -216,6 +222,10 @@ export function resolvePreloadScriptRequire(
         return preloadExternalApi;
     }
 
+    if (moduleName === "./preload/gyazoExternalApi.js") {
+        return preloadGyazoExternalApi;
+    }
+
     if (moduleName === "./preload/preloadEventApi.js") {
         return preloadEventApi;
     }
@@ -254,6 +264,10 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/validators.js") {
         return preloadValidators;
+    }
+
+    if (moduleName === "./preload/shellExternalApi.js") {
+        return preloadShellExternalApi;
     }
 
     throw new Error(`Module not mocked: ${moduleName}`);

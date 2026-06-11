@@ -6,16 +6,37 @@
     type InvokeResponsePayloadForChannel<
         Channel extends ExternalInvokeChannel,
     > = import("../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
+
+    type CreateGyazoExternalApi = (options: {
+        channels: Pick<
+            ExternalApiChannels,
+            "GYAZO_OAUTH_CALLBACK" | "GYAZO_SERVER_START" | "GYAZO_SERVER_STOP"
+        >;
+        createSafeEventHandler: ExternalApiOptions["createSafeEventHandler"];
+        createSafeInvokeHandler: ExternalApiOptions["createSafeInvokeHandler"];
+    }) => Pick<
+        ElectronAPI,
+        "onGyazoOAuthCallback" | "startGyazoServer" | "stopGyazoServer"
+    >;
+    type CreateShellExternalApi = (options: {
+        channels: Pick<ExternalApiChannels, "SHELL_OPEN_EXTERNAL">;
+        createSafeInvokeHandler: ExternalApiOptions["createSafeInvokeHandler"];
+    }) => Pick<ElectronAPI, "openExternal">;
+
+    const { createGyazoExternalApi } = require("./gyazoExternalApi.js") as {
+        createGyazoExternalApi: CreateGyazoExternalApi;
+    };
+    const { createShellExternalApi } = require("./shellExternalApi.js") as {
+        createShellExternalApi: CreateShellExternalApi;
+    };
+
     interface ExternalApiChannels {
         GYAZO_OAUTH_CALLBACK: string;
         GYAZO_SERVER_START: Extract<
             ExternalInvokeChannel,
             "gyazo:server:start"
         >;
-        GYAZO_SERVER_STOP: Extract<
-            ExternalInvokeChannel,
-            "gyazo:server:stop"
-        >;
+        GYAZO_SERVER_STOP: Extract<ExternalInvokeChannel, "gyazo:server:stop">;
         SHELL_OPEN_EXTERNAL: Extract<
             ExternalInvokeChannel,
             "shell:openExternal"
@@ -50,22 +71,21 @@
         createSafeInvokeHandler,
     }: ExternalApiOptions): ExternalPreloadApi {
         return {
-            onGyazoOAuthCallback: createSafeEventHandler(
-                channels.GYAZO_OAUTH_CALLBACK,
-                "onGyazoOAuthCallback"
-            ),
-            openExternal: createSafeInvokeHandler(
-                channels.SHELL_OPEN_EXTERNAL,
-                "openExternal"
-            ),
-            startGyazoServer: createSafeInvokeHandler(
-                channels.GYAZO_SERVER_START,
-                "startGyazoServer"
-            ),
-            stopGyazoServer: createSafeInvokeHandler(
-                channels.GYAZO_SERVER_STOP,
-                "stopGyazoServer"
-            ),
+            ...createGyazoExternalApi({
+                channels: {
+                    GYAZO_OAUTH_CALLBACK: channels.GYAZO_OAUTH_CALLBACK,
+                    GYAZO_SERVER_START: channels.GYAZO_SERVER_START,
+                    GYAZO_SERVER_STOP: channels.GYAZO_SERVER_STOP,
+                },
+                createSafeEventHandler,
+                createSafeInvokeHandler,
+            }),
+            ...createShellExternalApi({
+                channels: {
+                    SHELL_OPEN_EXTERNAL: channels.SHELL_OPEN_EXTERNAL,
+                },
+                createSafeInvokeHandler,
+            }),
         };
     }
 

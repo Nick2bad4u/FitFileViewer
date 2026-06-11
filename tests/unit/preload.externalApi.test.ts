@@ -30,36 +30,99 @@ interface ExternalApiModule {
     >;
 }
 
+interface GyazoExternalApiModule {
+    createGyazoExternalApi: (options: {
+        channels: {
+            GYAZO_OAUTH_CALLBACK: string;
+            GYAZO_SERVER_START: "gyazo:server:start";
+            GYAZO_SERVER_STOP: "gyazo:server:stop";
+        };
+        createSafeEventHandler: (
+            channel: string,
+            methodName: string
+        ) => (callback: (...args: unknown[]) => unknown) => () => void;
+        createSafeInvokeHandler: (
+            channel: GenericInvokeChannel,
+            methodName: string
+        ) => (...args: unknown[]) => Promise<unknown>;
+    }) => Pick<
+        ElectronAPI,
+        "onGyazoOAuthCallback" | "startGyazoServer" | "stopGyazoServer"
+    >;
+}
+
+interface ShellExternalApiModule {
+    createShellExternalApi: (options: {
+        channels: {
+            SHELL_OPEN_EXTERNAL: "shell:openExternal";
+        };
+        createSafeInvokeHandler: (
+            channel: GenericInvokeChannel,
+            methodName: string
+        ) => (...args: unknown[]) => Promise<unknown>;
+    }) => Pick<ElectronAPI, "openExternal">;
+}
+
 const requireFromTest = createRequire(import.meta.url);
 const { createExternalApi } = requireFromTest(
     "../../electron-app/preload/externalApi.js"
 ) as ExternalApiModule;
+const { createGyazoExternalApi } = requireFromTest(
+    "../../electron-app/preload/gyazoExternalApi.js"
+) as GyazoExternalApiModule;
+const { createShellExternalApi } = requireFromTest(
+    "../../electron-app/preload/shellExternalApi.js"
+) as ShellExternalApiModule;
+
+function createExternalHandlerSpies(): {
+    createSafeEventHandler: ReturnType<typeof vi.fn>;
+    createSafeInvokeHandler: ReturnType<typeof vi.fn>;
+    eventHandlers: Array<{ channel: string; methodName: string }>;
+    invokeCalls: Array<{
+        args: unknown[];
+        channel: GenericInvokeChannel;
+        methodName: string;
+    }>;
+} {
+    const eventHandlers: Array<{ channel: string; methodName: string }> = [];
+    const invokeCalls: Array<{
+        args: unknown[];
+        channel: GenericInvokeChannel;
+        methodName: string;
+    }> = [];
+    const createSafeEventHandler = vi.fn(
+        (channel: string, methodName: string) =>
+            (_callback: (...args: unknown[]) => unknown) => {
+                eventHandlers.push({ channel, methodName });
+                return () => undefined;
+            }
+    );
+    const createSafeInvokeHandler = vi.fn(
+        (channel: GenericInvokeChannel, methodName: string) =>
+            async (...args: unknown[]) => {
+                invokeCalls.push({ args, channel, methodName });
+                return `${methodName}:result`;
+            }
+    );
+
+    return {
+        createSafeEventHandler,
+        createSafeInvokeHandler,
+        eventHandlers,
+        invokeCalls,
+    };
+}
 
 describe("preload external API", () => {
     it("routes shell and Gyazo methods through expected IPC channels", async () => {
         expect.assertions(2);
 
-        const eventHandlers: Array<{ channel: string; methodName: string }> =
-            [];
-        const invokeCalls: Array<{
-            args: unknown[];
-            channel: GenericInvokeChannel;
-            methodName: string;
-        }> = [];
-        const createSafeEventHandler = vi.fn(
-            (channel: string, methodName: string) =>
-                (_callback: (...args: unknown[]) => unknown) => {
-                    eventHandlers.push({ channel, methodName });
-                    return () => undefined;
-                }
-        );
-        const createSafeInvokeHandler = vi.fn(
-            (channel: GenericInvokeChannel, methodName: string) =>
-                async (...args: unknown[]) => {
-                    invokeCalls.push({ args, channel, methodName });
-                    return `${methodName}:result`;
-                }
-        );
+        const {
+            createSafeEventHandler,
+            createSafeInvokeHandler,
+            eventHandlers,
+            invokeCalls,
+        } = createExternalHandlerSpies();
         const api = createExternalApi({
             channels: {
                 GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
@@ -97,6 +160,72 @@ describe("preload external API", () => {
                 args: [],
                 channel: "gyazo:server:stop",
                 methodName: "stopGyazoServer",
+            },
+        ]);
+    });
+
+    it("keeps Gyazo server and OAuth methods in the Gyazo domain", async () => {
+        expect.assertions(2);
+
+        const {
+            createSafeEventHandler,
+            createSafeInvokeHandler,
+            eventHandlers,
+            invokeCalls,
+        } = createExternalHandlerSpies();
+        const api = createGyazoExternalApi({
+            channels: {
+                GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
+                GYAZO_SERVER_START: "gyazo:server:start",
+                GYAZO_SERVER_STOP: "gyazo:server:stop",
+            },
+            createSafeEventHandler,
+            createSafeInvokeHandler,
+        });
+
+        api.onGyazoOAuthCallback(vi.fn());
+        await api.startGyazoServer(3000);
+        await api.stopGyazoServer();
+
+        expect(eventHandlers).toStrictEqual([
+            {
+                channel: "gyazo-oauth-callback",
+                methodName: "onGyazoOAuthCallback",
+            },
+        ]);
+        expect(invokeCalls).toStrictEqual([
+            {
+                args: [3000],
+                channel: "gyazo:server:start",
+                methodName: "startGyazoServer",
+            },
+            {
+                args: [],
+                channel: "gyazo:server:stop",
+                methodName: "stopGyazoServer",
+            },
+        ]);
+    });
+
+    it("keeps shell navigation in the shell external domain", async () => {
+        expect.assertions(1);
+
+        const { createSafeInvokeHandler, invokeCalls } =
+            createExternalHandlerSpies();
+        const api = createShellExternalApi({
+            channels: {
+                SHELL_OPEN_EXTERNAL: "shell:openExternal",
+            },
+            createSafeInvokeHandler,
+        });
+
+        await api.openExternal("https://example.com/");
+
+        expect(invokeCalls).toStrictEqual([
+            {
+                args: ["https://example.com/"],
+                channel: "shell:openExternal",
+                methodName: "openExternal",
             },
         ]);
     });
