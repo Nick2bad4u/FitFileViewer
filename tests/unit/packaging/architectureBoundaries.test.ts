@@ -1227,6 +1227,20 @@ describe("architecture boundaries", () => {
         expect(chartSettingsSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps tab-button debug reads on renderer state facades", () => {
+        expect.assertions(3);
+
+        const tabButtonDebugSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/enableTabButtonsDebug.ts"
+            )
+        );
+
+        expect(tabButtonDebugSource).toContain("rendererActiveTabState.js");
+        expect(tabButtonDebugSource).toContain("rendererTabButtonsState.js");
+        expect(tabButtonDebugSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 

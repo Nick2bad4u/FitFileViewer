@@ -1,7 +1,8 @@
 import { isHTMLElement } from "../../dom/index.js";
-import { getState } from "../../state/core/stateManager.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
+import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import { isRendererLoading } from "../../state/domain/rendererLoadingState.js";
+import { areRendererTabButtonsEnabled } from "../../state/domain/rendererTabButtonsState.js";
 import {
     getTabButtonIdentity,
     isOpenFileButton,
@@ -74,7 +75,7 @@ export function debugTabButtons(): void {
 
     const activeFitRawData = getActiveFitActivityData().rawData;
     const isLoading = isRendererLoading();
-    const tabButtonsEnabled = getState("ui.tabButtonsEnabled");
+    const tabButtonsEnabled = areRendererTabButtonsEnabled();
 
     console.log("[TabButtons] Current state:", {
         activeFitRawDataKeys: isRecord(activeFitRawData)
@@ -92,9 +93,9 @@ export function debugTabButtons(): void {
 export function debugTabState(): void {
     console.log("[TabButtons] === CURRENT TAB STATE ===");
     try {
-        const activeTab = getState("ui.activeTab");
+        const activeTab = getRendererActiveTab();
         const activeFitRawData = getActiveFitActivityData().rawData;
-        const tabButtonsEnabled = getState("ui.tabButtonsEnabled");
+        const tabButtonsEnabled = areRendererTabButtonsEnabled();
         console.log("[TabButtons] UI State Snapshot", {
             activeTab,
             hasActiveFitRawData: Boolean(activeFitRawData),

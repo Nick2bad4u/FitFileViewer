@@ -137,6 +137,7 @@
         "electron-app/utils/state/domain/rendererChartControlsState.ts",
         "electron-app/utils/state/domain/rendererChartRenderState.ts",
         "electron-app/utils/state/domain/rendererDragDropState.ts",
+        "electron-app/utils/state/domain/rendererTabButtonsState.ts",
         "electron-app/utils/state/domain/uiStateManager.ts",
         "electron-app/utils/state/domain/index.ts",
         "electron-app/utils/state/integration/mainProcessStateManager.ts",

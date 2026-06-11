@@ -20,6 +20,7 @@ export * from "./rendererChartRenderState.js";
 export * from "./rendererDragDropState.js";
 export * from "./rendererLoadingState.js";
 export * from "./rendererNotificationState.js";
+export * from "./rendererTabButtonsState.js";
 export * from "./settingsStateManager.js";
 export * from "./uiStateManager.js";
 /* eslint-enable no-barrel-files/no-barrel-files */

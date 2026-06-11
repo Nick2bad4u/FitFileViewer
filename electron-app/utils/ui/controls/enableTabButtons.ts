@@ -1,10 +1,12 @@
 import { isHTMLElement } from "../../dom/index.js";
 import {
-    getState,
-    setState,
     subscribe,
 } from "../../state/core/stateManager.js";
 import * as StateManager from "../../state/core/stateManager.js";
+import {
+    areRendererTabButtonsEnabled,
+    setRendererTabButtonsEnabled,
+} from "../../state/domain/rendererTabButtonsState.js";
 import {
     debugTabButtons as debugTabButtonsImpl,
     debugTabState as debugTabStateImpl,
@@ -81,7 +83,7 @@ if (typeof console !== "undefined" && typeof console.trace !== "function") {
  * @returns True if tab buttons are enabled.
  */
 export function areTabButtonsEnabled(): boolean {
-    return getState("ui.tabButtonsEnabled") === true;
+    return areRendererTabButtonsEnabled();
 }
 
 /**
@@ -100,7 +102,7 @@ export function forceEnableTabButtons(): void {
         console.log(`[TabButtons] Force enabled: ${buttonId}`);
     }
 
-    setState("ui.tabButtonsEnabled", true, { source: "forceEnableTabButtons" });
+    setRendererTabButtonsEnabled(true, { source: "forceEnableTabButtons" });
 }
 
 /**
@@ -126,7 +128,7 @@ export function forceFixTabButtons(): void {
         );
     }
 
-    setState("ui.tabButtonsEnabled", true, { source: "forceFixTabButtons" });
+    setRendererTabButtonsEnabled(true, { source: "forceFixTabButtons" });
 
     console.log("[TabButtons] Force fix complete - try clicking now!");
 }
@@ -144,7 +146,7 @@ export function initializeTabButtonState(): void {
     } else if (tabButtonsCurrentlyEnabled === undefined) {
         setTabButtonsEnabled(false);
     } else {
-        setState("ui.tabButtonsEnabled", tabButtonsCurrentlyEnabled, {
+        setRendererTabButtonsEnabled(tabButtonsCurrentlyEnabled, {
             source: "initializeTabButtonState",
         });
     }
@@ -194,7 +196,7 @@ export function setTabButtonsEnabled(enabled: boolean): void {
 
     ensureObserverInstalled();
 
-    setState("ui.tabButtonsEnabled", enabled, {
+    setRendererTabButtonsEnabled(enabled, {
         source: "setTabButtonsEnabled",
     });
 
