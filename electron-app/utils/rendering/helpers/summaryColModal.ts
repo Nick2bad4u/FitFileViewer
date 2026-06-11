@@ -13,6 +13,7 @@ import {
     orderSummaryColumnsNamedFirst,
     saveColPrefs,
 } from "./renderSummaryHelpers.js";
+import { getSummaryColModalRuntime } from "./summaryColModalRuntime.js";
 import { createModalFocusTrap } from "../../ui/modals/modalFocusTrap.js";
 
 type SummaryColModalParams = {
@@ -55,6 +56,7 @@ export function showColModal({
     let lastCheckedIndex: null | number = null;
     const modalController = new AbortController();
     const { signal } = modalController;
+    const runtime = getSummaryColModalRuntime();
     let focusTrapCleanup: (() => void) | undefined;
     const previouslyFocusedElement =
         document.activeElement instanceof HTMLElement
@@ -187,11 +189,13 @@ export function showColModal({
 
         const rect = anchor.getBoundingClientRect();
         const top = rect.bottom + 8;
+        const { height: viewportHeight, width: viewportWidth } =
+            runtime.getViewport();
         const left = Math.min(
             rect.left,
-            Math.max(8, globalThis.innerWidth - 420)
+            Math.max(8, viewportWidth - 420)
         );
-        tooltip.style.top = `${Math.min(top, globalThis.innerHeight - 320)}px`;
+        tooltip.style.top = `${Math.min(top, viewportHeight - 320)}px`;
         tooltip.style.left = `${left}px`;
         tooltip.style.display = "block";
     };

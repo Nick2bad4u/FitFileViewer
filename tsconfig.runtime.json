@@ -380,6 +380,7 @@
         "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
         "electron-app/utils/rendering/helpers/arqueroRuntime.ts",
         "electron-app/utils/rendering/helpers/summaryColModal.ts",
+        "electron-app/utils/rendering/helpers/summaryColModalRuntime.ts",
         "electron-app/utils/rendering/helpers/updateControlsState.ts",
         "electron-app/utils/rendering/helpers/index.ts",
         "electron-app/utils/rendering/core/dataTableRuntime.ts",
