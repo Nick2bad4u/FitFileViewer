@@ -26,7 +26,6 @@ declare global {
         AppState?: unknown;
         __appState?: unknown;
         chartStateManager?: unknown;
-        tabStateManager?: unknown;
         chartControlsState?: unknown;
         loadedFitFiles?: FitDecodeResult[];
 
