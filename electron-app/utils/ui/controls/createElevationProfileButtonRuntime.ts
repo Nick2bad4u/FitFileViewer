@@ -1,6 +1,7 @@
 type ElevationProfilePopupWindow = Window | null;
 
 export interface CreateElevationProfileButtonRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly chartOverlayColorPalette?: unknown;
     readonly document?: Document | undefined;
     readonly open?:
@@ -13,6 +14,7 @@ export interface CreateElevationProfileButtonRuntimeScope {
 }
 
 export interface CreateElevationProfileButtonRuntime {
+    createAbortController: () => AbortController;
     createButton: () => HTMLButtonElement;
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
@@ -31,6 +33,22 @@ export interface CreateElevationProfileButtonRuntime {
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
+function getAbortControllerConstructor(
+    scope: CreateElevationProfileButtonRuntimeScope
+): typeof AbortController {
+    const AbortControllerConstructor =
+        scope.AbortController ??
+        scope.document?.defaultView?.AbortController ??
+        globalThis.AbortController;
+    if (typeof AbortControllerConstructor !== "function") {
+        throw new TypeError(
+            "createElevationProfileButton requires an AbortController runtime"
+        );
+    }
+
+    return AbortControllerConstructor;
+}
+
 function getDocument(
     scope: CreateElevationProfileButtonRuntimeScope
 ): Document {
@@ -48,6 +66,9 @@ export function getCreateElevationProfileButtonRuntime(
     scope: CreateElevationProfileButtonRuntimeScope = globalThis
 ): CreateElevationProfileButtonRuntime {
     return {
+        createAbortController(): AbortController {
+            return new (getAbortControllerConstructor(scope))();
+        },
         createButton(): HTMLButtonElement {
             return getDocument(scope).createElement("button");
         },

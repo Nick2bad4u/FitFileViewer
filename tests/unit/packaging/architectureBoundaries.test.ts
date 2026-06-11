@@ -648,7 +648,7 @@ const directMapActionButtonsRuntimeGlobalPattern =
 const directOpenFileSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
-    /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b/u;
+    /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
 const directAltFitSenderRuntimeGlobalPattern =
     /\bglobalThis\.(?:console|document|location)\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =

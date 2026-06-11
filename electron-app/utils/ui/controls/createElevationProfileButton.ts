@@ -182,7 +182,7 @@ export function createElevationProfileButton(): HTMLButtonElement {
     btn.append(createElevationIcon(runtime, p), label);
     btn.title = "Show Elevation Profile";
 
-    const buttonListener = new AbortController();
+    const buttonListener = runtime.createAbortController();
     btn.addEventListener(
         "click",
         () => {

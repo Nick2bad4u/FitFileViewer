@@ -13,6 +13,19 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         expect(runtime.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
     });
 
+    it("creates abort controllers through the injected runtime", () => {
+        expect.assertions(2);
+
+        const runtime = getCreateElevationProfileButtonRuntime({
+            AbortController,
+            document,
+        });
+        const controller = runtime.createAbortController();
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(controller.signal.aborted).toBe(false);
+    });
+
     it("reads dark-theme state from the injected document", () => {
         expect.assertions(2);
 
@@ -82,12 +95,23 @@ describe("getCreateElevationProfileButtonRuntime", () => {
     });
 
     it("fails clearly when document-backed operations lack a document", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const runtime = getCreateElevationProfileButtonRuntime({});
+        const runtimeWithInvalidAbortController =
+            getCreateElevationProfileButtonRuntime({
+                AbortController:
+                    "AbortController" as unknown as typeof AbortController,
+                document,
+            });
 
         expect(() => runtime.createButton()).toThrow(
             "createElevationProfileButton requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithInvalidAbortController.createAbortController()
+        ).toThrow(
+            "createElevationProfileButton requires an AbortController runtime"
         );
         expect(() => runtime.isDarkTheme()).toThrow(
             "createElevationProfileButton requires a document runtime"
