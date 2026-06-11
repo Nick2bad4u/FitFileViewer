@@ -4,10 +4,11 @@
  */
 
 import {
-    getState,
-    setState,
-    subscribe,
-} from "../../state/core/stateManager.js";
+    getRendererPreviousTheme,
+    setRendererPreviousTheme,
+    setRendererTheme,
+    subscribeToRendererTheme,
+} from "../../state/domain/rendererThemeState.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
@@ -157,7 +158,7 @@ export async function setupTheme(
         const emergencyTheme = THEME_CONSTANTS.DEFAULT_THEME;
         try {
             applyTheme(emergencyTheme);
-            setState("ui.theme", emergencyTheme, {
+            setRendererTheme(emergencyTheme, {
                 source: "setupTheme-emergency",
             });
         } catch (emergencyError) {
@@ -199,7 +200,7 @@ function applyAndTrackTheme(
         // - Theme core persists: "auto" | "dark" | "light"
         // - UI/state layer historically uses: "system" for auto
         const uiTheme = resolvedTheme === "auto" ? "system" : resolvedTheme;
-        setState("ui.theme", uiTheme, { source: "setupTheme" });
+        setRendererTheme(uiTheme, { source: "setupTheme" });
 
         // Store in localStorage for persistence
         try {
@@ -351,13 +352,13 @@ function setupThemeChangeListener(
         }
 
         // Set up state-based theme change listener
-        subscribe("ui.theme", (newTheme) => {
+        subscribeToRendererTheme((newTheme) => {
             if (
                 typeof newTheme === "string" &&
-                newTheme !== getState("ui.previousTheme")
+                newTheme !== getRendererPreviousTheme()
             ) {
                 logWithContext(`State-driven theme change: ${newTheme}`);
-                setState("ui.previousTheme", newTheme, {
+                setRendererPreviousTheme(newTheme, {
                     source: "setupTheme",
                 });
 

@@ -2,9 +2,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
+    getRendererPreviousTheme,
     getRendererTheme,
     normalizeRendererTheme,
+    setRendererPreviousTheme,
     setRendererTheme,
+    subscribeToRendererTheme,
 } from "../../../../../electron-app/utils/state/domain/rendererThemeState.js";
 
 describe("rendererThemeState", () => {
@@ -19,6 +22,31 @@ describe("rendererThemeState", () => {
 
         setRendererTheme("dark", { source: "test" });
         expect(getRendererTheme()).toBe("dark");
+    });
+
+    it("reads and writes previous renderer theme state", () => {
+        expect.assertions(2);
+
+        expect(getRendererPreviousTheme()).toBeUndefined();
+
+        setRendererPreviousTheme("light", { source: "test" });
+        expect(getRendererPreviousTheme()).toBe("light");
+    });
+
+    it("subscribes to renderer theme changes", () => {
+        expect.assertions(2);
+
+        const changes: unknown[] = [];
+        const unsubscribe = subscribeToRendererTheme((newValue) => {
+            changes.push(newValue);
+        });
+
+        setRendererTheme("dark", { source: "test" });
+        expect(changes).toStrictEqual(["dark"]);
+
+        unsubscribe();
+        setRendererTheme("light", { source: "test" });
+        expect(changes).toStrictEqual(["dark"]);
     });
 
     it("normalizes empty values to system", () => {

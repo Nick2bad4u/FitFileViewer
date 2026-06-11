@@ -1341,6 +1341,17 @@ describe("architecture boundaries", () => {
         expect(settingsModalSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps theme setup state access on the renderer theme state facade", () => {
+        expect.assertions(2);
+
+        const setupThemeSource = stripComments(
+            readRepositoryFile("electron-app/utils/theming/core/setupTheme.ts")
+        );
+
+        expect(setupThemeSource).toContain("rendererThemeState.js");
+        expect(setupThemeSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps tab state-manager support on the renderer state access facade", () => {
         expect.assertions(2);
 
