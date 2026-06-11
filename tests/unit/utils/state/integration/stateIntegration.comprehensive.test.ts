@@ -1,20 +1,37 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
-// Type augmentation for globalThis
-declare global {
-    var globalData: any;
-    var isChartRendered: any;
-    var AppState: any;
-    var chartControlsState: any;
-    var __persistenceTimeout: any;
-    var __performanceMonitoringInterval: any;
-    var __DEVELOPMENT__: any;
-    var electronAPI: any;
-}
-
 type StateSubscriber = (newValue?: unknown, oldValue?: unknown) => void;
 type StateUnsubscribe = () => void;
+type RetiredStateGlobalName =
+    | "AppState"
+    | "__DEVELOPMENT__"
+    | "__performanceMonitoringInterval"
+    | "__persistenceTimeout"
+    | "chartControlsState"
+    | "electronAPI"
+    | "globalData"
+    | "isChartRendered";
+
+function deleteRetiredGlobal(name: RetiredStateGlobalName): void {
+    Reflect.deleteProperty(globalThis, name);
+}
+
+function getRetiredGlobal<T = unknown>(
+    name: RetiredStateGlobalName
+): T | undefined {
+    return Reflect.get(globalThis, name) as T | undefined;
+}
+
+function getRetiredGlobalDescriptor(
+    name: RetiredStateGlobalName | "__state_debug"
+): PropertyDescriptor | undefined {
+    return Object.getOwnPropertyDescriptor(globalThis, name);
+}
+
+function setRetiredGlobal(name: RetiredStateGlobalName, value: unknown): void {
+    Reflect.set(globalThis, name, value);
+}
 
 // Setup comprehensive mocks
 vi.mock(
@@ -100,14 +117,14 @@ describe("stateIntegration comprehensive coverage", () => {
         (globalThis as any).performance = mockPerformance;
 
         // Clean up global state
-        delete globalThis.globalData;
-        delete globalThis.isChartRendered;
-        delete globalThis.AppState;
-        delete globalThis.chartControlsState;
+        deleteRetiredGlobal("globalData");
+        deleteRetiredGlobal("isChartRendered");
+        deleteRetiredGlobal("AppState");
+        deleteRetiredGlobal("chartControlsState");
         Reflect.deleteProperty(globalThis, "__state_debug");
-        delete globalThis.__persistenceTimeout;
-        delete globalThis.__performanceMonitoringInterval;
-        delete globalThis.__DEVELOPMENT__;
+        deleteRetiredGlobal("__persistenceTimeout");
+        deleteRetiredGlobal("__performanceMonitoringInterval");
+        deleteRetiredGlobal("__DEVELOPMENT__");
         restoreLocation();
     });
 
@@ -117,14 +134,14 @@ describe("stateIntegration comprehensive coverage", () => {
         (globalThis as any).performance = originalPerformance;
 
         // Clean up test globals
-        delete globalThis.globalData;
-        delete globalThis.isChartRendered;
-        delete globalThis.AppState;
-        delete globalThis.chartControlsState;
+        deleteRetiredGlobal("globalData");
+        deleteRetiredGlobal("isChartRendered");
+        deleteRetiredGlobal("AppState");
+        deleteRetiredGlobal("chartControlsState");
         Reflect.deleteProperty(globalThis, "__state_debug");
-        delete globalThis.__persistenceTimeout;
-        delete globalThis.__performanceMonitoringInterval;
-        delete globalThis.__DEVELOPMENT__;
+        deleteRetiredGlobal("__persistenceTimeout");
+        deleteRetiredGlobal("__performanceMonitoringInterval");
+        deleteRetiredGlobal("__DEVELOPMENT__");
         restoreLocation();
 
         // Clear any timers
@@ -246,10 +263,10 @@ describe("stateIntegration comprehensive coverage", () => {
                 "[StateIntegration] Application state management initialized"
             );
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "globalData")
+                getRetiredGlobalDescriptor("globalData")
             ).toBeUndefined();
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+                getRetiredGlobalDescriptor("__state_debug")
             ).toBeUndefined();
 
             consoleSpy.mockRestore();
@@ -259,7 +276,7 @@ describe("stateIntegration comprehensive coverage", () => {
             expect.assertions(3);
 
             // Set development mode
-            globalThis.__DEVELOPMENT__ = true;
+            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -275,7 +292,7 @@ describe("stateIntegration comprehensive coverage", () => {
             ).toHaveBeenCalledOnce();
             expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+                getRetiredGlobalDescriptor("__state_debug")
             ).toBeUndefined();
 
             consoleSpy.mockRestore();
@@ -294,7 +311,7 @@ describe("stateIntegration comprehensive coverage", () => {
             initializeCompleteStateSystem();
 
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "globalData")
+                getRetiredGlobalDescriptor("globalData")
             ).toBeUndefined();
             expect(mockStateManager.subscribe).toHaveBeenCalledWith(
                 "",
@@ -315,7 +332,7 @@ describe("stateIntegration comprehensive coverage", () => {
             const { migrateChartControlsState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            globalThis.chartControlsState = { isVisible: true };
+            setRetiredGlobal("chartControlsState", { isVisible: true });
 
             const consoleSpy = vi
                 .spyOn(console, "log")
@@ -323,7 +340,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
             migrateChartControlsState();
 
-            expect(globalThis.chartControlsState).toStrictEqual({
+            expect(getRetiredGlobal("chartControlsState")).toStrictEqual({
                 isVisible: true,
             });
             expect(mockStateManager.setState).not.toHaveBeenCalled();
@@ -341,7 +358,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
             expect(() => migrateChartControlsState()).not.toThrow();
 
-            expect(globalThis.chartControlsState).toBeUndefined();
+            expect(getRetiredGlobal("chartControlsState")).toBeUndefined();
             expect(mockStateManager.setState).not.toHaveBeenCalled();
         });
     });
@@ -617,14 +634,14 @@ describe("stateIntegration comprehensive coverage", () => {
                 mockStateManager.initializeStateManager
             ).toHaveBeenCalledOnce();
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+                getRetiredGlobalDescriptor("__state_debug")
             ).toBeUndefined();
         });
 
         it("should initialize development mode without publishing state debug globals", async () => {
             expect.assertions(2);
 
-            globalThis.__DEVELOPMENT__ = true;
+            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -635,7 +652,7 @@ describe("stateIntegration comprehensive coverage", () => {
                 mockStateManager.initializeStateManager
             ).toHaveBeenCalledOnce();
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+                getRetiredGlobalDescriptor("__state_debug")
             ).toBeUndefined();
         });
 
@@ -662,7 +679,7 @@ describe("stateIntegration comprehensive coverage", () => {
                 mockStateManager.initializeStateManager
             ).toHaveBeenCalledOnce();
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+                getRetiredGlobalDescriptor("__state_debug")
             ).toBeUndefined();
         });
 
@@ -684,7 +701,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
             // Startup should not depend on browser location access.
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+                getRetiredGlobalDescriptor("__state_debug")
             ).toBeUndefined();
         });
     });
@@ -696,7 +713,7 @@ describe("stateIntegration comprehensive coverage", () => {
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
 
-            globalThis.globalData = { test: "data" };
+            setRetiredGlobal("globalData", { test: "data" });
             initializeAppState();
 
             expect(
@@ -705,7 +722,7 @@ describe("stateIntegration comprehensive coverage", () => {
                 )
             ).toStrictEqual([]);
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "globalData")
+                getRetiredGlobalDescriptor("globalData")
             ).toMatchObject({
                 configurable: true,
                 value: { test: "data" },
@@ -717,8 +734,8 @@ describe("stateIntegration comprehensive coverage", () => {
             expect.assertions(2);
 
             // Set existing properties
-            globalThis.globalData = { existing: "data" };
-            globalThis.AppState = { existing: "appstate" };
+            setRetiredGlobal("globalData", { existing: "data" });
+            setRetiredGlobal("AppState", { existing: "appstate" });
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -726,13 +743,15 @@ describe("stateIntegration comprehensive coverage", () => {
             initializeAppState();
 
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "globalData")
+                getRetiredGlobalDescriptor("globalData")
             ).toMatchObject({
                 configurable: true,
                 value: { existing: "data" },
                 writable: true,
             });
-            expect(globalThis.AppState).toEqual({ existing: "appstate" });
+            expect(getRetiredGlobal("AppState")).toEqual({
+                existing: "appstate",
+            });
         });
 
         it("should leave removed compatibility globals absent (smoke)", async () => {
@@ -744,13 +763,13 @@ describe("stateIntegration comprehensive coverage", () => {
             initializeAppState();
 
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "globalData")
+                getRetiredGlobalDescriptor("globalData")
             ).toBeUndefined();
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "AppState")
+                getRetiredGlobalDescriptor("AppState")
             ).toBeUndefined();
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "isChartRendered")
+                getRetiredGlobalDescriptor("isChartRendered")
             ).toBeUndefined();
             expect(mockStateManager.setState).not.toHaveBeenCalledWith(
                 "charts.isRendered",
@@ -766,7 +785,7 @@ describe("stateIntegration comprehensive coverage", () => {
         it("should keep state debug globals absent in development mode", async () => {
             expect.assertions(3);
 
-            globalThis.__DEVELOPMENT__ = true;
+            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -778,14 +797,14 @@ describe("stateIntegration comprehensive coverage", () => {
             ).toHaveBeenCalledOnce();
             expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+                getRetiredGlobalDescriptor("__state_debug")
             ).toBeUndefined();
         });
 
         it("should not expose global debug utility actions", async () => {
             expect.assertions(4);
 
-            globalThis.__DEVELOPMENT__ = true;
+            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -800,7 +819,7 @@ describe("stateIntegration comprehensive coverage", () => {
             expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
             expect(mockStateManager.getState).not.toHaveBeenCalled();
             expect(
-                Object.getOwnPropertyDescriptor(globalThis, "__state_debug")
+                getRetiredGlobalDescriptor("__state_debug")
             ).toBeUndefined();
         });
     });
