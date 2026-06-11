@@ -165,12 +165,19 @@ describe("settingsStateManager.js - simplified coverage", () => {
     describe("settingsStateManager class", () => {
         describe("clearCachedChartSettings", () => {
             it("should clear cached chart settings through the settings state path", () => {
-                expect.assertions(1);
+                expect.assertions(2);
+                const writtenState = new Map<string, unknown>();
+                mockSetState.mockImplementationOnce((path, value) => {
+                    writtenState.set(path, value);
+                });
 
                 settingsStateManagerModule.clearCachedChartSettings({
                     source: "test.clearCachedChartSettings",
                 });
 
+                expect(Object.fromEntries(writtenState)).toStrictEqual({
+                    "settings.charts": null,
+                });
                 expect(mockSetState).toHaveBeenCalledWith(
                     "settings.charts",
                     null,
@@ -183,7 +190,11 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
         describe("setCachedChartSettings", () => {
             it("should replace cached chart settings through the settings state path", () => {
-                expect.assertions(1);
+                expect.assertions(2);
+                const writtenState = new Map<string, unknown>();
+                mockSetState.mockImplementationOnce((path, value) => {
+                    writtenState.set(path, value);
+                });
 
                 settingsStateManagerModule.setCachedChartSettings(
                     {
@@ -194,6 +205,13 @@ describe("settingsStateManager.js - simplified coverage", () => {
                     { source: "test.setCachedChartSettings" }
                 );
 
+                expect(Object.fromEntries(writtenState)).toStrictEqual({
+                    "settings.charts": {
+                        fieldVisibility: {
+                            speed: "visible",
+                        },
+                    },
+                });
                 expect(mockSetState).toHaveBeenCalledWith(
                     "settings.charts",
                     {

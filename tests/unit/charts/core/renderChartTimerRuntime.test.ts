@@ -20,18 +20,21 @@ describe("getRenderChartTimerRuntime", () => {
             setTimeout: setTimeoutMock,
         });
         const callback = () => undefined;
+        const scheduleDelay = 125;
 
-        const scheduledTimeout = runtime.setTimeout(callback, 125);
+        const scheduledTimeout = runtime.setTimeout(callback, scheduleDelay);
         runtime.clearTimeout(scheduledTimeout);
 
         expect(scheduledTimeout).toBe(timeoutId);
-        expect(setTimeoutMock).toHaveBeenCalledWith(callback, 125);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, scheduleDelay);
         expect(clearTimeoutMock).toHaveBeenCalledWith(timeoutId);
     });
 
     it("waits by scheduling a timeout through the injected scope", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
+        let resolved = false;
+        let scheduledDelay: number | undefined;
         let scheduledCallback: (() => void) | undefined;
         const timeoutId = 8 as ReturnType<typeof setTimeout>;
         const setTimeoutMock = vi.fn<
@@ -39,8 +42,9 @@ describe("getRenderChartTimerRuntime", () => {
                 callback: () => void,
                 delay: number
             ) => ReturnType<typeof setTimeout>
-        >((callback) => {
+        >((callback, delay) => {
             scheduledCallback = callback;
+            scheduledDelay = delay;
             return timeoutId;
         });
         const clearTimeoutMock =
@@ -50,13 +54,19 @@ describe("getRenderChartTimerRuntime", () => {
             setTimeout: setTimeoutMock,
         });
 
-        const promise = runtime.waitForNextTask();
+        const promise = runtime.waitForNextTask().then(() => {
+            resolved = true;
+        });
 
-        expect(setTimeoutMock).toHaveBeenCalledWith(expect.any(Function), 0);
+        expect({ resolved, scheduledDelay }).toStrictEqual({
+            resolved: false,
+            scheduledDelay: 0,
+        });
 
         scheduledCallback?.();
         await promise;
 
+        expect(resolved).toStrictEqual(true);
         expect(clearTimeoutMock).not.toHaveBeenCalled();
         expect(setTimeoutMock).toHaveBeenCalledOnce();
     });

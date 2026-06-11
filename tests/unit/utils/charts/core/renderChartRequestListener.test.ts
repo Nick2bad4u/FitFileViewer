@@ -46,10 +46,12 @@ describe("registerChartRequestListener", () => {
     });
 
     it("delegates request events to the chart state manager when available", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const container = document.createElement("section");
-        const debouncedRender = vi.fn<(reason: string) => void>();
+        const debouncedRender = vi.fn<(reason: string) => void>((reason) => {
+            container.dataset.debouncedReason = reason;
+        });
         const renderChart = vi.fn<(container: HTMLElement) => unknown>();
         const runtime = createRuntime(container);
         vi.spyOn(console, "log").mockImplementation(() => {});
@@ -66,6 +68,7 @@ describe("registerChartRequestListener", () => {
             })
         );
 
+        expect(container.dataset.debouncedReason).toBe("settings-change");
         expect(runtime.addChartRequestListener).toHaveBeenCalledWith(
             expect.any(Function),
             { signal: expect.any(AbortSignal) }
@@ -76,10 +79,14 @@ describe("registerChartRequestListener", () => {
     });
 
     it("renders against the runtime fallback container when no manager is available", async () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const container = document.createElement("section");
-        const renderChart = vi.fn<(container: HTMLElement) => unknown>();
+        const renderChart = vi.fn<(container: HTMLElement) => unknown>(
+            (target) => {
+                target.dataset.rendered = "true";
+            }
+        );
         const runtime = createRuntime(container);
         vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -94,6 +101,7 @@ describe("registerChartRequestListener", () => {
         );
         await Promise.resolve();
 
+        expect(container.dataset.rendered).toBe("true");
         expect(runtime.getFallbackChartContainer).toHaveBeenCalledOnce();
         expect(renderChart).toHaveBeenCalledOnce();
         expect(renderChart).toHaveBeenCalledWith(container);

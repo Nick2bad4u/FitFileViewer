@@ -28,10 +28,16 @@ function createRuntime({
 
 describe("main UI summary column selector", () => {
     it("clicks the summary tab before opening the delayed gear selector", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const summaryTab = document.createElement("button");
         const gearButton = document.createElement("button");
+        summaryTab.onclick = () => {
+            summaryTab.dataset.clicked = "true";
+        };
+        gearButton.onclick = () => {
+            gearButton.dataset.clicked = "true";
+        };
         const runtime = createRuntime({ gearButton, summaryTab });
         const logMainUi = vi.fn();
         const registerTimer = vi.fn();
@@ -48,6 +54,13 @@ describe("main UI summary column selector", () => {
 
         handler();
 
+        expect({
+            gearClicked: gearButton.dataset.clicked,
+            summaryClicked: summaryTab.dataset.clicked,
+        }).toStrictEqual({
+            gearClicked: "true",
+            summaryClicked: "true",
+        });
         expect(summaryTabClick).toHaveBeenCalledOnce();
         expect(gearButtonClick).toHaveBeenCalledOnce();
         expect(runtime.setTimeout).toHaveBeenCalledWith(
@@ -61,11 +74,17 @@ describe("main UI summary column selector", () => {
     });
 
     it("does not click the summary tab when it is already active", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const summaryTab = document.createElement("button");
         summaryTab.classList.add("active");
         const gearButton = document.createElement("button");
+        summaryTab.onclick = () => {
+            summaryTab.dataset.clicked = "true";
+        };
+        gearButton.onclick = () => {
+            gearButton.dataset.clicked = "true";
+        };
         const runtime = createRuntime({ gearButton, summaryTab });
         const summaryTabClick = vi.spyOn(summaryTab, "click");
         const handler = createMainUiSummaryColumnSelectorHandler({
@@ -79,27 +98,37 @@ describe("main UI summary column selector", () => {
 
         handler();
 
+        expect({
+            gearClicked: gearButton.dataset.clicked,
+            summaryClicked: summaryTab.dataset.clicked,
+        }).toStrictEqual({
+            gearClicked: "true",
+            summaryClicked: undefined,
+        });
         expect(summaryTabClick).not.toHaveBeenCalled();
         expect(runtime.setTimeout).toHaveBeenCalledOnce();
     });
 
     it("logs when the delayed gear button is missing", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const logMainUi = vi.fn();
+        const summaryTab = document.createElement("button");
+        summaryTab.onclick = () => {
+            summaryTab.dataset.clicked = "true";
+        };
         const handler = createMainUiSummaryColumnSelectorHandler({
             delay: 150,
             gearButtonSelector: ".summary-gear-btn",
             logMainUi,
             registerTimer: vi.fn(),
-            runtime: createRuntime({
-                summaryTab: document.createElement("button"),
-            }),
+            runtime: createRuntime({ summaryTab }),
             summaryTabId: "tab-summary",
         });
 
         handler();
 
+        expect(summaryTab.dataset.clicked).toBe("true");
         expect(logMainUi).toHaveBeenCalledWith(
             "warn",
             "Summary gear button not found"

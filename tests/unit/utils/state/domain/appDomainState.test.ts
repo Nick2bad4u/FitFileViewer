@@ -24,16 +24,18 @@ describe("appDomainState renderer facade", () => {
     it("reads and subscribes through the app-domain state facade", () => {
         expect.assertions(2);
 
-        const listener = vi.fn();
+        let receivedEvent: unknown;
         const unsubscribe = subscribeAppDomain(
             "ui.activeTab-changed",
-            listener
+            (event) => {
+                receivedEvent = event;
+            }
         );
 
         setLegacyAppState("ui.activeTab", "map");
 
         expect(getAppDomainState("ui.activeTab")).toBe("map");
-        expect(listener).toHaveBeenCalledWith({
+        expect(receivedEvent).toStrictEqual({
             newValue: "map",
             oldValue: "summary",
             path: "ui.activeTab",
@@ -46,20 +48,30 @@ describe("appDomainState renderer facade", () => {
     it("subscribes to centralized app-domain state paths", () => {
         expect.assertions(2);
 
-        const listener = vi.fn();
-        const unsubscribe = subscribeAppDomainPath("app.isOpeningFile", listener);
+        let callCount = 0;
+        let latestValue: unknown;
+        function listener(value: unknown): void {
+            callCount += 1;
+            latestValue = value;
+        }
+        const unsubscribe = subscribeAppDomainPath(
+            "app.isOpeningFile",
+            listener
+        );
 
         setState("app.isOpeningFile", true, { source: "test" });
 
-        expect(listener).toHaveBeenCalledWith(
-            true,
-            undefined,
-            "app.isOpeningFile"
-        );
+        expect({ callCount, latestValue }).toStrictEqual({
+            callCount: 1,
+            latestValue: true,
+        });
 
         unsubscribe();
         setState("app.isOpeningFile", false, { source: "test" });
 
-        expect(listener).toHaveBeenCalledOnce();
+        expect({ callCount, latestValue }).toStrictEqual({
+            callCount: 1,
+            latestValue: true,
+        });
     });
 });

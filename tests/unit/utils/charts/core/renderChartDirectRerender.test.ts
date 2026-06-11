@@ -23,14 +23,15 @@ describe("createDebouncedDirectRerender", () => {
     });
 
     it("renders through the injected chart container runtime", async () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         vi.useFakeTimers();
         const container = document.createElement("section");
         const getStateManager = vi.fn(() => ({}));
-        const renderChart = vi.fn<() => Promise<unknown>>(() =>
-            Promise.resolve()
-        );
+        const renderChart = vi.fn<() => Promise<unknown>>(() => {
+            container.dataset.rendered = "true";
+            return Promise.resolve();
+        });
         const rerender = createDebouncedDirectRerender({
             getStateManager,
             isDevelopmentEnvironment: () => false,
@@ -45,6 +46,7 @@ describe("createDebouncedDirectRerender", () => {
         rerender("state update");
         await vi.advanceTimersByTimeAsync(25);
 
+        expect(container.dataset.rendered).toBe("true");
         expect(getStateManager).toHaveBeenCalledOnce();
         expect(hasActiveFitChartDataMock).toHaveBeenCalledOnce();
         expect(renderChart).toHaveBeenCalledOnce();
@@ -52,10 +54,11 @@ describe("createDebouncedDirectRerender", () => {
     });
 
     it("skips rendering when no FIT chart data is active", async () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         vi.useFakeTimers();
         hasActiveFitChartDataMock.mockReturnValue(false);
+        const container = document.createElement("section");
         const renderChart = vi.fn<() => Promise<unknown>>(() =>
             Promise.resolve()
         );
@@ -65,7 +68,7 @@ describe("createDebouncedDirectRerender", () => {
             isDevelopmentEnvironment: () => true,
             renderChart,
             runtime: {
-                queryChartContainer: () => document.createElement("section"),
+                queryChartContainer: () => container,
                 querySelector: () => null,
             },
             waitMs: 25,
@@ -74,6 +77,7 @@ describe("createDebouncedDirectRerender", () => {
         rerender("state update");
         await vi.advanceTimersByTimeAsync(25);
 
+        expect(container.dataset.rendered).toBeUndefined();
         expect(renderChart).not.toHaveBeenCalled();
         expect(logSpy).toHaveBeenCalledWith(
             "[ChartJS] Skipping direct re-render (state update) - no container or no data"
