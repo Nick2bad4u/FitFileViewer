@@ -49,7 +49,6 @@ interface ElevationPopupThemeColors {
 }
 
 type ElevationGlobal = typeof globalThis & {
-    Chart?: unknown;
     chartOverlayColorPalette?: unknown;
 };
 
@@ -70,7 +69,6 @@ interface ElevationChartConstructor {
 }
 
 interface ElevationChartWindow extends Window {
-    Chart?: unknown;
     HTMLCanvasElement?: typeof HTMLCanvasElement;
 }
 
@@ -315,11 +313,6 @@ function getElevationGlobal(): ElevationGlobal {
 async function resolveElevationChartConstructor(): Promise<
     ElevationChartConstructor | undefined
 > {
-    const { Chart } = getElevationGlobal();
-    if (isElevationChartConstructor(Chart)) {
-        return Chart;
-    }
-
     return resolveChartRuntime(isElevationChartConstructor) ?? undefined;
 }
 
@@ -438,14 +431,12 @@ function buildElevationProfilePopup(
     container.id = "elevChartsContainer";
     chartDoc.body.append(header, container);
 
-    const elevationChartWindow = chartWin as ElevationChartWindow;
-    elevationChartWindow.Chart ??= chartConstructor;
-
     renderElevationCharts(
-        elevationChartWindow,
+        chartWin as ElevationChartWindow,
         container,
         fitFilesModel,
-        isDark
+        isDark,
+        chartConstructor
     );
 }
 
@@ -548,9 +539,10 @@ function renderElevationCharts(
     chartWin: ElevationChartWindow,
     container: HTMLDivElement,
     fitFiles: ElevationProfileFileModel[],
-    isDark: boolean
+    isDark: boolean,
+    chartConstructor: ElevationChartConstructor | undefined
 ): void {
-    const Chart = chartWin.Chart;
+    const Chart = chartConstructor;
     if (!isElevationChartConstructor(Chart)) {
         return;
     }

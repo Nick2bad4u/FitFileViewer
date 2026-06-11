@@ -8,6 +8,10 @@ import {
     setState,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
 import { setLoadedFitFiles } from "../../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../../../electron-app/utils/charts/core/chartRuntime.js";
 
 type ElevationProfilePoint = { x: number; y: number };
 type ElevationProfileFileModel = {
@@ -19,9 +23,7 @@ type ChartMockImplementation = (
     context: CanvasRenderingContext2D,
     config: unknown
 ) => void;
-type MockElevationPopupWindow = Window & {
-    Chart: ReturnType<typeof vi.fn<ChartMockImplementation>>;
-};
+type MockElevationPopupWindow = Window;
 
 let openSpy: any;
 let chartMock: ReturnType<typeof vi.fn<ChartMockImplementation>>;
@@ -136,7 +138,7 @@ describe(createElevationProfileButton, () => {
             .mockReturnValue({} as CanvasRenderingContext2D);
 
         chartMock = vi.fn<ChartMockImplementation>(function MockChart() {});
-        (window as any).Chart = chartMock;
+        setChartRuntime(chartMock);
 
         // Setup window.open spy
         openSpy = vi.spyOn(window, "open").mockImplementation(() => {
@@ -153,6 +155,7 @@ describe(createElevationProfileButton, () => {
     // eslint-disable-next-line vitest/no-hooks -- Restores mocked browser globals after each popup scenario.
     afterEach(() => {
         __resetStateManagerForTests();
+        clearChartRuntimeForTests();
         vi.restoreAllMocks();
         // Reset window properties
         Object.keys(window).forEach((key) => {
@@ -183,7 +186,7 @@ describe(createElevationProfileButton, () => {
     });
 
     it("should open a window with no files when clicked and no fit files are loaded", async () => {
-        expect.assertions(7);
+        expect.assertions(6);
 
         // Create the button and click it
         const button = createElevationProfileButton();
@@ -205,7 +208,6 @@ describe(createElevationProfileButton, () => {
         });
         expect(getPopupChartContainer(mockWin).children).toHaveLength(0);
         expect(mockWin.document.querySelector("script")).toBeNull();
-        expect(mockWin.Chart).toBe(chartMock);
 
         expect(chartMock).not.toHaveBeenCalled();
     });

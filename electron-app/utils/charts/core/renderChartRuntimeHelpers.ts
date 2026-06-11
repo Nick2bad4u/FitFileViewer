@@ -18,12 +18,8 @@ interface ProcessShim {
 }
 
 interface RenderChartRuntimeGlobal {
-    process?: ProcessShim;
-    chartjsPluginZoom?: unknown;
-    Chart?: unknown;
-    ChartZoom?: unknown;
     getThemeConfig?: unknown;
-    window?: unknown;
+    process?: ProcessShim;
 }
 
 interface DebouncedChartStateManager {
