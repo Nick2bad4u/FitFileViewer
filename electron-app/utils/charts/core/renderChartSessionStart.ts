@@ -1,20 +1,20 @@
 import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
 import { touchStringTargetContainer } from "./renderChartPreflight.js";
-import type { StateUpdateOptions } from "../../state/core/stateManager.js";
 import {
     clearExistingCharts,
     startChartRendering,
 } from "./renderChartLifecycle.js";
+import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
 type SetStateFunction = (
     path: string,
     value: unknown,
-    options?: StateUpdateOptions
+    options?: ChartStateUpdateOptions
 ) => void;
 type UpdateStateFunction = (
     path: string,
     value: Record<string, unknown>,
-    options?: StateUpdateOptions
+    options?: ChartStateUpdateOptions
 ) => void;
 
 interface ChartLifecycleActions {
@@ -66,7 +66,7 @@ export async function beginChartRenderSession(
             dependencies.setState(
                 path,
                 value,
-                options as StateUpdateOptions | undefined
+                options as ChartStateUpdateOptions | undefined
             ),
     });
 
@@ -82,7 +82,7 @@ export async function beginChartRenderSession(
             dependencies.updateState(
                 path,
                 value as Record<string, unknown>,
-                options as StateUpdateOptions | undefined
+                options as ChartStateUpdateOptions | undefined
             ),
     });
 

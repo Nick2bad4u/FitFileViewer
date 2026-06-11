@@ -6,7 +6,7 @@ import {
     isChartDataObject,
     storeChartData,
 } from "./renderChartDataPreparation.js";
-import type { StateUpdateOptions } from "../../state/core/stateManager.js";
+import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 import {
     getActiveFitChartData,
     type FitChartActivityStartTime,
@@ -17,7 +17,7 @@ type NotifyFunction = (message: string, type: "info" | "warning") => unknown;
 type SetStateFunction = (
     path: string,
     value: unknown,
-    options?: StateUpdateOptions
+    options?: ChartStateUpdateOptions
 ) => void;
 type SetupZoneDataFunction = (
     activityData: ChartDataRecord | ChartDataRecordSource

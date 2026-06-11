@@ -7,9 +7,9 @@ import {
     registerChartDevTools,
 } from "./chartDevToolsRegistry.js";
 import type {
-    StateListener,
-    StateUpdateOptions,
-} from "../../state/core/stateManager.js";
+    ChartStateListener,
+    ChartStateUpdateOptions,
+} from "./renderChartStateAccess.js";
 import { getActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 
 interface ChartActionsAccess {
@@ -37,9 +37,12 @@ type DebounceFunction = (callback: () => void, delay: number) => () => unknown;
 type SetStateFunction = (
     path: string,
     value: unknown,
-    options?: StateUpdateOptions
+    options?: ChartStateUpdateOptions
 ) => unknown;
-type SubscribeFunction = (path: string, callback: StateListener) => unknown;
+type SubscribeFunction = (
+    path: string,
+    callback: ChartStateListener
+) => unknown;
 
 interface ChartDevToolsDependencies {
     readonly chartActions: ChartActionsAccess;
@@ -152,7 +155,7 @@ export function exposeChartDevTools(
                 source: "dev-tools",
             }),
         settings: chartSettingsManager,
-        subscribe: (path: string, callback: StateListener) =>
+        subscribe: (path: string, callback: ChartStateListener) =>
             dependencies.subscribe(path, callback),
         testDebounce: (delay = 1000) => {
             dependencies.debounce(() => {

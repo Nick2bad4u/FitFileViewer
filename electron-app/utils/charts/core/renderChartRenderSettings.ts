@@ -1,7 +1,5 @@
-import type { StateUpdateOptions } from "../../state/core/stateManager.js";
-import {
-    type ChartPerformanceSettings,
-} from "./renderChartPerformanceSettings.js";
+import { type ChartPerformanceSettings } from "./renderChartPerformanceSettings.js";
+import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 import {
     type MaxPointsValue,
     normalizeMaxPointsValue,
@@ -18,7 +16,7 @@ type ResolvePerformanceSettings = (
 type SetChartOptionsState = (
     path: string,
     value: unknown,
-    options?: StateUpdateOptions
+    options?: ChartStateUpdateOptions
 ) => unknown;
 
 interface ResolveChartRenderSettingsDependencies {

@@ -1,10 +1,7 @@
-import type { StateUpdateOptions } from "../../state/core/stateManager.js";
+import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
 type GetStateFunction = (path: string) => unknown;
-type NotifySuccessFunction = (
-    message: string,
-    type: "success"
-) => unknown;
+type NotifySuccessFunction = (message: string, type: "success") => unknown;
 type ScheduleFunction = (callback: () => void, delay: number) => unknown;
 type ShowRenderNotificationFunction = (
     totalChartsRendered: number,
@@ -13,7 +10,7 @@ type ShowRenderNotificationFunction = (
 type UpdateStateFunction = (
     path: string,
     value: Record<string, unknown>,
-    options?: StateUpdateOptions
+    options?: ChartStateUpdateOptions
 ) => void;
 
 interface ChartRenderNotificationDependencies {

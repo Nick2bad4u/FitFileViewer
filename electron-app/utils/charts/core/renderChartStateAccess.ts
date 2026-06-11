@@ -17,6 +17,9 @@ type UpdateStateFunction = (
     options?: StateUpdateOptions
 ) => void;
 
+export type ChartStateListener = StateListener;
+export type ChartStateUpdateOptions = StateUpdateOptions;
+
 /** State manager functions used by chart rendering compatibility paths. */
 export type ChartStateManagerAccess = {
     readonly getState: GetStateFunction;

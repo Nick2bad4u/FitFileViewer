@@ -1,4 +1,3 @@
-import type { StateUpdateOptions } from "../../state/core/stateManager.js";
 import type { ChartHoverThemeConfig } from "../plugins/addChartHoverEffects.js";
 import { renderNoDataMessage } from "./renderChartDomHelpers.js";
 import { applyCompletedChartHoverEffects } from "./renderChartHoverCompletion.js";
@@ -7,6 +6,7 @@ import { updateChartRenderPerformanceState } from "./renderChartPerformanceState
 import { completeChartRenderState } from "./renderChartCompletionState.js";
 import { emitChartsRenderedEvent } from "./renderChartRenderedEvent.js";
 import { resolveChartRenderResultState } from "./renderChartResultState.js";
+import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
 type GetStateFunction = (path: string) => unknown;
 type NotifySuccessFunction = (
@@ -20,7 +20,7 @@ type ShowRenderNotificationFunction = (
 type UpdateStateFunction = (
     path: string,
     value: Record<string, unknown>,
-    options?: StateUpdateOptions
+    options?: ChartStateUpdateOptions
 ) => void;
 type AddChartHoverEffectsFunction = (
     chartContainer: HTMLElement | null | undefined,

@@ -1331,6 +1331,28 @@ describe("architecture boundaries", () => {
         expect(renderChartSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps chart render helpers on the chart state access boundary", () => {
+        expect.assertions(2);
+
+        const chartCoreStateAccessFile =
+            "electron-app/utils/charts/core/renderChartStateAccess.ts";
+        const directChartCoreStateImports = collectSourceFiles(
+            "electron-app/utils/charts/core"
+        )
+            .filter((relativeFile) => relativeFile !== chartCoreStateAccessFile)
+            .filter((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "state/core/stateManager.js"
+                )
+            )
+            .sort();
+
+        expect(directChartCoreStateImports).toStrictEqual([]);
+        expect(
+            stripComments(readRepositoryFile(chartCoreStateAccessFile))
+        ).toContain("state/core/stateManager.js");
+    });
+
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
         expect.assertions(2);
 

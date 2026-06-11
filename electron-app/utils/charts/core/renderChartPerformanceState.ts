@@ -1,11 +1,11 @@
-import type { StateUpdateOptions } from "../../state/core/stateManager.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
+import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
 type GetStateFunction = (path: string) => unknown;
 type UpdateStateFunction = (
     path: string,
     value: Record<string, unknown>,
-    options?: StateUpdateOptions
+    options?: ChartStateUpdateOptions
 ) => void;
 
 interface ChartRenderPerformanceStateDependencies {

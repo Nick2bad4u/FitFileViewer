@@ -1,5 +1,5 @@
 import { getRegisteredChartInstances } from "./chartInstanceRegistry.js";
-import type { StateUpdateOptions } from "../../state/core/stateManager.js";
+import type { ChartStateUpdateOptions } from "./renderChartStateAccess.js";
 
 interface CreateExportChartsWithStateDependencies {
     getChartInstances(fallbackInstances: unknown): unknown[];
@@ -11,7 +11,7 @@ interface CreateExportChartsWithStateDependencies {
     setState(
         path: string,
         value: unknown,
-        options?: StateUpdateOptions
+        options?: ChartStateUpdateOptions
     ): unknown;
 }
 
