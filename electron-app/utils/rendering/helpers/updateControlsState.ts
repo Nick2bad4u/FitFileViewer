@@ -3,18 +3,17 @@ import {
     getChartSettingsWrapper,
 } from "../../charts/dom/chartDomUtils.js";
 import {
-    getState,
-    setState,
-    subscribe,
-} from "../../state/core/stateManager.js";
+    setRendererChartControlsVisible,
+    subscribeToRendererChartControlsVisible,
+    toggleRendererChartControlsVisibleFromStoredState,
+} from "../../state/domain/rendererChartControlsState.js";
 
 /**
  * Initialize chart controls state management.
  */
 export function initializeControlsState(): void {
     // Subscribe to state changes to keep DOM in sync
-    subscribe("charts.controlsVisible", (isVisible: unknown) => {
-        const controlsVisible = isVisible === true;
+    subscribeToRendererChartControlsVisible((controlsVisible) => {
         const toggleBtn = getChartControlsToggle(document),
             wrapper = getChartSettingsWrapper(document);
 
@@ -35,8 +34,7 @@ export function initializeControlsState(): void {
  * Toggle chart controls visibility using centralized state.
  */
 export function toggleChartControls(): void {
-    const currentState = getState<boolean>("charts.controlsVisible");
-    setState("charts.controlsVisible", !currentState, {
+    toggleRendererChartControlsVisibleFromStoredState({
         source: "toggleChartControls",
     });
 }
@@ -61,7 +59,7 @@ export function updateControlsState(): void {
             wrapper.offsetParent !== null;
 
     // Update centralized state to match DOM reality
-    setState("charts.controlsVisible", isActuallyVisible, {
+    setRendererChartControlsVisible(isActuallyVisible, {
         silent: true,
         source: "updateControlsState",
     });

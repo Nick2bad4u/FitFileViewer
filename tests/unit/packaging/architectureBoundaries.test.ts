@@ -1227,6 +1227,19 @@ describe("architecture boundaries", () => {
         expect(chartSettingsSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps chart controls synchronization on the chart-controls state facade", () => {
+        expect.assertions(2);
+
+        const chartControlsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/helpers/updateControlsState.ts"
+            )
+        );
+
+        expect(chartControlsSource).toContain("rendererChartControlsState.js");
+        expect(chartControlsSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps tab-button debug reads on renderer state facades", () => {
         expect.assertions(3);
 

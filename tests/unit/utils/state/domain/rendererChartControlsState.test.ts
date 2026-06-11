@@ -7,7 +7,9 @@ import {
     markRendererChartControlsInitialized,
     normalizeRendererChartControlsVisible,
     setRendererChartControlsVisible,
+    subscribeToRendererChartControlsVisible,
     toggleRendererChartControlsVisible,
+    toggleRendererChartControlsVisibleFromStoredState,
 } from "../../../../../electron-app/utils/state/domain/rendererChartControlsState.js";
 
 describe("rendererChartControlsState", () => {
@@ -41,6 +43,20 @@ describe("rendererChartControlsState", () => {
         expect(areRendererChartControlsVisible()).toBe(false);
     });
 
+    it("toggles from the stored boolean for legacy UI control behavior", () => {
+        expect.assertions(4);
+
+        stateManager.setState("charts.controlsVisible", undefined, {
+            source: "test",
+        });
+
+        expect(toggleRendererChartControlsVisibleFromStoredState()).toBe(true);
+        expect(areRendererChartControlsVisible()).toBe(true);
+
+        expect(toggleRendererChartControlsVisibleFromStoredState()).toBe(false);
+        expect(areRendererChartControlsVisible()).toBe(false);
+    });
+
     it("records the initialized chart controls wrapper", () => {
         expect.assertions(1);
 
@@ -52,6 +68,26 @@ describe("rendererChartControlsState", () => {
             controlsInitialized: true,
             controlsWrapper: "chartjs-settings-wrapper",
         });
+    });
+
+    it("subscribes with normalized controls visibility values", () => {
+        expect.assertions(2);
+
+        const values: boolean[] = [];
+        const unsubscribe = subscribeToRendererChartControlsVisible((visible) =>
+            values.push(visible)
+        );
+
+        setRendererChartControlsVisible(false, { source: "test" });
+        stateManager.setState("charts.controlsVisible", undefined, {
+            source: "test",
+        });
+
+        expect(values).toEqual([false, true]);
+
+        unsubscribe();
+        setRendererChartControlsVisible(false, { source: "test" });
+        expect(values).toEqual([false, true]);
     });
 
     it("normalizes controls visibility values", () => {

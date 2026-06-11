@@ -1,6 +1,7 @@
 import {
     getState,
     setState,
+    subscribe,
     updateState,
     type StateUpdateOptions,
 } from "../core/stateManager.js";
@@ -50,6 +51,27 @@ export function toggleRendererChartControlsVisible(
     });
 
     return nextVisibility;
+}
+
+export function toggleRendererChartControlsVisibleFromStoredState(
+    options: StateUpdateOptions = {}
+): boolean {
+    const nextVisibility =
+        getState(RENDERER_CHART_CONTROLS_VISIBLE_STATE_PATH) !== true;
+    setRendererChartControlsVisible(nextVisibility, {
+        source: "rendererChartControlsState.toggleStored",
+        ...options,
+    });
+
+    return nextVisibility;
+}
+
+export function subscribeToRendererChartControlsVisible(
+    listener: (visible: boolean) => void
+): () => void {
+    return subscribe(RENDERER_CHART_CONTROLS_VISIBLE_STATE_PATH, (value) => {
+        listener(normalizeRendererChartControlsVisible(value));
+    });
 }
 
 export function markRendererChartControlsInitialized(
