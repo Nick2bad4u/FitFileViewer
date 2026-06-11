@@ -272,6 +272,9 @@ const migratedCreatePowerEstimationButtonRuntimeFiles = [
 const migratedCreateMarkerCountSelectorRuntimeFiles = [
     "electron-app/utils/ui/controls/createMarkerCountSelector.ts",
 ] as const;
+const migratedLoadingOverlayRuntimeFiles = [
+    "electron-app/utils/ui/components/LoadingOverlay.ts",
+] as const;
 const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
@@ -669,6 +672,8 @@ const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b/u;
 const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+Event\(/u;
+const directLoadingOverlayRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|querySelector)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2345,6 +2350,26 @@ describe("architecture boundaries", () => {
         expect(createMarkerCountSelectorSource).toContain(
             "createMarkerCountSelectorRuntime.js"
         );
+    });
+
+    it("keeps loading overlay browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedLoadingOverlayRuntimeFiles
+            .filter((relativeFile) =>
+                directLoadingOverlayRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const loadingOverlaySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/LoadingOverlay.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(loadingOverlaySource).toContain("LoadingOverlayRuntime.js");
     });
 
     it("keeps migrated fullscreen controls on the screenfull runtime adapter", () => {

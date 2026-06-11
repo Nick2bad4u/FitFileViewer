@@ -1,7 +1,9 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import type { ThemeColorMap } from "../../theming/core/theme.js";
-
-const SVG_NS = "http://www.w3.org/2000/svg";
+import {
+    getLoadingOverlayRuntime,
+    type LoadingOverlayRuntime,
+} from "./LoadingOverlayRuntime.js";
 
 interface LoadingOverlayThemeColors {
     background: string;
@@ -20,16 +22,17 @@ const DEFAULT_THEME_COLORS = {
 } as const satisfies LoadingOverlayThemeColors;
 
 function createOverlayContent(
+    runtime: LoadingOverlayRuntime,
     themeColors: LoadingOverlayThemeColors
 ): HTMLDivElement {
-    const container = document.createElement("div");
+    const container = runtime.createElement("div");
     Object.assign(container.style, {
         alignItems: "center",
         display: "flex",
         flexDirection: "column",
     });
 
-    const spinner = document.createElement("div");
+    const spinner = runtime.createElement("div");
     spinner.className = "modern-spinner";
     spinner.setAttribute("aria-hidden", "true");
     Object.assign(spinner.style, {
@@ -38,7 +41,7 @@ function createOverlayContent(
         width: "54px",
     });
 
-    const style = document.createElement("style");
+    const style = runtime.createElement("style");
     style.textContent = `
         @keyframes fitfile-spin { 100% { transform: rotate(360deg); } }
         .modern-spinner {
@@ -51,12 +54,12 @@ function createOverlayContent(
         }
     `;
 
-    const svg = document.createElementNS(SVG_NS, "svg");
+    const svg = runtime.createSvgElement("svg");
     svg.setAttribute("viewBox", "0 0 50 50");
     svg.setAttribute("width", "54");
     svg.setAttribute("height", "54");
 
-    const track = document.createElementNS(SVG_NS, "circle");
+    const track = runtime.createSvgElement("circle");
     track.setAttribute("cx", "25");
     track.setAttribute("cy", "25");
     track.setAttribute("r", "20");
@@ -65,7 +68,7 @@ function createOverlayContent(
     track.setAttribute("stroke-width", "5");
     track.setAttribute("opacity", "0.18");
 
-    const progress = document.createElementNS(SVG_NS, "circle");
+    const progress = runtime.createSvgElement("circle");
     progress.setAttribute("cx", "25");
     progress.setAttribute("cy", "25");
     progress.setAttribute("r", "20");
@@ -78,7 +81,7 @@ function createOverlayContent(
     svg.append(track, progress);
     spinner.append(style, svg);
 
-    const text = document.createElement("div");
+    const text = runtime.createElement("div");
     text.id = "fitfile-loading-text";
     text.textContent = "Loading...";
     Object.assign(text.style, {
@@ -87,7 +90,7 @@ function createOverlayContent(
         marginBottom: "6px",
     });
 
-    const filename = document.createElement("div");
+    const filename = runtime.createElement("div");
     filename.id = "fitfile-loading-filename";
     Object.assign(filename.style, {
         color: themeColors.textSecondary,
@@ -134,7 +137,8 @@ export const LoadingOverlay = {
      * Hides the loading overlay
      */
     hide(): void {
-        const overlay = document.querySelector("#fitfile-loading-overlay");
+        const runtime = getLoadingOverlayRuntime();
+        const overlay = runtime.querySelector("#fitfile-loading-overlay");
         if (overlay) {
             overlay.remove();
         }
@@ -144,11 +148,12 @@ export const LoadingOverlay = {
      * Shows a loading overlay with progress text
      */
     show(progressText: string, fileName = ""): void {
-        let overlay = document.querySelector<HTMLDivElement>(
+        const runtime = getLoadingOverlayRuntime();
+        let overlay = runtime.querySelector<HTMLDivElement>(
             "#fitfile-loading-overlay"
         );
         if (!overlay) {
-            overlay = document.createElement("div");
+            overlay = runtime.createElement("div");
             overlay.id = "fitfile-loading-overlay";
             overlay.setAttribute("aria-busy", "true");
             overlay.setAttribute("aria-describedby", "fitfile-loading-filename");
@@ -173,18 +178,18 @@ export const LoadingOverlay = {
                 zIndex: "99999",
             });
 
-            overlay.append(createOverlayContent(themeColors));
-            document.body.append(overlay);
+            overlay.append(createOverlayContent(runtime, themeColors));
+            runtime.appendToBody(overlay);
         }
 
-        const textDiv = document.querySelector<HTMLElement>(
+        const textDiv = runtime.querySelector<HTMLElement>(
             "#fitfile-loading-text"
         );
         if (textDiv) {
             textDiv.textContent = progressText || "Loading...";
         }
 
-        const fileDiv = document.querySelector<HTMLElement>(
+        const fileDiv = runtime.querySelector<HTMLElement>(
             "#fitfile-loading-filename"
         );
         if (fileDiv) {
