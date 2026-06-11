@@ -341,6 +341,9 @@ const migratedMapActionButtonsRuntimeFiles = [
 const migratedOpenFileSelectorRuntimeFiles = [
     "electron-app/utils/files/import/openFileSelector.ts",
 ] as const;
+const migratedFitBrowserFeatureGateRuntimeFiles = [
+    "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",
+] as const;
 const migratedCreateElevationProfileButtonRuntimeFiles = [
     "electron-app/utils/ui/controls/createElevationProfileButton.ts",
 ] as const;
@@ -662,6 +665,8 @@ const directMapActionButtonsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
+const directFitBrowserFeatureGateRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:querySelector|getElementById)\b|\binstanceof\s+HTMLElement\b/u;
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
     /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
 const directAltFitSenderRuntimeGlobalPattern =
@@ -1466,6 +1471,28 @@ describe("architecture boundaries", () => {
 
         expect(featureGateSource).toContain("rendererActiveTabState.js");
         expect(featureGateSource).not.toContain("state/core/stateManager.js");
+    });
+
+    it("keeps Browser feature-gate DOM APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedFitBrowserFeatureGateRuntimeFiles
+            .filter((relativeFile) =>
+                directFitBrowserFeatureGateRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const featureGateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(featureGateSource).toContain(
+            "initFitBrowserFeatureGateRuntime.js"
+        );
     });
 
     it("keeps add-FIT overlay button state on the active FIT raw-data facade", () => {

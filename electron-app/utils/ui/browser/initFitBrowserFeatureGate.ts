@@ -1,9 +1,7 @@
 import { replaceRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
-
-const BROWSER_TAB_BUTTON_ID = "tab_browser";
-const BROWSER_TAB_CONTENT_ID = "content_browser";
+import { getFitBrowserFeatureGateRuntime } from "./initFitBrowserFeatureGateRuntime.js";
 
 type FitBrowserFeatureGateApi = Required<
     Pick<ElectronAPI, "isFitBrowserEnabled">
@@ -42,16 +40,11 @@ export function initFitBrowserFeatureGate(): void {
 }
 
 function applyBrowserTabVisibility(enabled: boolean): void {
-    const tabButton = document.querySelector(`#${BROWSER_TAB_BUTTON_ID}`);
-    const tabContent = document.querySelector(`#${BROWSER_TAB_CONTENT_ID}`);
+    const runtime = getFitBrowserFeatureGateRuntime();
+    const { content, tabButton } = runtime.getBrowserTabElements();
 
-    if (tabButton instanceof HTMLElement) {
-        tabButton.style.display = enabled ? "" : "none";
-    }
-
-    if (tabContent instanceof HTMLElement) {
-        tabContent.style.display = enabled ? "" : "none";
-    }
+    runtime.setElementVisible(tabButton, enabled);
+    runtime.setElementVisible(content, enabled);
 
     if (!enabled) {
         replaceRendererActiveTab("browser", "map", {
