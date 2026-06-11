@@ -17,6 +17,10 @@ import {
 } from "../../state/domain/settingsStateManager.js";
 import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../notifications/showNotification.js";
+import {
+    getCreateFieldTogglesSectionRuntime,
+    type CreateFieldTogglesSectionRuntime,
+} from "./createFieldTogglesSectionRuntime.js";
 
 type LooseRecord = Record<string, unknown>;
 
@@ -103,7 +107,8 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
         return;
     }
 
-    const fieldsSection = document.createElement("div");
+    const runtime = getCreateFieldTogglesSectionRuntime();
+    const fieldsSection = runtime.createElement("div");
     fieldsSection.className = "fields-section";
     fieldsSection.style.cssText = `
 		background: var(--color-glass);
@@ -114,7 +119,7 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
 		z-index: 1;
 		backdrop-filter: var(--backdrop-blur);
 	`;
-    const fieldsTitle = document.createElement("div");
+    const fieldsTitle = runtime.createElement("div");
     fieldsTitle.style.cssText = `
         display: flex;
         justify-content: space-between;
@@ -122,7 +127,7 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
         margin: 0 0 12px 0;
     `;
 
-    const titleText = document.createElement("h4");
+    const titleText = runtime.createElement("h4");
     titleText.textContent = "Visible Metrics";
     titleText.style.cssText = `
         margin: 0;
@@ -131,14 +136,14 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
         font-weight: 600;
     `;
 
-    const toggleAllContainer = document.createElement("div");
+    const toggleAllContainer = runtime.createElement("div");
     toggleAllContainer.style.cssText = `
         display: flex;
         align-items: center;
         gap: 8px;
     `;
 
-    const enableAllBtn = document.createElement("button");
+    const enableAllBtn = runtime.createElement("button");
     enableAllBtn.textContent = "Enable All";
     enableAllBtn.style.cssText = `
         padding: 4px 8px;
@@ -151,7 +156,7 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
         transition: var(--transition-smooth);
     `;
 
-    const disableAllBtn = document.createElement("button");
+    const disableAllBtn = runtime.createElement("button");
     disableAllBtn.textContent = "Disable All";
     disableAllBtn.style.cssText = `
         padding: 4px 8px;
@@ -164,7 +169,7 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
         transition: var(--transition-smooth);
     `;
 
-    const toggleButtonsController = new AbortController();
+    const toggleButtonsController = runtime.createAbortController();
     const toggleButtonsSignal = toggleButtonsController.signal;
 
     // Add hover effects
@@ -206,7 +211,7 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
     enableAllBtn.addEventListener(
         "click",
         () => {
-            toggleAllFields(true);
+            toggleAllFields(true, runtime);
         },
         { signal: toggleButtonsSignal }
     );
@@ -214,7 +219,7 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
     disableAllBtn.addEventListener(
         "click",
         () => {
-            toggleAllFields(false);
+            toggleAllFields(false, runtime);
         },
         { signal: toggleButtonsSignal }
     );
@@ -225,32 +230,44 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
     fieldsTitle.append(titleText);
     fieldsTitle.append(toggleAllContainer);
 
-    const fieldsGrid = document.createElement("div");
+    const fieldsGrid = runtime.createElement("div");
     fieldsGrid.style.cssText = `
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 		gap: 12px;
 	`; // Add field toggles
     for (const field of formatChartFields) {
-        const fieldToggle = createFieldToggle(field);
+        const fieldToggle = createFieldToggle(field, runtime);
         fieldsGrid.append(fieldToggle);
     } // Add GPS track toggle
-    const gpsTrackToggle = createFieldToggle("gps_track");
+    const gpsTrackToggle = createFieldToggle("gps_track", runtime);
     fieldsGrid.append(gpsTrackToggle);
 
     // Add performance analysis chart toggles
-    const speedVsDistanceToggle = createFieldToggle("speed_vs_distance");
+    const speedVsDistanceToggle = createFieldToggle(
+        "speed_vs_distance",
+        runtime
+    );
     fieldsGrid.append(speedVsDistanceToggle);
 
-    const powerVsHRToggle = createFieldToggle("power_vs_hr");
+    const powerVsHRToggle = createFieldToggle("power_vs_hr", runtime);
     fieldsGrid.append(powerVsHRToggle);
-    const altitudeProfileToggle = createFieldToggle("altitude_profile");
+    const altitudeProfileToggle = createFieldToggle(
+        "altitude_profile",
+        runtime
+    );
     fieldsGrid.append(altitudeProfileToggle); // HR zone toggles will be moved to the HR zone controls section
-    const hrZoneDoughnutToggle = createFieldToggle("hr_zone_doughnut");
+    const hrZoneDoughnutToggle = createFieldToggle(
+        "hr_zone_doughnut",
+        runtime
+    );
     fieldsGrid.append(hrZoneDoughnutToggle);
 
     // Power zone toggles are created separately and moved to the dedicated power zone section
-    const powerZoneDoughnutToggle = createFieldToggle("power_zone_doughnut");
+    const powerZoneDoughnutToggle = createFieldToggle(
+        "power_zone_doughnut",
+        runtime
+    );
     fieldsGrid.append(powerZoneDoughnutToggle);
 
     // Add lap zone chart toggles if data exists
@@ -265,12 +282,14 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
             const hrLapZones = lapZoneMsgs.filter((msg) => msg.timeInHrZone);
             if (hrLapZones.length > 0) {
                 const hrLapStackedToggle = createFieldToggle(
-                    "hr_lap_zone_stacked"
+                    "hr_lap_zone_stacked",
+                    runtime
                 );
                 fieldsGrid.append(hrLapStackedToggle);
 
                 const hrLapIndividualToggle = createFieldToggle(
-                    "hr_lap_zone_individual"
+                    "hr_lap_zone_individual",
+                    runtime
                 );
                 fieldsGrid.append(hrLapIndividualToggle);
             }
@@ -281,12 +300,14 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
             );
             if (powerLapZones.length > 0) {
                 const powerLapStackedToggle = createFieldToggle(
-                    "power_lap_zone_stacked"
+                    "power_lap_zone_stacked",
+                    runtime
                 );
                 fieldsGrid.append(powerLapStackedToggle);
 
                 const powerLapIndividualToggle = createFieldToggle(
-                    "power_lap_zone_individual"
+                    "power_lap_zone_individual",
+                    runtime
                 );
                 fieldsGrid.append(powerLapIndividualToggle);
             }
@@ -298,7 +319,10 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
         Array.isArray(getManagedFieldToggleFitData().eventMesgs) &&
         getManagedFieldToggleFitData().eventMesgs.length > 0
     ) {
-        const eventMessagesToggle = createFieldToggle("event_messages");
+        const eventMessagesToggle = createFieldToggle(
+            "event_messages",
+            runtime
+        );
         fieldsGrid.append(eventMessagesToggle);
     }
 
@@ -308,7 +332,7 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
             getManagedFieldToggleFitData().recordMesgs
         );
         for (const field of devFields) {
-            const fieldToggle = createFieldToggle(field);
+            const fieldToggle = createFieldToggle(field, runtime);
             fieldsGrid.append(fieldToggle);
         }
     }
@@ -403,10 +427,13 @@ function hasValidDataForField(field: string): boolean {
     }
 }
 
-function createFieldToggle(field: string): HTMLDivElement {
-    const container = document.createElement("div"),
+function createFieldToggle(
+    field: string,
+    runtime: CreateFieldTogglesSectionRuntime
+): HTMLDivElement {
+    const container = runtime.createElement("div"),
         themeConfig = getThemeConfig();
-    const fieldToggleController = new AbortController();
+    const fieldToggleController = runtime.createAbortController();
     const fieldToggleSignal = fieldToggleController.signal;
     container.className = "field-toggle";
 
@@ -426,7 +453,7 @@ function createFieldToggle(field: string): HTMLDivElement {
 	`;
 
     // Toggle switch
-    const toggle = document.createElement("input");
+    const toggle = runtime.createElement("input");
     toggle.type = "checkbox";
     toggle.id = `field-toggle-${field}`;
     toggle.checked = getChartFieldVisibility(field) !== "hidden";
@@ -437,7 +464,7 @@ function createFieldToggle(field: string): HTMLDivElement {
 	`;
 
     // Field label
-    const label = document.createElement("label");
+    const label = runtime.createElement("label");
     label.textContent = fieldLabels[field] || field;
     label.htmlFor = `field-toggle-${field}`;
     label.style.cssText = `
@@ -460,7 +487,7 @@ function createFieldToggle(field: string): HTMLDivElement {
         container.append(label);
     } else {
         // Regular color picker for non-zone charts
-        const colorPicker = document.createElement("input");
+        const colorPicker = runtime.createElement("input");
         colorPicker.type = "color";
 
         const storedColor = getChartSetting(`color_${field}`);
@@ -483,8 +510,8 @@ function createFieldToggle(field: string): HTMLDivElement {
                 setChartSetting(`color_${field}`, colorPicker.value);
 
                 // Dispatch custom event for color change
-                globalThis.dispatchEvent(
-                    new CustomEvent("fieldToggleChanged", {
+                runtime.dispatchEvent(
+                    runtime.createCustomEvent("fieldToggleChanged", {
                         detail: {
                             field,
                             type: "color",
@@ -513,8 +540,8 @@ function createFieldToggle(field: string): HTMLDivElement {
             setChartFieldVisibility(field, visibility);
 
             // Dispatch custom event for field toggle change (for real-time updates)
-            globalThis.dispatchEvent(
-                new CustomEvent("fieldToggleChanged", {
+            runtime.dispatchEvent(
+                runtime.createCustomEvent("fieldToggleChanged", {
                     detail: { field, visibility },
                 })
             );
@@ -525,8 +552,8 @@ function createFieldToggle(field: string): HTMLDivElement {
             } else {
                 // Fallback without importing renderChartJS to avoid circular deps
                 requestChartRerenderFallback("Field toggle fallback");
-                globalThis.dispatchEvent(
-                    new CustomEvent("ffv:request-render-charts", {
+                runtime.dispatchEvent(
+                    runtime.createCustomEvent("ffv:request-render-charts", {
                         detail: { reason: "field-toggle" },
                     })
                 );
@@ -534,9 +561,9 @@ function createFieldToggle(field: string): HTMLDivElement {
 
             // Update status indicators after a short delay to allow charts to render
             if (statusUpdateTimer) {
-                clearTimeout(statusUpdateTimer);
+                runtime.clearTimeout(statusUpdateTimer);
             }
-            statusUpdateTimer = setTimeout(() => {
+            statusUpdateTimer = runtime.setTimeout(() => {
                 updateAllChartStatusIndicators();
             }, 100);
         },
@@ -569,7 +596,10 @@ function createFieldToggle(field: string): HTMLDivElement {
  *
  * @param {boolean} enable - Whether to enable or disable all fields
  */
-function toggleAllFields(enable: boolean): void {
+function toggleAllFields(
+    enable: boolean,
+    runtime: CreateFieldTogglesSectionRuntime
+): void {
     try {
         const // Get all possible field keys
             allFields = [
@@ -600,18 +630,16 @@ function toggleAllFields(enable: boolean): void {
         }
 
         // Dispatch custom event for bulk field toggle change
-        globalThis.dispatchEvent(
-            new CustomEvent("fieldToggleChanged", {
+        runtime.dispatchEvent(
+            runtime.createCustomEvent("fieldToggleChanged", {
                 detail: { fields: allFields, visibility },
             })
         );
 
         // Update all toggle checkboxes in the UI
-        const toggles = document.querySelectorAll(
-            '.field-toggle input[type="checkbox"]'
-        );
+        const toggles = runtime.queryFieldCheckboxToggles();
         for (const toggle of toggles) {
-            if (toggle instanceof HTMLInputElement) {
+            if (runtime.isHTMLInputElement(toggle)) {
                 toggle.checked = enable;
             }
         }
@@ -625,14 +653,14 @@ function toggleAllFields(enable: boolean): void {
             chartStateManager.debouncedRender(`All fields ${action}`);
         } else {
             requestChartRerenderFallback("Settings change fallback");
-            globalThis.dispatchEvent(
-                new CustomEvent("ffv:request-render-charts", {
+            runtime.dispatchEvent(
+                runtime.createCustomEvent("ffv:request-render-charts", {
                     detail: { reason: "settings-change" },
                 })
             );
         }
 
-        const statusTimer = setTimeout(() => {
+        const statusTimer = runtime.setTimeout(() => {
             updateAllChartStatusIndicators();
         }, 100);
         void statusTimer;

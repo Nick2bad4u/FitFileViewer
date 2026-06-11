@@ -383,6 +383,9 @@ const migratedCreditsMarqueeRuntimeFiles = [
 const migratedEnsureChartSettingsDropdownsRuntimeFiles = [
     "electron-app/utils/ui/components/ensureChartSettingsDropdowns.ts",
 ] as const;
+const migratedCreateFieldTogglesSectionRuntimeFiles = [
+    "electron-app/utils/ui/components/createFieldTogglesSection.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -681,6 +684,8 @@ const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
+const directCreateFieldTogglesSectionRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:createElement|dispatchEvent|querySelectorAll)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+HTMLInputElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b/u;
 const directCreateExportGPXButtonRuntimeGlobalPattern =
@@ -1490,6 +1495,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(chartSettingsSource).toContain(
             "ensureChartSettingsDropdownsRuntime.js"
+        );
+    });
+
+    it("keeps field-toggle browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreateFieldTogglesSectionRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateFieldTogglesSectionRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const fieldTogglesSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/createFieldTogglesSection.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(fieldTogglesSource).toContain(
+            "createFieldTogglesSectionRuntime.js"
         );
     });
 
