@@ -76,7 +76,6 @@ type ShowNotification = (
 
 type TestGlobal = typeof globalThis & {
     __lastChartConfig?: ChartConfig;
-    Chart?: ChartMock;
     document?: Document;
     HTMLCanvasElement?: typeof HTMLCanvasElement;
     HTMLElement?: typeof HTMLElement;
@@ -132,13 +131,6 @@ const chartModuleMock = vi.hoisted(() => {
 const notificationMocks = vi.hoisted(() => ({
     showNotification: vi.fn<ShowNotification>(),
 }));
-
-// Define types for our global extensions
-declare global {
-    interface Window {
-        Chart?: ChartMock;
-    }
-}
 
 vi.mock("chart.js/auto", () => ({ default: chartModuleMock.Chart }));
 vi.mock(
@@ -217,7 +209,6 @@ import * as chartZoneColorUtils from "../../../../../electron-app/utils/data/zon
 
 describe(renderSingleHRZoneBar, () => {
     let canvas: HTMLCanvasElement;
-    let originalChart: ChartMock | undefined;
     let mockChartInstance: ChartInstance;
     let lastChartConfig: ChartConfig | undefined;
     let dom: JSDOM;
@@ -238,9 +229,6 @@ describe(renderSingleHRZoneBar, () => {
         // Create a canvas element for testing
         canvas = document.createElement("canvas");
         document.body.appendChild(canvas);
-
-        // Save original globals
-        originalChart = window.Chart;
 
         // Create a complete mock Chart instance with all required structures
         mockChartInstance = {
@@ -278,21 +266,6 @@ describe(renderSingleHRZoneBar, () => {
         chartModuleMock.Chart.mockClear();
         setChartRuntime(chartModuleMock.Chart);
 
-        // Keep the legacy window alias in tests while production imports Chart.js directly.
-        window.Chart = chartModuleMock.Chart;
-        testGlobal.Chart = chartModuleMock.Chart;
-
-        // Sync Chart constructor between window and globalThis using property descriptor
-        Object.defineProperty(globalThis, "Chart", {
-            get() {
-                return window.Chart;
-            },
-            set(value: ChartMock | undefined) {
-                window.Chart = value;
-            },
-            configurable: true,
-        });
-
         notificationMocks.showNotification.mockReset();
 
         // Mock console methods
@@ -314,9 +287,6 @@ describe(renderSingleHRZoneBar, () => {
     });
 
     afterEach(() => {
-        // Restore original globals
-        window.Chart = originalChart;
-
         // Clean up DOM
         if (global.document && global.document.body) {
             document.body.replaceChildren();
@@ -337,8 +307,7 @@ describe(renderSingleHRZoneBar, () => {
         const chartConfig =
             mockChartInstance.config ??
             (view as { config?: ChartConfig } | undefined)?.config ??
-            testGlobal.Chart?.mock.calls[0]?.[1] ??
-            window.Chart?.mock.calls[0]?.[1] ??
+            chartModuleMock.Chart.mock.calls[0]?.[1] ??
             lastChartConfig ??
             chartModuleMock.state.lastConfig ??
             testGlobal.__lastChartConfig;
@@ -364,7 +333,7 @@ describe(renderSingleHRZoneBar, () => {
         const view = renderSingleHRZoneBar(canvas, zoneData);
 
         // Verify Chart.js was called with correct parameters
-        expect(window.Chart).toHaveBeenCalledExactlyOnceWith(
+        expect(chartModuleMock.Chart).toHaveBeenCalledExactlyOnceWith(
             canvas,
             expect.objectContaining({
                 type: "bar",
@@ -387,7 +356,7 @@ describe(renderSingleHRZoneBar, () => {
         const view = renderSingleHRZoneBar(canvas, zoneData, {
             title: "Custom HR Zones Title",
         });
-        expect(window.Chart).toHaveBeenCalledOnce();
+        expect(chartModuleMock.Chart).toHaveBeenCalledOnce();
 
         const chartConfig = getCapturedChartConfig(view);
 
@@ -420,10 +389,10 @@ describe(renderSingleHRZoneBar, () => {
         expect(view).toBe(mockChartInstance);
 
         // Verify that Chart constructor was called
-        expect(window.Chart).toHaveBeenCalledOnce();
+        expect(chartModuleMock.Chart).toHaveBeenCalledOnce();
 
         // Verify the chart was created with correct data structure
-        const chartCall = window.Chart?.mock.calls[0];
+        const chartCall = chartModuleMock.Chart.mock.calls[0];
         expect(chartCall).toEqual([canvas, expect.any(Object)]);
         expect(chartCall?.[0]).toBe(canvas);
 
@@ -477,7 +446,7 @@ describe(renderSingleHRZoneBar, () => {
     });
 
     it("should handle invalid inputs gracefully", () => {
-        expect.assertions(8);
+        expect.assertions(9);
         // Test with null canvas
         expect(
             renderSingleHRZoneBar(null as unknown as HTMLCanvasElement, [])
@@ -488,7 +457,7 @@ describe(renderSingleHRZoneBar, () => {
             "Failed to render HR zone bar",
             "error"
         );
-        expect(window.Chart).not.toHaveBeenCalled();
+        expect(chartModuleMock.Chart).not.toHaveBeenCalled();
 
         // Reset mocks
         vi.clearAllMocks();
@@ -510,12 +479,12 @@ describe(renderSingleHRZoneBar, () => {
             "#0000ff",
         ]);
 
-        // Removing the legacy Chart global no longer prevents rendering.
-        window.Chart = undefined;
+        // A legacy Chart global is not needed when the runtime is registered.
+        expect(Reflect.get(globalThis, "Chart")).toBeUndefined();
         expect(
             renderSingleHRZoneBar(canvas, [{ label: "Zone 1", value: 300 }])
         ).toBe(mockChartInstance);
-        expect(window.Chart).toBeUndefined();
+        expect(Reflect.get(globalThis, "Chart")).toBeUndefined();
     });
 
     it("should include tooltip and y-axis format callbacks (smoke)", () => {
