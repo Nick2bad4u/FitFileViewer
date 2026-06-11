@@ -120,7 +120,7 @@ function createExitButton(
     runtime: AddExitFullscreenOverlayRuntime
 ): HTMLButtonElement {
     const button = runtime.createButton();
-    const listenerController = new AbortController();
+    const listenerController = runtime.createAbortController();
     button.type = "button";
 
     // Apply CSS classes for styling

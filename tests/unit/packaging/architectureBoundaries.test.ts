@@ -688,7 +688,7 @@ const directCreateExportGPXButtonRuntimeGlobalPattern =
 const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+AbortController\b/u;
 const directAddExitFullscreenOverlayRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|exitFullscreen|fullscreenElement)\b|\binstanceof\s+HTMLElement\b/u;
+    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|exitFullscreen|fullscreenElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b/u;
 const directRemoveExitFullscreenOverlayRuntimeGlobalPattern =
     /\binstanceof\s+HTMLElement\b/u;
 const directCreatePowerEstimationButtonRuntimeGlobalPattern =

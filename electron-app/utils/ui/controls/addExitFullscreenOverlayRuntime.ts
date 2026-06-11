@@ -1,8 +1,10 @@
 export interface AddExitFullscreenOverlayRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly document?: Document | undefined;
 }
 
 export interface AddExitFullscreenOverlayRuntime {
+    createAbortController: () => AbortController;
     createButton: () => HTMLButtonElement;
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
@@ -16,6 +18,22 @@ export interface AddExitFullscreenOverlayRuntime {
 }
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+
+function getAbortControllerConstructor(
+    scope: AddExitFullscreenOverlayRuntimeScope
+): typeof AbortController {
+    const AbortControllerConstructor =
+        scope.AbortController ??
+        scope.document?.defaultView?.AbortController ??
+        globalThis.AbortController;
+    if (typeof AbortControllerConstructor !== "function") {
+        throw new TypeError(
+            "addExitFullscreenOverlay requires an AbortController runtime"
+        );
+    }
+
+    return AbortControllerConstructor;
+}
 
 function getDocument(scope: AddExitFullscreenOverlayRuntimeScope): Document {
     const runtimeDocument = scope.document;
@@ -38,6 +56,9 @@ export function getAddExitFullscreenOverlayRuntime(
     scope: AddExitFullscreenOverlayRuntimeScope = globalThis
 ): AddExitFullscreenOverlayRuntime {
     return {
+        createAbortController(): AbortController {
+            return new (getAbortControllerConstructor(scope))();
+        },
         createButton(): HTMLButtonElement {
             return getDocument(scope).createElement("button");
         },

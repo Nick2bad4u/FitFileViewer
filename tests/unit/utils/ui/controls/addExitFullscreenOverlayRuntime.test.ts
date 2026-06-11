@@ -47,13 +47,37 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         expect(runtime.isHTMLElement(fullscreenElement)).toBe(true);
     });
 
-    it("fails clearly when the document runtime is unavailable", () => {
+    it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 
+        const runtime = getAddExitFullscreenOverlayRuntime({
+            AbortController,
+            document,
+        });
+        const controller = runtime.createAbortController();
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(controller.signal.aborted).toBe(false);
+    });
+
+    it("fails clearly when required runtimes are unavailable", () => {
+        expect.assertions(3);
+
         const runtime = getAddExitFullscreenOverlayRuntime({});
+        const runtimeWithInvalidAbortController =
+            getAddExitFullscreenOverlayRuntime({
+                AbortController:
+                    "AbortController" as unknown as typeof AbortController,
+                document,
+            });
 
         expect(() => runtime.createButton()).toThrow(
             "addExitFullscreenOverlay requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithInvalidAbortController.createAbortController()
+        ).toThrow(
+            "addExitFullscreenOverlay requires an AbortController runtime"
         );
         expect(() => runtime.isHTMLElement({})).toThrow(
             "addExitFullscreenOverlay requires a document runtime"
