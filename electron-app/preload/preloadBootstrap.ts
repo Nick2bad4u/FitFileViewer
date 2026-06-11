@@ -6,9 +6,15 @@
         import("./preloadModuleTypes").PreloadModuleRequire;
     type PreloadRuntime = import("./preloadModuleTypes").PreloadRuntime;
 
-    type PreloadGlobal = typeof globalThis & {
+    type PreloadGlobal = object & {
         __electronHoistedMock?: null | PreloadElectronBridge;
     };
+
+    interface PreloadRuntimeEnvironment {
+        consoleRef: Console;
+        globalScope: object;
+        processRef: NodeJS.Process;
+    }
 
     interface StartPreloadScriptOptions {
         consoleRef?: Console;
@@ -17,12 +23,25 @@
         requireModule: PreloadModuleRequire;
     }
 
+    interface ResolvePreloadRuntimeEnvironmentOptions {
+        consoleRef: Console | undefined;
+        globalScope: PreloadGlobal | undefined;
+        processRef: NodeJS.Process | undefined;
+        requireModule: PreloadModuleRequire;
+    }
+
     function startPreloadScript({
-        consoleRef = console,
-        globalScope = globalThis,
-        processRef = process,
+        consoleRef,
+        globalScope,
+        processRef,
         requireModule,
     }: StartPreloadScriptOptions): ElectronAPI {
+        const runtimeEnvironment = resolvePreloadRuntimeEnvironment({
+            consoleRef,
+            globalScope,
+            processRef,
+            requireModule,
+        });
         const { createPreloadRuntime } = requireModule(
             "./preload/preloadRuntime.js"
         ) as {
@@ -31,6 +50,11 @@
             }) => PreloadRuntime;
         };
         const runtime = createPreloadRuntime({ requireModule });
+        const {
+            consoleRef: resolvedConsoleRef,
+            globalScope: resolvedGlobalScope,
+            processRef: resolvedProcessRef,
+        } = runtimeEnvironment;
         const {
             assemblePreloadApi,
             constants,
@@ -46,11 +70,12 @@
             resolvePreloadElectronBridge,
         } = preloadModules;
         const { contextBridge, ipcRenderer } = resolvePreloadElectronBridge({
-            globalScope,
+            globalScope: resolvedGlobalScope,
             requireModule: runtime.requireModule,
         });
-        const preloadLog = createPreloadLogger(consoleRef);
-        const isDevelopmentMode = () => isPreloadDevelopmentMode(processRef);
+        const preloadLog = createPreloadLogger(resolvedConsoleRef);
+        const isDevelopmentMode = () =>
+            isPreloadDevelopmentMode(resolvedProcessRef);
         const electronAPI = assemblePreloadApi({
             constants,
             contextBridge,
@@ -58,7 +83,7 @@
             ipcRenderer,
             modules: preloadModules,
             preloadLog,
-            processRef,
+            processRef: resolvedProcessRef,
         });
 
         exposeElectronApi({
@@ -79,7 +104,7 @@
         registerPreloadBeforeExitHandler({
             isDevelopmentMode,
             preloadLog,
-            processRef,
+            processRef: resolvedProcessRef,
         });
 
         if (isDevelopmentMode()) {
@@ -90,6 +115,26 @@
         }
 
         return electronAPI;
+    }
+
+    function resolvePreloadRuntimeEnvironment({
+        consoleRef,
+        globalScope,
+        processRef,
+        requireModule,
+    }: ResolvePreloadRuntimeEnvironmentOptions): PreloadRuntimeEnvironment {
+        const { getDefaultPreloadRuntimeEnvironment } = requireModule(
+            "./preload/preloadRuntimeEnvironment.js"
+        ) as {
+            getDefaultPreloadRuntimeEnvironment: () => PreloadRuntimeEnvironment;
+        };
+        const defaults = getDefaultPreloadRuntimeEnvironment();
+
+        return {
+            consoleRef: consoleRef ?? defaults.consoleRef,
+            globalScope: globalScope ?? defaults.globalScope,
+            processRef: processRef ?? defaults.processRef,
+        };
     }
 
     module.exports = {

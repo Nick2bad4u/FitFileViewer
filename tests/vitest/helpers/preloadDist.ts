@@ -8,6 +8,7 @@ const preloadDistModuleDirectory = join(repositoryRoot, "dist", "preload");
 const requiredDelegatedPreloadModules = [
     "preloadBootstrap.js",
     "preloadRuntime.js",
+    "preloadRuntimeEnvironment.js",
     "preloadModuleLoader.js",
 ] as const;
 

@@ -36,6 +36,9 @@ const preloadInjectedRequireFiles = [
     "electron-app/preload/preloadIpcModuleLoader.ts",
     "electron-app/preload/preloadStateModuleLoader.ts",
 ] as const;
+const preloadRuntimeEnvironmentFiles = [
+    "electron-app/preload/preloadRuntimeEnvironment.ts",
+] as const;
 const preloadDomainContractFiles = [
     "electron-app/preload/electronApiFactory.ts",
     "electron-app/preload/preloadModuleTypes.ts",
@@ -973,7 +976,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the root preload entrypoint delegated to the preload entrypoint module", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const preloadEntrySource = stripComments(
             readRepositoryFile("electron-app/preload.ts")
@@ -993,9 +996,13 @@ describe("architecture boundaries", () => {
             "startDefaultPreloadEntrypoint();"
         );
         expect(preloadEntrySource).not.toContain("require");
-        expect(preloadEntrypointSource).toContain(
-            "startPreloadEntrypoint(require,"
+        expect(preloadEntrypointSource).toMatch(
+            /startPreloadEntrypoint\(\s*require\s*,/u
         );
+        expect(preloadEntrypointSource).toContain(
+            "loadPreloadRuntimeEnvironment("
+        );
+        expect(preloadEntrypointSource).not.toContain("globalThis");
         expect(preloadEntrySource).not.toContain(
             'require("./preload/preloadEntrypoint.js")'
         );
@@ -1020,6 +1027,35 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps preload entry/bootstrap runtime globals behind the preload runtime environment facade", () => {
+        expect.assertions(3);
+
+        const runtimeGlobalPattern = /\b(?:console|globalThis|process)\b/u;
+        const wiringFiles = [
+            "electron-app/preload/preloadEntrypoint.ts",
+            "electron-app/preload/preloadBootstrap.ts",
+        ] as const;
+        const runtimeGlobalViolations = wiringFiles
+            .filter((relativeFile) =>
+                runtimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(runtimeGlobalViolations).toStrictEqual([]);
+        expect(preloadRuntimeEnvironmentFiles).toStrictEqual([
+            "electron-app/preload/preloadRuntimeEnvironment.ts",
+        ]);
+        expect(
+            preloadRuntimeEnvironmentFiles.every((relativeFile) =>
+                runtimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+        ).toBe(true);
     });
 
     it("keeps the preload build transform bundling injected require calls", () => {

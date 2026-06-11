@@ -23,6 +23,9 @@ const preloadStateApiDomain = requireFromTest(
 const preloadRuntime = requireFromTest(
     "../../../electron-app/preload/preloadRuntime.js"
 );
+const preloadRuntimeEnvironment = requireFromTest(
+    "../../../electron-app/preload/preloadRuntimeEnvironment.js"
+);
 const preloadBootstrap = requireFromTest(
     "../../../electron-app/preload/preloadBootstrap.js"
 );
@@ -152,6 +155,10 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/preloadRuntime.js") {
         return preloadRuntime;
+    }
+
+    if (moduleName === "./preload/preloadRuntimeEnvironment.js") {
+        return preloadRuntimeEnvironment;
     }
 
     if (moduleName === "./preload/preloadBootstrap.js") {

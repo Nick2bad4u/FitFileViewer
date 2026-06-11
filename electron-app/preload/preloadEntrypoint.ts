@@ -2,26 +2,35 @@ type PreloadModuleRequire = import("./preloadModuleTypes").PreloadModuleRequire;
 
 interface StartPreloadEntrypointOptions {
     consoleRef?: Console;
-    globalScope?: typeof globalThis;
+    globalScope?: object;
     processRef?: NodeJS.Process;
 }
 
 type PreloadBootstrapModule = {
     startPreloadScript: (options: {
         consoleRef?: Console;
-        globalScope?: typeof globalThis;
+        globalScope?: object;
         processRef?: NodeJS.Process;
         requireModule: PreloadModuleRequire;
     }) => void;
 };
 
+type PreloadRuntimeEnvironmentModule = {
+    getDefaultPreloadRuntimeEnvironment: () => {
+        consoleRef: Console;
+        globalScope: object;
+        processRef: NodeJS.Process;
+    };
+};
+
 /** Starts the Electron preload script with the runtime Node globals. */
 export function startDefaultPreloadEntrypoint(): void {
-    startPreloadEntrypoint(require, {
-        consoleRef: console,
-        globalScope: globalThis,
-        processRef: process,
-    });
+    startPreloadEntrypoint(
+        require,
+        loadPreloadRuntimeEnvironment(
+            createPreloadEntrypointRequire(require)
+        ).getDefaultPreloadRuntimeEnvironment()
+    );
 }
 
 export function startPreloadEntrypoint(
@@ -37,6 +46,29 @@ export function startPreloadEntrypoint(
         ...(processRef === undefined ? {} : { processRef }),
         requireModule: preloadRequire as PreloadModuleRequire,
     });
+}
+
+function loadPreloadRuntimeEnvironment(
+    requireModule: NodeJS.Require
+): PreloadRuntimeEnvironmentModule {
+    try {
+        return requireModule(
+            "./preload/preloadRuntimeEnvironment.js"
+        ) as PreloadRuntimeEnvironmentModule;
+    } catch (error) {
+        if (
+            !isCannotFindModuleError(
+                error,
+                "./preload/preloadRuntimeEnvironment.js"
+            )
+        ) {
+            throw error;
+        }
+
+        return requireModule(
+            "./preloadRuntimeEnvironment.js"
+        ) as PreloadRuntimeEnvironmentModule;
+    }
 }
 
 function loadPreloadBootstrap(
