@@ -7,6 +7,10 @@ import {
 
 export type ActiveFitMessageRecord = Record<string, unknown>;
 type ActiveFitRawDataListener = (data: RawFitData | null) => void;
+type ActiveFitRawDataChangeListener = (
+    data: RawFitData | null,
+    previousData: RawFitData | null
+) => void;
 
 const ACTIVE_FIT_RAW_DATA_PATH = "fitFile.rawData";
 
@@ -29,6 +33,17 @@ export function subscribeToActiveFitRawData(
 ): () => void {
     return subscribe(ACTIVE_FIT_RAW_DATA_PATH, (data) => {
         listener(normalizeActiveFitRawData(data));
+    });
+}
+
+export function subscribeToActiveFitRawDataChange(
+    listener: ActiveFitRawDataChangeListener
+): () => void {
+    return subscribe(ACTIVE_FIT_RAW_DATA_PATH, (data, previousData) => {
+        listener(
+            normalizeActiveFitRawData(data),
+            normalizeActiveFitRawData(previousData)
+        );
     });
 }
 

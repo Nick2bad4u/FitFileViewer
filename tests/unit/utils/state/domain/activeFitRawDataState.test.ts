@@ -6,6 +6,7 @@ import {
     getActiveFitRawData,
     setActiveFitRawData,
     subscribeToActiveFitRawData,
+    subscribeToActiveFitRawDataChange,
 } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 
 describe("activeFitRawDataState", () => {
@@ -94,5 +95,28 @@ describe("activeFitRawDataState", () => {
         expect(listenerValues).toHaveLength(2);
         expect(listenerValues[0]).toBe(rawData);
         expect(listenerValues[1]).toBeNull();
+    });
+
+    it("subscribes to active FIT raw-data changes with previous values", () => {
+        expect.assertions(1);
+
+        const listenerValues: unknown[] = [];
+        const unsubscribe = subscribeToActiveFitRawDataChange(
+            (data, previousData) => {
+                listenerValues.push([data, previousData]);
+            }
+        );
+        const firstRawData = { recordMesgs: [{ timestamp: 1 }] };
+        const secondRawData = { recordMesgs: [{ timestamp: 2 }] };
+
+        setActiveFitRawData(firstRawData, { source: "test" });
+        setActiveFitRawData(secondRawData, { source: "test" });
+
+        unsubscribe();
+
+        expect(listenerValues).toEqual([
+            [firstRawData, null],
+            [secondRawData, firstRawData],
+        ]);
     });
 });

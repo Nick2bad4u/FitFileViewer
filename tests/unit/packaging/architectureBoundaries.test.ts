@@ -1253,6 +1253,23 @@ describe("architecture boundaries", () => {
         expect(chartStatusSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps chart tab integration on renderer state facades", () => {
+        expect.assertions(4);
+
+        const chartTabIntegrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartTabIntegration.ts"
+            )
+        );
+
+        expect(chartTabIntegrationSource).toContain("activeFitRawDataState.js");
+        expect(chartTabIntegrationSource).toContain("appDomainState.js");
+        expect(chartTabIntegrationSource).toContain("rendererActiveTabState.js");
+        expect(chartTabIntegrationSource).not.toContain(
+            "state/core/stateManager.js"
+        );
+    });
+
     it("keeps tab-button debug reads on renderer state facades", () => {
         expect.assertions(3);
 

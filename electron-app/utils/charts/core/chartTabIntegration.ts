@@ -1,8 +1,10 @@
-import { getState, subscribe } from "../../state/core/stateManager.js";
 import {
     hasActiveFitChartData,
     hasFitChartRecordMessages,
 } from "../../state/domain/fitChartDataState.js";
+import { subscribeToActiveFitRawDataChange } from "../../state/domain/activeFitRawDataState.js";
+import { subscribeAppDomainPath } from "../../state/domain/appDomainState.js";
+import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
 import { chartStateManager } from "./chartStateManager.js";
@@ -160,7 +162,7 @@ export class ChartTabIntegration {
      * Check if the chart tab is currently active.
      */
     isChartTabActive(): boolean {
-        const activeTab = getState("ui.activeTab");
+        const activeTab = getRendererActiveTab();
         return activeTab === "chartjs" || activeTab === "chart";
     }
 
@@ -186,13 +188,13 @@ export class ChartTabIntegration {
      * Set up integration between chart and tab systems.
      */
     setupIntegration(): void {
-        subscribe("fitFile.rawData", (newData, oldData) => {
+        subscribeToActiveFitRawDataChange((newData, oldData) => {
             if (newData !== oldData) {
                 this.handleDataChange(newData);
             }
         });
 
-        subscribe("app.isOpeningFile", (isOpening) => {
+        subscribeAppDomainPath("app.isOpeningFile", (isOpening) => {
             if (isOpening !== true) {
                 this.checkAndRenderCharts();
             }

@@ -9,20 +9,6 @@ type StateListener = (
 const stateValues = vi.hoisted(() => new Map<string, unknown>());
 const stateListeners = vi.hoisted(() => new Map<string, StateListener>());
 
-const getStateMock = vi.hoisted(() =>
-    vi.fn<(path: string) => unknown>((path) => stateValues.get(path))
-);
-const subscribeMock = vi.hoisted(() =>
-    vi.fn<(path: string, callback: StateListener) => () => void>(
-        (path, callback) => {
-            stateListeners.set(path, callback);
-            return () => {
-                stateListeners.delete(path);
-            };
-        }
-    )
-);
-
 const clearChartStateMock = vi.hoisted(() => vi.fn<() => void>());
 const debouncedRenderMock = vi.hoisted(() =>
     vi.fn<(reason?: string) => void>()
@@ -43,12 +29,55 @@ const showNotificationMock = vi.hoisted(() =>
 const getRawDataMock = vi.hoisted(() =>
     vi.fn<() => unknown>(() => stateValues.get("fitFile.rawData"))
 );
+const getRendererActiveTabMock = vi.hoisted(() =>
+    vi.fn<() => string>(() => {
+        const activeTab = stateValues.get("ui.activeTab");
+        return typeof activeTab === "string" ? activeTab : "summary";
+    })
+);
+const subscribeToActiveFitRawDataChangeMock = vi.hoisted(() =>
+    vi.fn<
+        (
+            callback: (data: unknown, previousData: unknown) => void
+        ) => () => void
+    >((callback) => {
+        stateListeners.set("fitFile.rawData", callback as StateListener);
+        return () => {
+            stateListeners.delete("fitFile.rawData");
+        };
+    })
+);
+const subscribeAppDomainPathMock = vi.hoisted(() =>
+    vi.fn<(path: string, callback: StateListener) => () => void>(
+        (path, callback) => {
+            stateListeners.set(path, callback);
+            return () => {
+                stateListeners.delete(path);
+            };
+        }
+    )
+);
 
 vi.mock(
-    import("../../../../../electron-app/utils/state/core/stateManager.js"),
+    import("../../../../../electron-app/utils/state/domain/activeFitRawDataState.js"),
     () => ({
-        getState: getStateMock,
-        subscribe: subscribeMock,
+        getActiveFitRawData: getRawDataMock,
+        subscribeToActiveFitRawDataChange:
+            subscribeToActiveFitRawDataChangeMock,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/state/domain/appDomainState.js"),
+    () => ({
+        subscribeAppDomainPath: subscribeAppDomainPathMock,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/state/domain/rendererActiveTabState.js"),
+    () => ({
+        getRendererActiveTab: getRendererActiveTabMock,
     })
 );
 
@@ -95,8 +124,6 @@ import { ChartTabIntegration } from "../../../../../electron-app/utils/charts/co
 function resetState(): void {
     stateValues.clear();
     stateListeners.clear();
-    getStateMock.mockClear();
-    subscribeMock.mockClear();
     clearChartStateMock.mockClear();
     debouncedRenderMock.mockClear();
     forceRenderMock.mockClear();
@@ -105,7 +132,14 @@ function resetState(): void {
     switchToTabMock.mockClear();
     showNotificationMock.mockClear();
     getRawDataMock.mockClear();
+    getRendererActiveTabMock.mockClear();
+    subscribeToActiveFitRawDataChangeMock.mockClear();
+    subscribeAppDomainPathMock.mockClear();
     getRawDataMock.mockImplementation(() => stateValues.get("fitFile.rawData"));
+    getRendererActiveTabMock.mockImplementation(() => {
+        const activeTab = stateValues.get("ui.activeTab");
+        return typeof activeTab === "string" ? activeTab : "summary";
+    });
     document.body.replaceChildren();
     Reflect.deleteProperty(globalThis, "chartTabIntegration");
 }
@@ -177,16 +211,18 @@ describe(ChartTabIntegration, () => {
             "app.isOpeningFile"
         );
 
-        const firstSubscribeCall = subscribeMock.mock.calls[0],
-            secondSubscribeCall = subscribeMock.mock.calls[1];
-
         expect({ isInitialized: integration.isInitialized }).toStrictEqual({
             isInitialized: true,
         });
-        expect(firstSubscribeCall?.[0]).toBe("fitFile.rawData");
-        expect(firstSubscribeCall?.[1]).toBeTypeOf("function");
-        expect(secondSubscribeCall?.[0]).toBe("app.isOpeningFile");
-        expect(secondSubscribeCall?.[1]).toBeTypeOf("function");
+        expect(subscribeToActiveFitRawDataChangeMock).toHaveBeenCalledWith(
+            expect.any(Function)
+        );
+        expect(subscribeAppDomainPathMock).toHaveBeenCalledWith(
+            "app.isOpeningFile",
+            expect.any(Function)
+        );
+        expect(stateListeners.get("fitFile.rawData")).toBeTypeOf("function");
+        expect(stateListeners.get("app.isOpeningFile")).toBeTypeOf("function");
         expect(Reflect.has(globalThis, "chartTabIntegration")).toBe(false);
         expect(debouncedRenderMock).toHaveBeenCalledWith(
             "Integration check after file load"
