@@ -33,6 +33,7 @@ export interface ChartStatusIndicatorRuntime {
     ) => void;
     clearTimeout: (handle: ChartStatusIndicatorTimerHandle) => void;
     createAbortController: () => AbortController;
+    getBody: () => HTMLElement;
     getViewport: () => ChartStatusIndicatorViewport;
     isHTMLElement: (value: unknown) => value is HTMLElement;
     querySelector: (selector: string) => HTMLElement | null;
@@ -117,6 +118,9 @@ export function getChartStatusIndicatorRuntime(
         },
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
+        },
+        getBody(): HTMLElement {
+            return getDocument(scope).body;
         },
         getViewport(): ChartStatusIndicatorViewport {
             return {

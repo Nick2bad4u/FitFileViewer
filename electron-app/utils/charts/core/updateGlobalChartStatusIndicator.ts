@@ -7,6 +7,10 @@
  */
 
 import { createGlobalChartStatusIndicator } from "../components/createGlobalChartStatusIndicator.js";
+import {
+    type ChartStatusIndicatorRuntime,
+    getChartStatusIndicatorRuntime,
+} from "../components/chartStatusIndicatorRuntime.js";
 
 const ELEMENT_IDS = {
     STATUS_CONTAINER: "global-chart-status-container",
@@ -26,6 +30,7 @@ const LOG_PREFIX = "[ChartStatusUpdater]";
  */
 export function updateGlobalChartStatusIndicator(): boolean {
     try {
+        const runtime = getChartStatusIndicatorRuntime();
         const newIndicator = createGlobalChartStatusIndicator();
         if (!newIndicator) {
             console.warn(
@@ -34,7 +39,7 @@ export function updateGlobalChartStatusIndicator(): boolean {
             return false;
         }
 
-        const existingIndicator = document.querySelector<HTMLElement>(
+        const existingIndicator = runtime.querySelector(
             `#${ELEMENT_IDS.STATUS_INDICATOR}`
         );
 
@@ -45,10 +50,10 @@ export function updateGlobalChartStatusIndicator(): boolean {
             );
 
             if (!replaced) {
-                appendNewIndicator(newIndicator, findStatusContainer());
+                appendNewIndicator(newIndicator, findStatusContainer(runtime));
             }
         } else {
-            appendNewIndicator(newIndicator, findStatusContainer());
+            appendNewIndicator(newIndicator, findStatusContainer(runtime));
         }
 
         return true;
@@ -81,14 +86,14 @@ function appendNewIndicator(
  *
  * @returns Preferred status container, or document body as fallback.
  */
-function findStatusContainer(): HTMLElement {
-    const statusContainer = document.querySelector<HTMLElement>(
+function findStatusContainer(
+    runtime: ChartStatusIndicatorRuntime
+): HTMLElement {
+    const statusContainer = runtime.querySelector(
         `#${ELEMENT_IDS.STATUS_CONTAINER}`
     );
 
-    return statusContainer instanceof HTMLElement
-        ? statusContainer
-        : document.body;
+    return statusContainer ?? runtime.getBody();
 }
 
 /**

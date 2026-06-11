@@ -72,17 +72,20 @@ describe("getChartStatusIndicatorRuntime", () => {
     });
 
     it("queries html elements through the injected document and constructor", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
+        const body = document.createElement("body");
         const element = document.createElement("div");
         const runtime = getChartStatusIndicatorRuntime({
             document: {
+                body,
                 querySelector: (selector: string) =>
                     selector === ".status" ? element : document,
             } as unknown as Document,
             HTMLElement,
         });
 
+        expect(runtime.getBody()).toBe(body);
         expect(runtime.querySelector(".status")).toBe(element);
         expect(runtime.querySelector(".missing")).toBeNull();
         expect(runtime.isHTMLElement(element)).toBe(true);

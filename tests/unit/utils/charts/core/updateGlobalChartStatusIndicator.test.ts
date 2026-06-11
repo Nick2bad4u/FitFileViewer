@@ -110,8 +110,12 @@ describe(updateGlobalChartStatusIndicator, () => {
         newIndicator.className = "status-replacement";
         document.body.append(container);
         createGlobalChartStatusIndicatorMock.mockReturnValue(newIndicator);
-        vi.spyOn(document, "getElementById").mockReturnValueOnce(
-            detachedExistingIndicator
+        const querySelector = document.querySelector.bind(document);
+        vi.spyOn(document, "querySelector").mockImplementation(
+            (selector: string) =>
+                selector === "#global-chart-status"
+                    ? detachedExistingIndicator
+                    : querySelector(selector)
         );
 
         expect([updateGlobalChartStatusIndicator()]).toStrictEqual([true]);

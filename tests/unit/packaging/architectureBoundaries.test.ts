@@ -369,6 +369,9 @@ const migratedChartStatusCountsRuntimeFiles = [
 const migratedGlobalChartStatusRuntimeFiles = [
     "electron-app/utils/charts/components/createGlobalChartStatusIndicator.ts",
 ] as const;
+const migratedGlobalChartStatusUpdaterRuntimeFiles = [
+    "electron-app/utils/charts/core/updateGlobalChartStatusIndicator.ts",
+] as const;
 const migratedChartStatusEventRuntimeFiles = [
     "electron-app/utils/charts/components/chartStatusIndicator.ts",
 ] as const;
@@ -691,6 +694,8 @@ const directChartStatusCountsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bdocument\.querySelector\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directGlobalChartStatusRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b/u;
+const directGlobalChartStatusUpdaterRuntimeGlobalPattern =
+    /\bdocument\.(?:body|querySelector)\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusEventGlobalPattern =
     /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\(\s*["']fieldToggleChanged["']|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -2980,6 +2985,29 @@ describe("architecture boundaries", () => {
             )
             .sort();
         const sourcesMissingRuntime = migratedGlobalChartStatusRuntimeFiles
+            .filter(
+                (relativeFile) =>
+                    !stripComments(readRepositoryFile(relativeFile)).includes(
+                        "chartStatusIndicatorRuntime.js"
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
+    });
+
+    it("keeps global chart status updater DOM lookups behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedGlobalChartStatusUpdaterRuntimeFiles
+            .filter((relativeFile) =>
+                directGlobalChartStatusUpdaterRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedGlobalChartStatusUpdaterRuntimeFiles
             .filter(
                 (relativeFile) =>
                     !stripComments(readRepositoryFile(relativeFile)).includes(
