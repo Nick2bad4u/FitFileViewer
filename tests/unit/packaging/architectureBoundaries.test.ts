@@ -1336,6 +1336,18 @@ describe("architecture boundaries", () => {
         expect(showFitDataSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps file-open handling off direct core state-manager imports", () => {
+        expect.assertions(1);
+
+        const handleOpenFileSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/handleOpenFile.ts"
+            )
+        );
+
+        expect(handleOpenFileSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 

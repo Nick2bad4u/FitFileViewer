@@ -10,7 +10,6 @@ import {
 } from "../../logging/rendererLogger.js";
 import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
-import * as stateManager from "../../state/core/stateManager.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { clearAllNotifications } from "../../ui/notifications/showNotification.js";
 import {
@@ -23,8 +22,6 @@ import { sendFitFileToAltFitReader } from "./sendFitFileToAltFitReader.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { FitFileLoadingPhase } from "../../state/core/stateManagerDefaults.js";
-
-const __TEST_ONLY_exposedStateManager = stateManager;
 
 type FileOpeningRef = { value?: boolean };
 
@@ -560,8 +557,6 @@ function validateElectronAPI(): boolean {
 
 // Export functions for testing
 export {
-    // Only used in tests, never in production code
-    __TEST_ONLY_exposedStateManager,
     handleOpenFile,
     logWithContext,
     updateUIState,
