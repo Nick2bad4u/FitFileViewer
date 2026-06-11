@@ -2,9 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
     __resetStateManagerForTests,
-    getState,
-    setState,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
+import {
+    getRendererActiveTab,
+    setRendererActiveTab,
+} from "../../../../../electron-app/utils/state/domain/rendererActiveTabState.js";
 import {
     registerRendererElectronApiCandidate,
     resetRendererElectronApiCandidate,
@@ -96,7 +98,7 @@ describe(initFitBrowserFeatureGate, () => {
                     .mockResolvedValue(false),
             };
             installElectronApi(api);
-            setState("ui.activeTab", "browser", { source: "test" });
+            setRendererActiveTab("browser", { source: "test" });
 
             initFitBrowserFeatureGate();
             await waitForFeatureGateLoad();
@@ -104,7 +106,7 @@ describe(initFitBrowserFeatureGate, () => {
             expect(api.isFitBrowserEnabled).toHaveBeenCalledOnce();
             expect(button.style.display).toBe("none");
             expect(content.style.display).toBe("none");
-            expect(getState("ui.activeTab")).toBe("map");
+            expect(getRendererActiveTab()).toBe("map");
         });
     });
 
@@ -125,7 +127,7 @@ describe(initFitBrowserFeatureGate, () => {
 
             expect(button.style.display).toBe("");
             expect(content.style.display).toBe("");
-            expect(getState("ui.activeTab")).not.toBe("map");
+            expect(getRendererActiveTab()).toBe("summary");
         });
     });
 

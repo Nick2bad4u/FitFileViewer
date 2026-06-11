@@ -1,4 +1,4 @@
-import { getState, setState } from "../../state/core/stateManager.js";
+import { replaceRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
@@ -53,8 +53,8 @@ function applyBrowserTabVisibility(enabled: boolean): void {
         tabContent.style.display = enabled ? "" : "none";
     }
 
-    if (!enabled && getState("ui.activeTab") === "browser") {
-        setState("ui.activeTab", "map", {
+    if (!enabled) {
+        replaceRendererActiveTab("browser", "map", {
             source: "initFitBrowserFeatureGate.disable",
         });
     }

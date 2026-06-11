@@ -1186,6 +1186,19 @@ describe("architecture boundaries", () => {
         expect(stateStartupSource).toContain("subscribeAppDomainPath");
     });
 
+    it("keeps Browser feature gating on the active-tab state facade", () => {
+        expect.assertions(2);
+
+        const featureGateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts"
+            )
+        );
+
+        expect(featureGateSource).toContain("rendererActiveTabState.js");
+        expect(featureGateSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 

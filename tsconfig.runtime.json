@@ -133,6 +133,7 @@
         "electron-app/utils/state/domain/fitTableDataState.ts",
         "electron-app/utils/state/domain/fitUserDeviceDataState.ts",
         "electron-app/utils/state/domain/rendererActiveFileState.ts",
+        "electron-app/utils/state/domain/rendererActiveTabState.ts",
         "electron-app/utils/state/domain/rendererChartRenderState.ts",
         "electron-app/utils/state/domain/rendererDragDropState.ts",
         "electron-app/utils/state/domain/uiStateManager.ts",
