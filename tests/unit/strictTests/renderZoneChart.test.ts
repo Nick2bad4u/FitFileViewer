@@ -71,10 +71,6 @@ type ChartConstructorMock = ReturnType<
     >
 >;
 
-type ZoneChartTestGlobal = typeof globalThis & {
-    Chart?: ChartConstructorMock;
-};
-
 type ConsoleMethod = (...args: unknown[]) => void;
 type ZoneChartRenderRegistrySnapshot = {
     chartInstanceTypes: string[];
@@ -83,12 +79,12 @@ type ContainerChildSnapshot = {
     childTags: string[];
 };
 
-function getZoneChartGlobal(): ZoneChartTestGlobal {
-    return globalThis as ZoneChartTestGlobal;
+function getZoneChartGlobal(): typeof globalThis {
+    return globalThis;
 }
 
 function getLatestChartConfig(): ZoneChartConfig {
-    const config = Chart.mock.calls[0]?.[1];
+    const config = chartMock.mock.calls[0]?.[1];
     if (!config) {
         throw new Error("Expected Chart constructor to receive a config");
     }
@@ -107,7 +103,7 @@ function getRenderedCanvas(container: HTMLElement): HTMLCanvasElement {
 }
 
 function getFirstChartCanvasArgument(): HTMLCanvasElement {
-    const canvas = Chart.mock.calls[0]?.[0];
+    const canvas = chartMock.mock.calls[0]?.[0];
     const CanvasConstructor = getZoneChartGlobal().HTMLCanvasElement;
 
     if (!CanvasConstructor || !(canvas instanceof CanvasConstructor)) {
@@ -118,7 +114,7 @@ function getFirstChartCanvasArgument(): HTMLCanvasElement {
 }
 
 let renderZoneChart: RenderZoneChart;
-let Chart: ChartConstructorMock;
+let chartMock: ChartConstructorMock;
 let chartInstanceMock: ZoneChartInstanceMock;
 let detectCurrentThemeMock: ReturnType<typeof vi.fn<() => string>>;
 let getThemeConfigMock: ReturnType<typeof vi.fn<() => unknown>>;
@@ -151,7 +147,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         chartInstanceMock = {
             update: vi.fn<() => void>(),
         };
-        Chart = vi.fn<
+        chartMock = vi.fn<
             (
                 canvas: HTMLCanvasElement,
                 config: ZoneChartConfig
@@ -159,10 +155,6 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         >(function ChartConstructor(_canvas, _config) {
             return chartInstanceMock;
         });
-        const zoneGlobal = getZoneChartGlobal();
-        zoneGlobal.Chart = Chart;
-        (globalThis.window as Window & { Chart?: ChartConstructorMock }).Chart =
-            Chart;
         clearChartInstanceRegistryForTests();
 
         detectCurrentThemeMock = vi.fn<() => string>(() => "light");
@@ -190,7 +182,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         );
 
         vi.doMock(import("chart.js/auto"), () => ({
-            default: Chart,
+            default: chartMock,
         }));
         vi.doMock(
             import("../../../electron-app/utils/charts/theming/chartThemeUtils.js"),
@@ -232,7 +224,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
 
         const { setChartRuntime } =
             await import("../../../electron-app/utils/charts/core/chartRuntime.js");
-        setChartRuntime(Chart);
+        setChartRuntime(chartMock);
 
         const module =
             await import("../../../electron-app/utils/charts/rendering/renderZoneChart.js");
@@ -247,7 +239,6 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         vi.resetModules();
         vi.clearAllMocks();
         const zoneGlobal = getZoneChartGlobal();
-        delete zoneGlobal.Chart;
         delete zoneGlobal.window;
         delete zoneGlobal.document;
         delete zoneGlobal.HTMLCanvasElement;
@@ -263,7 +254,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             "renderZoneChart: invalid container",
             null
         );
-        expect(Chart).not.toHaveBeenCalled();
+        expect(chartMock).not.toHaveBeenCalled();
         expect<ZoneChartRenderRegistrySnapshot>({
             chartInstanceTypes: getRegisteredChartInstances().map(
                 (chartInstance) => typeof chartInstance
@@ -283,7 +274,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             "renderZoneChart: zoneData not array",
             null
         );
-        expect(Chart).not.toHaveBeenCalled();
+        expect(chartMock).not.toHaveBeenCalled();
         expect<ContainerChildSnapshot>({
             childTags: [...container.children].map((child) => child.tagName),
         }).toStrictEqual({
@@ -312,7 +303,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         const view = getRenderedCanvas(container);
         expect(view).toBeInstanceOf(HTMLCanvasElement);
         expect(getFirstChartCanvasArgument()).toBe(view);
-        expect(Chart).toHaveBeenCalledOnce();
+        expect(chartMock).toHaveBeenCalledOnce();
         expect(getRegisteredChartInstances()).toStrictEqual([
             chartInstanceMock,
         ]);
