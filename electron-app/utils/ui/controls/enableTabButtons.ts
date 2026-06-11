@@ -1,8 +1,5 @@
 import { isHTMLElement } from "../../dom/index.js";
-import {
-    subscribe,
-} from "../../state/core/stateManager.js";
-import * as StateManager from "../../state/core/stateManager.js";
+import { subscribeToActiveFitRawData } from "../../state/domain/activeFitRawDataState.js";
 import {
     areRendererTabButtonsEnabled,
     setRendererTabButtonsEnabled,
@@ -43,12 +40,6 @@ type TabButtonObserver = {
 type MutationObserverConstructorLike = new (
     callback: MutationCallback
 ) => TabButtonObserver;
-
-type SubscribeSingleton = (
-    path: string,
-    id: string,
-    callback: (data: unknown) => void
-) => void;
 
 type TabButtonElement = HTMLElement & {
     disabled?: boolean;
@@ -151,33 +142,17 @@ export function initializeTabButtonState(): void {
         });
     }
 
-    const subscribeSingletonFn = getSubscribeSingleton();
-    if (typeof subscribeSingletonFn === "function") {
-        subscribeSingletonFn(
-            "fitFile.rawData",
-            "ui:tabButtons:rawData",
-            (data: unknown) => {
-                const hasData = data !== null && data !== undefined;
-                console.log(
-                    `[TabButtons] fitFile.rawData changed, hasData: ${hasData}`,
-                    data ? "data present" : "no data"
-                );
-                console.log(
-                    `[TabButtons] Updating tabs based on fitFile.rawData: ${hasData ? "enabling" : "disabling"}`
-                );
-                setTabButtonsEnabled(hasData);
-            }
+    subscribeToActiveFitRawData((data) => {
+        const hasData = data !== null;
+        console.log(
+            `[TabButtons] fitFile.rawData changed, hasData: ${hasData}`,
+            data ? "data present" : "no data"
         );
-    } else if (typeof subscribe === "function") {
-        subscribe("fitFile.rawData", (data: unknown) => {
-            const hasData = data !== null && data !== undefined;
-            setTabButtonsEnabled(hasData);
-        });
-    } else {
-        console.warn(
-            "[TabButtons] subscribe is not available; skipping fitFile.rawData subscription"
+        console.log(
+            `[TabButtons] Updating tabs based on fitFile.rawData: ${hasData ? "enabling" : "disabling"}`
         );
-    }
+        setTabButtonsEnabled(hasData);
+    });
 
     console.log(
         "[TabButtons] State management initialized - tabs disabled until file loaded"
@@ -393,19 +368,6 @@ function clearFinalStateLogTimers(): void {
         clearTimeout(handle);
     }
     finalStateLogTimers.clear();
-}
-
-function getSubscribeSingleton(): SubscribeSingleton | undefined {
-    try {
-        const candidate = StateManager as {
-            subscribeSingleton?: unknown;
-        };
-        return typeof candidate.subscribeSingleton === "function"
-            ? (candidate.subscribeSingleton as SubscribeSingleton)
-            : undefined;
-    } catch {
-        return undefined;
-    }
 }
 
 function handleMutation(mutation: MutationRecord): void {

@@ -1241,6 +1241,20 @@ describe("architecture boundaries", () => {
         expect(tabButtonDebugSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps tab-button raw-data subscriptions on renderer state facades", () => {
+        expect.assertions(3);
+
+        const tabButtonSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/enableTabButtons.ts"
+            )
+        );
+
+        expect(tabButtonSource).toContain("activeFitRawDataState.js");
+        expect(tabButtonSource).toContain("rendererTabButtonsState.js");
+        expect(tabButtonSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps settings modal theme writes on the renderer theme state facade", () => {
         expect.assertions(2);
 
