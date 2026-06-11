@@ -1186,6 +1186,18 @@ describe("architecture boundaries", () => {
         expect(stateStartupSource).toContain("subscribeAppDomainPath");
     });
 
+    it("keeps renderer runtime globals behind the runtime environment facade", () => {
+        expect.assertions(3);
+
+        const rendererEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/renderer.ts")
+        );
+
+        expect(rendererEntrypointSource).toContain("runtimeEnvironment.js");
+        expect(rendererEntrypointSource).not.toContain("globalThis.");
+        expect(rendererEntrypointSource).not.toContain("document,");
+    });
+
     it("keeps Browser feature gating on the active-tab state facade", () => {
         expect.assertions(2);
 

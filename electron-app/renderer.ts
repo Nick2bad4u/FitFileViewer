@@ -39,6 +39,7 @@ import { createRendererLifecycleCleanup } from "./renderer/lifecycleCleanup.js";
 import { createRendererStateStartup } from "./renderer/stateManagerStartup.js";
 import { createRendererApplicationStartup } from "./renderer/applicationStartup.js";
 import { registerRendererApplicationLifecycle } from "./renderer/applicationLifecycleWiring.js";
+import { createRendererRuntimeEnvironment } from "./renderer/runtimeEnvironment.js";
 import {
     createRendererImportTimeBootstrap,
     runRendererImportTimeBootstrap,
@@ -52,7 +53,8 @@ import { setupCreditsMarquee } from "./utils/ui/layout/enhanceCreditsSection.js"
 
 type LogRendererLevel = "error" | "group" | "groupEnd" | "log" | "warn";
 
-const rendererConsole = globalThis.console;
+const runtimeEnvironment = createRendererRuntimeEnvironment();
+const rendererConsole = runtimeEnvironment.console;
 
 /**
  * @param {"error" | "group" | "groupEnd" | "log" | "warn"} level
@@ -83,7 +85,7 @@ const rendererStateStartup = createRendererStateStartup({
 const { initializeStateManager, isOpeningFileRef } = rendererStateStartup;
 
 const domAccess = createRendererDomAccess({
-    documentTarget: document,
+    documentTarget: runtimeEnvironment.documentTarget,
     logRenderer,
 });
 
@@ -141,7 +143,7 @@ const PerformanceMonitor: RendererPerformanceMonitor =
     });
 
 const initializeApplication = createRendererApplicationStartup({
-    addEventListener: globalThis.addEventListener.bind(globalThis),
+    addEventListener: runtimeEnvironment.addEventListener,
     callUnknownFunction,
     ensureCoreModules,
     errorHandlers: rendererErrorHandlers,
@@ -175,15 +177,15 @@ const cleanup = createRendererLifecycleCleanup({
     getCoreModules: ensureCoreModules,
     isOpeningFileRef,
     logRenderer,
-    removeEventListener: globalThis.removeEventListener.bind(globalThis),
+    removeEventListener: runtimeEnvironment.removeEventListener,
 });
 
 registerRendererApplicationLifecycle({
     cleanup,
-    documentTarget: document,
+    documentTarget: runtimeEnvironment.documentTarget,
     initializeApplication,
-    setTimeout: globalThis.setTimeout.bind(globalThis),
-    windowTarget: globalThis,
+    setTimeout: runtimeEnvironment.setTimeout,
+    windowTarget: runtimeEnvironment.windowTarget,
 });
 
 installRendererGlobalSurfaces({
@@ -201,26 +203,31 @@ installRendererGlobalSurfaces({
 // ==========================================
 
 runRendererImportTimeBootstrap(importTimeBootstrap);
-fileInputWiring.registerImportTimeFileInputChangeHandler(globalThis);
+fileInputWiring.registerImportTimeFileInputChangeHandler(
+    runtimeEnvironment.windowTarget
+);
 
 installRendererElectronApiWiring({
-    addEventListener: globalThis.addEventListener.bind(globalThis),
+    addEventListener: runtimeEnvironment.addEventListener,
     callUnknownFunction,
-    clearInterval: globalThis.clearInterval.bind(globalThis),
+    clearInterval: runtimeEnvironment.clearInterval,
     defineProperty: Object.defineProperty,
     ensureCoreModules,
     getFileInput: fileInputWiring.getFileInput,
     logRenderer,
-    removeEventListener: globalThis.removeEventListener.bind(globalThis),
+    removeEventListener: runtimeEnvironment.removeEventListener,
     scheduleStateInitialization: scheduleImportTimeStateInitialization,
-    scope: globalThis,
-    setInterval: globalThis.setInterval.bind(globalThis),
+    scope: runtimeEnvironment.scope,
+    setInterval: runtimeEnvironment.setInterval,
 });
 
 registerRendererTestOnlyBootstrap(testOnlyBootstrapOptions, {
-    documentTarget: document,
-    unloadTarget: globalThis,
-    windowTarget: globalThis,
+    documentTarget: runtimeEnvironment.documentTarget,
+    unloadTarget: runtimeEnvironment.windowTarget,
+    windowTarget: runtimeEnvironment.windowTarget,
 });
 
-fileInputWiring.registerDelegatedFileInputChangeListener(document, globalThis);
+fileInputWiring.registerDelegatedFileInputChangeListener(
+    runtimeEnvironment.documentTarget,
+    runtimeEnvironment.windowTarget
+);
