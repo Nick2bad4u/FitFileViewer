@@ -80,9 +80,6 @@ interface LocalStorageMock {
 type ChartConstructorMock = Mock<
     (canvas: HTMLCanvasElement, config: ChartConfig) => ChartInstanceMock
 >;
-type ChartTestGlobal = typeof globalThis & {
-    Chart?: ChartConstructorMock;
-};
 
 type ConsoleMethod = (...data: unknown[]) => void;
 type CreateEnhancedChart =
@@ -96,7 +93,7 @@ type HexToRgba = (hex: string, alpha: number) => string;
 type GetFieldColor = (field: string) => string;
 type UpdateChartAnimations = (...args: unknown[]) => void;
 
-let Chart: ChartConstructorMock;
+let chartMock: ChartConstructorMock;
 let chartInstanceMock: ChartInstanceMock;
 let createEnhancedChart: CreateEnhancedChart;
 let mockLocalStorage: LocalStorageMock;
@@ -146,7 +143,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             update: vi.fn<() => void>(),
         };
 
-        Chart = vi.fn<
+        chartMock = vi.fn<
             (
                 canvas: HTMLCanvasElement,
                 config: ChartConfig
@@ -154,10 +151,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         >(function ChartConstructor() {
             return chartInstanceMock;
         });
-        (globalThis as ChartTestGlobal).Chart = Chart;
-        (globalThis.window as Window & { Chart?: ChartConstructorMock }).Chart =
-            Chart;
-        setChartRuntime(Chart);
+        setChartRuntime(chartMock);
 
         // Mock all dependencies
         vi.doMock(
@@ -274,7 +268,6 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         delete globalThis.HTMLCanvasElement;
         delete globalThis.HTMLElement;
         clearChartRuntimeForTests();
-        delete (globalThis as ChartTestGlobal).Chart;
         delete globalThis.console;
         delete globalThis.localStorage;
     });
@@ -308,10 +301,10 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const result = createEnhancedChart(canvas, options);
 
             expect(result).toBe(chartInstanceMock);
-            expect(Chart).toHaveBeenCalledOnce();
-            expect(Chart.mock.calls[0][0]).toBe(canvas);
-            expect(Chart.mock.calls[0][1].type).toBe("line");
-            expect(Chart.mock.calls[0][1].type).not.toBe("bar");
+            expect(chartMock).toHaveBeenCalledOnce();
+            expect(chartMock.mock.calls[0][0]).toBe(canvas);
+            expect(chartMock.mock.calls[0][1].type).toBe("line");
+            expect(chartMock.mock.calls[0][1].type).not.toBe("bar");
         });
 
         it("should create a bar chart when chartType is bar", () => {
@@ -339,8 +332,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const result = createEnhancedChart(canvas, options);
 
             expect(result).toBe(chartInstanceMock);
-            expect(Chart.mock.calls[0][1].type).toBe("bar");
-            const dataset = Chart.mock.calls[0][1].data.datasets[0];
+            expect(chartMock.mock.calls[0][1].type).toBe("bar");
+            const dataset = chartMock.mock.calls[0][1].data.datasets[0];
             expect(dataset.backgroundColor).toBe("#ff0000");
             expect(dataset.borderWidth).toStrictEqual(1);
         });
@@ -370,8 +363,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const result = createEnhancedChart(canvas, options);
 
             expect(result).toBe(chartInstanceMock);
-            expect(Chart.mock.calls[0][1].type).toBe("scatter");
-            const dataset = Chart.mock.calls[0][1].data.datasets[0];
+            expect(chartMock.mock.calls[0][1].type).toBe("scatter");
+            const dataset = chartMock.mock.calls[0][1].data.datasets[0];
             expect(dataset.showLine).toStrictEqual(false);
             expect(dataset.pointRadius).toStrictEqual(4);
         });
@@ -401,8 +394,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const result = createEnhancedChart(canvas, options);
 
             expect(result).toBe(chartInstanceMock);
-            expect(Chart.mock.calls[0][1].type).toBe("line");
-            const dataset = Chart.mock.calls[0][1].data.datasets[0];
+            expect(chartMock.mock.calls[0][1].type).toBe("line");
+            const dataset = chartMock.mock.calls[0][1].data.datasets[0];
             expect(dataset.fill).toStrictEqual(true);
             expect(dataset.tension).toBe(0.5); // smoothing 50 / 100
         });
@@ -434,7 +427,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const dataset = Chart.mock.calls[0][1].data.datasets[0];
+            const dataset = chartMock.mock.calls[0][1].data.datasets[0];
             expect(dataset.borderColor).toBe("#00ff00");
             expect(dataset.pointBackgroundColor).toBe("#00ff00");
             expect(dataset.pointBorderColor).toBe("#00ff00");
@@ -466,7 +459,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const dataset = Chart.mock.calls[0][1].data.datasets[0];
+            const dataset = chartMock.mock.calls[0][1].data.datasets[0];
             expect(dataset.label).toBe("Speed (Enhanced)");
         });
 
@@ -494,7 +487,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const dataset = Chart.mock.calls[0][1].data.datasets[0];
+            const dataset = chartMock.mock.calls[0][1].data.datasets[0];
             expect(dataset.pointRadius).toStrictEqual(0);
             expect(dataset.pointHoverRadius).toStrictEqual(5);
         });
@@ -523,7 +516,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const dataset = Chart.mock.calls[0][1].data.datasets[0];
+            const dataset = chartMock.mock.calls[0][1].data.datasets[0];
             expect(dataset.fill).toStrictEqual(true);
             expect(dataset.backgroundColor).toBe("rgba(255, 0, 0, 0.2)");
         });
@@ -558,7 +551,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.plugins.legend.labels.color).toBe("#000");
             expect(config.options.plugins.title.color).toBe("#000");
             expect(config.options.plugins.tooltip.backgroundColor).toBe("#fff");
@@ -591,7 +584,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
+            const config = chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
             expect(config.options.plugins.legend.labels.color).toBe("#fff");
             expect(config.options.plugins.title.color).toBe("#fff");
             expect(config.options.plugins.tooltip.backgroundColor).toBe("#222");
@@ -625,7 +618,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
+            const config = chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
             expect(config.options.scales.x.grid.color).toBe(
                 "rgba(255,255,255,0.1)"
             );
@@ -664,7 +657,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.plugins).toEqual([
                 { id: "zoomReset" },
                 { id: "backgroundColor" },
@@ -699,7 +692,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.plugins.zoom).toEqual(zoomPluginConfig);
         });
 
@@ -727,7 +720,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
+            const config = chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
             expect(
                 config.options.plugins.chartBackgroundColorPlugin
             ).toHaveProperty("backgroundColor");
@@ -771,7 +764,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             const titleCallback =
                 config.options.plugins.tooltip.callbacks.title;
             const mockContext = [{ label: "Test Label" }];
@@ -805,7 +798,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             const labelCallback =
                 config.options.plugins.tooltip.callbacks.label;
             const mockContext = {
@@ -845,7 +838,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             const labelCallback =
                 config.options.plugins.tooltip.callbacks.label;
             const mockContext = {
@@ -881,7 +874,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             const labelCallback =
                 config.options.plugins.tooltip.callbacks.label;
             const mockContext = {
@@ -919,7 +912,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.scales.x.type).toBe("linear");
             expect(config.options.scales.x.title.text).toBe("Time (s)");
             expect(config.options.scales.x.title.display).toStrictEqual(true);
@@ -950,7 +943,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.scales.y.title.text).toBe("Speed (km/h)");
             expect(config.options.scales.y.title.display).toStrictEqual(true);
         });
@@ -982,7 +975,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             const tickCallback = config.options.scales.x.ticks.callback;
 
             const result = tickCallback(120); // 120 seconds
@@ -1016,7 +1009,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             const tickCallback = config.options.scales.x.ticks.callback;
 
             const result = tickCallback(7200); // 7200 seconds = 2 hours
@@ -1050,7 +1043,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             const tickCallback = config.options.scales.x.ticks.callback;
 
             const result = tickCallback(125); // 125 seconds
@@ -1081,7 +1074,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.scales.x.grid.display).toStrictEqual(false);
             expect(config.options.scales.y.grid.display).toStrictEqual(false);
             expect(config.options.scales.x.grid.display).not.toStrictEqual(
@@ -1115,7 +1108,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.animation.duration).toStrictEqual(0);
             expect(config.options.animation.easing).toBe("linear");
         });
@@ -1144,7 +1137,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.animation.duration).toStrictEqual(500);
             expect(config.options.animation.easing).toBe("easeInOut");
         });
@@ -1173,7 +1166,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.animation.duration).toStrictEqual(2000);
         });
 
@@ -1201,7 +1194,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.animation.duration).toStrictEqual(1000);
         });
 
@@ -1233,7 +1226,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const result = createEnhancedChart(canvas, options);
 
             expect(result).toBe(chartInstanceMock);
-            const config = Chart.mock.calls[Chart.mock.calls.length - 1][1];
+            const config = chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
             expect(config.options.animation.duration).toStrictEqual(1000);
             expect(config.options.animation.easing).toBe("linear");
             expect(updateChartAnimations).toHaveBeenCalledWith(
@@ -1270,7 +1263,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const result = createEnhancedChart(canvas, options);
 
             expect(result).toBe(chartInstanceMock);
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.animation.duration).toStrictEqual(0);
             expect(updateChartAnimations).not.toHaveBeenCalled();
         });
@@ -1301,7 +1294,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.plugins.legend.display).toStrictEqual(false);
             expect(config.options.plugins.title.display).not.toStrictEqual(
                 false
@@ -1332,7 +1325,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.plugins.title.display).toStrictEqual(false);
         });
 
@@ -1361,7 +1354,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = Chart.mock.calls[0][1];
+            const config = chartMock.mock.calls[0][1];
             expect(config.options.plugins.title.text).toBe("Velocity (km/h)");
         });
     });
@@ -1404,7 +1397,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect.assertions(2);
 
             const chartCreationError = new Error("Chart creation failed");
-            Chart.mockImplementationOnce(function ChartConstructor() {
+            chartMock.mockImplementationOnce(function ChartConstructor() {
                 throw chartCreationError;
             });
 
@@ -1440,7 +1433,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             expect.assertions(2);
 
             const chartCreationError = new Error("Chart creation failed");
-            Chart.mockImplementationOnce(function ChartConstructor() {
+            chartMock.mockImplementationOnce(function ChartConstructor() {
                 throw chartCreationError;
             });
 
@@ -1499,7 +1492,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const result = createEnhancedChart(canvas, options);
 
             expect(result).toBe(chartInstanceMock);
-            const dataset = Chart.mock.calls[0][1].data.datasets[0];
+            const dataset = chartMock.mock.calls[0][1].data.datasets[0];
             expect(dataset.data).toStrictEqual([]);
             expect(dataset.data).not.toHaveLength(1);
         });
@@ -1528,7 +1521,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const dataset = Chart.mock.calls[0][1].data.datasets[0];
+            const dataset = chartMock.mock.calls[0][1].data.datasets[0];
             expect(dataset.tension).toBe(1.0);
         });
 
@@ -1556,7 +1549,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const dataset = Chart.mock.calls[0][1].data.datasets[0];
+            const dataset = chartMock.mock.calls[0][1].data.datasets[0];
             expect(dataset.label).toBe("unknownField");
             expect(dataset.borderColor).toBe("#ff0000"); // from getFieldColor mock
         });

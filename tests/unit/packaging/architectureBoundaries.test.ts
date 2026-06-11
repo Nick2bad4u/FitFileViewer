@@ -173,6 +173,7 @@ const migratedChartImportFiles = [
     "electron-app/utils/data/zones/renderSinglePowerZoneBar.ts",
 ] as const;
 const migratedChartRuntimeTestFiles = [
+    "tests/unit/strictTests/createEnhancedChart.test.ts",
     "tests/unit/strictTests/renderEventMessagesChart.test.ts",
     "tests/unit/strictTests/renderGPSTimeChart.test.ts",
     "tests/unit/utils/charts/core/renderChartJS.comprehensive.test.ts",
