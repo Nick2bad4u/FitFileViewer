@@ -32,6 +32,10 @@ vi.mock(
 import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listeners.js";
 import { getLifecycleListenerCleanup } from "../../../electron-app/utils/app/lifecycle/lifecycleListenerCleanupRegistry.js";
 import { resetMenuIpcListenerStateForTests } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type TestElectronAPI = {
     addRecentFile: Mock<ElectronAPI["addRecentFile"]>;
@@ -46,7 +50,6 @@ type TestElectronAPI = {
 };
 
 type TestGlobal = typeof globalThis & {
-    electronAPI?: TestElectronAPI;
     renderChartJS?: unknown;
 };
 
@@ -84,16 +87,14 @@ describe("utils/app/lifecycle/listeners.js", () => {
         document.body.replaceChildren(openFileButton, contentSummary);
         openFileSelectorMock.mockReset();
         openFileSelectorMock.mockImplementation(() => {});
-        // Clean any previous window properties
         Object.assign(getTestWindow(), {
-            electronAPI: undefined,
             renderChartJS: undefined,
         });
         Object.assign(getTestGlobal(), {
-            electronAPI: undefined,
             renderChartJS: undefined,
         });
         resetMenuIpcListenerStateForTests();
+        resetRendererElectronApiCandidate();
         updateChartsMock.mockClear();
     });
 
@@ -138,8 +139,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
             addRecentFile: vi.fn<ElectronAPI["addRecentFile"]>(),
             onIpc: vi.fn<ElectronAPI["onIpc"]>(),
         };
-        Object.assign(getTestWindow(), { electronAPI });
-        Object.assign(getTestGlobal(), { electronAPI });
+        registerRendererElectronApiCandidate(electronAPI);
 
         setupListeners({
             openFileBtn,
@@ -212,8 +212,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
         expect.assertions(1);
 
         const { openFileBtn } = mount(null);
-        // Remove electronAPI to simulate missing API
-        delete getTestWindow().electronAPI;
+        resetRendererElectronApiCandidate();
         const evt = new MouseEvent("contextmenu", {
             bubbles: true,
             cancelable: true,
