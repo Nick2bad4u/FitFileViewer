@@ -1,3 +1,5 @@
+import { getEnableTabButtonsHelpersRuntime } from "./enableTabButtonsHelpersRuntime.js";
+
 /**
  * Safely get computed style values when available.
  *
@@ -11,17 +13,17 @@ export function safeComputedStyle(
     property: string
 ): string | undefined {
     try {
-        if (
-            globalThis.window !== undefined &&
-            typeof globalThis.getComputedStyle === "function"
-        ) {
-            const computedStyle = globalThis.getComputedStyle(element);
-            if (typeof computedStyle.getPropertyValue === "function") {
-                return computedStyle.getPropertyValue(property) || undefined;
-            }
-
-            return getIndexedStyleValue(computedStyle, property);
+        const computedStyle =
+            getEnableTabButtonsHelpersRuntime().getComputedStyle(element);
+        if (!computedStyle) {
+            return undefined;
         }
+
+        if (typeof computedStyle.getPropertyValue === "function") {
+            return computedStyle.getPropertyValue(property) || undefined;
+        }
+
+        return getIndexedStyleValue(computedStyle, property);
     } catch {
         /* Ignore errors */
     }
@@ -36,30 +38,7 @@ export function safeComputedStyle(
  */
 export function safeQueryTabButtons(): HTMLElement[] {
     try {
-        if (typeof document !== "undefined") {
-            const querySelectorAll = Reflect.get(document, "querySelectorAll");
-            if (typeof querySelectorAll === "function") {
-                return [
-                    ...(querySelectorAll.call(
-                        document,
-                        ".tab-button"
-                    ) as NodeListOf<HTMLElement>),
-                ];
-            }
-
-            const getElementsByClassName = Reflect.get(
-                document,
-                "getElementsByClassName"
-            );
-            if (typeof getElementsByClassName === "function") {
-                return [
-                    ...(getElementsByClassName.call(
-                        document,
-                        "tab-button"
-                    ) as HTMLCollectionOf<HTMLElement>),
-                ];
-            }
-        }
+        return getEnableTabButtonsHelpersRuntime().queryTabButtons();
     } catch {
         // Fall through to return [].
     }

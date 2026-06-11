@@ -441,6 +441,7 @@
         "electron-app/utils/ui/controls/enableTabButtonsDebug.ts",
         "electron-app/utils/ui/controls/enableTabButtonsDebugRuntime.ts",
         "electron-app/utils/ui/controls/enableTabButtonsHelpers.ts",
+        "electron-app/utils/ui/controls/enableTabButtonsHelpersRuntime.ts",
         "electron-app/utils/ui/controls/addFullScreenButton.ts",
         "electron-app/utils/ui/controls/screenfullRuntime.ts",
         "electron-app/utils/ui/controls/addExitFullscreenOverlay.ts",

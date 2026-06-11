@@ -302,6 +302,9 @@ const migratedUpdateControlsStateRuntimeFiles = [
 const migratedEnableTabButtonsDebugRuntimeFiles = [
     "electron-app/utils/ui/controls/enableTabButtonsDebug.ts",
 ] as const;
+const migratedEnableTabButtonsHelpersRuntimeFiles = [
+    "electron-app/utils/ui/controls/enableTabButtonsHelpers.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -574,6 +577,8 @@ const directUpdateControlsStateRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.getComputedStyle\b/u;
 const directEnableTabButtonsDebugRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b/u;
+const directEnableTabButtonsHelpersRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bReflect\.get\(\s*document\b|\btypeof\s+document\s*!==/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2282,6 +2287,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(enableTabButtonsDebugSource).toContain(
             "enableTabButtonsDebugRuntime.js"
+        );
+    });
+
+    it("keeps tab-button helper DOM reads behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedEnableTabButtonsHelpersRuntimeFiles
+            .filter((relativeFile) =>
+                directEnableTabButtonsHelpersRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const enableTabButtonsHelpersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/enableTabButtonsHelpers.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(enableTabButtonsHelpersSource).toContain(
+            "enableTabButtonsHelpersRuntime.js"
         );
     });
 
