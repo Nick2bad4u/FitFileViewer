@@ -219,6 +219,7 @@
         "electron-app/utils/maps/core/mapDocumentListeners.ts",
         "electron-app/utils/maps/controls/mapFullscreenControl.ts",
         "electron-app/utils/maps/controls/mapLapSelector.ts",
+        "electron-app/utils/maps/controls/mapActionButtonsRuntime.ts",
         "electron-app/utils/maps/controls/mapActionButtons.ts",
         "electron-app/utils/maps/controls/leafletPluginControls.ts",
         "electron-app/utils/maps/controls/mapMeasureTool.ts",

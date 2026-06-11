@@ -31,6 +31,10 @@ import {
     getMainMapPolylineOriginalBounds,
     getOverlayMapPolyline,
 } from "../state/mapPolylineRegistryState.js";
+import {
+    getMapActionButtonsRuntime,
+    type MapActionButtonTimer,
+} from "./mapActionButtonsRuntime.js";
 
 type MapBounds = {
     isValid?: () => boolean;
@@ -65,13 +69,13 @@ type MapActionLeafletRuntime = {
     CircleMarker?: CircleMarkerConstructor;
 };
 
-const activeTimers = new Set<ReturnType<typeof setTimeout>>();
+const activeTimers = new Set<MapActionButtonTimer>();
 const activeFileNameCleanupCallbacks = new WeakMap<HTMLElement, () => void>();
 const trackedActiveFileNameElements = new Set<HTMLElement>();
 const CENTER_MAIN_MAX_ATTEMPTS = 8;
 const MAIN_POLYLINE_HIGHLIGHT_COLOR = "#1976d2";
 let centerMainAttempts = 0;
-let centerRetryHandle: ReturnType<typeof setTimeout> | null = null;
+let centerRetryHandle: MapActionButtonTimer | null = null;
 let centerStatusNotified = 0;
 let mainPolylineHighlightToken = 0;
 
@@ -88,7 +92,8 @@ function isMapActionLeafletRuntime(
 }
 
 function scheduleMapActionTimeout(callback: () => void, delayMs: number): void {
-    const handle = setTimeout(() => {
+    const runtime = getMapActionButtonsRuntime();
+    const handle = runtime.setTimeout(() => {
         activeTimers.delete(handle);
         callback();
     }, delayMs);
@@ -97,14 +102,14 @@ function scheduleMapActionTimeout(callback: () => void, delayMs: number): void {
 
 function clearCenterRetryTimer(): void {
     if (centerRetryHandle) {
-        globalThis.clearTimeout(centerRetryHandle);
+        getMapActionButtonsRuntime().clearTimeout(centerRetryHandle);
     }
     centerRetryHandle = null;
 }
 
 function scheduleCenterMapRetry(): void {
     clearCenterRetryTimer();
-    centerRetryHandle = globalThis.setTimeout(() => {
+    centerRetryHandle = getMapActionButtonsRuntime().setTimeout(() => {
         centerRetryHandle = null;
         _centerMapOnMainFile();
     }, 150);
@@ -134,8 +139,9 @@ function resetCenterMapState(): void {
 }
 
 function clearActiveMapActionTimers(): void {
+    const runtime = getMapActionButtonsRuntime();
     for (const timer of activeTimers) {
-        globalThis.clearTimeout(timer);
+        runtime.clearTimeout(timer);
     }
     activeTimers.clear();
 }
@@ -277,7 +283,7 @@ function fitMapToMainPolyline(
     }
 
     const bounds = getMainPolylineBounds(polyline, hasValidBounds);
-    if (bounds?.isValid?.()) {
+    if (bounds?.isValid?.() === true) {
         console.log("[mapActionButtons] Fitting map to bounds");
         mapInstance.fitBounds(bounds, { padding: [20, 20] });
         logMapCenterAfterFit(mapInstance);
