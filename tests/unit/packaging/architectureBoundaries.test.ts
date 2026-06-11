@@ -278,6 +278,9 @@ const migratedElectronApiAccessorFiles = [
     "electron-app/utils/theming/core/setupTheme.ts",
     "electron-app/utils/theming/core/theme.ts",
 ] as const;
+const migratedAltFitSenderRuntimeFiles = [
+    "electron-app/utils/files/import/sendFitFileToAltFitReader.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -534,6 +537,8 @@ const rendererRuntimeGlobalFallbackPattern =
     /\b(?:__fitFileViewerRuntimeGlobalFallbackForTests|runtimeGlobalFallbackFlag|getGlobalRuntimeCandidate|getWindowRuntimeCandidate)\b/u;
 const directElectronApiGlobalReadPattern =
     /\b(?:globalThis|window)\.electronAPI\b|\.\s*electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI/u;
+const directAltFitSenderRuntimeGlobalPattern =
+    /\bglobalThis\.(?:console|document|location)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2069,6 +2074,20 @@ describe("architecture boundaries", () => {
         const violations = migratedElectronApiAccessorFiles
             .filter((relativeFile) =>
                 directElectronApiGlobalReadPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps migrated AltFit handoff defaults behind the runtime facade", () => {
+        expect.assertions(1);
+
+        const violations = migratedAltFitSenderRuntimeFiles
+            .filter((relativeFile) =>
+                directAltFitSenderRuntimeGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )

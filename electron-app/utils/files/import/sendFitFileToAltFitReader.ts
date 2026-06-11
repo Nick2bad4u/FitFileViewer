@@ -1,15 +1,15 @@
 import { convertArrayBufferToBase64 } from "../../formatting/converters/convertArrayBufferToBase64.js";
 import { FILE_CONSTANTS, UI_CONSTANTS } from "../../config/constants.js";
+import {
+    getAltFitSenderRuntimeEnvironment,
+    type AltFitSenderLogger,
+} from "./altFitSenderRuntime.js";
 
 type AltFitSenderDependencies = {
-    console?: Pick<Console, "error" | "warn">;
+    console?: AltFitSenderLogger;
     getElementById?: (id: string) => HTMLElement | null;
     location?: Pick<Location, "origin" | "protocol">;
 };
-
-function getDefaultElementById(id: string): HTMLElement | null {
-    return globalThis.document?.getElementById(id) ?? null;
-}
 
 function getTargetOrigin(
     location: Pick<Location, "origin" | "protocol"> | undefined
@@ -21,9 +21,11 @@ export function sendFitFileToAltFitReader(
     arrayBuffer: ArrayBuffer,
     dependencies: AltFitSenderDependencies = {}
 ): void {
-    const logger = dependencies.console ?? globalThis.console;
+    const runtimeEnvironment = getAltFitSenderRuntimeEnvironment();
+    const logger = dependencies.console ?? runtimeEnvironment.console;
     const getElementById =
-        dependencies.getElementById ?? getDefaultElementById;
+        dependencies.getElementById ?? runtimeEnvironment.getElementById;
+    const location = dependencies.location ?? runtimeEnvironment.location;
     const iframe = getElementById(UI_CONSTANTS.DOM_IDS.ALT_FIT_IFRAME);
 
     if (!iframe) {
@@ -40,9 +42,7 @@ export function sendFitFileToAltFitReader(
         try {
             if (iframe.contentWindow) {
                 const base64 = convertArrayBufferToBase64(arrayBuffer);
-                const targetOrigin = getTargetOrigin(
-                    dependencies.location ?? globalThis.location
-                );
+                const targetOrigin = getTargetOrigin(location);
                 /* eslint-disable sdl/no-postmessage-without-origin-allowlist -- Electron file:// iframes can have an opaque origin. The child bridge still validates event.source and local file origins before accepting FIT payloads. */
                 iframe.contentWindow.postMessage(
                     { base64, type: "fit-file" },

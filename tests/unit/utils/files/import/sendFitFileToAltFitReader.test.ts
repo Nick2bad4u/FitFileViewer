@@ -30,11 +30,16 @@ describe("sendFitFileToAltFitReader", () => {
             .spyOn(contentWindow, "postMessage")
             .mockImplementation(() => {});
 
-        sendFitFileToAltFitReader(Uint8Array.from([65, 66]).buffer);
+        sendFitFileToAltFitReader(Uint8Array.from([65, 66]).buffer, {
+            location: {
+                origin: "app://fit-file-viewer",
+                protocol: "app:",
+            },
+        });
 
         expect(postMessageSpy).toHaveBeenCalledWith(
             { base64: "QUI=", type: "fit-file" },
-            globalThis.location.origin
+            "app://fit-file-viewer"
         );
         expect(iframe.id).toBe(IFRAME_ID);
 
@@ -65,6 +70,37 @@ describe("sendFitFileToAltFitReader", () => {
             { base64: "Qw==", type: "fit-file" },
             globalThis.location.origin
         );
+
+        resetTestState();
+    });
+
+    it("uses wildcard origin for local file URLs", () => {
+        expect.assertions(2);
+
+        resetTestState();
+
+        const iframe = document.createElement("iframe");
+        iframe.id = IFRAME_ID;
+        iframe.src = `${globalThis.location.origin}${IFRAME_PATH}`;
+        document.body.append(iframe);
+        const contentWindow = iframe.contentWindow as Window;
+
+        const postMessageSpy = vi
+            .spyOn(contentWindow, "postMessage")
+            .mockImplementation(() => {});
+
+        sendFitFileToAltFitReader(Uint8Array.from([68]).buffer, {
+            location: {
+                origin: "file://",
+                protocol: "file:",
+            },
+        });
+
+        expect(postMessageSpy).toHaveBeenCalledWith(
+            { base64: "RA==", type: "fit-file" },
+            "*"
+        );
+        expect(iframe.src).toContain(IFRAME_PATH);
 
         resetTestState();
     });
