@@ -6,6 +6,11 @@ import { getLoadedFitFiles } from "../../state/domain/loadedFitFilesState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { buildDownloadFilename } from "../sanitizeFilename.js";
 import {
+    getCreateExportGPXButtonRuntime,
+    type CreateExportGPXButtonRuntime,
+    type CreateExportGPXButtonTimer,
+} from "./createExportGPXButtonRuntime.js";
+import {
     buildGpxFromRecords,
     type GpxRecord,
     type LoadedFitFileDescriptor,
@@ -18,27 +23,29 @@ type GpxExportData = {
     readonly recordMesgs?: GpxRecord[];
 };
 
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 const downloadCleanupTimers = new WeakMap<
     HTMLAnchorElement,
-    ReturnType<typeof setTimeout>
+    CreateExportGPXButtonTimer
 >();
 
-function createExportIcon(primary: string): SVGSVGElement {
-    const svg = document.createElementNS(SVG_NAMESPACE, "svg");
+function createExportIcon(
+    runtime: CreateExportGPXButtonRuntime,
+    primary: string
+): SVGSVGElement {
+    const svg = runtime.createSvgElement("svg");
     svg.classList.add("icon");
     svg.setAttribute("viewBox", "0 0 20 20");
     svg.setAttribute("width", "18");
     svg.setAttribute("height", "18");
 
-    const path = document.createElementNS(SVG_NAMESPACE, "path");
+    const path = runtime.createSvgElement("path");
     path.setAttribute("d", "M10 2v12M10 14l-4-4m4 4l4-4");
     path.setAttribute("stroke", primary);
     path.setAttribute("stroke-width", "2");
     path.setAttribute("fill", "none");
     svg.append(path);
 
-    const rect = document.createElementNS(SVG_NAMESPACE, "rect");
+    const rect = runtime.createSvgElement("rect");
     rect.setAttribute("x", "4");
     rect.setAttribute("y", "16");
     rect.setAttribute("width", "12");
@@ -56,13 +63,14 @@ function createExportIcon(primary: string): SVGSVGElement {
  * explicit FIT route state.
  */
 export function createExportGPXButton(): HTMLButtonElement {
-    const exportBtn = document.createElement("button");
+    const runtime = getCreateExportGPXButtonRuntime();
+    const exportBtn = runtime.createButton();
     exportBtn.className = "map-action-btn";
     const themeColors = getThemeColors();
     const primary = sanitizeCssColorToken(themeColors["primary"], "#3b82f6");
-    const label = document.createElement("span");
+    const label = runtime.createElement("span");
     label.textContent = "Export GPX";
-    exportBtn.append(createExportIcon(primary), label);
+    exportBtn.append(createExportIcon(runtime, primary), label);
     exportBtn.title = "Export the current track as a GPX file";
     const listenerController = new AbortController();
     exportBtn.addEventListener(
@@ -93,7 +101,9 @@ export function createExportGPXButton(): HTMLButtonElement {
             const fallbackTrackName = resolveTrackNameFromFileIdentity(
                 getActiveFitFileMetadata({
                     sourceData:
-                        fitData && typeof fitData === "object" ? fitData : null,
+                        fitData !== null && typeof fitData === "object"
+                            ? fitData
+                            : null,
                 }).storageIdentity
             );
             const trackName = resolveTrackNameFromLoadedFiles(
@@ -101,7 +111,7 @@ export function createExportGPXButton(): HTMLButtonElement {
                 fallbackTrackName
             );
             const gpx = buildGpxFromRecords(records, { trackName });
-            if (!gpx) {
+            if (gpx === null || gpx.length === 0) {
                 showNotification(
                     "No valid coordinates found for GPX export.",
                     "info",
@@ -118,14 +128,14 @@ export function createExportGPXButton(): HTMLButtonElement {
             const blob = new Blob([gpx], {
                 type: "application/gpx+xml;charset=utf-8",
             });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
+            const link = runtime.createElement("a");
+            link.href = runtime.createObjectURL(blob);
             link.download = downloadName;
-            document.body.append(link);
+            runtime.appendToBody(link);
             link.click();
-            const cleanupTimer = globalThis.setTimeout(() => {
+            const cleanupTimer = runtime.setTimeout(() => {
                 downloadCleanupTimers.delete(link);
-                URL.revokeObjectURL(link.href);
+                runtime.revokeObjectURL(link.href);
                 link.remove();
             }, 100);
             downloadCleanupTimers.set(link, cleanupTimer);

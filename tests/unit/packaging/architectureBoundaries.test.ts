@@ -254,6 +254,9 @@ const migratedExportZipRuntimeFiles = [
 const migratedCreatePrintButtonRuntimeFiles = [
     "electron-app/utils/files/export/createPrintButton.ts",
 ] as const;
+const migratedCreateExportGPXButtonRuntimeFiles = [
+    "electron-app/utils/files/export/createExportGPXButton.ts",
+] as const;
 const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
@@ -619,6 +622,8 @@ const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b/u;
+const directCreateExportGPXButtonRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|setTimeout)\b|\bURL\.(?:createObjectURL|revokeObjectURL)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2162,6 +2167,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(createPrintButtonSource).toContain(
             "createPrintButtonRuntime.js"
+        );
+    });
+
+    it("keeps GPX export button browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreateExportGPXButtonRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateExportGPXButtonRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const createExportGPXButtonSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/export/createExportGPXButton.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(createExportGPXButtonSource).toContain(
+            "createExportGPXButtonRuntime.js"
         );
     });
 
