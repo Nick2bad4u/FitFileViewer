@@ -4,6 +4,8 @@ import * as stateManager from "../../../../../electron-app/utils/state/core/stat
 import {
     getActiveFitMessageArray,
     getActiveFitRawData,
+    setActiveFitRawData,
+    subscribeToActiveFitRawData,
 } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 
 describe("activeFitRawDataState", () => {
@@ -70,5 +72,27 @@ describe("activeFitRawDataState", () => {
         expect(getActiveFitMessageArray("recordMesgs")).toStrictEqual([]);
         expect(getActiveFitMessageArray("recordMesgs", null)).toStrictEqual([]);
         expect(getActiveFitMessageArray("recordMesgs", [])).toStrictEqual([]);
+    });
+
+    it("subscribes to active FIT raw-data changes through the domain helper", () => {
+        expect.assertions(3);
+
+        const listenerValues: unknown[] = [];
+        const unsubscribe = subscribeToActiveFitRawData((data) => {
+            listenerValues.push(data);
+        });
+        const rawData = { recordMesgs: [{ timestamp: 1 }] };
+
+        setActiveFitRawData(rawData, { source: "test" });
+        stateManager.setState("fitFile.rawData", [], { source: "test" });
+
+        unsubscribe();
+        setActiveFitRawData({ recordMesgs: [{ timestamp: 2 }] }, {
+            source: "test",
+        });
+
+        expect(listenerValues).toHaveLength(2);
+        expect(listenerValues[0]).toBe(rawData);
+        expect(listenerValues[1]).toBeNull();
     });
 });

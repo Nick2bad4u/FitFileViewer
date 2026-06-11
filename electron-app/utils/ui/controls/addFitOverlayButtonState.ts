@@ -1,4 +1,4 @@
-import { subscribe } from "../../state/core/stateManager.js";
+import { subscribeToActiveFitRawData } from "../../state/domain/activeFitRawDataState.js";
 
 let currentAvailabilityUpdater: (() => void) | null = null;
 let unsubscribeFromFitData: (() => void) | null = null;
@@ -12,7 +12,7 @@ export function registerAddFitOverlayButtonAvailabilityUpdater(
         return;
     }
 
-    unsubscribeFromFitData = subscribe("fitFile.rawData", () => {
+    unsubscribeFromFitData = subscribeToActiveFitRawData(() => {
         try {
             currentAvailabilityUpdater?.();
         } catch {

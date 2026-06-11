@@ -5,7 +5,8 @@ const mocks = vi.hoisted(() => ({
     hasActiveFitRouteData: vi.fn<() => boolean>(),
     openFileSelector: vi.fn<() => Promise<void>>(),
     showNotification: vi.fn<(message: string, type: string) => void>(),
-    subscribe: vi.fn<(key: string, listener: () => void) => () => void>(),
+    subscribeToActiveFitRawData:
+        vi.fn<(listener: () => void) => () => void>(),
 }));
 
 vi.mock(
@@ -23,9 +24,11 @@ vi.mock(
 );
 
 vi.mock(
-    import("../../../../../electron-app/utils/state/core/stateManager.js"),
+    import(
+        "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js"
+    ),
     () => ({
-        subscribe: mocks.subscribe,
+        subscribeToActiveFitRawData: mocks.subscribeToActiveFitRawData,
     })
 );
 
@@ -54,7 +57,7 @@ function resetFixture(): void {
     mocks.getThemeColors.mockReturnValue({ primary: "#2563eb" });
     mocks.hasActiveFitRouteData.mockReturnValue(false);
     mocks.openFileSelector.mockResolvedValue();
-    mocks.subscribe.mockReturnValue(() => {});
+    mocks.subscribeToActiveFitRawData.mockReturnValue(() => {});
 }
 
 function getIconPath(button: HTMLButtonElement): SVGPathElement {
@@ -91,8 +94,9 @@ describe(createAddFitFileToMapButton, () => {
             );
             expect(button.textContent).toBe("Add FIT File(s) to Map");
             expect(getIconPath(button).getAttribute("stroke")).toBe("#2563eb");
-            expect(mocks.subscribe).toHaveBeenCalledExactlyOnceWith(
-                "fitFile.rawData",
+            expect(
+                mocks.subscribeToActiveFitRawData
+            ).toHaveBeenCalledExactlyOnceWith(
                 expect.any(Function)
             );
 
@@ -133,7 +137,7 @@ describe(createAddFitFileToMapButton, () => {
 
         resetFixture();
         let subscribedListener: (() => void) | undefined;
-        mocks.subscribe.mockImplementation((_key, listener) => {
+        mocks.subscribeToActiveFitRawData.mockImplementation((listener) => {
             subscribedListener = listener;
             return () => {};
         });
@@ -146,7 +150,7 @@ describe(createAddFitFileToMapButton, () => {
 
             subscribedListener?.();
 
-            expect(mocks.subscribe).toHaveBeenCalledOnce();
+            expect(mocks.subscribeToActiveFitRawData).toHaveBeenCalledOnce();
             expect(getDisabledState(firstButton)).toBe("disabled");
             expect(firstButton.getAttribute("aria-disabled")).toBe("true");
             expect(getDisabledState(secondButton)).toBe("enabled");

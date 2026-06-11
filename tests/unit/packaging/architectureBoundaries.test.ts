@@ -1199,6 +1199,21 @@ describe("architecture boundaries", () => {
         expect(featureGateSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps add-FIT overlay button state on the active FIT raw-data facade", () => {
+        expect.assertions(2);
+
+        const overlayButtonStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/addFitOverlayButtonState.ts"
+            )
+        );
+
+        expect(overlayButtonStateSource).toContain("activeFitRawDataState.js");
+        expect(overlayButtonStateSource).not.toContain(
+            "state/core/stateManager.js"
+        );
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 

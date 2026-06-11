@@ -1,13 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-    subscribe: vi.fn<(key: string, listener: () => void) => () => void>(),
+    subscribeToActiveFitRawData:
+        vi.fn<(listener: () => void) => () => void>(),
 }));
 
 vi.mock(
-    import("../../../../../electron-app/utils/state/core/stateManager.js"),
+    import(
+        "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js"
+    ),
     () => ({
-        subscribe: mocks.subscribe,
+        subscribeToActiveFitRawData: mocks.subscribeToActiveFitRawData,
     })
 );
 
@@ -20,7 +23,7 @@ describe("addFitOverlayButtonState", () => {
     beforeEach(() => {
         resetAddFitOverlayButtonStateForTests();
         vi.clearAllMocks();
-        mocks.subscribe.mockReturnValue(() => {});
+        mocks.subscribeToActiveFitRawData.mockReturnValue(() => {});
     });
 
     it("subscribes once and calls the latest registered updater", () => {
@@ -29,7 +32,7 @@ describe("addFitOverlayButtonState", () => {
         let subscribedListener: (() => void) | undefined;
         const firstUpdater = vi.fn<() => void>();
         const secondUpdater = vi.fn<() => void>();
-        mocks.subscribe.mockImplementation((_key, listener) => {
+        mocks.subscribeToActiveFitRawData.mockImplementation((listener) => {
             subscribedListener = listener;
             return () => {};
         });
@@ -38,8 +41,7 @@ describe("addFitOverlayButtonState", () => {
         registerAddFitOverlayButtonAvailabilityUpdater(secondUpdater);
         subscribedListener?.();
 
-        expect(mocks.subscribe).toHaveBeenCalledExactlyOnceWith(
-            "fitFile.rawData",
+        expect(mocks.subscribeToActiveFitRawData).toHaveBeenCalledExactlyOnceWith(
             expect.any(Function)
         );
         expect(firstUpdater).not.toHaveBeenCalled();
@@ -51,7 +53,7 @@ describe("addFitOverlayButtonState", () => {
         expect.assertions(1);
 
         let unsubscribed = false;
-        mocks.subscribe.mockReturnValue(() => {
+        mocks.subscribeToActiveFitRawData.mockReturnValue(() => {
             unsubscribed = true;
         });
 
