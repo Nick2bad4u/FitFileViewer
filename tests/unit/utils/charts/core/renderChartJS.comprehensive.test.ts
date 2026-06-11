@@ -30,6 +30,26 @@ import { resetChartListenerStateForTests } from "../../../../../electron-app/uti
 
 type MockFn = (...args: unknown[]) => unknown;
 type VoidFn = (...args: unknown[]) => void;
+type RenderChartJSTestGlobal = typeof globalThis & {
+    cancelAnimationFrame?: unknown;
+    document?: unknown;
+    matchMedia?: unknown;
+    Node?: { ELEMENT_NODE: number };
+    performance?: unknown;
+    process?: {
+        nextTick?: (
+            cb: (...args: unknown[]) => void,
+            ...args: unknown[]
+        ) => void;
+    } & Record<string, unknown>;
+    requestAnimationFrame?: unknown;
+    require?: (id: string) => unknown;
+    window?: unknown;
+};
+
+function getRenderChartJSTestGlobal(): RenderChartJSTestGlobal {
+    return globalThis as unknown as RenderChartJSTestGlobal;
+}
 
 const chartJsModuleMocks = vi.hoisted(() => ({
     Chart: {
@@ -139,26 +159,11 @@ vi.mock(
     })
 );
 
-// Type declarations for global objects
-declare global {
-    interface Window {
-        JSZip?: any;
-        performance: {
-            now: () => number;
-        };
-        localStorage: {
-            getItem: (key: string) => string | null;
-            setItem: (key: string, value: string) => void;
-        };
-        require?: (id: string) => any;
-    }
-    var JSZip: any;
-}
-
 // Mock all dependencies before import using Module cache injection
 function injectChartJSMocks() {
     // Module cache injection technique - intercept require() calls
-    const originalRequire = globalThis.require;
+    const utils = getRenderChartJSTestGlobal();
+    const originalRequire = utils.require;
     const moduleCache = new Map();
 
     // Enhanced DOM environment for Chart.js testing
@@ -484,7 +489,7 @@ function injectChartJSMocks() {
     );
 
     // Enhanced module cache injection
-    globalThis.require = function (id) {
+    utils.require = function (id) {
         const normalizedId = id
             .replace(/^\.\.\/\.\.\//, "../../")
             .replace(/\.js$/, "");
@@ -599,30 +604,31 @@ function setupDOMEnvironment() {
     };
 
     // Do NOT overwrite globalThis; instead, patch properties to avoid clobbering Vitest internals
-    const g = globalThis as any;
-    g.window = global.window;
-    g.document = global.document;
-    if (typeof g.addEventListener !== "function")
+    const utils = getRenderChartJSTestGlobal();
+    utils.window = global.window;
+    utils.document = global.document;
+    if (typeof utils.addEventListener !== "function")
         vi.stubGlobal("addEventListener", vi.fn<VoidFn>());
-    if (typeof g.setTimeout !== "function")
-        g.setTimeout = (fn: () => void) => {
+    if (typeof utils.setTimeout !== "function")
+        utils.setTimeout = (fn: () => void) => {
             fn();
             return 0;
         };
-    if (typeof g.clearTimeout !== "function")
+    if (typeof utils.clearTimeout !== "function")
         vi.stubGlobal("clearTimeout", vi.fn<VoidFn>());
-    g.performance = global.window.performance;
-    g.Node = { ELEMENT_NODE: 1 };
-    if (typeof g.requestAnimationFrame !== "function")
-        g.requestAnimationFrame = global.window.requestAnimationFrame;
-    if (typeof g.cancelAnimationFrame !== "function")
-        g.cancelAnimationFrame = global.window.cancelAnimationFrame;
-    if (typeof g.matchMedia !== "function")
-        g.matchMedia = global.window.matchMedia;
+    utils.performance = global.window.performance;
+    utils.Node = { ELEMENT_NODE: 1 };
+    if (typeof utils.requestAnimationFrame !== "function")
+        utils.requestAnimationFrame = global.window.requestAnimationFrame;
+    if (typeof utils.cancelAnimationFrame !== "function")
+        utils.cancelAnimationFrame = global.window.cancelAnimationFrame;
+    if (typeof utils.matchMedia !== "function")
+        utils.matchMedia = global.window.matchMedia;
     // Ensure a stable process.nextTick exists for any code importing this module
-    if (!g.process || typeof g.process !== "object") g.process = {} as any;
-    if (typeof g.process.nextTick !== "function") {
-        g.process.nextTick = (
+    if (!utils.process || typeof utils.process !== "object")
+        utils.process = {};
+    if (typeof utils.process.nextTick !== "function") {
+        utils.process.nextTick = (
             cb: (...args: unknown[]) => void,
             ...args: unknown[]
         ) => {
