@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { renderFileBrowserTab } from "../../../../../electron-app/utils/ui/browser/fileBrowserTab.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
-    __resetStateManagerForTests,
-    getState,
-} from "../../../../../electron-app/utils/state/core/stateManager.js";
+    getBrowserListingState,
+    getBrowserScanState,
+    getBrowserView,
+} from "../../../../../electron-app/utils/state/domain/browserState.js";
 import {
     registerRendererElectronApiCandidate,
     resetRendererElectronApiCandidate,
@@ -106,7 +108,7 @@ describe("fileBrowserTab accessibility", () => {
         expect(
             document.querySelector("#fit-browser-status")?.textContent
         ).toMatch(/^Loaded 2 items from root .* \(1 file, 1 folder\)\.$/u);
-        expect(getState("browser.listing")).toStrictEqual({
+        expect(getBrowserListingState()).toStrictEqual({
             error: null,
             fileCount: 1,
             folderCount: 1,
@@ -156,13 +158,13 @@ describe("fileBrowserTab accessibility", () => {
         ).click();
 
         await vi.waitFor(() => {
-            expect(getState("browser.view")).toBe("library");
+            expect(getBrowserView()).toBe("library");
         });
 
         getRequiredElement("#fit-library-scan", HTMLButtonElement).click();
 
         await vi.waitFor(() => {
-            expect(getState("browser.scan")).toStrictEqual({
+            expect(getBrowserScanState()).toStrictEqual({
                 decodedActivityCount: 1,
                 error: null,
                 fileCount: 1,

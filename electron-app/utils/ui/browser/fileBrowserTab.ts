@@ -18,7 +18,15 @@ import {
 } from "../../files/import/fitParsePayload.js";
 import { openFitFileFromPath } from "../../files/import/openFitFileFromPath.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
-import { getState, setState } from "../../state/core/stateManager.js";
+import {
+    type BrowserView,
+    getBrowserRelPath,
+    getBrowserView,
+    setBrowserListingState,
+    setBrowserRelPath,
+    setBrowserScanState,
+    setBrowserView,
+} from "../../state/domain/browserState.js";
 import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import {
     type FitBrowserLibraryCachePayload,
@@ -30,45 +38,6 @@ import {
     createAppIconElement,
 } from "../icons/iconFactory.js";
 import { showNotification as showRendererNotification } from "../notifications/showNotification.js";
-
-type BrowserView = "calendar" | "files" | "library";
-
-type BrowserListingStatus =
-    | "empty"
-    | "error"
-    | "idle"
-    | "loaded"
-    | "loading"
-    | "unselected";
-
-type BrowserListingStateUpdate = {
-    readonly error?: null | string;
-    readonly fileCount?: number;
-    readonly folderCount?: number;
-    readonly itemCount?: number;
-    readonly loadedAt?: null | number;
-    readonly relPath?: string;
-    readonly root?: null | string;
-    readonly status: BrowserListingStatus;
-};
-
-type BrowserScanStatus =
-    | "completed"
-    | "decoding"
-    | "error"
-    | "idle"
-    | "listing"
-    | "unavailable";
-
-type BrowserScanStateUpdate = {
-    readonly decodedActivityCount?: number;
-    readonly error?: null | string;
-    readonly fileCount?: number;
-    readonly processedFileCount?: number;
-    readonly root?: null | string;
-    readonly scannedAt?: null | number;
-    readonly status: BrowserScanStatus;
-};
 
 type CalendarState = {
     monthStart: Date;
@@ -140,11 +109,6 @@ type SportBadgeCount = SportBadge & {
     count: number;
 };
 
-const TAB_STATE_PATH_REL = "browser.relPath";
-const TAB_STATE_VIEW = "browser.view";
-const TAB_STATE_LISTING = "browser.listing";
-const TAB_STATE_SCAN = "browser.scan";
-
 const LIB_PREFS_LAST_DAYS_KEY = "fitLibrary.lastDays";
 const LIB_PREFS_UNIT_KEY = "fitLibrary.unit";
 const CAL_PREFS_MONTH_KEY = "fitLibrary.calendarMonth";
@@ -207,7 +171,7 @@ export async function renderFileBrowserTab(): Promise<void> {
                 }
 
                 // Reset the relative path when a new root is chosen.
-                setState(TAB_STATE_PATH_REL, "", {
+                setBrowserRelPath("", {
                     source: "fileBrowser.pickFolder",
                 });
                 await refreshActiveView();
@@ -225,7 +189,7 @@ export async function renderFileBrowserTab(): Promise<void> {
         );
 
         const setView = async (view: BrowserView): Promise<void> => {
-            setState(TAB_STATE_VIEW, view, { source: "fileBrowser.setView" });
+            setBrowserView(view, { source: "fileBrowser.setView" });
             await refreshActiveView();
         };
 
@@ -417,39 +381,6 @@ function setBrowserStatus(message: string, loading = false): void {
         statusEl.classList.toggle("file-browser__status--loading", loading);
         statusEl.textContent = message;
     }
-}
-
-function setBrowserListingState(update: BrowserListingStateUpdate): void {
-    setState(
-        TAB_STATE_LISTING,
-        {
-            error: update.error ?? null,
-            fileCount: update.fileCount ?? 0,
-            folderCount: update.folderCount ?? 0,
-            itemCount: update.itemCount ?? 0,
-            loadedAt: update.loadedAt ?? null,
-            relPath: update.relPath ?? "",
-            root: update.root ?? null,
-            status: update.status,
-        },
-        { source: "fileBrowser.listing" }
-    );
-}
-
-function setBrowserScanState(update: BrowserScanStateUpdate): void {
-    setState(
-        TAB_STATE_SCAN,
-        {
-            decodedActivityCount: update.decodedActivityCount ?? 0,
-            error: update.error ?? null,
-            fileCount: update.fileCount ?? 0,
-            processedFileCount: update.processedFileCount ?? 0,
-            root: update.root ?? null,
-            scannedAt: update.scannedAt ?? null,
-            status: update.status,
-        },
-        { source: "fileBrowser.scan" }
-    );
 }
 
 function getScanErrorMessage(error: unknown): string {
@@ -1061,13 +992,7 @@ function persistLibraryPrefs(prefs: FitLibraryPrefs): void {
 }
 
 async function refreshActiveView(): Promise<void> {
-    const rawView = getState(TAB_STATE_VIEW);
-    const view: BrowserView =
-        rawView === "calendar"
-            ? "calendar"
-            : rawView === "library"
-              ? "library"
-              : "files";
+    const view = getBrowserView();
     const filesBtn = document.querySelector<HTMLElement>(
         "#fit-browser-view-files"
     );
@@ -1172,10 +1097,7 @@ async function refreshListing(): Promise<void> {
     setBrowserListingState({ status: "loading" });
 
     const root = await api.getFitBrowserFolder();
-    const rel =
-        typeof getState(TAB_STATE_PATH_REL) === "string"
-            ? String(getState(TAB_STATE_PATH_REL))
-            : "";
+    const rel = getBrowserRelPath();
 
     if (!root) {
         pathEl.textContent = "No folder selected";
@@ -1231,7 +1153,7 @@ async function refreshListing(): Promise<void> {
     if (relPath) {
         const up = createBrowserItemButton("dir", "arrowLeft", "..");
         addManagedEventListener(up, "click", async () => {
-            setState(TAB_STATE_PATH_REL, parentRelPath(relPath), {
+            setBrowserRelPath(parentRelPath(relPath), {
                 source: "fileBrowser.up",
             });
             await refreshListing();
@@ -1253,7 +1175,7 @@ async function refreshListing(): Promise<void> {
 
         if (kind === "dir") {
             addManagedEventListener(btn, "click", async () => {
-                setState(TAB_STATE_PATH_REL, entryRelPath, {
+                setBrowserRelPath(entryRelPath, {
                     source: "fileBrowser.enterDir",
                 });
                 await refreshListing();
