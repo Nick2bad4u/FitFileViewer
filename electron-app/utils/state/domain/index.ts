@@ -19,6 +19,7 @@ export * from "./rendererChartControlsState.js";
 export * from "./rendererChartRenderState.js";
 export * from "./rendererDragDropState.js";
 export * from "./rendererLoadingState.js";
+export * from "./rendererMapRenderState.js";
 export * from "./rendererNotificationState.js";
 export * from "./rendererStateManagerAccess.js";
 export * from "./rendererTabButtonsState.js";

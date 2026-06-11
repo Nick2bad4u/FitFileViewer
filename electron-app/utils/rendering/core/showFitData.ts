@@ -16,9 +16,16 @@ import {
     renderMap,
     waitForMapLeafletRuntime,
 } from "../../maps/core/renderMap.js";
-import { getState, setState } from "../../state/core/stateManager.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
 import { getActiveFitTableData } from "../../state/domain/fitTableDataState.js";
+import {
+    setRendererFileInfo,
+    setRendererUnloadButtonVisible,
+} from "../../state/domain/rendererActiveFileState.js";
+import {
+    isRendererMapRendered,
+    setRendererMapRendered,
+} from "../../state/domain/rendererMapRenderState.js";
 import { setTabButtonsEnabled } from "../../ui/controls/enableTabButtons.js";
 import { updateActiveTab } from "../../ui/tabs/updateActiveTab.js";
 import { updateTabVisibility } from "../../ui/tabs/updateTabVisibility.js";
@@ -264,7 +271,7 @@ function switchToMapTabOnLoad(): void {
 }
 
 async function renderMapIfReady(): Promise<void> {
-    if (getState<boolean>("map.isRendered") === true) {
+    if (isRendererMapRendered()) {
         return;
     }
 
@@ -286,7 +293,7 @@ async function renderMapIfReady(): Promise<void> {
 }
 
 function setMapRenderedFlag(isRendered: boolean): void {
-    setState("map.isRendered", isRendered, {
+    setRendererMapRendered(isRendered, {
         source: "showFitData.renderMapIfReady",
     });
 }
@@ -421,8 +428,7 @@ function updateFileState(fileName: string): void {
                 ? `${TITLE_PREFIX} - ${sanitizedName}`
                 : TITLE_PREFIX;
 
-        setState(
-            "ui.fileInfo",
+        setRendererFileInfo(
             {
                 displayName: sanitizedName,
                 hasFile,
@@ -430,7 +436,7 @@ function updateFileState(fileName: string): void {
             },
             { source: "showFitData.updateFileState" }
         );
-        setState("ui.unloadButtonVisible", hasFile, {
+        setRendererUnloadButtonVisible(hasFile, {
             source: "showFitData.updateFileState",
         });
 

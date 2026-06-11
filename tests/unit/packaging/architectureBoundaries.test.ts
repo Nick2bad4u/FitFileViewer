@@ -1324,6 +1324,18 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps FIT data display on renderer state facades", () => {
+        expect.assertions(3);
+
+        const showFitDataSource = stripComments(
+            readRepositoryFile("electron-app/utils/rendering/core/showFitData.ts")
+        );
+
+        expect(showFitDataSource).toContain("rendererActiveFileState.js");
+        expect(showFitDataSource).toContain("rendererMapRenderState.js");
+        expect(showFitDataSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
         expect.assertions(1);
 
