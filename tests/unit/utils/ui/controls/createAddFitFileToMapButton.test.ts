@@ -5,8 +5,7 @@ const mocks = vi.hoisted(() => ({
     hasActiveFitRouteData: vi.fn<() => boolean>(),
     openFileSelector: vi.fn<() => Promise<void>>(),
     showNotification: vi.fn<(message: string, type: string) => void>(),
-    subscribeToActiveFitRawData:
-        vi.fn<(listener: () => void) => () => void>(),
+    subscribeToActiveFitRawData: vi.fn<(listener: () => void) => () => void>(),
 }));
 
 vi.mock(
@@ -24,9 +23,7 @@ vi.mock(
 );
 
 vi.mock(
-    import(
-        "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js"
-    ),
+    import("../../../../../electron-app/utils/state/domain/activeFitRawDataState.js"),
     () => ({
         subscribeToActiveFitRawData: mocks.subscribeToActiveFitRawData,
     })
@@ -96,9 +93,7 @@ describe(createAddFitFileToMapButton, () => {
             expect(getIconPath(button).getAttribute("stroke")).toBe("#2563eb");
             expect(
                 mocks.subscribeToActiveFitRawData
-            ).toHaveBeenCalledExactlyOnceWith(
-                expect.any(Function)
-            );
+            ).toHaveBeenCalledExactlyOnceWith(expect.any(Function));
 
             await clickButton(button);
 

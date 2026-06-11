@@ -8,9 +8,9 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
 
         const element = document.createElement("button");
         const style = { display: "block" } as CSSStyleDeclaration;
-        const getComputedStyle = vi.fn<(element: Element) => CSSStyleDeclaration>(
-            () => style
-        );
+        const getComputedStyle = vi.fn<
+            (element: Element) => CSSStyleDeclaration
+        >(() => style);
         const runtime = getEnableTabButtonsHelpersRuntime({
             getComputedStyle,
             window: {},
@@ -62,8 +62,8 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
     it("returns no tab buttons when document APIs are unavailable", () => {
         expect.assertions(1);
 
-        expect(getEnableTabButtonsHelpersRuntime({}).queryTabButtons()).toStrictEqual(
-            []
-        );
+        expect(
+            getEnableTabButtonsHelpersRuntime({}).queryTabButtons()
+        ).toStrictEqual([]);
     });
 });

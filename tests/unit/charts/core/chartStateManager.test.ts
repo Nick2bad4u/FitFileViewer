@@ -251,8 +251,9 @@ describe("chartStateManager", () => {
                 "Chart type changed to power"
             );
             expect(controlsPanel.style.display).toBe("none");
-            const settingsListener = vi.mocked(subscribeToChartSettings).mock
-                .calls.at(-1)?.[0];
+            const settingsListener = vi
+                .mocked(subscribeToChartSettings)
+                .mock.calls.at(-1)?.[0];
             settingsListener?.(
                 { fieldVisibility: { speed: "hidden" } },
                 { fieldVisibility: { speed: "visible" } }

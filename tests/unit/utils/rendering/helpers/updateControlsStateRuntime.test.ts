@@ -7,7 +7,9 @@ describe("getUpdateControlsStateRuntime", () => {
         expect.assertions(2);
 
         const element = document.createElement("div");
-        const getComputedStyle = vi.fn<(element: Element) => CSSStyleDeclaration>(
+        const getComputedStyle = vi.fn<
+            (element: Element) => CSSStyleDeclaration
+        >(
             () =>
                 ({
                     display: "grid",

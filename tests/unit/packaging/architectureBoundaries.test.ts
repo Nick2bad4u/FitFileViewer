@@ -1498,9 +1498,7 @@ describe("architecture boundaries", () => {
         expect(rendererEntrypointSource).toContain("runtimeEnvironment.js");
         expect(rendererEntrypointSource).not.toContain("globalThis.");
         expect(rendererEntrypointSource).not.toContain("document,");
-        expect(mainUiSource).toContain(
-            "renderer/mainUiRuntimeEnvironment.js"
-        );
+        expect(mainUiSource).toContain("renderer/mainUiRuntimeEnvironment.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
         expect(rendererMainUiRuntimeEnvironmentFiles).toStrictEqual([
             "electron-app/renderer/mainUiRuntimeEnvironment.ts",
@@ -1703,7 +1701,9 @@ describe("architecture boundaries", () => {
 
         expect(chartTabIntegrationSource).toContain("activeFitRawDataState.js");
         expect(chartTabIntegrationSource).toContain("appDomainState.js");
-        expect(chartTabIntegrationSource).toContain("rendererActiveTabState.js");
+        expect(chartTabIntegrationSource).toContain(
+            "rendererActiveTabState.js"
+        );
         expect(chartTabIntegrationSource).toContain(
             "chartTabIntegrationRuntime.js"
         );
@@ -1761,7 +1761,9 @@ describe("architecture boundaries", () => {
             )
         );
 
-        expect(chartStateManagerSource).toContain("rendererChartRenderState.js");
+        expect(chartStateManagerSource).toContain(
+            "rendererChartRenderState.js"
+        );
         expect(chartStateManagerSource).toContain("rendererActiveTabState.js");
         expect(chartStateManagerSource).not.toContain(
             "state/core/stateManager.js"
@@ -1795,7 +1797,9 @@ describe("architecture boundaries", () => {
         expect.assertions(2);
 
         const renderChartSource = stripComments(
-            readRepositoryFile("electron-app/utils/charts/core/renderChartJS.ts")
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartJS.ts"
+            )
         );
 
         expect(renderChartSource).toContain("renderChartStateAccess.js");
@@ -1854,7 +1858,9 @@ describe("architecture boundaries", () => {
 
         expect(tabButtonDebugSource).toContain("rendererActiveTabState.js");
         expect(tabButtonDebugSource).toContain("rendererTabButtonsState.js");
-        expect(tabButtonDebugSource).not.toContain("state/core/stateManager.js");
+        expect(tabButtonDebugSource).not.toContain(
+            "state/core/stateManager.js"
+        );
     });
 
     it("keeps tab-button raw-data subscriptions on renderer state facades", () => {
@@ -1917,8 +1923,12 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/utils/ui/tabs/updateActiveTab.ts")
         );
 
-        expect(updateActiveTabSource).toContain("rendererStateManagerAccess.js");
-        expect(updateActiveTabSource).not.toContain("state/core/stateManager.js");
+        expect(updateActiveTabSource).toContain(
+            "rendererStateManagerAccess.js"
+        );
+        expect(updateActiveTabSource).not.toContain(
+            "state/core/stateManager.js"
+        );
     });
 
     it("keeps tab visibility updates on the renderer state access facade", () => {
@@ -1942,7 +1952,9 @@ describe("architecture boundaries", () => {
         expect.assertions(3);
 
         const showFitDataSource = stripComments(
-            readRepositoryFile("electron-app/utils/rendering/core/showFitData.ts")
+            readRepositoryFile(
+                "electron-app/utils/rendering/core/showFitData.ts"
+            )
         );
 
         expect(showFitDataSource).toContain("rendererActiveFileState.js");
@@ -1970,7 +1982,9 @@ describe("architecture boundaries", () => {
             )
         );
 
-        expect(handleOpenFileSource).not.toContain("state/core/stateManager.js");
+        expect(handleOpenFileSource).not.toContain(
+            "state/core/stateManager.js"
+        );
     });
 
     it("keeps migrated runtime callers on explicit FIT state slices", () => {
@@ -2317,7 +2331,9 @@ describe("architecture boundaries", () => {
             )
             .sort();
         const renderTableSource = stripComments(
-            readRepositoryFile("electron-app/utils/rendering/core/renderTable.ts")
+            readRepositoryFile(
+                "electron-app/utils/rendering/core/renderTable.ts"
+            )
         );
 
         expect(violations).toStrictEqual([]);
@@ -2884,9 +2900,7 @@ describe("architecture boundaries", () => {
         );
 
         expect(violations).toStrictEqual([]);
-        expect(openFileSelectorSource).toContain(
-            "openFileSelectorRuntime.js"
-        );
+        expect(openFileSelectorSource).toContain("openFileSelectorRuntime.js");
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
@@ -3105,14 +3119,15 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
-        const sourcesMissingRuntime = migratedGlobalChartStatusUpdaterRuntimeFiles
-            .filter(
-                (relativeFile) =>
-                    !stripComments(readRepositoryFile(relativeFile)).includes(
-                        "chartStatusIndicatorRuntime.js"
-                    )
-            )
-            .sort();
+        const sourcesMissingRuntime =
+            migratedGlobalChartStatusUpdaterRuntimeFiles
+                .filter(
+                    (relativeFile) =>
+                        !stripComments(
+                            readRepositoryFile(relativeFile)
+                        ).includes("chartStatusIndicatorRuntime.js")
+                )
+                .sort();
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
@@ -3173,14 +3188,15 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
-        const sourcesMissingRuntime = migratedRenderChartDirectRerenderRuntimeFiles
-            .filter(
-                (relativeFile) =>
-                    !stripComments(readRepositoryFile(relativeFile)).includes(
-                        "renderChartDirectRerenderRuntime.js"
-                    )
-            )
-            .sort();
+        const sourcesMissingRuntime =
+            migratedRenderChartDirectRerenderRuntimeFiles
+                .filter(
+                    (relativeFile) =>
+                        !stripComments(
+                            readRepositoryFile(relativeFile)
+                        ).includes("renderChartDirectRerenderRuntime.js")
+                )
+                .sort();
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
@@ -3196,14 +3212,15 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
-        const sourcesMissingRuntime = migratedRenderChartRequestListenerRuntimeFiles
-            .filter(
-                (relativeFile) =>
-                    !stripComments(readRepositoryFile(relativeFile)).includes(
-                        "renderChartRequestListenerRuntime.js"
-                    )
-            )
-            .sort();
+        const sourcesMissingRuntime =
+            migratedRenderChartRequestListenerRuntimeFiles
+                .filter(
+                    (relativeFile) =>
+                        !stripComments(
+                            readRepositoryFile(relativeFile)
+                        ).includes("renderChartRequestListenerRuntime.js")
+                )
+                .sort();
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);

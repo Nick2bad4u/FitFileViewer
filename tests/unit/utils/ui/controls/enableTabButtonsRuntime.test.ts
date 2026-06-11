@@ -40,7 +40,9 @@ describe("getEnableTabButtonsRuntime", () => {
         expect(observer?.observe).toBe(observe);
         expect(globalConstructor).toHaveBeenCalledWith(callback);
         expect(windowConstructor).not.toHaveBeenCalled();
-        expect(runtime.createCompatibilityMutationObserver(callback)).toBeDefined();
+        expect(
+            runtime.createCompatibilityMutationObserver(callback)
+        ).toBeDefined();
     });
 
     it("uses the window mutation observer when no global constructor is available", () => {
@@ -74,7 +76,9 @@ describe("getEnableTabButtonsRuntime", () => {
         });
 
         expect(
-            runtime.createCompatibilityMutationObserver(vi.fn<MutationCallback>())
+            runtime.createCompatibilityMutationObserver(
+                vi.fn<MutationCallback>()
+            )
         ).toBeUndefined();
     });
 
@@ -91,7 +95,9 @@ describe("getEnableTabButtonsRuntime", () => {
     it("schedules and clears timers through injected timer functions", () => {
         expect.assertions(3);
 
-        const timer = Symbol("timer") as unknown as ReturnType<typeof setTimeout>;
+        const timer = Symbol("timer") as unknown as ReturnType<
+            typeof setTimeout
+        >;
         const timeoutMs = Number("50");
         const handler = vi.fn<() => void>();
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);

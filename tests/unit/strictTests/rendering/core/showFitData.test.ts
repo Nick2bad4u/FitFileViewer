@@ -1,11 +1,4 @@
-import {
-    afterEach,
-    beforeEach,
-    describe,
-    expect,
-    it,
-    vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const stateManagerMocks = vi.hoisted(() => ({
     getState: vi.fn<(path?: string) => unknown>(() => undefined),
@@ -106,16 +99,14 @@ async function loadModule() {
 async function registerShowFitDataApi(
     api: ShowFitDataElectronApi
 ): Promise<void> {
-    const { registerRendererElectronApiCandidate } = await import(
-        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
-    );
+    const { registerRendererElectronApiCandidate } =
+        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
     registerRendererElectronApiCandidate(api);
 }
 
 async function resetRegisteredElectronApi(): Promise<void> {
-    const { resetRendererElectronApiCandidate } = await import(
-        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
-    );
+    const { resetRendererElectronApiCandidate } =
+        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
     resetRendererElectronApiCandidate();
 }
 

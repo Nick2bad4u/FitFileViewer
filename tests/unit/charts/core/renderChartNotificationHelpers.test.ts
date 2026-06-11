@@ -13,9 +13,7 @@ const notificationMocks = vi.hoisted(() => ({
 }));
 
 vi.mock(
-    import(
-        "../../../../electron-app/utils/ui/notifications/showNotification.js"
-    ),
+    import("../../../../electron-app/utils/ui/notifications/showNotification.js"),
     () => ({
         showNotification: notificationMocks.showNotification,
     })

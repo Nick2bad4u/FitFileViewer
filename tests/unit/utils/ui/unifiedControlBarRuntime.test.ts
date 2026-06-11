@@ -71,10 +71,7 @@ describe("getUnifiedControlBarRuntime", () => {
                 disconnect();
             }
 
-            observe(
-                target: Node,
-                options?: MutationObserverInit
-            ): void {
+            observe(target: Node, options?: MutationObserverInit): void {
                 observe(target, options);
             }
 
@@ -100,9 +97,9 @@ describe("getUnifiedControlBarRuntime", () => {
         expect.assertions(4);
 
         const callback = vi.fn<() => void>();
-        const setTimeout = vi.fn<(callback: () => void, timeout?: number) => number>(
-            () => 13
-        );
+        const setTimeout = vi.fn<
+            (callback: () => void, timeout?: number) => number
+        >(() => 13);
         const clearTimeout = vi.fn<(handle: number) => void>();
         const runtime = getUnifiedControlBarRuntime({
             clearTimeout,

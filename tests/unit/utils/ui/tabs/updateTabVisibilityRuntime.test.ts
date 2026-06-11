@@ -42,9 +42,9 @@ describe("getUpdateTabVisibilityRuntime", () => {
         expect.assertions(4);
 
         const callback = vi.fn<() => void>();
-        const setTimeout = vi.fn<(callback: () => void, timeout?: number) => number>(
-            () => 8
-        );
+        const setTimeout = vi.fn<
+            (callback: () => void, timeout?: number) => number
+        >(() => 8);
         const clearTimeout = vi.fn<(handle: number) => void>();
         const utils = getUpdateTabVisibilityRuntime({
             clearTimeout,

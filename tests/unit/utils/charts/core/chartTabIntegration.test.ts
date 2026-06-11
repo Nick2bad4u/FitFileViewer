@@ -37,9 +37,7 @@ const getRendererActiveTabMock = vi.hoisted(() =>
 );
 const subscribeToActiveFitRawDataChangeMock = vi.hoisted(() =>
     vi.fn<
-        (
-            callback: (data: unknown, previousData: unknown) => void
-        ) => () => void
+        (callback: (data: unknown, previousData: unknown) => void) => () => void
     >((callback) => {
         stateListeners.set("fitFile.rawData", callback as StateListener);
         return () => {

@@ -23,9 +23,7 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
             HTMLElement,
         });
 
-        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
-            true
-        );
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(true);
         expect(runtime.isHTMLElement(document.createTextNode("label"))).toBe(
             false
         );

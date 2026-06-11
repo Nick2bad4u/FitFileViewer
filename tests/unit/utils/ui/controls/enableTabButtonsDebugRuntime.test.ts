@@ -7,9 +7,9 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect.assertions(2);
 
         const element = document.createElement("button");
-        const getComputedStyle = vi.fn<(element: Element) => CSSStyleDeclaration>(
-            () => ({ display: "block" }) as CSSStyleDeclaration
-        );
+        const getComputedStyle = vi.fn<
+            (element: Element) => CSSStyleDeclaration
+        >(() => ({ display: "block" }) as CSSStyleDeclaration);
         const runtime = getEnableTabButtonsDebugRuntime({
             getComputedStyle,
             window: {},
@@ -45,7 +45,9 @@ describe("getEnableTabButtonsDebugRuntime", () => {
     it("schedules and clears timers through injected timer functions", () => {
         expect.assertions(3);
 
-        const timer = Symbol("timer") as unknown as ReturnType<typeof setTimeout>;
+        const timer = Symbol("timer") as unknown as ReturnType<
+            typeof setTimeout
+        >;
         const timeoutMs = Number("30000");
         const handler = vi.fn<() => void>();
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
@@ -67,11 +69,14 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect.assertions(1);
 
         const runtime = getEnableTabButtonsDebugRuntime({
-            getComputedStyle: () => ({ display: "block" }) as CSSStyleDeclaration,
+            getComputedStyle: () =>
+                ({ display: "block" }) as CSSStyleDeclaration,
         });
 
         expect(() =>
-            runtime.assertComputedStyleAvailable(document.createElement("button"))
+            runtime.assertComputedStyleAvailable(
+                document.createElement("button")
+            )
         ).toThrow("getComputedStyle not available");
     });
 
@@ -83,7 +88,9 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         });
 
         expect(() =>
-            runtime.assertComputedStyleAvailable(document.createElement("button"))
+            runtime.assertComputedStyleAvailable(
+                document.createElement("button")
+            )
         ).toThrow("getComputedStyle not available");
     });
 
@@ -91,7 +98,8 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect.assertions(1);
 
         const runtime = getEnableTabButtonsDebugRuntime({
-            AbortController: "AbortController" as unknown as typeof AbortController,
+            AbortController:
+                "AbortController" as unknown as typeof AbortController,
             window: {},
         });
 

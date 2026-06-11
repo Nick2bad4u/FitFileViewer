@@ -584,7 +584,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
+            const config =
+                chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
             expect(config.options.plugins.legend.labels.color).toBe("#fff");
             expect(config.options.plugins.title.color).toBe("#fff");
             expect(config.options.plugins.tooltip.backgroundColor).toBe("#222");
@@ -618,7 +619,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
+            const config =
+                chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
             expect(config.options.scales.x.grid.color).toBe(
                 "rgba(255,255,255,0.1)"
             );
@@ -720,7 +722,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
 
             createEnhancedChart(canvas, options);
 
-            const config = chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
+            const config =
+                chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
             expect(
                 config.options.plugins.chartBackgroundColorPlugin
             ).toHaveProperty("backgroundColor");
@@ -1226,7 +1229,8 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             const result = createEnhancedChart(canvas, options);
 
             expect(result).toBe(chartInstanceMock);
-            const config = chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
+            const config =
+                chartMock.mock.calls[chartMock.mock.calls.length - 1][1];
             expect(config.options.animation.duration).toStrictEqual(1000);
             expect(config.options.animation.easing).toBe("linear");
             expect(updateChartAnimations).toHaveBeenCalledWith(

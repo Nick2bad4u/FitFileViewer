@@ -372,15 +372,13 @@ describe("keyboardShortcutsModal", () => {
 async function registerElectronApi(api: {
     readonly openExternal: (url: string) => void;
 }): Promise<void> {
-    const { registerRendererElectronApiCandidate } = await import(
-        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
-    );
+    const { registerRendererElectronApiCandidate } =
+        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
     registerRendererElectronApiCandidate(api);
 }
 
 async function resetRegisteredElectronApi(): Promise<void> {
-    const { resetRendererElectronApiCandidate } = await import(
-        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
-    );
+    const { resetRendererElectronApiCandidate } =
+        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
     resetRendererElectronApiCandidate();
 }

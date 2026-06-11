@@ -542,9 +542,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             expect(electronAPI.readFile).toHaveBeenCalledWith(
                 "C:/tmp/sample.fit"
             );
-            expect(electronAPI.parseFitFile).toHaveBeenCalledWith(
-                arrayBuf
-            );
+            expect(electronAPI.parseFitFile).toHaveBeenCalledWith(arrayBuf);
             expect(
                 fitDataRendererMocks.renderDecodedFitData
             ).toHaveBeenCalledWith(parsed, "C:/tmp/sample.fit");
@@ -893,9 +891,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         vi.mocked(electronAPI.parseFitFile).mockResolvedValue(
             createFitMessages()
         );
-        vi.mocked(electronAPI.addRecentFile).mockResolvedValue(
-            undefined
-        );
+        vi.mocked(electronAPI.addRecentFile).mockResolvedValue(undefined);
 
         setupListeners({
             openFileBtn,
@@ -914,9 +910,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Success case
         await electronAPI.triggerOpenRecentFile("C:/tmp/recent.fit");
         expect(electronAPI.approveRecentFile).not.toHaveBeenCalled();
-        expect(electronAPI.readFile).toHaveBeenCalledWith(
-            "C:/tmp/recent.fit"
-        );
+        expect(electronAPI.readFile).toHaveBeenCalledWith("C:/tmp/recent.fit");
         expect(electronAPI.addRecentFile).toHaveBeenCalledWith(
             "C:/tmp/recent.fit"
         );

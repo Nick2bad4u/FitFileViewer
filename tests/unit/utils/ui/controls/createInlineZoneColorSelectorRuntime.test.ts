@@ -56,7 +56,9 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
     it("schedules timers through the injected timer function", () => {
         expect.assertions(2);
 
-        const timer = Symbol("timer") as unknown as ReturnType<typeof setTimeout>;
+        const timer = Symbol("timer") as unknown as ReturnType<
+            typeof setTimeout
+        >;
         const timeoutMs = Number("25");
         const handler = vi.fn<() => void>();
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
@@ -104,7 +106,9 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
             "createInlineZoneColorSelector requires a CustomEvent runtime"
         );
         expect(() =>
-            runtimeWithInvalidElement.isHTMLElement(document.createElement("div"))
+            runtimeWithInvalidElement.isHTMLElement(
+                document.createElement("div")
+            )
         ).toThrow(
             "createInlineZoneColorSelector requires an HTMLElement runtime"
         );

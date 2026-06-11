@@ -40,15 +40,13 @@ describe("getChartThemeRuntime", () => {
     it("resolves the system preference through injected matchMedia", () => {
         expect.assertions(2);
 
-        const matchMedia = vi.fn<(query: string) => Pick<MediaQueryList, "matches">>(
-            () => ({ matches: true })
-        );
+        const matchMedia = vi.fn<
+            (query: string) => Pick<MediaQueryList, "matches">
+        >(() => ({ matches: true }));
         const runtime = getChartThemeRuntime({ matchMedia });
 
         expect(runtime.getSystemPreferredTheme()).toBe("dark");
-        expect(matchMedia).toHaveBeenCalledWith(
-            "(prefers-color-scheme: dark)"
-        );
+        expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
     });
 
     it("falls back to light when runtime browser APIs are unavailable", () => {

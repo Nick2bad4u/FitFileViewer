@@ -8,8 +8,7 @@ type GetCurrentSettingsModule =
     typeof import("../../../../../electron-app/utils/app/initialization/getCurrentSettings.js");
 
 const mocks = vi.hoisted(() => ({
-    clearCachedChartSettings:
-        vi.fn<(options?: { source?: string }) => void>(),
+    clearCachedChartSettings: vi.fn<(options?: { source?: string }) => void>(),
     debouncedRender: vi.fn<(reason: string) => void>(),
     destroyChart: vi.fn<() => void>(),
     getState: vi.fn<(path: string) => unknown>(),

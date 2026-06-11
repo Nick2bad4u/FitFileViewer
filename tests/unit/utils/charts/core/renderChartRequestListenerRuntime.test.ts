@@ -13,13 +13,14 @@ describe("getRenderChartRequestListenerRuntime", () => {
         expect.assertions(2);
 
         const abortController = new AbortController();
-        const addEventListener = vi.fn<
-            (
-                type: string,
-                listener: EventListenerOrEventListenerObject,
-                options?: AddEventListenerOptions | boolean
-            ) => void
-        >();
+        const addEventListener =
+            vi.fn<
+                (
+                    type: string,
+                    listener: EventListenerOrEventListenerObject,
+                    options?: AddEventListenerOptions | boolean
+                ) => void
+            >();
 
         try {
             getRenderChartRequestListenerRuntime({
@@ -81,11 +82,13 @@ describe("getRenderChartRequestListenerRuntime", () => {
 
             expect(runtime.getFallbackChartContainer()).toBe(document.body);
             expect(
-                runtime.isCustomEvent(new CustomEvent("ffv:request-render-charts"))
+                runtime.isCustomEvent(
+                    new CustomEvent("ffv:request-render-charts")
+                )
             ).toBe(true);
-            expect(runtime.isCustomEvent(new Event("ffv:request-render-charts"))).toBe(
-                false
-            );
+            expect(
+                runtime.isCustomEvent(new Event("ffv:request-render-charts"))
+            ).toBe(false);
         } finally {
             cleanupFixture();
         }

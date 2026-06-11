@@ -9,9 +9,7 @@ describe("getLoadingOverlayRuntime", () => {
         const runtime = getLoadingOverlayRuntime({ document });
 
         expect(runtime.createElement("div")).toBeInstanceOf(HTMLDivElement);
-        expect(runtime.createElement("style")).toBeInstanceOf(
-            HTMLStyleElement
-        );
+        expect(runtime.createElement("style")).toBeInstanceOf(HTMLStyleElement);
         expect(runtime.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
     });
 
@@ -24,9 +22,7 @@ describe("getLoadingOverlayRuntime", () => {
 
         runtime.appendToBody(overlay);
 
-        expect(runtime.querySelector("#fitfile-loading-overlay")).toBe(
-            overlay
-        );
+        expect(runtime.querySelector("#fitfile-loading-overlay")).toBe(overlay);
         expect(document.body.lastElementChild).toBe(overlay);
     });
 

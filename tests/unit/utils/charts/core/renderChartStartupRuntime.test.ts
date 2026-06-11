@@ -7,13 +7,14 @@ describe("getRenderChartStartupRuntime", () => {
         expect.assertions(3);
 
         const abortController = new AbortController();
-        const addEventListener = vi.fn<
-            (
-                type: string,
-                listener: EventListenerOrEventListenerObject,
-                options?: AddEventListenerOptions | boolean
-            ) => void
-        >();
+        const addEventListener =
+            vi.fn<
+                (
+                    type: string,
+                    listener: EventListenerOrEventListenerObject,
+                    options?: AddEventListenerOptions | boolean
+                ) => void
+            >();
         const runtime = getRenderChartStartupRuntime({
             addEventListener,
             window: {},

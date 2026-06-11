@@ -7,9 +7,7 @@ import {
 import { registerChartStartup } from "../../../../../electron-app/utils/charts/core/renderChartStartup.js";
 import type { RenderChartStartupRuntime } from "../../../../../electron-app/utils/charts/core/renderChartStartupRuntime.js";
 
-function createRuntime(
-    canRegister = true
-): RenderChartStartupRuntime & {
+function createRuntime(canRegister = true): RenderChartStartupRuntime & {
     listener?: EventListenerOrEventListenerObject;
 } {
     const runtime: RenderChartStartupRuntime & {
@@ -64,7 +62,9 @@ describe("registerChartStartup", () => {
 
         expect(loadSharedConfiguration).toHaveBeenCalledOnce();
         expect(isSharedConfigurationListenerRegistered()).toBe(false);
-        expect(runtime.canRegisterDOMContentLoadedListener).toHaveBeenCalledOnce();
+        expect(
+            runtime.canRegisterDOMContentLoadedListener
+        ).toHaveBeenCalledOnce();
     });
 
     it("skips registration when startup runtime is unavailable or already registered", () => {

@@ -262,12 +262,8 @@ describe("stateIntegration comprehensive coverage", () => {
             expect(consoleSpy).toHaveBeenCalledWith(
                 "[StateIntegration] Application state management initialized"
             );
-            expect(
-                getRetiredGlobalDescriptor("globalData")
-            ).toBeUndefined();
-            expect(
-                getRetiredGlobalDescriptor("__state_debug")
-            ).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("globalData")).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("__state_debug")).toBeUndefined();
 
             consoleSpy.mockRestore();
         });
@@ -291,9 +287,7 @@ describe("stateIntegration comprehensive coverage", () => {
                 mockStateManager.initializeStateManager
             ).toHaveBeenCalledOnce();
             expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
-            expect(
-                getRetiredGlobalDescriptor("__state_debug")
-            ).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("__state_debug")).toBeUndefined();
 
             consoleSpy.mockRestore();
         });
@@ -310,9 +304,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
             initializeCompleteStateSystem();
 
-            expect(
-                getRetiredGlobalDescriptor("globalData")
-            ).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("globalData")).toBeUndefined();
             expect(mockStateManager.subscribe).toHaveBeenCalledWith(
                 "",
                 expect.any(Function)
@@ -633,9 +625,7 @@ describe("stateIntegration comprehensive coverage", () => {
             expect(
                 mockStateManager.initializeStateManager
             ).toHaveBeenCalledOnce();
-            expect(
-                getRetiredGlobalDescriptor("__state_debug")
-            ).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("__state_debug")).toBeUndefined();
         });
 
         it("should initialize development mode without publishing state debug globals", async () => {
@@ -651,9 +641,7 @@ describe("stateIntegration comprehensive coverage", () => {
             expect(
                 mockStateManager.initializeStateManager
             ).toHaveBeenCalledOnce();
-            expect(
-                getRetiredGlobalDescriptor("__state_debug")
-            ).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("__state_debug")).toBeUndefined();
         });
 
         it("should initialize debug param mode without publishing state debug globals", async () => {
@@ -678,9 +666,7 @@ describe("stateIntegration comprehensive coverage", () => {
             expect(
                 mockStateManager.initializeStateManager
             ).toHaveBeenCalledOnce();
-            expect(
-                getRetiredGlobalDescriptor("__state_debug")
-            ).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("__state_debug")).toBeUndefined();
         });
 
         it("should initialize when location access throws", async () => {
@@ -700,9 +686,7 @@ describe("stateIntegration comprehensive coverage", () => {
             initializeAppState();
 
             // Startup should not depend on browser location access.
-            expect(
-                getRetiredGlobalDescriptor("__state_debug")
-            ).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("__state_debug")).toBeUndefined();
         });
     });
 
@@ -721,9 +705,7 @@ describe("stateIntegration comprehensive coverage", () => {
                     ([path]) => path === "globalData"
                 )
             ).toStrictEqual([]);
-            expect(
-                getRetiredGlobalDescriptor("globalData")
-            ).toMatchObject({
+            expect(getRetiredGlobalDescriptor("globalData")).toMatchObject({
                 configurable: true,
                 value: { test: "data" },
                 writable: true,
@@ -742,9 +724,7 @@ describe("stateIntegration comprehensive coverage", () => {
 
             initializeAppState();
 
-            expect(
-                getRetiredGlobalDescriptor("globalData")
-            ).toMatchObject({
+            expect(getRetiredGlobalDescriptor("globalData")).toMatchObject({
                 configurable: true,
                 value: { existing: "data" },
                 writable: true,
@@ -762,12 +742,8 @@ describe("stateIntegration comprehensive coverage", () => {
 
             initializeAppState();
 
-            expect(
-                getRetiredGlobalDescriptor("globalData")
-            ).toBeUndefined();
-            expect(
-                getRetiredGlobalDescriptor("AppState")
-            ).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("globalData")).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("AppState")).toBeUndefined();
             expect(
                 getRetiredGlobalDescriptor("isChartRendered")
             ).toBeUndefined();
@@ -796,9 +772,7 @@ describe("stateIntegration comprehensive coverage", () => {
                 mockStateManager.initializeStateManager
             ).toHaveBeenCalledOnce();
             expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
-            expect(
-                getRetiredGlobalDescriptor("__state_debug")
-            ).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("__state_debug")).toBeUndefined();
         });
 
         it("should not expose global debug utility actions", async () => {
@@ -818,9 +792,7 @@ describe("stateIntegration comprehensive coverage", () => {
             ).toHaveBeenCalledOnce();
             expect(mockUIStateManager.initialize).toHaveBeenCalledOnce();
             expect(mockStateManager.getState).not.toHaveBeenCalled();
-            expect(
-                getRetiredGlobalDescriptor("__state_debug")
-            ).toBeUndefined();
+            expect(getRetiredGlobalDescriptor("__state_debug")).toBeUndefined();
         });
     });
 });

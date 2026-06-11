@@ -55,6 +55,10 @@ describe("rendererLoadingState", () => {
         setRendererLoading(false, { source: "test" });
         unsubscribe();
 
-        expect(received).toStrictEqual([true, false, false]);
+        expect(received).toStrictEqual([
+            true,
+            false,
+            false,
+        ]);
     });
 });

@@ -107,7 +107,10 @@ describe("getLazyRenderingRuntime", () => {
 
         const callback = vi.fn<IdleRequestCallback>();
         const requestIdleCallback = vi.fn<
-            (callback: IdleRequestCallback, options?: IdleRequestOptions) => number
+            (
+                callback: IdleRequestCallback,
+                options?: IdleRequestOptions
+            ) => number
         >(() => 44);
         const utils = getLazyRenderingRuntime({ requestIdleCallback });
 
@@ -121,12 +124,12 @@ describe("getLazyRenderingRuntime", () => {
         expect.assertions(3);
 
         const callback = vi.fn<() => void>();
-        const setTimeout = vi.fn<(callback: () => void, timeout?: number) => number>(
-            (scheduledCallback) => {
-                scheduledCallback();
-                return 9;
-            }
-        );
+        const setTimeout = vi.fn<
+            (callback: () => void, timeout?: number) => number
+        >((scheduledCallback) => {
+            scheduledCallback();
+            return 9;
+        });
         const utils = getLazyRenderingRuntime({ setTimeout });
 
         expect(utils.setTimeout(callback)).toBe(9);

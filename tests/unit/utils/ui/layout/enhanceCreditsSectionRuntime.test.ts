@@ -16,9 +16,9 @@ describe("getCreditsMarqueeRuntime", () => {
                 HTMLElement,
             });
 
-            expect(runtime.queryCreditsSections("body > .credits-section")).toStrictEqual([
-                section,
-            ]);
+            expect(
+                runtime.queryCreditsSections("body > .credits-section")
+            ).toStrictEqual([section]);
             expect(runtime.isHTMLElement(section)).toBe(true);
         } finally {
             document.body.replaceChildren();

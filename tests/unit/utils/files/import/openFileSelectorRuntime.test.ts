@@ -87,8 +87,8 @@ describe("getOpenFileSelectorRuntime", () => {
         expect(() => runtime.createInput()).toThrow(
             "openFileSelector requires a document runtime"
         );
-        expect(() => runtime.appendToBody(document.createElement("input"))).toThrow(
-            "openFileSelector requires a document runtime"
-        );
+        expect(() =>
+            runtime.appendToBody(document.createElement("input"))
+        ).toThrow("openFileSelector requires a document runtime");
     });
 });

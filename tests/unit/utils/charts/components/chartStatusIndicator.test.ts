@@ -18,9 +18,7 @@ type GetChartCounts = () => {
     visible: number;
 };
 type SetTimeoutMock = typeof setTimeout;
-type StateSubscribe = (
-    listener: (...args: unknown[]) => void
-) => () => void;
+type StateSubscribe = (listener: (...args: unknown[]) => void) => () => void;
 type SubscribeToChartSettings = (listener: () => void) => () => void;
 type TestGlobal = typeof globalThis & {
     addEventListener: AddEventListener;
@@ -477,9 +475,7 @@ describe("chartStatusIndicator.js", () => {
             ).toHaveBeenCalledWith(expect.any(Function));
             expect(
                 vi.mocked(activeFitRawDataState.subscribeToActiveFitRawData)
-            ).toHaveBeenCalledWith(
-                expect.any(Function)
-            );
+            ).toHaveBeenCalledWith(expect.any(Function));
             expect(Object.hasOwn(globalThis, "globalData")).toBe(false);
         });
 
@@ -513,9 +509,7 @@ describe("chartStatusIndicator.js", () => {
             ).toHaveBeenCalledWith(expect.any(Function));
             expect(
                 vi.mocked(activeFitRawDataState.subscribeToActiveFitRawData)
-            ).toHaveBeenCalledWith(
-                expect.any(Function)
-            );
+            ).toHaveBeenCalledWith(expect.any(Function));
 
             // Test that the event handlers can be called without errors
             fieldToggleHandler({} as Event);

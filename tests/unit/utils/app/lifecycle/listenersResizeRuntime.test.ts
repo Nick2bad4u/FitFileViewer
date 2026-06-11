@@ -139,9 +139,9 @@ describe("getListenersResizeRuntime", () => {
             (callback: FrameRequestCallback) => number
         >(() => 2);
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const setTimeout = vi.fn<(callback: () => void, timeout?: number) => number>(
-            () => 7
-        );
+        const setTimeout = vi.fn<
+            (callback: () => void, timeout?: number) => number
+        >(() => 7);
         const clearTimeout = vi.fn<(handle: number) => void>();
         const utils = getListenersResizeRuntime({
             cancelAnimationFrame,

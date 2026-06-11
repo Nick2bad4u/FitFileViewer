@@ -81,10 +81,12 @@ describe("getPowerZoneControlsRuntime", () => {
         );
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()
-        ).toThrow("createPowerZoneControls requires an AbortController runtime");
-        expect(() =>
-            runtimeWithInvalidHTMLElement.isHTMLElement({})
-        ).toThrow("createPowerZoneControls requires an HTMLElement runtime");
+        ).toThrow(
+            "createPowerZoneControls requires an AbortController runtime"
+        );
+        expect(() => runtimeWithInvalidHTMLElement.isHTMLElement({})).toThrow(
+            "createPowerZoneControls requires an HTMLElement runtime"
+        );
         expect(() =>
             runtimeWithInvalidStorage.getStorageItem(
                 "power-zone-controls-collapsed"

@@ -27,7 +27,9 @@ describe("getFitBrowserFeatureGateRuntime", () => {
             tabButton,
         });
         expect(
-            getFitBrowserFeatureGateRuntime({ document }).getBrowserTabElements()
+            getFitBrowserFeatureGateRuntime({
+                document,
+            }).getBrowserTabElements()
         ).toStrictEqual({
             content,
             tabButton,
@@ -38,7 +40,10 @@ describe("getFitBrowserFeatureGateRuntime", () => {
         expect.assertions(2);
 
         resetBody();
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        const svg = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "svg"
+        );
         svg.id = "tab_browser";
         document.body.append(svg);
 

@@ -547,15 +547,13 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
 async function registerElectronApi(api: {
     readonly stopGyazoServer: ReturnType<typeof vi.fn<StopGyazoServer>>;
 }): Promise<void> {
-    const { registerRendererElectronApiCandidate } = await import(
-        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
-    );
+    const { registerRendererElectronApiCandidate } =
+        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
     registerRendererElectronApiCandidate(api);
 }
 
 async function resetRegisteredElectronApi(): Promise<void> {
-    const { resetRendererElectronApiCandidate } = await import(
-        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
-    );
+    const { resetRendererElectronApiCandidate } =
+        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
     resetRendererElectronApiCandidate();
 }

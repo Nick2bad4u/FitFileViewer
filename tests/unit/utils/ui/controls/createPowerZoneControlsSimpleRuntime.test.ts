@@ -87,9 +87,7 @@ describe("getPowerZoneControlsSimpleRuntime", () => {
         ).toThrow(
             "createPowerZoneControlsSimple requires an AbortController runtime"
         );
-        expect(() =>
-            runtimeWithInvalidHTMLElement.isHTMLElement({})
-        ).toThrow(
+        expect(() => runtimeWithInvalidHTMLElement.isHTMLElement({})).toThrow(
             "createPowerZoneControlsSimple requires an HTMLElement runtime"
         );
         expect(() =>

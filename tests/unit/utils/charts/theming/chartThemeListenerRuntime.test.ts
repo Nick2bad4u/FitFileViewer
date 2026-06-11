@@ -88,14 +88,10 @@ describe("getChartThemeListenerRuntime", () => {
             runtime.addThemeChangeListener(() => undefined, {
                 signal: listenerController.signal,
             })
-        ).toThrow(
-            "chartThemeListener requires a document body"
-        );
+        ).toThrow("chartThemeListener requires a document body");
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()
-        ).toThrow(
-            "chartThemeListener requires an AbortController"
-        );
+        ).toThrow("chartThemeListener requires an AbortController");
         expect(runtime.isCustomEvent(new Event("themechange"))).toBe(false);
     });
 });

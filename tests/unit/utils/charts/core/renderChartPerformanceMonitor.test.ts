@@ -27,16 +27,16 @@ describe("chartPerformanceMonitor", () => {
         });
 
         expect(trackingId).toBe("chart-render-1234");
-        expect(stateManager.getState(`performance.tracking.${trackingId}`)).toEqual(
-            {
-                chartCount: 3,
-                duration: 32,
-                endTime: 42,
-                operation: "render",
-                startTime: 10,
-                status: "completed",
-            }
-        );
+        expect(
+            stateManager.getState(`performance.tracking.${trackingId}`)
+        ).toEqual({
+            chartCount: 3,
+            duration: 32,
+            endTime: 42,
+            operation: "render",
+            startTime: 10,
+            status: "completed",
+        });
         expect(stateManager.getState("performance.chartHistory")).toEqual([
             {
                 chartCount: 3,
@@ -53,9 +53,9 @@ describe("chartPerformanceMonitor", () => {
             minDuration: 32,
             totalOperations: 1,
         });
-        expect(chartPerformanceMonitor.getSummary().recentOperations).toHaveLength(
-            1
-        );
+        expect(
+            chartPerformanceMonitor.getSummary().recentOperations
+        ).toHaveLength(1);
     });
 
     it("ignores unknown tracking ids", () => {

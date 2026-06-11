@@ -88,9 +88,12 @@ describe("activeFitRawDataState", () => {
         stateManager.setState("fitFile.rawData", [], { source: "test" });
 
         unsubscribe();
-        setActiveFitRawData({ recordMesgs: [{ timestamp: 2 }] }, {
-            source: "test",
-        });
+        setActiveFitRawData(
+            { recordMesgs: [{ timestamp: 2 }] },
+            {
+                source: "test",
+            }
+        );
 
         expect(listenerValues).toHaveLength(2);
         expect(listenerValues[0]).toBe(rawData);

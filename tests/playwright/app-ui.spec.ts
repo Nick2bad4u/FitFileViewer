@@ -1608,11 +1608,9 @@ test.describe("FitFileViewer Electron UI", () => {
             const chartRuntimeModule = (await import(
                 chartRuntimeModuleUrl
             )) as ChartRuntimeModule;
-            const originalChartRuntime =
-                chartRuntimeModule.resolveChartRuntime(
-                    (value): value is RuntimeFunction =>
-                        typeof value === "function"
-                );
+            const originalChartRuntime = chartRuntimeModule.resolveChartRuntime(
+                (value): value is RuntimeFunction => typeof value === "function"
+            );
             const popupDocument =
                 document.implementation.createHTMLDocument("");
             const originalOpen = window.open;

@@ -1,14 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
-    subscribeToActiveFitRawData:
-        vi.fn<(listener: () => void) => () => void>(),
+    subscribeToActiveFitRawData: vi.fn<(listener: () => void) => () => void>(),
 }));
 
 vi.mock(
-    import(
-        "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js"
-    ),
+    import("../../../../../electron-app/utils/state/domain/activeFitRawDataState.js"),
     () => ({
         subscribeToActiveFitRawData: mocks.subscribeToActiveFitRawData,
     })
@@ -41,9 +38,9 @@ describe("addFitOverlayButtonState", () => {
         registerAddFitOverlayButtonAvailabilityUpdater(secondUpdater);
         subscribedListener?.();
 
-        expect(mocks.subscribeToActiveFitRawData).toHaveBeenCalledExactlyOnceWith(
-            expect.any(Function)
-        );
+        expect(
+            mocks.subscribeToActiveFitRawData
+        ).toHaveBeenCalledExactlyOnceWith(expect.any(Function));
         expect(firstUpdater).not.toHaveBeenCalled();
         expect(secondUpdater).toHaveBeenCalledOnce();
         expect(subscribedListener).toBeDefined();

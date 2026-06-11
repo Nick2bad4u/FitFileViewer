@@ -59,10 +59,7 @@ describe("getChartStateManagerRuntime", () => {
         const timeout = 1 as ReturnType<typeof setTimeout>;
 
         expect(() =>
-            getChartStateManagerRuntime({}).setRenderTimeout(
-                () => undefined,
-                0
-            )
+            getChartStateManagerRuntime({}).setRenderTimeout(() => undefined, 0)
         ).toThrow("ChartStateManager requires setTimeout");
         expect(() =>
             getChartStateManagerRuntime({}).clearRenderTimeout(timeout)

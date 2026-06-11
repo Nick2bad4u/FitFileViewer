@@ -308,7 +308,8 @@ function installBaseDOM() {
 }
 
 type TestElectronAPI = ReturnType<typeof createElectronAPI>;
-type ElectronApiRuntimeModule = typeof import("../../../../electron-app/utils/runtime/electronApiRuntime.js");
+type ElectronApiRuntimeModule =
+    typeof import("../../../../electron-app/utils/runtime/electronApiRuntime.js");
 
 let currentElectronAPI: TestElectronAPI | undefined;
 let registerElectronApiCandidate: ElectronApiRuntimeModule["registerRendererElectronApiCandidate"];
@@ -414,9 +415,8 @@ describe("main-ui.js core flows", () => {
     beforeEach(async () => {
         vi.useFakeTimers();
         vi.resetModules();
-        const electronApiRuntime = await import(
-            "../../../../electron-app/utils/runtime/electronApiRuntime.js"
-        );
+        const electronApiRuntime =
+            await import("../../../../electron-app/utils/runtime/electronApiRuntime.js");
         registerElectronApiCandidate =
             electronApiRuntime.registerRendererElectronApiCandidate;
         resetElectronApiCandidate =

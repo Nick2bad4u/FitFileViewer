@@ -11,7 +11,9 @@ describe("getRenderTableRuntime", () => {
     it("creates elements through the injected document", () => {
         expect.assertions(1);
 
-        const element = getRenderTableRuntime({ document }).createElement("div");
+        const element = getRenderTableRuntime({ document }).createElement(
+            "div"
+        );
 
         expect(element).toBeInstanceOf(HTMLDivElement);
     });
@@ -55,9 +57,9 @@ describe("getRenderTableRuntime", () => {
 
         const element = document.createElement("div");
         const style = { display: "block" } as CSSStyleDeclaration;
-        const getComputedStyle = vi.fn<(element: Element) => CSSStyleDeclaration>(
-            () => style
-        );
+        const getComputedStyle = vi.fn<
+            (element: Element) => CSSStyleDeclaration
+        >(() => style);
         const utils = getRenderTableRuntime({ getComputedStyle });
 
         expect(utils.getComputedStyle(element)).toBe(style);
@@ -80,16 +82,18 @@ describe("getRenderTableRuntime", () => {
     it("returns undefined when animation frames are unavailable", () => {
         expect.assertions(1);
 
-        expect(getRenderTableRuntime({}).requestAnimationFrame(() => {})).toBeUndefined();
+        expect(
+            getRenderTableRuntime({}).requestAnimationFrame(() => {})
+        ).toBeUndefined();
     });
 
     it("wraps timer scheduling and cleanup", () => {
         expect.assertions(4);
 
         const callback = vi.fn<() => void>();
-        const setTimeout = vi.fn<(callback: () => void, timeout?: number) => number>(
-            () => 9
-        );
+        const setTimeout = vi.fn<
+            (callback: () => void, timeout?: number) => number
+        >(() => 9);
         const clearTimeout = vi.fn<(handle: number) => void>();
         const utils = getRenderTableRuntime({ clearTimeout, setTimeout });
         const timeoutMs = Number.parseInt("50", 10);

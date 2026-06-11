@@ -11,9 +11,9 @@ describe("getUpdateMapThemeRuntime", () => {
             map.id = "leaflet-map";
             document.body.append(map);
 
-            expect(getUpdateMapThemeRuntime({ document }).queryLeafletMap()).toBe(
-                map
-            );
+            expect(
+                getUpdateMapThemeRuntime({ document }).queryLeafletMap()
+            ).toBe(map);
         } finally {
             document.body.replaceChildren();
         }
@@ -51,7 +51,8 @@ describe("getUpdateMapThemeRuntime", () => {
         };
         const runtime = getUpdateMapThemeRuntime({
             window: {
-                addEventListener: eventTarget.addEventListener.bind(eventTarget),
+                addEventListener:
+                    eventTarget.addEventListener.bind(eventTarget),
             },
         });
 

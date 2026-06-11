@@ -103,25 +103,21 @@ async function importTarget() {
 
 type RendererStateElectronApi = {
     onFileOpened: ReturnType<
-        typeof vi.fn<
-            (handler: (data: unknown, path: string) => void) => void
-        >
+        typeof vi.fn<(handler: (data: unknown, path: string) => void) => void>
     >;
 };
 
 async function registerRendererStateApi(
     api: RendererStateElectronApi
 ): Promise<void> {
-    const { registerRendererElectronApiCandidate } = await import(
-        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
-    );
+    const { registerRendererElectronApiCandidate } =
+        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
     registerRendererElectronApiCandidate(api);
 }
 
 async function resetRegisteredElectronApi(): Promise<void> {
-    const { resetRendererElectronApiCandidate } = await import(
-        "../../../../../electron-app/utils/runtime/electronApiRuntime.js"
-    );
+    const { resetRendererElectronApiCandidate } =
+        await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
     resetRendererElectronApiCandidate();
 }
 

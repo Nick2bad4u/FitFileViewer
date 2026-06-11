@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-    __resetStateManagerForTests,
-} from "../../../../../electron-app/utils/state/core/stateManager.js";
+import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
     getRendererActiveTab,
     setRendererActiveTab,

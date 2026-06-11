@@ -66,9 +66,7 @@ describe("getChartStatusIndicatorRuntime", () => {
             AbortController,
         });
 
-        expect(runtime.createAbortController()).toBeInstanceOf(
-            AbortController
-        );
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
     it("queries html elements through the injected document and constructor", () => {
@@ -94,9 +92,9 @@ describe("getChartStatusIndicatorRuntime", () => {
     it("schedules and clears timers through injected timer functions", () => {
         expect.assertions(3);
 
-        const timer = Symbol(
-            "chart-status-timer"
-        ) as unknown as ReturnType<typeof setTimeout>;
+        const timer = Symbol("chart-status-timer") as unknown as ReturnType<
+            typeof setTimeout
+        >;
         const handler = (): void => undefined;
         const clearTimeoutMock = vi.fn<typeof clearTimeout>();
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);

@@ -625,8 +625,7 @@ function setupDOMEnvironment() {
     if (typeof utils.matchMedia !== "function")
         utils.matchMedia = global.window.matchMedia;
     // Ensure a stable process.nextTick exists for any code importing this module
-    if (!utils.process || typeof utils.process !== "object")
-        utils.process = {};
+    if (!utils.process || typeof utils.process !== "object") utils.process = {};
     if (typeof utils.process.nextTick !== "function") {
         utils.process.nextTick = (
             cb: (...args: unknown[]) => void,

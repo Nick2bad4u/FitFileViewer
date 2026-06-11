@@ -8,9 +8,7 @@ describe("getRemoveExitFullscreenOverlayRuntime", () => {
 
         const runtime = getRemoveExitFullscreenOverlayRuntime({ document });
 
-        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
-            true
-        );
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(true);
         expect(runtime.isHTMLElement({})).toBe(false);
     });
 
