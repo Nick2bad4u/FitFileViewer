@@ -29,14 +29,6 @@ import { loadSharedConfiguration } from "../../app/initialization/loadSharedConf
 import { AppActions } from "../../app/lifecycle/appActions.js";
 import { resourceManager } from "../../app/lifecycle/resourceManager.js";
 import { formatChartFields } from "../../formatting/display/formatChartFields.js";
-// State management imports
-import {
-    getState,
-    getStateHistory,
-    setState,
-    subscribe,
-    updateState,
-} from "../../state/core/stateManager.js";
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
@@ -102,7 +94,9 @@ import {
 } from "./renderChartDependencyAccessors.js";
 import {
     callGetState,
+    callGetStateHistory,
     callSetState,
+    callSubscribe,
     callUpdateState,
     getStateManagerSafe,
 } from "./renderChartStateAccess.js";
@@ -286,10 +280,10 @@ const chartStateManagementApi = createChartStateManagementApi({
     chartActions,
     chartState,
     getComputedStateManager: getComputedStateManagerSafe,
-    getState,
+    getState: callGetState,
     middlewareManager,
     notify,
-    updateState,
+    updateState: callUpdateState,
 });
 
 registerChartStartup({
@@ -299,14 +293,14 @@ registerChartStartup({
 /** Exports rendered chart artifacts using current state. */
 export const exportChartsWithState = createExportChartsWithState({
     getChartInstances: getGlobalChartInstances,
-    getState,
+    getState: callGetState,
     notify,
-    setState,
+    setState: callSetState,
 });
 
 /** Returns the current public chart-rendering status snapshot. */
 export function getChartStatus() {
-    return getChartStatusSnapshot({ chartState, getState });
+    return getChartStatusSnapshot({ chartState, getState: callGetState });
 }
 
 /**
@@ -667,14 +661,14 @@ exposeChartDevTools({
     formatChartFields,
     getChartStatus,
     getComputedStateManager: getComputedStateManagerSafe,
-    getState,
-    getStateHistory,
+    getState: callGetState,
+    getStateHistory: callGetStateHistory,
     initializeChartStateManagement,
     isWindowAvailable: globalThis.window !== undefined,
     refreshChartsIfNeeded,
     resetChartNotificationState,
-    setState,
-    subscribe,
+    setState: callSetState,
+    subscribe: callSubscribe,
 });
 
 export { previousChartState } from "./renderChartNotificationStateCompat.js";

@@ -1320,6 +1320,17 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderChartJS on the chart state access boundary", () => {
+        expect.assertions(2);
+
+        const renderChartSource = stripComments(
+            readRepositoryFile("electron-app/utils/charts/core/renderChartJS.ts")
+        );
+
+        expect(renderChartSource).toContain("renderChartStateAccess.js");
+        expect(renderChartSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
         expect.assertions(2);
 

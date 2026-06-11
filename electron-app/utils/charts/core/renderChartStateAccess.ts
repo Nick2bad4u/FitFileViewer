@@ -1,7 +1,9 @@
 import {
     getState,
+    getStateHistory,
     setState,
     subscribe,
+    type StateListener,
     type StateUpdateOptions,
     updateState,
 } from "../../state/core/stateManager.js";
@@ -42,6 +44,15 @@ export function callGetState(path: string): unknown {
     }
 }
 
+/** Reads chart state history through the centralized state manager. */
+export function callGetStateHistory(): unknown[] {
+    try {
+        return getStateHistory();
+    } catch {
+        return [];
+    }
+}
+
 /** Writes chart state through the centralized state manager. */
 export function callSetState(
     path: string,
@@ -52,6 +63,20 @@ export function callSetState(
         setState(path, value, options);
     } catch {
         // Ignore state-manager compatibility failures.
+    }
+}
+
+/** Subscribes to chart state changes through the centralized state manager. */
+export function callSubscribe(
+    path: string,
+    callback: StateListener
+): () => void {
+    try {
+        return subscribe(path, callback);
+    } catch {
+        return () => {
+            // Ignore state-manager compatibility failures.
+        };
     }
 }
 
