@@ -432,7 +432,7 @@ function buildElevationProfilePopup(
     chartDoc.body.append(header, container);
 
     renderElevationCharts(
-        chartWin as ElevationChartWindow,
+        chartWin,
         container,
         fitFilesModel,
         isDark,
