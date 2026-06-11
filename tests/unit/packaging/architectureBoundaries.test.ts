@@ -686,7 +686,7 @@ const directCreatePrintButtonRuntimeGlobalPattern =
 const directCreateExportGPXButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|setTimeout)\b|\bURL\.(?:createObjectURL|revokeObjectURL)\b/u;
 const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
+    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+AbortController\b/u;
 const directAddExitFullscreenOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|exitFullscreen|fullscreenElement)\b|\binstanceof\s+HTMLElement\b/u;
 const directRemoveExitFullscreenOverlayRuntimeGlobalPattern =

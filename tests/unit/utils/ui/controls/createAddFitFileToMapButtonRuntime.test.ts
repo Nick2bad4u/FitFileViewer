@@ -13,13 +13,37 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         expect(runtime.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
     });
 
-    it("fails clearly when the document runtime is unavailable", () => {
-        expect.assertions(1);
+    it("creates abort controllers through the injected runtime", () => {
+        expect.assertions(2);
+
+        const runtime = getCreateAddFitFileToMapButtonRuntime({
+            AbortController,
+            document,
+        });
+        const controller = runtime.createAbortController();
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(controller.signal.aborted).toBe(false);
+    });
+
+    it("fails clearly when required runtimes are unavailable", () => {
+        expect.assertions(2);
 
         const runtime = getCreateAddFitFileToMapButtonRuntime({});
+        const runtimeWithInvalidAbortController =
+            getCreateAddFitFileToMapButtonRuntime({
+                AbortController:
+                    "AbortController" as unknown as typeof AbortController,
+                document,
+            });
 
         expect(() => runtime.createButton()).toThrow(
             "createAddFitFileToMapButton requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithInvalidAbortController.createAbortController()
+        ).toThrow(
+            "createAddFitFileToMapButton requires an AbortController runtime"
         );
     });
 });

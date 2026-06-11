@@ -1,8 +1,10 @@
 export interface CreateAddFitFileToMapButtonRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly document?: Document | undefined;
 }
 
 export interface CreateAddFitFileToMapButtonRuntime {
+    createAbortController: () => AbortController;
     createButton: () => HTMLButtonElement;
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
@@ -13,6 +15,22 @@ export interface CreateAddFitFileToMapButtonRuntime {
 }
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+
+function getAbortControllerConstructor(
+    scope: CreateAddFitFileToMapButtonRuntimeScope
+): typeof AbortController {
+    const AbortControllerConstructor =
+        scope.AbortController ??
+        scope.document?.defaultView?.AbortController ??
+        globalThis.AbortController;
+    if (typeof AbortControllerConstructor !== "function") {
+        throw new TypeError(
+            "createAddFitFileToMapButton requires an AbortController runtime"
+        );
+    }
+
+    return AbortControllerConstructor;
+}
 
 function getDocument(
     scope: CreateAddFitFileToMapButtonRuntimeScope
@@ -31,6 +49,9 @@ export function getCreateAddFitFileToMapButtonRuntime(
     scope: CreateAddFitFileToMapButtonRuntimeScope = globalThis
 ): CreateAddFitFileToMapButtonRuntime {
     return {
+        createAbortController(): AbortController {
+            return new (getAbortControllerConstructor(scope))();
+        },
         createButton(): HTMLButtonElement {
             return getDocument(scope).createElement("button");
         },

@@ -17,7 +17,7 @@ export function createAddFitFileToMapButton(): HTMLButtonElement {
         const runningInTest = isTestEnvironment();
 
         const addOverlayBtn = runtime.createButton();
-        const listenerController = new AbortController();
+        const listenerController = runtime.createAbortController();
         addOverlayBtn.className = "map-action-btn";
         addOverlayBtn.disabled = true;
         addOverlayBtn.setAttribute("aria-disabled", "true");
