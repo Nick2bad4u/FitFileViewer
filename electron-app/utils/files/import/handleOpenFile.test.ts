@@ -12,6 +12,7 @@ import {
     beforeAll,
     vi,
 } from "vitest";
+import { AppActions } from "../../app/lifecycle/appActions.js";
 import {
     registerRendererElectronApiCandidate as registerElectronApiCandidate,
     resetRendererElectronApiCandidate as resetElectronApiCandidate,
@@ -32,30 +33,29 @@ vi.mock("./sendFitFileToAltFitReader.js", () => ({
 }));
 
 type HandleOpenFileModule = Awaited<typeof import("./handleOpenFile.js")>;
-type HandleOpenFileParams = Parameters<HandleOpenFileModule["handleOpenFile"]>[0];
+type HandleOpenFileParams = Parameters<
+    HandleOpenFileModule["handleOpenFile"]
+>[0];
 type HandleOpenFileShowNotification = NonNullable<
     HandleOpenFileParams["showNotification"]
 >;
 
 interface MockElectronAPI {
-    openFile: ReturnType<
-        typeof vi.fn<() => Promise<null | string | string[]>>
-    >;
+    openFile: ReturnType<typeof vi.fn<() => Promise<null | string | string[]>>>;
     parseFitFile: ReturnType<
         typeof vi.fn<(arrayBuffer: ArrayBuffer) => Promise<unknown>>
     >;
-    readFile: ReturnType<typeof vi.fn<(filePath: string) => Promise<ArrayBuffer>>>;
+    readFile: ReturnType<
+        typeof vi.fn<(filePath: string) => Promise<ArrayBuffer>>
+    >;
 }
 
-// Import the module to test (and use its exposed stateManager for spying)
+// Import the module to test and spy on its public app-state integration.
 let handleOpenFileModule: HandleOpenFileModule;
 let mockSetState: ReturnType<typeof vi.spyOn>;
 beforeAll(async () => {
     handleOpenFileModule = await import("./handleOpenFile.js");
-    mockSetState = vi.spyOn(
-        handleOpenFileModule.__TEST_ONLY_exposedStateManager,
-        "setState"
-    );
+    mockSetState = vi.spyOn(AppActions, "setFileOpening");
 });
 
 // Mock console methods
@@ -437,9 +437,7 @@ describe("handleOpenFile.js", () => {
         it("should handle file read errors", async () => {
             const { handleOpenFile } = handleOpenFileModule;
 
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
             currentElectronApi.readFile.mockRejectedValue(
                 new Error("Read error")
             );
@@ -462,12 +460,8 @@ describe("handleOpenFile.js", () => {
         it("should handle empty files when validation is enabled", async () => {
             const { handleOpenFile } = handleOpenFileModule;
 
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(0)
-            ); // Empty file
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(0)); // Empty file
 
             const result = await handleOpenFile({
                 isOpeningFileRef: { value: false },
@@ -486,12 +480,8 @@ describe("handleOpenFile.js", () => {
         it("should skip file size validation when disabled", async () => {
             const { handleOpenFile } = handleOpenFileModule;
 
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(0)
-            ); // Empty file
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(0)); // Empty file
             currentElectronApi.parseFitFile.mockResolvedValue({
                 success: true,
                 data: {},
@@ -516,12 +506,8 @@ describe("handleOpenFile.js", () => {
         it("should handle parsing errors", async () => {
             const { handleOpenFile } = handleOpenFileModule;
 
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(100));
             currentElectronApi.parseFitFile.mockRejectedValue(
                 new Error("Parse error")
             );
@@ -543,12 +529,8 @@ describe("handleOpenFile.js", () => {
         it("should handle parsing result with error", async () => {
             const { handleOpenFile } = handleOpenFileModule;
 
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(100));
             currentElectronApi.parseFitFile.mockResolvedValue({
                 success: false,
                 error: "Invalid FIT format",
@@ -574,12 +556,8 @@ describe("handleOpenFile.js", () => {
             const { handleOpenFile } = handleOpenFileModule;
 
             const mockFitData = { sessions: [], laps: [] };
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(100));
             currentElectronApi.parseFitFile.mockResolvedValue({
                 success: true,
                 data: mockFitData,
@@ -607,12 +585,8 @@ describe("handleOpenFile.js", () => {
             const { handleOpenFile } = handleOpenFileModule;
 
             const mockFitData = { sessions: [], laps: [] };
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(100));
             currentElectronApi.parseFitFile.mockResolvedValue({
                 success: true,
                 data: mockFitData,
@@ -644,9 +618,7 @@ describe("handleOpenFile.js", () => {
             currentElectronApi.openFile.mockResolvedValue([
                 "/path/to/file.fit",
             ]);
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(100));
             currentElectronApi.parseFitFile.mockResolvedValue({
                 success: true,
                 data: mockFitData,
@@ -689,12 +661,8 @@ describe("handleOpenFile.js", () => {
         it("should use default timeout configuration", async () => {
             const { handleOpenFile } = handleOpenFileModule;
 
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(100));
             currentElectronApi.parseFitFile.mockResolvedValue({
                 success: true,
                 data: {},
@@ -714,12 +682,8 @@ describe("handleOpenFile.js", () => {
         it("should accept custom configuration options", async () => {
             const { handleOpenFile } = handleOpenFileModule;
 
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(100));
             currentElectronApi.parseFitFile.mockResolvedValue({
                 success: true,
                 data: {},
@@ -744,12 +708,8 @@ describe("handleOpenFile.js", () => {
         it("should log file selection", async () => {
             const { handleOpenFile } = handleOpenFileModule;
 
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(100));
             currentElectronApi.parseFitFile.mockResolvedValue({
                 success: true,
                 data: {},
@@ -774,12 +734,8 @@ describe("handleOpenFile.js", () => {
         it("should log successful file read", async () => {
             const { handleOpenFile } = handleOpenFileModule;
 
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(100));
             currentElectronApi.parseFitFile.mockResolvedValue({
                 success: true,
                 data: {},
@@ -808,12 +764,8 @@ describe("handleOpenFile.js", () => {
             const originalEnv = process.env.NODE_ENV;
             process.env.NODE_ENV = "development";
 
-            currentElectronApi.openFile.mockResolvedValue(
-                "/path/to/file.fit"
-            );
-            currentElectronApi.readFile.mockResolvedValue(
-                new ArrayBuffer(100)
-            );
+            currentElectronApi.openFile.mockResolvedValue("/path/to/file.fit");
+            currentElectronApi.readFile.mockResolvedValue(new ArrayBuffer(100));
             currentElectronApi.parseFitFile.mockResolvedValue({
                 success: true,
                 data: { sessions: [{}] },
