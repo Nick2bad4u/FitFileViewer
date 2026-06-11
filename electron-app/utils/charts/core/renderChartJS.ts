@@ -32,6 +32,7 @@ import { formatChartFields } from "../../formatting/display/formatChartFields.js
 import { middlewareManager } from "../../state/core/stateMiddleware.js";
 import { DEFAULT_MAX_POINTS } from "../plugins/chartOptionsConfig.js";
 import { getRecordValue } from "./renderChartModuleHelpers.js";
+import { debounce } from "./renderChartDebounce.js";
 import {
     clearDataSettingsSignatureCache,
     ensureDataSettingsSignature as resolveDataSettingsSignature,
@@ -139,16 +140,6 @@ type RenderChartOptions = {
     skipControls?: boolean;
     skipTabAbort?: boolean;
 };
-
-function debounceCallback(callback: () => void, delay: number): () => void {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    return () => {
-        if (timer !== undefined) {
-            clearTimeout(timer);
-        }
-        timer = setTimeout(callback, delay);
-    };
-}
 
 /** Tracks render timings and exposes chart performance summaries. */
 export const chartPerformanceMonitor = chartPerformanceMonitorImpl;
@@ -656,7 +647,7 @@ exposeChartDevTools({
     chartPerformanceMonitor,
     chartSettingsManager,
     chartState,
-    debounce: (callback, delay) => debounceCallback(callback, delay),
+    debounce: (callback, delay) => debounce(callback, delay),
     exportChartsWithState,
     formatChartFields,
     getChartStatus,

@@ -390,6 +390,9 @@ const migratedRenderChartRequestListenerRuntimeFiles = [
 const migratedRenderChartStartupRuntimeFiles = [
     "electron-app/utils/charts/core/renderChartStartup.ts",
 ] as const;
+const migratedRenderChartJsTimerRuntimeFiles = [
+    "electron-app/utils/charts/core/renderChartJS.ts",
+] as const;
 const migratedSummaryColModalViewportRuntimeFiles = [
     "electron-app/utils/rendering/helpers/summaryColModal.ts",
 ] as const;
@@ -721,6 +724,8 @@ const directRenderChartRequestListenerRuntimeGlobalPattern =
     /\bdocument\.(?:body|querySelector)\b|\bglobalThis\.addEventListener\b|\binstanceof\s+CustomEvent\b/u;
 const directRenderChartStartupRuntimeGlobalPattern =
     /\bglobalThis\.(?:addEventListener|window)\b/u;
+const directRenderChartJsTimerRuntimeGlobalPattern =
+    /(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -3183,6 +3188,29 @@ describe("architecture boundaries", () => {
                 (relativeFile) =>
                     !stripComments(readRepositoryFile(relativeFile)).includes(
                         "renderChartStartupRuntime.js"
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
+    });
+
+    it("keeps renderChartJS timer APIs behind chart timer helpers", () => {
+        expect.assertions(2);
+
+        const violations = migratedRenderChartJsTimerRuntimeFiles
+            .filter((relativeFile) =>
+                directRenderChartJsTimerRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedRenderChartJsTimerRuntimeFiles
+            .filter(
+                (relativeFile) =>
+                    !stripComments(readRepositoryFile(relativeFile)).includes(
+                        "renderChartDebounce.js"
                     )
             )
             .sort();
