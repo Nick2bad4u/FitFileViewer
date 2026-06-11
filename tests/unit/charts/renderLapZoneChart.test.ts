@@ -62,20 +62,12 @@ interface ChartMockInstance {
 
 type ChartMock = ReturnType<typeof vi.fn<() => ChartMockInstance>>;
 
-type LapZoneChartTestGlobal = typeof globalThis & {
-    Chart?: ChartMock;
-};
-
 type FormatTime = (seconds: number) => string;
 type GetZoneColorMock = (type: string, index: number) => string;
 type GetUnitSymbol = () => string;
 
 function getChartMock(): ChartMock {
-    const chartMock = (globalThis as LapZoneChartTestGlobal).Chart;
-    if (chartMock === undefined) {
-        throw new TypeError("Chart mock is not installed");
-    }
-    return chartMock;
+    return chartJsMocks.Chart as ChartMock;
 }
 
 function getChartCalls(): [HTMLCanvasElement, ChartConfig][] {
@@ -184,10 +176,6 @@ describe(renderLapZoneChart, () => {
             return mockChart;
         });
 
-        Object.defineProperty(globalThis, "Chart", {
-            configurable: true,
-            value: chartJsMocks.Chart,
-        });
         setChartRuntime(chartJsMocks.Chart);
         notificationMocks.showNotification.mockReset();
     });
@@ -202,7 +190,6 @@ describe(renderLapZoneChart, () => {
 
         // Remove Chart.js mock
         clearChartRuntimeForTests();
-        delete (globalThis as LapZoneChartTestGlobal).Chart;
     });
 
     it("should return null when Chart.js chart creation fails", () => {
