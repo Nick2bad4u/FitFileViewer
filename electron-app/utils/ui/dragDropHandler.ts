@@ -8,8 +8,13 @@ import {
 import { sendFitFileToAltFitReader } from "../files/import/sendFitFileToAltFitReader.js";
 import { renderDecodedFitData } from "../rendering/core/loadShowFitData.js";
 import { getRendererElectronApi } from "../runtime/electronApiRuntime.js";
-import { getState, setState } from "../state/core/stateManager.js";
 import { fitFileStateManager } from "../state/domain/fitFileState.js";
+import {
+    getRendererDragCounter,
+    isRendererDropOverlayVisible,
+    setRendererDragCounter,
+    setRendererDropOverlayVisible,
+} from "../state/domain/rendererDragDropState.js";
 import {
     addEventListenerWithCleanup,
     validateElement,
@@ -36,11 +41,13 @@ function isDragDropElectronApi(value: unknown): value is ElectronApiLike {
         return false;
     }
 
-    return typeof (value as Partial<ElectronApiLike>).decodeFitFile === "function";
+    return (
+        typeof (value as Partial<ElectronApiLike>).decodeFitFile === "function"
+    );
 }
 
 function getPerformanceMonitor(): PerformanceMonitorLike {
-    return (performanceMonitor ?? {});
+    return performanceMonitor ?? {};
 }
 
 function isPerformanceMonitorEnabled(monitor: PerformanceMonitorLike): boolean {
@@ -66,12 +73,12 @@ export class DragDropHandler {
 
     constructor() {
         try {
-            const initialCounter = Number(getState("ui.dragCounter")) || 0;
+            const initialCounter = getRendererDragCounter();
             if (Number.isFinite(initialCounter)) {
                 this.dragCounter = initialCounter;
                 this.dragCounterStateValue = initialCounter;
             }
-            this.overlayVisible = Boolean(getState("ui.dropOverlay.visible"));
+            this.overlayVisible = isRendererDropOverlayVisible();
         } catch {
             /* Ignore state access issues during bootstrap */
         }
@@ -85,14 +92,14 @@ export class DragDropHandler {
     hideDropOverlay(): void {
         if (!this.overlayVisible) {
             try {
-                if (!getState("ui.dropOverlay.visible")) {
+                if (!isRendererDropOverlayVisible()) {
                     return;
                 }
             } catch {
                 /* Ignore state sync errors */
             }
         }
-        setState("ui.dropOverlay.visible", false, {
+        setRendererDropOverlayVisible(false, {
             silent: false,
             source: "DragDropHandler.hideDropOverlay",
         });
@@ -356,14 +363,14 @@ export class DragDropHandler {
     showDropOverlay(): void {
         if (this.overlayVisible) {
             try {
-                if (getState("ui.dropOverlay.visible")) {
+                if (isRendererDropOverlayVisible()) {
                     return;
                 }
             } catch {
                 /* Ignore state sync errors */
             }
         }
-        setState("ui.dropOverlay.visible", true, {
+        setRendererDropOverlayVisible(true, {
             silent: false,
             source: "DragDropHandler.showDropOverlay",
         });
@@ -375,7 +382,7 @@ export class DragDropHandler {
             return;
         }
         try {
-            setState("ui.dragCounter", value, { silent: false, source });
+            setRendererDragCounter(value, { silent: false, source });
             this.dragCounterStateValue = value;
         } catch {
             /* Ignore drag counter sync errors */

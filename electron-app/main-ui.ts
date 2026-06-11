@@ -11,6 +11,7 @@ import { performanceMonitor } from "./utils/debug/stateDevTools.js";
 // State Management Integration
 import { setState } from "./utils/state/core/stateManager.js";
 import { fitFileStateManager } from "./utils/state/domain/fitFileState.js";
+import { setRendererDragCounter } from "./utils/state/domain/rendererDragDropState.js";
 import { getRendererElectronApi } from "./utils/runtime/electronApiRuntime.js";
 import { UIActions } from "./utils/state/domain/uiStateManager.js";
 // This file is part of the Electron app that interacts with the main process and the UI.
@@ -72,9 +73,7 @@ function isMainUiElectronApi(value: unknown): value is MainUiElectronApi {
         "onSetTheme",
         "onUnloadFitFile",
         "sendThemeChanged",
-    ].every((key) =>
-        hasOptionalFunction(api, key as keyof MainUiElectronApi)
-    );
+    ].every((key) => hasOptionalFunction(api, key as keyof MainUiElectronApi));
 }
 
 function getElectronAPI(): MainUiElectronApi | null {
@@ -365,7 +364,7 @@ export function runMainUiDevelopmentCleanup(): void {
         silent: false,
         source: "devCleanup",
     });
-    setState("ui.dragCounter", 0, {
+    setRendererDragCounter(0, {
         silent: false,
         source: "devCleanup",
     });

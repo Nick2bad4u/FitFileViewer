@@ -132,6 +132,7 @@
         "electron-app/utils/state/domain/fitRouteDataState.ts",
         "electron-app/utils/state/domain/fitTableDataState.ts",
         "electron-app/utils/state/domain/fitUserDeviceDataState.ts",
+        "electron-app/utils/state/domain/rendererDragDropState.ts",
         "electron-app/utils/state/domain/uiStateManager.ts",
         "electron-app/utils/state/domain/index.ts",
         "electron-app/utils/state/integration/mainProcessStateManager.ts",

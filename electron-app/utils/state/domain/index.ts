@@ -14,6 +14,7 @@ export * from "./fitRouteDataState.js";
 export * from "./fitTableDataState.js";
 export * from "./fitUserDeviceDataState.js";
 export * from "./loadedFitFilesState.js";
+export * from "./rendererDragDropState.js";
 export * from "./rendererLoadingState.js";
 export * from "./rendererNotificationState.js";
 export * from "./settingsStateManager.js";
