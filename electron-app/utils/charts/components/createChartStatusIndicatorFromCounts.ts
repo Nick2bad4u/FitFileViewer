@@ -4,6 +4,7 @@ import type {
 } from "../core/getChartCounts.js";
 import {
     type ChartStatusIndicatorRuntime,
+    type ChartStatusIndicatorTimerHandle,
     getChartStatusIndicatorRuntime,
 } from "./chartStatusIndicatorRuntime.js";
 
@@ -151,8 +152,8 @@ function createBreakdown(
     return breakdown;
 }
 
-function removeExistingBreakdown(): void {
-    document.querySelector(`#${BREAKDOWN_ID}`)?.remove();
+function removeExistingBreakdown(runtime: ChartStatusIndicatorRuntime): void {
+    runtime.querySelector(`#${BREAKDOWN_ID}`)?.remove();
 }
 
 function positionBreakdown(
@@ -209,6 +210,7 @@ export function createChartStatusIndicatorFromCounts(
     counts: ChartCounts
 ): HTMLElement | null {
     try {
+        const runtime = getChartStatusIndicatorRuntime();
         const indicator = document.createElement("div");
         indicator.className = "chart-status-indicator";
         indicator.id = "chart-status-indicator";
@@ -249,21 +251,20 @@ export function createChartStatusIndicatorFromCounts(
         `;
         appendStatusText(statusText, counts, presentation.valueColor);
 
-        removeExistingBreakdown();
+        removeExistingBreakdown(runtime);
         const breakdown = createBreakdown(counts, hasHiddenCharts);
 
         indicator.style.position = "relative";
         indicator.style.cursor = "pointer";
 
-        const controller = new AbortController();
+        const controller = runtime.createAbortController();
         const { signal } = controller;
-        const highlightTimers = new Set<ReturnType<typeof setTimeout>>();
-        const runtime = getChartStatusIndicatorRuntime();
+        const highlightTimers = new Set<ChartStatusIndicatorTimerHandle>();
 
         const cleanup = (): void => {
             controller.abort();
             for (const timer of highlightTimers) {
-                clearTimeout(timer);
+                runtime.clearTimeout(timer);
             }
             highlightTimers.clear();
             breakdown.remove();
@@ -306,8 +307,8 @@ export function createChartStatusIndicatorFromCounts(
         indicator.addEventListener(
             "click",
             () => {
-                const fieldsSection = document.querySelector(".fields-section");
-                if (!(fieldsSection instanceof HTMLElement)) {
+                const fieldsSection = runtime.querySelector(".fields-section");
+                if (!fieldsSection) {
                     return;
                 }
 
@@ -318,10 +319,10 @@ export function createChartStatusIndicatorFromCounts(
                 fieldsSection.style.outline = "2px solid var(--color-accent)";
                 fieldsSection.style.outlineOffset = "4px";
 
-                const timerRef: { id?: ReturnType<typeof setTimeout> } = {};
-                let didRun = false;
-                timerRef.id = setTimeout(() => {
-                    didRun = true;
+                const timerRef: { id?: ChartStatusIndicatorTimerHandle } = {};
+                const runState = { didRun: false };
+                timerRef.id = runtime.setTimeout(() => {
+                    runState.didRun = true;
                     if (timerRef.id !== undefined) {
                         highlightTimers.delete(timerRef.id);
                     }
@@ -329,7 +330,7 @@ export function createChartStatusIndicatorFromCounts(
                     fieldsSection.style.outlineOffset = "0";
                 }, 2000);
 
-                if (!didRun) {
+                if (!runState.didRun) {
                     highlightTimers.add(timerRef.id);
                 }
             },

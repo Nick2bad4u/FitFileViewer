@@ -362,7 +362,7 @@ const migratedChartThemeListenerRuntimeFiles = [
 const migratedUpdateMapThemeRuntimeFiles = [
     "electron-app/utils/theming/specific/updateMapTheme.ts",
 ] as const;
-const migratedChartStatusViewportRuntimeFiles = [
+const migratedChartStatusCountsRuntimeFiles = [
     "electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.ts",
 ] as const;
 const migratedChartStatusEventRuntimeFiles = [
@@ -683,8 +683,8 @@ const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
-const directChartStatusViewportGlobalPattern =
-    /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
+const directChartStatusCountsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bdocument\.querySelector\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directChartStatusEventGlobalPattern =
     /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\(\s*["']fieldToggleChanged["']|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -2940,12 +2940,12 @@ describe("architecture boundaries", () => {
         expect(updateMapThemeSource).toContain("updateMapThemeRuntime.js");
     });
 
-    it("keeps chart status viewport reads behind the runtime facade", () => {
+    it("keeps chart status counts browser APIs behind the runtime facade", () => {
         expect.assertions(2);
 
-        const violations = migratedChartStatusViewportRuntimeFiles
+        const violations = migratedChartStatusCountsRuntimeFiles
             .filter((relativeFile) =>
-                directChartStatusViewportGlobalPattern.test(
+                directChartStatusCountsRuntimeGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
