@@ -378,6 +378,9 @@ const migratedChartStatusEventRuntimeFiles = [
 const migratedChartListenerStateRuntimeFiles = [
     "electron-app/utils/charts/core/chartListenerState.ts",
 ] as const;
+const migratedRenderChartDirectRerenderRuntimeFiles = [
+    "electron-app/utils/charts/core/renderChartDirectRerender.ts",
+] as const;
 const migratedSummaryColModalViewportRuntimeFiles = [
     "electron-app/utils/rendering/helpers/summaryColModal.ts",
 ] as const;
@@ -703,6 +706,8 @@ const directChartStatusEventGlobalPattern =
     /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\(\s*["']fieldToggleChanged["']|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directChartListenerStateAbortControllerPattern =
     /\bnew\s+AbortController\b/u;
+const directRenderChartDirectRerenderRuntimeGlobalPattern =
+    /\bdocument\.querySelector\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
@@ -3071,6 +3076,29 @@ describe("architecture boundaries", () => {
                 (relativeFile) =>
                     !stripComments(readRepositoryFile(relativeFile)).includes(
                         "chartListenerStateRuntime.js"
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
+    });
+
+    it("keeps direct chart rerender DOM lookups behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRenderChartDirectRerenderRuntimeFiles
+            .filter((relativeFile) =>
+                directRenderChartDirectRerenderRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedRenderChartDirectRerenderRuntimeFiles
+            .filter(
+                (relativeFile) =>
+                    !stripComments(readRepositoryFile(relativeFile)).includes(
+                        "renderChartDirectRerenderRuntime.js"
                     )
             )
             .sort();

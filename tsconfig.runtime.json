@@ -289,6 +289,7 @@
         "electron-app/utils/charts/core/renderChartDependencyTouches.ts",
         "electron-app/utils/charts/core/renderChartDependencyAccessors.ts",
         "electron-app/utils/charts/core/renderChartDirectRerender.ts",
+        "electron-app/utils/charts/core/renderChartDirectRerenderRuntime.ts",
         "electron-app/utils/charts/core/renderChartExecution.ts",
         "electron-app/utils/charts/core/renderChartExportState.ts",
         "electron-app/utils/charts/core/renderChartHoverCompletion.ts",

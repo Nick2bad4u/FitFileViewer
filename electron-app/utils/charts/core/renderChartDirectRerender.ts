@@ -1,5 +1,9 @@
 import { debounce } from "./renderChartDebounce.js";
 import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
+import {
+    getRenderChartDirectRerenderRuntime,
+    type RenderChartDirectRerenderRuntime,
+} from "./renderChartDirectRerenderRuntime.js";
 
 interface StateManager {
     getState(path: string): unknown;
@@ -9,19 +13,8 @@ interface CreateDebouncedDirectRerenderDependencies {
     getStateManager(): StateManager;
     isDevelopmentEnvironment(): boolean;
     renderChart(targetContainer: HTMLElement): Promise<unknown>;
+    runtime?: RenderChartDirectRerenderRuntime | undefined;
     waitMs: number;
-}
-
-function getChartContainer(): Element | null {
-    if (typeof document === "undefined") {
-        return null;
-    }
-
-    return (
-        document.querySelector("#chartjs_chart_container") ||
-        document.querySelector("#content_chartjs") ||
-        document.querySelector("#content_chart")
-    );
 }
 
 /**
@@ -35,14 +28,17 @@ function getChartContainer(): Element | null {
 export function createDebouncedDirectRerender(
     dependencies: CreateDebouncedDirectRerenderDependencies
 ): (reason?: string) => void {
+    const runtime =
+        dependencies.runtime ?? getRenderChartDirectRerenderRuntime();
+
     return debounce((reason = "State change") => {
-        const container = getChartContainer();
+        const container = runtime.queryChartContainer();
         dependencies.getStateManager();
         const hasValidData = hasActiveFitChartData();
 
         if (container && hasValidData) {
             void dependencies
-                .renderChart(container as HTMLElement)
+                .renderChart(container)
                 .catch((error: unknown) => {
                     console.warn("[ChartJS] Direct re-render failed", error);
                 });
