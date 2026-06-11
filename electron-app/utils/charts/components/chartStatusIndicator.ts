@@ -1,5 +1,5 @@
 import { subscribeToChartSettings } from "../../state/domain/settingsStateManager.js";
-import { subscribe } from "../../state/core/stateManager.js";
+import { subscribeToActiveFitRawData } from "../../state/domain/activeFitRawDataState.js";
 import { getChartCounts } from "../core/getChartCounts.js";
 import { createChartStatusIndicator } from "./createChartStatusIndicator.js";
 import {
@@ -114,7 +114,7 @@ export function setupChartStatusUpdates(): void {
             })
         );
         trackSetupSubscription(
-            subscribe("fitFile.rawData", () => {
+            subscribeToActiveFitRawData(() => {
                 scheduleIndicatorRefresh(
                     "[ChartStatus] Error in fitFile.rawData state handler:",
                     100

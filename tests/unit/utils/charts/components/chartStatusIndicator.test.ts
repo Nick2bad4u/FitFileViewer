@@ -19,7 +19,6 @@ type GetChartCounts = () => {
 };
 type SetTimeoutMock = typeof setTimeout;
 type StateSubscribe = (
-    path: string,
     listener: (...args: unknown[]) => void
 ) => () => void;
 type SubscribeToChartSettings = (listener: () => void) => () => void;
@@ -132,9 +131,9 @@ vi.mock(
 );
 
 vi.mock(
-    import("../../../../../electron-app/utils/state/core/stateManager.js"),
+    import("../../../../../electron-app/utils/state/domain/activeFitRawDataState.js"),
     () => ({
-        subscribe: vi.fn<StateSubscribe>(() => noop),
+        subscribeToActiveFitRawData: vi.fn<StateSubscribe>(() => noop),
     })
 );
 
@@ -466,8 +465,8 @@ describe("chartStatusIndicator.js", () => {
                 await import("../../../../../electron-app/utils/charts/components/createGlobalChartStatusIndicator.js");
             const settingsStateManager =
                 await import("../../../../../electron-app/utils/state/domain/settingsStateManager.js");
-            const stateManager =
-                await import("../../../../../electron-app/utils/state/core/stateManager.js");
+            const activeFitRawDataState =
+                await import("../../../../../electron-app/utils/state/domain/activeFitRawDataState.js");
             expect(
                 vi.mocked(
                     globalIndicatorModule.createGlobalChartStatusIndicator
@@ -476,8 +475,9 @@ describe("chartStatusIndicator.js", () => {
             expect(
                 vi.mocked(settingsStateManager.subscribeToChartSettings)
             ).toHaveBeenCalledWith(expect.any(Function));
-            expect(vi.mocked(stateManager.subscribe)).toHaveBeenCalledWith(
-                "fitFile.rawData",
+            expect(
+                vi.mocked(activeFitRawDataState.subscribeToActiveFitRawData)
+            ).toHaveBeenCalledWith(
                 expect.any(Function)
             );
             expect(Object.hasOwn(globalThis, "globalData")).toBe(false);
@@ -506,13 +506,14 @@ describe("chartStatusIndicator.js", () => {
             );
             const settingsStateManager =
                 await import("../../../../../electron-app/utils/state/domain/settingsStateManager.js");
-            const stateManager =
-                await import("../../../../../electron-app/utils/state/core/stateManager.js");
+            const activeFitRawDataState =
+                await import("../../../../../electron-app/utils/state/domain/activeFitRawDataState.js");
             expect(
                 vi.mocked(settingsStateManager.subscribeToChartSettings)
             ).toHaveBeenCalledWith(expect.any(Function));
-            expect(vi.mocked(stateManager.subscribe)).toHaveBeenCalledWith(
-                "fitFile.rawData",
+            expect(
+                vi.mocked(activeFitRawDataState.subscribeToActiveFitRawData)
+            ).toHaveBeenCalledWith(
                 expect.any(Function)
             );
 

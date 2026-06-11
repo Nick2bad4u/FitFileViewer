@@ -1240,6 +1240,19 @@ describe("architecture boundaries", () => {
         expect(chartControlsSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps chart status raw-data subscriptions on the active FIT facade", () => {
+        expect.assertions(2);
+
+        const chartStatusSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/components/chartStatusIndicator.ts"
+            )
+        );
+
+        expect(chartStatusSource).toContain("activeFitRawDataState.js");
+        expect(chartStatusSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps tab-button debug reads on renderer state facades", () => {
         expect.assertions(3);
 
