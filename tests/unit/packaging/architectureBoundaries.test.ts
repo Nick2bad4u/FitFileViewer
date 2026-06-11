@@ -381,6 +381,9 @@ const migratedChartListenerStateRuntimeFiles = [
 const migratedRenderChartDirectRerenderRuntimeFiles = [
     "electron-app/utils/charts/core/renderChartDirectRerender.ts",
 ] as const;
+const migratedRenderChartRequestListenerRuntimeFiles = [
+    "electron-app/utils/charts/core/renderChartRequestListener.ts",
+] as const;
 const migratedSummaryColModalViewportRuntimeFiles = [
     "electron-app/utils/rendering/helpers/summaryColModal.ts",
 ] as const;
@@ -708,6 +711,8 @@ const directChartListenerStateAbortControllerPattern =
     /\bnew\s+AbortController\b/u;
 const directRenderChartDirectRerenderRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
+const directRenderChartRequestListenerRuntimeGlobalPattern =
+    /\bdocument\.(?:body|querySelector)\b|\bglobalThis\.addEventListener\b|\binstanceof\s+CustomEvent\b/u;
 const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
@@ -3099,6 +3104,29 @@ describe("architecture boundaries", () => {
                 (relativeFile) =>
                     !stripComments(readRepositoryFile(relativeFile)).includes(
                         "renderChartDirectRerenderRuntime.js"
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
+    });
+
+    it("keeps chart request listener browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRenderChartRequestListenerRuntimeFiles
+            .filter((relativeFile) =>
+                directRenderChartRequestListenerRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedRenderChartRequestListenerRuntimeFiles
+            .filter(
+                (relativeFile) =>
+                    !stripComments(readRepositoryFile(relativeFile)).includes(
+                        "renderChartRequestListenerRuntime.js"
                     )
             )
             .sort();

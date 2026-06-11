@@ -311,6 +311,7 @@
         "electron-app/utils/charts/core/renderChartRecordKeyUtils.ts",
         "electron-app/utils/charts/core/renderChartRenderedEvent.ts",
         "electron-app/utils/charts/core/renderChartRequestListener.ts",
+        "electron-app/utils/charts/core/renderChartRequestListenerRuntime.ts",
         "electron-app/utils/charts/core/renderChartResultState.ts",
         "electron-app/utils/charts/core/renderChartRenderSettings.ts",
         "electron-app/utils/charts/core/renderChartRuntimeBootstrap.ts",
