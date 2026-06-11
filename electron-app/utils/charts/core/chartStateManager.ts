@@ -23,11 +23,15 @@ import {
     subscribeToChartSettings,
 } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import { getChartRenderContainer } from "../dom/chartDomUtils.js";
 import {
     destroyRegisteredChartInstances,
     getRegisteredChartInstanceCount,
 } from "./chartInstanceRegistry.js";
+import {
+    getChartStateManagerRuntime,
+    type ChartStateManagerRuntime,
+    type ChartStateManagerTimeout,
+} from "./chartStateManagerRuntime.js";
 import { invalidateChartRenderCache, renderChartJS } from "./renderChartJS.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
 import { registerChartStateManager } from "./chartStateManagerRegistry.js";
@@ -58,9 +62,9 @@ export class ChartStateManager {
     isRendering = false;
     pendingRenderReason: null | string = null;
     renderDebounceTime = 250;
-    renderTimeout: null | ReturnType<typeof setTimeout> = null;
+    renderTimeout: ChartStateManagerTimeout | null = null;
 
-    constructor() {
+    constructor(private readonly runtime = getChartStateManagerRuntime()) {
         this.initializeSubscriptions();
 
         console.log("[ChartStateManager] Initialized");
@@ -102,10 +106,10 @@ export class ChartStateManager {
         }
 
         if (this.renderTimeout) {
-            clearTimeout(this.renderTimeout);
+            this.runtime.clearRenderTimeout(this.renderTimeout);
         }
 
-        this.renderTimeout = setTimeout(() => {
+        this.renderTimeout = this.runtime.setRenderTimeout(() => {
             void this.performChartRender(reason);
         }, this.renderDebounceTime);
     }
@@ -115,7 +119,7 @@ export class ChartStateManager {
      */
     destroy(): void {
         if (this.renderTimeout) {
-            clearTimeout(this.renderTimeout);
+            this.runtime.clearRenderTimeout(this.renderTimeout);
         }
         this.clearChartState();
         console.log("[ChartStateManager] Destroyed");
@@ -140,7 +144,7 @@ export class ChartStateManager {
      */
     forceRender(reason = "Manual trigger"): void {
         if (this.renderTimeout) {
-            clearTimeout(this.renderTimeout);
+            this.runtime.clearRenderTimeout(this.renderTimeout);
         }
         void this.performChartRender(reason);
     }
@@ -204,7 +208,9 @@ export class ChartStateManager {
 
         if (hasActiveFitChartData()) {
             const isRendered = chartState?.isRendered ?? false,
-                hasRenderableOutput = hasExistingRenderableChartOutput();
+                hasRenderableOutput = hasExistingRenderableChartOutput(
+                    this.runtime
+                );
 
             if (!isRendered || !hasRenderableOutput) {
                 this.debouncedRender("Tab activation with data available");
@@ -323,7 +329,7 @@ export class ChartStateManager {
                 source: "ChartStateManager.performChartRender",
             });
 
-            const container = getChartRenderContainer(document);
+            const container = this.runtime.getChartRenderContainer();
 
             if (!container) {
                 console.warn("[ChartStateManager] Chart container not found");
@@ -369,8 +375,8 @@ export class ChartStateManager {
      * @param visible - Whether controls should be visible.
      */
     updateControlsVisibility(visible: boolean): void {
-        const controlsPanel = document.querySelector(".chart-controls");
-        if (controlsPanel instanceof HTMLElement) {
+        const controlsPanel = this.runtime.getControlsPanel();
+        if (controlsPanel) {
             controlsPanel.style.display = visible ? "block" : "none";
         }
     }
@@ -410,7 +416,7 @@ export class ChartStateManager {
         this.pendingRenderReason = null;
 
         if (this.isChartTabActive()) {
-            const followUpTimeout = setTimeout(() => {
+            const followUpTimeout = this.runtime.setRenderTimeout(() => {
                 if (this.renderTimeout === followUpTimeout) {
                     this.renderTimeout = null;
                 }
@@ -458,10 +464,12 @@ function getChartState(): ChartState | undefined {
     return chartState;
 }
 
-function hasExistingRenderableChartOutput(): boolean {
+function hasExistingRenderableChartOutput(
+    runtime: ChartStateManagerRuntime
+): boolean {
     try {
         const instanceCount = getChartInstanceCount(),
-            container = getChartRenderContainer(document),
+            container = runtime.getChartRenderContainer(),
             canvasCount = container
                 ? container.querySelectorAll("canvas").length
                 : 0;

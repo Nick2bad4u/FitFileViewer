@@ -1,0 +1,71 @@
+import { describe, expect, it, vi } from "vitest";
+
+import { getChartStateManagerRuntime } from "../../../../electron-app/utils/charts/core/chartStateManagerRuntime.js";
+
+describe("getChartStateManagerRuntime", () => {
+    it("routes timers through the injected runtime scope", () => {
+        expect.assertions(3);
+
+        const timer = 42 as ReturnType<typeof setTimeout>;
+        const setTimeoutMock = vi.fn<
+            (
+                callback: () => void,
+                delay: number
+            ) => ReturnType<typeof setTimeout>
+        >(() => timer);
+        const clearTimeoutMock =
+            vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
+        const runtime = getChartStateManagerRuntime({
+            clearTimeout: clearTimeoutMock,
+            setTimeout: setTimeoutMock,
+        });
+        const callback = () => undefined;
+
+        const timeout = runtime.setRenderTimeout(callback, 250);
+        runtime.clearRenderTimeout(timeout);
+
+        expect(timeout).toBe(timer);
+        expect(setTimeoutMock).toHaveBeenCalledWith(callback, 250);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timeout);
+    });
+
+    it("resolves chart render and controls elements from the injected document", () => {
+        expect.assertions(3);
+
+        const container = document.createElement("div");
+        container.id = "chartjs-chart-container";
+        document.body.appendChild(container);
+
+        const controlsPanel = document.createElement("div");
+        controlsPanel.className = "chart-controls";
+        document.body.appendChild(controlsPanel);
+
+        const runtime = getChartStateManagerRuntime({
+            document,
+            HTMLElement,
+        });
+
+        expect(runtime.getChartRenderContainer()).toBe(container);
+        expect(runtime.getControlsPanel()).toBe(controlsPanel);
+
+        document.body.innerHTML = "";
+
+        expect(runtime.getControlsPanel()).toBeNull();
+    });
+
+    it("fails clearly when timer functions are unavailable", () => {
+        expect.assertions(2);
+
+        const timeout = 1 as ReturnType<typeof setTimeout>;
+
+        expect(() =>
+            getChartStateManagerRuntime({}).setRenderTimeout(
+                () => undefined,
+                0
+            )
+        ).toThrow("ChartStateManager requires setTimeout");
+        expect(() =>
+            getChartStateManagerRuntime({}).clearRenderTimeout(timeout)
+        ).toThrow("ChartStateManager requires clearTimeout");
+    });
+});

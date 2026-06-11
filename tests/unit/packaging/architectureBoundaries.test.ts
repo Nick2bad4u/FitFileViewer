@@ -242,6 +242,9 @@ const migratedChartInstanceRegistryFiles = [
     "electron-app/utils/charts/core/createManagedChart.ts",
     "electron-app/utils/files/export/exportAllCharts.ts",
 ] as const;
+const migratedChartStateManagerRuntimeFiles = [
+    "electron-app/utils/charts/core/chartStateManager.ts",
+] as const;
 const migratedDomPurifyRuntimeFiles = [
     "electron-app/utils/dom/sanitizeHtmlAllowlist.ts",
 ] as const;
@@ -718,6 +721,8 @@ const directRenderChartRequestListenerRuntimeGlobalPattern =
     /\bdocument\.(?:body|querySelector)\b|\bglobalThis\.addEventListener\b|\binstanceof\s+CustomEvent\b/u;
 const directRenderChartStartupRuntimeGlobalPattern =
     /\bglobalThis\.(?:addEventListener|window)\b/u;
+const directChartStateManagerRuntimeGlobalPattern =
+    /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
@@ -1720,6 +1725,29 @@ describe("architecture boundaries", () => {
         expect(chartStateManagerSource).not.toContain(
             "state/core/stateManager.js"
         );
+    });
+
+    it("keeps chart state manager browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedChartStateManagerRuntimeFiles
+            .filter((relativeFile) =>
+                directChartStateManagerRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedChartStateManagerRuntimeFiles
+            .filter(
+                (relativeFile) =>
+                    !stripComments(readRepositoryFile(relativeFile)).includes(
+                        "chartStateManagerRuntime.js"
+                    )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
     });
 
     it("keeps renderChartJS on the chart state access boundary", () => {
