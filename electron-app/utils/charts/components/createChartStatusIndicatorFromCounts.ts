@@ -2,6 +2,10 @@ import type {
     ChartCategoryCounts,
     ChartCounts,
 } from "../core/getChartCounts.js";
+import {
+    type ChartStatusIndicatorRuntime,
+    getChartStatusIndicatorRuntime,
+} from "./chartStatusIndicatorRuntime.js";
 
 const BREAKDOWN_ID = "chart-status-indicator-breakdown";
 const indicatorCleanupCallbacks = new WeakMap<HTMLElement, () => void>();
@@ -151,12 +155,16 @@ function removeExistingBreakdown(): void {
     document.querySelector(`#${BREAKDOWN_ID}`)?.remove();
 }
 
-function positionBreakdown(breakdown: HTMLElement, event: MouseEvent): void {
+function positionBreakdown(
+    breakdown: HTMLElement,
+    event: MouseEvent,
+    runtime: ChartStatusIndicatorRuntime
+): void {
     const padding = 12;
     const offsetX = 12;
     const offsetY = 16;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    const { height: viewportHeight, width: viewportWidth } =
+        runtime.getViewport();
 
     let x = event.clientX + offsetX;
     let y = event.clientY + offsetY;
@@ -250,6 +258,7 @@ export function createChartStatusIndicatorFromCounts(
         const controller = new AbortController();
         const { signal } = controller;
         const highlightTimers = new Set<ReturnType<typeof setTimeout>>();
+        const runtime = getChartStatusIndicatorRuntime();
 
         const cleanup = (): void => {
             controller.abort();
@@ -266,7 +275,7 @@ export function createChartStatusIndicatorFromCounts(
             (event) => {
                 indicator.style.background = "var(--color-glass-border)";
                 indicator.style.transform = "translateY(-1px)";
-                positionBreakdown(breakdown, event);
+                positionBreakdown(breakdown, event, runtime);
                 breakdown.style.opacity = "1";
                 breakdown.style.visibility = "visible";
             },
@@ -288,7 +297,7 @@ export function createChartStatusIndicatorFromCounts(
             "mousemove",
             (event) => {
                 if (breakdown.style.visibility === "visible") {
-                    positionBreakdown(breakdown, event);
+                    positionBreakdown(breakdown, event, runtime);
                 }
             },
             { signal }

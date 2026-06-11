@@ -335,6 +335,7 @@
         "electron-app/utils/charts/components/createChartCanvas.ts",
         "electron-app/utils/charts/components/createChartStatusIndicator.ts",
         "electron-app/utils/charts/components/chartStatusIndicator.ts",
+        "electron-app/utils/charts/components/chartStatusIndicatorRuntime.ts",
         "electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.ts",
         "electron-app/utils/charts/components/createGlobalChartStatusIndicator.ts",
         "electron-app/utils/charts/components/createGlobalChartStatusIndicatorFromCounts.ts",

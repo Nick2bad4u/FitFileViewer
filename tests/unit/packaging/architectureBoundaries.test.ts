@@ -287,6 +287,9 @@ const migratedLoadSharedConfigurationRuntimeFiles = [
 const migratedChartThemeRuntimeFiles = [
     "electron-app/utils/charts/theming/chartThemeUtils.ts",
 ] as const;
+const migratedChartStatusViewportRuntimeFiles = [
+    "electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -549,6 +552,8 @@ const directLoadSharedConfigurationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.location\b/u;
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
+const directChartStatusViewportGlobalPattern =
+    /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2150,6 +2155,28 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(chartThemeUtilsSource).toContain("chartThemeRuntime.js");
+    });
+
+    it("keeps chart status viewport reads behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedChartStatusViewportRuntimeFiles
+            .filter((relativeFile) =>
+                directChartStatusViewportGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const chartStatusIndicatorSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(chartStatusIndicatorSource).toContain(
+            "chartStatusIndicatorRuntime.js"
+        );
     });
 
     it("keeps migrated map helpers on the Leaflet runtime adapter", () => {
