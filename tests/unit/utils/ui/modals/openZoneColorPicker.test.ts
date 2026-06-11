@@ -196,7 +196,6 @@ describe("openZoneColorPicker", () => {
         delete (globalThis as any).clearZoneColorData;
         delete (globalThis as any).updateInlineZoneColorSelectors;
         delete (globalThis as any).renderChartJS;
-        delete (globalThis as any).showNotification;
         clearChartInstanceRegistryForTests();
 
         chartStateManagerRef.current = { debouncedRender: debouncedRenderMock };
@@ -227,7 +226,6 @@ describe("openZoneColorPicker", () => {
         delete (globalThis as any).clearZoneColorData;
         delete (globalThis as any).updateInlineZoneColorSelectors;
         delete (globalThis as any).renderChartJS;
-        delete (globalThis as any).showNotification;
         clearChartInstanceRegistryForTests();
     });
 
@@ -263,7 +261,7 @@ describe("openZoneColorPicker", () => {
     });
 
     it("renders modal, updates colors, and applies changes for heart rate zones", async () => {
-        expect.assertions(23);
+        expect.assertions(22);
 
         const settingsWrapper = document.createElement("div");
         settingsWrapper.id = "chartjs-settings-wrapper";
@@ -282,11 +280,8 @@ describe("openZoneColorPicker", () => {
             { zone: 2, time: 90, label: "Zone 2" },
         ]);
         const inlineSelectorsMock = vi.fn<(root: HTMLElement) => void>();
-        const globalNotificationMock =
-            vi.fn<(message: string, level: string) => void>();
         (globalThis as any).updateInlineZoneColorSelectors =
             inlineSelectorsMock;
-        (globalThis as any).showNotification = globalNotificationMock;
 
         openZoneColorPicker("hr_zone");
 
@@ -412,7 +407,6 @@ describe("openZoneColorPicker", () => {
         expect(checkbox).toHaveProperty("checked", true);
         expect(resetAllSettingsMock).toHaveBeenCalledWith();
         expect(debouncedRenderMock).toHaveBeenCalledWith("Zone colors reset");
-        expect(globalNotificationMock).not.toHaveBeenCalled();
         expect(showNotificationMock).toHaveBeenCalledWith(
             "Zone colors and settings reset to defaults",
             "success"

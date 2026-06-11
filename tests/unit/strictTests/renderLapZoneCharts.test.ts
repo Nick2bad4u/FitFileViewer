@@ -1042,7 +1042,6 @@ describe(renderLapZoneCharts, () => {
         it("uses the imported notification helper without the global bridge", () => {
             expect.assertions(3);
 
-            delete window.showNotification;
             const testError = new Error("Test error");
             getThemeConfigMock.mockImplementation(() => {
                 throw testError;

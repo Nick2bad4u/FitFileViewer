@@ -338,7 +338,6 @@ function injectChartJSMocks() {
     clearChartInstanceRegistryForTests();
     resetChartListenerStateForTests();
     vi.stubGlobal("JSZip", vi.fn<MockFn>());
-    globalThis.showNotification = mocks.showNotification.showNotification;
 
     vi.doMock(
         import("../../../../../electron-app/utils/app/initialization/loadSharedConfiguration.js"),
@@ -1135,7 +1134,14 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect({ exportSucceeded }).toStrictEqual({
                 exportSucceeded: false,
             });
-            await Promise.resolve();
+            await vi.waitFor(() => {
+                if (
+                    mocks.showNotification.showNotification.mock.calls
+                        .length === 0
+                ) {
+                    throw new Error("Expected export notification");
+                }
+            });
             expect(
                 mocks.showNotification.showNotification
             ).toHaveBeenCalledWith("No charts available for export", "warning");

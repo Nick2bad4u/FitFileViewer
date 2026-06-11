@@ -35,13 +35,6 @@ declare global {
         _chartjsInstances?: unknown[];
         Chart?: unknown;
 
-        // --- Notification & modals ---
-        showNotification?: (
-            message: string,
-            type?: string,
-            duration?: number,
-            options?: unknown
-        ) => Promise<void>;
         // --- Tab button / UI state debugging helpers ---
         setTabButtonsEnabled?: (enabled: boolean) => void;
         areTabButtonsEnabled?: () => boolean;
