@@ -1,33 +1,16 @@
-import { querySelectorByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { renderChartJS } from "../../charts/core/renderChartJS.js";
 import { getRegisteredChartInstanceForCanvas } from "../../charts/core/chartInstanceRegistry.js";
 import { updateCharts } from "../../charts/core/chartUpdater.js";
+import {
+    getListenersResizeRuntime,
+    type ListenersResizeTimerHandle,
+} from "./listenersResizeRuntime.js";
 
 type ResizableChart = { resize: () => void };
 
 type ChartResizeListenerParams = {
     cleanupCallbacks: Array<() => void>;
 };
-
-type TimerHandle = ReturnType<typeof setTimeout>;
-
-function getFullscreenElement(): Element | null {
-    return (
-        document.fullscreenElement ||
-        getOptionalElementProperty(document, "webkitFullscreenElement") ||
-        getOptionalElementProperty(document, "mozFullScreenElement") ||
-        getOptionalElementProperty(document, "msFullscreenElement") ||
-        null
-    );
-}
-
-function getOptionalElementProperty(
-    target: object,
-    propertyKey: string
-): Element | null {
-    const value: unknown = Reflect.get(target, propertyKey);
-    return value instanceof Element ? value : null;
-}
 
 function isResizableChart(value: unknown): value is ResizableChart {
     if (typeof value !== "object" || value === null) {
@@ -44,20 +27,21 @@ export function registerChartResizeListener({
     cleanupCallbacks,
 }: ChartResizeListenerParams): void {
     const resizeListenerController = new AbortController();
-    let chartRenderTimeout: TimerHandle | null = null;
+    const runtime = getListenersResizeRuntime();
+    let chartRenderTimeout: ListenersResizeTimerHandle | null = null;
     let resizeCleanup: (() => void) | undefined;
 
     const handleWindowResize = (): void => {
-        const chartTab = querySelectorByIdFlexible(document, "#tab_chart");
-        const chartJsTab = querySelectorByIdFlexible(document, "#tab_chartjs");
-        const fullscreenElement = getFullscreenElement();
+        const chartTab = runtime.queryChartTab("#tab_chart");
+        const chartJsTab = runtime.queryChartTab("#tab_chartjs");
+        const fullscreenElement = runtime.getFullscreenElement();
 
         if (
-            chartTab?.classList.contains("active") ||
-            chartJsTab?.classList.contains("active")
+            chartTab?.classList.contains("active") === true ||
+            chartJsTab?.classList.contains("active") === true
         ) {
-            if (chartRenderTimeout) {
-                clearTimeout(chartRenderTimeout);
+            if (chartRenderTimeout !== null) {
+                runtime.clearTimeout(chartRenderTimeout);
             }
 
             // During fullscreen transitions, avoid full chart re-rendering.
@@ -65,11 +49,11 @@ export function registerChartResizeListener({
             // element fullscreen; a direct Chart.js resize is sufficient.
             if (fullscreenElement) {
                 resizeCleanup?.();
-                resizeCleanup = scheduleExistingChartResizes();
+                resizeCleanup = scheduleExistingChartResizes(runtime);
                 return;
             }
 
-            chartRenderTimeout = setTimeout(() => {
+            chartRenderTimeout = runtime.setTimeout(() => {
                 void updateCharts("window-resize").catch(() => {
                     void renderChartJS();
                 });
@@ -77,7 +61,7 @@ export function registerChartResizeListener({
         }
     };
 
-    window.addEventListener("resize", handleWindowResize, {
+    runtime.addResizeListener(handleWindowResize, {
         signal: resizeListenerController.signal,
     });
     cleanupCallbacks.push(() => {
@@ -86,9 +70,9 @@ export function registerChartResizeListener({
         } catch {
             /* ignore */
         }
-        if (chartRenderTimeout) {
+        if (chartRenderTimeout !== null) {
             try {
-                clearTimeout(chartRenderTimeout);
+                runtime.clearTimeout(chartRenderTimeout);
             } catch {
                 /* ignore */
             }
@@ -102,17 +86,16 @@ export function registerChartResizeListener({
 /**
  * Resize existing chart instances without triggering a full chart re-render.
  */
-function resizeExistingCharts(): void {
-    const canvases = document.querySelectorAll("canvas.chart-canvas");
+function resizeExistingCharts(
+    runtime = getListenersResizeRuntime()
+): void {
+    const canvases = runtime.queryChartCanvases();
     if (canvases.length === 0) {
         return;
     }
 
     const resizeAll = (): void => {
         for (const canvas of canvases) {
-            if (!(canvas instanceof HTMLCanvasElement)) {
-                continue;
-            }
             const chart = getRegisteredChartInstanceForCanvas(canvas);
             if (isResizableChart(chart)) {
                 chart.resize();
@@ -123,26 +106,35 @@ function resizeExistingCharts(): void {
     resizeAll();
 }
 
-function scheduleExistingChartResizes(): () => void {
-    const timerHandles: TimerHandle[] = [];
+function scheduleExistingChartResizes(
+    runtime = getListenersResizeRuntime()
+): () => void {
+    const timerHandles: ListenersResizeTimerHandle[] = [];
     let animationFrameHandle: number | undefined;
 
-    if (typeof globalThis.requestAnimationFrame === "function") {
-        animationFrameHandle =
-            globalThis.requestAnimationFrame(resizeExistingCharts);
+    animationFrameHandle = runtime.requestAnimationFrame(() => {
+        resizeExistingCharts(runtime);
+    });
+    if (animationFrameHandle === undefined) {
+        timerHandles.push(
+            runtime.setTimeout(() => {
+                resizeExistingCharts(runtime);
+            }, 0)
+        );
     } else {
-        timerHandles.push(setTimeout(resizeExistingCharts, 0));
+        void animationFrameHandle;
     }
 
-    timerHandles.push(setTimeout(resizeExistingCharts, 120));
+    timerHandles.push(
+        runtime.setTimeout(() => {
+            resizeExistingCharts(runtime);
+        }, 120)
+    );
 
     return () => {
-        if (
-            animationFrameHandle !== undefined &&
-            typeof globalThis.cancelAnimationFrame === "function"
-        ) {
+        if (animationFrameHandle !== undefined) {
             try {
-                globalThis.cancelAnimationFrame(animationFrameHandle);
+                runtime.cancelAnimationFrame(animationFrameHandle);
             } catch {
                 /* ignore */
             }
@@ -150,7 +142,7 @@ function scheduleExistingChartResizes(): () => void {
 
         for (const timerHandle of timerHandles) {
             try {
-                clearTimeout(timerHandle);
+                runtime.clearTimeout(timerHandle);
             } catch {
                 /* ignore */
             }

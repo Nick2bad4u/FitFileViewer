@@ -287,6 +287,9 @@ const migratedLoadSharedConfigurationRuntimeFiles = [
 const migratedLazyRenderingRuntimeFiles = [
     "electron-app/utils/app/performance/lazyRenderingUtils.ts",
 ] as const;
+const migratedListenersResizeRuntimeFiles = [
+    "electron-app/utils/app/lifecycle/listenersResize.ts",
+] as const;
 const migratedChartThemeRuntimeFiles = [
     "electron-app/utils/charts/theming/chartThemeUtils.ts",
 ] as const;
@@ -570,6 +573,8 @@ const directLoadSharedConfigurationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.location\b/u;
 const directLazyRenderingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:innerHeight|innerWidth|requestAnimationFrame|requestIdleCallback|setTimeout)\b|\bdocument\.documentElement\b|\btypeof\s+IntersectionObserver\b|\bnew\s+IntersectionObserver\b|\belement\s+instanceof\s+HTMLElement\b|\breturn\s+setTimeout\(/u;
+const directListenersResizeRuntimeGlobalPattern =
+    /\b(?:document|window|globalThis)\.|\bReflect\.get\(|\binstanceof\s+(?:Element|HTMLCanvasElement)\b|\bquerySelectorByIdFlexible\(\s*document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const directChartStatusViewportGlobalPattern =
@@ -2185,6 +2190,26 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(lazyRenderingUtilsSource).toContain("lazyRenderingRuntime.js");
+    });
+
+    it("keeps resize listener browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedListenersResizeRuntimeFiles
+            .filter((relativeFile) =>
+                directListenersResizeRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const listenersResizeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/listenersResize.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(listenersResizeSource).toContain("listenersResizeRuntime.js");
     });
 
     it("keeps chart theme browser reads behind the runtime facade", () => {
