@@ -1,4 +1,4 @@
-/* eslint-disable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
+/* eslint-disable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, unicorn/require-module-specifiers, vars-on-top -- Legacy ambient declarations mirror external global names and grouped API docs during migration. */
 import type { ElectronAPIWithDevFlags } from "./electron-app/shared/preloadApi";
 import type * as Leaflet from "leaflet";
 
@@ -17,9 +17,6 @@ declare global {
     interface Window {
         /* Core preload API (optionally extended with internal dev flags) */
         electronAPI: ElectronAPIWithDevFlags;
-
-        // --- Chart related data ---
-        Chart?: unknown;
 
         // --- Map / markers ---
         /** Leaflet global (present when Leaflet library loaded) */
@@ -42,4 +39,4 @@ declare global {
 }
 
 export {};
-/* eslint-enable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, perfectionist/sort-interfaces, unicorn/require-module-specifiers, vars-on-top -- Re-enable legacy ambient declaration lint rules. */
+/* eslint-enable capitalized-comments, no-underscore-dangle, perfectionist/sort-imports, unicorn/require-module-specifiers, vars-on-top -- Re-enable legacy ambient declaration lint rules. */
