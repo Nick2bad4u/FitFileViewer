@@ -172,7 +172,8 @@ const migratedChartImportFiles = [
     "electron-app/utils/data/zones/renderSingleHRZoneBar.ts",
     "electron-app/utils/data/zones/renderSinglePowerZoneBar.ts",
 ] as const;
-const migratedZoneChartRuntimeTestFiles = [
+const migratedChartRuntimeTestFiles = [
+    "tests/unit/utils/charts/core/renderChartJS.comprehensive.test.ts",
     "tests/unit/utils/data/zones/renderSingleHRZoneBar.test.ts",
 ] as const;
 const migratedChartNotificationCallerFiles = [
@@ -1278,10 +1279,10 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps migrated zone chart tests on the Chart.js runtime adapter", () => {
+    it("keeps migrated chart tests on the Chart.js runtime adapter", () => {
         expect.assertions(1);
 
-        const violations = migratedZoneChartRuntimeTestFiles
+        const violations = migratedChartRuntimeTestFiles
             .filter((relativeFile) =>
                 directChartConstructorGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))

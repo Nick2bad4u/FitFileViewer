@@ -22,6 +22,10 @@ import {
     getRegisteredChartInstances,
     setRegisteredChartInstances,
 } from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
+import {
+    clearChartRuntimeForTests,
+    setChartRuntime,
+} from "../../../../../electron-app/utils/charts/core/chartRuntime.js";
 import { resetChartListenerStateForTests } from "../../../../../electron-app/utils/charts/core/chartListenerState.js";
 
 type MockFn = (...args: unknown[]) => unknown;
@@ -138,9 +142,6 @@ vi.mock(
 // Type declarations for global objects
 declare global {
     interface Window {
-        Chart?: any;
-        chartjsPluginZoom?: any;
-        ChartZoom?: any;
         JSZip?: any;
         performance: {
             now: () => number;
@@ -151,9 +152,6 @@ declare global {
         };
         require?: (id: string) => any;
     }
-    var Chart: any;
-    var chartjsPluginZoom: any;
-    var ChartZoom: any;
     var JSZip: any;
 }
 
@@ -322,19 +320,6 @@ function injectChartJSMocks() {
         },
     };
 
-    // Mock Chart.js and related global objects
-    globalThis.Chart = {
-        register: vi.fn<MockFn>(),
-        registry: {
-            plugins: {
-                get: vi.fn<MockFn>().mockReturnValue(false),
-            },
-        },
-        Zoom: {},
-    };
-
-    globalThis.chartjsPluginZoom = {};
-    globalThis.ChartZoom = {};
     clearChartInstanceRegistryForTests();
     resetChartListenerStateForTests();
     vi.stubGlobal("JSZip", vi.fn<MockFn>());
@@ -660,16 +645,15 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         vi.clearAllMocks();
         chartJsModuleMocks.Chart.registry.plugins.get.mockReturnValue(false);
         mocks = injectChartJSMocks();
-        const { setChartRuntime } =
-            await import("../../../../../electron-app/utils/charts/core/chartRuntime.js");
+        Reflect.deleteProperty(globalThis, "Chart");
+        Reflect.deleteProperty(globalThis, "ChartZoom");
+        Reflect.deleteProperty(globalThis, "chartjsPluginZoom");
         setChartRuntime(
             chartJsModuleMocks.Chart,
             chartJsModuleMocks.zoomPlugin
         );
 
         // Reset global state
-        globalThis.Chart = chartJsModuleMocks.Chart;
-        globalThis.ChartZoom = chartJsModuleMocks.zoomPlugin;
         clearChartInstanceRegistryForTests();
         resetChartListenerStateForTests();
 
@@ -861,9 +845,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
         it("should handle Chart.js not available scenario", async () => {
             expect.assertions(2);
-            globalThis.Chart = null;
-            const { clearChartRuntimeForTests } =
-                await import("../../../../../electron-app/utils/charts/core/chartRuntime.js");
+            Reflect.deleteProperty(globalThis, "Chart");
             clearChartRuntimeForTests();
 
             const { chartActions, chartState } =
@@ -1240,7 +1222,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
         it("should ignore legacy Chart.js unavailable global sentinel", async () => {
             expect.assertions(2);
-            globalThis.Chart = null;
+            Reflect.set(globalThis, "Chart", null);
 
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
