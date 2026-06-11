@@ -40,8 +40,8 @@ function resolveModalExports(
 
 async function loadModal() {
     await vi.resetModules();
-    delete (globalThis as any).showKeyboardShortcutsModal;
-    delete (globalThis as any).closeKeyboardShortcutsModal;
+    Reflect.deleteProperty(globalThis, "showKeyboardShortcutsModal");
+    Reflect.deleteProperty(globalThis, "closeKeyboardShortcutsModal");
     const module =
         await import("../../../../../electron-app/utils/ui/modals/keyboardShortcutsModal.js");
     return resolveModalExports(module);

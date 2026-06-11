@@ -193,9 +193,9 @@ describe("openZoneColorPicker", () => {
         document.body.replaceChildren();
         document.head.replaceChildren();
         localStorage.clear();
-        delete (globalThis as any).clearZoneColorData;
-        delete (globalThis as any).updateInlineZoneColorSelectors;
-        delete (globalThis as any).renderChartJS;
+        Reflect.deleteProperty(globalThis, "clearZoneColorData");
+        Reflect.deleteProperty(globalThis, "updateInlineZoneColorSelectors");
+        Reflect.deleteProperty(globalThis, "renderChartJS");
         clearChartInstanceRegistryForTests();
 
         chartStateManagerRef.current = { debouncedRender: debouncedRenderMock };
@@ -223,9 +223,9 @@ describe("openZoneColorPicker", () => {
     });
 
     afterEach(() => {
-        delete (globalThis as any).clearZoneColorData;
-        delete (globalThis as any).updateInlineZoneColorSelectors;
-        delete (globalThis as any).renderChartJS;
+        Reflect.deleteProperty(globalThis, "clearZoneColorData");
+        Reflect.deleteProperty(globalThis, "updateInlineZoneColorSelectors");
+        Reflect.deleteProperty(globalThis, "renderChartJS");
         clearChartInstanceRegistryForTests();
     });
 
@@ -280,8 +280,11 @@ describe("openZoneColorPicker", () => {
             { zone: 2, time: 90, label: "Zone 2" },
         ]);
         const inlineSelectorsMock = vi.fn<(root: HTMLElement) => void>();
-        (globalThis as any).updateInlineZoneColorSelectors =
-            inlineSelectorsMock;
+        Reflect.set(
+            globalThis,
+            "updateInlineZoneColorSelectors",
+            inlineSelectorsMock
+        );
 
         openZoneColorPicker("hr_zone");
 

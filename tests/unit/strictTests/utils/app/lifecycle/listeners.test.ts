@@ -278,10 +278,10 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         document.body.innerHTML = "";
 
         // Clear any global state that might interfere.
-        delete (globalThis as any).globalData;
-        delete (globalThis as any).sendFitFileToAltFitReader;
-        delete (globalThis as any).renderChartJS;
-        delete (globalThis as any).copyTableAsCSV;
+        Reflect.deleteProperty(globalThis, "globalData");
+        Reflect.deleteProperty(globalThis, "sendFitFileToAltFitReader");
+        Reflect.deleteProperty(globalThis, "renderChartJS");
+        Reflect.deleteProperty(globalThis, "copyTableAsCSV");
 
         // Clear any remaining timeouts that might interfere with subsequent tests
         for (let i = 1; i < 9999; i++) {
