@@ -257,6 +257,9 @@ const migratedCreatePrintButtonRuntimeFiles = [
 const migratedCreateExportGPXButtonRuntimeFiles = [
     "electron-app/utils/files/export/createExportGPXButton.ts",
 ] as const;
+const migratedCreateAddFitFileToMapButtonRuntimeFiles = [
+    "electron-app/utils/ui/controls/createAddFitFileToMapButton.ts",
+] as const;
 const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
@@ -644,6 +647,8 @@ const directCreatePrintButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b/u;
 const directCreateExportGPXButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|setTimeout)\b|\bURL\.(?:createObjectURL|revokeObjectURL)\b/u;
+const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2209,6 +2214,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(createExportGPXButtonSource).toContain(
             "createExportGPXButtonRuntime.js"
+        );
+    });
+
+    it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreateAddFitFileToMapButtonRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateAddFitFileToMapButtonRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const createAddFitFileToMapButtonSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createAddFitFileToMapButton.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(createAddFitFileToMapButtonSource).toContain(
+            "createAddFitFileToMapButtonRuntime.js"
         );
     });
 

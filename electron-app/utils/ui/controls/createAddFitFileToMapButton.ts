@@ -4,8 +4,7 @@ import { isTestEnvironment } from "../../runtime/processEnvironment.js";
 import { hasActiveFitRouteData } from "../../state/domain/fitRouteDataState.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { registerAddFitOverlayButtonAvailabilityUpdater } from "./addFitOverlayButtonState.js";
-
-const SVG_NS = "http://www.w3.org/2000/svg";
+import { getCreateAddFitFileToMapButtonRuntime } from "./createAddFitFileToMapButtonRuntime.js";
 
 /**
  * Creates a button to add FIT files as overlays to the map.
@@ -14,9 +13,10 @@ const SVG_NS = "http://www.w3.org/2000/svg";
  */
 export function createAddFitFileToMapButton(): HTMLButtonElement {
     try {
+        const runtime = getCreateAddFitFileToMapButtonRuntime();
         const runningInTest = isTestEnvironment();
 
-        const addOverlayBtn = document.createElement("button");
+        const addOverlayBtn = runtime.createButton();
         const listenerController = new AbortController();
         addOverlayBtn.className = "map-action-btn";
         addOverlayBtn.disabled = true;
@@ -25,13 +25,13 @@ export function createAddFitFileToMapButton(): HTMLButtonElement {
         const themeColors = getThemeColors();
 
         // Avoid innerHTML. While themeColors.primary is not user-controlled, using DOM APIs is safer and consistent.
-        const svg = document.createElementNS(SVG_NS, "svg");
+        const svg = runtime.createSvgElement("svg");
         svg.classList.add("icon");
         svg.setAttribute("viewBox", "0 0 20 20");
         svg.setAttribute("width", "18");
         svg.setAttribute("height", "18");
 
-        const path = document.createElementNS(SVG_NS, "path");
+        const path = runtime.createSvgElement("path");
         path.setAttribute("d", "M10 2v16M2 10h16");
         path.setAttribute(
             "stroke",
@@ -43,7 +43,7 @@ export function createAddFitFileToMapButton(): HTMLButtonElement {
         path.setAttribute("fill", "none");
         svg.append(path);
 
-        const label = document.createElement("span");
+        const label = runtime.createElement("span");
         label.textContent = "Add FIT File(s) to Map";
 
         addOverlayBtn.replaceChildren(svg, label);
@@ -94,7 +94,7 @@ export function createAddFitFileToMapButton(): HTMLButtonElement {
 
 async function handleAddOverlayClick(
     addOverlayBtn: HTMLButtonElement,
-    isTestEnvironment: boolean
+    runningInTest: boolean
 ): Promise<void> {
     try {
         if (addOverlayBtn.disabled) {
@@ -107,7 +107,7 @@ async function handleAddOverlayClick(
 
         await openFileSelector();
     } catch (error) {
-        if (!isTestEnvironment) {
+        if (!runningInTest) {
             console.error("[MapActions] Failed to open file selector:", error);
         }
         void showNotification("Failed to open file selector", "error");
