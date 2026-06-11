@@ -1627,7 +1627,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart tab integration on renderer state facades", () => {
-        expect.assertions(4);
+        expect.assertions(7);
 
         const chartTabIntegrationSource = stripComments(
             readRepositoryFile(
@@ -1638,8 +1638,17 @@ describe("architecture boundaries", () => {
         expect(chartTabIntegrationSource).toContain("activeFitRawDataState.js");
         expect(chartTabIntegrationSource).toContain("appDomainState.js");
         expect(chartTabIntegrationSource).toContain("rendererActiveTabState.js");
+        expect(chartTabIntegrationSource).toContain(
+            "chartTabIntegrationRuntime.js"
+        );
         expect(chartTabIntegrationSource).not.toContain(
             "state/core/stateManager.js"
+        );
+        expect(chartTabIntegrationSource).not.toContain(
+            "document.querySelector"
+        );
+        expect(chartTabIntegrationSource).not.toContain(
+            "instanceof HTMLElement"
         );
     });
 

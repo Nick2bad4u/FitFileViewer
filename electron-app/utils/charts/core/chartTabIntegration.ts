@@ -8,6 +8,10 @@ import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
 import { chartStateManager } from "./chartStateManager.js";
+import {
+    getChartTabIntegrationRuntime,
+    type ChartTabIntegrationRuntime,
+} from "./chartTabIntegrationRuntime.js";
 
 type DisableableTabButton = HTMLElement & {
     disabled?: boolean;
@@ -26,6 +30,12 @@ type ChartTabIntegrationStatus = {
  */
 export class ChartTabIntegration {
     isInitialized = false;
+
+    private readonly runtime: ChartTabIntegrationRuntime;
+
+    constructor(runtime = getChartTabIntegrationRuntime()) {
+        this.runtime = runtime;
+    }
 
     /**
      * Check whether loaded data and the active tab require chart rendering.
@@ -99,11 +109,7 @@ export class ChartTabIntegration {
      * Get the chart tab button element.
      */
     getChartTabButton(): DisableableTabButton | null {
-        return asDisableableTabButton(
-            document.querySelector("#tab_chartjs") ??
-                document.querySelector("#tab_chart") ??
-                document.querySelector('[data-tab="chart"]')
-        );
+        return asDisableableTabButton(this.runtime.queryChartTabButton());
     }
 
     /**
@@ -218,9 +224,9 @@ export class ChartTabIntegration {
 }
 
 function asDisableableTabButton(
-    element: Element | null
+    element: HTMLElement | null
 ): DisableableTabButton | null {
-    return element instanceof HTMLElement ? element : null;
+    return element;
 }
 
 /**

@@ -262,6 +262,7 @@
         "electron-app/utils/charts/core/chartSpecFactory.ts",
         "electron-app/utils/charts/core/chartStateManager.ts",
         "electron-app/utils/charts/core/chartTabIntegration.ts",
+        "electron-app/utils/charts/core/chartTabIntegrationRuntime.ts",
         "electron-app/utils/charts/core/getChartCounts.ts",
         "electron-app/utils/charts/core/renderChartActions.ts",
         "electron-app/utils/charts/core/renderChartDomHelpers.ts",
