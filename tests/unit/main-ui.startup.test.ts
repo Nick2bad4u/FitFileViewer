@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "../vitest/shims/nodeWebStorage";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import type { Mock } from "vitest";
 import type { ElectronAPIWithDevFlags } from "../../electron-app/shared/preloadApi.js";
 
@@ -15,18 +15,19 @@ type ExternalLinkOptions = {
 
 type MainUiTestGlobal = typeof globalThis & {
     cleanupEventListeners?: () => void;
-    electronAPI?: Partial<
-        Pick<
-            ElectronAPIWithDevFlags,
-            | "notifyFitFileLoaded"
-            | "onOpenSummaryColumnSelector"
-            | "onSetTheme"
-            | "onUnloadFitFile"
-            | "sendThemeChanged"
-        >
-    >;
     renderChartJS?: (target: HTMLElement) => void;
 };
+
+type MainUiElectronApi = Partial<
+    Pick<
+        ElectronAPIWithDevFlags,
+        | "notifyFitFileLoaded"
+        | "onOpenSummaryColumnSelector"
+        | "onSetTheme"
+        | "onUnloadFitFile"
+        | "sendThemeChanged"
+    >
+>;
 
 const mocks = vi.hoisted(() => ({
     applyTheme: vi.fn<(theme: string) => void>(),
@@ -275,18 +276,39 @@ function setupMainUiDom(): void {
     );
 }
 
+async function resetRegisteredElectronApiCandidate(): Promise<void> {
+    const { resetRendererElectronApiCandidate } =
+        await import("../../electron-app/utils/runtime/electronApiRuntime.js");
+
+    resetRendererElectronApiCandidate();
+}
+
+async function registerMainUiElectronApiCandidate(
+    electronApi: MainUiElectronApi
+): Promise<void> {
+    const { registerRendererElectronApiCandidate } =
+        await import("../../electron-app/utils/runtime/electronApiRuntime.js");
+
+    registerRendererElectronApiCandidate(electronApi);
+}
+
 describe("main-ui.js - UI Controller and State Management", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         setupMainUiDom();
         vi.clearAllMocks();
         mocks.loadTheme.mockReturnValue("dark");
         vi.resetModules();
+        await resetRegisteredElectronApiCandidate();
         Reflect.deleteProperty(globalThis, "devCleanup");
         Reflect.deleteProperty(globalThis, "electronAPI");
         Reflect.deleteProperty(globalThis, "injectMenu");
         Reflect.deleteProperty(globalThis, "showFitData");
         Reflect.deleteProperty(globalThis, "renderChartJS");
         Reflect.deleteProperty(globalThis, "cleanupEventListeners");
+    });
+
+    afterEach(async () => {
+        await resetRegisteredElectronApiCandidate();
     });
 
     it("does not register renderer compatibility globals", async () => {
@@ -308,34 +330,19 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect.assertions(20);
 
         const notifyFitFileLoaded =
-            vi.fn<
-                NonNullable<
-                    MainUiTestGlobal["electronAPI"]
-                >["notifyFitFileLoaded"]
-            >();
+            vi.fn<MainUiElectronApi["notifyFitFileLoaded"]>();
         const onOpenSummaryColumnSelector =
-            vi.fn<
-                NonNullable<
-                    MainUiTestGlobal["electronAPI"]
-                >["onOpenSummaryColumnSelector"]
-            >();
-        const onSetTheme =
-            vi.fn<NonNullable<MainUiTestGlobal["electronAPI"]>["onSetTheme"]>();
-        const onUnloadFitFile =
-            vi.fn<
-                NonNullable<MainUiTestGlobal["electronAPI"]>["onUnloadFitFile"]
-            >();
-        const sendThemeChanged =
-            vi.fn<
-                NonNullable<MainUiTestGlobal["electronAPI"]>["sendThemeChanged"]
-            >();
-        getMainUiTestGlobal().electronAPI = {
+            vi.fn<MainUiElectronApi["onOpenSummaryColumnSelector"]>();
+        const onSetTheme = vi.fn<MainUiElectronApi["onSetTheme"]>();
+        const onUnloadFitFile = vi.fn<MainUiElectronApi["onUnloadFitFile"]>();
+        const sendThemeChanged = vi.fn<MainUiElectronApi["sendThemeChanged"]>();
+        await registerMainUiElectronApiCandidate({
             notifyFitFileLoaded,
             onOpenSummaryColumnSelector,
             onSetTheme,
             onUnloadFitFile,
             sendThemeChanged,
-        };
+        });
 
         const { mainUiDragDropHandler } =
             await import("../../electron-app/main-ui.js");
