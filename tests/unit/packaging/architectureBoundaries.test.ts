@@ -362,6 +362,9 @@ const migratedUnifiedControlBarRuntimeFiles = [
 const migratedCreditsMarqueeRuntimeFiles = [
     "electron-app/utils/ui/layout/enhanceCreditsSection.ts",
 ] as const;
+const migratedEnsureChartSettingsDropdownsRuntimeFiles = [
+    "electron-app/utils/ui/components/ensureChartSettingsDropdowns.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -658,6 +661,8 @@ const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+MutationObserver\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
+const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b/u;
 const directCreateExportGPXButtonRuntimeGlobalPattern =
@@ -1434,6 +1439,28 @@ describe("architecture boundaries", () => {
 
         expect(chartSettingsSource).toContain("rendererChartControlsState.js");
         expect(chartSettingsSource).not.toContain("state/core/stateManager.js");
+    });
+
+    it("keeps chart settings dropdown browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedEnsureChartSettingsDropdownsRuntimeFiles
+            .filter((relativeFile) =>
+                directEnsureChartSettingsDropdownsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const chartSettingsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/ensureChartSettingsDropdowns.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(chartSettingsSource).toContain(
+            "ensureChartSettingsDropdownsRuntime.js"
+        );
     });
 
     it("keeps chart controls synchronization on the chart-controls state facade", () => {

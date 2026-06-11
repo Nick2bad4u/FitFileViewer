@@ -413,6 +413,7 @@
         "electron-app/utils/ui/unifiedControlBarRuntime.ts",
         "electron-app/utils/ui/unifiedControlBar.ts",
         "electron-app/utils/ui/icons/iconFactory.ts",
+        "electron-app/utils/ui/components/ensureChartSettingsDropdownsRuntime.ts",
         "electron-app/utils/ui/components/ensureChartSettingsDropdowns.ts",
         "electron-app/utils/ui/setupExternalLinkHandlers.ts",
         "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",
