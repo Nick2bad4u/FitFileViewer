@@ -1726,6 +1726,17 @@ describe("architecture boundaries", () => {
         expect(stateDevToolsSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps app lifecycle actions on the app-actions state facade", () => {
+        expect.assertions(2);
+
+        const appActionsSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/lifecycle/appActions.ts")
+        );
+
+        expect(appActionsSource).toContain("appActionsState.js");
+        expect(appActionsSource).not.toContain("state/core/stateManager.js");
+    });
+
     it("keeps migrated state history readers on the typed history API", () => {
         expect.assertions(1);
 

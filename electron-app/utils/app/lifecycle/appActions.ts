@@ -3,14 +3,56 @@
  * encapsulate common state changes
  */
 
+import { setActiveFitRawData } from "../../state/domain/activeFitRawDataState.js";
 import {
-    getState,
-    setState,
-    subscribe,
-    updateState,
-} from "../../state/core/stateManager.js";
+    areRendererTablesRendered,
+    getAppActionState,
+    getRendererMapState,
+    getRendererPerformanceMetrics,
+    isRendererMapMeasurementModeEnabled,
+    setAppActionState,
+    setAppInitialized,
+    setAppIsOpeningFile,
+    setMapMeasurementMode,
+    setMapSelectedLap,
+    setPerformanceLastLoadTime,
+    setRendererTablesRendered,
+    subscribeToAppActionStatePath,
+    updateAppActionWindowState,
+    updateRendererMapState,
+    updateRendererPerformanceRenderTimes,
+    updateRendererTableState,
+} from "../../state/domain/appActionsState.js";
 import { getActiveFitActivityData } from "../../state/domain/fitActivityDataState.js";
 import { fitFileStateManager } from "../../state/domain/fitFileState.js";
+import {
+    getRendererCurrentFile,
+    setRendererCurrentFile,
+} from "../../state/domain/rendererActiveFileState.js";
+import {
+    getRendererActiveTab,
+    isRendererActiveTab,
+    setRendererActiveTab,
+} from "../../state/domain/rendererActiveTabState.js";
+import { toggleRendererChartControlsVisibleFromStoredState } from "../../state/domain/rendererChartControlsState.js";
+import {
+    areRendererChartsRendered,
+    getRendererChartState,
+    setRendererChartsRendered,
+    updateRendererChartState,
+} from "../../state/domain/rendererChartRenderState.js";
+import {
+    isRendererLoading,
+    setRendererLoading,
+} from "../../state/domain/rendererLoadingState.js";
+import {
+    isRendererMapRendered,
+    setRendererMapRendered,
+} from "../../state/domain/rendererMapRenderState.js";
+import {
+    getRendererTheme,
+    setRendererTheme,
+} from "../../state/domain/rendererThemeState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 
 type ChartData = {
@@ -76,13 +118,13 @@ export const AppActions = {
             }
         }
 
-        setState("fitFile.rawData", null, { source: "AppActions.clearData" });
-        setState("currentFile", null, { source: "AppActions.clearData" });
-        setState("charts.isRendered", false, {
+        setActiveFitRawData(null, { source: "AppActions.clearData" });
+        setRendererCurrentFile(null, { source: "AppActions.clearData" });
+        setRendererChartsRendered(false, {
             source: "AppActions.clearData",
         });
-        setState("map.isRendered", false, { source: "AppActions.clearData" });
-        setState("tables.isRendered", false, {
+        setRendererMapRendered(false, { source: "AppActions.clearData" });
+        setRendererTablesRendered(false, {
             source: "AppActions.clearData",
         });
 
@@ -145,7 +187,7 @@ export const AppActions = {
                     error
                 );
                 void showNotification("Failed to load file", "error");
-                setState("isLoading", false, { source: "AppActions.loadFile" });
+                setRendererLoading(false, { source: "AppActions.loadFile" });
                 return Promise.reject(toError(error));
             }
 
@@ -153,29 +195,32 @@ export const AppActions = {
         }
 
         try {
-            setState("isLoading", true, { source: "AppActions.loadFile" });
+            setRendererLoading(true, { source: "AppActions.loadFile" });
 
             // Update file-related state
-            setState("fitFile.rawData", fileData, {
-                source: "AppActions.loadFile",
-            });
-            setState("currentFile", filePath, {
+            setActiveFitRawData(
+                fileData as Parameters<typeof setActiveFitRawData>[0],
+                {
+                    source: "AppActions.loadFile",
+                }
+            );
+            setRendererCurrentFile(filePath, {
                 source: "AppActions.loadFile",
             });
 
             // Reset component states
-            setState("charts.isRendered", false, {
+            setRendererChartsRendered(false, {
                 source: "AppActions.loadFile",
             });
-            setState("map.isRendered", false, {
+            setRendererMapRendered(false, {
                 source: "AppActions.loadFile",
             });
-            setState("tables.isRendered", false, {
+            setRendererTablesRendered(false, {
                 source: "AppActions.loadFile",
             });
 
             // Update performance metrics
-            setState("performance.lastLoadTime", Date.now(), {
+            setPerformanceLastLoadTime(Date.now(), {
                 source: "AppActions.loadFile",
             });
 
@@ -186,7 +231,7 @@ export const AppActions = {
             void showNotification("Failed to load file", "error");
             return Promise.reject(toError(error));
         } finally {
-            setState("isLoading", false, { source: "AppActions.loadFile" });
+            setRendererLoading(false, { source: "AppActions.loadFile" });
         }
 
         return Promise.resolve();
@@ -201,8 +246,7 @@ export const AppActions = {
     renderChart(chartData: ChartData, options: ChartOptions = {}) {
         const startTime = performance.now();
 
-        updateState(
-            "charts",
+        updateRendererChartState(
             {
                 chartData,
                 chartOptions: options,
@@ -212,8 +256,7 @@ export const AppActions = {
         );
 
         const renderTime = performance.now() - startTime;
-        updateState(
-            "performance.renderTimes",
+        updateRendererPerformanceRenderTimes(
             {
                 chart: renderTime,
             },
@@ -234,8 +277,7 @@ export const AppActions = {
     renderMap(center: MapCenter, zoom = 13) {
         const startTime = performance.now();
 
-        updateState(
-            "map",
+        updateRendererMapState(
             {
                 center,
                 isRendered: true,
@@ -245,8 +287,7 @@ export const AppActions = {
         );
 
         const renderTime = performance.now() - startTime;
-        updateState(
-            "performance.renderTimes",
+        updateRendererPerformanceRenderTimes(
             {
                 map: renderTime,
             },
@@ -264,8 +305,7 @@ export const AppActions = {
     renderTable(tableConfig: TableConfig = {}) {
         const startTime = performance.now();
 
-        updateState(
-            "tables",
+        updateRendererTableState(
             {
                 isRendered: true,
                 ...tableConfig,
@@ -274,8 +314,7 @@ export const AppActions = {
         );
 
         const renderTime = performance.now() - startTime;
-        updateState(
-            "performance.renderTimes",
+        updateRendererPerformanceRenderTimes(
             {
                 table: renderTime,
             },
@@ -293,7 +332,7 @@ export const AppActions = {
      * @param lapNumber - Lap number to select (0-based).
      */
     selectLap(lapNumber: number) {
-        setState("map.selectedLap", lapNumber, {
+        setMapSelectedLap(lapNumber, {
             source: "AppActions.selectLap",
         });
         console.log(`[AppActions] Selected lap: ${lapNumber}`);
@@ -305,7 +344,7 @@ export const AppActions = {
      * @param isOpening - Whether a file is being opened.
      */
     setFileOpening(isOpening: boolean) {
-        setState("app.isOpeningFile", isOpening, {
+        setAppIsOpeningFile(isOpening, {
             source: "AppActions.setFileOpening",
         });
         console.log(`[AppActions] File opening state: ${String(isOpening)}`);
@@ -317,7 +356,7 @@ export const AppActions = {
      * @param initialized - Whether the app is initialized.
      */
     setInitialized(initialized: boolean) {
-        setState("app.initialized", initialized, {
+        setAppInitialized(initialized, {
             source: "AppActions.setInitialized",
         });
         console.log(
@@ -343,7 +382,7 @@ export const AppActions = {
             return;
         }
 
-        setState("ui.activeTab", tabName, { source: "AppActions.switchTab" });
+        setRendererActiveTab(tabName, { source: "AppActions.switchTab" });
         console.log(`[AppActions] Switched to tab: ${tabName}`);
     },
 
@@ -364,7 +403,7 @@ export const AppActions = {
             return;
         }
 
-        setState("ui.theme", theme, { source: "AppActions.switchTheme" });
+        setRendererTheme(theme, { source: "AppActions.switchTheme" });
         console.log(`[AppActions] Theme switched to: ${theme}`);
     },
 
@@ -372,12 +411,11 @@ export const AppActions = {
      * Toggle chart controls visibility
      */
     toggleChartControls() {
-        const currentState = getState("charts.controlsVisible");
-        setState("charts.controlsVisible", !currentState, {
+        const nextState = toggleRendererChartControlsVisibleFromStoredState({
             source: "AppActions.toggleChartControls",
         });
         console.log(
-            `[AppActions] Chart controls ${currentState ? "hidden" : "shown"}`
+            `[AppActions] Chart controls ${nextState ? "shown" : "hidden"}`
         );
     },
 
@@ -385,8 +423,8 @@ export const AppActions = {
      * Toggle map measurement mode
      */
     toggleMeasurementMode() {
-        const currentState = getState("map.measurementMode");
-        setState("map.measurementMode", !currentState, {
+        const currentState = isRendererMapMeasurementModeEnabled();
+        setMapMeasurementMode(!currentState, {
             source: "AppActions.toggleMeasurementMode",
         });
         console.log(
@@ -400,7 +438,7 @@ export const AppActions = {
      * @param windowState - Window state object.
      */
     updateWindowState(windowState: Record<string, unknown>) {
-        updateState("ui.windowState", windowState, {
+        updateAppActionWindowState(windowState, {
             source: "AppActions.updateWindowState",
         });
         console.log("[AppActions] Window state updated:", windowState);
@@ -417,7 +455,7 @@ export const AppSelectors = {
      * @returns Active tab name.
      */
     activeTab() {
-        return getState("ui.activeTab") || "summary";
+        return getRendererActiveTab();
     },
 
     /**
@@ -426,7 +464,7 @@ export const AppSelectors = {
      * @returns True if charts are rendered.
      */
     areChartsRendered() {
-        return getState("charts.isRendered") || false;
+        return areRendererChartsRendered();
     },
 
     /**
@@ -435,7 +473,7 @@ export const AppSelectors = {
      * @returns True if tables are rendered.
      */
     areTablesRendered() {
-        return getState("tables.isRendered") || false;
+        return areRendererTablesRendered();
     },
 
     /**
@@ -444,7 +482,7 @@ export const AppSelectors = {
      * @returns Current theme.
      */
     currentTheme() {
-        return getState("ui.theme") || "system";
+        return getRendererTheme();
     },
 
     /**
@@ -453,7 +491,7 @@ export const AppSelectors = {
      * @returns Chart configuration.
      */
     getChartConfig() {
-        return getState("charts") || {};
+        return getRendererChartState() || {};
     },
 
     /**
@@ -462,7 +500,7 @@ export const AppSelectors = {
      * @returns Current file path.
      */
     getCurrentFile() {
-        return getState("currentFile");
+        return getRendererCurrentFile();
     },
 
     /**
@@ -471,7 +509,7 @@ export const AppSelectors = {
      * @returns Map configuration.
      */
     getMapConfig() {
-        return getState("map") || {};
+        return getRendererMapState();
     },
 
     /**
@@ -480,7 +518,7 @@ export const AppSelectors = {
      * @returns Performance data.
      */
     getPerformanceMetrics() {
-        return getState("performance") || {};
+        return getRendererPerformanceMetrics();
     },
 
     /**
@@ -498,7 +536,7 @@ export const AppSelectors = {
      * @returns True if loading.
      */
     isLoading() {
-        return getState("isLoading") || false;
+        return isRendererLoading();
     },
 
     /**
@@ -507,7 +545,7 @@ export const AppSelectors = {
      * @returns True if map is rendered.
      */
     isMapRendered() {
-        return getState("map.isRendered") || false;
+        return isRendererMapRendered();
     },
 
     /**
@@ -518,7 +556,7 @@ export const AppSelectors = {
      * @returns True if tab is active.
      */
     isTabActive(tabName: string) {
-        return this.activeTab() === tabName;
+        return isRendererActiveTab(tabName);
     },
 };
 
@@ -618,7 +656,7 @@ export function useComputed<T>(
             return cachedValue;
         },
         unsubscribers = dependencies.map((dep) =>
-            subscribe(dep, () => {
+            subscribeToAppActionStatePath(dep, () => {
                 isValid = false;
             })
         );
@@ -645,9 +683,9 @@ export function useState<T = unknown>(
     path: string,
     defaultValue?: T
 ): [T, (newValue: T) => void] {
-    const currentValue = getState(path) ?? defaultValue,
+    const currentValue = getAppActionState(path) ?? defaultValue,
         setter = (newValue: T) => {
-            setState(path, newValue, { source: "useState" });
+            setAppActionState(path, newValue, { source: "useState" });
         };
 
     return [currentValue as T, setter];
