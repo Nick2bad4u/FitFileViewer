@@ -272,6 +272,9 @@ const migratedCreatePowerEstimationButtonRuntimeFiles = [
 const migratedCreateMarkerCountSelectorRuntimeFiles = [
     "electron-app/utils/ui/controls/createMarkerCountSelector.ts",
 ] as const;
+const migratedDataPointFilterElementFactoryRuntimeFiles = [
+    "electron-app/utils/ui/controls/dataPointFilterControl/elementFactory.ts",
+] as const;
 const migratedLoadingOverlayRuntimeFiles = [
     "electron-app/utils/ui/components/LoadingOverlay.ts",
 ] as const;
@@ -677,6 +680,8 @@ const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b/u;
 const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+Event\(/u;
+const directDataPointFilterElementFactoryRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
 const directLoadingOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|querySelector)\b/u;
 
@@ -2377,6 +2382,26 @@ describe("architecture boundaries", () => {
         expect(createMarkerCountSelectorSource).toContain(
             "createMarkerCountSelectorRuntime.js"
         );
+    });
+
+    it("keeps data-point filter element creation behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedDataPointFilterElementFactoryRuntimeFiles
+            .filter((relativeFile) =>
+                directDataPointFilterElementFactoryRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const elementFactorySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/dataPointFilterControl/elementFactory.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(elementFactorySource).toContain("elementFactoryRuntime.js");
     });
 
     it("keeps loading overlay browser APIs behind the runtime facade", () => {

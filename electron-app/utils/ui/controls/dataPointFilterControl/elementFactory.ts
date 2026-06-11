@@ -1,6 +1,8 @@
 import { MAP_FILTER_METRICS } from "../../../maps/filters/mapMetricFilter.js";
-
-const SVG_NS = "http://www.w3.org/2000/svg";
+import {
+    getDataPointFilterElementFactoryRuntime,
+    type DataPointFilterElementFactoryRuntime,
+} from "./elementFactoryRuntime.js";
 
 /** Static DOM elements used by the data point filter control controller. */
 export interface FilterControlElements {
@@ -26,8 +28,10 @@ export interface FilterControlElements {
     topPercentRadio: HTMLInputElement;
 }
 
-function createFilterIcon(): SVGSVGElement {
-    const icon = document.createElementNS(SVG_NS, "svg");
+function createFilterIcon(
+    runtime: DataPointFilterElementFactoryRuntime
+): SVGSVGElement {
+    const icon = runtime.createSvgElement("svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("width", "18");
@@ -35,7 +39,7 @@ function createFilterIcon(): SVGSVGElement {
     icon.setAttribute("aria-hidden", "true");
     icon.setAttribute("focusable", "false");
 
-    const path = document.createElementNS(SVG_NS, "path");
+    const path = runtime.createSvgElement("path");
     path.setAttribute("d", "M4 5h16l-6 7v6l-4 2v-8z");
     path.setAttribute("fill", "none");
     path.setAttribute("stroke", "currentColor");
@@ -50,20 +54,21 @@ function createFilterIcon(): SVGSVGElement {
 export function createFilterControlElements(
     instanceId: number
 ): FilterControlElements {
-    const container = document.createElement("div");
+    const runtime = getDataPointFilterElementFactoryRuntime();
+    const container = runtime.createElement("div");
     container.className = "data-point-filter-control";
 
-    const toggleButton = document.createElement("button");
+    const toggleButton = runtime.createElement("button");
     toggleButton.type = "button";
     toggleButton.className = "map-action-btn data-point-filter-control__toggle";
     toggleButton.id = `map-data-point-filter-toggle-${instanceId}`;
     toggleButton.setAttribute("aria-haspopup", "dialog");
     toggleButton.setAttribute("aria-expanded", "false");
-    const toggleLabel = document.createElement("span");
+    const toggleLabel = runtime.createElement("span");
     toggleLabel.textContent = "Top Metrics";
-    toggleButton.append(createFilterIcon(), toggleLabel);
+    toggleButton.append(createFilterIcon(runtime), toggleLabel);
 
-    const panel = document.createElement("div");
+    const panel = runtime.createElement("div");
     panel.className = "data-point-filter-control__panel";
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-label", "Filter map data points");
@@ -79,70 +84,70 @@ export function createFilterControlElements(
     const rangeMaxSliderId = `map-filter-range-max-${instanceId}`;
     const modeRadioName = `map-filter-mode-${instanceId}`;
 
-    const metricLabel = document.createElement("label");
+    const metricLabel = runtime.createElement("label");
     metricLabel.textContent = "Metric";
     metricLabel.htmlFor = metricSelectId;
 
-    const metricSelect = document.createElement("select");
+    const metricSelect = runtime.createElement("select");
     metricSelect.id = metricSelectId;
     metricSelect.className = "data-point-filter-control__select";
     for (const metric of MAP_FILTER_METRICS) {
-        const option = document.createElement("option");
+        const option = runtime.createElement("option");
         option.value = metric.key;
         option.textContent = metric.label;
         metricSelect.append(option);
     }
 
-    const metricGroup = document.createElement("div");
+    const metricGroup = runtime.createElement("div");
     metricGroup.className = "data-point-filter-control__group";
     metricGroup.append(metricLabel, metricSelect);
 
-    const modeGroup = document.createElement("div");
+    const modeGroup = runtime.createElement("div");
     modeGroup.className =
         "data-point-filter-control__group data-point-filter-control__group--mode";
 
-    const modeLegend = document.createElement("span");
+    const modeLegend = runtime.createElement("span");
     modeLegend.className = "data-point-filter-control__mode-label";
     modeLegend.textContent = "Filter type";
     modeGroup.append(modeLegend);
 
-    const topPercentRadio = document.createElement("input");
+    const topPercentRadio = runtime.createElement("input");
     topPercentRadio.type = "radio";
     topPercentRadio.name = modeRadioName;
     topPercentRadio.value = "topPercent";
     topPercentRadio.className = "data-point-filter-control__mode-radio";
     topPercentRadio.id = `map-filter-mode-top-${instanceId}`;
 
-    const topPercentOption = document.createElement("label");
+    const topPercentOption = runtime.createElement("label");
     topPercentOption.className = "data-point-filter-control__mode-option";
     topPercentOption.htmlFor = topPercentRadio.id;
-    const topPercentLabelText = document.createElement("span");
+    const topPercentLabelText = runtime.createElement("span");
     topPercentLabelText.className = "data-point-filter-control__mode-text";
     topPercentLabelText.textContent = "Top %";
     topPercentOption.append(topPercentRadio, topPercentLabelText);
     modeGroup.append(topPercentOption);
 
-    const rangeRadio = document.createElement("input");
+    const rangeRadio = runtime.createElement("input");
     rangeRadio.type = "radio";
     rangeRadio.name = modeRadioName;
     rangeRadio.value = "valueRange";
     rangeRadio.className = "data-point-filter-control__mode-radio";
     rangeRadio.id = `map-filter-mode-range-${instanceId}`;
 
-    const rangeOption = document.createElement("label");
+    const rangeOption = runtime.createElement("label");
     rangeOption.className = "data-point-filter-control__mode-option";
     rangeOption.htmlFor = rangeRadio.id;
-    const rangeLabelText = document.createElement("span");
+    const rangeLabelText = runtime.createElement("span");
     rangeLabelText.className = "data-point-filter-control__mode-text";
     rangeLabelText.textContent = "Value range";
     rangeOption.append(rangeRadio, rangeLabelText);
     modeGroup.append(rangeOption);
 
-    const percentLabel = document.createElement("label");
+    const percentLabel = runtime.createElement("label");
     percentLabel.textContent = "Top %";
     percentLabel.htmlFor = percentInputId;
 
-    const percentInput = document.createElement("input");
+    const percentInput = runtime.createElement("input");
     percentInput.type = "number";
     percentInput.min = "1";
     percentInput.max = "100";
@@ -151,30 +156,30 @@ export function createFilterControlElements(
     percentInput.className = "data-point-filter-control__input";
     percentInput.value = "10";
 
-    const percentGroup = document.createElement("div");
+    const percentGroup = runtime.createElement("div");
     percentGroup.className =
         "data-point-filter-control__group data-point-filter-control__percent";
     percentGroup.append(percentLabel, percentInput);
 
-    const rangeGroup = document.createElement("div");
+    const rangeGroup = runtime.createElement("div");
     rangeGroup.className =
         "data-point-filter-control__group data-point-filter-control__range";
 
-    const rangeLabel = document.createElement("span");
+    const rangeLabel = runtime.createElement("span");
     rangeLabel.className = "data-point-filter-control__range-label";
     rangeLabel.textContent = "Value range";
 
-    const rangeSliderMin = document.createElement("input");
+    const rangeSliderMin = runtime.createElement("input");
     rangeSliderMin.type = "range";
     rangeSliderMin.id = rangeMinSliderId;
     rangeSliderMin.className = "data-point-filter-control__range-slider";
 
-    const rangeSliderMax = document.createElement("input");
+    const rangeSliderMax = runtime.createElement("input");
     rangeSliderMax.type = "range";
     rangeSliderMax.id = rangeMaxSliderId;
     rangeSliderMax.className = "data-point-filter-control__range-slider";
 
-    const rangeValueDisplay = document.createElement("div");
+    const rangeValueDisplay = runtime.createElement("div");
     rangeValueDisplay.className = "data-point-filter-control__range-values";
     rangeValueDisplay.textContent = "Range unavailable";
 
@@ -185,19 +190,19 @@ export function createFilterControlElements(
         rangeValueDisplay
     );
 
-    const summary = document.createElement("p");
+    const summary = runtime.createElement("p");
     summary.className = "data-point-filter-control__summary";
     summary.textContent = "Highlight the most intense sections of your ride.";
 
-    const actions = document.createElement("div");
+    const actions = runtime.createElement("div");
     actions.className = "data-point-filter-control__actions";
 
-    const applyButton = document.createElement("button");
+    const applyButton = runtime.createElement("button");
     applyButton.type = "button";
     applyButton.className = "data-point-filter-control__apply";
     applyButton.textContent = "Apply";
 
-    const resetButton = document.createElement("button");
+    const resetButton = runtime.createElement("button");
     resetButton.type = "button";
     resetButton.className = "data-point-filter-control__reset";
     resetButton.textContent = "Clear";
