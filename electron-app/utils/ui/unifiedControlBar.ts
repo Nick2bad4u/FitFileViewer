@@ -1,10 +1,14 @@
-type TimerHandle = ReturnType<typeof globalThis.setTimeout>;
+import {
+    getUnifiedControlBarRuntime,
+    type UnifiedControlBarRuntime,
+    type UnifiedControlBarTimerHandle,
+} from "./unifiedControlBarRuntime.js";
 
 type FilenameAutoScrollState = {
     abortController: AbortController;
     disconnect: () => void;
     resizeHandler: EventListener;
-    timers: TimerHandle[];
+    timers: UnifiedControlBarTimerHandle[];
 };
 
 const FILENAME_CONTAINER_RESERVED_WIDTH_PX = 50;
@@ -16,7 +20,7 @@ const CONTROL_BAR_INITIAL_DELAY_MS = 200;
 const CONTROL_BAR_RETRY_DELAY_MS = 100;
 const CONTROL_BAR_MAX_RETRIES = 50;
 
-const controlBarTimers = new Set<TimerHandle>();
+const controlBarTimers = new Set<UnifiedControlBarTimerHandle>();
 const filenameAutoScrollStates = new WeakMap<
     HTMLElement,
     FilenameAutoScrollState
@@ -24,8 +28,9 @@ const filenameAutoScrollStates = new WeakMap<
 const trackedFilenameAutoScrollElements = new Set<HTMLElement>();
 
 function clearControlBarTimers(): void {
+    const runtime = getUnifiedControlBarRuntime();
     for (const timer of controlBarTimers) {
-        globalThis.clearTimeout(timer);
+        runtime.clearTimeout(timer);
     }
     controlBarTimers.clear();
 }
@@ -33,8 +38,9 @@ function clearControlBarTimers(): void {
 function scheduleControlBarCheck(
     callback: () => void,
     delayMs: number
-): TimerHandle {
-    const timer = globalThis.setTimeout(() => {
+): UnifiedControlBarTimerHandle {
+    const runtime = getUnifiedControlBarRuntime();
+    const timer = runtime.setTimeout(() => {
         controlBarTimers.delete(timer);
         callback();
     }, delayMs);
@@ -42,13 +48,15 @@ function scheduleControlBarCheck(
     return timer;
 }
 
-function getActiveFilenameElement(): HTMLElement | null {
-    const candidate = document.querySelector<HTMLElement>("#active_file_name");
-    return candidate instanceof HTMLElement ? candidate : null;
+function getActiveFilenameElement(
+    runtime: UnifiedControlBarRuntime
+): HTMLElement | null {
+    return runtime.querySelector("#active_file_name");
 }
 
 function cleanupExistingFilenameAutoScrollState(
-    filenameElement: HTMLElement
+    filenameElement: HTMLElement,
+    runtime = getUnifiedControlBarRuntime()
 ): void {
     const existingState = filenameAutoScrollStates.get(filenameElement);
     if (!existingState) {
@@ -57,9 +65,9 @@ function cleanupExistingFilenameAutoScrollState(
 
     existingState.disconnect();
     existingState.abortController.abort();
-    globalThis.removeEventListener("resize", existingState.resizeHandler);
+    runtime.removeResizeListener(existingState.resizeHandler);
     for (const timer of existingState.timers) {
-        globalThis.clearTimeout(timer);
+        runtime.clearTimeout(timer);
     }
     filenameAutoScrollStates.delete(filenameElement);
     trackedFilenameAutoScrollElements.delete(filenameElement);
@@ -67,8 +75,9 @@ function cleanupExistingFilenameAutoScrollState(
 
 export function resetUnifiedControlBarStateForTests(): void {
     clearControlBarTimers();
+    const runtime = getUnifiedControlBarRuntime();
     for (const filenameElement of trackedFilenameAutoScrollElements) {
-        cleanupExistingFilenameAutoScrollState(filenameElement);
+        cleanupExistingFilenameAutoScrollState(filenameElement, runtime);
     }
     trackedFilenameAutoScrollElements.clear();
 }
@@ -76,13 +85,14 @@ export function resetUnifiedControlBarStateForTests(): void {
 /**
  * Adds auto-scroll animation to active filename
  */
-export function initFilenameAutoScroll() {
-    const filenameElement = getActiveFilenameElement();
+export function initFilenameAutoScroll(): void {
+    const runtime = getUnifiedControlBarRuntime();
+    const filenameElement = getActiveFilenameElement(runtime);
     if (!filenameElement) {
         return;
     }
 
-    cleanupExistingFilenameAutoScrollState(filenameElement);
+    cleanupExistingFilenameAutoScrollState(filenameElement, runtime);
 
     // Helper to check if filename needs scrolling.
     const checkScroll = () => {
@@ -123,7 +133,7 @@ export function initFilenameAutoScroll() {
     };
 
     // Create observer for filename changes
-    const observer = new MutationObserver(checkScroll);
+    const observer = runtime.createMutationObserver(checkScroll);
     observer.observe(filenameElement, {
         characterData: true,
         childList: true,
@@ -133,12 +143,12 @@ export function initFilenameAutoScroll() {
     // Check on window resize
     const abortController = new AbortController();
     const resizeHandler: EventListener = () => checkScroll();
-    globalThis.addEventListener("resize", resizeHandler, {
+    runtime.addResizeListener(resizeHandler, {
         signal: abortController.signal,
     });
     const timers = [
-        globalThis.setTimeout(checkScroll, FILENAME_SCROLL_INITIAL_DELAY_MS),
-        globalThis.setTimeout(checkScroll, FILENAME_SCROLL_SECONDARY_DELAY_MS),
+        runtime.setTimeout(checkScroll, FILENAME_SCROLL_INITIAL_DELAY_MS),
+        runtime.setTimeout(checkScroll, FILENAME_SCROLL_SECONDARY_DELAY_MS),
     ];
 
     // Keep idempotency and cleanup state private to this module.
@@ -154,16 +164,17 @@ export function initFilenameAutoScroll() {
 /**
  * Creates the unified control bar and moves existing controls into it
  */
-export function initUnifiedControlBar() {
+export function initUnifiedControlBar(): void {
+    const runtime = getUnifiedControlBarRuntime();
     // Check if already initialized
-    if (document.querySelector(".app-control-bar")) {
+    if (runtime.querySelector(".app-control-bar")) {
         return;
     }
 
     clearControlBarTimers();
 
     // Create the control bar container
-    const controlBar = document.createElement("div");
+    const controlBar = runtime.createElement("div");
     controlBar.className = "app-control-bar";
     controlBar.setAttribute("role", "toolbar");
     controlBar.setAttribute("aria-label", "Application controls");
@@ -173,19 +184,19 @@ export function initUnifiedControlBar() {
     // Wait for DOM to be ready, then move controls into the bar
     const checkAndMoveControls = () => {
         // Find the fullscreen button wrapper
-        const fullscreenWrapper = document.querySelector(
+        const fullscreenWrapper = runtime.querySelector(
             "#global-fullscreen-btn-wrapper, .fullscreen-btn-wrapper"
         );
 
         // Find the color switcher
-        const colorSwitcher = document.querySelector(
+        const colorSwitcher = runtime.querySelector(
             "#quick-color-switcher, .quick-color-switcher"
         );
 
         if (fullscreenWrapper || colorSwitcher) {
             // Add to body first if not already there
             if (!controlBar.parentElement) {
-                document.body.append(controlBar);
+                runtime.getBody().append(controlBar);
             }
 
             // Move color switcher first (left side of bar)

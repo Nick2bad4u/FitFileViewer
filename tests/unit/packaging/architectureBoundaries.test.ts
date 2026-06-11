@@ -317,6 +317,9 @@ const migratedEnableTabButtonsHelpersRuntimeFiles = [
 const migratedUpdateTabVisibilityRuntimeFiles = [
     "electron-app/utils/ui/tabs/updateTabVisibility.ts",
 ] as const;
+const migratedUnifiedControlBarRuntimeFiles = [
+    "electron-app/utils/ui/unifiedControlBar.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -599,6 +602,8 @@ const directEnableTabButtonsHelpersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bReflect\.get\(\s*document\b|\btypeof\s+document\s*!==/u;
 const directUpdateTabVisibilityRuntimeGlobalPattern =
     /\bglobalThis\.(?:document|requestAnimationFrame)\b|\breturn\s+document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directUnifiedControlBarRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+MutationObserver\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2409,6 +2414,26 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(updateTabVisibilitySource).toContain(
             "updateTabVisibilityRuntime.js"
+        );
+    });
+
+    it("keeps unified control-bar browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedUnifiedControlBarRuntimeFiles
+            .filter((relativeFile) =>
+                directUnifiedControlBarRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const unifiedControlBarSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/unifiedControlBar.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(unifiedControlBarSource).toContain(
+            "unifiedControlBarRuntime.js"
         );
     });
 

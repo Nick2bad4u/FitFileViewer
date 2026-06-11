@@ -407,6 +407,7 @@
         "electron-app/utils/ui/components/index.ts",
         "electron-app/utils/ui/initStartup.ts",
         "electron-app/utils/ui/quickColorSwitcher.ts",
+        "electron-app/utils/ui/unifiedControlBarRuntime.ts",
         "electron-app/utils/ui/unifiedControlBar.ts",
         "electron-app/utils/ui/icons/iconFactory.ts",
         "electron-app/utils/ui/components/ensureChartSettingsDropdowns.ts",
