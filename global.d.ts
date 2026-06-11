@@ -25,7 +25,6 @@ declare global {
         globalData?: FitDecodeResult | null;
         AppState?: unknown;
         __appState?: unknown;
-        chartStateManager?: unknown;
         chartControlsState?: unknown;
         loadedFitFiles?: FitDecodeResult[];
 

@@ -458,7 +458,7 @@ const directMainUiDragDropHandlerGlobalPattern =
 const directDragDropEnableGlobalPattern =
     /\b(?:window|globalThis)\.enableDragAndDrop\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["']enableDragAndDrop["']\s*\)|\benableDragAndDrop\?:/u;
 const retiredRendererAmbientGlobalPattern =
-    /\b(?:_mapThemeListener|aboutModalDevHelpers|ChartUpdater|chartUpdater|clearZoneColorData|closeKeyboardShortcutsModal|createTables|devCleanup|dragDropHandler|enableDragAndDrop|heartRateZones|injectMenu|mapMarkerCount|powerZones|rendererUtils|renderChartJS|renderMap|renderSummary|resetAllSettings|screenfull|showFitData|showKeyboardShortcutsModal|showNotification|tabStateManager|updateInlineZoneColorSelectors|updateMapTheme)\?:/u;
+    /\b(?:_mapThemeListener|aboutModalDevHelpers|ChartUpdater|chartUpdater|chartStateManager|clearZoneColorData|closeKeyboardShortcutsModal|createTables|devCleanup|dragDropHandler|enableDragAndDrop|heartRateZones|injectMenu|mapMarkerCount|powerZones|rendererUtils|renderChartJS|renderMap|renderSummary|resetAllSettings|screenfull|showFitData|showKeyboardShortcutsModal|showNotification|tabStateManager|updateInlineZoneColorSelectors|updateMapTheme)\?:/u;
 const directMainUiDevelopmentHelperGlobalPattern =
     /\b(?:window|globalThis|getMainUiGlobal\(\)|mainUiGlobal)\.(?:injectMenu|devCleanup)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:injectMenu|devCleanup)["']\s*\)/u;
 const directMainProcessDevHelpersGlobalPattern =
