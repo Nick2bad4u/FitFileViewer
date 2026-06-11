@@ -1,8 +1,7 @@
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import type { ThemeColorMap } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+import { getCreatePrintButtonRuntime } from "./createPrintButtonRuntime.js";
 
 function getThemeColorToken(
     themeColors: ThemeColorMap,
@@ -20,12 +19,13 @@ function getThemeColorToken(
  */
 export function createPrintButton(): HTMLButtonElement {
     try {
-        const printBtn = document.createElement("button");
+        const runtime = getCreatePrintButtonRuntime();
+        const printBtn = runtime.createButton();
         printBtn.className = "map-action-btn print-button";
 
         const themeColors = getThemeColors();
 
-        const svg = document.createElementNS(SVG_NAMESPACE, "svg");
+        const svg = runtime.createSvgElement("svg");
         svg.setAttribute("class", "icon");
         svg.setAttribute("viewBox", "0 0 20 20");
         svg.setAttribute("width", "18");
@@ -41,7 +41,7 @@ export function createPrintButton(): HTMLButtonElement {
         );
         const surface = getThemeColorToken(themeColors, "surface", "#ffffff");
 
-        const rect1 = document.createElementNS(SVG_NAMESPACE, "rect");
+        const rect1 = runtime.createSvgElement("rect");
         rect1.setAttribute("x", "3");
         rect1.setAttribute("y", "6");
         rect1.setAttribute("width", "14");
@@ -51,7 +51,7 @@ export function createPrintButton(): HTMLButtonElement {
         rect1.setAttribute("stroke", primary);
         rect1.setAttribute("stroke-width", "1.5");
 
-        const rect2 = document.createElementNS(SVG_NAMESPACE, "rect");
+        const rect2 = runtime.createSvgElement("rect");
         rect2.setAttribute("x", "5");
         rect2.setAttribute("y", "2.5");
         rect2.setAttribute("width", "10");
@@ -61,7 +61,7 @@ export function createPrintButton(): HTMLButtonElement {
         rect2.setAttribute("stroke", primary);
         rect2.setAttribute("stroke-width", "1");
 
-        const rect3 = document.createElementNS(SVG_NAMESPACE, "rect");
+        const rect3 = runtime.createSvgElement("rect");
         rect3.setAttribute("x", "6");
         rect3.setAttribute("y", "14");
         rect3.setAttribute("width", "8");
@@ -69,7 +69,7 @@ export function createPrintButton(): HTMLButtonElement {
         rect3.setAttribute("rx", "1");
         rect3.setAttribute("fill", primary);
 
-        const dot = document.createElementNS(SVG_NAMESPACE, "circle");
+        const dot = runtime.createSvgElement("circle");
         dot.setAttribute("cx", "15.5");
         dot.setAttribute("cy", "10");
         dot.setAttribute("r", "0.9");
@@ -77,7 +77,7 @@ export function createPrintButton(): HTMLButtonElement {
 
         svg.append(rect1, rect2, rect3, dot);
 
-        const label = document.createElement("span");
+        const label = runtime.createElement("span");
         label.textContent = "Print";
 
         printBtn.replaceChildren(svg, label);
@@ -89,7 +89,7 @@ export function createPrintButton(): HTMLButtonElement {
             "click",
             () => {
                 try {
-                    globalThis.print();
+                    runtime.print();
                 } catch (error) {
                     console.error("[MapActions] Print failed:", error);
                     showNotification(

@@ -475,6 +475,7 @@
         "electron-app/utils/files/export/copyTableAsCSV.ts",
         "electron-app/utils/files/export/createExportGPXButton.ts",
         "electron-app/utils/files/export/exportAllCharts.ts",
+        "electron-app/utils/files/export/createPrintButtonRuntime.ts",
         "electron-app/utils/files/export/createPrintButton.ts",
         "electron-app/utils/files/export/gpxExport.ts",
         "electron-app/utils/files/export/exportZipRuntime.ts",

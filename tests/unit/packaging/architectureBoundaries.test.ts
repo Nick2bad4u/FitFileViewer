@@ -251,6 +251,9 @@ const migratedArqueroRuntimeFiles = [
 const migratedExportZipRuntimeFiles = [
     "electron-app/utils/files/export/exportUtils.ts",
 ] as const;
+const migratedCreatePrintButtonRuntimeFiles = [
+    "electron-app/utils/files/export/createPrintButton.ts",
+] as const;
 const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
@@ -614,6 +617,8 @@ const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+MutationObserver\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
+const directCreatePrintButtonRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2136,6 +2141,28 @@ describe("architecture boundaries", () => {
 
         expect(vendorCoreEntry).toContain("setExportZipRuntime(JSZip)");
         expect(vendorCoreEntry).not.toContain('defineMissingGlobal("JSZip"');
+    });
+
+    it("keeps print button browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreatePrintButtonRuntimeFiles
+            .filter((relativeFile) =>
+                directCreatePrintButtonRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const createPrintButtonSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/export/createPrintButton.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(createPrintButtonSource).toContain(
+            "createPrintButtonRuntime.js"
+        );
     });
 
     it("keeps migrated fullscreen controls on the screenfull runtime adapter", () => {
