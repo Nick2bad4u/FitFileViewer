@@ -299,6 +299,9 @@ const migratedSummaryColModalViewportRuntimeFiles = [
 const migratedUpdateControlsStateRuntimeFiles = [
     "electron-app/utils/rendering/helpers/updateControlsState.ts",
 ] as const;
+const migratedEnableTabButtonsDebugRuntimeFiles = [
+    "electron-app/utils/ui/controls/enableTabButtonsDebug.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -569,6 +572,8 @@ const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.getComputedStyle\b/u;
+const directEnableTabButtonsDebugRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2255,6 +2260,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(updateControlsStateSource).toContain(
             "updateControlsStateRuntime.js"
+        );
+    });
+
+    it("keeps tab-button debug runtime checks behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedEnableTabButtonsDebugRuntimeFiles
+            .filter((relativeFile) =>
+                directEnableTabButtonsDebugRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const enableTabButtonsDebugSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/enableTabButtonsDebug.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(enableTabButtonsDebugSource).toContain(
+            "enableTabButtonsDebugRuntime.js"
         );
     });
 

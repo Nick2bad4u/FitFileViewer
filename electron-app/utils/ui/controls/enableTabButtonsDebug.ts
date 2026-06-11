@@ -9,6 +9,7 @@ import {
     safeComputedStyle,
     safeQueryTabButtons,
 } from "./enableTabButtonsHelpers.js";
+import { getEnableTabButtonsDebugRuntime } from "./enableTabButtonsDebugRuntime.js";
 
 type TestClickRegistration = {
     readonly abortController: AbortController;
@@ -38,6 +39,7 @@ function createTestClickHandler(buttonId: string): (event: MouseEvent) => void {
 export function debugTabButtons(): void {
     console.log("[TabButtons] === DEBUG TAB BUTTONS ===");
     const tabButtons = safeQueryTabButtons();
+    const runtime = getEnableTabButtonsDebugRuntime();
 
     for (const element of tabButtons) {
         if (!isHTMLElement(element)) {
@@ -51,13 +53,7 @@ export function debugTabButtons(): void {
         }
 
         // Explicitly surface missing or throwing getComputedStyle in tests.
-        if (
-            globalThis.window === undefined ||
-            typeof globalThis.getComputedStyle !== "function"
-        ) {
-            throw new TypeError("getComputedStyle not available");
-        }
-        globalThis.getComputedStyle(button);
+        runtime.assertComputedStyleAvailable(button);
 
         const buttonElement = button as HTMLButtonElement;
         console.log(`[TabButtons] Button ${buttonId}:`, {
