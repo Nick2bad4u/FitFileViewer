@@ -3,6 +3,7 @@ export type RendererRuntimeEnvironment = {
     readonly clearInterval: typeof globalThis.clearInterval;
     readonly console: Console;
     readonly documentTarget: Document;
+    readonly electronApiCandidate: unknown;
     readonly removeEventListener: typeof globalThis.removeEventListener;
     readonly scope: typeof globalThis;
     readonly setInterval: typeof globalThis.setInterval;
@@ -18,6 +19,7 @@ export function createRendererRuntimeEnvironment(
         clearInterval: scope.clearInterval.bind(scope),
         console: scope.console,
         documentTarget: scope.document,
+        electronApiCandidate: Reflect.get(scope, "electronAPI"),
         removeEventListener: scope.removeEventListener.bind(scope),
         scope,
         setInterval: scope.setInterval.bind(scope),

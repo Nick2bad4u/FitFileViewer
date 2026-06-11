@@ -2845,6 +2845,39 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps renderer Electron API global proxy wiring test-only", () => {
+        expect.assertions(4);
+
+        const registrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/electronApiRegistration.ts"
+            )
+        );
+        const installerSource = registrationSource.slice(
+            registrationSource.indexOf(
+                "export function installRendererElectronApiRegistration"
+            ),
+            registrationSource.indexOf(
+                "export function installRendererElectronAPIProxy"
+            )
+        );
+        const manualMockBranchIndex = installerSource.indexOf(
+            "if (isVitestManualMockEnvironment(options.scope))"
+        );
+        const proxyInstallIndex = installerSource.indexOf(
+            "installRendererElectronAPIProxy(options)"
+        );
+
+        expect(installerSource).toContain(
+            "registerRendererElectronAPI(options.electronApiCandidate, options)"
+        );
+        expect(installerSource).not.toContain(
+            'Reflect.get(options.scope, "electronAPI")'
+        );
+        expect(manualMockBranchIndex).toBeGreaterThanOrEqual(0);
+        expect(proxyInstallIndex).toBeGreaterThan(manualMockBranchIndex);
+    });
+
     it("keeps external link browser fallbacks behind the runtime facade", () => {
         expect.assertions(2);
 

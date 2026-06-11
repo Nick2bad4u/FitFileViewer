@@ -7,6 +7,7 @@ type IntervalHandle = ReturnType<typeof setInterval>;
 interface RendererElectronApiRegistrationOptions {
     clearInterval: (handle: IntervalHandle) => void;
     defineProperty: DefineProperty;
+    electronApiCandidate: unknown;
     onMenuAction: (action: unknown) => void;
     onThemeChanged: (theme: string) => void;
     removeEventListener: typeof globalThis.removeEventListener;
@@ -20,13 +21,12 @@ export function installRendererElectronApiRegistration(
     options: RendererElectronApiRegistrationOptions
 ): void {
     try {
-        const currentElectronAPI = Reflect.get(options.scope, "electronAPI");
-        if (currentElectronAPI !== undefined) {
-            registerRendererElectronAPI(currentElectronAPI, options);
+        if (options.electronApiCandidate !== undefined) {
+            registerRendererElectronAPI(options.electronApiCandidate, options);
         }
 
-        installRendererElectronAPIProxy(options);
         if (isVitestManualMockEnvironment(options.scope)) {
+            installRendererElectronAPIProxy(options);
             installElectronAPIDefinePropertyInterceptor(options);
             startRendererElectronAPITestPolling(options);
         }

@@ -14,6 +14,7 @@ type RendererElectronApiWiringOptions = {
     ) => unknown;
     readonly clearInterval: typeof globalThis.clearInterval;
     readonly defineProperty: typeof Object.defineProperty;
+    readonly electronApiCandidate: unknown;
     readonly ensureCoreModules: () => Promise<Record<string, unknown>>;
     readonly getFileInput: () => HTMLInputElement | null;
     readonly logRenderer: RendererElectronApiWiringLogger;
@@ -39,6 +40,7 @@ export function installRendererElectronApiWiring(
         addEventListener: options.addEventListener,
         clearInterval: options.clearInterval,
         defineProperty: options.defineProperty,
+        electronApiCandidate: options.electronApiCandidate,
         onMenuAction: electronMenuActionHandlers.onMenuAction,
         onThemeChanged: electronMenuActionHandlers.onThemeChanged,
         removeEventListener: options.removeEventListener,

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     installElectronAPIDefinePropertyInterceptor,
+    installRendererElectronApiRegistration,
     installRendererElectronAPIProxy,
     isVitestManualMockEnvironment,
     registerRendererElectronAPI,
@@ -32,6 +33,7 @@ function createOptions(scope: typeof globalThis = {} as typeof globalThis) {
             state.clearedInterval = handle;
         }),
         defineProperty: Object.defineProperty,
+        electronApiCandidate: undefined,
         onMenuAction: (action: unknown) => {
             state.menuActions.push(action);
         },
@@ -103,6 +105,31 @@ describe("renderer Electron API registration", () => {
         expect(state.themeChanges).toStrictEqual(["dark"]);
         expect(state.scheduledCount).toBe(1);
         expect(isDevelopment).toHaveBeenCalledOnce();
+        expect(
+            getRendererElectronApi(
+                (value): value is typeof api => value === api
+            )
+        ).toBe(api);
+    });
+
+    it("registers the captured Electron API candidate without installing a production global proxy", async () => {
+        expect.assertions(5);
+
+        const scope = {} as typeof globalThis;
+        const { api, emitMenu, isDevelopment } = createElectronApi();
+        const { options, state } = createOptions(scope);
+
+        installRendererElectronApiRegistration({
+            ...options,
+            electronApiCandidate: api,
+        });
+        emitMenu("open-file");
+        await Promise.resolve();
+
+        expect(state.menuActions).toStrictEqual(["open-file"]);
+        expect(state.scheduledCount).toBe(1);
+        expect(isDevelopment).toHaveBeenCalledOnce();
+        expect(Reflect.get(scope, "electronAPI")).toBeUndefined();
         expect(
             getRendererElectronApi(
                 (value): value is typeof api => value === api

@@ -44,13 +44,13 @@ describe("renderer Electron API wiring", () => {
         const { api, emitMenuAction, emitThemeChanged } = createElectronApi();
         const applyTheme = vi.fn<(theme: string) => void>();
         const scheduleStateInitialization = vi.fn();
-        Reflect.set(scope, "electronAPI", api);
 
         installRendererElectronApiWiring({
             addEventListener: vi.fn(),
             callUnknownFunction,
             clearInterval: vi.fn(),
             defineProperty: Object.defineProperty,
+            electronApiCandidate: api,
             ensureCoreModules: async () => ({ applyTheme }),
             getFileInput: () => fileInput,
             logRenderer: vi.fn(),
@@ -67,7 +67,7 @@ describe("renderer Electron API wiring", () => {
         expect(fileInput.click).toHaveBeenCalledOnce();
         expect(applyTheme).toHaveBeenCalledExactlyOnceWith("dark");
         expect(scheduleStateInitialization).toHaveBeenCalled();
-        expect(api.isDevelopment).toHaveBeenCalledTimes(2);
-        expect(Reflect.get(scope, "electronAPI")).toBe(api);
+        expect(api.isDevelopment).toHaveBeenCalledOnce();
+        expect(Reflect.get(scope, "electronAPI")).toBeUndefined();
     });
 });

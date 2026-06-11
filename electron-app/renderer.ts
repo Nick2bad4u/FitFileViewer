@@ -212,6 +212,7 @@ installRendererElectronApiWiring({
     callUnknownFunction,
     clearInterval: runtimeEnvironment.clearInterval,
     defineProperty: Object.defineProperty,
+    electronApiCandidate: runtimeEnvironment.electronApiCandidate,
     ensureCoreModules,
     getFileInput: fileInputWiring.getFileInput,
     logRenderer,

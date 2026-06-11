@@ -4,8 +4,9 @@ import { createRendererRuntimeEnvironment } from "../../../electron-app/renderer
 
 describe("renderer runtime environment", () => {
     it("captures browser globals as bound renderer runtime dependencies", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
+        const electronApiCandidate = {};
         const scope = {
             addEventListener: vi.fn(function addEventListener(this: unknown) {
                 return this;
@@ -15,6 +16,7 @@ describe("renderer runtime environment", () => {
             }),
             console,
             document,
+            electronAPI: electronApiCandidate,
             removeEventListener: vi.fn(function removeEventListener(
                 this: unknown
             ) {
@@ -32,6 +34,7 @@ describe("renderer runtime environment", () => {
 
         expect(environment.console).toBe(console);
         expect(environment.documentTarget).toBe(document);
+        expect(environment.electronApiCandidate).toBe(electronApiCandidate);
         expect(environment.scope).toBe(scope);
         expect(environment.windowTarget).toBe(scope);
         expect(environment.addEventListener("load", vi.fn())).toBe(scope);
