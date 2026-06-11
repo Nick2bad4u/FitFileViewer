@@ -311,6 +311,9 @@ const migratedEnableTabButtonsDebugRuntimeFiles = [
 const migratedEnableTabButtonsHelpersRuntimeFiles = [
     "electron-app/utils/ui/controls/enableTabButtonsHelpers.ts",
 ] as const;
+const migratedUpdateTabVisibilityRuntimeFiles = [
+    "electron-app/utils/ui/tabs/updateTabVisibility.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -589,6 +592,8 @@ const directEnableTabButtonsDebugRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b/u;
 const directEnableTabButtonsHelpersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bReflect\.get\(\s*document\b|\btypeof\s+document\s*!==/u;
+const directUpdateTabVisibilityRuntimeGlobalPattern =
+    /\bglobalThis\.(?:document|requestAnimationFrame)\b|\breturn\s+document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -2359,6 +2364,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(enableTabButtonsHelpersSource).toContain(
             "enableTabButtonsHelpersRuntime.js"
+        );
+    });
+
+    it("keeps tab visibility browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedUpdateTabVisibilityRuntimeFiles
+            .filter((relativeFile) =>
+                directUpdateTabVisibilityRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const updateTabVisibilitySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/updateTabVisibility.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(updateTabVisibilitySource).toContain(
+            "updateTabVisibilityRuntime.js"
         );
     });
 

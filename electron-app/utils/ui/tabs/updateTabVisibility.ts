@@ -24,6 +24,10 @@ import {
     getTabTestDocumentForTests,
     getTabTestStateManagerForTests,
 } from "./tabTestEnvironment.js";
+import {
+    getUpdateTabVisibilityRuntime,
+    type UpdateTabVisibilityTimerHandle,
+} from "./updateTabVisibilityRuntime.js";
 
 type LeafletMiniMap = {
     invalidateSize: () => void;
@@ -46,8 +50,8 @@ const TAB_CONTENT_IDS = [
 const DISPLAY_FLEX = "flex";
 const DISPLAY_NONE = "none";
 
-let mapReflowTimerLong: ReturnType<typeof setTimeout> | undefined;
-let mapReflowTimerShort: ReturnType<typeof setTimeout> | undefined;
+let mapReflowTimerLong: UpdateTabVisibilityTimerHandle | undefined;
+let mapReflowTimerShort: UpdateTabVisibilityTimerHandle | undefined;
 
 function canUseDocument(candidate: unknown): candidate is Document {
     return (
@@ -62,9 +66,7 @@ function canUseDocument(candidate: unknown): candidate is Document {
 
 function getGlobalDocument(): Document | undefined {
     try {
-        return globalThis.document === undefined
-            ? undefined
-            : globalThis.document;
+        return getUpdateTabVisibilityRuntime().getDocument();
     } catch {
         return undefined;
     }
@@ -87,7 +89,7 @@ function getDoc(): Document {
         }
     }
 
-    return document;
+    throw new Error("updateTabVisibility requires a document-like runtime");
 }
 
 function getStateMgr(): RendererStateManagerAccess {
@@ -191,7 +193,8 @@ export function hideAllTabContent(): void {
  * Initialize tab visibility state management.
  */
 export function initializeTabVisibilityState(): void {
-    let noDataSwitchTimer: null | ReturnType<typeof setTimeout> = null;
+    const runtime = getUpdateTabVisibilityRuntime();
+    let noDataSwitchTimer: null | UpdateTabVisibilityTimerHandle = null;
 
     getStateMgr().subscribe("ui.activeTab", (activeTab: unknown) => {
         if (typeof activeTab === "string") {
@@ -205,17 +208,17 @@ export function initializeTabVisibilityState(): void {
 
         if (hasData) {
             if (noDataSwitchTimer !== null) {
-                clearTimeout(noDataSwitchTimer);
+                runtime.clearTimeout(noDataSwitchTimer);
                 noDataSwitchTimer = null;
             }
             return;
         }
 
         if (noDataSwitchTimer !== null) {
-            clearTimeout(noDataSwitchTimer);
+            runtime.clearTimeout(noDataSwitchTimer);
         }
 
-        noDataSwitchTimer = setTimeout(() => {
+        noDataSwitchTimer = runtime.setTimeout(() => {
             noDataSwitchTimer = null;
 
             const latestData = getActiveFitActivityData().rawData;
@@ -291,12 +294,13 @@ function scheduleMapReflowRefresh(): void {
         return;
     }
 
+    const runtime = getUpdateTabVisibilityRuntime();
     if (mapReflowTimerShort !== undefined) {
-        clearTimeout(mapReflowTimerShort);
+        runtime.clearTimeout(mapReflowTimerShort);
         mapReflowTimerShort = undefined;
     }
     if (mapReflowTimerLong !== undefined) {
-        clearTimeout(mapReflowTimerLong);
+        runtime.clearTimeout(mapReflowTimerLong);
         mapReflowTimerLong = undefined;
     }
 
@@ -319,18 +323,22 @@ function scheduleMapReflowRefresh(): void {
         }
     };
 
-    const raf: (callback: FrameRequestCallback) => unknown =
-        typeof globalThis.requestAnimationFrame === "function"
-            ? globalThis.requestAnimationFrame.bind(globalThis)
-            : (callback) => setTimeout(callback, 0);
+    const raf = (onFrame: FrameRequestCallback): void => {
+        const animationFrameHandle = runtime.requestAnimationFrame(onFrame);
+        if (animationFrameHandle === undefined) {
+            void runtime.setTimeout(() => {
+                onFrame(0);
+            }, 0);
+        }
+    };
 
     reflow();
     raf(() => reflow());
-    mapReflowTimerShort = setTimeout(() => {
+    mapReflowTimerShort = runtime.setTimeout(() => {
         mapReflowTimerShort = undefined;
         reflow();
     }, 70);
-    mapReflowTimerLong = setTimeout(() => {
+    mapReflowTimerLong = runtime.setTimeout(() => {
         mapReflowTimerLong = undefined;
         reflow();
     }, 180);
