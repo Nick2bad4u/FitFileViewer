@@ -973,7 +973,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the root preload entrypoint delegated to the preload entrypoint module", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const preloadEntrySource = stripComments(
             readRepositoryFile("electron-app/preload.ts")
@@ -981,6 +981,10 @@ describe("architecture boundaries", () => {
         const preloadEntrypointSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadEntrypoint.ts")
         );
+        const preloadEntryStatements = preloadEntrySource
+            .split(/\r?\n/u)
+            .map((line) => line.trim())
+            .filter(Boolean);
 
         expect(preloadEntrySource).toContain(
             'import { startDefaultPreloadEntrypoint } from "./preload/preloadEntrypoint.js";'
@@ -997,6 +1001,10 @@ describe("architecture boundaries", () => {
         );
         expect(preloadEntrySource).not.toContain("startPreloadScript");
         expect(preloadEntrySource).not.toContain("PreloadModuleRequire");
+        expect(preloadEntryStatements).toStrictEqual([
+            'import { startDefaultPreloadEntrypoint } from "./preload/preloadEntrypoint.js";',
+            "startDefaultPreloadEntrypoint();",
+        ]);
     });
 
     it("keeps preload bootstrap loaders on the injected module require", () => {
