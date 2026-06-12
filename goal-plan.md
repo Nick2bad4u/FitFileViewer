@@ -273,6 +273,9 @@ fullscreen resize uses registered chart instances, with architecture coverage pr
 Main UI startup tests no longer delete retired renderer globals such as `devCleanup`, `injectMenu`,
 `showFitData`, `renderChartJS`, or `cleanupEventListeners` while proving those globals stay absent, and
 architecture coverage blocks those mutations from returning.
+Zone-color picker tests no longer delete or set retired renderer helper globals such as
+`clearZoneColorData`, `updateInlineZoneColorSelectors`, or `renderChartJS`; they now assert those names stay
+absent while using typed ESM mocks, and architecture coverage blocks those mutations from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
