@@ -1,22 +1,15 @@
+import {
+    MAX_FIT_FILE_BYTES,
+    normalizeFileReadResultToArrayBuffer,
+} from "./fileReadPayload.js";
+import { assertFileReadAllowed } from "../security/fileAccessPolicy.js";
+
 {
     type FileSystemInvokeChannel =
         import("../../shared/ipc").FileSystemInvokeChannel;
     type FileReadResult = import("../../shared/ipc").FileSystemResponsePayload;
 
     const { z } = require("zod") as typeof import("zod");
-
-    const { assertFileReadAllowed } =
-        require("../security/fileAccessPolicy") as {
-            assertFileReadAllowed: (filePath: string) => string;
-        };
-
-    const { MAX_FIT_FILE_BYTES, normalizeFileReadResultToArrayBuffer } =
-        require("./fileReadPayload") as {
-            MAX_FIT_FILE_BYTES: number;
-            normalizeFileReadResultToArrayBuffer: (
-                value: unknown
-            ) => ArrayBuffer;
-        };
 
     type FileSystemModule = Pick<typeof import("node:fs"), "readFile" | "stat">;
 

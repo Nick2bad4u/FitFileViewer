@@ -1,4 +1,5 @@
 import { getFitParserModule } from "../runtime/fitParserFacade.js";
+import { normalizeFitIpcPayloadToBuffer } from "./fitIpcPayload.js";
 
 {
     type FitParserModule = Pick<
@@ -10,14 +11,6 @@ import { getFitParserModule } from "../runtime/fitParserFacade.js";
         import("../../shared/ipc").FitFileRequestPayload;
     type FitFileResponsePayload =
         import("../../shared/ipc").FitFileResponsePayload;
-    type NormalizeFitIpcPayloadToBuffer = (
-        value: unknown
-    ) => import("node:buffer").Buffer;
-
-    const { normalizeFitIpcPayloadToBuffer } = require("./fitIpcPayload") as {
-        normalizeFitIpcPayloadToBuffer: NormalizeFitIpcPayloadToBuffer;
-    };
-
     type FitFileIpcHandler = (
         event: unknown,
         arrayBuffer: FitFileRequestPayload

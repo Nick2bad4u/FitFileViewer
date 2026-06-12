@@ -25,9 +25,9 @@ type NodeModulesRuntime = {
 /**
  * Load fileAccessPolicy with a controlled realpath implementation.
  */
-function loadPolicyWithRealpath(
+async function loadPolicyWithRealpath(
     realpathImpl: (filePath: string) => string
-): FileAccessPolicyModule {
+): Promise<FileAccessPolicyModule> {
     vi.resetModules();
     const require = createRequire(import.meta.url);
 
@@ -48,7 +48,7 @@ function loadPolicyWithRealpath(
     nodeModules.path = path;
 
     const policy =
-        require("../../../../electron-app/main/security/fileAccessPolicy.js") as FileAccessPolicyModule;
+        await import("../../../../electron-app/main/security/fileAccessPolicy.js");
     policy.__resetForTests?.();
     return policy;
 }
@@ -123,7 +123,7 @@ describe("fileAccessPolicy", () => {
         expect.assertions(2);
 
         let target = "/real/a.fit";
-        const mod = loadPolicyWithRealpath(() => target);
+        const mod = await loadPolicyWithRealpath(() => target);
 
         mod.approveFilePath("/tmp/link.fit");
         expect(getApprovalSnapshot(mod, ["/tmp/link.fit"])).toStrictEqual({
@@ -140,7 +140,7 @@ describe("fileAccessPolicy", () => {
     it("caps the approval set to prevent unbounded growth", async () => {
         expect.assertions(1);
 
-        const mod = loadPolicyWithRealpath(() => {
+        const mod = await loadPolicyWithRealpath(() => {
             throw new Error("ENOENT");
         });
 

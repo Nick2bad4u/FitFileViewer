@@ -1,26 +1,15 @@
 // @vitest-environment node
 import { Buffer } from "node:buffer";
-import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
-
-type FileReadPayloadModule = {
-    MAX_FIT_FILE_BYTES: number;
-    assertFitFileByteLength: (byteLength: number) => void;
-    normalizeFileReadResultToArrayBuffer: (data: unknown) => ArrayBuffer;
-};
-
-type FitIpcPayloadModule = {
-    MAX_FIT_IPC_PAYLOAD_BYTES: number;
-    normalizeFitIpcPayloadToBuffer: (data: unknown) => Buffer;
-};
-
-const cjsRequire = createRequire(import.meta.url);
-const fileReadPayload = cjsRequire(
-    "../../../../electron-app/main/ipc/fileReadPayload.js"
-) as FileReadPayloadModule;
-const fitIpcPayload = cjsRequire(
-    "../../../../electron-app/main/ipc/fitIpcPayload.js"
-) as FitIpcPayloadModule;
+import {
+    MAX_FIT_FILE_BYTES,
+    assertFitFileByteLength,
+    normalizeFileReadResultToArrayBuffer,
+} from "../../../../electron-app/main/ipc/fileReadPayload.js";
+import {
+    MAX_FIT_IPC_PAYLOAD_BYTES,
+    normalizeFitIpcPayloadToBuffer,
+} from "../../../../electron-app/main/ipc/fitIpcPayload.js";
 
 function bytesFromArrayBuffer(buffer: ArrayBuffer): number[] {
     return Array.from(new Uint8Array(buffer));
@@ -40,8 +29,7 @@ describe("binary IPC payload boundaries", () => {
             3,
             4,
         ]).buffer;
-        const normalized =
-            fileReadPayload.normalizeFileReadResultToArrayBuffer(source);
+        const normalized = normalizeFileReadResultToArrayBuffer(source);
 
         expect(bytesFromArrayBuffer(normalized)).toStrictEqual([
             1,
@@ -63,8 +51,7 @@ describe("binary IPC payload boundaries", () => {
             5,
         ]).buffer;
         const view = new Uint8Array(backingBuffer, 1, 3);
-        const normalized =
-            fileReadPayload.normalizeFileReadResultToArrayBuffer(view);
+        const normalized = normalizeFileReadResultToArrayBuffer(view);
 
         expect(bytesFromArrayBuffer(normalized)).toStrictEqual([
             8,
@@ -76,34 +63,26 @@ describe("binary IPC payload boundaries", () => {
     it("rejects invalid file read payload values", () => {
         expect.assertions(2);
 
-        expect(() =>
-            fileReadPayload.normalizeFileReadResultToArrayBuffer("not bytes")
-        ).toThrow(Error);
-        expect(() =>
-            fileReadPayload.normalizeFileReadResultToArrayBuffer("not bytes")
-        ).toThrow("Unexpected file read result");
+        expect(() => normalizeFileReadResultToArrayBuffer("not bytes")).toThrow(
+            Error
+        );
+        expect(() => normalizeFileReadResultToArrayBuffer("not bytes")).toThrow(
+            "Unexpected file read result"
+        );
     });
 
     it("validates file read byte lengths at the IPC boundary", () => {
         expect.assertions(5);
 
-        expect(fileReadPayload.assertFitFileByteLength(0)).toBeUndefined();
-        expect(
-            fileReadPayload.assertFitFileByteLength(
-                fileReadPayload.MAX_FIT_FILE_BYTES
-            )
-        ).toBeUndefined();
-        expect(() =>
-            fileReadPayload.assertFitFileByteLength(
-                fileReadPayload.MAX_FIT_FILE_BYTES + 1
-            )
-        ).toThrow("File size exceeds 100MB limit");
-        expect(() =>
-            fileReadPayload.assertFitFileByteLength(Number.POSITIVE_INFINITY)
-        ).toThrow(TypeError);
-        expect(() => fileReadPayload.assertFitFileByteLength(-1)).toThrow(
+        expect(assertFitFileByteLength(0)).toBeUndefined();
+        expect(assertFitFileByteLength(MAX_FIT_FILE_BYTES)).toBeUndefined();
+        expect(() => assertFitFileByteLength(MAX_FIT_FILE_BYTES + 1)).toThrow(
+            "File size exceeds 100MB limit"
+        );
+        expect(() => assertFitFileByteLength(Number.POSITIVE_INFINITY)).toThrow(
             TypeError
         );
+        expect(() => assertFitFileByteLength(-1)).toThrow(TypeError);
     });
 
     it("normalizes FIT IPC ArrayBuffer payloads to Buffers", () => {
@@ -114,7 +93,7 @@ describe("binary IPC payload boundaries", () => {
             32,
             64,
         ]).buffer;
-        const normalized = fitIpcPayload.normalizeFitIpcPayloadToBuffer(source);
+        const normalized = normalizeFitIpcPayloadToBuffer(source);
 
         expect(normalized).toBeInstanceOf(Buffer);
         expect(bytesFromBuffer(normalized)).toStrictEqual([
@@ -134,7 +113,7 @@ describe("binary IPC payload boundaries", () => {
             1,
         ]).buffer;
         const view = new Uint8Array(backingBuffer, 1, 2);
-        const normalized = fitIpcPayload.normalizeFitIpcPayloadToBuffer(view);
+        const normalized = normalizeFitIpcPayloadToBuffer(view);
 
         expect(bytesFromBuffer(normalized)).toStrictEqual([3, 2]);
     });
@@ -142,14 +121,10 @@ describe("binary IPC payload boundaries", () => {
     it("rejects invalid FIT IPC payload values", () => {
         expect.assertions(3);
 
-        expect(fitIpcPayload.MAX_FIT_IPC_PAYLOAD_BYTES).toBe(
-            fileReadPayload.MAX_FIT_FILE_BYTES
+        expect(MAX_FIT_IPC_PAYLOAD_BYTES).toBe(MAX_FIT_FILE_BYTES);
+        expect(() => normalizeFitIpcPayloadToBuffer(null)).toThrow(TypeError);
+        expect(() => normalizeFitIpcPayloadToBuffer(null)).toThrow(
+            "Invalid FIT data: expected ArrayBuffer"
         );
-        expect(() =>
-            fitIpcPayload.normalizeFitIpcPayloadToBuffer(null)
-        ).toThrow(TypeError);
-        expect(() =>
-            fitIpcPayload.normalizeFitIpcPayloadToBuffer(null)
-        ).toThrow("Invalid FIT data: expected ArrayBuffer");
     });
 });

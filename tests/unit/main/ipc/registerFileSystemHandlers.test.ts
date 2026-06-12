@@ -1,8 +1,8 @@
 // @vitest-environment node
-import { createRequire } from "node:module";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { MAX_FIT_FILE_BYTES } from "../../../../electron-app/main/ipc/fileReadPayload.js";
 import { registerFileSystemHandlers } from "../../../../electron-app/main/ipc/registerFileSystemHandlers.js";
 import {
     approveFilePath,
@@ -26,12 +26,6 @@ type LogWithContext = (
     message: string,
     context?: Record<string, unknown>
 ) => void;
-
-const require = createRequire(import.meta.url);
-const { MAX_FIT_FILE_BYTES } =
-    require("../../../../electron-app/main/ipc/fileReadPayload.js") as {
-        MAX_FIT_FILE_BYTES: number;
-    };
 
 describe("registerFileSystemHandlers", () => {
     let registerIpcHandle: Mock<RegisterIpcHandle>;

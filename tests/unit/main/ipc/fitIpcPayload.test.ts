@@ -1,15 +1,8 @@
-import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
-
-type FitIpcPayloadModule = {
-    MAX_FIT_IPC_PAYLOAD_BYTES: number;
-    normalizeFitIpcPayloadToBuffer: (value: unknown) => Buffer;
-};
-
-const require = createRequire(import.meta.url);
-
-const loadModule = (): FitIpcPayloadModule =>
-    require("../../../../electron-app/main/ipc/fitIpcPayload.js") as FitIpcPayloadModule;
+import {
+    MAX_FIT_IPC_PAYLOAD_BYTES,
+    normalizeFitIpcPayloadToBuffer,
+} from "../../../../electron-app/main/ipc/fitIpcPayload.js";
 
 function createForeignArrayBuffer(bytes: number[]): ArrayBuffer {
     const frame = document.createElement("iframe");
@@ -31,7 +24,6 @@ describe("fitIpcPayload", () => {
     it("normalizes ArrayBuffer payloads into Node buffers", () => {
         expect.assertions(2);
 
-        const { normalizeFitIpcPayloadToBuffer } = loadModule();
         const source = Uint8Array.from([
             1,
             2,
@@ -55,7 +47,6 @@ describe("fitIpcPayload", () => {
     it("normalizes ArrayBuffer payloads from another JavaScript realm", () => {
         expect.assertions(1);
 
-        const { normalizeFitIpcPayloadToBuffer } = loadModule();
         const source = createForeignArrayBuffer([
             4,
             5,
@@ -74,7 +65,6 @@ describe("fitIpcPayload", () => {
     it("normalizes ArrayBufferView payload slices without leaking backing bytes", () => {
         expect.assertions(1);
 
-        const { normalizeFitIpcPayloadToBuffer } = loadModule();
         const source = Uint8Array.from([
             9,
             1,
@@ -96,8 +86,6 @@ describe("fitIpcPayload", () => {
     it("rejects unsupported payload shapes", () => {
         expect.assertions(1);
 
-        const { normalizeFitIpcPayloadToBuffer } = loadModule();
-
         expect(() => normalizeFitIpcPayloadToBuffer("not bytes")).toThrow(
             "Invalid FIT data: expected ArrayBuffer"
         );
@@ -105,9 +93,6 @@ describe("fitIpcPayload", () => {
 
     it("rejects oversized renderer payloads before decoding", () => {
         expect.assertions(1);
-
-        const { MAX_FIT_IPC_PAYLOAD_BYTES, normalizeFitIpcPayloadToBuffer } =
-            loadModule();
 
         expect(() =>
             normalizeFitIpcPayloadToBuffer(

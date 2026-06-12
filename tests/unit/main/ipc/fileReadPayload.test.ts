@@ -1,16 +1,9 @@
-import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
-
-type FileReadPayloadModule = {
-    MAX_FIT_FILE_BYTES: number;
-    assertFitFileByteLength: (byteLength: number) => void;
-    normalizeFileReadResultToArrayBuffer: (value: unknown) => ArrayBuffer;
-};
-
-const require = createRequire(import.meta.url);
-
-const loadModule = (): FileReadPayloadModule =>
-    require("../../../../electron-app/main/ipc/fileReadPayload.js") as FileReadPayloadModule;
+import {
+    MAX_FIT_FILE_BYTES,
+    assertFitFileByteLength,
+    normalizeFileReadResultToArrayBuffer,
+} from "../../../../electron-app/main/ipc/fileReadPayload.js";
 
 function createForeignArrayBuffer(bytes: number[]): ArrayBuffer {
     const frame = document.createElement("iframe");
@@ -32,7 +25,6 @@ describe("fileReadPayload", () => {
     it("normalizes Buffer slices without leaking backing bytes", () => {
         expect.assertions(1);
 
-        const { normalizeFileReadResultToArrayBuffer } = loadModule();
         const source = Buffer.from([
             9,
             1,
@@ -54,7 +46,6 @@ describe("fileReadPayload", () => {
     it("copies ArrayBuffer values before returning them", () => {
         expect.assertions(2);
 
-        const { normalizeFileReadResultToArrayBuffer } = loadModule();
         const source = Uint8Array.from([
             1,
             2,
@@ -74,7 +65,6 @@ describe("fileReadPayload", () => {
     it("accepts ArrayBuffer values from another JavaScript realm", () => {
         expect.assertions(1);
 
-        const { normalizeFileReadResultToArrayBuffer } = loadModule();
         const source = createForeignArrayBuffer([
             4,
             5,
@@ -93,8 +83,6 @@ describe("fileReadPayload", () => {
     it("rejects non-binary file read results", () => {
         expect.assertions(1);
 
-        const { normalizeFileReadResultToArrayBuffer } = loadModule();
-
         expect(() => normalizeFileReadResultToArrayBuffer("abc")).toThrow(
             "Unexpected file read result"
         );
@@ -102,8 +90,6 @@ describe("fileReadPayload", () => {
 
     it("rejects oversized file reads", () => {
         expect.assertions(1);
-
-        const { MAX_FIT_FILE_BYTES, assertFitFileByteLength } = loadModule();
 
         expect(() => assertFitFileByteLength(MAX_FIT_FILE_BYTES + 1)).toThrow(
             "File size exceeds 100MB limit"

@@ -1656,6 +1656,56 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
+        expect.assertions(12);
+
+        const fileReadPayloadSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
+        );
+        const fitIpcPayloadSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/fitIpcPayload.ts")
+        );
+        const fileAccessPolicySource = stripComments(
+            readRepositoryFile("electron-app/main/security/fileAccessPolicy.ts")
+        );
+        const fileAccessPolicyStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/security/fileAccessPolicyState.ts"
+            )
+        );
+        const registerFileSystemHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerFileSystemHandlers.ts"
+            )
+        );
+        const registerFitFileHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerFitFileHandlers.ts"
+            )
+        );
+
+        expect(fileReadPayloadSource).not.toContain("module.exports");
+        expect(fitIpcPayloadSource).not.toContain("module.exports");
+        expect(fileAccessPolicySource).not.toContain("module.exports");
+        expect(fileAccessPolicyStateSource).not.toContain("module.exports");
+        expect(fileAccessPolicySource).not.toContain(
+            'require("./fileAccessPolicyState")'
+        );
+        expect(registerFileSystemHandlersSource).not.toContain(
+            'require("./fileReadPayload")'
+        );
+        expect(registerFileSystemHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(registerFitFileHandlersSource).not.toContain(
+            'require("./fitIpcPayload")'
+        );
+        expect(fileReadPayloadSource).toContain("export function");
+        expect(fitIpcPayloadSource).toContain("export function");
+        expect(fileAccessPolicySource).toContain("export function");
+        expect(fileAccessPolicyStateSource).toContain("export function");
+    });
+
     it("keeps ordinary preload unit tests on native source imports", () => {
         expect.assertions(1);
 
