@@ -360,6 +360,8 @@ The setup-level `global.HTMLElement = window.HTMLElement` bridge has also been r
 use the environment's native element constructors without another shared global assignment.
 Setup console hardening now uses the existing `ensureConsoleAlive()` path instead of separately patching
 `window.console.group`, `window.console.groupEnd`, and `window.console.groupCollapsed` in another global block.
+Setup process-nextTick stabilization now uses one `ensureProcessNextTick()` helper instead of repeating the same
+inline `globalThis.process.nextTick` mutation in multiple setup hooks.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

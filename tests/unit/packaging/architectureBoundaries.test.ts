@@ -6942,6 +6942,19 @@ describe("architecture boundaries", () => {
         expect(directWindowConsoleGroupPatches).toStrictEqual([]);
     });
 
+    it("keeps process nextTick setup behind one setup helper", () => {
+        expect.assertions(2);
+
+        const vitestSetupSource = stripComments(
+            readRepositoryFile("tests/vitest/setupVitest.mjs")
+        );
+
+        expect(vitestSetupSource).toContain("function ensureProcessNextTick()");
+        expect(
+            vitestSetupSource.match(/\.process\.nextTick\s*=/gu) ?? []
+        ).toHaveLength(1);
+    });
+
     it("keeps raw globalThis any casts out of source and tests", () => {
         expect.assertions(1);
 

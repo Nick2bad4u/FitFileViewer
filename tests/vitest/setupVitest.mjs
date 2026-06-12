@@ -258,6 +258,27 @@ function ensureConsoleAlive() {
     }
 }
 
+function ensureProcessNextTick() {
+    try {
+        const g = /** @type {any} */ (globalThis);
+        if (!g.process || typeof g.process !== "object") {
+            g.process = {};
+        }
+        if (typeof g.process.nextTick !== "function") {
+            g.process.nextTick = (cb, ...args) =>
+                Promise.resolve().then(() => {
+                    try {
+                        cb(...args);
+                    } catch {
+                        /* ignore */
+                    }
+                });
+        }
+    } catch {
+        /* ignore */
+    }
+}
+
 // Register hooks defensively: in some execution modes (e.g., forks pool or
 // early setup evaluation), the Vitest runner might not yet be ready, causing
 // "Vitest failed to find the runner". Swallow those cases and proceed; tests
@@ -265,22 +286,7 @@ function ensureConsoleAlive() {
 try {
     vitestBeforeEach(() => {
         ensureConsoleAlive();
-        try {
-            const g = /** @type {any} */ (globalThis);
-            if (!g.process || typeof g.process !== "object") g.process = {};
-            if (typeof g.process.nextTick !== "function") {
-                g.process.nextTick = (cb, ...args) =>
-                    Promise.resolve().then(() => {
-                        try {
-                            cb(...args);
-                        } catch {
-                            /* ignore */
-                        }
-                    });
-            }
-        } catch {
-            /* ignore */
-        }
+        ensureProcessNextTick();
     });
 } catch {
     /* ignore: runner not yet available */
@@ -288,22 +294,7 @@ try {
 try {
     vitestAfterEach(() => {
         ensureConsoleAlive();
-        try {
-            const g = /** @type {any} */ (globalThis);
-            if (!g.process || typeof g.process !== "object") g.process = {};
-            if (typeof g.process.nextTick !== "function") {
-                g.process.nextTick = (cb, ...args) =>
-                    Promise.resolve().then(() => {
-                        try {
-                            cb(...args);
-                        } catch {
-                            /* ignore */
-                        }
-                    });
-            }
-        } catch {
-            /* ignore */
-        }
+        ensureProcessNextTick();
     });
 } catch {
     /* ignore: runner not yet available */
@@ -326,26 +317,7 @@ if (typeof document !== "undefined") {
 }
 
 // Ensure a stable global process object for libraries/tests that expect Node-like globals
-(() => {
-    try {
-        const g = /** @type {any} */ (globalThis);
-        if (!g.process || typeof g.process !== "object") {
-            g.process = {};
-        }
-        if (typeof g.process.nextTick !== "function") {
-            g.process.nextTick = (cb, ...args) =>
-                Promise.resolve().then(() => {
-                    try {
-                        cb(...args);
-                    } catch {
-                        /* ignore */
-                    }
-                });
-        }
-    } catch {
-        /* ignore */
-    }
-})();
+ensureProcessNextTick();
 
 // Capture native references to the initial jsdom window/document so we can restore
 // them between tests if a suite replaces global.document with a plain object.
