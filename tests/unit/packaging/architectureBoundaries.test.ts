@@ -2058,7 +2058,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -2069,6 +2069,7 @@ describe("architecture boundaries", () => {
         expect(showFitDataSource).toContain("rendererActiveFileState.js");
         expect(showFitDataSource).toContain("rendererMapRenderState.js");
         expect(showFitDataSource).not.toContain("state/core/stateManager.js");
+        expect(showFitDataSource).not.toContain("resetRenderStates");
     });
 
     it("keeps map base-layer persistence on the map base-layer state facade", () => {

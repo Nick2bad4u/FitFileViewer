@@ -59,7 +59,8 @@ Progress: renderer core module resolution now uses module-local focused test ove
 shared `__vitest_manual_mocks__` global registry for startup test doubles. Export utility notification/theme
 test doubles now use module-local focused test overrides instead of the shared manual-mock registry too. The
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
-use `setupFullscreenListeners`.
+use `setupFullscreenListeners`. `showFitData` no longer accepts the deprecated `resetRenderStates` option;
+render-state resets belong to `AppActions` and typed renderer state facades.
 
 6. Reduce Test Harness Global Pollution (Fully finish)
 

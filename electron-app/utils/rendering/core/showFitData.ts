@@ -66,7 +66,6 @@ type FitDataObject = {
 
 /** Display options accepted by the FIT data renderer. */
 export type ShowFitDataOptions = {
-    resetRenderStates?: boolean;
     updateUI?: boolean;
 };
 
@@ -117,7 +116,6 @@ export function showFitData(
     options: ShowFitDataOptions = {}
 ): void {
     const config = {
-        resetRenderStates: true,
         updateUI: true,
         ...options,
     };
@@ -163,14 +161,6 @@ export function showFitData(
             }
         } catch {
             /* ignore */
-        }
-
-        // Reset rendering states if requested
-        if (config.resetRenderStates) {
-            log(
-                "info",
-                "resetRenderStates option is deprecated and now handled by AppActions"
-            );
         }
 
         // Handle file path and UI updates
