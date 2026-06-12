@@ -24,7 +24,6 @@ import { showNotification as __realShowNotification } from "../../ui/notificatio
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type LooseRecord = unknown;
-type ManualMockModule = Record<string, LooseRecord>;
 type ExportStorageLike = {
     getItem?: (key: string) => null | string;
     removeItem?: (key: string) => void;
@@ -135,7 +134,8 @@ type ExportModalAccessibilityOptions = {
 };
 
 let exportModalTitleCounter = 0;
-let exportUtilsTestModuleOverrides: Map<string, unknown> | null = null;
+let detectCurrentThemeOverride: typeof __realDetectCurrentTheme | null = null;
+let showNotificationOverride: ExportNotification | null = null;
 
 function hasOptionalElectronFunction(
     record: Readonly<Record<string, unknown>>,
@@ -242,139 +242,11 @@ async function stopGyazoServerIfAvailable(): Promise<void> {
     }
 }
 
-// Focused tests can override dependencies that this module imports statically.
-// Runtime code uses the real implementations when no module-local override exists.
-
-/*
- * @param {unknown} value
- *
- * @returns {value is ManualMockModule}
- */
-function __isManualMockModule(value: unknown): value is ManualMockModule {
-    return typeof value === "object" && value !== null;
-}
-
-/*
- * @returns {Map<string, unknown> | null}
- */
-function __getManualMockRegistry(): Map<string, unknown> | null {
-    return exportUtilsTestModuleOverrides;
-}
-
-/*
- * @param {unknown} mock
- *
- * @returns {ManualMockModule | null}
- */
-function __normalizeManualMock(mock: unknown): ManualMockModule | null {
-    if (!__isManualMockModule(mock)) {
-        return null;
-    }
-
-    return __isManualMockModule(mock["default"]) ? mock["default"] : mock;
-}
-
-/*
- * @param {string} p
- *
- * @returns {ManualMockModule | null}
- */
-function __resolveManualMockBySuffix(p: string): ManualMockModule | null {
-    try {
-        const reg = __getManualMockRegistry();
-        if (reg && typeof reg.forEach === "function") {
-            for (const [id, mod] of reg.entries()) {
-                const norm = String(id).replaceAll("\\", "/");
-                if (norm.endsWith(p)) {
-                    return __normalizeManualMock(mod);
-                }
-            }
-        }
-    } catch {
-        /* Ignore errors */
-    }
-    return null;
-}
-
-function __resolveManualMockExport<T>(
-    pathSuffix: string,
-    exportName: string
-): T | undefined {
-    const module = __resolveManualMockBySuffix(pathSuffix);
-    return module?.[exportName] as T | undefined;
-}
-
-export function resetExportUtilsTestModuleOverrides(): void {
-    exportUtilsTestModuleOverrides = null;
-}
-
-export function setExportUtilsTestModuleOverrides(
-    overrides: ReadonlyMap<string, unknown>
-): void {
-    exportUtilsTestModuleOverrides = new Map(overrides);
-}
-
-function resolveShowNotification(): typeof __realShowNotification {
-    return (
-        __resolveManualMockExport<typeof __realShowNotification>(
-            "/utils/ui/notifications/showNotification.js",
-            "showNotification"
-        ) ?? __realShowNotification
-    );
-}
-
-function resolveDetectCurrentTheme(): typeof __realDetectCurrentTheme {
-    return (
-        __resolveManualMockExport<typeof __realDetectCurrentTheme>(
-            "/utils/charts/theming/chartThemeUtils.js",
-            "detectCurrentTheme"
-        ) ?? __realDetectCurrentTheme
-    );
-}
-
-// Debug logging for mock resolution is useful when diagnosing tricky Vitest ESM mocking,
-// but it is extremely noisy in normal test runs. Gate it behind an explicit env flag.
-try {
-    // Only enable when explicitly requested.
-    const debugEnabled =
-        getProcessEnvironmentValue("FFV_DEBUG_TEST_MOCKS") === "1";
-
-    if (debugEnabled) {
-        const __dbgReg = __getManualMockRegistry();
-        if (__dbgReg && typeof __dbgReg.forEach === "function") {
-            const keys: string[] = [];
-            for (const [k] of __dbgReg.entries()) keys.push(String(k));
-            console.log("[exportUtils][debug] manual-mock keys:", keys);
-            console.log(
-                "[exportUtils][debug] resolved showNotification mock?",
-                Boolean(
-                    __resolveManualMockExport(
-                        "/utils/ui/notifications/showNotification.js",
-                        "showNotification"
-                    )
-                )
-            );
-            console.log(
-                "[exportUtils][debug] resolved detectCurrentTheme mock?",
-                Boolean(
-                    __resolveManualMockExport(
-                        "/utils/charts/theming/chartThemeUtils.js",
-                        "detectCurrentTheme"
-                    )
-                )
-            );
-        }
-    }
-} catch {
-    /* Ignore errors */
-}
-
-// Local call sites use these, which point to mocked versions in tests when available
 const showNotification: ExportNotification = (...args) => {
-    void resolveShowNotification()(...args);
+    void (showNotificationOverride ?? __realShowNotification)(...args);
 };
 const detectCurrentTheme = (): ReturnType<typeof __realDetectCurrentTheme> =>
-    resolveDetectCurrentTheme()();
+    (detectCurrentThemeOverride ?? __realDetectCurrentTheme)();
 
 /*
  * Convert a base64 data URL (e.g. data:image/png;base64,...) into a Blob
@@ -876,6 +748,13 @@ let __deps: {
 export function __setTestDeps(overrides: Partial<typeof __deps>): void {
     try {
         if (overrides && typeof overrides === "object") {
+            if (Object.hasOwn(overrides, "detectCurrentTheme")) {
+                detectCurrentThemeOverride =
+                    overrides.detectCurrentTheme ?? null;
+            }
+            if (Object.hasOwn(overrides, "showNotification")) {
+                showNotificationOverride = overrides.showNotification ?? null;
+            }
             __deps = { ...__deps, ...overrides };
         }
     } catch {

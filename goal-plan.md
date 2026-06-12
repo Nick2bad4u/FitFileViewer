@@ -57,7 +57,8 @@ only mutation seams.
 
 Progress: renderer core module resolution now uses module-local focused test overrides instead of reading the
 shared `__vitest_manual_mocks__` global registry for startup test doubles. Export utility notification/theme
-test doubles now use module-local focused test overrides instead of the shared manual-mock registry too. The
+test doubles now use the narrow `__setTestDeps` dependency override instead of the shared manual-mock registry
+or a map-style manual-mock override API. The
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
 use `setupFullscreenListeners`. `showFitData` no longer accepts the deprecated `resetRenderStates` option;
 render-state resets belong to `AppActions` and typed renderer state facades. Chart state-manager and chart-tab

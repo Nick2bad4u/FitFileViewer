@@ -1530,17 +1530,19 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).not.toContain("globalThis");
     });
 
-    it("keeps export utility test overrides off the shared manual mock global", () => {
-        expect.assertions(2);
+    it("keeps export utility test overrides off manual mock registries", () => {
+        expect.assertions(4);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
         );
 
-        expect(exportUtilsSource).toContain(
+        expect(exportUtilsSource).toContain("__setTestDeps");
+        expect(exportUtilsSource).not.toContain("__vitest_manual_mocks__");
+        expect(exportUtilsSource).not.toContain(
             "setExportUtilsTestModuleOverrides"
         );
-        expect(exportUtilsSource).not.toContain("__vitest_manual_mocks__");
+        expect(exportUtilsSource).not.toContain("resolveManualMock");
     });
 
     it("keeps renderer startup subscriptions behind the app-domain facade", () => {

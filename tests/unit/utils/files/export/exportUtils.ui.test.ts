@@ -1,11 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type DetectCurrentTheme = () => "light";
-type ManualMockModule = {
-    detectCurrentTheme?: ReturnType<typeof vi.fn<DetectCurrentTheme>>;
-    showNotification?: ReturnType<typeof vi.fn<ShowNotification>>;
-};
-type ManualMockRegistry = Map<string, ManualMockModule>;
 type OAuthReject = (error: Error) => void;
 type OAuthResolve = (token: string) => void;
 type ShowNotification = (message: string, type: string) => void;
@@ -14,33 +9,38 @@ type TestGlobal = typeof globalThis & {
     confirm: (message?: string) => boolean;
 };
 
-let exportUtilsManualMocks: ManualMockRegistry | undefined;
+let detectCurrentThemeMock:
+    | ReturnType<typeof vi.fn<DetectCurrentTheme>>
+    | undefined;
+let showNotificationMock:
+    | ReturnType<typeof vi.fn<ShowNotification>>
+    | undefined;
 let stopGyazoServerMock: ReturnType<typeof vi.fn<StopGyazoServer>> | undefined;
 
 async function loadExportUtils() {
     const module =
         await import("../../../../../electron-app/utils/files/export/exportUtils.js");
-    if (exportUtilsManualMocks) {
-        module.setExportUtilsTestModuleOverrides(exportUtilsManualMocks);
-    }
+    module.__setTestDeps({
+        detectCurrentTheme: getDetectCurrentThemeMock(),
+        showNotification: getShowNotificationMock(),
+    });
     return module;
 }
 
-function getManualMocks(): ManualMockRegistry {
-    if (!exportUtilsManualMocks) {
-        throw new Error("exportUtils manual mocks were not installed");
+function getDetectCurrentThemeMock(): ReturnType<
+    typeof vi.fn<DetectCurrentTheme>
+> {
+    if (!detectCurrentThemeMock) {
+        throw new Error("detectCurrentTheme mock was not installed");
     }
-    return exportUtilsManualMocks;
+    return detectCurrentThemeMock;
 }
 
 function getShowNotificationMock(): ReturnType<typeof vi.fn<ShowNotification>> {
-    const notify = getManualMocks().get(
-        "/utils/ui/notifications/showNotification.js"
-    )?.showNotification;
-    if (!notify) {
+    if (!showNotificationMock) {
         throw new Error("showNotification mock was not installed");
     }
-    return notify;
+    return showNotificationMock;
 }
 
 function getStopGyazoServerMock(): ReturnType<typeof vi.fn<StopGyazoServer>> {
@@ -51,16 +51,10 @@ function getStopGyazoServerMock(): ReturnType<typeof vi.fn<StopGyazoServer>> {
 }
 
 function installBaseMocks() {
-    const reg: ManualMockRegistry = new Map();
-    exportUtilsManualMocks = reg;
-    reg.set("/utils/ui/notifications/showNotification.js", {
-        showNotification: vi.fn<ShowNotification>(),
-    });
-    reg.set("/utils/charts/theming/chartThemeUtils.js", {
-        detectCurrentTheme: vi
-            .fn<DetectCurrentTheme>()
-            .mockReturnValue("light"),
-    });
+    showNotificationMock = vi.fn<ShowNotification>();
+    detectCurrentThemeMock = vi
+        .fn<DetectCurrentTheme>()
+        .mockReturnValue("light");
 
     // Provide URL, Clipboard, and minimal canvas APIs used by exportUtils
     const URLMock = function URLMock(
@@ -117,7 +111,8 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
 
     afterEach(async function cleanupExportUiTest(): Promise<void> {
         document.body.replaceChildren();
-        exportUtilsManualMocks = undefined;
+        detectCurrentThemeMock = undefined;
+        showNotificationMock = undefined;
         stopGyazoServerMock = undefined;
         await resetRegisteredElectronApi();
     });
