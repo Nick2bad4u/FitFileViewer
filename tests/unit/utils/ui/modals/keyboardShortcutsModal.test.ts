@@ -40,8 +40,6 @@ function resolveModalExports(
 
 async function loadModal() {
     await vi.resetModules();
-    Reflect.deleteProperty(globalThis, "showKeyboardShortcutsModal");
-    Reflect.deleteProperty(globalThis, "closeKeyboardShortcutsModal");
     const module =
         await import("../../../../../electron-app/utils/ui/modals/keyboardShortcutsModal.js");
     return resolveModalExports(module);
@@ -106,6 +104,19 @@ describe("keyboardShortcutsModal", () => {
         rafMock.mockClear();
         cancelRafMock.mockClear();
         vi.useRealTimers();
+    });
+
+    it("does not publish compatibility globals", async () => {
+        expect.assertions(1);
+
+        await loadModal();
+
+        expect(
+            [
+                "closeKeyboardShortcutsModal",
+                "showKeyboardShortcutsModal",
+            ].filter((globalName) => Reflect.has(globalThis, globalName))
+        ).toStrictEqual([]);
     });
 
     it("creates and displays the modal when triggered", async () => {

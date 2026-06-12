@@ -665,6 +665,8 @@ const mainUiTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:cleanupEventListeners|devCleanup|injectMenu|renderChartJS|showFitData)["']\s*\)|\b(?:globalThis|mainUiGlobal)\.(?:cleanupEventListeners|devCleanup|injectMenu|renderChartJS|showFitData)\s*=/u;
 const zoneColorPickerTestRetiredGlobalMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:clearZoneColorData|renderChartJS|updateInlineZoneColorSelectors)["']\s*(?:,|\))|\bglobalThis\.(?:clearZoneColorData|renderChartJS|updateInlineZoneColorSelectors)\s*=/u;
+const keyboardShortcutsModalTestRetiredGlobalMutationPattern =
+    /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:closeKeyboardShortcutsModal|showKeyboardShortcutsModal)["']\s*(?:,|\))|\bglobalThis\.(?:closeKeyboardShortcutsModal|showKeyboardShortcutsModal)\s*=/u;
 const directMainProcessDevHelpersGlobalPattern =
     /\b(?:window|globalThis)\.devHelpers\b|Object\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)/u;
 const directElectronHoistedMockGlobalAllowedFiles = new Set<string>();
@@ -6102,6 +6104,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/ui/modals/openZoneColorPicker.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps keyboard-shortcuts modal tests from mutating retired renderer globals", () => {
+        expect.assertions(1);
+
+        expect(
+            keyboardShortcutsModalTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/modals/keyboardShortcutsModal.test.ts"
                     )
                 )
             )

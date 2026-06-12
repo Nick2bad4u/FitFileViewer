@@ -276,6 +276,9 @@ architecture coverage blocks those mutations from returning.
 Zone-color picker tests no longer delete or set retired renderer helper globals such as
 `clearZoneColorData`, `updateInlineZoneColorSelectors`, or `renderChartJS`; they now assert those names stay
 absent while using typed ESM mocks, and architecture coverage blocks those mutations from returning.
+Keyboard-shortcuts modal tests no longer delete retired modal presenter globals such as
+`showKeyboardShortcutsModal` or `closeKeyboardShortcutsModal` before module import; they now assert those
+names stay absent, and architecture coverage blocks those mutations from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
