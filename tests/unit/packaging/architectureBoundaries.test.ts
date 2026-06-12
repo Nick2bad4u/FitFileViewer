@@ -2648,6 +2648,42 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps the preload module loader on native loader imports", () => {
+        expect.assertions(10);
+
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+        const runtimeSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadRuntime.ts")
+        );
+
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadApiAssemblyModules } from "./preloadApiAssemblyModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadAppModules } from "./preloadAppModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadFileModules } from "./preloadFileModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadIpcModules } from "./preloadIpcModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadPolicyModules } from "./preloadPolicyModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadStateModules } from "./preloadStateModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).not.toContain("requireModule");
+        expect(runtimeSource).toContain("loadPreloadModules()");
+        expect(runtimeSource).not.toContain(
+            "loadPreloadModules({ requireModule })"
+        );
+        expect(moduleLoaderSource).not.toContain("./preload/");
+    });
+
     it("keeps the preload event helper free of generic IPC methods", () => {
         expect.assertions(5);
 

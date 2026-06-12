@@ -16,9 +16,7 @@ export function createPreloadRuntime({
     const { loadPreloadModules } = requireModule(
         "./preload/preloadModuleLoader.js"
     ) as {
-        loadPreloadModules: (options: {
-            requireModule: PreloadModuleRequire;
-        }) => PreloadModuleRegistry;
+        loadPreloadModules: () => PreloadModuleRegistry;
     };
     const { createElectronApi } = requireModule(
         "./preload/electronApiFactory.js"
@@ -33,7 +31,7 @@ export function createPreloadRuntime({
             ipcBridgeCatalog: PreloadModuleRegistry["ipcBridgeCatalog"]
         ) => PreloadConstants;
     };
-    const modules = loadPreloadModules({ requireModule });
+    const modules = loadPreloadModules();
 
     return {
         assemblePreloadApi,

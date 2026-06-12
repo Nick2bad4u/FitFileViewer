@@ -18,6 +18,8 @@ of requiring shared policy modules directly.
 APIs, Electron API exposure, IPC helpers, logger, bridge catalog, and the Electron bridge resolver natively
 instead of resolving those IPC modules through `requireModule`; the resolver still receives the preload runtime
 `requireModule` when it loads the Electron package bridge.
+`electron-app/preload/preloadModuleLoader.ts` now imports the focused app, file, state, policy, API-assembly,
+and IPC loader modules natively instead of resolving those loader modules through `requireModule`.
 The small preload API assembly-domain factory modules now use named source exports instead of `module.exports`,
 while the runtime build still emits CommonJS-compatible package output.
 The first preload app API leaf factories (`apiDiagnostics.ts`, `appInfoApi.ts`, `gyazoExternalApi.ts`,
