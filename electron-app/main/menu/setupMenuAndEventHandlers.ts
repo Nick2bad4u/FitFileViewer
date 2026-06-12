@@ -1,3 +1,5 @@
+import { validateDevtoolsInjectMenuPayload } from "../../shared/devtoolsMenuPolicy.js";
+
 {
     type BrowserWindow = import("electron").BrowserWindow;
     type DevtoolsInjectMenuFitFilePath =
@@ -91,13 +93,6 @@
             SETTINGS_CONFIG_NAME: string;
         };
     };
-    const { validateDevtoolsInjectMenuPayload } =
-        require("../../shared/devtoolsMenuPolicy") as {
-            validateDevtoolsInjectMenuPayload: (
-                theme: unknown,
-                fitFilePath: unknown
-            ) => ValidatedDevtoolsInjectMenuPayload;
-        };
     const { registerIpcHandle, registerIpcListener } =
         require("../ipc/ipcRegistry") as {
             registerIpcHandle: (

@@ -43,6 +43,8 @@ architecture coverage to keep those tests off CommonJS-in-ESM loading patterns.
 The preload dist-test module-mock fixture now imports preload source modules natively too; the source-require
 bridge is confined to the source execution tests that intentionally simulate the injected `requireModule`
 boundary.
+Shared validation and FIT-label policy modules now use named source exports instead of `module.exports` wrappers
+too, while existing CommonJS runtime consumers continue destructuring the compiled named exports.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

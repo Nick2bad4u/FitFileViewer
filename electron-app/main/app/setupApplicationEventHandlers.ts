@@ -1,3 +1,5 @@
+import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
+
 {
     type HttpModule = typeof import("node:http");
     type PathModule = typeof import("node:path");
@@ -144,10 +146,6 @@
         httpRef: () => HttpModule | null;
         path: PathModule;
     };
-    const { validateExternalUrl } =
-        require("../../shared/externalUrlPolicy") as {
-            validateExternalUrl: (url: string) => string;
-        };
     const { getAppState, setAppState } = require("../state/appState") as {
         getAppState: (key: string) => unknown;
         setAppState: (

@@ -1,13 +1,11 @@
+import { validateFitFilePathInput } from "../../shared/fitFilePathPolicy.js";
+
 {
     const nodeModules = require("../runtime/nodeModules") as {
         fs: null | typeof import("node:fs");
         path: typeof import("node:path");
     };
     const { path } = nodeModules;
-    const { validateFitFilePathInput } =
-        require("../../shared/fitFilePathPolicy") as {
-            validateFitFilePathInput: (filePath: unknown) => string;
-        };
     const { getFileAccessPolicyState, resetFileAccessPolicyState } =
         require("./fileAccessPolicyState") as {
             getFileAccessPolicyState: () => FileAccessPolicyState;

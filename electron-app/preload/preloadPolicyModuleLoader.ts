@@ -1,3 +1,15 @@
+import { validateDevtoolsInjectMenuPayload } from "../shared/devtoolsMenuPolicy.js";
+import { validateExternalUrl } from "../shared/externalUrlPolicy.js";
+import {
+    validateFitBrowserRelativePath,
+    validateFitBrowserRootFolderPath,
+} from "../shared/fitBrowserPathPolicy.js";
+import { validateFitFilePathInput } from "../shared/fitFilePathPolicy.js";
+import {
+    validateMainStateOperationIdInput,
+    validateMainStatePathInput,
+} from "../shared/mainStatePathPolicy.js";
+
 type PreloadModuleRegistry =
     import("./preloadModuleTypes").PreloadModuleRegistry;
 type PreloadPolicyModules = Pick<
@@ -12,29 +24,6 @@ type PreloadPolicyModules = Pick<
 >;
 
 export function loadPreloadPolicyModules(): PreloadPolicyModules {
-    const { validateDevtoolsInjectMenuPayload } =
-        require("../shared/devtoolsMenuPolicy.js") as {
-            validateDevtoolsInjectMenuPayload: PreloadModuleRegistry["validateDevtoolsInjectMenuPayload"];
-        };
-    const { validateExternalUrl } =
-        require("../shared/externalUrlPolicy.js") as {
-            validateExternalUrl: PreloadModuleRegistry["validateExternalUrl"];
-        };
-    const { validateFitBrowserRelativePath, validateFitBrowserRootFolderPath } =
-        require("../shared/fitBrowserPathPolicy.js") as {
-            validateFitBrowserRelativePath: PreloadModuleRegistry["validateFitBrowserRelativePath"];
-            validateFitBrowserRootFolderPath: PreloadModuleRegistry["validateFitBrowserRootFolderPath"];
-        };
-    const { validateFitFilePathInput } =
-        require("../shared/fitFilePathPolicy.js") as {
-            validateFitFilePathInput: PreloadModuleRegistry["validateFitFilePathInput"];
-        };
-    const { validateMainStateOperationIdInput, validateMainStatePathInput } =
-        require("../shared/mainStatePathPolicy.js") as {
-            validateMainStateOperationIdInput: PreloadModuleRegistry["validateMainStateOperationIdInput"];
-            validateMainStatePathInput: PreloadModuleRegistry["validateMainStatePathInput"];
-        };
-
     return {
         validateDevtoolsInjectMenuPayload,
         validateExternalUrl,

@@ -1,10 +1,5 @@
-{
-    const { validateExternalUrl } =
-        require("../../shared/externalUrlPolicy") as {
-            validateExternalUrl: (url: unknown) => string;
-        };
+import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
 
-    module.exports = {
-        validateExternalUrl,
-    };
-}
+module.exports = {
+    validateExternalUrl,
+};

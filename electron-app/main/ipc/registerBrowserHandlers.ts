@@ -1,3 +1,8 @@
+import {
+    validateFitBrowserRelativePath,
+    validateFitBrowserRootFolderPath,
+} from "../../shared/fitBrowserPathPolicy.js";
+
 {
     type DialogOpenFolderResponse =
         import("../../shared/ipc").DialogOpenFolderResponse;
@@ -29,12 +34,6 @@
             options?: { source?: string }
         ) => string;
     };
-    const { validateFitBrowserRelativePath, validateFitBrowserRootFolderPath } =
-        require("../../shared/fitBrowserPathPolicy") as {
-            validateFitBrowserRelativePath: (value: unknown) => string;
-            validateFitBrowserRootFolderPath: (value: unknown) => string;
-        };
-
     interface DialogApi {
         showOpenDialog: (
             options: OpenDialogOptions

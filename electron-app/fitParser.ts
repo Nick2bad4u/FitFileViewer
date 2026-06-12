@@ -1,3 +1,5 @@
+import { applyUnknownMessageLabels } from "./shared/fitUnknownMessageLabels.js";
+
 {
     type DecoderOptions = import("./shared/fit").DecoderOptions;
     type DecoderOptionsValidationResult =
@@ -28,13 +30,6 @@
     };
 
     const { Buffer } = require("node:buffer") as typeof import("node:buffer");
-    const { applyUnknownMessageLabels } =
-        require("./shared/fitUnknownMessageLabels") as {
-            applyUnknownMessageLabels: (
-                messages: FitMessages | null | undefined
-            ) => FitMessages;
-        };
-
     // State management integration
     let fitFileStateManager: FitFileStateManager | null = null;
     let performanceMonitor: null | PerformanceMonitor = null;

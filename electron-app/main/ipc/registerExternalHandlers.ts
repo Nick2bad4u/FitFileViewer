@@ -1,3 +1,5 @@
+import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
+
 {
     type ExternalInvokeChannel =
         import("../../shared/ipc").ExternalInvokeChannel;
@@ -13,11 +15,6 @@
         import("../../shared/ipc").ShellOpenExternalResponse;
 
     const { z } = require("zod") as typeof import("zod");
-
-    const { validateExternalUrl } =
-        require("../../shared/externalUrlPolicy") as {
-            validateExternalUrl: (url: unknown) => string;
-        };
 
     interface ExternalShell {
         openExternal: (url: string) => Promise<void>;

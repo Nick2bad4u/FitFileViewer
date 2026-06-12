@@ -1,4 +1,6 @@
 // Lazily resolve Electron at call-time so Vitest's vi.mock('electron') can hook properly
+import { validateExternalUrl } from "../../../shared/externalUrlPolicy.js";
+
 type RendererIpcEventChannel =
     import("../../../shared/ipc").RendererIpcEventChannel;
 
@@ -208,10 +210,6 @@ function shouldLogMenuDebug() {
  */
 function safeOpenExternal(url: string): void {
     try {
-        // Local module, no Electron dependency.
-        const {
-            validateExternalUrl,
-        } = require("../../../shared/externalUrlPolicy");
         const validated = validateExternalUrl(url);
         const { shell: sh } = getElectron();
         if (sh && typeof sh.openExternal === "function") {

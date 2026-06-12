@@ -14,6 +14,11 @@
  * Main process state manager providing a minimal reactive store & IPC bridge.
  */
 
+import {
+    isSafeMainStateOperationId,
+    isSafeMainStatePath,
+} from "../../../shared/mainStatePathPolicy.js";
+
 const RENDERER_READABLE_MAIN_STATE_PATHS: ReadonlySet<string> = new Set([
     "loadedFitFilePath",
 ]);
@@ -41,11 +46,6 @@ function isRendererReadableMainStatePath(path: string): boolean {
 const { getElectron: getStateRuntimeElectron } =
     require("../../../main/runtime/electronAccess") as {
         getElectron: () => unknown;
-    };
-const { isSafeMainStateOperationId, isSafeMainStatePath } =
-    require("../../../shared/mainStatePathPolicy") as {
-        isSafeMainStateOperationId: (value: unknown) => value is string;
-        isSafeMainStatePath: (value: unknown) => value is string;
     };
 const { registerIpcHandle } = require("../../../main/ipc/ipcRegistry") as {
     registerIpcHandle: MainStateRegisterIpcHandle;

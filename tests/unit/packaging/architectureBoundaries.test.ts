@@ -1572,6 +1572,20 @@ describe("architecture boundaries", () => {
         expect(preloadCommonJsExportFiles).toStrictEqual([]);
     });
 
+    it("keeps shared TypeScript source free of source-level CommonJS exports", () => {
+        expect.assertions(1);
+
+        const sharedCommonJsExportFiles = collectSourceFiles(
+            "electron-app/shared"
+        ).filter((relativeFile) =>
+            stripComments(readRepositoryFile(relativeFile)).includes(
+                "module.exports"
+            )
+        );
+
+        expect(sharedCommonJsExportFiles).toStrictEqual([]);
+    });
+
     it("keeps ordinary preload unit tests on native source imports", () => {
         expect.assertions(1);
 
