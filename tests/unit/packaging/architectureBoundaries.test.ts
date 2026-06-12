@@ -738,6 +738,8 @@ const showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern =
     /\bwindow\.requestAnimationFrame\s*=/u;
 const settingsStateManagerTestDirectConsoleAssignmentPattern =
     /\bglobal\.console\s*=/u;
+const renderSingleHrZoneBarTestDirectGlobalFixtureAssignmentPattern =
+    /\b(?:testGlobal|global)\.(?:console|document|HTMLCanvasElement|HTMLElement|window)\s*=/u;
 const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
 const renderSummaryTestActiveFitFileNameMutationPattern =
@@ -6815,6 +6817,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/state/domain/settingsStateManager.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps single HR zone bar tests on scoped browser and console fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderSingleHrZoneBarTestDirectGlobalFixtureAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/data/zones/renderSingleHRZoneBar.test.ts"
                     )
                 )
             )

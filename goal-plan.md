@@ -414,6 +414,9 @@ that fixture mutation pattern.
 Strict notification branch tests now rely on Vitest mock restoration for `window.requestAnimationFrame` instead
 of assigning the original callback back during cleanup, with architecture coverage blocking that direct
 animation-fixture assignment.
+Single HR-zone bar tests now install jsdom browser globals through descriptor-scoped helpers and mock console
+methods through per-test Vitest spies instead of assigning browser globals or a replacement `global.console`
+directly, with architecture coverage blocking those fixture patterns.
 Complete file-open tests now install temporary `process.env` coverage through a descriptor-scoped fixture
 instead of assigning `globalThis.process` directly, with architecture coverage blocking that fixture mutation
 pattern.
