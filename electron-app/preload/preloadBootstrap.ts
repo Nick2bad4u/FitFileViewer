@@ -1,8 +1,10 @@
+import { createPreloadRuntime } from "./preloadRuntime.js";
+import { getDefaultPreloadRuntimeEnvironment } from "./preloadRuntimeEnvironment.js";
+
 type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
 type PreloadElectronBridge =
     import("./preloadModuleTypes").PreloadElectronBridge;
 type PreloadModuleRequire = import("./preloadModuleTypes").PreloadModuleRequire;
-type PreloadRuntime = import("./preloadModuleTypes").PreloadRuntime;
 
 interface PreloadRuntimeEnvironment {
     consoleRef: Console;
@@ -22,7 +24,6 @@ interface ResolvePreloadRuntimeEnvironmentOptions {
     consoleRef: Console | undefined;
     globalScope: object | undefined;
     processRef: NodeJS.Process | undefined;
-    requireModule: PreloadModuleRequire;
 }
 
 export function startPreloadScript({
@@ -36,15 +37,7 @@ export function startPreloadScript({
         consoleRef,
         globalScope,
         processRef,
-        requireModule,
     });
-    const { createPreloadRuntime } = requireModule(
-        "./preload/preloadRuntime.js"
-    ) as {
-        createPreloadRuntime: (options: {
-            requireModule: PreloadModuleRequire;
-        }) => PreloadRuntime;
-    };
     const runtime = createPreloadRuntime({ requireModule });
     const { consoleRef: resolvedConsoleRef, processRef: resolvedProcessRef } =
         runtimeEnvironment;
@@ -116,13 +109,7 @@ function resolvePreloadRuntimeEnvironment({
     consoleRef,
     globalScope,
     processRef,
-    requireModule,
 }: ResolvePreloadRuntimeEnvironmentOptions): PreloadRuntimeEnvironment {
-    const { getDefaultPreloadRuntimeEnvironment } = requireModule(
-        "./preload/preloadRuntimeEnvironment.js"
-    ) as {
-        getDefaultPreloadRuntimeEnvironment: () => PreloadRuntimeEnvironment;
-    };
     const defaults = getDefaultPreloadRuntimeEnvironment();
 
     return {

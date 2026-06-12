@@ -2713,6 +2713,36 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps the preload bootstrap on native runtime imports", () => {
+        expect.assertions(7);
+
+        const bootstrapSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadBootstrap.ts")
+        );
+
+        expect(bootstrapSource).toContain(
+            'import { createPreloadRuntime } from "./preloadRuntime.js";'
+        );
+        expect(bootstrapSource).toContain(
+            'import { getDefaultPreloadRuntimeEnvironment } from "./preloadRuntimeEnvironment.js";'
+        );
+        expect(bootstrapSource).toContain(
+            "createPreloadRuntime({ requireModule })"
+        );
+        expect(bootstrapSource).toContain(
+            "requireModule: runtime.requireModule"
+        );
+        expect(bootstrapSource).not.toContain(
+            "const { createPreloadRuntime } = requireModule"
+        );
+        expect(bootstrapSource).not.toContain(
+            "const { getDefaultPreloadRuntimeEnvironment } = requireModule"
+        );
+        expect(bootstrapSource).not.toContain(
+            "resolvePreloadRuntimeEnvironment({\n        consoleRef,\n        globalScope,\n        processRef,\n        requireModule,"
+        );
+    });
+
     it("keeps the preload event helper free of generic IPC methods", () => {
         expect.assertions(5);
 
