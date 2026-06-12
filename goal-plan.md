@@ -20,6 +20,9 @@ instead of resolving those IPC modules through `requireModule`; the resolver sti
 `requireModule` when it loads the Electron package bridge.
 `electron-app/preload/preloadModuleLoader.ts` now imports the focused app, file, state, policy, API-assembly,
 and IPC loader modules natively instead of resolving those loader modules through `requireModule`.
+`electron-app/preload/preloadRuntime.ts` now imports preload module loading, API assembly, and Electron API
+factory composition natively instead of resolving those composition modules through `requireModule`, while
+still carrying `requireModule` forward for the Electron package bridge resolver.
 The small preload API assembly-domain factory modules now use named source exports instead of `module.exports`,
 while the runtime build still emits CommonJS-compatible package output.
 The first preload app API leaf factories (`apiDiagnostics.ts`, `appInfoApi.ts`, `gyazoExternalApi.ts`,

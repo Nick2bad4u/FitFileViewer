@@ -2684,6 +2684,35 @@ describe("architecture boundaries", () => {
         expect(moduleLoaderSource).not.toContain("./preload/");
     });
 
+    it("keeps the preload runtime on native composition imports", () => {
+        expect.assertions(8);
+
+        const runtimeSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadRuntime.ts")
+        );
+
+        expect(runtimeSource).toContain(
+            'import { assemblePreloadApi, createPreloadConstants } from "./apiAssembly.js";'
+        );
+        expect(runtimeSource).toContain(
+            'import { createElectronApi } from "./electronApiFactory.js";'
+        );
+        expect(runtimeSource).toContain(
+            'import { loadPreloadModules } from "./preloadModuleLoader.js";'
+        );
+        expect(runtimeSource).toContain("requireModule,");
+        expect(runtimeSource).toContain("loadPreloadModules()");
+        expect(runtimeSource).not.toContain(
+            "const { loadPreloadModules } = requireModule"
+        );
+        expect(runtimeSource).not.toContain(
+            "const { createElectronApi } = requireModule"
+        );
+        expect(runtimeSource).not.toContain(
+            "const { assemblePreloadApi, createPreloadConstants } = requireModule"
+        );
+    });
+
     it("keeps the preload event helper free of generic IPC methods", () => {
         expect.assertions(5);
 
