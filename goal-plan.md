@@ -38,6 +38,8 @@ The remaining preload API assembly, runtime, bootstrap, and module-loader files 
 Direct preload module unit tests now import named source exports natively; the preload source-require bridge
 remains only for source execution/module-mock fixtures that intentionally exercise the injected `requireModule`
 boundary.
+Preload shared-policy unit tests now import the policy modules natively instead of using `createRequire`, with
+architecture coverage to keep those tests off CommonJS-in-ESM loading patterns.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

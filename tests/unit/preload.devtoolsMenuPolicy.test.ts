@@ -1,27 +1,9 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it } from "vitest";
-
-interface DevtoolsMenuPolicyModule {
-    validateDevtoolsInjectMenuFitFilePath: (value: unknown) => null | string;
-    validateDevtoolsInjectMenuPayload: (
-        theme: unknown,
-        fitFilePath: unknown
-    ) => {
-        fitFilePath: null | string;
-        theme: null | string;
-    };
-    validateDevtoolsInjectMenuTheme: (value: unknown) => null | string;
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const {
+import {
     validateDevtoolsInjectMenuFitFilePath,
     validateDevtoolsInjectMenuPayload,
     validateDevtoolsInjectMenuTheme,
-} = requireFromTest(
-    "../../electron-app/shared/devtoolsMenuPolicy.js"
-) as DevtoolsMenuPolicyModule;
+} from "../../electron-app/shared/devtoolsMenuPolicy.js";
 
 describe("devtools menu policy", () => {
     it("normalizes allowed themes and absolute FIT paths", () => {

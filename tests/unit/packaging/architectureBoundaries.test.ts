@@ -1598,6 +1598,26 @@ describe("architecture boundaries", () => {
         expect(directSourceRequireTestFiles).toStrictEqual([]);
     });
 
+    it("keeps preload policy unit tests on native source imports", () => {
+        expect.assertions(1);
+
+        const policyTestFiles = [
+            "tests/unit/preload.devtoolsMenuPolicy.test.ts",
+            "tests/unit/preload.fitBrowserPathPolicy.test.ts",
+            "tests/unit/preload.fitFilePathPolicy.test.ts",
+            "tests/unit/preload.mainStatePathPolicy.test.ts",
+        ];
+        const commonJsPolicyTestLoads = policyTestFiles
+            .filter((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "createRequire"
+                )
+            )
+            .sort();
+
+        expect(commonJsPolicyTestLoads).toStrictEqual([]);
+    });
+
     it("keeps preload IPC policy dependencies injected through the module registry", () => {
         expect.assertions(6);
 

@@ -1,17 +1,8 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it } from "vitest";
-
-interface FitBrowserPathPolicyModule {
-    validateFitBrowserRelativePath: (value: unknown) => string;
-    validateFitBrowserRootFolderPath: (value: unknown) => string;
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { validateFitBrowserRelativePath, validateFitBrowserRootFolderPath } =
-    requireFromTest(
-        "../../electron-app/shared/fitBrowserPathPolicy.js"
-    ) as FitBrowserPathPolicyModule;
+import {
+    validateFitBrowserRelativePath,
+    validateFitBrowserRootFolderPath,
+} from "../../electron-app/shared/fitBrowserPathPolicy.js";
 
 describe("FIT browser path policy", () => {
     it("accepts safe relative browser paths", () => {
