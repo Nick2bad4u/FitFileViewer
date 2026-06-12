@@ -647,6 +647,8 @@ const directVitestWindowConsoleGroupPatchPattern =
     /\bwindow\.console\.group(?:Collapsed|End)?\s*=/u;
 const directVitestTabButtonObserverCleanupPattern =
     /\btabButtonObserver\b/u;
+const directVitestChartDevToolsGlobalCleanupPattern =
+    /\b__chartjs_dev\b/u;
 const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
@@ -6965,6 +6967,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directTabButtonObserverCleanup).toStrictEqual([]);
+    });
+
+    it("does not clean retired Chart.js devtools globals in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directChartDevToolsGlobalCleanup = scannedFiles
+            .filter((relativeFile) =>
+                directVitestChartDevToolsGlobalCleanupPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directChartDevToolsGlobalCleanup).toStrictEqual([]);
     });
 
     it("keeps process nextTick setup behind one setup helper", () => {

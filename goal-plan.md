@@ -335,6 +335,8 @@ from returning.
 State devtools tests no longer delete the retired `__stateDebug` debug global around cleanup or initialization;
 they now assert typed debug utilities stay off `globalThis`, and architecture coverage blocks that mutation
 from returning.
+Vitest setup no longer deletes a retired `window.__chartjs_dev` cleanup global; chart development helpers stay
+behind `chartDevToolsRegistry`.
 Render chart runtime helper tests no longer create or delete retired `chartActions` or `chartStateManager`
 globals when proving registry-based resolution; architecture coverage blocks those mutations from returning.
 Settings modal tests no longer delete retired `showSettingsModal` or `closeSettingsModal` globals during

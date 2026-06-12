@@ -347,17 +347,6 @@ const __nativeWindow = typeof window !== "undefined" ? window : undefined;
  */
 function cleanupWindowGlobals(win) {
     if (!win) return;
-    try {
-        if (win.__chartjs_dev) {
-            try {
-                delete win.__chartjs_dev;
-            } catch {
-                win.__chartjs_dev = undefined;
-            }
-        }
-    } catch {
-        /* Ignore errors */
-    }
     // Clear storage to avoid unit selection bleed (seconds/minutes/hours) between tests
     try {
         if (win.localStorage && typeof win.localStorage.clear === "function") {
