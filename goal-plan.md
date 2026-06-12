@@ -384,6 +384,9 @@ development helpers stay module-returned and absent from `globalThis`, and archi
 mutation from returning.
 Tab-state manager behavior tests no longer delete a retired `window.renderSummary` global before proving
 summary rendering uses typed imports, and architecture coverage blocks that mutation from returning.
+Active-tab fallback tests now install missing-document and window-document browser fixtures through
+descriptor-scoped helpers instead of reflecting directly onto `globalThis`, with architecture coverage blocking
+that fallback fixture mutation pattern.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning.

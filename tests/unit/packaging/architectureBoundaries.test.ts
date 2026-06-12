@@ -802,6 +802,8 @@ const directListenersResizeRuntimeGlobalPattern =
     /\b(?:document|window|globalThis)\.|\bReflect\.get\(|\binstanceof\s+(?:Element|HTMLCanvasElement)\b|\bquerySelectorByIdFlexible\(\s*document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
+const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
+    /\bReflect\.set\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*,/u;
 const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
@@ -3759,6 +3761,20 @@ describe("architecture boundaries", () => {
         expect(updateActiveTabSource).not.toContain(
             "state/core/stateManager.js"
         );
+    });
+
+    it("keeps active-tab fallback tests on descriptor-scoped browser fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            updateActiveTabFallbackDirectGlobalFixtureMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/updateActiveTab.fallbacks.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps tab visibility updates on the renderer state access facade", () => {
