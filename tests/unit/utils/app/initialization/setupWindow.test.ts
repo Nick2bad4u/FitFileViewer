@@ -13,10 +13,10 @@ type ShowNotification = (
 type SwitchToTab = (tab: string) => void;
 
 const chartStateManagerMock = {
-        cleanup: vi.fn<Cleanup>(),
+        destroy: vi.fn<Cleanup>(),
     },
     chartTabIntegrationMock = {
-        cleanup: vi.fn<Cleanup>(),
+        destroy: vi.fn<Cleanup>(),
         initialize: vi.fn<Cleanup>(),
     },
     tabStateManagerMock = {
@@ -79,8 +79,8 @@ async function loadModule() {
 describe("setupWindow", () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        chartStateManagerMock.cleanup.mockReset();
-        chartTabIntegrationMock.cleanup.mockReset();
+        chartStateManagerMock.destroy.mockReset();
+        chartTabIntegrationMock.destroy.mockReset();
         chartTabIntegrationMock.initialize.mockReset();
         tabStateManagerMock.cleanup.mockReset();
         tabStateManagerMock.switchToTab.mockReset();
@@ -97,9 +97,9 @@ describe("setupWindow", () => {
         const { cleanup } = await loadModule();
 
         expect(cleanup()).toBeUndefined();
-        expect(chartStateManagerMock.cleanup).toHaveBeenCalledOnce();
+        expect(chartStateManagerMock.destroy).toHaveBeenCalledOnce();
         expect(tabStateManagerMock.cleanup).toHaveBeenCalledOnce();
-        expect(chartTabIntegrationMock.cleanup).toHaveBeenCalledOnce();
+        expect(chartTabIntegrationMock.destroy).toHaveBeenCalledOnce();
         expect(logSpy).toHaveBeenCalledWith("[setupWindow] Cleanup completed");
 
         logSpy.mockRestore();
@@ -109,7 +109,7 @@ describe("setupWindow", () => {
         expect.assertions(2);
 
         const error = new Error("boom");
-        chartStateManagerMock.cleanup.mockImplementationOnce(() => {
+        chartStateManagerMock.destroy.mockImplementationOnce(() => {
             throw error;
         });
         const errorSpy = vi

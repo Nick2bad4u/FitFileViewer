@@ -15,9 +15,9 @@ import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
  */
 export function cleanup(): void {
     try {
-        chartStateManager.cleanup();
+        chartStateManager.destroy();
         tabStateManager.cleanup();
-        chartTabIntegration.cleanup();
+        chartTabIntegration.destroy();
         console.log("[setupWindow] Cleanup completed");
     } catch (error) {
         console.error("[setupWindow] Cleanup failed:", error);

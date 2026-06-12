@@ -60,7 +60,8 @@ shared `__vitest_manual_mocks__` global registry for startup test doubles. Expor
 test doubles now use module-local focused test overrides instead of the shared manual-mock registry too. The
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
 use `setupFullscreenListeners`. `showFitData` no longer accepts the deprecated `resetRenderStates` option;
-render-state resets belong to `AppActions` and typed renderer state facades.
+render-state resets belong to `AppActions` and typed renderer state facades. Chart state-manager and chart-tab
+integration cleanup now calls `destroy()` directly instead of retaining `cleanup()` compatibility aliases.
 
 6. Reduce Test Harness Global Pollution (Fully finish)
 

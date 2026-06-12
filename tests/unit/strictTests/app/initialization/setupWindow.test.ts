@@ -5,8 +5,8 @@ type SetupWindowModule =
 
 const mocks = vi.hoisted(() => ({
     applyTheme: vi.fn<(theme: string, withTransition?: boolean) => void>(),
-    chartStateCleanup: vi.fn<() => void>(),
-    chartTabCleanup: vi.fn<() => void>(),
+    chartStateDestroy: vi.fn<() => void>(),
+    chartTabDestroy: vi.fn<() => void>(),
     chartTabInitialize: vi.fn<() => void>(),
     listenForThemeChange:
         vi.fn<(onThemeChange: (theme: string) => void) => void>(),
@@ -21,7 +21,7 @@ vi.mock(
     import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
     () => ({
         chartStateManager: {
-            cleanup: mocks.chartStateCleanup,
+            destroy: mocks.chartStateDestroy,
         },
     })
 );
@@ -30,7 +30,7 @@ vi.mock(
     import("../../../../../electron-app/utils/charts/core/chartTabIntegration.js"),
     () => ({
         chartTabIntegration: {
-            cleanup: mocks.chartTabCleanup,
+            destroy: mocks.chartTabDestroy,
             initialize: mocks.chartTabInitialize,
         },
     })
@@ -89,7 +89,7 @@ describe("setupWindow", () => {
             "success",
             2000
         );
-        expect(mocks.chartStateCleanup).not.toHaveBeenCalled();
+        expect(mocks.chartStateDestroy).not.toHaveBeenCalled();
     });
 
     it("reports and rethrows initialization failures", async () => {
@@ -120,9 +120,9 @@ describe("setupWindow", () => {
         const result = cleanup();
 
         expect(result).toBeUndefined();
-        expect(mocks.chartStateCleanup).toHaveBeenCalledOnce();
+        expect(mocks.chartStateDestroy).toHaveBeenCalledOnce();
         expect(mocks.tabStateCleanup).toHaveBeenCalledOnce();
-        expect(mocks.chartTabCleanup).toHaveBeenCalledOnce();
+        expect(mocks.chartTabDestroy).toHaveBeenCalledOnce();
     });
 });
 

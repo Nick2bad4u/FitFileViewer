@@ -1800,7 +1800,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart tab integration on renderer state facades", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const chartTabIntegrationSource = stripComments(
             readRepositoryFile(
@@ -1825,6 +1825,7 @@ describe("architecture boundaries", () => {
         expect(chartTabIntegrationSource).not.toContain(
             "instanceof HTMLElement"
         );
+        expect(chartTabIntegrationSource).not.toContain("cleanup()");
     });
 
     it("keeps chart notification state on the chart render-state facade", () => {
@@ -1862,7 +1863,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart state manager on chart and renderer state facades", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const chartStateManagerSource = stripComments(
             readRepositoryFile(
@@ -1877,6 +1878,7 @@ describe("architecture boundaries", () => {
         expect(chartStateManagerSource).not.toContain(
             "state/core/stateManager.js"
         );
+        expect(chartStateManagerSource).not.toContain("cleanup()");
     });
 
     it("keeps chart state manager browser APIs behind the runtime facade", () => {

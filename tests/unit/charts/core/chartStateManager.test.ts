@@ -920,21 +920,7 @@ describe("chartStateManager", () => {
         });
     });
 
-    describe("cleanup and Destruction", () => {
-        it("should cleanup (alias for destroy)", () => {
-            expect.assertions(2);
-
-            const mockChart = { destroy: vi.fn<() => void>() };
-            const destroySpy = vi.spyOn(chartStateManager, "destroy");
-            setRegisteredChartInstances([mockChart]);
-
-            chartStateManager.cleanup();
-
-            expect(getRegisteredChartInstances()).toStrictEqual([]);
-            expect(destroySpy).toHaveBeenCalledWith();
-            destroySpy.mockRestore();
-        });
-
+    describe("destruction", () => {
         it("should destroy properly", () => {
             expect.assertions(3);
 
