@@ -2743,8 +2743,8 @@ describe("architecture boundaries", () => {
         expect(createAppMenuTestSource).not.toMatch(
             /\b(?:createRequire|requireCjs|require\s*\()/u
         );
-        expect(createAppMenuTestSource).toContain(
-            'Reflect.get(globalThis, "__FFV_createAppMenuExports")'
+        expect(createAppMenuTestSource).not.toMatch(
+            directAppMenuExportsGlobalPattern
         );
     });
 
@@ -5907,6 +5907,32 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directShowFitDataTestGlobals).toStrictEqual([]);
+    });
+
+    it("keeps retired renderer compatibility globals out of ordinary tests", () => {
+        expect.assertions(1);
+
+        const scannedFiles = testSourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    relativeFile !==
+                    "tests/unit/packaging/architectureBoundaries.test.ts"
+            );
+        const directRetiredRendererTestGlobals = scannedFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return (
+                    directAppMenuExportsGlobalPattern.test(source) ||
+                    directChartNotificationSuppressionGlobalPattern.test(
+                        source
+                    ) ||
+                    directChartLoadingSuppressionGlobalPattern.test(source)
+                );
+            })
+            .sort();
+
+        expect(directRetiredRendererTestGlobals).toStrictEqual([]);
     });
 
     it("does not recreate the retired Object.keys throw-through test global", () => {

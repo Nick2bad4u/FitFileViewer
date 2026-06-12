@@ -69,7 +69,6 @@ describe("render chart runtime helpers", () => {
 
     afterEach(() => {
         setLoadingStateSuppressed(false);
-        Reflect.deleteProperty(globalThis, "__FFV_suppressLoadingState");
         Reflect.deleteProperty(globalThis, "chartActions");
         Reflect.deleteProperty(globalThis, "chartStateManager");
         resetChartActionsRegistryForTests();
@@ -230,15 +229,8 @@ describe("render chart runtime helpers", () => {
         expect(Reflect.get(globalThis, "chartActions")).toBe(globalActions);
     });
 
-    it("tracks loading suppression without reading the legacy global flag", () => {
-        expect.assertions(5);
-
-        expect(isLoadingStateSuppressed()).toBe(false);
-
-        Object.defineProperty(globalThis, "__FFV_suppressLoadingState", {
-            configurable: true,
-            value: true,
-        });
+    it("tracks loading suppression through module state", () => {
+        expect.assertions(3);
 
         expect(isLoadingStateSuppressed()).toBe(false);
 
@@ -249,8 +241,5 @@ describe("render chart runtime helpers", () => {
         setLoadingStateSuppressed(false);
 
         expect(isLoadingStateSuppressed()).toBe(false);
-        expect(Reflect.get(globalThis, "__FFV_suppressLoadingState")).toBe(
-            true
-        );
     });
 });

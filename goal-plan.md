@@ -206,6 +206,9 @@ Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the
 wording. `createAppMenu` Electron menu tests now use module-local fixture state instead of `__electron*` and
 call-log globals on `globalThis`. `masterStateManager.ts` now uses module-local test override maps plus typed
 imports instead of probing CJS module caches through `node:module`.
+Chart notification/loading suppression tests and createAppMenu export tests no longer create or read retired
+`__FFV_suppressNotifications`, `__FFV_suppressLoadingState`, or `__FFV_createAppMenuExports` globals; architecture
+coverage now keeps those retired renderer compatibility names out of ordinary tests.
 
 6. Reduce Test Harness Global Pollution (Fully finish)
 
@@ -229,7 +232,8 @@ WeakSet instead of `__vitest_wrapped` expando properties. The setup navigation s
 module-local WeakMap instead of writing `__ffvNavigationHistory` on jsdom `Location` objects. Setup cleanup
 comments and renderer registration fixtures no longer preserve the retired shared manual-mock registry as an
 ambient global test concept. The Object.keys guard duplicate-wrapper tracking now uses module-local WeakSet
-state instead of writing a `__isObjectKeysWrapper` marker property on wrapper functions.
+state instead of writing a `__isObjectKeysWrapper` marker property on wrapper functions. Ordinary unit tests no
+longer seed the retired chart suppression or createAppMenu export globals when verifying module-state behavior.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
