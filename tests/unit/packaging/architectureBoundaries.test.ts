@@ -2556,6 +2556,24 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps migrated packaging and main tests off avoidable CJS loading", () => {
+        expect.assertions(1);
+
+        const migratedTestFiles = [
+            "tests/unit/main.test.ts",
+            "tests/unit/packaging/electronBuilderFiles.test.ts",
+        ];
+        const violations = migratedTestFiles
+            .filter((relativeFile) =>
+                /\b(?:createRequire|require\.resolve|require\s*\()/u.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
     it("keeps state domain modules out of broad renderer utilities", () => {
         expect.assertions(1);
 

@@ -130,6 +130,8 @@ of requiring the source helper.
 Root-context package CLI helper scripts now resolve package entrypoints through `import.meta.resolve`, and the
 preload bundler imports `esbuild` natively instead of using `createRequire`/`require.resolve`; cross-workspace
 package resolvers stay intentionally separate because they resolve from another package root.
+The main-process module test no longer clears CJS require cache for the ESM-imported main entrypoint, and the
+Electron builder file-list test imports the CJS config through native dynamic import instead of `createRequire`.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

@@ -565,12 +565,6 @@ describe("main.js - Electron Main Process", () => {
         Reflect.deleteProperty(globalThis, "devHelpers");
         clearPrimeTestEnvironmentTimers();
         clearGyazoStartupTimer();
-
-        // Clear the main module from cache to reset its state
-        const mainPath = require.resolve("../../electron-app/main.js");
-        if (require.cache[mainPath]) {
-            delete require.cache[mainPath];
-        }
     });
 
     describe("module import and basic tests", () => {

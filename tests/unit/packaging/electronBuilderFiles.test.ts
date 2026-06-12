@@ -1,17 +1,13 @@
 import { readdirSync } from "node:fs";
-import { createRequire } from "node:module";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import {
     appSourcePath,
-    repositoryPath,
-    rootElectronBuilderConfigPath,
     rootReleaseDistPath,
 } from "../../../scripts/lib/workspaces.mjs";
 
-const requireFromTest = createRequire(import.meta.url);
 const repositoryRoot = process.cwd();
 const electronAppRoot = appSourcePath;
 
@@ -21,6 +17,14 @@ type ElectronBuilderConfig = {
     };
     files: string[];
 };
+
+async function loadBuilderConfig(): Promise<ElectronBuilderConfig> {
+    const imported = (await import("../../../electron-builder.config.cjs")) as {
+        default: ElectronBuilderConfig;
+    };
+
+    return imported.default;
+}
 
 function findMarkdownFiles(directory: string): string[] {
     const entries = readdirSync(directory, { withFileTypes: true });
@@ -47,12 +51,10 @@ function findMarkdownFiles(directory: string): string[] {
 }
 
 describe("electron-builder file list", () => {
-    it("keeps the normal package surface aligned to the root builder config", () => {
+    it("keeps the normal package surface aligned to the root builder config", async () => {
         expect.assertions(1);
 
-        const builderConfig = requireFromTest(
-            repositoryPath(rootElectronBuilderConfigPath)
-        ) as ElectronBuilderConfig;
+        const builderConfig = await loadBuilderConfig();
         const sharedFileList = builderConfig.files;
 
         expect({
