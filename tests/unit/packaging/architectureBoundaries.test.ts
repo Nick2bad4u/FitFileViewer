@@ -683,6 +683,8 @@ const renderChartRuntimeHelpersTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:chartActions|chartStateManager)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:chartActions|chartStateManager)["']|(?:globalThis|chartGlobal|runtimeGlobal)\.(?:chartActions|chartStateManager)\s*=/u;
 const directMainProcessDevHelpersGlobalPattern =
     /\b(?:window|globalThis)\.devHelpers\b|Object\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)/u;
+const mainProcessDevHelpersTestRetiredGlobalMutationPattern =
+    /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["']devHelpers["']\s*(?:,|\))|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']|\bglobalThis\.devHelpers\s*=/u;
 const directElectronHoistedMockGlobalAllowedFiles = new Set<string>();
 const directElectronHoistedMockGlobalPattern =
     /\b(?:window|globalThis|getMenuGlobal\(\))\.__electronHoistedMock\b|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']__electronHoistedMock["']/u;
@@ -6197,6 +6199,16 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps main-process tests from mutating retired dev helper globals", () => {
+        expect.assertions(1);
+
+        expect(
+            mainProcessDevHelpersTestRetiredGlobalMutationPattern.test(
+                stripComments(readRepositoryFile("tests/unit/main.test.ts"))
+            )
+        ).toBe(false);
     });
 
     it("keeps lifecycle listener tests from mutating retired renderer globals", () => {

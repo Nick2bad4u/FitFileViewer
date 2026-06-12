@@ -562,7 +562,6 @@ describe("main.js - Electron Main Process", () => {
     afterEach(async () => {
         vi.clearAllMocks();
         await setMainElectronOverride(null);
-        Reflect.deleteProperty(globalThis, "devHelpers");
         clearPrimeTestEnvironmentTimers();
         clearGyazoStartupTimer();
     });

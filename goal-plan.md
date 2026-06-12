@@ -301,6 +301,9 @@ fixture setup or cleanup; they now assert presenter helpers stay absent, and arc
 those mutations from returning.
 Render-summary helper tests no longer create or delete the retired `window.activeFitFileName` fallback when
 proving default storage-key behavior; architecture coverage blocks those mutations from returning.
+Main-process unit tests no longer delete the retired `devHelpers` global during cleanup; they now assert
+development helpers stay module-returned and absent from `globalThis`, and architecture coverage blocks that
+mutation from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
