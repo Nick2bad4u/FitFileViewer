@@ -186,24 +186,6 @@ describe("enableTabButtons behavior", () => {
         console.log = originalConsoleLog;
         console.warn = originalConsoleWarn;
 
-        // Clean up global window properties
-        if ((global as any).window.tabButtonsCurrentlyEnabled !== undefined) {
-            delete (global as any).window.tabButtonsCurrentlyEnabled;
-        }
-        delete (
-            globalThis as typeof globalThis & {
-                tabButtonsCurrentlyEnabled?: boolean;
-            }
-        ).tabButtonsCurrentlyEnabled;
-        Reflect.deleteProperty(globalThis, "areTabButtonsEnabled");
-        Reflect.deleteProperty(globalThis, "debugTabButtons");
-        Reflect.deleteProperty(globalThis, "debugTabState");
-        Reflect.deleteProperty(globalThis, "forceEnableTabButtons");
-        Reflect.deleteProperty(globalThis, "forceFixTabButtons");
-        Reflect.deleteProperty(globalThis, "setTabButtonsEnabled");
-        Reflect.deleteProperty(globalThis, "tabButtonObserver");
-        Reflect.deleteProperty(globalThis, "testTabButtonClicks");
-
         vi.resetAllMocks();
     });
 
@@ -226,6 +208,11 @@ describe("enableTabButtons behavior", () => {
                 globalThis,
                 "setTabButtonsEnabled"
             ),
+            tabButtonObserver: Reflect.has(globalThis, "tabButtonObserver"),
+            tabButtonsCurrentlyEnabled: Reflect.has(
+                globalThis,
+                "tabButtonsCurrentlyEnabled"
+            ),
             testTabButtonClicks: Reflect.has(globalThis, "testTabButtonClicks"),
         }).toStrictEqual({
             areTabButtonsEnabled: false,
@@ -234,6 +221,8 @@ describe("enableTabButtons behavior", () => {
             forceEnableTabButtons: false,
             forceFixTabButtons: false,
             setTabButtonsEnabled: false,
+            tabButtonObserver: false,
+            tabButtonsCurrentlyEnabled: false,
             testTabButtonClicks: false,
         });
     });

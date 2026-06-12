@@ -285,6 +285,9 @@ blocks that mutation from returning.
 Lifecycle listener strict tests no longer delete retired helper globals such as `globalData`,
 `sendFitFileToAltFitReader`, `renderChartJS`, or `copyTableAsCSV`; they now assert those names stay absent,
 and architecture coverage blocks those mutations from returning.
+Tab-button behavior tests no longer delete retired enabled-state, observer, or diagnostic helper globals such
+as `tabButtonsCurrentlyEnabled`, `tabButtonObserver`, `areTabButtonsEnabled`, or `forceFixTabButtons`; they
+now assert those names stay absent, and architecture coverage blocks those mutations from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
