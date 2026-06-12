@@ -395,6 +395,8 @@ The setup-level `global.HTMLElement = window.HTMLElement` bridge has also been r
 use the environment's native element constructors without another shared global assignment.
 Setup console hardening now uses the existing `ensureConsoleAlive()` path instead of separately patching
 `window.console.group`, `window.console.groupEnd`, and `window.console.groupCollapsed` in another global block.
+Preload and main-UI runtime-environment tests now install temporary console handles through descriptor-scoped
+fixtures instead of direct `globalThis.console` assignment, with architecture coverage blocking that pattern.
 Setup process-nextTick stabilization now uses one `ensureProcessNextTick()` helper instead of repeating the same
 inline `globalThis.process.nextTick` mutation in multiple setup hooks.
 

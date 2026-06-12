@@ -10,15 +10,28 @@ describe("main UI runtime environment", () => {
             ...console,
             info: vi.fn<typeof console.info>(),
         } as Console;
-        const originalConsole = globalThis.console;
-        globalThis.console = runtimeConsole;
+        const originalConsoleDescriptor = Object.getOwnPropertyDescriptor(
+            globalThis,
+            "console"
+        );
+        Object.defineProperty(globalThis, "console", {
+            configurable: true,
+            value: runtimeConsole,
+            writable: true,
+        });
 
         try {
             expect(getMainUiRuntimeEnvironment()).toStrictEqual({
                 consoleRef: runtimeConsole,
             });
         } finally {
-            globalThis.console = originalConsole;
+            if (originalConsoleDescriptor) {
+                Object.defineProperty(
+                    globalThis,
+                    "console",
+                    originalConsoleDescriptor
+                );
+            }
         }
     });
 });

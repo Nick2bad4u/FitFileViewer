@@ -645,6 +645,8 @@ const directVitestHTMLElementGlobalBridgePattern =
     /\bglobal\.HTMLElement\s*=\s*window\.HTMLElement\b/u;
 const directVitestWindowConsoleGroupPatchPattern =
     /\bwindow\.console\.group(?:Collapsed|End)?\s*=/u;
+const directRuntimeEnvironmentTestConsoleAssignmentPattern =
+    /\bglobalThis\.console\s*=/u;
 const directVitestTabButtonObserverCleanupPattern =
     /\btabButtonObserver\b/u;
 const directVitestChartDevToolsGlobalCleanupPattern =
@@ -7152,6 +7154,24 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directWindowConsoleGroupPatches).toStrictEqual([]);
+    });
+
+    it("keeps runtime-environment tests from direct console global assignment", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            "tests/unit/preload.preloadRuntimeEnvironment.test.ts",
+            "tests/unit/renderer/mainUiRuntimeEnvironment.test.ts",
+        ];
+        const directConsoleGlobalAssignments = scannedFiles
+            .filter((relativeFile) =>
+                directRuntimeEnvironmentTestConsoleAssignmentPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directConsoleGlobalAssignments).toStrictEqual([]);
     });
 
     it("does not clean retired tab-button observer globals in setup", () => {

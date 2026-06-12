@@ -9,8 +9,15 @@ describe("preload runtime environment", () => {
             ...console,
             log: vi.fn<typeof console.log>(),
         } as Console;
-        const originalConsole = globalThis.console;
-        globalThis.console = runtimeConsole;
+        const originalConsoleDescriptor = Object.getOwnPropertyDescriptor(
+            globalThis,
+            "console"
+        );
+        Object.defineProperty(globalThis, "console", {
+            configurable: true,
+            value: runtimeConsole,
+            writable: true,
+        });
 
         try {
             expect(getDefaultPreloadRuntimeEnvironment()).toStrictEqual({
@@ -19,7 +26,13 @@ describe("preload runtime environment", () => {
                 processRef: process,
             });
         } finally {
-            globalThis.console = originalConsole;
+            if (originalConsoleDescriptor) {
+                Object.defineProperty(
+                    globalThis,
+                    "console",
+                    originalConsoleDescriptor
+                );
+            }
         }
     });
 });
