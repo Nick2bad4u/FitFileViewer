@@ -11,19 +11,26 @@ type OAuthResolve = (token: string) => void;
 type ShowNotification = (message: string, type: string) => void;
 type StopGyazoServer = () => Promise<void>;
 type TestGlobal = typeof globalThis & {
-    __vitest_manual_mocks__?: ManualMockRegistry;
     confirm: (message?: string) => boolean;
 };
 
+let exportUtilsManualMocks: ManualMockRegistry | undefined;
 let stopGyazoServerMock: ReturnType<typeof vi.fn<StopGyazoServer>> | undefined;
 
 async function loadExportUtils() {
-    return await import("../../../../../electron-app/utils/files/export/exportUtils.js");
+    const module =
+        await import("../../../../../electron-app/utils/files/export/exportUtils.js");
+    if (exportUtilsManualMocks) {
+        module.setExportUtilsTestModuleOverrides(exportUtilsManualMocks);
+    }
+    return module;
 }
 
 function getManualMocks(): ManualMockRegistry {
-    return (globalThis as TestGlobal)
-        .__vitest_manual_mocks__ as ManualMockRegistry;
+    if (!exportUtilsManualMocks) {
+        throw new Error("exportUtils manual mocks were not installed");
+    }
+    return exportUtilsManualMocks;
 }
 
 function getShowNotificationMock(): ReturnType<typeof vi.fn<ShowNotification>> {
@@ -44,9 +51,8 @@ function getStopGyazoServerMock(): ReturnType<typeof vi.fn<StopGyazoServer>> {
 }
 
 function installBaseMocks() {
-    // Minimal manual mock registry so exportUtils resolves showNotification/detectCurrentTheme
     const reg: ManualMockRegistry = new Map();
-    (globalThis as TestGlobal).__vitest_manual_mocks__ = reg;
+    exportUtilsManualMocks = reg;
     reg.set("/utils/ui/notifications/showNotification.js", {
         showNotification: vi.fn<ShowNotification>(),
     });
@@ -111,6 +117,7 @@ describe("exportUtils UI modals (Imgur & Gyazo)", () => {
 
     afterEach(async function cleanupExportUiTest(): Promise<void> {
         document.body.replaceChildren();
+        exportUtilsManualMocks = undefined;
         stopGyazoServerMock = undefined;
         await resetRegisteredElectronApi();
     });

@@ -1,9 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
-function loadExportUtils() {
-    return import("../../../../../../electron-app/utils/files/export/exportUtils.js");
-}
-
 type ClipboardWrite = (data: ClipboardItem[]) => Promise<void>;
 type ClipboardWriteText = (data: string) => Promise<void>;
 type CreateObjectUrl = (object: Blob | MediaSource) => string;
@@ -34,7 +30,6 @@ type ShowNotification = (
     options?: unknown
 ) => Promise<void> | void;
 type TestGlobal = typeof globalThis & {
-    __vitest_manual_mocks__?: Map<string, ManualMockModule>;
     ClipboardItem?: new (items: Record<string, Blob>) => Record<string, Blob>;
     navigator: Navigator & {
         clipboard?: {
@@ -47,6 +42,16 @@ type TestGlobal = typeof globalThis & {
 type ToBase64Image = NonNullable<ExportableChartLike["toBase64Image"]>;
 
 const testGlobal = globalThis as TestGlobal;
+let exportUtilsManualMocks: Map<string, ManualMockModule> | undefined;
+
+async function loadExportUtils() {
+    const module =
+        await import("../../../../../../electron-app/utils/files/export/exportUtils.js");
+    if (exportUtilsManualMocks) {
+        module.setExportUtilsTestModuleOverrides(exportUtilsManualMocks);
+    }
+    return module;
+}
 
 // Minimal DOM and API shims for canvas, URL, and clipboard
 function installCanvasMocks() {
@@ -171,7 +176,7 @@ async function installJSZipMock() {
 }
 
 function getNotificationMock(): ReturnType<typeof vi.fn<ShowNotification>> {
-    const notificationModule = testGlobal.__vitest_manual_mocks__?.get(
+    const notificationModule = exportUtilsManualMocks?.get(
         "/utils/ui/notifications/showNotification.js"
     );
     if (!notificationModule?.showNotification) {
@@ -253,9 +258,8 @@ describe("exportUtils core flows", () => {
         localStorage.clear();
         vi.restoreAllMocks();
         vi.resetModules();
-        // Provide manual mock registry for exportUtils suffix resolver
         const reg = new Map<string, ManualMockModule>();
-        testGlobal.__vitest_manual_mocks__ = reg;
+        exportUtilsManualMocks = reg;
         reg.set("/utils/ui/notifications/showNotification.js", {
             showNotification: vi.fn<ShowNotification>(),
         });
@@ -272,6 +276,7 @@ describe("exportUtils core flows", () => {
 
     afterEach(async () => {
         await clearExportZipRuntime();
+        exportUtilsManualMocks = undefined;
         // Ensure body is clean between tests
         document.body.innerHTML = "";
     });

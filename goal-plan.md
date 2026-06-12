@@ -55,7 +55,8 @@ event APIs directly. Avoid generic “helper bags,” registry-like modules, bro
 only mutation seams.
 
 Progress: renderer core module resolution now uses module-local focused test overrides instead of reading the
-shared `__vitest_manual_mocks__` global registry for startup test doubles.
+shared `__vitest_manual_mocks__` global registry for startup test doubles. Export utility notification/theme
+test doubles now use module-local focused test overrides instead of the shared manual-mock registry too.
 
 6. Reduce Test Harness Global Pollution (Fully finish)
 

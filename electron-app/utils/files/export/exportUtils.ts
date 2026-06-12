@@ -25,9 +25,6 @@ import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type LooseRecord = unknown;
 type ManualMockModule = Record<string, LooseRecord>;
-type VitestManualMockGlobal = typeof globalThis & {
-    __vitest_manual_mocks__?: Map<string, unknown>;
-};
 type ExportStorageLike = {
     getItem?: (key: string) => null | string;
     removeItem?: (key: string) => void;
@@ -138,6 +135,7 @@ type ExportModalAccessibilityOptions = {
 };
 
 let exportModalTitleCounter = 0;
+let exportUtilsTestModuleOverrides: Map<string, unknown> | null = null;
 
 function hasOptionalElectronFunction(
     record: Readonly<Record<string, unknown>>,
@@ -244,9 +242,8 @@ async function stopGyazoServerIfAvailable(): Promise<void> {
     }
 }
 
-// In test environment, allow vi.mock to be honored even for modules this file imports statically
-// By consulting a minimal manual mock registry installed by the Vitest setup. When not under tests,
-// Or when no mock is registered, we simply use the real implementations.
+// Focused tests can override dependencies that this module imports statically.
+// Runtime code uses the real implementations when no module-local override exists.
 
 /*
  * @param {unknown} value
@@ -258,10 +255,10 @@ function __isManualMockModule(value: unknown): value is ManualMockModule {
 }
 
 /*
- * @returns {Map<string, unknown> | undefined}
+ * @returns {Map<string, unknown> | null}
  */
-function __getManualMockRegistry(): Map<string, unknown> | undefined {
-    return (globalThis as VitestManualMockGlobal).__vitest_manual_mocks__;
+function __getManualMockRegistry(): Map<string, unknown> | null {
+    return exportUtilsTestModuleOverrides;
 }
 
 /*
@@ -299,13 +296,41 @@ function __resolveManualMockBySuffix(p: string): ManualMockModule | null {
     return null;
 }
 
-// Resolve possibly-mocked dependencies
-const __notifMod = __resolveManualMockBySuffix(
-    "/utils/ui/notifications/showNotification.js"
-);
-const __chartThemeMod = __resolveManualMockBySuffix(
-    "/utils/charts/theming/chartThemeUtils.js"
-);
+function __resolveManualMockExport<T>(
+    pathSuffix: string,
+    exportName: string
+): T | undefined {
+    const module = __resolveManualMockBySuffix(pathSuffix);
+    return module?.[exportName] as T | undefined;
+}
+
+export function resetExportUtilsTestModuleOverrides(): void {
+    exportUtilsTestModuleOverrides = null;
+}
+
+export function setExportUtilsTestModuleOverrides(
+    overrides: ReadonlyMap<string, unknown>
+): void {
+    exportUtilsTestModuleOverrides = new Map(overrides);
+}
+
+function resolveShowNotification(): typeof __realShowNotification {
+    return (
+        __resolveManualMockExport<typeof __realShowNotification>(
+            "/utils/ui/notifications/showNotification.js",
+            "showNotification"
+        ) ?? __realShowNotification
+    );
+}
+
+function resolveDetectCurrentTheme(): typeof __realDetectCurrentTheme {
+    return (
+        __resolveManualMockExport<typeof __realDetectCurrentTheme>(
+            "/utils/charts/theming/chartThemeUtils.js",
+            "detectCurrentTheme"
+        ) ?? __realDetectCurrentTheme
+    );
+}
 
 // Debug logging for mock resolution is useful when diagnosing tricky Vitest ESM mocking,
 // but it is extremely noisy in normal test runs. Gate it behind an explicit env flag.
@@ -322,12 +347,20 @@ try {
             console.log("[exportUtils][debug] manual-mock keys:", keys);
             console.log(
                 "[exportUtils][debug] resolved showNotification mock?",
-                Boolean(__notifMod && __notifMod["showNotification"])
+                Boolean(
+                    __resolveManualMockExport(
+                        "/utils/ui/notifications/showNotification.js",
+                        "showNotification"
+                    )
+                )
             );
             console.log(
                 "[exportUtils][debug] resolved detectCurrentTheme mock?",
                 Boolean(
-                    __chartThemeMod && __chartThemeMod["detectCurrentTheme"]
+                    __resolveManualMockExport(
+                        "/utils/charts/theming/chartThemeUtils.js",
+                        "detectCurrentTheme"
+                    )
                 )
             );
         }
@@ -337,17 +370,11 @@ try {
 }
 
 // Local call sites use these, which point to mocked versions in tests when available
-const resolvedShowNotification =
-    (__notifMod?.["showNotification"] as
-        | typeof __realShowNotification
-        | undefined) ?? __realShowNotification;
 const showNotification: ExportNotification = (...args) => {
-    void resolvedShowNotification(...args);
+    void resolveShowNotification()(...args);
 };
-const detectCurrentTheme =
-    (__chartThemeMod?.["detectCurrentTheme"] as
-        | typeof __realDetectCurrentTheme
-        | undefined) ?? __realDetectCurrentTheme;
+const detectCurrentTheme = (): ReturnType<typeof __realDetectCurrentTheme> =>
+    resolveDetectCurrentTheme()();
 
 /*
  * Convert a base64 data URL (e.g. data:image/png;base64,...) into a Blob
