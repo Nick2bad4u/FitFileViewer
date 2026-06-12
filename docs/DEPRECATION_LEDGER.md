@@ -146,6 +146,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Renderer vendor readiness migration status: split-entry readiness now stays in module state and is synchronized through the typed `ffv-renderer-vendor-entry-loaded` event instead of a symbol-backed `globalThis` registry; transformed Leaflet plugin modules resolve Leaflet through the typed runtime adapter instead of a separate legacy plugin runtime shim or `Symbol.for("fitfileviewer.legacyLeafletPluginRuntime")`.
 - Vitest Leaflet mock migration status: the shared setup Leaflet mock no longer exposes `markerClusterGroup` for the removed markercluster package path, and architecture coverage keeps that stale plugin mock out of `tests/vitest/setupVitest.mjs`.
 - Vitest Leaflet runtime migration status: `tests/vitest/setupVitest.mjs` no longer registers a default Leaflet runtime for every test; map-focused tests install explicit runtime fixtures when needed, and architecture coverage keeps setup off `setLeafletRuntime`.
+- Vitest Leaflet module-mock migration status: the unused setup-level `leafletMock` object has been removed from `tests/vitest/setupVitest.mjs`; map-focused suites own their explicit Leaflet fixtures instead of inheriting a broad fake map library from global setup.
 - Next removal step: keep shrinking remaining legacy renderer compatibility adapters toward typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`
