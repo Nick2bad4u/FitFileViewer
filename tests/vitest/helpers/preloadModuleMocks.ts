@@ -1,6 +1,6 @@
-import { createRequire } from "node:module";
+import { createPreloadSourceRequire } from "./preloadSourceRequire";
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 
 const preloadApiAssembly = requireFromTest(
     "../../../electron-app/preload/apiAssembly.js"

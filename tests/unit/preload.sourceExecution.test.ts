@@ -1,10 +1,11 @@
 /* eslint-disable case-police/string-check -- devTools is the preload API contract name. */
-import { createRequire } from "node:module";
 import path from "node:path";
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const preloadSourceRequire = createRequire(
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
+
+const preloadSourceRequire = createPreloadSourceRequire(
     path.join(process.cwd(), "electron-app", "preload.ts")
 );
 

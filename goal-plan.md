@@ -12,9 +12,11 @@ from the injected preload module registry instead of requiring sibling preload m
 `electron-app/preload/ipcHelpers.ts` and `electron-app/preload/devtoolsMenuApi.ts` now consume shared validation
 policies from injected registry entries loaded by `electron-app/preload/preloadPolicyModuleLoader.ts` instead
 of requiring shared policy modules directly.
+The small preload API assembly-domain factory modules now use named source exports instead of `module.exports`,
+while the runtime build still emits CommonJS-compatible package output.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
-only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron’s
+only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
 requirements, and tests no longer need special CommonJS-in-ESM mock patterns.
 
 2. Replace Remaining Vendor Compatibility Bundles With Import-Driven Feature Loading (Fully finish)
@@ -54,7 +56,7 @@ typed state APIs.
 
 5. Keep Moving Renderer Utility Compatibility Toward Typed Services (Fully finish)
 
-The “Renderer Utility Globals” section is mostly retired, but it still says remaining focused compatibility
+The “Renderer Utility Globals” section is close to retired, but it still says remaining focused compatibility
 shims live in feature modules while migration continues: /C:/Repos/FitFileViewer/docs/
 DEPRECATION_LEDGER.md:40. The next step is explicit: keep shrinking legacy renderer compatibility adapters
 toward typed services/scoped adapters: /C:/Repos/FitFileViewer/docs/DEPRECATION_LEDGER.md:116.

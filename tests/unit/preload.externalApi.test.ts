@@ -1,9 +1,8 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type { GenericInvokeChannel } from "../../electron-app/shared/ipc";
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface GyazoExternalApiModule {
     createGyazoExternalApi: (options: {
@@ -71,7 +70,7 @@ interface ExternalApiDomainModule {
     };
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { createPreloadExternalApiDomain } = requireFromTest(
     "../../electron-app/preload/externalApiDomain.js"
 ) as ExternalApiDomainModule;
