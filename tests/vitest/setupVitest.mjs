@@ -1310,14 +1310,6 @@ vi.mock("electron-conf", () => {
     };
 });
 
-// Ensure HTMLElement is available globally for instanceof checks
-if (
-    typeof window !== "undefined" &&
-    typeof window.HTMLElement !== "undefined"
-) {
-    global.HTMLElement = window.HTMLElement;
-}
-
 /** @type {WeakMap<Document, any>} */
 const vitestDocumentNativeMethods = new WeakMap();
 const vitestTrackedTimeouts = new Set();

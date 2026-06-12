@@ -356,6 +356,8 @@ Leaflet fixtures instead of inheriting a broad fake map library from global setu
 The broad setup fallback that fabricated `window.addEventListener`, `window.removeEventListener`, and no-op
 `window.dispatchEvent` implementations has been removed; tests now rely on jsdom's real event-target APIs or
 their own focused fixtures.
+The setup-level `global.HTMLElement = window.HTMLElement` bridge has also been removed; jsdom-backed suites now
+use the environment's native element constructors without another shared global assignment.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

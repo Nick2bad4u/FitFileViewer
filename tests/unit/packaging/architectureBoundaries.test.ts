@@ -641,6 +641,8 @@ const directVitestNavigationHistoryExpandoPattern =
     /\b__ffvNavigationHistory\b/u;
 const directVitestWindowEventTargetFallbackPattern =
     /\bwindow\.(?:addEventListener|removeEventListener|dispatchEvent)\s*=|\btypeof\s+window\.dispatchEvent\s*!==\s*["']function["']/u;
+const directVitestHTMLElementGlobalBridgePattern =
+    /\bglobal\.HTMLElement\s*=\s*window\.HTMLElement\b/u;
 const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
@@ -6906,6 +6908,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directWindowEventTargetFallbacks).toStrictEqual([]);
+    });
+
+    it("does not bridge jsdom HTMLElement onto the Node global in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directHTMLElementGlobalBridge = scannedFiles
+            .filter((relativeFile) =>
+                directVitestHTMLElementGlobalBridgePattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directHTMLElementGlobalBridge).toStrictEqual([]);
     });
 
     it("keeps raw globalThis any casts out of source and tests", () => {
