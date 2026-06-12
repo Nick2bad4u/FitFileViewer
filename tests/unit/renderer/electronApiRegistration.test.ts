@@ -112,12 +112,12 @@ describe("renderer Electron API registration", () => {
         ).toBe(api);
     });
 
-    it("ignores ambient manual-mock globals during registration", () => {
+    it("ignores ambient globals during registration", () => {
         expect.assertions(3);
 
         const originalDefineProperty = Object.defineProperty;
         const testGlobal = {
-            __vitest_manual_mocks__: new Map(),
+            unrelatedGlobalState: new Map(),
             electronAPI: createElectronApi().api,
         };
         const { options, state } = createOptions();

@@ -77,7 +77,9 @@ generated-runtime resolver install guard now uses setup-module state instead of
 `__vitest_effective_document__` setup global is no longer published; tests should use real jsdom documents,
 explicit fixtures, or `tabTestEnvironment.ts`. Event-listener wrapper tracking now uses a module-local
 WeakSet instead of `__vitest_wrapped` expando properties. The setup navigation shim now keeps history in a
-module-local WeakMap instead of writing `__ffvNavigationHistory` on jsdom `Location` objects.
+module-local WeakMap instead of writing `__ffvNavigationHistory` on jsdom `Location` objects. Setup cleanup
+comments and renderer registration fixtures no longer preserve the retired shared manual-mock registry as an
+ambient global test concept.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

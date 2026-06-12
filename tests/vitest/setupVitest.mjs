@@ -1416,10 +1416,12 @@ const vitestTrackedIntervals = new Set();
 const vitestTrackedDomListeners = [];
 const vitestWrappedEventListenerMethods = new WeakSet();
 let vitestTimerAndListenerTrackingInstalled = false;
-/** @type {WeakMap<
-    Location,
-    { href: string; reason: string; timestamp: number }[]
->} */
+/**
+ * @type {WeakMap<
+ *     Location,
+ *     { href: string; reason: string; timestamp: number }[]
+ * >}
+ */
 const vitestNavigationHistory = new WeakMap();
 
 // Helper to install guards on a specific Document instance (handles reassignments)
@@ -1945,8 +1947,8 @@ try {
         } catch {
             /* Ignore errors */
         }
-        // Note: do NOT clear the manual mock registry here.
-        // We rely on vi.mock hoisting once per test file; clearing per-test breaks
+        // Note: do NOT reset Vitest module mocks here.
+        // We rely on vi.mock hoisting once per test file; resetting per-test breaks
         // identity linking between test-imported spies and modules under test.
     });
 } catch {
