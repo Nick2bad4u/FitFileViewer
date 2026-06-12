@@ -2111,7 +2111,7 @@ describe("architecture boundaries", () => {
         expect(setupAutoUpdaterSource).toContain(
             'import electronLog from "electron-log"'
         );
-        expect(electronConfAccessSource).toContain(
+        expect(electronConfAccessSource).not.toContain(
             'loadNodeModule<ElectronConfModuleLike<TStore>>("electron-conf")'
         );
         expect(appStateSource).not.toContain('require("electron-conf")');
@@ -2330,7 +2330,7 @@ describe("architecture boundaries", () => {
         expect(nodeModulesSource).toContain("export const path");
         expect(nodeModulesSource).toContain("export const fs");
         expect(nodeModulesSource).toContain("export function httpRef");
-        expect(nodeModulesSource).toContain("export function loadNodeModule");
+        expect(nodeModulesSource).not.toContain("export function loadNodeModule");
         expect(electronConfAccessSource).toContain(
             "export function createElectronConf"
         );

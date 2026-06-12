@@ -1,12 +1,8 @@
-import { loadNodeModule } from "./nodeModules.js";
+import * as electronConfModule from "electron-conf";
 
 type ElectronConfConstructor<TStore> = new (options?: {
     name?: string;
 }) => TStore;
-
-interface ElectronConfModuleLike<TStore> {
-    Conf?: ElectronConfConstructor<TStore>;
-}
 
 function isObjectLike(value: unknown): value is Record<string, unknown> {
     return (
@@ -18,12 +14,11 @@ function isObjectLike(value: unknown): value is Record<string, unknown> {
 export function resolveElectronConfConstructor<
     TStore,
 >(): ElectronConfConstructor<TStore> | null {
-    const mod = loadNodeModule<ElectronConfModuleLike<TStore>>("electron-conf");
-    if (!isObjectLike(mod)) {
+    if (!isObjectLike(electronConfModule)) {
         return null;
     }
 
-    const Conf = Reflect.get(mod, "Conf");
+    const Conf = Reflect.get(electronConfModule, "Conf");
     return typeof Conf === "function"
         ? (Conf as ElectronConfConstructor<TStore>)
         : null;

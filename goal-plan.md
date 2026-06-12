@@ -123,16 +123,15 @@ the updater resolver boundary natively instead of requiring its source file. Ele
 through the async native import path instead of a synchronous `loadNodeModule` or direct package
 `require("electron-updater")` fallback, and the redundant Node ESM `module.exports` namespace branch plus
 the unused default namespace export have been removed.
-The Node runtime module boundary now imports Node built-ins natively for `path`, `fs`, and `httpRef` while
-keeping `loadNodeModule` scoped to external runtime package compatibility adapters, and its unused default
-namespace export has been removed; file-access, IPC sender policy, Gyazo OAuth, application-event, menu-event,
-IPC setup, and Electron access consumers import that boundary natively instead of requiring its
-source file or owning separate direct package-load fallbacks.
-Electron-conf access is now centralized in `electron-app/main/runtime/electronConfAccess.ts` because the
-package's ESM entry is not safe under the current Electron CommonJS module shape. App state, FIT-parser
-integration, app-menu creation, menu event handling, and browser/info IPC handlers use that typed adapter
-instead of direct source-level `require("electron-conf")` calls, and the adapter now exposes named source
-exports only.
+The Node runtime module boundary now imports Node built-ins natively for `path`, `fs`, and `httpRef`; its
+generic `loadNodeModule` package-compatibility escape hatch and unused default namespace export have been
+removed. File-access, IPC sender policy, Gyazo OAuth, application-event, menu-event, IPC setup, and Electron
+access consumers import that boundary natively instead of requiring its source file or owning separate direct
+package-load fallbacks.
+Electron-conf access is now centralized in `electron-app/main/runtime/electronConfAccess.ts`; the adapter
+imports Electron-conf natively, exposes named source exports only, and keeps app state, FIT-parser integration,
+app-menu creation, menu event handling, and browser/info IPC handlers off direct source-level
+`require("electron-conf")` calls.
 The main lifecycle setup boundary now uses a named source export instead of a source-level `module.exports`
 wrapper.
 The main development-helper boundary now uses a named source export and imports app-state helpers natively
