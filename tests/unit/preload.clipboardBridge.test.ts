@@ -1,5 +1,3 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type {
@@ -7,6 +5,7 @@ import type {
     ClipboardRequestPayload,
     ClipboardResponsePayload,
 } from "../../electron-app/shared/ipc";
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface ClipboardBridgeModule {
     createClipboardBridge: (options: {
@@ -41,7 +40,7 @@ interface ClipboardBridgeModule {
     };
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { createClipboardBridge } = requireFromTest(
     "../../electron-app/preload/clipboardBridge.js"
 ) as ClipboardBridgeModule;

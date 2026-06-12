@@ -17,6 +17,8 @@ while the runtime build still emits CommonJS-compatible package output.
 The first preload app API leaf factories (`apiDiagnostics.ts`, `appInfoApi.ts`, `gyazoExternalApi.ts`,
 `shellExternalApi.ts`, and `themeApi.ts`) now use named source exports too, with source tests loading those
 modules through the preload source-require bridge.
+The preload file and clipboard leaf factories (`clipboardBridge.ts`, `fileApi.ts`, and `fitBrowserApi.ts`)
+also use named source exports, while their loader boundaries still provide CommonJS-compatible package output.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

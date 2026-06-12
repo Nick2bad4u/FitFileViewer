@@ -1327,6 +1327,12 @@ describe("architecture boundaries", () => {
             ["electron-app/preload/apiDiagnostics.ts", "createApiDiagnostics"],
             ["electron-app/preload/appInfoApi.ts", "createAppInfoApi"],
             [
+                "electron-app/preload/clipboardBridge.ts",
+                "createClipboardBridge",
+            ],
+            ["electron-app/preload/fileApi.ts", "createFileApi"],
+            ["electron-app/preload/fitBrowserApi.ts", "createFitBrowserApi"],
+            [
                 "electron-app/preload/gyazoExternalApi.ts",
                 "createGyazoExternalApi",
             ],

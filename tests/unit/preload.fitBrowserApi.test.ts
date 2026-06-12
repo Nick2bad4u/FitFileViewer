@@ -1,9 +1,8 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type { FitBrowserInvokeChannel } from "../../electron-app/shared/ipc";
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface FitBrowserApiModule {
     createFitBrowserApi: (options: {
@@ -35,7 +34,7 @@ interface FitBrowserApiModule {
     >;
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { createFitBrowserApi } = requireFromTest(
     "../../electron-app/preload/fitBrowserApi.js"
 ) as FitBrowserApiModule;
