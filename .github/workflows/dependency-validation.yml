@@ -52,6 +52,12 @@ jobs:
                   set -o pipefail
                   xvfb-run -a npm run release:verify 2>&1 | tee artifacts/dependency-validation/release-verify.log
 
+            - name: Verify unsigned package artifacts
+              run: |
+                  test -d release-dist
+                  test -n "$(find release-dist -type f -print -quit)"
+                  npm run release:list-release-dist-files
+
             - name: Collect dependency validation diagnostics
               if: always()
               run: |

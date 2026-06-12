@@ -16,7 +16,7 @@ function readDependencyValidationWorkflow(): string {
 
 describe("dependency validation workflow", () => {
     it("uploads release gate diagnostics when dependency validation fails", () => {
-        expect.assertions(36);
+        expect.assertions(39);
 
         const workflow = readDependencyValidationWorkflow();
 
@@ -32,6 +32,11 @@ describe("dependency validation workflow", () => {
         expect(workflow).toContain("set -o pipefail");
         expect(workflow).toContain(
             "tee artifacts/dependency-validation/release-verify.log"
+        );
+        expect(workflow).toContain("Verify unsigned package artifacts");
+        expect(workflow).toContain("test -d release-dist");
+        expect(workflow).toContain(
+            'test -n "$(find release-dist -type f -print -quit)"'
         );
         expect(workflow).toContain(
             "node --version > artifacts/dependency-validation/node-version.txt"
