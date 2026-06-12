@@ -689,6 +689,8 @@ const settingsModalTestRetiredGlobalMutationPattern =
     /\bdelete\s*\(\s*globalThis\s+as[\s\S]{0,120}?\)\.(?:closeSettingsModal|showSettingsModal)\b|\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:closeSettingsModal|showSettingsModal)["']\s*(?:,|\))|\bglobalThis\.(?:closeSettingsModal|showSettingsModal)\s*=/u;
 const lifecycleListenersTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:copyTableAsCSV|createExportGPXButton|globalData|renderChartJS|sendFitFileToAltFitReader)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']createExportGPXButton["']\s*,|\b(?:globalThis|window)\.(?:copyTableAsCSV|createExportGPXButton|globalData|renderChartJS|sendFitFileToAltFitReader)\s*=/u;
+const lifecycleListenersTestDirectPrintAssignmentPattern =
+    /\bwindow\.print\s*=/u;
 const appEventsTestRetiredFitDataGlobalMutationPattern =
     /\b(?:globalData|loadedFitFiles)\?:|\bObject\.defineProperty\(\s*(?:globalThis|globalAny|testGlobal)\s*,\s*["'](?:globalData|loadedFitFiles)["']|\bdelete\s+(?:globalAny|testGlobal)\.(?:globalData|loadedFitFiles)\b|\b(?:globalThis|globalAny|testGlobal)\.(?:globalData|loadedFitFiles)\s*=/u;
 const typedFitDataTestRetiredGlobalCleanupPattern =
@@ -6928,15 +6930,22 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lifecycle listener tests from mutating retired renderer globals", () => {
-        expect.assertions(1);
+        expect.assertions(2);
+
+        const lifecycleListenerTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/strictTests/utils/app/lifecycle/listeners.test.ts"
+            )
+        );
 
         expect(
             lifecycleListenersTestRetiredGlobalMutationPattern.test(
-                stripComments(
-                    readRepositoryFile(
-                        "tests/unit/strictTests/utils/app/lifecycle/listeners.test.ts"
-                    )
-                )
+                lifecycleListenerTestSource
+            )
+        ).toBe(false);
+        expect(
+            lifecycleListenersTestDirectPrintAssignmentPattern.test(
+                lifecycleListenerTestSource
             )
         ).toBe(false);
     });

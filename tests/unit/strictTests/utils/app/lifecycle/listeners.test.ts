@@ -704,8 +704,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect.hasAssertions();
 
         const printSpy = vi.fn<() => void>();
-        // @ts-ignore
-        window.print = printSpy;
+        vi.spyOn(window, "print").mockImplementation(printSpy);
 
         setupListeners({
             openFileBtn,
