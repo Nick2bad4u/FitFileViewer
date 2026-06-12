@@ -7,6 +7,11 @@ import {
 
 type ResizeObserverConstructor = typeof ResizeObserver;
 
+const originalResizeObserverDescriptor = Object.getOwnPropertyDescriptor(
+    globalThis,
+    "ResizeObserver"
+);
+
 class MockResizeObserver {
     static readonly instances: MockResizeObserver[] = [];
 
@@ -17,6 +22,28 @@ class MockResizeObserver {
     constructor(callback: ResizeObserverCallback) {
         this.callback = callback;
         MockResizeObserver.instances.push(this);
+    }
+}
+
+function setTestResizeObserver(
+    value: ResizeObserverConstructor | undefined
+): void {
+    Object.defineProperty(globalThis, "ResizeObserver", {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreResizeObserver(): void {
+    if (originalResizeObserverDescriptor) {
+        Object.defineProperty(
+            globalThis,
+            "ResizeObserver",
+            originalResizeObserverDescriptor
+        );
+    } else {
+        Reflect.deleteProperty(globalThis, "ResizeObserver");
     }
 }
 
@@ -71,9 +98,9 @@ describe(setupCreditsMarquee, () => {
         expect.assertions(5);
 
         resetFixture();
-        const originalResizeObserver = globalThis.ResizeObserver;
-        globalThis.ResizeObserver =
-            MockResizeObserver as unknown as ResizeObserverConstructor;
+        setTestResizeObserver(
+            MockResizeObserver as unknown as ResizeObserverConstructor
+        );
         const { footer, section } = createCreditsSection();
         setReadonlyLayoutNumber(section, "clientWidth", 100);
         setReadonlyLayoutNumber(footer, "scrollWidth", 180);
@@ -106,7 +133,7 @@ describe(setupCreditsMarquee, () => {
                 sectionClasses: ["credits-section"],
             });
         } finally {
-            globalThis.ResizeObserver = originalResizeObserver;
+            restoreResizeObserver();
             resetFixture();
         }
     });
@@ -115,9 +142,9 @@ describe(setupCreditsMarquee, () => {
         expect.assertions(1);
 
         resetFixture();
-        const originalResizeObserver = globalThis.ResizeObserver;
-        globalThis.ResizeObserver =
-            MockResizeObserver as unknown as ResizeObserverConstructor;
+        setTestResizeObserver(
+            MockResizeObserver as unknown as ResizeObserverConstructor
+        );
         const { footer, section } = createCreditsSection();
         setReadonlyLayoutNumber(section, "clientWidth", 200);
         setReadonlyLayoutNumber(footer, "scrollWidth", 120);
@@ -139,7 +166,7 @@ describe(setupCreditsMarquee, () => {
                 sectionClasses: ["credits-section"],
             });
         } finally {
-            globalThis.ResizeObserver = originalResizeObserver;
+            restoreResizeObserver();
             resetFixture();
         }
     });
@@ -148,11 +175,9 @@ describe(setupCreditsMarquee, () => {
         expect.assertions(3);
 
         resetFixture();
-        const originalResizeObserver = globalThis.ResizeObserver;
         const addSpy = vi.spyOn(window, "addEventListener");
         const removeSpy = vi.spyOn(window, "removeEventListener");
-        globalThis.ResizeObserver =
-            undefined as unknown as ResizeObserverConstructor;
+        setTestResizeObserver(undefined);
         createCreditsSection();
 
         try {
@@ -192,7 +217,7 @@ describe(setupCreditsMarquee, () => {
             expect(removeSpy).toHaveBeenCalledWith("resize", resizeHandler);
             expect(MockResizeObserver.instances).toHaveLength(0);
         } finally {
-            globalThis.ResizeObserver = originalResizeObserver;
+            restoreResizeObserver();
             resetFixture();
         }
     });
@@ -201,9 +226,7 @@ describe(setupCreditsMarquee, () => {
         expect.assertions(2);
 
         resetFixture();
-        const originalResizeObserver = globalThis.ResizeObserver;
-        globalThis.ResizeObserver =
-            undefined as unknown as ResizeObserverConstructor;
+        setTestResizeObserver(undefined);
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const error = new Error("cleanup failed");
         vi.spyOn(window, "removeEventListener").mockImplementation(() => {
@@ -223,7 +246,7 @@ describe(setupCreditsMarquee, () => {
                 1
             );
         } finally {
-            globalThis.ResizeObserver = originalResizeObserver;
+            restoreResizeObserver();
             resetFixture();
         }
     });

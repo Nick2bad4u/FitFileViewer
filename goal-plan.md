@@ -390,6 +390,9 @@ that fallback fixture mutation pattern.
 Additional theme tests now install temporary `matchMedia`, `localStorage`, and `getComputedStyle` browser
 fixtures through descriptor-scoped helpers instead of reflecting directly onto `globalThis`, with architecture
 coverage blocking that fixture mutation pattern.
+Credits marquee tests now install temporary `ResizeObserver` availability through a descriptor-scoped fixture
+instead of assigning `globalThis.ResizeObserver` directly, with architecture coverage blocking that fixture
+mutation pattern.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning.

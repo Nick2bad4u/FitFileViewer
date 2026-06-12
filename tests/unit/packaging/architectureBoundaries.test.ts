@@ -850,6 +850,8 @@ const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+MutationObserver\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
+const creditsMarqueeTestDirectResizeObserverAssignmentPattern =
+    /\bglobalThis\.ResizeObserver\s*=/u;
 const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directCreateFieldTogglesSectionRuntimeGlobalPattern =
@@ -5532,6 +5534,20 @@ describe("architecture boundaries", () => {
         expect(enhanceCreditsSectionSource).toContain(
             "enhanceCreditsSectionRuntime.js"
         );
+    });
+
+    it("keeps credits marquee tests on descriptor-scoped ResizeObserver fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            creditsMarqueeTestDirectResizeObserverAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/layout/enhanceCreditsSection.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps migrated map helpers on the Leaflet runtime adapter", () => {
