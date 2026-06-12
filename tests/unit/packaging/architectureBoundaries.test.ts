@@ -1618,6 +1618,16 @@ describe("architecture boundaries", () => {
         expect(commonJsPolicyTestLoads).toStrictEqual([]);
     });
 
+    it("keeps the preload module-mock fixture on native source imports", () => {
+        expect.assertions(1);
+
+        const moduleMockSource = stripComments(
+            readRepositoryFile("tests/vitest/helpers/preloadModuleMocks.ts")
+        );
+
+        expect(moduleMockSource).not.toContain("createPreloadSourceRequire");
+    });
+
     it("keeps preload IPC policy dependencies injected through the module registry", () => {
         expect.assertions(6);
 

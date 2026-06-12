@@ -40,6 +40,9 @@ remains only for source execution/module-mock fixtures that intentionally exerci
 boundary.
 Preload shared-policy unit tests now import the policy modules natively instead of using `createRequire`, with
 architecture coverage to keep those tests off CommonJS-in-ESM loading patterns.
+The preload dist-test module-mock fixture now imports preload source modules natively too; the source-require
+bridge is confined to the source execution tests that intentionally simulate the injected `requireModule`
+boundary.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
