@@ -740,6 +740,8 @@ const settingsStateManagerTestDirectConsoleAssignmentPattern =
     /\bglobal\.console\s*=/u;
 const renderSingleHrZoneBarTestDirectGlobalFixtureAssignmentPattern =
     /\b(?:testGlobal|global)\.(?:console|document|HTMLCanvasElement|HTMLElement|window)\s*=/u;
+const renderEventMessagesChartTestDirectWindowAssignmentPattern =
+    /\bglobal\.window\s*=/u;
 const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
 const renderSummaryTestActiveFitFileNameMutationPattern =
@@ -6831,6 +6833,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/data/zones/renderSingleHRZoneBar.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps event messages chart tests off direct window global assignment", () => {
+        expect.assertions(1);
+
+        expect(
+            renderEventMessagesChartTestDirectWindowAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/renderEventMessagesChart.test.ts"
                     )
                 )
             )
