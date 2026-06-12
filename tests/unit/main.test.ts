@@ -1,6 +1,4 @@
 // @vitest-environment jsdom
-import { createRequire } from "node:module";
-
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import type { Mock } from "vitest";
 import {
@@ -8,8 +6,6 @@ import {
     getGyazoStartupTimer,
 } from "../../electron-app/main/app/gyazoStartupTimerState.js";
 import { clearPrimeTestEnvironmentTimers } from "../../electron-app/main/runtime/primeTestEnvironment.js";
-
-const requireCjs = createRequire(import.meta.url);
 
 type MockWindow = {
     isDestroyed: () => boolean;
@@ -375,25 +371,21 @@ type DevHelpers = {
     rebuildMenu: (theme?: null | string, filePath?: null | string) => void;
 };
 
-type ElectronAccessModule = {
-    setElectronOverride: (override: unknown) => void;
-};
-
 type ImportMainModuleOptions = {
     electronOverride?: null | typeof mockElectron;
 };
 
-function setMainElectronOverride(override: unknown): void {
-    const { setElectronOverride } = requireCjs(
+async function setMainElectronOverride(override: unknown): Promise<void> {
+    const { setElectronOverride } = await import(
         "../../electron-app/main/runtime/electronAccess.js"
-    ) as ElectronAccessModule;
+    );
     setElectronOverride(override);
 }
 
 async function importMainModule({
     electronOverride = mockElectron,
 }: ImportMainModuleOptions = {}): Promise<MainModule> {
-    setMainElectronOverride(electronOverride);
+    await setMainElectronOverride(electronOverride);
     const imported =
         (await import("../../electron-app/main.js")) as unknown as MainImport;
     return imported.default;
@@ -546,9 +538,9 @@ describe("main.js - Electron Main Process", () => {
         mockElectron.BrowserWindow.getAllWindows.mockReturnValue([mockWindow]);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         vi.clearAllMocks();
-        setMainElectronOverride(null);
+        await setMainElectronOverride(null);
         Reflect.deleteProperty(globalThis, "devHelpers");
         clearPrimeTestEnvironmentTimers();
         clearGyazoStartupTimer();

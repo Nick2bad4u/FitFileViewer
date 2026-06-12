@@ -94,6 +94,9 @@ The FIT parser integration boundary now uses named source exports and imports co
 `setupIPCHandlers.ts` imports the integration helper natively instead of requiring its source file.
 The main-process state manager boundary now uses named source exports instead of a source-level
 `module.exports` fallback, while the state-integration barrel continues importing it natively.
+The menu-event setup boundary now uses a named source export and imports migrated constants, IPC registry,
+logging, file-access policy, app-state, and safe menu helpers natively instead of requiring those source
+modules.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

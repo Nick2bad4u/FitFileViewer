@@ -1816,7 +1816,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(93);
+        expect.assertions(101);
 
         const logWithContextSource = stripComments(
             readRepositoryFile("electron-app/main/logging/logWithContext.ts")
@@ -1920,6 +1920,7 @@ describe("architecture boundaries", () => {
         expect(initializeMainWindowSource).not.toContain("module.exports");
         expect(fitParserIntegrationSource).not.toContain("module.exports");
         expect(mainProcessStateManagerSource).not.toContain("module.exports");
+        expect(setupMenuAndEventHandlersSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain(
             'require("../state/appState")'
         );
@@ -1997,6 +1998,24 @@ describe("architecture boundaries", () => {
         );
         expect(setupMenuAndEventHandlersSource).not.toContain(
             'require("../runtime/nodeModules")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../constants")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../ipc/ipcRegistry")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("./safeCreateAppMenu")'
         );
         expect(gyazoOAuthServerSource).not.toContain(
             'require("../ipc/sendToRenderer")'
@@ -2117,6 +2136,9 @@ describe("architecture boundaries", () => {
         );
         expect(setupIpcHandlersSource).toContain(
             "export function setupIPCHandlers"
+        );
+        expect(setupMenuAndEventHandlersSource).toContain(
+            "export function setupMenuAndEventHandlers"
         );
         expect(gyazoOAuthServerSource).toContain(
             "export async function startGyazoOAuthServer"
