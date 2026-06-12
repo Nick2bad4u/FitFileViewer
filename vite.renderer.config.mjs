@@ -20,8 +20,8 @@ const vendorEntryNames = new Set([
 ]);
 
 const leafletRuntimePluginPrelude = [
-    'import { getLegacyLeafletPluginRuntime } from "/electron-app/renderer/legacyLeafletPluginRuntime.ts";',
-    "const L = getLegacyLeafletPluginRuntime();",
+    'import { resolveLeafletRuntime } from "/electron-app/utils/maps/core/leafletRuntime.ts";',
+    'const L = resolveLeafletRuntime((value) => Boolean(value && (typeof value === "object" || typeof value === "function")));',
     'if (!L) throw new Error("Leaflet runtime is required before loading legacy Leaflet plugins.");',
     "",
 ].join("\n");
@@ -57,7 +57,7 @@ const legacyLeafletPluginTransforms = new Map([
 ]);
 
 /** @returns {import("vite").Plugin} */
-function legacyLeafletPluginRuntimeTransform() {
+function leafletPluginRuntimeTransform() {
     return {
         enforce: "pre",
         name: "fitfileviewer-legacy-leaflet-plugin-runtime",
@@ -125,7 +125,7 @@ export default defineConfig({
         sourcemap: false,
         target: "es2024",
     },
-    plugins: [legacyLeafletPluginRuntimeTransform()],
+    plugins: [leafletPluginRuntimeTransform()],
     publicDir: false,
     root: repositoryRoot,
 });

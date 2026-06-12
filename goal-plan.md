@@ -196,8 +196,9 @@ entries where feature-local dynamic imports can do the job cleanly.
 Progress: the map vendor bundle now removes package-created `L`/`Leaflet` aliases after Leaflet.draw,
 MiniMap, markercluster, MapLibre, and the local measurement control are registered on the typed Leaflet
 runtime object. The Playwright map smoke path now resolves Leaflet through `leafletRuntime.ts` instead of
-depending on `window.L`, while still proving the legacy plugin runtime is registered. Leaflet runtime unit
-tests now reset only the typed module-local adapter instead of deleting retired `L` globals from `globalThis`.
+depending on `window.L`, while the Vite legacy-plugin transform now resolves Leaflet through that typed runtime
+adapter instead of a separate legacy plugin runtime shim. Leaflet runtime unit tests now reset only the typed
+module-local adapter instead of deleting retired `L` globals from `globalThis`.
 
 3. Finish Shrinking The Renderer Composition Root (Complete)
 

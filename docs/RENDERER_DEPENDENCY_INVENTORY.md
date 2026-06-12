@@ -61,8 +61,8 @@ compatibility bundles:
   `electron-app/renderer/vendorBundleLoader.ts`; app modules then resolve it
   through the module-local `leafletRuntime.ts` adapter. The renderer Vite
   config rewrites the Leaflet.draw, Leaflet MiniMap, and markercluster package
-  entries so callbacks import an isolated module-local legacy-plugin bootstrap
-  runtime instead of a persistent `L` compatibility global. The map bundle no
+  entries so callbacks resolve Leaflet through the typed runtime adapter instead
+  of a persistent `L` compatibility global. The map bundle no
   longer exposes separate `L`, `Leaflet`, or `maplibregl` aliases, and the
   app-side Leaflet adapter no longer uses a global symbol registry.
 - `electron-app/renderer/vendorGlobalsChartData.ts` publishes Chart.js,
@@ -213,8 +213,8 @@ directly from a `vendor/` path.
 - Remove one dependency group at a time and verify the affected feature.
 - Preserve script, CSS, and plugin ordering in the split bundle loader until
   imports make ordering explicit.
-- Keep split-vendor readiness in module-local state and keep the Leaflet
-  legacy-plugin bootstrap behind scoped runtime getters; do not reintroduce
+- Keep split-vendor readiness in module-local state and keep legacy Leaflet
+  plugin chunks behind the typed Leaflet runtime adapter; do not reintroduce
   public `window.*` vendor globals, app-side browser-library runtime symbols, or
   persistent split-vendor payload registries.
 - Keep `electron-app/renderer/leafletMeasureLite.js` unless a CSP-safe package

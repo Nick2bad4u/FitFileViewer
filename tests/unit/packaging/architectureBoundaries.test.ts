@@ -5481,18 +5481,13 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(24);
+        expect.assertions(21);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/vendorGlobalsMap.ts")
         );
         const leafletRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/leafletRuntime.ts")
-        );
-        const legacyLeafletPluginRuntimeSource = stripComments(
-            readRepositoryFile(
-                "electron-app/renderer/legacyLeafletPluginRuntime.ts"
-            )
         );
         const viteRendererConfig = stripComments(
             readRepositoryFile("vite.renderer.config.mjs")
@@ -5513,9 +5508,6 @@ describe("architecture boundaries", () => {
         const setLeafletRuntimeIndex = vendorMapEntry.indexOf(
             "setLeafletRuntime(Leaflet)"
         );
-        const setLegacyLeafletRuntimeIndex = vendorMapEntry.indexOf(
-            "setLegacyLeafletPluginRuntime(Leaflet)"
-        );
         const leafletDrawImportIndex = vendorMapEntry.indexOf(
             'import("leaflet-draw")'
         );
@@ -5523,20 +5515,10 @@ describe("architecture boundaries", () => {
         expect(vendorMapEntry).toContain("setLeafletRuntime(Leaflet)");
         expect(vendorMapEntry).toContain("leafletRuntime: Leaflet");
         expect(setLeafletRuntimeIndex).toBeGreaterThanOrEqual(0);
-        expect(setLegacyLeafletRuntimeIndex).toBeGreaterThan(
-            setLeafletRuntimeIndex
-        );
         expect(leafletDrawImportIndex).toBeGreaterThan(setLeafletRuntimeIndex);
-        expect(leafletDrawImportIndex).toBeGreaterThan(
-            setLegacyLeafletRuntimeIndex
-        );
         expect(leafletRuntimeSource).not.toContain("Symbol.for");
         expect(leafletRuntimeSource).not.toContain("globalThis");
-        expect(legacyLeafletPluginRuntimeSource).toContain(
-            "getLegacyLeafletPluginRuntime"
-        );
-        expect(legacyLeafletPluginRuntimeSource).not.toContain("Symbol.for");
-        expect(legacyLeafletPluginRuntimeSource).not.toContain("globalThis");
+        expect(vendorMapEntry).not.toContain("setLegacyLeafletPluginRuntime");
         expect(vendorMapEntry).not.toContain(
             "installLeafletPluginCompatibilityGlobal"
         );
@@ -5552,11 +5534,12 @@ describe("architecture boundaries", () => {
             "fitfileviewer-legacy-leaflet-plugin-runtime"
         );
         expect(viteRendererConfig).toContain(
-            'import { getLegacyLeafletPluginRuntime } from "/electron-app/renderer/legacyLeafletPluginRuntime.ts";'
+            'import { resolveLeafletRuntime } from "/electron-app/utils/maps/core/leafletRuntime.ts";'
         );
         expect(viteRendererConfig).toContain(
-            "const L = getLegacyLeafletPluginRuntime();"
+            "const L = resolveLeafletRuntime"
         );
+        expect(viteRendererConfig).not.toContain("legacyLeafletPluginRuntime");
         expect(viteRendererConfig).not.toContain("Symbol.for");
         expect(viteRendererConfig).not.toContain("globalThis");
         expect(viteRendererConfig).toContain(

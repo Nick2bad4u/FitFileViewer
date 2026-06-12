@@ -23,7 +23,6 @@ import "maplibre-gl/dist/maplibre-gl.css";
 /* eslint-enable import-x/no-unassigned-import */
 
 import { installLeafletMeasureLite } from "./leafletMeasureLite.js";
-import { setLegacyLeafletPluginRuntime } from "./legacyLeafletPluginRuntime.js";
 import { markRendererVendorEntryLoaded } from "./vendorGlobalsShared.js";
 import { setLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
 
@@ -78,7 +77,6 @@ export async function installRendererMapVendorGlobals(): Promise<void> {
     leafletGlobal.control.locate = (options) => new LocateControl(options);
 
     setLeafletRuntime(Leaflet);
-    setLegacyLeafletPluginRuntime(Leaflet);
 
     await import("leaflet-draw");
     await import("leaflet-minimap");
