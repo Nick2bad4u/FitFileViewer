@@ -1816,7 +1816,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(92);
+        expect.assertions(93);
 
         const logWithContextSource = stripComments(
             readRepositoryFile("electron-app/main/logging/logWithContext.ts")
@@ -1919,6 +1919,7 @@ describe("architecture boundaries", () => {
         expect(bootstrapMainWindowSource).not.toContain("module.exports");
         expect(initializeMainWindowSource).not.toContain("module.exports");
         expect(fitParserIntegrationSource).not.toContain("module.exports");
+        expect(mainProcessStateManagerSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain(
             'require("../state/appState")'
         );

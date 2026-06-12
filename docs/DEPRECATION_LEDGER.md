@@ -175,6 +175,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Main development-helper migration status: `exposeDevHelpers.ts` now uses a named source export and imports app-state helpers natively instead of requiring the app-state source file.
 - Main window bootstrap migration status: `bootstrapMainWindow.ts` and `initializeMainWindow.ts` now use named source exports instead of `module.exports`; `initializeApplication.ts` imports the bootstrap boundary natively instead of requiring its source file.
 - Main FIT-parser integration migration status: `fitParserIntegration.ts` now uses named source exports and imports constants/logging natively; `setupIPCHandlers.ts` imports the integration helper natively instead of requiring its source file.
+- Main-process state manager migration status: `mainProcessStateManager.ts` now uses named source exports instead of a source-level `module.exports` fallback while the state-integration barrel imports it natively.
 - Next removal step: narrow or retire the remaining CommonJS-compatible runtime bridge modules after the Electron preload bundling path can consume typed ESM-style modules directly
 - Verification gates:
   - `npm run build:runtime-ts`

@@ -1,10 +1,5 @@
-import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-interface ElectronAccessModule {
-    setElectronOverride: (override: unknown) => void;
-}
 
 type IpcHandler = (event: unknown, ...args: unknown[]) => unknown;
 
@@ -30,7 +25,6 @@ const APP_INDEX_URL = pathToFileURL(
 const OUTSIDE_FILE_URL = pathToFileURL(
     String.raw`C:\Users\Nick\Desktop\index.html`
 ).toString();
-const requireCjs = createRequire(import.meta.url);
 
 function createAllowedIpcEvent(): unknown {
     return {
@@ -109,10 +103,10 @@ async function loadStateManager(
         ipcMain,
     };
 
-    const electronAccess = requireCjs(
+    const { setElectronOverride } = await import(
         "../../../../../electron-app/main/runtime/electronAccess.js"
-    ) as ElectronAccessModule;
-    electronAccess.setElectronOverride(electronOverride);
+    );
+    setElectronOverride(electronOverride);
 
     return (await import("../../../../../electron-app/utils/state/integration/mainProcessStateManager.js")) as unknown as MainProcessStateModule;
 }
@@ -136,6 +130,10 @@ describe("mainProcessStateManager IPC sender policy", () => {
 
     afterEach(async () => {
         await resetIpcRegistry();
+        const { setElectronOverride } = await import(
+            "../../../../../electron-app/main/runtime/electronAccess.js"
+        );
+        setElectronOverride(null);
         vi.unstubAllEnvs();
         vi.restoreAllMocks();
     });

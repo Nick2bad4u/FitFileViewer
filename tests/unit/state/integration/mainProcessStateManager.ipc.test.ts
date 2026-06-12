@@ -1,12 +1,7 @@
 // @vitest-environment node
-import { createRequire } from "node:module";
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type IpcHandler = (event: unknown, ...args: unknown[]) => unknown;
-type ElectronAccessModule = {
-    setElectronOverride?: (override: unknown) => void;
-};
 type MainProcessStateManagerModule = {
     mainProcessState: {
         set: (
@@ -16,17 +11,6 @@ type MainProcessStateManagerModule = {
         ) => void;
     };
 };
-
-const requireCjs = createRequire(import.meta.url);
-
-function clearMainProcessStateRequireCache(): void {
-    for (const modulePath of [
-        "../../../../electron-app/main/runtime/electronAccess",
-        "../../../../electron-app/main/ipc/ipcRegistry",
-    ]) {
-        delete requireCjs.cache[requireCjs.resolve(modulePath)];
-    }
-}
 
 function getRequiredHandler(
     handlers: Map<string, IpcHandler>,
@@ -51,11 +35,11 @@ async function loadMainProcessStateWithIpc(): Promise<{
         }),
         removeHandler: vi.fn(),
     };
-    const electronAccess = requireCjs(
-        "../../../../electron-app/main/runtime/electronAccess"
-    ) as ElectronAccessModule;
+    const { setElectronOverride } = await import(
+        "../../../../electron-app/main/runtime/electronAccess.js"
+    );
 
-    electronAccess.setElectronOverride?.({ ipcMain });
+    setElectronOverride({ ipcMain });
 
     const { mainProcessState } =
         (await import("../../../../electron-app/utils/state/integration/mainProcessStateManager.js")) as unknown as MainProcessStateManagerModule;
@@ -69,20 +53,14 @@ describe("mainProcessStateManager IPC state reads", () => {
     beforeEach(() => {
         vi.resetModules();
         process.env.NODE_ENV = "test";
-        clearMainProcessStateRequireCache();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         process.env.NODE_ENV = originalNodeEnv;
-        try {
-            const electronAccess = requireCjs(
-                "../../../../electron-app/main/runtime/electronAccess"
-            ) as ElectronAccessModule;
-            electronAccess.setElectronOverride?.(null);
-        } catch {
-            /* ignore */
-        }
-        clearMainProcessStateRequireCache();
+        const { setElectronOverride } = await import(
+            "../../../../electron-app/main/runtime/electronAccess.js"
+        );
+        setElectronOverride(null);
         vi.restoreAllMocks();
     });
 

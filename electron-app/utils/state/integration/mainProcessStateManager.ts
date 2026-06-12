@@ -1637,11 +1637,4 @@ const mainProcessState = new MainProcessState();
     state.retryTimer = setTimeout(tick, 10);
 })();
 
-const __mpExports = { mainProcessState, MainProcessState };
-
 export { mainProcessState, MainProcessState };
-
-// Expose for CommonJS (Electron main/tests)
-if (typeof module !== "undefined" && module && module.exports) {
-    module.exports = __mpExports;
-}

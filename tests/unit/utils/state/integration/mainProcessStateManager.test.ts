@@ -2,15 +2,9 @@
  * Comprehensive test coverage for mainProcessStateManager.js
  */
 
-import { createRequire } from "node:module";
-
+import { setElectronOverride } from "../../../../../electron-app/main/runtime/electronAccess.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const requireCjs = createRequire(import.meta.url);
-
-type ElectronAccessModule = {
-    setElectronOverride: (override: unknown) => void;
-};
 type MainProcessStateManagerModule =
     typeof import("../../../../../electron-app/utils/state/integration/mainProcessStateManager.js");
 type BrowserWindowLike = {
@@ -36,9 +30,6 @@ const mockIpcMain = {
 };
 
 function installElectronOverride(): void {
-    const { setElectronOverride } = requireCjs(
-        "../../../../../electron-app/main/runtime/electronAccess.js"
-    ) as ElectronAccessModule;
     setElectronOverride({
         BrowserWindow: mockBrowserWindow,
         ipcMain: mockIpcMain,
@@ -583,9 +574,8 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         describe("renderer Communication", () => {
             it("should notify renderers when windows exist", () => {
                 expect.assertions(2);
-                // Since safeElectron() uses require('electron') which bypasses our ES6 mock,
-                // we'll test the behavior indirectly by checking that no errors are thrown
-                // and that the function completes successfully
+                // The Electron override keeps this path independent from the
+                // real Electron runtime while preserving renderer notification behavior.
                 expect(() => {
                     stateInstance.notifyRenderers("test-channel", {
                         test: "data",
@@ -995,19 +985,15 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
         it("should skip IPC handler setup when ipcMain is not available", () => {
             expect.assertions(1);
-            // Temporarily mock electron to not have ipcMain
-            const originalMock = vi.mocked(require("electron"));
-            vi.doMock(import("electron"), () => ({
+            setElectronOverride({
                 BrowserWindow: mockBrowserWindow,
-                // No ipcMain
-            }));
+            });
 
             try {
                 // Create new instance - should not throw
                 expect(() => new MainProcessState()).not.toThrow();
             } finally {
-                // Restore original mock
-                vi.doMock(import("electron"), () => originalMock);
+                installElectronOverride();
             }
         });
     });
