@@ -556,6 +556,8 @@ const directPreloadBeforeExitRegistryGlobalPattern =
     /\b(?:window|globalThis|globalScope)\.__ffv_preload_beforeExitRegistry__\b|["']__ffv_preload_beforeExitRegistry__["']/u;
 const directAppMenuExportsGlobalPattern =
     /\b(?:window|globalThis|getMenuGlobal\(\))\.__FFV_createAppMenuExports\b|["']__FFV_createAppMenuExports["']/u;
+const directCreateAppMenuTestFixtureGlobalPattern =
+    /\b(?:CreateAppMenuTestGlobal|getCreateAppMenuTestGlobal|__(?:clipboardWrites|electronClipboardWriteSpy|electronMockFixture|electronSendSpy|electronShellOpenSpy|electronShellShowSpy|ipcCalls|shellOpenCalls|shellRevealCalls))\b/u;
 const directFitFileStateManagerGlobalPattern =
     /\b(?:window|globalThis|getFileOpenGlobal\(\)|getOpenFitFileGlobal\(\)|getShowFitDataGlobal\(\))\.__FFV_fitFileStateManager\b|["']__FFV_fitFileStateManager["']/u;
 const directMainProcessStateManagerExportsGlobalPattern =
@@ -1552,6 +1554,22 @@ describe("architecture boundaries", () => {
             "setExportUtilsTestModuleOverrides"
         );
         expect(exportUtilsSource).not.toContain("resolveManualMock");
+    });
+
+    it("keeps createAppMenu Electron test fixtures module-local", () => {
+        expect.assertions(3);
+
+        const createAppMenuTestSource = stripComments(
+            readRepositoryFile("tests/unit/menu/createAppMenu.test.ts")
+        );
+
+        expect(createAppMenuTestSource).not.toMatch(
+            directCreateAppMenuTestFixtureGlobalPattern
+        );
+        expect(createAppMenuTestSource).toContain("let electronMockFixture");
+        expect(createAppMenuTestSource).toContain(
+            'Reflect.get(globalThis, "__FFV_createAppMenuExports")'
+        );
     });
 
     it("keeps renderer startup subscriptions behind the app-domain facade", () => {

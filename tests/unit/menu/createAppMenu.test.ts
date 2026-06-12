@@ -35,24 +35,18 @@ type CreateAppMenuModule = {
         files: null | readonly string[]
     ) => void;
 };
-type CreateAppMenuTestGlobal = typeof globalThis & {
-    __FFV_createAppMenuExports?: unknown;
-    __clipboardWrites: any[][];
-    __electronClipboardWriteSpy: Mock<AnyMockFn>;
-    __electronMockFixture: ElectronHoistedMock;
-    __electronSendSpy: Mock<AnyMockFn>;
-    __electronShellOpenSpy: Mock<AnyMockFn>;
-    __electronShellShowSpy: Mock<AnyMockFn>;
-    __ipcCalls: any[][];
-    __shellOpenCalls: any[][];
-    __shellRevealCalls: any[][];
-};
 
 const createMock = (): Mock<AnyMockFn> => vi.fn<AnyMockFn>();
 
-function getCreateAppMenuTestGlobal(): CreateAppMenuTestGlobal {
-    return globalThis as unknown as CreateAppMenuTestGlobal;
-}
+let clipboardWrites: any[][] = [];
+let electronClipboardWriteSpy = createMock();
+let electronMockFixture: Partial<ElectronHoistedMock> = {};
+let electronSendSpy = createMock();
+let electronShellOpenSpy = createMock();
+let electronShellShowSpy = createMock();
+let ipcCalls: any[][] = [];
+let shellOpenCalls: any[][] = [];
+let shellRevealCalls: any[][] = [];
 
 function pickMenuFields(
     item: Record<string, unknown>,
@@ -97,13 +91,11 @@ const electronMockProxy = new Proxy(
     {},
     {
         get(_t, prop) {
-            const src =
-                getCreateAppMenuTestGlobal().__electronMockFixture || {};
+            const src = electronMockFixture;
             return src[prop as keyof ElectronHoistedMock];
         },
         has(_t, prop) {
-            const src =
-                getCreateAppMenuTestGlobal().__electronMockFixture || {};
+            const src = electronMockFixture;
             return prop in src;
         },
     }
@@ -123,17 +115,14 @@ function primeElectronAccessOverride(): void {
 // Provide an Electron mock that always proxies to the test fixture object.
 // This keeps behavior deterministic and avoids import-order pitfalls.
 vi.mock(import("electron"), () => {
-    const get = () => getCreateAppMenuTestGlobal().__electronMockFixture || {};
     return new Proxy(
         {},
         {
             get(_t, prop) {
-                const src = get();
-                return src[prop as any];
+                return electronMockFixture[prop as keyof ElectronHoistedMock];
             },
             has(_t, prop) {
-                const src = get();
-                return prop in src;
+                return prop in electronMockFixture;
             },
         }
     );
@@ -168,35 +157,15 @@ describe("createAppMenu", () => {
             "C:/Users/Test/Documents/activity1.fit",
             "C:/Users/Test/Documents/activity2.fit",
         ]);
-        // Do NOT reassign these spies — the electron mock captures the original references.
-        // Instead, clear existing calls so expectations remain accurate per-test.
-        const sendSpy = getCreateAppMenuTestGlobal().__electronSendSpy;
-        if (sendSpy && typeof sendSpy.mockReset === "function")
-            sendSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronSendSpy = createMock();
-        const shellSpy = getCreateAppMenuTestGlobal().__electronShellOpenSpy;
-        if (shellSpy && typeof shellSpy.mockReset === "function")
-            shellSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronShellOpenSpy = createMock();
-        const shellShowSpy =
-            getCreateAppMenuTestGlobal().__electronShellShowSpy;
-        if (shellShowSpy && typeof shellShowSpy.mockReset === "function")
-            shellShowSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronShellShowSpy = createMock();
-        const clipboardSpy =
-            getCreateAppMenuTestGlobal().__electronClipboardWriteSpy;
-        if (clipboardSpy && typeof clipboardSpy.mockReset === "function")
-            clipboardSpy.mockReset();
-        else
-            getCreateAppMenuTestGlobal().__electronClipboardWriteSpy =
-                createMock();
-        // Initialize deterministic global logs used by the hoisted mock wrappers
-        getCreateAppMenuTestGlobal().__ipcCalls = [];
-        getCreateAppMenuTestGlobal().__shellOpenCalls = [];
-        getCreateAppMenuTestGlobal().__shellRevealCalls = [];
-        getCreateAppMenuTestGlobal().__clipboardWrites = [];
-        // Seed hoisted fallback electron mock for environments where require("electron") may fail
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronSendSpy.mockReset();
+        electronShellOpenSpy.mockReset();
+        electronShellShowSpy.mockReset();
+        electronClipboardWriteSpy.mockReset();
+        ipcCalls = [];
+        shellOpenCalls = [];
+        shellRevealCalls = [];
+        clipboardWrites = [];
+        electronMockFixture = {
             Menu: {
                 buildFromTemplate: (template: any[]) => {
                     capturedTemplate = template;
@@ -208,14 +177,10 @@ describe("createAppMenu", () => {
                 getFocusedWindow: () => ({
                     webContents: {
                         send: (...args: any[]) => {
-                            const calls =
-                                getCreateAppMenuTestGlobal().__ipcCalls || [];
+                            const calls = ipcCalls;
                             calls.push(args);
-                            getCreateAppMenuTestGlobal().__ipcCalls = calls;
-                            const fn =
-                                getCreateAppMenuTestGlobal()
-                                    .__electronSendSpy || createMock();
-                            return fn(...args);
+                            ipcCalls = calls;
+                            return electronSendSpy(...args);
                         },
                     },
                 }),
@@ -223,36 +188,24 @@ describe("createAppMenu", () => {
             app: { isPackaged: true, name: "FitFileViewer" },
             shell: {
                 openExternal: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__shellOpenCalls || [];
+                    const calls = shellOpenCalls;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__shellOpenCalls = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal().__electronShellOpenSpy ||
-                        createMock();
-                    return fn(...args);
+                    shellOpenCalls = calls;
+                    return electronShellOpenSpy(...args);
                 },
                 showItemInFolder: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__shellRevealCalls || [];
+                    const calls = shellRevealCalls;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__shellRevealCalls = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal().__electronShellShowSpy ||
-                        createMock();
-                    return fn(...args);
+                    shellRevealCalls = calls;
+                    return electronShellShowSpy(...args);
                 },
             },
             clipboard: {
                 writeText: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__clipboardWrites || [];
+                    const calls = clipboardWrites;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__clipboardWrites = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal()
-                            .__electronClipboardWriteSpy || createMock();
-                    return fn(...args);
+                    clipboardWrites = calls;
+                    return electronClipboardWriteSpy(...args);
                 },
             },
         };
@@ -635,11 +588,7 @@ describe("createAppMenu", () => {
         docs.click();
         repo.click();
         issues.click();
-        expect(
-            (getCreateAppMenuTestGlobal().__shellOpenCalls || []).map(
-                (call: any[]) => call[0]
-            )
-        ).toStrictEqual([
+        expect(shellOpenCalls.map((call: any[]) => call[0])).toStrictEqual([
             "https://github.com/Nick2bad4u/FitFileViewer#readme",
             "https://github.com/Nick2bad4u/FitFileViewer",
             "https://github.com/Nick2bad4u/FitFileViewer/issues",
@@ -651,7 +600,7 @@ describe("createAppMenu", () => {
         );
         about.click();
         shortcuts.click();
-        expect(getCreateAppMenuTestGlobal().__ipcCalls).toStrictEqual([
+        expect(ipcCalls).toStrictEqual([
             ["menu-about"],
             ["menu-keyboard-shortcuts"],
         ]);
@@ -670,8 +619,8 @@ describe("createAppMenu", () => {
         );
         about.click();
         shortcuts.click();
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([
             ["menu-about"],
             ["menu-keyboard-shortcuts"],
         ]);
@@ -681,7 +630,7 @@ describe("createAppMenu", () => {
         expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         let closed = false;
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
+        electronMockFixture.BrowserWindow = {
             getFocusedWindow: () => ({
                 close: () => {
                     closed = true;
@@ -865,9 +814,7 @@ describe("createAppMenu", () => {
             enabled: true,
         });
         revealItem.click();
-        const revealSpy = vi.mocked(
-            getCreateAppMenuTestGlobal().__electronShellShowSpy
-        );
+        const revealSpy = vi.mocked(electronShellShowSpy);
         expect(revealSpy).toHaveBeenCalledWith(filePath);
     });
 
@@ -895,9 +842,7 @@ describe("createAppMenu", () => {
             label: "📋 Copy File Path",
         });
         copyItem.click();
-        const clipboardSpy = vi.mocked(
-            getCreateAppMenuTestGlobal().__electronClipboardWriteSpy
-        );
+        const clipboardSpy = vi.mocked(electronClipboardWriteSpy);
         expect(clipboardSpy).toHaveBeenCalledWith(filePath);
         expect(send).toHaveBeenCalledWith(
             "show-notification",
@@ -1064,7 +1009,7 @@ describe("createAppMenu", () => {
             item.click();
         }
 
-        expect(getCreateAppMenuTestGlobal().__ipcCalls).toStrictEqual([
+        expect(ipcCalls).toStrictEqual([
             ["set-high-contrast", "white"],
             ["set-high-contrast", "yellow"],
             ["set-high-contrast", "off"],
@@ -1091,9 +1036,7 @@ describe("createAppMenu", () => {
         docs.click();
         repo.click();
         issues.click();
-        const urls = (getCreateAppMenuTestGlobal().__shellOpenCalls || []).map(
-            (c: any[]) => c[0]
-        );
+        const urls = shellOpenCalls.map((c: any[]) => c[0]);
         expect(urls).toStrictEqual([
             "https://github.com/Nick2bad4u/FitFileViewer#readme",
             "https://github.com/Nick2bad4u/FitFileViewer",
@@ -1115,7 +1058,7 @@ describe("createAppMenu", () => {
         about.click();
         shortcuts.click();
 
-        expect(getCreateAppMenuTestGlobal().__ipcCalls).toStrictEqual([
+        expect(ipcCalls).toStrictEqual([
             ["menu-about"],
             ["menu-keyboard-shortcuts"],
         ]);
@@ -1125,7 +1068,7 @@ describe("createAppMenu", () => {
         expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         let closed = false;
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
+        electronMockFixture.BrowserWindow = {
             getFocusedWindow: () => ({
                 close: () => {
                     closed = true;
@@ -1165,15 +1108,15 @@ describe("createAppMenu", () => {
         });
         // Call handler directly to exercise branch
         restart.click();
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([["menu-restart-update"]]);
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([["menu-restart-update"]]);
     });
 
     it("captures template for tests when Menu API is unavailable", () => {
         expect.assertions(1);
         // Remove Menu API from hoisted mock to trigger fallback branch
-        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        const originalMock = electronMockFixture;
+        electronMockFixture = {
             ...originalMock,
             Menu: undefined,
         };
@@ -1193,13 +1136,13 @@ describe("createAppMenu", () => {
             ],
         });
         // restore
-        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
+        electronMockFixture = originalMock;
     });
 
     it("overwrites previously captured template when Menu API is unavailable", () => {
         expect.assertions(2);
-        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        const originalMock = electronMockFixture;
+        electronMockFixture = {
             ...originalMock,
             Menu: undefined,
         };
@@ -1229,17 +1172,17 @@ describe("createAppMenu", () => {
             label: "📁 File",
             submenuIsArray: true,
         });
-        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
+        electronMockFixture = originalMock;
     });
 
     it("logs menu labels when app is not packaged (debug branch)", () => {
         expect.assertions(2);
         // Spy on console.log and set app.isPackaged=false to execute debug logging path
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
+        const originalMock = electronMockFixture;
         const originalEnv = process.env.FFV_DEBUG_MENU;
         process.env.FFV_DEBUG_MENU = "1";
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronMockFixture = {
             ...originalMock,
             app: { ...originalMock.app, isPackaged: false },
         };
@@ -1264,7 +1207,7 @@ describe("createAppMenu", () => {
         );
         logSpy.mockRestore();
         restoreDebugMenuEnv(originalEnv);
-        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
+        electronMockFixture = originalMock;
     });
 
     it("check for updates sends menu-check-for-updates", () => {
@@ -1289,10 +1232,10 @@ describe("createAppMenu", () => {
 
     it("logs debug warning when Electron Menu is missing and exposes template", () => {
         expect.assertions(2);
-        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
+        const originalMock = electronMockFixture;
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         // Remove Menu to force both early debug log and fallback exposure path
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronMockFixture = {
             ...originalMock,
             Menu: undefined,
         };
@@ -1318,7 +1261,7 @@ describe("createAppMenu", () => {
             "[createAppMenu] WARNING: Electron Menu API unavailable; template captured for tests."
         );
         warnSpy.mockRestore();
-        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
+        electronMockFixture = originalMock;
     });
 
     // The following environment-dependent behaviors are validated elsewhere by presence checks:
@@ -1351,32 +1294,15 @@ describe("createAppMenu - additional robust branches", () => {
             "C:/Users/Test/Documents/activity1.fit",
             "C:/Users/Test/Documents/activity2.fit",
         ]);
-        // reset spies and call logs
-        const sendSpy = getCreateAppMenuTestGlobal().__electronSendSpy;
-        if (sendSpy && typeof sendSpy.mockReset === "function")
-            sendSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronSendSpy = createMock();
-        const shellSpy = getCreateAppMenuTestGlobal().__electronShellOpenSpy;
-        if (shellSpy && typeof shellSpy.mockReset === "function")
-            shellSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronShellOpenSpy = createMock();
-        const shellShowSpy =
-            getCreateAppMenuTestGlobal().__electronShellShowSpy;
-        if (shellShowSpy && typeof shellShowSpy.mockReset === "function")
-            shellShowSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronShellShowSpy = createMock();
-        const clipboardSpy =
-            getCreateAppMenuTestGlobal().__electronClipboardWriteSpy;
-        if (clipboardSpy && typeof clipboardSpy.mockReset === "function")
-            clipboardSpy.mockReset();
-        else
-            getCreateAppMenuTestGlobal().__electronClipboardWriteSpy =
-                createMock();
-        getCreateAppMenuTestGlobal().__ipcCalls = [];
-        getCreateAppMenuTestGlobal().__shellOpenCalls = [];
-        getCreateAppMenuTestGlobal().__shellRevealCalls = [];
-        getCreateAppMenuTestGlobal().__clipboardWrites = [];
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronSendSpy.mockReset();
+        electronShellOpenSpy.mockReset();
+        electronShellShowSpy.mockReset();
+        electronClipboardWriteSpy.mockReset();
+        ipcCalls = [];
+        shellOpenCalls = [];
+        shellRevealCalls = [];
+        clipboardWrites = [];
+        electronMockFixture = {
             Menu: {
                 buildFromTemplate: (template: any[]) => {
                     capturedTemplate = template;
@@ -1389,14 +1315,10 @@ describe("createAppMenu - additional robust branches", () => {
                     close: createMock(),
                     webContents: {
                         send: (...args: any[]) => {
-                            const calls =
-                                getCreateAppMenuTestGlobal().__ipcCalls || [];
+                            const calls = ipcCalls;
                             calls.push(args);
-                            getCreateAppMenuTestGlobal().__ipcCalls = calls;
-                            const fn =
-                                getCreateAppMenuTestGlobal()
-                                    .__electronSendSpy || createMock();
-                            return fn(...args);
+                            ipcCalls = calls;
+                            return electronSendSpy(...args);
                         },
                     },
                 }),
@@ -1404,36 +1326,24 @@ describe("createAppMenu - additional robust branches", () => {
             app: { isPackaged: true, name: "FitFileViewer" },
             shell: {
                 openExternal: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__shellOpenCalls || [];
+                    const calls = shellOpenCalls;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__shellOpenCalls = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal().__electronShellOpenSpy ||
-                        createMock();
-                    return fn(...args);
+                    shellOpenCalls = calls;
+                    return electronShellOpenSpy(...args);
                 },
                 showItemInFolder: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__shellRevealCalls || [];
+                    const calls = shellRevealCalls;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__shellRevealCalls = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal().__electronShellShowSpy ||
-                        createMock();
-                    return fn(...args);
+                    shellRevealCalls = calls;
+                    return electronShellShowSpy(...args);
                 },
             },
             clipboard: {
                 writeText: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__clipboardWrites || [];
+                    const calls = clipboardWrites;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__clipboardWrites = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal()
-                            .__electronClipboardWriteSpy || createMock();
-                    return fn(...args);
+                    clipboardWrites = calls;
+                    return electronClipboardWriteSpy(...args);
                 },
             },
         };
@@ -1469,10 +1379,9 @@ describe("createAppMenu - additional robust branches", () => {
         );
         // Instead of spying a specific instance (which may be recreated), stub getFocusedWindow to return
         // a deterministic object with a spy for close, ensuring the handler calls it
-        const originalBW =
-            getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow;
+        const originalBW = electronMockFixture.BrowserWindow;
         const winMock = { close: createMock() };
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
+        electronMockFixture.BrowserWindow = {
             ...originalBW,
             getFocusedWindow: () => winMock,
         };
@@ -1484,8 +1393,7 @@ describe("createAppMenu - additional robust branches", () => {
             accelerator: "CmdOrCtrl+W",
             label: "🚪 Close Window",
         });
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow =
-            originalBW;
+        electronMockFixture.BrowserWindow = originalBW;
     });
 
     it("external help links call shell.openExternal with correct URLs", () => {
@@ -1506,8 +1414,7 @@ describe("createAppMenu - additional robust branches", () => {
         docs.click();
         repo.click();
         issues.click();
-        const calls: any[][] =
-            getCreateAppMenuTestGlobal().__shellOpenCalls || [];
+        const calls: any[][] = shellOpenCalls;
         // Validate the exact help-link click order used by the menu.
         const urls = calls.map((c) => c[0]);
         expect(urls).toStrictEqual([
@@ -1532,8 +1439,8 @@ describe("createAppMenu - additional robust branches", () => {
             (i: any) => i.label === "❓ includeUnknownData"
         );
         includeUnknown.click({ checked: false });
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([
             [
                 "decoder-options-changed",
                 {
@@ -1567,8 +1474,8 @@ describe("createAppMenu - additional robust branches", () => {
         white.click();
         yellow.click();
         off.click();
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([
             ["set-high-contrast", "white"],
             ["set-high-contrast", "yellow"],
             ["set-high-contrast", "off"],
@@ -1581,9 +1488,8 @@ describe("createAppMenu - additional robust branches", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         // Force getFocusedWindow to return null
-        const originalBW =
-            getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow;
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
+        const originalBW = electronMockFixture.BrowserWindow;
+        electronMockFixture.BrowserWindow = {
             ...originalBW,
             getFocusedWindow: () => null,
         };
@@ -1622,15 +1528,14 @@ describe("createAppMenu - additional robust branches", () => {
         expect(send).toHaveBeenCalledWith("set-high-contrast", "white");
         expect(send).toHaveBeenCalledWith("set-high-contrast", "yellow");
         expect(send).toHaveBeenCalledWith("set-high-contrast", "off");
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow =
-            originalBW;
+        electronMockFixture.BrowserWindow = originalBW;
     });
 
     it("logs error when Menu.buildFromTemplate throws", () => {
         expect.assertions(2);
-        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
+        const original = electronMockFixture;
         const err = new Error("boom");
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronMockFixture = {
             ...original,
             Menu: {
                 buildFromTemplate: () => {
@@ -1659,7 +1564,7 @@ describe("createAppMenu - additional robust branches", () => {
             err
         );
         errorSpy.mockRestore();
-        getCreateAppMenuTestGlobal().__electronMockFixture = original;
+        electronMockFixture = original;
     });
 
     it("macOS App menu appears on darwin and items send IPC", () => {
@@ -1667,8 +1572,8 @@ describe("createAppMenu - additional robust branches", () => {
         // Preserve original platform descriptor
         const desc = Object.getOwnPropertyDescriptor(process, "platform");
         Object.defineProperty(process, "platform", { value: "darwin" });
-        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        const original = electronMockFixture;
+        electronMockFixture = {
             ...original,
             app: { isPackaged: true, name: "FitFileViewer" },
         };
@@ -1681,23 +1586,23 @@ describe("createAppMenu - additional robust branches", () => {
         expect(appMenu.label).toBe("FitFileViewer");
         const about = appMenu.submenu.find((i: any) => i.label === "About");
         about.click();
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([["menu-about"]]);
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([["menu-about"]]);
         expect(appMenu.submenu.map((i: any) => i.label)).not.toContain(
             "Preferences..."
         );
         // restore
         restoreProcessPlatform(desc);
-        getCreateAppMenuTestGlobal().__electronMockFixture = original;
+        electronMockFixture = original;
     });
 
     it("macOS App menu label falls back to 'App' when app.name missing", () => {
         expect.assertions(3);
         const desc = Object.getOwnPropertyDescriptor(process, "platform");
         Object.defineProperty(process, "platform", { value: "darwin" });
-        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
+        const original = electronMockFixture;
         // Provide an app object without a name to trigger label fallback
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronMockFixture = {
             ...original,
             app: { isPackaged: true },
         };
@@ -1710,13 +1615,13 @@ describe("createAppMenu - additional robust branches", () => {
         // Ensure items are still functional
         const about = appMenu.submenu.find((i: any) => i.label === "About");
         about.click();
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([["menu-about"]]);
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([["menu-about"]]);
         expect(appMenu.submenu.map((i: any) => i.label)).not.toContain(
             "Preferences..."
         );
         restoreProcessPlatform(desc);
-        getCreateAppMenuTestGlobal().__electronMockFixture = original;
+        electronMockFixture = original;
     });
 
     it("skips setting menu and warns when template is invalid (forced via Array.isArray stub)", () => {
@@ -1726,8 +1631,8 @@ describe("createAppMenu - additional robust branches", () => {
         const isArraySpy = vi.spyOn(Array, "isArray").mockReturnValue(false);
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const setAppMenuSpy = createMock();
-        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        const original = electronMockFixture;
+        electronMockFixture = {
             ...original,
             Menu: {
                 buildFromTemplate: (template: any[]) =>
@@ -1746,7 +1651,7 @@ describe("createAppMenu - additional robust branches", () => {
         } finally {
             warnSpy.mockRestore();
             isArraySpy.mockRestore();
-            getCreateAppMenuTestGlobal().__electronMockFixture = original;
+            electronMockFixture = original;
         }
     });
 
@@ -1790,7 +1695,7 @@ describe("createAppMenu - additional robust branches", () => {
 
         expect(mod.createAppMenu).toBeTypeOf("function");
         expect(
-            getCreateAppMenuTestGlobal().__FFV_createAppMenuExports
+            Reflect.get(globalThis, "__FFV_createAppMenuExports")
         ).toBeUndefined();
     });
 
@@ -1815,8 +1720,7 @@ describe("createAppMenu - additional robust branches", () => {
             setFullScreen: createMock(),
             isFullScreen: createMock().mockReturnValue(false),
         };
-        const electronMock = getCreateAppMenuTestGlobal()
-            .__electronMockFixture as {
+        const electronMock = electronMockFixture as {
             BrowserWindow: { getFocusedWindow: Mock };
         };
         vi.spyOn(

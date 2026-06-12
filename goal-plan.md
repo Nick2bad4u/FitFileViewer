@@ -65,7 +65,8 @@ use `setupFullscreenListeners`. `showFitData` no longer accepts the deprecated `
 render-state resets belong to `AppActions` and typed renderer state facades. Chart state-manager and chart-tab
 integration cleanup now calls `destroy()` directly instead of retaining `cleanup()` compatibility aliases.
 Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the retired global action bridge
-wording.
+wording. `createAppMenu` Electron menu tests now use module-local fixture state instead of `__electron*` and
+call-log globals on `globalThis`.
 
 6. Reduce Test Harness Global Pollution (Fully finish)
 
