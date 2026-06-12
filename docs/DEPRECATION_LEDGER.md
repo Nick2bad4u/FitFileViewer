@@ -153,6 +153,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Vitest HTMLElement bridge migration status: `tests/vitest/setupVitest.mjs` no longer assigns `window.HTMLElement` onto the Node global; jsdom-backed suites use the environment's native element constructors directly.
 - Vitest console patch migration status: setup console hardening now goes through `ensureConsoleAlive()` instead of a second global block that separately patched `window.console.group`, `window.console.groupEnd`, and `window.console.groupCollapsed`.
 - Vitest process-nextTick guard migration status: setup process stabilization now goes through one `ensureProcessNextTick()` helper instead of repeating the same inline `globalThis.process.nextTick` mutation in multiple setup hooks.
+- App event FIT-data test-global migration status: `tests/unit/utils/app/events.test.ts` no longer defines or deletes retired `globalData` or `loadedFitFiles` globals; listener export coverage seeds active FIT data and loaded-file state through typed domain state helpers.
 - Next removal step: keep shrinking remaining legacy renderer compatibility adapters toward typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`

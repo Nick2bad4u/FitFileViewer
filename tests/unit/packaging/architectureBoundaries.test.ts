@@ -675,6 +675,8 @@ const settingsModalTestRetiredGlobalMutationPattern =
     /\bdelete\s*\(\s*globalThis\s+as[\s\S]{0,120}?\)\.(?:closeSettingsModal|showSettingsModal)\b|\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:closeSettingsModal|showSettingsModal)["']\s*(?:,|\))|\bglobalThis\.(?:closeSettingsModal|showSettingsModal)\s*=/u;
 const lifecycleListenersTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:copyTableAsCSV|createExportGPXButton|globalData|renderChartJS|sendFitFileToAltFitReader)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']createExportGPXButton["']\s*,|\b(?:globalThis|window)\.(?:copyTableAsCSV|createExportGPXButton|globalData|renderChartJS|sendFitFileToAltFitReader)\s*=/u;
+const appEventsTestRetiredFitDataGlobalMutationPattern =
+    /\b(?:globalData|loadedFitFiles)\?:|\bObject\.defineProperty\(\s*(?:globalThis|globalAny|testGlobal)\s*,\s*["'](?:globalData|loadedFitFiles)["']|\bdelete\s+(?:globalAny|testGlobal)\.(?:globalData|loadedFitFiles)\b|\b(?:globalThis|globalAny|testGlobal)\.(?:globalData|loadedFitFiles)\s*=/u;
 const tabButtonsTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:areTabButtonsEnabled|debugTabButtons|debugTabState|forceEnableTabButtons|forceFixTabButtons|setTabButtonsEnabled|tabButtonObserver|testTabButtonClicks)["']\s*\)|\bdelete\s*\(\s*global\s+as\s+any\s*\)\.window\.tabButtonsCurrentlyEnabled\b|\bdelete\s*\(\s*globalThis\s+as[\s\S]{0,160}?\)\.tabButtonsCurrentlyEnabled\b|\b(?:globalThis|global\.window)\.(?:areTabButtonsEnabled|debugTabButtons|debugTabState|forceEnableTabButtons|forceFixTabButtons|setTabButtonsEnabled|tabButtonObserver|tabButtonsCurrentlyEnabled|testTabButtonClicks)\s*=/u;
 const chartTabIntegrationTestRetiredGlobalMutationPattern =
@@ -6621,6 +6623,18 @@ describe("architecture boundaries", () => {
                     readRepositoryFile(
                         "tests/unit/strictTests/utils/app/lifecycle/listeners.test.ts"
                     )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps app event tests from mutating retired FIT-data globals", () => {
+        expect.assertions(1);
+
+        expect(
+            appEventsTestRetiredFitDataGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile("tests/unit/utils/app/events.test.ts")
                 )
             )
         ).toBe(false);
