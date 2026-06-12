@@ -625,6 +625,8 @@ const directTabVitestEnvironmentGlobalPattern =
     /\b__vitest_effective_(?:document|stateManager)__\b/u;
 const directVitestObjectKeysThrowGlobalPattern =
     /\b__vitest_object_keys_allow_throw\b/u;
+const directVitestDocumentNativeMethodsGlobalPattern =
+    /\b__vitest_doc_native_methods\b/u;
 const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
@@ -4625,6 +4627,28 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directObjectKeysThrowGlobalLookups).toStrictEqual([]);
+    });
+
+    it("does not recreate the retired document-native-methods test global", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directDocumentNativeMethodsGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestDocumentNativeMethodsGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directDocumentNativeMethodsGlobalLookups).toStrictEqual([]);
     });
 
     it("keeps raw globalThis any casts out of source and tests", () => {

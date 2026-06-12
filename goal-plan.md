@@ -62,7 +62,9 @@ risk because it can hide dependency mistakes.
 
 Progress: the Vitest Object.keys guard no longer publishes the retired
 `__vitest_object_keys_allow_throw` flag on globalThis. It now rethrows only for the logger failure-path stack,
-and architecture coverage keeps that retired test global out of tests and setup.
+and architecture coverage keeps that retired test global out of tests and setup. The Vitest document guard's
+native-method cache now lives in module-local WeakMap state instead of publishing
+`__vitest_doc_native_methods` on globalThis, with architecture coverage for that retired harness global too.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

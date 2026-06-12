@@ -1463,6 +1463,9 @@ if (typeof window !== "undefined") {
     }
 }
 
+/** @type {WeakMap<Document, any>} */
+const vitestDocumentNativeMethods = new WeakMap();
+
 // Helper to install guards on a specific Document instance (handles reassignments)
 /**
  * Restore critical Document methods if tests replaced them and ensure body
@@ -1516,12 +1519,8 @@ function installDocumentGuards(doc) {
     } catch {
         /* Ignore errors */
     }
-    // Cache of native methods per Document instance to survive prototype tampering (legacy fallback)
-    /** @type {WeakMap<Document, any>} */
-    const nativeMap =
-        /** @type {any} */ (globalThis).__vitest_doc_native_methods ||
-        new WeakMap();
-    /** @type {any} */ (globalThis).__vitest_doc_native_methods = nativeMap;
+    // Cache native methods per Document instance to survive prototype tampering.
+    const nativeMap = vitestDocumentNativeMethods;
     try {
         let natives = nativeMap.get(doc);
         if (!natives) {
