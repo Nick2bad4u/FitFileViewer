@@ -1816,7 +1816,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(58);
+        expect.assertions(64);
 
         const logWithContextSource = stripComments(
             readRepositoryFile("electron-app/main/logging/logWithContext.ts")
@@ -1844,6 +1844,9 @@ describe("architecture boundaries", () => {
         );
         const setupAutoUpdaterSource = stripComments(
             readRepositoryFile("electron-app/main/updater/setupAutoUpdater.ts")
+        );
+        const autoUpdaterAccessSource = stripComments(
+            readRepositoryFile("electron-app/main/updater/autoUpdaterAccess.ts")
         );
         const initializeApplicationSource = stripComments(
             readRepositoryFile(
@@ -1881,6 +1884,7 @@ describe("architecture boundaries", () => {
         expect(windowValidationSource).not.toContain("module.exports");
         expect(getThemeFromRendererSource).not.toContain("module.exports");
         expect(setupAutoUpdaterSource).not.toContain("module.exports");
+        expect(autoUpdaterAccessSource).not.toContain("module.exports =");
         expect(initializeApplicationSource).not.toContain("module.exports");
         expect(setupIpcHandlersSource).not.toContain("module.exports");
         expect(gyazoOAuthServerSource).not.toContain("module.exports");
@@ -1914,6 +1918,9 @@ describe("architecture boundaries", () => {
         expect(setupAutoUpdaterSource).not.toContain(
             'require("../runtime/electronAccess")'
         );
+        expect(setupAutoUpdaterSource).not.toContain(
+            'require("./autoUpdaterAccess")'
+        );
         expect(initializeApplicationSource).not.toContain(
             'require("../constants")'
         );
@@ -1930,6 +1937,9 @@ describe("architecture boundaries", () => {
             'require("../updater/setupAutoUpdater")'
         );
         expect(initializeApplicationSource).not.toContain(
+            'require("../updater/autoUpdaterAccess")'
+        );
+        expect(initializeApplicationSource).not.toContain(
             'require("../logging/logWithContext")'
         );
         expect(initializeApplicationSource).not.toContain(
@@ -1943,6 +1953,9 @@ describe("architecture boundaries", () => {
         );
         expect(setupMenuAndEventHandlersSource).not.toContain(
             'require("../window/windowValidation")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../updater/autoUpdaterAccess")'
         );
         expect(gyazoOAuthServerSource).not.toContain(
             'require("../ipc/sendToRenderer")'
@@ -2008,6 +2021,12 @@ describe("architecture boundaries", () => {
         );
         expect(setupAutoUpdaterSource).toContain(
             "export function setupAutoUpdater"
+        );
+        expect(autoUpdaterAccessSource).toContain(
+            "export async function resolveAutoUpdaterAsync"
+        );
+        expect(autoUpdaterAccessSource).toContain(
+            "export function resolveAutoUpdaterSync"
         );
         expect(initializeApplicationSource).toContain(
             "export async function initializeApplication"

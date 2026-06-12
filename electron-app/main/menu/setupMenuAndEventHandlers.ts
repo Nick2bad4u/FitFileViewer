@@ -4,6 +4,7 @@ import {
     browserWindowRef as electronBrowserWindowRef,
     dialogRef as electronDialogRef,
 } from "../runtime/electronAccess.js";
+import { resolveAutoUpdaterSync as resolveAutoUpdaterFallback } from "../updater/autoUpdaterAccess.js";
 import { validateWindow } from "../window/windowValidation.js";
 
 {
@@ -127,10 +128,6 @@ import { validateWindow } from "../window/windowValidation.js";
     const { getAppState } = require("../state/appState") as {
         getAppState: (key: string) => unknown;
     };
-    const { resolveAutoUpdaterSync: resolveAutoUpdaterFallback } =
-        require("../updater/autoUpdaterAccess") as {
-            resolveAutoUpdaterSync: () => AutoUpdaterLike | null;
-        };
     const { safeCreateAppMenu } = require("./safeCreateAppMenu") as {
         safeCreateAppMenu: (
             win: BrowserWindow,
@@ -188,7 +185,7 @@ import { validateWindow } from "../window/windowValidation.js";
     }
 
     function requireAutoUpdater(): AutoUpdaterLike {
-        const autoUpdater = resolveAutoUpdaterFallback();
+        const autoUpdater = resolveAutoUpdaterFallback() as AutoUpdaterLike | null;
         if (!autoUpdater) {
             throw new Error("electron-updater autoUpdater is unavailable");
         }

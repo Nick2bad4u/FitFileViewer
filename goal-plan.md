@@ -79,6 +79,8 @@ Main logging, menu-creation, Electron access, and blocked-request support helper
 `safeCreateAppMenu.ts`, `electronAccess.ts`, and `setupBlockedRequests.ts`) now use named source exports too;
 already-migrated runtime consumers import those helper boundaries natively instead of requiring their source
 files. Main-process source and the state/menu utility consumers no longer require `electronAccess.ts` directly.
+The auto-updater access helper now uses named source exports too, and setup/menu/bootstrap consumers import
+the updater resolver boundary natively instead of requiring its source file.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

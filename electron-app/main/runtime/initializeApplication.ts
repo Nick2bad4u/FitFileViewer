@@ -5,6 +5,7 @@ import { safeCreateAppMenu } from "../menu/safeCreateAppMenu.js";
 import { browserWindowRef } from "../runtime/electronAccess.js";
 import { getAppState, setAppState } from "../state/appState.js";
 import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
+import { resolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
 import { setupAutoUpdater } from "../updater/setupAutoUpdater.js";
 
 type BrowserWindow = import("electron").BrowserWindow;
@@ -36,9 +37,6 @@ interface BootstrapMainWindowDependencies {
     setupAutoUpdater: (options: Record<string, unknown>) => unknown;
 }
 
-const { resolveAutoUpdaterAsync } = require("../updater/autoUpdaterAccess") as {
-    resolveAutoUpdaterAsync: () => Promise<unknown>;
-};
 const { bootstrapMainWindow } = require("../window/bootstrapMainWindow") as {
     bootstrapMainWindow: (
         options: BootstrapMainWindowDependencies

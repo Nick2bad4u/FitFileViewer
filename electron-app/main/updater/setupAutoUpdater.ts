@@ -4,6 +4,7 @@ import { logWithContext } from "../logging/logWithContext.js";
 import { menuRef } from "../runtime/electronAccess.js";
 import { mainProcessState, setAppState } from "../state/appState.js";
 import { isWindowUsable } from "../window/windowValidation.js";
+import { resolveAutoUpdaterSync as resolveAutoUpdaterFallback } from "./autoUpdaterAccess.js";
 
 type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
@@ -49,11 +50,6 @@ interface MenuModuleLike {
 }
 
 const runtimeMenuRef = menuRef as () => MenuModuleLike | undefined;
-const { resolveAutoUpdaterSync: resolveAutoUpdaterFallback } =
-    require("./autoUpdaterAccess") as {
-        resolveAutoUpdaterSync: () => AutoUpdaterLike | null;
-    };
-
 function getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
         return error.message;
