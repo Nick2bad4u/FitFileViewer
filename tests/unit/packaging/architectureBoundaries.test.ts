@@ -1814,8 +1814,11 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(113);
+        expect.assertions(121);
 
+        const mainSource = stripComments(
+            readRepositoryFile("electron-app/main.ts")
+        );
         const logWithContextSource = stripComments(
             readRepositoryFile("electron-app/main/logging/logWithContext.ts")
         );
@@ -1906,12 +1909,18 @@ describe("architecture boundaries", () => {
         const createAppMenuSource = stripComments(
             readRepositoryFile("electron-app/utils/app/menu/createAppMenu.ts")
         );
+        const recentFilesSource = stripComments(
+            readRepositoryFile("electron-app/utils/files/recent/recentFiles.ts")
+        );
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/integration/mainProcessStateManager.ts"
             )
         );
 
+        expect(mainSource).not.toContain("module.exports");
+        expect(mainSource).not.toContain("mainRequire");
+        expect(mainSource).not.toContain("require(");
         expect(logWithContextSource).not.toContain("module.exports");
         expect(safeCreateAppMenuSource).not.toContain("module.exports");
         expect(setupBlockedRequestsSource).not.toContain("module.exports");
@@ -1933,6 +1942,8 @@ describe("architecture boundaries", () => {
         expect(mainProcessStateManagerSource).not.toContain("module.exports");
         expect(setupMenuAndEventHandlersSource).not.toContain("module.exports");
         expect(windowStateUtilsSource).not.toContain("module.exports");
+        expect(recentFilesSource).not.toContain("module.exports");
+        expect(recentFilesSource).not.toContain("require(");
         expect(windowValidationSource).not.toContain(
             'require("../state/appState")'
         );
@@ -2073,6 +2084,9 @@ describe("architecture boundaries", () => {
         expect(setupIpcHandlersSource).not.toContain(
             'require("../runtime/fitParserIntegration")'
         );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../../utils/files/recent/recentFiles")'
+        );
         expect(fitParserIntegrationSource).not.toContain(
             'require("../logging/logWithContext")'
         );
@@ -2155,6 +2169,7 @@ describe("architecture boundaries", () => {
         expect(nodeModulesSource).toContain("export const path");
         expect(nodeModulesSource).toContain("export const fs");
         expect(nodeModulesSource).toContain("export function httpRef");
+        expect(mainSource).toContain("export default defaultExport");
         expect(initializeApplicationSource).toContain(
             "export async function initializeApplication"
         );
@@ -2170,6 +2185,7 @@ describe("architecture boundaries", () => {
         expect(windowStateUtilsSource).toContain(
             "export function getWindowState"
         );
+        expect(recentFilesSource).toContain("export function loadRecentFiles");
         expect(fitParserIntegrationSource).toContain(
             "export const FIT_PARSER_OPERATION_ID"
         );

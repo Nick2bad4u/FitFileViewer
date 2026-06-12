@@ -27,6 +27,10 @@ import { registerFitFileHandlers } from "./registerFitFileHandlers.js";
 import { registerInfoHandlers } from "./registerInfoHandlers.js";
 import { registerIpcHandle, registerIpcListener } from "./ipcRegistry.js";
 import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
+import {
+    addRecentFile,
+    loadRecentFiles,
+} from "../../utils/files/recent/recentFiles.js";
 
 type ConstantsLike = {
     DEFAULT_THEME: string;
@@ -70,11 +74,6 @@ interface NativeImageFactory {
     createFromDataURL?: (dataUrl: string) => unknown;
 }
 
-const { addRecentFile, loadRecentFiles } =
-    require("../../utils/files/recent/recentFiles") as {
-        addRecentFile: (filePath: string) => void;
-        loadRecentFiles: () => string[];
-    };
 const appRef = electronAppRef as () => AppInfoProvider | null | undefined;
 const browserWindowRef =
     electronBrowserWindowRef as () => BrowserWindowConstructorLike;

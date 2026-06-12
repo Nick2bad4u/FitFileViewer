@@ -1,10 +1,7 @@
 // @vitest-environment jsdom
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import type { Mock } from "vitest";
-import {
-    clearGyazoStartupTimer,
-    getGyazoStartupTimer,
-} from "../../electron-app/main/app/gyazoStartupTimerState.js";
+import { clearGyazoStartupTimer } from "../../electron-app/main/app/gyazoStartupTimerState.js";
 import { clearPrimeTestEnvironmentTimers } from "../../electron-app/main/runtime/primeTestEnvironment.js";
 
 type MockWindow = {
@@ -185,8 +182,8 @@ const mockFitParser = {
 };
 
 // Mock fs module
-vi.mock(import("node:fs"), () => ({
-    default: {
+vi.mock(import("node:fs"), () => {
+    const fsMock = {
         readFile: vi.fn<
             (
                 filePath: string,
@@ -200,14 +197,25 @@ vi.mock(import("node:fs"), () => ({
                 callback(null, Buffer.from("test file content"));
             }
         ),
+        readFileSync: vi.fn<(filePath: string, encoding?: string) => string>(
+            () => "{}"
+        ),
+        writeFileSync: vi.fn<(...args: unknown[]) => void>(),
+        mkdirSync: vi.fn<(...args: unknown[]) => void>(),
+        unlinkSync: vi.fn<(...args: unknown[]) => void>(),
         writeFile: vi.fn<(...args: unknown[]) => void>(),
         existsSync: vi
             .fn<(filePath: string) => boolean>()
             .mockReturnValue(true),
         createReadStream: vi.fn<(filePath: string) => unknown>(),
         createWriteStream: vi.fn<(filePath: string) => unknown>(),
-    },
-}));
+    };
+
+    return {
+        ...fsMock,
+        default: fsMock,
+    };
+});
 
 // Mock http module
 vi.mock(import("http"), () => ({
@@ -234,17 +242,27 @@ vi.mock(import("electron-updater"), () => ({
 }));
 
 // Mock path module
-vi.mock(import("node:path"), () => ({
-    default: {
+vi.mock(import("node:path"), () => {
+    const pathMock = {
         join: vi.fn<(...args: string[]) => string>((...args) => args.join("/")),
         dirname: vi.fn<(filePath: string) => string>(() => "/mock/dirname"),
         resolve: vi.fn<(...args: string[]) => string>((...args) =>
             args.join("/")
         ),
+        relative: vi.fn<(from: string, to: string) => string>(() => ""),
+        isAbsolute: vi.fn<(filePath: string) => boolean>(() => false),
         extname: vi.fn<(filePath: string) => string>(() => ".fit"),
-        basename: vi.fn<(filePath: string) => string>(() => "test.fit"),
-    },
-}));
+        basename: vi.fn<(filePath: string) => string>((filePath) => {
+            const parts = filePath.split(/[\\/]/u);
+            return parts.at(-1) || "test.fit";
+        }),
+    };
+
+    return {
+        ...pathMock,
+        default: pathMock,
+    };
+});
 
 // Mock crypto module
 vi.mock(import("node:crypto"), () => ({
@@ -376,10 +394,13 @@ type ImportMainModuleOptions = {
 };
 
 async function setMainElectronOverride(override: unknown): Promise<void> {
-    const { setElectronOverride } = await import(
-        "../../electron-app/main/runtime/electronAccess.js"
-    );
+    const { setElectronOverride } =
+        await import("../../electron-app/main/runtime/electronAccess.js");
     setElectronOverride(override);
+}
+
+async function importGyazoStartupTimerState() {
+    return await import("../../electron-app/main/app/gyazoStartupTimerState.js");
 }
 
 async function importMainModule({
@@ -818,13 +839,15 @@ describe("main.js - Electron Main Process", () => {
             process.env.GYAZO_CLIENT_SECRET = "test-client-secret";
 
             const mainModule = await importMainModule();
+            const gyazoStartupTimerState = await importGyazoStartupTimerState();
 
-            expect(getGyazoStartupTimer()).toBeDefined();
+            expect(gyazoStartupTimerState.getGyazoStartupTimer()).toBeDefined();
             expect(globalThis).not.toHaveProperty("__ffvGyazoStartupTimer");
             await expect(mainModule.stopGyazoOAuthServer()).resolves.toEqual({
                 message: "No server was running",
                 success: true,
             });
+            gyazoStartupTimerState.clearGyazoStartupTimer();
         });
 
         it("should handle missing Gyazo environment variables", async () => {
@@ -835,8 +858,11 @@ describe("main.js - Electron Main Process", () => {
             delete process.env.GYAZO_CLIENT_SECRET;
 
             const mainModule = await importMainModule();
+            const gyazoStartupTimerState = await importGyazoStartupTimerState();
 
-            expect(getGyazoStartupTimer()).toBeUndefined();
+            expect(
+                gyazoStartupTimerState.getGyazoStartupTimer()
+            ).toBeUndefined();
             await expect(mainModule.stopGyazoOAuthServer()).resolves.toEqual({
                 message: "No server was running",
                 success: true,

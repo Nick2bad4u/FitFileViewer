@@ -102,6 +102,10 @@ window-validation helpers natively.
 The window-state utility boundary now uses named source exports instead of a source-level `module.exports`
 wrapper, and application-event/window-bootstrap/window-initialization source imports `createWindow` natively
 instead of requiring `windowStateUtils`.
+The main entrypoint now imports runtime helpers natively instead of using its `mainRequire` table or
+source-level `module.exports` fallback, while keeping the existing default export object for tests.
+The recent-files utility now uses named source exports, and `setupIPCHandlers.ts` imports it natively instead
+of requiring the source helper.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

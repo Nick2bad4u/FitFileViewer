@@ -1,9 +1,12 @@
-const { appRef } = require("../../../main/runtime/electronAccess") as {
-    appRef: () => { getPath(name: "userData"): string } | undefined;
-};
-const fs = require("node:fs") as typeof import("node:fs");
-const os = require("node:os") as typeof import("node:os");
-const path = require("node:path") as typeof import("node:path");
+import os from "node:os";
+import * as fs from "node:fs";
+import * as path from "node:path";
+
+import { appRef } from "../../../main/runtime/electronAccess.js";
+
+const recentFilesAppRef = appRef as () =>
+    | { getPath(name: "userData"): string }
+    | undefined;
 
 let RECENT_FILES_PATH: string | undefined;
 
@@ -25,7 +28,7 @@ if (RECENT_ENV) {
 } else {
     let userDataPath: string | null = null;
     try {
-        const app = appRef();
+        const app = recentFilesAppRef();
         userDataPath =
             app && typeof app.getPath === "function"
                 ? app.getPath("userData")
@@ -72,7 +75,7 @@ if (RECENT_ENV) {
 
 const MAX_RECENT_FILES = 10;
 
-function addRecentFile(filePath: string): void {
+export function addRecentFile(filePath: string): void {
     let list = loadRecentFiles();
     if (!Array.isArray(list)) {
         console.warn("Invalid recent files list, resetting to an empty array.");
@@ -90,7 +93,7 @@ function addRecentFile(filePath: string): void {
     }
 }
 
-function getShortRecentName(file: string): string {
+export function getShortRecentName(file: string): string {
     if (!file) {
         console.warn("Invalid file path provided to getShortRecentName.");
         return "";
@@ -98,7 +101,7 @@ function getShortRecentName(file: string): string {
     return path.basename(file);
 }
 
-function loadRecentFiles(): string[] {
+export function loadRecentFiles(): string[] {
     try {
         if (!RECENT_FILES_PATH || !fs.existsSync(RECENT_FILES_PATH)) {
             return [];
@@ -128,7 +131,7 @@ function loadRecentFiles(): string[] {
     return [];
 }
 
-function saveRecentFiles(list: string[]): void {
+export function saveRecentFiles(list: string[]): void {
     try {
         if (!RECENT_FILES_PATH) {
             return;
@@ -144,7 +147,7 @@ function saveRecentFiles(list: string[]): void {
     }
 }
 
-module.exports = {
+export default {
     addRecentFile,
     getShortRecentName,
     loadRecentFiles,
