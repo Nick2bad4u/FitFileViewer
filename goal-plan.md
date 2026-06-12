@@ -221,6 +221,8 @@ imports instead of probing CJS module caches through `node:module`.
 Chart notification/loading suppression tests and createAppMenu export tests no longer create or read retired
 `__FFV_suppressNotifications`, `__FFV_suppressLoadingState`, or `__FFV_createAppMenuExports` globals; architecture
 coverage now keeps those retired renderer compatibility names out of ordinary tests.
+The renderChartJS comprehensive test now uses ESM mocks without the old `utils.require` module-cache bridge,
+and architecture coverage keeps that require-hook pattern from returning.
 
 6. Reduce Test Harness Global Pollution (Fully finish)
 
@@ -248,6 +250,8 @@ state instead of writing a `__isObjectKeysWrapper` marker property on wrapper fu
 longer seed the retired chart suppression or createAppMenu export globals when verifying module-state behavior.
 The main-process state-manager test also resets its typed Electron override after each test instead of installing
 an ambient `global.require` patch.
+The renderChartJS comprehensive test no longer installs an ambient `utils.require` hook or carries module-cache
+mocking terminology for its ESM mock setup.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

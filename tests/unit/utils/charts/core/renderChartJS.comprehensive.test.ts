@@ -1,19 +1,16 @@
 // @ts-nocheck
 /**
- * Tests the 1510-line chart rendering utility using proven Module cache
- * injection technique to achieve significant coverage improvement from baseline
- * 52.69% to target 80%+
+ * Tests the chart rendering utility with focused ESM mocks and a controlled DOM
+ * environment.
  *
  * TESTING STRATEGY:
  *
- * - Module cache injection for all 27+ dependencies
+ * - ESM mocks for chart/rendering dependencies
  * - DOM environment mocking for Chart.js rendering
  * - State management integration testing
  * - Error handling and edge case coverage
  * - Performance monitoring validation
  * - Export functionality testing
- *
- * TARGET COVERAGE IMPROVEMENT: 52.69% → 80%+ (27+ percentage point improvement)
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -36,7 +33,6 @@ type RenderChartJSTestGlobal = typeof globalThis & {
         ) => void;
     } & Record<string, unknown>;
     requestAnimationFrame?: unknown;
-    require?: (id: string) => unknown;
     window?: unknown;
 };
 
@@ -191,13 +187,7 @@ vi.mock(
     })
 );
 
-// Mock all dependencies before import using Module cache injection
 function injectChartJSMocks() {
-    // Module cache injection technique - intercept require() calls
-    const utils = getRenderChartJSTestGlobal();
-    const originalRequire = utils.require;
-    const moduleCache = new Map();
-
     // Enhanced DOM environment for Chart.js testing
     setupDOMEnvironment();
 
@@ -520,43 +510,6 @@ function injectChartJSMocks() {
         () => mocks.createUserDeviceInfoBox
     );
 
-    // Enhanced module cache injection
-    utils.require = function (id) {
-        const normalizedId = id
-            .replace(/^\.\.\/\.\.\//, "../../")
-            .replace(/\.js$/, "");
-
-        // Check cache first
-        if (moduleCache.has(normalizedId)) {
-            return moduleCache.get(normalizedId);
-        }
-
-        // Find matching mock
-        for (const [mockKey, mockValue] of Object.entries(mocks)) {
-            if (
-                normalizedId.includes(mockKey) ||
-                normalizedId.endsWith(mockKey)
-            ) {
-                moduleCache.set(normalizedId, mockValue);
-                return mockValue;
-            }
-        }
-
-        // Fallback to original require
-        if (originalRequire) {
-            try {
-                return originalRequire(id);
-            } catch (error) {
-                console.warn(
-                    `[Test] Module not found: ${id}, returning empty mock`
-                );
-                return {};
-            }
-        }
-
-        return {};
-    };
-
     return mocks;
 }
 
@@ -674,7 +627,7 @@ function setupDOMEnvironment() {
     }
 }
 
-describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection", () => {
+describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
     let mocks;
 
     beforeEach(async () => {

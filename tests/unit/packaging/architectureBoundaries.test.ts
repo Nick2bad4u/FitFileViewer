@@ -2738,6 +2738,27 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).not.toContain("resolveManualMock");
     });
 
+    it("keeps renderChartJS comprehensive tests off module-cache require bridges", () => {
+        expect.assertions(4);
+
+        const renderChartJsComprehensiveTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/utils/charts/core/renderChartJS.comprehensive.test.ts"
+            )
+        );
+
+        expect(renderChartJsComprehensiveTestSource).not.toMatch(
+            /\b(?:createRequire|requireCjs|require\s*\()/u
+        );
+        expect(renderChartJsComprehensiveTestSource).not.toContain(
+            "utils.require"
+        );
+        expect(renderChartJsComprehensiveTestSource).not.toContain(
+            "moduleCache"
+        );
+        expect(renderChartJsComprehensiveTestSource).toContain("vi.doMock");
+    });
+
     it("keeps createAppMenu Electron test fixtures module-local", () => {
         expect.assertions(4);
 
