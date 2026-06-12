@@ -8,8 +8,9 @@ modules still depend on the injected `requireModule`/packaged CommonJS boundary 
 
 Progress: `electron-app/preload/apiAssembly.ts` now consumes API assembly-context and domain factory dependencies
 from the injected preload module registry instead of requiring sibling preload modules directly. The new
-`electron-app/preload/preloadApiAssemblyModuleLoader.ts` keeps those dependencies behind the existing
-`requireModule` handoff while the packaged Electron preload output remains CommonJS-compatible.
+`electron-app/preload/preloadApiAssemblyModuleLoader.ts` now imports the API assembly context and domain
+modules natively instead of resolving those assembly modules through the existing `requireModule` handoff
+while the packaged Electron preload output remains CommonJS-compatible.
 `electron-app/preload/ipcHelpers.ts` and `electron-app/preload/devtoolsMenuApi.ts` now consume shared validation
 policies from injected registry entries loaded by `electron-app/preload/preloadPolicyModuleLoader.ts` instead
 of requiring shared policy modules directly.

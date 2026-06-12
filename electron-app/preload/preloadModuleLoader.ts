@@ -12,9 +12,7 @@ export function loadPreloadModules({
     const { loadPreloadApiAssemblyModules } = requireModule(
         "./preload/preloadApiAssemblyModuleLoader.js"
     ) as {
-        loadPreloadApiAssemblyModules: (
-            options: LoadPreloadModulesOptions
-        ) => Pick<
+        loadPreloadApiAssemblyModules: () => Pick<
             PreloadModuleRegistry,
             | "createPreloadApiAssemblyContext"
             | "createPreloadClipboardApiDomain"
@@ -94,7 +92,7 @@ export function loadPreloadModules({
     };
 
     return {
-        ...loadPreloadApiAssemblyModules({ requireModule }),
+        ...loadPreloadApiAssemblyModules(),
         ...loadPreloadAppModules(),
         ...loadPreloadPolicyModules(),
         ...loadPreloadFileModules(),

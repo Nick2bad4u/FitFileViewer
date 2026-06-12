@@ -1,6 +1,15 @@
+import { createPreloadApiAssemblyContext } from "./apiAssemblyContext.js";
+import { createPreloadClipboardApiDomain } from "./clipboardApiDomain.js";
+import { createPreloadDeveloperApiDomain } from "./developerApiDomain.js";
+import { createPreloadDiagnosticsApiDomain } from "./diagnosticsApiDomain.js";
+import { createPreloadExternalApiDomain } from "./externalApiDomain.js";
+import { createPreloadFileApiDomain } from "./fileApiDomain.js";
+import { createPreloadIpcEventApiDomain } from "./ipcEventApiDomain.js";
+import { createPreloadStateApiDomain } from "./stateApiDomain.js";
+import { createPreloadSystemApiDomain } from "./systemApiDomain.js";
+
 type PreloadModuleRegistry =
     import("./preloadModuleTypes").PreloadModuleRegistry;
-type PreloadModuleRequire = import("./preloadModuleTypes").PreloadModuleRequire;
 type PreloadApiAssemblyModules = Pick<
     PreloadModuleRegistry,
     | "createPreloadApiAssemblyContext"
@@ -14,68 +23,39 @@ type PreloadApiAssemblyModules = Pick<
     | "createPreloadSystemApiDomain"
 >;
 
-interface LoadPreloadApiAssemblyModulesOptions {
-    requireModule: PreloadModuleRequire;
-}
+const createPreloadApiAssemblyContextModule =
+    createPreloadApiAssemblyContext as unknown as PreloadModuleRegistry["createPreloadApiAssemblyContext"];
+const createPreloadClipboardApiDomainModule =
+    createPreloadClipboardApiDomain as unknown as PreloadModuleRegistry["createPreloadClipboardApiDomain"];
+const createPreloadDeveloperApiDomainModule =
+    createPreloadDeveloperApiDomain as unknown as PreloadModuleRegistry["createPreloadDeveloperApiDomain"];
+const createPreloadDiagnosticsApiDomainModule =
+    createPreloadDiagnosticsApiDomain as unknown as PreloadModuleRegistry["createPreloadDiagnosticsApiDomain"];
+const createPreloadExternalApiDomainModule =
+    createPreloadExternalApiDomain as unknown as PreloadModuleRegistry["createPreloadExternalApiDomain"];
+const createPreloadFileApiDomainModule =
+    createPreloadFileApiDomain as unknown as PreloadModuleRegistry["createPreloadFileApiDomain"];
+const createPreloadIpcEventApiDomainModule =
+    createPreloadIpcEventApiDomain as unknown as PreloadModuleRegistry["createPreloadIpcEventApiDomain"];
+const createPreloadStateApiDomainModule =
+    createPreloadStateApiDomain as unknown as PreloadModuleRegistry["createPreloadStateApiDomain"];
+const createPreloadSystemApiDomainModule =
+    createPreloadSystemApiDomain as unknown as PreloadModuleRegistry["createPreloadSystemApiDomain"];
 
-export function loadPreloadApiAssemblyModules({
-    requireModule,
-}: LoadPreloadApiAssemblyModulesOptions): PreloadApiAssemblyModules {
-    const { createPreloadApiAssemblyContext } = requireModule(
-        "./preload/apiAssemblyContext.js"
-    ) as {
-        createPreloadApiAssemblyContext: PreloadModuleRegistry["createPreloadApiAssemblyContext"];
-    };
-    const { createPreloadClipboardApiDomain } = requireModule(
-        "./preload/clipboardApiDomain.js"
-    ) as {
-        createPreloadClipboardApiDomain: PreloadModuleRegistry["createPreloadClipboardApiDomain"];
-    };
-    const { createPreloadDeveloperApiDomain } = requireModule(
-        "./preload/developerApiDomain.js"
-    ) as {
-        createPreloadDeveloperApiDomain: PreloadModuleRegistry["createPreloadDeveloperApiDomain"];
-    };
-    const { createPreloadDiagnosticsApiDomain } = requireModule(
-        "./preload/diagnosticsApiDomain.js"
-    ) as {
-        createPreloadDiagnosticsApiDomain: PreloadModuleRegistry["createPreloadDiagnosticsApiDomain"];
-    };
-    const { createPreloadExternalApiDomain } = requireModule(
-        "./preload/externalApiDomain.js"
-    ) as {
-        createPreloadExternalApiDomain: PreloadModuleRegistry["createPreloadExternalApiDomain"];
-    };
-    const { createPreloadFileApiDomain } = requireModule(
-        "./preload/fileApiDomain.js"
-    ) as {
-        createPreloadFileApiDomain: PreloadModuleRegistry["createPreloadFileApiDomain"];
-    };
-    const { createPreloadIpcEventApiDomain } = requireModule(
-        "./preload/ipcEventApiDomain.js"
-    ) as {
-        createPreloadIpcEventApiDomain: PreloadModuleRegistry["createPreloadIpcEventApiDomain"];
-    };
-    const { createPreloadStateApiDomain } = requireModule(
-        "./preload/stateApiDomain.js"
-    ) as {
-        createPreloadStateApiDomain: PreloadModuleRegistry["createPreloadStateApiDomain"];
-    };
-    const { createPreloadSystemApiDomain } = requireModule(
-        "./preload/systemApiDomain.js"
-    ) as {
-        createPreloadSystemApiDomain: PreloadModuleRegistry["createPreloadSystemApiDomain"];
-    };
-
+export function loadPreloadApiAssemblyModules(): PreloadApiAssemblyModules {
     return {
-        createPreloadApiAssemblyContext,
-        createPreloadClipboardApiDomain,
-        createPreloadDeveloperApiDomain,
-        createPreloadDiagnosticsApiDomain,
-        createPreloadExternalApiDomain,
-        createPreloadFileApiDomain,
-        createPreloadIpcEventApiDomain,
-        createPreloadStateApiDomain,
-        createPreloadSystemApiDomain,
+        createPreloadApiAssemblyContext:
+            createPreloadApiAssemblyContextModule,
+        createPreloadClipboardApiDomain:
+            createPreloadClipboardApiDomainModule,
+        createPreloadDeveloperApiDomain:
+            createPreloadDeveloperApiDomainModule,
+        createPreloadDiagnosticsApiDomain:
+            createPreloadDiagnosticsApiDomainModule,
+        createPreloadExternalApiDomain: createPreloadExternalApiDomainModule,
+        createPreloadFileApiDomain: createPreloadFileApiDomainModule,
+        createPreloadIpcEventApiDomain: createPreloadIpcEventApiDomainModule,
+        createPreloadStateApiDomain: createPreloadStateApiDomainModule,
+        createPreloadSystemApiDomain: createPreloadSystemApiDomainModule,
     };
 }

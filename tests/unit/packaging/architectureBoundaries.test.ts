@@ -2556,6 +2556,54 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps preload API assembly modules on native imports", () => {
+        expect.assertions(12);
+
+        const apiAssemblyModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadApiAssemblyModuleLoader.ts"
+            )
+        );
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadApiAssemblyContext } from "./apiAssemblyContext.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadClipboardApiDomain } from "./clipboardApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadDeveloperApiDomain } from "./developerApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadDiagnosticsApiDomain } from "./diagnosticsApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadExternalApiDomain } from "./externalApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadFileApiDomain } from "./fileApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadIpcEventApiDomain } from "./ipcEventApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadStateApiDomain } from "./stateApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadSystemApiDomain } from "./systemApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).not.toContain("requireModule");
+        expect(moduleLoaderSource).toContain(
+            "loadPreloadApiAssemblyModules()"
+        );
+        expect(moduleLoaderSource).not.toContain(
+            "loadPreloadApiAssemblyModules({ requireModule })"
+        );
+    });
+
     it("keeps the preload event helper free of generic IPC methods", () => {
         expect.assertions(5);
 
