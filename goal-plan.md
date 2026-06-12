@@ -67,6 +67,8 @@ and `setupIPCHandlers.ts` imports those migrated handler boundaries natively too
 The main IPC sender policy and IPC registry now use named source exports too, and the registry/setup IPC
 boundary plus main-process state manager import those migrated pieces natively instead of requiring their
 source files.
+The main renderer-send helper and window validation helper now use named source exports too, and direct
+main-process consumers import those migrated helpers natively instead of requiring their source files.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

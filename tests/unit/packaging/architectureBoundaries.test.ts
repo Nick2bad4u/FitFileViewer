@@ -1815,6 +1815,81 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps migrated main renderer-send and window validation helpers off source-level CommonJS exports", () => {
+        expect.assertions(15);
+
+        const sendToRendererSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/sendToRenderer.ts")
+        );
+        const windowValidationSource = stripComments(
+            readRepositoryFile("electron-app/main/window/windowValidation.ts")
+        );
+        const exposeDevHelpersSource = stripComments(
+            readRepositoryFile("electron-app/main/dev/exposeDevHelpers.ts")
+        );
+        const getThemeFromRendererSource = stripComments(
+            readRepositoryFile("electron-app/main/theme/getThemeFromRenderer.ts")
+        );
+        const setupAutoUpdaterSource = stripComments(
+            readRepositoryFile("electron-app/main/updater/setupAutoUpdater.ts")
+        );
+        const initializeApplicationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/runtime/initializeApplication.ts"
+            )
+        );
+        const setupMenuAndEventHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/setupMenuAndEventHandlers.ts"
+            )
+        );
+        const gyazoOAuthServerSource = stripComments(
+            readRepositoryFile("electron-app/main/oauth/gyazoOAuthServer.ts")
+        );
+
+        expect(sendToRendererSource).not.toContain("module.exports");
+        expect(windowValidationSource).not.toContain("module.exports");
+        expect(windowValidationSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(sendToRendererSource).not.toContain(
+            'require("../window/windowValidation")'
+        );
+        expect(exposeDevHelpersSource).not.toContain(
+            'require("../window/windowValidation")'
+        );
+        expect(getThemeFromRendererSource).not.toContain(
+            'require("../window/windowValidation")'
+        );
+        expect(setupAutoUpdaterSource).not.toContain(
+            'require("../ipc/sendToRenderer")'
+        );
+        expect(setupAutoUpdaterSource).not.toContain(
+            'require("../window/windowValidation")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../ipc/sendToRenderer")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../ipc/sendToRenderer")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../window/windowValidation")'
+        );
+        expect(gyazoOAuthServerSource).not.toContain(
+            'require("../ipc/sendToRenderer")'
+        );
+        expect(sendToRendererSource).toContain(
+            "export function sendToRenderer"
+        );
+        expect(windowValidationSource).toContain(
+            "export function isWindowUsable"
+        );
+        expect(windowValidationSource).toContain(
+            "export function validateWindow"
+        );
+    });
+
     it("keeps ordinary preload unit tests on native source imports", () => {
         expect.assertions(1);
 

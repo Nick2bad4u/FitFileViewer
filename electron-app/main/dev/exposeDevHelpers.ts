@@ -1,7 +1,9 @@
+import { CONSTANTS } from "../constants.js";
+import { validateWindow } from "../window/windowValidation.js";
+
 {
     type RendererIpcEventChannel =
         import("../../shared/ipc").RendererIpcEventChannel;
-
     interface MainWindowLike {
         isDestroyed?: () => boolean;
         webContents: {
@@ -33,9 +35,6 @@
         rebuildMenu: (theme?: null | string, filePath?: null | string) => void;
     }
 
-    const { CONSTANTS } = require("../constants") as {
-        CONSTANTS: { DEFAULT_THEME: string };
-    };
     const { logWithContext } = require("../logging/logWithContext") as {
         logWithContext: (
             level: string,
@@ -59,12 +58,10 @@
             getAppState: (statePath: string) => unknown;
             mainProcessState: MainProcessStateLike;
         };
-    const { validateWindow } = require("../window/windowValidation") as {
-        validateWindow: (
-            win?: MainWindowLike | null,
-            context?: string
-        ) => win is MainWindowLike;
-    };
+    const validateMainWindow = validateWindow as (
+        win?: MainWindowLike | null,
+        context?: string
+    ) => win is MainWindowLike;
 
     const hasFocusedWindowApi = (
         value: unknown
@@ -102,7 +99,7 @@
                     ? BrowserWindow.getFocusedWindow()
                     : null;
 
-                if (validateWindow(win, "dev helper rebuild menu")) {
+                if (validateMainWindow(win, "dev helper rebuild menu")) {
                     safeCreateAppMenu(
                         win,
                         theme || CONSTANTS.DEFAULT_THEME,

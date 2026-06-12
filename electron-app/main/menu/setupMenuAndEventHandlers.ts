@@ -1,4 +1,6 @@
 import { validateDevtoolsInjectMenuPayload } from "../../shared/devtoolsMenuPolicy.js";
+import { sendToRenderer } from "../ipc/sendToRenderer.js";
+import { validateWindow } from "../window/windowValidation.js";
 
 {
     type BrowserWindow = import("electron").BrowserWindow;
@@ -17,8 +19,6 @@ import { validateDevtoolsInjectMenuPayload } from "../../shared/devtoolsMenuPoli
     type FileFilter = import("electron").FileFilter;
     type MainProcessIpcEventChannel =
         import("../../shared/ipc").MainProcessIpcEventChannel;
-    type RendererIpcEventChannel =
-        import("../../shared/ipc").RendererIpcEventChannel;
     type SaveDialogOptions = import("electron").SaveDialogOptions;
 
     interface IpcEventLike {
@@ -104,13 +104,6 @@ import { validateDevtoolsInjectMenuPayload } from "../../shared/devtoolsMenuPoli
                 listener: IpcCallback
             ) => void;
         };
-    const { sendToRenderer } = require("../ipc/sendToRenderer") as {
-        sendToRenderer: (
-            win: BrowserWindow | null | undefined,
-            channel: RendererIpcEventChannel,
-            ...args: unknown[]
-        ) => void;
-    };
     const { logWithContext } = require("../logging/logWithContext") as {
         logWithContext: (
             level: string,
@@ -131,12 +124,6 @@ import { validateDevtoolsInjectMenuPayload } from "../../shared/devtoolsMenuPoli
     };
     const { getAppState } = require("../state/appState") as {
         getAppState: (key: string) => unknown;
-    };
-    const { validateWindow } = require("../window/windowValidation") as {
-        validateWindow: (
-            win?: BrowserWindow | null,
-            context?: string
-        ) => boolean;
     };
     const { resolveAutoUpdaterSync: resolveAutoUpdaterFallback } =
         require("../updater/autoUpdaterAccess") as {

@@ -1,3 +1,6 @@
+import { CONSTANTS } from "../constants.js";
+import { validateWindow } from "../window/windowValidation.js";
+
 {
     interface ThemeWindowCandidate {
         isDestroyed?: () => boolean;
@@ -13,18 +16,10 @@
         };
     };
 
-    const { CONSTANTS } = require("../constants") as {
-        CONSTANTS: {
-            DEFAULT_THEME: string;
-            THEME_STORAGE_KEY: string;
-        };
-    };
-    const { validateWindow } = require("../window/windowValidation") as {
-        validateWindow: (
-            win?: null | ThemeWindowCandidate,
-            context?: string
-        ) => win is UsableThemeWindow;
-    };
+    const validateThemeWindow = validateWindow as (
+        win?: null | ThemeWindowCandidate,
+        context?: string
+    ) => win is UsableThemeWindow;
 
     /**
      * Fetches the persisted theme from the renderer by reading localStorage.
@@ -34,7 +29,7 @@
     async function getThemeFromRenderer(
         win?: null | ThemeWindowCandidate
     ): Promise<string> {
-        if (!validateWindow(win, "theme retrieval")) {
+        if (!validateThemeWindow(win, "theme retrieval")) {
             return CONSTANTS.DEFAULT_THEME;
         }
 

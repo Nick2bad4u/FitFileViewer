@@ -55,8 +55,10 @@ function getRequireCache(): Record<string, CjsCacheEntry> {
         .cache;
 }
 
-function requireSetupAutoUpdater(): SetupAutoUpdaterModule {
-    return require("../../../../electron-app/main/updater/setupAutoUpdater.js");
+async function importSetupAutoUpdater(): Promise<SetupAutoUpdaterModule> {
+    return (await import(
+        "../../../../electron-app/main/updater/setupAutoUpdater.js"
+    )) as SetupAutoUpdaterModule;
 }
 
 function createMainWindow(): MainWindowLike {
@@ -68,6 +70,7 @@ function createMainWindow(): MainWindowLike {
 
 describe("setupAutoUpdater", () => {
     beforeEach(() => {
+        vi.resetModules();
         mockElectronLog.transports.file.level = "";
         mockElectronLog.info.mockClear();
         mockElectronLog.error.mockClear();
@@ -82,17 +85,14 @@ describe("setupAutoUpdater", () => {
             loaded: true,
         };
 
-        // Ensure the module under test is reloaded per test.
-        const sutPath =
-            require.resolve("../../../../electron-app/main/updater/setupAutoUpdater.js");
-        delete cache[sutPath];
+        // The module under test is imported natively; the CJS cache injection
+        // above covers electron-log for the remaining require() boundary.
     });
 
     it("does not throw when autoUpdater is explicitly unavailable", async () => {
         expect.assertions(1);
 
-        // Require the CJS module so it uses our require.cache injection.
-        const { setupAutoUpdater } = requireSetupAutoUpdater();
+        const { setupAutoUpdater } = await importSetupAutoUpdater();
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const mockWindow = createMainWindow();
@@ -115,7 +115,7 @@ describe("setupAutoUpdater", () => {
     it("redacts credentials when logging feedURL and does not crash with minimal updater surface", async () => {
         expect.assertions(1);
 
-        const { setupAutoUpdater } = requireSetupAutoUpdater();
+        const { setupAutoUpdater } = await importSetupAutoUpdater();
         const mockWindow = createMainWindow();
 
         const autoUpdater: AutoUpdaterLike = {

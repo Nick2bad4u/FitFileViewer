@@ -1,8 +1,11 @@
+import { CONSTANTS } from "../constants.js";
+import { sendToRenderer } from "../ipc/sendToRenderer.js";
+import { mainProcessState, setAppState } from "../state/appState.js";
+import { isWindowUsable } from "../window/windowValidation.js";
+
 {
     type RendererIpcEventChannel =
         import("../../shared/ipc").RendererIpcEventChannel;
-    type UpdateEventName = import("../../shared/ipc").UpdateEventName;
-
     interface AutoUpdaterLike {
         autoDownload?: boolean;
         checkForUpdatesAndNotify?: () => unknown;
@@ -39,20 +42,6 @@
         };
     }
 
-    interface MainProcessConstants {
-        LOG_LEVELS: {
-            INFO: string;
-        };
-        UPDATE_EVENTS: {
-            AVAILABLE: UpdateEventName;
-            CHECKING: UpdateEventName;
-            DOWNLOAD_PROGRESS: UpdateEventName;
-            DOWNLOADED: UpdateEventName;
-            ERROR: UpdateEventName;
-            NOT_AVAILABLE: UpdateEventName;
-        };
-    }
-
     interface MenuLike {
         getMenuItemById?: (id: string) => { enabled?: boolean } | null;
     }
@@ -61,26 +50,6 @@
         getApplicationMenu?: () => MenuLike | null;
     }
 
-    interface MainProcessStateLike {
-        registerEventHandler?: (
-            emitter: unknown,
-            event: string,
-            handler: (...args: unknown[]) => void,
-            handlerId: string
-        ) => void;
-        unregisterEventHandler?: (handlerId: string) => void;
-    }
-
-    const { CONSTANTS } = require("../constants") as {
-        CONSTANTS: MainProcessConstants;
-    };
-    const { sendToRenderer } = require("../ipc/sendToRenderer") as {
-        sendToRenderer: (
-            win: MainWindowLike | null | undefined,
-            channel: RendererIpcEventChannel,
-            ...args: unknown[]
-        ) => void;
-    };
     const { logWithContext } = require("../logging/logWithContext") as {
         logWithContext: (
             level: "error" | "info" | "warn",
@@ -90,13 +59,6 @@
     };
     const { menuRef } = require("../runtime/electronAccess") as {
         menuRef: () => MenuModuleLike | undefined;
-    };
-    const { mainProcessState, setAppState } = require("../state/appState") as {
-        mainProcessState: MainProcessStateLike;
-        setAppState: (key: string, value: unknown) => void;
-    };
-    const { isWindowUsable } = require("../window/windowValidation") as {
-        isWindowUsable: (win?: MainWindowLike | null) => boolean;
     };
     const { resolveAutoUpdaterSync: resolveAutoUpdaterFallback } = require(
         "./autoUpdaterAccess"

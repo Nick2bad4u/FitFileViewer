@@ -1,3 +1,5 @@
+import { sendToRenderer } from "../ipc/sendToRenderer.js";
+
 {
     type HttpModule = typeof import("node:http");
     type GyazoServerStartResult =
@@ -33,13 +35,6 @@
     const { getAppState, setAppState } = require("../state/appState") as {
         getAppState: (key: string) => unknown;
         setAppState: (key: string, value: unknown) => void;
-    };
-    const { sendToRenderer } = require("../ipc/sendToRenderer") as {
-        sendToRenderer: (
-            win: OAuthWindowLike | null | undefined,
-            channel: RendererIpcEventChannel,
-            ...args: unknown[]
-        ) => void;
     };
 
     function getErrorMessage(error: unknown): string {

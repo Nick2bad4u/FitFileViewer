@@ -1,3 +1,5 @@
+import { sendToRenderer } from "../ipc/sendToRenderer.js";
+
 {
     type BrowserWindow = import("electron").BrowserWindow;
     type RendererIpcEventChannel =
@@ -30,9 +32,6 @@
 
     const { CONSTANTS } = require("../constants") as {
         CONSTANTS: Record<string, unknown>;
-    };
-    const { sendToRenderer } = require("../ipc/sendToRenderer") as {
-        sendToRenderer: BootstrapMainWindowDependencies["sendToRenderer"];
     };
     const { logWithContext } = require("../logging/logWithContext") as {
         logWithContext: BootstrapMainWindowDependencies["logWithContext"];
