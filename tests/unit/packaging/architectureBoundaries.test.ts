@@ -496,6 +496,8 @@ const legacyLoadedFitFilesStatePathPattern =
     /["']globalData\.loadedFitFiles["']/u;
 const legacyLoadedFitFilesGlobalLookupPattern =
     /\b(?:appGlobal|lifecycleGlobal|overlayGlobal|windowExt|win|window|globalThis)\.loadedFitFiles\b|Reflect\.deleteProperty\(\s*globalThis\s*,\s*["']loadedFitFiles["']\s*\)/u;
+const loadedFitFilesTestGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*(?:globalThis|testGlobal)\s*,\s*["']loadedFitFiles["']\s*\)|\b(?:globalThis|testGlobal)\.loadedFitFiles\s*=/u;
 const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const directShowFitDataGlobalPattern =
@@ -6035,6 +6037,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/debug/debugSensorInfo.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps loaded FIT file state tests from mutating retired globals", () => {
+        expect.assertions(1);
+
+        expect(
+            loadedFitFilesTestGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/state/domain/loadedFitFilesState.test.ts"
                     )
                 )
             )

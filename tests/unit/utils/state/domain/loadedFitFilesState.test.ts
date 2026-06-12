@@ -11,16 +11,9 @@ import {
     setLoadedFitFiles,
 } from "../../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
 
-type LoadedFitFilesTestGlobal = typeof globalThis & {
-    loadedFitFiles?: unknown;
-};
-
-const testGlobal = globalThis as LoadedFitFilesTestGlobal;
-
 describe("loadedFitFilesState", () => {
     beforeEach(() => {
         stateManager.__resetStateManagerForTests();
-        Reflect.deleteProperty(testGlobal, "loadedFitFiles");
     });
 
     it("stores loaded files in explicit state without mirroring a legacy global", () => {
@@ -38,20 +31,13 @@ describe("loadedFitFilesState", () => {
         expect(stateManager.getState("fitFile.loadedFiles")).toStrictEqual(
             files
         );
-        expect(Reflect.has(testGlobal, "loadedFitFiles")).toBe(false);
+        expect(Reflect.has(globalThis, "loadedFitFiles")).toBe(false);
         expect(returnedFiles).toStrictEqual(files);
         expect(returnedFiles).not.toBe(files);
     });
 
-    it("ignores legacy global values and reads only explicit state", () => {
+    it("reads only explicit loaded-file state when no files are stored", () => {
         expect.assertions(2);
-
-        testGlobal.loadedFitFiles = [
-            {
-                data: { recordMesgs: [] },
-                filePath: "legacy.fit",
-            },
-        ];
 
         expect(getLoadedFitFiles()).toStrictEqual([]);
         expect(stateManager.getState("fitFile.loadedFiles")).toStrictEqual([]);

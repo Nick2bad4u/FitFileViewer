@@ -266,6 +266,8 @@ render-state, timer, development, or state-debug globals while proving initializ
 architecture coverage now blocks those retired state-integration global mutations from returning.
 Debug sensor unit tests also no longer define or delete a stale `globalData` property when proving sensor
 availability comes from active FIT state, and architecture coverage keeps that retired global mutation out.
+Loaded FIT file state tests no longer assign or delete the retired `loadedFitFiles` global while proving
+loaded-file storage stays in explicit state, and architecture coverage blocks that mutation from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
