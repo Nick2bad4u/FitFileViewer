@@ -649,6 +649,8 @@ const directVitestWindowConsoleGroupPatchPattern =
     /\bwindow\.console\.group(?:Collapsed|End)?\s*=/u;
 const directRuntimeEnvironmentTestConsoleAssignmentPattern =
     /\bglobalThis\.console\s*=/u;
+const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
+    /\bglobalThis\.process\s*=/u;
 const directVitestTabButtonObserverCleanupPattern =
     /\btabButtonObserver\b/u;
 const directVitestChartDevToolsGlobalCleanupPattern =
@@ -7288,6 +7290,20 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directConsoleGlobalAssignments).toStrictEqual([]);
+    });
+
+    it("keeps handle-open-file complete tests on descriptor-scoped process fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            handleOpenFileCompleteTestDirectProcessAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/files/import/handleOpenFile.complete.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("does not clean retired tab-button observer globals in setup", () => {

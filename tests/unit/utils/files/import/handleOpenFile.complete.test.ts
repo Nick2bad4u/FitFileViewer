@@ -84,6 +84,11 @@ vi.mock(
 let handleOpenFileModule: HandleOpenFileModule;
 let currentElectronApi: Partial<MockElectronAPI> | undefined;
 
+const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
+    globalThis,
+    "process"
+);
+
 function getElectronAPI(): MockElectronAPI {
     if (!currentElectronApi) {
         throw new Error("electronAPI was not configured for the test");
@@ -121,6 +126,29 @@ function createOpenFileParams(): TestOpenFileParams {
     };
 }
 
+function setTestProcessEnv(env: Record<string, string | undefined>): void {
+    Object.defineProperty(globalThis, "process", {
+        configurable: true,
+        value: {
+            ...globalThis.process,
+            env,
+        },
+        writable: true,
+    });
+}
+
+function restoreProcessGlobal(): void {
+    if (originalProcessDescriptor) {
+        Object.defineProperty(
+            globalThis,
+            "process",
+            originalProcessDescriptor
+        );
+    } else {
+        Reflect.deleteProperty(globalThis, "process");
+    }
+}
+
 describe("handleOpenFile Module", () => {
     beforeEach(async () => {
         vi.useFakeTimers();
@@ -139,10 +167,7 @@ describe("handleOpenFile Module", () => {
         vi.spyOn(console, "error").mockImplementation(() => {});
 
         // Set up process.env for coverage
-        globalThis.process = {
-            ...globalThis.process,
-            env: { NODE_ENV: "development" },
-        };
+        setTestProcessEnv({ NODE_ENV: "development" });
 
         // Register the preload API candidate used by handleOpenFile.
         resetElectronApiCandidate();
@@ -158,6 +183,7 @@ describe("handleOpenFile Module", () => {
         vi.useRealTimers();
         resetElectronApiCandidate();
         vi.restoreAllMocks();
+        restoreProcessGlobal();
     });
 
     describe("module exports", () => {

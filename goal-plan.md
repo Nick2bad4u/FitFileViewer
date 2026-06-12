@@ -396,6 +396,9 @@ mutation pattern.
 Strict about modal tests now install their immediate `requestAnimationFrame` fixture through a descriptor-scoped
 helper instead of assigning `globalThis.requestAnimationFrame` directly, with architecture coverage blocking
 that fixture mutation pattern.
+Complete file-open tests now install temporary `process.env` coverage through a descriptor-scoped fixture
+instead of assigning `globalThis.process` directly, with architecture coverage blocking that fixture mutation
+pattern.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning.
