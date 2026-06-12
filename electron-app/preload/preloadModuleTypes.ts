@@ -58,7 +58,6 @@ export type ValidateMainStatePathInput = (
     options?: { allowUndefined?: boolean }
 ) => string | undefined;
 export type PreloadApiFactory<Api> = (options: Record<string, unknown>) => Api;
-export type PreloadModuleRequire = (moduleId: string) => unknown;
 export type CreateElectronApi = (
     options: Record<string, unknown>
 ) => ElectronAPI;
@@ -287,7 +286,6 @@ export interface PreloadModuleRegistry {
     ) => void;
     resolvePreloadElectronBridge: (options: {
         electronBridgeOverride?: null | PreloadElectronBridge;
-        requireModule: PreloadModuleRequire;
     }) => {
         contextBridge: null | PreloadContextBridge | undefined;
         ipcRenderer: null | PreloadIpcRenderer | undefined;

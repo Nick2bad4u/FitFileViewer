@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { resolvePreloadScriptRequire } from "../vitest/helpers/preloadModuleMocks";
-
 type PreloadTestWindow = Window & Record<string, unknown>;
 type IpcListener = (...args: unknown[]) => void;
 type IpcInvoke = (...args: unknown[]) => Promise<unknown>;
@@ -147,13 +145,8 @@ const importPreloadFresh = async (
     delete (window as PreloadTestWindow)[DEV_TOOLS_GLOBAL];
     const { startPreloadEntrypoint } =
         await import("../../electron-app/preload/preloadEntrypoint.js");
-    const preloadRequire = ((moduleName: string) =>
-        resolvePreloadScriptRequire(
-            moduleName,
-            electronBridgeOverride
-        )) as NodeJS.Require;
 
-    return startPreloadEntrypoint(preloadRequire, {
+    return startPreloadEntrypoint({
         consoleRef: console,
         electronBridgeOverride,
         globalScope: globalThis,
@@ -314,7 +307,8 @@ describe("preload.js electronAPI exposure and behavior", () => {
         process.env.NODE_ENV = "test";
         vi.resetModules();
         await importPreloadFresh({
-            // no contextBridge/ipcRenderer provided
+            contextBridge: null,
+            ipcRenderer: null,
         });
         expect(window).not.toHaveProperty("electronAPI");
         expect(errors.join("\n")).toMatch(

@@ -26,16 +26,6 @@ const preloadRoots = [
     "electron-app/preload",
     "electron-app/preload.ts",
 ] as const;
-const preloadInjectedRequireFiles = [
-    "electron-app/preload/preloadEntrypoint.ts",
-    "electron-app/preload/preloadBootstrap.ts",
-    "electron-app/preload/preloadRuntime.ts",
-    "electron-app/preload/preloadModuleLoader.ts",
-    "electron-app/preload/preloadAppModuleLoader.ts",
-    "electron-app/preload/preloadFileModuleLoader.ts",
-    "electron-app/preload/preloadIpcModuleLoader.ts",
-    "electron-app/preload/preloadStateModuleLoader.ts",
-] as const;
 const preloadRuntimeEnvironmentFiles = [
     "electron-app/preload/preloadRuntimeEnvironment.ts",
 ] as const;
@@ -2732,9 +2722,7 @@ describe("architecture boundaries", () => {
         expect(bootstrapSource).toContain(
             "createPreloadRuntime()"
         );
-        expect(bootstrapSource).toContain(
-            "requireModule,"
-        );
+        expect(bootstrapSource).not.toContain("requireModule");
         expect(bootstrapSource).not.toContain(
             "createPreloadRuntime({ requireModule })"
         );
@@ -2795,15 +2783,13 @@ describe("architecture boundaries", () => {
             "startDefaultPreloadEntrypoint();"
         );
         expect(preloadEntrySource).not.toContain("require");
-        expect(preloadEntrypointSource).toMatch(
-            /startPreloadEntrypoint\(\s*require\s*,/u
+        expect(preloadEntrypointSource).toContain(
+            "startPreloadEntrypoint();"
         );
         expect(preloadEntrypointSource).toContain(
             'import { startPreloadScript } from "./preloadBootstrap.js";'
         );
-        expect(preloadEntrypointSource).toContain(
-            'import { getDefaultPreloadRuntimeEnvironment } from "./preloadRuntimeEnvironment.js";'
-        );
+        expect(preloadEntrypointSource).not.toContain("require");
         expect(preloadEntrypointSource).not.toContain("globalThis");
         expect(preloadEntrySource).not.toContain(
             'require("./preload/preloadEntrypoint.js")'
@@ -2817,7 +2803,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the preload entrypoint on native bootstrap imports", () => {
-        expect.assertions(8);
+        expect.assertions(7);
 
         const preloadEntrypointSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadEntrypoint.ts")
@@ -2827,14 +2813,9 @@ describe("architecture boundaries", () => {
             'import { startPreloadScript } from "./preloadBootstrap.js";'
         );
         expect(preloadEntrypointSource).toContain(
-            'import { getDefaultPreloadRuntimeEnvironment } from "./preloadRuntimeEnvironment.js";'
+            "startPreloadScript({"
         );
-        expect(preloadEntrypointSource).toContain(
-            "getDefaultPreloadRuntimeEnvironment()"
-        );
-        expect(preloadEntrypointSource).toContain(
-            "requireModule: requireModule as PreloadModuleRequire"
-        );
+        expect(preloadEntrypointSource).not.toContain("require");
         expect(preloadEntrypointSource).not.toContain(
             "loadPreloadRuntimeEnvironment"
         );
@@ -2847,11 +2828,12 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps preload bootstrap loaders on the injected module require", () => {
+    it("keeps preload source free of ambient require calls", () => {
         expect.assertions(1);
 
         const ambientRequirePattern = /\brequire\s*\(/u;
-        const violations = preloadInjectedRequireFiles
+        const violations = preloadRoots
+            .flatMap(collectSourceFiles)
             .filter((relativeFile) =>
                 ambientRequirePattern.test(
                     stripComments(readRepositoryFile(relativeFile))
@@ -2891,23 +2873,22 @@ describe("architecture boundaries", () => {
         ).toBe(true);
     });
 
-    it("keeps the preload build transform bundling injected require calls", () => {
-        expect.assertions(4);
+    it("keeps the preload build free of the retired injected require transform", () => {
+        expect.assertions(5);
 
         const bundlePreloadSource = stripComments(
             readRepositoryFile("scripts/bundle-preload.mjs")
         );
 
-        expect(bundlePreloadSource).toContain(
+        expect(bundlePreloadSource).toContain('external: ["electron"]');
+        expect(bundlePreloadSource).not.toContain(
             "preloadInjectedRequireBundlingPlugin"
         );
-        expect(bundlePreloadSource).toContain(
+        expect(bundlePreloadSource).not.toContain(
             "preload-injected-require-bundling"
         );
-        expect(bundlePreloadSource).toContain(
-            '.replace(/\\brequireModule\\s*\\(/gu, "require(")'
-        );
-        expect(bundlePreloadSource).toContain(
+        expect(bundlePreloadSource).not.toContain("requireModule");
+        expect(bundlePreloadSource).not.toContain(
             '.replace(/(["\'])\\.\\/preload\\//gu, "$1./")'
         );
     });

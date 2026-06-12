@@ -3,8 +3,8 @@
 This is the biggest remaining deprecation track. The ledger still lists CommonJS-style preload/runtime
 bridge modules as an intentional temporary surface: /C:/Repos/FitFileViewer/docs/DEPRECATION_LEDGER.md:157.
 The current preload path still emits/consumes CommonJS-compatible output for Electron packaging, and preload
-modules still depend on the injected `requireModule`/packaged CommonJS boundary even though source-level
-`module.exports` wrappers have been removed.
+modules still depend on the packaged CommonJS boundary even though source-level `module.exports` wrappers and
+the injected preload `requireModule` handoff have been removed.
 
 Progress: `electron-app/preload/apiAssembly.ts` now consumes API assembly-context and domain factory dependencies
 from the injected preload module registry instead of requiring sibling preload modules directly. The new
@@ -16,19 +16,19 @@ policies from injected registry entries loaded by `electron-app/preload/preloadP
 of requiring shared policy modules directly.
 `electron-app/preload/preloadIpcModuleLoader.ts` now imports validators, environment policy, preload event/menu
 APIs, Electron API exposure, IPC helpers, logger, bridge catalog, and the Electron bridge resolver natively
-instead of resolving those IPC modules through `requireModule`; the resolver still receives the preload runtime
-`requireModule` when it loads the Electron package bridge.
+instead of resolving those IPC modules through `requireModule`; the resolver imports the Electron package
+bridge natively and the runtime build leaves that package as the Electron external boundary.
 `electron-app/preload/preloadModuleLoader.ts` now imports the focused app, file, state, policy, API-assembly,
 and IPC loader modules natively instead of resolving those loader modules through `requireModule`.
 `electron-app/preload/preloadRuntime.ts` now imports preload module loading, API assembly, and Electron API
 factory composition natively instead of resolving those composition modules through `requireModule`, and the
 runtime object no longer stores the preload `requireModule`.
 `electron-app/preload/preloadBootstrap.ts` now imports preload runtime creation and default runtime-environment
-discovery natively instead of resolving those bootstrap dependencies through `requireModule`, while still passing
-`requireModule` directly to the Electron bridge resolver.
-`electron-app/preload/preloadEntrypoint.ts` now imports preload bootstrap and runtime-environment modules
-natively instead of resolving those entrypoint dependencies through fallback `requireModule` path rewriting;
-the entrypoint still passes Electron's packaged `require` into bootstrap for the Electron package bridge.
+discovery natively instead of resolving those bootstrap dependencies through `requireModule`, and it no longer
+passes a preload `requireModule` into the Electron bridge resolver.
+`electron-app/preload/preloadEntrypoint.ts` now imports only the preload bootstrap module natively instead of
+resolving entrypoint dependencies through fallback `requireModule` path rewriting; it no longer accepts or
+passes Electron's packaged `require`.
 The small preload API assembly-domain factory modules now use named source exports instead of `module.exports`,
 while the runtime build still emits CommonJS-compatible package output.
 The first preload app API leaf factories (`apiDiagnostics.ts`, `appInfoApi.ts`, `gyazoExternalApi.ts`,
@@ -63,8 +63,8 @@ test and preload source-execution test now use the native preload module-mock re
 Preload shared-policy unit tests now import the policy modules natively instead of using `createRequire`, with
 architecture coverage to keep those tests off CommonJS-in-ESM loading patterns.
 The preload dist-test module-mock fixture now imports preload source modules natively too, and preload source
-tests simulate the injected `requireModule` boundary through the native module-mock registry instead of a
-CommonJS source transform.
+tests start the entrypoint directly with explicit Electron bridge overrides instead of simulating an injected
+`requireModule` boundary.
 The obsolete `docs/MOCK_COMMONJS_IN_ESM.md` guide has been removed, and architecture coverage now guards
 against restoring the retired global `require()` override/mock-interoperability recipe.
 Shared validation and FIT-label policy modules now use named source exports instead of `module.exports` wrappers

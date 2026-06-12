@@ -1,8 +1,6 @@
 /* eslint-disable case-police/string-check -- devTools is the preload API contract name. */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { resolvePreloadScriptRequire } from "../vitest/helpers/preloadModuleMocks";
-
 interface ExposedElectronAPI {
     addRecentFile: (...args: unknown[]) => Promise<unknown>;
     getAppVersion: () => Promise<unknown>;
@@ -56,13 +54,8 @@ let preloadElectronBridgeMock: {
 async function startPreloadWithElectronBridge(): Promise<void> {
     const { startPreloadEntrypoint } =
         await import("../../electron-app/preload/preloadEntrypoint.js");
-    const preloadRequire = ((moduleName: string) =>
-        resolvePreloadScriptRequire(
-            moduleName,
-            preloadElectronBridgeMock
-        )) as NodeJS.Require;
 
-    startPreloadEntrypoint(preloadRequire, {
+    startPreloadEntrypoint({
         consoleRef: console,
         electronBridgeOverride: preloadElectronBridgeMock,
         globalScope: globalThis,

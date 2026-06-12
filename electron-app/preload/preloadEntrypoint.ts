@@ -1,7 +1,5 @@
 import { startPreloadScript } from "./preloadBootstrap.js";
-import { getDefaultPreloadRuntimeEnvironment } from "./preloadRuntimeEnvironment.js";
 
-type PreloadModuleRequire = import("./preloadModuleTypes").PreloadModuleRequire;
 type PreloadElectronBridge =
     import("./preloadModuleTypes").PreloadElectronBridge;
 
@@ -14,14 +12,10 @@ interface StartPreloadEntrypointOptions {
 
 /** Starts the Electron preload script with the runtime Node globals. */
 export function startDefaultPreloadEntrypoint(): void {
-    startPreloadEntrypoint(
-        require,
-        getDefaultPreloadRuntimeEnvironment()
-    );
+    startPreloadEntrypoint();
 }
 
 export function startPreloadEntrypoint(
-    requireModule: NodeJS.Require,
     {
         consoleRef,
         electronBridgeOverride,
@@ -36,6 +30,5 @@ export function startPreloadEntrypoint(
             : { electronBridgeOverride }),
         ...(globalScope === undefined ? {} : { globalScope }),
         ...(processRef === undefined ? {} : { processRef }),
-        requireModule: requireModule as PreloadModuleRequire,
     });
 }

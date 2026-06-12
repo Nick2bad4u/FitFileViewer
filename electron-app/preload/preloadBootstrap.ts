@@ -4,7 +4,6 @@ import { getDefaultPreloadRuntimeEnvironment } from "./preloadRuntimeEnvironment
 type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
 type PreloadElectronBridge =
     import("./preloadModuleTypes").PreloadElectronBridge;
-type PreloadModuleRequire = import("./preloadModuleTypes").PreloadModuleRequire;
 
 interface PreloadRuntimeEnvironment {
     consoleRef: Console;
@@ -17,7 +16,6 @@ interface StartPreloadScriptOptions {
     electronBridgeOverride?: null | PreloadElectronBridge;
     globalScope?: object;
     processRef?: NodeJS.Process;
-    requireModule: PreloadModuleRequire;
 }
 
 interface ResolvePreloadRuntimeEnvironmentOptions {
@@ -31,7 +29,6 @@ export function startPreloadScript({
     electronBridgeOverride,
     globalScope,
     processRef,
-    requireModule,
 }: StartPreloadScriptOptions): ElectronAPI {
     const runtimeEnvironment = resolvePreloadRuntimeEnvironment({
         consoleRef,
@@ -59,7 +56,6 @@ export function startPreloadScript({
         ...(electronBridgeOverride === undefined
             ? {}
             : { electronBridgeOverride }),
-        requireModule,
     });
     const preloadLog = createPreloadLogger(resolvedConsoleRef);
     const isDevelopmentMode = () =>

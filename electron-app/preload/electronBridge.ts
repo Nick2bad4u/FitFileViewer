@@ -1,3 +1,5 @@
+import * as electronModule from "electron";
+
 interface PreloadContextBridge {
     exposeInMainWorld?: (key: string, api: unknown) => void;
 }
@@ -33,10 +35,7 @@ interface PreloadIpcRenderer {
 
 interface ResolvePreloadElectronBridgeOptions {
     electronBridgeOverride?: null | PreloadElectronBridge;
-    requireModule: (moduleId: string) => unknown;
 }
-
-const ELECTRON_MODULE_ID = ["electron"].join("");
 
 function getModuleLoadError(error: unknown): Error {
     return error instanceof Error ? error : new Error("Module loading failed");
@@ -48,11 +47,7 @@ function isPreloadObjectRecord(
     return typeof value === "object" && value !== null;
 }
 
-function loadElectronBridge(
-    requireModule: (moduleId: string) => unknown
-): null | PreloadElectronBridge {
-    const electronModule = requireModule(ELECTRON_MODULE_ID);
-
+function loadElectronBridge(): null | PreloadElectronBridge {
     return unwrapElectronBridge(electronModule);
 }
 
@@ -64,7 +59,7 @@ function resolveBridgePart<T>(
     let lastError: unknown;
     try {
         const overridePart = override === null ? undefined : pick(override);
-        if (overridePart !== null && overridePart !== undefined) {
+        if (overridePart !== undefined) {
             return overridePart;
         }
 
@@ -82,11 +77,10 @@ function resolveBridgePart<T>(
 
 export function resolvePreloadElectronBridge({
     electronBridgeOverride,
-    requireModule,
 }: ResolvePreloadElectronBridgeOptions): PreloadElectronBridgeResolution {
     const override =
         electronBridgeOverride === undefined ? null : electronBridgeOverride;
-    const loadBridge = () => loadElectronBridge(requireModule);
+    const loadBridge = () => loadElectronBridge();
 
     return {
         contextBridge: resolveBridgePart(
@@ -107,11 +101,14 @@ function unwrapElectronBridge(value: unknown): null | PreloadElectronBridge {
         return null;
     }
 
-    if ("contextBridge" in value || "ipcRenderer" in value) {
+    if (
+        value["contextBridge"] !== undefined ||
+        value["ipcRenderer"] !== undefined
+    ) {
         return value;
     }
 
-    if ("default" in value) {
+    if (value["default"] !== undefined) {
         return unwrapElectronBridge(value["default"]);
     }
 

@@ -86,7 +86,7 @@ function isBundledPreloadCode(code: string): boolean {
 
 function isDelegatedPreloadCode(code: string): boolean {
     return (
-        code.includes("startPreloadEntrypoint(require,") &&
+        code.includes("startPreloadEntrypoint();") &&
         code.includes('"./preload/preloadBootstrap.js"') &&
         hasDelegatedPreloadModules()
     );

@@ -1,7 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { resolvePreloadScriptRequire } from "../vitest/helpers/preloadModuleMocks";
-
 type IpcListener = (event: unknown, ...args: unknown[]) => void;
 type RecentFileCallback = (filePath: string) => void;
 type UpdateEventCallback = () => void;
@@ -86,13 +84,8 @@ describe("preload edge cases", () => {
     async function importPreloadWithMock(electronBridge: unknown) {
         const { startPreloadEntrypoint } =
             await import("../../electron-app/preload/preloadEntrypoint.js");
-        const preloadRequire = ((moduleName: string) =>
-            resolvePreloadScriptRequire(
-                moduleName,
-                electronBridge
-            )) as NodeJS.Require;
 
-        startPreloadEntrypoint(preloadRequire, {
+        startPreloadEntrypoint({
             consoleRef: console,
             electronBridgeOverride: electronBridge as never,
             globalScope: globalThis,
@@ -131,7 +124,7 @@ describe("preload edge cases", () => {
             .spyOn(console, "log")
             .mockImplementation(() => {});
 
-        await importPreloadWithMock({ ipcRenderer });
+        await importPreloadWithMock({ contextBridge: null, ipcRenderer });
 
         expect(
             consoleErrorSpy.mock.calls.map(([message, detail]) => ({
