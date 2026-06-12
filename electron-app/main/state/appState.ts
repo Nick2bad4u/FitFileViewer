@@ -1,5 +1,6 @@
 import { mainProcessState as runtimeMainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
 import { CONSTANTS } from "../constants.js";
+import { createElectronConf } from "../runtime/electronConfAccess.js";
 
 type StateUpdateOptions = Record<string, unknown>;
 
@@ -7,10 +8,6 @@ interface FitParserSettingsConf {
     get: (key: string) => unknown;
     set: (key: string, value: unknown) => void;
 }
-
-type FitParserSettingsConfConstructor = new (options?: {
-    name?: string;
-}) => FitParserSettingsConf;
 
 let fitParserSettingsConf: FitParserSettingsConf | null | undefined;
 
@@ -47,10 +44,7 @@ export function resolveFitParserSettingsConf(): FitParserSettingsConf | null {
     }
 
     try {
-        const { Conf } = require("electron-conf") as {
-            Conf: FitParserSettingsConfConstructor;
-        };
-        fitParserSettingsConf = new Conf({
+        fitParserSettingsConf = createElectronConf<FitParserSettingsConf>({
             name: CONSTANTS.SETTINGS_CONFIG_NAME,
         });
     } catch {

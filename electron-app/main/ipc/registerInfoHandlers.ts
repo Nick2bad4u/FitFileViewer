@@ -1,3 +1,5 @@
+import { createElectronConf } from "../runtime/electronConfAccess.js";
+
 type InfoInvokeChannel = import("../../shared/ipc").InfoInvokeChannel;
 type InfoPlatformResponse = import("../../shared/ipc").InfoPlatformResponse;
 type InfoResponsePayload = import("../../shared/ipc").InfoResponsePayload;
@@ -113,12 +115,16 @@ export function registerInfoHandlers({
         normalize: (value: unknown) => T
     ): T => {
         try {
-            const configModule =
-                confModule ?? (require("electron-conf") as ElectronConfModule);
-            const { Conf } = configModule;
-            const conf = new Conf({
-                name: CONSTANTS.SETTINGS_CONFIG_NAME,
-            });
+            const conf = confModule
+                ? new confModule.Conf({
+                      name: CONSTANTS.SETTINGS_CONFIG_NAME,
+                  })
+                : createElectronConf<ConfStore>({
+                      name: CONSTANTS.SETTINGS_CONFIG_NAME,
+                  });
+            if (!conf) {
+                throw new TypeError("electron-conf unavailable");
+            }
             const value = conf.get(key, fallback);
             return normalize(value);
         } catch (error) {

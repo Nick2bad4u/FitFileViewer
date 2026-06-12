@@ -11,26 +11,32 @@ const requireNodeModule = (specifier: string): unknown => {
     }
 };
 
+export function loadNodeModule<TModule = unknown>(
+    specifier: string
+): TModule | null {
+    return requireNodeModule(specifier) as TModule | null;
+}
+
 export const path = pathModule;
 
 /**
- * Attempts to resolve Node's fs module while supporting test environments
- * that mock either "fs" or "node:fs".
+ * Attempts to resolve Node's fs module while supporting test environments that
+ * mock either "fs" or "node:fs".
  */
 export const fs =
-    (requireNodeModule("node:fs") as FileSystemModule | null) ??
-    (requireNodeModule("fs") as FileSystemModule | null);
+    loadNodeModule<FileSystemModule>("node:fs") ??
+    loadNodeModule<FileSystemModule>("fs");
 
 /**
- * Lazily resolves the http module, preferring the classic specifier so
- * tests can stub it easily.
+ * Lazily resolves the http module, preferring the classic specifier so tests
+ * can stub it easily.
  *
  * @returns Node http module or null when unavailable.
  */
 export function httpRef(): HttpModule | null {
     return (
-        (requireNodeModule("http") as HttpModule | null) ??
-        (requireNodeModule("node:http") as HttpModule | null)
+        loadNodeModule<HttpModule>("http") ??
+        loadNodeModule<HttpModule>("node:http")
     );
 }
 

@@ -1,5 +1,6 @@
 // Lazily resolve Electron at call-time so Vitest's vi.mock('electron') can hook properly
 import { validateExternalUrl } from "../../../shared/externalUrlPolicy.js";
+import { createElectronConf } from "../../../main/runtime/electronConfAccess.js";
 import { getElectron as getRuntimeElectron } from "../../../main/runtime/electronAccess.js";
 import { approveFilePath } from "../../../main/security/fileAccessPolicy.js";
 import {
@@ -138,12 +139,16 @@ let __confInstance: ConfLike | null = null;
 function getConf(): ConfLike {
     if (__confInstance) return __confInstance;
     try {
-        const { Conf } = require("electron-conf") as {
-            Conf: new (options: { name: string }) => ConfLike;
-        };
-        __confInstance = new Conf({ name: "settings" });
-        return __confInstance;
+        const conf = createElectronConf<ConfLike>({ name: "settings" });
+        if (conf) {
+            __confInstance = conf;
+            return __confInstance;
+        }
     } catch {
+        /* Fall back below. */
+    }
+
+    try {
         // Fallback simple in-memory store for non-Electron/test environments
         const fallback: ConfLike & { _store: Record<string, unknown> } = {
             _store: {},
@@ -152,6 +157,18 @@ function getConf(): ConfLike {
             },
             set(key: string, val: unknown): void {
                 this._store[key] = val;
+            },
+        };
+        __confInstance = fallback;
+        return __confInstance;
+    } catch {
+        const fallback: ConfLike = {
+            get(_key: string, def?: unknown): unknown {
+                return def;
+            },
+            set(_key: string, _val: unknown): void {
+                void _key;
+                void _val;
             },
         };
         __confInstance = fallback;

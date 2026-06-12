@@ -110,6 +110,7 @@
         "electron-app/main/updater/autoUpdaterAccess.ts",
         "electron-app/main/updater/setupAutoUpdater.ts",
         "electron-app/main/runtime/electronAccess.ts",
+        "electron-app/main/runtime/electronConfAccess.ts",
         "electron-app/main/runtime/fitParserFacade.ts",
         "electron-app/main/runtime/fitParserIntegration.ts",
         "electron-app/main/runtime/initializeApplication.ts",

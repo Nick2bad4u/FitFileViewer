@@ -1828,7 +1828,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(130);
+        expect.assertions(144);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -1846,6 +1846,9 @@ describe("architecture boundaries", () => {
         );
         const electronAccessSource = stripComments(
             readRepositoryFile("electron-app/main/runtime/electronAccess.ts")
+        );
+        const appStateSource = stripComments(
+            readRepositoryFile("electron-app/main/state/appState.ts")
         );
         const sendToRendererSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/sendToRenderer.ts")
@@ -1869,6 +1872,9 @@ describe("architecture boundaries", () => {
         );
         const nodeModulesSource = stripComments(
             readRepositoryFile("electron-app/main/runtime/nodeModules.ts")
+        );
+        const electronConfAccessSource = stripComments(
+            readRepositoryFile("electron-app/main/runtime/electronConfAccess.ts")
         );
         const fitParserIntegrationSource = stripComments(
             readRepositoryFile(
@@ -1905,6 +1911,14 @@ describe("architecture boundaries", () => {
         );
         const setupIpcHandlersSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/setupIPCHandlers.ts")
+        );
+        const registerBrowserHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerBrowserHandlers.ts"
+            )
+        );
+        const registerInfoHandlersSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/registerInfoHandlers.ts")
         );
         const gyazoOAuthServerSource = stripComments(
             readRepositoryFile("electron-app/main/oauth/gyazoOAuthServer.ts")
@@ -1948,6 +1962,7 @@ describe("architecture boundaries", () => {
         expect(setupAutoUpdaterSource).not.toContain("module.exports");
         expect(autoUpdaterAccessSource).not.toContain("module.exports =");
         expect(nodeModulesSource).not.toContain("module.exports");
+        expect(electronConfAccessSource).not.toContain("module.exports");
         expect(initializeApplicationSource).not.toContain("module.exports");
         expect(setupIpcHandlersSource).not.toContain("module.exports");
         expect(gyazoOAuthServerSource).not.toContain("module.exports");
@@ -2003,6 +2018,27 @@ describe("architecture boundaries", () => {
         expect(setupAutoUpdaterSource).toContain(
             'import electronLog from "electron-log"'
         );
+        expect(electronConfAccessSource).toContain(
+            'loadNodeModule<ElectronConfModuleLike<TStore>>("electron-conf")'
+        );
+        expect(appStateSource).not.toContain('require("electron-conf")');
+        expect(fitParserIntegrationSource).not.toContain(
+            'require("electron-conf")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("electron-conf")'
+        );
+        expect(createAppMenuSource).not.toContain('require("electron-conf")');
+        expect(registerBrowserHandlersSource).not.toContain(
+            'require("electron-conf")'
+        );
+        expect(registerInfoHandlersSource).not.toContain(
+            'require("electron-conf")'
+        );
+        expect(appStateSource).toContain("createElectronConf");
+        expect(fitParserIntegrationSource).toContain("createElectronConf");
+        expect(setupMenuAndEventHandlersSource).toContain("createElectronConf");
+        expect(createAppMenuSource).toContain("createElectronConf");
         expect(initializeApplicationSource).not.toContain(
             'require("../constants")'
         );
@@ -2201,6 +2237,10 @@ describe("architecture boundaries", () => {
         expect(nodeModulesSource).toContain("export const path");
         expect(nodeModulesSource).toContain("export const fs");
         expect(nodeModulesSource).toContain("export function httpRef");
+        expect(nodeModulesSource).toContain("export function loadNodeModule");
+        expect(electronConfAccessSource).toContain(
+            "export function createElectronConf"
+        );
         expect(mainSource).toContain("export default defaultExport");
         expect(initializeApplicationSource).toContain(
             "export async function initializeApplication"

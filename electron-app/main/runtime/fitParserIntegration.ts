@@ -1,6 +1,7 @@
 import { CONSTANTS } from "../constants.js";
 import { logWithContext } from "../logging/logWithContext.js";
 import { mainProcessState as runtimeMainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
+import { createElectronConf } from "./electronConfAccess.js";
 import { getFitParserModule } from "./fitParserFacade.js";
 
 type DecoderOptions = import("../../shared/fit").DecoderOptions;
@@ -115,10 +116,7 @@ function resolveFitParserSettingsConf(): FitParserSettingsConf | null {
     }
 
     try {
-        const { Conf } = require("electron-conf") as {
-            Conf: new (options?: { name?: string }) => FitParserSettingsConf;
-        };
-        fitParserSettingsConf = new Conf({
+        fitParserSettingsConf = createElectronConf<FitParserSettingsConf>({
             name: CONSTANTS.SETTINGS_CONFIG_NAME,
         });
     } catch {

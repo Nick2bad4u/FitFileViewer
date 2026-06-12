@@ -2,6 +2,7 @@ import {
     validateFitBrowserRelativePath,
     validateFitBrowserRootFolderPath,
 } from "../../shared/fitBrowserPathPolicy.js";
+import { createElectronConf } from "../runtime/electronConfAccess.js";
 import { approveFilePath } from "../security/fileAccessPolicy.js";
 
 type DialogOpenFolderResponse =
@@ -296,9 +297,13 @@ export function registerBrowserHandlers({
 
     const tryGetConf = (): BrowserConfStore | null => {
         try {
-            const { Conf } =
-                confModule ?? (require("electron-conf") as BrowserConfModule);
-            return new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+            if (confModule) {
+                const { Conf } = confModule;
+                return new Conf({ name: CONSTANTS.SETTINGS_CONFIG_NAME });
+            }
+            return createElectronConf<BrowserConfStore>({
+                name: CONSTANTS.SETTINGS_CONFIG_NAME,
+            });
         } catch (error) {
             logWithContext?.(
                 "warn",

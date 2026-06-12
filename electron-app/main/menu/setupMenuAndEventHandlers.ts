@@ -7,6 +7,7 @@ import {
     browserWindowRef as electronBrowserWindowRef,
     dialogRef as electronDialogRef,
 } from "../runtime/electronAccess.js";
+import { createElectronConf } from "../runtime/electronConfAccess.js";
 import { fs } from "../runtime/nodeModules.js";
 import { isApprovedFilePath } from "../security/fileAccessPolicy.js";
 import { getAppState } from "../state/appState.js";
@@ -59,10 +60,6 @@ interface AutoUpdaterLike {
 
 interface ConfStore {
     set: (key: string, value: unknown) => void;
-}
-
-interface ElectronConfModuleLike {
-    Conf?: new (options: { name: string }) => ConfStore;
 }
 
 type IpcCallback = (...args: unknown[]) => unknown;
@@ -130,14 +127,12 @@ function persistThemeForMenu(theme: unknown): void {
         return;
     }
 
-    const { Conf } = require("electron-conf") as ElectronConfModuleLike;
-    if (typeof Conf !== "function") {
-        return;
-    }
-
-    const conf = new Conf({
+    const conf = createElectronConf<ConfStore>({
         name: CONSTANTS.SETTINGS_CONFIG_NAME,
     });
+    if (!conf) {
+        return;
+    }
     conf.set("theme", normalized);
 }
 
