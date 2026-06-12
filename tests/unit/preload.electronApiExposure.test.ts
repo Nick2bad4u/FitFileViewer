@@ -1,8 +1,7 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface ElectronApiExposureModule {
     exposeElectronApi: (options: {
@@ -27,7 +26,7 @@ interface ElectronApiExposureModule {
     };
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { exposeElectronApi, getApiStructure } = requireFromTest(
     "../../electron-app/preload/electronApiExposure.js"
 ) as ElectronApiExposureModule;

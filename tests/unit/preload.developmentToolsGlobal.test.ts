@@ -1,8 +1,7 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface DevelopmentToolsGlobalModule {
     DEVELOPMENT_TOOLS_GLOBAL_NAME: string;
@@ -35,7 +34,7 @@ interface ExposedDevelopmentToolsApi {
     testIPC: () => Promise<boolean>;
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { DEVELOPMENT_TOOLS_GLOBAL_NAME, exposeDevelopmentToolsGlobal } =
     requireFromTest(
         "../../electron-app/preload/developmentToolsGlobal.js"

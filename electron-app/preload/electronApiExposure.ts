@@ -1,91 +1,82 @@
-{
-    type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
+type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
 
-    type PreloadLog = (
-        level: "error" | "info" | "warn",
-        message: string,
-        ...details: unknown[]
-    ) => void;
+type PreloadLog = (
+    level: "error" | "info" | "warn",
+    message: string,
+    ...details: unknown[]
+) => void;
 
-    interface ContextBridgeLike {
-        exposeInMainWorld?: (key: string, api: unknown) => void;
-    }
+interface ContextBridgeLike {
+    exposeInMainWorld?: (key: string, api: unknown) => void;
+}
 
-    interface ElectronApiExposureOptions {
-        api: ElectronAPI;
-        contextBridge: ContextBridgeLike | null | undefined;
-        isDevelopmentMode: () => boolean;
-        preloadLog: PreloadLog;
-    }
+interface ElectronApiExposureOptions {
+    api: ElectronAPI;
+    contextBridge: ContextBridgeLike | null | undefined;
+    isDevelopmentMode: () => boolean;
+    preloadLog: PreloadLog;
+}
 
-    function getApiStructure(api: ElectronAPI): {
-        methods: string[];
-        properties: string[];
-        total: number;
-    } {
-        const apiKeys = Object.keys(api),
-            apiRecord = api as unknown as Record<string, unknown>,
-            methods = apiKeys.filter(
-                (key) => typeof apiRecord[key] === "function"
-            ),
-            properties = apiKeys.filter(
-                (key) => typeof apiRecord[key] !== "function"
-            );
+export function getApiStructure(api: ElectronAPI): {
+    methods: string[];
+    properties: string[];
+    total: number;
+} {
+    const apiKeys = Object.keys(api),
+        apiRecord = api as unknown as Record<string, unknown>,
+        methods = apiKeys.filter((key) => typeof apiRecord[key] === "function"),
+        properties = apiKeys.filter(
+            (key) => typeof apiRecord[key] !== "function"
+        );
 
-        return {
-            methods,
-            properties,
-            total: apiKeys.length,
-        };
-    }
+    return {
+        methods,
+        properties,
+        total: apiKeys.length,
+    };
+}
 
-    function exposeElectronApi({
-        api,
-        contextBridge,
-        isDevelopmentMode,
-        preloadLog,
-    }: ElectronApiExposureOptions): boolean {
-        try {
-            if (!api.validateAPI()) {
-                preloadLog(
-                    "error",
-                    "[preload.js] API validation failed - not exposing to main world"
-                );
-                return false;
-            }
-
-            const exposeInMainWorld = contextBridge?.exposeInMainWorld;
-            if (typeof exposeInMainWorld !== "function") {
-                throw new TypeError("contextBridge unavailable");
-            }
-
-            exposeInMainWorld("electronAPI", api);
-
-            if (isDevelopmentMode()) {
-                preloadLog(
-                    "info",
-                    "[preload.js] Successfully exposed electronAPI to main world"
-                );
-                preloadLog(
-                    "info",
-                    "[preload.js] API Structure:",
-                    getApiStructure(api)
-                );
-            }
-
-            return true;
-        } catch (error) {
+export function exposeElectronApi({
+    api,
+    contextBridge,
+    isDevelopmentMode,
+    preloadLog,
+}: ElectronApiExposureOptions): boolean {
+    try {
+        if (!api.validateAPI()) {
             preloadLog(
                 "error",
-                "[preload.js] Failed to expose electronAPI:",
-                error
+                "[preload.js] API validation failed - not exposing to main world"
             );
             return false;
         }
-    }
 
-    module.exports = {
-        exposeElectronApi,
-        getApiStructure,
-    };
+        const exposeInMainWorld = contextBridge?.exposeInMainWorld;
+        if (typeof exposeInMainWorld !== "function") {
+            throw new TypeError("contextBridge unavailable");
+        }
+
+        exposeInMainWorld("electronAPI", api);
+
+        if (isDevelopmentMode()) {
+            preloadLog(
+                "info",
+                "[preload.js] Successfully exposed electronAPI to main world"
+            );
+            preloadLog(
+                "info",
+                "[preload.js] API Structure:",
+                getApiStructure(api)
+            );
+        }
+
+        return true;
+    } catch (error) {
+        preloadLog(
+            "error",
+            "[preload.js] Failed to expose electronAPI:",
+            error
+        );
+        return false;
+    }
 }

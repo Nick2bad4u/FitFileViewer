@@ -1415,6 +1415,31 @@ describe("architecture boundaries", () => {
                 "function",
             ],
             [
+                "electron-app/preload/beforeExitHandler.ts",
+                "registerPreloadBeforeExitHandler",
+                "function",
+            ],
+            [
+                "electron-app/preload/developmentToolsGlobal.ts",
+                "DEVELOPMENT_TOOLS_GLOBAL_NAME",
+                "const",
+            ],
+            [
+                "electron-app/preload/developmentToolsGlobal.ts",
+                "exposeDevelopmentToolsGlobal",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiExposure.ts",
+                "exposeElectronApi",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiExposure.ts",
+                "getApiStructure",
+                "function",
+            ],
+            [
                 "electron-app/preload/ipcBridgeCatalog.ts",
                 "PRELOAD_CHANNELS",
                 "const",

@@ -27,6 +27,8 @@ The preload event API factories (`ipcEventApiDomain.ts`, `menuEventApi.ts`, and 
 use named source exports too.
 The preload catalog and API assembly context helpers (`ipcBridgeCatalog.ts` and `apiAssemblyContext.ts`) now
 use named source exports too.
+The preload before-exit, development-tools, and Electron API exposure helpers (`beforeExitHandler.ts`,
+`developmentToolsGlobal.ts`, and `electronApiExposure.ts`) now use named source exports too.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
