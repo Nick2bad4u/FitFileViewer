@@ -518,7 +518,6 @@ describe("tabStateManager.behavior", () => {
 
     it("handleSummaryTab uses typed renderer import without a global renderer", async () => {
         expect.assertions(2);
-        delete (window as unknown as Record<string, unknown>).renderSummary;
         const data = { recordMesgs: [{}] };
         await tabStateManager.handleSummaryTab(data);
         expect(window).not.toHaveProperty("renderSummary");

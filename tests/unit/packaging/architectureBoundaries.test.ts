@@ -698,6 +698,8 @@ const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
 const renderSummaryTestActiveFitFileNameMutationPattern =
     /\bObject\.defineProperty\(\s*window\s*,\s*["']activeFitFileName["']|Reflect\.deleteProperty\(\s*window\s*,\s*["']activeFitFileName["']\s*\)|\b(?:window|globalThis)\.activeFitFileName\s*=/u;
+const tabStateManagerTestRetiredRendererGlobalMutationPattern =
+    /\bdelete\s*\(\s*window\s+as\s+unknown\s+as\s+Record<string,\s*unknown>\s*\)\.renderSummary\b|\bReflect\.(?:deleteProperty|set)\(\s*window\s*,\s*["']renderSummary["']\s*(?:,|\))|\bwindow\.renderSummary\s*=/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const listenersResizeChartGlobalMutationPattern =
@@ -6207,6 +6209,20 @@ describe("architecture boundaries", () => {
         expect(
             mainProcessDevHelpersTestRetiredGlobalMutationPattern.test(
                 stripComments(readRepositoryFile("tests/unit/main.test.ts"))
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab-state manager tests from mutating retired renderer globals", () => {
+        expect.assertions(1);
+
+        expect(
+            tabStateManagerTestRetiredRendererGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/tabs/tabStateManager.behavior.test.ts"
+                    )
+                )
             )
         ).toBe(false);
     });

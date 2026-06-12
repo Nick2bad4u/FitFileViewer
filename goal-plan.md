@@ -304,6 +304,8 @@ proving default storage-key behavior; architecture coverage blocks those mutatio
 Main-process unit tests no longer delete the retired `devHelpers` global during cleanup; they now assert
 development helpers stay module-returned and absent from `globalThis`, and architecture coverage blocks that
 mutation from returning.
+Tab-state manager behavior tests no longer delete a retired `window.renderSummary` global before proving
+summary rendering uses typed imports, and architecture coverage blocks that mutation from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
