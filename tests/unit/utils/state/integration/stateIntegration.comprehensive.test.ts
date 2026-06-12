@@ -5,32 +5,15 @@ type StateSubscriber = (newValue?: unknown, oldValue?: unknown) => void;
 type StateUnsubscribe = () => void;
 type RetiredStateGlobalName =
     | "AppState"
-    | "__DEVELOPMENT__"
     | "__performanceMonitoringInterval"
     | "__persistenceTimeout"
-    | "chartControlsState"
-    | "electronAPI"
     | "globalData"
     | "isChartRendered";
-
-function deleteRetiredGlobal(name: RetiredStateGlobalName): void {
-    Reflect.deleteProperty(globalThis, name);
-}
-
-function getRetiredGlobal<T = unknown>(
-    name: RetiredStateGlobalName
-): T | undefined {
-    return Reflect.get(globalThis, name) as T | undefined;
-}
 
 function getRetiredGlobalDescriptor(
     name: RetiredStateGlobalName | "__state_debug"
 ): PropertyDescriptor | undefined {
     return Object.getOwnPropertyDescriptor(globalThis, name);
-}
-
-function setRetiredGlobal(name: RetiredStateGlobalName, value: unknown): void {
-    Reflect.set(globalThis, name, value);
 }
 
 // Setup comprehensive mocks
@@ -116,15 +99,6 @@ describe("stateIntegration comprehensive coverage", () => {
         globalThis.localStorage = mockLocalStorage;
         Reflect.set(globalThis, "performance", mockPerformance);
 
-        // Clean up global state
-        deleteRetiredGlobal("globalData");
-        deleteRetiredGlobal("isChartRendered");
-        deleteRetiredGlobal("AppState");
-        deleteRetiredGlobal("chartControlsState");
-        Reflect.deleteProperty(globalThis, "__state_debug");
-        deleteRetiredGlobal("__persistenceTimeout");
-        deleteRetiredGlobal("__performanceMonitoringInterval");
-        deleteRetiredGlobal("__DEVELOPMENT__");
         restoreLocation();
     });
 
@@ -133,15 +107,6 @@ describe("stateIntegration comprehensive coverage", () => {
         globalThis.localStorage = originalLocalStorage;
         Reflect.set(globalThis, "performance", originalPerformance);
 
-        // Clean up test globals
-        deleteRetiredGlobal("globalData");
-        deleteRetiredGlobal("isChartRendered");
-        deleteRetiredGlobal("AppState");
-        deleteRetiredGlobal("chartControlsState");
-        Reflect.deleteProperty(globalThis, "__state_debug");
-        deleteRetiredGlobal("__persistenceTimeout");
-        deleteRetiredGlobal("__performanceMonitoringInterval");
-        deleteRetiredGlobal("__DEVELOPMENT__");
         restoreLocation();
 
         // Clear any timers
@@ -268,11 +233,8 @@ describe("stateIntegration comprehensive coverage", () => {
             consoleSpy.mockRestore();
         });
 
-        it("should initialize app state in development mode (smoke)", async () => {
+        it("should initialize app state without debug globals (smoke)", async () => {
             expect.assertions(3);
-
-            // Set development mode
-            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -590,10 +552,8 @@ describe("stateIntegration comprehensive coverage", () => {
             expect(getRetiredGlobalDescriptor("__state_debug")).toBeUndefined();
         });
 
-        it("should initialize development mode without publishing state debug globals", async () => {
+        it("should initialize without publishing state debug globals", async () => {
             expect.assertions(2);
-
-            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -677,10 +637,8 @@ describe("stateIntegration comprehensive coverage", () => {
     });
 
     describe("debug utilities", () => {
-        it("should keep state debug globals absent in development mode", async () => {
+        it("should keep state debug globals absent", async () => {
             expect.assertions(3);
-
-            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -696,8 +654,6 @@ describe("stateIntegration comprehensive coverage", () => {
 
         it("should not expose global debug utility actions", async () => {
             expect.assertions(4);
-
-            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");

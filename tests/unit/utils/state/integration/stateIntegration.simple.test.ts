@@ -22,19 +22,10 @@ const hasOriginalPerformanceMemory = Object.hasOwn(
     "memory"
 );
 
-type ChartControlsState = {
-    isVisible?: unknown;
-};
-
 type PerformanceMemory = {
     jsHeapSizeLimit: number;
     totalJSHeapSize: number;
     usedJSHeapSize: number;
-};
-
-type StateIntegrationTestGlobal = typeof globalThis & {
-    __DEVELOPMENT__?: boolean;
-    chartControlsState?: ChartControlsState;
 };
 
 type StorageFixture = {
@@ -69,19 +60,6 @@ function createStorageFixture(initialEntries = {}): StorageFixture {
     return { storage: storage as Storage, store };
 }
 
-function deleteIntegrationGlobals(): void {
-    const testGlobal = globalThis as StateIntegrationTestGlobal;
-
-    Reflect.deleteProperty(testGlobal, "__DEVELOPMENT__");
-    Reflect.deleteProperty(testGlobal, "__performanceMonitoringInterval");
-    Reflect.deleteProperty(testGlobal, "__persistenceTimeout");
-    Reflect.deleteProperty(testGlobal, "__state_debug");
-    Reflect.deleteProperty(testGlobal, "AppState");
-    Reflect.deleteProperty(testGlobal, "chartControlsState");
-    Reflect.deleteProperty(testGlobal, "globalData");
-    Reflect.deleteProperty(testGlobal, "isChartRendered");
-}
-
 function installLocalStorage(storage: Storage): void {
     Object.defineProperty(globalThis, "localStorage", {
         configurable: true,
@@ -97,13 +75,10 @@ function installPerformanceMemory(memory: PerformanceMemory): void {
 }
 
 function resetTestEnvironment(): void {
-    const testGlobal = globalThis as StateIntegrationTestGlobal;
-
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.clearAllMocks();
     __resetStateManagerForTests();
-    deleteIntegrationGlobals();
     restoreGlobalProperty("localStorage", originalLocalStorageDescriptor);
     restorePerformanceMemory();
 }
@@ -271,12 +246,11 @@ describe("stateIntegration.js - Essential Coverage", () => {
         resetTestEnvironment();
     });
 
-    it("keeps legacy compatibility globals removed in development mode", () => {
+    it("keeps legacy compatibility globals removed during initialization", () => {
         expect.assertions(8);
         resetTestEnvironment();
 
-        const testGlobal = globalThis as StateIntegrationTestGlobal;
-        testGlobal.__DEVELOPMENT__ = true;
+        const testGlobal = globalThis;
 
         stateIntegration.initializeAppState();
 
