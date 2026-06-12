@@ -6,7 +6,7 @@ import {
     getCurrentRendererNotification,
     normalizeRendererNotification,
     setCurrentRendererNotification,
-    subscribeToCurrentRendererNotification,
+    subscribeToCurrentRendererNotification as subscribeToCurrentNotification,
 } from "../../../../../electron-app/utils/state/domain/rendererNotificationState.js";
 
 describe("rendererNotificationState", () => {
@@ -74,7 +74,7 @@ describe("rendererNotificationState", () => {
         expect.assertions(2);
 
         const received: unknown[] = [];
-        const unsubscribe = subscribeToCurrentRendererNotification(
+        const unsubscribe = subscribeToCurrentNotification(
             (notification) => {
                 received.push(notification);
             }

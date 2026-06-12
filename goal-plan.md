@@ -252,6 +252,8 @@ The main-process state-manager test also resets its typed Electron override afte
 an ambient `global.require` patch.
 The renderChartJS comprehensive test no longer installs an ambient `utils.require` hook or carries module-cache
 mocking terminology for its ESM mock setup.
+Root lint no longer reports Testing Library false-positive warnings from renderer/runtime helper names in
+non-React unit tests; those tests now use local aliases that avoid render-result and lifecycle-render heuristics.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

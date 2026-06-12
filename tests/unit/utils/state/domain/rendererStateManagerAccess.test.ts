@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
-    getRendererCoreStateManager,
-    getRendererCoreSubscribeSingleton,
-    toRendererStateManagerAccess,
+    getRendererCoreStateManager as getCoreStateManager,
+    getRendererCoreSubscribeSingleton as getCoreSubscribeSingleton,
+    toRendererStateManagerAccess as toStateManagerAccess,
 } from "../../../../../electron-app/utils/state/domain/rendererStateManagerAccess.js";
 
 describe("rendererStateManagerAccess", () => {
@@ -15,7 +15,7 @@ describe("rendererStateManagerAccess", () => {
     it("exposes the renderer core state manager through a typed adapter", () => {
         expect.assertions(2);
 
-        const access = getRendererCoreStateManager();
+        const access = getCoreStateManager();
         access?.setState("ui.activeTab", "map", { source: "test" });
 
         expect(access).toBeDefined();
@@ -31,17 +31,17 @@ describe("rendererStateManagerAccess", () => {
             subscribe: () => undefined,
         };
 
-        expect(toRendererStateManagerAccess(candidate)).toEqual(candidate);
+        expect(toStateManagerAccess(candidate)).toEqual(candidate);
         expect(
-            toRendererStateManagerAccess({ getState: () => "summary" })
+            toStateManagerAccess({ getState: () => "summary" })
         ).toBeUndefined();
-        expect(toRendererStateManagerAccess(null)).toBeUndefined();
+        expect(toStateManagerAccess(null)).toBeUndefined();
     });
 
     it("exposes the singleton subscription function", () => {
         expect.assertions(2);
 
-        const subscribeSingleton = getRendererCoreSubscribeSingleton();
+        const subscribeSingleton = getCoreSubscribeSingleton();
         const listener = () => undefined;
         const unsubscribe = subscribeSingleton?.(
             "ui.activeTab",

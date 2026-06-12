@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getRenderChartTimerRuntime } from "../../../../electron-app/utils/charts/core/renderChartTimerRuntime.js";
+import { getRenderChartTimerRuntime as getChartTimerRuntime } from "../../../../electron-app/utils/charts/core/renderChartTimerRuntime.js";
 
 describe("getRenderChartTimerRuntime", () => {
     it("routes timer scheduling and clearing through the injected scope", () => {
@@ -15,15 +15,18 @@ describe("getRenderChartTimerRuntime", () => {
         >(() => timeoutId);
         const clearTimeoutMock =
             vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
-        const runtime = getRenderChartTimerRuntime({
+        const timerRuntime = getChartTimerRuntime({
             clearTimeout: clearTimeoutMock,
             setTimeout: setTimeoutMock,
         });
         const callback = () => undefined;
         const scheduleDelay = 125;
 
-        const scheduledTimeout = runtime.setTimeout(callback, scheduleDelay);
-        runtime.clearTimeout(scheduledTimeout);
+        const scheduledTimeout = timerRuntime.setTimeout(
+            callback,
+            scheduleDelay
+        );
+        timerRuntime.clearTimeout(scheduledTimeout);
 
         expect(scheduledTimeout).toBe(timeoutId);
         expect(setTimeoutMock).toHaveBeenCalledWith(callback, scheduleDelay);
@@ -49,12 +52,12 @@ describe("getRenderChartTimerRuntime", () => {
         });
         const clearTimeoutMock =
             vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
-        const runtime = getRenderChartTimerRuntime({
+        const timerRuntime = getChartTimerRuntime({
             clearTimeout: clearTimeoutMock,
             setTimeout: setTimeoutMock,
         });
 
-        const promise = runtime.waitForNextTask().then(() => {
+        const promise = timerRuntime.waitForNextTask().then(() => {
             resolved = true;
         });
 
@@ -77,10 +80,10 @@ describe("getRenderChartTimerRuntime", () => {
         const timeoutId = 9 as ReturnType<typeof setTimeout>;
 
         expect(() =>
-            getRenderChartTimerRuntime({}).setTimeout(() => undefined, 0)
+            getChartTimerRuntime({}).setTimeout(() => undefined, 0)
         ).toThrow("render chart timers require setTimeout");
         expect(() =>
-            getRenderChartTimerRuntime({}).clearTimeout(timeoutId)
+            getChartTimerRuntime({}).clearTimeout(timeoutId)
         ).toThrow("render chart timers require clearTimeout");
     });
 });

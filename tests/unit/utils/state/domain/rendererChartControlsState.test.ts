@@ -7,8 +7,8 @@ import {
     markRendererChartControlsInitialized,
     normalizeRendererChartControlsVisible,
     setRendererChartControlsVisible,
-    subscribeToRendererChartControlsVisible,
-    subscribeToRendererChartControlsVisibleState,
+    subscribeToRendererChartControlsVisible as subscribeToChartControlsVisible,
+    subscribeToRendererChartControlsVisibleState as subscribeToChartControlsVisibleState,
     toggleRendererChartControlsVisible,
     toggleRendererChartControlsVisibleFromStoredState,
 } from "../../../../../electron-app/utils/state/domain/rendererChartControlsState.js";
@@ -75,7 +75,7 @@ describe("rendererChartControlsState", () => {
         expect.assertions(2);
 
         const values: boolean[] = [];
-        const unsubscribe = subscribeToRendererChartControlsVisible((visible) =>
+        const unsubscribe = subscribeToChartControlsVisible((visible) =>
             values.push(visible)
         );
 
@@ -95,7 +95,7 @@ describe("rendererChartControlsState", () => {
         expect.assertions(1);
 
         const values: unknown[] = [];
-        const unsubscribe = subscribeToRendererChartControlsVisibleState(
+        const unsubscribe = subscribeToChartControlsVisibleState(
             (visible) => values.push(visible)
         );
 

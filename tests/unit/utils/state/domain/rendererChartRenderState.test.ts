@@ -10,7 +10,7 @@ import {
     setRendererChartRendering,
     setRendererChartTabActive,
     setRendererChartsRendered,
-    subscribeToRendererSelectedChart,
+    subscribeToRendererSelectedChart as subscribeToSelectedChart,
     updateRendererChartState,
 } from "../../../../../electron-app/utils/state/domain/rendererChartRenderState.js";
 
@@ -76,7 +76,7 @@ describe("rendererChartRenderState", () => {
         expect.assertions(2);
 
         const changes: unknown[] = [];
-        const unsubscribe = subscribeToRendererSelectedChart((newValue) => {
+        const unsubscribe = subscribeToSelectedChart((newValue) => {
             changes.push(newValue);
         });
 

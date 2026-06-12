@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
-import { getRenderChartRequestListenerRuntime } from "../../../../../electron-app/utils/charts/core/renderChartRequestListenerRuntime.js";
+import { getRenderChartRequestListenerRuntime as getChartRequestListenerRuntime } from "../../../../../electron-app/utils/charts/core/renderChartRequestListenerRuntime.js";
 
 function cleanupFixture(): void {
     document.body.replaceChildren();
@@ -23,7 +23,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
             >();
 
         try {
-            getRenderChartRequestListenerRuntime({
+            getChartRequestListenerRuntime({
                 addEventListener,
             }).addChartRequestListener(() => undefined, {
                 signal: abortController.signal,
@@ -49,7 +49,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
             document.body.append(contentContainer);
 
             expect(
-                getRenderChartRequestListenerRuntime({
+                getChartRequestListenerRuntime({
                     document,
                     HTMLElement,
                 }).getFallbackChartContainer()
@@ -60,7 +60,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
             document.body.prepend(chartJsContainer);
 
             expect(
-                getRenderChartRequestListenerRuntime({
+                getChartRequestListenerRuntime({
                     document,
                     HTMLElement,
                 }).getFallbackChartContainer()
@@ -74,7 +74,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
         expect.assertions(3);
 
         try {
-            const runtime = getRenderChartRequestListenerRuntime({
+            const runtime = getChartRequestListenerRuntime({
                 CustomEvent,
                 document,
                 HTMLElement,
@@ -100,10 +100,10 @@ describe("getRenderChartRequestListenerRuntime", () => {
         const abortController = new AbortController();
 
         expect(() =>
-            getRenderChartRequestListenerRuntime({}).getFallbackChartContainer()
+            getChartRequestListenerRuntime({}).getFallbackChartContainer()
         ).toThrow("renderChartRequestListener requires a document");
         expect(() =>
-            getRenderChartRequestListenerRuntime({}).addChartRequestListener(
+            getChartRequestListenerRuntime({}).addChartRequestListener(
                 () => undefined,
                 { signal: abortController.signal }
             )
