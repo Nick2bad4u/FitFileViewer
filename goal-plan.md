@@ -122,7 +122,7 @@ The auto-updater access helper now uses named source exports too, and setup/menu
 the updater resolver boundary natively instead of requiring its source file. Its synchronous
 Electron-updater fallback now resolves through the centralized `loadNodeModule` compatibility boundary instead
 of a direct package `require("electron-updater")` call, and the redundant Node ESM `module.exports` namespace
-branch has been removed because Electron-updater's `default` namespace covers the same object shape.
+branch plus the unused default namespace export have been removed.
 The Node runtime module boundary now imports Node built-ins natively for `path`, `fs`, and `httpRef` while
 keeping `loadNodeModule` scoped to external runtime package compatibility adapters, and its unused default
 namespace export has been removed; file-access, IPC sender policy, Gyazo OAuth, application-event, menu-event,
@@ -131,7 +131,8 @@ source file or owning separate direct package-load fallbacks.
 Electron-conf access is now centralized in `electron-app/main/runtime/electronConfAccess.ts` because the
 package's ESM entry is not safe under the current Electron CommonJS module shape. App state, FIT-parser
 integration, app-menu creation, menu event handling, and browser/info IPC handlers use that typed adapter
-instead of direct source-level `require("electron-conf")` calls.
+instead of direct source-level `require("electron-conf")` calls, and the adapter now exposes named source
+exports only.
 The main lifecycle setup boundary now uses a named source export instead of a source-level `module.exports`
 wrapper.
 The main development-helper boundary now uses a named source export and imports app-state helpers natively

@@ -134,8 +134,3 @@ function asObjectProperty(value: unknown, property: string): unknown {
         return undefined;
     }
 }
-
-export default {
-    resolveAutoUpdaterAsync,
-    resolveAutoUpdaterSync,
-};

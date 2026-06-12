@@ -39,8 +39,3 @@ export function createElectronConf<TStore>(options?: {
 
     return new Conf(options);
 }
-
-export default {
-    createElectronConf,
-    resolveElectronConfConstructor,
-};
