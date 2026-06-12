@@ -196,8 +196,9 @@ entries where feature-local dynamic imports can do the job cleanly.
 Progress: the map vendor bundle now imports MiniMap as a constructor, registers it explicitly on the typed
 Leaflet runtime object, and removes MiniMap from the Vite legacy-plugin transform. The disabled markercluster
 path has also been removed from the map vendor bundle and root dependency manifest instead of keeping a
-global-`L` plugin in the runtime bundle. The bundle still removes package-created `L`/`Leaflet` aliases after
-Leaflet.draw, MapLibre, and the local measurement control are registered. The Playwright map smoke path now
+global-`L` plugin in the runtime bundle, and map drawing no longer threads the stale `markerClusterGroup`
+option through route/overlay marker rendering. The bundle still removes package-created `L`/`Leaflet` aliases
+after Leaflet.draw, MapLibre, and the local measurement control are registered. The Playwright map smoke path now
 resolves Leaflet through `leafletRuntime.ts` instead of depending on `window.L`, while the remaining Vite
 legacy-plugin transform resolves Leaflet.draw through that typed runtime adapter instead of a separate legacy
 plugin runtime shim. Leaflet runtime unit tests now reset only the typed module-local adapter instead of

@@ -5487,7 +5487,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(30);
+        expect.assertions(32);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/vendorGlobalsMap.ts")
@@ -5500,6 +5500,12 @@ describe("architecture boundaries", () => {
         );
         const vitestSetupSource = stripComments(
             readRepositoryFile("tests/vitest/setupVitest.mjs")
+        );
+        const renderMapSource = stripComments(
+            readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
+        );
+        const mapDrawLapsSource = stripComments(
+            readRepositoryFile("electron-app/utils/maps/layers/mapDrawLaps.ts")
         );
         const allowed = new Set<string>(
             leafletCompatibilityGlobalDefinitionAllowedFiles
@@ -5557,6 +5563,8 @@ describe("architecture boundaries", () => {
             "/node_modules/leaflet-draw/dist/leaflet.draw.js"
         );
         expect(viteRendererConfig).not.toContain("leaflet.markercluster");
+        expect(renderMapSource).not.toContain("markerClusterGroup");
+        expect(mapDrawLapsSource).not.toContain("markerClusterGroup");
         expect(viteRendererConfig).not.toContain(
             "/node_modules/leaflet-minimap/dist/Control.MiniMap.min.js"
         );

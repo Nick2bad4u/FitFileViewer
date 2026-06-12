@@ -61,10 +61,10 @@ compatibility bundles:
   `electron-app/renderer/vendorBundleLoader.ts`; app modules then resolve it
   through the module-local `leafletRuntime.ts` adapter. The map bundle imports
   MiniMap as a constructor and registers it on the typed Leaflet runtime
-  explicitly. The disabled markercluster path is no longer bundled. The renderer
-  Vite config still rewrites the Leaflet.draw package entry so callbacks resolve
-  Leaflet through the typed runtime adapter instead of a persistent `L`
-  compatibility global. The map bundle no
+  explicitly. The disabled markercluster path is no longer bundled or threaded
+  through map drawing options. The renderer Vite config still rewrites the
+  Leaflet.draw package entry so callbacks resolve Leaflet through the typed
+  runtime adapter instead of a persistent `L` compatibility global. The map bundle no
   longer exposes separate `L`, `Leaflet`, or `maplibregl` aliases, and the
   app-side Leaflet adapter no longer uses a global symbol registry.
 - `electron-app/renderer/vendorGlobalsChartData.ts` publishes Chart.js,

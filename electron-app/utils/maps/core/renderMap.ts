@@ -1203,14 +1203,6 @@ export function renderMap(): void {
     const endIcon = createEndIcon(),
         startIcon = createStartIcon();
 
-    // --- Marker cluster group (if available) ---
-    const markerClusterGroup = null;
-    // TEMPORARILY DISABLED FOR DEBUGGING - markers not showing
-    // if (L.markerClusterGroup) {
-    //     markerClusterGroup = L.markerClusterGroup();
-    //     map.addLayer(markerClusterGroup);
-    // }
-
     // --- Lap selection UI (moved to mapLapSelector.js) ---
     function mapDrawLapsWrapper(lapIdx: number | string | string[]): void {
         mapDrawLaps(lapIdx, {
@@ -1224,7 +1216,6 @@ export function renderMap(): void {
                 mapContainer ||
                 document.querySelector<HTMLElement>("#leaflet-map") ||
                 document.body,
-            markerClusterGroup,
             startIcon,
         });
         if (
@@ -1487,7 +1478,6 @@ export function renderMap(): void {
                     ),
                 getLapNumForIdx,
                 map,
-                markerClusterGroup,
                 overlayIdx: idx,
                 startIcon,
             });
