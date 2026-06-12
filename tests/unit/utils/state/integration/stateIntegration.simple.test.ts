@@ -135,15 +135,12 @@ function restorePerformanceMemory(): void {
 
 describe("stateIntegration.js - Essential Coverage", () => {
     it("exports the state integration public API", () => {
-        expect.assertions(6);
+        expect.assertions(5);
         resetTestEnvironment();
 
         expect(stateIntegration.StateMigrationHelper).toBeTypeOf("function");
         expect(stateIntegration.initializeAppState).toBeTypeOf("function");
         expect(stateIntegration.initializeCompleteStateSystem).toBeTypeOf(
-            "function"
-        );
-        expect(stateIntegration.migrateChartControlsState).toBeTypeOf(
             "function"
         );
         expect(stateIntegration.setupStatePerformanceMonitoring).toBeTypeOf(
@@ -184,43 +181,6 @@ describe("stateIntegration.js - Essential Coverage", () => {
             expect.any(Error)
         );
         expect(firstMigration).toHaveBeenCalledBefore(finalMigration);
-
-        resetTestEnvironment();
-    });
-
-    it("leaves retired legacy chart controls globals untouched", () => {
-        expect.assertions(3);
-        resetTestEnvironment();
-
-        const testGlobal = globalThis as StateIntegrationTestGlobal;
-        setState("charts.controlsVisible", true);
-        testGlobal.chartControlsState = { isVisible: true };
-
-        stateIntegration.migrateChartControlsState();
-
-        expect({
-            legacyVisible: testGlobal.chartControlsState?.isVisible,
-            stateVisible: getState("charts.controlsVisible"),
-        }).toStrictEqual({
-            legacyVisible: true,
-            stateVisible: true,
-        });
-
-        testGlobal.chartControlsState = { isVisible: false };
-        expect({
-            legacyVisible: testGlobal.chartControlsState.isVisible,
-            stateVisible: getState("charts.controlsVisible"),
-        }).toStrictEqual({
-            legacyVisible: false,
-            stateVisible: true,
-        });
-        expect(
-            Object.getOwnPropertyDescriptor(testGlobal, "chartControlsState")
-        ).toMatchObject({
-            configurable: true,
-            value: { isVisible: false },
-            writable: true,
-        });
 
         resetTestEnvironment();
     });
@@ -343,17 +303,6 @@ describe("stateIntegration.js - Essential Coverage", () => {
         });
         expect(getState("charts.isRendered")).toBe(true);
         expect(Object.hasOwn(testGlobal, "__state_debug")).toBe(false);
-
-        resetTestEnvironment();
-    });
-
-    it("returns without side effects when optional integration globals are missing", () => {
-        expect.assertions(1);
-        resetTestEnvironment();
-
-        expect(() =>
-            stateIntegration.migrateChartControlsState()
-        ).not.toThrow();
 
         resetTestEnvironment();
     });

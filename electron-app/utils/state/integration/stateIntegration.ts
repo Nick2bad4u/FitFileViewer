@@ -99,13 +99,6 @@ export function initializeCompleteStateSystem(): void {
 }
 
 /**
- * Deprecated compatibility shim retained for existing imports.
- */
-export function migrateChartControlsState(): void {
-    // State now flows directly through charts.controlsVisible.
-}
-
-/**
  * Set up performance monitoring for state changes
  */
 export function setupStatePerformanceMonitoring(): void {

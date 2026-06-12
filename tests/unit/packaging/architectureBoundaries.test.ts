@@ -1766,16 +1766,24 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart controls synchronization on the chart-controls state facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const chartControlsSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/rendering/helpers/updateControlsState.ts"
             )
         );
+        const stateIntegrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/stateIntegration.ts"
+            )
+        );
 
         expect(chartControlsSource).toContain("rendererChartControlsState.js");
         expect(chartControlsSource).not.toContain("state/core/stateManager.js");
+        expect(stateIntegrationSource).not.toContain(
+            "migrateChartControlsState"
+        );
     });
 
     it("keeps chart status raw-data subscriptions on the active FIT facade", () => {

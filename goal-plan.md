@@ -38,7 +38,8 @@ startup-test/dev-tool compatibility surface.
 
 Progress: the state-integration preservation tests for pre-existing plain `globalData` and `AppState`
 objects have been removed, and the ledger now says legacy `globalData` writes are unsupported with no
-preserved state-integration compatibility coverage.
+preserved state-integration compatibility coverage. The deprecated no-op `migrateChartControlsState` export
+has also been removed; chart controls visibility must use the explicit `charts.controlsVisible` state path.
 
 Maintenance target: keep the removed global bridge covered by architecture tests while callers continue using
 typed state APIs.

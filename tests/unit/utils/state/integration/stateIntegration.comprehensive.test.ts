@@ -317,44 +317,6 @@ describe("stateIntegration comprehensive coverage", () => {
         });
     });
 
-    describe("integration functions", () => {
-        it("should leave retired chartControlsState compatibility globals untouched", async () => {
-            expect.assertions(4);
-
-            const { migrateChartControlsState } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            setRetiredGlobal("chartControlsState", { isVisible: true });
-
-            const consoleSpy = vi
-                .spyOn(console, "log")
-                .mockImplementation(() => {});
-
-            migrateChartControlsState();
-
-            expect(getRetiredGlobal("chartControlsState")).toStrictEqual({
-                isVisible: true,
-            });
-            expect(mockStateManager.setState).not.toHaveBeenCalled();
-            expect(mockStateManager.getState).not.toHaveBeenCalled();
-            expect(consoleSpy).not.toHaveBeenCalled();
-
-            consoleSpy.mockRestore();
-        });
-
-        it("should handle missing chartControlsState gracefully", async () => {
-            expect.assertions(3);
-
-            const { migrateChartControlsState } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            expect(() => migrateChartControlsState()).not.toThrow();
-
-            expect(getRetiredGlobal("chartControlsState")).toBeUndefined();
-            expect(mockStateManager.setState).not.toHaveBeenCalled();
-        });
-    });
-
     describe("performance monitoring", () => {
         it("should set up performance monitoring with memory info (smoke)", async () => {
             expect.assertions(3);
