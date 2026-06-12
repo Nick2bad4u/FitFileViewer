@@ -403,9 +403,10 @@ Data-point filter control tests now install temporary animation-frame and microt
 descriptor-scoped helpers instead of assigning `globalThis.requestAnimationFrame`,
 `globalThis.cancelAnimationFrame`, or `globalThis.queueMicrotask` directly, with architecture coverage blocking
 that fixture mutation pattern.
-Tab-button behavior tests now install temporary `window` and `getComputedStyle` browser fixtures through
+Tab-button behavior tests now install temporary `window`, `getComputedStyle`, and `MutationObserver` browser fixtures through
 descriptor-scoped helpers instead of assigning `globalThis.window`, `(global as any).window`, or
-`globalThis.getComputedStyle` directly, with architecture coverage blocking that fixture mutation pattern.
+`globalThis.getComputedStyle`, `global.MutationObserver`, or `global.window.MutationObserver` directly, with
+architecture coverage blocking that fixture mutation pattern.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning.

@@ -64,10 +64,15 @@ type TestButtonOptions = {
 
 type MutationObserverMock = Pick<MutationObserver, "disconnect" | "observe">;
 
-type TestGlobalProperty = "getComputedStyle" | "window";
+type TestGlobalProperty = "getComputedStyle" | "MutationObserver" | "window";
+type TestWindowProperty = "MutationObserver";
 
 const originalGlobalDescriptors = new Map<
     TestGlobalProperty,
+    PropertyDescriptor | undefined
+>();
+const originalWindowDescriptors = new Map<
+    TestWindowProperty,
     PropertyDescriptor | undefined
 >();
 
@@ -94,6 +99,15 @@ function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
 }
 
 function restoreTestGlobals(): void {
+    for (const [name, descriptor] of originalWindowDescriptors) {
+        if (descriptor) {
+            Object.defineProperty(globalThis.window, name, descriptor);
+        } else {
+            Reflect.deleteProperty(globalThis.window, name);
+        }
+    }
+    originalWindowDescriptors.clear();
+
     for (const [name, descriptor] of originalGlobalDescriptors) {
         if (descriptor) {
             Object.defineProperty(globalThis, name, descriptor);
@@ -102,6 +116,29 @@ function restoreTestGlobals(): void {
         }
     }
     originalGlobalDescriptors.clear();
+}
+
+function setTestWindowProperty(
+    name: TestWindowProperty,
+    value: unknown
+): void {
+    if (!originalWindowDescriptors.has(name)) {
+        originalWindowDescriptors.set(
+            name,
+            Object.getOwnPropertyDescriptor(globalThis.window, name)
+        );
+    }
+
+    Object.defineProperty(globalThis.window, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function setTestMutationObserver(value: unknown): void {
+    setTestGlobal("MutationObserver", value);
+    setTestWindowProperty("MutationObserver", value);
 }
 
 function createTestButton({
@@ -570,10 +607,6 @@ describe("enableTabButtons behavior", () => {
 
             const mockObserver = createMutationObserverMock();
 
-            // Mock both global and window MutationObserver (implementation checks both)
-            const originalMutationObserver = global.MutationObserver;
-            const originalWindowMutationObserver =
-                global.window.MutationObserver;
             const MutationObserverSpy = vi
                 .fn<(callback: MutationCallback) => MutationObserver>()
                 .mockImplementation(function MutationObserverMock(callback) {
@@ -582,14 +615,9 @@ describe("enableTabButtons behavior", () => {
                 });
 
             // Mock both scopes to ensure the implementation finds our spy
-            global.MutationObserver = MutationObserverSpy as any;
-            global.window.MutationObserver = MutationObserverSpy as any;
+            setTestMutationObserver(MutationObserverSpy);
 
             initializeTabButtonState();
-
-            // Restore originals
-            global.MutationObserver = originalMutationObserver;
-            global.window.MutationObserver = originalWindowMutationObserver;
 
             expect(
                 MutationObserverSpy.mock.calls.map(([callback]) => [
@@ -611,9 +639,6 @@ describe("enableTabButtons behavior", () => {
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
             const mockObserver = createMutationObserverMock();
-            const originalMutationObserver = global.MutationObserver;
-            const originalWindowMutationObserver =
-                global.window.MutationObserver;
             const mutationObserverSpy = vi
                 .fn<(callback: MutationCallback) => MutationObserver>()
                 .mockImplementation(function MutationObserverMock(callback) {
@@ -621,14 +646,10 @@ describe("enableTabButtons behavior", () => {
                     return mockObserver as MutationObserver;
                 });
 
-            global.MutationObserver = mutationObserverSpy as any;
-            global.window.MutationObserver = mutationObserverSpy as any;
+            setTestMutationObserver(mutationObserverSpy);
 
             initializeTabButtonState();
             initializeTabButtonState();
-
-            global.MutationObserver = originalMutationObserver;
-            global.window.MutationObserver = originalWindowMutationObserver;
 
             expect(mutationObserverSpy).toHaveBeenCalledOnce();
             expect(Reflect.has(globalThis, "tabButtonObserver")).toBe(false);
@@ -1083,9 +1104,6 @@ describe("enableTabButtons behavior", () => {
             let mutationCallback:
                 | ((mutations: readonly Partial<MutationRecord>[]) => void)
                 | undefined;
-            const originalMutationObserver = global.MutationObserver;
-            const originalWindowMutationObserver =
-                global.window.MutationObserver;
 
             // Mock both global and window scope MutationObserver to capture callback
             const MockObserverClass = vi
@@ -1095,15 +1113,10 @@ describe("enableTabButtons behavior", () => {
                     return createMutationObserverMock() as MutationObserver;
                 });
 
-            global.MutationObserver = MockObserverClass as any;
-            global.window.MutationObserver = MockObserverClass as any;
+            setTestMutationObserver(MockObserverClass);
             setTabButtonsEnabled(true);
 
             initializeTabButtonState();
-
-            // Restore originals
-            global.MutationObserver = originalMutationObserver;
-            global.window.MutationObserver = originalWindowMutationObserver;
 
             // Sanity check to ensure setup is correct
             const testBtn = getRequiredButton("tab-test");
