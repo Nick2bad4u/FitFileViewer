@@ -71,13 +71,7 @@ type FileAccessPolicy = {
     approveFilePath: (path: unknown, options?: { source?: string }) => string;
 };
 
-type FitFileViewerGlobal = typeof globalThis & {
-    __lastBuiltMenuTemplate?: MenuItemLike[];
-};
-
-function getMenuGlobal(): FitFileViewerGlobal {
-    return globalThis;
-}
+let lastBuiltMenuTemplateForTests: MenuItemLike[] | undefined;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -1039,19 +1033,9 @@ function createAppMenu(
             Menu.setApplicationMenu(mainMenu);
             return;
         }
-        // In test/SSR environment without Menu API, expose template via a well-known global hook
-        try {
-            const menuGlobal = getMenuGlobal();
-            if (!menuGlobal.__lastBuiltMenuTemplate) {
-                menuGlobal.__lastBuiltMenuTemplate = template;
-            } else if (globalThis) {
-                menuGlobal.__lastBuiltMenuTemplate = template;
-            }
-        } catch {
-            /* Ignore errors */
-        }
+        lastBuiltMenuTemplateForTests = template;
         console.warn(
-            "[createAppMenu] WARNING: Electron Menu API unavailable; template exposed for tests."
+            "[createAppMenu] WARNING: Electron Menu API unavailable; template captured for tests."
         );
     } catch (error) {
         console.error(
@@ -1126,9 +1110,23 @@ function setTheme(theme: string): void {
     getConf().set("theme", theme);
 }
 
+function getCreateAppMenuLastBuiltTemplateForTests():
+    | MenuItemLike[]
+    | undefined {
+    return lastBuiltMenuTemplateForTests;
+}
+
+function setCreateAppMenuLastBuiltTemplateForTests(
+    template: MenuItemLike[] | undefined
+): void {
+    lastBuiltMenuTemplateForTests = template;
+}
+
 if (typeof module !== "undefined" && module && module.exports) {
     module.exports = {
         createAppMenu,
+        getCreateAppMenuLastBuiltTemplateForTests,
         setCreateAppMenuRecentFilesOverrideForTests,
+        setCreateAppMenuLastBuiltTemplateForTests,
     };
 }

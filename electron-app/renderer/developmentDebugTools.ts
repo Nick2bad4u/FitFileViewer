@@ -23,7 +23,7 @@ type RendererDevelopmentDebugTools = {
     readonly rendererDev: Record<string, unknown>;
 };
 
-interface RendererDevelopmentDebugGlobalsOptions {
+interface RendererDevelopmentDebugToolsOptions {
     cleanup: () => void;
     ensureCoreModules: DevelopmentCoreModuleResolver;
     initializeApplication: () => Promise<void>;
@@ -50,7 +50,7 @@ let latestRendererDevelopmentDebugTools: RendererDevelopmentDebugTools | null =
     null;
 
 export function createRendererDevelopmentDebugTools(
-    options: RendererDevelopmentDebugGlobalsOptions
+    options: RendererDevelopmentDebugToolsOptions
 ): RendererDevelopmentDebugTools | null {
     if (!options.isDevelopmentMode()) {
         latestRendererDevelopmentDebugTools = null;
@@ -82,7 +82,7 @@ export function getRendererDevelopmentDebugToolsForTests(): RendererDevelopmentD
 }
 
 function createRendererDebugTools(
-    options: RendererDevelopmentDebugGlobalsOptions
+    options: RendererDevelopmentDebugToolsOptions
 ): Record<string, unknown> {
     const createDebugFunction =
         (exportName: string) =>
@@ -100,7 +100,7 @@ function createRendererDebugTools(
 }
 
 function createRendererDevTools(
-    options: RendererDevelopmentDebugGlobalsOptions
+    options: RendererDevelopmentDebugToolsOptions
 ): Record<string, unknown> {
     return {
         APP_INFO,
@@ -151,7 +151,7 @@ function createRendererDevTools(
 async function callDebugCoreFunction(
     exportName: string,
     args: unknown[],
-    options: RendererDevelopmentDebugGlobalsOptions
+    options: RendererDevelopmentDebugToolsOptions
 ): Promise<unknown> {
     try {
         const coreModules = await options.ensureCoreModules();
@@ -167,7 +167,7 @@ async function callDebugCoreFunction(
 }
 
 async function getRendererStateManagerForDev(
-    options: RendererDevelopmentDebugGlobalsOptions
+    options: RendererDevelopmentDebugToolsOptions
 ): Promise<unknown> {
     try {
         const coreModules = await options.ensureCoreModules();
@@ -181,7 +181,7 @@ async function getRendererStateManagerForDev(
 
 async function getRendererStateRecord(
     methodName: "getHistory" | "getState",
-    options: RendererDevelopmentDebugGlobalsOptions
+    options: RendererDevelopmentDebugToolsOptions
 ): Promise<unknown> {
     try {
         const coreModules = await options.ensureCoreModules();
@@ -194,7 +194,7 @@ async function getRendererStateRecord(
 
 async function loadDevelopmentDebugUtilities(
     rendererDevTools: Record<string, unknown>,
-    options: RendererDevelopmentDebugGlobalsOptions
+    options: RendererDevelopmentDebugToolsOptions
 ): Promise<void> {
     try {
         try {
@@ -247,7 +247,7 @@ async function loadDevelopmentDebugUtilities(
 }
 
 async function logRendererDebugState(
-    options: RendererDevelopmentDebugGlobalsOptions
+    options: RendererDevelopmentDebugToolsOptions
 ): Promise<void> {
     try {
         const coreModules = await options.ensureCoreModules();

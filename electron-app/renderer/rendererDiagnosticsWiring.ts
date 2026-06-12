@@ -5,7 +5,7 @@ import {
 import {
     APP_INFO,
     createRendererDevelopmentDebugTools,
-} from "./developmentDebugGlobals.js";
+} from "./developmentDebugTools.js";
 import { logRendererStartupInfo } from "./rendererStartupInfo.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
 

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const DIRECT_PROCESS_ENV_PATTERN = /\bprocess\.env\b/u;
 const RENDERER_DEVELOPMENT_DEBUG_GLOBALS =
-    "electron-app/renderer/developmentDebugGlobals.ts";
+    "electron-app/renderer/developmentDebugTools.ts";
 const RENDERER_ENTRYPOINT = "electron-app/renderer.ts";
 
 const SCANNED_SOURCE_PATHS = [

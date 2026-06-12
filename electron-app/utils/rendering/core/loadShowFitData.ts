@@ -3,7 +3,7 @@ import type { FitMessages } from "../../../shared/fit";
 type ShowFitDataInput = FitMessages | Record<string, unknown>;
 
 /**
- * Lazily render decoded FIT data without depending on the legacy
+ * Lazily render decoded FIT data without depending on the legacy the historical
  * `window.showFitData` bridge.
  */
 export async function renderDecodedFitData(

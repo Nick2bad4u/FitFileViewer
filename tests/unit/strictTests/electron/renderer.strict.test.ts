@@ -214,7 +214,7 @@ const importRendererFresh = async () => {
 
 async function getRendererDevToolsForStrictTest(): Promise<any> {
     const { getRendererDevelopmentDebugToolsForTests } =
-        await import("../../../../electron-app/renderer/developmentDebugGlobals.js");
+        await import("../../../../electron-app/renderer/developmentDebugTools.js");
 
     return getRendererDevelopmentDebugToolsForTests()?.rendererDev;
 }

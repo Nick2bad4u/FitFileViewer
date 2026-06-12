@@ -214,9 +214,9 @@ directly from a `vendor/` path.
 - Remove one dependency group at a time and verify the affected feature.
 - Preserve script, CSS, and plugin ordering in the split bundle loader until
   imports make ordering explicit.
-- Keep symbol-backed state limited to split-vendor readiness and the Leaflet
-  legacy-plugin bootstrap; do not reintroduce public `window.*` vendor globals,
-  app-side browser-library runtime symbols, or persistent split-vendor payload
-  registries.
+- Keep split-vendor readiness in module-local state and keep the Leaflet
+  legacy-plugin bootstrap behind scoped runtime getters; do not reintroduce
+  public `window.*` vendor globals, app-side browser-library runtime symbols, or
+  persistent split-vendor payload registries.
 - Keep `electron-app/renderer/leafletMeasureLite.js` unless a CSP-safe package
   replacement is proven.

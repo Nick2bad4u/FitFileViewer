@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     APP_INFO,
     createRendererDevelopmentDebugTools,
-} from "../../../electron-app/renderer/developmentDebugGlobals.js";
+} from "../../../electron-app/renderer/developmentDebugTools.js";
 import type { RendererPerformanceMonitor } from "../../../electron-app/renderer/startupPerformanceMonitor.js";
 import {
     isRendererDebugLoggingEnabled,
@@ -53,7 +53,7 @@ function createPerformanceMonitor(): RendererPerformanceMonitor {
     };
 }
 
-describe("renderer development debug globals", () => {
+describe("renderer development debug tools", () => {
     afterEach(() => {
         Reflect.deleteProperty(globalThis, "__debugChartFormatting");
         Reflect.deleteProperty(globalThis, "__renderer_debug");
