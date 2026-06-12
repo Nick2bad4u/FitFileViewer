@@ -84,6 +84,8 @@ the updater resolver boundary natively instead of requiring its source file.
 The Node runtime module boundary now uses named source exports for `path`, `fs`, and `httpRef`; file-access,
 IPC sender policy, Gyazo OAuth, application-event, menu-event, and IPC setup consumers import that boundary
 natively instead of requiring its source file.
+The main lifecycle setup boundary now uses a named source export instead of a source-level `module.exports`
+wrapper.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
