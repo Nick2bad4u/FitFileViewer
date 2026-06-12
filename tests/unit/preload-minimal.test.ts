@@ -1,4 +1,11 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const preloadSourceRequire = createRequire(
+    path.join(process.cwd(), "electron-app", "preload.ts")
+);
 
 type BeforeExitListener = () => void;
 type ExposeInMainWorld = (name: string, api: unknown) => void;
@@ -43,6 +50,20 @@ interface PreloadMinimalElectronAPI {
     openFile: () => Promise<string>;
     readFile: (filePath: string) => Promise<string>;
     validateAPI: () => boolean;
+}
+
+async function startPreloadWithElectronBridge(
+    electronBridge: ElectronPreloadMock,
+    processRef: NodeJS.Process
+): Promise<void> {
+    const { startPreloadEntrypoint } =
+        await import("../../electron-app/preload/preloadEntrypoint.js");
+    startPreloadEntrypoint(preloadSourceRequire, {
+        consoleRef: console,
+        electronBridgeOverride: electronBridge,
+        globalScope: globalThis,
+        processRef,
+    });
 }
 
 describe("preload.js - Basic API Validation", () => {
@@ -108,10 +129,12 @@ describe("preload.js - Basic API Validation", () => {
         };
         vi.stubGlobal("process", mockProcess);
 
-        vi.stubGlobal("__electronHoistedMock", electronMock);
         vi.doMock(import("electron"), () => electronMock);
 
-        await import("../../electron-app/preload.js");
+        await startPreloadWithElectronBridge(
+            electronMock,
+            mockProcess as unknown as NodeJS.Process
+        );
     });
 
     afterEach(() => {

@@ -9,7 +9,8 @@
         | "createAppInfoApi"
         | "createClipboardBridge"
         | "createDevtoolsMenuApi"
-        | "createExternalApi"
+        | "createGyazoExternalApi"
+        | "createShellExternalApi"
         | "createThemeApi"
         | "exposeDevelopmentToolsGlobal"
         | "isPreloadDevelopmentMode"
@@ -53,10 +54,15 @@
         ) as {
             exposeDevelopmentToolsGlobal: PreloadModuleRegistry["exposeDevelopmentToolsGlobal"];
         };
-        const { createExternalApi } = requireModule(
-            "./preload/externalApi.js"
+        const { createGyazoExternalApi } = requireModule(
+            "./preload/gyazoExternalApi.js"
         ) as {
-            createExternalApi: PreloadModuleRegistry["createExternalApi"];
+            createGyazoExternalApi: PreloadModuleRegistry["createGyazoExternalApi"];
+        };
+        const { createShellExternalApi } = requireModule(
+            "./preload/shellExternalApi.js"
+        ) as {
+            createShellExternalApi: PreloadModuleRegistry["createShellExternalApi"];
         };
         const { createThemeApi } = requireModule("./preload/themeApi.js") as {
             createThemeApi: PreloadModuleRegistry["createThemeApi"];
@@ -72,7 +78,8 @@
             createAppInfoApi,
             createClipboardBridge,
             createDevtoolsMenuApi,
-            createExternalApi,
+            createGyazoExternalApi,
+            createShellExternalApi,
             createThemeApi,
             exposeDevelopmentToolsGlobal,
             isPreloadDevelopmentMode,

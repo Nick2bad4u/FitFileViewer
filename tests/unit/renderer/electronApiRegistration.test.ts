@@ -1,38 +1,21 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
-    installElectronAPIDefinePropertyInterceptor,
     installRendererElectronApiRegistration,
-    installRendererElectronAPIProxy,
-    isVitestManualMockEnvironment,
     registerRendererElectronAPI,
-    registerRendererElectronAPIFromPropertyDescriptor,
-    startRendererElectronAPITestPolling,
 } from "../../../electron-app/renderer/electronApiRegistration.js";
 import {
     getRendererElectronApi,
     resetRendererElectronApiCandidate,
 } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
-function createOptions(scope: typeof globalThis = {} as typeof globalThis) {
+function createOptions() {
     const state = {
-        clearedInterval: undefined as number | undefined,
-        intervalCallback: undefined as (() => void) | undefined,
         menuActions: [] as unknown[],
         scheduledCount: 0,
         themeChanges: [] as string[],
-        unloadHandler: undefined as (() => void) | undefined,
     };
     const options = {
-        addEventListener: vi.fn((eventName: string, handler: EventListener) => {
-            if (eventName === "beforeunload") {
-                state.unloadHandler = handler as () => void;
-            }
-        }),
-        clearInterval: vi.fn((handle: number) => {
-            state.clearedInterval = handle;
-        }),
-        defineProperty: Object.defineProperty,
         electronApiCandidate: undefined,
         onMenuAction: (action: unknown) => {
             state.menuActions.push(action);
@@ -44,11 +27,6 @@ function createOptions(scope: typeof globalThis = {} as typeof globalThis) {
         scheduleStateInitialization: () => {
             state.scheduledCount += 1;
         },
-        scope,
-        setInterval: vi.fn((callback: () => void) => {
-            state.intervalCallback = callback;
-            return 7;
-        }),
     };
 
     return { options, state };
@@ -82,10 +60,7 @@ function createElectronApi() {
 }
 
 describe("renderer Electron API registration", () => {
-    const originalDefineProperty = Object.defineProperty;
-
     afterEach(() => {
-        Object.defineProperty = originalDefineProperty;
         resetRendererElectronApiCandidate();
         vi.restoreAllMocks();
     });
@@ -117,7 +92,7 @@ describe("renderer Electron API registration", () => {
 
         const scope = {} as typeof globalThis;
         const { api, emitMenu, isDevelopment } = createElectronApi();
-        const { options, state } = createOptions(scope);
+        const { options, state } = createOptions();
 
         installRendererElectronApiRegistration({
             ...options,
@@ -137,89 +112,20 @@ describe("renderer Electron API registration", () => {
         ).toBe(api);
     });
 
-    it("installs an electronAPI accessor that registers reassigned API values", () => {
+    it("ignores ambient manual-mock globals during registration", () => {
         expect.assertions(3);
 
-        const scope = {} as typeof globalThis;
-        const { api, emitMenu } = createElectronApi();
-        const { options, state } = createOptions(scope);
-
-        installRendererElectronAPIProxy(options);
-        Reflect.set(scope, "electronAPI", api);
-        emitMenu("open-file");
-
-        expect(Reflect.get(scope, "electronAPI")).toBe(api);
-        expect(state.menuActions).toStrictEqual(["open-file"]);
-        expect(state.scheduledCount).toBe(1);
-    });
-
-    it("intercepts test defineProperty electronAPI assignments", () => {
-        expect.assertions(3);
-
-        const scope = {} as typeof globalThis;
-        const { api, emitTheme } = createElectronApi();
-        const { options, state } = createOptions(scope);
-
-        installElectronAPIDefinePropertyInterceptor(options);
-        Object.defineProperty(scope, "electronAPI", {
-            configurable: true,
-            value: api,
-        });
-        emitTheme("light");
-
-        expect(Reflect.get(scope, "electronAPI")).toBe(api);
-        expect(state.themeChanges).toStrictEqual(["light"]);
-        expect(state.scheduledCount).toBe(2);
-    });
-
-    it("polls Electron API changes in manual mock environments and cleans up on unload", () => {
-        expect.assertions(4);
-
-        const scope = {} as typeof globalThis;
-        const { api, emitMenu } = createElectronApi();
-        const { options, state } = createOptions(scope);
-
-        startRendererElectronAPITestPolling(options);
-        Reflect.set(scope, "electronAPI", api);
-        state.intervalCallback?.();
-        emitMenu("about");
-        state.unloadHandler?.();
-
-        expect(state.menuActions).toStrictEqual(["about"]);
-        expect(state.scheduledCount).toBe(2);
-        expect(state.clearedInterval).toBe(7);
-        expect(options.removeEventListener).toHaveBeenCalledWith(
-            "beforeunload",
-            state.unloadHandler
-        );
-    });
-
-    it("detects the Vitest manual mock registry marker", () => {
-        expect.assertions(2);
-
-        expect(isVitestManualMockEnvironment({} as typeof globalThis)).toBe(
-            false
-        );
-        expect(
-            isVitestManualMockEnvironment({
-                __vitest_manual_mocks__: new Map(),
-            } as unknown as typeof globalThis)
-        ).toBe(true);
-    });
-
-    it("registers value property descriptors only", () => {
-        expect.assertions(2);
-
-        const { api } = createElectronApi();
+        const originalDefineProperty = Object.defineProperty;
+        const testGlobal = {
+            __vitest_manual_mocks__: new Map(),
+            electronAPI: createElectronApi().api,
+        };
         const { options, state } = createOptions();
 
-        registerRendererElectronAPIFromPropertyDescriptor({}, options);
-        registerRendererElectronAPIFromPropertyDescriptor(
-            { value: api },
-            options
-        );
+        installRendererElectronApiRegistration(options);
 
-        expect(state.scheduledCount).toBe(2);
+        expect(Object.defineProperty).toBe(originalDefineProperty);
         expect(state.menuActions).toStrictEqual([]);
+        expect(Reflect.get(testGlobal, "electronAPI")).toBeDefined();
     });
 });

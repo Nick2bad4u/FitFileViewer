@@ -17,19 +17,12 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-    clearChartInstanceRegistryForTests,
-    getRegisteredChartInstances,
-    setRegisteredChartInstances,
-} from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
-import {
-    clearChartRuntimeForTests,
-    setChartRuntime,
-} from "../../../../../electron-app/utils/charts/core/chartRuntime.js";
 import { resetChartListenerStateForTests } from "../../../../../electron-app/utils/charts/core/chartListenerState.js";
 
 type MockFn = (...args: unknown[]) => unknown;
 type VoidFn = (...args: unknown[]) => void;
+type ChartInstanceRegistryModule =
+    typeof import("../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
 type RenderChartJSTestGlobal = typeof globalThis & {
     cancelAnimationFrame?: unknown;
     document?: unknown;
@@ -51,6 +44,28 @@ function getRenderChartJSTestGlobal(): RenderChartJSTestGlobal {
     return globalThis as unknown as RenderChartJSTestGlobal;
 }
 
+let chartInstanceRegistryModule: ChartInstanceRegistryModule | undefined;
+
+async function loadChartInstanceRegistry(): Promise<ChartInstanceRegistryModule> {
+    chartInstanceRegistryModule =
+        await import("../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
+    return chartInstanceRegistryModule;
+}
+
+function clearChartInstanceRegistryForTests(): void {
+    chartInstanceRegistryModule?.clearChartInstanceRegistryForTests();
+}
+
+function getRegisteredChartInstances(): unknown[] {
+    return chartInstanceRegistryModule?.getRegisteredChartInstances() ?? [];
+}
+
+function setRegisteredChartInstances(charts: readonly unknown[]): unknown[] {
+    return (
+        chartInstanceRegistryModule?.setRegisteredChartInstances(charts) ?? []
+    );
+}
+
 const chartJsModuleMocks = vi.hoisted(() => ({
     Chart: {
         defaults: {
@@ -69,6 +84,23 @@ const chartJsModuleMocks = vi.hoisted(() => ({
     },
     zoomPlugin: { id: "zoom" },
 }));
+
+async function clearChartRuntime(): Promise<void> {
+    const { clearChartRuntimeForTests } =
+        await import("../../../../../electron-app/utils/charts/core/chartRuntime.js");
+
+    clearChartRuntimeForTests();
+}
+
+async function registerChartRuntime(
+    chartRuntime: unknown,
+    chartZoomPlugin: unknown
+): Promise<void> {
+    const { setChartRuntime } =
+        await import("../../../../../electron-app/utils/charts/core/chartRuntime.js");
+
+    setChartRuntime(chartRuntime, chartZoomPlugin);
+}
 
 vi.mock(import("chart.js/auto"), () => ({
     default: chartJsModuleMocks.Chart,
@@ -653,10 +685,11 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         Reflect.deleteProperty(globalThis, "Chart");
         Reflect.deleteProperty(globalThis, "ChartZoom");
         Reflect.deleteProperty(globalThis, "chartjsPluginZoom");
-        setChartRuntime(
+        await registerChartRuntime(
             chartJsModuleMocks.Chart,
             chartJsModuleMocks.zoomPlugin
         );
+        await loadChartInstanceRegistry();
 
         // Reset global state
         clearChartInstanceRegistryForTests();
@@ -851,7 +884,7 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         it("should handle Chart.js not available scenario", async () => {
             expect.assertions(2);
             Reflect.deleteProperty(globalThis, "Chart");
-            clearChartRuntimeForTests();
+            await clearChartRuntime();
 
             const { chartActions, chartState } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");

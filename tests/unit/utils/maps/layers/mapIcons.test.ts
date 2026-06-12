@@ -1,10 +1,10 @@
 import type { DivIconOptions } from "leaflet";
 
 import { describe, expect, it, vi } from "vitest";
-import {
-    clearLeafletRuntimeForTests,
-    setLeafletRuntime,
-} from "../../../../../electron-app/utils/maps/core/leafletRuntime.js";
+
+async function loadLeafletRuntime() {
+    return import("../../../../../electron-app/utils/maps/core/leafletRuntime.js");
+}
 
 describe("map marker icons", () => {
     it("creates start and end icons through the registered Leaflet runtime", async () => {
@@ -16,6 +16,7 @@ describe("map marker icons", () => {
 
         try {
             vi.resetModules();
+            const { setLeafletRuntime } = await loadLeafletRuntime();
             setLeafletRuntime({
                 divIcon,
             });
@@ -43,6 +44,7 @@ describe("map marker icons", () => {
             });
             expect(divIcon).toHaveBeenCalledTimes(2);
         } finally {
+            const { clearLeafletRuntimeForTests } = await loadLeafletRuntime();
             clearLeafletRuntimeForTests();
             vi.unstubAllGlobals();
             vi.resetModules();
@@ -53,6 +55,7 @@ describe("map marker icons", () => {
         expect.assertions(2);
 
         vi.resetModules();
+        const { clearLeafletRuntimeForTests } = await loadLeafletRuntime();
         clearLeafletRuntimeForTests();
         vi.unstubAllGlobals();
         const { createEndIcon, createStartIcon } =
@@ -71,6 +74,8 @@ describe("map marker icons", () => {
 
         try {
             vi.resetModules();
+            const { clearLeafletRuntimeForTests, setLeafletRuntime } =
+                await loadLeafletRuntime();
             clearLeafletRuntimeForTests();
             vi.unstubAllGlobals();
 
@@ -92,6 +97,7 @@ describe("map marker icons", () => {
             });
             expect(divIcon).toHaveBeenCalledTimes(1);
         } finally {
+            const { clearLeafletRuntimeForTests } = await loadLeafletRuntime();
             clearLeafletRuntimeForTests();
             vi.unstubAllGlobals();
             vi.resetModules();

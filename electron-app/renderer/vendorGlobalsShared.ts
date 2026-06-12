@@ -9,42 +9,45 @@ export type RendererVendorBundleState = Readonly<{
 }>;
 
 export type RendererVendorEntryLoadedEventDetail = Readonly<{
+    chartData?: RendererVendorChartDataRuntimePayload;
+    core?: RendererVendorCoreRuntimePayload;
     entryName: RendererVendorBundleEntry;
+    map?: RendererVendorMapRuntimePayload;
+}>;
+
+export type RendererVendorChartDataRuntimePayload = Readonly<{
+    chartRuntime: unknown;
+    chartZoomPlugin: unknown;
+    dataTableRuntime: unknown;
+}>;
+
+export type RendererVendorRuntimePayload = Readonly<{
+    chartData?: RendererVendorChartDataRuntimePayload;
+    core?: RendererVendorCoreRuntimePayload;
+    map?: RendererVendorMapRuntimePayload;
+}>;
+
+export type RendererVendorCoreRuntimePayload = Readonly<{
+    arqueroRuntime: unknown;
+    domPurifyRuntime: unknown;
+    exportZipRuntime: unknown;
+    screenfullRuntime: unknown;
+}>;
+
+export type RendererVendorMapRuntimePayload = Readonly<{
+    leafletRuntime: unknown;
 }>;
 
 export const rendererVendorEntryLoadedEventName =
     "ffv-renderer-vendor-entry-loaded";
 
-const rendererVendorEntryRegistryKey = Symbol.for(
-    "fitfileviewer.rendererVendorEntries"
-);
-
-type RendererVendorEntryRegistryGlobal = typeof globalThis &
-    Record<symbol, Set<RendererVendorBundleEntry> | undefined>;
-
-function getLoadedVendorEntries(): Set<RendererVendorBundleEntry> {
-    const vendorGlobal = globalThis as RendererVendorEntryRegistryGlobal;
-    const existingEntries = vendorGlobal[rendererVendorEntryRegistryKey];
-
-    if (existingEntries instanceof Set) {
-        return existingEntries;
-    }
-
-    const loadedVendorEntries = new Set<RendererVendorBundleEntry>();
-    Object.defineProperty(vendorGlobal, rendererVendorEntryRegistryKey, {
-        configurable: true,
-        enumerable: false,
-        value: loadedVendorEntries,
-        writable: false,
-    });
-
-    return loadedVendorEntries;
-}
+const loadedVendorEntries = new Set<RendererVendorBundleEntry>();
 
 function dispatchRendererVendorEntryLoadedEvent(
-    entryName: RendererVendorBundleEntry
+    entryName: RendererVendorBundleEntry,
+    runtimePayload: RendererVendorRuntimePayload = {}
 ): void {
-    const eventTarget = globalThis.window ?? globalThis;
+    const eventTarget = globalThis;
 
     if (
         typeof eventTarget.dispatchEvent !== "function" ||
@@ -57,7 +60,7 @@ function dispatchRendererVendorEntryLoadedEvent(
         new CustomEvent<RendererVendorEntryLoadedEventDetail>(
             rendererVendorEntryLoadedEventName,
             {
-                detail: { entryName },
+                detail: { ...runtimePayload, entryName },
             }
         )
     );
@@ -67,23 +70,30 @@ export function getRendererVendorBundleState(): RendererVendorBundleState {
     return {
         loaded: true,
         source: "npm-bundle",
-        splitEntries: [...getLoadedVendorEntries()].sort(),
+        splitEntries: [...loadedVendorEntries].sort(),
     };
 }
 
 export function isRendererVendorEntryLoaded(
     entryName: RendererVendorBundleEntry
 ): boolean {
-    return getLoadedVendorEntries().has(entryName);
+    return loadedVendorEntries.has(entryName);
 }
 
 export function markRendererVendorEntryLoaded(
+    entryName: RendererVendorBundleEntry,
+    runtimePayload: RendererVendorRuntimePayload = {}
+): void {
+    recordRendererVendorEntryLoaded(entryName);
+    dispatchRendererVendorEntryLoadedEvent(entryName, runtimePayload);
+}
+
+export function recordRendererVendorEntryLoaded(
     entryName: RendererVendorBundleEntry
 ): void {
-    getLoadedVendorEntries().add(entryName);
-    dispatchRendererVendorEntryLoadedEvent(entryName);
+    loadedVendorEntries.add(entryName);
 }
 
 export function resetRendererVendorBundleState(): void {
-    getLoadedVendorEntries().clear();
+    loadedVendorEntries.clear();
 }

@@ -1,15 +1,15 @@
-interface LeafletRuntimeRegistry {
+type LeafletRuntimeRegistry = {
     runtime?: unknown;
-}
+};
 
-const leafletRuntimeRegistryKey = Symbol.for("fitfileviewer.leafletRuntime");
+const leafletRuntimeRegistry: LeafletRuntimeRegistry = {};
 
 export function setLeafletRuntime(runtime: unknown): void {
-    getLeafletRuntimeRegistry().runtime = runtime;
+    leafletRuntimeRegistry.runtime = runtime;
 }
 
 export function clearLeafletRuntimeForTests(): void {
-    getLeafletRuntimeRegistry().runtime = undefined;
+    leafletRuntimeRegistry.runtime = undefined;
 }
 
 export function resolveLeafletRuntime<T>(
@@ -51,13 +51,5 @@ export async function waitForLeafletRuntime<T>(
 }
 
 function getLeafletRuntimeCandidates(): unknown[] {
-    const registry = getLeafletRuntimeRegistry();
-    return [registry.runtime];
-}
-
-function getLeafletRuntimeRegistry(): LeafletRuntimeRegistry {
-    const leafletGlobal = globalThis as typeof globalThis &
-        Record<symbol, LeafletRuntimeRegistry | undefined>;
-    leafletGlobal[leafletRuntimeRegistryKey] ??= {};
-    return leafletGlobal[leafletRuntimeRegistryKey];
+    return [leafletRuntimeRegistry.runtime];
 }

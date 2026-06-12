@@ -13,24 +13,22 @@ export type ExportZipLike = {
 
 export type ExportZipConstructor = new () => ExportZipLike;
 
-interface ExportZipRuntimeRegistry {
+type ExportZipRuntimeRegistry = {
     constructor?: unknown;
-}
+};
 
-const exportZipRuntimeRegistryKey = Symbol.for(
-    "fitfileviewer.exportZipRuntime"
-);
+const exportZipRuntimeRegistry: ExportZipRuntimeRegistry = {};
 
 export function setExportZipRuntime(constructor: unknown): void {
-    getExportZipRuntimeRegistry().constructor = constructor;
+    exportZipRuntimeRegistry.constructor = constructor;
 }
 
 export function clearExportZipRuntimeForTests(): void {
-    getExportZipRuntimeRegistry().constructor = undefined;
+    exportZipRuntimeRegistry.constructor = undefined;
 }
 
 export function resolveExportZipRuntime(): ExportZipConstructor | undefined {
-    const constructor = getExportZipRuntimeRegistry().constructor;
+    const constructor = exportZipRuntimeRegistry.constructor;
     return isExportZipConstructor(constructor) ? constructor : undefined;
 }
 
@@ -38,11 +36,4 @@ export function isExportZipConstructor(
     value: unknown
 ): value is ExportZipConstructor {
     return typeof value === "function";
-}
-
-function getExportZipRuntimeRegistry(): ExportZipRuntimeRegistry {
-    const exportZipGlobal = globalThis as typeof globalThis &
-        Record<symbol, ExportZipRuntimeRegistry | undefined>;
-    exportZipGlobal[exportZipRuntimeRegistryKey] ??= {};
-    return exportZipGlobal[exportZipRuntimeRegistryKey];
 }

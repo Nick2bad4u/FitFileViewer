@@ -11,22 +11,22 @@ export type ArqueroRuntime = {
     from: (records: readonly SummaryRecord[]) => ArqueroTable;
 };
 
-interface ArqueroRuntimeRegistry {
+type ArqueroRuntimeRegistry = {
     runtime?: unknown;
-}
+};
 
-const arqueroRuntimeRegistryKey = Symbol.for("fitfileviewer.arqueroRuntime");
+const arqueroRuntimeRegistry: ArqueroRuntimeRegistry = {};
 
 export function setArqueroRuntime(runtime: unknown): void {
-    getArqueroRuntimeRegistry().runtime = runtime;
+    arqueroRuntimeRegistry.runtime = runtime;
 }
 
 export function clearArqueroRuntimeForTests(): void {
-    getArqueroRuntimeRegistry().runtime = undefined;
+    arqueroRuntimeRegistry.runtime = undefined;
 }
 
 export function resolveArqueroRuntime(): ArqueroRuntime | undefined {
-    const runtime = getArqueroRuntimeRegistry().runtime;
+    const runtime = arqueroRuntimeRegistry.runtime;
     return isArqueroRuntime(runtime) ? runtime : undefined;
 }
 
@@ -36,11 +36,4 @@ export function isArqueroRuntime(value: unknown): value is ArqueroRuntime {
         value !== null &&
         typeof (value as { from?: unknown }).from === "function"
     );
-}
-
-function getArqueroRuntimeRegistry(): ArqueroRuntimeRegistry {
-    const arqueroGlobal = globalThis as typeof globalThis &
-        Record<symbol, ArqueroRuntimeRegistry | undefined>;
-    arqueroGlobal[arqueroRuntimeRegistryKey] ??= {};
-    return arqueroGlobal[arqueroRuntimeRegistryKey];
 }

@@ -1,12 +1,12 @@
 /* eslint-disable case-police/string-check -- devTools is the preload API contract name. */
+import { createRequire } from "node:module";
+import path from "node:path";
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-type PreloadExecutionGlobal = typeof globalThis & {
-    __electronHoistedMock?: {
-        contextBridge: typeof mockContextBridge;
-        ipcRenderer: typeof mockIpcRenderer;
-    };
-};
+const preloadSourceRequire = createRequire(
+    path.join(process.cwd(), "electron-app", "preload.ts")
+);
 
 interface ExposedElectronAPI {
     addRecentFile: (...args: unknown[]) => Promise<unknown>;
@@ -40,8 +40,6 @@ interface ExposedDevTools {
     testIPC: () => Promise<boolean>;
 }
 
-const preloadExecutionGlobal = globalThis as PreloadExecutionGlobal;
-
 const mockContextBridge = {
     exposeInMainWorld: vi.fn<(apiName: string, api: unknown) => void>(),
 };
@@ -54,6 +52,22 @@ const mockIpcRenderer = {
     >(),
     removeAllListeners: vi.fn<(channel: string) => void>(),
 };
+
+let preloadElectronBridgeMock: {
+    contextBridge: typeof mockContextBridge;
+    ipcRenderer: typeof mockIpcRenderer;
+};
+
+async function startPreloadWithElectronBridge(): Promise<void> {
+    const { startPreloadEntrypoint } =
+        await import("../../electron-app/preload/preloadEntrypoint.js");
+    startPreloadEntrypoint(preloadSourceRequire, {
+        consoleRef: console,
+        electronBridgeOverride: preloadElectronBridgeMock,
+        globalScope: globalThis,
+        processRef: process,
+    });
+}
 
 function getRequiredExposeCall(apiName: string): [string, unknown] {
     const call = mockContextBridge.exposeInMainWorld.mock.calls.find(
@@ -98,8 +112,7 @@ describe("preload.js source execution", () => {
 
         process.env.NODE_ENV = "development";
 
-        // Provide hoisted override so modules that resolve lazily see our mock
-        preloadExecutionGlobal.__electronHoistedMock = {
+        preloadElectronBridgeMock = {
             contextBridge: mockContextBridge,
             ipcRenderer: mockIpcRenderer,
         };
@@ -116,7 +129,7 @@ describe("preload.js source execution", () => {
 
         delete process.env.NODE_ENV;
 
-        delete preloadExecutionGlobal.__electronHoistedMock;
+        preloadElectronBridgeMock = undefined as never;
     });
 
     describe("development mode execution", () => {
@@ -125,7 +138,7 @@ describe("preload.js source execution", () => {
 
             process.env.NODE_ENV = "development";
 
-            await import("../../electron-app/preload.js");
+            await startPreloadWithElectronBridge();
 
             const electronAPI = getRequiredElectronAPI();
             const devTools = getRequiredDevTools();
@@ -225,7 +238,7 @@ describe("preload.js source execution", () => {
             process.env.NODE_ENV = "development";
 
             // Import preload.js so mocks are honored
-            await import("../../electron-app/preload.js");
+            await startPreloadWithElectronBridge();
 
             // Get the exposed electronAPI from the mock call
             const electronAPICall = getRequiredExposeCall("electronAPI");
@@ -295,7 +308,7 @@ describe("preload.js source execution", () => {
             // Mock successful IPC response
             mockIpcRenderer.invoke.mockResolvedValue("test-result");
 
-            await import("../../electron-app/preload.js");
+            await startPreloadWithElectronBridge();
 
             const electronAPI = getRequiredElectronAPI();
 
@@ -315,7 +328,7 @@ describe("preload.js source execution", () => {
             // Set production mode
             process.env.NODE_ENV = "production";
 
-            await import("../../electron-app/preload.js");
+            await startPreloadWithElectronBridge();
 
             // Verify electronAPI was exposed
             const electronAPICall = getRequiredExposeCall("electronAPI");

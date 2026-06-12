@@ -9,10 +9,13 @@ package imports and a renderer build pipeline.
 The Electron app now loads third-party browser libraries through split renderer
 compatibility bundles:
 
-- `static/app/index.html` loads the Vite-built compatibility bundle at
-  `renderer/vendor-globals-core.js` for DOMPurify sanitizer runtime,
-  JSZip export runtime,
-  Arquero summary runtime, and screenfull runtime registration.
+- `static/app/index.html` no longer loads compatibility JavaScript entries
+  directly.
+- `electron-app/main-ui.ts` starts
+  `electron-app/renderer/vendorBundleLoader.ts` for
+  `renderer/vendor-globals-core.js` during renderer startup. The typed core
+  readiness payload registers the DOMPurify sanitizer runtime, JSZip export
+  runtime, Arquero summary runtime, and screenfull runtime.
 - `electron-app/renderer/vendorBundleLoader.ts` loads
   `renderer/vendor-globals-chart-data.js` when the Chart or Raw Data tab needs
   the Chart.js runtime, Chart.js zoom plugin, and DataTables stylesheet stacks.
@@ -44,19 +47,31 @@ compatibility bundles:
 - `electron-app/renderer/vendorGlobalsCore.ts`,
   `electron-app/renderer/vendorGlobalsChartData.ts`, and
   `electron-app/renderer/vendorGlobalsMap.ts` import migrated renderer packages
-  from npm and register runtime adapters by domain.
-- `electron-app/renderer/vendorGlobalsCore.ts` registers DOMPurify through
-  `domPurifyRuntime.ts`; it no longer exposes a `DOMPurify` compatibility
-  global.
-- `electron-app/renderer/vendorGlobalsMap.ts` registers Leaflet through
-  `leafletRuntime.ts` before loading legacy Leaflet plugin chunks. The renderer
-  Vite config rewrites the Leaflet.draw, Leaflet MiniMap, and markercluster
-  package entries so callbacks close over that registered runtime instead of a
-  persistent `L` compatibility global. The map bundle no longer exposes
-  separate `L`, `Leaflet`, or `maplibregl` aliases.
-- `electron-app/renderer/vendorGlobalsChartData.ts` registers Chart.js through
-  `chartRuntime.ts` and DataTables through `dataTableRuntime.ts`; it no longer
-  exposes `Chart`, Chart.js zoom, Hammer, or `DataTable` compatibility globals.
+  from npm and publish typed runtime payloads by domain.
+- `electron-app/renderer/vendorGlobalsCore.ts` publishes DOMPurify, JSZip,
+  Arquero, and screenfull through the typed split-vendor readiness payload
+  consumed by `electron-app/renderer/vendorBundleLoader.ts`; app modules then
+  resolve them through module-local runtime adapters. It no longer exposes
+  `DOMPurify`, `JSZip`, `aq`, `arquero`, or `screenfull` compatibility globals,
+  and those adapters no longer use global symbol registries. Split-entry
+  readiness is tracked in module state and synchronized through the typed
+  readiness event rather than a symbol-backed `globalThis` registry.
+- `electron-app/renderer/vendorGlobalsMap.ts` publishes Leaflet through the
+  typed split-vendor readiness payload consumed by
+  `electron-app/renderer/vendorBundleLoader.ts`; app modules then resolve it
+  through the module-local `leafletRuntime.ts` adapter. The renderer Vite
+  config rewrites the Leaflet.draw, Leaflet MiniMap, and markercluster package
+  entries so callbacks import an isolated module-local legacy-plugin bootstrap
+  runtime instead of a persistent `L` compatibility global. The map bundle no
+  longer exposes separate `L`, `Leaflet`, or `maplibregl` aliases, and the
+  app-side Leaflet adapter no longer uses a global symbol registry.
+- `electron-app/renderer/vendorGlobalsChartData.ts` publishes Chart.js,
+  Chart.js zoom, and DataTables constructors through the typed split-vendor
+  readiness payload consumed by `electron-app/renderer/vendorBundleLoader.ts`;
+  app modules then resolve them through module-local `chartRuntime.ts` and
+  `dataTableRuntime.ts` adapters. It no longer exposes `Chart`, Chart.js zoom,
+  Hammer, or `DataTable` compatibility globals, and those adapters no longer
+  use global symbol registries.
 - `electron-app/utils/ui/controls/createElevationProfileButton.ts` uses
   `chartRuntime.ts` instead of importing `chart.js/auto` directly from
   unbundled runtime code.
@@ -199,7 +214,9 @@ directly from a `vendor/` path.
 - Remove one dependency group at a time and verify the affected feature.
 - Preserve script, CSS, and plugin ordering in the split bundle loader until
   imports make ordering explicit.
-- Keep the symbol-backed runtime registries limited to cross-bundle adapter
-  handoff paths; do not reintroduce public `window.*` vendor globals.
+- Keep symbol-backed state limited to split-vendor readiness and the Leaflet
+  legacy-plugin bootstrap; do not reintroduce public `window.*` vendor globals,
+  app-side browser-library runtime symbols, or persistent split-vendor payload
+  registries.
 - Keep `electron-app/renderer/leafletMeasureLite.js` unless a CSP-safe package
   replacement is proven.

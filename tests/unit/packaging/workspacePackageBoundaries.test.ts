@@ -551,6 +551,36 @@ describe("workspace package boundaries", () => {
         );
     });
 
+    it("keeps release readiness backed by app-level regression smoke coverage", () => {
+        expect.assertions(7);
+
+        const rootPackage = readPackageJson(rootPackageRepositoryPath);
+        const playwrightSmoke = readFileSync(
+            path.join(process.cwd(), rootPlaywrightAppUiSpecPath),
+            "utf8"
+        );
+
+        expect(rootPackage.scripts?.["verify:full"]).toContain(
+            "npm run test:playwright"
+        );
+        expect(rootPackage.scripts?.["test:playwright"]).toContain(
+            rootPlaywrightAppUiSpecPath
+        );
+        expect(playwrightSmoke).toContain(
+            'test("auto-renders the selected FIT file in the Raw Data tab"'
+        );
+        expect(playwrightSmoke).toContain(
+            'test("loads the Zwift map iframe when the Zwift tab is selected"'
+        );
+        expect(playwrightSmoke).toContain(
+            'test("shows loading and loaded states for an empty Browser folder"'
+        );
+        expect(playwrightSmoke).toContain(
+            'test("clears distance and area map measurements through the registered measure control"'
+        );
+        expect(playwrightSmoke).toContain("expectTabReady");
+    });
+
     it("keeps agent guidance aligned with the root-managed workspace", () => {
         expect.assertions(4);
 
@@ -724,7 +754,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps dependency update configuration rooted at the app package", () => {
-        expect.assertions(16);
+        expect.assertions(19);
 
         const ncuConfig = JSON.parse(
             readFileSync(path.join(process.cwd(), rootNcuConfigPath), "utf8")
@@ -775,6 +805,13 @@ describe("workspace package boundaries", () => {
         expect(dependencyValidationWorkflow).toContain("node-version: 24");
         expect(dependencyValidationWorkflow).toContain(
             "xvfb-run -a npm run release:verify"
+        );
+        expect(dependencyValidationWorkflow).toContain(
+            "Verify unsigned package artifacts"
+        );
+        expect(dependencyValidationWorkflow).toContain("test -d release-dist");
+        expect(dependencyValidationWorkflow).toContain(
+            'test -n "$(find release-dist -type f -print -quit)"'
         );
         expect(dependencyValidationWorkflow).toContain(
             "tee artifacts/dependency-validation/npm-ci-app.log"

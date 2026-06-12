@@ -1,5 +1,9 @@
+import { createRequire } from "node:module";
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Mock } from "vitest";
+
+const requireCjs = createRequire(import.meta.url);
 
 // Capture passed template for assertions
 let capturedTemplate: any[] | null = null;
@@ -14,11 +18,14 @@ type ElectronHoistedMock = {
     clipboard: any;
     shell: any;
 };
+type ElectronAccessModule = {
+    setElectronOverride: (override: unknown) => void;
+};
 type CreateAppMenuTestGlobal = typeof globalThis & {
     __FFV_createAppMenuExports?: unknown;
     __clipboardWrites: any[][];
     __electronClipboardWriteSpy: Mock<AnyMockFn>;
-    __electronHoistedMock: ElectronHoistedMock;
+    __electronMockFixture: ElectronHoistedMock;
     __electronSendSpy: Mock<AnyMockFn>;
     __electronShellOpenSpy: Mock<AnyMockFn>;
     __electronShellShowSpy: Mock<AnyMockFn>;
@@ -62,10 +69,37 @@ function setRecentFilesOverrideForTests(files: null | readonly string[]): void {
     recentFilesOverrideForNextImport = files;
 }
 
-// Provide an Electron mock that always proxies to the hoisted global mock
-// This keeps behavior deterministic and avoids import-order pitfalls
+const electronMockProxy = new Proxy(
+    {},
+    {
+        get(_t, prop) {
+            const src =
+                getCreateAppMenuTestGlobal().__electronMockFixture || {};
+            return src[prop as keyof ElectronHoistedMock];
+        },
+        has(_t, prop) {
+            const src =
+                getCreateAppMenuTestGlobal().__electronMockFixture || {};
+            return prop in src;
+        },
+    }
+) as ElectronHoistedMock;
+
+function setElectronAccessOverride(override: unknown): void {
+    const { setElectronOverride } = requireCjs(
+        "../../../electron-app/main/runtime/electronAccess.js"
+    ) as ElectronAccessModule;
+    setElectronOverride(override);
+}
+
+function primeElectronAccessOverride(): void {
+    setElectronAccessOverride(electronMockProxy);
+}
+
+// Provide an Electron mock that always proxies to the test fixture object.
+// This keeps behavior deterministic and avoids import-order pitfalls.
 vi.mock(import("electron"), () => {
-    const get = () => getCreateAppMenuTestGlobal().__electronHoistedMock || {};
+    const get = () => getCreateAppMenuTestGlobal().__electronMockFixture || {};
     return new Proxy(
         {},
         {
@@ -138,7 +172,7 @@ describe("createAppMenu", () => {
         getCreateAppMenuTestGlobal().__shellRevealCalls = [];
         getCreateAppMenuTestGlobal().__clipboardWrites = [];
         // Seed hoisted fallback electron mock for environments where require("electron") may fail
-        getCreateAppMenuTestGlobal().__electronHoistedMock = {
+        getCreateAppMenuTestGlobal().__electronMockFixture = {
             Menu: {
                 buildFromTemplate: (template: any[]) => {
                     capturedTemplate = template;
@@ -198,14 +232,17 @@ describe("createAppMenu", () => {
                 },
             },
         };
+        primeElectronAccessOverride();
     });
 
     afterEach(() => {
         capturedTemplate = null;
         setRecentFilesOverrideForTests(null);
+        setElectronAccessOverride(null);
     });
 
     function importCreateAppMenu() {
+        primeElectronAccessOverride();
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const mod =
             require("../../../electron-app/utils/app/menu/createAppMenu.js") as {
@@ -652,7 +689,7 @@ describe("createAppMenu", () => {
         expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         let closed = false;
-        getCreateAppMenuTestGlobal().__electronHoistedMock.BrowserWindow = {
+        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
             getFocusedWindow: () => ({
                 close: () => {
                     closed = true;
@@ -1124,7 +1161,7 @@ describe("createAppMenu", () => {
         expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         let closed = false;
-        getCreateAppMenuTestGlobal().__electronHoistedMock.BrowserWindow = {
+        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
             getFocusedWindow: () => ({
                 close: () => {
                     closed = true;
@@ -1175,8 +1212,8 @@ describe("createAppMenu", () => {
     it("exposes template via global when Menu API is unavailable", () => {
         expect.assertions(1);
         // Remove Menu API from hoisted mock to trigger fallback branch
-        const originalMock = getCreateAppMenuTestGlobal().__electronHoistedMock;
-        getCreateAppMenuTestGlobal().__electronHoistedMock = {
+        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
+        getCreateAppMenuTestGlobal().__electronMockFixture = {
             ...originalMock,
             Menu: undefined,
         };
@@ -1198,13 +1235,13 @@ describe("createAppMenu", () => {
             ],
         });
         // restore
-        getCreateAppMenuTestGlobal().__electronHoistedMock = originalMock;
+        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
     });
 
     it("overwrites previously exposed template when Menu API is unavailable (else branch)", () => {
         expect.assertions(2);
-        const originalMock = getCreateAppMenuTestGlobal().__electronHoistedMock;
-        getCreateAppMenuTestGlobal().__electronHoistedMock = {
+        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
+        getCreateAppMenuTestGlobal().__electronMockFixture = {
             ...originalMock,
             Menu: undefined,
         };
@@ -1238,17 +1275,17 @@ describe("createAppMenu", () => {
             label: "📁 File",
             submenuIsArray: true,
         });
-        getCreateAppMenuTestGlobal().__electronHoistedMock = originalMock;
+        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
     });
 
     it("logs menu labels when app is not packaged (debug branch)", () => {
         expect.assertions(2);
         // Spy on console.log and set app.isPackaged=false to execute debug logging path
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        const originalMock = getCreateAppMenuTestGlobal().__electronHoistedMock;
+        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
         const originalEnv = process.env.FFV_DEBUG_MENU;
         process.env.FFV_DEBUG_MENU = "1";
-        getCreateAppMenuTestGlobal().__electronHoistedMock = {
+        getCreateAppMenuTestGlobal().__electronMockFixture = {
             ...originalMock,
             app: { ...originalMock.app, isPackaged: false },
         };
@@ -1275,7 +1312,7 @@ describe("createAppMenu", () => {
         );
         logSpy.mockRestore();
         restoreDebugMenuEnv(originalEnv);
-        getCreateAppMenuTestGlobal().__electronHoistedMock = originalMock;
+        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
     });
 
     it("check for updates sends menu-check-for-updates", () => {
@@ -1302,10 +1339,10 @@ describe("createAppMenu", () => {
 
     it("logs debug warning when Electron Menu is missing and exposes template", () => {
         expect.assertions(2);
-        const originalMock = getCreateAppMenuTestGlobal().__electronHoistedMock;
+        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         // Remove Menu to force both early debug log and fallback exposure path
-        getCreateAppMenuTestGlobal().__electronHoistedMock = {
+        getCreateAppMenuTestGlobal().__electronMockFixture = {
             ...originalMock,
             Menu: undefined,
         };
@@ -1332,7 +1369,7 @@ describe("createAppMenu", () => {
             "[createAppMenu] WARNING: Electron Menu API unavailable; template exposed for tests."
         );
         warnSpy.mockRestore();
-        getCreateAppMenuTestGlobal().__electronHoistedMock = originalMock;
+        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
     });
 
     // The following environment-dependent behaviors are validated elsewhere by presence checks:
@@ -1390,7 +1427,7 @@ describe("createAppMenu - additional robust branches", () => {
         getCreateAppMenuTestGlobal().__shellOpenCalls = [];
         getCreateAppMenuTestGlobal().__shellRevealCalls = [];
         getCreateAppMenuTestGlobal().__clipboardWrites = [];
-        getCreateAppMenuTestGlobal().__electronHoistedMock = {
+        getCreateAppMenuTestGlobal().__electronMockFixture = {
             Menu: {
                 buildFromTemplate: (template: any[]) => {
                     capturedTemplate = template;
@@ -1451,14 +1488,17 @@ describe("createAppMenu - additional robust branches", () => {
                 },
             },
         };
+        primeElectronAccessOverride();
     });
 
     afterEach(() => {
         capturedTemplate = null;
         setRecentFilesOverrideForTests(null);
+        setElectronAccessOverride(null);
     });
 
     function importCreateAppMenu() {
+        primeElectronAccessOverride();
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const mod =
             require("../../../electron-app/utils/app/menu/createAppMenu.js") as {
@@ -1495,9 +1535,9 @@ describe("createAppMenu - additional robust branches", () => {
         // Instead of spying a specific instance (which may be recreated), stub getFocusedWindow to return
         // a deterministic object with a spy for close, ensuring the handler calls it
         const originalBW =
-            getCreateAppMenuTestGlobal().__electronHoistedMock.BrowserWindow;
+            getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow;
         const winMock = { close: createMock() };
-        getCreateAppMenuTestGlobal().__electronHoistedMock.BrowserWindow = {
+        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
             ...originalBW,
             getFocusedWindow: () => winMock,
         };
@@ -1509,7 +1549,7 @@ describe("createAppMenu - additional robust branches", () => {
             accelerator: "CmdOrCtrl+W",
             label: "🚪 Close Window",
         });
-        getCreateAppMenuTestGlobal().__electronHoistedMock.BrowserWindow =
+        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow =
             originalBW;
     });
 
@@ -1613,8 +1653,8 @@ describe("createAppMenu - additional robust branches", () => {
         const fakeWin = { webContents: { send } };
         // Force getFocusedWindow to return null
         const originalBW =
-            getCreateAppMenuTestGlobal().__electronHoistedMock.BrowserWindow;
-        getCreateAppMenuTestGlobal().__electronHoistedMock.BrowserWindow = {
+            getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow;
+        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
             ...originalBW,
             getFocusedWindow: () => null,
         };
@@ -1655,15 +1695,15 @@ describe("createAppMenu - additional robust branches", () => {
         expect(send).toHaveBeenCalledWith("set-high-contrast", "white");
         expect(send).toHaveBeenCalledWith("set-high-contrast", "yellow");
         expect(send).toHaveBeenCalledWith("set-high-contrast", "off");
-        getCreateAppMenuTestGlobal().__electronHoistedMock.BrowserWindow =
+        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow =
             originalBW;
     });
 
     it("logs error when Menu.buildFromTemplate throws", () => {
         expect.assertions(2);
-        const original = getCreateAppMenuTestGlobal().__electronHoistedMock;
+        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
         const err = new Error("boom");
-        getCreateAppMenuTestGlobal().__electronHoistedMock = {
+        getCreateAppMenuTestGlobal().__electronMockFixture = {
             ...original,
             Menu: {
                 buildFromTemplate: () => {
@@ -1693,7 +1733,7 @@ describe("createAppMenu - additional robust branches", () => {
             err
         );
         errorSpy.mockRestore();
-        getCreateAppMenuTestGlobal().__electronHoistedMock = original;
+        getCreateAppMenuTestGlobal().__electronMockFixture = original;
     });
 
     it("macOS App menu appears on darwin and items send IPC", () => {
@@ -1701,8 +1741,8 @@ describe("createAppMenu - additional robust branches", () => {
         // Preserve original platform descriptor
         const desc = Object.getOwnPropertyDescriptor(process, "platform");
         Object.defineProperty(process, "platform", { value: "darwin" });
-        const original = getCreateAppMenuTestGlobal().__electronHoistedMock;
-        getCreateAppMenuTestGlobal().__electronHoistedMock = {
+        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
+        getCreateAppMenuTestGlobal().__electronMockFixture = {
             ...original,
             app: { isPackaged: true, name: "FitFileViewer" },
         };
@@ -1724,16 +1764,16 @@ describe("createAppMenu - additional robust branches", () => {
         );
         // restore
         restoreProcessPlatform(desc);
-        getCreateAppMenuTestGlobal().__electronHoistedMock = original;
+        getCreateAppMenuTestGlobal().__electronMockFixture = original;
     });
 
     it("macOS App menu label falls back to 'App' when app.name missing", () => {
         expect.assertions(3);
         const desc = Object.getOwnPropertyDescriptor(process, "platform");
         Object.defineProperty(process, "platform", { value: "darwin" });
-        const original = getCreateAppMenuTestGlobal().__electronHoistedMock;
+        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
         // Provide an app object without a name to trigger label fallback
-        getCreateAppMenuTestGlobal().__electronHoistedMock = {
+        getCreateAppMenuTestGlobal().__electronMockFixture = {
             ...original,
             app: { isPackaged: true },
         };
@@ -1754,7 +1794,7 @@ describe("createAppMenu - additional robust branches", () => {
             "Preferences..."
         );
         restoreProcessPlatform(desc);
-        getCreateAppMenuTestGlobal().__electronHoistedMock = original;
+        getCreateAppMenuTestGlobal().__electronMockFixture = original;
     });
 
     it("skips setting menu and warns when template is invalid (forced via Array.isArray stub)", () => {
@@ -1764,8 +1804,8 @@ describe("createAppMenu - additional robust branches", () => {
         const isArraySpy = vi.spyOn(Array, "isArray").mockReturnValue(false);
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const setAppMenuSpy = createMock();
-        const original = getCreateAppMenuTestGlobal().__electronHoistedMock;
-        getCreateAppMenuTestGlobal().__electronHoistedMock = {
+        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
+        getCreateAppMenuTestGlobal().__electronMockFixture = {
             ...original,
             Menu: {
                 buildFromTemplate: (template: any[]) =>
@@ -1784,7 +1824,7 @@ describe("createAppMenu - additional robust branches", () => {
         } finally {
             warnSpy.mockRestore();
             isArraySpy.mockRestore();
-            getCreateAppMenuTestGlobal().__electronHoistedMock = original;
+            getCreateAppMenuTestGlobal().__electronMockFixture = original;
         }
     });
 
@@ -1856,7 +1896,7 @@ describe("createAppMenu - additional robust branches", () => {
             isFullScreen: createMock().mockReturnValue(false),
         };
         const electronMock = getCreateAppMenuTestGlobal()
-            .__electronHoistedMock as {
+            .__electronMockFixture as {
             BrowserWindow: { getFocusedWindow: Mock };
         };
         vi.spyOn(

@@ -1,6 +1,13 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
+
+const preloadSourceRequire = createRequire(
+    path.join(process.cwd(), "electron-app", "preload.ts")
+);
 
 type ConsoleCall = unknown[];
 type ExposedElectronAPI = Pick<
@@ -33,6 +40,19 @@ interface ElectronHoistedMock {
 type ProcessOnceListener = (...args: unknown[]) => void;
 
 const developmentToolsGlobalName = ["dev", "Tools"].join("");
+
+async function startPreloadWithElectronBridge(
+    electronBridge: ElectronHoistedMock
+): Promise<void> {
+    const { startPreloadEntrypoint } =
+        await import("../../electron-app/preload/preloadEntrypoint.js");
+    startPreloadEntrypoint(preloadSourceRequire, {
+        consoleRef: console,
+        electronBridgeOverride: electronBridge,
+        globalScope: globalThis,
+        processRef: process,
+    });
+}
 
 function getGlobalValue(name: string): unknown {
     return Reflect.get(globalThis, name);
@@ -67,7 +87,6 @@ describe("preload.js - Development mode coverage", () => {
     afterEach(() => {
         vi.restoreAllMocks();
         vi.resetModules();
-        Reflect.deleteProperty(globalThis, "__electronHoistedMock");
         process.env.NODE_ENV = originalNodeEnv;
         // restore globals if they existed
         if (originalElectronAPI)
@@ -124,8 +143,7 @@ describe("preload.js - Development mode coverage", () => {
             contextBridge,
             ipcRenderer,
         };
-        Reflect.set(globalThis, "__electronHoistedMock", electronMock);
-        await import("../../electron-app/preload.js");
+        await startPreloadWithElectronBridge(electronMock);
 
         // electronAPI should be exposed
         const api = getExposedElectronAPI();

@@ -1,10 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
-import {
-    clearExportZipRuntimeForTests,
-    setExportZipRuntime,
-} from "../../../../../../electron-app/utils/files/export/exportZipRuntime.js";
-
 function loadExportUtils() {
     return import("../../../../../../electron-app/utils/files/export/exportUtils.js");
 }
@@ -160,7 +155,17 @@ class FakeZip {
     }
 }
 
-function installJSZipMock() {
+async function clearExportZipRuntime(): Promise<void> {
+    const { clearExportZipRuntimeForTests } =
+        await import("../../../../../../electron-app/utils/files/export/exportZipRuntime.js");
+
+    clearExportZipRuntimeForTests();
+}
+
+async function installJSZipMock() {
+    const { setExportZipRuntime } =
+        await import("../../../../../../electron-app/utils/files/export/exportZipRuntime.js");
+
     setExportZipRuntime(FakeZip);
     return FakeZip;
 }
@@ -243,7 +248,7 @@ function createPrintWindowMock() {
 }
 
 describe("exportUtils core flows", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         document.body.innerHTML = "";
         localStorage.clear();
         vi.restoreAllMocks();
@@ -262,11 +267,11 @@ describe("exportUtils core flows", () => {
         installCanvasMocks();
         installURLMocks();
         installClipboardMock();
-        installJSZipMock();
+        await installJSZipMock();
     });
 
-    afterEach(() => {
-        clearExportZipRuntimeForTests();
+    afterEach(async () => {
+        await clearExportZipRuntime();
         // Ensure body is clean between tests
         document.body.innerHTML = "";
     });

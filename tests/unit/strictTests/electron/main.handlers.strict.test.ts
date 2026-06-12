@@ -1,5 +1,9 @@
 // @vitest-environment jsdom
+import { createRequire } from "node:module";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const requireCjs = createRequire(import.meta.url);
 
 type EventHandler = (...args: unknown[]) => void;
 type NodeCallback<T> = (error: Error | null, value: T) => void;
@@ -21,6 +25,9 @@ type MainProcessStateMock = {
     data: StateData;
 };
 type MockCall = unknown[];
+type ElectronAccessModule = {
+    setElectronOverride: (override: unknown) => void;
+};
 
 // Simple emitter helper for autoUpdater
 class Emitter {
@@ -103,7 +110,6 @@ let createAppMenu: any;
 let loadRecentFiles: any = vi.fn<() => string[]>(() => ["a.fit", "b.fit"]);
 let addRecentFile: any = vi.fn<(filePath: string) => void>();
 
-// Hoisted mocks so main.js resolves them during import-time
 vi.mock(import("electron"), () => ({
     get app() {
         return mockApp;
@@ -124,27 +130,6 @@ vi.mock(import("electron"), () => ({
         return mockShell;
     },
 }));
-// Expose synchronously for early CJS require paths inside main.js
-Reflect.set(globalThis, "__electronHoistedMock", {
-    get app() {
-        return mockApp;
-    },
-    get BrowserWindow() {
-        return mockBrowserWindow;
-    },
-    get dialog() {
-        return mockDialog;
-    },
-    get ipcMain() {
-        return mockIpcMain;
-    },
-    get Menu() {
-        return mockMenu;
-    },
-    get shell() {
-        return mockShell;
-    },
-});
 
 // electron-updater mock wired to shared emitter
 const mockLogger = {
@@ -248,7 +233,7 @@ vi.mock(import("path"), async (orig) => {
 describe("main.js strict handlers and events", () => {
     let didFinishLoad: EventHandler | null = null;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.resetModules();
         process.env.NODE_ENV = "test";
         // Silence logs for clarity
@@ -319,6 +304,30 @@ describe("main.js strict handlers and events", () => {
 
         createWindowMock = vi.fn<() => unknown>(() => mockMainWindow);
         createAppMenu = vi.fn<() => void>();
+
+        const { setElectronOverride } = requireCjs(
+            "../../../../electron-app/main/runtime/electronAccess.js"
+        ) as ElectronAccessModule;
+        setElectronOverride({
+            get app() {
+                return mockApp;
+            },
+            get BrowserWindow() {
+                return mockBrowserWindow;
+            },
+            get dialog() {
+                return mockDialog;
+            },
+            get ipcMain() {
+                return mockIpcMain;
+            },
+            get Menu() {
+                return mockMenu;
+            },
+            get shell() {
+                return mockShell;
+            },
+        });
 
         const stateData: StateData = {
             eventHandlers: new Map(),

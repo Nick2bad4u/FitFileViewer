@@ -12,19 +12,7 @@ type ChartInstanceRegistry = {
     instances: RegisteredChartInstance[];
 };
 
-const chartInstanceRegistryKey = Symbol.for(
-    "fitfileviewer.chartInstanceRegistry"
-);
-
-function getRegistry(): ChartInstanceRegistry {
-    const registryGlobal = globalThis as typeof globalThis & {
-        [chartInstanceRegistryKey]?: ChartInstanceRegistry;
-    };
-    registryGlobal[chartInstanceRegistryKey] ??= {
-        instances: [],
-    };
-    return registryGlobal[chartInstanceRegistryKey];
-}
+const chartInstanceRegistry: ChartInstanceRegistry = { instances: [] };
 
 function isRegisteredChartInstance(
     value: unknown
@@ -39,7 +27,7 @@ function hasDestroy(
 }
 
 export function getRegisteredChartInstances(): RegisteredChartInstance[] {
-    return getRegistry().instances;
+    return chartInstanceRegistry.instances;
 }
 
 export function getRegisteredChartInstanceCount(): number {
@@ -62,16 +50,14 @@ export function registerChartInstance(chart: unknown): void {
         return;
     }
 
-    const registry = getRegistry();
-    registry.instances.push(chart);
+    chartInstanceRegistry.instances.push(chart);
 }
 
 export function setRegisteredChartInstances(
     charts: readonly unknown[]
 ): RegisteredChartInstance[] {
-    const registry = getRegistry();
-    registry.instances = charts.filter(isRegisteredChartInstance);
-    return registry.instances;
+    chartInstanceRegistry.instances = charts.filter(isRegisteredChartInstance);
+    return chartInstanceRegistry.instances;
 }
 
 export function clearRegisteredChartInstances(): void {
@@ -97,8 +83,5 @@ export function destroyRegisteredChartInstances(
 }
 
 export function clearChartInstanceRegistryForTests(): void {
-    const registryGlobal = globalThis as typeof globalThis & {
-        [chartInstanceRegistryKey]?: ChartInstanceRegistry;
-    };
-    delete registryGlobal[chartInstanceRegistryKey];
+    clearRegisteredChartInstances();
 }

@@ -1,5 +1,6 @@
 import {
     isRendererVendorEntryLoaded,
+    recordRendererVendorEntryLoaded,
     rendererVendorEntryLoadedEventName,
     type RendererVendorEntryLoadedEventDetail,
 } from "./vendorGlobalsShared.js";
@@ -8,6 +9,13 @@ import {
     rendererVendorBundleFileByEntry,
     type RendererVendorBundleEntry,
 } from "./vendorBundleManifest.js";
+import { setChartRuntime } from "../utils/charts/core/chartRuntime.js";
+import { setDomPurifyRuntime } from "../utils/dom/domPurifyRuntime.js";
+import { setExportZipRuntime } from "../utils/files/export/exportZipRuntime.js";
+import { setLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
+import { setArqueroRuntime } from "../utils/rendering/helpers/arqueroRuntime.js";
+import { setDataTableRuntime } from "../utils/rendering/core/dataTableRuntime.js";
+import { setScreenfullRuntime } from "../utils/ui/controls/screenfullRuntime.js";
 
 export type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
 
@@ -21,11 +29,37 @@ function isRendererVendorBundleLoaded(
     return isRendererVendorEntryLoaded(entryName);
 }
 
+function registerRendererVendorRuntimePayload(
+    detail: RendererVendorEntryLoadedEventDetail
+): void {
+    recordRendererVendorEntryLoaded(detail.entryName);
+
+    if (detail.entryName === "core" && detail.core) {
+        setArqueroRuntime(detail.core.arqueroRuntime);
+        setDomPurifyRuntime(detail.core.domPurifyRuntime);
+        setExportZipRuntime(detail.core.exportZipRuntime);
+        setScreenfullRuntime(detail.core.screenfullRuntime);
+        return;
+    }
+
+    if (detail.entryName !== "chart-data" || !detail.chartData) {
+        if (detail.entryName === "map" && detail.map) {
+            setLeafletRuntime(detail.map.leafletRuntime);
+        }
+
+        return;
+    }
+
+    setChartRuntime(
+        detail.chartData.chartRuntime,
+        detail.chartData.chartZoomPlugin
+    );
+    setDataTableRuntime(detail.chartData.dataTableRuntime);
+}
+
 function createVendorScriptUrl(entryName: RendererVendorBundleEntry): string {
-    return new URL(
-        rendererVendorBundleFileByEntry[entryName],
-        import.meta.url
-    ).href;
+    return new URL(rendererVendorBundleFileByEntry[entryName], import.meta.url)
+        .href;
 }
 
 function waitForRendererVendorEntry(
@@ -71,6 +105,7 @@ function waitForRendererVendorEntry(
                 return;
             }
 
+            registerRendererVendorRuntimePayload(event.detail);
             cleanup();
             resolve();
         };
@@ -126,9 +161,9 @@ function createVendorScript(
  * Loads a split renderer vendor bundle once and waits until its runtime
  * adapters are registered.
  *
- * The index shell keeps only the small core vendor entry eager. Map and
- * chart/data vendors should call this from tab activation paths before touching
- * Leaflet, Chart.js, or other runtime-adapter dependencies.
+ * Main UI loads the core vendor entry during startup. Map and chart/data
+ * vendors should call this from tab activation paths before touching Leaflet,
+ * Chart.js, or other runtime-adapter dependencies.
  */
 export async function ensureRendererVendorBundle(
     entryName: RendererVendorBundleEntry
@@ -146,6 +181,8 @@ export async function ensureRendererVendorBundle(
         const existingScript = getExistingVendorScript(entryName);
         const script = existingScript ?? createVendorScript(entryName);
         const controller = new AbortController();
+        const readinessPromise = waitForRendererVendorEntry(entryName);
+        readinessPromise.catch(() => {});
 
         const cleanup = (): void => {
             controller.abort();
@@ -160,7 +197,7 @@ export async function ensureRendererVendorBundle(
         };
         const resolveAfterLoad = async (): Promise<void> => {
             try {
-                await waitForRendererVendorEntry(entryName);
+                await readinessPromise;
                 resolve();
             } catch (error) {
                 reject(

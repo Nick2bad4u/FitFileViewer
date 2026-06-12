@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-    clearLeafletRuntimeForTests,
-    setLeafletRuntime,
-} from "../../../../../electron-app/utils/maps/core/leafletRuntime.js";
+
+async function loadLeafletRuntime() {
+    return import("../../../../../electron-app/utils/maps/core/leafletRuntime.js");
+}
 
 const EXPECTED_LAYER_NAMES = [
     "CartoDB_DarkMatter",
@@ -43,12 +43,14 @@ const EXPECTED_LAYER_NAMES = [
 describe("mapBaseLayers", () => {
     type MockLayer = { readonly kind: string };
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.resetModules();
+        const { clearLeafletRuntimeForTests } = await loadLeafletRuntime();
         clearLeafletRuntimeForTests();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        const { clearLeafletRuntimeForTests } = await loadLeafletRuntime();
         clearLeafletRuntimeForTests();
     });
 
@@ -73,6 +75,7 @@ describe("mapBaseLayers", () => {
             maplibreGL: vi.fn<() => MockLayer>(() => vectorLayer),
             tileLayer: vi.fn<() => MockLayer>(() => rasterLayer),
         };
+        const { setLeafletRuntime } = await loadLeafletRuntime();
         setLeafletRuntime(leaflet);
         const mod =
             await import("../../../../../electron-app/utils/maps/layers/mapBaseLayers.js");
@@ -98,6 +101,7 @@ describe("mapBaseLayers", () => {
         expect.assertions(3);
 
         const maplibreGL = vi.fn<() => MockLayer>(() => ({ kind: "unused" }));
+        const { setLeafletRuntime } = await loadLeafletRuntime();
         setLeafletRuntime({
             maplibreGL,
             tileLayer: "not-a-function",

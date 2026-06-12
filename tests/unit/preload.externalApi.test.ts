@@ -5,31 +5,6 @@ import { describe, expect, it, vi } from "vitest";
 import type { GenericInvokeChannel } from "../../electron-app/shared/ipc";
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
 
-interface ExternalApiModule {
-    createExternalApi: (options: {
-        channels: {
-            GYAZO_OAUTH_CALLBACK: string;
-            GYAZO_SERVER_START: "gyazo:server:start";
-            GYAZO_SERVER_STOP: "gyazo:server:stop";
-            SHELL_OPEN_EXTERNAL: "shell:openExternal";
-        };
-        createSafeEventHandler: (
-            channel: string,
-            methodName: string
-        ) => (callback: (...args: unknown[]) => unknown) => () => void;
-        createSafeInvokeHandler: (
-            channel: GenericInvokeChannel,
-            methodName: string
-        ) => (...args: unknown[]) => Promise<unknown>;
-    }) => Pick<
-        ElectronAPI,
-        | "onGyazoOAuthCallback"
-        | "openExternal"
-        | "startGyazoServer"
-        | "stopGyazoServer"
-    >;
-}
-
 interface GyazoExternalApiModule {
     createGyazoExternalApi: (options: {
         channels: {
@@ -63,10 +38,43 @@ interface ShellExternalApiModule {
     }) => Pick<ElectronAPI, "openExternal">;
 }
 
+interface ExternalApiDomainModule {
+    createPreloadExternalApiDomain: (options: {
+        constants: {
+            CHANNELS: {
+                GYAZO_SERVER_START: "gyazo:server:start";
+                GYAZO_SERVER_STOP: "gyazo:server:stop";
+                SHELL_OPEN_EXTERNAL: "shell:openExternal";
+            };
+            EVENTS: {
+                GYAZO_OAUTH_CALLBACK: string;
+            };
+        };
+        createSafeEventHandler: (
+            channel: string,
+            methodName: string
+        ) => (callback: (...args: unknown[]) => unknown) => () => void;
+        createSafeInvokeHandler: (
+            channel: GenericInvokeChannel,
+            methodName: string
+        ) => (...args: unknown[]) => Promise<unknown>;
+        modules: {
+            createGyazoExternalApi: GyazoExternalApiModule["createGyazoExternalApi"];
+            createShellExternalApi: ShellExternalApiModule["createShellExternalApi"];
+        };
+    }) => {
+        gyazoExternalApi: Pick<
+            ElectronAPI,
+            "onGyazoOAuthCallback" | "startGyazoServer" | "stopGyazoServer"
+        >;
+        shellExternalApi: Pick<ElectronAPI, "openExternal">;
+    };
+}
+
 const requireFromTest = createRequire(import.meta.url);
-const { createExternalApi } = requireFromTest(
-    "../../electron-app/preload/externalApi.js"
-) as ExternalApiModule;
+const { createPreloadExternalApiDomain } = requireFromTest(
+    "../../electron-app/preload/externalApiDomain.js"
+) as ExternalApiDomainModule;
 const { createGyazoExternalApi } = requireFromTest(
     "../../electron-app/preload/gyazoExternalApi.js"
 ) as GyazoExternalApiModule;
@@ -114,7 +122,7 @@ function createExternalHandlerSpies(): {
 }
 
 describe("preload external API", () => {
-    it("routes shell and Gyazo methods through expected IPC channels", async () => {
+    it("assembles shell and Gyazo APIs through split external domains", async () => {
         expect.assertions(2);
 
         const {
@@ -123,21 +131,30 @@ describe("preload external API", () => {
             eventHandlers,
             invokeCalls,
         } = createExternalHandlerSpies();
-        const api = createExternalApi({
-            channels: {
-                GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
-                GYAZO_SERVER_START: "gyazo:server:start",
-                GYAZO_SERVER_STOP: "gyazo:server:stop",
-                SHELL_OPEN_EXTERNAL: "shell:openExternal",
-            },
-            createSafeEventHandler,
-            createSafeInvokeHandler,
-        });
+        const { gyazoExternalApi, shellExternalApi } =
+            createPreloadExternalApiDomain({
+                constants: {
+                    CHANNELS: {
+                        GYAZO_SERVER_START: "gyazo:server:start",
+                        GYAZO_SERVER_STOP: "gyazo:server:stop",
+                        SHELL_OPEN_EXTERNAL: "shell:openExternal",
+                    },
+                    EVENTS: {
+                        GYAZO_OAUTH_CALLBACK: "gyazo-oauth-callback",
+                    },
+                },
+                createSafeEventHandler,
+                createSafeInvokeHandler,
+                modules: {
+                    createGyazoExternalApi,
+                    createShellExternalApi,
+                },
+            });
 
-        api.onGyazoOAuthCallback(vi.fn());
-        await api.openExternal("https://example.com/");
-        await api.startGyazoServer(3000);
-        await api.stopGyazoServer();
+        gyazoExternalApi.onGyazoOAuthCallback(vi.fn());
+        await shellExternalApi.openExternal("https://example.com/");
+        await gyazoExternalApi.startGyazoServer(3000);
+        await gyazoExternalApi.stopGyazoServer();
 
         expect(eventHandlers).toStrictEqual([
             {

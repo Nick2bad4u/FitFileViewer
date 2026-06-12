@@ -1,10 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 import { JSDOM } from "jsdom";
-import {
-    clearChartRuntimeForTests,
-    setChartRuntime,
-} from "../../../electron-app/utils/charts/core/chartRuntime.js";
 
 // Mock Chart.js
 interface ChartDatasetConfig {
@@ -98,6 +94,20 @@ let chartInstanceMock: ChartInstanceMock;
 let createEnhancedChart: CreateEnhancedChart;
 let mockLocalStorage: LocalStorageMock;
 
+async function clearChartRuntime(): Promise<void> {
+    const { clearChartRuntimeForTests } =
+        await import("../../../electron-app/utils/charts/core/chartRuntime.js");
+
+    clearChartRuntimeForTests();
+}
+
+async function registerChartRuntime(runtime: unknown): Promise<void> {
+    const { setChartRuntime } =
+        await import("../../../electron-app/utils/charts/core/chartRuntime.js");
+
+    setChartRuntime(runtime);
+}
+
 describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
     beforeEach(async () => {
         // Setup console first
@@ -151,7 +161,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         >(function ChartConstructor() {
             return chartInstanceMock;
         });
-        setChartRuntime(chartMock);
+        await registerChartRuntime(chartMock);
 
         // Mock all dependencies
         vi.doMock(
@@ -259,15 +269,15 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         createEnhancedChart = module.createEnhancedChart;
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         vi.clearAllMocks();
         vi.resetAllMocks();
+        await clearChartRuntime();
         vi.resetModules(); // Clear module cache
         delete globalThis.window;
         delete globalThis.document;
         delete globalThis.HTMLCanvasElement;
         delete globalThis.HTMLElement;
-        clearChartRuntimeForTests();
         delete globalThis.console;
         delete globalThis.localStorage;
     });

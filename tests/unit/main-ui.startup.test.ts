@@ -35,6 +35,9 @@ const mocks = vi.hoisted(() => ({
     cleanupAll: vi.fn<() => void>(),
     convertArrayBufferToBase64: vi.fn<(buffer: ArrayBuffer) => string>(),
     dragDropDispose: vi.fn<() => void>(),
+    ensureRendererVendorBundle: vi.fn<
+        (entryName: "chart-data" | "core" | "map") => Promise<void>
+    >(() => Promise.resolve()),
     getState: vi.fn<(path?: string) => unknown>(),
     listenForThemeChange: vi.fn<(callback: (theme: string) => void) => void>(),
     loadTheme: vi.fn<() => string>().mockReturnValue("dark"),
@@ -68,6 +71,10 @@ vi.mock(import("../../electron-app/utils/theming/core/theme.js"), () => ({
     applyTheme: mocks.applyTheme,
     listenForThemeChange: mocks.listenForThemeChange,
     loadTheme: mocks.loadTheme,
+}));
+
+vi.mock(import("../../electron-app/renderer/vendorBundleLoader.js"), () => ({
+    ensureRendererVendorBundle: mocks.ensureRendererVendorBundle,
 }));
 
 vi.mock(
@@ -296,6 +303,7 @@ describe("main-ui.js - UI Controller and State Management", () => {
     beforeEach(async () => {
         setupMainUiDom();
         vi.clearAllMocks();
+        mocks.ensureRendererVendorBundle.mockResolvedValue(undefined);
         mocks.loadTheme.mockReturnValue("dark");
         vi.resetModules();
         await resetRegisteredElectronApiCandidate();
@@ -357,7 +365,9 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect(mocks.loadTheme).toHaveBeenCalledOnce();
         expect(mocks.applyTheme).toHaveBeenCalledWith("dark");
         expect(mocks.listenForThemeChange).toHaveBeenCalledOnce();
-        expect(mocks.setupFullscreenListeners).toHaveBeenCalledOnce();
+        await vi.waitFor(() => {
+            expect(mocks.setupFullscreenListeners).toHaveBeenCalledOnce();
+        });
         expect(mocks.setupWindow).toHaveBeenCalledOnce();
         expect(mocks.setupExternalLinkHandlers).toHaveBeenCalledOnce();
         const [externalLinkOptions] =

@@ -1,4 +1,11 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+const preloadSourceRequire = createRequire(
+    path.join(process.cwd(), "electron-app", "preload.ts")
+);
 
 type PreloadTestWindow = Window & Record<string, unknown>;
 type IpcListener = (...args: unknown[]) => void;
@@ -11,6 +18,13 @@ interface IpcRendererMock {
     invoke: ReturnType<typeof vi.fn<IpcInvoke>>;
     on: ReturnType<typeof vi.fn<IpcOn>>;
     send: ReturnType<typeof vi.fn<IpcSend>>;
+}
+
+interface PreloadElectronBridgeMock {
+    contextBridge?: {
+        exposeInMainWorld: ReturnType<typeof vi.fn<ContextBridgeExpose>>;
+    };
+    ipcRenderer?: IpcRendererMock;
 }
 
 interface PreloadDevTools {
@@ -92,14 +106,13 @@ function installPreloadMock(
     > = vi.fn<ContextBridgeExpose>((name, api) => {
         exposeTestApi(exposed, name, api);
     })
-): ReturnType<typeof vi.fn<ContextBridgeExpose>> {
-    Reflect.set(globalThis, "__electronHoistedMock", {
+): PreloadElectronBridgeMock {
+    return {
         contextBridge: {
             exposeInMainWorld,
         },
         ipcRenderer: ipcBridge,
-    });
-    return exposeInMainWorld;
+    };
 }
 
 async function setupPreloadTest({
@@ -119,9 +132,9 @@ async function setupPreloadTest({
     const listeners = new Map<string, IpcListener[]>(),
         exposed: Record<string, unknown> = {},
         ipcBridge = createIpcMock(listeners, invokeImpl);
-    installPreloadMock(ipcBridge, exposed);
+    const electronBridge = installPreloadMock(ipcBridge, exposed);
 
-    await importPreloadFresh();
+    await importPreloadFresh(electronBridge);
     return {
         api: getExposedApi(exposed),
         exposed,
@@ -131,11 +144,20 @@ async function setupPreloadTest({
 }
 
 // Utilities to manage module re-imports with different mocks/env
-const importPreloadFresh = async (): Promise<unknown> => {
+const importPreloadFresh = async (
+    electronBridgeOverride: PreloadElectronBridgeMock
+): Promise<unknown> => {
     // Remove any exposed globals from prior runs
     delete (window as PreloadTestWindow).electronAPI;
     delete (window as PreloadTestWindow)[DEV_TOOLS_GLOBAL];
-    return await import("../../electron-app/preload.js");
+    const { startPreloadEntrypoint } =
+        await import("../../electron-app/preload/preloadEntrypoint.js");
+    return startPreloadEntrypoint(preloadSourceRequire, {
+        consoleRef: console,
+        electronBridgeOverride,
+        globalScope: globalThis,
+        processRef: process,
+    });
 };
 
 describe("preload.js electronAPI exposure and behavior", () => {
@@ -156,7 +178,6 @@ describe("preload.js electronAPI exposure and behavior", () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
-        Reflect.deleteProperty(globalThis, "__electronHoistedMock");
         process.env.NODE_ENV = originalEnv;
     });
 
@@ -291,10 +312,9 @@ describe("preload.js electronAPI exposure and behavior", () => {
 
         process.env.NODE_ENV = "test";
         vi.resetModules();
-        Reflect.set(globalThis, "__electronHoistedMock", {
+        await importPreloadFresh({
             // no contextBridge/ipcRenderer provided
         });
-        await importPreloadFresh();
         expect(window).not.toHaveProperty("electronAPI");
         expect(errors.join("\n")).toMatch(
             /API validation failed - not exposing/
@@ -308,7 +328,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
         vi.resetModules();
         const ipcBridge = createIpcMock(),
             exposed: Record<string, unknown> = {};
-        installPreloadMock(
+        const electronBridge = installPreloadMock(
             ipcBridge,
             exposed,
             vi.fn<ContextBridgeExpose>(() => {
@@ -316,7 +336,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
             })
         );
 
-        await importPreloadFresh();
+        await importPreloadFresh(electronBridge);
         const errStr = errors.join("\n");
         expect(errStr).toMatch(/Failed to expose electronAPI/);
     });
@@ -329,7 +349,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
         const listeners = new Map<string, IpcListener[]>(),
             ipcBridge = createIpcMock(listeners, async () => "1.2.3"),
             exposed: Record<string, unknown> = {};
-        installPreloadMock(ipcBridge, exposed);
+        const electronBridge = installPreloadMock(ipcBridge, exposed);
 
         // Intercept process.once to capture cleanup callback
         let beforeExitCb: (() => void) | null = null;
@@ -346,7 +366,7 @@ describe("preload.js electronAPI exposure and behavior", () => {
                 }
             );
 
-        await importPreloadFresh();
+        await importPreloadFresh(electronBridge);
         const dev = getExposedDevTools(exposed);
         expect({
             getPreloadInfo: typeof dev.getPreloadInfo,

@@ -1,11 +1,14 @@
+import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 
+const requireCjs = createRequire(import.meta.url);
+
 type AppEventHandler = (...args: unknown[]) => void;
-type ElectronOverrideGlobal = typeof globalThis & {
-    __electronHoistedMock?: MockElectron | null;
+type ElectronAccessModule = {
+    setElectronOverride: (override: unknown) => void;
 };
 type MockElectron = {
     app: {
@@ -45,8 +48,6 @@ type WebContentsCreatedHandler = (
     contents: MockWebContents
 ) => void;
 
-const testGlobal = globalThis as ElectronOverrideGlobal;
-
 function assertFunction<T extends (...args: unknown[]) => unknown>(
     candidate: unknown,
     label: string
@@ -84,13 +85,12 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         process.env.NODE_ENV = "production";
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         // Ensure we don't leak Electron overrides across tests.
-        testGlobal.__electronHoistedMock = null;
-
         try {
-            const { setElectronOverride } =
-                await import("../../../../electron-app/main/runtime/electronAccess.js");
+            const { setElectronOverride } = requireCjs(
+                "../../../../electron-app/main/runtime/electronAccess.js"
+            ) as ElectronAccessModule;
             setElectronOverride(null);
         } catch {
             /* ignore */
@@ -105,13 +105,10 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);
 
-        // Provide an Electron override so main/runtime/electronAccess.js can resolve app/shell.
-        testGlobal.__electronHoistedMock = mockElectron;
-
-        // Ensure electronAccess uses the per-test override even if it's already loaded.
-        const { setElectronOverride } =
-            await import("../../../../electron-app/main/runtime/electronAccess.js");
-        setElectronOverride(testGlobal.__electronHoistedMock);
+        const { setElectronOverride } = requireCjs(
+            "../../../../electron-app/main/runtime/electronAccess.js"
+        ) as ElectronAccessModule;
+        setElectronOverride(mockElectron);
 
         const { setupApplicationEventHandlers } =
             await import("../../../../electron-app/main/app/setupApplicationEventHandlers.js");
@@ -204,11 +201,10 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);
 
-        testGlobal.__electronHoistedMock = mockElectron;
-
-        const { setElectronOverride } =
-            await import("../../../../electron-app/main/runtime/electronAccess.js");
-        setElectronOverride(testGlobal.__electronHoistedMock);
+        const { setElectronOverride } = requireCjs(
+            "../../../../electron-app/main/runtime/electronAccess.js"
+        ) as ElectronAccessModule;
+        setElectronOverride(mockElectron);
 
         const { setupApplicationEventHandlers } =
             await import("../../../../electron-app/main/app/setupApplicationEventHandlers.js");
@@ -313,11 +309,10 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);
 
-        testGlobal.__electronHoistedMock = mockElectron;
-
-        const { setElectronOverride } =
-            await import("../../../../electron-app/main/runtime/electronAccess.js");
-        setElectronOverride(testGlobal.__electronHoistedMock);
+        const { setElectronOverride } = requireCjs(
+            "../../../../electron-app/main/runtime/electronAccess.js"
+        ) as ElectronAccessModule;
+        setElectronOverride(mockElectron);
 
         const { setupApplicationEventHandlers } =
             await import("../../../../electron-app/main/app/setupApplicationEventHandlers.js");

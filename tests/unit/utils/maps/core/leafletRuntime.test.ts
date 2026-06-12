@@ -10,19 +10,6 @@ type TestLeafletRuntime = {
     divIcon: () => unknown;
 };
 
-interface LeafletRuntimeRegistry {
-    runtime?: unknown;
-}
-
-const leafletRuntimeRegistryKey = Symbol.for("fitfileviewer.leafletRuntime");
-
-function getLeafletRuntimeRegistry(): LeafletRuntimeRegistry {
-    const leafletGlobal = globalThis as typeof globalThis &
-        Record<symbol, LeafletRuntimeRegistry | undefined>;
-    leafletGlobal[leafletRuntimeRegistryKey] ??= {};
-    return leafletGlobal[leafletRuntimeRegistryKey];
-}
-
 function isTestLeafletRuntime(value: unknown): value is TestLeafletRuntime {
     return (
         typeof value === "object" &&
@@ -50,12 +37,14 @@ describe("leafletRuntime", () => {
         );
     });
 
-    it("reads runtimes registered by a separate bundle through the shared symbol registry", () => {
+    it("clears the module-local runtime adapter", () => {
         expect.assertions(1);
 
         const runtime = { divIcon: () => "registered" };
-        getLeafletRuntimeRegistry().runtime = runtime;
+        setLeafletRuntime(runtime);
 
-        expect(resolveLeafletRuntime(isTestLeafletRuntime)).toBe(runtime);
+        clearLeafletRuntimeForTests();
+
+        expect(resolveLeafletRuntime(isTestLeafletRuntime)).toBeNull();
     });
 });

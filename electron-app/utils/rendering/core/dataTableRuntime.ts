@@ -1,17 +1,15 @@
-interface DataTableRuntimeRegistry {
+type DataTableRuntimeRegistry = {
     runtime?: unknown;
-}
+};
 
-const dataTableRuntimeRegistryKey = Symbol.for(
-    "fitfileviewer.dataTableRuntime"
-);
+const dataTableRuntimeRegistry: DataTableRuntimeRegistry = {};
 
 export function setDataTableRuntime(runtime: unknown): void {
-    getDataTableRuntimeRegistry().runtime = runtime;
+    dataTableRuntimeRegistry.runtime = runtime;
 }
 
 export function clearDataTableRuntimeForTests(): void {
-    getDataTableRuntimeRegistry().runtime = undefined;
+    dataTableRuntimeRegistry.runtime = undefined;
 }
 
 export function resolveDataTableRuntime<T>(
@@ -27,13 +25,5 @@ export function resolveDataTableRuntime<T>(
 }
 
 function getDataTableRuntimeCandidates(): unknown[] {
-    const registry = getDataTableRuntimeRegistry();
-    return [registry.runtime];
-}
-
-function getDataTableRuntimeRegistry(): DataTableRuntimeRegistry {
-    const dataTableGlobal = globalThis as typeof globalThis &
-        Record<symbol, DataTableRuntimeRegistry | undefined>;
-    dataTableGlobal[dataTableRuntimeRegistryKey] ??= {};
-    return dataTableGlobal[dataTableRuntimeRegistryKey];
+    return [dataTableRuntimeRegistry.runtime];
 }

@@ -20,7 +20,8 @@ const vendorEntryNames = new Set([
 ]);
 
 const leafletRuntimePluginPrelude = [
-    'const L = globalThis[Symbol.for("fitfileviewer.leafletRuntime")]?.runtime;',
+    'import { getLegacyLeafletPluginRuntime } from "/electron-app/renderer/legacyLeafletPluginRuntime.ts";',
+    "const L = getLegacyLeafletPluginRuntime();",
     'if (!L) throw new Error("Leaflet runtime is required before loading legacy Leaflet plugins.");',
     "",
 ].join("\n");

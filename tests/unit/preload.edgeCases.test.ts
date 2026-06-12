@@ -1,4 +1,11 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+const preloadSourceRequire = createRequire(
+    path.join(process.cwd(), "electron-app", "preload.ts")
+);
 
 type IpcListener = (event: unknown, ...args: unknown[]) => void;
 type RecentFileCallback = (filePath: string) => void;
@@ -82,8 +89,14 @@ describe("preload edge cases", () => {
     const devToolsGlobalName = "devTools";
 
     async function importPreloadWithMock(electronBridge: unknown) {
-        Reflect.set(globalThis, "__electronHoistedMock", electronBridge);
-        await import("../../electron-app/preload.js");
+        const { startPreloadEntrypoint } =
+            await import("../../electron-app/preload/preloadEntrypoint.js");
+        startPreloadEntrypoint(preloadSourceRequire, {
+            consoleRef: console,
+            electronBridgeOverride: electronBridge as never,
+            globalScope: globalThis,
+            processRef: process,
+        });
     }
 
     beforeEach(() => {
@@ -93,7 +106,6 @@ describe("preload edge cases", () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
-        Reflect.deleteProperty(globalThis, "__electronHoistedMock");
         Reflect.deleteProperty(globalThis, "electronAPI");
         Reflect.deleteProperty(globalThis, devToolsGlobalName);
         process.env.NODE_ENV = originalNodeEnv;

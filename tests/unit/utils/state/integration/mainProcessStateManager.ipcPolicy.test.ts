@@ -107,8 +107,6 @@ function loadStateManager(ipcMain: IpcMainMock): MainProcessStateModule {
         ipcMain,
     };
 
-    Reflect.set(globalThis, "__electronHoistedMock", electronOverride);
-
     const electronAccess = requireCjs(
         "../../../../../electron-app/main/runtime/electronAccess.js"
     ) as ElectronAccessModule;
@@ -139,7 +137,6 @@ describe("mainProcessStateManager IPC sender policy", () => {
 
     afterEach(() => {
         resetIpcRegistry();
-        Reflect.deleteProperty(globalThis, "__electronHoistedMock");
         vi.unstubAllEnvs();
         vi.restoreAllMocks();
     });

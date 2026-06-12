@@ -243,19 +243,18 @@ performanceMonitor.enable();
 
 ### Backward Compatibility
 
-The new state system maintains backward compatibility with existing code:
+The state system keeps the renderer compatibility surface intentionally narrow:
 
-- Legacy `appState` object still works (proxied to new state)
 - Existing `isOpeningFileRef` continues to function
 - All current UI components work without modification
-- Gradual migration path for updating components
+- New code should use the central state manager or typed domain services directly
 
 ### Migration Strategy
 
 1. **New Components**: Use the new state system directly
-2. **Existing Components**: Can be gradually updated
+2. **Existing Components**: Use typed domain services instead of legacy facades
 3. **Utilities**: Already migrated to use new state system
-4. **Legacy Code**: Continues to work through compatibility layer
+4. **Legacy Code**: Remove remaining compatibility assumptions before adding new behavior
 
 ## Configuration
 

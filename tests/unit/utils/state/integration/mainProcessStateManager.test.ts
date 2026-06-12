@@ -2,8 +2,17 @@
  * Comprehensive test coverage for mainProcessStateManager.js
  */
 
+import { createRequire } from "node:module";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const requireCjs = createRequire(import.meta.url);
+
+type ElectronAccessModule = {
+    setElectronOverride: (override: unknown) => void;
+};
+type MainProcessStateManagerModule =
+    typeof import("../../../../../electron-app/utils/state/integration/mainProcessStateManager.js");
 type BrowserWindowLike = {
     isDestroyed?: () => boolean;
     webContents?: {
@@ -26,14 +35,15 @@ const mockIpcMain = {
     removeHandler: vi.fn<(channel: string) => void>(),
 };
 
-function installElectronHoistedMock(): void {
-    Reflect.set(globalThis, "__electronHoistedMock", {
+function installElectronOverride(): void {
+    const { setElectronOverride } = requireCjs(
+        "../../../../../electron-app/main/runtime/electronAccess.js"
+    ) as ElectronAccessModule;
+    setElectronOverride({
         BrowserWindow: mockBrowserWindow,
         ipcMain: mockIpcMain,
     });
 }
-
-installElectronHoistedMock();
 
 // Mock electron module first - this should work for both ES6 imports and CommonJS require
 vi.mock(import("electron"), () => ({
@@ -63,11 +73,9 @@ vi.mock(import("../../../../../electron-app/utils/logging/index.js"), () => ({
     getErrorInfo: vi.fn<(...args: unknown[]) => unknown>(),
 }));
 
-// Import the module after setting up the mock
-import * as MainProcessStateManager from "../../../../../electron-app/utils/state/integration/mainProcessStateManager.js";
-
 describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
     let MainProcessState: any;
+    let MainProcessStateManager: MainProcessStateManagerModule;
     let mainProcessState: any;
     let stateInstance: any;
 
@@ -78,9 +86,10 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
         // Reset electron mocks
         mockBrowserWindow.getAllWindows.mockReturnValue([]);
         mockIpcMain.handle.mockClear();
-        installElectronHoistedMock();
+        installElectronOverride();
+        MainProcessStateManager =
+            await import("../../../../../electron-app/utils/state/integration/mainProcessStateManager.js");
 
-        // Use the statically imported module
         MainProcessState = MainProcessStateManager.MainProcessState;
         mainProcessState = MainProcessStateManager.mainProcessState;
 

@@ -1,4 +1,11 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const preloadSourceRequire = createRequire(
+    path.join(process.cwd(), "electron-app", "preload.ts")
+);
 
 type BeforeExitCallback = () => void;
 type ExposeInMainWorld = (name: string, api: unknown) => void;
@@ -38,6 +45,19 @@ interface ElectronEvalMock {
 
 const devToolsApiName = ["dev", "Tools"].join("");
 
+async function startPreloadWithElectronBridge(
+    electronBridge: ElectronEvalMock
+): Promise<void> {
+    const { startPreloadEntrypoint } =
+        await import("../../electron-app/preload/preloadEntrypoint.js");
+    startPreloadEntrypoint(preloadSourceRequire, {
+        consoleRef: console,
+        electronBridgeOverride: electronBridge,
+        globalScope: globalThis,
+        processRef: process,
+    });
+}
+
 describe("preload.js - Script Evaluation Test", () => {
     let electronMock: ElectronEvalMock;
     let consoleLogSpy: ReturnType<typeof vi.spyOn>;
@@ -52,7 +72,6 @@ describe("preload.js - Script Evaluation Test", () => {
         vi.resetModules();
         vi.clearAllMocks();
         onceCalls.length = 0;
-        Reflect.deleteProperty(globalThis, "__electronHoistedMock");
 
         // Create electron mock
         electronMock = {
@@ -79,14 +98,12 @@ describe("preload.js - Script Evaluation Test", () => {
             });
 
         process.env.NODE_ENV = "development";
-        Reflect.set(globalThis, "__electronHoistedMock", electronMock);
-        await import("../../electron-app/preload.js");
+        await startPreloadWithElectronBridge(electronMock);
     });
 
     afterEach(() => {
         vi.restoreAllMocks();
         vi.resetModules();
-        Reflect.deleteProperty(globalThis, "__electronHoistedMock");
         process.env.NODE_ENV = originalNodeEnv;
     });
 

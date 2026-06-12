@@ -2,23 +2,24 @@
     type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
     type ElectronApiDiagnosticsApi =
         import("../shared/preloadApi").ElectronApiDiagnosticsApi;
-    type ElectronAppInfoApi =
-        import("../shared/preloadApi").ElectronAppInfoApi;
+    type ElectronAppInfoApi = import("../shared/preloadApi").ElectronAppInfoApi;
     type ElectronClipboardApi =
         import("../shared/preloadApi").ElectronClipboardApi;
     type ElectronDevtoolsMenuApi =
         import("../shared/preloadApi").ElectronDevtoolsMenuApi;
-    type ElectronExternalApi =
-        import("../shared/preloadApi").ElectronExternalApi;
     type ElectronFileApi = import("../shared/preloadApi").ElectronFileApi;
     type ElectronFitBrowserApi =
         import("../shared/preloadApi").ElectronFitBrowserApi;
+    type ElectronGyazoExternalApi =
+        import("../shared/preloadApi").ElectronGyazoExternalApi;
     type ElectronMainStateApi =
         import("../shared/preloadApi").ElectronMainStateApi;
     type ElectronMenuEventApi =
         import("../shared/preloadApi").ElectronMenuEventApi;
     type ElectronPreloadEventApi =
         import("../shared/preloadApi").ElectronPreloadEventApi;
+    type ElectronShellExternalApi =
+        import("../shared/preloadApi").ElectronShellExternalApi;
     type ElectronThemeApi = import("../shared/preloadApi").ElectronThemeApi;
 
     interface ElectronApiFactoryOptions {
@@ -26,13 +27,14 @@
         appInfoApi: ElectronAppInfoApi;
         clipboardBridge: ElectronClipboardApi;
         devtoolsMenuApi: ElectronDevtoolsMenuApi;
-        externalApi: ElectronExternalApi;
         fileApi: ElectronFileApi;
         fitBrowserApi: ElectronFitBrowserApi;
+        gyazoExternalApi: ElectronGyazoExternalApi;
         mainStateApi: ElectronMainStateApi;
         menuEventApi: ElectronMenuEventApi;
         openFolderDialog: ElectronAPI["openFolderDialog"];
         preloadEventApi: ElectronPreloadEventApi;
+        shellExternalApi: ElectronShellExternalApi;
         themeApi: ElectronThemeApi;
     }
 
@@ -41,13 +43,14 @@
         appInfoApi,
         clipboardBridge,
         devtoolsMenuApi,
-        externalApi,
         fileApi,
         fitBrowserApi,
+        gyazoExternalApi,
         mainStateApi,
         menuEventApi,
         openFolderDialog,
         preloadEventApi,
+        shellExternalApi,
         themeApi,
     }: ElectronApiFactoryOptions): ElectronAPI {
         return {
@@ -71,7 +74,7 @@
             getTheme: themeApi.getTheme,
             injectMenu: devtoolsMenuApi.injectMenu,
             installUpdate: menuEventApi.installUpdate,
-            onGyazoOAuthCallback: externalApi.onGyazoOAuthCallback,
+            onGyazoOAuthCallback: gyazoExternalApi.onGyazoOAuthCallback,
             onDecoderOptionsChanged: menuEventApi.onDecoderOptionsChanged,
             onExportFile: menuEventApi.onExportFile,
             isFitBrowserEnabled: fitBrowserApi.isFitBrowserEnabled,
@@ -101,7 +104,7 @@
             onUpdateEvent: preloadEventApi.onUpdateEvent,
             requestExport: menuEventApi.requestExport,
             requestSaveAs: menuEventApi.requestSaveAs,
-            openExternal: externalApi.openExternal,
+            openExternal: shellExternalApi.openExternal,
             openFile: fileApi.openFile,
             openFileDialog: fileApi.openFileDialog,
             openFolderDialog,
@@ -114,8 +117,8 @@
             setFitBrowserFolder: fitBrowserApi.setFitBrowserFolder,
             setFullScreen: menuEventApi.setFullScreen,
             setMainState: mainStateApi.setMainState,
-            startGyazoServer: externalApi.startGyazoServer,
-            stopGyazoServer: externalApi.stopGyazoServer,
+            startGyazoServer: gyazoExternalApi.startGyazoServer,
+            stopGyazoServer: gyazoExternalApi.stopGyazoServer,
             subscribeToMainState: mainStateApi.subscribeToMainState,
             unlistenFromMainState: mainStateApi.unlistenFromMainState,
             validateAPI: apiDiagnostics.validateAPI,

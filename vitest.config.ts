@@ -70,7 +70,6 @@ export default defineConfig({
                 "electron-app/utils/state/domain/uiStateManager.js",
                 // Some newer state modules are not yet held to the strict unit coverage contract
                 "electron-app/utils/state/core/unifiedStateManager.js",
-                "electron-app/utils/state/domain/appState.js",
                 "electron-app/utils/state/domain/settingsStateManager.js",
                 // UI tab utilities are currently exercised via integration flows;
                 // exclude until dedicated tests exist.

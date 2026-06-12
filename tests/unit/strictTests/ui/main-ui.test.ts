@@ -74,6 +74,16 @@ vi.mock(
     })
 );
 
+const ensureRendererVendorBundle = vi.fn<
+    (entryName: "chart-data" | "core" | "map") => Promise<void>
+>(() => Promise.resolve());
+vi.mock(
+    import("../../../../electron-app/renderer/vendorBundleLoader.js"),
+    () => ({
+        ensureRendererVendorBundle,
+    })
+);
+
 const setupWindow = vi.fn<() => void>();
 vi.mock(
     import("../../../../electron-app/utils/app/initialization/setupWindow.js"),
@@ -422,6 +432,7 @@ describe("main-ui.js core flows", () => {
         resetElectronApiCandidate =
             electronApiRuntime.resetRendererElectronApiCandidate;
         vi.clearAllMocks();
+        ensureRendererVendorBundle.mockResolvedValue(undefined);
         processEnvironmentMock.isDevelopmentEnvironment.mockReturnValue(false);
         processEnvironmentMock.isTestEnvironment.mockReturnValue(true);
         listenCb = null;

@@ -7,19 +7,20 @@ export type ElectronClipboardApi =
     import("../shared/preloadApi").ElectronClipboardApi;
 export type ElectronDevtoolsMenuApi =
     import("../shared/preloadApi").ElectronDevtoolsMenuApi;
-export type ElectronExternalApi =
-    import("../shared/preloadApi").ElectronExternalApi;
 export type ElectronFileApi = import("../shared/preloadApi").ElectronFileApi;
 export type ElectronFitBrowserApi =
     import("../shared/preloadApi").ElectronFitBrowserApi;
+export type ElectronGyazoExternalApi =
+    import("../shared/preloadApi").ElectronGyazoExternalApi;
 export type ElectronMainStateApi =
     import("../shared/preloadApi").ElectronMainStateApi;
 export type ElectronMenuEventApi =
     import("../shared/preloadApi").ElectronMenuEventApi;
 export type ElectronPreloadEventApi =
     import("../shared/preloadApi").ElectronPreloadEventApi;
-export type ElectronThemeApi =
-    import("../shared/preloadApi").ElectronThemeApi;
+export type ElectronShellExternalApi =
+    import("../shared/preloadApi").ElectronShellExternalApi;
+export type ElectronThemeApi = import("../shared/preloadApi").ElectronThemeApi;
 export type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
 export type IpcRequestPayload = import("../shared/ipc").IpcRequestPayload;
 export type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
@@ -36,9 +37,7 @@ export type IpcEventListener = (
     event: object,
     ...args: IpcResponsePayload[]
 ) => void;
-export type PreloadApiFactory<Api> = (
-    options: Record<string, unknown>
-) => Api;
+export type PreloadApiFactory<Api> = (options: Record<string, unknown>) => Api;
 export type PreloadModuleRequire = (moduleId: string) => unknown;
 export type CreateElectronApi = (
     options: Record<string, unknown>
@@ -163,9 +162,9 @@ export interface PreloadModuleRegistry {
     createAppInfoApi: PreloadApiFactory<ElectronAppInfoApi>;
     createClipboardBridge: PreloadApiFactory<ElectronClipboardApi>;
     createDevtoolsMenuApi: PreloadApiFactory<ElectronDevtoolsMenuApi>;
-    createExternalApi: PreloadApiFactory<ElectronExternalApi>;
     createFileApi: PreloadApiFactory<ElectronFileApi>;
     createFitBrowserApi: PreloadApiFactory<ElectronFitBrowserApi>;
+    createGyazoExternalApi: PreloadApiFactory<ElectronGyazoExternalApi>;
     createPreloadEventApi: PreloadApiFactory<ElectronPreloadEventApi>;
     createMainStateApi: PreloadApiFactory<ElectronMainStateApi>;
     createMainStateBridge: (options: Record<string, unknown>) => {
@@ -217,6 +216,7 @@ export interface PreloadModuleRegistry {
             methodName: string
         ) => value is string;
     };
+    createShellExternalApi: PreloadApiFactory<ElectronShellExternalApi>;
     createThemeApi: PreloadApiFactory<ElectronThemeApi>;
     exposeDevelopmentToolsGlobal: (options: Record<string, unknown>) => boolean;
     exposeElectronApi: (options: Record<string, unknown>) => boolean;
@@ -226,7 +226,7 @@ export interface PreloadModuleRegistry {
         options: Record<string, unknown>
     ) => void;
     resolvePreloadElectronBridge: (options: {
-        globalScope?: object;
+        electronBridgeOverride?: null | PreloadElectronBridge;
         requireModule: PreloadModuleRequire;
     }) => {
         contextBridge: null | PreloadContextBridge | undefined;
@@ -260,12 +260,25 @@ export interface PreloadApiAssemblyContext {
     validateRequiredNonEmptyString: PreloadValidators["validateRequiredNonEmptyString"];
 }
 
-export interface PreloadAppApiDomain {
-    apiDiagnostics: ElectronApiDiagnosticsApi;
-    appInfoApi: ElectronAppInfoApi;
+export interface PreloadClipboardApiDomain {
     clipboardBridge: ElectronClipboardApi;
+}
+
+export interface PreloadDeveloperApiDomain {
     devtoolsMenuApi: ElectronDevtoolsMenuApi;
-    externalApi: ElectronExternalApi;
+}
+
+export interface PreloadDiagnosticsApiDomain {
+    apiDiagnostics: ElectronApiDiagnosticsApi;
+}
+
+export interface PreloadExternalApiDomain {
+    gyazoExternalApi: ElectronGyazoExternalApi;
+    shellExternalApi: ElectronShellExternalApi;
+}
+
+export interface PreloadSystemApiDomain {
+    appInfoApi: ElectronAppInfoApi;
     themeApi: ElectronThemeApi;
 }
 

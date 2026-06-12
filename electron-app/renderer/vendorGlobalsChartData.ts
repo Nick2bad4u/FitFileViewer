@@ -9,8 +9,6 @@ import "datatables.net-dt/css/dataTables.dataTables.css";
 /* eslint-enable import-x/no-unassigned-import */
 
 import { markRendererVendorEntryLoaded } from "./vendorGlobalsShared.js";
-import { setChartRuntime } from "../utils/charts/core/chartRuntime.js";
-import { setDataTableRuntime } from "../utils/rendering/core/dataTableRuntime.js";
 
 function isChartPluginRegistered(pluginId: string): boolean {
     try {
@@ -26,9 +24,13 @@ export function installRendererChartDataVendorGlobals(): void {
         Chart.register(zoomPlugin);
     }
 
-    setChartRuntime(Chart, zoomPlugin);
-    setDataTableRuntime(DataTable);
-    markRendererVendorEntryLoaded("chart-data");
+    markRendererVendorEntryLoaded("chart-data", {
+        chartData: {
+            chartRuntime: Chart,
+            chartZoomPlugin: zoomPlugin,
+            dataTableRuntime: DataTable,
+        },
+    });
 }
 
 installRendererChartDataVendorGlobals();

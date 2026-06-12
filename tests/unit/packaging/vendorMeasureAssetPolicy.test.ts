@@ -172,7 +172,7 @@ describe("renderer vendor asset policy", () => {
         expect(getDocumentedBrowserPackages(dependencyInventory)).toStrictEqual(
             [...rendererManagedBrowserPackages].sort()
         );
-        expect(staticAppIndex).toContain(
+        expect(staticAppIndex).not.toContain(
             'src="renderer/vendor-globals-core.js"'
         );
         expect(staticAppIndex).not.toContain(

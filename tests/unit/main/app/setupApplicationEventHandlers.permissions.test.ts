@@ -12,9 +12,6 @@ type CheckPermissionHandler = (
     requestingOrigin?: string,
     details?: PermissionDetailsLike
 ) => boolean;
-type ElectronOverrideGlobal = typeof globalThis & {
-    __electronHoistedMock?: null;
-};
 type ElectronAccessModule = {
     setElectronOverride?: (override: unknown) => void;
 };
@@ -53,8 +50,6 @@ type WebContentsCreatedHandler = (
     event: unknown,
     contents: MockWebContents
 ) => void;
-
-const testGlobal = globalThis as ElectronOverrideGlobal;
 
 function assertFunction<T extends (...args: unknown[]) => unknown>(
     candidate: unknown,
@@ -106,13 +101,10 @@ describe("setupApplicationEventHandlers permission hardening", () => {
     beforeEach(() => {
         vi.resetModules();
         process.env.NODE_ENV = "test";
-        testGlobal.__electronHoistedMock = null;
         clearMainRequireCache();
     });
 
     afterEach(() => {
-        testGlobal.__electronHoistedMock = null;
-
         try {
             // Ensure no stale override leaks into other suites.
             const electronAccess = requireElectronAccess();

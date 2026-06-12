@@ -1,10 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-    clearScreenfullRuntimeForTests,
-    setScreenfullRuntime,
-} from "../../../../../electron-app/utils/ui/controls/screenfullRuntime.js";
-
 type AddFullScreenButtonModule =
     typeof import("../../../../../electron-app/utils/ui/controls/addFullScreenButton.js");
 
@@ -104,7 +99,7 @@ describe("addFullScreenButton", () => {
         await resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
-        setScreenfullRuntime(screenfullMock);
+        await registerScreenfullRuntime(screenfullMock);
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-data";
@@ -171,7 +166,7 @@ describe("addFullScreenButton", () => {
         await resetTestState();
         const storedHandlers: ScreenfullChangeHandler[] = [];
         const screenfullMock = createScreenfullMock(storedHandlers);
-        setScreenfullRuntime(screenfullMock);
+        await registerScreenfullRuntime(screenfullMock);
 
         const activeContent = document.createElement("section");
         activeContent.id = "content-map";
@@ -244,10 +239,17 @@ async function cleanupStoredEventHandlers(): Promise<void> {
 async function cleanupTestState(): Promise<void> {
     await cleanupStoredEventHandlers();
     await resetRegisteredElectronApi();
-    clearScreenfullRuntimeForTests();
+    await clearScreenfullRuntime();
     document.body.replaceChildren();
     document.body.style.overflow = "";
     vi.resetModules();
+}
+
+async function clearScreenfullRuntime(): Promise<void> {
+    const { clearScreenfullRuntimeForTests } =
+        await import("../../../../../electron-app/utils/ui/controls/screenfullRuntime.js");
+
+    clearScreenfullRuntimeForTests();
 }
 
 function createF11Event(): KeyboardEvent {
@@ -322,6 +324,13 @@ async function registerFullscreenApi(api: TestElectronAPI): Promise<void> {
     const { registerRendererElectronApiCandidate } =
         await import("../../../../../electron-app/utils/runtime/electronApiRuntime.js");
     registerRendererElectronApiCandidate(api);
+}
+
+async function registerScreenfullRuntime(runtime: unknown): Promise<void> {
+    const { setScreenfullRuntime } =
+        await import("../../../../../electron-app/utils/ui/controls/screenfullRuntime.js");
+
+    setScreenfullRuntime(runtime);
 }
 
 async function resetRegisteredElectronApi(): Promise<void> {

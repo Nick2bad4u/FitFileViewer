@@ -5,6 +5,9 @@ const { clearPrimeTestEnvironmentTimers } =
         clearPrimeTestEnvironmentTimers: () => void;
     };
 
+type ElectronAccessModule = {
+    setElectronOverride: (override: unknown) => void;
+};
 type Listener = (...args: unknown[]) => void;
 
 type EventMap = Map<string, Set<Listener>>;
@@ -421,7 +424,7 @@ function resetHarness(): void {
     delete process.env.GYAZO_CLIENT_ID;
     delete process.env.GYAZO_CLIENT_SECRET;
     restorePlatform();
-    Reflect.set(globalThis, "__electronHoistedMock", harness.electronModule);
+    setMainElectronOverride(harness.electronModule);
 }
 
 function cleanupHarness(): void {
@@ -432,6 +435,13 @@ function cleanupHarness(): void {
     delete process.env.GYAZO_CLIENT_ID;
     delete process.env.GYAZO_CLIENT_SECRET;
     restorePlatform();
+    setMainElectronOverride(null);
+}
+
+function setMainElectronOverride(override: unknown): void {
+    const { setElectronOverride } =
+        require("../../electron-app/main/runtime/electronAccess") as ElectronAccessModule;
+    setElectronOverride(override);
 }
 
 async function settleStartup(): Promise<void> {
@@ -445,7 +455,7 @@ async function importMainWithEnvironment(
 ): Promise<MainExports> {
     vi.resetModules();
     process.env.NODE_ENV = nodeEnvironment;
-    Reflect.set(globalThis, "__electronHoistedMock", harness.electronModule);
+    setMainElectronOverride(harness.electronModule);
 
     const mainModule =
         (await import("../../electron-app/main.js")) as MainExports;

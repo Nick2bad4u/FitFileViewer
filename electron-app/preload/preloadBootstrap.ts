@@ -6,10 +6,6 @@
         import("./preloadModuleTypes").PreloadModuleRequire;
     type PreloadRuntime = import("./preloadModuleTypes").PreloadRuntime;
 
-    type PreloadGlobal = object & {
-        __electronHoistedMock?: null | PreloadElectronBridge;
-    };
-
     interface PreloadRuntimeEnvironment {
         consoleRef: Console;
         globalScope: object;
@@ -18,20 +14,22 @@
 
     interface StartPreloadScriptOptions {
         consoleRef?: Console;
-        globalScope?: PreloadGlobal;
+        electronBridgeOverride?: null | PreloadElectronBridge;
+        globalScope?: object;
         processRef?: NodeJS.Process;
         requireModule: PreloadModuleRequire;
     }
 
     interface ResolvePreloadRuntimeEnvironmentOptions {
         consoleRef: Console | undefined;
-        globalScope: PreloadGlobal | undefined;
+        globalScope: object | undefined;
         processRef: NodeJS.Process | undefined;
         requireModule: PreloadModuleRequire;
     }
 
     function startPreloadScript({
         consoleRef,
+        electronBridgeOverride,
         globalScope,
         processRef,
         requireModule,
@@ -52,7 +50,6 @@
         const runtime = createPreloadRuntime({ requireModule });
         const {
             consoleRef: resolvedConsoleRef,
-            globalScope: resolvedGlobalScope,
             processRef: resolvedProcessRef,
         } = runtimeEnvironment;
         const {
@@ -70,7 +67,9 @@
             resolvePreloadElectronBridge,
         } = preloadModules;
         const { contextBridge, ipcRenderer } = resolvePreloadElectronBridge({
-            globalScope: resolvedGlobalScope,
+            ...(electronBridgeOverride === undefined
+                ? {}
+                : { electronBridgeOverride }),
             requireModule: runtime.requireModule,
         });
         const preloadLog = createPreloadLogger(resolvedConsoleRef);

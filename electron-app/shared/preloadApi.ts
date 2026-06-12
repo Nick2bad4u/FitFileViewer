@@ -232,13 +232,12 @@ export type ElectronClipboardApi = Pick<
 
 export type ElectronDevtoolsMenuApi = Pick<ElectronAPI, "injectMenu">;
 
-export type ElectronExternalApi = Pick<
+export type ElectronGyazoExternalApi = Pick<
     ElectronAPI,
-    | "onGyazoOAuthCallback"
-    | "openExternal"
-    | "startGyazoServer"
-    | "stopGyazoServer"
+    "onGyazoOAuthCallback" | "startGyazoServer" | "stopGyazoServer"
 >;
+
+export type ElectronShellExternalApi = Pick<ElectronAPI, "openExternal">;
 
 export type ElectronFileApi = Pick<
     ElectronAPI,

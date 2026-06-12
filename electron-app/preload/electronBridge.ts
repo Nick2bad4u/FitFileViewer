@@ -33,7 +33,7 @@
     }
 
     interface ResolvePreloadElectronBridgeOptions {
-        globalScope?: object;
+        electronBridgeOverride?: null | PreloadElectronBridge;
         requireModule: (moduleId: string) => unknown;
     }
 
@@ -43,19 +43,6 @@
         return error instanceof Error
             ? error
             : new Error("Module loading failed");
-    }
-
-    function getOverride(
-        globalScope: object
-    ): null | PreloadElectronBridge | undefined {
-        const override: unknown = Reflect.get(
-            globalScope,
-            "__electronHoistedMock"
-        );
-        if (override === null || override === undefined) {
-            return override;
-        }
-        return isPreloadObjectRecord(override) ? override : null;
     }
 
     function isPreloadObjectRecord(
@@ -97,10 +84,13 @@
     }
 
     function resolvePreloadElectronBridge({
-        globalScope = globalThis,
+        electronBridgeOverride,
         requireModule,
     }: ResolvePreloadElectronBridgeOptions): PreloadElectronBridgeResolution {
-        const override = getOverride(globalScope) ?? null;
+        const override =
+            electronBridgeOverride === undefined
+                ? null
+                : electronBridgeOverride;
         const loadBridge = () => loadElectronBridge(requireModule);
 
         return {

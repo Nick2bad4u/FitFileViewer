@@ -1,7 +1,6 @@
 /**
- * Provides lazily-evaluated references to Electron modules. Tests rely on the
- * ability to inject hoisted mocks via {@link globalThis.__electronHoistedMock},
- * so we mirror the defensive implementation that previously lived in main.js.
+ * Provides lazily-evaluated references to Electron modules. Tests can inject a
+ * pre-resolved Electron module through {@link setElectronOverride}.
  */
 {
     type ElectronLike = Partial<typeof import("electron")> &
@@ -18,11 +17,7 @@
         return null;
     }
 
-    let electronOverride: ElectronLike | null = getHoistedElectronMock();
-
-    function getHoistedElectronMock(): ElectronLike | null {
-        return asElectronLike(Reflect.get(globalThis, "__electronHoistedMock"));
-    }
+    let electronOverride: ElectronLike | null = null;
 
     const hasElectronApis = (candidate: unknown): candidate is ElectronLike => {
         const electronLike = asElectronLike(candidate);
@@ -46,13 +41,6 @@
      */
     function getElectron(): ElectronLike {
         try {
-            // Vitest can load this module multiple times (CJS require vs ESM import).
-            // Always honor the hoisted global mock at runtime to keep tests reliable.
-            const hoisted = getHoistedElectronMock();
-            if (hoisted) {
-                return hoisted;
-            }
-
             if (electronOverride) {
                 return electronOverride;
             }

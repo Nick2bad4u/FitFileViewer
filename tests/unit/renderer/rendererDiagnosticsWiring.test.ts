@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { installRendererGlobalSurfaces } from "../../../electron-app/renderer/globalSurfacesWiring.js";
+import { initializeRendererDiagnostics } from "../../../electron-app/renderer/rendererDiagnosticsWiring.js";
 import type { RendererPerformanceMonitor } from "../../../electron-app/renderer/startupPerformanceMonitor.js";
 
 vi.mock(
@@ -20,12 +20,12 @@ function createPerformanceMonitor(): RendererPerformanceMonitor {
     };
 }
 
-describe("renderer global surfaces wiring", () => {
+describe("renderer diagnostics wiring", () => {
     afterEach(() => {
         vi.restoreAllMocks();
     });
 
-    it("logs startup without installing renderer globals", () => {
+    it("logs startup diagnostics without installing renderer globals", () => {
         expect.assertions(4);
 
         const logRenderer =
@@ -35,7 +35,7 @@ describe("renderer global surfaces wiring", () => {
                     ...args: unknown[]
                 ) => void
             >();
-        installRendererGlobalSurfaces({
+        initializeRendererDiagnostics({
             cleanup: vi.fn(),
             ensureCoreModules: async () => ({}),
             initializeApplication: async () => undefined,

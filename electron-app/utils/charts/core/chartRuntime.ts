@@ -1,22 +1,20 @@
-interface ChartRuntimeRegistry {
+type ChartRuntimeRegistry = {
     runtime?: unknown;
     zoomPlugin?: unknown;
-}
+};
 
-const chartRuntimeRegistryKey = Symbol.for("fitfileviewer.chartRuntime");
+const chartRuntimeRegistry: ChartRuntimeRegistry = {};
 
 export function setChartRuntime(runtime: unknown, zoomPlugin?: unknown): void {
-    const registry = getChartRuntimeRegistry();
-    registry.runtime = runtime;
+    chartRuntimeRegistry.runtime = runtime;
     if (zoomPlugin !== undefined) {
-        registry.zoomPlugin = zoomPlugin;
+        chartRuntimeRegistry.zoomPlugin = zoomPlugin;
     }
 }
 
 export function clearChartRuntimeForTests(): void {
-    const registry = getChartRuntimeRegistry();
-    registry.runtime = undefined;
-    registry.zoomPlugin = undefined;
+    chartRuntimeRegistry.runtime = undefined;
+    chartRuntimeRegistry.zoomPlugin = undefined;
 }
 
 export function resolveChartRuntime<T>(
@@ -32,17 +30,9 @@ export function resolveChartRuntime<T>(
 }
 
 export function resolveChartZoomPlugin(): unknown {
-    return getChartRuntimeRegistry().zoomPlugin ?? null;
+    return chartRuntimeRegistry.zoomPlugin ?? null;
 }
 
 function getChartRuntimeCandidates(): unknown[] {
-    const registry = getChartRuntimeRegistry();
-    return [registry.runtime];
-}
-
-function getChartRuntimeRegistry(): ChartRuntimeRegistry {
-    const chartGlobal = globalThis as typeof globalThis &
-        Record<symbol, ChartRuntimeRegistry | undefined>;
-    chartGlobal[chartRuntimeRegistryKey] ??= {};
-    return chartGlobal[chartRuntimeRegistryKey];
+    return [chartRuntimeRegistry.runtime];
 }

@@ -6,10 +6,6 @@ import {
     subscribeAppDomainPath,
 } from "../../../../../electron-app/utils/state/domain/appDomainState.js";
 import {
-    appState,
-    setState as setLegacyAppState,
-} from "../../../../../electron-app/utils/state/domain/appState.js";
-import {
     resetState,
     setState,
 } from "../../../../../electron-app/utils/state/core/stateManager.js";
@@ -17,7 +13,6 @@ import {
 describe("appDomainState renderer facade", () => {
     beforeEach(() => {
         vi.spyOn(console, "log").mockReturnValue(undefined);
-        appState.reset();
         resetState();
     });
 
@@ -32,7 +27,7 @@ describe("appDomainState renderer facade", () => {
             }
         );
 
-        setLegacyAppState("ui.activeTab", "map");
+        setState("ui.activeTab", "map", { source: "test" });
 
         expect(getAppDomainState("ui.activeTab")).toBe("map");
         expect(receivedEvent).toStrictEqual({

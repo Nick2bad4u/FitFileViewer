@@ -20,7 +20,7 @@
         processRef?: NodeJS.Process;
     }
 
-    const BEFORE_EXIT_LISTENER_SYMBOL = Symbol.for(
+    const BEFORE_EXIT_LISTENER_SYMBOL = Symbol(
         "ffv.preload.beforeExitListener"
     );
     const beforeExitRegistry = new WeakMap<
@@ -67,9 +67,7 @@
         );
     }
 
-    function markBeforeExitWrapper(
-        storedWrapper: BeforeExitCallback
-    ): void {
+    function markBeforeExitWrapper(storedWrapper: BeforeExitCallback): void {
         try {
             Reflect.set(storedWrapper, BEFORE_EXIT_LISTENER_SYMBOL, true);
         } catch {

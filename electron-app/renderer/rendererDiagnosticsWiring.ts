@@ -9,25 +9,25 @@ import {
 import { logRendererStartupInfo } from "./rendererStartupInfo.js";
 import type { RendererPerformanceMonitor } from "./startupPerformanceMonitor.js";
 
-type RendererGlobalSurfacesLogLevel = "group" | "groupEnd" | "log" | "warn";
+type RendererDiagnosticsLogLevel = "group" | "groupEnd" | "log" | "warn";
 
-type RendererGlobalSurfacesLogger = (
-    level: RendererGlobalSurfacesLogLevel,
+type RendererDiagnosticsLogger = (
+    level: RendererDiagnosticsLogLevel,
     ...args: unknown[]
 ) => void;
 
-type RendererGlobalSurfacesOptions = {
+type RendererDiagnosticsOptions = {
     readonly cleanup: () => void;
     readonly ensureCoreModules: () => Promise<Record<string, unknown>>;
     readonly initializeApplication: () => Promise<void>;
     readonly isOpeningFileRef: { value: boolean };
-    readonly logRenderer: RendererGlobalSurfacesLogger;
+    readonly logRenderer: RendererDiagnosticsLogger;
     readonly performanceMonitor: RendererPerformanceMonitor;
     readonly validateDOMElements: () => boolean;
 };
 
-export function installRendererGlobalSurfaces(
-    options: RendererGlobalSurfacesOptions
+export function initializeRendererDiagnostics(
+    options: RendererDiagnosticsOptions
 ): void {
     logRendererStartupInfo({
         appInfo: APP_INFO,

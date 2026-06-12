@@ -1,14 +1,6 @@
 import type { Mock } from "vitest";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
-import {
-    clearChartInstanceRegistryForTests,
-    getRegisteredChartInstances,
-} from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
-import {
-    clearChartRuntimeForTests,
-    setChartRuntime,
-} from "../../../electron-app/utils/charts/core/chartRuntime.js";
 // import { chartSettingsManager } from "../../../electron-app/utils/charts/core/renderChartJS.js";
 
 type AltitudeDatum = {
@@ -75,6 +67,9 @@ type ChartSettingsManagerMock = {
     getFieldVisibility: Mock<() => "hidden" | "visible">;
 };
 
+type ChartInstanceRegistryModule =
+    typeof import("../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
+
 type ChartTestGlobal = typeof globalThis & {
     HTMLCanvasElement?: typeof HTMLCanvasElement;
     HTMLElement?: typeof HTMLElement;
@@ -136,6 +131,35 @@ let chartInstanceMock: ChartInstanceMock;
 let renderAltitudeProfileChart: RenderAltitudeProfileChart;
 let mockLocalStorage: StorageMock;
 let mockChartSettingsManager: ChartSettingsManagerMock;
+let chartInstanceRegistryModule: ChartInstanceRegistryModule | undefined;
+
+async function loadChartInstanceRegistry(): Promise<ChartInstanceRegistryModule> {
+    chartInstanceRegistryModule =
+        await import("../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
+    return chartInstanceRegistryModule;
+}
+
+function clearChartInstanceRegistryForTests(): void {
+    chartInstanceRegistryModule?.clearChartInstanceRegistryForTests();
+}
+
+function getRegisteredChartInstances(): unknown[] {
+    return chartInstanceRegistryModule?.getRegisteredChartInstances() ?? [];
+}
+
+async function clearChartRuntime(): Promise<void> {
+    const { clearChartRuntimeForTests } =
+        await import("../../../electron-app/utils/charts/core/chartRuntime.js");
+
+    clearChartRuntimeForTests();
+}
+
+async function registerChartRuntime(runtime: unknown): Promise<void> {
+    const { setChartRuntime } =
+        await import("../../../electron-app/utils/charts/core/chartRuntime.js");
+
+    setChartRuntime(runtime);
+}
 
 describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () => {
     beforeEach(async () => {
@@ -192,7 +216,8 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         vi.doMock(import("chart.js/auto"), () => ({
             default: chartMock,
         }));
-        setChartRuntime(chartMock);
+        await registerChartRuntime(chartMock);
+        await loadChartInstanceRegistry();
         clearChartInstanceRegistryForTests();
 
         // Mock all dependencies
@@ -287,9 +312,9 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         renderAltitudeProfileChart = module.renderAltitudeProfileChart;
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         clearChartInstanceRegistryForTests();
-        clearChartRuntimeForTests();
+        await clearChartRuntime();
 
         vi.clearAllMocks();
         vi.resetAllMocks();

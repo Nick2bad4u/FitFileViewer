@@ -13,6 +13,35 @@ import {
     markRendererVendorEntryLoaded,
     resetRendererVendorBundleState,
 } from "../../../electron-app/renderer/vendorGlobalsShared.js";
+import {
+    clearChartRuntimeForTests,
+    resolveChartRuntime,
+    resolveChartZoomPlugin,
+} from "../../../electron-app/utils/charts/core/chartRuntime.js";
+import {
+    clearDomPurifyRuntimeForTests,
+    resolveDomPurifyRuntime,
+} from "../../../electron-app/utils/dom/domPurifyRuntime.js";
+import {
+    clearExportZipRuntimeForTests,
+    resolveExportZipRuntime,
+} from "../../../electron-app/utils/files/export/exportZipRuntime.js";
+import {
+    clearLeafletRuntimeForTests,
+    resolveLeafletRuntime,
+} from "../../../electron-app/utils/maps/core/leafletRuntime.js";
+import {
+    clearArqueroRuntimeForTests,
+    resolveArqueroRuntime,
+} from "../../../electron-app/utils/rendering/helpers/arqueroRuntime.js";
+import {
+    clearDataTableRuntimeForTests,
+    resolveDataTableRuntime,
+} from "../../../electron-app/utils/rendering/core/dataTableRuntime.js";
+import {
+    clearScreenfullRuntimeForTests,
+    resolveScreenfullRuntime,
+} from "../../../electron-app/utils/ui/controls/screenfullRuntime.js";
 
 function markEntryLoaded(entryName: RendererVendorBundleEntry): void {
     markRendererVendorEntryLoaded(entryName);
@@ -40,6 +69,13 @@ function getVendorScript(
 
 describe("renderer vendor bundle loader", () => {
     afterEach(() => {
+        clearChartRuntimeForTests();
+        clearArqueroRuntimeForTests();
+        clearDomPurifyRuntimeForTests();
+        clearExportZipRuntimeForTests();
+        clearLeafletRuntimeForTests();
+        clearDataTableRuntimeForTests();
+        clearScreenfullRuntimeForTests();
         resetRendererVendorBundleState();
         document
             .querySelectorAll("script[data-ffv-renderer-vendor-entry]")
@@ -154,6 +190,95 @@ describe("renderer vendor bundle loader", () => {
         script.dispatchEvent(new Event("load"));
 
         await expect(vendorReadiness[0]).resolves.toBeUndefined();
+    });
+
+    it("registers Chart.js and DataTables payloads from the split vendor event", async () => {
+        expect.assertions(4);
+
+        const chartRuntime = { register() {} };
+        const chartZoomPlugin = { id: "zoom" };
+        const dataTableRuntime = Object.assign(function DataTableRuntime() {}, {
+            isDataTable() {},
+        });
+        const vendorReadiness = [ensureVendorBundle("chart-data")];
+        const script = getVendorScript("chart-data");
+
+        markRendererVendorEntryLoaded("chart-data", {
+            chartData: {
+                chartRuntime,
+                chartZoomPlugin,
+                dataTableRuntime,
+            },
+        });
+        script.dispatchEvent(new Event("load"));
+
+        await expect(vendorReadiness[0]).resolves.toBeUndefined();
+        expect(
+            resolveChartRuntime(
+                (value): value is typeof chartRuntime => value === chartRuntime
+            )
+        ).toBe(chartRuntime);
+        expect(resolveChartZoomPlugin()).toBe(chartZoomPlugin);
+        expect(
+            resolveDataTableRuntime(
+                (value): value is typeof dataTableRuntime =>
+                    value === dataTableRuntime
+            )
+        ).toBe(dataTableRuntime);
+    });
+
+    it("registers core runtime payloads from the split core vendor event", async () => {
+        expect.assertions(5);
+
+        const arqueroRuntime = { from() {} };
+        const domPurifyRuntime = {
+            sanitize: vi.fn<(value: string) => string>(),
+        };
+        class ExportZipRuntime {}
+        const screenfullRuntime = {
+            isEnabled: true,
+            isFullscreen: false,
+            on() {},
+        };
+        const vendorReadiness = [ensureVendorBundle("core")];
+        const script = getVendorScript("core");
+
+        markRendererVendorEntryLoaded("core", {
+            core: {
+                arqueroRuntime,
+                domPurifyRuntime,
+                exportZipRuntime: ExportZipRuntime,
+                screenfullRuntime,
+            },
+        });
+        script.dispatchEvent(new Event("load"));
+
+        await expect(vendorReadiness[0]).resolves.toBeUndefined();
+        expect(resolveArqueroRuntime()).toBe(arqueroRuntime);
+        expect(resolveDomPurifyRuntime()).toBe(domPurifyRuntime);
+        expect(resolveExportZipRuntime()).toBe(ExportZipRuntime);
+        expect(resolveScreenfullRuntime()).toBe(screenfullRuntime);
+    });
+
+    it("registers the Leaflet payload from the split map vendor event", async () => {
+        expect.assertions(2);
+
+        const leafletRuntime = { divIcon() {} };
+        const vendorReadiness = [ensureVendorBundle("map")];
+        const script = getVendorScript("map");
+
+        markRendererVendorEntryLoaded("map", {
+            map: { leafletRuntime },
+        });
+        script.dispatchEvent(new Event("load"));
+
+        await expect(vendorReadiness[0]).resolves.toBeUndefined();
+        expect(
+            resolveLeafletRuntime(
+                (value): value is typeof leafletRuntime =>
+                    value === leafletRuntime
+            )
+        ).toBe(leafletRuntime);
     });
 
     it("waits for the split entry marker when a script tag already exists", async () => {

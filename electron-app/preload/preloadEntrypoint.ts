@@ -1,7 +1,10 @@
 type PreloadModuleRequire = import("./preloadModuleTypes").PreloadModuleRequire;
+type PreloadElectronBridge =
+    import("./preloadModuleTypes").PreloadElectronBridge;
 
 interface StartPreloadEntrypointOptions {
     consoleRef?: Console;
+    electronBridgeOverride?: null | PreloadElectronBridge;
     globalScope?: object;
     processRef?: NodeJS.Process;
 }
@@ -9,6 +12,7 @@ interface StartPreloadEntrypointOptions {
 type PreloadBootstrapModule = {
     startPreloadScript: (options: {
         consoleRef?: Console;
+        electronBridgeOverride?: null | PreloadElectronBridge;
         globalScope?: object;
         processRef?: NodeJS.Process;
         requireModule: PreloadModuleRequire;
@@ -35,13 +39,21 @@ export function startDefaultPreloadEntrypoint(): void {
 
 export function startPreloadEntrypoint(
     requireModule: NodeJS.Require,
-    { consoleRef, globalScope, processRef }: StartPreloadEntrypointOptions = {}
+    {
+        consoleRef,
+        electronBridgeOverride,
+        globalScope,
+        processRef,
+    }: StartPreloadEntrypointOptions = {}
 ): void {
     const preloadRequire = createPreloadEntrypointRequire(requireModule);
     const { startPreloadScript } = loadPreloadBootstrap(preloadRequire);
 
     startPreloadScript({
         ...(consoleRef === undefined ? {} : { consoleRef }),
+        ...(electronBridgeOverride === undefined
+            ? {}
+            : { electronBridgeOverride }),
         ...(globalScope === undefined ? {} : { globalScope }),
         ...(processRef === undefined ? {} : { processRef }),
         requireModule: preloadRequire as PreloadModuleRequire,

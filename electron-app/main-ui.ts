@@ -4,6 +4,7 @@ import type { ElectronAPI } from "./shared/preloadApi.js";
 
 import { getMainUiRuntimeEnvironment } from "./renderer/mainUiRuntimeEnvironment.js";
 import { createMainUiSummaryColumnSelectorHandler } from "./renderer/mainUiSummaryColumnSelector.js";
+import { ensureRendererVendorBundle } from "./renderer/vendorBundleLoader.js";
 import { setupWindow } from "./utils/app/initialization/setupWindow.js";
 import { AppActions } from "./utils/app/lifecycle/appActions.js";
 import { resourceManager } from "./utils/app/lifecycle/resourceManager.js";
@@ -248,10 +249,6 @@ if (unloadBtn) {
 // Initialize drag and drop handler
 export const mainUiDragDropHandler = new DragDropHandler();
 
-// Move event listener setup to utility functions
-// Sets up event listeners to handle fullscreen mode toggling for the application.
-setupFullscreenListeners();
-
 // Initialize the application window with modern state management
 void setupWindow();
 
@@ -361,3 +358,13 @@ logMainUi(
 );
 
 logMainUi("info", "[main-ui] State managers initialized successfully");
+
+// Move event listener setup to utility functions
+// Sets up event listeners to handle fullscreen mode toggling for the application.
+try {
+    await ensureRendererVendorBundle("core");
+} catch (error: unknown) {
+    logMainUi("warn", "[main-ui] Core vendor bundle failed to load", error);
+} finally {
+    setupFullscreenListeners();
+}

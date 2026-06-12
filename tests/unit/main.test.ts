@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
+import { createRequire } from "node:module";
+
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import type { Mock } from "vitest";
+
+const requireCjs = createRequire(import.meta.url);
 
 const { clearGyazoStartupTimer, getGyazoStartupTimer } =
     require("../../electron-app/main/app/gyazoStartupTimerState") as {
@@ -376,13 +380,25 @@ type DevHelpers = {
     rebuildMenu: (theme?: null | string, filePath?: null | string) => void;
 };
 
-type TestGlobals = typeof globalThis & {
-    __electronHoistedMock?: typeof mockElectron;
+type ElectronAccessModule = {
+    setElectronOverride: (override: unknown) => void;
 };
 
-const testGlobals = globalThis as TestGlobals;
+type ImportMainModuleOptions = {
+    electronOverride?: null | typeof mockElectron;
+};
 
-async function importMainModule(): Promise<MainModule> {
+function setMainElectronOverride(override: unknown): void {
+    const { setElectronOverride } = requireCjs(
+        "../../electron-app/main/runtime/electronAccess.js"
+    ) as ElectronAccessModule;
+    setElectronOverride(override);
+}
+
+async function importMainModule({
+    electronOverride = mockElectron,
+}: ImportMainModuleOptions = {}): Promise<MainModule> {
+    setMainElectronOverride(electronOverride);
     const imported =
         (await import("../../electron-app/main.js")) as unknown as MainImport;
     return imported.default;
@@ -527,9 +543,6 @@ describe("main.js - Electron Main Process", () => {
         delete process.env.GYAZO_CLIENT_ID;
         delete process.env.GYAZO_CLIENT_SECRET;
 
-        // Setup globalThis for hoisted mock support
-        testGlobals.__electronHoistedMock = mockElectron;
-
         // Reset mainProcessState to fresh state
         mockMainProcessState.get.mockReturnValue(undefined);
         mockMainProcessState.set.mockReturnValue(undefined);
@@ -540,7 +553,7 @@ describe("main.js - Electron Main Process", () => {
 
     afterEach(() => {
         vi.clearAllMocks();
-        delete testGlobals.__electronHoistedMock;
+        setMainElectronOverride(null);
         Reflect.deleteProperty(globalThis, "devHelpers");
         clearPrimeTestEnvironmentTimers();
         clearGyazoStartupTimer();
@@ -586,10 +599,9 @@ describe("main.js - Electron Main Process", () => {
         it("should handle missing electron gracefully", async () => {
             expect.assertions(2);
 
-            // Clear the hoisted mock to trigger error path
-            delete testGlobals.__electronHoistedMock;
-
-            const mainModule = await importMainModule();
+            const mainModule = await importMainModule({
+                electronOverride: null,
+            });
 
             expect(mainModule.CONSTANTS.DEFAULT_THEME).toBe("dark");
             expect(mainModule.isWindowUsable(null)).toStrictEqual(false);
@@ -695,7 +707,7 @@ describe("main.js - Electron Main Process", () => {
             const mainModule = await importMainModule();
 
             // Development helpers should not be available in test environment
-            expect(testGlobals).not.toHaveProperty("devHelpers");
+            expect(globalThis).not.toHaveProperty("devHelpers");
             expect(mainModule.getAppState("mainWindow")).toBe(mockWindow);
         });
 
@@ -720,7 +732,7 @@ describe("main.js - Electron Main Process", () => {
                     "logState",
                     "rebuildMenu",
                 ]);
-                expect(testGlobals).not.toHaveProperty("devHelpers");
+                expect(globalThis).not.toHaveProperty("devHelpers");
 
                 mainModule.setAppState("loadedFitFilePath", "dev-activity.fit");
                 const devState = devHelpers.getAppState();
@@ -821,7 +833,7 @@ describe("main.js - Electron Main Process", () => {
             const mainModule = await importMainModule();
 
             expect(getGyazoStartupTimer()).toBeDefined();
-            expect(testGlobals).not.toHaveProperty("__ffvGyazoStartupTimer");
+            expect(globalThis).not.toHaveProperty("__ffvGyazoStartupTimer");
             await expect(mainModule.stopGyazoOAuthServer()).resolves.toEqual({
                 message: "No server was running",
                 success: true,

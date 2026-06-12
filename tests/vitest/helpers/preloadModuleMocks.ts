@@ -8,8 +8,17 @@ const preloadApiAssembly = requireFromTest(
 const preloadApiAssemblyContext = requireFromTest(
     "../../../electron-app/preload/apiAssemblyContext.js"
 );
-const preloadAppApiDomain = requireFromTest(
-    "../../../electron-app/preload/appApiDomain.js"
+const preloadClipboardApiDomain = requireFromTest(
+    "../../../electron-app/preload/clipboardApiDomain.js"
+);
+const preloadDeveloperApiDomain = requireFromTest(
+    "../../../electron-app/preload/developerApiDomain.js"
+);
+const preloadDiagnosticsApiDomain = requireFromTest(
+    "../../../electron-app/preload/diagnosticsApiDomain.js"
+);
+const preloadExternalApiDomain = requireFromTest(
+    "../../../electron-app/preload/externalApiDomain.js"
 );
 const preloadFileApiDomain = requireFromTest(
     "../../../electron-app/preload/fileApiDomain.js"
@@ -19,6 +28,9 @@ const preloadIpcEventApiDomain = requireFromTest(
 );
 const preloadStateApiDomain = requireFromTest(
     "../../../electron-app/preload/stateApiDomain.js"
+);
+const preloadSystemApiDomain = requireFromTest(
+    "../../../electron-app/preload/systemApiDomain.js"
 );
 const preloadRuntime = requireFromTest(
     "../../../electron-app/preload/preloadRuntime.js"
@@ -73,9 +85,6 @@ const preloadElectronBridge = requireFromTest(
 );
 const preloadEnvironment = requireFromTest(
     "../../../electron-app/preload/environment.js"
-);
-const preloadExternalApi = requireFromTest(
-    "../../../electron-app/preload/externalApi.js"
 );
 const preloadGyazoExternalApi = requireFromTest(
     "../../../electron-app/preload/gyazoExternalApi.js"
@@ -137,8 +146,20 @@ export function resolvePreloadScriptRequire(
         return preloadApiAssemblyContext;
     }
 
-    if (moduleName === "./preload/appApiDomain.js") {
-        return preloadAppApiDomain;
+    if (moduleName === "./preload/clipboardApiDomain.js") {
+        return preloadClipboardApiDomain;
+    }
+
+    if (moduleName === "./preload/developerApiDomain.js") {
+        return preloadDeveloperApiDomain;
+    }
+
+    if (moduleName === "./preload/diagnosticsApiDomain.js") {
+        return preloadDiagnosticsApiDomain;
+    }
+
+    if (moduleName === "./preload/externalApiDomain.js") {
+        return preloadExternalApiDomain;
     }
 
     if (moduleName === "./preload/fileApiDomain.js") {
@@ -151,6 +172,10 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/stateApiDomain.js") {
         return preloadStateApiDomain;
+    }
+
+    if (moduleName === "./preload/systemApiDomain.js") {
+        return preloadSystemApiDomain;
     }
 
     if (moduleName === "./preload/preloadRuntime.js") {
@@ -223,10 +248,6 @@ export function resolvePreloadScriptRequire(
 
     if (moduleName === "./preload/environment.js") {
         return preloadEnvironment;
-    }
-
-    if (moduleName === "./preload/externalApi.js") {
-        return preloadExternalApi;
     }
 
     if (moduleName === "./preload/gyazoExternalApi.js") {

@@ -6,21 +6,6 @@ import {
     setDataTableRuntime,
 } from "../../../../../electron-app/utils/rendering/core/dataTableRuntime.js";
 
-interface DataTableRuntimeRegistry {
-    runtime?: unknown;
-}
-
-const dataTableRuntimeRegistryKey = Symbol.for(
-    "fitfileviewer.dataTableRuntime"
-);
-
-function getDataTableRuntimeRegistry(): DataTableRuntimeRegistry {
-    const dataTableGlobal = globalThis as typeof globalThis &
-        Record<symbol, DataTableRuntimeRegistry | undefined>;
-    dataTableGlobal[dataTableRuntimeRegistryKey] ??= {};
-    return dataTableGlobal[dataTableRuntimeRegistryKey];
-}
-
 function isDataTableRuntime(
     value: unknown
 ): value is { isDataTable: () => void } {
@@ -47,14 +32,16 @@ describe("dataTableRuntime", () => {
         expect(resolveDataTableRuntime(isDataTableRuntime)).toBe(runtime);
     });
 
-    it("reads runtimes registered by a separate bundle through the shared symbol registry", () => {
+    it("clears the module-local runtime adapter", () => {
         expect.assertions(1);
 
         const runtime = Object.assign(function DataTableRuntime() {}, {
             isDataTable() {},
         });
-        getDataTableRuntimeRegistry().runtime = runtime;
+        setDataTableRuntime(runtime);
 
-        expect(resolveDataTableRuntime(isDataTableRuntime)).toBe(runtime);
+        clearDataTableRuntimeForTests();
+
+        expect(resolveDataTableRuntime(isDataTableRuntime)).toBeNull();
     });
 });

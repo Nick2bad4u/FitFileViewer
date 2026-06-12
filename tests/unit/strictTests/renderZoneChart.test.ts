@@ -1,9 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
-import {
-    clearChartInstanceRegistryForTests,
-    getRegisteredChartInstances,
-} from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 import type { ZoneData } from "../../../electron-app/utils/types/sharedChartTypes.js";
 
 interface RenderZoneChartOptions {
@@ -78,6 +74,8 @@ type ZoneChartRenderRegistrySnapshot = {
 type ContainerChildSnapshot = {
     childTags: string[];
 };
+type ChartInstanceRegistryModule =
+    typeof import("../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
 
 function getZoneChartGlobal(): typeof globalThis {
     return globalThis;
@@ -122,6 +120,21 @@ let getChartZoneColorsMock: ReturnType<typeof vi.fn<() => string[]>>;
 let getZoneTypeFromFieldMock: ReturnType<typeof vi.fn<() => string>>;
 let formatTimeMock: ReturnType<typeof vi.fn<(value: number) => string>>;
 let createChartCanvasMock: ReturnType<typeof vi.fn<() => HTMLCanvasElement>>;
+let chartInstanceRegistryModule: ChartInstanceRegistryModule | undefined;
+
+async function loadChartInstanceRegistry(): Promise<ChartInstanceRegistryModule> {
+    chartInstanceRegistryModule =
+        await import("../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
+    return chartInstanceRegistryModule;
+}
+
+function clearChartInstanceRegistryForTests(): void {
+    chartInstanceRegistryModule?.clearChartInstanceRegistryForTests();
+}
+
+function getRegisteredChartInstances(): unknown[] {
+    return chartInstanceRegistryModule?.getRegisteredChartInstances() ?? [];
+}
 
 describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
     beforeEach(async () => {
@@ -155,6 +168,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         >(function ChartConstructor(_canvas, _config) {
             return chartInstanceMock;
         });
+        await loadChartInstanceRegistry();
         clearChartInstanceRegistryForTests();
 
         detectCurrentThemeMock = vi.fn<() => string>(() => "light");

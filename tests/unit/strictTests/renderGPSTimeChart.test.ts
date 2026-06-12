@@ -1,10 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { JSDOM } from "jsdom";
 import { clearChartInstanceRegistryForTests } from "../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
-import {
-    clearChartRuntimeForTests,
-    setChartRuntime,
-} from "../../../electron-app/utils/charts/core/chartRuntime.js";
 
 type ChartConfig = {
     data: {
@@ -143,6 +139,20 @@ const MOCK_COLORS = {
     textPrimary: "#e8e8e8",
 };
 
+async function clearChartRuntime(): Promise<void> {
+    const { clearChartRuntimeForTests } =
+        await import("../../../electron-app/utils/charts/core/chartRuntime.js");
+
+    clearChartRuntimeForTests();
+}
+
+async function registerChartRuntime(runtime: unknown): Promise<void> {
+    const { setChartRuntime } =
+        await import("../../../electron-app/utils/charts/core/chartRuntime.js");
+
+    setChartRuntime(runtime);
+}
+
 describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
     beforeEach(async () => {
         vi.resetModules();
@@ -186,7 +196,7 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         vi.doMock(import("chart.js/auto"), () => ({
             default: chartMock,
         }));
-        setChartRuntime(chartMock);
+        await registerChartRuntime(chartMock);
         clearChartInstanceRegistryForTests();
 
         createChartCanvasMock = vi.fn<() => HTMLCanvasElement>(() =>
@@ -233,11 +243,11 @@ describe("renderGPSTimeChart.js - GPS Position vs Time Chart Utility", () => {
         renderGPSTimeChart = module.renderGPSTimeChart;
     });
 
-    afterEach(() => {
-        vi.resetModules();
+    afterEach(async () => {
         vi.clearAllMocks();
-        clearChartRuntimeForTests();
+        await clearChartRuntime();
         clearChartInstanceRegistryForTests();
+        vi.resetModules();
         delete getGPSTimeGlobal().window;
         delete getGPSTimeGlobal().document;
         delete getGPSTimeGlobal().HTMLCanvasElement;

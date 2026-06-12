@@ -5,24 +5,22 @@ export type ScreenfullRuntime = {
     on: (event: "change", handler: (event: Event) => void) => void;
 };
 
-interface ScreenfullRuntimeRegistry {
+type ScreenfullRuntimeRegistry = {
     runtime?: unknown;
-}
+};
 
-const screenfullRuntimeRegistryKey = Symbol.for(
-    "fitfileviewer.screenfullRuntime"
-);
+const screenfullRuntimeRegistry: ScreenfullRuntimeRegistry = {};
 
 export function setScreenfullRuntime(runtime: unknown): void {
-    getScreenfullRuntimeRegistry().runtime = runtime;
+    screenfullRuntimeRegistry.runtime = runtime;
 }
 
 export function clearScreenfullRuntimeForTests(): void {
-    getScreenfullRuntimeRegistry().runtime = undefined;
+    screenfullRuntimeRegistry.runtime = undefined;
 }
 
 export function resolveScreenfullRuntime(): ScreenfullRuntime | undefined {
-    const runtime = getScreenfullRuntimeRegistry().runtime;
+    const runtime = screenfullRuntimeRegistry.runtime;
     return isScreenfullRuntime(runtime) ? runtime : undefined;
 }
 
@@ -37,11 +35,4 @@ export function isScreenfullRuntime(
             "boolean" &&
         typeof (value as { on?: unknown }).on === "function"
     );
-}
-
-function getScreenfullRuntimeRegistry(): ScreenfullRuntimeRegistry {
-    const screenfullGlobal = globalThis as typeof globalThis &
-        Record<symbol, ScreenfullRuntimeRegistry | undefined>;
-    screenfullGlobal[screenfullRuntimeRegistryKey] ??= {};
-    return screenfullGlobal[screenfullRuntimeRegistryKey];
 }

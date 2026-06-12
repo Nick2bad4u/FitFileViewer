@@ -4,7 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 
 interface PreloadElectronBridgeModule {
     resolvePreloadElectronBridge: (options: {
-        globalScope?: object;
+        electronBridgeOverride?: null | {
+            contextBridge?: null | object;
+            ipcRenderer?: null | object;
+        };
         requireModule: (moduleId: string) => unknown;
     }) => {
         contextBridge: null | object | undefined;
@@ -67,7 +70,7 @@ describe("preload electron bridge resolver", () => {
         });
     });
 
-    it("uses hoisted overrides before requiring Electron", () => {
+    it("uses explicit overrides before requiring Electron", () => {
         expect.assertions(2);
 
         const contextBridge = {
@@ -84,9 +87,7 @@ describe("preload electron bridge resolver", () => {
 
         expect(
             resolvePreloadElectronBridge({
-                globalScope: {
-                    __electronHoistedMock: { contextBridge, ipcRenderer },
-                },
+                electronBridgeOverride: { contextBridge, ipcRenderer },
                 requireModule,
             })
         ).toStrictEqual({
@@ -102,9 +103,7 @@ describe("preload electron bridge resolver", () => {
 
         expect(
             resolvePreloadElectronBridge({
-                globalScope: {
-                    __electronHoistedMock: {},
-                },
+                electronBridgeOverride: {},
                 requireModule: () => {
                     throw new Error("electron unavailable");
                 },

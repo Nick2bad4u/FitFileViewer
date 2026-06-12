@@ -35,29 +35,22 @@ describe("renderer Electron API wiring", () => {
     });
 
     it("registers menu and theme callbacks through the composed Electron API wiring", async () => {
-        expect.assertions(5);
+        expect.assertions(4);
 
         const fileInput = {
             click: vi.fn(),
         } as unknown as HTMLInputElement;
-        const scope = {} as typeof globalThis;
         const { api, emitMenuAction, emitThemeChanged } = createElectronApi();
         const applyTheme = vi.fn<(theme: string) => void>();
         const scheduleStateInitialization = vi.fn();
 
         installRendererElectronApiWiring({
-            addEventListener: vi.fn(),
             callUnknownFunction,
-            clearInterval: vi.fn(),
-            defineProperty: Object.defineProperty,
             electronApiCandidate: api,
             ensureCoreModules: async () => ({ applyTheme }),
             getFileInput: () => fileInput,
             logRenderer: vi.fn(),
-            removeEventListener: vi.fn(),
             scheduleStateInitialization,
-            scope,
-            setInterval: vi.fn(),
         });
 
         emitMenuAction("open-file");
@@ -68,6 +61,5 @@ describe("renderer Electron API wiring", () => {
         expect(applyTheme).toHaveBeenCalledExactlyOnceWith("dark");
         expect(scheduleStateInitialization).toHaveBeenCalled();
         expect(api.isDevelopment).toHaveBeenCalledOnce();
-        expect(Reflect.get(scope, "electronAPI")).toBeUndefined();
     });
 });

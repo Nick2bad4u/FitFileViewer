@@ -1,8 +1,5 @@
 import {
-    getState as getLegacyAppDomainState,
-    subscribe as subscribeLegacyAppDomain,
-} from "./appState.js";
-import {
+    getState as getCoreAppDomainState,
     subscribe as subscribeCoreAppDomainPath,
     type StateListener,
 } from "../core/stateManager.js";
@@ -12,7 +9,7 @@ type Unsubscribe = () => void;
 
 /** Gets app-domain state through the renderer-facing app-domain facade. */
 export function getAppDomainState(path: string): unknown {
-    return getLegacyAppDomainState(path);
+    return getCoreAppDomainState(path);
 }
 
 /** Subscribes to app-domain state through the renderer-facing facade. */
@@ -20,7 +17,16 @@ export function subscribeAppDomain(
     event: string,
     callback: AppDomainStateListener
 ): Unsubscribe {
-    return subscribeLegacyAppDomain(event, callback);
+    const path = normalizeAppDomainEventPath(event);
+
+    return subscribeCoreAppDomainPath(path, (newValue, oldValue) => {
+        callback({
+            newValue,
+            oldValue,
+            path,
+            timestamp: Date.now(),
+        });
+    });
 }
 
 /** Subscribes to an app-domain state path through the renderer-facing facade. */
@@ -29,4 +35,10 @@ export function subscribeAppDomainPath(
     callback: StateListener
 ): Unsubscribe {
     return subscribeCoreAppDomainPath(path, callback);
+}
+
+function normalizeAppDomainEventPath(event: string): string {
+    return event.endsWith("-changed")
+        ? event.slice(0, -"-changed".length)
+        : event;
 }

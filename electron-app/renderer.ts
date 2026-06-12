@@ -44,7 +44,7 @@ import {
     createRendererImportTimeBootstrap,
     runRendererImportTimeBootstrap,
 } from "./renderer/importTimeBootstrap.js";
-import { installRendererGlobalSurfaces } from "./renderer/globalSurfacesWiring.js";
+import { initializeRendererDiagnostics } from "./renderer/rendererDiagnosticsWiring.js";
 import { createRendererFileInputWiring } from "./renderer/fileInputWiring.js";
 import { registerRendererTestOnlyBootstrap } from "./renderer/testOnlyBootstrap.js";
 import { createRendererDomAccess } from "./renderer/domElementAccess.js";
@@ -188,7 +188,7 @@ registerRendererApplicationLifecycle({
     windowTarget: runtimeEnvironment.windowTarget,
 });
 
-installRendererGlobalSurfaces({
+initializeRendererDiagnostics({
     cleanup,
     ensureCoreModules,
     initializeApplication,
@@ -208,18 +208,12 @@ fileInputWiring.registerImportTimeFileInputChangeHandler(
 );
 
 installRendererElectronApiWiring({
-    addEventListener: runtimeEnvironment.addEventListener,
     callUnknownFunction,
-    clearInterval: runtimeEnvironment.clearInterval,
-    defineProperty: Object.defineProperty,
     electronApiCandidate: runtimeEnvironment.electronApiCandidate,
     ensureCoreModules,
     getFileInput: fileInputWiring.getFileInput,
     logRenderer,
-    removeEventListener: runtimeEnvironment.removeEventListener,
     scheduleStateInitialization: scheduleImportTimeStateInitialization,
-    scope: runtimeEnvironment.scope,
-    setInterval: runtimeEnvironment.setInterval,
 });
 
 registerRendererTestOnlyBootstrap(testOnlyBootstrapOptions, {

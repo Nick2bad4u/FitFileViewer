@@ -1,11 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import {
-    clearChartInstanceRegistryForTests,
-    getRegisteredChartInstances,
-    setRegisteredChartInstances,
-} from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
 type ZoneRecord = Record<string, unknown>;
+type ChartInstanceRegistryModule =
+    typeof import("../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
 type ChartInstance = {
     data?: {
         datasets?: Array<{
@@ -41,6 +38,21 @@ const chartStateManagerRef: {
 } = {
     current: { debouncedRender: debouncedRenderMock },
 };
+let chartInstanceRegistryModule: ChartInstanceRegistryModule | undefined;
+
+function clearChartInstanceRegistryForTests(): void {
+    chartInstanceRegistryModule?.clearChartInstanceRegistryForTests();
+}
+
+function getRegisteredChartInstances(): unknown[] {
+    return chartInstanceRegistryModule?.getRegisteredChartInstances() ?? [];
+}
+
+function setRegisteredChartInstances(charts: readonly unknown[]): unknown[] {
+    return (
+        chartInstanceRegistryModule?.setRegisteredChartInstances(charts) ?? []
+    );
+}
 
 vi.mock(
     import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
@@ -106,6 +118,8 @@ vi.mock(
 
 async function loadModule() {
     await vi.resetModules();
+    chartInstanceRegistryModule =
+        await import("../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
     const zoneDataStateModule =
         await import("../../../../../electron-app/utils/data/zones/zoneDataState.js");
     const zoneColorPickerModule =

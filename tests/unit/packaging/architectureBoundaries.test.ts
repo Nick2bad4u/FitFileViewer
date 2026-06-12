@@ -217,6 +217,7 @@ const migratedStateDebugGlobalFreeFiles = [
 ] as const;
 const rendererVendorBrowserPackageImportAllowedFiles = [
     "electron-app/renderer/vendorGlobalsChartData.ts",
+    "electron-app/renderer/vendorGlobalsCore.ts",
     "electron-app/renderer/vendorGlobalsMap.ts",
 ] as const;
 const migratedDataTableImportFiles = [
@@ -642,11 +643,7 @@ const directMainUiDevelopmentHelperGlobalPattern =
     /\b(?:window|globalThis|getMainUiGlobal\(\)|mainUiGlobal)\.(?:injectMenu|devCleanup)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:injectMenu|devCleanup)["']\s*\)/u;
 const directMainProcessDevHelpersGlobalPattern =
     /\b(?:window|globalThis)\.devHelpers\b|Object\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)/u;
-const directElectronHoistedMockGlobalAllowedFiles = new Set([
-    "electron-app/main/runtime/electronAccess.ts",
-    "electron-app/preload/electronBridge.ts",
-    "electron-app/preload/preloadBootstrap.ts",
-] as const);
+const directElectronHoistedMockGlobalAllowedFiles = new Set<string>();
 const directElectronHoistedMockGlobalPattern =
     /\b(?:window|globalThis|getMenuGlobal\(\))\.__electronHoistedMock\b|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']__electronHoistedMock["']/u;
 const directMenuModalPresenterGlobalPattern =
@@ -1112,6 +1109,18 @@ describe("architecture boundaries", () => {
         ).toStrictEqual([]);
     });
 
+    it("keeps preload before-exit tracking off global registries", () => {
+        expect.assertions(3);
+
+        const source = stripComments(
+            readRepositoryFile("electron-app/preload/beforeExitHandler.ts")
+        );
+
+        expect(source).toContain("new WeakMap<");
+        expect(source).not.toContain("Symbol.for");
+        expect(source).not.toContain("__ffv_preload_beforeExitRegistry__");
+    });
+
     it("keeps renderer-adjacent source out of main-process-only imports", () => {
         expect.assertions(1);
 
@@ -1194,7 +1203,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload API domain contracts in the shared preload API module", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const localDomainContracts = preloadDomainContractFiles
             .filter((relativeFile) =>
@@ -1215,6 +1224,44 @@ describe("architecture boundaries", () => {
         expect(sharedPreloadApiSource).toContain(
             "export type ElectronMainStateApi"
         );
+        expect(sharedPreloadApiSource).toContain(
+            "export type ElectronGyazoExternalApi"
+        );
+        expect(sharedPreloadApiSource).toContain(
+            "export type ElectronShellExternalApi"
+        );
+    });
+
+    it("keeps preload shell and Gyazo external APIs split in external assembly", () => {
+        expect.assertions(10);
+
+        const apiAssemblySource = stripComments(
+            readRepositoryFile("electron-app/preload/apiAssembly.ts")
+        );
+        const externalApiDomainSource = stripComments(
+            readRepositoryFile("electron-app/preload/externalApiDomain.ts")
+        );
+        const electronApiFactorySource = stripComments(
+            readRepositoryFile("electron-app/preload/electronApiFactory.ts")
+        );
+        const moduleTypesSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
+        );
+
+        expect(hasRepositoryFile("electron-app/preload/appApiDomain.ts")).toBe(
+            false
+        );
+        expect(hasRepositoryFile("electron-app/preload/externalApi.ts")).toBe(
+            false
+        );
+        expect(apiAssemblySource).toContain("createPreloadExternalApiDomain");
+        expect(apiAssemblySource).toContain("createPreloadClipboardApiDomain");
+        expect(externalApiDomainSource).toContain("createGyazoExternalApi");
+        expect(externalApiDomainSource).toContain("createShellExternalApi");
+        expect(externalApiDomainSource).not.toContain("createExternalApi");
+        expect(electronApiFactorySource).toContain("gyazoExternalApi");
+        expect(electronApiFactorySource).toContain("shellExternalApi");
+        expect(moduleTypesSource).toContain("ElectronShellExternalApi");
     });
 
     it("keeps the preload event helper free of generic IPC methods", () => {
@@ -1414,19 +1461,15 @@ describe("architecture boundaries", () => {
         expect(stateManagerSource).not.toContain("Reflect.get(globalThis");
     });
 
-    it("keeps the legacy appState manager free of reactive descriptor bridges", () => {
-        expect.assertions(3);
+    it("keeps the legacy appState domain manager removed", () => {
+        expect.assertions(1);
 
-        const appStateSource = stripComments(
-            readRepositoryFile("electron-app/utils/state/domain/appState.ts")
-        );
-
-        expect(appStateSource).not.toContain("setupReactiveProperties");
-        expect(appStateSource).not.toContain("createReactiveProperty");
-        expect(appStateSource).not.toContain("Object.defineProperty");
+        expect(
+            hasRepositoryFile("electron-app/utils/state/domain/appState.ts")
+        ).toBe(false);
     });
 
-    it("keeps the legacy appState manager out of the public state-domain barrel", () => {
+    it("keeps the legacy appState manager out of public state-domain entry points", () => {
         expect.assertions(2);
 
         const domainBarrelSource = stripComments(
@@ -1439,7 +1482,7 @@ describe("architecture boundaries", () => {
         );
 
         expect(domainBarrelSource).not.toContain("./appState.js");
-        expect(appDomainFacadeSource).toContain("./appState.js");
+        expect(appDomainFacadeSource).not.toContain("./appState.js");
     });
 
     it("keeps renderer import-time bootstrap off legacy appState manual mocks", () => {
@@ -2368,16 +2411,14 @@ describe("architecture boundaries", () => {
             )
         );
 
-        expect(vendorChartDataEntry).toContain(
-            "setDataTableRuntime(DataTable)"
-        );
+        expect(vendorChartDataEntry).toContain("dataTableRuntime: DataTable");
         expect(vendorChartDataEntry).not.toContain(
             'defineMissingGlobal("DataTable"'
         );
     });
 
     it("keeps Chart.js wired through the runtime adapter instead of renderer globals", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const vendorChartDataEntry = stripComments(
             readRepositoryFile(
@@ -2385,9 +2426,8 @@ describe("architecture boundaries", () => {
             )
         );
 
-        expect(vendorChartDataEntry).toContain(
-            "setChartRuntime(Chart, zoomPlugin)"
-        );
+        expect(vendorChartDataEntry).toContain("chartRuntime: Chart");
+        expect(vendorChartDataEntry).toContain("chartZoomPlugin: zoomPlugin");
         expect(vendorChartDataEntry).not.toContain(
             'defineMissingGlobal("Chart"'
         );
@@ -2400,6 +2440,57 @@ describe("architecture boundaries", () => {
         expect(vendorChartDataEntry).not.toContain(
             'defineMissingGlobal("Hammer"'
         );
+    });
+
+    it("keeps Chart.js and DataTables runtime adapters off global symbol registries", () => {
+        expect.assertions(9);
+
+        const chartRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/charts/core/chartRuntime.ts")
+        );
+        const chartInstanceRegistrySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartInstanceRegistry.ts"
+            )
+        );
+        const dataTableRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/core/dataTableRuntime.ts"
+            )
+        );
+        const vendorGlobalsSharedSource = stripComments(
+            readRepositoryFile("electron-app/renderer/vendorGlobalsShared.ts")
+        );
+
+        expect(chartRuntimeSource).not.toContain("Symbol.for");
+        expect(chartRuntimeSource).not.toContain("globalThis");
+        expect(chartInstanceRegistrySource).not.toContain("Symbol.for");
+        expect(chartInstanceRegistrySource).not.toContain("globalThis");
+        expect(dataTableRuntimeSource).not.toContain("Symbol.for");
+        expect(dataTableRuntimeSource).not.toContain("globalThis");
+        expect(vendorGlobalsSharedSource).not.toContain("Symbol.for");
+        expect(vendorGlobalsSharedSource).not.toContain("globalThis &");
+        expect(vendorGlobalsSharedSource).not.toContain(
+            "rendererVendorRuntimePayloads"
+        );
+    });
+
+    it("keeps core vendor runtime adapters off global symbol registries", () => {
+        expect.assertions(8);
+
+        const coreRuntimeSources = [
+            "electron-app/utils/dom/domPurifyRuntime.ts",
+            "electron-app/utils/files/export/exportZipRuntime.ts",
+            "electron-app/utils/rendering/helpers/arqueroRuntime.ts",
+            "electron-app/utils/ui/controls/screenfullRuntime.ts",
+        ].map((relativeFile) =>
+            stripComments(readRepositoryFile(relativeFile))
+        );
+
+        for (const source of coreRuntimeSources) {
+            expect(source).not.toContain("Symbol.for");
+            expect(source).not.toContain("globalThis");
+        }
     });
 
     it("keeps migrated DOM sanitizers on the DOMPurify runtime adapter", () => {
@@ -2423,7 +2514,7 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
         );
 
-        expect(vendorCoreEntry).toContain("setDomPurifyRuntime(DOMPurify)");
+        expect(vendorCoreEntry).toContain("domPurifyRuntime: DOMPurify");
         expect(vendorCoreEntry).not.toContain(
             'defineMissingGlobal("DOMPurify"'
         );
@@ -2450,7 +2541,7 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
         );
 
-        expect(vendorCoreEntry).toContain("setArqueroRuntime(arquero)");
+        expect(vendorCoreEntry).toContain("arqueroRuntime: arquero");
         expect(vendorCoreEntry).not.toContain('defineMissingGlobal("aq"');
         expect(vendorCoreEntry).not.toContain('defineMissingGlobal("arquero"');
     });
@@ -2476,7 +2567,7 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
         );
 
-        expect(vendorCoreEntry).toContain("setExportZipRuntime(JSZip)");
+        expect(vendorCoreEntry).toContain("exportZipRuntime: JSZip");
         expect(vendorCoreEntry).not.toContain('defineMissingGlobal("JSZip"');
     });
 
@@ -2825,7 +2916,7 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
         );
 
-        expect(vendorCoreEntry).toContain("setScreenfullRuntime(screenfull)");
+        expect(vendorCoreEntry).toContain("screenfullRuntime: screenfull");
         expect(vendorCoreEntry).not.toContain(
             'defineMissingGlobal("screenfull"'
         );
@@ -2845,8 +2936,8 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps renderer Electron API global proxy wiring test-only", () => {
-        expect.assertions(4);
+    it("keeps renderer Electron API registration on explicit candidates only", () => {
+        expect.assertions(8);
 
         const registrationSource = stripComments(
             readRepositoryFile(
@@ -2858,14 +2949,8 @@ describe("architecture boundaries", () => {
                 "export function installRendererElectronApiRegistration"
             ),
             registrationSource.indexOf(
-                "export function installRendererElectronAPIProxy"
+                "export function registerRendererElectronAPI"
             )
-        );
-        const manualMockBranchIndex = installerSource.indexOf(
-            "if (isVitestManualMockEnvironment(options.scope))"
-        );
-        const proxyInstallIndex = installerSource.indexOf(
-            "installRendererElectronAPIProxy(options)"
         );
 
         expect(installerSource).toContain(
@@ -2874,8 +2959,22 @@ describe("architecture boundaries", () => {
         expect(installerSource).not.toContain(
             'Reflect.get(options.scope, "electronAPI")'
         );
-        expect(manualMockBranchIndex).toBeGreaterThanOrEqual(0);
-        expect(proxyInstallIndex).toBeGreaterThan(manualMockBranchIndex);
+        expect(registrationSource).not.toContain("__vitest_manual_mocks__");
+        expect(registrationSource).not.toContain(
+            "installRendererElectronAPIProxy"
+        );
+        expect(registrationSource).not.toContain(
+            "startRendererElectronAPITestPolling"
+        );
+        expect(registrationSource).not.toContain(
+            "registerRendererElectronPollingCleanup"
+        );
+        expect(registrationSource).not.toContain(
+            "Object.defineProperty = function"
+        );
+        expect(registrationSource).not.toContain(
+            "installElectronAPIDefinePropertyInterceptor"
+        );
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
@@ -3536,11 +3635,19 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps Leaflet plugins wired through the runtime adapter without a persistent global", () => {
-        expect.assertions(11);
+    it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
+        expect.assertions(22);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/vendorGlobalsMap.ts")
+        );
+        const leafletRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/maps/core/leafletRuntime.ts")
+        );
+        const legacyLeafletPluginRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/legacyLeafletPluginRuntime.ts"
+            )
         );
         const viteRendererConfig = stripComments(
             readRepositoryFile("vite.renderer.config.mjs")
@@ -3561,13 +3668,30 @@ describe("architecture boundaries", () => {
         const setLeafletRuntimeIndex = vendorMapEntry.indexOf(
             "setLeafletRuntime(Leaflet)"
         );
+        const setLegacyLeafletRuntimeIndex = vendorMapEntry.indexOf(
+            "setLegacyLeafletPluginRuntime(Leaflet)"
+        );
         const leafletDrawImportIndex = vendorMapEntry.indexOf(
             'import("leaflet-draw")'
         );
 
         expect(vendorMapEntry).toContain("setLeafletRuntime(Leaflet)");
+        expect(vendorMapEntry).toContain("leafletRuntime: Leaflet");
         expect(setLeafletRuntimeIndex).toBeGreaterThanOrEqual(0);
+        expect(setLegacyLeafletRuntimeIndex).toBeGreaterThan(
+            setLeafletRuntimeIndex
+        );
         expect(leafletDrawImportIndex).toBeGreaterThan(setLeafletRuntimeIndex);
+        expect(leafletDrawImportIndex).toBeGreaterThan(
+            setLegacyLeafletRuntimeIndex
+        );
+        expect(leafletRuntimeSource).not.toContain("Symbol.for");
+        expect(leafletRuntimeSource).not.toContain("globalThis");
+        expect(legacyLeafletPluginRuntimeSource).toContain(
+            "getLegacyLeafletPluginRuntime"
+        );
+        expect(legacyLeafletPluginRuntimeSource).not.toContain("Symbol.for");
+        expect(legacyLeafletPluginRuntimeSource).not.toContain("globalThis");
         expect(vendorMapEntry).not.toContain(
             "installLeafletPluginCompatibilityGlobal"
         );
@@ -3577,8 +3701,13 @@ describe("architecture boundaries", () => {
             "fitfileviewer-legacy-leaflet-plugin-runtime"
         );
         expect(viteRendererConfig).toContain(
-            'Symbol.for("fitfileviewer.leafletRuntime")'
+            'import { getLegacyLeafletPluginRuntime } from "/electron-app/renderer/legacyLeafletPluginRuntime.ts";'
         );
+        expect(viteRendererConfig).toContain(
+            "const L = getLegacyLeafletPluginRuntime();"
+        );
+        expect(viteRendererConfig).not.toContain("Symbol.for");
+        expect(viteRendererConfig).not.toContain("globalThis");
         expect(viteRendererConfig).toContain(
             "/node_modules/leaflet-draw/dist/leaflet.draw.js"
         );
