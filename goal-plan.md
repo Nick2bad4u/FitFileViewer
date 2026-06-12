@@ -353,6 +353,9 @@ instead of assigning or deleting `globalThis` properties directly, with architec
 test-harness mutation pattern.
 Chart zone color utility tests now install localStorage through a descriptor-scoped fixture instead of assigning
 `globalThis.localStorage` directly, with architecture coverage blocking that fixture mutation pattern.
+Chart status indicator tests now install temporary document, window, constructor, timer, and event-listener
+fixtures through descriptor-scoped helpers instead of assigning browser globals or event handlers directly, with
+architecture coverage blocking that fixture mutation pattern.
 Main UI startup tests no longer delete retired renderer globals such as `devCleanup`, `injectMenu`,
 `showFitData`, `renderChartJS`, or `cleanupEventListeners` while proving those globals stay absent, and
 architecture coverage blocks those mutations from returning.

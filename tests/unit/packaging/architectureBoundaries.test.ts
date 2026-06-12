@@ -830,6 +830,8 @@ const directGlobalChartStatusUpdaterRuntimeGlobalPattern =
     /\bdocument\.(?:body|querySelector)\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusEventGlobalPattern =
     /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\(\s*["']fieldToggleChanged["']|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const chartStatusIndicatorTestDirectBrowserFixtureAssignmentPattern =
+    /\b(?:globalThis|global|testGlobal)\.(?:addEventListener|customElements|document|HTMLElement|setTimeout|window)\s*=|\b(?:document|window)\.addEventListener\s*=/u;
 const directChartListenerStateAbortControllerPattern =
     /\bnew\s+AbortController\b/u;
 const directRenderChartDirectRerenderRuntimeGlobalPattern =
@@ -6800,6 +6802,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/data/zones/chartZoneColorUtils.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps chart status indicator tests on descriptor-scoped browser fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            chartStatusIndicatorTestDirectBrowserFixtureAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/charts/components/chartStatusIndicator.test.ts"
                     )
                 )
             )
