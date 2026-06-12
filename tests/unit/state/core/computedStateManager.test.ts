@@ -64,7 +64,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             fitFile: {
                 rawData: null,
             },
-            globalData: {},
+            sampleData: {},
             app: {
                 initialized: false,
                 isOpeningFile: false,
@@ -184,12 +184,12 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             it("should register a new computed value with dependencies", () => {
                 expect.assertions(5);
                 const computeFn = vi.fn<(state: any) => string>((state) =>
-                    state.globalData ? "loaded" : "empty"
+                    state.sampleData ? "loaded" : "empty"
                 );
                 const cleanup = computedStateManager.addComputed(
                     "testComputed",
                     computeFn,
-                    ["globalData"]
+                    ["sampleData"]
                 );
 
                 expect(
@@ -197,13 +197,13 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 ).toStrictEqual(true);
                 expect(
                     computedStateManager.dependencies.get("testComputed")
-                ).toEqual(["globalData"]);
+                ).toEqual(["sampleData"]);
                 expect(
                     computedStateManager.subscriptions.get("testComputed")
                 ).toHaveLength(1);
                 expect(
                     computedStateManager.dependencies.get("missingComputed")
-                ).not.toEqual(["globalData"]);
+                ).not.toEqual(["sampleData"]);
                 expect(cleanup).toBeTypeOf("function");
             });
 
@@ -231,7 +231,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
 
                 expect(
                     getRequiredLastMockCall(computeFn, "computeFn")[0]
-                        .globalData
+                        .sampleData
                 ).toEqual({});
                 expect(
                     computedStateManager.computedValues.get("initialTest").value
@@ -386,7 +386,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 const result = computedStateManager.getComputed("invalidTest");
                 expect(
                     getRequiredLastMockCall(computeFn, "computeFn")[0]
-                        .globalData
+                        .sampleData
                 ).toEqual({});
                 expect(result).toBe("recomputed-value");
             });
@@ -405,7 +405,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 const result = computedStateManager.getComputed("errorTest");
                 expect(
                     getRequiredLastMockCall(computeFn, "computeFn")[0]
-                        .globalData
+                        .sampleData
                 ).toEqual({});
                 expect(result).toBe("fixed-value");
             });
@@ -468,7 +468,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 expect.assertions(2);
                 const unsubscribe = vi.fn<() => void>();
                 computedStateManager.addComputed("removeTest", () => "value", [
-                    "globalData",
+                    "sampleData",
                 ]);
                 // Manually set up the subscription for testing cleanup
                 computedStateManager.subscriptions.set("removeTest", [
@@ -549,10 +549,10 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 computedStateManager.recomputeAll();
 
                 expect(
-                    getRequiredLastMockCall(fn1, "fn1")[0].globalData
+                    getRequiredLastMockCall(fn1, "fn1")[0].sampleData
                 ).toEqual({});
                 expect(
-                    getRequiredLastMockCall(fn2, "fn2")[0].globalData
+                    getRequiredLastMockCall(fn2, "fn2")[0].sampleData
                 ).toEqual({});
                 const firstComputed =
                     computedStateManager.computedValues.get("test1");
@@ -635,7 +635,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             it("should clean up all state and subscriptions", () => {
                 expect.assertions(2);
                 computedStateManager.addComputed("cleanup1", () => "value1", [
-                    "globalData",
+                    "sampleData",
                 ]);
                 computedStateManager.addComputed("cleanup2", () => "value2", [
                     "ui",
@@ -961,10 +961,10 @@ describe("computedStateManager.js - comprehensive coverage", () => {
         it("should trigger recomputation when dependencies change", () => {
             expect.assertions(6);
             const computeFn = vi.fn<(state: any) => string>(
-                (state) => state.globalData?.test || "default"
+                (state) => state.sampleData?.test || "default"
             );
             computedStateManager.addComputed("reactive", computeFn, [
-                "globalData.test",
+                "sampleData.test",
             ]);
 
             expect(computeFn).toHaveBeenCalledOnce(); // Initial computation
@@ -975,10 +975,10 @@ describe("computedStateManager.js - comprehensive coverage", () => {
                 mockStateManager.subscribe.mock.calls.map(
                     ([path, callback]) => [path, typeof callback]
                 )
-            ).toStrictEqual([["globalData.test", "function"]]);
+            ).toStrictEqual([["sampleData.test", "function"]]);
 
-            mockStateManager.setState("globalData.test", "updated");
-            mockStateManager.triggerSubscriptions("globalData.test");
+            mockStateManager.setState("sampleData.test", "updated");
+            mockStateManager.triggerSubscriptions("sampleData.test");
 
             expect(
                 computedStateManager.computedValues.get("reactive").isValid
@@ -986,7 +986,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             expect(getComputed("reactive")).toBe("updated");
             expect(
                 computedStateManager.dependencies.get("reactive")
-            ).not.toContain("globalData.missing");
+            ).not.toContain("sampleData.missing");
         });
 
         it("should handle multiple dependencies correctly", () => {
@@ -1017,7 +1017,7 @@ describe("computedStateManager.js - comprehensive coverage", () => {
             expect(getComputed("multiDep")).toBe("ready-edit");
             expect(
                 computedStateManager.dependencies.get("multiDep")
-            ).not.toContain("globalData.test");
+            ).not.toContain("sampleData.test");
         });
     });
 

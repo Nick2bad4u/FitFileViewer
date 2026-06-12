@@ -691,6 +691,8 @@ const tabButtonStateIntegrationRetiredGlobalDataFixturePattern =
     /\|\s*["']globalData["']|\bglobalData:\s*null/u;
 const strictMainUiTestRetiredGlobalDataFixturePattern =
     /\bglobalData:\s*undefined|\bmockState\[\s*["']globalData["']\s*\]/u;
+const computedStateManagerTestRetiredGlobalDataFixturePattern =
+    /\bglobalData(?:\.(?:missing|test))?\b/u;
 const createShownFilesListTestRetiredLeafletGlobalPattern =
     /\bwindowMock\.L\b|\(\s*global\.window\s+as\s+any\s*\)\.L\b|\b(?:window|globalThis)\.L\b/u;
 const tabButtonsTestRetiredGlobalMutationPattern =
@@ -6486,6 +6488,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/state/core/unifiedStateManager.globalDataStore.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps computed state manager tests off retired globalData fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            computedStateManagerTestRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/state/core/computedStateManager.test.ts"
                     )
                 )
             )

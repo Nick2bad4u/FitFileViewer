@@ -323,6 +323,8 @@ slot instead of carrying a retired `globalData` fixture slot, with architecture 
 integration fixture shape.
 Strict main UI tests no longer seed a retired `globalData` mock-state key while exercising renderer startup
 flows, with architecture coverage blocking that stale strict-test fixture.
+Computed state manager tests now use neutral `sampleData` dependencies for generic computed-value coverage
+instead of normalizing the retired `globalData` state path, with architecture coverage blocking that stale fixture.
 Chart resize listener tests no longer install or clean legacy Chart.js renderer globals while proving
 fullscreen resize uses registered chart instances, with architecture coverage preventing those mutations.
 RenderChartJS comprehensive tests no longer delete retired Chart.js runtime globals such as `Chart`,
