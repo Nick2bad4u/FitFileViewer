@@ -1652,7 +1652,7 @@ describe("architecture boundaries", () => {
             'require("./gyazoStartupTimerState")'
         );
         expect(appEventHandlersSource).toContain(
-            "function resolveGyazoOAuthServer()"
+            "startGyazoOAuthServer"
         );
     });
 
@@ -1816,7 +1816,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(101);
+        expect.assertions(106);
 
         const logWithContextSource = stripComments(
             readRepositoryFile("electron-app/main/logging/logWithContext.ts")
@@ -2069,6 +2069,21 @@ describe("architecture boundaries", () => {
         );
         expect(setupApplicationEventHandlersSource).not.toContain(
             'require("../runtime/nodeModules")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../menu/safeCreateAppMenu")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../oauth/gyazoOAuthServer")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../theme/getThemeFromRenderer")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../window/windowValidation")'
         );
         expect(setupBlockedRequestsSource).not.toContain(
             'require("../runtime/electronAccess")'

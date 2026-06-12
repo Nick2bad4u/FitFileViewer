@@ -1,9 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createRequire } from "node:module";
 import { EventEmitter } from "node:events";
 import type { Mock } from "vitest";
-
-const requireCjs = createRequire(import.meta.url);
 
 type AppEventHandler = (...args: unknown[]) => void;
 type CheckPermissionHandler = (
@@ -12,9 +9,6 @@ type CheckPermissionHandler = (
     requestingOrigin?: string,
     details?: PermissionDetailsLike
 ) => boolean;
-type ElectronAccessModule = {
-    setElectronOverride?: (override: unknown) => void;
-};
 type MockSession = {
     setPermissionCheckHandler: Mock<(handler: CheckPermissionHandler) => void>;
     setPermissionRequestHandler: Mock<
@@ -60,21 +54,11 @@ function assertFunction<T extends (...args: unknown[]) => unknown>(
     }
 }
 
-function clearMainRequireCache() {
-    const electronAccessPath = requireCjs.resolve(
-        "../../../../electron-app/main/runtime/electronAccess"
+async function setElectronOverrideForTest(override: unknown): Promise<void> {
+    const { setElectronOverride } = await import(
+        "../../../../electron-app/main/runtime/electronAccess.js"
     );
-    const mainProcessStateManagerPath = requireCjs.resolve(
-        "../../../../electron-app/utils/state/integration/mainProcessStateManager"
-    );
-    delete requireCjs.cache[electronAccessPath];
-    delete requireCjs.cache[mainProcessStateManagerPath];
-}
-
-function requireElectronAccess(): ElectronAccessModule {
-    return requireCjs(
-        "../../../../electron-app/main/runtime/electronAccess"
-    ) as ElectronAccessModule;
+    setElectronOverride(override);
 }
 
 async function importSetupHandlers(): Promise<SetupHandlersModule> {
@@ -89,19 +73,11 @@ describe("setupApplicationEventHandlers permission hardening", () => {
     beforeEach(() => {
         vi.resetModules();
         process.env.NODE_ENV = "test";
-        clearMainRequireCache();
     });
 
-    afterEach(() => {
-        try {
-            // Ensure no stale override leaks into other suites.
-            const electronAccess = requireElectronAccess();
-            electronAccess.setElectronOverride?.(null);
-        } catch {
-            /* ignore */
-        }
-
-        clearMainRequireCache();
+    afterEach(async () => {
+        // Ensure no stale override leaks into other suites.
+        await setElectronOverrideForTest(null);
         vi.restoreAllMocks();
     });
 
@@ -126,8 +102,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
                 vi.fn<(handler: CheckPermissionHandler) => void>(),
         };
 
-        const electronAccess = requireElectronAccess();
-        electronAccess.setElectronOverride({
+        await setElectronOverrideForTest({
             app: mockApp,
             shell: { openExternal: vi.fn<(url: string) => Promise<void>>() },
         });
@@ -197,7 +172,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
         expect.assertions(4);
 
         process.env.NODE_ENV = "production";
-        clearMainRequireCache();
+        vi.resetModules();
 
         const handlers = new Map<string, AppEventHandler>();
         const mockSession: MockSession = {
@@ -207,8 +182,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
                 vi.fn<(handler: CheckPermissionHandler) => void>(),
         };
 
-        const electronAccess = requireElectronAccess();
-        electronAccess.setElectronOverride({
+        await setElectronOverrideForTest({
             app: {
                 on: vi.fn<
                     (eventName: string, callback: AppEventHandler) => void
@@ -284,8 +258,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
                 vi.fn<(handler: CheckPermissionHandler) => void>(),
         };
 
-        const electronAccess = requireElectronAccess();
-        electronAccess.setElectronOverride({
+        await setElectronOverrideForTest({
             app: {
                 on: vi.fn<
                     (eventName: string, callback: AppEventHandler) => void
@@ -360,8 +333,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
 
         const appEmitter = new MockApp();
 
-        const electronAccess = requireElectronAccess();
-        electronAccess.setElectronOverride({
+        await setElectronOverrideForTest({
             app: appEmitter,
             shell: { openExternal: vi.fn<(url: string) => Promise<void>>() },
         });

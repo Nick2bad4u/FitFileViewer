@@ -1,6 +1,12 @@
 import { fileURLToPath } from "node:url";
 import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
 import { CONSTANTS } from "../constants.js";
+import { logWithContext } from "../logging/logWithContext.js";
+import { safeCreateAppMenu } from "../menu/safeCreateAppMenu.js";
+import {
+    startGyazoOAuthServer,
+    stopGyazoOAuthServer,
+} from "../oauth/gyazoOAuthServer.js";
 import {
     appRef as electronAppRef,
     browserWindowRef as electronBrowserWindowRef,
@@ -9,7 +15,13 @@ import {
 } from "../runtime/electronAccess.js";
 import { httpRef, path } from "../runtime/nodeModules.js";
 import { getAppState, setAppState } from "../state/appState.js";
+import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
+import { validateWindow } from "../window/windowValidation.js";
 import { setGyazoStartupTimer } from "./gyazoStartupTimerState.js";
+
+type AppMenuWindow = Parameters<typeof safeCreateAppMenu>[0];
+type ThemeWindow = Parameters<typeof getThemeFromRenderer>[0];
+type WindowValidationCandidate = Parameters<typeof validateWindow>[0];
 
 let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
@@ -116,33 +128,6 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         openExternal?: (url: string) => unknown;
     }
 
-    interface GyazoOAuthServerModule {
-        startGyazoOAuthServer: () => Promise<unknown>;
-        stopGyazoOAuthServer: () => Promise<unknown>;
-    }
-
-    interface ThemeFromRendererModule {
-        getThemeFromRenderer: (win: unknown) => Promise<string>;
-    }
-
-    interface WindowValidationModule {
-        validateWindow: (win?: unknown, context?: string) => boolean;
-    }
-
-    const { logWithContext } = require("../logging/logWithContext") as {
-        logWithContext: (
-            level: string,
-            message: string,
-            context?: Record<string, unknown>
-        ) => void;
-    };
-    const { safeCreateAppMenu } = require("../menu/safeCreateAppMenu") as {
-        safeCreateAppMenu: (
-            win: unknown,
-            theme: string,
-            loadedFitFilePath?: null | string
-        ) => void;
-    };
     const appRef = electronAppRef as () => AppLike | undefined;
     const browserWindowRef = electronBrowserWindowRef as () =>
         | BrowserWindowStaticLike
@@ -154,18 +139,6 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         object,
         Set<SessionHandlerRegistration>
     >();
-
-    function resolveGyazoOAuthServer(): GyazoOAuthServerModule {
-        return require("../oauth/gyazoOAuthServer") as GyazoOAuthServerModule;
-    }
-
-    function resolveThemeFromRenderer(): ThemeFromRendererModule {
-        return require("../theme/getThemeFromRenderer") as ThemeFromRendererModule;
-    }
-
-    function resolveWindowValidation(): WindowValidationModule {
-        return require("../window/windowValidation") as WindowValidationModule;
-    }
 
     type SessionHandlerRegistration = "download" | "permissions";
 
@@ -600,26 +573,23 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
                             require("../../windowStateUtils") as {
                                 createWindow: () => unknown;
                             };
-                        const win = createWindow();
+                        const win = createWindow() as AppMenuWindow;
                         safeCreateAppMenu(
                             win,
                             CONSTANTS.DEFAULT_THEME,
                             getLoadedFitFilePath()
                         );
                     } else {
-                        const win =
+                        const windowCandidate =
                             (typeof BrowserWindow.getFocusedWindow ===
                             "function"
                                 ? BrowserWindow.getFocusedWindow()
                                 : null) ?? getAppState("mainWindow");
-                        if (
-                            resolveWindowValidation().validateWindow(
-                                win,
-                                "app activate event"
-                            )
-                        ) {
+                        const win =
+                            windowCandidate as WindowValidationCandidate;
+                        if (validateWindow(win, "app activate event")) {
                             safeCreateAppMenu(
-                                win,
+                                win as AppMenuWindow,
                                 CONSTANTS.DEFAULT_THEME,
                                 getLoadedFitFilePath()
                             );
@@ -640,11 +610,14 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
             void (async (): Promise<void> => {
                 if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
                     try {
-                        const theme =
-                            await resolveThemeFromRenderer().getThemeFromRenderer(
-                                win
-                            );
-                        safeCreateAppMenu(win, theme, getLoadedFitFilePath());
+                        const theme = await getThemeFromRenderer(
+                            win as ThemeWindow
+                        );
+                        safeCreateAppMenu(
+                            win as AppMenuWindow,
+                            theme,
+                            getLoadedFitFilePath()
+                        );
                     } catch (error) {
                         logWithContext(
                             "error",
@@ -673,7 +646,7 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
                 if (gyazoServer) {
                     (event as PreventableEvent).preventDefault?.();
                     try {
-                        await resolveGyazoOAuthServer().stopGyazoOAuthServer();
+                        await stopGyazoOAuthServer();
                         appRef()?.quit?.();
                     } catch (error) {
                         logWithContext(
@@ -779,11 +752,9 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
                                 }
                             }
                         } else {
-                            void resolveGyazoOAuthServer()
-                                .startGyazoOAuthServer()
-                                .catch(() => {
-                                    /* ignore */
-                                });
+                            void startGyazoOAuthServer().catch(() => {
+                                /* ignore */
+                            });
                         }
                     } catch {
                         /* ignore */

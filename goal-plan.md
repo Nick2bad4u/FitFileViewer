@@ -97,6 +97,9 @@ The main-process state manager boundary now uses named source exports instead of
 The menu-event setup boundary now uses a named source export and imports migrated constants, IPC registry,
 logging, file-access policy, app-state, and safe menu helpers natively instead of requiring those source
 modules.
+The application-event setup boundary now imports migrated logging, safe menu creation, Gyazo OAuth, theme,
+and window-validation helpers natively; its remaining `windowStateUtils` require belongs to the larger
+window-state CommonJS bridge.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
