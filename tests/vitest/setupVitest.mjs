@@ -1339,7 +1339,6 @@ const leafletMock = {
         measure: vi.fn(() => ({ addTo: vi.fn() })),
         Draw: { Event: { CREATED: "created" } },
     },
-    markerClusterGroup: vi.fn(() => ({ addLayer: vi.fn() })),
     marker: vi.fn(() => ({
         addTo: vi.fn(() => ({ getElement: vi.fn(() => null) })),
     })),

@@ -347,6 +347,8 @@ summary rendering uses typed imports, and architecture coverage blocks that muta
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning.
+The shared Vitest Leaflet mock no longer advertises the removed markercluster package path through a
+`markerClusterGroup` helper, and architecture coverage keeps that stale plugin mock out of setup.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
