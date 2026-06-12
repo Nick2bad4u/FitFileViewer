@@ -1407,6 +1407,44 @@ describe("architecture boundaries", () => {
         }
     });
 
+    it("keeps preload catalog and assembly context helpers on named source exports", () => {
+        const supportExports = [
+            [
+                "electron-app/preload/apiAssemblyContext.ts",
+                "createPreloadApiAssemblyContext",
+                "function",
+            ],
+            [
+                "electron-app/preload/ipcBridgeCatalog.ts",
+                "PRELOAD_CHANNELS",
+                "const",
+            ],
+            [
+                "electron-app/preload/ipcBridgeCatalog.ts",
+                "PRELOAD_EVENTS",
+                "const",
+            ],
+            [
+                "electron-app/preload/ipcBridgeCatalog.ts",
+                "isAllowedUpdateEventName",
+                "function",
+            ],
+        ] as const;
+
+        expect.assertions(supportExports.length * 2);
+
+        for (const [
+            filePath,
+            exportName,
+            exportKind,
+        ] of supportExports) {
+            const source = stripComments(readRepositoryFile(filePath));
+
+            expect(source).toContain(`export ${exportKind} ${exportName}`);
+            expect(source).not.toContain("module.exports");
+        }
+    });
+
     it("keeps preload IPC policy dependencies injected through the module registry", () => {
         expect.assertions(6);
 

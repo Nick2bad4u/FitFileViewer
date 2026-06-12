@@ -1,6 +1,6 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
+
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface ApiAssemblyContextModule {
     createPreloadApiAssemblyContext: (
@@ -8,7 +8,7 @@ interface ApiAssemblyContextModule {
     ) => Record<string, unknown>;
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { createPreloadApiAssemblyContext } = requireFromTest(
     "../../electron-app/preload/apiAssemblyContext.js"
 ) as ApiAssemblyContextModule;

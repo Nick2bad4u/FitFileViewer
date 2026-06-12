@@ -1,7 +1,8 @@
-import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 
-const requireFromTest = createRequire(import.meta.url);
+import { createPreloadSourceRequire } from "../../vitest/helpers/preloadSourceRequire";
+
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const ipcBridgeCatalog = requireFromTest(
     "../../../electron-app/preload/ipcBridgeCatalog.js"
 ) as {
