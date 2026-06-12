@@ -10,7 +10,6 @@ import {
     afterAll as vitestAfterAll,
 } from "vitest";
 
-import { setLeafletRuntime } from "../../electron-app/utils/maps/core/leafletRuntime.js";
 import { appSourcePath } from "../../scripts/lib/workspaces.mjs";
 
 const electronAppRoot = appSourcePath;
@@ -1357,15 +1356,6 @@ const leafletMock = {
         remove: vi.fn(),
     })),
 };
-setLeafletRuntime(leafletMock);
-try {
-    vitestBeforeEach(() => {
-        setLeafletRuntime(leafletMock);
-    });
-} catch {
-    /* ignore: runner not yet available */
-}
-
 // Ensure HTMLElement is available globally for instanceof checks
 if (
     typeof window !== "undefined" &&

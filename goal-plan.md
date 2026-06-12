@@ -349,6 +349,8 @@ resolves only explicitly registered runtimes, and architecture coverage blocks t
 from returning.
 The shared Vitest Leaflet mock no longer advertises the removed markercluster package path through a
 `markerClusterGroup` helper, and architecture coverage keeps that stale plugin mock out of setup.
+Vitest setup no longer registers a default Leaflet runtime for every test; map-related tests install explicit
+Leaflet runtime fixtures when they need one, and architecture coverage keeps setup off `setLeafletRuntime`.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

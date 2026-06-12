@@ -5481,7 +5481,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(25);
+        expect.assertions(27);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/vendorGlobalsMap.ts")
@@ -5556,6 +5556,8 @@ describe("architecture boundaries", () => {
         );
         expect(vendorMapEntry).not.toContain('import("leaflet-minimap")');
         expect(vitestSetupSource).not.toContain("markerClusterGroup");
+        expect(vitestSetupSource).not.toContain("setLeafletRuntime");
+        expect(vitestSetupSource).not.toContain("leafletRuntime.js");
     });
 
     it("keeps direct MapLibre bridge calls quarantined to the vector-layer adapter", () => {
