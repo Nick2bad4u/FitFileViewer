@@ -64,6 +64,9 @@ Main-process file, FIT, browser, dialog, and recent-file IPC handler modules now
 `setupIPCHandlers.ts` imports those migrated handler and file-access policy boundaries natively.
 Main-process clipboard, external integration, and info IPC handler modules now use named source exports as well,
 and `setupIPCHandlers.ts` imports those migrated handler boundaries natively too.
+The main IPC sender policy and IPC registry now use named source exports too, and the registry/setup IPC
+boundary plus main-process state manager import those migrated pieces natively instead of requiring their
+source files.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

@@ -6,13 +6,11 @@ import { registerExternalHandlers } from "./registerExternalHandlers.js";
 import { registerFileSystemHandlers } from "./registerFileSystemHandlers.js";
 import { registerFitFileHandlers } from "./registerFitFileHandlers.js";
 import { registerInfoHandlers } from "./registerInfoHandlers.js";
+import { registerIpcHandle, registerIpcListener } from "./ipcRegistry.js";
 import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
 
 {
     type BrowserWindow = import("electron").BrowserWindow;
-    type GenericInvokeChannel = import("../../shared/ipc").GenericInvokeChannel;
-    type MainProcessIpcEventChannel =
-        import("../../shared/ipc").MainProcessIpcEventChannel;
 
     interface BrowserWindowConstructorLike {
         fromWebContents: (webContents: unknown) => BrowserWindow | null;
@@ -60,10 +58,6 @@ import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
         context?: Record<string, unknown>
     ) => void;
 
-    type IpcListener = (
-        event: { sender: unknown },
-        ...args: unknown[]
-    ) => unknown;
     type GyazoServerStartRequest =
         import("../../shared/ipc").GyazoServerStartRequest;
     type GyazoServerStartResponse =
@@ -126,17 +120,6 @@ import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
     const { getThemeFromRenderer } =
         require("../theme/getThemeFromRenderer") as {
             getThemeFromRenderer: (win: BrowserWindow) => Promise<string>;
-        };
-    const { registerIpcHandle, registerIpcListener } =
-        require("./ipcRegistry") as {
-            registerIpcHandle: (
-                channel: GenericInvokeChannel,
-                handler: (event: unknown, ...args: unknown[]) => unknown
-            ) => void;
-            registerIpcListener: (
-                channel: MainProcessIpcEventChannel,
-                listener: IpcListener
-            ) => void;
         };
     const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
@@ -255,7 +238,9 @@ import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
                 }
             }
 
-            const win = browserWindowRef().fromWebContents(event.sender);
+            const win = browserWindowRef().fromWebContents(
+                (event as { sender: unknown }).sender
+            );
             if (win) {
                 try {
                     const theme = await getThemeFromRenderer(win);

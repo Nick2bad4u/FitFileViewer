@@ -1657,7 +1657,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(35);
+        expect.assertions(43);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -1701,6 +1701,17 @@ describe("architecture boundaries", () => {
         const setupIpcHandlersSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/setupIPCHandlers.ts")
         );
+        const ipcRegistrySource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/ipcRegistry.ts")
+        );
+        const ipcSenderPolicySource = stripComments(
+            readRepositoryFile("electron-app/main/security/ipcSenderPolicy.ts")
+        );
+        const mainProcessStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/mainProcessStateManager.ts"
+            )
+        );
         const registerClipboardHandlersSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/ipc/registerClipboardHandlers.ts"
@@ -1743,6 +1754,11 @@ describe("architecture boundaries", () => {
         expect(registerClipboardHandlersSource).not.toContain("module.exports");
         expect(registerExternalHandlersSource).not.toContain("module.exports");
         expect(registerInfoHandlersSource).not.toContain("module.exports");
+        expect(ipcRegistrySource).not.toContain("module.exports");
+        expect(ipcSenderPolicySource).not.toContain("module.exports");
+        expect(ipcRegistrySource).not.toContain(
+            'require("../security/ipcSenderPolicy")'
+        );
         expect(registerBrowserHandlersSource).not.toContain(
             'require("../security/fileAccessPolicy")'
         );
@@ -1779,6 +1795,12 @@ describe("architecture boundaries", () => {
         expect(setupIpcHandlersSource).not.toContain(
             'require("./registerInfoHandlers")'
         );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./ipcRegistry")'
+        );
+        expect(mainProcessStateManagerSource).not.toContain(
+            'require("../../../main/ipc/ipcRegistry")'
+        );
         expect(fileReadPayloadSource).toContain("export function");
         expect(fitIpcPayloadSource).toContain("export function");
         expect(fileAccessPolicySource).toContain("export function");
@@ -1786,6 +1808,11 @@ describe("architecture boundaries", () => {
         expect(registerClipboardHandlersSource).toContain("export function");
         expect(registerExternalHandlersSource).toContain("export function");
         expect(registerInfoHandlersSource).toContain("export function");
+        expect(ipcRegistrySource).toContain("export function");
+        expect(ipcSenderPolicySource).toContain("export function");
+        expect(mainProcessStateManagerSource).toContain(
+            "registerGenericIpcHandle"
+        );
     });
 
     it("keeps ordinary preload unit tests on native source imports", () => {

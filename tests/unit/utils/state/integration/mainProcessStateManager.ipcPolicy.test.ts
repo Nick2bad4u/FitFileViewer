@@ -117,11 +117,10 @@ async function loadStateManager(
     return (await import("../../../../../electron-app/utils/state/integration/mainProcessStateManager.js")) as unknown as MainProcessStateModule;
 }
 
-function resetIpcRegistry(): void {
+async function resetIpcRegistry(): Promise<void> {
     try {
-        const registry = requireCjs(
-            "../../../../../electron-app/main/ipc/ipcRegistry.js"
-        ) as IpcRegistryModule;
+        const registry =
+            (await import("../../../../../electron-app/main/ipc/ipcRegistry.js")) as unknown as IpcRegistryModule;
         registry.resetIpcRegistries();
     } catch {
         /* Ignore cleanup failures */
@@ -129,14 +128,14 @@ function resetIpcRegistry(): void {
 }
 
 describe("mainProcessStateManager IPC sender policy", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.resetModules();
         vi.stubEnv("NODE_ENV", "production");
-        resetIpcRegistry();
+        await resetIpcRegistry();
     });
 
-    afterEach(() => {
-        resetIpcRegistry();
+    afterEach(async () => {
+        await resetIpcRegistry();
         vi.unstubAllEnvs();
         vi.restoreAllMocks();
     });

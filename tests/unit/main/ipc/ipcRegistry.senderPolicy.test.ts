@@ -39,7 +39,7 @@ function createIpcMainMock(): IpcMainMock {
     };
 }
 
-function loadRegistry(ipcMain: IpcMainMock): IpcRegistryModule {
+async function loadRegistry(ipcMain: IpcMainMock): Promise<IpcRegistryModule> {
     const electronAccess = requireCjs(
         "../../../../electron-app/main/runtime/electronAccess.js"
     ) as ElectronAccessModule;
@@ -50,9 +50,7 @@ function loadRegistry(ipcMain: IpcMainMock): IpcRegistryModule {
         ipcMain,
     });
 
-    return requireCjs(
-        "../../../../electron-app/main/ipc/ipcRegistry.js"
-    ) as IpcRegistryModule;
+    return (await import("../../../../electron-app/main/ipc/ipcRegistry.js")) as unknown as IpcRegistryModule;
 }
 
 describe("ipcRegistry sender policy", () => {
@@ -61,11 +59,10 @@ describe("ipcRegistry sender policy", () => {
         process.env.NODE_ENV = "production";
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         try {
-            const registry = requireCjs(
-                "../../../../electron-app/main/ipc/ipcRegistry.js"
-            ) as IpcRegistryModule;
+            const registry =
+                (await import("../../../../electron-app/main/ipc/ipcRegistry.js")) as unknown as IpcRegistryModule;
             registry.resetIpcRegistries();
         } catch {
             /* ignore */
@@ -83,11 +80,11 @@ describe("ipcRegistry sender policy", () => {
         vi.restoreAllMocks();
     });
 
-    it("wraps invoke handlers with app-file sender validation", () => {
+    it("wraps invoke handlers with app-file sender validation", async () => {
         expect.assertions(5);
 
         const ipcMain = createIpcMainMock();
-        const registry = loadRegistry(ipcMain);
+        const registry = await loadRegistry(ipcMain);
         const handler = vi.fn<IpcCallback>(() => "ok");
         const allowedUrl = pathToFileURL(
             "C:\\mock\\app\\index.html"
@@ -114,11 +111,11 @@ describe("ipcRegistry sender policy", () => {
         expect(handler).toHaveBeenCalledOnce();
     });
 
-    it("wraps event listeners with app-file sender validation", () => {
+    it("wraps event listeners with app-file sender validation", async () => {
         expect.assertions(4);
 
         const ipcMain = createIpcMainMock();
-        const registry = loadRegistry(ipcMain);
+        const registry = await loadRegistry(ipcMain);
         const listener = vi.fn<IpcCallback>(() => undefined);
         const allowedUrl = pathToFileURL(
             "C:\\mock\\app\\index.html"

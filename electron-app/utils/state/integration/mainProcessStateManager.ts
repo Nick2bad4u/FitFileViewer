@@ -18,6 +18,7 @@ import {
     isSafeMainStateOperationId,
     isSafeMainStatePath,
 } from "../../../shared/mainStatePathPolicy.js";
+import { registerIpcHandle as registerGenericIpcHandle } from "../../../main/ipc/ipcRegistry.js";
 
 const RENDERER_READABLE_MAIN_STATE_PATHS: ReadonlySet<string> = new Set([
     "loadedFitFilePath",
@@ -47,9 +48,6 @@ const { getElectron: getStateRuntimeElectron } =
     require("../../../main/runtime/electronAccess") as {
         getElectron: () => unknown;
     };
-const { registerIpcHandle } = require("../../../main/ipc/ipcRegistry") as {
-    registerIpcHandle: MainStateRegisterIpcHandle;
-};
 
 type ConsoleLevel = "debug" | "error" | "info" | "log" | "warn";
 
@@ -87,6 +85,8 @@ type MainStateRegisterIpcHandle = (
     channel: MainStateGenericInvokeChannel,
     handler: unknown
 ) => void;
+const registerIpcHandle =
+    registerGenericIpcHandle as MainStateRegisterIpcHandle;
 type SerializableRecord = Record<string, SerializableValue>;
 type SerializableValue = MainStateIpcValue;
 
