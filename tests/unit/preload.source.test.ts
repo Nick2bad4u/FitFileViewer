@@ -1,12 +1,6 @@
-import path from "node:path";
-
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
-
-const preloadSourceRequire = createPreloadSourceRequire(
-    path.join(process.cwd(), "electron-app", "preload.ts")
-);
+import { resolvePreloadScriptRequire } from "../vitest/helpers/preloadModuleMocks";
 
 type PreloadTestWindow = Window & Record<string, unknown>;
 type IpcListener = (...args: unknown[]) => void;
@@ -153,7 +147,13 @@ const importPreloadFresh = async (
     delete (window as PreloadTestWindow)[DEV_TOOLS_GLOBAL];
     const { startPreloadEntrypoint } =
         await import("../../electron-app/preload/preloadEntrypoint.js");
-    return startPreloadEntrypoint(preloadSourceRequire, {
+    const preloadRequire = ((moduleName: string) =>
+        resolvePreloadScriptRequire(
+            moduleName,
+            electronBridgeOverride
+        )) as NodeJS.Require;
+
+    return startPreloadEntrypoint(preloadRequire, {
         consoleRef: console,
         electronBridgeOverride,
         globalScope: globalThis,

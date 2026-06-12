@@ -1,13 +1,7 @@
-import { createRequire } from "node:module";
-import path from "node:path";
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
-
-const preloadSourceRequire = createRequire(
-    path.join(process.cwd(), "electron-app", "preload.ts")
-);
+import { resolvePreloadScriptRequire } from "../vitest/helpers/preloadModuleMocks";
 
 type ConsoleCall = unknown[];
 type ExposedElectronAPI = Pick<
@@ -46,7 +40,13 @@ async function startPreloadWithElectronBridge(
 ): Promise<void> {
     const { startPreloadEntrypoint } =
         await import("../../electron-app/preload/preloadEntrypoint.js");
-    startPreloadEntrypoint(preloadSourceRequire, {
+    const preloadRequire = ((moduleName: string) =>
+        resolvePreloadScriptRequire(
+            moduleName,
+            electronBridge
+        )) as NodeJS.Require;
+
+    startPreloadEntrypoint(preloadRequire, {
         consoleRef: console,
         electronBridgeOverride: electronBridge,
         globalScope: globalThis,

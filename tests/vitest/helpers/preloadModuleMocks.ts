@@ -1,5 +1,6 @@
 import * as preloadApiAssembly from "../../../electron-app/preload/apiAssembly.js";
 import * as preloadApiAssemblyContext from "../../../electron-app/preload/apiAssemblyContext.js";
+import * as preloadApiAssemblyModuleLoader from "../../../electron-app/preload/preloadApiAssemblyModuleLoader.js";
 import * as preloadApiDiagnostics from "../../../electron-app/preload/apiDiagnostics.js";
 import * as preloadAppInfoApi from "../../../electron-app/preload/appInfoApi.js";
 import * as preloadAppModuleLoader from "../../../electron-app/preload/preloadAppModuleLoader.js";
@@ -31,6 +32,7 @@ import * as preloadMainStateApi from "../../../electron-app/preload/mainStateApi
 import * as preloadMainStateBridge from "../../../electron-app/preload/mainStateBridge.js";
 import * as preloadMenuEventApi from "../../../electron-app/preload/menuEventApi.js";
 import * as preloadModuleLoader from "../../../electron-app/preload/preloadModuleLoader.js";
+import * as preloadPolicyModuleLoader from "../../../electron-app/preload/preloadPolicyModuleLoader.js";
 import * as preloadRuntime from "../../../electron-app/preload/preloadRuntime.js";
 import * as preloadRuntimeEnvironment from "../../../electron-app/preload/preloadRuntimeEnvironment.js";
 import * as preloadShellExternalApi from "../../../electron-app/preload/shellExternalApi.js";
@@ -108,8 +110,16 @@ export function resolvePreloadScriptRequire(
         return preloadModuleLoader;
     }
 
+    if (moduleName === "./preload/preloadApiAssemblyModuleLoader.js") {
+        return preloadApiAssemblyModuleLoader;
+    }
+
     if (moduleName === "./preload/preloadAppModuleLoader.js") {
         return preloadAppModuleLoader;
+    }
+
+    if (moduleName === "./preload/preloadPolicyModuleLoader.js") {
+        return preloadPolicyModuleLoader;
     }
 
     if (moduleName === "./preload/preloadFileModuleLoader.js") {

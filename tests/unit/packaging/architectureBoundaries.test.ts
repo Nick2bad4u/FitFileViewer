@@ -2314,12 +2314,8 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps ordinary preload unit tests on native source imports", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
-        const allowedSourceRequireTests = new Set([
-            "tests/unit/preload.source.test.ts",
-            "tests/unit/preload.sourceExecution.test.ts",
-        ]);
         const directSourceRequireTestFiles = collectSourceFiles("tests/unit")
             .filter(
                 (relativeFile) =>
@@ -2331,12 +2327,22 @@ describe("architecture boundaries", () => {
                     "createPreloadSourceRequire"
                 )
             )
-            .filter(
-                (relativeFile) => !allowedSourceRequireTests.has(relativeFile)
-            )
             .sort();
 
         expect(directSourceRequireTestFiles).toStrictEqual([]);
+
+        const commonJsPreloadTestFiles = collectSourceFiles("tests/unit")
+            .filter((relativeFile) =>
+                /^tests\/unit\/preload.*\.test\.ts$/u.test(relativeFile)
+            )
+            .filter((relativeFile) =>
+                /\b(?:createRequire|preloadSourceRequire)\b/u.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(commonJsPreloadTestFiles).toStrictEqual([]);
     });
 
     it("keeps preload policy unit tests on native source imports", () => {

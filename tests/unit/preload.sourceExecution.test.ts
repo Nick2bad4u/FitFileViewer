@@ -1,13 +1,7 @@
 /* eslint-disable case-police/string-check -- devTools is the preload API contract name. */
-import path from "node:path";
-
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
-
-const preloadSourceRequire = createPreloadSourceRequire(
-    path.join(process.cwd(), "electron-app", "preload.ts")
-);
+import { resolvePreloadScriptRequire } from "../vitest/helpers/preloadModuleMocks";
 
 interface ExposedElectronAPI {
     addRecentFile: (...args: unknown[]) => Promise<unknown>;
@@ -62,7 +56,13 @@ let preloadElectronBridgeMock: {
 async function startPreloadWithElectronBridge(): Promise<void> {
     const { startPreloadEntrypoint } =
         await import("../../electron-app/preload/preloadEntrypoint.js");
-    startPreloadEntrypoint(preloadSourceRequire, {
+    const preloadRequire = ((moduleName: string) =>
+        resolvePreloadScriptRequire(
+            moduleName,
+            preloadElectronBridgeMock
+        )) as NodeJS.Require;
+
+    startPreloadEntrypoint(preloadRequire, {
         consoleRef: console,
         electronBridgeOverride: preloadElectronBridgeMock,
         globalScope: globalThis,
