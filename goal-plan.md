@@ -324,6 +324,9 @@ blocks those mutations from returning.
 RenderChartJS state API tests no longer install a retired `window.Chart` fixture for state-only helper
 coverage, their chart-data fixtures now default through `fitFile.rawData` instead of retired `globalData`,
 and architecture coverage blocks those stale fixtures from returning.
+Strict lap-zone chart tests now name their raw-data fixtures as active FIT data instead of retired `globalData`,
+matching the production `getActiveFitActivityData()` path, and architecture coverage blocks the stale fixture
+names from returning.
 Main UI startup tests no longer delete retired renderer globals such as `devCleanup`, `injectMenu`,
 `showFitData`, `renderChartJS`, or `cleanupEventListeners` while proving those globals stay absent, and
 architecture coverage blocks those mutations from returning.

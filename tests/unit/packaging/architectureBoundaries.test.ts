@@ -722,6 +722,8 @@ const renderChartJSStateApiTestRetiredGlobalMutationPattern =
     /\bObject\.defineProperty\(\s*window\s*,\s*["']Chart["']|\bReflect\.(?:deleteProperty|set)\(\s*window\s*,\s*["']Chart["']\s*(?:,|\))|\bwindow\.Chart\s*=/u;
 const renderChartJSStateApiTestRetiredGlobalDataFixturePattern =
     /\bgetMockStateValue[\s\S]*?\b["']globalData["']|\bglobalMockState\.data\.set\(\s*["']globalData["']|globalData which means hasValidData/u;
+const renderLapZoneChartsTestRetiredGlobalDataFixturePattern =
+    /\bLapZoneGlobalData\b|\blapZoneGlobalData\b|\bsetLapZoneGlobalData\b|global data validation|managed globalData/u;
 const directShowNotificationGlobalLookupPattern =
     /\b(?:window|globalThis|chartGlobal|globalRef|runtimeGlobal|zoneColorGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
 const directRendererDevGlobalPattern =
@@ -6634,6 +6636,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/renderChartJS.stateApi.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps lap-zone chart tests on active FIT data fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderLapZoneChartsTestRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/renderLapZoneCharts.test.ts"
                     )
                 )
             )

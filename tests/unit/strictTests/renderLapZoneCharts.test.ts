@@ -77,7 +77,7 @@ type ChartRenderFunction = (
     options: { title: string }
 ) => unknown;
 type ChartRenderMock = Mock<ChartRenderFunction>;
-type LapZoneGlobalData = {
+type LapZoneActiveFitData = {
     timeInZoneMesgs?: unknown[] | null;
 };
 
@@ -91,7 +91,7 @@ const renderSinglePowerZoneBarMock =
 
 describe(renderLapZoneCharts, () => {
     let container: HTMLElement;
-    let lapZoneGlobalData: LapZoneGlobalData;
+    let lapZoneActiveFitData: LapZoneActiveFitData;
     let mockConsoleLog: ReturnType<typeof vi.spyOn>;
     let mockConsoleError: ReturnType<typeof vi.spyOn>;
     let mockShowNotification: Mock<(message: string, type: string) => void>;
@@ -102,9 +102,9 @@ describe(renderLapZoneCharts, () => {
         container = document.createElement("div");
         document.body.appendChild(container);
 
-        // Setup global data
-        lapZoneGlobalData = { timeInZoneMesgs: [] };
-        setActiveFitRawData(lapZoneGlobalData, { source: "test" });
+        // Setup active FIT data
+        lapZoneActiveFitData = { timeInZoneMesgs: [] };
+        setActiveFitRawData(lapZoneActiveFitData, { source: "test" });
 
         clearZoneDataState();
         clearChartInstanceRegistryForTests();
@@ -130,8 +130,10 @@ describe(renderLapZoneCharts, () => {
         vi.restoreAllMocks();
     });
 
-    const setLapZoneGlobalData = (data: LapZoneGlobalData | null): void => {
-        lapZoneGlobalData = data ?? {};
+    const setLapZoneActiveFitData = (
+        data: LapZoneActiveFitData | null
+    ): void => {
+        lapZoneActiveFitData = data ?? {};
         setActiveFitRawData(data, { source: "test" });
     };
 
@@ -238,11 +240,11 @@ describe(renderLapZoneCharts, () => {
         });
     });
 
-    describe("global data validation", () => {
-        it("should return early when managed globalData is missing", () => {
+    describe("active FIT data validation", () => {
+        it("should return early when active FIT data is missing", () => {
             expect.assertions(2);
 
-            setLapZoneGlobalData(null);
+            setLapZoneActiveFitData(null);
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No timeInZoneMesgs available for lap zone charts"
@@ -259,7 +261,7 @@ describe(renderLapZoneCharts, () => {
         it("should return early when timeInZoneMesgs is missing", () => {
             expect.assertions(2);
 
-            setLapZoneGlobalData({});
+            setLapZoneActiveFitData({});
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No timeInZoneMesgs available for lap zone charts"
@@ -276,7 +278,7 @@ describe(renderLapZoneCharts, () => {
         it("should return early when timeInZoneMesgs is null", () => {
             expect.assertions(2);
 
-            setLapZoneGlobalData({ timeInZoneMesgs: null });
+            setLapZoneActiveFitData({ timeInZoneMesgs: null });
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] No timeInZoneMesgs available for lap zone charts"
@@ -293,7 +295,7 @@ describe(renderLapZoneCharts, () => {
         it("should return early when timeInZoneMesgs is empty array", () => {
             expect.assertions(3);
 
-            setLapZoneGlobalData({ timeInZoneMesgs: [] });
+            setLapZoneActiveFitData({ timeInZoneMesgs: [] });
             renderLapZoneCharts(container);
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 "[ChartJS] Found timeInZoneMesgs:",
@@ -320,7 +322,7 @@ describe(renderLapZoneCharts, () => {
                 { referenceMesg: "lap", timeInHrZone: "[0,15,25]" },
                 { referenceMesg: "lap", timeInPowerZone: "[0,5,15]" },
             ];
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 { referenceMesg: "session", timeInHrZone: "[0,10,20]" },
                 ...expectedLapZoneData,
                 { referenceMesg: "activity", timeInHrZone: "[0,8,12]" },
@@ -349,7 +351,7 @@ describe(renderLapZoneCharts, () => {
         it("should return early when no lap-specific zone data found", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 { referenceMesg: "session", timeInHrZone: "[0,10,20]" },
                 { referenceMesg: "activity", timeInHrZone: "[0,8,12]" },
             ];
@@ -374,7 +376,7 @@ describe(renderLapZoneCharts, () => {
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20,30]",
@@ -404,7 +406,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle array inputs directly", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: [
@@ -428,7 +430,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle null values", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: null, referenceIndex: 1 },
             ];
 
@@ -446,7 +448,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle invalid JSON strings", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "invalid json",
@@ -468,7 +470,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle non-string non-array values", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 { referenceMesg: "lap", timeInHrZone: 123, referenceIndex: 1 },
             ];
 
@@ -494,7 +496,7 @@ describe(renderLapZoneCharts, () => {
         it("should process HR zone data correctly", () => {
             expect.assertions(3);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20,30]",
@@ -521,7 +523,7 @@ describe(renderLapZoneCharts, () => {
         it("should process Power zone data correctly", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInPowerZone: "[0,5,15,25]",
@@ -547,7 +549,7 @@ describe(renderLapZoneCharts, () => {
         it("should skip zone 0 (rest zone) in processing", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[50,10,20,30]",
@@ -574,7 +576,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle multiple laps", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,0,30]",
@@ -607,7 +609,7 @@ describe(renderLapZoneCharts, () => {
         it("should filter out zones with zero values across all laps", () => {
             expect.assertions(3);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,0,0]",
@@ -636,7 +638,7 @@ describe(renderLapZoneCharts, () => {
         it("should include zones with data from any lap", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,0,30]",
@@ -667,7 +669,7 @@ describe(renderLapZoneCharts, () => {
         it("should handle empty zone data after filtering", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,0,0,0]",
@@ -700,7 +702,7 @@ describe(renderLapZoneCharts, () => {
                 },
             });
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -741,7 +743,7 @@ describe(renderLapZoneCharts, () => {
         it("should create canvas for Power stacked chart", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInPowerZone: "[0,5,15]",
@@ -771,7 +773,7 @@ describe(renderLapZoneCharts, () => {
         it("should create canvas for Power individual chart", () => {
             expect.assertions(2);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInPowerZone: "[0,5,15]",
@@ -803,7 +805,7 @@ describe(renderLapZoneCharts, () => {
                 id: "mock-power-bar",
             });
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -928,7 +930,7 @@ describe(renderLapZoneCharts, () => {
                 id: "mock-hr-bar",
             });
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -988,7 +990,7 @@ describe(renderLapZoneCharts, () => {
                 throw themeConfigError;
             });
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1017,7 +1019,7 @@ describe(renderLapZoneCharts, () => {
                 throw new Error("Test error");
             });
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1047,7 +1049,7 @@ describe(renderLapZoneCharts, () => {
                 throw testError;
             });
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1081,7 +1083,7 @@ describe(renderLapZoneCharts, () => {
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1146,7 +1148,7 @@ describe(renderLapZoneCharts, () => {
         it("should skip charts when no data available", () => {
             expect.assertions(1);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,0,0]",
@@ -1162,7 +1164,7 @@ describe(renderLapZoneCharts, () => {
 
     describe("theme integration", () => {
         beforeEach(() => {
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1258,7 +1260,7 @@ describe(renderLapZoneCharts, () => {
             ];
             setZoneDataByType("hr", heartRateZones);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1282,7 +1284,7 @@ describe(renderLapZoneCharts, () => {
                 { label: "Zone 2", time: 200, color: "blue" },
             ]);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,20]",
@@ -1320,7 +1322,7 @@ describe(renderLapZoneCharts, () => {
                 (type: string, index: number) => `${type}-zone-${index}`
             );
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10,0]",
@@ -1369,7 +1371,7 @@ describe(renderLapZoneCharts, () => {
             ];
             setZoneDataByType("power", powerZones);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInPowerZone: "[0,5,15]",
@@ -1393,7 +1395,7 @@ describe(renderLapZoneCharts, () => {
                 (type: string, index: number) => `${type}-zone-${index}`
             );
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInPowerZone: "[0,5,0]",
@@ -1458,7 +1460,7 @@ describe(renderLapZoneCharts, () => {
                 { label: "Power Zone 2", value: 180, color: "#ffff00" },
             ]);
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,30,45]",
@@ -1503,7 +1505,7 @@ describe(renderLapZoneCharts, () => {
                 colors: { bgPrimary: "#ffffff", shadow: "none" },
             });
 
-            lapZoneGlobalData.timeInZoneMesgs = [
+            lapZoneActiveFitData.timeInZoneMesgs = [
                 {
                     referenceMesg: "lap",
                     timeInHrZone: "[0,10]",
