@@ -6,6 +6,10 @@ import { fitFileStateManager } from "../utils/state/domain/fitFileState.js";
 import { clearRendererActiveFileState } from "../utils/state/domain/rendererActiveFileState.js";
 import { UIActions } from "../utils/state/domain/uiStateManager.js";
 import { getElementByIdFlexible } from "../utils/ui/dom/elementIdUtils.js";
+import {
+    addEventListenerWithCleanup,
+    validateElement,
+} from "../utils/ui/mainUiDomUtils.js";
 import { showNotification } from "../utils/ui/notifications/showNotification.js";
 
 interface PerformanceMonitorLike {
@@ -23,6 +27,12 @@ export interface MainUiUnloadFlowOptions {
         message: string,
         ...args: unknown[]
     ) => void;
+}
+
+export interface MainUiUnloadRegistrationOptions {
+    readonly electronAPI: MainUiElectronApi | null;
+    readonly unloadButtonId: string;
+    readonly unloadFitFile: () => void;
 }
 
 function isPerformanceMonitorEnabled(monitor: PerformanceMonitorLike): boolean {
@@ -110,4 +120,19 @@ export function createMainUiUnloadFitFile({
             }
         }
     };
+}
+
+export function registerMainUiUnloadHandlers({
+    electronAPI,
+    unloadButtonId,
+    unloadFitFile,
+}: MainUiUnloadRegistrationOptions): void {
+    if (typeof electronAPI?.onUnloadFitFile === "function") {
+        electronAPI.onUnloadFitFile(unloadFitFile);
+    }
+
+    const unloadBtn = validateElement(unloadButtonId);
+    if (unloadBtn) {
+        addEventListenerWithCleanup(unloadBtn, "click", unloadFitFile);
+    }
 }

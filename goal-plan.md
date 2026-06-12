@@ -24,13 +24,14 @@ entries where feature-local dynamic imports can do the job cleanly.
 
 Progress: electron-app/main-ui.ts no longer declares itself as the legacy renderer composition root, no longer
 carries the max-dependencies lint exception, and no longer owns the managed-state/legacy-global unload wording.
-Preload API validation now lives in electron-app/renderer/mainUiElectronApi.ts, theme synchronization lives in
-electron-app/renderer/mainUiThemeSync.ts, and FIT unload cleanup lives in electron-app/renderer/mainUiUnloadFlow.ts.
+Preload API validation, theme synchronization, FIT unload cleanup/listener registration, summary selector
+registration, external-link startup, shutdown hooks, menu injection, development cleanup, drag/drop
+construction, state-startup logging, and vendor/fullscreen startup now live in focused modules under
+electron-app/renderer/.
 
-Remaining target: continue extracting feature bootstraps out of main-ui.ts until it becomes a thin startup
-coordinator. Tab setup, drag/drop, summary selector registration, external-link startup, shutdown hooks, menu
-injection, development cleanup, and vendor/fullscreen startup should be owned by focused modules with explicit
-contracts.
+Remaining target: continue extracting the few pieces main-ui.ts still coordinates directly until it becomes a
+thin startup coordinator. The remaining direct setup is mostly app-window startup, DOM-id wiring, and exported
+compatibility handles for startup tests/dev tools.
 
 4. Remove The Last Legacy State Preservation Semantics (Complete)
 

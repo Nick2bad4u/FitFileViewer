@@ -1,25 +1,23 @@
 /** Main renderer UI composition root with state-management integration. */
-import { getMainUiElectronApi } from "./renderer/mainUiElectronApi.js";
-import { getMainUiRuntimeEnvironment } from "./renderer/mainUiRuntimeEnvironment.js";
-import { createMainUiSummaryColumnSelectorHandler } from "./renderer/mainUiSummaryColumnSelector.js";
-import { initializeMainUiThemeSync } from "./renderer/mainUiThemeSync.js";
-import { createMainUiUnloadFitFile } from "./renderer/mainUiUnloadFlow.js";
-import { ensureRendererVendorBundle } from "./renderer/vendorBundleLoader.js";
-import { setupWindow } from "./utils/app/initialization/setupWindow.js";
-import { AppActions } from "./utils/app/lifecycle/appActions.js";
-import { resourceManager } from "./utils/app/lifecycle/resourceManager.js";
-import { chartTabIntegration } from "./utils/charts/core/chartTabIntegration.js";
-import { UI_CONSTANTS } from "./utils/config/constants.js";
-import { setRendererChartsRendered } from "./utils/state/domain/rendererChartRenderState.js";
-import { setRendererDragCounter } from "./utils/state/domain/rendererDragDropState.js";
-import { setupFullscreenListeners } from "./utils/ui/controls/addFullScreenButton.js";
-import { DragDropHandler } from "./utils/ui/dragDropHandler.js";
 import {
-    addEventListenerWithCleanup,
-    cleanupEventListeners,
-    validateElement,
-} from "./utils/ui/mainUiDomUtils.js";
-import { setupExternalLinkHandlers } from "./utils/ui/setupExternalLinkHandlers.js";
+    createMainUiDevelopmentCleanup,
+    createMainUiMenuInjectionRequester,
+} from "./renderer/mainUiDevelopmentActions.js";
+import { createMainUiDragDropHandler } from "./renderer/mainUiDragDropStartup.js";
+import { getMainUiElectronApi } from "./renderer/mainUiElectronApi.js";
+import { createMainUiExternalLinkLifecycle } from "./renderer/mainUiExternalLinks.js";
+import { getMainUiRuntimeEnvironment } from "./renderer/mainUiRuntimeEnvironment.js";
+import { registerMainUiShutdownHook } from "./renderer/mainUiShutdown.js";
+import { logMainUiStateStartup } from "./renderer/mainUiStateStartup.js";
+import { registerMainUiSummaryColumnSelector } from "./renderer/mainUiSummarySelectorRegistration.js";
+import { initializeMainUiThemeSync } from "./renderer/mainUiThemeSync.js";
+import {
+    createMainUiUnloadFitFile,
+    registerMainUiUnloadHandlers,
+} from "./renderer/mainUiUnloadFlow.js";
+import { initializeMainUiVendorStartup } from "./renderer/mainUiVendorStartup.js";
+import { setupWindow } from "./utils/app/initialization/setupWindow.js";
+import { UI_CONSTANTS } from "./utils/config/constants.js";
 
 const mainUiConsole = getMainUiRuntimeEnvironment().consoleRef;
 
@@ -54,152 +52,45 @@ initializeMainUiThemeSync({ getElectronAPI, logMainUi });
 
 // Register handler to show summary column selector from menu
 const electronAPI = getElectronAPI();
-if (typeof electronAPI?.onOpenSummaryColumnSelector === "function") {
-    electronAPI.onOpenSummaryColumnSelector(
-        createMainUiSummaryColumnSelectorHandler({
-            delay: CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY,
-            gearButtonSelector: ".summary-gear-btn",
-            logMainUi,
-            registerTimer: (timer, options) =>
-                resourceManager.registerTimer(timer, options),
-            summaryTabId: CONSTANTS.DOM_IDS.TAB_SUMMARY,
-        })
-    );
-}
-
-// Listen for unload-fit-file event from main process
-if (typeof electronAPI?.onUnloadFitFile === "function") {
-    electronAPI.onUnloadFitFile(unloadFitFile);
-}
-
-// Unload file when the red X is clicked
-const unloadBtn = validateElement(CONSTANTS.DOM_IDS.UNLOAD_FILE_BTN);
-if (unloadBtn) {
-    addEventListenerWithCleanup(unloadBtn, "click", unloadFitFile);
-}
+registerMainUiSummaryColumnSelector({
+    delay: CONSTANTS.SUMMARY_COLUMN_SELECTOR_DELAY,
+    electronAPI,
+    gearButtonSelector: ".summary-gear-btn",
+    logMainUi,
+    summaryTabId: CONSTANTS.DOM_IDS.TAB_SUMMARY,
+});
+registerMainUiUnloadHandlers({
+    electronAPI,
+    unloadButtonId: CONSTANTS.DOM_IDS.UNLOAD_FILE_BTN,
+    unloadFitFile,
+});
 
 // Tab button state is now managed automatically by the state management system
 // In utils/ui/controls/enableTabButtons.js
 
 // Initialize drag and drop handler
-export const mainUiDragDropHandler = new DragDropHandler();
+export const mainUiDragDropHandler = createMainUiDragDropHandler();
 
 // Initialize the application window with modern state management
 void setupWindow();
 
 // Register cleanup hooks with resource manager
-let cleanupExternalLinkHandlers: (() => void) | null = null;
+const externalLinks = createMainUiExternalLinkLifecycle();
+registerMainUiShutdownHook({
+    cleanupExternalLinks: externalLinks.cleanup,
+    logMainUi,
+});
+externalLinks.install();
 
-resourceManager.addShutdownHook(() => {
-    logMainUi("info", "[ResourceManager] Executing main-ui cleanup...");
-    try {
-        if (typeof cleanupExternalLinkHandlers === "function") {
-            cleanupExternalLinkHandlers();
-        }
-    } catch {
-        /* Ignore cleanup errors during shutdown. */
-    } finally {
-        cleanupExternalLinkHandlers = null;
-    }
-    cleanupEventListeners();
-    AppActions.clearData();
+export const requestMainUiMenuInjection = createMainUiMenuInjectionRequester({
+    getElectronAPI,
+    logMainUi,
+});
+export const runMainUiDevelopmentCleanup = createMainUiDevelopmentCleanup({
+    logMainUi,
 });
 
-// External link handler for opening links in default browser
-const initializeExternalLinkHandlers = (): void => {
-    setupExternalLinkHandlers({
-        cleanupExternalLinkHandlers,
-        setCleanup: (cleanup) => {
-            cleanupExternalLinkHandlers = cleanup;
-        },
-    });
-};
-
-// Initialize external link handlers after DOM is loaded
-if (document.readyState === "loading") {
-    addEventListenerWithCleanup(
-        document,
-        "DOMContentLoaded",
-        initializeExternalLinkHandlers,
-        { once: true }
-    );
-} else {
-    initializeExternalLinkHandlers();
-}
-
-export function requestMainUiMenuInjection(
-    theme: null | string = null,
-    fitFilePath: null | string = null
-): void {
-    try {
-        const api = getElectronAPI();
-        if (typeof api?.injectMenu === "function") {
-            void api.injectMenu(theme, fitFilePath);
-            logMainUi(
-                "info",
-                "[injectMenu] Requested menu injection with theme:",
-                theme,
-                "fitFilePath:",
-                fitFilePath
-            );
-        } else {
-            logMainUi(
-                "warn",
-                "[injectMenu] electronAPI.injectMenu is not available."
-            );
-        }
-    } catch (error) {
-        logMainUi("error", "[injectMenu] Error during menu injection:", error);
-    }
-}
-
-export function runMainUiDevelopmentCleanup(): void {
-    cleanupEventListeners();
-
-    // Clear state using the new system
-    AppActions.clearData();
-    setRendererChartsRendered(false, {
-        silent: false,
-        source: "devCleanup",
-    });
-    setRendererDragCounter(0, {
-        silent: false,
-        source: "devCleanup",
-    });
-
-    // Clean up our new state managers
-    if (typeof chartTabIntegration.destroy === "function") {
-        chartTabIntegration.destroy();
-    }
-
-    // Cleanup all resources via resource manager
-    resourceManager.cleanupAll();
-
-    logMainUi(
-        "info",
-        "[devCleanup] Application state and event listeners cleaned up"
-    );
-}
-
 // Initialize state managers
-logMainUi("info", "[main-ui] Initializing state managers...");
+logMainUiStateStartup({ logMainUi });
 
-// The imports automatically initialize the state managers
-// ChartTabIntegration is a singleton that self-initializes and brings in the other managers
-logMainUi(
-    "info",
-    "[main-ui] Chart tab integration:",
-    chartTabIntegration.getStatus()
-);
-
-logMainUi("info", "[main-ui] State managers initialized successfully");
-
-// Move event listener setup to utility functions
-// Sets up event listeners to handle fullscreen mode toggling for the application.
-try {
-    await ensureRendererVendorBundle("core");
-} catch (error: unknown) {
-    logMainUi("warn", "[main-ui] Core vendor bundle failed to load", error);
-} finally {
-    setupFullscreenListeners();
-}
+await initializeMainUiVendorStartup({ logMainUi });

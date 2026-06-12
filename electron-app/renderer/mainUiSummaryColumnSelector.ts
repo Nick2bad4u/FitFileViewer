@@ -104,7 +104,11 @@ export function createMainUiSummaryColumnSelectorHandler({
                 owner: "main-ui.summary-column-selector",
             });
         } catch (error) {
-            logMainUi("error", "Error handling summary column selector:", error);
+            logMainUi(
+                "error",
+                "Error handling summary column selector:",
+                error
+            );
         }
     };
 }

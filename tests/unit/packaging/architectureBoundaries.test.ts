@@ -51,7 +51,7 @@ const rendererMainUiRuntimeEnvironmentFiles = [
     "electron-app/renderer/mainUiRuntimeEnvironment.ts",
 ] as const;
 const migratedMainUiSummarySelectorRuntimeFiles = [
-    "electron-app/main-ui.ts",
+    "electron-app/renderer/mainUiSummarySelectorRegistration.ts",
 ] as const;
 const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
 const rendererElectronApiRuntimeSourceFiles = [
