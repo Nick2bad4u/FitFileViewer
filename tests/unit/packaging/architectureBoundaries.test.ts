@@ -471,6 +471,8 @@ const directGlobalDataPropertyDefinitionPattern =
     /\bObject\.defineProperty\(\s*(?:window|globalThis)\s*,\s*["']globalData["']/u;
 const debugSensorInfoTestGlobalDataMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']globalData["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']globalData["']/u;
+const unifiedStateManagerGlobalDataTestMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']globalData["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']globalData["']/u;
 const directGlobalDataReactivePropertyPattern =
     /\bcreateReactiveProperty\(\s*["']globalData["']/u;
 const legacyAppStateGlobalDataPattern = /\bAppState\.globalData\b/u;
@@ -6059,6 +6061,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/debug/debugSensorInfo.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps unified state manager globalData tests from mutating retired globals", () => {
+        expect.assertions(1);
+
+        expect(
+            unifiedStateManagerGlobalDataTestMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/state/core/unifiedStateManager.globalDataStore.test.ts"
                     )
                 )
             )

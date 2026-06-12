@@ -279,6 +279,9 @@ absent while using typed ESM mocks, and architecture coverage blocks those mutat
 Keyboard-shortcuts modal tests no longer delete retired modal presenter globals such as
 `showKeyboardShortcutsModal` or `closeKeyboardShortcutsModal` before module import; they now assert those
 names stay absent, and architecture coverage blocks those mutations from returning.
+Unified state manager tests no longer delete the retired `globalData` global while proving the blocked
+facade does not route to active FIT data; they now assert the global stays absent, and architecture coverage
+blocks that mutation from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
