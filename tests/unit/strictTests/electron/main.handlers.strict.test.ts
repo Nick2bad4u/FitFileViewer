@@ -673,7 +673,7 @@ describe("main.js strict handlers and events", () => {
             "error"
         );
         mainModule.setAppState("autoUpdaterInitialized", true);
-        getRequiredHandler(updaterCheck)({
+        await getRequiredHandler(updaterCheck)({
             sender: mockMainWindow.webContents,
         });
         expect(updater.checkForUpdates).toHaveBeenCalledOnce();
@@ -690,7 +690,7 @@ describe("main.js strict handlers and events", () => {
             expect(install[0]).toBe("install-update");
             updater.quitAndInstall.mockClear();
             mainModule.setAppState("autoUpdater.updateDownloaded", false);
-            getRequiredHandler(install)({
+            await getRequiredHandler(install)({
                 sender: mockMainWindow.webContents,
             });
             expect(updater.quitAndInstall).not.toHaveBeenCalled();
@@ -700,7 +700,7 @@ describe("main.js strict handlers and events", () => {
                 "error"
             );
             mainModule.setAppState("autoUpdater.updateDownloaded", true);
-            getRequiredHandler(install)({
+            await getRequiredHandler(install)({
                 sender: mockMainWindow.webContents,
             });
             expect(updater.quitAndInstall).toHaveBeenCalledOnce();

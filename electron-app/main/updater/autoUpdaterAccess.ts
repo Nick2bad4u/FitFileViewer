@@ -1,5 +1,3 @@
-import { loadNodeModule } from "../runtime/nodeModules.js";
-
 interface AutoUpdaterLike {
     autoDownload?: boolean;
     checkForUpdatesAndNotify?: () => unknown;
@@ -27,22 +25,6 @@ export async function resolveAutoUpdaterAsync(): Promise<AutoUpdaterLike | null>
 
     try {
         return resolveAutoUpdaterFromModule(await import("electron-updater"));
-    } catch {
-        return resolveAutoUpdaterSync();
-    }
-}
-
-/**
- * Resolves electron-updater synchronously supporting both CJS and ESM default
- * exports.
- */
-export function resolveAutoUpdaterSync(): AutoUpdaterLike | null {
-    if (cachedMockedAutoUpdater) {
-        return cachedMockedAutoUpdater;
-    }
-
-    try {
-        return resolveAutoUpdaterFromModule(loadNodeModule("electron-updater"));
     } catch {
         return null;
     }

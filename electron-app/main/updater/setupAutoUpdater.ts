@@ -4,7 +4,6 @@ import { logWithContext } from "../logging/logWithContext.js";
 import { menuRef } from "../runtime/electronAccess.js";
 import { mainProcessState, setAppState } from "../state/appState.js";
 import { isWindowUsable } from "../window/windowValidation.js";
-import { resolveAutoUpdaterSync as resolveAutoUpdaterFallback } from "./autoUpdaterAccess.js";
 import electronLog from "electron-log";
 
 type RendererIpcEventChannel =
@@ -130,14 +129,6 @@ function enableRestartMenuItem(): void {
     }
 }
 
-function resolveProvidedAutoUpdater(
-    providedAutoUpdater: AutoUpdaterLike | null | undefined
-): AutoUpdaterLike | null | undefined {
-    return providedAutoUpdater === undefined
-        ? resolveAutoUpdaterFallback()
-        : providedAutoUpdater;
-}
-
 function applyLoggerFileLevel(logger?: UpdaterLoggerLike): void {
     try {
         const transportsFile = logger?.transports?.file;
@@ -188,7 +179,7 @@ export function setupAutoUpdater(
     providedAutoUpdater?: AutoUpdaterLike | null
 ): void {
     // Allow tests to explicitly pass `null` to exercise the "no updater available" path.
-    const autoUpdater = resolveProvidedAutoUpdater(providedAutoUpdater);
+    const autoUpdater = providedAutoUpdater;
     if (!isWindowUsable(mainWindow)) {
         console.warn("Cannot setup auto-updater: main window is not usable");
         return;

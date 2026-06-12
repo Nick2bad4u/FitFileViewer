@@ -344,7 +344,6 @@ const expectedMainExportKeys = [
     "isWindowUsable",
     "logWithContext",
     "resolveAutoUpdaterAsync",
-    "resolveAutoUpdaterSync",
     "sendToRenderer",
     "setAppState",
     "setupApplicationEventHandlers",

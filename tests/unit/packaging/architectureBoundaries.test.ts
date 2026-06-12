@@ -1860,7 +1860,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(168);
+        expect.assertions(169);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -2037,8 +2037,11 @@ describe("architecture boundaries", () => {
         expect(autoUpdaterAccessSource).not.toContain(
             'require("electron-updater")'
         );
-        expect(autoUpdaterAccessSource).toContain(
+        expect(autoUpdaterAccessSource).not.toContain(
             'loadNodeModule("electron-updater")'
+        );
+        expect(autoUpdaterAccessSource).toContain(
+            'await import("electron-updater")'
         );
         expect(initializeApplicationSource).not.toContain("module.exports");
         expect(setupIpcHandlersSource).not.toContain("module.exports");
@@ -2321,7 +2324,7 @@ describe("architecture boundaries", () => {
         expect(autoUpdaterAccessSource).toContain(
             "export async function resolveAutoUpdaterAsync"
         );
-        expect(autoUpdaterAccessSource).toContain(
+        expect(autoUpdaterAccessSource).not.toContain(
             "export function resolveAutoUpdaterSync"
         );
         expect(nodeModulesSource).toContain("export const path");

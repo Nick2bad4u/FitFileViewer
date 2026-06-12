@@ -119,14 +119,14 @@ exports/imports instead of source-level `module.exports` or a barrel `require`, 
 imports the menu creator natively. `createAppMenu.ts` also imports recent-file and file-access helpers
 natively instead of requiring those source modules.
 The auto-updater access helper now uses named source exports too, and setup/menu/bootstrap consumers import
-the updater resolver boundary natively instead of requiring its source file. Its synchronous
-Electron-updater fallback now resolves through the centralized `loadNodeModule` compatibility boundary instead
-of a direct package `require("electron-updater")` call, and the redundant Node ESM `module.exports` namespace
-branch plus the unused default namespace export have been removed.
+the updater resolver boundary natively instead of requiring its source file. Electron-updater now resolves
+through the async native import path instead of a synchronous `loadNodeModule` or direct package
+`require("electron-updater")` fallback, and the redundant Node ESM `module.exports` namespace branch plus
+the unused default namespace export have been removed.
 The Node runtime module boundary now imports Node built-ins natively for `path`, `fs`, and `httpRef` while
 keeping `loadNodeModule` scoped to external runtime package compatibility adapters, and its unused default
 namespace export has been removed; file-access, IPC sender policy, Gyazo OAuth, application-event, menu-event,
-IPC setup, Electron access, and updater access consumers import that boundary natively instead of requiring its
+IPC setup, and Electron access consumers import that boundary natively instead of requiring its
 source file or owning separate direct package-load fallbacks.
 Electron-conf access is now centralized in `electron-app/main/runtime/electronConfAccess.ts` because the
 package's ESM entry is not safe under the current Electron CommonJS module shape. App state, FIT-parser

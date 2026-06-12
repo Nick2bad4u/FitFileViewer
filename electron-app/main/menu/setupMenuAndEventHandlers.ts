@@ -11,7 +11,7 @@ import { createElectronConf } from "../runtime/electronConfAccess.js";
 import { fs } from "../runtime/nodeModules.js";
 import { isApprovedFilePath } from "../security/fileAccessPolicy.js";
 import { getAppState } from "../state/appState.js";
-import { resolveAutoUpdaterSync as resolveAutoUpdaterFallback } from "../updater/autoUpdaterAccess.js";
+import { resolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
 import { validateWindow } from "../window/windowValidation.js";
 import { safeCreateAppMenu } from "./safeCreateAppMenu.js";
 
@@ -136,8 +136,8 @@ function persistThemeForMenu(theme: unknown): void {
     conf.set("theme", normalized);
 }
 
-function requireAutoUpdater(): AutoUpdaterLike {
-    const autoUpdater = resolveAutoUpdaterFallback() as AutoUpdaterLike | null;
+async function requireAutoUpdater(): Promise<AutoUpdaterLike> {
+    const autoUpdater = (await resolveAutoUpdaterAsync()) as AutoUpdaterLike | null;
     if (!autoUpdater) {
         throw new Error("electron-updater autoUpdater is unavailable");
     }
@@ -226,12 +226,15 @@ export function setupMenuAndEventHandlers(): void {
                 return;
             }
 
-            try {
-                requireAutoUpdater().quitAndInstall?.();
-            } catch (error) {
-                logUpdaterError("Error during quitAndInstall:", error);
-                showLinuxManualUpdateMessage();
-            }
+            return (async (): Promise<void> => {
+                try {
+                    const autoUpdater = await requireAutoUpdater();
+                    autoUpdater.quitAndInstall?.();
+                } catch (error) {
+                    logUpdaterError("Error during quitAndInstall:", error);
+                    showLinuxManualUpdateMessage();
+                }
+            })();
         },
         "menu-check-for-updates": (event) => {
             const ipcEvent = event as IpcEventLike;
@@ -247,11 +250,14 @@ export function setupMenuAndEventHandlers(): void {
                 return;
             }
 
-            try {
-                void requireAutoUpdater().checkForUpdates?.();
-            } catch (error) {
-                logUpdaterError("Failed to check for updates:", error);
-            }
+            return (async (): Promise<void> => {
+                try {
+                    const autoUpdater = await requireAutoUpdater();
+                    void autoUpdater.checkForUpdates?.();
+                } catch (error) {
+                    logUpdaterError("Failed to check for updates:", error);
+                }
+            })();
         },
         "menu-restart-update": (event) => {
             const ipcEvent = event as IpcEventLike;
@@ -267,12 +273,15 @@ export function setupMenuAndEventHandlers(): void {
                 return;
             }
 
-            try {
-                requireAutoUpdater().quitAndInstall?.();
-            } catch (error) {
-                logUpdaterError("Error during restart and install:", error);
-                showLinuxManualUpdateMessage();
-            }
+            return (async (): Promise<void> => {
+                try {
+                    const autoUpdater = await requireAutoUpdater();
+                    autoUpdater.quitAndInstall?.();
+                } catch (error) {
+                    logUpdaterError("Error during restart and install:", error);
+                    showLinuxManualUpdateMessage();
+                }
+            })();
         },
     };
 
