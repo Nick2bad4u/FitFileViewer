@@ -676,6 +676,8 @@ const directRendererDevGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.__renderer_dev\b|["']__renderer_dev["']/u;
 const rendererDevelopmentDebugGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.(?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)\b|["'](?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)["']/u;
+const rendererDevelopmentDebugGlobalMutationPattern =
+    /\bReflect\.(?:set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)["']\s*\)|\b(?:window|globalThis)\.(?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)\s*=/u;
 const rawGlobalThisAnyCastPattern = /\(\s*globalThis\s+as\s+any\s*\)/u;
 const directDataTableGlobalPattern =
     /\b(?:window|globalThis|tableGlobal|renderTableGlobal)\.(?:\$|jQuery|DataTable)\b|\.jQuery\b/u;
@@ -3626,6 +3628,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/strictTests/electron/renderer.strict.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps renderer development debug tests from mutating retired debug globals", () => {
+        expect.assertions(1);
+
+        expect(
+            rendererDevelopmentDebugGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/renderer/developmentDebugTools.test.ts"
                     )
                 )
             )

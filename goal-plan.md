@@ -258,6 +258,9 @@ Animation debug logging tests no longer seed the retired `__renderer_dev` global
 debug logging state controls animation logs, and architecture coverage keeps that test off the old global.
 Strict renderer startup tests also no longer delete the retired `__renderer_dev` global during fresh imports,
 with architecture coverage keeping that startup test on the typed renderer development helpers.
+Renderer development debug tests no longer clean up retired debug globals such as `__renderer_debug`,
+`__renderer_dev`, `__sensorDebug`, or `__debugChartFormatting`; their coverage now checks absence without
+mutating those names, and architecture coverage blocks those mutations from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

@@ -55,10 +55,6 @@ function createPerformanceMonitor(): RendererPerformanceMonitor {
 
 describe("renderer development debug tools", () => {
     afterEach(() => {
-        Reflect.deleteProperty(globalThis, "__debugChartFormatting");
-        Reflect.deleteProperty(globalThis, "__renderer_debug");
-        Reflect.deleteProperty(globalThis, "__renderer_dev");
-        Reflect.deleteProperty(globalThis, "__sensorDebug");
         setRendererDebugLoggingEnabled(false);
         resetChartDebugStateForTests();
         restoreNodeEnv();
