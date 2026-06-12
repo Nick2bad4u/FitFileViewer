@@ -57,6 +57,9 @@ for constants/app-state/state-manager dependencies; app-event OAuth/theme/window
 lazy so permission-handler source tests can import the ESM source boundary natively.
 Gyazo startup timer state and main-process test priming now use named source exports too, and the app-event
 handler imports the timer setter natively instead of requiring that source module.
+Strict Electron main-handler tests now import Electron access, file-access policy, filesystem, and
+file-system handler modules natively instead of using `createRequire`, `requireCjs`, or inline `require(...)`
+test bridges.
 Main-process FIT IPC payload, file-read payload, file-access policy, and file-access policy state helpers now
 use named source exports too, while file/FIT IPC handlers import those migrated helpers natively instead of
 requiring their source modules directly.
@@ -66,7 +69,8 @@ Main-process clipboard, external integration, and info IPC handler modules now u
 and `setupIPCHandlers.ts` imports those migrated handler boundaries natively too.
 The main IPC sender policy and IPC registry now use named source exports too, and the registry/setup IPC
 boundary plus main-process state manager import those migrated pieces natively instead of requiring their
-source files.
+source files. The IPC sender-policy unit test now imports the Electron access override natively instead of
+using a `createRequire`/`requireCjs` test bridge.
 The main renderer-send helper and window validation helper now use named source exports too, and direct
 main-process consumers import those migrated helpers natively instead of requiring their source files.
 The main theme retrieval helper and auto-updater setup helper now use named source exports too; initialize

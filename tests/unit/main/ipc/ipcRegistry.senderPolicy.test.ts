@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -27,8 +26,6 @@ type IpcRegistryModule = {
     resetIpcRegistries: () => void;
 };
 
-const requireCjs = createRequire(import.meta.url);
-
 function createIpcMainMock(): IpcMainMock {
     return {
         handle: vi.fn<(channel: string, handler: IpcCallback) => void>(),
@@ -40,9 +37,10 @@ function createIpcMainMock(): IpcMainMock {
 }
 
 async function loadRegistry(ipcMain: IpcMainMock): Promise<IpcRegistryModule> {
-    const electronAccess = requireCjs(
-        "../../../../electron-app/main/runtime/electronAccess.js"
-    ) as ElectronAccessModule;
+    const electronAccess =
+        (await import(
+            "../../../../electron-app/main/runtime/electronAccess.js"
+        )) as ElectronAccessModule;
     electronAccess.setElectronOverride({
         app: {
             getAppPath: () => "C:\\mock\\app",
@@ -69,9 +67,10 @@ describe("ipcRegistry sender policy", () => {
         }
 
         try {
-            const electronAccess = requireCjs(
-                "../../../../electron-app/main/runtime/electronAccess.js"
-            ) as ElectronAccessModule;
+            const electronAccess =
+                (await import(
+                    "../../../../electron-app/main/runtime/electronAccess.js"
+                )) as ElectronAccessModule;
             electronAccess.setElectronOverride(null);
         } catch {
             /* ignore */

@@ -2702,6 +2702,42 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps IPC sender-policy tests on native module imports", () => {
+        expect.assertions(3);
+
+        const ipcSenderPolicyTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/main/ipc/ipcRegistry.senderPolicy.test.ts"
+            )
+        );
+
+        expect(ipcSenderPolicyTestSource).not.toMatch(
+            /\b(?:createRequire|requireCjs|require\s*\()/u
+        );
+        expect(ipcSenderPolicyTestSource).toContain("setElectronOverride");
+        expect(ipcSenderPolicyTestSource).toContain(
+            "../../../../electron-app/main/runtime/electronAccess.js"
+        );
+    });
+
+    it("keeps strict Electron main-handler tests on native module imports", () => {
+        expect.assertions(3);
+
+        const mainHandlersStrictTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/strictTests/electron/main.handlers.strict.test.ts"
+            )
+        );
+
+        expect(mainHandlersStrictTestSource).not.toMatch(
+            /\b(?:createRequire|requireCjs|require\s*\()/u
+        );
+        expect(mainHandlersStrictTestSource).toContain("setElectronOverride");
+        expect(mainHandlersStrictTestSource).toContain(
+            "../../../../electron-app/main/security/fileAccessPolicy.js"
+        );
+    });
+
     it("keeps renderer startup subscriptions behind the app-domain facade", () => {
         expect.assertions(2);
 
