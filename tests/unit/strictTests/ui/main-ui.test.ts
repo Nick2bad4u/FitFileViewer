@@ -438,8 +438,6 @@ describe("main-ui.js core flows", () => {
         mockState["ui.dragCounter"] = 0;
         mockState["ui.dropOverlay.visible"] = false;
         installBaseDOM();
-        Reflect.deleteProperty(globalThis, "devCleanup");
-        Reflect.deleteProperty(globalThis, "injectMenu");
         resetElectronApiCandidate();
         installElectronAPI();
         // Simulate DOMContentLoaded so external link handlers attach

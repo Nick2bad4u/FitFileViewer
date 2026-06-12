@@ -661,6 +661,8 @@ const retiredRendererAmbientGlobalPattern =
     /\b(?:__appState|__DEVELOPMENT__|__persistenceTimeout|__state_debug|_chartjsInstances|_mapThemeListener|aboutModalDevHelpers|AppState|areTabButtonsEnabled|Chart|chartControlsState|ChartUpdater|chartUpdater|chartStateManager|clearZoneColorData|closeKeyboardShortcutsModal|createTables|debugTabButtons|debugTabState|devCleanup|dragDropHandler|enableDragAndDrop|forceEnableTabButtons|forceFixTabButtons|globalData|heartRateZones|injectMenu|L|loadedFitFiles|mapMarkerCount|powerZones|rendererUtils|renderChartJS|renderMap|renderSummary|resetAllSettings|screenfull|setTabButtonsEnabled|showFitData|showKeyboardShortcutsModal|showNotification|tabStateManager|testTabButtonClicks|updateInlineZoneColorSelectors|updateMapTheme)\?:|\bvar\s+(?:__vitest_effective_document__|L)\b/u;
 const directMainUiDevelopmentHelperGlobalPattern =
     /\b(?:window|globalThis|getMainUiGlobal\(\)|mainUiGlobal)\.(?:injectMenu|devCleanup)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:injectMenu|devCleanup)["']\s*\)/u;
+const mainUiTestRetiredGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:cleanupEventListeners|devCleanup|injectMenu|renderChartJS|showFitData)["']\s*\)|\b(?:globalThis|mainUiGlobal)\.(?:cleanupEventListeners|devCleanup|injectMenu|renderChartJS|showFitData)\s*=/u;
 const directMainProcessDevHelpersGlobalPattern =
     /\b(?:window|globalThis)\.devHelpers\b|Object\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)/u;
 const directElectronHoistedMockGlobalAllowedFiles = new Set<string>();
@@ -6071,6 +6073,23 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(false);
+    });
+
+    it("keeps main UI startup tests from mutating retired renderer globals", () => {
+        expect.assertions(1);
+
+        const violations = [
+            "tests/unit/main-ui.startup.test.ts",
+            "tests/unit/strictTests/ui/main-ui.test.ts",
+        ]
+            .filter((relativeFile) =>
+                mainUiTestRetiredGlobalMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps retired renderer compatibility globals out of ordinary tests", () => {
