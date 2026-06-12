@@ -32,10 +32,6 @@ const legacyLeafletPluginTransforms = new Map([
         "/node_modules/leaflet-draw/dist/leaflet.draw.js",
         (code) => `${leafletRuntimePluginPrelude}${code}`,
     ],
-    [
-        "/node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js",
-        (code) => `${leafletRuntimePluginPrelude}${code}`,
-    ],
 ]);
 
 /** @returns {import("vite").Plugin} */

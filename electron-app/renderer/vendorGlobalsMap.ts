@@ -16,8 +16,6 @@ import "leaflet.fullscreen/dist/Control.FullScreen.css";
 import { LocateControl } from "leaflet.locatecontrol";
 /* eslint-disable import-x/no-unassigned-import -- Leaflet control stylesheets must be loaded through the bundle entry. */
 import "leaflet.locatecontrol/dist/L.Control.Locate.css";
-import "leaflet.markercluster/dist/MarkerCluster.css";
-import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 /* eslint-enable import-x/no-unassigned-import */
 /* eslint-disable import-x/no-unassigned-import -- MapLibre stylesheet must be loaded through the bundle entry. */
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -85,7 +83,6 @@ export async function installRendererMapVendorGlobals(): Promise<void> {
     setLeafletRuntime(Leaflet);
 
     await import("leaflet-draw");
-    await import("leaflet.markercluster");
     await import("@maplibre/maplibre-gl-leaflet");
     installLeafletMeasureLite(Leaflet);
     removeLeafletCompatibilityGlobals();

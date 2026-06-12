@@ -321,7 +321,6 @@
         "leaflet-minimap": "^3.6.1",
         "leaflet.fullscreen": "^5.3.1",
         "leaflet.locatecontrol": "^0.90.0",
-        "leaflet.markercluster": "^1.5.3",
         "makensis": "^3.0.5",
         "maplibre-gl": "^5.24.0",
         "markdownlint-cli2": "^0.22.1",

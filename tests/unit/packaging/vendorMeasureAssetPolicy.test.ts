@@ -31,7 +31,6 @@ const rendererImportedBrowserPackages = [
     "leaflet-minimap",
     "leaflet.fullscreen",
     "leaflet.locatecontrol",
-    "leaflet.markercluster",
     "maplibre-gl",
     "screenfull",
 ] as const;
