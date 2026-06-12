@@ -56,7 +56,8 @@ event APIs directly. Avoid generic “helper bags,” registry-like modules, bro
 only mutation seams.
 
 Progress: renderer core module resolution now uses module-local focused test overrides instead of reading the
-shared `__vitest_manual_mocks__` global registry for startup test doubles. Export utility notification/theme
+shared `__vitest_manual_mocks__` global registry for startup test doubles, and renderer startup callers use
+test-override resolver names instead of retired manual-mock terminology. Export utility notification/theme
 test doubles now use the narrow `__setTestDeps` dependency override instead of the shared manual-mock registry
 or a map-style manual-mock override API. The
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must

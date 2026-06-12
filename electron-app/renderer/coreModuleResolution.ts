@@ -145,9 +145,11 @@ export async function ensureCoreModules(): Promise<RendererCoreModules> {
  * @param testId - Exact id used by the focused renderer startup tests, such as
  *   `../../utils/...`.
  *
- * @returns Mocked module or null.
+ * @returns Override module or null.
  */
-export function resolveExactManualMock(testId: string): null | unknown {
+export function resolveExactRendererCoreTestOverride(
+    testId: string
+): null | unknown {
     try {
         const registry = getRendererCoreModuleTestOverrides();
         if (registry?.has(testId) === true) {
@@ -168,9 +170,11 @@ export function resolveExactManualMock(testId: string): null | unknown {
  *
  * @param pathSuffix - Suffix such as `/utils/theming/core/setupTheme.js`.
  *
- * @returns Mocked module or null.
+ * @returns Override module or null.
  */
-export function resolveManualMock(pathSuffix: string): null | unknown {
+export function resolveRendererCoreTestOverride(
+    pathSuffix: string
+): null | unknown {
     try {
         const registry = getRendererCoreModuleTestOverrides();
         if (registry !== null) {
@@ -280,8 +284,8 @@ async function resolveCoreModule(
     realPath: string
 ): Promise<Record<string, unknown>> {
     const resolved =
-        resolveExactManualMock(testPath) ??
-        resolveManualMock(toManualMockPathSuffix(realPath)) ??
+        resolveExactRendererCoreTestOverride(testPath) ??
+        resolveRendererCoreTestOverride(toTestOverridePathSuffix(realPath)) ??
         (await importRendererModule(realPath));
 
     return toModuleRecord(resolved);
@@ -311,7 +315,7 @@ function toListenForThemeChange(
         : undefined;
 }
 
-function toManualMockPathSuffix(realPath: string): string {
+function toTestOverridePathSuffix(realPath: string): string {
     return realPath.replace(/^(?:\.\.\/|\.\/)+/u, "/");
 }
 

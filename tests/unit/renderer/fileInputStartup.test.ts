@@ -84,17 +84,17 @@ describe("renderer file input startup wiring", () => {
         expect(input.id).toBe("fileInput");
     });
 
-    it("prefers delegated manual handleOpenFile resolution for test-created inputs", () => {
+    it("prefers delegated override handleOpenFile resolution for test-created inputs", () => {
         expect.assertions(1);
 
         const { file, input } = createFileInput();
-        const manualHandleOpenFile = vi.fn<() => void>();
+        const overrideHandleOpenFile = vi.fn<() => void>();
         const asyncHandleOpenFile = vi.fn<() => void>();
         const callUnknownFunction = vi.fn<RendererUnknownFunctionCaller>();
         const delegatedHandler = createDelegatedFileInputChangeHandler({
             callUnknownFunction,
             getHandleOpenFile: async () => asyncHandleOpenFile,
-            getManualHandleOpenFile: () => manualHandleOpenFile,
+            getOverrideHandleOpenFile: () => overrideHandleOpenFile,
             htmlInputElementConstructor: window.HTMLInputElement,
         });
 
@@ -106,12 +106,12 @@ describe("renderer file input startup wiring", () => {
         input.dispatchEvent(new Event("change", { bubbles: true }));
 
         expect(callUnknownFunction).toHaveBeenCalledExactlyOnceWith(
-            manualHandleOpenFile,
+            overrideHandleOpenFile,
             [file]
         );
     });
 
-    it("falls back to async handleOpenFile resolution when no manual handler is available", async () => {
+    it("falls back to async handleOpenFile resolution when no override handler is available", async () => {
         expect.assertions(1);
 
         const { file, input } = createFileInput();
@@ -120,7 +120,7 @@ describe("renderer file input startup wiring", () => {
         const delegatedHandler = createDelegatedFileInputChangeHandler({
             callUnknownFunction,
             getHandleOpenFile: async () => asyncHandleOpenFile,
-            getManualHandleOpenFile: () => undefined,
+            getOverrideHandleOpenFile: () => undefined,
             htmlInputElementConstructor: window.HTMLInputElement,
         });
 

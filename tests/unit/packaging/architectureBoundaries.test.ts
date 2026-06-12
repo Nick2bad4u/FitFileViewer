@@ -1496,8 +1496,8 @@ describe("architecture boundaries", () => {
         expect(appDomainFacadeSource).not.toContain("./appState.js");
     });
 
-    it("keeps renderer import-time bootstrap off legacy appState manual mocks", () => {
-        expect.assertions(2);
+    it("keeps renderer import-time bootstrap off legacy appState test overrides", () => {
+        expect.assertions(3);
 
         const importTimeBootstrapSource = stripComments(
             readRepositoryFile("electron-app/renderer/importTimeBootstrap.ts")
@@ -1509,10 +1509,11 @@ describe("architecture boundaries", () => {
         expect(importTimeBootstrapSource).not.toContain(
             "touchManualAppStartTime"
         );
+        expect(importTimeBootstrapSource).not.toContain("Manual");
     });
 
     it("keeps renderer core module resolution on the app-domain state facade", () => {
-        expect.assertions(4);
+        expect.assertions(7);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -1526,6 +1527,13 @@ describe("architecture boundaries", () => {
         );
         expect(coreModuleResolutionSource).not.toContain(
             "__vitest_manual_mocks__"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
+            "resolveExactManualMock"
+        );
+        expect(coreModuleResolutionSource).not.toContain("resolveManualMock");
+        expect(coreModuleResolutionSource).not.toContain(
+            "toManualMockPathSuffix"
         );
         expect(coreModuleResolutionSource).not.toContain("globalThis");
     });

@@ -24,10 +24,10 @@ function createOptions(overrides: Record<string, unknown> = {}) {
         }),
         getOpenFileButton: () => openFileButton,
         isOpeningFileRef: { value: false },
-        resolveExactManualMock: vi.fn(
+        resolveExactRendererCoreTestOverride: vi.fn(
             (specifier: string) => exactMocks.get(specifier) ?? null
         ),
-        resolveManualMock: vi.fn(
+        resolveRendererCoreTestOverride: vi.fn(
             (specifier: string) => suffixMocks.get(specifier) ?? null
         ),
         scheduleImportTimeThemeSetup: vi.fn(),

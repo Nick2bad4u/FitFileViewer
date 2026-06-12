@@ -22,8 +22,12 @@ type RendererFileInputWiringOptions = {
     readonly ensureCoreModules: () => Promise<RendererCoreModules>;
     readonly getFileInput: () => HTMLInputElement | null;
     readonly logRenderer: RendererFileInputWiringLogger;
-    readonly resolveExactManualMock: (testId: string) => null | unknown;
-    readonly resolveManualMock: (pathSuffix: string) => null | unknown;
+    readonly resolveExactRendererCoreTestOverride: (
+        testId: string
+    ) => null | unknown;
+    readonly resolveRendererCoreTestOverride: (
+        pathSuffix: string
+    ) => null | unknown;
     readonly toModuleRecord: (value: unknown) => Record<string, unknown>;
 };
 
@@ -53,7 +57,7 @@ export function createRendererFileInputWiring(
     const startupOptions: RendererFileInputStartupOptions = {
         callUnknownFunction: options.callUnknownFunction,
         getHandleOpenFile: async () => getFileInputHandleOpenFile(options),
-        getManualHandleOpenFile: () => resolveManualHandleOpenFile(options),
+        getOverrideHandleOpenFile: () => resolveOverrideHandleOpenFile(options),
         logRenderer: options.logRenderer,
     };
     const onDelegatedFileInputChange =
@@ -95,13 +99,16 @@ export function createRendererFileInputWiring(
     };
 }
 
-function resolveManualHandleOpenFile(
+function resolveOverrideHandleOpenFile(
     options: RendererFileInputWiringOptions
 ): unknown {
     const moduleRecord = options.toModuleRecord(
-        options.resolveExactManualMock(
+        options.resolveExactRendererCoreTestOverride(
             "../../utils/files/import/handleOpenFile.js"
-        ) ?? options.resolveManualMock("/utils/files/import/handleOpenFile.js")
+        ) ??
+            options.resolveRendererCoreTestOverride(
+                "/utils/files/import/handleOpenFile.js"
+            )
     );
 
     return (

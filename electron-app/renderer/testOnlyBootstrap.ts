@@ -3,14 +3,14 @@ type RendererUnknownFunctionCaller = (
     args?: unknown[]
 ) => unknown;
 
-type ManualMockResolver = (specifier: string) => null | unknown;
+type RendererTestOverrideResolver = (specifier: string) => null | unknown;
 
 interface RendererTestOnlyBootstrapOptions {
     callUnknownFunction: RendererUnknownFunctionCaller;
     getOpenFileButton: () => HTMLElement | null;
     isOpeningFileRef: { value: boolean };
-    resolveExactManualMock: ManualMockResolver;
-    resolveManualMock: ManualMockResolver;
+    resolveExactRendererCoreTestOverride: RendererTestOverrideResolver;
+    resolveRendererCoreTestOverride: RendererTestOverrideResolver;
     scheduleImportTimeThemeSetup: () => void;
     setLoading: (loading: boolean) => void;
 }
@@ -21,10 +21,10 @@ export function createTestDOMContentLoadedSetupHandler(
     return () => {
         try {
             const moduleRecord = toModuleRecord(
-                options.resolveExactManualMock(
+                options.resolveExactRendererCoreTestOverride(
                     "../../utils/app/lifecycle/listeners.js"
                 ) ??
-                    options.resolveManualMock(
+                    options.resolveRendererCoreTestOverride(
                         "/utils/app/lifecycle/listeners.js"
                     )
             );
@@ -54,17 +54,20 @@ export function createTestWindowLoadThemeSetupHandler(
     return () => {
         try {
             const setupThemeModule = toModuleRecord(
-                options.resolveExactManualMock(
+                options.resolveExactRendererCoreTestOverride(
                     "../../utils/theming/core/setupTheme.js"
                 ) ??
-                    options.resolveManualMock(
+                    options.resolveRendererCoreTestOverride(
                         "/utils/theming/core/setupTheme.js"
                     )
             );
             const themeModule = toModuleRecord(
-                options.resolveExactManualMock(
+                options.resolveExactRendererCoreTestOverride(
                     "../../utils/theming/core/theme.js"
-                ) ?? options.resolveManualMock("/utils/theming/core/theme.js")
+                ) ??
+                    options.resolveRendererCoreTestOverride(
+                        "/utils/theming/core/theme.js"
+                    )
             );
             const setupThemeFn = setupThemeModule["setupTheme"];
             const applyThemeFn = themeModule["applyTheme"];
