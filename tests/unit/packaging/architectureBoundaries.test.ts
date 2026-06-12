@@ -2604,6 +2604,50 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps preload IPC modules on native imports", () => {
+        expect.assertions(12);
+
+        const ipcModuleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadIpcModuleLoader.ts")
+        );
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+
+        expect(ipcModuleLoaderSource).toContain(
+            'import { resolvePreloadElectronBridge } from "./electronBridge.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { exposeElectronApi } from "./electronApiExposure.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { shouldEnforceGenericIpcAllowlist } from "./environment.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { createPreloadIpcHelpers } from "./ipcHelpers.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import * as ipcBridgeCatalog from "./ipcBridgeCatalog.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { createPreloadLogger } from "./logger.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { createMenuEventApi } from "./menuEventApi.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { createPreloadEventApi } from "./preloadEventApi.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { createPreloadValidators } from "./validators.js";'
+        );
+        expect(ipcModuleLoaderSource).not.toContain("requireModule");
+        expect(moduleLoaderSource).toContain("loadPreloadIpcModules()");
+        expect(moduleLoaderSource).not.toContain(
+            "loadPreloadIpcModules({ requireModule })"
+        );
+    });
+
     it("keeps the preload event helper free of generic IPC methods", () => {
         expect.assertions(5);
 

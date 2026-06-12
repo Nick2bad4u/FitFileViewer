@@ -67,9 +67,7 @@ export function loadPreloadModules({
     const { loadPreloadIpcModules } = requireModule(
         "./preload/preloadIpcModuleLoader.js"
     ) as {
-        loadPreloadIpcModules: (
-            options: LoadPreloadModulesOptions
-        ) => Pick<
+        loadPreloadIpcModules: () => Pick<
             PreloadModuleRegistry,
             | "createMenuEventApi"
             | "createPreloadEventApi"
@@ -96,7 +94,7 @@ export function loadPreloadModules({
         ...loadPreloadAppModules(),
         ...loadPreloadPolicyModules(),
         ...loadPreloadFileModules(),
-        ...loadPreloadIpcModules({ requireModule }),
+        ...loadPreloadIpcModules(),
         ...loadPreloadStateModules(),
     };
 }

@@ -14,6 +14,10 @@ while the packaged Electron preload output remains CommonJS-compatible.
 `electron-app/preload/ipcHelpers.ts` and `electron-app/preload/devtoolsMenuApi.ts` now consume shared validation
 policies from injected registry entries loaded by `electron-app/preload/preloadPolicyModuleLoader.ts` instead
 of requiring shared policy modules directly.
+`electron-app/preload/preloadIpcModuleLoader.ts` now imports validators, environment policy, preload event/menu
+APIs, Electron API exposure, IPC helpers, logger, bridge catalog, and the Electron bridge resolver natively
+instead of resolving those IPC modules through `requireModule`; the resolver still receives the preload runtime
+`requireModule` when it loads the Electron package bridge.
 The small preload API assembly-domain factory modules now use named source exports instead of `module.exports`,
 while the runtime build still emits CommonJS-compatible package output.
 The first preload app API leaf factories (`apiDiagnostics.ts`, `appInfoApi.ts`, `gyazoExternalApi.ts`,
