@@ -64,11 +64,44 @@ type TestButtonOptions = {
 
 type MutationObserverMock = Pick<MutationObserver, "disconnect" | "observe">;
 
+type TestGlobalProperty = "getComputedStyle" | "window";
+
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor | undefined
+>();
+
 function createMutationObserverMock(): MutationObserverMock {
     return {
         disconnect: vi.fn<MutationObserver["disconnect"]>(),
         observe: vi.fn<MutationObserver["observe"]>(),
     };
+}
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        originalGlobalDescriptors.set(
+            name,
+            Object.getOwnPropertyDescriptor(globalThis, name)
+        );
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        if (descriptor) {
+            Object.defineProperty(globalThis, name, descriptor);
+        } else {
+            Reflect.deleteProperty(globalThis, name);
+        }
+    }
+    originalGlobalDescriptors.clear();
 }
 
 function createTestButton({
@@ -155,8 +188,7 @@ describe("enableTabButtons behavior", () => {
         // Default state mocks
         mockGetState.mockReturnValue(false);
 
-        // Mock window properties
-        (global as any).window = {
+        const testWindow = {
             ...global.window,
             getComputedStyle: vi
                 .fn<typeof globalThis.getComputedStyle>()
@@ -172,8 +204,8 @@ describe("enableTabButtons behavior", () => {
                 ),
         };
 
-        // CRITICAL: Sync globalThis.window to match global.window for scope consistency
-        globalThis.window = global.window;
+        // CRITICAL: keep global window lookups scoped to the same fixture.
+        setTestGlobal("window", testWindow);
     });
 
     afterEach(() => {
@@ -187,6 +219,7 @@ describe("enableTabButtons behavior", () => {
         console.warn = originalConsoleWarn;
 
         vi.resetAllMocks();
+        restoreTestGlobals();
     });
 
     it("does not publish tab-button helpers globally", () => {
@@ -957,9 +990,8 @@ describe("enableTabButtons behavior", () => {
 
         it("should handle missing getComputedStyle", () => {
             expect.assertions(1);
-            // Mock getComputedStyle to throw an error - need to mock globalThis.getComputedStyle
-            const originalGetComputedStyle = globalThis.getComputedStyle;
-            vi.spyOn(globalThis, "getComputedStyle").mockImplementation(() => {
+            // Mock getComputedStyle to throw an error for this coverage branch.
+            setTestGlobal("getComputedStyle", () => {
                 throw new Error("getComputedStyle not available");
             });
 
@@ -968,15 +1000,11 @@ describe("enableTabButtons behavior", () => {
             expect(() => debugTabButtons()).toThrow(
                 "getComputedStyle not available"
             );
-
-            // Restore original
-            globalThis.getComputedStyle = originalGetComputedStyle;
         });
 
         it("should handle undefined window object", () => {
             expect.assertions(3);
-            const originalWindow = global.window;
-            (global as any).window = undefined;
+            setTestGlobal("window", undefined);
 
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
 
@@ -996,8 +1024,6 @@ describe("enableTabButtons behavior", () => {
                 false,
                 { source: "setTabButtonsEnabled" }
             );
-
-            global.window = originalWindow;
         });
     });
 
