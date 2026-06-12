@@ -366,6 +366,9 @@ summary rendering uses typed imports, and architecture coverage blocks that muta
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning.
+Shown-files list tests now pass an explicit local Leaflet runtime fixture to `setLeafletRuntime()` instead of
+stashing the fixture on `window.L` or reaching markers through `global.window.L`, with architecture coverage
+blocking that retired test fixture pattern.
 The shared Vitest Leaflet mock no longer advertises the removed markercluster package path through a
 `markerClusterGroup` helper, and architecture coverage keeps that stale plugin mock out of setup.
 Vitest setup no longer registers a default Leaflet runtime for every test; map-related tests install explicit

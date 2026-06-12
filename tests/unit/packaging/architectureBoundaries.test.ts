@@ -685,6 +685,8 @@ const renderMapStrictTestRetiredFitGlobalFixturePattern =
     /\bRenderMapWindow\b|\b(?:window|w)\.(?:globalData|loadedFitFiles)\b/u;
 const updateTabVisibilityRawDataTestRetiredGlobalDataPattern =
     /\bcurrentGlobalData\b|\bglobalDataCallback\b|\bgetState\s*:\s*mockGetState[\s\S]*?\b["']globalData["']|updateTabVisibility\.globalDataState\.test\.ts/u;
+const createShownFilesListTestRetiredLeafletGlobalPattern =
+    /\bwindowMock\.L\b|\(\s*global\.window\s+as\s+any\s*\)\.L\b|\b(?:window|globalThis)\.L\b/u;
 const tabButtonsTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:areTabButtonsEnabled|debugTabButtons|debugTabState|forceEnableTabButtons|forceFixTabButtons|setTabButtonsEnabled|tabButtonObserver|testTabButtonClicks)["']\s*\)|\bdelete\s*\(\s*global\s+as\s+any\s*\)\.window\.tabButtonsCurrentlyEnabled\b|\bdelete\s*\(\s*globalThis\s+as[\s\S]{0,160}?\)\.tabButtonsCurrentlyEnabled\b|\b(?:globalThis|global\.window)\.(?:areTabButtonsEnabled|debugTabButtons|debugTabState|forceEnableTabButtons|forceFixTabButtons|setTabButtonsEnabled|tabButtonObserver|tabButtonsCurrentlyEnabled|testTabButtonClicks)\s*=/u;
 const chartTabIntegrationTestRetiredGlobalMutationPattern =
@@ -6799,6 +6801,20 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(leafletRuntimeGlobalMutationTests).toStrictEqual([]);
+    });
+
+    it("keeps shown-files list tests on explicit Leaflet runtime fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            createShownFilesListTestRetiredLeafletGlobalPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/rendering/components/createShownFilesList.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("does not recreate the retired Object.keys throw-through test global", () => {
