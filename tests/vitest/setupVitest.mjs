@@ -2002,7 +2002,7 @@ try {
         const isLogWithLevelCall = () => {
             try {
                 return /\blogWithLevel\.(?:ts|js)\b/u.test(
-                    String(new Error().stack ?? "")
+                    String(new Error("Capture stack").stack ?? "")
                 );
             } catch {
                 return false;
