@@ -3604,6 +3604,20 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps animation debug logging tests off renderer dev globals", () => {
+        expect.assertions(1);
+
+        expect(
+            directRendererDevGlobalPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/debug/lastAnimLog.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
     it("keeps renderer development debug helpers off global surfaces", () => {
         expect.assertions(1);
 

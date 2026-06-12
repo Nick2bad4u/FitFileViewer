@@ -9,15 +9,13 @@ import { setRendererDebugLoggingEnabled } from "../../../../electron-app/utils/d
 describe("animation debug logging", () => {
     afterEach(() => {
         setRendererDebugLoggingEnabled(false);
-        Reflect.deleteProperty(globalThis, "__renderer_dev");
         vi.restoreAllMocks();
     });
 
-    it("uses typed renderer debug logging state instead of the renderer dev global", () => {
+    it("uses typed renderer debug logging state", () => {
         expect.assertions(6);
 
         const consoleLog = vi.spyOn(console, "log").mockReturnValue(undefined);
-        Reflect.set(globalThis, "__renderer_dev", {});
 
         const disabledCriticalResult = criticalAnimLog("ignored");
 

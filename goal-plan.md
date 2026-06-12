@@ -254,6 +254,8 @@ The renderChartJS comprehensive test no longer installs an ambient `utils.requir
 mocking terminology for its ESM mock setup.
 Root lint no longer reports Testing Library false-positive warnings from renderer/runtime helper names in
 non-React unit tests; those tests now use local aliases that avoid render-result and lifecycle-render heuristics.
+Animation debug logging tests no longer seed the retired `__renderer_dev` global when proving typed renderer
+debug logging state controls animation logs, and architecture coverage keeps that test off the old global.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
