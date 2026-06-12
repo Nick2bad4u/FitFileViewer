@@ -167,6 +167,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - IPC registry migration status: `ipcSenderPolicy.ts` and `ipcRegistry.ts` now use named source exports instead of `module.exports`; the registry imports sender-policy validation natively; and `setupIPCHandlers.ts` plus the main-process state manager import the registry natively.
 - Main renderer-send/window validation migration status: `sendToRenderer.ts` and `windowValidation.ts` now use named source exports instead of `module.exports`; `sendToRenderer.ts` imports window validation natively; and direct main-process consumers import those migrated helper boundaries natively instead of requiring their source files.
 - Main theme/updater helper migration status: `getThemeFromRenderer.ts` and `setupAutoUpdater.ts` now use named source exports instead of `module.exports`; initialize-application and IPC setup source import those migrated helper boundaries natively instead of requiring their source files.
+- Main bootstrap/IPC setup migration status: `initializeApplication.ts`, `setupIPCHandlers.ts`, and `gyazoOAuthServer.ts` now use named source exports instead of `module.exports`; initialize application and IPC setup import migrated constants/app-state/Gyazo OAuth helper boundaries natively instead of requiring their source files.
 - Next removal step: narrow or retire the remaining CommonJS-compatible runtime bridge modules after the Electron preload bundling path can consume typed ESM-style modules directly
 - Verification gates:
   - `npm run build:runtime-ts`

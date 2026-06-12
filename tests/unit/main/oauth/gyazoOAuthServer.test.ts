@@ -47,7 +47,7 @@ const mockHttp = {
     ),
 };
 
-const state = new Map<string, unknown>();
+let appState: typeof import("../../../../electron-app/main/state/appState.js");
 
 function getRequireCache(): Record<string, CjsCacheEntry> {
     return (require as unknown as { cache: Record<string, CjsCacheEntry> })
@@ -117,7 +117,6 @@ function getWindowLike(): {
 }
 
 function resetMocks(): void {
-    state.clear();
     requestHandler = null;
     mockLogWithContext.mockClear();
     mockHttp.createServer.mockClear();
@@ -178,13 +177,13 @@ function getServerStateSnapshot(): {
     gyazoServerPort: unknown;
 } {
     return {
-        gyazoServer: state.get("gyazoServer"),
-        gyazoServerPort: state.get("gyazoServerPort"),
+        gyazoServer: appState.getAppState("gyazoServer"),
+        gyazoServerPort: appState.getAppState("gyazoServerPort"),
     };
 }
 
 describe("gyazoOAuthServer", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.resetModules();
         resetMocks();
 
@@ -202,14 +201,12 @@ describe("gyazoOAuthServer", () => {
                 httpRef: () => mockHttp,
             }
         );
-        injectCjsMock(
-            require.resolve("../../../../electron-app/main/state/appState"),
-            {
-                getAppState: (key: string) => state.get(key),
-                setAppState: (key: string, value: unknown) =>
-                    state.set(key, value),
-            }
+        appState = await import(
+            "../../../../electron-app/main/state/appState.js"
         );
+        appState.setAppState("gyazoServer", null);
+        appState.setAppState("gyazoServerPort", null);
+        appState.setAppState("mainWindow", null);
         // The module under test is imported natively; the CJS cache injections
         // above cover its remaining not-yet-migrated dependencies.
     });
@@ -309,7 +306,7 @@ describe("gyazoOAuthServer", () => {
         expect.assertions(4);
 
         const { startGyazoOAuthServer } = await importGyazoOAuthServer();
-        state.set("mainWindow", getWindowLike());
+        appState.setAppState("mainWindow", getWindowLike());
 
         await startGyazoOAuthServer(3000);
 
@@ -357,7 +354,7 @@ describe("gyazoOAuthServer", () => {
         expect.assertions(3);
 
         const { startGyazoOAuthServer } = await importGyazoOAuthServer();
-        state.set("mainWindow", getWindowLike());
+        appState.setAppState("mainWindow", getWindowLike());
 
         await startGyazoOAuthServer(3000);
 

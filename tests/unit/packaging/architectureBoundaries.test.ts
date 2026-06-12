@@ -1815,8 +1815,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps migrated main renderer-send and window validation helpers off source-level CommonJS exports", () => {
-        expect.assertions(22);
+    it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
+        expect.assertions(35);
 
         const sendToRendererSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/sendToRenderer.ts")
@@ -1854,6 +1854,9 @@ describe("architecture boundaries", () => {
         expect(windowValidationSource).not.toContain("module.exports");
         expect(getThemeFromRendererSource).not.toContain("module.exports");
         expect(setupAutoUpdaterSource).not.toContain("module.exports");
+        expect(initializeApplicationSource).not.toContain("module.exports");
+        expect(setupIpcHandlersSource).not.toContain("module.exports");
+        expect(gyazoOAuthServerSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain(
             'require("../state/appState")'
         );
@@ -1873,6 +1876,12 @@ describe("architecture boundaries", () => {
             'require("../window/windowValidation")'
         );
         expect(initializeApplicationSource).not.toContain(
+            'require("../constants")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(initializeApplicationSource).not.toContain(
             'require("../ipc/sendToRenderer")'
         );
         expect(initializeApplicationSource).not.toContain(
@@ -1889,6 +1898,16 @@ describe("architecture boundaries", () => {
         );
         expect(gyazoOAuthServerSource).not.toContain(
             'require("../ipc/sendToRenderer")'
+        );
+        expect(gyazoOAuthServerSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(setupIpcHandlersSource).not.toContain('require("../constants")');
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../oauth/gyazoOAuthServer")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../state/appState")'
         );
         expect(setupIpcHandlersSource).not.toContain(
             'require("../theme/getThemeFromRenderer")'
@@ -1907,6 +1926,18 @@ describe("architecture boundaries", () => {
         );
         expect(setupAutoUpdaterSource).toContain(
             "export function setupAutoUpdater"
+        );
+        expect(initializeApplicationSource).toContain(
+            "export async function initializeApplication"
+        );
+        expect(setupIpcHandlersSource).toContain(
+            "export function setupIPCHandlers"
+        );
+        expect(gyazoOAuthServerSource).toContain(
+            "export async function startGyazoOAuthServer"
+        );
+        expect(gyazoOAuthServerSource).toContain(
+            "export async function stopGyazoOAuthServer"
         );
     });
 

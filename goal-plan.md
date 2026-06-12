@@ -1,7 +1,7 @@
 1. Retire Runtime CommonJS Compatibility (Fully finish)
 
 This is the biggest remaining deprecation track. The ledger still lists CommonJS-style preload/runtime
-bridge modules as an intentional temporary surface: /C:/Repos/FitFileViewer/docs/DEPRECATION_LEDGER.md:146.
+bridge modules as an intentional temporary surface: /C:/Repos/FitFileViewer/docs/DEPRECATION_LEDGER.md:157.
 The current preload path still emits/consumes CommonJS-compatible output for Electron packaging, and preload
 modules still depend on the injected `requireModule`/packaged CommonJS boundary even though source-level
 `module.exports` wrappers have been removed.
@@ -71,6 +71,10 @@ The main renderer-send helper and window validation helper now use named source 
 main-process consumers import those migrated helpers natively instead of requiring their source files.
 The main theme retrieval helper and auto-updater setup helper now use named source exports too; initialize
 application and IPC setup import those migrated helper boundaries natively.
+Main bootstrap/IPC setup source (`initializeApplication.ts`, `setupIPCHandlers.ts`, and `gyazoOAuthServer.ts`)
+now uses named source exports too; initialize application, IPC setup, and Gyazo OAuth import migrated
+constants/app-state/OAuth helper boundaries natively where those sources have already been retired from
+source-level CommonJS wrappers.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
