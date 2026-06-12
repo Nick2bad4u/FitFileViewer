@@ -180,7 +180,8 @@ render-state resets belong to `AppActions` and typed renderer state facades. Cha
 integration cleanup now calls `destroy()` directly instead of retaining `cleanup()` compatibility aliases.
 Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the retired global action bridge
 wording. `createAppMenu` Electron menu tests now use module-local fixture state instead of `__electron*` and
-call-log globals on `globalThis`.
+call-log globals on `globalThis`. `masterStateManager.ts` now uses module-local test override maps plus typed
+imports instead of probing CJS module caches through `node:module`.
 
 6. Reduce Test Harness Global Pollution (Fully finish)
 

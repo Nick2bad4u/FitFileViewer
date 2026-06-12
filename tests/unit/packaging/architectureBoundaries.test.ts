@@ -1828,7 +1828,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(144);
+        expect.assertions(151);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -1943,6 +1943,11 @@ describe("architecture boundaries", () => {
         const recentFilesSource = stripComments(
             readRepositoryFile("electron-app/utils/files/recent/recentFiles.ts")
         );
+        const masterStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/masterStateManager.ts"
+            )
+        );
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/integration/mainProcessStateManager.ts"
@@ -1972,6 +1977,17 @@ describe("architecture boundaries", () => {
         expect(initializeMainWindowSource).not.toContain("module.exports");
         expect(fitParserIntegrationSource).not.toContain("module.exports");
         expect(mainProcessStateManagerSource).not.toContain("module.exports");
+        expect(masterStateManagerSource).not.toContain("module.exports");
+        expect(masterStateManagerSource).not.toContain('require("node:module")');
+        expect(masterStateManagerSource).not.toContain("getCjsRequire");
+        expect(masterStateManagerSource).not.toContain("getNodeModuleCache");
+        expect(masterStateManagerSource).not.toContain("require.cache");
+        expect(masterStateManagerSource).not.toContain(
+            "getModuleExportsFromCache"
+        );
+        expect(masterStateManagerSource).toContain(
+            "getModuleExportsFromOverride"
+        );
         expect(setupMenuAndEventHandlersSource).not.toContain("module.exports");
         expect(windowStateUtilsSource).not.toContain("module.exports");
         expect(createAppMenuSource).not.toContain("module.exports");
