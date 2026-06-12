@@ -291,6 +291,9 @@ now assert those names stay absent, and architecture coverage blocks those mutat
 Chart tab integration tests no longer delete the retired `chartTabIntegration` global before each case; they
 now assert the typed singleton stays absent from `globalThis`, and architecture coverage blocks that mutation
 from returning.
+State devtools tests no longer delete the retired `__stateDebug` debug global around cleanup or initialization;
+they now assert typed debug utilities stay off `globalThis`, and architecture coverage blocks that mutation
+from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

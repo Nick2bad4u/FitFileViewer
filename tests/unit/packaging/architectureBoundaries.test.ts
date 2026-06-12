@@ -618,6 +618,8 @@ const directStateIntegrationTimerGlobalPattern =
     /\b(?:window|globalThis|integrationGlobal)\.(?:__performanceMonitoringInterval|__persistenceTimeout)\b|["'](?:__performanceMonitoringInterval|__persistenceTimeout)["']/u;
 const directStateDebugGlobalPattern =
     /\b(?:window|globalThis|windowExt|globalState|getMasterGlobal\(\))\.(?:__state_debug|__stateDebug)\b|["'](?:__state_debug|__stateDebug)["']/u;
+const stateDevToolsTestRetiredGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:STATE_DEBUG_GLOBAL|["']__stateDebug["'])\s*\)|\bglobalThis\.__stateDebug\s*=/u;
 const stateIntegrationRetiredGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)["']|(?:globalThis|testGlobal)\.(?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)\s*=/u;
 const directSingletonStateSubscriptionsGlobalPattern =
@@ -3711,6 +3713,20 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps state devtools tests from mutating retired state debug globals", () => {
+        expect.assertions(1);
+
+        expect(
+            stateDevToolsTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/debug/stateDevTools.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps state integration tests from mutating retired state globals", () => {
