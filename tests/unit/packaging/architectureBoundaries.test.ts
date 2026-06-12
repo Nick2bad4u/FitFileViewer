@@ -1965,7 +1965,7 @@ describe("architecture boundaries", () => {
         expect(windowValidationSource).not.toContain("module.exports");
         expect(getThemeFromRendererSource).not.toContain("module.exports");
         expect(setupAutoUpdaterSource).not.toContain("module.exports");
-        expect(autoUpdaterAccessSource).not.toContain("module.exports =");
+        expect(autoUpdaterAccessSource).not.toContain("module.exports");
         expect(nodeModulesSource).not.toContain("module.exports");
         expect(electronConfAccessSource).not.toContain("module.exports");
         expect(electronAccessSource).not.toContain('require("electron")');

@@ -91,7 +91,8 @@ natively instead of requiring those source modules.
 The auto-updater access helper now uses named source exports too, and setup/menu/bootstrap consumers import
 the updater resolver boundary natively instead of requiring its source file. Its synchronous
 Electron-updater fallback now resolves through the centralized `loadNodeModule` compatibility boundary instead
-of a direct package `require("electron-updater")` call.
+of a direct package `require("electron-updater")` call, and the redundant Node ESM `module.exports` namespace
+branch has been removed because Electron-updater's `default` namespace covers the same object shape.
 The Node runtime module boundary now uses named source exports for `path`, `fs`, `httpRef`, and the scoped
 package loader used by runtime compatibility adapters; file-access, IPC sender policy, Gyazo OAuth,
 application-event, menu-event, IPC setup, Electron access, and updater access consumers import that boundary

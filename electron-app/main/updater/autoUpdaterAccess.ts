@@ -11,7 +11,6 @@ interface AutoUpdaterLike {
 interface AutoUpdaterModuleLike {
     autoUpdater?: unknown;
     default?: unknown;
-    "module.exports"?: unknown;
 }
 
 interface VitestImportMockLike {
@@ -104,14 +103,11 @@ function resolveAutoUpdaterFromModule(
 ): AutoUpdaterLike | null {
     const mod = asModuleLike(moduleValue);
     const defaultExport = asModuleLike(asObjectProperty(mod, "default"));
-    const moduleExports = asModuleLike(asObjectProperty(mod, "module.exports"));
 
     return (
         asAutoUpdater(asObjectProperty(mod, "autoUpdater")) ||
         asAutoUpdater(asObjectProperty(defaultExport, "autoUpdater")) ||
-        asAutoUpdater(asObjectProperty(moduleExports, "autoUpdater")) ||
         asAutoUpdater(defaultExport) ||
-        asAutoUpdater(moduleExports) ||
         asAutoUpdater(moduleValue)
     );
 }
