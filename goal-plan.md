@@ -316,6 +316,8 @@ fixtures through `loadedFitFilesState`, and architecture coverage blocks the sta
 Tab visibility state tests now use the `updateTabVisibility.fitRawDataState.test.ts` filename and active raw FIT
 data callback/mocked-selector naming instead of retired `globalData` terminology, with architecture coverage
 blocking the old filename and fixture vocabulary.
+Tab-state manager regression tests now pass `rawFitData` table fixtures into `updateTabAvailability` instead of
+retired `globalData` entries, with architecture coverage blocking that stale regression vocabulary.
 Chart resize listener tests no longer install or clean legacy Chart.js renderer globals while proving
 fullscreen resize uses registered chart instances, with architecture coverage preventing those mutations.
 RenderChartJS comprehensive tests no longer delete retired Chart.js runtime globals such as `Chart`,

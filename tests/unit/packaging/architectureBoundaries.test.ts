@@ -685,6 +685,8 @@ const renderMapStrictTestRetiredFitGlobalFixturePattern =
     /\bRenderMapWindow\b|\b(?:window|w)\.(?:globalData|loadedFitFiles)\b/u;
 const updateTabVisibilityRawDataTestRetiredGlobalDataPattern =
     /\bcurrentGlobalData\b|\bglobalDataCallback\b|\bgetState\s*:\s*mockGetState[\s\S]*?\b["']globalData["']|updateTabVisibility\.globalDataState\.test\.ts/u;
+const tabStateManagerRegressionTestRetiredGlobalDataFixturePattern =
+    /\bglobalData:\s*\{[^}]*recordMesgs|\bglobalData:\s*(?:null|undefined)|\(\{\s*expectedDisabled,\s*globalData\s*\}\)|updateTabAvailability\(globalData/u;
 const createShownFilesListTestRetiredLeafletGlobalPattern =
     /\bwindowMock\.L\b|\(\s*global\.window\s+as\s+any\s*\)\.L\b|\b(?:window|globalThis)\.L\b/u;
 const tabButtonsTestRetiredGlobalMutationPattern =
@@ -6744,6 +6746,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/updateTabVisibility.fitRawDataState.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab-state manager regressions on raw FIT data fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            tabStateManagerRegressionTestRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/tabStateManager.regressions.test.ts"
                     )
                 )
             )

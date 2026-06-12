@@ -160,6 +160,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Chart settings dropdown test fixture migration status: strict chart settings dropdown coverage now seeds the mocked state manager at `fitFile.rawData` instead of the retired `globalData` path, matching the `FitFileSelectors` source path.
 - Render-map strict test fixture migration status: strict render-map coverage no longer declares a window extension carrying retired `globalData` or `loadedFitFiles` globals; map tests seed loaded files through `loadedFitFilesState`.
 - Tab visibility raw-data test migration status: tab visibility state coverage now lives in `updateTabVisibility.fitRawDataState.test.ts` and uses active raw FIT data naming instead of retired `globalData` callback and mock-state terminology.
+- Tab-state manager regression fixture migration status: tab availability regression cases now call `updateTabAvailability` with `rawFitData` fixtures instead of retired `globalData` table entries.
 - Next removal step: keep shrinking remaining legacy renderer compatibility adapters toward typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`

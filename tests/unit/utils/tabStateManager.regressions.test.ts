@@ -299,27 +299,27 @@ describe("tabStateManager regressions", () => {
                 .filter((config) => config.requiresData)
                 .map((config) => config.id);
             const availabilityCases = [
-                { expectedDisabled: true, globalData: { recordMesgs: null } },
+                { expectedDisabled: true, rawFitData: { recordMesgs: null } },
                 {
                     expectedDisabled: true,
-                    globalData: { recordMesgs: undefined },
+                    rawFitData: { recordMesgs: undefined },
                 },
-                { expectedDisabled: false, globalData: { recordMesgs: [] } },
+                { expectedDisabled: false, rawFitData: { recordMesgs: [] } },
                 {
                     expectedDisabled: false,
-                    globalData: { recordMesgs: "not-array" },
+                    rawFitData: { recordMesgs: "not-array" },
                 },
                 {
                     expectedDisabled: true,
-                    globalData: { notRecordMesgs: [{}] },
+                    rawFitData: { notRecordMesgs: [{}] },
                 },
-                { expectedDisabled: true, globalData: null },
-                { expectedDisabled: true, globalData: undefined },
+                { expectedDisabled: true, rawFitData: null },
+                { expectedDisabled: true, rawFitData: undefined },
             ] as const;
 
             const tabStates = availabilityCases.map(
-                ({ expectedDisabled, globalData }) => {
-                    tabStateManager.updateTabAvailability(globalData as never);
+                ({ expectedDisabled, rawFitData }) => {
+                    tabStateManager.updateTabAvailability(rawFitData as never);
 
                     return {
                         expectedDisabled,
