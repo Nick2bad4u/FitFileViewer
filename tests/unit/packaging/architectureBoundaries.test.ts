@@ -878,6 +878,8 @@ const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+(?:AbortController|Event)\(/u;
 const directCreateDataPointFilterControlRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b|\btypeof\s+queueMicrotask\b|\bPromise\.resolve\(\)\.then\(/u;
+const createDataPointFilterControlTestDirectAsyncGlobalAssignmentPattern =
+    /\bglobalThis\.(?:cancelAnimationFrame|queueMicrotask|requestAnimationFrame)\s*=/u;
 const directCreateHRZoneControlsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|querySelector)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|\blocalStorage\.(?:getItem|setItem)\b/u;
 const directCreatePowerZoneControlsRuntimeGlobalPattern =
@@ -4676,6 +4678,20 @@ describe("architecture boundaries", () => {
         expect(dataPointFilterControlSource).toContain(
             "createDataPointFilterControlRuntime.js"
         );
+    });
+
+    it("keeps data-point filter control tests on descriptor-scoped async fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            createDataPointFilterControlTestDirectAsyncGlobalAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/controls/createDataPointFilterControl.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps HR zone controls browser APIs behind the runtime facade", () => {

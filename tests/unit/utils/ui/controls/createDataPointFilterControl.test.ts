@@ -99,13 +99,62 @@ import {
 
 let actualStateHelpers: StateHelpersModule;
 let actualMetricsPreview: MetricsPreviewModule;
-let originalRAF: typeof globalThis.requestAnimationFrame;
-let originalCancelRAF: typeof globalThis.cancelAnimationFrame;
-let originalQueueMicrotask: typeof globalThis.queueMicrotask;
 let rafId = 0;
+
+type TestGlobalProperty =
+    | "cancelAnimationFrame"
+    | "queueMicrotask"
+    | "requestAnimationFrame";
+
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor | undefined
+>();
 
 function createOnChangeMock() {
     return vi.fn<FilterChangeHandler>();
+}
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        originalGlobalDescriptors.set(
+            name,
+            Object.getOwnPropertyDescriptor(globalThis, name)
+        );
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        if (descriptor) {
+            Object.defineProperty(globalThis, name, descriptor);
+        } else {
+            Reflect.deleteProperty(globalThis, name);
+        }
+    }
+    originalGlobalDescriptors.clear();
+}
+
+function installAnimationFrameFixtures(): void {
+    rafId = 0;
+    setTestGlobal(
+        "requestAnimationFrame",
+        vi.fn<(callback: FrameRequestCallback) => number>((callback) => {
+            rafId += 1;
+            callback(16);
+            return rafId;
+        })
+    );
+    setTestGlobal(
+        "cancelAnimationFrame",
+        vi.fn<(handle: number) => void>(() => {})
+    );
 }
 
 beforeAll(async () => {
@@ -154,29 +203,13 @@ beforeEach(() => {
         },
         { source: "test" }
     );
-    originalQueueMicrotask = globalThis.queueMicrotask;
-
-    originalRAF = globalThis.requestAnimationFrame;
-    originalCancelRAF = globalThis.cancelAnimationFrame;
-    rafId = 0;
-    vi.spyOn(globalThis, "requestAnimationFrame").mockImplementation(
-        (cb: FrameRequestCallback) => {
-            rafId += 1;
-            cb(16);
-            return rafId;
-        }
-    );
-    vi.spyOn(globalThis, "cancelAnimationFrame").mockImplementation(
-        (_handle: number): void => {}
-    );
+    installAnimationFrameFixtures();
 });
 
 afterEach(() => {
     __resetStateManagerForTests();
     resetMapDataPointFilterStateForTests();
-    globalThis.requestAnimationFrame = originalRAF;
-    globalThis.cancelAnimationFrame = originalCancelRAF;
-    globalThis.queueMicrotask = originalQueueMicrotask;
+    restoreTestGlobals();
 });
 
 function appendControl(container: HTMLDivElement) {
@@ -885,11 +918,8 @@ describe(createDataPointFilterControl, () => {
             },
         });
 
-        const originalMicrotask = globalThis.queueMicrotask;
         // Simulate environments (older Safari/Electron) that lack queueMicrotask.
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore -- intentionally assigning undefined for coverage branch
-        globalThis.queueMicrotask = undefined;
+        setTestGlobal("queueMicrotask", undefined);
 
         const container = appendControl(createDataPointFilterControl());
         openPanel(container);
@@ -917,7 +947,6 @@ describe(createDataPointFilterControl, () => {
 
         expect(summaryElement.textContent).toBe("Fallback microtask refresh");
 
-        globalThis.queueMicrotask = originalMicrotask;
     });
 
     it("promotes slider interaction to value range mode when starting in top-percent", async () => {
