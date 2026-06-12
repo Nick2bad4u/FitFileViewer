@@ -804,6 +804,8 @@ const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
     /\bReflect\.set\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*,/u;
+const themeAdditionalTestDirectGlobalFixtureMutationPattern =
+    /\bReflect\.set\(\s*globalThis\s*,\s*["'](?:getComputedStyle|localStorage|matchMedia)["']\s*,/u;
 const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
@@ -3771,6 +3773,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/updateActiveTab.fallbacks.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps additional theme tests on descriptor-scoped browser fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            themeAdditionalTestDirectGlobalFixtureMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/theming/core/theme.additional.test.ts"
                     )
                 )
             )

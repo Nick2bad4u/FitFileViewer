@@ -387,6 +387,9 @@ summary rendering uses typed imports, and architecture coverage blocks that muta
 Active-tab fallback tests now install missing-document and window-document browser fixtures through
 descriptor-scoped helpers instead of reflecting directly onto `globalThis`, with architecture coverage blocking
 that fallback fixture mutation pattern.
+Additional theme tests now install temporary `matchMedia`, `localStorage`, and `getComputedStyle` browser
+fixtures through descriptor-scoped helpers instead of reflecting directly onto `globalThis`, with architecture
+coverage blocking that fixture mutation pattern.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning.
