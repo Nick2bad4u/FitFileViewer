@@ -75,6 +75,10 @@ Main bootstrap/IPC setup source (`initializeApplication.ts`, `setupIPCHandlers.t
 now uses named source exports too; initialize application, IPC setup, and Gyazo OAuth import migrated
 constants/app-state/OAuth helper boundaries natively where those sources have already been retired from
 source-level CommonJS wrappers.
+Main logging, menu-creation, Electron access, and blocked-request support helpers (`logWithContext.ts`,
+`safeCreateAppMenu.ts`, `electronAccess.ts`, and `setupBlockedRequests.ts`) now use named source exports too;
+already-migrated runtime consumers import those helper boundaries natively instead of requiring their source
+files. Main-process source and the state/menu utility consumers no longer require `electronAccess.ts` directly.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

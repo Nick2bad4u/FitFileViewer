@@ -1,4 +1,7 @@
 import { CONSTANTS } from "../constants.js";
+import { logWithContext } from "../logging/logWithContext.js";
+import { safeCreateAppMenu } from "../menu/safeCreateAppMenu.js";
+import { browserWindowRef as electronBrowserWindowRef } from "../runtime/electronAccess.js";
 import { validateWindow } from "../window/windowValidation.js";
 
 {
@@ -35,23 +38,7 @@ import { validateWindow } from "../window/windowValidation.js";
         rebuildMenu: (theme?: null | string, filePath?: null | string) => void;
     }
 
-    const { logWithContext } = require("../logging/logWithContext") as {
-        logWithContext: (
-            level: string,
-            message: string,
-            context?: Record<string, unknown>
-        ) => void;
-    };
-    const { safeCreateAppMenu } = require("../menu/safeCreateAppMenu") as {
-        safeCreateAppMenu: (
-            mainWindow: MainWindowLike,
-            theme: string,
-            loadedFitFilePath?: null | string
-        ) => void;
-    };
-    const { browserWindowRef } = require("../runtime/electronAccess") as {
-        browserWindowRef: () => unknown;
-    };
+    const browserWindowRef = electronBrowserWindowRef as () => unknown;
     const { cleanupEventHandlers, getAppState, mainProcessState } =
         require("../state/appState") as {
             cleanupEventHandlers: () => void;

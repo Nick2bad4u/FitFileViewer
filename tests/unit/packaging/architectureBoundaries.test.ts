@@ -1816,8 +1816,20 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(35);
+        expect.assertions(58);
 
+        const logWithContextSource = stripComments(
+            readRepositoryFile("electron-app/main/logging/logWithContext.ts")
+        );
+        const safeCreateAppMenuSource = stripComments(
+            readRepositoryFile("electron-app/main/menu/safeCreateAppMenu.ts")
+        );
+        const setupBlockedRequestsSource = stripComments(
+            readRepositoryFile("electron-app/main/security/setupBlockedRequests.ts")
+        );
+        const electronAccessSource = stripComments(
+            readRepositoryFile("electron-app/main/runtime/electronAccess.ts")
+        );
         const sendToRendererSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/sendToRenderer.ts")
         );
@@ -1849,7 +1861,22 @@ describe("architecture boundaries", () => {
         const gyazoOAuthServerSource = stripComments(
             readRepositoryFile("electron-app/main/oauth/gyazoOAuthServer.ts")
         );
+        const setupMainLifecycleSource = stripComments(
+            readRepositoryFile("electron-app/main/runtime/setupMainLifecycle.ts")
+        );
+        const createAppMenuSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/menu/createAppMenu.ts")
+        );
+        const mainProcessStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/mainProcessStateManager.ts"
+            )
+        );
 
+        expect(logWithContextSource).not.toContain("module.exports");
+        expect(safeCreateAppMenuSource).not.toContain("module.exports");
+        expect(setupBlockedRequestsSource).not.toContain("module.exports");
+        expect(electronAccessSource).not.toContain("module.exports");
         expect(sendToRendererSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain("module.exports");
         expect(getThemeFromRendererSource).not.toContain("module.exports");
@@ -1859,6 +1886,15 @@ describe("architecture boundaries", () => {
         expect(gyazoOAuthServerSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain(
             'require("../state/appState")'
+        );
+        expect(windowValidationSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(safeCreateAppMenuSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(setupAutoUpdaterSource).not.toContain(
+            'require("../logging/logWithContext")'
         );
         expect(sendToRendererSource).not.toContain(
             'require("../window/windowValidation")'
@@ -1875,6 +1911,9 @@ describe("architecture boundaries", () => {
         expect(setupAutoUpdaterSource).not.toContain(
             'require("../window/windowValidation")'
         );
+        expect(setupAutoUpdaterSource).not.toContain(
+            'require("../runtime/electronAccess")'
+        );
         expect(initializeApplicationSource).not.toContain(
             'require("../constants")'
         );
@@ -1890,6 +1929,15 @@ describe("architecture boundaries", () => {
         expect(initializeApplicationSource).not.toContain(
             'require("../updater/setupAutoUpdater")'
         );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../menu/safeCreateAppMenu")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../runtime/electronAccess")'
+        );
         expect(setupMenuAndEventHandlersSource).not.toContain(
             'require("../ipc/sendToRenderer")'
         );
@@ -1902,9 +1950,21 @@ describe("architecture boundaries", () => {
         expect(gyazoOAuthServerSource).not.toContain(
             'require("../state/appState")'
         );
+        expect(gyazoOAuthServerSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
         expect(setupIpcHandlersSource).not.toContain('require("../constants")');
         expect(setupIpcHandlersSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../menu/safeCreateAppMenu")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
             'require("../oauth/gyazoOAuthServer")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../runtime/electronAccess")'
         );
         expect(setupIpcHandlersSource).not.toContain(
             'require("../state/appState")'
@@ -1912,6 +1972,28 @@ describe("architecture boundaries", () => {
         expect(setupIpcHandlersSource).not.toContain(
             'require("../theme/getThemeFromRenderer")'
         );
+        expect(setupBlockedRequestsSource).not.toContain(
+            'require("../runtime/electronAccess")'
+        );
+        expect(setupMainLifecycleSource).not.toContain(
+            'require("../security/setupBlockedRequests")'
+        );
+        expect(createAppMenuSource).not.toContain(
+            'require("../../../main/runtime/electronAccess")'
+        );
+        expect(mainProcessStateManagerSource).not.toContain(
+            'require("../../../main/runtime/electronAccess")'
+        );
+        expect(logWithContextSource).toContain(
+            "export function logWithContext"
+        );
+        expect(safeCreateAppMenuSource).toContain(
+            "export function safeCreateAppMenu"
+        );
+        expect(setupBlockedRequestsSource).toContain(
+            "export function setupBlockedRequests"
+        );
+        expect(electronAccessSource).toContain("export function getElectron");
         expect(sendToRendererSource).toContain(
             "export function sendToRenderer"
         );

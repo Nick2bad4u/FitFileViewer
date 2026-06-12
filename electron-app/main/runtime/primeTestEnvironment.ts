@@ -1,3 +1,10 @@
+import {
+    appRef,
+    browserWindowRef,
+    getElectron as getRuntimeElectron,
+    getElectronOverride,
+    setElectronOverride,
+} from "./electronAccess.js";
 import { getAppState, setAppState } from "../state/appState.js";
 
 let clearPrimeTestEnvironmentTimersImpl: (() => void) | undefined;
@@ -31,20 +38,6 @@ type PrimeTestMainWindowLike = {
 
     type PrimeTestBrowserWindowLike = {
         getAllWindows?: () => PrimeTestMainWindowLike[];
-    };
-
-    const {
-        appRef,
-        browserWindowRef,
-        getElectron: getRuntimeElectron,
-        getElectronOverride,
-        setElectronOverride,
-    } = require("./electronAccess") as {
-        appRef: () => unknown;
-        browserWindowRef: () => unknown;
-        getElectron: () => unknown;
-        getElectronOverride: () => unknown;
-        setElectronOverride: (override: unknown) => void;
     };
 
     const PROBE_EVENT = "__test_probe__";

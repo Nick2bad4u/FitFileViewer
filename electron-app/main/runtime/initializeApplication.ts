@@ -1,5 +1,8 @@
 import { CONSTANTS } from "../constants.js";
 import { sendToRenderer } from "../ipc/sendToRenderer.js";
+import { logWithContext } from "../logging/logWithContext.js";
+import { safeCreateAppMenu } from "../menu/safeCreateAppMenu.js";
+import { browserWindowRef } from "../runtime/electronAccess.js";
 import { getAppState, setAppState } from "../state/appState.js";
 import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
 import { setupAutoUpdater } from "../updater/setupAutoUpdater.js";
@@ -33,15 +36,6 @@ interface BootstrapMainWindowDependencies {
     setupAutoUpdater: (options: Record<string, unknown>) => unknown;
 }
 
-const { logWithContext } = require("../logging/logWithContext") as {
-    logWithContext: BootstrapMainWindowDependencies["logWithContext"];
-};
-const { safeCreateAppMenu } = require("../menu/safeCreateAppMenu") as {
-    safeCreateAppMenu: BootstrapMainWindowDependencies["safeCreateAppMenu"];
-};
-const { browserWindowRef } = require("../runtime/electronAccess") as {
-    browserWindowRef: () => unknown;
-};
 const { resolveAutoUpdaterAsync } = require("../updater/autoUpdaterAccess") as {
     resolveAutoUpdaterAsync: () => Promise<unknown>;
 };

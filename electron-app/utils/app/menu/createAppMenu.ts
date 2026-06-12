@@ -1,5 +1,6 @@
 // Lazily resolve Electron at call-time so Vitest's vi.mock('electron') can hook properly
 import { validateExternalUrl } from "../../../shared/externalUrlPolicy.js";
+import { getElectron as getRuntimeElectron } from "../../../main/runtime/electronAccess.js";
 
 type RendererIpcEventChannel =
     import("../../../shared/ipc").RendererIpcEventChannel;
@@ -106,10 +107,7 @@ function sendToWindow(
     return false;
 }
 
-const { getElectron: getRuntimeElectron } =
-    require("../../../main/runtime/electronAccess") as {
-        getElectron: () => ElectronLike;
-    };
+const getMenuRuntimeElectron = getRuntimeElectron as unknown as () => ElectronLike;
 
 let __electronCached: ElectronLike | null = null;
 function hasUsableElectronReference(
@@ -124,7 +122,7 @@ function hasUsableElectronReference(
 
 function getElectron(): ElectronLike {
     try {
-        const e = getRuntimeElectron();
+        const e = getMenuRuntimeElectron();
         __electronCached = e;
         return e;
     } catch {

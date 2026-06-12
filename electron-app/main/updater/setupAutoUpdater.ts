@@ -1,5 +1,7 @@
 import { CONSTANTS } from "../constants.js";
 import { sendToRenderer } from "../ipc/sendToRenderer.js";
+import { logWithContext } from "../logging/logWithContext.js";
+import { menuRef } from "../runtime/electronAccess.js";
 import { mainProcessState, setAppState } from "../state/appState.js";
 import { isWindowUsable } from "../window/windowValidation.js";
 
@@ -46,16 +48,7 @@ interface MenuModuleLike {
     getApplicationMenu?: () => MenuLike | null;
 }
 
-const { logWithContext } = require("../logging/logWithContext") as {
-    logWithContext: (
-        level: "error" | "info" | "warn",
-        message: string,
-        context?: Record<string, unknown>
-    ) => void;
-};
-const { menuRef } = require("../runtime/electronAccess") as {
-    menuRef: () => MenuModuleLike | undefined;
-};
+const runtimeMenuRef = menuRef as () => MenuModuleLike | undefined;
 const { resolveAutoUpdaterSync: resolveAutoUpdaterFallback } =
     require("./autoUpdaterAccess") as {
         resolveAutoUpdaterSync: () => AutoUpdaterLike | null;
@@ -129,7 +122,7 @@ function resolveLogger(): UpdaterLoggerLike {
 }
 
 function enableRestartMenuItem(): void {
-    const menuModule = menuRef();
+    const menuModule = runtimeMenuRef();
     const menu =
         typeof menuModule?.getApplicationMenu === "function"
             ? menuModule.getApplicationMenu()

@@ -1,5 +1,11 @@
 import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
 import { CONSTANTS } from "../constants.js";
+import {
+    appRef as electronAppRef,
+    browserWindowRef as electronBrowserWindowRef,
+    dialogRef as electronDialogRef,
+    shellRef as electronShellRef,
+} from "../runtime/electronAccess.js";
 import { getAppState, setAppState } from "../state/appState.js";
 import { setGyazoStartupTimer } from "./gyazoStartupTimerState.js";
 
@@ -139,13 +145,12 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
             loadedFitFilePath?: null | string
         ) => void;
     };
-    const { appRef, browserWindowRef, dialogRef, shellRef } =
-        require("../runtime/electronAccess") as {
-            appRef: () => AppLike | undefined;
-            browserWindowRef: () => BrowserWindowStaticLike | undefined;
-            dialogRef: () => DialogLike | undefined;
-            shellRef: () => ShellLike | undefined;
-        };
+    const appRef = electronAppRef as () => AppLike | undefined;
+    const browserWindowRef = electronBrowserWindowRef as () =>
+        | BrowserWindowStaticLike
+        | undefined;
+    const dialogRef = electronDialogRef as () => DialogLike | undefined;
+    const shellRef = electronShellRef as () => ShellLike | undefined;
     const { httpRef, path } = require("../runtime/nodeModules") as {
         httpRef: () => HttpModule | null;
         path: PathModule;

@@ -19,6 +19,7 @@ import {
     isSafeMainStatePath,
 } from "../../../shared/mainStatePathPolicy.js";
 import { registerIpcHandle as registerGenericIpcHandle } from "../../../main/ipc/ipcRegistry.js";
+import { getElectron as getStateRuntimeElectron } from "../../../main/runtime/electronAccess.js";
 
 const RENDERER_READABLE_MAIN_STATE_PATHS: ReadonlySet<string> = new Set([
     "loadedFitFilePath",
@@ -43,11 +44,6 @@ function isMainProcessDevelopmentEnvironment(): boolean {
 function isRendererReadableMainStatePath(path: string): boolean {
     return RENDERER_READABLE_MAIN_STATE_PATHS.has(path);
 }
-
-const { getElectron: getStateRuntimeElectron } =
-    require("../../../main/runtime/electronAccess") as {
-        getElectron: () => unknown;
-    };
 
 type ConsoleLevel = "debug" | "error" | "info" | "log" | "warn";
 

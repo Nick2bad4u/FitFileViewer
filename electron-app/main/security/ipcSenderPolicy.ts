@@ -1,3 +1,5 @@
+import { appRef as electronAppRef } from "../runtime/electronAccess.js";
+
 type AppLike = {
     getAppPath?: () => string;
 };
@@ -13,9 +15,7 @@ interface IpcEventLike {
 }
 
 const { fileURLToPath } = require("node:url") as typeof import("node:url");
-const { appRef } = require("../runtime/electronAccess") as {
-    appRef: () => AppLike | undefined;
-};
+const appRef = electronAppRef as () => AppLike | undefined;
 const { path } = require("../runtime/nodeModules") as {
     path: PathModule;
 };

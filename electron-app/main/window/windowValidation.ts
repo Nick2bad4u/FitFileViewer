@@ -1,12 +1,6 @@
+import { logWithContext } from "../logging/logWithContext.js";
 import { getAppState } from "../state/appState.js";
 
-const { logWithContext } = require("../logging/logWithContext") as {
-    logWithContext: (
-        level: string,
-        message: string,
-        context?: Record<string, unknown>
-    ) => void;
-};
 interface WindowUsabilityCandidate {
     isDestroyed?: () => boolean;
     webContents?: {

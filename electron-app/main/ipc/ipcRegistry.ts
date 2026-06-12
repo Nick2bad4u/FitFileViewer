@@ -1,4 +1,5 @@
 import { assertIpcSenderAllowed } from "../security/ipcSenderPolicy.js";
+import { ipcMainRef as electronIpcMainRef } from "../runtime/electronAccess.js";
 
 type GenericInvokeChannel = import("../../shared/ipc").GenericInvokeChannel;
 type MainProcessIpcEventChannel =
@@ -26,9 +27,7 @@ interface IpcListenerRegistryEntry {
     registeredListener: IpcCallback;
 }
 
-const { ipcMainRef } = require("../runtime/electronAccess") as {
-    ipcMainRef: () => IpcMainLike | undefined;
-};
+const ipcMainRef = electronIpcMainRef as () => IpcMainLike | undefined;
 
 const IPC_HANDLE_REGISTRY = new Map<
     GenericInvokeChannel,

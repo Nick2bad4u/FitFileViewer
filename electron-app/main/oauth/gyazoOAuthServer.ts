@@ -1,4 +1,5 @@
 import { sendToRenderer } from "../ipc/sendToRenderer.js";
+import { logWithContext } from "../logging/logWithContext.js";
 import { getAppState, setAppState } from "../state/appState.js";
 
 type HttpModule = typeof import("node:http");
@@ -17,13 +18,6 @@ interface OAuthWindowLike {
     };
 }
 
-const { logWithContext } = require("../logging/logWithContext") as {
-    logWithContext: (
-        level: string,
-        message: string,
-        context?: Record<string, unknown>
-    ) => void;
-};
 const { httpRef } = require("../runtime/nodeModules") as {
     httpRef: () => HttpModule | null;
 };

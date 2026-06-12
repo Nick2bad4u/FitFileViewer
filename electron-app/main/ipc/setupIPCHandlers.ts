@@ -1,8 +1,18 @@
 import { CONSTANTS as MAIN_PROCESS_CONSTANTS } from "../constants.js";
+import { logWithContext } from "../logging/logWithContext.js";
+import { safeCreateAppMenu } from "../menu/safeCreateAppMenu.js";
 import {
     startGyazoOAuthServer,
     stopGyazoOAuthServer,
 } from "../oauth/gyazoOAuthServer.js";
+import {
+    appRef as electronAppRef,
+    browserWindowRef as electronBrowserWindowRef,
+    clipboardRef as electronClipboardRef,
+    dialogRef as electronDialogRef,
+    nativeImageRef as electronNativeImageRef,
+    shellRef as electronShellRef,
+} from "../runtime/electronAccess.js";
 import { assertFileReadAllowed } from "../security/fileAccessPolicy.js";
 import { getAppState, setAppState } from "../state/appState.js";
 import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
@@ -58,42 +68,24 @@ interface NativeImageFactory {
     createFromDataURL?: (dataUrl: string) => unknown;
 }
 
-type LogWithContext = (
-    level: "error" | "info" | "warn",
-    message: string,
-    context?: Record<string, unknown>
-) => void;
-
 const { addRecentFile, loadRecentFiles } =
     require("../../utils/files/recent/recentFiles") as {
         addRecentFile: (filePath: string) => void;
         loadRecentFiles: () => string[];
     };
-const { logWithContext } = require("../logging/logWithContext") as {
-    logWithContext: LogWithContext;
-};
-const { safeCreateAppMenu } = require("../menu/safeCreateAppMenu") as {
-    safeCreateAppMenu: (
-        win: BrowserWindow,
-        theme: string,
-        loadedFitFilePath?: string | null
-    ) => void;
-};
-const {
-    appRef,
-    browserWindowRef,
-    clipboardRef,
-    dialogRef,
-    nativeImageRef,
-    shellRef,
-} = require("../runtime/electronAccess") as {
-    appRef: () => AppInfoProvider | null | undefined;
-    browserWindowRef: () => BrowserWindowConstructorLike;
-    clipboardRef: () => ClipboardWriter | null | undefined;
-    dialogRef: () => DialogApi | null | undefined;
-    nativeImageRef: () => NativeImageFactory | null | undefined;
-    shellRef: () => ExternalShell | null | undefined;
-};
+const appRef = electronAppRef as () => AppInfoProvider | null | undefined;
+const browserWindowRef = electronBrowserWindowRef as () =>
+    BrowserWindowConstructorLike;
+const clipboardRef = electronClipboardRef as () =>
+    | ClipboardWriter
+    | null
+    | undefined;
+const dialogRef = electronDialogRef as () => DialogApi | null | undefined;
+const nativeImageRef = electronNativeImageRef as () =>
+    | NativeImageFactory
+    | null
+    | undefined;
+const shellRef = electronShellRef as () => ExternalShell | null | undefined;
 const { ensureFitParserStateIntegration } =
     require("../runtime/fitParserIntegration") as {
         ensureFitParserStateIntegration: () => Promise<unknown>;

@@ -1,5 +1,9 @@
 import { validateDevtoolsInjectMenuPayload } from "../../shared/devtoolsMenuPolicy.js";
 import { sendToRenderer } from "../ipc/sendToRenderer.js";
+import {
+    browserWindowRef as electronBrowserWindowRef,
+    dialogRef as electronDialogRef,
+} from "../runtime/electronAccess.js";
 import { validateWindow } from "../window/windowValidation.js";
 
 {
@@ -111,11 +115,9 @@ import { validateWindow } from "../window/windowValidation.js";
             context?: Record<string, unknown>
         ) => void;
     };
-    const { browserWindowRef, dialogRef } =
-        require("../runtime/electronAccess") as {
-            browserWindowRef: () => BrowserWindowRefLike;
-            dialogRef: () => DialogLike | undefined;
-        };
+    const browserWindowRef = electronBrowserWindowRef as () =>
+        BrowserWindowRefLike;
+    const dialogRef = electronDialogRef as () => DialogLike | undefined;
     const { fs } = require("../runtime/nodeModules") as {
         fs: typeof import("node:fs") | null;
     };

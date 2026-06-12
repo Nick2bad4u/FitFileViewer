@@ -1,3 +1,9 @@
+import {
+    appRef as runtimeAppRef,
+    browserWindowRef as runtimeBrowserWindowRef,
+} from "./electronAccess.js";
+import { setupBlockedRequests } from "../security/setupBlockedRequests.js";
+
 {
     type AppLike = {
         whenReady?: () => Promise<unknown>;
@@ -35,12 +41,6 @@
     };
     type WireHandlers = (windowCandidate: WindowLike | undefined) => void;
     type MaybeExposeDevHelpers = () => void;
-
-    const { appRef: runtimeAppRef, browserWindowRef: runtimeBrowserWindowRef } =
-        require("./electronAccess") as {
-            appRef: () => unknown;
-            browserWindowRef: () => unknown;
-        };
 
     function isObjectLike(value: unknown): value is object {
         return (
@@ -222,10 +222,6 @@
             if (!blockedRequestsInstalled) {
                 blockedRequestsInstalled = true;
                 safeCall(() => {
-                    const { setupBlockedRequests } =
-                        require("../security/setupBlockedRequests") as {
-                            setupBlockedRequests: () => void;
-                        };
                     setupBlockedRequests();
                 });
             }

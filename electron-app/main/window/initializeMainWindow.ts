@@ -1,3 +1,8 @@
+import {
+    appRef as electronAppRef,
+    browserWindowRef as electronBrowserWindowRef,
+} from "../runtime/electronAccess.js";
+
 {
     type RendererIpcEventChannel =
         import("../../shared/ipc").RendererIpcEventChannel;
@@ -66,11 +71,9 @@
         ) => void;
     }
 
-    const { appRef: runtimeAppRef, browserWindowRef: runtimeBrowserWindowRef } =
-        require("../runtime/electronAccess") as {
-            appRef: () => ElectronAppLike | undefined;
-            browserWindowRef: () => BrowserWindowApi | undefined;
-        };
+    const runtimeAppRef = electronAppRef as () => ElectronAppLike | undefined;
+    const runtimeBrowserWindowRef = electronBrowserWindowRef as () =>
+        BrowserWindowApi | undefined;
 
     function getErrorMessage(error: unknown): string {
         return error instanceof Error ? error.message : String(error);
