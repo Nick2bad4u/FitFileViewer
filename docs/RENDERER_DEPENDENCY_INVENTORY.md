@@ -188,8 +188,7 @@ Current `build:runtime-ts` flow:
 ## Electron Builder Package Surface
 
 The root `electron-builder.config.cjs` `files` list is the source of truth for
-the Electron Builder package surface. The Windows 7 build helper reads the same
-list from that config. Electron Builder packages only:
+the Electron Builder package surface. Electron Builder packages only:
 
 - `dist/`
 - `package.json`

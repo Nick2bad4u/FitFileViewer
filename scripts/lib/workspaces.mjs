@@ -115,10 +115,6 @@ export const rootRuntimeRendererRepositoryPath = path.posix.join(
 );
 export const rootTypesPath = "types";
 export const rootTypesAbsolutePath = repositoryPath(rootTypesPath);
-export const rootWin7ReleaseDistPath = repositoryPath(
-    rootReleaseDistPath,
-    "win7"
-);
 export const rootRuntimeTsconfigPath = "tsconfig.runtime.json";
 export const rootRuntimeTsconfigAbsolutePath = repositoryPath(
     rootRuntimeTsconfigPath

@@ -19,12 +19,12 @@ FitFileViewer is designed to run on a wide range of hardware. Here are the syste
 
 ### Windows
 
-| Version     | Support Level               |
-| ----------- | --------------------------- |
-| Windows 11  | ✅ Fully Supported          |
-| Windows 10  | ✅ Fully Supported          |
-| Windows 8.1 | ⚠️ Limited Support          |
-| Windows 7   | ⚠️ May Work (Special Build) |
+| Version     | Support Level           |
+| ----------- | ----------------------- |
+| Windows 11  | ✅ Fully Supported      |
+| Windows 10  | ✅ Fully Supported      |
+| Windows 8.1 | ⚠️ Limited Support      |
+| Windows 7   | ⚠️ Legacy Snapshot Only |
 
 ### macOS
 

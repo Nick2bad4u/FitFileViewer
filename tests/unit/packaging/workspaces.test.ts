@@ -166,7 +166,6 @@ type WorkspacesModule = {
     rootVitestSetupFilePath: string;
     rootVitestSupportPath: string;
     rootVitestTypecheckTsconfigPath: string;
-    rootWin7ReleaseDistPath: string;
     ensureElectronBinaryScriptPath: string;
     runDocusaurusScriptPath: string;
     runElectronBuilderScriptPath: string;
@@ -638,7 +637,6 @@ describe("workspace path helpers", () => {
             vitestPreloadDistHelper: workspaces.rootVitestPreloadDistHelperPath,
             vitestSetupFile: workspaces.rootVitestSetupFilePath,
             vitestSupport: workspaces.rootVitestSupportPath,
-            win7ReleaseDist: workspaces.rootWin7ReleaseDistPath,
         }).toStrictEqual({
             artifacts: "artifacts",
             coverage: "coverage",
@@ -665,7 +663,6 @@ describe("workspace path helpers", () => {
             vitestPreloadDistHelper: "tests/vitest/helpers/preloadDist.ts",
             vitestSetupFile: "tests/vitest/setupVitest.mjs",
             vitestSupport: "tests/vitest",
-            win7ReleaseDist: path.join(process.cwd(), "release-dist", "win7"),
         });
         expect(
             workspaces.rootReleaseDistRelativePath(
