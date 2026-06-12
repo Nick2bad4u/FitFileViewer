@@ -612,6 +612,8 @@ const stateDevToolsTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:STATE_DEBUG_GLOBAL|["']__stateDebug["'])\s*\)|\bglobalThis\.__stateDebug\s*=/u;
 const stateIntegrationRetiredGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)["']|(?:globalThis|testGlobal)\.(?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)\s*=/u;
+const stateIntegrationBrowserGlobalFixtureMutationPattern =
+    /\bglobalThis\.localStorage\s*=|\bReflect\.set\(\s*globalThis\s*,\s*["'](?:localStorage|performance)["']\s*,/u;
 const directSingletonStateSubscriptionsGlobalPattern =
     /\b(?:window|globalThis|globalState)\.__ffvSingletonStateSubscriptions\b|["']__ffvSingletonStateSubscriptions["']/u;
 const directFileAccessPolicyStateGlobalPattern =
@@ -4140,6 +4142,20 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps state integration comprehensive tests on descriptor-scoped browser fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            stateIntegrationBrowserGlobalFixtureMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/state/integration/stateIntegration.comprehensive.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps state development tools on the debug state access facade", () => {

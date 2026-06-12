@@ -9,11 +9,46 @@ type RetiredStateGlobalName =
     | "__persistenceTimeout"
     | "globalData"
     | "isChartRendered";
+type TestGlobalProperty = "localStorage" | "performance";
 
 function getRetiredGlobalDescriptor(
     name: RetiredStateGlobalName | "__state_debug"
 ): PropertyDescriptor | undefined {
     return Object.getOwnPropertyDescriptor(globalThis, name);
+}
+
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor | undefined
+>();
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        originalGlobalDescriptors.set(
+            name,
+            Object.getOwnPropertyDescriptor(globalThis, name)
+        );
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [
+        name,
+        descriptor,
+    ] of [...originalGlobalDescriptors.entries()].reverse()) {
+        if (descriptor) {
+            Object.defineProperty(globalThis, name, descriptor);
+        } else {
+            Reflect.deleteProperty(globalThis, name);
+        }
+    }
+    originalGlobalDescriptors.clear();
 }
 
 // Setup comprehensive mocks
@@ -84,28 +119,20 @@ const mockPerformance = {
 } as any;
 
 describe("stateIntegration comprehensive coverage", () => {
-    let originalLocalStorage: any;
-    let originalPerformance: any;
-
     beforeEach(() => {
         // Clear all mocks
         vi.clearAllMocks();
 
-        // Save original globals
-        originalLocalStorage = globalThis.localStorage;
-        originalPerformance = globalThis.performance;
-
         // Setup mocks
-        globalThis.localStorage = mockLocalStorage;
-        Reflect.set(globalThis, "performance", mockPerformance);
+        setTestGlobal("localStorage", mockLocalStorage);
+        setTestGlobal("performance", mockPerformance);
 
         restoreLocation();
     });
 
     afterEach(() => {
         // Restore original globals
-        globalThis.localStorage = originalLocalStorage;
-        Reflect.set(globalThis, "performance", originalPerformance);
+        restoreTestGlobals();
 
         restoreLocation();
 
@@ -284,7 +311,7 @@ describe("stateIntegration comprehensive coverage", () => {
             expect.assertions(3);
 
             vi.useFakeTimers();
-            Reflect.set(globalThis, "performance", mockPerformance);
+            setTestGlobal("performance", mockPerformance);
 
             const { setupStatePerformanceMonitoring } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -339,7 +366,7 @@ describe("stateIntegration comprehensive coverage", () => {
             expect.assertions(3);
 
             vi.useFakeTimers();
-            Reflect.set(globalThis, "performance", mockPerformance);
+            setTestGlobal("performance", mockPerformance);
 
             // Remove memory from performance mock
             delete (globalThis.performance as any).memory;
