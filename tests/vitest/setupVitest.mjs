@@ -1416,6 +1416,7 @@ const vitestTrackedTimeouts = new Set();
 const vitestTrackedIntervals = new Set();
 /** @type {any[]} */
 const vitestTrackedDomListeners = [];
+const vitestWrappedEventListenerMethods = new WeakSet();
 let vitestTimerAndListenerTrackingInstalled = false;
 
 // Helper to install guards on a specific Document instance (handles reassignments)
@@ -2120,9 +2121,15 @@ try {
 
             function wrapAddRemove(target) {
                 try {
-                    const add = target.addEventListener?.bind(target);
-                    const remove = target.removeEventListener?.bind(target);
-                    if (typeof add === "function" && !add.__vitest_wrapped) {
+                    const rawAdd = target.addEventListener;
+                    const rawRemove = target.removeEventListener;
+                    const add = rawAdd?.bind(target);
+                    const remove = rawRemove?.bind(target);
+                    if (
+                        typeof add === "function" &&
+                        typeof rawAdd === "function" &&
+                        !vitestWrappedEventListenerMethods.has(rawAdd)
+                    ) {
                         const wrappedAdd = function (type, listener, options) {
                             try {
                                 domListeners.push({
@@ -2136,14 +2143,15 @@ try {
                             }
                             return add(type, listener, options);
                         };
-                        wrappedAdd.__vitest_wrapped = true;
+                        vitestWrappedEventListenerMethods.add(wrappedAdd);
                         target.addEventListener = /** @type {any} */ (
                             wrappedAdd
                         );
                     }
                     if (
                         typeof remove === "function" &&
-                        !remove.__vitest_wrapped
+                        typeof rawRemove === "function" &&
+                        !vitestWrappedEventListenerMethods.has(rawRemove)
                     ) {
                         const wrappedRemove = function (
                             type,
@@ -2163,7 +2171,7 @@ try {
                             }
                             return remove(type, listener, options);
                         };
-                        wrappedRemove.__vitest_wrapped = true;
+                        vitestWrappedEventListenerMethods.add(wrappedRemove);
                         target.removeEventListener = /** @type {any} */ (
                             wrappedRemove
                         );

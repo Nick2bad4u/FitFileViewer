@@ -71,7 +71,8 @@ now uses module-local state instead of `__vitest_tracked_*` and `__vitest_timers
 generated-runtime resolver install guard now uses setup-module state instead of
 `__fitFileViewerVitestDistResolverInstalled` on globalThis. The retired
 `__vitest_effective_document__` setup global is no longer published; tests should use real jsdom documents,
-explicit fixtures, or `tabTestEnvironment.ts`.
+explicit fixtures, or `tabTestEnvironment.ts`. Event-listener wrapper tracking now uses a module-local
+WeakSet instead of `__vitest_wrapped` expando properties.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
