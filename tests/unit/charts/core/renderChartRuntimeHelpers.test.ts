@@ -69,8 +69,6 @@ describe("render chart runtime helpers", () => {
 
     afterEach(() => {
         setLoadingStateSuppressed(false);
-        Reflect.deleteProperty(globalThis, "chartActions");
-        Reflect.deleteProperty(globalThis, "chartStateManager");
         resetChartActionsRegistryForTests();
         resetChartStateManagerRegistryForTests();
         restoreGlobalProcess();
@@ -188,45 +186,29 @@ describe("render chart runtime helpers", () => {
         expect(getGlobalChartInstances("invalid")).toStrictEqual([]);
     });
 
-    it("returns the registered chart state manager without reading a renderer global", () => {
-        expect.assertions(3);
+    it("returns the registered chart state manager from the typed registry", () => {
+        expect.assertions(2);
 
-        const globalRender = () => undefined,
-            registeredRender = () => undefined,
+        const registeredRender = () => undefined,
             registeredManager = { debouncedRender: registeredRender };
-
-        Object.defineProperty(globalThis, "chartStateManager", {
-            configurable: true,
-            value: { debouncedRender: globalRender },
-        });
 
         expect(getDebouncedChartStateManager()).toBeNull();
 
         registerChartStateManager(registeredManager);
 
         expect(getDebouncedChartStateManager()).toBe(registeredManager);
-        expect(Reflect.get(globalThis, "chartStateManager")).not.toBe(
-            registeredManager
-        );
     });
 
-    it("returns registered chart actions without reading a renderer global", () => {
-        expect.assertions(3);
+    it("returns registered chart actions from the typed registry", () => {
+        expect.assertions(2);
 
-        const globalActions = { completeRendering: () => undefined },
-            registeredActions = { completeRendering: () => undefined };
-
-        Object.defineProperty(globalThis, "chartActions", {
-            configurable: true,
-            value: globalActions,
-        });
+        const registeredActions = { completeRendering: () => undefined };
 
         expect(getChartLifecycleActions()).toBeNull();
 
         registerChartActions(registeredActions);
 
         expect(getChartLifecycleActions()).toBe(registeredActions);
-        expect(Reflect.get(globalThis, "chartActions")).toBe(globalActions);
     });
 
     it("tracks loading suppression through module state", () => {
