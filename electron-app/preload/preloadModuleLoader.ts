@@ -63,9 +63,7 @@ export function loadPreloadModules({
     const { loadPreloadFileModules } = requireModule(
         "./preload/preloadFileModuleLoader.js"
     ) as {
-        loadPreloadFileModules: (
-            options: LoadPreloadModulesOptions
-        ) => Pick<
+        loadPreloadFileModules: () => Pick<
             PreloadModuleRegistry,
             "createFileApi" | "createFitBrowserApi"
         >;
@@ -101,7 +99,7 @@ export function loadPreloadModules({
         ...loadPreloadApiAssemblyModules({ requireModule }),
         ...loadPreloadAppModules({ requireModule }),
         ...loadPreloadPolicyModules(),
-        ...loadPreloadFileModules({ requireModule }),
+        ...loadPreloadFileModules(),
         ...loadPreloadIpcModules({ requireModule }),
         ...loadPreloadStateModules(),
     };

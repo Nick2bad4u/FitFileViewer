@@ -19,7 +19,9 @@ The first preload app API leaf factories (`apiDiagnostics.ts`, `appInfoApi.ts`, 
 `shellExternalApi.ts`, and `themeApi.ts`) now use named source exports too, with direct unit tests importing
 those named source exports natively.
 The preload file and clipboard leaf factories (`clipboardBridge.ts`, `fileApi.ts`, and `fitBrowserApi.ts`)
-also use named source exports, while their loader boundaries still provide CommonJS-compatible package output.
+also use named source exports, and `preloadFileModuleLoader.ts` now imports the file/FIT-browser leaf modules
+natively instead of resolving them through the injected `requireModule` boundary while the remaining loader
+boundaries still provide CommonJS-compatible package output.
 The preload state leaf factories (`mainStateApi.ts` and `mainStateBridge.ts`) now use named source exports
 too, with direct unit tests importing those named source exports natively, and `preloadStateModuleLoader.ts`
 now imports those state leaf modules natively instead of resolving them through the injected `requireModule`

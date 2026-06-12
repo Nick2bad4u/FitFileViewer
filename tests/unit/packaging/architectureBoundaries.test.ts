@@ -2484,6 +2484,31 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps preload file leaf modules on native imports", () => {
+        expect.assertions(5);
+
+        const fileModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadFileModuleLoader.ts"
+            )
+        );
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+
+        expect(fileModuleLoaderSource).toContain(
+            'import { createFileApi } from "./fileApi.js";'
+        );
+        expect(fileModuleLoaderSource).toContain(
+            'import { createFitBrowserApi } from "./fitBrowserApi.js";'
+        );
+        expect(fileModuleLoaderSource).not.toContain("requireModule");
+        expect(moduleLoaderSource).toContain("loadPreloadFileModules()");
+        expect(moduleLoaderSource).not.toContain(
+            "loadPreloadFileModules({ requireModule })"
+        );
+    });
+
     it("keeps the preload event helper free of generic IPC methods", () => {
         expect.assertions(5);
 
