@@ -1,9 +1,8 @@
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
     adHocEslintCachePath,
@@ -16,8 +15,9 @@ import {
     rootEslintConfigPath,
 } from "./lib/workspaces.mjs";
 
-const require = createRequire(import.meta.url);
-const eslintPackagePath = require.resolve("eslint/package.json");
+const eslintPackagePath = fileURLToPath(
+    import.meta.resolve("eslint/package.json")
+);
 const eslintCliPath = path.join(
     path.dirname(eslintPackagePath),
     "bin/eslint.js"

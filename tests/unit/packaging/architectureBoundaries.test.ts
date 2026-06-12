@@ -2533,6 +2533,29 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps root package CLI scripts on native ESM resolution", () => {
+        expect.assertions(1);
+
+        const rootPackageCliScripts = [
+            "scripts/build-docs.mjs",
+            "scripts/build-runtime.mjs",
+            "scripts/ensure-electron-binary.mjs",
+            "scripts/run-electron-builder.mjs",
+            "scripts/run-electron.mjs",
+            "scripts/run-eslint.mjs",
+            "scripts/update-deps.mjs",
+        ];
+        const violations = rootPackageCliScripts
+            .filter((relativeFile) =>
+                /\b(?:createRequire|require\.resolve)\b/u.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
     it("keeps state domain modules out of broad renderer utilities", () => {
         expect.assertions(1);
 

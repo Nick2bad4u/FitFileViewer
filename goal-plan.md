@@ -127,6 +127,9 @@ The main entrypoint now imports runtime helpers natively instead of using its `m
 source-level `module.exports` fallback, while keeping the existing default export object for tests.
 The recent-files utility now uses named source exports, and `setupIPCHandlers.ts` imports it natively instead
 of requiring the source helper.
+Root-context package CLI helper scripts now resolve package entrypoints through `import.meta.resolve`, and the
+preload bundler imports `esbuild` natively instead of using `createRequire`/`require.resolve`; cross-workspace
+package resolvers stay intentionally separate because they resolve from another package root.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

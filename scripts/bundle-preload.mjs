@@ -1,13 +1,11 @@
-import { createRequire } from "node:module";
 import { readFile } from "node:fs/promises";
+
+import * as esbuild from "esbuild";
 
 import {
     appPreloadBundleAbsolutePath,
     appPreloadSourceAbsolutePath,
 } from "./lib/workspaces.mjs";
-
-const require = createRequire(import.meta.url);
-const esbuild = require("esbuild");
 
 const preloadInjectedRequireBundlingPlugin = {
     name: "preload-injected-require-bundling",
