@@ -643,6 +643,8 @@ const directVitestWindowEventTargetFallbackPattern =
     /\bwindow\.(?:addEventListener|removeEventListener|dispatchEvent)\s*=|\btypeof\s+window\.dispatchEvent\s*!==\s*["']function["']/u;
 const directVitestHTMLElementGlobalBridgePattern =
     /\bglobal\.HTMLElement\s*=\s*window\.HTMLElement\b/u;
+const directVitestWindowConsoleGroupPatchPattern =
+    /\bwindow\.console\.group(?:Collapsed|End)?\s*=/u;
 const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
@@ -6923,6 +6925,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directHTMLElementGlobalBridge).toStrictEqual([]);
+    });
+
+    it("does not patch window console group helpers separately in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directWindowConsoleGroupPatches = scannedFiles
+            .filter((relativeFile) =>
+                directVitestWindowConsoleGroupPatchPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directWindowConsoleGroupPatches).toStrictEqual([]);
     });
 
     it("keeps raw globalThis any casts out of source and tests", () => {

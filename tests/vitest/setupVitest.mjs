@@ -660,39 +660,7 @@ function restoreNativeDom() {
     }
 })();
 
-// Even if a console already exists, ensure group APIs are present to avoid TypeError
-try {
-    if (globalThis.console) {
-        if (typeof globalThis.console.group !== "function") {
-            globalThis.console.group = vi.fn();
-        }
-        if (typeof globalThis.console.groupEnd !== "function") {
-            globalThis.console.groupEnd = vi.fn();
-        }
-        if (typeof globalThis.console.groupCollapsed !== "function") {
-            globalThis.console.groupCollapsed = vi.fn();
-        }
-    }
-    if (typeof window !== "undefined" && window.console) {
-        if (typeof window.console.group !== "function") {
-            window.console.group = /** @type {any} */ (
-                globalThis.console.group || vi.fn()
-            );
-        }
-        if (typeof window.console.groupEnd !== "function") {
-            window.console.groupEnd = /** @type {any} */ (
-                globalThis.console.groupEnd || vi.fn()
-            );
-        }
-        if (typeof window.console.groupCollapsed !== "function") {
-            window.console.groupCollapsed = /** @type {any} */ (
-                globalThis.console.groupCollapsed || vi.fn()
-            );
-        }
-    }
-} catch {
-    /* Ignore errors */
-}
+ensureConsoleAlive();
 
 /** @typedef {Record<string, string>} StorageRecord */
 
