@@ -7,41 +7,11 @@ import { getAppState, setAppState } from "../state/appState.js";
 import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
 import { resolveAutoUpdaterAsync } from "../updater/autoUpdaterAccess.js";
 import { setupAutoUpdater } from "../updater/setupAutoUpdater.js";
+import { bootstrapMainWindow } from "../window/bootstrapMainWindow.js";
 
-type BrowserWindow = import("electron").BrowserWindow;
-type RendererIpcEventChannel =
-    import("../../shared/ipc").RendererIpcEventChannel;
-
-interface BootstrapMainWindowDependencies {
-    browserWindowRef: () => unknown;
-    CONSTANTS: Record<string, unknown>;
-    getAppState: (key: string) => unknown;
-    getThemeFromRenderer: (win: BrowserWindow) => Promise<string>;
-    logWithContext: (
-        level: "error" | "info" | "warn",
-        message: string,
-        context?: Record<string, unknown>
-    ) => void;
-    resolveAutoUpdaterAsync: () => Promise<unknown>;
-    safeCreateAppMenu: (
-        win: BrowserWindow,
-        theme: string,
-        loadedFitFilePath?: string | null
-    ) => void;
-    sendToRenderer: (
-        win: BrowserWindow,
-        channel: RendererIpcEventChannel,
-        ...args: unknown[]
-    ) => void;
-    setAppState: (key: string, value: unknown) => void;
-    setupAutoUpdater: (options: Record<string, unknown>) => unknown;
-}
-
-const { bootstrapMainWindow } = require("../window/bootstrapMainWindow") as {
-    bootstrapMainWindow: (
-        options: BootstrapMainWindowDependencies
-    ) => Promise<unknown>;
-};
+type BootstrapMainWindowDependencies = Parameters<
+    typeof bootstrapMainWindow
+>[0];
 
 /**
  * Bootstraps the main application window and wires up auto-updater integration.
@@ -52,8 +22,10 @@ export async function initializeApplication(): Promise<unknown> {
     return bootstrapMainWindow({
         browserWindowRef,
         CONSTANTS,
-        getAppState,
-        getThemeFromRenderer,
+        getAppState:
+            getAppState as BootstrapMainWindowDependencies["getAppState"],
+        getThemeFromRenderer:
+            getThemeFromRenderer as BootstrapMainWindowDependencies["getThemeFromRenderer"],
         logWithContext,
         resolveAutoUpdaterAsync,
         safeCreateAppMenu,

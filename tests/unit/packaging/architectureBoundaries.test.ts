@@ -1816,7 +1816,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(80);
+        expect.assertions(85);
 
         const logWithContextSource = stripComments(
             readRepositoryFile("electron-app/main/logging/logWithContext.ts")
@@ -1855,6 +1855,12 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/main/runtime/initializeApplication.ts"
             )
+        );
+        const bootstrapMainWindowSource = stripComments(
+            readRepositoryFile("electron-app/main/window/bootstrapMainWindow.ts")
+        );
+        const initializeMainWindowSource = stripComments(
+            readRepositoryFile("electron-app/main/window/initializeMainWindow.ts")
         );
         const setupApplicationEventHandlersSource = stripComments(
             readRepositoryFile(
@@ -1905,6 +1911,8 @@ describe("architecture boundaries", () => {
         expect(gyazoOAuthServerSource).not.toContain("module.exports");
         expect(setupMainLifecycleSource).not.toContain("module.exports");
         expect(exposeDevHelpersSource).not.toContain("module.exports");
+        expect(bootstrapMainWindowSource).not.toContain("module.exports");
+        expect(initializeMainWindowSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain(
             'require("../state/appState")'
         );
@@ -1967,6 +1975,9 @@ describe("architecture boundaries", () => {
         );
         expect(initializeApplicationSource).not.toContain(
             'require("../runtime/electronAccess")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../window/bootstrapMainWindow")'
         );
         expect(setupMenuAndEventHandlersSource).not.toContain(
             'require("../ipc/sendToRenderer")'
@@ -2072,6 +2083,12 @@ describe("architecture boundaries", () => {
         expect(nodeModulesSource).toContain("export function httpRef");
         expect(initializeApplicationSource).toContain(
             "export async function initializeApplication"
+        );
+        expect(bootstrapMainWindowSource).toContain(
+            "export function bootstrapMainWindow"
+        );
+        expect(initializeMainWindowSource).toContain(
+            "export function initializeMainWindow"
         );
         expect(setupIpcHandlersSource).toContain(
             "export function setupIPCHandlers"
