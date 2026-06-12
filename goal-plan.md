@@ -288,6 +288,9 @@ and architecture coverage blocks those mutations from returning.
 Tab-button behavior tests no longer delete retired enabled-state, observer, or diagnostic helper globals such
 as `tabButtonsCurrentlyEnabled`, `tabButtonObserver`, `areTabButtonsEnabled`, or `forceFixTabButtons`; they
 now assert those names stay absent, and architecture coverage blocks those mutations from returning.
+Chart tab integration tests no longer delete the retired `chartTabIntegration` global before each case; they
+now assert the typed singleton stays absent from `globalThis`, and architecture coverage blocks that mutation
+from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
