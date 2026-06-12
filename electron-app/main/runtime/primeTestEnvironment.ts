@@ -1,15 +1,22 @@
+import { getAppState, setAppState } from "../state/appState.js";
+
+let clearPrimeTestEnvironmentTimersImpl: (() => void) | undefined;
+let primeTestEnvironmentImpl:
+    | ((initializeApplication: () => Promise<PrimeTestMainWindowLike>) => void)
+    | undefined;
+
+type PrimeTestMainWindowLike = {
+    isDestroyed?: () => boolean;
+    webContents?: {
+        isDestroyed?: () => boolean;
+    };
+};
+
 {
     type PrimeTestElectronLike = {
         app?: unknown;
         BrowserWindow?: unknown;
         default?: unknown;
-    };
-
-    type PrimeTestMainWindowLike = {
-        isDestroyed?: () => boolean;
-        webContents?: {
-            isDestroyed?: () => boolean;
-        };
     };
 
     type PrimeTestInitializeApplication =
@@ -26,10 +33,6 @@
         getAllWindows?: () => PrimeTestMainWindowLike[];
     };
 
-    const { getAppState, setAppState } = require("../state/appState") as {
-        getAppState: (key: string) => unknown;
-        setAppState: (key: string, value: unknown) => void;
-    };
     const {
         appRef,
         browserWindowRef,
@@ -410,8 +413,16 @@
         }
     }
 
-    module.exports = {
-        clearPrimeTestEnvironmentTimers,
-        primeTestEnvironment,
-    };
+    clearPrimeTestEnvironmentTimersImpl = clearPrimeTestEnvironmentTimers;
+    primeTestEnvironmentImpl = primeTestEnvironment;
+}
+
+export function clearPrimeTestEnvironmentTimers(): void {
+    clearPrimeTestEnvironmentTimersImpl?.();
+}
+
+export function primeTestEnvironment(
+    initializeApplication: () => Promise<PrimeTestMainWindowLike>
+): void {
+    primeTestEnvironmentImpl?.(initializeApplication);
 }

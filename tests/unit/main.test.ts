@@ -3,18 +3,13 @@ import { createRequire } from "node:module";
 
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import type { Mock } from "vitest";
+import {
+    clearGyazoStartupTimer,
+    getGyazoStartupTimer,
+} from "../../electron-app/main/app/gyazoStartupTimerState.js";
+import { clearPrimeTestEnvironmentTimers } from "../../electron-app/main/runtime/primeTestEnvironment.js";
 
 const requireCjs = createRequire(import.meta.url);
-
-const { clearGyazoStartupTimer, getGyazoStartupTimer } =
-    require("../../electron-app/main/app/gyazoStartupTimerState") as {
-        clearGyazoStartupTimer: () => void;
-        getGyazoStartupTimer: () => ReturnType<typeof setTimeout> | undefined;
-    };
-const { clearPrimeTestEnvironmentTimers } =
-    require("../../electron-app/main/runtime/primeTestEnvironment") as {
-        clearPrimeTestEnvironmentTimers: () => void;
-    };
 
 type MockWindow = {
     isDestroyed: () => boolean;

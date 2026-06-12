@@ -1602,13 +1602,23 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main state source modules off source-level CommonJS exports", () => {
-        expect.assertions(9);
+        expect.assertions(13);
 
         const appStateSource = stripComments(
             readRepositoryFile("electron-app/main/state/appState.ts")
         );
         const constantsSource = stripComments(
             readRepositoryFile("electron-app/main/constants.ts")
+        );
+        const gyazoStartupTimerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/app/gyazoStartupTimerState.ts"
+            )
+        );
+        const primeTestEnvironmentSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/runtime/primeTestEnvironment.ts"
+            )
         );
         const stateIntegrationBarrelSource = stripComments(
             readRepositoryFile("electron-app/utils/state/integration/index.ts")
@@ -1624,6 +1634,11 @@ describe("architecture boundaries", () => {
             'require("../../utils/state/integration/mainProcessStateManager")'
         );
         expect(constantsSource).not.toContain("module.exports");
+        expect(gyazoStartupTimerSource).not.toContain("module.exports");
+        expect(primeTestEnvironmentSource).not.toContain("module.exports");
+        expect(primeTestEnvironmentSource).not.toContain(
+            'require("../state/appState")'
+        );
         expect(stateIntegrationBarrelSource).not.toContain("module.exports");
         expect(stateIntegrationBarrelSource).not.toContain(
             'require("./mainProcessStateManager.js")'
@@ -1632,6 +1647,9 @@ describe("architecture boundaries", () => {
         expect(appEventHandlersSource).not.toContain('require("../constants")');
         expect(appEventHandlersSource).not.toContain(
             'require("../state/appState")'
+        );
+        expect(appEventHandlersSource).not.toContain(
+            'require("./gyazoStartupTimerState")'
         );
         expect(appEventHandlersSource).toContain(
             "function resolveGyazoOAuthServer()"

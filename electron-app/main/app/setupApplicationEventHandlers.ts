@@ -1,6 +1,7 @@
 import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
 import { CONSTANTS } from "../constants.js";
 import { getAppState, setAppState } from "../state/appState.js";
+import { setGyazoStartupTimer } from "./gyazoStartupTimerState.js";
 
 let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
@@ -137,9 +138,6 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
             theme: string,
             loadedFitFilePath?: null | string
         ) => void;
-    };
-    const { setGyazoStartupTimer } = require("./gyazoStartupTimerState") as {
-        setGyazoStartupTimer: (handle: ReturnType<typeof setTimeout>) => void;
     };
     const { appRef, browserWindowRef, dialogRef, shellRef } =
         require("../runtime/electronAccess") as {

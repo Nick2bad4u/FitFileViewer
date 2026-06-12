@@ -55,6 +55,8 @@ Main-process constants, the main app-state facade, the state-integration barrel,
 source now use named source exports/imports instead of source-level `module.exports` or direct source requires
 for constants/app-state/state-manager dependencies; app-event OAuth/theme/window-validation dependencies are
 lazy so permission-handler source tests can import the ESM source boundary natively.
+Gyazo startup timer state and main-process test priming now use named source exports too, and the app-event
+handler imports the timer setter natively instead of requiring that source module.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

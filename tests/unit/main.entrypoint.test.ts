@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-const { clearPrimeTestEnvironmentTimers } =
-    require("../../electron-app/main/runtime/primeTestEnvironment") as {
-        clearPrimeTestEnvironmentTimers: () => void;
-    };
+import { clearPrimeTestEnvironmentTimers } from "../../electron-app/main/runtime/primeTestEnvironment.js";
 
 type ElectronAccessModule = {
     setElectronOverride: (override: unknown) => void;
