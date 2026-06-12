@@ -1651,9 +1651,7 @@ describe("architecture boundaries", () => {
         expect(appEventHandlersSource).not.toContain(
             'require("./gyazoStartupTimerState")'
         );
-        expect(appEventHandlersSource).toContain(
-            "startGyazoOAuthServer"
-        );
+        expect(appEventHandlersSource).toContain("startGyazoOAuthServer");
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
@@ -1816,7 +1814,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(106);
+        expect.assertions(113);
 
         const logWithContextSource = stripComments(
             readRepositoryFile("electron-app/main/logging/logWithContext.ts")
@@ -1825,7 +1823,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/main/menu/safeCreateAppMenu.ts")
         );
         const setupBlockedRequestsSource = stripComments(
-            readRepositoryFile("electron-app/main/security/setupBlockedRequests.ts")
+            readRepositoryFile(
+                "electron-app/main/security/setupBlockedRequests.ts"
+            )
         );
         const electronAccessSource = stripComments(
             readRepositoryFile("electron-app/main/runtime/electronAccess.ts")
@@ -1840,7 +1840,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/main/dev/exposeDevHelpers.ts")
         );
         const getThemeFromRendererSource = stripComments(
-            readRepositoryFile("electron-app/main/theme/getThemeFromRenderer.ts")
+            readRepositoryFile(
+                "electron-app/main/theme/getThemeFromRenderer.ts"
+            )
         );
         const setupAutoUpdaterSource = stripComments(
             readRepositoryFile("electron-app/main/updater/setupAutoUpdater.ts")
@@ -1862,10 +1864,17 @@ describe("architecture boundaries", () => {
             )
         );
         const bootstrapMainWindowSource = stripComments(
-            readRepositoryFile("electron-app/main/window/bootstrapMainWindow.ts")
+            readRepositoryFile(
+                "electron-app/main/window/bootstrapMainWindow.ts"
+            )
         );
         const initializeMainWindowSource = stripComments(
-            readRepositoryFile("electron-app/main/window/initializeMainWindow.ts")
+            readRepositoryFile(
+                "electron-app/main/window/initializeMainWindow.ts"
+            )
+        );
+        const windowStateUtilsSource = stripComments(
+            readRepositoryFile("electron-app/windowStateUtils.ts")
         );
         const setupApplicationEventHandlersSource = stripComments(
             readRepositoryFile(
@@ -1890,7 +1899,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/main/security/ipcSenderPolicy.ts")
         );
         const setupMainLifecycleSource = stripComments(
-            readRepositoryFile("electron-app/main/runtime/setupMainLifecycle.ts")
+            readRepositoryFile(
+                "electron-app/main/runtime/setupMainLifecycle.ts"
+            )
         );
         const createAppMenuSource = stripComments(
             readRepositoryFile("electron-app/utils/app/menu/createAppMenu.ts")
@@ -1921,6 +1932,7 @@ describe("architecture boundaries", () => {
         expect(fitParserIntegrationSource).not.toContain("module.exports");
         expect(mainProcessStateManagerSource).not.toContain("module.exports");
         expect(setupMenuAndEventHandlersSource).not.toContain("module.exports");
+        expect(windowStateUtilsSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain(
             'require("../state/appState")'
         );
@@ -2085,6 +2097,18 @@ describe("architecture boundaries", () => {
         expect(setupApplicationEventHandlersSource).not.toContain(
             'require("../window/windowValidation")'
         );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../../windowStateUtils")'
+        );
+        expect(bootstrapMainWindowSource).not.toContain(
+            'require("../../windowStateUtils")'
+        );
+        expect(initializeMainWindowSource).not.toContain(
+            'require("../windowStateUtils")'
+        );
+        expect(initializeMainWindowSource).not.toContain(
+            'require("../../windowStateUtils")'
+        );
         expect(setupBlockedRequestsSource).not.toContain(
             'require("../runtime/electronAccess")'
         );
@@ -2139,6 +2163,12 @@ describe("architecture boundaries", () => {
         );
         expect(initializeMainWindowSource).toContain(
             "export function initializeMainWindow"
+        );
+        expect(windowStateUtilsSource).toContain(
+            "export function createWindow"
+        );
+        expect(windowStateUtilsSource).toContain(
+            "export function getWindowState"
         );
         expect(fitParserIntegrationSource).toContain(
             "export const FIT_PARSER_OPERATION_ID"

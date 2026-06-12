@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
+import { createWindow } from "../../windowStateUtils.js";
 import { CONSTANTS } from "../constants.js";
 import { logWithContext } from "../logging/logWithContext.js";
 import { safeCreateAppMenu } from "../menu/safeCreateAppMenu.js";
@@ -569,10 +570,6 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
                         }
                     })();
                     if (Array.isArray(windows) && windows.length === 0) {
-                        const { createWindow } =
-                            require("../../windowStateUtils") as {
-                                createWindow: () => unknown;
-                            };
                         const win = createWindow() as AppMenuWindow;
                         safeCreateAppMenu(
                             win,

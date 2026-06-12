@@ -2,6 +2,7 @@ import {
     appRef as electronAppRef,
     browserWindowRef as electronBrowserWindowRef,
 } from "../runtime/electronAccess.js";
+import { createWindow } from "../../windowStateUtils.js";
 
 type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
@@ -186,9 +187,6 @@ export function bootstrapMainWindow({
 
         mainWindow ??= createFallbackWindow(CONSTANTS.DEFAULT_THEME);
     } else {
-        const { createWindow } = require("../../windowStateUtils") as {
-            createWindow: () => MainWindowLike;
-        };
         mainWindow = createWindow();
     }
 

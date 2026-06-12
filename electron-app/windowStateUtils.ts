@@ -1,537 +1,502 @@
-/* eslint-disable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- This is a CommonJS Electron main-process bridge that persists small window-state data synchronously during lifecycle events. */
-{
-    type LogLevel = "error" | "info" | "warn";
+/* eslint-disable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/no-sync, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- Window state is persisted synchronously during Electron lifecycle events. */
+import { app, BrowserWindow } from "electron";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
-    interface LoggingModule {
-        logWithContext: (
-            level: LogLevel,
-            message: string,
-            context?: Record<string, unknown>
-        ) => void;
-    }
+import { logWithContext } from "./main/logging/logWithContext.js";
 
-    interface WindowStateRequire {
-        (id: "./main/logging/logWithContext"): LoggingModule;
-        (id: "electron"): typeof import("electron");
-        (id: "node:fs"): typeof import("node:fs");
-        (id: "node:path"): typeof import("node:path");
-    }
+type BrowserWindowConstructorOptions =
+    import("electron").BrowserWindowConstructorOptions;
+type BrowserWindowInstance = import("electron").BrowserWindow;
 
-    const requireWindowStateModule: WindowStateRequire = require;
-    const electron = requireWindowStateModule("electron");
-    const fs = requireWindowStateModule("node:fs");
-    const path = requireWindowStateModule("node:path");
-    const loggingModule = requireWindowStateModule(
-        "./main/logging/logWithContext"
-    );
-    const { logWithContext } = loggingModule;
+export interface WindowState {
+    height: number;
+    width: number;
+    x?: number;
+    y?: number;
+}
 
-    const { app, BrowserWindow } = electron;
+type WindowStateDirectoryPath = string & {
+    readonly __windowStateDirectoryPath: "WindowStateDirectoryPath";
+};
 
-    type BrowserWindowConstructorOptions =
-        import("electron").BrowserWindowConstructorOptions;
-    type BrowserWindowInstance = import("electron").BrowserWindow;
+type WindowStateFilePath = string & {
+    readonly __windowStateFilePath: "WindowStateFilePath";
+};
 
-    interface WindowState {
-        height: number;
-        width: number;
-        x?: number;
-        y?: number;
-    }
-
-    type WindowStateDirectoryPath = string & {
-        readonly __windowStateDirectoryPath: "WindowStateDirectoryPath";
-    };
-
-    type WindowStateFilePath = string & {
-        readonly __windowStateFilePath: "WindowStateFilePath";
-    };
-
-    interface DevHelpers {
-        getConfig: () => {
-            constants: typeof CONSTANTS;
-            currentState: WindowState;
-            settingsPath: string;
-        };
-        resetState: () => boolean;
-        validateSettings: () =>
-            | {
-                  error?: never;
-                  exists: boolean;
-                  isValid: boolean;
-                  path: string;
-                  state: WindowState;
-              }
-            | {
-                  error: string;
-                  exists: boolean;
-                  isValid: false;
-                  path: string;
-                  state?: never;
-              };
-    }
-
-    interface WindowStateUtilsExports {
-        CONSTANTS: typeof CONSTANTS;
-        createWindowConfig: (
-            state: WindowState
-        ) => BrowserWindowConstructorOptions;
-        createWindow: () => BrowserWindowInstance;
-        devHelpers?: DevHelpers;
-        getWindowState: () => WindowState;
-        sanitizeWindowState: (state: unknown) => WindowState;
-        saveWindowState: (win: BrowserWindowInstance) => void;
+export interface DevHelpers {
+    getConfig: () => {
+        constants: typeof CONSTANTS;
+        currentState: WindowState;
         settingsPath: string;
-        resolveWebSecuritySetting: (
-            packagedAppOverride?: boolean
-        ) => boolean;
-        validateWindow: (win: unknown) => win is BrowserWindowInstance;
-        validateWindowState: (state: unknown) => state is WindowState;
-        version: "1.0.0";
+    };
+    resetState: () => boolean;
+    validateSettings: () =>
+        | {
+              error?: never;
+              exists: boolean;
+              isValid: boolean;
+              path: string;
+              state: WindowState;
+          }
+        | {
+              error: string;
+              exists: boolean;
+              isValid: false;
+              path: string;
+              state?: never;
+          };
+}
+
+interface WindowStateUtilsExports {
+    CONSTANTS: typeof CONSTANTS;
+    createWindowConfig: (state: WindowState) => BrowserWindowConstructorOptions;
+    createWindow: () => BrowserWindowInstance;
+    devHelpers?: DevHelpers;
+    getWindowState: () => WindowState;
+    sanitizeWindowState: (state: unknown) => WindowState;
+    saveWindowState: (win: BrowserWindowInstance) => void;
+    settingsPath: string;
+    resolveWebSecuritySetting: (packagedAppOverride?: boolean) => boolean;
+    validateWindow: (win: unknown) => win is BrowserWindowInstance;
+    validateWindowState: (state: unknown) => state is WindowState;
+    version: "1.0.0";
+}
+
+export const CONSTANTS = {
+    DEFAULTS: {
+        WINDOW: {
+            height: 800,
+            minHeight: 600,
+            minWidth: 800,
+            width: 1200,
+        },
+    },
+    FILES: {
+        WINDOW_STATE: "window-state.json",
+    },
+    PATHS: {
+        HTML: {
+            INDEX: "index.html",
+        },
+        ICONS: {
+            FAVICON: "icons/favicon.ico",
+        },
+        PRELOAD: "preload.js",
+    },
+    WEB_PREFERENCES: {
+        contextIsolation: true,
+        nodeIntegration: false,
+        sandbox: true,
+    },
+} as const;
+
+function safeErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
+function getEnvironmentValue(key: string): string | undefined {
+    const processValue: unknown = Reflect.get(globalThis, "process");
+    if (
+        processValue === null ||
+        typeof processValue !== "object" ||
+        !("env" in processValue)
+    ) {
+        return undefined;
     }
 
-    const CONSTANTS = {
-        DEFAULTS: {
-            WINDOW: {
-                height: 800,
-                minHeight: 600,
-                minWidth: 800,
-                width: 1200,
-            },
-        },
-        FILES: {
-            WINDOW_STATE: "window-state.json",
-        },
-        PATHS: {
-            HTML: {
-                INDEX: "index.html",
-            },
-            ICONS: {
-                FAVICON: "icons/favicon.ico",
-            },
-            PRELOAD: "preload.js",
-        },
-        WEB_PREFERENCES: {
-            contextIsolation: true,
-            nodeIntegration: false,
-            sandbox: true,
-        },
-    } as const;
-
-    function safeErrorMessage(error: unknown): string {
-        return error instanceof Error ? error.message : String(error);
+    const { env } = processValue;
+    if (env === null || typeof env !== "object" || !(key in env)) {
+        return undefined;
     }
 
-    function getEnvironmentValue(key: string): string | undefined {
-        const processValue: unknown = Reflect.get(globalThis, "process");
-        if (
-            processValue === null ||
-            typeof processValue !== "object" ||
-            !("env" in processValue)
-        ) {
-            return undefined;
-        }
+    const value: unknown = Reflect.get(env, key);
+    return typeof value === "string" ? value : undefined;
+}
 
-        const { env } = processValue;
-        if (env === null || typeof env !== "object" || !(key in env)) {
-            return undefined;
-        }
+function isBooleanCallback(value: unknown): value is () => boolean {
+    return typeof value === "function";
+}
 
-        const value: unknown = Reflect.get(env, key);
-        return typeof value === "string" ? value : undefined;
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+export function validateWindowState(state: unknown): state is WindowState {
+    if (!isObjectRecord(state)) {
+        return false;
     }
 
-    function isBooleanCallback(value: unknown): value is () => boolean {
-        return typeof value === "function";
+    const { height, width, x, y } = state;
+    if (typeof width !== "number" || width <= 0) {
+        return false;
+    }
+    if (typeof height !== "number" || height <= 0) {
+        return false;
+    }
+    if ("x" in state && x !== undefined && typeof x !== "number") {
+        return false;
+    }
+    if ("y" in state && y !== undefined && typeof y !== "number") {
+        return false;
+    }
+    return true;
+}
+
+export function sanitizeWindowState(state: unknown): WindowState {
+    if (!validateWindowState(state)) {
+        return { ...CONSTANTS.DEFAULTS.WINDOW };
     }
 
-    function isObjectRecord(value: unknown): value is Record<string, unknown> {
-        return (
-            value !== null && typeof value === "object" && !Array.isArray(value)
+    const sanitized: WindowState = {
+        height: Math.max(state.height, CONSTANTS.DEFAULTS.WINDOW.minHeight),
+        width: Math.max(state.width, CONSTANTS.DEFAULTS.WINDOW.minWidth),
+    };
+    if (typeof state.x === "number") {
+        sanitized.x = state.x;
+    }
+    if (typeof state.y === "number") {
+        sanitized.y = state.y;
+    }
+    return sanitized;
+}
+
+function isPathWithinDirectory(
+    candidatePath: string,
+    directory: string
+): boolean {
+    const relativePath = path.relative(directory, candidatePath);
+    return (
+        relativePath === "" ||
+        (!relativePath.startsWith("..") && !path.isAbsolute(relativePath))
+    );
+}
+
+function createWindowStateFilePath(
+    storageDirectory: string
+): WindowStateFilePath {
+    const resolvedDirectory = path.resolve(storageDirectory);
+    const resolvedFilePath = path.resolve(
+        resolvedDirectory,
+        CONSTANTS.FILES.WINDOW_STATE
+    );
+
+    if (!isWindowStateFilePath(resolvedFilePath, resolvedDirectory)) {
+        throw new Error("Resolved window state path escaped its directory");
+    }
+
+    return resolvedFilePath;
+}
+
+function getWindowStateDirectory(
+    filePath: WindowStateFilePath
+): WindowStateDirectoryPath {
+    const directoryPath = path.dirname(filePath);
+    if (!isWindowStateDirectoryPath(directoryPath, filePath)) {
+        throw new Error("Unable to derive window state directory path");
+    }
+
+    return directoryPath;
+}
+
+function isWindowStateDirectoryPath(
+    candidatePath: string,
+    filePath: WindowStateFilePath
+): candidatePath is WindowStateDirectoryPath {
+    return candidatePath === path.dirname(filePath);
+}
+
+function isWindowStateFilePath(
+    candidatePath: string,
+    storageDirectory: string
+): candidatePath is WindowStateFilePath {
+    return (
+        path.basename(candidatePath) === CONSTANTS.FILES.WINDOW_STATE &&
+        isPathWithinDirectory(candidatePath, storageDirectory)
+    );
+}
+
+function windowStateDirectoryExists(
+    directoryPath: WindowStateDirectoryPath
+): boolean {
+    return fs.existsSync(directoryPath);
+}
+
+function windowStateFileExists(filePath: WindowStateFilePath): boolean {
+    return fs.existsSync(filePath);
+}
+
+function deleteWindowStateFile(filePath: WindowStateFilePath): void {
+    fs.unlinkSync(filePath);
+}
+
+function ensureWindowStateDirectory(
+    directoryPath: WindowStateDirectoryPath
+): void {
+    if (windowStateDirectoryExists(directoryPath)) {
+        return;
+    }
+
+    fs.mkdirSync(directoryPath, { recursive: true });
+}
+
+function readWindowStateFile(filePath: WindowStateFilePath): string {
+    return fs.readFileSync(filePath, "utf8");
+}
+
+function writeWindowStateFile(
+    filePath: WindowStateFilePath,
+    state: WindowState
+): void {
+    fs.writeFileSync(filePath, JSON.stringify(state, null, 2));
+}
+
+function getSettingsPath(): WindowStateFilePath {
+    try {
+        const userDataPath = app.getPath("userData");
+        return createWindowStateFilePath(userDataPath);
+    } catch (error) {
+        logWithContext("error", "Error getting window state settings path", {
+            error: safeErrorMessage(error),
+        });
+        return createWindowStateFilePath(process.cwd());
+    }
+}
+
+export function resolveWebSecuritySetting(
+    packagedAppOverride = app?.isPackaged === true
+): boolean {
+    const isPackaged = packagedAppOverride;
+    const isDevelopment = getEnvironmentValue("NODE_ENV") === "development";
+    const disableWebSecurity =
+        !isPackaged &&
+        isDevelopment &&
+        getEnvironmentValue("FFV_DISABLE_WEB_SECURITY") === "true";
+
+    if (disableWebSecurity) {
+        logWithContext(
+            "warn",
+            "Web security disabled via FFV_DISABLE_WEB_SECURITY=true (unpackaged development only)"
         );
     }
 
-    function validateWindowState(state: unknown): state is WindowState {
-        if (!isObjectRecord(state)) {
-            return false;
-        }
+    return !disableWebSecurity;
+}
 
-        const { height, width, x, y } = state;
-        if (typeof width !== "number" || width <= 0) {
-            return false;
-        }
-        if (typeof height !== "number" || height <= 0) {
-            return false;
-        }
-        if ("x" in state && x !== undefined && typeof x !== "number") {
-            return false;
-        }
-        if ("y" in state && y !== undefined && typeof y !== "number") {
-            return false;
-        }
-        return true;
-    }
+export const settingsPath = getSettingsPath();
 
-    function sanitizeWindowState(state: unknown): WindowState {
-        if (!validateWindowState(state)) {
+export function getWindowState(): WindowState {
+    try {
+        if (!windowStateFileExists(settingsPath)) {
+            logWithContext(
+                "info",
+                "Window state file does not exist, using defaults"
+            );
             return { ...CONSTANTS.DEFAULTS.WINDOW };
         }
 
-        const sanitized: WindowState = {
-            height: Math.max(state.height, CONSTANTS.DEFAULTS.WINDOW.minHeight),
-            width: Math.max(state.width, CONSTANTS.DEFAULTS.WINDOW.minWidth),
-        };
-        if (typeof state.x === "number") {
-            sanitized.x = state.x;
-        }
-        if (typeof state.y === "number") {
-            sanitized.y = state.y;
-        }
-        return sanitized;
-    }
-
-    function isPathWithinDirectory(
-        candidatePath: string,
-        directory: string
-    ): boolean {
-        const relativePath = path.relative(directory, candidatePath);
-        return (
-            relativePath === "" ||
-            (!relativePath.startsWith("..") && !path.isAbsolute(relativePath))
-        );
-    }
-
-    function createWindowStateFilePath(
-        storageDirectory: string
-    ): WindowStateFilePath {
-        const resolvedDirectory = path.resolve(storageDirectory);
-        const resolvedFilePath = path.resolve(
-            resolvedDirectory,
-            CONSTANTS.FILES.WINDOW_STATE
-        );
-
-        if (!isWindowStateFilePath(resolvedFilePath, resolvedDirectory)) {
-            throw new Error("Resolved window state path escaped its directory");
-        }
-
-        return resolvedFilePath;
-    }
-
-    function getWindowStateDirectory(
-        filePath: WindowStateFilePath
-    ): WindowStateDirectoryPath {
-        const directoryPath = path.dirname(filePath);
-        if (!isWindowStateDirectoryPath(directoryPath, filePath)) {
-            throw new Error("Unable to derive window state directory path");
-        }
-
-        return directoryPath;
-    }
-
-    function isWindowStateDirectoryPath(
-        candidatePath: string,
-        filePath: WindowStateFilePath
-    ): candidatePath is WindowStateDirectoryPath {
-        return candidatePath === path.dirname(filePath);
-    }
-
-    function isWindowStateFilePath(
-        candidatePath: string,
-        storageDirectory: string
-    ): candidatePath is WindowStateFilePath {
-        return (
-            path.basename(candidatePath) === CONSTANTS.FILES.WINDOW_STATE &&
-            isPathWithinDirectory(candidatePath, storageDirectory)
-        );
-    }
-
-    function windowStateDirectoryExists(
-        directoryPath: WindowStateDirectoryPath
-    ): boolean {
-        return fs.existsSync(directoryPath);
-    }
-
-    function windowStateFileExists(filePath: WindowStateFilePath): boolean {
-        return fs.existsSync(filePath);
-    }
-
-    function deleteWindowStateFile(filePath: WindowStateFilePath): void {
-        fs.unlinkSync(filePath);
-    }
-
-    function ensureWindowStateDirectory(
-        directoryPath: WindowStateDirectoryPath
-    ): void {
-        if (windowStateDirectoryExists(directoryPath)) {
-            return;
-        }
-
-        fs.mkdirSync(directoryPath, { recursive: true });
-    }
-
-    function readWindowStateFile(filePath: WindowStateFilePath): string {
-        return fs.readFileSync(filePath, "utf8");
-    }
-
-    function writeWindowStateFile(
-        filePath: WindowStateFilePath,
-        state: WindowState
-    ): void {
-        fs.writeFileSync(filePath, JSON.stringify(state, null, 2));
-    }
-
-    function getSettingsPath(): WindowStateFilePath {
-        try {
-            const userDataPath = app.getPath("userData");
-            return createWindowStateFilePath(userDataPath);
-        } catch (error) {
-            logWithContext(
-                "error",
-                "Error getting window state settings path",
-                {
-                    error: safeErrorMessage(error),
-                }
-            );
-            return createWindowStateFilePath(process.cwd());
-        }
-    }
-
-    function resolveWebSecuritySetting(
-        packagedAppOverride = app?.isPackaged === true
-    ): boolean {
-        const isPackaged = packagedAppOverride;
-        const isDevelopment =
-            getEnvironmentValue("NODE_ENV") === "development";
-        const disableWebSecurity =
-            !isPackaged &&
-            isDevelopment &&
-            getEnvironmentValue("FFV_DISABLE_WEB_SECURITY") === "true";
-
-        if (disableWebSecurity) {
+        const data = readWindowStateFile(settingsPath);
+        if (!data.trim()) {
             logWithContext(
                 "warn",
-                "Web security disabled via FFV_DISABLE_WEB_SECURITY=true (unpackaged development only)"
-            );
-        }
-
-        return !disableWebSecurity;
-    }
-
-    const settingsPath = getSettingsPath();
-
-    function getWindowState(): WindowState {
-        try {
-            if (!windowStateFileExists(settingsPath)) {
-                logWithContext(
-                    "info",
-                    "Window state file does not exist, using defaults"
-                );
-                return { ...CONSTANTS.DEFAULTS.WINDOW };
-            }
-
-            const data = readWindowStateFile(settingsPath);
-            if (!data.trim()) {
-                logWithContext(
-                    "warn",
-                    "Window state file is empty, using defaults"
-                );
-                return { ...CONSTANTS.DEFAULTS.WINDOW };
-            }
-
-            const state = sanitizeWindowState(JSON.parse(data));
-            logWithContext("info", "Window state loaded successfully", {
-                state,
-            });
-            return state;
-        } catch (error) {
-            logWithContext(
-                "error",
-                "Error reading window state, using defaults",
-                {
-                    error: safeErrorMessage(error),
-                    path: settingsPath,
-                }
+                "Window state file is empty, using defaults"
             );
             return { ...CONSTANTS.DEFAULTS.WINDOW };
         }
+
+        const state = sanitizeWindowState(JSON.parse(data));
+        logWithContext("info", "Window state loaded successfully", {
+            state,
+        });
+        return state;
+    } catch (error) {
+        logWithContext("error", "Error reading window state, using defaults", {
+            error: safeErrorMessage(error),
+            path: settingsPath,
+        });
+        return { ...CONSTANTS.DEFAULTS.WINDOW };
+    }
+}
+
+export function validateWindow(win: unknown): win is BrowserWindowInstance {
+    if (win === null || typeof win !== "object") {
+        return false;
     }
 
-    function validateWindow(win: unknown): win is BrowserWindowInstance {
-        if (win === null || typeof win !== "object") {
-            return false;
-        }
+    const isDestroyed: unknown = Reflect.get(win, "isDestroyed");
+    return isBooleanCallback(isDestroyed) && isDestroyed() !== true;
+}
 
-        const isDestroyed: unknown = Reflect.get(win, "isDestroyed");
-        return isBooleanCallback(isDestroyed) && isDestroyed() !== true;
+export function saveWindowState(win: BrowserWindowInstance): void {
+    if (!validateWindow(win)) {
+        logWithContext(
+            "error",
+            "Invalid window object provided to saveWindowState"
+        );
+        return;
     }
 
-    function saveWindowState(win: BrowserWindowInstance): void {
-        if (!validateWindow(win)) {
+    try {
+        if (win.isMinimized() || win.isMaximized()) {
             logWithContext(
-                "error",
-                "Invalid window object provided to saveWindowState"
+                "info",
+                "Skipping window state save - window is minimized or maximized"
             );
             return;
         }
 
-        try {
-            if (win.isMinimized() || win.isMaximized()) {
-                logWithContext(
-                    "info",
-                    "Skipping window state save - window is minimized or maximized"
-                );
-                return;
+        const bounds = win.getBounds();
+        const dir = getWindowStateDirectory(settingsPath);
+        const state = sanitizeWindowState(bounds);
+        ensureWindowStateDirectory(dir);
+        writeWindowStateFile(settingsPath, state);
+        logWithContext("info", "Window state saved successfully", {
+            state,
+        });
+    } catch (error) {
+        logWithContext("error", "Error saving window state", {
+            error: safeErrorMessage(error),
+            path: settingsPath,
+        });
+    }
+}
+
+export function createWindowConfig(
+    state: WindowState
+): BrowserWindowConstructorOptions {
+    return {
+        autoHideMenuBar: false,
+        height: state.height,
+        icon: path.join(__dirname, CONSTANTS.PATHS.ICONS.FAVICON),
+        minHeight: CONSTANTS.DEFAULTS.WINDOW.minHeight,
+        minWidth: CONSTANTS.DEFAULTS.WINDOW.minWidth,
+        show: false,
+        webPreferences: {
+            ...CONSTANTS.WEB_PREFERENCES,
+            preload: path.join(__dirname, CONSTANTS.PATHS.PRELOAD),
+            webSecurity: resolveWebSecuritySetting(),
+            webviewTag: false,
+        },
+        width: state.width,
+        ...(typeof state.x === "number" ? { x: state.x } : {}),
+        ...(typeof state.y === "number" ? { y: state.y } : {}),
+    };
+}
+
+export function createWindow(): BrowserWindowInstance {
+    try {
+        const state = getWindowState();
+        const windowConfig = createWindowConfig(state);
+
+        logWithContext("info", "Creating window with configuration", {
+            config: windowConfig,
+        });
+
+        const win = new BrowserWindow(windowConfig);
+        win.setMenuBarVisibility(true);
+        win.on("close", () => {
+            try {
+                saveWindowState(win);
+            } catch (error) {
+                logWithContext("error", "Error in window close handler", {
+                    error: safeErrorMessage(error),
+                });
             }
+        });
+        win.on("closed", () => {
+            logWithContext("info", "Window closed successfully");
+        });
+        win.once("ready-to-show", () => {
+            win.show();
+            logWithContext("info", "Window displayed successfully");
+        });
 
-            const bounds = win.getBounds();
-            const dir = getWindowStateDirectory(settingsPath);
-            const state = sanitizeWindowState(bounds);
-            ensureWindowStateDirectory(dir);
-            writeWindowStateFile(settingsPath, state);
-            logWithContext("info", "Window state saved successfully", {
-                state,
+        void win
+            .loadFile(path.join(__dirname, CONSTANTS.PATHS.HTML.INDEX))
+            .then(() => {
+                logWithContext("info", "Main HTML file loaded successfully");
+            })
+            .catch((error: unknown) => {
+                logWithContext("error", "Error loading main HTML file", {
+                    error: safeErrorMessage(error),
+                });
             });
+
+        return win;
+    } catch (error) {
+        logWithContext("error", "Error creating window", {
+            error: safeErrorMessage(error),
+        });
+        throw error;
+    }
+}
+
+const developmentDevHelpers: DevHelpers = {
+    getConfig: () => ({
+        constants: CONSTANTS,
+        currentState: getWindowState(),
+        settingsPath,
+    }),
+    resetState: () => {
+        try {
+            if (windowStateFileExists(settingsPath)) {
+                deleteWindowStateFile(settingsPath);
+                logWithContext("info", "Window state reset to defaults");
+                return true;
+            }
+            return false;
         } catch (error) {
-            logWithContext("error", "Error saving window state", {
+            logWithContext("error", "Error resetting window state", {
                 error: safeErrorMessage(error),
-                path: settingsPath,
             });
+            return false;
         }
-    }
-
-    function createWindowConfig(
-        state: WindowState
-    ): BrowserWindowConstructorOptions {
-        return {
-            autoHideMenuBar: false,
-            height: state.height,
-            icon: path.join(__dirname, CONSTANTS.PATHS.ICONS.FAVICON),
-            minHeight: CONSTANTS.DEFAULTS.WINDOW.minHeight,
-            minWidth: CONSTANTS.DEFAULTS.WINDOW.minWidth,
-            show: false,
-            webPreferences: {
-                ...CONSTANTS.WEB_PREFERENCES,
-                preload: path.join(__dirname, CONSTANTS.PATHS.PRELOAD),
-                webSecurity: resolveWebSecuritySetting(),
-                webviewTag: false,
-            },
-            width: state.width,
-            ...(typeof state.x === "number" ? { x: state.x } : {}),
-            ...(typeof state.y === "number" ? { y: state.y } : {}),
-        };
-    }
-
-    function createWindow(): BrowserWindowInstance {
+    },
+    validateSettings: () => {
         try {
             const state = getWindowState();
-            const windowConfig = createWindowConfig(state);
-
-            logWithContext("info", "Creating window with configuration", {
-                config: windowConfig,
-            });
-
-            const win = new BrowserWindow(windowConfig);
-            win.setMenuBarVisibility(true);
-            win.on("close", () => {
-                try {
-                    saveWindowState(win);
-                } catch (error) {
-                    logWithContext("error", "Error in window close handler", {
-                        error: safeErrorMessage(error),
-                    });
-                }
-            });
-            win.on("closed", () => {
-                logWithContext("info", "Window closed successfully");
-            });
-            win.once("ready-to-show", () => {
-                win.show();
-                logWithContext("info", "Window displayed successfully");
-            });
-
-            void win
-                .loadFile(path.join(__dirname, CONSTANTS.PATHS.HTML.INDEX))
-                .then(() => {
-                    logWithContext(
-                        "info",
-                        "Main HTML file loaded successfully"
-                    );
-                })
-                .catch((error: unknown) => {
-                    logWithContext("error", "Error loading main HTML file", {
-                        error: safeErrorMessage(error),
-                    });
-                });
-
-            return win;
+            return {
+                exists: windowStateFileExists(settingsPath),
+                isValid: validateWindowState(state),
+                path: settingsPath,
+                state,
+            };
         } catch (error) {
-            logWithContext("error", "Error creating window", {
+            return {
                 error: safeErrorMessage(error),
-            });
-            throw error;
+                exists: false,
+                isValid: false,
+                path: settingsPath,
+            };
         }
-    }
+    },
+};
 
-    const devHelpers: DevHelpers = {
-        getConfig: () => ({
-            constants: CONSTANTS,
-            currentState: getWindowState(),
-            settingsPath,
-        }),
-        resetState: () => {
-            try {
-                if (windowStateFileExists(settingsPath)) {
-                    deleteWindowStateFile(settingsPath);
-                    logWithContext("info", "Window state reset to defaults");
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                logWithContext("error", "Error resetting window state", {
-                    error: safeErrorMessage(error),
-                });
-                return false;
-            }
-        },
-        validateSettings: () => {
-            try {
-                const state = getWindowState();
-                return {
-                    exists: windowStateFileExists(settingsPath),
-                    isValid: validateWindowState(state),
-                    path: settingsPath,
-                    state,
-                };
-            } catch (error) {
-                return {
-                    error: safeErrorMessage(error),
-                    exists: false,
-                    isValid: false,
-                    path: settingsPath,
-                };
-            }
-        },
-    };
+export const devHelpers: DevHelpers | undefined =
+    getEnvironmentValue("NODE_ENV") === "development"
+        ? developmentDevHelpers
+        : undefined;
 
-    const exportedApi: WindowStateUtilsExports = {
-        CONSTANTS,
-        createWindowConfig,
-        createWindow,
-        getWindowState,
-        sanitizeWindowState,
-        saveWindowState,
-        settingsPath,
-        resolveWebSecuritySetting,
-        validateWindow,
-        validateWindowState,
-        ...(getEnvironmentValue("NODE_ENV") === "development" && {
-            devHelpers,
-        }),
-        version: "1.0.0",
-    };
+export const version = "1.0.0";
 
-    module.exports = exportedApi;
+const exportedApi: WindowStateUtilsExports = {
+    CONSTANTS,
+    createWindowConfig,
+    createWindow,
+    getWindowState,
+    sanitizeWindowState,
+    saveWindowState,
+    settingsPath,
+    resolveWebSecuritySetting,
+    validateWindow,
+    validateWindowState,
+    ...(devHelpers && {
+        devHelpers,
+    }),
+    version,
+};
 
-    logWithContext("info", "WindowStateUtils module initialized successfully");
-}
-/* eslint-enable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, import-x/no-commonjs, import-x/unambiguous, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/no-sync, no-undef, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- End CommonJS Electron main-process bridge quarantine. */
+export default exportedApi;
+
+logWithContext("info", "WindowStateUtils module initialized successfully");
+/* eslint-enable @typescript-eslint/consistent-type-imports, @typescript-eslint/no-unnecessary-boolean-literal-compare, @typescript-eslint/prefer-readonly-parameter-types, listeners/no-inline-function-event-listener, listeners/no-missing-remove-event-listener, n/no-sync, perfectionist/sort-union-types, promise/always-return, promise/prefer-await-to-then, unicorn/filename-case -- End synchronous window-state persistence quarantine. */

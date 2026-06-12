@@ -98,8 +98,10 @@ The menu-event setup boundary now uses a named source export and imports migrate
 logging, file-access policy, app-state, and safe menu helpers natively instead of requiring those source
 modules.
 The application-event setup boundary now imports migrated logging, safe menu creation, Gyazo OAuth, theme,
-and window-validation helpers natively; its remaining `windowStateUtils` require belongs to the larger
-window-state CommonJS bridge.
+window-validation helpers natively.
+The window-state utility boundary now uses named source exports instead of a source-level `module.exports`
+wrapper, and application-event/window-bootstrap/window-initialization source imports `createWindow` natively
+instead of requiring `windowStateUtils`.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
