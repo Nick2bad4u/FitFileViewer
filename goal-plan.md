@@ -415,6 +415,9 @@ Data-point filter control tests now install temporary animation-frame and microt
 descriptor-scoped helpers instead of assigning `globalThis.requestAnimationFrame`,
 `globalThis.cancelAnimationFrame`, or `globalThis.queueMicrotask` directly, with architecture coverage blocking
 that fixture mutation pattern.
+Shared configuration tests now install the throwing `URLSearchParams` fixture through a descriptor-scoped helper
+instead of assigning `global.URLSearchParams` directly, with architecture coverage blocking that fixture
+mutation pattern.
 Tab-button behavior tests now install temporary `window`, `getComputedStyle`, and `MutationObserver` browser fixtures through
 descriptor-scoped helpers instead of assigning `globalThis.window`, `(global as any).window`, or
 `globalThis.getComputedStyle`, `global.MutationObserver`, or `global.window.MutationObserver` directly, with

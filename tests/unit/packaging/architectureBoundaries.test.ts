@@ -657,6 +657,8 @@ const directRuntimeEnvironmentTestConsoleAssignmentPattern =
     /\bglobalThis\.console\s*=/u;
 const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
     /\bglobalThis\.process\s*=/u;
+const loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern =
+    /\b(?:global|globalThis)\.URLSearchParams\s*=/u;
 const directVitestTabButtonObserverCleanupPattern =
     /\btabButtonObserver\b/u;
 const directVitestChartDevToolsGlobalCleanupPattern =
@@ -7392,6 +7394,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/files/import/handleOpenFile.complete.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps shared configuration tests on descriptor-scoped URLSearchParams fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/app/initialization/loadSharedConfiguration.test.ts"
                     )
                 )
             )
