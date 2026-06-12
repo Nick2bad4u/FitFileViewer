@@ -322,7 +322,8 @@ RenderChartJS comprehensive tests no longer delete retired Chart.js runtime glob
 `ChartZoom`, or `chartjsPluginZoom`; they use the typed chart runtime test API, and architecture coverage
 blocks those mutations from returning.
 RenderChartJS state API tests no longer install a retired `window.Chart` fixture for state-only helper
-coverage, and architecture coverage blocks that mutation from returning.
+coverage, their chart-data fixtures now default through `fitFile.rawData` instead of retired `globalData`,
+and architecture coverage blocks those stale fixtures from returning.
 Main UI startup tests no longer delete retired renderer globals such as `devCleanup`, `injectMenu`,
 `showFitData`, `renderChartJS`, or `cleanupEventListeners` while proving those globals stay absent, and
 architecture coverage blocks those mutations from returning.

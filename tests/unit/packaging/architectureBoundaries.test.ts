@@ -720,6 +720,8 @@ const renderChartJSComprehensiveTestRetiredGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']\s*(?:,|\))|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']|\bglobalThis\.(?:Chart|ChartZoom|chartjsPluginZoom)\s*=/u;
 const renderChartJSStateApiTestRetiredGlobalMutationPattern =
     /\bObject\.defineProperty\(\s*window\s*,\s*["']Chart["']|\bReflect\.(?:deleteProperty|set)\(\s*window\s*,\s*["']Chart["']\s*(?:,|\))|\bwindow\.Chart\s*=/u;
+const renderChartJSStateApiTestRetiredGlobalDataFixturePattern =
+    /\bgetMockStateValue[\s\S]*?\b["']globalData["']|\bglobalMockState\.data\.set\(\s*["']globalData["']|globalData which means hasValidData/u;
 const directShowNotificationGlobalLookupPattern =
     /\b(?:window|globalThis|chartGlobal|globalRef|runtimeGlobal|zoneColorGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
 const directRendererDevGlobalPattern =
@@ -6615,6 +6617,20 @@ describe("architecture boundaries", () => {
 
         expect(
             renderChartJSStateApiTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/renderChartJS.stateApi.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps renderChartJS state API tests on active raw FIT data fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderChartJSStateApiTestRetiredGlobalDataFixturePattern.test(
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/renderChartJS.stateApi.test.ts"

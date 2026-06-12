@@ -28,7 +28,7 @@ function getMockStateValue(path: string): ChartStateValue {
     if (path === "charts.renderedCount") return 0;
     if (path === "charts.chartData") return null;
     if (path === "charts.chartOptions") return null;
-    if (path === "globalData") return null;
+    if (path === "fitFile.rawData") return null;
     if (path === "performance.chartHistory") return [];
     if (path === "charts.visibleFields") return [];
     if (path && path.startsWith("performance.tracking.")) {
@@ -323,7 +323,7 @@ describe("renderChartJS.js state API", () => {
             expect.assertions(2);
 
             // Mock state to have no data
-            globalMockState.data.set("globalData", null);
+            globalMockState.data.set("fitFile.rawData", null);
             globalMockState.data.set("charts.isRendering", false);
 
             const mockRequestRerender = vi.fn<() => void>();
@@ -496,7 +496,7 @@ describe("renderChartJS.js state API", () => {
     it("should correctly detect hasValidData", () => {
         expect.assertions(1);
 
-        // Our mock always returns null for globalData which means hasValidData will be null
+        // The mock defaults active raw FIT data to null, so hasValidData is null.
         expect(chartState.hasValidData).toBeNull();
     });
 });
