@@ -75,6 +75,7 @@
         "electron-app/renderer/mainUiRuntimeEnvironment.ts",
         "electron-app/renderer/mainUiShutdown.ts",
         "electron-app/renderer/mainUiStateStartup.ts",
+        "electron-app/renderer/mainUiStartup.ts",
         "electron-app/renderer/mainUiSummaryColumnSelector.ts",
         "electron-app/renderer/mainUiSummarySelectorRegistration.ts",
         "electron-app/renderer/mainUiThemeSync.ts",

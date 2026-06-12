@@ -1532,7 +1532,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -1540,13 +1540,17 @@ describe("architecture boundaries", () => {
         const mainUiSource = stripComments(
             readRepositoryFile("electron-app/main-ui.ts")
         );
+        const mainUiStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/mainUiStartup.ts")
+        );
         const mainUiRuntimeGlobalPattern = /\bglobalThis\.console\b/u;
 
         expect(rendererEntrypointSource).toContain("runtimeEnvironment.js");
         expect(rendererEntrypointSource).not.toContain("globalThis.");
         expect(rendererEntrypointSource).not.toContain("document,");
-        expect(mainUiSource).toContain("renderer/mainUiRuntimeEnvironment.js");
+        expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
+        expect(mainUiStartupSource).toContain("mainUiRuntimeEnvironment.js");
         expect(rendererMainUiRuntimeEnvironmentFiles).toStrictEqual([
             "electron-app/renderer/mainUiRuntimeEnvironment.ts",
         ]);
@@ -1557,6 +1561,29 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(true);
+    });
+
+    it("keeps main-ui as an entrypoint-only startup bridge", () => {
+        expect.assertions(5);
+
+        const mainUiSource = stripComments(
+            readRepositoryFile("electron-app/main-ui.ts")
+        );
+        const importStatements = mainUiSource.match(/^import\s.+$/gmu) ?? [];
+
+        expect(importStatements).toStrictEqual([
+            'import { initializeMainUiStartup } from "./renderer/mainUiStartup.js";',
+        ]);
+        expect(mainUiSource).toContain("await initializeMainUiStartup()");
+        expect(mainUiSource).toContain(
+            "export const { mainUiDragDropHandler }"
+        );
+        expect(mainUiSource).toContain(
+            "export const { requestMainUiMenuInjection }"
+        );
+        expect(mainUiSource).toContain(
+            "export const { runMainUiDevelopmentCleanup }"
+        );
     });
 
     it("keeps main-ui summary selector DOM timers behind its runtime facade", () => {

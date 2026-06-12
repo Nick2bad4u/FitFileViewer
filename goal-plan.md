@@ -20,18 +20,19 @@ Long-term target: replace or wrap those Leaflet plugins with modules that accept
 remove the Vite legacy-plugin transform, and eventually reduce or remove vendorGlobals\* compatibility
 entries where feature-local dynamic imports can do the job cleanly.
 
-3. Finish Shrinking The Renderer Composition Root (In progress)
+3. Finish Shrinking The Renderer Composition Root (Complete)
 
 Progress: electron-app/main-ui.ts no longer declares itself as the legacy renderer composition root, no longer
 carries the max-dependencies lint exception, and no longer owns the managed-state/legacy-global unload wording.
-Preload API validation, theme synchronization, FIT unload cleanup/listener registration, summary selector
-registration, external-link startup, shutdown hooks, menu injection, development cleanup, drag/drop
-construction, state-startup logging, and vendor/fullscreen startup now live in focused modules under
-electron-app/renderer/.
+It is now only the renderer entrypoint/export bridge. Startup coordination lives in
+electron-app/renderer/mainUiStartup.ts, while preload API validation, theme synchronization, FIT unload
+cleanup/listener registration, summary selector registration, external-link startup, shutdown hooks, menu
+injection, development cleanup, drag/drop construction, state-startup logging, and vendor/fullscreen startup
+live in focused modules under electron-app/renderer/.
 
-Remaining target: continue extracting the few pieces main-ui.ts still coordinates directly until it becomes a
-thin startup coordinator. The remaining direct setup is mostly app-window startup, DOM-id wiring, and exported
-compatibility handles for startup tests/dev tools.
+Maintenance target: keep `main-ui.ts` as an entrypoint-only bridge through architecture coverage. The explicit
+module exports for the drag/drop handler, menu injection request, and development cleanup stay as the narrow
+startup-test/dev-tool compatibility surface.
 
 4. Remove The Last Legacy State Preservation Semantics (Complete)
 
