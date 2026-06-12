@@ -2349,6 +2349,14 @@ describe("architecture boundaries", () => {
         expect(commonJsPreloadTestFiles).toStrictEqual([]);
     });
 
+    it("keeps the obsolete preload cache-injection debug test deleted", () => {
+        expect.assertions(1);
+
+        expect(hasRepositoryFile("tests/unit/preload.debug.test.ts")).toBe(
+            false
+        );
+    });
+
     it("keeps preload policy unit tests on native source imports", () => {
         expect.assertions(1);
 

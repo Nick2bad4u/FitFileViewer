@@ -142,6 +142,11 @@ subprocess for each environment case instead of owning a `createRequire`/`requir
 The main-process state-manager test now relies on the typed Electron access override plus native Electron mock
 instead of patching `global.require` to intercept `require("electron")`, with architecture coverage blocking
 that CommonJS-in-ESM test bridge from returning.
+The obsolete `tests/unit/preload.debug.test.ts` module-cache injection test has been removed because the dist
+preload tests already execute `dist/preload.js` with controlled `require`, `process`, and `console` doubles;
+architecture coverage keeps that old debug cache-injection test from returning.
+The dist-preload test helper now recognizes the current bundled preload entrypoint shape, so a valid runtime
+build is reused instead of each worker attempting a redundant `dist/` rebuild.
 FIT parser and preload IPC documentation now show ESM-style app-code imports instead of `require(...)` examples,
 with docs-alignment coverage preventing those stale CommonJS examples from returning.
 
