@@ -112,7 +112,8 @@ Main logging, menu-creation, Electron access, and blocked-request support helper
 already-migrated runtime consumers import those helper boundaries natively instead of requiring their source
 files. Main-process source and the state/menu utility consumers no longer require `electronAccess.ts` directly,
 and `electronAccess.ts` now imports the Electron package natively through the main build's external package
-boundary instead of owning a direct package `require("electron")` or `loadNodeModule("electron")` call.
+boundary instead of owning a direct package `require("electron")` or `loadNodeModule("electron")` call; its
+unused default namespace export has also been removed.
 The app-menu creation boundary (`createAppMenu.ts` plus `utils/app/menu/index.ts`) now uses named source
 exports/imports instead of source-level `module.exports` or a barrel `require`, and `safeCreateAppMenu.ts`
 imports the menu creator natively. `createAppMenu.ts` also imports recent-file and file-access helpers

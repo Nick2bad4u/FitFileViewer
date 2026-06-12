@@ -100,18 +100,3 @@ export const sessionRef = (): typeof import("electron").session | undefined =>
     getElectron().session;
 export const shellRef = (): typeof import("electron").shell | undefined =>
     getElectron().shell;
-
-export default {
-    appRef,
-    browserWindowRef,
-    clipboardRef,
-    dialogRef,
-    getElectron,
-    getElectronOverride,
-    ipcMainRef,
-    menuRef,
-    nativeImageRef,
-    sessionRef,
-    setElectronOverride,
-    shellRef,
-};
