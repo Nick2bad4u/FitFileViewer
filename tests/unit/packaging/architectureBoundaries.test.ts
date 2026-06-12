@@ -2768,7 +2768,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the root preload entrypoint delegated to the preload entrypoint module", () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const preloadEntrySource = stripComments(
             readRepositoryFile("electron-app/preload.ts")
@@ -2792,7 +2792,10 @@ describe("architecture boundaries", () => {
             /startPreloadEntrypoint\(\s*require\s*,/u
         );
         expect(preloadEntrypointSource).toContain(
-            "loadPreloadRuntimeEnvironment("
+            'import { startPreloadScript } from "./preloadBootstrap.js";'
+        );
+        expect(preloadEntrypointSource).toContain(
+            'import { getDefaultPreloadRuntimeEnvironment } from "./preloadRuntimeEnvironment.js";'
         );
         expect(preloadEntrypointSource).not.toContain("globalThis");
         expect(preloadEntrySource).not.toContain(
@@ -2804,6 +2807,37 @@ describe("architecture boundaries", () => {
             'import { startDefaultPreloadEntrypoint } from "./preload/preloadEntrypoint.js";',
             "startDefaultPreloadEntrypoint();",
         ]);
+    });
+
+    it("keeps the preload entrypoint on native bootstrap imports", () => {
+        expect.assertions(8);
+
+        const preloadEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadEntrypoint.ts")
+        );
+
+        expect(preloadEntrypointSource).toContain(
+            'import { startPreloadScript } from "./preloadBootstrap.js";'
+        );
+        expect(preloadEntrypointSource).toContain(
+            'import { getDefaultPreloadRuntimeEnvironment } from "./preloadRuntimeEnvironment.js";'
+        );
+        expect(preloadEntrypointSource).toContain(
+            "getDefaultPreloadRuntimeEnvironment()"
+        );
+        expect(preloadEntrypointSource).toContain(
+            "requireModule: requireModule as PreloadModuleRequire"
+        );
+        expect(preloadEntrypointSource).not.toContain(
+            "loadPreloadRuntimeEnvironment"
+        );
+        expect(preloadEntrypointSource).not.toContain("loadPreloadBootstrap");
+        expect(preloadEntrypointSource).not.toContain(
+            "createPreloadEntrypointRequire"
+        );
+        expect(preloadEntrypointSource).not.toContain(
+            "isCannotFindModuleError"
+        );
     });
 
     it("keeps preload bootstrap loaders on the injected module require", () => {

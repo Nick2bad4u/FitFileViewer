@@ -26,6 +26,9 @@ still carrying `requireModule` forward for the Electron package bridge resolver.
 `electron-app/preload/preloadBootstrap.ts` now imports preload runtime creation and default runtime-environment
 discovery natively instead of resolving those bootstrap dependencies through `requireModule`, while still passing
 `requireModule` into the runtime and Electron bridge resolver.
+`electron-app/preload/preloadEntrypoint.ts` now imports preload bootstrap and runtime-environment modules
+natively instead of resolving those entrypoint dependencies through fallback `requireModule` path rewriting;
+the entrypoint still passes Electron's packaged `require` into bootstrap for the Electron package bridge.
 The small preload API assembly-domain factory modules now use named source exports instead of `module.exports`,
 while the runtime build still emits CommonJS-compatible package output.
 The first preload app API leaf factories (`apiDiagnostics.ts`, `appInfoApi.ts`, `gyazoExternalApi.ts`,

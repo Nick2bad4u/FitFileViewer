@@ -79,7 +79,7 @@ function isBundledPreloadCode(code: string): boolean {
     return (
         code.includes("// electron-app/preload.ts") &&
         code.includes("startDefaultPreloadEntrypoint();") &&
-        code.includes("function createPreloadEntrypointRequire(") &&
+        code.includes("function startPreloadEntrypoint(") &&
         !code.includes('require("./preload/')
     );
 }
