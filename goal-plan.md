@@ -168,7 +168,8 @@ entries where feature-local dynamic imports can do the job cleanly.
 Progress: the map vendor bundle now removes package-created `L`/`Leaflet` aliases after Leaflet.draw,
 MiniMap, markercluster, MapLibre, and the local measurement control are registered on the typed Leaflet
 runtime object. The Playwright map smoke path now resolves Leaflet through `leafletRuntime.ts` instead of
-depending on `window.L`, while still proving the legacy plugin runtime is registered.
+depending on `window.L`, while still proving the legacy plugin runtime is registered. Leaflet runtime unit
+tests now reset only the typed module-local adapter instead of deleting retired `L` globals from `globalThis`.
 
 3. Finish Shrinking The Renderer Composition Root (Complete)
 
@@ -311,6 +312,9 @@ development helpers stay module-returned and absent from `globalThis`, and archi
 mutation from returning.
 Tab-state manager behavior tests no longer delete a retired `window.renderSummary` global before proving
 summary rendering uses typed imports, and architecture coverage blocks that mutation from returning.
+Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
+resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
+from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

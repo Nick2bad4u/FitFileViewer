@@ -735,6 +735,8 @@ const directLeafletGlobalPattern =
     /\b(?:window|globalThis|windowExt|w|win|getWin\(\))\.L\b|\bReflect\.get\(\s*globalThis\s*,\s*["']L["']\s*\)|\{\s*L\?:\s*unknown\s*\}\)\.L/u;
 const leafletCompatibilityGlobalDefinitionPattern =
     /\bObject\.defineProperty\(\s*[^,\n]+,\s*["']L["']/u;
+const leafletRuntimeTestGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*(?:globalThis|window)\s*,\s*["'](?:L|Leaflet)["']\s*\)|\bObject\.defineProperty\(\s*(?:globalThis|window)\s*,\s*["'](?:L|Leaflet)["']\s*,|\b(?:globalThis|window)\.(?:L|Leaflet)\s*=/u;
 const directMapLibreBridgePattern = /\.maplibreGL\b/u;
 const bundledBrowserVendorImportPattern =
     /(?:from\s*["']|import\(\s*["']|require\(\s*["'])(?:chart\.js\/auto|chartjs-plugin-zoom|datatables\.net-dt)/u;
@@ -6339,6 +6341,23 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directRetiredRendererTestGlobals).toStrictEqual([]);
+    });
+
+    it("keeps Leaflet runtime tests from mutating retired global adapters", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            "tests/unit/utils/maps/core/leafletRuntime.test.ts",
+        ];
+        const leafletRuntimeGlobalMutationTests = scannedFiles
+            .filter((relativeFile) =>
+                leafletRuntimeTestGlobalMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(leafletRuntimeGlobalMutationTests).toStrictEqual([]);
     });
 
     it("does not recreate the retired Object.keys throw-through test global", () => {
