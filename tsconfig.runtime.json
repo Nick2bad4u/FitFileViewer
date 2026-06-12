@@ -54,6 +54,7 @@
         "electron-app/preload/menuEventApi.ts",
         "electron-app/preload/preloadModuleLoader.ts",
         "electron-app/preload/preloadModuleTypes.ts",
+        "electron-app/preload/preloadApiAssemblyModuleLoader.ts",
         "electron-app/preload/preloadAppModuleLoader.ts",
         "electron-app/preload/preloadBootstrap.ts",
         "electron-app/preload/preloadEntrypoint.ts",

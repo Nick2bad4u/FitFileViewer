@@ -42,6 +42,38 @@ export type PreloadModuleRequire = (moduleId: string) => unknown;
 export type CreateElectronApi = (
     options: Record<string, unknown>
 ) => ElectronAPI;
+export type CreatePreloadApiAssemblyContext = (options: {
+    constants: PreloadConstants;
+    contextBridge: null | PreloadContextBridge | undefined;
+    ipcRenderer: null | PreloadIpcRenderer | undefined;
+    modules: PreloadModuleRegistry;
+    preloadLog: PreloadLog;
+    processRef?: NodeJS.Process;
+}) => PreloadApiAssemblyContext;
+export type CreatePreloadClipboardApiDomain = (
+    context: PreloadApiAssemblyContext
+) => PreloadClipboardApiDomain;
+export type CreatePreloadDeveloperApiDomain = (
+    context: PreloadApiAssemblyContext
+) => PreloadDeveloperApiDomain;
+export type CreatePreloadDiagnosticsApiDomain = (
+    context: PreloadApiAssemblyContext
+) => PreloadDiagnosticsApiDomain;
+export type CreatePreloadExternalApiDomain = (
+    context: PreloadApiAssemblyContext
+) => PreloadExternalApiDomain;
+export type CreatePreloadFileApiDomain = (
+    context: PreloadApiAssemblyContext
+) => PreloadFileApiDomain;
+export type CreatePreloadIpcEventApiDomain = (
+    context: PreloadApiAssemblyContext
+) => PreloadIpcEventApiDomain;
+export type CreatePreloadStateApiDomain = (
+    context: PreloadApiAssemblyContext
+) => PreloadStateApiDomain;
+export type CreatePreloadSystemApiDomain = (
+    context: PreloadApiAssemblyContext
+) => PreloadSystemApiDomain;
 export type AssemblePreloadApi = (options: {
     constants: PreloadConstants;
     contextBridge: null | PreloadContextBridge | undefined;
@@ -166,6 +198,15 @@ export interface PreloadModuleRegistry {
     createFitBrowserApi: PreloadApiFactory<ElectronFitBrowserApi>;
     createGyazoExternalApi: PreloadApiFactory<ElectronGyazoExternalApi>;
     createPreloadEventApi: PreloadApiFactory<ElectronPreloadEventApi>;
+    createPreloadApiAssemblyContext: CreatePreloadApiAssemblyContext;
+    createPreloadClipboardApiDomain: CreatePreloadClipboardApiDomain;
+    createPreloadDeveloperApiDomain: CreatePreloadDeveloperApiDomain;
+    createPreloadDiagnosticsApiDomain: CreatePreloadDiagnosticsApiDomain;
+    createPreloadExternalApiDomain: CreatePreloadExternalApiDomain;
+    createPreloadFileApiDomain: CreatePreloadFileApiDomain;
+    createPreloadIpcEventApiDomain: CreatePreloadIpcEventApiDomain;
+    createPreloadStateApiDomain: CreatePreloadStateApiDomain;
+    createPreloadSystemApiDomain: CreatePreloadSystemApiDomain;
     createMainStateApi: PreloadApiFactory<ElectronMainStateApi>;
     createMainStateBridge: (options: Record<string, unknown>) => {
         listenToMainState: (

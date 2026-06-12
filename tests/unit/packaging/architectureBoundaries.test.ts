@@ -1247,7 +1247,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload shell and Gyazo external APIs split in external assembly", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -1270,12 +1270,14 @@ describe("architecture boundaries", () => {
         );
         expect(apiAssemblySource).toContain("createPreloadExternalApiDomain");
         expect(apiAssemblySource).toContain("createPreloadClipboardApiDomain");
+        expect(apiAssemblySource).not.toContain("require(");
         expect(externalApiDomainSource).toContain("createGyazoExternalApi");
         expect(externalApiDomainSource).toContain("createShellExternalApi");
         expect(externalApiDomainSource).not.toContain("createExternalApi");
         expect(electronApiFactorySource).toContain("gyazoExternalApi");
         expect(electronApiFactorySource).toContain("shellExternalApi");
         expect(moduleTypesSource).toContain("ElectronShellExternalApi");
+        expect(moduleTypesSource).toContain("createPreloadApiAssemblyContext");
     });
 
     it("keeps the preload event helper free of generic IPC methods", () => {

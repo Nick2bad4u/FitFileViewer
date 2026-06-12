@@ -11,6 +11,24 @@
     function loadPreloadModules({
         requireModule,
     }: LoadPreloadModulesOptions): PreloadModuleRegistry {
+        const { loadPreloadApiAssemblyModules } = requireModule(
+            "./preload/preloadApiAssemblyModuleLoader.js"
+        ) as {
+            loadPreloadApiAssemblyModules: (
+                options: LoadPreloadModulesOptions
+            ) => Pick<
+                PreloadModuleRegistry,
+                | "createPreloadApiAssemblyContext"
+                | "createPreloadClipboardApiDomain"
+                | "createPreloadDeveloperApiDomain"
+                | "createPreloadDiagnosticsApiDomain"
+                | "createPreloadExternalApiDomain"
+                | "createPreloadFileApiDomain"
+                | "createPreloadIpcEventApiDomain"
+                | "createPreloadStateApiDomain"
+                | "createPreloadSystemApiDomain"
+            >;
+        };
         const { loadPreloadAppModules } = requireModule(
             "./preload/preloadAppModuleLoader.js"
         ) as {
@@ -70,6 +88,7 @@
         };
 
         return {
+            ...loadPreloadApiAssemblyModules({ requireModule }),
             ...loadPreloadAppModules({ requireModule }),
             ...loadPreloadFileModules({ requireModule }),
             ...loadPreloadIpcModules({ requireModule }),

@@ -5,6 +5,11 @@ bridge modules as an intentional temporary surface: /C:/Repos/FitFileViewer/docs
 The current preload path still emits/consumes CommonJS-compatible output for Electron packaging, and preload
 modules still use module.exports/require heavily.
 
+Progress: `electron-app/preload/apiAssembly.ts` now consumes API assembly-context and domain factory dependencies
+from the injected preload module registry instead of requiring sibling preload modules directly. The new
+`electron-app/preload/preloadApiAssemblyModuleLoader.ts` keeps those dependencies behind the existing
+`requireModule` handoff while the packaged Electron preload output remains CommonJS-compatible.
+
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron’s
 requirements, and tests no longer need special CommonJS-in-ESM mock patterns.
