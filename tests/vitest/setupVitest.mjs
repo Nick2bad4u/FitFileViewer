@@ -2059,20 +2059,27 @@ try {
         const nativeKeys = Object.keys.bind(Object);
         /** @type {(o: any) => string[]} */
         let current = nativeKeys;
-        // Global opt-in flag to allow tests to force throw-through
-        if (typeof globalThis.__vitest_object_keys_allow_throw !== "boolean") {
-            globalThis.__vitest_object_keys_allow_throw = false;
-        }
+
+        const isLogWithLevelCall = () => {
+            try {
+                return /\blogWithLevel\.(?:ts|js)\b/u.test(
+                    String(new Error().stack ?? "")
+                );
+            } catch {
+                return false;
+            }
+        };
+
         /**
          * Create a stable wrapper function that delegates to the current
-         * implementation and falls back to native when errors occur, unless
-         * tests opt-in to throw-through.
+         * implementation and falls back to native when errors occur, unless the
+         * call came from the logWithLevel failure-path tests.
          */
         const wrapped = (/** @type {any} */ o) => {
             try {
                 return /** @type {any} */ (current)(o);
             } catch (err) {
-                if (globalThis.__vitest_object_keys_allow_throw) {
+                if (isLogWithLevelCall()) {
                     throw err;
                 }
                 try {

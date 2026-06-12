@@ -4605,6 +4605,28 @@ describe("architecture boundaries", () => {
         expect(directShowFitDataTestGlobals).toStrictEqual([]);
     });
 
+    it("does not recreate the retired Object.keys throw-through test global", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directObjectKeysThrowGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestObjectKeysThrowGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directObjectKeysThrowGlobalLookups).toStrictEqual([]);
+    });
+
     it("keeps raw globalThis any casts out of source and tests", () => {
         expect.assertions(1);
 
