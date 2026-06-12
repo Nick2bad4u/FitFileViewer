@@ -17,7 +17,9 @@ The small preload API assembly-domain factory modules now use named source expor
 while the runtime build still emits CommonJS-compatible package output.
 The first preload app API leaf factories (`apiDiagnostics.ts`, `appInfoApi.ts`, `gyazoExternalApi.ts`,
 `shellExternalApi.ts`, and `themeApi.ts`) now use named source exports too, with direct unit tests importing
-those named source exports natively.
+those named source exports natively, and `preloadAppModuleLoader.ts` now imports app, clipboard, devtools,
+external, theme, environment, and before-exit leaf modules natively instead of resolving them through
+`requireModule`.
 The preload file and clipboard leaf factories (`clipboardBridge.ts`, `fileApi.ts`, and `fitBrowserApi.ts`)
 also use named source exports, and `preloadFileModuleLoader.ts` now imports the file/FIT-browser leaf modules
 natively instead of resolving them through the injected `requireModule` boundary while the remaining loader

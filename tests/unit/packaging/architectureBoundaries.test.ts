@@ -2509,6 +2509,53 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps preload app leaf modules on native imports", () => {
+        expect.assertions(13);
+
+        const appModuleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadAppModuleLoader.ts")
+        );
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+
+        expect(appModuleLoaderSource).toContain(
+            'import { createApiDiagnostics } from "./apiDiagnostics.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createAppInfoApi } from "./appInfoApi.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { registerPreloadBeforeExitHandler } from "./beforeExitHandler.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createClipboardBridge } from "./clipboardBridge.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createDevtoolsMenuApi } from "./devtoolsMenuApi.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { exposeDevelopmentToolsGlobal } from "./developmentToolsGlobal.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { isPreloadDevelopmentMode } from "./environment.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createGyazoExternalApi } from "./gyazoExternalApi.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createShellExternalApi } from "./shellExternalApi.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createThemeApi } from "./themeApi.js";'
+        );
+        expect(appModuleLoaderSource).not.toContain("requireModule");
+        expect(moduleLoaderSource).toContain("loadPreloadAppModules()");
+        expect(moduleLoaderSource).not.toContain(
+            "loadPreloadAppModules({ requireModule })"
+        );
+    });
+
     it("keeps the preload event helper free of generic IPC methods", () => {
         expect.assertions(5);
 

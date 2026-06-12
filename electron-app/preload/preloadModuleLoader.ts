@@ -30,9 +30,7 @@ export function loadPreloadModules({
     const { loadPreloadAppModules } = requireModule(
         "./preload/preloadAppModuleLoader.js"
     ) as {
-        loadPreloadAppModules: (
-            options: LoadPreloadModulesOptions
-        ) => Pick<
+        loadPreloadAppModules: () => Pick<
             PreloadModuleRegistry,
             | "createApiDiagnostics"
             | "createAppInfoApi"
@@ -97,7 +95,7 @@ export function loadPreloadModules({
 
     return {
         ...loadPreloadApiAssemblyModules({ requireModule }),
-        ...loadPreloadAppModules({ requireModule }),
+        ...loadPreloadAppModules(),
         ...loadPreloadPolicyModules(),
         ...loadPreloadFileModules(),
         ...loadPreloadIpcModules({ requireModule }),
