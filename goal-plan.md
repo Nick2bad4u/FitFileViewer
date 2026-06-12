@@ -43,6 +43,8 @@ architecture coverage to keep those tests off CommonJS-in-ESM loading patterns.
 The preload dist-test module-mock fixture now imports preload source modules natively too, and preload source
 tests simulate the injected `requireModule` boundary through the native module-mock registry instead of a
 CommonJS source transform.
+The obsolete `docs/MOCK_COMMONJS_IN_ESM.md` guide has been removed, and architecture coverage now guards
+against restoring the retired global `require()` override/mock-interoperability recipe.
 Shared validation and FIT-label policy modules now use named source exports instead of `module.exports` wrappers
 too, while existing CommonJS runtime consumers continue destructuring the compiled named exports.
 The redundant main-process external URL policy facade has been removed; callers and tests now use the shared

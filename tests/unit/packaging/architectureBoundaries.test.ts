@@ -5772,6 +5772,7 @@ describe("architecture boundaries", () => {
             )
             .sort();
         const deletedCompatibilityFiles = [
+            "docs/MOCK_COMMONJS_IN_ESM.md",
             "electron-app/main/security/externalUrlPolicy.ts",
             "electron-app/renderer/globalApiExposure.ts",
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
