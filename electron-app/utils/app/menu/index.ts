@@ -1,20 +1,10 @@
-type CreateAppMenuCallable = (
-    mainWindow?: unknown,
-    currentTheme?: null | string,
-    loadedFitFilePath?: null | string
-) => void;
+import { createAppMenu as resolvedCreateAppMenu } from "./createAppMenu.js";
 
-const createAppMenuModule = require("./createAppMenu.js") as {
-    createAppMenu: CreateAppMenuCallable;
-};
-
-const resolvedCreateAppMenu = createAppMenuModule.createAppMenu;
+export { createAppMenu } from "./createAppMenu.js";
 
 /**
  * Creates and installs the Electron application menu.
  */
-export const createAppMenu = resolvedCreateAppMenu;
-
 export default {
     createAppMenu: resolvedCreateAppMenu,
 };

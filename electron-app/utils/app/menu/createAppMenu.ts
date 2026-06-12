@@ -1,6 +1,11 @@
 // Lazily resolve Electron at call-time so Vitest's vi.mock('electron') can hook properly
 import { validateExternalUrl } from "../../../shared/externalUrlPolicy.js";
 import { getElectron as getRuntimeElectron } from "../../../main/runtime/electronAccess.js";
+import { approveFilePath } from "../../../main/security/fileAccessPolicy.js";
+import {
+    getShortRecentName,
+    loadRecentFiles,
+} from "../../files/recent/recentFiles.js";
 
 type RendererIpcEventChannel =
     import("../../../shared/ipc").RendererIpcEventChannel;
@@ -9,7 +14,7 @@ type BrowserWindowLike = {
     close?: () => void;
     isDestroyed?: () => boolean;
     webContents?: {
-        send: (channel: RendererIpcEventChannel, ...args: unknown[]) => void;
+        send?: (channel: RendererIpcEventChannel, ...args: unknown[]) => void;
     };
 };
 
@@ -65,15 +70,6 @@ type MenuItemLike = {
     [key: string]: unknown;
 };
 
-type RecentFilesUtils = {
-    getShortRecentName: (path: string) => string;
-    loadRecentFiles: () => string[];
-};
-
-type FileAccessPolicy = {
-    approveFilePath: (path: unknown, options?: { source?: string }) => string;
-};
-
 let lastBuiltMenuTemplateForTests: MenuItemLike[] | undefined;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -100,14 +96,15 @@ function sendToWindow(
     channel: RendererIpcEventChannel,
     ...args: unknown[]
 ): boolean {
-    if (isUsableWindow(win) && win.webContents) {
+    if (isUsableWindow(win) && typeof win.webContents?.send === "function") {
         win.webContents.send(channel, ...args);
         return true;
     }
     return false;
 }
 
-const getMenuRuntimeElectron = getRuntimeElectron as unknown as () => ElectronLike;
+const getMenuRuntimeElectron =
+    getRuntimeElectron as unknown as () => ElectronLike;
 
 let __electronCached: ElectronLike | null = null;
 function hasUsableElectronReference(
@@ -167,7 +164,7 @@ function getConf(): ConfLike {
 let mainMenu: unknown = null;
 let recentFilesOverrideForTests: null | string[] = null;
 
-function setCreateAppMenuRecentFilesOverrideForTests(
+export function setCreateAppMenuRecentFilesOverrideForTests(
     files: null | readonly string[]
 ): void {
     recentFilesOverrideForTests = files === null ? null : [...files];
@@ -235,7 +232,7 @@ const decoderOptionDefaults = {
  * File, Edit, View, Window, and Settings menus, with support for opening files,
  * displaying a list of recent files, and standard menu roles.
  */
-function createAppMenu(
+export function createAppMenu(
     mainWindow: BrowserWindowLike | null | undefined,
     currentTheme: string | null = null,
     loadedFitFilePath: string | null = null
@@ -275,34 +272,7 @@ function createAppMenu(
     ): boolean => sendToWindow(resolveTargetWindow(), channel, ...args);
     const usingPassedTheme = typeof currentTheme === "string";
     const theme = usingPassedTheme ? currentTheme : getTheme();
-    // Lazy import recent files utils to ensure vi.mock hooks correctly
-    let recentUtils: RecentFilesUtils;
-    try {
-        recentUtils = require("../../../utils/files/recent/recentFiles");
-    } catch {
-        // Some builds may have a different relative path
-        try {
-            recentUtils = require("../../../utils/files/recent/recentFiles");
-        } catch {
-            recentUtils = {
-                getShortRecentName: (p: string) => p,
-                loadRecentFiles: () => [],
-            };
-        }
-    }
-    const recentFiles =
-        getRecentFilesOverrideForTests() ?? recentUtils.loadRecentFiles();
-
-    // Best-effort file access policy integration.
-    // This module is used in the main process; approving here ensures renderer readFile calls
-    // can be authorized after a user clicks a recent file menu item.
-    let fileAccessPolicy: FileAccessPolicy | null = null;
-    try {
-        fileAccessPolicy =
-            require("../../../main/security/fileAccessPolicy") as FileAccessPolicy;
-    } catch {
-        fileAccessPolicy = null;
-    }
+    const recentFiles = getRecentFilesOverrideForTests() ?? loadRecentFiles();
     // If (!app.isPackaged) {
     //     Console.log("[createAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
     // }
@@ -322,7 +292,7 @@ function createAppMenu(
                 ? recentFiles.map((file: string) => ({
                       click: () => {
                           try {
-                              fileAccessPolicy?.approveFilePath(file, {
+                              approveFilePath(file, {
                                   source: "menu:openRecent",
                               });
                           } catch {
@@ -335,7 +305,7 @@ function createAppMenu(
                               );
                           }
                       },
-                      label: recentUtils.getShortRecentName(file),
+                      label: getShortRecentName(file),
                   }))
                 : [{ enabled: false, label: "No Recent Files" }];
     const clearRecentMenuItem = {
@@ -1106,23 +1076,21 @@ function setTheme(theme: string): void {
     getConf().set("theme", theme);
 }
 
-function getCreateAppMenuLastBuiltTemplateForTests():
+export function getCreateAppMenuLastBuiltTemplateForTests():
     | MenuItemLike[]
     | undefined {
     return lastBuiltMenuTemplateForTests;
 }
 
-function setCreateAppMenuLastBuiltTemplateForTests(
+export function setCreateAppMenuLastBuiltTemplateForTests(
     template: MenuItemLike[] | undefined
 ): void {
     lastBuiltMenuTemplateForTests = template;
 }
 
-if (typeof module !== "undefined" && module && module.exports) {
-    module.exports = {
-        createAppMenu,
-        getCreateAppMenuLastBuiltTemplateForTests,
-        setCreateAppMenuRecentFilesOverrideForTests,
-        setCreateAppMenuLastBuiltTemplateForTests,
-    };
-}
+export default {
+    createAppMenu,
+    getCreateAppMenuLastBuiltTemplateForTests,
+    setCreateAppMenuRecentFilesOverrideForTests,
+    setCreateAppMenuLastBuiltTemplateForTests,
+};

@@ -79,6 +79,10 @@ Main logging, menu-creation, Electron access, and blocked-request support helper
 `safeCreateAppMenu.ts`, `electronAccess.ts`, and `setupBlockedRequests.ts`) now use named source exports too;
 already-migrated runtime consumers import those helper boundaries natively instead of requiring their source
 files. Main-process source and the state/menu utility consumers no longer require `electronAccess.ts` directly.
+The app-menu creation boundary (`createAppMenu.ts` plus `utils/app/menu/index.ts`) now uses named source
+exports/imports instead of source-level `module.exports` or a barrel `require`, and `safeCreateAppMenu.ts`
+imports the menu creator natively. `createAppMenu.ts` also imports recent-file and file-access helpers
+natively instead of requiring those source modules.
 The auto-updater access helper now uses named source exports too, and setup/menu/bootstrap consumers import
 the updater resolver boundary natively instead of requiring its source file.
 The Node runtime module boundary now uses named source exports for `path`, `fs`, and `httpRef`; file-access,

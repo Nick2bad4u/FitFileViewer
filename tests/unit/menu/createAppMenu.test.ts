@@ -1,9 +1,5 @@
-import { createRequire } from "node:module";
-
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Mock } from "vitest";
-
-const requireCjs = createRequire(import.meta.url);
 
 // Capture passed template for assertions
 let capturedTemplate: any[] | null = null;
@@ -17,9 +13,6 @@ type ElectronHoistedMock = {
     app: any;
     clipboard: any;
     shell: any;
-};
-type ElectronAccessModule = {
-    setElectronOverride: (override: unknown) => void;
 };
 type CreateAppMenuModule = {
     createAppMenu: (
@@ -101,12 +94,7 @@ const electronMockProxy = new Proxy(
     }
 ) as ElectronHoistedMock;
 
-function setElectronAccessOverride(override: unknown): void {
-    const { setElectronOverride } = requireCjs(
-        "../../../electron-app/main/runtime/electronAccess.js"
-    ) as ElectronAccessModule;
-    setElectronOverride(override);
-}
+function setElectronAccessOverride(_override: unknown): void {}
 
 function primeElectronAccessOverride(): void {
     setElectronAccessOverride(electronMockProxy);
@@ -128,6 +116,12 @@ vi.mock(import("electron"), () => {
     );
 });
 
+vi.mock(import("../../../electron-app/main/runtime/electronAccess.js"), () => ({
+    appRef: () => electronMockFixture.app,
+    getElectron: () => electronMockProxy,
+    setElectronOverride: () => undefined,
+}));
+
 // Force fallback config store (in-memory) for determinism
 // Returning empty module makes new Conf(...) throw and fallback path used
 vi.mock(import("electron-conf"), () => ({}) as any);
@@ -136,8 +130,29 @@ vi.mock(import("electron-conf"), () => ({}) as any);
 
 // Do not mock electron-conf to exercise fallback if not present; if present, it's fine.
 
+async function loadCreateAppMenuModule(): Promise<CreateAppMenuModule> {
+    primeElectronAccessOverride();
+    const mod =
+        (await import("../../../electron-app/utils/app/menu/createAppMenu.js")) as CreateAppMenuModule;
+    mod.setCreateAppMenuRecentFilesOverrideForTests(
+        recentFilesOverrideForNextImport
+    );
+    createAppMenuModuleForTest = mod;
+    return mod;
+}
+
+function importCreateAppMenuModule(): CreateAppMenuModule {
+    if (!createAppMenuModuleForTest) {
+        throw new TypeError("createAppMenu module has not been loaded");
+    }
+    createAppMenuModuleForTest.setCreateAppMenuRecentFilesOverrideForTests(
+        recentFilesOverrideForNextImport
+    );
+    return createAppMenuModuleForTest;
+}
+
 describe("createAppMenu", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         capturedTemplate = null;
         vi.resetModules();
         // Default recent files mock for most tests (can be overridden in a specific test)
@@ -148,8 +163,8 @@ describe("createAppMenu", () => {
                     "C:/Users/Test/Documents/activity1.fit",
                     "C:/Users/Test/Documents/activity2.fit",
                 ]),
-                getShortRecentName: vi.fn<GetShortRecentName>((p) =>
-                    p.split(/\\|\//g).slice(-2).join("\\")
+                getShortRecentName: vi.fn<GetShortRecentName>(
+                    (p) => p.split(/\\|\//g).pop() ?? ""
                 ),
             })
         );
@@ -210,25 +225,15 @@ describe("createAppMenu", () => {
             },
         };
         primeElectronAccessOverride();
+        await loadCreateAppMenuModule();
     });
 
     afterEach(() => {
         capturedTemplate = null;
         setRecentFilesOverrideForTests(null);
         setElectronAccessOverride(null);
+        createAppMenuModuleForTest = null;
     });
-
-    function importCreateAppMenuModule(): CreateAppMenuModule {
-        primeElectronAccessOverride();
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod =
-            require("../../../electron-app/utils/app/menu/createAppMenu.js") as CreateAppMenuModule;
-        mod.setCreateAppMenuRecentFilesOverrideForTests(
-            recentFilesOverrideForNextImport
-        );
-        createAppMenuModuleForTest = mod;
-        return mod;
-    }
 
     function importCreateAppMenu() {
         return importCreateAppMenuModule().createAppMenu;
@@ -667,6 +672,7 @@ describe("createAppMenu", () => {
             })
         );
 
+        await loadCreateAppMenuModule();
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
@@ -1275,7 +1281,7 @@ describe("createAppMenu", () => {
 });
 
 describe("createAppMenu - additional robust branches", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         capturedTemplate = null;
         vi.resetModules();
         vi.doMock(
@@ -1285,8 +1291,8 @@ describe("createAppMenu - additional robust branches", () => {
                     "C:/Users/Test/Documents/activity1.fit",
                     "C:/Users/Test/Documents/activity2.fit",
                 ]),
-                getShortRecentName: vi.fn<GetShortRecentName>((p) =>
-                    p.split(/\\|\//g).slice(-2).join("\\")
+                getShortRecentName: vi.fn<GetShortRecentName>(
+                    (p) => p.split(/\\|\//g).pop() ?? ""
                 ),
             })
         );
@@ -1348,24 +1354,18 @@ describe("createAppMenu - additional robust branches", () => {
             },
         };
         primeElectronAccessOverride();
+        await loadCreateAppMenuModule();
     });
 
     afterEach(() => {
         capturedTemplate = null;
         setRecentFilesOverrideForTests(null);
         setElectronAccessOverride(null);
+        createAppMenuModuleForTest = null;
     });
 
     function importCreateAppMenu() {
-        primeElectronAccessOverride();
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod =
-            require("../../../electron-app/utils/app/menu/createAppMenu.js") as CreateAppMenuModule;
-        mod.setCreateAppMenuRecentFilesOverrideForTests(
-            recentFilesOverrideForNextImport
-        );
-        createAppMenuModuleForTest = mod;
-        return mod.createAppMenu;
+        return importCreateAppMenuModule().createAppMenu;
     }
 
     it("invokes BrowserWindow.close() from File > Close Window", () => {
@@ -1686,12 +1686,7 @@ describe("createAppMenu - additional robust branches", () => {
 
     it("exports createAppMenu without publishing a global bridge", () => {
         expect.assertions(2);
-        const modulePath =
-            require.resolve("../../../electron-app/utils/app/menu/createAppMenu.js");
-        delete require.cache[modulePath];
-
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod = require("../../../electron-app/utils/app/menu/createAppMenu.js");
+        const mod = importCreateAppMenuModule();
 
         expect(mod.createAppMenu).toBeTypeOf("function");
         expect(

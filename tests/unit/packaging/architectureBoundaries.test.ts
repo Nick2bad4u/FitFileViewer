@@ -1814,7 +1814,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(121);
+        expect.assertions(128);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -1909,6 +1909,9 @@ describe("architecture boundaries", () => {
         const createAppMenuSource = stripComments(
             readRepositoryFile("electron-app/utils/app/menu/createAppMenu.ts")
         );
+        const createAppMenuIndexSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/menu/index.ts")
+        );
         const recentFilesSource = stripComments(
             readRepositoryFile("electron-app/utils/files/recent/recentFiles.ts")
         );
@@ -1942,6 +1945,8 @@ describe("architecture boundaries", () => {
         expect(mainProcessStateManagerSource).not.toContain("module.exports");
         expect(setupMenuAndEventHandlersSource).not.toContain("module.exports");
         expect(windowStateUtilsSource).not.toContain("module.exports");
+        expect(createAppMenuSource).not.toContain("module.exports");
+        expect(createAppMenuIndexSource).not.toContain("require(");
         expect(recentFilesSource).not.toContain("module.exports");
         expect(recentFilesSource).not.toContain("require(");
         expect(windowValidationSource).not.toContain(
@@ -2132,6 +2137,15 @@ describe("architecture boundaries", () => {
         expect(createAppMenuSource).not.toContain(
             'require("../../../main/runtime/electronAccess")'
         );
+        expect(createAppMenuSource).not.toContain(
+            'require("../../../utils/files/recent/recentFiles")'
+        );
+        expect(createAppMenuSource).not.toContain(
+            'require("../../../main/security/fileAccessPolicy")'
+        );
+        expect(safeCreateAppMenuSource).not.toContain(
+            'require("../../utils/app/menu/createAppMenu")'
+        );
         expect(mainProcessStateManagerSource).not.toContain(
             'require("../../../main/runtime/electronAccess")'
         );
@@ -2201,6 +2215,8 @@ describe("architecture boundaries", () => {
         expect(setupMenuAndEventHandlersSource).toContain(
             "export function setupMenuAndEventHandlers"
         );
+        expect(createAppMenuSource).toContain("export function createAppMenu");
+        expect(createAppMenuIndexSource).toContain("export { createAppMenu }");
         expect(gyazoOAuthServerSource).toContain(
             "export async function startGyazoOAuthServer"
         );
@@ -2580,7 +2596,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps createAppMenu Electron test fixtures module-local", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const createAppMenuTestSource = stripComments(
             readRepositoryFile("tests/unit/menu/createAppMenu.test.ts")
@@ -2590,6 +2606,9 @@ describe("architecture boundaries", () => {
             directCreateAppMenuTestFixtureGlobalPattern
         );
         expect(createAppMenuTestSource).toContain("let electronMockFixture");
+        expect(createAppMenuTestSource).not.toMatch(
+            /\b(?:createRequire|requireCjs|require\s*\()/u
+        );
         expect(createAppMenuTestSource).toContain(
             'Reflect.get(globalThis, "__FFV_createAppMenuExports")'
         );

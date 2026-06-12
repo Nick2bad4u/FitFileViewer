@@ -1,6 +1,8 @@
 import { logWithContext } from "../logging/logWithContext.js";
+import { createAppMenu } from "../../utils/app/menu/createAppMenu.js";
 
-type RendererIpcEventChannel = import("../../shared/ipc").RendererIpcEventChannel;
+type RendererIpcEventChannel =
+    import("../../shared/ipc").RendererIpcEventChannel;
 
 interface MainWindowLike {
     isDestroyed?: () => boolean;
@@ -14,20 +16,11 @@ interface MainWindowLike {
     };
 }
 
-type CreateAppMenu = (
-    mainWindow: MainWindowLike,
-    theme: string,
-    loadedFitFilePath?: null | string
-) => void;
-
 const getErrorMessage = (error: unknown): string =>
     error instanceof Error ? error.message : String(error);
 
 const getNodeEnvironment = (): string | undefined =>
     globalThis.process?.env?.["NODE_ENV"];
-
-const isCreateAppMenu = (value: unknown): value is CreateAppMenu =>
-    typeof value === "function";
 
 /**
  * Lazily creates the application menu. The helper is intentionally defensive so
@@ -44,14 +37,7 @@ export function safeCreateAppMenu(
             return;
         }
 
-        const mod = require("../../utils/app/menu/createAppMenu") as {
-            createAppMenu?: unknown;
-        };
-        const createAppMenu = mod.createAppMenu;
-
-        if (isCreateAppMenu(createAppMenu)) {
-            createAppMenu(mainWindow, theme, loadedFitFilePath);
-        }
+        createAppMenu(mainWindow, theme, loadedFitFilePath);
     } catch (error) {
         logWithContext(
             "warn",
