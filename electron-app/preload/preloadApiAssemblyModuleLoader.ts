@@ -23,39 +23,17 @@ type PreloadApiAssemblyModules = Pick<
     | "createPreloadSystemApiDomain"
 >;
 
-const createPreloadApiAssemblyContextModule =
-    createPreloadApiAssemblyContext as unknown as PreloadModuleRegistry["createPreloadApiAssemblyContext"];
-const createPreloadClipboardApiDomainModule =
-    createPreloadClipboardApiDomain as unknown as PreloadModuleRegistry["createPreloadClipboardApiDomain"];
-const createPreloadDeveloperApiDomainModule =
-    createPreloadDeveloperApiDomain as unknown as PreloadModuleRegistry["createPreloadDeveloperApiDomain"];
-const createPreloadDiagnosticsApiDomainModule =
-    createPreloadDiagnosticsApiDomain as unknown as PreloadModuleRegistry["createPreloadDiagnosticsApiDomain"];
-const createPreloadExternalApiDomainModule =
-    createPreloadExternalApiDomain as unknown as PreloadModuleRegistry["createPreloadExternalApiDomain"];
-const createPreloadFileApiDomainModule =
-    createPreloadFileApiDomain as unknown as PreloadModuleRegistry["createPreloadFileApiDomain"];
-const createPreloadIpcEventApiDomainModule =
-    createPreloadIpcEventApiDomain as unknown as PreloadModuleRegistry["createPreloadIpcEventApiDomain"];
-const createPreloadStateApiDomainModule =
-    createPreloadStateApiDomain as unknown as PreloadModuleRegistry["createPreloadStateApiDomain"];
-const createPreloadSystemApiDomainModule =
-    createPreloadSystemApiDomain as unknown as PreloadModuleRegistry["createPreloadSystemApiDomain"];
-
 export function loadPreloadApiAssemblyModules(): PreloadApiAssemblyModules {
     return {
-        createPreloadApiAssemblyContext:
-            createPreloadApiAssemblyContextModule,
-        createPreloadClipboardApiDomain:
-            createPreloadClipboardApiDomainModule,
-        createPreloadDeveloperApiDomain:
-            createPreloadDeveloperApiDomainModule,
+        createPreloadApiAssemblyContext,
+        createPreloadClipboardApiDomain,
+        createPreloadDeveloperApiDomain,
         createPreloadDiagnosticsApiDomain:
-            createPreloadDiagnosticsApiDomainModule,
-        createPreloadExternalApiDomain: createPreloadExternalApiDomainModule,
-        createPreloadFileApiDomain: createPreloadFileApiDomainModule,
-        createPreloadIpcEventApiDomain: createPreloadIpcEventApiDomainModule,
-        createPreloadStateApiDomain: createPreloadStateApiDomainModule,
-        createPreloadSystemApiDomain: createPreloadSystemApiDomainModule,
+            createPreloadDiagnosticsApiDomain,
+        createPreloadExternalApiDomain,
+        createPreloadFileApiDomain,
+        createPreloadIpcEventApiDomain,
+        createPreloadStateApiDomain,
+        createPreloadSystemApiDomain,
     };
 }

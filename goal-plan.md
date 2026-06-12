@@ -9,8 +9,9 @@ the injected preload `requireModule` handoff have been removed.
 Progress: `electron-app/preload/apiAssembly.ts` now consumes API assembly-context and domain factory dependencies
 from the injected preload module registry instead of requiring sibling preload modules directly. The new
 `electron-app/preload/preloadApiAssemblyModuleLoader.ts` now imports the API assembly context and domain
-modules natively instead of resolving those assembly modules through the existing `requireModule` handoff
-while the packaged Electron preload output remains CommonJS-compatible.
+modules natively and returns those imports directly instead of resolving those assembly modules through the
+existing `requireModule` handoff or compatibility type-cast aliases while the packaged Electron preload output
+remains CommonJS-compatible.
 `electron-app/preload/ipcHelpers.ts` and `electron-app/preload/devtoolsMenuApi.ts` now consume shared validation
 policies from injected registry entries loaded by `electron-app/preload/preloadPolicyModuleLoader.ts` instead
 of requiring shared policy modules directly.
@@ -121,10 +122,11 @@ the updater resolver boundary natively instead of requiring its source file. Its
 Electron-updater fallback now resolves through the centralized `loadNodeModule` compatibility boundary instead
 of a direct package `require("electron-updater")` call, and the redundant Node ESM `module.exports` namespace
 branch has been removed because Electron-updater's `default` namespace covers the same object shape.
-The Node runtime module boundary now uses named source exports for `path`, `fs`, `httpRef`, and the scoped
-package loader used by runtime compatibility adapters; file-access, IPC sender policy, Gyazo OAuth,
-application-event, menu-event, IPC setup, Electron access, and updater access consumers import that boundary
-natively instead of requiring its source file or owning separate direct package-load fallbacks.
+The Node runtime module boundary now imports Node built-ins natively for `path`, `fs`, and `httpRef` while
+keeping `loadNodeModule` scoped to external runtime package compatibility adapters; file-access, IPC sender
+policy, Gyazo OAuth, application-event, menu-event, IPC setup, Electron access, and updater access consumers
+import that boundary natively instead of requiring its source file or owning separate direct package-load
+fallbacks.
 Electron-conf access is now centralized in `electron-app/main/runtime/electronConfAccess.ts` because the
 package's ESM entry is not safe under the current Electron CommonJS module shape. App state, FIT-parser
 integration, app-menu creation, menu event handling, and browser/info IPC handlers use that typed adapter

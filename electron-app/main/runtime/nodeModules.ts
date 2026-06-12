@@ -1,43 +1,30 @@
+import * as fsModule from "node:fs";
+import * as httpModule from "node:http";
 import * as pathModule from "node:path";
 
-type FileSystemModule = typeof import("node:fs");
 type HttpModule = typeof import("node:http");
-
-const requireNodeModule = (specifier: string): unknown => {
-    try {
-        return require(specifier);
-    } catch {
-        return null;
-    }
-};
 
 export function loadNodeModule<TModule = unknown>(
     specifier: string
 ): TModule | null {
-    return requireNodeModule(specifier) as TModule | null;
+    try {
+        return require(specifier) as TModule;
+    } catch {
+        return null;
+    }
 }
 
 export const path = pathModule;
+export const fs = fsModule;
 
 /**
- * Attempts to resolve Node's fs module while supporting test environments that
- * mock either "fs" or "node:fs".
- */
-export const fs =
-    loadNodeModule<FileSystemModule>("node:fs") ??
-    loadNodeModule<FileSystemModule>("fs");
-
-/**
- * Lazily resolves the http module, preferring the classic specifier so tests
- * can stub it easily.
+ * Returns Node's http module through the runtime boundary used by main-process
+ * callers.
  *
- * @returns Node http module or null when unavailable.
+ * @returns Node http module.
  */
-export function httpRef(): HttpModule | null {
-    return (
-        loadNodeModule<HttpModule>("http") ??
-        loadNodeModule<HttpModule>("node:http")
-    );
+export function httpRef(): HttpModule {
+    return httpModule;
 }
 
 export default {
