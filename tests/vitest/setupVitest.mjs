@@ -1648,6 +1648,22 @@ try {
     }
 })();
 
+/**
+ * @param {"clearInterval" | "clearTimeout" | "setInterval" | "setTimeout"} name
+ * @param {unknown} value
+ */
+function installTrackedTimerFunction(name, value) {
+    try {
+        Object.defineProperty(globalThis, name, {
+            configurable: true,
+            value,
+            writable: true,
+        });
+    } catch {
+        /* Ignore errors */
+    }
+}
+
 // --- Track and clean up timers and DOM event listeners to prevent leaks across tests ---
 (function installTimerAndListenerTracking() {
     try {
@@ -1664,7 +1680,8 @@ try {
                 globalThis.clearInterval?.bind(globalThis);
 
             if (typeof nativeSetTimeout === "function") {
-                globalThis.setTimeout = /** @type {any} */ (
+                installTrackedTimerFunction(
+                    "setTimeout",
                     (fn, delay, ...args) => {
                         const id = nativeSetTimeout(fn, delay, ...args);
                         try {
@@ -1677,7 +1694,8 @@ try {
                 );
             }
             if (typeof nativeSetInterval === "function") {
-                globalThis.setInterval = /** @type {any} */ (
+                installTrackedTimerFunction(
+                    "setInterval",
                     (fn, delay, ...args) => {
                         const id = nativeSetInterval(fn, delay, ...args);
                         try {
@@ -1690,7 +1708,8 @@ try {
                 );
             }
             if (typeof nativeClearTimeout === "function") {
-                globalThis.clearTimeout = /** @type {any} */ (
+                installTrackedTimerFunction(
+                    "clearTimeout",
                     (id) => {
                         try {
                             timeouts.delete(id);
@@ -1702,7 +1721,8 @@ try {
                 );
             }
             if (typeof nativeClearInterval === "function") {
-                globalThis.clearInterval = /** @type {any} */ (
+                installTrackedTimerFunction(
+                    "clearInterval",
                     (id) => {
                         try {
                             intervals.delete(id);

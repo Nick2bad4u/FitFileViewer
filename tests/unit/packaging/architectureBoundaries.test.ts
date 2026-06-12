@@ -640,6 +640,8 @@ const directVitestInlineWebStorageMockPattern =
     /\b(?:StorageMock|ensureSafeLocalStorage|ensureSafeSessionStorage)\b|\b(?:globalThis|w)\.(?:Storage|localStorage|sessionStorage)\s*=/u;
 const directVitestTimerTrackingGlobalPattern =
     /\b__vitest_(?:tracked_(?:timeouts|intervals|dom_listeners)|timers_wrapped)\b/u;
+const directVitestTimerWrapperAssignmentPattern =
+    /\bglobalThis\.(?:clearInterval|clearTimeout|setInterval|setTimeout)\s*=/u;
 const directVitestDistResolverGlobalPattern =
     /\b__fitFileViewerVitestDistResolverInstalled\b/u;
 const directVitestWrappedEventListenerMarkerPattern = /\b__vitest_wrapped\b/u;
@@ -7198,6 +7200,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directTimerTrackingGlobalLookups).toStrictEqual([]);
+    });
+
+    it("keeps setup timer wrappers behind the descriptor helper", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directTimerWrapperAssignments = scannedFiles
+            .filter((relativeFile) =>
+                directVitestTimerWrapperAssignmentPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directTimerWrapperAssignments).toStrictEqual([]);
     });
 
     it("does not recreate the dist resolver install global in setup", () => {

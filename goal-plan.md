@@ -277,7 +277,10 @@ explicit local fixtures or `vi.mock(...)` factories. Opaque-origin Web Storage h
 `tests/vitest/shims/nodeWebStorage.ts` instead of an inline `StorageMock`, `ensureSafeLocalStorage`, or
 `ensureSafeSessionStorage` setup block, with architecture coverage blocking direct setup storage fallback
 assignments from returning. Setup-level timeout, interval, and DOM listener tracking
-now uses module-local state instead of `__vitest_tracked_*` and `__vitest_timers_wrapped` globals. The
+now uses module-local state instead of `__vitest_tracked_*` and `__vitest_timers_wrapped` globals, and timer
+wrapper installation goes through the descriptor-scoped `installTrackedTimerFunction()` helper instead of
+assigning `globalThis.setTimeout`, `globalThis.setInterval`, `globalThis.clearTimeout`, or
+`globalThis.clearInterval` directly. The
 generated-runtime resolver install guard now uses setup-module state instead of
 `__fitFileViewerVitestDistResolverInstalled` on globalThis. The retired
 `__vitest_effective_document__` setup global is no longer published; tests should use real jsdom documents,
