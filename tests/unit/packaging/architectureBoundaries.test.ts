@@ -633,6 +633,8 @@ const directVitestObjectKeysThrowGlobalPattern =
 const directVitestObjectKeysWrapperMarkerPattern = /\b__isObjectKeysWrapper\b/u;
 const directVitestDocumentNativeMethodsGlobalPattern =
     /\b__vitest_doc_native_methods\b/u;
+const directVitestDocumentRealignmentAssignmentPattern =
+    /\b(?:globalThis|curWin)\.document\s*=/u;
 const directVitestCreateElectronMocksGlobalPattern = /\bcreateElectronMocks\b/u;
 const directVitestInlineWebStorageMockPattern =
     /\b(?:StorageMock|ensureSafeLocalStorage|ensureSafeSessionStorage)\b|\b(?:globalThis|w)\.(?:Storage|localStorage|sessionStorage)\s*=/u;
@@ -7122,6 +7124,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directDocumentNativeMethodsGlobalLookups).toStrictEqual([]);
+    });
+
+    it("keeps setup document realignment behind the descriptor helper", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directDocumentRealignmentAssignments = scannedFiles
+            .filter((relativeFile) =>
+                directVitestDocumentRealignmentAssignmentPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directDocumentRealignmentAssignments).toStrictEqual([]);
     });
 
     it("does not recreate the unused Electron mock factory test global", () => {

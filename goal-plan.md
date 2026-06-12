@@ -269,6 +269,9 @@ Progress: the Vitest Object.keys guard no longer publishes the retired
 and architecture coverage keeps that retired test global out of tests and setup. The Vitest document guard's
 native-method cache now lives in module-local WeakMap state instead of publishing
 `__vitest_doc_native_methods` on globalThis, with architecture coverage for that retired harness global too.
+Setup-level jsdom document restoration now goes through the descriptor-scoped `setRuntimeDocument()` helper
+instead of assigning `globalThis.document` or `curWin.document` directly, with architecture coverage blocking
+that realignment shortcut from returning.
 The unused `createElectronMocks` global helper has also been removed from setup; Electron tests should use
 explicit local fixtures or `vi.mock(...)` factories. Opaque-origin Web Storage hardening now lives in
 `tests/vitest/shims/nodeWebStorage.ts` instead of an inline `StorageMock`, `ensureSafeLocalStorage`, or

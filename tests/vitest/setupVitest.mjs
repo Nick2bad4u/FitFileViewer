@@ -378,6 +378,26 @@ function cleanupWindowGlobals(win) {
 }
 
 /**
+ * @param {object | undefined} target
+ * @param {Document} documentValue
+ */
+function setRuntimeDocument(target, documentValue) {
+    if (!target || typeof target !== "object") {
+        return;
+    }
+
+    try {
+        Object.defineProperty(target, "document", {
+            configurable: true,
+            value: documentValue,
+            writable: true,
+        });
+    } catch {
+        /* Ignore errors */
+    }
+}
+
+/**
  * Restore the global window/document to the original jsdom instances captured
  * at setup time. Also performs cleanup on both the current and native windows
  * to avoid leaks between tests.
@@ -448,10 +468,10 @@ function restoreNativeDom() {
         if (!isValidDoc(curDoc) && __nativeDocument) {
             try {
                 // Restore global document reference
-                globalThis.document = __nativeDocument;
+                setRuntimeDocument(globalThis, __nativeDocument);
                 if (curWin && typeof curWin === "object") {
                     // Keep the same window object but ensure it points to the restored document
-                    curWin.document = __nativeDocument;
+                    setRuntimeDocument(curWin, __nativeDocument);
                 }
             } catch {
                 /* Ignore errors */
@@ -470,13 +490,13 @@ function restoreNativeDom() {
         if (effDoc) {
             // Always realign global and window document references to the same instance
             try {
-                globalThis.document = effDoc;
+                setRuntimeDocument(globalThis, effDoc);
             } catch {
                 /* Ignore errors */
             }
             try {
                 if (curWin && typeof curWin === "object") {
-                    curWin.document = effDoc;
+                    setRuntimeDocument(curWin, effDoc);
                 }
             } catch {
                 /* Ignore errors */
