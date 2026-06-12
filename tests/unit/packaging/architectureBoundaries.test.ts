@@ -1384,6 +1384,29 @@ describe("architecture boundaries", () => {
         }
     });
 
+    it("keeps preload event API factories on named source exports", () => {
+        const eventApiFactoryExports = [
+            [
+                "electron-app/preload/ipcEventApiDomain.ts",
+                "createPreloadIpcEventApiDomain",
+            ],
+            ["electron-app/preload/menuEventApi.ts", "createMenuEventApi"],
+            [
+                "electron-app/preload/preloadEventApi.ts",
+                "createPreloadEventApi",
+            ],
+        ] as const;
+
+        expect.assertions(eventApiFactoryExports.length * 2);
+
+        for (const [filePath, exportName] of eventApiFactoryExports) {
+            const source = stripComments(readRepositoryFile(filePath));
+
+            expect(source).toContain(`export function ${exportName}`);
+            expect(source).not.toContain("module.exports");
+        }
+    });
+
     it("keeps preload IPC policy dependencies injected through the module registry", () => {
         expect.assertions(6);
 

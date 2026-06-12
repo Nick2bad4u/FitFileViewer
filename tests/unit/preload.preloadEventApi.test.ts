@@ -1,5 +1,3 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type {
@@ -8,6 +6,7 @@ import type {
     IpcResponsePayload,
     UpdateEventName,
 } from "../../electron-app/shared/ipc";
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface IpcRendererMock {
     on: ReturnType<
@@ -33,7 +32,7 @@ interface PreloadEventApiModule {
     };
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { createPreloadEventApi } = requireFromTest(
     "../../electron-app/preload/preloadEventApi.js"
 ) as PreloadEventApiModule;

@@ -23,6 +23,8 @@ The preload state leaf factories (`mainStateApi.ts` and `mainStateBridge.ts`) no
 too, with direct source tests loading them through the preload source-require bridge.
 The preload runtime utility helpers (`environment.ts`, `logger.ts`, `preloadRuntimeEnvironment.ts`, and
 `validators.ts`) now use named source exports as well.
+The preload event API factories (`ipcEventApiDomain.ts`, `menuEventApi.ts`, and `preloadEventApi.ts`) now
+use named source exports too.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
