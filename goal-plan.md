@@ -123,10 +123,10 @@ Electron-updater fallback now resolves through the centralized `loadNodeModule` 
 of a direct package `require("electron-updater")` call, and the redundant Node ESM `module.exports` namespace
 branch has been removed because Electron-updater's `default` namespace covers the same object shape.
 The Node runtime module boundary now imports Node built-ins natively for `path`, `fs`, and `httpRef` while
-keeping `loadNodeModule` scoped to external runtime package compatibility adapters; file-access, IPC sender
-policy, Gyazo OAuth, application-event, menu-event, IPC setup, Electron access, and updater access consumers
-import that boundary natively instead of requiring its source file or owning separate direct package-load
-fallbacks.
+keeping `loadNodeModule` scoped to external runtime package compatibility adapters, and its unused default
+namespace export has been removed; file-access, IPC sender policy, Gyazo OAuth, application-event, menu-event,
+IPC setup, Electron access, and updater access consumers import that boundary natively instead of requiring its
+source file or owning separate direct package-load fallbacks.
 Electron-conf access is now centralized in `electron-app/main/runtime/electronConfAccess.ts` because the
 package's ESM entry is not safe under the current Electron CommonJS module shape. App state, FIT-parser
 integration, app-menu creation, menu event handling, and browser/info IPC handlers use that typed adapter

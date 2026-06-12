@@ -14,7 +14,9 @@ export function loadNodeModule<TModule = unknown>(
     }
 }
 
+// eslint-disable-next-line unicorn/prefer-export-from -- export-from exposes deprecated Node namespace members to lint.
 export const path = pathModule;
+// eslint-disable-next-line unicorn/prefer-export-from -- export-from exposes deprecated Node namespace members to lint.
 export const fs = fsModule;
 
 /**
@@ -26,9 +28,3 @@ export const fs = fsModule;
 export function httpRef(): HttpModule {
     return httpModule;
 }
-
-export default {
-    fs,
-    httpRef,
-    path,
-};
