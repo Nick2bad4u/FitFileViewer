@@ -1816,7 +1816,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(85);
+        expect.assertions(92);
 
         const logWithContextSource = stripComments(
             readRepositoryFile("electron-app/main/logging/logWithContext.ts")
@@ -1850,6 +1850,11 @@ describe("architecture boundaries", () => {
         );
         const nodeModulesSource = stripComments(
             readRepositoryFile("electron-app/main/runtime/nodeModules.ts")
+        );
+        const fitParserIntegrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/runtime/fitParserIntegration.ts"
+            )
         );
         const initializeApplicationSource = stripComments(
             readRepositoryFile(
@@ -1913,6 +1918,7 @@ describe("architecture boundaries", () => {
         expect(exposeDevHelpersSource).not.toContain("module.exports");
         expect(bootstrapMainWindowSource).not.toContain("module.exports");
         expect(initializeMainWindowSource).not.toContain("module.exports");
+        expect(fitParserIntegrationSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain(
             'require("../state/appState")'
         );
@@ -2032,6 +2038,15 @@ describe("architecture boundaries", () => {
         expect(setupIpcHandlersSource).not.toContain(
             'require("../runtime/nodeModules")'
         );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../runtime/fitParserIntegration")'
+        );
+        expect(fitParserIntegrationSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(fitParserIntegrationSource).not.toContain(
+            'require("../constants")'
+        );
         expect(setupApplicationEventHandlersSource).not.toContain(
             'require("../runtime/nodeModules")'
         );
@@ -2089,6 +2104,15 @@ describe("architecture boundaries", () => {
         );
         expect(initializeMainWindowSource).toContain(
             "export function initializeMainWindow"
+        );
+        expect(fitParserIntegrationSource).toContain(
+            "export const FIT_PARSER_OPERATION_ID"
+        );
+        expect(fitParserIntegrationSource).toContain(
+            "export function createFitParserStateAdapters"
+        );
+        expect(fitParserIntegrationSource).toContain(
+            "export async function ensureFitParserStateIntegration"
         );
         expect(setupIpcHandlersSource).toContain(
             "export function setupIPCHandlers"

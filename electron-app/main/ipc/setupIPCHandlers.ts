@@ -13,6 +13,7 @@ import {
     nativeImageRef as electronNativeImageRef,
     shellRef as electronShellRef,
 } from "../runtime/electronAccess.js";
+import { ensureFitParserStateIntegration } from "../runtime/fitParserIntegration.js";
 import { fs, path } from "../runtime/nodeModules.js";
 import { assertFileReadAllowed } from "../security/fileAccessPolicy.js";
 import { getAppState, setAppState } from "../state/appState.js";
@@ -75,8 +76,8 @@ const { addRecentFile, loadRecentFiles } =
         loadRecentFiles: () => string[];
     };
 const appRef = electronAppRef as () => AppInfoProvider | null | undefined;
-const browserWindowRef = electronBrowserWindowRef as () =>
-    BrowserWindowConstructorLike;
+const browserWindowRef =
+    electronBrowserWindowRef as () => BrowserWindowConstructorLike;
 const clipboardRef = electronClipboardRef as () =>
     | ClipboardWriter
     | null
@@ -87,10 +88,6 @@ const nativeImageRef = electronNativeImageRef as () =>
     | null
     | undefined;
 const shellRef = electronShellRef as () => ExternalShell | null | undefined;
-const { ensureFitParserStateIntegration } =
-    require("../runtime/fitParserIntegration") as {
-        ensureFitParserStateIntegration: () => Promise<unknown>;
-    };
 const getErrorMessage = (error: unknown): string =>
     error instanceof Error ? error.message : String(error);
 

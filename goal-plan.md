@@ -90,6 +90,8 @@ The main development-helper boundary now uses a named source export and imports 
 instead of requiring the app-state source file.
 The window bootstrap/initialization boundaries now use named source exports, and `initializeApplication.ts`
 imports `bootstrapMainWindow` natively instead of requiring that source file.
+The FIT parser integration boundary now uses named source exports and imports constants/logging natively;
+`setupIPCHandlers.ts` imports the integration helper natively instead of requiring its source file.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
