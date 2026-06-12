@@ -14,6 +14,9 @@ policies from injected registry entries loaded by `electron-app/preload/preloadP
 of requiring shared policy modules directly.
 The small preload API assembly-domain factory modules now use named source exports instead of `module.exports`,
 while the runtime build still emits CommonJS-compatible package output.
+The first preload app API leaf factories (`apiDiagnostics.ts`, `appInfoApi.ts`, `gyazoExternalApi.ts`,
+`shellExternalApi.ts`, and `themeApi.ts`) now use named source exports too, with source tests loading those
+modules through the preload source-require bridge.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

@@ -1,6 +1,6 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
+
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface ApiDiagnosticsModule {
     createApiDiagnostics: (options: {
@@ -37,7 +37,7 @@ interface ApiDiagnosticsModule {
     };
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { createApiDiagnostics } = requireFromTest(
     "../../electron-app/preload/apiDiagnostics.js"
 ) as ApiDiagnosticsModule;
