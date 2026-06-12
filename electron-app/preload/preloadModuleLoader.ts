@@ -91,9 +91,7 @@ export function loadPreloadModules({
     const { loadPreloadStateModules } = requireModule(
         "./preload/preloadStateModuleLoader.js"
     ) as {
-        loadPreloadStateModules: (
-            options: LoadPreloadModulesOptions
-        ) => Pick<
+        loadPreloadStateModules: () => Pick<
             PreloadModuleRegistry,
             "createMainStateApi" | "createMainStateBridge"
         >;
@@ -105,6 +103,6 @@ export function loadPreloadModules({
         ...loadPreloadPolicyModules(),
         ...loadPreloadFileModules({ requireModule }),
         ...loadPreloadIpcModules({ requireModule }),
-        ...loadPreloadStateModules({ requireModule }),
+        ...loadPreloadStateModules(),
     };
 }

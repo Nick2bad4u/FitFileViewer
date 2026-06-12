@@ -2459,6 +2459,31 @@ describe("architecture boundaries", () => {
         expect(moduleTypesSource).toContain("validateMainStatePathInput");
     });
 
+    it("keeps preload state leaf modules on native imports", () => {
+        expect.assertions(5);
+
+        const stateModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadStateModuleLoader.ts"
+            )
+        );
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+
+        expect(stateModuleLoaderSource).toContain(
+            'import { createMainStateApi } from "./mainStateApi.js";'
+        );
+        expect(stateModuleLoaderSource).toContain(
+            'import { createMainStateBridge } from "./mainStateBridge.js";'
+        );
+        expect(stateModuleLoaderSource).not.toContain("requireModule");
+        expect(moduleLoaderSource).toContain("loadPreloadStateModules()");
+        expect(moduleLoaderSource).not.toContain(
+            "loadPreloadStateModules({ requireModule })"
+        );
+    });
+
     it("keeps the preload event helper free of generic IPC methods", () => {
         expect.assertions(5);
 

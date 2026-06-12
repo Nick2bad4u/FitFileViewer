@@ -1,31 +1,21 @@
+import { createMainStateApi } from "./mainStateApi.js";
+import { createMainStateBridge } from "./mainStateBridge.js";
+
 type PreloadModuleRegistry =
     import("./preloadModuleTypes").PreloadModuleRegistry;
-type PreloadModuleRequire = import("./preloadModuleTypes").PreloadModuleRequire;
 type PreloadStateModules = Pick<
     PreloadModuleRegistry,
     "createMainStateApi" | "createMainStateBridge"
 >;
 
-interface LoadPreloadStateModulesOptions {
-    requireModule: PreloadModuleRequire;
-}
+const createMainStateApiModule =
+    createMainStateApi as unknown as PreloadModuleRegistry["createMainStateApi"];
+const createMainStateBridgeModule =
+    createMainStateBridge as unknown as PreloadModuleRegistry["createMainStateBridge"];
 
-export function loadPreloadStateModules({
-    requireModule,
-}: LoadPreloadStateModulesOptions): PreloadStateModules {
-    const { createMainStateBridge } = requireModule(
-        "./preload/mainStateBridge.js"
-    ) as {
-        createMainStateBridge: PreloadModuleRegistry["createMainStateBridge"];
-    };
-    const { createMainStateApi } = requireModule(
-        "./preload/mainStateApi.js"
-    ) as {
-        createMainStateApi: PreloadModuleRegistry["createMainStateApi"];
-    };
-
+export function loadPreloadStateModules(): PreloadStateModules {
     return {
-        createMainStateApi,
-        createMainStateBridge,
+        createMainStateApi: createMainStateApiModule,
+        createMainStateBridge: createMainStateBridgeModule,
     };
 }

@@ -21,7 +21,9 @@ those named source exports natively.
 The preload file and clipboard leaf factories (`clipboardBridge.ts`, `fileApi.ts`, and `fitBrowserApi.ts`)
 also use named source exports, while their loader boundaries still provide CommonJS-compatible package output.
 The preload state leaf factories (`mainStateApi.ts` and `mainStateBridge.ts`) now use named source exports
-too, with direct unit tests importing those named source exports natively.
+too, with direct unit tests importing those named source exports natively, and `preloadStateModuleLoader.ts`
+now imports those state leaf modules natively instead of resolving them through the injected `requireModule`
+boundary.
 The preload runtime utility helpers (`environment.ts`, `logger.ts`, `preloadRuntimeEnvironment.ts`, and
 `validators.ts`) now use named source exports as well.
 The preload event API factories (`ipcEventApiDomain.ts`, `menuEventApi.ts`, and `preloadEventApi.ts`) now
