@@ -16,28 +16,9 @@ vi.mock(
     })
 );
 
-type GpxExportTestGlobal = typeof globalThis & {
-    globalData?: {
-        recordMesgs?: {
-            enhancedAltitude?: number;
-            positionLat?: number;
-            positionLong?: number;
-            timestamp?: string;
-        }[];
-    };
-    loadedFitFiles?: {
-        displayName?: string;
-        filePath?: string;
-        name?: string;
-    }[];
-};
-
-const appGlobal = globalThis as GpxExportTestGlobal;
 const showNotificationMock = vi.mocked(showNotification);
 
 function cleanupTestGlobals(): void {
-    delete appGlobal.globalData;
-    delete appGlobal.loadedFitFiles;
     __resetStateManagerForTests();
     document.body.replaceChildren();
     vi.useRealTimers();

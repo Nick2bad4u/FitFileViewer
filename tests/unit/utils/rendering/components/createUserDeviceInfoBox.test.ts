@@ -32,10 +32,6 @@ type GetThemeConfig = () => {
     name: string;
     theme: string;
 };
-type TestWindow = Window &
-    typeof globalThis & {
-        globalData?: unknown;
-    };
 
 const themeConfig = vi.hoisted(
     (): ReturnType<GetThemeConfig> => ({
@@ -106,10 +102,6 @@ vi.mock(
 import { createUserDeviceInfoBox } from "../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBox.js";
 import { setActiveFitRawData as setManagedActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
 import { __resetStateManagerForTests } from "../../../../../electron-app/utils/state/core/stateManager.js";
-
-function getTestWindow(): TestWindow {
-    return window as TestWindow;
-}
 
 function makeContainer(): HTMLDivElement {
     const c = document.createElement("div");
@@ -198,9 +190,7 @@ describe(createUserDeviceInfoBox, () => {
     beforeEach(() => {
         __resetStateManagerForTests();
         vi.clearAllMocks();
-        // reset DOM and globals
         document.body.replaceChildren();
-        delete getTestWindow().globalData;
     });
 
     it("creates info box with user profile and device sections when data present", () => {
