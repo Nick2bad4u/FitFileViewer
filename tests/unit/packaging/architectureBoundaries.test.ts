@@ -699,6 +699,8 @@ const renderMapStrictTestRetiredFitGlobalFixturePattern =
     /\bRenderMapWindow\b|\b(?:window|w)\.(?:globalData|loadedFitFiles)\b/u;
 const updateTabVisibilityRawDataTestRetiredGlobalDataPattern =
     /\bcurrentGlobalData\b|\bglobalDataCallback\b|\bgetState\s*:\s*mockGetState[\s\S]*?\b["']globalData["']|updateTabVisibility\.globalDataState\.test\.ts/u;
+const updateTabVisibilityTestDirectBrowserGlobalAssignmentPattern =
+    /\b(?:globalThis|global)\.(?:document|window)\s*=(?!=)|\(\s*global\s+as\s+any\s*\)\.(?:document|window)\s*=(?!=)/u;
 const tabStateManagerRegressionTestRetiredGlobalDataFixturePattern =
     /\bglobalData:\s*\{[^}]*recordMesgs|\bglobalData:\s*(?:null|undefined)|\(\{\s*expectedDisabled,\s*globalData\s*\}\)|updateTabAvailability\(globalData/u;
 const tabButtonStateIntegrationRetiredGlobalDataFixturePattern =
@@ -6934,7 +6936,13 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab visibility raw-data tests off retired globalData fixtures", () => {
-        expect.assertions(2);
+        expect.assertions(3);
+
+        const tabVisibilityRawDataTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/utils/updateTabVisibility.fitRawDataState.test.ts"
+            )
+        );
 
         expect(
             existsSync(
@@ -6946,11 +6954,12 @@ describe("architecture boundaries", () => {
         ).toBe(false);
         expect(
             updateTabVisibilityRawDataTestRetiredGlobalDataPattern.test(
-                stripComments(
-                    readRepositoryFile(
-                        "tests/unit/utils/updateTabVisibility.fitRawDataState.test.ts"
-                    )
-                )
+                tabVisibilityRawDataTestSource
+            )
+        ).toBe(false);
+        expect(
+            updateTabVisibilityTestDirectBrowserGlobalAssignmentPattern.test(
+                tabVisibilityRawDataTestSource
             )
         ).toBe(false);
     });

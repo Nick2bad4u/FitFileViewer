@@ -1,6 +1,40 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
 
+const originalGlobalDescriptors = new Map<
+    "document" | "window",
+    PropertyDescriptor | undefined
+>();
+
+function rememberGlobalDescriptor(name: "document" | "window"): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        originalGlobalDescriptors.set(
+            name,
+            Object.getOwnPropertyDescriptor(globalThis, name)
+        );
+    }
+}
+
+function setGlobalValue(name: "document" | "window", value: unknown): void {
+    rememberGlobalDescriptor(name);
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreGlobalValues(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        if (descriptor) {
+            Object.defineProperty(globalThis, name, descriptor);
+        } else {
+            Reflect.deleteProperty(globalThis, name);
+        }
+    }
+    originalGlobalDescriptors.clear();
+}
+
 describe("updateTabVisibility FIT raw-data state subscription", () => {
     let mockWindow: Window;
     let mockDocument: Document;
@@ -40,8 +74,8 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
         mockWindow = dom.window;
         mockDocument = dom.window.document;
 
-        (global as any).window = mockWindow;
-        (global as any).document = mockDocument;
+        setGlobalValue("window", mockWindow);
+        setGlobalValue("document", mockDocument);
 
         // Mock stateManager to capture the subscribe callback
         mockSubscribe =
@@ -104,6 +138,7 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
         vi.clearAllMocks();
         vi.resetModules();
         vi.useRealTimers();
+        restoreGlobalValues();
     });
 
     describe("fitFile.rawData subscription", () => {
