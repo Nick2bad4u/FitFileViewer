@@ -626,6 +626,7 @@ const directTabVitestEnvironmentGlobalPattern =
     /\b__vitest_effective_(?:document|stateManager)__\b/u;
 const directVitestObjectKeysThrowGlobalPattern =
     /\b__vitest_object_keys_allow_throw\b/u;
+const directVitestObjectKeysWrapperMarkerPattern = /\b__isObjectKeysWrapper\b/u;
 const directVitestDocumentNativeMethodsGlobalPattern =
     /\b__vitest_doc_native_methods\b/u;
 const directVitestCreateElectronMocksGlobalPattern = /\bcreateElectronMocks\b/u;
@@ -4690,6 +4691,28 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directObjectKeysThrowGlobalLookups).toStrictEqual([]);
+    });
+
+    it("does not recreate the retired Object.keys wrapper marker in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directObjectKeysWrapperMarkerLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestObjectKeysWrapperMarkerPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directObjectKeysWrapperMarkerLookups).toStrictEqual([]);
     });
 
     it("does not recreate the retired document-native-methods test global", () => {

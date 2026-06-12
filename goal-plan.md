@@ -88,7 +88,8 @@ explicit fixtures, or `tabTestEnvironment.ts`. Event-listener wrapper tracking n
 WeakSet instead of `__vitest_wrapped` expando properties. The setup navigation shim now keeps history in a
 module-local WeakMap instead of writing `__ffvNavigationHistory` on jsdom `Location` objects. Setup cleanup
 comments and renderer registration fixtures no longer preserve the retired shared manual-mock registry as an
-ambient global test concept.
+ambient global test concept. The Object.keys guard duplicate-wrapper tracking now uses module-local WeakSet
+state instead of writing a `__isObjectKeysWrapper` marker property on wrapper functions.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

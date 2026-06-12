@@ -1997,6 +1997,7 @@ try {
         const nativeKeys = Object.keys.bind(Object);
         /** @type {(o: any) => string[]} */
         let current = nativeKeys;
+        const objectKeysWrappers = new WeakSet();
 
         const isLogWithLevelCall = () => {
             try {
@@ -2027,11 +2028,7 @@ try {
                 }
             }
         };
-        // Mark the wrapper so restoring Object.keys to this function resets to native
-        Object.defineProperty(wrapped, "__isObjectKeysWrapper", {
-            value: true,
-            enumerable: false,
-        });
+        objectKeysWrappers.add(wrapped);
 
         Object.defineProperty(Object, "keys", {
             configurable: true,
@@ -2040,7 +2037,7 @@ try {
             },
             set(v) {
                 if (typeof v === "function") {
-                    if (v && v.__isObjectKeysWrapper) {
+                    if (objectKeysWrappers.has(v)) {
                         current = nativeKeys; // reset to native to avoid recursion
                     } else {
                         current = /** @type {(o: any) => string[]} */ (v);
