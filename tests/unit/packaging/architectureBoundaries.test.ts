@@ -736,6 +736,8 @@ const aboutModalTestDirectRequestAnimationFrameAssignmentPattern =
     /\bglobalThis\.requestAnimationFrame\s*=/u;
 const showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern =
     /\bwindow\.requestAnimationFrame\s*=/u;
+const settingsStateManagerTestDirectConsoleAssignmentPattern =
+    /\bglobal\.console\s*=/u;
 const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
 const renderSummaryTestActiveFitFileNameMutationPattern =
@@ -6799,6 +6801,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/strictTests/utils/ui/notifications/showNotification.branches.strict.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps settings state manager tests off direct console global assignment", () => {
+        expect.assertions(1);
+
+        expect(
+            settingsStateManagerTestDirectConsoleAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/state/domain/settingsStateManager.test.ts"
                     )
                 )
             )

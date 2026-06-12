@@ -34,14 +34,6 @@ vi.mock(
     })
 );
 
-// Mock console methods
-global.console = {
-    ...console,
-    log: vi.fn<(...data: unknown[]) => void>(),
-    warn: vi.fn<(...data: unknown[]) => void>(),
-    error: vi.fn<(...data: unknown[]) => void>(),
-};
-
 // Mock localStorage implementation that properly simulates the real localStorage API
 const mockLocalStorage = {
     data: {} as Record<string, string>,
@@ -130,7 +122,11 @@ describe("settingsStateManager.js - simplified coverage", () => {
 
     beforeEach(async () => {
         // Reset all mocks
+        vi.restoreAllMocks();
         vi.clearAllMocks();
+        vi.spyOn(console, "log").mockImplementation(() => {});
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
 
         // Reset localStorage mock
         mockLocalStorage.clear();
@@ -160,6 +156,7 @@ describe("settingsStateManager.js - simplified coverage", () => {
             settingsStateManager.cleanup?.();
         }
         vi.clearAllMocks();
+        vi.restoreAllMocks();
     });
 
     describe("settingsStateManager class", () => {

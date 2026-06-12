@@ -451,6 +451,9 @@ Preload and main-UI runtime-environment tests now install temporary console hand
 fixtures instead of direct `globalThis.console` assignment, with architecture coverage blocking that pattern.
 Preload source execution tests now install their temporary development-log console through a descriptor-scoped
 helper instead of direct `global.console` assignment, with architecture coverage blocking that pattern too.
+Settings state-manager tests now mock console methods through per-test Vitest spies instead of assigning a
+replacement `global.console` object at module scope, with architecture coverage blocking that direct console
+fixture.
 Preload development-mode and edge-case tests now clear and restore `electronAPI`/`devTools` globals through
 descriptor-scoped helpers instead of direct global deletion, with architecture coverage blocking that cleanup
 pattern.
