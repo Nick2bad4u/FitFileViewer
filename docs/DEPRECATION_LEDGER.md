@@ -172,6 +172,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Main updater-access migration status: `autoUpdaterAccess.ts` now uses named source exports instead of `module.exports`; setup, menu, and initialize-application consumers import the updater resolver boundary natively instead of requiring its source file.
 - Main Node-runtime module migration status: `nodeModules.ts` now uses named source exports for `path`, `fs`, and `httpRef`; file-access policy, IPC sender policy, Gyazo OAuth, application-event, menu-event, and IPC setup source import the runtime module boundary natively instead of requiring its source file.
 - Main lifecycle setup migration status: `setupMainLifecycle.ts` now uses a named source export instead of `module.exports`.
+- Main development-helper migration status: `exposeDevHelpers.ts` now uses a named source export and imports app-state helpers natively instead of requiring the app-state source file.
 - Next removal step: narrow or retire the remaining CommonJS-compatible runtime bridge modules after the Electron preload bundling path can consume typed ESM-style modules directly
 - Verification gates:
   - `npm run build:runtime-ts`

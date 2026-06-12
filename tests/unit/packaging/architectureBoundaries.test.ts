@@ -1816,7 +1816,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(77);
+        expect.assertions(80);
 
         const logWithContextSource = stripComments(
             readRepositoryFile("electron-app/main/logging/logWithContext.ts")
@@ -1904,6 +1904,7 @@ describe("architecture boundaries", () => {
         expect(setupIpcHandlersSource).not.toContain("module.exports");
         expect(gyazoOAuthServerSource).not.toContain("module.exports");
         expect(setupMainLifecycleSource).not.toContain("module.exports");
+        expect(exposeDevHelpersSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain(
             'require("../state/appState")'
         );
@@ -1921,6 +1922,9 @@ describe("architecture boundaries", () => {
         );
         expect(exposeDevHelpersSource).not.toContain(
             'require("../window/windowValidation")'
+        );
+        expect(exposeDevHelpersSource).not.toContain(
+            'require("../state/appState")'
         );
         expect(getThemeFromRendererSource).not.toContain(
             'require("../window/windowValidation")'
@@ -2080,6 +2084,9 @@ describe("architecture boundaries", () => {
         );
         expect(setupMainLifecycleSource).toContain(
             "export function setupMainLifecycle"
+        );
+        expect(exposeDevHelpersSource).toContain(
+            "export function exposeDevHelpers"
         );
     });
 
