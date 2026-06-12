@@ -1,8 +1,11 @@
 import { assertFileReadAllowed } from "../security/fileAccessPolicy.js";
 import { registerBrowserHandlers } from "./registerBrowserHandlers.js";
+import { registerClipboardHandlers } from "./registerClipboardHandlers.js";
 import { registerDialogHandlers } from "./registerDialogHandlers.js";
+import { registerExternalHandlers } from "./registerExternalHandlers.js";
 import { registerFileSystemHandlers } from "./registerFileSystemHandlers.js";
 import { registerFitFileHandlers } from "./registerFitFileHandlers.js";
+import { registerInfoHandlers } from "./registerInfoHandlers.js";
 import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
 
 {
@@ -17,6 +20,7 @@ import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
     }
 
     type ConstantsLike = {
+        DEFAULT_THEME: string;
         DIALOG_FILTERS: {
             FIT_FILES: NonNullable<
                 import("electron").OpenDialogOptions["filters"]
@@ -32,18 +36,40 @@ import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
         ) => Promise<import("electron").OpenDialogReturnValue>;
     }
 
+    interface AppInfoProvider {
+        getAppPath?: () => string;
+        getVersion?: () => string;
+    }
+
+    interface ClipboardWriter {
+        writeImage?: (image: unknown) => void;
+        writeText?: (text: string) => void;
+    }
+
+    interface ExternalShell {
+        openExternal: (url: string) => Promise<void>;
+    }
+
+    interface NativeImageFactory {
+        createFromDataURL?: (dataUrl: string) => unknown;
+    }
+
     type LogWithContext = (
         level: "error" | "info" | "warn",
         message: string,
         context?: Record<string, unknown>
     ) => void;
 
-    type RegisterDependency = (options: Record<string, unknown>) => unknown;
-
     type IpcListener = (
         event: { sender: unknown },
         ...args: unknown[]
     ) => unknown;
+    type GyazoServerStartRequest =
+        import("../../shared/ipc").GyazoServerStartRequest;
+    type GyazoServerStartResponse =
+        import("../../shared/ipc").GyazoServerStartResponse;
+    type GyazoServerStopResponse =
+        import("../../shared/ipc").GyazoServerStopResponse;
 
     const { addRecentFile, loadRecentFiles } =
         require("../../utils/files/recent/recentFiles") as {
@@ -65,8 +91,10 @@ import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
     };
     const { startGyazoOAuthServer, stopGyazoOAuthServer } =
         require("../oauth/gyazoOAuthServer") as {
-            startGyazoOAuthServer: (...args: unknown[]) => unknown;
-            stopGyazoOAuthServer: (...args: unknown[]) => unknown;
+            startGyazoOAuthServer: (
+                port?: GyazoServerStartRequest
+            ) => Promise<GyazoServerStartResponse>;
+            stopGyazoOAuthServer: () => Promise<GyazoServerStopResponse>;
         };
     const {
         appRef,
@@ -76,12 +104,12 @@ import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
         nativeImageRef,
         shellRef,
     } = require("../runtime/electronAccess") as {
-        appRef: () => unknown;
+        appRef: () => AppInfoProvider | null | undefined;
         browserWindowRef: () => BrowserWindowConstructorLike;
-        clipboardRef: () => unknown;
+        clipboardRef: () => ClipboardWriter | null | undefined;
         dialogRef: () => DialogApi | null | undefined;
-        nativeImageRef: () => unknown;
-        shellRef: () => unknown;
+        nativeImageRef: () => NativeImageFactory | null | undefined;
+        shellRef: () => ExternalShell | null | undefined;
     };
     const { ensureFitParserStateIntegration } =
         require("../runtime/fitParserIntegration") as {
@@ -110,18 +138,6 @@ import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
                 listener: IpcListener
             ) => void;
         };
-    const { registerClipboardHandlers } =
-        require("./registerClipboardHandlers") as {
-            registerClipboardHandlers: RegisterDependency;
-        };
-    const { registerExternalHandlers } =
-        require("./registerExternalHandlers") as {
-            registerExternalHandlers: RegisterDependency;
-        };
-    const { registerInfoHandlers } = require("./registerInfoHandlers") as {
-        registerInfoHandlers: RegisterDependency;
-    };
-
     const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
 

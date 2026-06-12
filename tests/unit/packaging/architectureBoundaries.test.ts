@@ -1657,7 +1657,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(26);
+        expect.assertions(35);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -1701,6 +1701,19 @@ describe("architecture boundaries", () => {
         const setupIpcHandlersSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/setupIPCHandlers.ts")
         );
+        const registerClipboardHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerClipboardHandlers.ts"
+            )
+        );
+        const registerExternalHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerExternalHandlers.ts"
+            )
+        );
+        const registerInfoHandlersSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/registerInfoHandlers.ts")
+        );
 
         expect(fileReadPayloadSource).not.toContain("module.exports");
         expect(fitIpcPayloadSource).not.toContain("module.exports");
@@ -1727,6 +1740,9 @@ describe("architecture boundaries", () => {
         expect(registerRecentFileHandlersSource).not.toContain(
             "module.exports"
         );
+        expect(registerClipboardHandlersSource).not.toContain("module.exports");
+        expect(registerExternalHandlersSource).not.toContain("module.exports");
+        expect(registerInfoHandlersSource).not.toContain("module.exports");
         expect(registerBrowserHandlersSource).not.toContain(
             'require("../security/fileAccessPolicy")'
         );
@@ -1754,10 +1770,22 @@ describe("architecture boundaries", () => {
         expect(setupIpcHandlersSource).not.toContain(
             'require("./registerRecentFileHandlers")'
         );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerClipboardHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerExternalHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerInfoHandlers")'
+        );
         expect(fileReadPayloadSource).toContain("export function");
         expect(fitIpcPayloadSource).toContain("export function");
         expect(fileAccessPolicySource).toContain("export function");
         expect(fileAccessPolicyStateSource).toContain("export function");
+        expect(registerClipboardHandlersSource).toContain("export function");
+        expect(registerExternalHandlersSource).toContain("export function");
+        expect(registerInfoHandlersSource).toContain("export function");
     });
 
     it("keeps ordinary preload unit tests on native source imports", () => {
