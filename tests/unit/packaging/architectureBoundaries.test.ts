@@ -1657,7 +1657,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(12);
+        expect.assertions(26);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -1683,6 +1683,24 @@ describe("architecture boundaries", () => {
                 "electron-app/main/ipc/registerFitFileHandlers.ts"
             )
         );
+        const registerBrowserHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerBrowserHandlers.ts"
+            )
+        );
+        const registerDialogHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerDialogHandlers.ts"
+            )
+        );
+        const registerRecentFileHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerRecentFileHandlers.ts"
+            )
+        );
+        const setupIpcHandlersSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/setupIPCHandlers.ts")
+        );
 
         expect(fileReadPayloadSource).not.toContain("module.exports");
         expect(fitIpcPayloadSource).not.toContain("module.exports");
@@ -1699,6 +1717,42 @@ describe("architecture boundaries", () => {
         );
         expect(registerFitFileHandlersSource).not.toContain(
             'require("./fitIpcPayload")'
+        );
+        expect(registerFileSystemHandlersSource).not.toContain(
+            "module.exports"
+        );
+        expect(registerFitFileHandlersSource).not.toContain("module.exports");
+        expect(registerBrowserHandlersSource).not.toContain("module.exports");
+        expect(registerDialogHandlersSource).not.toContain("module.exports");
+        expect(registerRecentFileHandlersSource).not.toContain(
+            "module.exports"
+        );
+        expect(registerBrowserHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(registerDialogHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(registerRecentFileHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerBrowserHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerDialogHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerFileSystemHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerFitFileHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerRecentFileHandlers")'
         );
         expect(fileReadPayloadSource).toContain("export function");
         expect(fitIpcPayloadSource).toContain("export function");

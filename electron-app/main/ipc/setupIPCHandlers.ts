@@ -1,3 +1,10 @@
+import { assertFileReadAllowed } from "../security/fileAccessPolicy.js";
+import { registerBrowserHandlers } from "./registerBrowserHandlers.js";
+import { registerDialogHandlers } from "./registerDialogHandlers.js";
+import { registerFileSystemHandlers } from "./registerFileSystemHandlers.js";
+import { registerFitFileHandlers } from "./registerFitFileHandlers.js";
+import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
+
 {
     type BrowserWindow = import("electron").BrowserWindow;
     type GenericInvokeChannel = import("../../shared/ipc").GenericInvokeChannel;
@@ -6,12 +13,24 @@
 
     interface BrowserWindowConstructorLike {
         fromWebContents: (webContents: unknown) => BrowserWindow | null;
+        getFocusedWindow?: () => BrowserWindow | null;
     }
 
     type ConstantsLike = {
+        DIALOG_FILTERS: {
+            FIT_FILES: NonNullable<
+                import("electron").OpenDialogOptions["filters"]
+            >;
+        };
         SETTINGS_CONFIG_NAME: string;
         [key: string]: unknown;
     };
+
+    interface DialogApi {
+        showOpenDialog: (
+            options: import("electron").OpenDialogOptions
+        ) => Promise<import("electron").OpenDialogReturnValue>;
+    }
 
     type LogWithContext = (
         level: "error" | "info" | "warn",
@@ -60,7 +79,7 @@
         appRef: () => unknown;
         browserWindowRef: () => BrowserWindowConstructorLike;
         clipboardRef: () => unknown;
-        dialogRef: () => unknown;
+        dialogRef: () => DialogApi | null | undefined;
         nativeImageRef: () => unknown;
         shellRef: () => unknown;
     };
@@ -72,10 +91,6 @@
         fs: typeof import("node:fs") | null;
         path: typeof import("node:path");
     };
-    const { assertFileReadAllowed } =
-        require("../security/fileAccessPolicy") as {
-            assertFileReadAllowed: (filePath: unknown) => string;
-        };
     const { getAppState, setAppState } = require("../state/appState") as {
         getAppState: (key: string) => unknown;
         setAppState: (key: string, value: unknown) => void;
@@ -95,36 +110,17 @@
                 listener: IpcListener
             ) => void;
         };
-    const { registerBrowserHandlers } =
-        require("./registerBrowserHandlers") as {
-            registerBrowserHandlers: RegisterDependency;
-        };
     const { registerClipboardHandlers } =
         require("./registerClipboardHandlers") as {
             registerClipboardHandlers: RegisterDependency;
         };
-    const { registerDialogHandlers } = require("./registerDialogHandlers") as {
-        registerDialogHandlers: RegisterDependency;
-    };
     const { registerExternalHandlers } =
         require("./registerExternalHandlers") as {
             registerExternalHandlers: RegisterDependency;
         };
-    const { registerFileSystemHandlers } =
-        require("./registerFileSystemHandlers") as {
-            registerFileSystemHandlers: RegisterDependency;
-        };
-    const { registerFitFileHandlers } =
-        require("./registerFitFileHandlers") as {
-            registerFitFileHandlers: RegisterDependency;
-        };
     const { registerInfoHandlers } = require("./registerInfoHandlers") as {
         registerInfoHandlers: RegisterDependency;
     };
-    const { registerRecentFileHandlers } =
-        require("./registerRecentFileHandlers") as {
-            registerRecentFileHandlers: RegisterDependency;
-        };
 
     const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);

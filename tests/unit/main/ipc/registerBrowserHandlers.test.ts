@@ -1,17 +1,19 @@
 // @vitest-environment node
 
-import { createRequire } from "node:module";
 import path from "node:path";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { registerBrowserHandlers } from "../../../../electron-app/main/ipc/registerBrowserHandlers.js";
+import {
+    __resetForTests,
+    isApprovedFilePath,
+} from "../../../../electron-app/main/security/fileAccessPolicy.js";
 
 type BrowserHandler = (
     event: unknown,
     ...args: unknown[]
 ) => Promise<unknown> | unknown;
-type BrowserHandlersModule = {
-    registerBrowserHandlers: (options: Record<string, unknown>) => void;
-};
 type ConfStore = {
     data: Map<string, boolean | string>;
     get: (
@@ -20,13 +22,6 @@ type ConfStore = {
     ) => boolean | string | null;
     set: (key: string, value: boolean | string) => void;
 };
-type FileAccessPolicyModule = {
-    __resetForTests?: () => void;
-    isApprovedFilePath: (filePath: unknown) => boolean;
-};
-
-const requireCjs = createRequire(import.meta.url);
-
 function createConfStore(): ConfStore {
     const data = new Map<string, boolean | string>();
 
@@ -58,10 +53,7 @@ function getHandler(
 describe("registerBrowserHandlers", () => {
     beforeEach(() => {
         vi.resetModules();
-        const policy = requireCjs(
-            "../../../../electron-app/main/security/fileAccessPolicy.js"
-        ) as FileAccessPolicyModule;
-        policy.__resetForTests?.();
+        __resetForTests();
     });
 
     it("requires native-dialog trust before renderer-provided folders can become browser roots", async () => {
@@ -71,15 +63,6 @@ describe("registerBrowserHandlers", () => {
         const conf = createConfStore();
         const ridesFolder = "C:\\rides";
         const rideFile = "C:\\rides\\Morning.fit";
-        const registerBrowserHandlers = (
-            requireCjs(
-                "../../../../electron-app/main/ipc/registerBrowserHandlers.js"
-            ) as BrowserHandlersModule
-        ).registerBrowserHandlers;
-        const policy = requireCjs(
-            "../../../../electron-app/main/security/fileAccessPolicy.js"
-        ) as FileAccessPolicyModule;
-
         registerBrowserHandlers({
             CONSTANTS: { SETTINGS_CONFIG_NAME: "fitfileviewer-test" },
             confModule: {
@@ -147,7 +130,7 @@ describe("registerBrowserHandlers", () => {
             relPath: "",
             root: ridesFolder,
         });
-        expect(policy.isApprovedFilePath(rideFile)).toBe(true);
-        expect(policy.isApprovedFilePath("C:\\other\\Hidden.fit")).toBe(false);
+        expect(isApprovedFilePath(rideFile)).toBe(true);
+        expect(isApprovedFilePath("C:\\other\\Hidden.fit")).toBe(false);
     });
 });

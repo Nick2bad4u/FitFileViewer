@@ -60,6 +60,8 @@ handler imports the timer setter natively instead of requiring that source modul
 Main-process FIT IPC payload, file-read payload, file-access policy, and file-access policy state helpers now
 use named source exports too, while file/FIT IPC handlers import those migrated helpers natively instead of
 requiring their source modules directly.
+Main-process file, FIT, browser, dialog, and recent-file IPC handler modules now use named source exports too;
+`setupIPCHandlers.ts` imports those migrated handler and file-access policy boundaries natively.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
