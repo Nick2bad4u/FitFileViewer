@@ -1358,6 +1358,32 @@ describe("architecture boundaries", () => {
         }
     });
 
+    it("keeps preload runtime utility helpers on named source exports", () => {
+        const runtimeUtilityExports = [
+            ["electron-app/preload/environment.ts", "isPreloadDevelopmentMode"],
+            ["electron-app/preload/environment.ts", "isPreloadElectronRuntime"],
+            [
+                "electron-app/preload/environment.ts",
+                "shouldEnforceGenericIpcAllowlist",
+            ],
+            ["electron-app/preload/logger.ts", "createPreloadLogger"],
+            [
+                "electron-app/preload/preloadRuntimeEnvironment.ts",
+                "getDefaultPreloadRuntimeEnvironment",
+            ],
+            ["electron-app/preload/validators.ts", "createPreloadValidators"],
+        ] as const;
+
+        expect.assertions(runtimeUtilityExports.length * 2);
+
+        for (const [filePath, exportName] of runtimeUtilityExports) {
+            const source = stripComments(readRepositoryFile(filePath));
+
+            expect(source).toContain(`export function ${exportName}`);
+            expect(source).not.toContain("module.exports");
+        }
+    });
+
     it("keeps preload IPC policy dependencies injected through the module registry", () => {
         expect.assertions(6);
 

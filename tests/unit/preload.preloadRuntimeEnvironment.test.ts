@@ -1,6 +1,6 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
+
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface PreloadRuntimeEnvironmentModule {
     getDefaultPreloadRuntimeEnvironment: () => {
@@ -10,7 +10,7 @@ interface PreloadRuntimeEnvironmentModule {
     };
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { getDefaultPreloadRuntimeEnvironment } = requireFromTest(
     "../../electron-app/preload/preloadRuntimeEnvironment.js"
 ) as PreloadRuntimeEnvironmentModule;

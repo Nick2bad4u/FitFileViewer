@@ -21,6 +21,8 @@ The preload file and clipboard leaf factories (`clipboardBridge.ts`, `fileApi.ts
 also use named source exports, while their loader boundaries still provide CommonJS-compatible package output.
 The preload state leaf factories (`mainStateApi.ts` and `mainStateBridge.ts`) now use named source exports
 too, with direct source tests loading them through the preload source-require bridge.
+The preload runtime utility helpers (`environment.ts`, `logger.ts`, `preloadRuntimeEnvironment.ts`, and
+`validators.ts`) now use named source exports as well.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

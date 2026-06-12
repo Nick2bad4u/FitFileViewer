@@ -1,6 +1,6 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it } from "vitest";
+
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface PreloadLoggerModule {
     createPreloadLogger: (consoleRef?: {
@@ -14,7 +14,7 @@ interface PreloadLoggerModule {
     ) => void;
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { createPreloadLogger } = requireFromTest(
     "../../electron-app/preload/logger.js"
 ) as PreloadLoggerModule;

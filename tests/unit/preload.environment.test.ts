@@ -1,6 +1,6 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it } from "vitest";
+
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface PreloadEnvironmentModule {
     isPreloadDevelopmentMode: (processRef?: {
@@ -17,7 +17,7 @@ interface PreloadEnvironmentModule {
     }) => boolean;
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const preloadEnvironment = requireFromTest(
     "../../electron-app/preload/environment.js"
 ) as PreloadEnvironmentModule;
