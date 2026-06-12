@@ -633,6 +633,8 @@ const directVitestTimerTrackingGlobalPattern =
 const directVitestDistResolverGlobalPattern =
     /\b__fitFileViewerVitestDistResolverInstalled\b/u;
 const directVitestWrappedEventListenerMarkerPattern = /\b__vitest_wrapped\b/u;
+const directVitestNavigationHistoryExpandoPattern =
+    /\b__ffvNavigationHistory\b/u;
 const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
@@ -4765,6 +4767,28 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directWrappedEventListenerMarkerLookups).toStrictEqual([]);
+    });
+
+    it("does not store navigation history on Location expandos", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directNavigationHistoryExpandoLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestNavigationHistoryExpandoPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directNavigationHistoryExpandoLookups).toStrictEqual([]);
     });
 
     it("keeps raw globalThis any casts out of source and tests", () => {

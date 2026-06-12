@@ -1070,14 +1070,12 @@ function installWindowNavigationShim(win) {
             throw error;
         }
         try {
-            /** @type {any} */ (nativeLocation).__ffvNavigationHistory ??= [];
-            /**
-             * @type {{
-             *     href: string;
-             *     reason: string;
-             *     timestamp: number;
-             * }[]}
-             */ (nativeLocation.__ffvNavigationHistory).push({
+            let history = vitestNavigationHistory.get(nativeLocation);
+            if (!history) {
+                history = [];
+                vitestNavigationHistory.set(nativeLocation, history);
+            }
+            history.push({
                 href: currentUrl.href,
                 reason,
                 timestamp: Date.now(),
@@ -1418,6 +1416,11 @@ const vitestTrackedIntervals = new Set();
 const vitestTrackedDomListeners = [];
 const vitestWrappedEventListenerMethods = new WeakSet();
 let vitestTimerAndListenerTrackingInstalled = false;
+/** @type {WeakMap<
+    Location,
+    { href: string; reason: string; timestamp: number }[]
+>} */
+const vitestNavigationHistory = new WeakMap();
 
 // Helper to install guards on a specific Document instance (handles reassignments)
 /**
