@@ -1340,6 +1340,11 @@ describe("architecture boundaries", () => {
                 "electron-app/preload/shellExternalApi.ts",
                 "createShellExternalApi",
             ],
+            ["electron-app/preload/mainStateApi.ts", "createMainStateApi"],
+            [
+                "electron-app/preload/mainStateBridge.ts",
+                "createMainStateBridge",
+            ],
             ["electron-app/preload/themeApi.ts", "createThemeApi"],
         ] as const;
 

@@ -1,5 +1,3 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type {
@@ -8,6 +6,7 @@ import type {
     MainStateSetOptions,
     MainStateSetValue,
 } from "../../electron-app/shared/ipc";
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface MainStateApiModule {
     createMainStateApi: (options: Record<string, unknown>) => {
@@ -36,7 +35,7 @@ interface MainStateApiModule {
     };
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { createMainStateApi } = requireFromTest(
     "../../electron-app/preload/mainStateApi.js"
 ) as MainStateApiModule;
