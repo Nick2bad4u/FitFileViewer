@@ -634,6 +634,8 @@ const directVitestObjectKeysWrapperMarkerPattern = /\b__isObjectKeysWrapper\b/u;
 const directVitestDocumentNativeMethodsGlobalPattern =
     /\b__vitest_doc_native_methods\b/u;
 const directVitestCreateElectronMocksGlobalPattern = /\bcreateElectronMocks\b/u;
+const directVitestInlineWebStorageMockPattern =
+    /\b(?:StorageMock|ensureSafeLocalStorage|ensureSafeSessionStorage)\b|\b(?:globalThis|w)\.(?:Storage|localStorage|sessionStorage)\s*=/u;
 const directVitestTimerTrackingGlobalPattern =
     /\b__vitest_(?:tracked_(?:timeouts|intervals|dom_listeners)|timers_wrapped)\b/u;
 const directVitestDistResolverGlobalPattern =
@@ -7142,6 +7144,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directCreateElectronMocksGlobalLookups).toStrictEqual([]);
+    });
+
+    it("keeps Web Storage setup behind the dedicated Vitest shim", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const inlineWebStorageMocks = scannedFiles
+            .filter((relativeFile) =>
+                directVitestInlineWebStorageMockPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(inlineWebStorageMocks).toStrictEqual([]);
     });
 
     it("does not recreate timer and listener tracking globals in setup", () => {

@@ -270,7 +270,10 @@ and architecture coverage keeps that retired test global out of tests and setup.
 native-method cache now lives in module-local WeakMap state instead of publishing
 `__vitest_doc_native_methods` on globalThis, with architecture coverage for that retired harness global too.
 The unused `createElectronMocks` global helper has also been removed from setup; Electron tests should use
-explicit local fixtures or `vi.mock(...)` factories. Setup-level timeout, interval, and DOM listener tracking
+explicit local fixtures or `vi.mock(...)` factories. Opaque-origin Web Storage hardening now lives in
+`tests/vitest/shims/nodeWebStorage.ts` instead of an inline `StorageMock`, `ensureSafeLocalStorage`, or
+`ensureSafeSessionStorage` setup block, with architecture coverage blocking direct setup storage fallback
+assignments from returning. Setup-level timeout, interval, and DOM listener tracking
 now uses module-local state instead of `__vitest_tracked_*` and `__vitest_timers_wrapped` globals. The
 generated-runtime resolver install guard now uses setup-module state instead of
 `__fitFileViewerVitestDistResolverInstalled` on globalThis. The retired
