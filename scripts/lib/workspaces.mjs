@@ -190,6 +190,11 @@ export const appLeafletMeasureLitePath = appSourceRepositoryPath(
     "renderer",
     "leafletMeasureLite.js"
 );
+export const appMainSourceAbsolutePath = appSourceAbsolutePath("main.ts");
+export const appMainBundleAbsolutePath = repositoryPath(
+    rootRuntimeDistPath,
+    "main.js"
+);
 export const appPreloadSourceAbsolutePath = appSourceAbsolutePath("preload.ts");
 export const appPreloadBundleAbsolutePath = repositoryPath(
     rootRuntimeDistPath,
@@ -380,6 +385,7 @@ export const repositoryPrettierTargets = [
     appLeafletMeasureLitePath,
 ];
 export const scriptsPath = path.join(repositoryRoot, "scripts");
+export const bundleMainScriptPath = repositoryScriptPath("bundle-main.mjs");
 export const bundlePreloadScriptPath =
     repositoryScriptPath("bundle-preload.mjs");
 export const applyElectronFusesScriptPath = repositoryScriptPath(

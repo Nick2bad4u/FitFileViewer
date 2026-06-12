@@ -1874,7 +1874,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/main/runtime/nodeModules.ts")
         );
         const electronConfAccessSource = stripComments(
-            readRepositoryFile("electron-app/main/runtime/electronConfAccess.ts")
+            readRepositoryFile(
+                "electron-app/main/runtime/electronConfAccess.ts"
+            )
         );
         const fitParserIntegrationSource = stripComments(
             readRepositoryFile(
@@ -1986,7 +1988,9 @@ describe("architecture boundaries", () => {
         expect(fitParserIntegrationSource).not.toContain("module.exports");
         expect(mainProcessStateManagerSource).not.toContain("module.exports");
         expect(masterStateManagerSource).not.toContain("module.exports");
-        expect(masterStateManagerSource).not.toContain('require("node:module")');
+        expect(masterStateManagerSource).not.toContain(
+            'require("node:module")'
+        );
         expect(masterStateManagerSource).not.toContain("getCjsRequire");
         expect(masterStateManagerSource).not.toContain("getNodeModuleCache");
         expect(masterStateManagerSource).not.toContain("require.cache");
@@ -4955,7 +4959,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(22);
+        expect.assertions(24);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/vendorGlobalsMap.ts")
@@ -5015,6 +5019,12 @@ describe("architecture boundaries", () => {
             "installLeafletPluginCompatibilityGlobal"
         );
         expect(vendorMapEntry).not.toContain('defineMissingGlobal("L"');
+        expect(vendorMapEntry).toContain(
+            'Reflect.deleteProperty(globalThis, "L")'
+        );
+        expect(vendorMapEntry).toContain(
+            'Reflect.deleteProperty(globalThis, "Leaflet")'
+        );
         expect(globalDefinitionViolations).toStrictEqual([]);
         expect(viteRendererConfig).toContain(
             "fitfileviewer-legacy-leaflet-plugin-runtime"

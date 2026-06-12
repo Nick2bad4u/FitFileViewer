@@ -10,6 +10,8 @@ type WorkspacesModule = {
     appIconsPath: string;
     appIndexHtmlPath: string;
     appLeafletMeasureLitePath: string;
+    appMainBundleAbsolutePath: string;
+    appMainSourceAbsolutePath: string;
     appPreloadBundleAbsolutePath: string;
     appPreloadSourceAbsolutePath: string;
     appRendererVendorGlobalsChartDataEntryPath: string;
@@ -23,6 +25,7 @@ type WorkspacesModule = {
     appSourceRelativePath: (...segments: string[]) => string;
     applyElectronFusesScriptPath: string;
     buildRuntimeScriptPath: string;
+    bundleMainScriptPath: string;
     bundlePreloadScriptPath: string;
     cleanRuntimeDistScriptPath: string;
     docusaurusAdvancedFitParserMigrationDocPath: string;
@@ -213,7 +216,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root script paths", async () => {
-        expect.assertions(15);
+        expect.assertions(16);
 
         const workspaces = await importWorkspaces();
 
@@ -231,6 +234,9 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.validateRuntimeTsconfigScriptPath).toBe(
             path.join(process.cwd(), "scripts", "validate-runtime-tsconfig.mjs")
+        );
+        expect(workspaces.bundleMainScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "bundle-main.mjs")
         );
         expect(workspaces.bundlePreloadScriptPath).toBe(
             path.join(process.cwd(), "scripts", "bundle-preload.mjs")
@@ -269,7 +275,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset paths", async () => {
-        expect.assertions(19);
+        expect.assertions(20);
 
         const workspaces = await importWorkspaces();
 
@@ -280,6 +286,13 @@ describe("workspace path helpers", () => {
         expect(workspaces.appLeafletMeasureLitePath).toBe(
             "electron-app/renderer/leafletMeasureLite.js"
         );
+        expect({
+            bundle: workspaces.appMainBundleAbsolutePath,
+            source: workspaces.appMainSourceAbsolutePath,
+        }).toStrictEqual({
+            bundle: path.join(process.cwd(), "dist", "main.js"),
+            source: path.join(process.cwd(), "electron-app", "main.ts"),
+        });
         expect({
             bundle: workspaces.appPreloadBundleAbsolutePath,
             source: workspaces.appPreloadSourceAbsolutePath,

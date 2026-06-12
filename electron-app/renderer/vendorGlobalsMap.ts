@@ -63,6 +63,11 @@ function installMinimapToggleIcon(): void {
     );
 }
 
+function removeLeafletCompatibilityGlobals(): void {
+    Reflect.deleteProperty(globalThis, "L");
+    Reflect.deleteProperty(globalThis, "Leaflet");
+}
+
 /** Installs the Leaflet runtime and map plugins used by the Map tab. */
 export async function installRendererMapVendorGlobals(): Promise<void> {
     installMinimapToggleIcon();
@@ -80,6 +85,7 @@ export async function installRendererMapVendorGlobals(): Promise<void> {
     await import("leaflet.markercluster");
     await import("@maplibre/maplibre-gl-leaflet");
     installLeafletMeasureLite(Leaflet);
+    removeLeafletCompatibilityGlobals();
 
     markRendererVendorEntryLoaded("map", {
         map: { leafletRuntime: Leaflet },

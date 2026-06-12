@@ -131,6 +131,8 @@ Root-context package CLI helper scripts now resolve package entrypoints through 
 macOS builder dependency helper checks optional package availability through native resolution, and the
 preload bundler imports `esbuild` natively instead of using `createRequire`/`require.resolve`; cross-workspace
 package resolvers stay intentionally separate because they resolve from another package root.
+The runtime build now also bundles `electron-app/main.ts` to the generated CommonJS `dist/main.js` boundary,
+allowing Electron to launch through the root CommonJS package manifest while app source stays typed ESM-style.
 The main-process module test no longer clears CJS require cache for the ESM-imported main entrypoint, and the
 Electron builder file-list test imports the CJS config through native dynamic import instead of `createRequire`.
 
@@ -148,6 +150,11 @@ FitFileViewer/docs/DEPRECATION_LEDGER.md:127.
 Long-term target: replace or wrap those Leaflet plugins with modules that accept explicit imports natively,
 remove the Vite legacy-plugin transform, and eventually reduce or remove vendorGlobals\* compatibility
 entries where feature-local dynamic imports can do the job cleanly.
+
+Progress: the map vendor bundle now removes package-created `L`/`Leaflet` aliases after Leaflet.draw,
+MiniMap, markercluster, MapLibre, and the local measurement control are registered on the typed Leaflet
+runtime object. The Playwright map smoke path now resolves Leaflet through `leafletRuntime.ts` instead of
+depending on `window.L`, while still proving the legacy plugin runtime is registered.
 
 3. Finish Shrinking The Renderer Composition Root (Complete)
 

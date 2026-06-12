@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
     bundlePreloadScriptPath,
+    bundleMainScriptPath,
     cleanRuntimeDistScriptPath,
     formatRuntimeOutputScriptPath,
     prepareRuntimeDistScriptPath,
@@ -17,9 +18,7 @@ import {
 const typescriptCliPath = fileURLToPath(
     import.meta.resolve("typescript/bin/tsc")
 );
-const vitePackagePath = fileURLToPath(
-    import.meta.resolve("vite/package.json")
-);
+const vitePackagePath = fileURLToPath(import.meta.resolve("vite/package.json"));
 const viteCliPath = path.join(path.dirname(vitePackagePath), "bin", "vite.js");
 
 export const buildRuntimeSteps = [
@@ -38,6 +37,10 @@ export const buildRuntimeSteps = [
             rootRuntimeTsconfigPath,
         ],
         label: "compile runtime TypeScript",
+    },
+    {
+        args: [bundleMainScriptPath],
+        label: "bundle main",
     },
     {
         args: [bundlePreloadScriptPath],
