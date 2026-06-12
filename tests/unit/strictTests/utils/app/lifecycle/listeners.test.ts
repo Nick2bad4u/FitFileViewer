@@ -18,7 +18,6 @@ type BlobMock = (
     parts: any[];
     type: string;
 };
-type CreateExportGpxButtonMock = () => boolean;
 type CreateObjectUrlMock = (object: Blob | MediaSource) => string;
 type CreateTestAnchorMock = (tagName: string) => HTMLAnchorElement;
 type HandleOpenFileMock = (options: unknown) => Promise<void> | void;
@@ -343,6 +342,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(
             [
                 "copyTableAsCSV",
+                "createExportGPXButton",
                 "globalData",
                 "renderChartJS",
                 "sendFitFileToAltFitReader",
@@ -629,9 +629,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showUpdateNotification,
             showAboutModal,
         });
-
-        // Feature flag present
-        (window as any).createExportGPXButton = (): void => {};
 
         // Case 1: valid coords -> click happens
         const clickSpy = vi.fn<() => void>();
@@ -1410,7 +1407,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(links).toHaveLength(0);
     });
 
-    it("export-file: gpx without createExportGPXButton function", async () => {
+    it("export-file: gpx downloads without renderer global helpers", async () => {
         expect.hasAssertions();
 
         installURLMocks();
@@ -1431,9 +1428,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             },
             { source: "test" }
         );
-
-        // Remove createExportGPXButton
-        (window as any).createExportGPXButton = undefined;
 
         await electronAPI.emit("export-file", "C:/tmp/out.gpx");
 
@@ -1972,16 +1966,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
     it("export-file: gpx with valid coordinates for setTimeout cleanup (lines 350-351)", async () => {
         expect.hasAssertions();
-
-        // Mock createExportGPXButton to exist on globalThis
-        const createExportGPXButton = vi.fn<CreateExportGpxButtonMock>(
-            () => true
-        );
-        Object.defineProperty(globalThis, "createExportGPXButton", {
-            configurable: true,
-            value: createExportGPXButton,
-            writable: true,
-        });
 
         // Create valid coordinate data in semicircle format
         // Coordinates in semicircles: lat/lng * 2^31 / 180
