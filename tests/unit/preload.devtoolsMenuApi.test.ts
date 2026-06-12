@@ -5,32 +5,8 @@ import type {
     DevtoolsInjectMenuTheme,
     DevtoolsInvokeChannel,
 } from "../../electron-app/shared/ipc";
-import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
-
-interface DevtoolsMenuApiModule {
-    createDevtoolsMenuApi: (options: Record<string, unknown>) => {
-        injectMenu: (
-            theme?: DevtoolsInjectMenuTheme,
-            fitFilePath?: DevtoolsInjectMenuFitFilePath
-        ) => Promise<boolean>;
-    };
-}
-
-const requireFromTest = createPreloadSourceRequire(import.meta.url);
-const { createDevtoolsMenuApi } = requireFromTest(
-    "../../electron-app/preload/devtoolsMenuApi.js"
-) as DevtoolsMenuApiModule;
-const { validateDevtoolsInjectMenuPayload } = requireFromTest(
-    "../../electron-app/shared/devtoolsMenuPolicy.js"
-) as {
-    validateDevtoolsInjectMenuPayload: (
-        theme: unknown,
-        fitFilePath: unknown
-    ) => {
-        fitFilePath: DevtoolsInjectMenuFitFilePath;
-        theme: DevtoolsInjectMenuTheme;
-    };
-};
+import { createDevtoolsMenuApi } from "../../electron-app/preload/devtoolsMenuApi.js";
+import { validateDevtoolsInjectMenuPayload } from "../../electron-app/shared/devtoolsMenuPolicy.js";
 
 function createApi() {
     const invoke =

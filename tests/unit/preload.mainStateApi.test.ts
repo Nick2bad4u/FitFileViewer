@@ -6,39 +6,7 @@ import type {
     MainStateSetOptions,
     MainStateSetValue,
 } from "../../electron-app/shared/ipc";
-import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
-
-interface MainStateApiModule {
-    createMainStateApi: (options: Record<string, unknown>) => {
-        getErrors: (limit?: number) => Promise<unknown[]>;
-        getMainState: (path?: string) => Promise<unknown>;
-        getMetrics: () => Promise<unknown>;
-        getOperation: (operationId: string) => Promise<unknown>;
-        getOperations: () => Promise<unknown>;
-        listenToMainState: (
-            path: string,
-            callback: MainStateListener
-        ) => Promise<boolean>;
-        setMainState: (
-            path: string,
-            value: MainStateSetValue,
-            options?: MainStateSetOptions
-        ) => Promise<boolean>;
-        subscribeToMainState: (
-            path: string,
-            callback: MainStateListener
-        ) => Promise<() => Promise<boolean>>;
-        unlistenFromMainState: (
-            path: string,
-            callback: MainStateListener
-        ) => Promise<boolean>;
-    };
-}
-
-const requireFromTest = createPreloadSourceRequire(import.meta.url);
-const { createMainStateApi } = requireFromTest(
-    "../../electron-app/preload/mainStateApi.js"
-) as MainStateApiModule;
+import { createMainStateApi } from "../../electron-app/preload/mainStateApi.js";
 
 function createApi() {
     const invoke =

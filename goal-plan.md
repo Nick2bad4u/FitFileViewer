@@ -16,12 +16,12 @@ of requiring shared policy modules directly.
 The small preload API assembly-domain factory modules now use named source exports instead of `module.exports`,
 while the runtime build still emits CommonJS-compatible package output.
 The first preload app API leaf factories (`apiDiagnostics.ts`, `appInfoApi.ts`, `gyazoExternalApi.ts`,
-`shellExternalApi.ts`, and `themeApi.ts`) now use named source exports too, with source tests loading those
-modules through the preload source-require bridge.
+`shellExternalApi.ts`, and `themeApi.ts`) now use named source exports too, with direct unit tests importing
+those named source exports natively.
 The preload file and clipboard leaf factories (`clipboardBridge.ts`, `fileApi.ts`, and `fitBrowserApi.ts`)
 also use named source exports, while their loader boundaries still provide CommonJS-compatible package output.
 The preload state leaf factories (`mainStateApi.ts` and `mainStateBridge.ts`) now use named source exports
-too, with direct source tests loading them through the preload source-require bridge.
+too, with direct unit tests importing those named source exports natively.
 The preload runtime utility helpers (`environment.ts`, `logger.ts`, `preloadRuntimeEnvironment.ts`, and
 `validators.ts`) now use named source exports as well.
 The preload event API factories (`ipcEventApiDomain.ts`, `menuEventApi.ts`, and `preloadEventApi.ts`) now
@@ -35,6 +35,9 @@ The preload devtools menu, IPC helper, Electron API factory, and Electron bridge
 source exports too.
 The remaining preload API assembly, runtime, bootstrap, and module-loader files now use named source exports;
 `electron-app/preload/*.ts` no longer contains source-level `module.exports` wrappers.
+Direct preload module unit tests now import named source exports natively; the preload source-require bridge
+remains only for source execution/module-mock fixtures that intentionally exercise the injected `requireModule`
+boundary.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

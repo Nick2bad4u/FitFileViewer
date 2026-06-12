@@ -1,24 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-
-import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
-
-interface PreloadElectronBridgeModule {
-    resolvePreloadElectronBridge: (options: {
-        electronBridgeOverride?: null | {
-            contextBridge?: null | object;
-            ipcRenderer?: null | object;
-        };
-        requireModule: (moduleId: string) => unknown;
-    }) => {
-        contextBridge: null | object | undefined;
-        ipcRenderer: null | object | undefined;
-    };
-}
-
-const requireFromTest = createPreloadSourceRequire(import.meta.url);
-const { resolvePreloadElectronBridge } = requireFromTest(
-    "../../electron-app/preload/electronBridge.js"
-) as PreloadElectronBridgeModule;
+import { resolvePreloadElectronBridge } from "../../electron-app/preload/electronBridge.js";
 
 describe("preload electron bridge resolver", () => {
     it("resolves direct CommonJS Electron bridge exports", () => {

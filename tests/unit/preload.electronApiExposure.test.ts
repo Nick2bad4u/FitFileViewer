@@ -1,35 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
-import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
-
-interface ElectronApiExposureModule {
-    exposeElectronApi: (options: {
-        api: ElectronAPI;
-        contextBridge:
-            | {
-                  exposeInMainWorld?: (key: string, api: unknown) => void;
-              }
-            | null
-            | undefined;
-        isDevelopmentMode: () => boolean;
-        preloadLog: (
-            level: "error" | "info" | "warn",
-            message: string,
-            ...details: unknown[]
-        ) => void;
-    }) => boolean;
-    getApiStructure: (api: ElectronAPI) => {
-        methods: string[];
-        properties: string[];
-        total: number;
-    };
-}
-
-const requireFromTest = createPreloadSourceRequire(import.meta.url);
-const { exposeElectronApi, getApiStructure } = requireFromTest(
-    "../../electron-app/preload/electronApiExposure.js"
-) as ElectronApiExposureModule;
+import {
+    exposeElectronApi,
+    getApiStructure,
+} from "../../electron-app/preload/electronApiExposure.js";
 
 function createApi(validateAPI: () => boolean = () => true): ElectronAPI {
     return {

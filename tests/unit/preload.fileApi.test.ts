@@ -2,42 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { GenericInvokeChannel } from "../../electron-app/shared/ipc";
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
-import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
-
-interface FileApiModule {
-    createFileApi: (options: {
-        channels: {
-            DIALOG_OPEN_FILE: "dialog:openFile";
-            DIALOG_OPEN_OVERLAY_FILES: "dialog:openOverlayFiles";
-            FILE_READ: "file:read";
-            FIT_DECODE: "fit:decode";
-            FIT_PARSE: "fit:parse";
-            RECENT_FILES_ADD: "recentFiles:add";
-            RECENT_FILES_APPROVE: "recentFiles:approve";
-            RECENT_FILES_GET: "recentFiles:get";
-        };
-        createSafeInvokeHandler: (
-            channel: GenericInvokeChannel,
-            methodName: string
-        ) => (...args: unknown[]) => Promise<unknown>;
-    }) => Pick<
-        ElectronAPI,
-        | "addRecentFile"
-        | "approveRecentFile"
-        | "decodeFitFile"
-        | "openFile"
-        | "openFileDialog"
-        | "openOverlayDialog"
-        | "parseFitFile"
-        | "readFile"
-        | "recentFiles"
-    >;
-}
-
-const requireFromTest = createPreloadSourceRequire(import.meta.url);
-const { createFileApi } = requireFromTest(
-    "../../electron-app/preload/fileApi.js"
-) as FileApiModule;
+import { createFileApi } from "../../electron-app/preload/fileApi.js";
 
 function createApi() {
     const invokeCalls: Array<{

@@ -1572,6 +1572,32 @@ describe("architecture boundaries", () => {
         expect(preloadCommonJsExportFiles).toStrictEqual([]);
     });
 
+    it("keeps ordinary preload unit tests on native source imports", () => {
+        expect.assertions(1);
+
+        const allowedSourceRequireTests = new Set([
+            "tests/unit/preload.source.test.ts",
+            "tests/unit/preload.sourceExecution.test.ts",
+        ]);
+        const directSourceRequireTestFiles = collectSourceFiles("tests/unit")
+            .filter(
+                (relativeFile) =>
+                    relativeFile !==
+                    "tests/unit/packaging/architectureBoundaries.test.ts"
+            )
+            .filter((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "createPreloadSourceRequire"
+                )
+            )
+            .filter(
+                (relativeFile) => !allowedSourceRequireTests.has(relativeFile)
+            )
+            .sort();
+
+        expect(directSourceRequireTestFiles).toStrictEqual([]);
+    });
+
     it("keeps preload IPC policy dependencies injected through the module registry", () => {
         expect.assertions(6);
 

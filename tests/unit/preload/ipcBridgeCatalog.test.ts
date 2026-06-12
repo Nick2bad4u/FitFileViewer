@@ -1,15 +1,5 @@
 import { describe, expect, it } from "vitest";
-
-import { createPreloadSourceRequire } from "../../vitest/helpers/preloadSourceRequire";
-
-const requireFromTest = createPreloadSourceRequire(import.meta.url);
-const ipcBridgeCatalog = requireFromTest(
-    "../../../electron-app/preload/ipcBridgeCatalog.js"
-) as {
-    isAllowedUpdateEventName: (eventName: unknown) => boolean;
-    PRELOAD_CHANNELS: Record<string, string>;
-    PRELOAD_EVENTS: Record<string, string>;
-};
+import * as ipcBridgeCatalog from "../../../electron-app/preload/ipcBridgeCatalog.js";
 
 const expectedPreloadChannels = {
     APP_VERSION: "getAppVersion",

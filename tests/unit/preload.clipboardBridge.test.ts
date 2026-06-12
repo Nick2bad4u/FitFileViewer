@@ -5,45 +5,7 @@ import type {
     ClipboardRequestPayload,
     ClipboardResponsePayload,
 } from "../../electron-app/shared/ipc";
-import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
-
-interface ClipboardBridgeModule {
-    createClipboardBridge: (options: {
-        channels: {
-            CLIPBOARD_WRITE_PNG_DATA_URL: Extract<
-                ClipboardInvokeChannel,
-                "clipboard:writePngDataUrl"
-            >;
-            CLIPBOARD_WRITE_TEXT: Extract<
-                ClipboardInvokeChannel,
-                "clipboard:writeText"
-            >;
-        };
-        ipcRenderer: {
-            invoke: (
-                channel: ClipboardInvokeChannel,
-                payload: ClipboardRequestPayload
-            ) => Promise<unknown>;
-        };
-        preloadLog: (
-            level: "error" | "info" | "warn",
-            message: string,
-            ...details: unknown[]
-        ) => void;
-    }) => {
-        writeClipboardPngDataUrl: (
-            pngDataUrl: ClipboardRequestPayload
-        ) => Promise<ClipboardResponsePayload>;
-        writeClipboardText: (
-            text: ClipboardRequestPayload
-        ) => Promise<ClipboardResponsePayload>;
-    };
-}
-
-const requireFromTest = createPreloadSourceRequire(import.meta.url);
-const { createClipboardBridge } = requireFromTest(
-    "../../electron-app/preload/clipboardBridge.js"
-) as ClipboardBridgeModule;
+import { createClipboardBridge } from "../../electron-app/preload/clipboardBridge.js";
 
 function createBridge() {
     const invoke =

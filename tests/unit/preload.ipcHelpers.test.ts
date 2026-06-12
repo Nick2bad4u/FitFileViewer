@@ -1,6 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-
-import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
+import { createPreloadIpcHelpers } from "../../electron-app/preload/ipcHelpers.js";
+import { validateDevtoolsInjectMenuPayload } from "../../electron-app/shared/devtoolsMenuPolicy.js";
+import { validateExternalUrl } from "../../electron-app/shared/externalUrlPolicy.js";
+import {
+    validateFitBrowserRelativePath,
+    validateFitBrowserRootFolderPath,
+} from "../../electron-app/shared/fitBrowserPathPolicy.js";
+import { validateFitFilePathInput } from "../../electron-app/shared/fitFilePathPolicy.js";
+import {
+    validateMainStateOperationIdInput,
+    validateMainStatePathInput,
+} from "../../electron-app/shared/mainStatePathPolicy.js";
 
 interface IpcRendererMock {
     invoke: ReturnType<
@@ -26,90 +36,6 @@ interface IpcRendererMock {
         typeof vi.fn<(channel: string, ...args: unknown[]) => void>
     >;
 }
-
-interface PreloadIpcHelpersModule {
-    createPreloadIpcHelpers: (options: {
-        ipcRenderer: IpcRendererMock;
-        preloadLog: (
-            level: "error" | "info" | "warn",
-            message: string,
-            ...details: unknown[]
-        ) => void;
-        validateCallback: (
-            callback: unknown,
-            methodName: string
-        ) => callback is (...args: unknown[]) => unknown;
-        validateDevtoolsInjectMenuPayload: (
-            theme: unknown,
-            fitFilePath: unknown
-        ) => {
-            fitFilePath: null | string;
-            theme: null | string;
-        };
-        validateExternalUrl: (url: unknown) => string;
-        validateFitBrowserRelativePath: (value: unknown) => string;
-        validateFitBrowserRootFolderPath: (value: unknown) => string;
-        validateFitFilePathInput: (filePath: unknown) => string;
-        validateMainStateOperationIdInput: (value: unknown) => string;
-        validateMainStatePathInput: (
-            value: unknown,
-            options?: { allowUndefined?: boolean }
-        ) => string | undefined;
-    }) => {
-        createSafeEventHandler: (
-            channel: string,
-            methodName: string,
-            transform?: (...args: unknown[]) => null | unknown
-        ) => (callback: (...args: unknown[]) => unknown) => () => void;
-        createSafeInvokeHandler: (
-            channel: string,
-            methodName: string
-        ) => (...args: unknown[]) => Promise<unknown>;
-        createSafeSendHandler: (
-            channel: string,
-            methodName: string
-        ) => (...args: unknown[]) => void;
-        removeIpcListener: (
-            channel: string,
-            handler: (...args: unknown[]) => void
-        ) => void;
-    };
-}
-
-const requireFromTest = createPreloadSourceRequire(import.meta.url);
-const { createPreloadIpcHelpers } = requireFromTest(
-    "../../electron-app/preload/ipcHelpers.js"
-) as PreloadIpcHelpersModule;
-const { validateDevtoolsInjectMenuPayload } = requireFromTest(
-    "../../electron-app/shared/devtoolsMenuPolicy.js"
-) as Pick<
-    Parameters<PreloadIpcHelpersModule["createPreloadIpcHelpers"]>[0],
-    "validateDevtoolsInjectMenuPayload"
->;
-const { validateExternalUrl } = requireFromTest(
-    "../../electron-app/shared/externalUrlPolicy.js"
-) as Pick<
-    Parameters<PreloadIpcHelpersModule["createPreloadIpcHelpers"]>[0],
-    "validateExternalUrl"
->;
-const { validateFitBrowserRelativePath, validateFitBrowserRootFolderPath } =
-    requireFromTest(
-        "../../electron-app/shared/fitBrowserPathPolicy.js"
-    ) as Pick<
-        Parameters<PreloadIpcHelpersModule["createPreloadIpcHelpers"]>[0],
-        "validateFitBrowserRelativePath" | "validateFitBrowserRootFolderPath"
-    >;
-const { validateFitFilePathInput } = requireFromTest(
-    "../../electron-app/shared/fitFilePathPolicy.js"
-) as Pick<
-    Parameters<PreloadIpcHelpersModule["createPreloadIpcHelpers"]>[0],
-    "validateFitFilePathInput"
->;
-const { validateMainStateOperationIdInput, validateMainStatePathInput } =
-    requireFromTest("../../electron-app/shared/mainStatePathPolicy.js") as Pick<
-        Parameters<PreloadIpcHelpersModule["createPreloadIpcHelpers"]>[0],
-        "validateMainStateOperationIdInput" | "validateMainStatePathInput"
-    >;
 
 function createIpcRendererMock(): IpcRendererMock {
     return {

@@ -1,19 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-
-import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
-
-interface PreloadRuntimeEnvironmentModule {
-    getDefaultPreloadRuntimeEnvironment: () => {
-        consoleRef: Console;
-        globalScope: object;
-        processRef: NodeJS.Process;
-    };
-}
-
-const requireFromTest = createPreloadSourceRequire(import.meta.url);
-const { getDefaultPreloadRuntimeEnvironment } = requireFromTest(
-    "../../electron-app/preload/preloadRuntimeEnvironment.js"
-) as PreloadRuntimeEnvironmentModule;
+import { getDefaultPreloadRuntimeEnvironment } from "../../electron-app/preload/preloadRuntimeEnvironment.js";
 
 describe("preload runtime environment", () => {
     it("centralizes the runtime globals used by the preload entrypoint", () => {
