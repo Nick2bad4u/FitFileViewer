@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { createRequire } from "node:module";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
@@ -13,15 +12,6 @@ type FileAccessPolicyModule = {
     isApprovedFilePath: (filePath: unknown) => boolean;
 };
 
-type NodeModulesRuntime = {
-    fs: {
-        realpathSync: ((filePath: string) => string) & {
-            native?: (filePath: string) => string;
-        };
-    };
-    path: typeof path;
-};
-
 /**
  * Load fileAccessPolicy with a controlled realpath implementation.
  */
@@ -29,10 +19,6 @@ async function loadPolicyWithRealpath(
     realpathImpl: (filePath: string) => string
 ): Promise<FileAccessPolicyModule> {
     vi.resetModules();
-    const require = createRequire(import.meta.url);
-
-    const nodeModules =
-        require("../../../../electron-app/main/runtime/nodeModules.js") as NodeModulesRuntime;
 
     const realpathSync = Object.assign(
         ((filePath: string) => realpathImpl(filePath)) as (
@@ -43,9 +29,16 @@ async function loadPolicyWithRealpath(
         }
     );
 
-    // Replace fs with a minimal stub for this test.
-    nodeModules.fs = { realpathSync };
-    nodeModules.path = path;
+    const mockedNodeModules = {
+        fs: { realpathSync },
+        httpRef: () => null,
+        path,
+    };
+
+    vi.doMock("../../../../electron-app/main/runtime/nodeModules.js", () => ({
+        ...mockedNodeModules,
+        default: mockedNodeModules,
+    }));
 
     const policy =
         await import("../../../../electron-app/main/security/fileAccessPolicy.js");

@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
 import { CONSTANTS } from "../constants.js";
 import {
@@ -6,14 +7,13 @@ import {
     dialogRef as electronDialogRef,
     shellRef as electronShellRef,
 } from "../runtime/electronAccess.js";
+import { httpRef, path } from "../runtime/nodeModules.js";
 import { getAppState, setAppState } from "../state/appState.js";
 import { setGyazoStartupTimer } from "./gyazoStartupTimerState.js";
 
 let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
 {
-    type HttpModule = typeof import("node:http");
-    type PathModule = typeof import("node:path");
     type ElectronBrowserWindow = import("electron").BrowserWindow;
     type ElectronPermissionCheckDetails =
         import("electron").PermissionCheckHandlerHandlerDetails;
@@ -129,8 +129,6 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         validateWindow: (win?: unknown, context?: string) => boolean;
     }
 
-    const { fileURLToPath } = require("node:url") as typeof import("node:url");
-
     const { logWithContext } = require("../logging/logWithContext") as {
         logWithContext: (
             level: string,
@@ -151,10 +149,6 @@ let setupApplicationEventHandlersImpl: (() => void) | undefined;
         | undefined;
     const dialogRef = electronDialogRef as () => DialogLike | undefined;
     const shellRef = electronShellRef as () => ShellLike | undefined;
-    const { httpRef, path } = require("../runtime/nodeModules") as {
-        httpRef: () => HttpModule | null;
-        path: PathModule;
-    };
     const APP_LISTENER_REGISTRY = new Map<string, AppListener>();
     const SESSION_HANDLER_REGISTRY = new WeakMap<
         object,

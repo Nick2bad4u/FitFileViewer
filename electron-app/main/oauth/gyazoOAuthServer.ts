@@ -1,8 +1,8 @@
 import { sendToRenderer } from "../ipc/sendToRenderer.js";
 import { logWithContext } from "../logging/logWithContext.js";
+import { httpRef } from "../runtime/nodeModules.js";
 import { getAppState, setAppState } from "../state/appState.js";
 
-type HttpModule = typeof import("node:http");
 type GyazoServerStartResult = import("../../shared/ipc").GyazoServerStartResult;
 type GyazoServerStopResult = import("../../shared/ipc").GyazoServerStopResult;
 type OAuthServer = import("node:http").Server;
@@ -17,10 +17,6 @@ interface OAuthWindowLike {
         send?: (channel: RendererIpcEventChannel, ...args: unknown[]) => void;
     };
 }
-
-const { httpRef } = require("../runtime/nodeModules") as {
-    httpRef: () => HttpModule | null;
-};
 
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);

@@ -1,16 +1,6 @@
 // @vitest-environment node
 
-import { createRequire } from "node:module";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const require = createRequire(import.meta.url);
-
-type CjsCacheEntry = {
-    exports: unknown;
-    filename: string;
-    id: string;
-    loaded: boolean;
-};
 
 type LogWithContext = (
     level: string,
@@ -48,24 +38,6 @@ const mockHttp = {
 };
 
 let appState: typeof import("../../../../electron-app/main/state/appState.js");
-
-function getRequireCache(): Record<string, CjsCacheEntry> {
-    return (require as unknown as { cache: Record<string, CjsCacheEntry> })
-        .cache;
-}
-
-function injectCjsMock(
-    modulePath: string,
-    exportsObj: Record<string, unknown>
-): void {
-    const cache = getRequireCache();
-    cache[modulePath] = {
-        exports: exportsObj,
-        filename: modulePath,
-        id: modulePath,
-        loaded: true,
-    };
-}
 
 async function importGyazoOAuthServer(): Promise<{
     startGyazoOAuthServer: (port?: number) => Promise<{
@@ -187,19 +159,19 @@ describe("gyazoOAuthServer", () => {
         vi.resetModules();
         resetMocks();
 
-        // Inject mocks for the CJS requires used by the module under test.
-        injectCjsMock(
-            require.resolve("../../../../electron-app/main/logging/logWithContext"),
-            {
+        vi.doMock(
+            "../../../../electron-app/main/logging/logWithContext.js",
+            () => ({
                 logWithContext: (...args: Parameters<LogWithContext>) =>
                     mockLogWithContext(...args),
-            }
+            })
         );
-        injectCjsMock(
-            require.resolve("../../../../electron-app/main/runtime/nodeModules"),
-            {
+        vi.doMock(
+            "../../../../electron-app/main/runtime/nodeModules.js",
+            () => ({
+                default: { httpRef: () => mockHttp },
                 httpRef: () => mockHttp,
-            }
+            })
         );
         appState = await import(
             "../../../../electron-app/main/state/appState.js"
@@ -207,8 +179,8 @@ describe("gyazoOAuthServer", () => {
         appState.setAppState("gyazoServer", null);
         appState.setAppState("gyazoServerPort", null);
         appState.setAppState("mainWindow", null);
-        // The module under test is imported natively; the CJS cache injections
-        // above cover its remaining not-yet-migrated dependencies.
+        // The module under test is imported natively; mocks follow the same
+        // source import paths as its migrated dependencies.
     });
 
     it("starts server and applies safe headers (no CORS)", async () => {

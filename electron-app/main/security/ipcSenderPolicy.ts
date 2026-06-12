@@ -1,9 +1,10 @@
+import { fileURLToPath } from "node:url";
 import { appRef as electronAppRef } from "../runtime/electronAccess.js";
+import { path } from "../runtime/nodeModules.js";
 
 type AppLike = {
     getAppPath?: () => string;
 };
-type PathModule = typeof import("node:path");
 
 interface IpcEventLike {
     sender?: {
@@ -14,11 +15,7 @@ interface IpcEventLike {
     };
 }
 
-const { fileURLToPath } = require("node:url") as typeof import("node:url");
 const appRef = electronAppRef as () => AppLike | undefined;
-const { path } = require("../runtime/nodeModules") as {
-    path: PathModule;
-};
 
 export function assertIpcSenderAllowed(event: unknown): void {
     const senderUrl = getIpcSenderUrl(event);

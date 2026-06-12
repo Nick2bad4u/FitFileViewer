@@ -13,6 +13,7 @@ import {
     nativeImageRef as electronNativeImageRef,
     shellRef as electronShellRef,
 } from "../runtime/electronAccess.js";
+import { fs, path } from "../runtime/nodeModules.js";
 import { assertFileReadAllowed } from "../security/fileAccessPolicy.js";
 import { getAppState, setAppState } from "../state/appState.js";
 import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
@@ -90,10 +91,6 @@ const { ensureFitParserStateIntegration } =
     require("../runtime/fitParserIntegration") as {
         ensureFitParserStateIntegration: () => Promise<unknown>;
     };
-const { fs, path } = require("../runtime/nodeModules") as {
-    fs: typeof import("node:fs") | null;
-    path: typeof import("node:path");
-};
 const getErrorMessage = (error: unknown): string =>
     error instanceof Error ? error.message : String(error);
 

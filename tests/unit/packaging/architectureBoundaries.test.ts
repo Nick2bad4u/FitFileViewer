@@ -1816,7 +1816,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(64);
+        expect.assertions(75);
 
         const logWithContextSource = stripComments(
             readRepositoryFile("electron-app/main/logging/logWithContext.ts")
@@ -1848,9 +1848,17 @@ describe("architecture boundaries", () => {
         const autoUpdaterAccessSource = stripComments(
             readRepositoryFile("electron-app/main/updater/autoUpdaterAccess.ts")
         );
+        const nodeModulesSource = stripComments(
+            readRepositoryFile("electron-app/main/runtime/nodeModules.ts")
+        );
         const initializeApplicationSource = stripComments(
             readRepositoryFile(
                 "electron-app/main/runtime/initializeApplication.ts"
+            )
+        );
+        const setupApplicationEventHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/app/setupApplicationEventHandlers.ts"
             )
         );
         const setupMenuAndEventHandlersSource = stripComments(
@@ -1863,6 +1871,12 @@ describe("architecture boundaries", () => {
         );
         const gyazoOAuthServerSource = stripComments(
             readRepositoryFile("electron-app/main/oauth/gyazoOAuthServer.ts")
+        );
+        const fileAccessPolicySource = stripComments(
+            readRepositoryFile("electron-app/main/security/fileAccessPolicy.ts")
+        );
+        const ipcSenderPolicySource = stripComments(
+            readRepositoryFile("electron-app/main/security/ipcSenderPolicy.ts")
         );
         const setupMainLifecycleSource = stripComments(
             readRepositoryFile("electron-app/main/runtime/setupMainLifecycle.ts")
@@ -1885,6 +1899,7 @@ describe("architecture boundaries", () => {
         expect(getThemeFromRendererSource).not.toContain("module.exports");
         expect(setupAutoUpdaterSource).not.toContain("module.exports");
         expect(autoUpdaterAccessSource).not.toContain("module.exports =");
+        expect(nodeModulesSource).not.toContain("module.exports");
         expect(initializeApplicationSource).not.toContain("module.exports");
         expect(setupIpcHandlersSource).not.toContain("module.exports");
         expect(gyazoOAuthServerSource).not.toContain("module.exports");
@@ -1957,6 +1972,9 @@ describe("architecture boundaries", () => {
         expect(setupMenuAndEventHandlersSource).not.toContain(
             'require("../updater/autoUpdaterAccess")'
         );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../runtime/nodeModules")'
+        );
         expect(gyazoOAuthServerSource).not.toContain(
             'require("../ipc/sendToRenderer")'
         );
@@ -1966,6 +1984,16 @@ describe("architecture boundaries", () => {
         expect(gyazoOAuthServerSource).not.toContain(
             'require("../logging/logWithContext")'
         );
+        expect(gyazoOAuthServerSource).not.toContain(
+            'require("../runtime/nodeModules")'
+        );
+        expect(fileAccessPolicySource).not.toContain(
+            'require("../runtime/nodeModules")'
+        );
+        expect(ipcSenderPolicySource).not.toContain(
+            'require("../runtime/nodeModules")'
+        );
+        expect(ipcSenderPolicySource).not.toContain('require("node:url")');
         expect(setupIpcHandlersSource).not.toContain('require("../constants")');
         expect(setupIpcHandlersSource).not.toContain(
             'require("../logging/logWithContext")'
@@ -1984,6 +2012,12 @@ describe("architecture boundaries", () => {
         );
         expect(setupIpcHandlersSource).not.toContain(
             'require("../theme/getThemeFromRenderer")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../runtime/nodeModules")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../runtime/nodeModules")'
         );
         expect(setupBlockedRequestsSource).not.toContain(
             'require("../runtime/electronAccess")'
@@ -2028,6 +2062,9 @@ describe("architecture boundaries", () => {
         expect(autoUpdaterAccessSource).toContain(
             "export function resolveAutoUpdaterSync"
         );
+        expect(nodeModulesSource).toContain("export const path");
+        expect(nodeModulesSource).toContain("export const fs");
+        expect(nodeModulesSource).toContain("export function httpRef");
         expect(initializeApplicationSource).toContain(
             "export async function initializeApplication"
         );

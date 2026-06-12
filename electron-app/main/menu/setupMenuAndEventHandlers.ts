@@ -4,6 +4,7 @@ import {
     browserWindowRef as electronBrowserWindowRef,
     dialogRef as electronDialogRef,
 } from "../runtime/electronAccess.js";
+import { fs } from "../runtime/nodeModules.js";
 import { resolveAutoUpdaterSync as resolveAutoUpdaterFallback } from "../updater/autoUpdaterAccess.js";
 import { validateWindow } from "../window/windowValidation.js";
 
@@ -119,9 +120,6 @@ import { validateWindow } from "../window/windowValidation.js";
     const browserWindowRef = electronBrowserWindowRef as () =>
         BrowserWindowRefLike;
     const dialogRef = electronDialogRef as () => DialogLike | undefined;
-    const { fs } = require("../runtime/nodeModules") as {
-        fs: typeof import("node:fs") | null;
-    };
     const fileAccessPolicy = require("../security/fileAccessPolicy") as {
         isApprovedFilePath: (filePath: unknown) => boolean;
     };

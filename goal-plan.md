@@ -81,6 +81,9 @@ already-migrated runtime consumers import those helper boundaries natively inste
 files. Main-process source and the state/menu utility consumers no longer require `electronAccess.ts` directly.
 The auto-updater access helper now uses named source exports too, and setup/menu/bootstrap consumers import
 the updater resolver boundary natively instead of requiring its source file.
+The Node runtime module boundary now uses named source exports for `path`, `fs`, and `httpRef`; file-access,
+IPC sender policy, Gyazo OAuth, application-event, menu-event, and IPC setup consumers import that boundary
+natively instead of requiring its source file.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

@@ -4,11 +4,8 @@ import {
     resetFileAccessPolicyState,
     type FileAccessPolicyState,
 } from "./fileAccessPolicyState.js";
+import * as nodeModules from "../runtime/nodeModules.js";
 
-const nodeModules = require("../runtime/nodeModules") as {
-    fs: null | typeof import("node:fs");
-    path: typeof import("node:path");
-};
 const { path } = nodeModules;
 
 interface ApprovalOptions {
