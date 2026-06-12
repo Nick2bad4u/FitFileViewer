@@ -30,6 +30,7 @@ const generatedRuntimeRootFiles = new Set([
     "renderer.js",
     "windowStateUtils.js",
 ]);
+let fitFileViewerVitestDistResolverInstalled = false;
 
 function isGeneratedRuntimePath(relativePath) {
     const normalized = relativePath.replaceAll(path.sep, "/");
@@ -101,7 +102,7 @@ function resolveDistRuntimeRequest(request, parentFilename) {
     }
 }
 
-if (!globalThis.__fitFileViewerVitestDistResolverInstalled) {
+if (!fitFileViewerVitestDistResolverInstalled) {
     const originalResolveFilename = Module._resolveFilename;
     Module._resolveFilename = function resolveFilename(
         request,
@@ -124,7 +125,7 @@ if (!globalThis.__fitFileViewerVitestDistResolverInstalled) {
             options
         );
     };
-    globalThis.__fitFileViewerVitestDistResolverInstalled = true;
+    fitFileViewerVitestDistResolverInstalled = true;
 }
 
 // Soft import of state manager test-only resets; guarded to avoid module init cost when not present

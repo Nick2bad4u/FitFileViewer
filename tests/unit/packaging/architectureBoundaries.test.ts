@@ -630,6 +630,8 @@ const directVitestDocumentNativeMethodsGlobalPattern =
 const directVitestCreateElectronMocksGlobalPattern = /\bcreateElectronMocks\b/u;
 const directVitestTimerTrackingGlobalPattern =
     /\b__vitest_(?:tracked_(?:timeouts|intervals|dom_listeners)|timers_wrapped)\b/u;
+const directVitestDistResolverGlobalPattern =
+    /\b__fitFileViewerVitestDistResolverInstalled\b/u;
 const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
@@ -4696,6 +4698,28 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directTimerTrackingGlobalLookups).toStrictEqual([]);
+    });
+
+    it("does not recreate the dist resolver install global in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directDistResolverGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestDistResolverGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directDistResolverGlobalLookups).toStrictEqual([]);
     });
 
     it("keeps raw globalThis any casts out of source and tests", () => {

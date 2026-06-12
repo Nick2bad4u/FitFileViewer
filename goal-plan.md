@@ -67,7 +67,9 @@ native-method cache now lives in module-local WeakMap state instead of publishin
 `__vitest_doc_native_methods` on globalThis, with architecture coverage for that retired harness global too.
 The unused `createElectronMocks` global helper has also been removed from setup; Electron tests should use
 explicit local fixtures or `vi.mock(...)` factories. Setup-level timeout, interval, and DOM listener tracking
-now uses module-local state instead of `__vitest_tracked_*` and `__vitest_timers_wrapped` globals.
+now uses module-local state instead of `__vitest_tracked_*` and `__vitest_timers_wrapped` globals. The
+generated-runtime resolver install guard now uses setup-module state instead of
+`__fitFileViewerVitestDistResolverInstalled` on globalThis.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
