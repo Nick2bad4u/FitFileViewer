@@ -3,7 +3,8 @@
 This is the biggest remaining deprecation track. The ledger still lists CommonJS-style preload/runtime
 bridge modules as an intentional temporary surface: /C:/Repos/FitFileViewer/docs/DEPRECATION_LEDGER.md:146.
 The current preload path still emits/consumes CommonJS-compatible output for Electron packaging, and preload
-modules still use module.exports/require heavily.
+modules still depend on the injected `requireModule`/packaged CommonJS boundary even though source-level
+`module.exports` wrappers have been removed.
 
 Progress: `electron-app/preload/apiAssembly.ts` now consumes API assembly-context and domain factory dependencies
 from the injected preload module registry instead of requiring sibling preload modules directly. The new
@@ -32,6 +33,8 @@ The preload before-exit, development-tools, and Electron API exposure helpers (`
 The preload devtools menu, IPC helper, Electron API factory, and Electron bridge resolver modules
 (`devtoolsMenuApi.ts`, `ipcHelpers.ts`, `electronApiFactory.ts`, and `electronBridge.ts`) now use named
 source exports too.
+The remaining preload API assembly, runtime, bootstrap, and module-loader files now use named source exports;
+`electron-app/preload/*.ts` no longer contains source-level `module.exports` wrappers.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

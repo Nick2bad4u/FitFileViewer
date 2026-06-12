@@ -1485,6 +1485,93 @@ describe("architecture boundaries", () => {
         }
     });
 
+    it("keeps preload runtime loaders on named source exports", () => {
+        const loaderExports = [
+            [
+                "electron-app/preload/apiAssembly.ts",
+                "assemblePreloadApi",
+                "const",
+            ],
+            [
+                "electron-app/preload/apiAssembly.ts",
+                "createPreloadConstants",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadApiAssemblyModuleLoader.ts",
+                "loadPreloadApiAssemblyModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadAppModuleLoader.ts",
+                "loadPreloadAppModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadBootstrap.ts",
+                "startPreloadScript",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadFileModuleLoader.ts",
+                "loadPreloadFileModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadIpcModuleLoader.ts",
+                "loadPreloadIpcModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadModuleLoader.ts",
+                "loadPreloadModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadPolicyModuleLoader.ts",
+                "loadPreloadPolicyModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadRuntime.ts",
+                "createPreloadRuntime",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadStateModuleLoader.ts",
+                "loadPreloadStateModules",
+                "function",
+            ],
+        ] as const;
+
+        expect.assertions(loaderExports.length * 2);
+
+        for (const [
+            filePath,
+            exportName,
+            exportKind,
+        ] of loaderExports) {
+            const source = stripComments(readRepositoryFile(filePath));
+
+            expect(source).toContain(`export ${exportKind} ${exportName}`);
+            expect(source).not.toContain("module.exports");
+        }
+    });
+
+    it("keeps preload TypeScript source free of source-level CommonJS exports", () => {
+        expect.assertions(1);
+
+        const preloadCommonJsExportFiles = collectSourceFiles(
+            "electron-app/preload"
+        ).filter((relativeFile) =>
+            stripComments(readRepositoryFile(relativeFile)).includes(
+                "module.exports"
+            )
+        );
+
+        expect(preloadCommonJsExportFiles).toStrictEqual([]);
+    });
+
     it("keeps preload IPC policy dependencies injected through the module registry", () => {
         expect.assertions(6);
 
