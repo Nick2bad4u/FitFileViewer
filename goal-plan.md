@@ -419,6 +419,9 @@ animation-fixture assignment.
 Single HR-zone bar tests now install jsdom browser globals through descriptor-scoped helpers and mock console
 methods through per-test Vitest spies instead of assigning browser globals or a replacement `global.console`
 directly, with architecture coverage blocking those fixture patterns.
+Strict altitude profile chart tests now install jsdom browser globals and localStorage through
+descriptor-scoped helpers and mock console methods through per-test Vitest spies instead of assigning browser
+globals or a replacement `global.console` directly, with architecture coverage blocking those fixture patterns.
 Strict event-message chart tests now rely on the jsdom-provided window object instead of assigning
 `global.window = window` during setup, with architecture coverage blocking that direct window fixture.
 Complete file-open tests now install temporary `process.env` coverage through a descriptor-scoped fixture

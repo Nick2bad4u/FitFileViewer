@@ -742,6 +742,8 @@ const settingsStateManagerTestDirectConsoleAssignmentPattern =
     /\bglobal\.console\s*=/u;
 const renderSingleHrZoneBarTestDirectGlobalFixtureAssignmentPattern =
     /\b(?:testGlobal|global)\.(?:console|document|HTMLCanvasElement|HTMLElement|window)\s*=/u;
+const renderAltitudeProfileChartTestDirectGlobalFixtureAssignmentPattern =
+    /\b(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\s*=|\bdelete\s+(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\b/u;
 const renderEventMessagesChartTestDirectWindowAssignmentPattern =
     /\bglobal\.window\s*=/u;
 const directActiveFitFileNameGlobalPattern =
@@ -6849,6 +6851,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/strictTests/renderEventMessagesChart.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps altitude profile chart tests on scoped browser and console fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderAltitudeProfileChartTestDirectGlobalFixtureAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/renderAltitudeProfileChart.test.ts"
                     )
                 )
             )
