@@ -1417,6 +1417,11 @@ if (typeof window !== "undefined") {
 
 /** @type {WeakMap<Document, any>} */
 const vitestDocumentNativeMethods = new WeakMap();
+const vitestTrackedTimeouts = new Set();
+const vitestTrackedIntervals = new Set();
+/** @type {any[]} */
+const vitestTrackedDomListeners = [];
+let vitestTimerAndListenerTrackingInstalled = false;
 
 // Helper to install guards on a specific Document instance (handles reassignments)
 /**
@@ -1890,12 +1895,8 @@ try {
         }
         // Clear tracked timers
         try {
-            /** @type {Set<number>} */
-            const timeouts = /** @type {any} */ (globalThis)
-                .__vitest_tracked_timeouts;
-            /** @type {Set<number>} */
-            const intervals = /** @type {any} */ (globalThis)
-                .__vitest_tracked_intervals;
+            const timeouts = vitestTrackedTimeouts;
+            const intervals = vitestTrackedIntervals;
             if (timeouts && typeof clearTimeout === "function") {
                 for (const id of Array.from(timeouts)) {
                     try {
@@ -1929,8 +1930,7 @@ try {
              *     options?: any;
              * }[]}
              */
-            const listeners = /** @type {any} */ (globalThis)
-                .__vitest_tracked_dom_listeners;
+            const listeners = vitestTrackedDomListeners;
             if (Array.isArray(listeners)) {
                 for (const rec of listeners.splice(0, listeners.length)) {
                     try {
@@ -2071,14 +2071,10 @@ try {
 // --- Track and clean up timers and DOM event listeners to prevent leaks across tests ---
 (function installTimerAndListenerTracking() {
     try {
-        if (!("__vitest_timers_wrapped" in /** @type {any} */ (globalThis))) {
+        if (!vitestTimerAndListenerTrackingInstalled) {
             // Timer tracking
-            const timeouts = new Set();
-            const intervals = new Set();
-            /** @type {any} */ (globalThis).__vitest_tracked_timeouts =
-                timeouts;
-            /** @type {any} */ (globalThis).__vitest_tracked_intervals =
-                intervals;
+            const timeouts = vitestTrackedTimeouts;
+            const intervals = vitestTrackedIntervals;
 
             const nativeSetTimeout = globalThis.setTimeout?.bind(globalThis);
             const nativeSetInterval = globalThis.setInterval?.bind(globalThis);
@@ -2139,10 +2135,7 @@ try {
             }
 
             // DOM event listener tracking for window and document
-            /** @type {any[]} */
-            const domListeners = [];
-            /** @type {any} */ (globalThis).__vitest_tracked_dom_listeners =
-                domListeners;
+            const domListeners = vitestTrackedDomListeners;
 
             function wrapAddRemove(target) {
                 try {
@@ -2206,7 +2199,7 @@ try {
                 wrapAddRemove(document);
             }
 
-            /** @type {any} */ (globalThis).__vitest_timers_wrapped = true;
+            vitestTimerAndListenerTrackingInstalled = true;
         }
     } catch {
         // ignore
