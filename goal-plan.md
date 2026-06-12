@@ -1,10 +1,11 @@
-1. Retire Runtime CommonJS Compatibility (Fully finish)
+1. Retire Runtime CommonJS Compatibility (Complete)
 
-This is the biggest remaining deprecation track. The ledger still lists CommonJS-style preload/runtime
-bridge modules as an intentional temporary surface: /C:/Repos/FitFileViewer/docs/DEPRECATION_LEDGER.md:157.
-The current preload path still emits/consumes CommonJS-compatible output for Electron packaging, and preload
-modules still depend on the packaged CommonJS boundary even though source-level `module.exports` wrappers and
-the injected preload `requireModule` handoff have been removed.
+The CommonJS compatibility surface is now isolated to the generated Electron package boundary. The current
+preload/main build still emits CommonJS-compatible output because Electron packaging launches the generated
+`dist/` files from a CommonJS root package manifest, but app source no longer owns source-level
+`module.exports` wrappers, injected preload `requireModule` handoffs, direct source `require(...)` calls,
+`createRequire`/`require.cache` test bridges, global `require` patches, or the generic runtime
+`loadNodeModule` escape hatch.
 
 Progress: `electron-app/preload/apiAssembly.ts` now consumes API assembly-context and domain factory dependencies
 from the injected preload module registry instead of requiring sibling preload modules directly. The new
@@ -176,9 +177,10 @@ build is reused instead of each worker attempting a redundant `dist/` rebuild.
 FIT parser and preload IPC documentation now show ESM-style app-code imports instead of `require(...)` examples,
 with docs-alignment coverage preventing those stale CommonJS examples from returning.
 
-Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
-only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
-requirements, and tests no longer need special CommonJS-in-ESM mock patterns.
+Maintenance target: keep CommonJS isolated to the generated build/package boundary until the Electron preload
+and main launch path can move to native ESM output. App source should stay typed ESM-style, preload bundling
+must continue to handle Electron's packaging requirements, and tests should stay off special
+CommonJS-in-ESM mock patterns.
 
 2. Replace Remaining Vendor Compatibility Bundles With Import-Driven Feature Loading (Fully finish)
 
