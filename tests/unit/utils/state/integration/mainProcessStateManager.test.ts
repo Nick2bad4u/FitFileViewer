@@ -14,7 +14,6 @@ type BrowserWindowLike = {
     };
 };
 
-type ElectronRequire = (id: string) => unknown;
 type IpcHandler = (...args: unknown[]) => unknown;
 type Listener = (change?: unknown) => void;
 type SendMessage = (...args: unknown[]) => void;
@@ -36,23 +35,11 @@ function installElectronOverride(): void {
     });
 }
 
-// Mock electron module first - this should work for both ES6 imports and CommonJS require
+// Mock native Electron imports while electronAccess receives the explicit override.
 vi.mock(import("electron"), () => ({
     ipcMain: mockIpcMain,
     BrowserWindow: mockBrowserWindow,
 }));
-
-// Set up global require mock to intercept require('electron') calls
-const originalRequire = global.require;
-global.require = vi.fn<ElectronRequire>((id) => {
-    if (id === "electron") {
-        return {
-            ipcMain: mockIpcMain,
-            BrowserWindow: mockBrowserWindow,
-        };
-    }
-    return originalRequire(id);
-}) as typeof global.require;
 
 // Create a comprehensive mock for logWithLevel
 vi.mock(import("../../../../../electron-app/utils/logging/index.js"), () => ({
@@ -90,6 +77,7 @@ describe("mainProcessStateManager.js - Comprehensive Coverage", () => {
 
     afterEach(() => {
         vi.clearAllMocks();
+        setElectronOverride(null);
     });
 
     describe("mainProcessState Class", () => {

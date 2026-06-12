@@ -139,6 +139,9 @@ The main-process module test no longer clears CJS require cache for the ESM-impo
 Electron builder file-list test imports the CJS config through native dynamic import instead of `createRequire`.
 The env-sensitive Electron Builder identity/signing test now loads the CJS config in a fresh Node dynamic-import
 subprocess for each environment case instead of owning a `createRequire`/`require.cache` test bridge.
+The main-process state-manager test now relies on the typed Electron access override plus native Electron mock
+instead of patching `global.require` to intercept `require("electron")`, with architecture coverage blocking
+that CommonJS-in-ESM test bridge from returning.
 FIT parser and preload IPC documentation now show ESM-style app-code imports instead of `require(...)` examples,
 with docs-alignment coverage preventing those stale CommonJS examples from returning.
 
@@ -238,6 +241,8 @@ comments and renderer registration fixtures no longer preserve the retired share
 ambient global test concept. The Object.keys guard duplicate-wrapper tracking now uses module-local WeakSet
 state instead of writing a `__isObjectKeysWrapper` marker property on wrapper functions. Ordinary unit tests no
 longer seed the retired chart suppression or createAppMenu export globals when verifying module-state behavior.
+The main-process state-manager test also resets its typed Electron override after each test instead of installing
+an ambient `global.require` patch.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

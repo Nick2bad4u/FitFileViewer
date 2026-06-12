@@ -2785,6 +2785,29 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps main-process state-manager tests off global require patches", () => {
+        expect.assertions(4);
+
+        const mainProcessStateManagerTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/utils/state/integration/mainProcessStateManager.test.ts"
+            )
+        );
+
+        expect(mainProcessStateManagerTestSource).not.toMatch(
+            /\b(?:createRequire|requireCjs|require\s*\()/u
+        );
+        expect(mainProcessStateManagerTestSource).not.toContain(
+            "global.require"
+        );
+        expect(mainProcessStateManagerTestSource).not.toContain(
+            "require.cache"
+        );
+        expect(mainProcessStateManagerTestSource).toContain(
+            "setElectronOverride"
+        );
+    });
+
     it("keeps renderer startup subscriptions behind the app-domain facade", () => {
         expect.assertions(2);
 
