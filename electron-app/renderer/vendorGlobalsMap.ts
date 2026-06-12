@@ -82,7 +82,8 @@ export async function installRendererMapVendorGlobals(): Promise<void> {
 
     setLeafletRuntime(Leaflet);
 
-    await import("leaflet-draw");
+    // eslint-disable-next-line import-x/no-unresolved -- Vite provides this virtual module in vite.renderer.config.mjs.
+    await import("fitfileviewer:leaflet-draw-runtime");
     await import("@maplibre/maplibre-gl-leaflet");
     installLeafletMeasureLite(Leaflet);
     removeLeafletCompatibilityGlobals();

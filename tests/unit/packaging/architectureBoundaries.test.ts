@@ -5617,7 +5617,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(32);
+        expect.assertions(37);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/vendorGlobalsMap.ts")
@@ -5654,14 +5654,18 @@ describe("architecture boundaries", () => {
             "setLeafletRuntime(Leaflet)"
         );
         const leafletDrawImportIndex = vendorMapEntry.indexOf(
-            'import("leaflet-draw")'
+            'import("fitfileviewer:leaflet-draw-runtime")'
         );
 
         expect(vendorMapEntry).toContain('import LeafletMiniMap from "leaflet-minimap"');
         expect(vendorMapEntry).toContain("setLeafletRuntime(Leaflet)");
         expect(vendorMapEntry).toContain("leafletRuntime: Leaflet");
+        expect(vendorMapEntry).toContain(
+            'import("fitfileviewer:leaflet-draw-runtime")'
+        );
         expect(setLeafletRuntimeIndex).toBeGreaterThanOrEqual(0);
         expect(leafletDrawImportIndex).toBeGreaterThan(setLeafletRuntimeIndex);
+        expect(vendorMapEntry).not.toContain('import("leaflet-draw")');
         expect(vendorMapEntry).not.toContain("leaflet.markercluster");
         expect(leafletRuntimeSource).not.toContain("Symbol.for");
         expect(leafletRuntimeSource).not.toContain("globalThis");
@@ -5678,18 +5682,21 @@ describe("architecture boundaries", () => {
         );
         expect(globalDefinitionViolations).toStrictEqual([]);
         expect(viteRendererConfig).toContain(
+            'const leafletDrawRuntimeModuleId = "fitfileviewer:leaflet-draw-runtime"'
+        );
+        expect(viteRendererConfig).toContain(
+            'import.meta.resolve("leaflet-draw")'
+        );
+        expect(viteRendererConfig).toContain('"const L = Leaflet;"');
+        expect(viteRendererConfig).not.toContain(
             "fitfileviewer-legacy-leaflet-plugin-runtime"
         );
-        expect(viteRendererConfig).toContain(
-            'import { resolveLeafletRuntime } from "/electron-app/utils/maps/core/leafletRuntime.ts";'
-        );
-        expect(viteRendererConfig).toContain(
-            "const L = resolveLeafletRuntime"
-        );
+        expect(viteRendererConfig).not.toContain("transform(code");
+        expect(viteRendererConfig).not.toContain("resolveLeafletRuntime");
         expect(viteRendererConfig).not.toContain("legacyLeafletPluginRuntime");
         expect(viteRendererConfig).not.toContain("Symbol.for");
         expect(viteRendererConfig).not.toContain("globalThis");
-        expect(viteRendererConfig).toContain(
+        expect(viteRendererConfig).not.toContain(
             "/node_modules/leaflet-draw/dist/leaflet.draw.js"
         );
         expect(viteRendererConfig).not.toContain("leaflet.markercluster");

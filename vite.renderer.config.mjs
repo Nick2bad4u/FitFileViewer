@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
 import {
@@ -19,46 +21,42 @@ const vendorEntryNames = new Set([
     rendererVendorGlobalsMapBundleName,
 ]);
 
-const leafletRuntimePluginPrelude = [
-    'import { resolveLeafletRuntime } from "/electron-app/utils/maps/core/leafletRuntime.ts";',
-    'const L = resolveLeafletRuntime((value) => Boolean(value && (typeof value === "object" || typeof value === "function")));',
-    'if (!L) throw new Error("Leaflet runtime is required before loading legacy Leaflet plugins.");',
-    "",
-].join("\n");
-
-/** @type {ReadonlyMap<string, (code: string) => string>} */
-const legacyLeafletPluginTransforms = new Map([
-    [
-        "/node_modules/leaflet-draw/dist/leaflet.draw.js",
-        (code) => `${leafletRuntimePluginPrelude}${code}`,
-    ],
-]);
+const leafletDrawRuntimeModuleId = "fitfileviewer:leaflet-draw-runtime";
+const resolvedLeafletDrawRuntimeModuleId = `\0${leafletDrawRuntimeModuleId}`;
+const leafletDrawDistPath = fileURLToPath(import.meta.resolve("leaflet-draw"));
 
 /** @returns {import("vite").Plugin} */
-function leafletPluginRuntimeTransform() {
+function leafletDrawRuntimeModule() {
     return {
-        enforce: "pre",
-        name: "fitfileviewer-legacy-leaflet-plugin-runtime",
-        /**
-         * @param {string} code
-         * @param {string} id
-         *
-         * @returns {import("vite").TransformResult}
-         */
-        transform(code, id) {
-            const normalizedId = id.replaceAll("\\", "/");
-            const transformLegacyPlugin = [
-                ...legacyLeafletPluginTransforms.entries(),
-            ].find(([pluginPath]) => normalizedId.includes(pluginPath))?.[1];
-
-            if (!transformLegacyPlugin) {
+        /** @param {string} id */
+        async load(id) {
+            if (id !== resolvedLeafletDrawRuntimeModuleId) {
                 return null;
             }
 
-            return {
-                code: transformLegacyPlugin(code),
-                map: null,
-            };
+            // eslint-disable-next-line security/detect-non-literal-fs-filename -- Resolved once from the installed leaflet-draw package entrypoint.
+            const leafletDrawSource = await readFile(
+                leafletDrawDistPath,
+                "utf8"
+            );
+
+            return [
+                'import Leaflet from "leaflet";',
+                "const L = Leaflet;",
+                leafletDrawSource,
+                "export {};",
+            ].join("\n");
+        },
+        name: "fitfileviewer-leaflet-draw-runtime-module",
+        /**
+         * @param {string} id
+         *
+         * @returns {string | null}
+         */
+        resolveId(id) {
+            return id === leafletDrawRuntimeModuleId
+                ? resolvedLeafletDrawRuntimeModuleId
+                : null;
         },
     };
 }
@@ -103,7 +101,7 @@ export default defineConfig({
         sourcemap: false,
         target: "es2024",
     },
-    plugins: [leafletPluginRuntimeTransform()],
+    plugins: [leafletDrawRuntimeModule()],
     publicDir: false,
     root: repositoryRoot,
 });
