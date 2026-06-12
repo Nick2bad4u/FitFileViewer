@@ -3,29 +3,12 @@
  * Re-exports all modules in the state/integration category.
  */
 
-type MainProcessStateManagerExports = {
-    MainProcessState?: unknown;
-    mainProcessState?: unknown;
-};
-
-const mainProcessStateManagerExports =
-    require("./mainProcessStateManager.js") as MainProcessStateManagerExports;
-
-/**
- * Main-process state manager constructor exposed through the legacy CommonJS
- * bridge.
- */
-export const MainProcessState =
-    mainProcessStateManagerExports?.MainProcessState;
-
-/**
- * Main-process state singleton exposed through the legacy CommonJS bridge.
- */
-export const mainProcessState =
-    mainProcessStateManagerExports?.mainProcessState;
-
 // Export in deterministic sorted order to satisfy lint rules.
 export * from "./mainProcessStateClient.js";
+export {
+    MainProcessState,
+    mainProcessState,
+} from "./mainProcessStateManager.js";
 export * from "./rendererStateIntegration.js";
 export * from "./stateIntegration.js";
 /* eslint-enable no-barrel-files/no-barrel-files */

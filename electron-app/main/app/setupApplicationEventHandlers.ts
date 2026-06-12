@@ -1,4 +1,8 @@
 import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
+import { CONSTANTS } from "../constants.js";
+import { getAppState, setAppState } from "../state/appState.js";
+
+let setupApplicationEventHandlersImpl: (() => void) | undefined;
 
 {
     type HttpModule = typeof import("node:http");
@@ -105,14 +109,21 @@ import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
         openExternal?: (url: string) => unknown;
     }
 
+    interface GyazoOAuthServerModule {
+        startGyazoOAuthServer: () => Promise<unknown>;
+        stopGyazoOAuthServer: () => Promise<unknown>;
+    }
+
+    interface ThemeFromRendererModule {
+        getThemeFromRenderer: (win: unknown) => Promise<string>;
+    }
+
+    interface WindowValidationModule {
+        validateWindow: (win?: unknown, context?: string) => boolean;
+    }
+
     const { fileURLToPath } = require("node:url") as typeof import("node:url");
 
-    const { CONSTANTS } = require("../constants") as {
-        CONSTANTS: {
-            DEFAULT_THEME: string;
-            PLATFORMS: { DARWIN: NodeJS.Platform; LINUX: NodeJS.Platform };
-        };
-    };
     const { logWithContext } = require("../logging/logWithContext") as {
         logWithContext: (
             level: string,
@@ -127,11 +138,6 @@ import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
             loadedFitFilePath?: null | string
         ) => void;
     };
-    const { startGyazoOAuthServer, stopGyazoOAuthServer } =
-        require("../oauth/gyazoOAuthServer") as {
-            startGyazoOAuthServer: () => Promise<unknown>;
-            stopGyazoOAuthServer: () => Promise<unknown>;
-        };
     const { setGyazoStartupTimer } = require("./gyazoStartupTimerState") as {
         setGyazoStartupTimer: (handle: ReturnType<typeof setTimeout>) => void;
     };
@@ -146,27 +152,23 @@ import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
         httpRef: () => HttpModule | null;
         path: PathModule;
     };
-    const { getAppState, setAppState } = require("../state/appState") as {
-        getAppState: (key: string) => unknown;
-        setAppState: (
-            key: string,
-            value: unknown,
-            options?: Record<string, unknown>
-        ) => void;
-    };
-    const { getThemeFromRenderer } =
-        require("../theme/getThemeFromRenderer") as {
-            getThemeFromRenderer: (win: unknown) => Promise<string>;
-        };
-    const { validateWindow } = require("../window/windowValidation") as {
-        validateWindow: (win?: unknown, context?: string) => boolean;
-    };
-
     const APP_LISTENER_REGISTRY = new Map<string, AppListener>();
     const SESSION_HANDLER_REGISTRY = new WeakMap<
         object,
         Set<SessionHandlerRegistration>
     >();
+
+    function resolveGyazoOAuthServer(): GyazoOAuthServerModule {
+        return require("../oauth/gyazoOAuthServer") as GyazoOAuthServerModule;
+    }
+
+    function resolveThemeFromRenderer(): ThemeFromRendererModule {
+        return require("../theme/getThemeFromRenderer") as ThemeFromRendererModule;
+    }
+
+    function resolveWindowValidation(): WindowValidationModule {
+        return require("../window/windowValidation") as WindowValidationModule;
+    }
 
     type SessionHandlerRegistration = "download" | "permissions";
 
@@ -613,7 +615,12 @@ import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
                             "function"
                                 ? BrowserWindow.getFocusedWindow()
                                 : null) ?? getAppState("mainWindow");
-                        if (validateWindow(win, "app activate event")) {
+                        if (
+                            resolveWindowValidation().validateWindow(
+                                win,
+                                "app activate event"
+                            )
+                        ) {
                             safeCreateAppMenu(
                                 win,
                                 CONSTANTS.DEFAULT_THEME,
@@ -636,7 +643,10 @@ import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
             void (async (): Promise<void> => {
                 if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
                     try {
-                        const theme = await getThemeFromRenderer(win);
+                        const theme =
+                            await resolveThemeFromRenderer().getThemeFromRenderer(
+                                win
+                            );
                         safeCreateAppMenu(win, theme, getLoadedFitFilePath());
                     } catch (error) {
                         logWithContext(
@@ -666,7 +676,7 @@ import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
                 if (gyazoServer) {
                     (event as PreventableEvent).preventDefault?.();
                     try {
-                        await stopGyazoOAuthServer();
+                        await resolveGyazoOAuthServer().stopGyazoOAuthServer();
                         appRef()?.quit?.();
                     } catch (error) {
                         logWithContext(
@@ -772,9 +782,11 @@ import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
                                 }
                             }
                         } else {
-                            void startGyazoOAuthServer().catch(() => {
-                                /* ignore */
-                            });
+                            void resolveGyazoOAuthServer()
+                                .startGyazoOAuthServer()
+                                .catch(() => {
+                                    /* ignore */
+                                });
                         }
                     } catch {
                         /* ignore */
@@ -812,5 +824,9 @@ import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
         }
     }
 
-    module.exports = { setupApplicationEventHandlers };
+    setupApplicationEventHandlersImpl = setupApplicationEventHandlers;
+}
+
+export function setupApplicationEventHandlers(): void {
+    setupApplicationEventHandlersImpl?.();
 }

@@ -1601,6 +1601,43 @@ describe("architecture boundaries", () => {
         expect(parserFacadeSource).not.toContain('require("../../fitParser")');
     });
 
+    it("keeps migrated main state source modules off source-level CommonJS exports", () => {
+        expect.assertions(9);
+
+        const appStateSource = stripComments(
+            readRepositoryFile("electron-app/main/state/appState.ts")
+        );
+        const constantsSource = stripComments(
+            readRepositoryFile("electron-app/main/constants.ts")
+        );
+        const stateIntegrationBarrelSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/integration/index.ts")
+        );
+        const appEventHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/app/setupApplicationEventHandlers.ts"
+            )
+        );
+
+        expect(appStateSource).not.toContain("module.exports");
+        expect(appStateSource).not.toContain(
+            'require("../../utils/state/integration/mainProcessStateManager")'
+        );
+        expect(constantsSource).not.toContain("module.exports");
+        expect(stateIntegrationBarrelSource).not.toContain("module.exports");
+        expect(stateIntegrationBarrelSource).not.toContain(
+            'require("./mainProcessStateManager.js")'
+        );
+        expect(appEventHandlersSource).not.toContain("module.exports");
+        expect(appEventHandlersSource).not.toContain('require("../constants")');
+        expect(appEventHandlersSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(appEventHandlersSource).toContain(
+            "function resolveGyazoOAuthServer()"
+        );
+    });
+
     it("keeps ordinary preload unit tests on native source imports", () => {
         expect.assertions(1);
 

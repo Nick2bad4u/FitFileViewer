@@ -51,6 +51,10 @@ The FIT parser source now exposes named exports plus a default module object ins
 `module.exports`, while the compiled CommonJS runtime still presents the same named API. The parser facade and
 FIT parser state integration now import the parser/state-manager source through typed ESM imports instead of
 requiring the source files directly.
+Main-process constants, the main app-state facade, the state-integration barrel, and application event handler
+source now use named source exports/imports instead of source-level `module.exports` or direct source requires
+for constants/app-state/state-manager dependencies; app-event OAuth/theme/window-validation dependencies are
+lazy so permission-handler source tests can import the ESM source boundary natively.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

@@ -64,18 +64,10 @@ function clearMainRequireCache() {
     const electronAccessPath = requireCjs.resolve(
         "../../../../electron-app/main/runtime/electronAccess"
     );
-    const setupHandlersPath = requireCjs.resolve(
-        "../../../../electron-app/main/app/setupApplicationEventHandlers"
-    );
-    const appStatePath = requireCjs.resolve(
-        "../../../../electron-app/main/state/appState"
-    );
     const mainProcessStateManagerPath = requireCjs.resolve(
         "../../../../electron-app/utils/state/integration/mainProcessStateManager"
     );
     delete requireCjs.cache[electronAccessPath];
-    delete requireCjs.cache[setupHandlersPath];
-    delete requireCjs.cache[appStatePath];
     delete requireCjs.cache[mainProcessStateManagerPath];
 }
 
@@ -85,16 +77,12 @@ function requireElectronAccess(): ElectronAccessModule {
     ) as ElectronAccessModule;
 }
 
-function requireSetupHandlers(): SetupHandlersModule {
-    return requireCjs(
-        "../../../../electron-app/main/app/setupApplicationEventHandlers"
-    ) as SetupHandlersModule;
+async function importSetupHandlers(): Promise<SetupHandlersModule> {
+    return (await import("../../../../electron-app/main/app/setupApplicationEventHandlers.js")) as SetupHandlersModule;
 }
 
-function requireAppState(): AppStateModule {
-    return requireCjs(
-        "../../../../electron-app/main/state/appState"
-    ) as AppStateModule;
+async function importAppState(): Promise<AppStateModule> {
+    return (await import("../../../../electron-app/main/state/appState.js")) as AppStateModule;
 }
 
 describe("setupApplicationEventHandlers permission hardening", () => {
@@ -144,9 +132,12 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             shell: { openExternal: vi.fn<(url: string) => Promise<void>>() },
         });
 
-        const { setupApplicationEventHandlers } = requireSetupHandlers();
+        const { setupApplicationEventHandlers } = await importSetupHandlers();
         setupApplicationEventHandlers();
-        requireAppState().setAppState("permissions.geolocation.allowed", null);
+        (await importAppState()).setAppState(
+            "permissions.geolocation.allowed",
+            null
+        );
 
         const webContentsCreatedHandler = handlers.get("web-contents-created");
         assertFunction<WebContentsCreatedHandler>(
@@ -229,7 +220,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             shell: { openExternal: vi.fn<(url: string) => Promise<void>>() },
         });
 
-        const { setupApplicationEventHandlers } = requireSetupHandlers();
+        const { setupApplicationEventHandlers } = await importSetupHandlers();
         setupApplicationEventHandlers();
 
         const webContentsCreatedHandler = handlers.get("web-contents-created");
@@ -271,7 +262,10 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             })
         ).toBe(false);
 
-        requireAppState().setAppState("permissions.geolocation.allowed", true);
+        (await importAppState()).setAppState(
+            "permissions.geolocation.allowed",
+            true
+        );
         expect(
             checkHandler({}, "geolocation", "about:blank", {
                 requestingUrl: "about:blank",
@@ -303,7 +297,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             shell: { openExternal: vi.fn<(url: string) => Promise<void>>() },
         });
 
-        const { setupApplicationEventHandlers } = requireSetupHandlers();
+        const { setupApplicationEventHandlers } = await importSetupHandlers();
         setupApplicationEventHandlers();
 
         const webContentsCreatedHandler = handlers.get("web-contents-created");
@@ -372,7 +366,7 @@ describe("setupApplicationEventHandlers permission hardening", () => {
             shell: { openExternal: vi.fn<(url: string) => Promise<void>>() },
         });
 
-        const { setupApplicationEventHandlers } = requireSetupHandlers();
+        const { setupApplicationEventHandlers } = await importSetupHandlers();
 
         setupApplicationEventHandlers();
         const activateCount1 = appEmitter.listenerCount("activate");
