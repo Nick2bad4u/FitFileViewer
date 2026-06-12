@@ -299,6 +299,8 @@ globals when proving registry-based resolution; architecture coverage blocks tho
 Settings modal tests no longer delete retired `showSettingsModal` or `closeSettingsModal` globals during
 fixture setup or cleanup; they now assert presenter helpers stay absent, and architecture coverage blocks
 those mutations from returning.
+Render-summary helper tests no longer create or delete the retired `window.activeFitFileName` fallback when
+proving default storage-key behavior; architecture coverage blocks those mutations from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

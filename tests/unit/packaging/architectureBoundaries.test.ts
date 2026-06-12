@@ -694,6 +694,8 @@ const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
 const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
+const renderSummaryTestActiveFitFileNameMutationPattern =
+    /\bObject\.defineProperty\(\s*window\s*,\s*["']activeFitFileName["']|Reflect\.deleteProperty\(\s*window\s*,\s*["']activeFitFileName["']\s*\)|\b(?:window|globalThis)\.activeFitFileName\s*=/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const listenersResizeChartGlobalMutationPattern =
@@ -6178,6 +6180,23 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(false);
+    });
+
+    it("keeps render-summary tests from mutating retired active FIT filename globals", () => {
+        expect.assertions(1);
+
+        const violations = [
+            "tests/unit/utils/rendering/helpers/renderSummaryHelpers.test.ts",
+            "tests/unit/strictTests/rendering/core/renderSummary_and_helpers.test.ts",
+        ]
+            .filter((relativeFile) =>
+                renderSummaryTestActiveFitFileNameMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps lifecycle listener tests from mutating retired renderer globals", () => {

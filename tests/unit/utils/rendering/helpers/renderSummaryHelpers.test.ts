@@ -73,24 +73,17 @@ describe("renderSummaryHelpers core functions", () => {
         }
     });
 
-    it("getStorageKey uses the default key when only legacy global file names exist", () => {
+    it("getStorageKey uses the default key without legacy global file names", () => {
         expect.assertions(2);
 
         resetSummaryFixture();
 
         try {
-            Object.defineProperty(window, "activeFitFileName", {
-                configurable: true,
-                value: "LegacyName.fit",
-                writable: true,
-            });
-
             expect(getStorageKey()).toBe("summaryColSel_default");
             expect(getStorageKey({ other: "value" })).toBe(
                 "summaryColSel_default"
             );
         } finally {
-            Reflect.deleteProperty(window, "activeFitFileName");
             resetSummaryFixture();
         }
     });
