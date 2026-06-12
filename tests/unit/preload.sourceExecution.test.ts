@@ -33,6 +33,8 @@ interface ExposedDevTools {
     testIPC: () => Promise<boolean>;
 }
 
+type TestGlobalProperty = "console";
+
 const mockContextBridge = {
     exposeInMainWorld: vi.fn<(apiName: string, api: unknown) => void>(),
 };
@@ -50,6 +52,36 @@ let preloadElectronBridgeMock: {
     contextBridge: typeof mockContextBridge;
     ipcRenderer: typeof mockIpcRenderer;
 };
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor | undefined
+>();
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        originalGlobalDescriptors.set(
+            name,
+            Object.getOwnPropertyDescriptor(globalThis, name)
+        );
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        if (descriptor) {
+            Object.defineProperty(globalThis, name, descriptor);
+        } else {
+            Reflect.deleteProperty(globalThis, name);
+        }
+    }
+    originalGlobalDescriptors.clear();
+}
 
 async function startPreloadWithElectronBridge(): Promise<void> {
     const { startPreloadEntrypoint } =
@@ -111,15 +143,16 @@ describe("preload.js source execution", () => {
             ipcRenderer: mockIpcRenderer,
         };
 
-        global.console = {
-            ...console,
+        setTestGlobal("console", {
+            ...globalThis.console,
             log: vi.fn<(...data: unknown[]) => void>(),
             error: vi.fn<(...data: unknown[]) => void>(),
-        };
+        });
     });
 
     afterEach(() => {
         vi.resetModules();
+        restoreTestGlobals();
 
         delete process.env.NODE_ENV;
 

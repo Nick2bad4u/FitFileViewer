@@ -443,6 +443,8 @@ Setup console hardening now uses the existing `ensureConsoleAlive()` path instea
 `window.console.group`, `window.console.groupEnd`, and `window.console.groupCollapsed` in another global block.
 Preload and main-UI runtime-environment tests now install temporary console handles through descriptor-scoped
 fixtures instead of direct `globalThis.console` assignment, with architecture coverage blocking that pattern.
+Preload source execution tests now install their temporary development-log console through a descriptor-scoped
+helper instead of direct `global.console` assignment, with architecture coverage blocking that pattern too.
 Setup process-nextTick stabilization now uses one `ensureProcessNextTick()` helper instead of repeating the same
 inline `globalThis.process.nextTick` mutation in multiple setup hooks.
 

@@ -654,7 +654,7 @@ const directVitestHTMLElementGlobalBridgePattern =
 const directVitestWindowConsoleGroupPatchPattern =
     /\bwindow\.console\.group(?:Collapsed|End)?\s*=/u;
 const directRuntimeEnvironmentTestConsoleAssignmentPattern =
-    /\bglobalThis\.console\s*=/u;
+    /\b(?:global|globalThis)\.console\s*=/u;
 const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
     /\bglobalThis\.process\s*=/u;
 const loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern =
@@ -7368,10 +7368,11 @@ describe("architecture boundaries", () => {
         expect(directWindowConsoleGroupPatches).toStrictEqual([]);
     });
 
-    it("keeps runtime-environment tests from direct console global assignment", () => {
+    it("keeps preload runtime tests from direct console global assignment", () => {
         expect.assertions(1);
 
         const scannedFiles = [
+            "tests/unit/preload.sourceExecution.test.ts",
             "tests/unit/preload.preloadRuntimeEnvironment.test.ts",
             "tests/unit/renderer/mainUiRuntimeEnvironment.test.ts",
         ];
