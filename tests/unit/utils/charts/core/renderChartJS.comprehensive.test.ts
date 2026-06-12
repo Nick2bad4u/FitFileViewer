@@ -635,9 +635,6 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
         vi.clearAllMocks();
         chartJsModuleMocks.Chart.registry.plugins.get.mockReturnValue(false);
         mocks = injectChartJSMocks();
-        Reflect.deleteProperty(globalThis, "Chart");
-        Reflect.deleteProperty(globalThis, "ChartZoom");
-        Reflect.deleteProperty(globalThis, "chartjsPluginZoom");
         await registerChartRuntime(
             chartJsModuleMocks.Chart,
             chartJsModuleMocks.zoomPlugin
@@ -836,7 +833,6 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
 
         it("should handle Chart.js not available scenario", async () => {
             expect.assertions(2);
-            Reflect.deleteProperty(globalThis, "Chart");
             await clearChartRuntime();
 
             const { chartActions, chartState } =
@@ -1211,15 +1207,15 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
             expect({ rendered: view }).toStrictEqual({ rendered: false });
         });
 
-        it("should ignore legacy Chart.js unavailable global sentinel", async () => {
-            expect.assertions(2);
-            Reflect.set(globalThis, "Chart", null);
+        it("should render through the typed Chart.js runtime without a global sentinel", async () => {
+            expect.assertions(3);
 
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
             const view = await renderChartJS();
 
+            expect(Object.hasOwn(globalThis, "Chart")).toBe(false);
             expect(
                 mocks.showNotification.showNotification
             ).not.toHaveBeenCalledWith("Chart library not available", "error");
