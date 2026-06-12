@@ -277,12 +277,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Clean up all DOM elements thoroughly
         document.body.innerHTML = "";
 
-        // Clear any global state that might interfere.
-        Reflect.deleteProperty(globalThis, "globalData");
-        Reflect.deleteProperty(globalThis, "sendFitFileToAltFitReader");
-        Reflect.deleteProperty(globalThis, "renderChartJS");
-        Reflect.deleteProperty(globalThis, "copyTableAsCSV");
-
         // Clear any remaining timeouts that might interfere with subsequent tests
         for (let i = 1; i < 9999; i++) {
             clearTimeout(i);
@@ -331,6 +325,29 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             setLoading,
             showNotification,
         });
+    });
+
+    it("does not publish retired lifecycle helper globals", () => {
+        expect.assertions(1);
+
+        setupListeners({
+            openFileBtn,
+            isOpeningFileRef: { current: false },
+            setLoading,
+            showNotification,
+            handleOpenFile,
+            showUpdateNotification,
+            showAboutModal,
+        });
+
+        expect(
+            [
+                "copyTableAsCSV",
+                "globalData",
+                "renderChartJS",
+                "sendFitFileToAltFitReader",
+            ].filter((globalName) => Reflect.has(globalThis, globalName))
+        ).toStrictEqual([]);
     });
 
     it("contextmenu: no recentFiles available -> no action", async () => {

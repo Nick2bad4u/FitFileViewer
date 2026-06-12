@@ -282,6 +282,9 @@ names stay absent, and architecture coverage blocks those mutations from returni
 Unified state manager tests no longer delete the retired `globalData` global while proving the blocked
 facade does not route to active FIT data; they now assert the global stays absent, and architecture coverage
 blocks that mutation from returning.
+Lifecycle listener strict tests no longer delete retired helper globals such as `globalData`,
+`sendFitFileToAltFitReader`, `renderChartJS`, or `copyTableAsCSV`; they now assert those names stay absent,
+and architecture coverage blocks those mutations from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
