@@ -639,6 +639,8 @@ const directVitestDistResolverGlobalPattern =
 const directVitestWrappedEventListenerMarkerPattern = /\b__vitest_wrapped\b/u;
 const directVitestNavigationHistoryExpandoPattern =
     /\b__ffvNavigationHistory\b/u;
+const directVitestWindowEventTargetFallbackPattern =
+    /\bwindow\.(?:addEventListener|removeEventListener|dispatchEvent)\s*=|\btypeof\s+window\.dispatchEvent\s*!==\s*["']function["']/u;
 const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
@@ -6889,6 +6891,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directNavigationHistoryExpandoLookups).toStrictEqual([]);
+    });
+
+    it("does not recreate broad window event-target fallbacks in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directWindowEventTargetFallbacks = scannedFiles
+            .filter((relativeFile) =>
+                directVitestWindowEventTargetFallbackPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directWindowEventTargetFallbacks).toStrictEqual([]);
     });
 
     it("keeps raw globalThis any casts out of source and tests", () => {

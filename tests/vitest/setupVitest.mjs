@@ -1318,39 +1318,6 @@ if (
     global.HTMLElement = window.HTMLElement;
 }
 
-if (typeof window !== "undefined") {
-    // Ensure window.addEventListener is mocked
-    if (!window.addEventListener) {
-        window.addEventListener = vi.fn();
-        window.removeEventListener = vi.fn();
-    }
-    // Ensure window.dispatchEvent exists for jsdom-like environments
-    if (typeof window.dispatchEvent !== "function") {
-        try {
-            // Bind to EventTarget prototype if available
-            const et =
-                typeof EventTarget !== "undefined"
-                    ? EventTarget.prototype.dispatchEvent
-                    : undefined;
-            if (typeof et === "function") {
-                window.dispatchEvent =
-                    /** @type {(event: Event) => boolean} */ (et.bind(window));
-            } else {
-                // Fallback no-op to avoid hard failures in tests that call dispatchEvent
-                /** @type {(event: Event) => boolean} */
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const noop = (_event) => true;
-                window.dispatchEvent = noop;
-            }
-        } catch {
-            /** @type {(event: Event) => boolean} */
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const noop = (_event) => true;
-            window.dispatchEvent = noop;
-        }
-    }
-}
-
 /** @type {WeakMap<Document, any>} */
 const vitestDocumentNativeMethods = new WeakMap();
 const vitestTrackedTimeouts = new Set();

@@ -353,6 +353,9 @@ Vitest setup no longer registers a default Leaflet runtime for every test; map-r
 Leaflet runtime fixtures when they need one, and architecture coverage keeps setup off `setLeafletRuntime`.
 The unused setup-level Leaflet module mock object has also been removed; map tests now own their focused
 Leaflet fixtures instead of inheriting a broad fake map library from global setup.
+The broad setup fallback that fabricated `window.addEventListener`, `window.removeEventListener`, and no-op
+`window.dispatchEvent` implementations has been removed; tests now rely on jsdom's real event-target APIs or
+their own focused fixtures.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
