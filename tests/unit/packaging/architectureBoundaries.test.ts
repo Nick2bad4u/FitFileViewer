@@ -744,6 +744,8 @@ const renderSingleHrZoneBarTestDirectGlobalFixtureAssignmentPattern =
     /\b(?:testGlobal|global)\.(?:console|document|HTMLCanvasElement|HTMLElement|window)\s*=/u;
 const renderAltitudeProfileChartTestDirectGlobalFixtureAssignmentPattern =
     /\b(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\s*=|\bdelete\s+(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\b/u;
+const renderSpeedVsDistanceChartTestDirectGlobalFixtureAssignmentPattern =
+    /\b(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\s*=|\bdelete\s+(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\b/u;
 const renderEventMessagesChartTestDirectWindowAssignmentPattern =
     /\bglobal\.window\s*=/u;
 const directActiveFitFileNameGlobalPattern =
@@ -6865,6 +6867,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/strictTests/renderAltitudeProfileChart.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps speed-vs-distance chart tests on scoped browser and console fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderSpeedVsDistanceChartTestDirectGlobalFixtureAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/renderSpeedVsDistanceChart.test.ts"
                     )
                 )
             )
