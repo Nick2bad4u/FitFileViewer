@@ -2958,7 +2958,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated fullscreen controls on the screenfull runtime adapter", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
         const violations = migratedScreenfullRuntimeFiles
             .filter((relativeFile) =>
@@ -2967,8 +2967,16 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const fullscreenButtonSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/addFullScreenButton.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(fullscreenButtonSource).toContain("setupFullscreenListeners");
+        expect(fullscreenButtonSource).not.toContain("setupDOMContentLoaded");
+        expect(fullscreenButtonSource).not.toContain("Legacy DOM setup");
     });
 
     it("keeps screenfull wired through the runtime adapter instead of a renderer global", () => {

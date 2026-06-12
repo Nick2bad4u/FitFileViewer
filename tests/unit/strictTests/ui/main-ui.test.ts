@@ -64,12 +64,10 @@ vi.mock(
     })
 );
 
-const setupDOMContentLoaded = vi.fn<() => void>();
 const setupFullscreenListeners = vi.fn<() => void>();
 vi.mock(
     import("../../../../electron-app/utils/ui/controls/addFullScreenButton.js"),
     () => ({
-        setupDOMContentLoaded,
         setupFullscreenListeners,
     })
 );

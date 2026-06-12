@@ -51,7 +51,6 @@ const mocks = vi.hoisted(() => ({
     resourceAddShutdownHook: vi.fn<(callback: () => void) => void>(),
     setState:
         vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
-    setupDOMContentLoaded: vi.fn<() => void>(),
     setupExternalLinkHandlers: vi.fn<(options: ExternalLinkOptions) => void>(),
     setupFullscreenListeners: vi.fn<() => void>(),
     setupWindow: vi.fn<() => void>(),
@@ -94,7 +93,6 @@ vi.mock(
 vi.mock(
     import("../../electron-app/utils/ui/controls/addFullScreenButton.js"),
     () => ({
-        setupDOMContentLoaded: mocks.setupDOMContentLoaded,
         setupFullscreenListeners: mocks.setupFullscreenListeners,
     })
 );

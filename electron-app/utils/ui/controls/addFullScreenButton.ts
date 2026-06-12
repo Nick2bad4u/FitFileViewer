@@ -31,12 +31,6 @@ type VendorFullscreenElement = HTMLElement & {
 // Constants for better maintainability
 const FULLSCREEN_BUTTON_ID = "global-fullscreen-btn";
 const FULLSCREEN_WRAPPER_ID = "global-fullscreen-btn-wrapper";
-const REQUIRED_CONTENT_IDS = [
-    "content-data",
-    "content-map",
-    "content-summary",
-    "content-altfit",
-];
 const NATIVE_FULLSCREEN_EVENTS = [
     "fullscreenchange",
     "webkitfullscreenchange",
@@ -156,49 +150,6 @@ export function addFullScreenButton(): void {
             `Failed to create fullscreen button: ${message}`,
             "error"
         );
-    }
-}
-/**
- * Legacy DOM-ready setup entry point.
- *
- * @deprecated Use setupFullscreenListeners instead.
- */
-export function setupDOMContentLoaded(): void {
-    try {
-        if (document.readyState === "loading") {
-            const domReadyListener = new AbortController();
-            globalThis.addEventListener(
-                "DOMContentLoaded",
-                () => {
-                    const hasRequiredElements = REQUIRED_CONTENT_IDS.some(
-                        (id) => document.getElementById(id) !== null
-                    );
-                    if (hasRequiredElements) {
-                        addFullScreenButton();
-                        logWithContext(
-                            "Legacy DOM setup: Fullscreen button initialized"
-                        );
-                    }
-                    domReadyListener.abort();
-                },
-                {
-                    signal: domReadyListener.signal,
-                }
-            );
-        } else {
-            const hasRequiredElements = REQUIRED_CONTENT_IDS.some(
-                (id) => document.getElementById(id) !== null
-            );
-            if (hasRequiredElements) {
-                addFullScreenButton();
-                logWithContext(
-                    "Legacy DOM setup: Fullscreen button initialized (immediate)"
-                );
-            }
-        }
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        logWithContext(`Error in legacy DOM setup: ${message}`, "error");
     }
 }
 /** Sets up fullscreen state listeners, F11 handling, and initialization. */
