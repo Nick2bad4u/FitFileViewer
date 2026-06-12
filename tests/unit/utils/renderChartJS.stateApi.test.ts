@@ -121,16 +121,6 @@ vi.mock(
     })
 );
 
-// Mock DOM and Chart.js dependencies
-Object.defineProperty(window, "Chart", {
-    value: {
-        register: vi.fn<(...args: unknown[]) => void>(),
-        Zoom: {},
-        registry: {},
-    },
-    writable: true,
-});
-
 // Import the functions we want to test
 import {
     hexToRgba,

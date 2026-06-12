@@ -706,6 +706,8 @@ const listenersResizeChartGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:Chart|renderChart|renderChartJS)["']\s*\)|\b(?:globalThis|chartGlobal)\.(?:Chart|renderChart|renderChartJS)\s*=/u;
 const renderChartJSComprehensiveTestRetiredGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']\s*(?:,|\))|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']|\bglobalThis\.(?:Chart|ChartZoom|chartjsPluginZoom)\s*=/u;
+const renderChartJSStateApiTestRetiredGlobalMutationPattern =
+    /\bObject\.defineProperty\(\s*window\s*,\s*["']Chart["']|\bReflect\.(?:deleteProperty|set)\(\s*window\s*,\s*["']Chart["']\s*(?:,|\))|\bwindow\.Chart\s*=/u;
 const directShowNotificationGlobalLookupPattern =
     /\b(?:window|globalThis|chartGlobal|globalRef|runtimeGlobal|zoneColorGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
 const directRendererDevGlobalPattern =
@@ -6237,6 +6239,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/charts/core/renderChartJS.comprehensive.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps renderChartJS state API tests from mutating retired Chart.js globals", () => {
+        expect.assertions(1);
+
+        expect(
+            renderChartJSStateApiTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/renderChartJS.stateApi.test.ts"
                     )
                 )
             )

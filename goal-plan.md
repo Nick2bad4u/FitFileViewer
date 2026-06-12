@@ -273,6 +273,8 @@ fullscreen resize uses registered chart instances, with architecture coverage pr
 RenderChartJS comprehensive tests no longer delete retired Chart.js runtime globals such as `Chart`,
 `ChartZoom`, or `chartjsPluginZoom`; they use the typed chart runtime test API, and architecture coverage
 blocks those mutations from returning.
+RenderChartJS state API tests no longer install a retired `window.Chart` fixture for state-only helper
+coverage, and architecture coverage blocks that mutation from returning.
 Main UI startup tests no longer delete retired renderer globals such as `devCleanup`, `injectMenu`,
 `showFitData`, `renderChartJS`, or `cleanupEventListeners` while proving those globals stay absent, and
 architecture coverage blocks those mutations from returning.
