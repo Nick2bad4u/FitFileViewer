@@ -1655,7 +1655,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
-        expect.assertions(43);
+        expect.assertions(49);
 
         const fileReadPayloadSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
@@ -1743,6 +1743,12 @@ describe("architecture boundaries", () => {
         expect(registerFileSystemHandlersSource).not.toContain(
             "module.exports"
         );
+        expect(registerFileSystemHandlersSource).not.toContain(
+            'require("zod")'
+        );
+        expect(registerFileSystemHandlersSource).toContain(
+            'import { z } from "zod"'
+        );
         expect(registerFitFileHandlersSource).not.toContain("module.exports");
         expect(registerBrowserHandlersSource).not.toContain("module.exports");
         expect(registerDialogHandlersSource).not.toContain("module.exports");
@@ -1751,6 +1757,14 @@ describe("architecture boundaries", () => {
         );
         expect(registerClipboardHandlersSource).not.toContain("module.exports");
         expect(registerExternalHandlersSource).not.toContain("module.exports");
+        expect(registerClipboardHandlersSource).not.toContain('require("zod")');
+        expect(registerExternalHandlersSource).not.toContain('require("zod")');
+        expect(registerClipboardHandlersSource).toContain(
+            'import { z } from "zod"'
+        );
+        expect(registerExternalHandlersSource).toContain(
+            'import { z } from "zod"'
+        );
         expect(registerInfoHandlersSource).not.toContain("module.exports");
         expect(ipcRegistrySource).not.toContain("module.exports");
         expect(ipcSenderPolicySource).not.toContain("module.exports");
@@ -1814,7 +1828,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(128);
+        expect.assertions(130);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -1984,6 +1998,10 @@ describe("architecture boundaries", () => {
         );
         expect(setupAutoUpdaterSource).not.toContain(
             'require("./autoUpdaterAccess")'
+        );
+        expect(setupAutoUpdaterSource).not.toContain('require("electron-log")');
+        expect(setupAutoUpdaterSource).toContain(
+            'import electronLog from "electron-log"'
         );
         expect(initializeApplicationSource).not.toContain(
             'require("../constants")'

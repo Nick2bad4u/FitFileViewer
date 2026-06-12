@@ -1,17 +1,7 @@
 // @vitest-environment node
 
-import { createRequire } from "node:module";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
-
-const require = createRequire(import.meta.url);
-
-type CjsCacheEntry = {
-    exports: unknown;
-    filename: string;
-    id: string;
-    loaded: boolean;
-};
 
 type AutoUpdaterLike = {
     autoDownload: boolean;
@@ -50,10 +40,9 @@ const mockElectronLog = {
     error: vi.fn<(message: string) => void>(),
 };
 
-function getRequireCache(): Record<string, CjsCacheEntry> {
-    return (require as unknown as { cache: Record<string, CjsCacheEntry> })
-        .cache;
-}
+vi.mock(import("electron-log"), () => ({
+    default: mockElectronLog,
+}));
 
 async function importSetupAutoUpdater(): Promise<SetupAutoUpdaterModule> {
     return (await import(
@@ -74,19 +63,6 @@ describe("setupAutoUpdater", () => {
         mockElectronLog.transports.file.level = "";
         mockElectronLog.info.mockClear();
         mockElectronLog.error.mockClear();
-
-        // Inject electron-log mock for CJS require() consumers.
-        const electronLogPath = require.resolve("electron-log");
-        const cache = getRequireCache();
-        cache[electronLogPath] = {
-            exports: mockElectronLog,
-            filename: electronLogPath,
-            id: electronLogPath,
-            loaded: true,
-        };
-
-        // The module under test is imported natively; the CJS cache injection
-        // above covers electron-log for the remaining require() boundary.
     });
 
     it("does not throw when autoUpdater is explicitly unavailable", async () => {

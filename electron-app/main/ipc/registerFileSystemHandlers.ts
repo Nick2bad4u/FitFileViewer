@@ -3,12 +3,11 @@ import {
     normalizeFileReadResultToArrayBuffer,
 } from "./fileReadPayload.js";
 import { assertFileReadAllowed } from "../security/fileAccessPolicy.js";
+import { z } from "zod";
 
 type FileSystemInvokeChannel =
     import("../../shared/ipc").FileSystemInvokeChannel;
 type FileReadResult = import("../../shared/ipc").FileSystemResponsePayload;
-
-const { z } = require("zod") as typeof import("zod");
 
 type FileSystemModule = Pick<
     typeof import("node:fs"),

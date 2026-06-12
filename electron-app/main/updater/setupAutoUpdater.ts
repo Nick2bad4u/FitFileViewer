@@ -5,6 +5,7 @@ import { menuRef } from "../runtime/electronAccess.js";
 import { mainProcessState, setAppState } from "../state/appState.js";
 import { isWindowUsable } from "../window/windowValidation.js";
 import { resolveAutoUpdaterSync as resolveAutoUpdaterFallback } from "./autoUpdaterAccess.js";
+import electronLog from "electron-log";
 
 type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
@@ -99,7 +100,7 @@ function asUpdaterLoggerLike(value: unknown): UpdaterLoggerLike | null {
 
 function resolveLogger(): UpdaterLoggerLike {
     try {
-        const log = asUpdaterLoggerLike(require("electron-log"));
+        const log = asUpdaterLoggerLike(electronLog);
         if (log) {
             return log;
         }

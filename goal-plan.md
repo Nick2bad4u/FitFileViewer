@@ -70,11 +70,14 @@ source files.
 The main renderer-send helper and window validation helper now use named source exports too, and direct
 main-process consumers import those migrated helpers natively instead of requiring their source files.
 The main theme retrieval helper and auto-updater setup helper now use named source exports too; initialize
-application and IPC setup import those migrated helper boundaries natively.
+application and IPC setup import those migrated helper boundaries natively. `setupAutoUpdater.ts` now imports
+`electron-log` natively instead of resolving it through a source-level `require(...)` boundary.
 Main bootstrap/IPC setup source (`initializeApplication.ts`, `setupIPCHandlers.ts`, and `gyazoOAuthServer.ts`)
 now uses named source exports too; initialize application, IPC setup, and Gyazo OAuth import migrated
 constants/app-state/OAuth helper boundaries natively where those sources have already been retired from
 source-level CommonJS wrappers.
+Clipboard, external, and filesystem IPC validation handlers now import `zod` natively instead of requiring
+that package at source level.
 Main logging, menu-creation, Electron access, and blocked-request support helpers (`logWithContext.ts`,
 `safeCreateAppMenu.ts`, `electronAccess.ts`, and `setupBlockedRequests.ts`) now use named source exports too;
 already-migrated runtime consumers import those helper boundaries natively instead of requiring their source

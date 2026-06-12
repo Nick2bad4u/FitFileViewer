@@ -1,4 +1,5 @@
 import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
+import { z } from "zod";
 
 type ExternalInvokeChannel = import("../../shared/ipc").ExternalInvokeChannel;
 type ExternalResponsePayload =
@@ -11,8 +12,6 @@ type GyazoServerStopResponse =
     import("../../shared/ipc").GyazoServerStopResponse;
 type ShellOpenExternalResponse =
     import("../../shared/ipc").ShellOpenExternalResponse;
-
-const { z } = require("zod") as typeof import("zod");
 
 interface ExternalShell {
     openExternal: (url: string) => Promise<void>;

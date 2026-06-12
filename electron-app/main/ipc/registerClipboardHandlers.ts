@@ -1,7 +1,7 @@
+import { z } from "zod";
+
 type ClipboardInvokeChannel = import("../../shared/ipc").ClipboardInvokeChannel;
 type ClipboardResult = import("../../shared/ipc").ClipboardResponsePayload;
-
-const { z } = require("zod") as typeof import("zod");
 
 interface ClipboardWriter {
     writeImage?: (image: unknown) => void;
