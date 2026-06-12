@@ -718,6 +718,8 @@ const directSettingsModalGlobalPattern =
     /\b(?:window|globalThis|settingsModalGlobal)\.(?:showSettingsModal|closeSettingsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showSettingsModal|closeSettingsModal)["']\s*\)/u;
 const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
+const aboutModalTestDirectRequestAnimationFrameAssignmentPattern =
+    /\bglobalThis\.requestAnimationFrame\s*=/u;
 const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
 const renderSummaryTestActiveFitFileNameMutationPattern =
@@ -6726,6 +6728,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/renderChartJS.stateApi.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps strict about modal tests on descriptor-scoped animation fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            aboutModalTestDirectRequestAnimationFrameAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/ui/modals/aboutModal.test.ts"
                     )
                 )
             )

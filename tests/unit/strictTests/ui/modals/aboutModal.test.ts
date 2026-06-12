@@ -13,6 +13,11 @@ type AboutElectronApi = {
     openExternal: (url: string) => void;
 };
 
+const originalRequestAnimationFrameDescriptor = Object.getOwnPropertyDescriptor(
+    globalThis,
+    "requestAnimationFrame"
+);
+
 // Mock heavy side-effect modules before importing the subject under test
 vi.mock(
     import("../../../../../electron-app/utils/app/initialization/loadVersionInfo.js"),
@@ -42,11 +47,27 @@ const importModules = async (): Promise<AboutModalModules> => {
 // Helpers
 const rafImmediate = (): void => {
     // Execute RAF callbacks immediately to allow class toggles and transitions
-    globalThis.requestAnimationFrame = (cb: FrameRequestCallback): number => {
-        cb(0);
-        return 1;
-    };
+    Object.defineProperty(globalThis, "requestAnimationFrame", {
+        configurable: true,
+        value: (cb: FrameRequestCallback): number => {
+            cb(0);
+            return 1;
+        },
+        writable: true,
+    });
 };
+
+function restoreRequestAnimationFrame(): void {
+    if (originalRequestAnimationFrameDescriptor) {
+        Object.defineProperty(
+            globalThis,
+            "requestAnimationFrame",
+            originalRequestAnimationFrameDescriptor
+        );
+    } else {
+        Reflect.deleteProperty(globalThis, "requestAnimationFrame");
+    }
+}
 
 function getRequiredElementById(id: string): HTMLElement {
     const element = document.getElementById(id);
@@ -109,6 +130,7 @@ describe("about modal UI behaviors", () => {
         vi.clearAllTimers();
         vi.useRealTimers();
         vi.restoreAllMocks();
+        restoreRequestAnimationFrame();
         document.body.replaceChildren();
         resetElectronApiCandidate();
     });
