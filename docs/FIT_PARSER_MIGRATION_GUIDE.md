@@ -151,7 +151,7 @@ The bridge methods in `preload.ts` invoke `fit:decode` and `fit:parse` through t
 ### Core Functions (Node.js/Main Process)
 
 ```javascript
-const fitParser = require("./fitParser.js");
+import * as fitParser from "./fitParser.js";
 
 // Initialize with state managers
 fitParser.initializeStateManagement({

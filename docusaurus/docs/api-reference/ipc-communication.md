@@ -83,7 +83,7 @@ ipcMain.handle("app:get-version", () => {
 
 ```javascript
 // preload.ts
-const { contextBridge, ipcRenderer } = require("electron");
+import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("electronAPI", {
  // File operations
