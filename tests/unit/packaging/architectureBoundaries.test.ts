@@ -469,6 +469,8 @@ const directGlobalDataReadPattern =
     /\b(?:window|globalThis)\.globalData\b|\.globalData\b/u;
 const directGlobalDataPropertyDefinitionPattern =
     /\bObject\.defineProperty\(\s*(?:window|globalThis)\s*,\s*["']globalData["']/u;
+const debugSensorInfoTestGlobalDataMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']globalData["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']globalData["']/u;
 const directGlobalDataReactivePropertyPattern =
     /\bcreateReactiveProperty\(\s*["']globalData["']/u;
 const legacyAppStateGlobalDataPattern = /\bAppState\.globalData\b/u;
@@ -6023,6 +6025,20 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directShowFitDataTestGlobals).toStrictEqual([]);
+    });
+
+    it("keeps debug sensor tests from mutating retired globalData", () => {
+        expect.assertions(1);
+
+        expect(
+            debugSensorInfoTestGlobalDataMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/debug/debugSensorInfo.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps retired renderer compatibility globals out of ordinary tests", () => {

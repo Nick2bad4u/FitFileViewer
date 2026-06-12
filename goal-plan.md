@@ -264,6 +264,8 @@ mutating those names, and architecture coverage blocks those mutations from retu
 State integration unit tests no longer seed or delete retired AppState, chart-controls, globalData,
 render-state, timer, development, or state-debug globals while proving initialization leaves them absent;
 architecture coverage now blocks those retired state-integration global mutations from returning.
+Debug sensor unit tests also no longer define or delete a stale `globalData` property when proving sensor
+availability comes from active FIT state, and architecture coverage keeps that retired global mutation out.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

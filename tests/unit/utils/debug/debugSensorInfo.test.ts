@@ -12,8 +12,6 @@ import {
     setState,
 } from "../../../../electron-app/utils/state/core/stateManager.js";
 
-const GLOBAL_DATA_PROPERTY = "globalData";
-
 function setActiveFitRawData(data: unknown): void {
     setState("fitFile.rawData", data, {
         source: "debugSensorInfo.test",
@@ -23,7 +21,6 @@ function setActiveFitRawData(data: unknown): void {
 describe("debugSensorInfo", () => {
     beforeEach(() => {
         __resetStateManagerForTests();
-        Reflect.deleteProperty(globalThis, GLOBAL_DATA_PROPERTY);
         vi.spyOn(console, "log").mockImplementation(() => {});
         vi.spyOn(console, "warn").mockImplementation(() => {});
     });
@@ -31,22 +28,15 @@ describe("debugSensorInfo", () => {
     afterEach(() => {
         vi.restoreAllMocks();
         __resetStateManagerForTests();
-        Reflect.deleteProperty(globalThis, GLOBAL_DATA_PROPERTY);
     });
 
-    it("checks availability from active FIT state before stale legacy globals", () => {
-        expect.assertions(4);
+    it("checks availability from active FIT state", () => {
+        expect.assertions(3);
 
         const activeFitData = {
             deviceInfoMesgs: [{ manufacturer: "garmin", product: 1 }],
             sessionMesgs: [{ manufacturer: "garmin" }],
         };
-        Object.defineProperty(globalThis, GLOBAL_DATA_PROPERTY, {
-            configurable: true,
-            enumerable: true,
-            value: { stale: true },
-            writable: true,
-        });
         setActiveFitRawData(activeFitData);
 
         expect(checkDataAvailability()).toBe(activeFitData);
@@ -56,9 +46,6 @@ describe("debugSensorInfo", () => {
         expect(console.log).toHaveBeenCalledWith(
             "Sensor-related keys: deviceInfoMesgs, sessionMesgs"
         );
-        expect(Reflect.get(globalThis, GLOBAL_DATA_PROPERTY)).toEqual({
-            stale: true,
-        });
     });
 
     it("analyzes sensor entries from active FIT state", () => {
