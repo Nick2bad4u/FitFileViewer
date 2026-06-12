@@ -534,12 +534,6 @@ function restoreNativeDom() {
             } catch {
                 /* Ignore errors */
             }
-            // Expose a canonical reference for modules to use, avoiding cross-realm mismatches
-            try {
-                globalThis.__vitest_effective_document__ = effDoc;
-            } catch {
-                /* Ignore errors */
-            }
             installDocumentGuards(effDoc);
             if (!effDoc.body) {
                 try {
@@ -1864,13 +1858,6 @@ try {
         } catch {
             /* Ignore errors */
         }
-        // Ensure canonical effective document reflects the current global document
-        try {
-            globalThis.__vitest_effective_document__ =
-                typeof document !== "undefined" ? document : undefined;
-        } catch {
-            /* Ignore errors */
-        }
         // Ensure no DOM from a previous test leaks into the next one
         try {
             if (typeof document !== "undefined" && document.body) {
@@ -1969,13 +1956,6 @@ try {
         try {
             // Ensure we start each test from a clean native jsdom window/document
             restoreNativeDom();
-        } catch {
-            /* Ignore errors */
-        }
-        // Ensure canonical effective document reflects the current global document
-        try {
-            globalThis.__vitest_effective_document__ =
-                typeof document !== "undefined" ? document : undefined;
         } catch {
             /* Ignore errors */
         }

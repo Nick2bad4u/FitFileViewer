@@ -4722,6 +4722,28 @@ describe("architecture boundaries", () => {
         expect(directDistResolverGlobalLookups).toStrictEqual([]);
     });
 
+    it("does not recreate the effective document test globals", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directEffectiveDocumentGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directTabVitestEnvironmentGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directEffectiveDocumentGlobalLookups).toStrictEqual([]);
+    });
+
     it("keeps raw globalThis any casts out of source and tests", () => {
         expect.assertions(1);
 

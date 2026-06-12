@@ -69,7 +69,9 @@ The unused `createElectronMocks` global helper has also been removed from setup;
 explicit local fixtures or `vi.mock(...)` factories. Setup-level timeout, interval, and DOM listener tracking
 now uses module-local state instead of `__vitest_tracked_*` and `__vitest_timers_wrapped` globals. The
 generated-runtime resolver install guard now uses setup-module state instead of
-`__fitFileViewerVitestDistResolverInstalled` on globalThis.
+`__fitFileViewerVitestDistResolverInstalled` on globalThis. The retired
+`__vitest_effective_document__` setup global is no longer published; tests should use real jsdom documents,
+explicit fixtures, or `tabTestEnvironment.ts`.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
