@@ -118,7 +118,6 @@ export interface PreloadRuntime {
     constants: PreloadConstants;
     createElectronApi: CreateElectronApi;
     modules: PreloadModuleRegistry;
-    requireModule: PreloadModuleRequire;
 }
 
 export interface PreloadContextBridge {

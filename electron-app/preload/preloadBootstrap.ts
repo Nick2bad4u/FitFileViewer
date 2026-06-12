@@ -38,7 +38,7 @@ export function startPreloadScript({
         globalScope,
         processRef,
     });
-    const runtime = createPreloadRuntime({ requireModule });
+    const runtime = createPreloadRuntime();
     const { consoleRef: resolvedConsoleRef, processRef: resolvedProcessRef } =
         runtimeEnvironment;
     const {
@@ -59,7 +59,7 @@ export function startPreloadScript({
         ...(electronBridgeOverride === undefined
             ? {}
             : { electronBridgeOverride }),
-        requireModule: runtime.requireModule,
+        requireModule,
     });
     const preloadLog = createPreloadLogger(resolvedConsoleRef);
     const isDevelopmentMode = () =>

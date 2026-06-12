@@ -2685,7 +2685,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the preload runtime on native composition imports", () => {
-        expect.assertions(8);
+        expect.assertions(11);
 
         const runtimeSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadRuntime.ts")
@@ -2700,8 +2700,11 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             'import { loadPreloadModules } from "./preloadModuleLoader.js";'
         );
-        expect(runtimeSource).toContain("requireModule,");
+        expect(runtimeSource).toContain("createPreloadRuntime()");
         expect(runtimeSource).toContain("loadPreloadModules()");
+        expect(runtimeSource).not.toContain("PreloadModuleRequire");
+        expect(runtimeSource).not.toContain("CreatePreloadRuntimeOptions");
+        expect(runtimeSource).not.toContain("requireModule");
         expect(runtimeSource).not.toContain(
             "const { loadPreloadModules } = requireModule"
         );
@@ -2714,7 +2717,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the preload bootstrap on native runtime imports", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const bootstrapSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadBootstrap.ts")
@@ -2727,11 +2730,15 @@ describe("architecture boundaries", () => {
             'import { getDefaultPreloadRuntimeEnvironment } from "./preloadRuntimeEnvironment.js";'
         );
         expect(bootstrapSource).toContain(
-            "createPreloadRuntime({ requireModule })"
+            "createPreloadRuntime()"
         );
         expect(bootstrapSource).toContain(
-            "requireModule: runtime.requireModule"
+            "requireModule,"
         );
+        expect(bootstrapSource).not.toContain(
+            "createPreloadRuntime({ requireModule })"
+        );
+        expect(bootstrapSource).not.toContain("runtime.requireModule");
         expect(bootstrapSource).not.toContain(
             "const { createPreloadRuntime } = requireModule"
         );

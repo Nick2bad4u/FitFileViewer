@@ -21,11 +21,11 @@ instead of resolving those IPC modules through `requireModule`; the resolver sti
 `electron-app/preload/preloadModuleLoader.ts` now imports the focused app, file, state, policy, API-assembly,
 and IPC loader modules natively instead of resolving those loader modules through `requireModule`.
 `electron-app/preload/preloadRuntime.ts` now imports preload module loading, API assembly, and Electron API
-factory composition natively instead of resolving those composition modules through `requireModule`, while
-still carrying `requireModule` forward for the Electron package bridge resolver.
+factory composition natively instead of resolving those composition modules through `requireModule`, and the
+runtime object no longer stores the preload `requireModule`.
 `electron-app/preload/preloadBootstrap.ts` now imports preload runtime creation and default runtime-environment
 discovery natively instead of resolving those bootstrap dependencies through `requireModule`, while still passing
-`requireModule` into the runtime and Electron bridge resolver.
+`requireModule` directly to the Electron bridge resolver.
 `electron-app/preload/preloadEntrypoint.ts` now imports preload bootstrap and runtime-environment modules
 natively instead of resolving those entrypoint dependencies through fallback `requireModule` path rewriting;
 the entrypoint still passes Electron's packaged `require` into bootstrap for the Electron package bridge.
