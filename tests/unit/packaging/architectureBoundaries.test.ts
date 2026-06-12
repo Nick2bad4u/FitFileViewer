@@ -679,6 +679,8 @@ const appEventsTestRetiredFitDataGlobalMutationPattern =
     /\b(?:globalData|loadedFitFiles)\?:|\bObject\.defineProperty\(\s*(?:globalThis|globalAny|testGlobal)\s*,\s*["'](?:globalData|loadedFitFiles)["']|\bdelete\s+(?:globalAny|testGlobal)\.(?:globalData|loadedFitFiles)\b|\b(?:globalThis|globalAny|testGlobal)\.(?:globalData|loadedFitFiles)\s*=/u;
 const typedFitDataTestRetiredGlobalCleanupPattern =
     /\b(?:globalData|loadedFitFiles)\?:|\bdelete\s+(?:appGlobal|currentWindow|testWindow\(\)|getTestWindow\(\))\.(?:globalData|loadedFitFiles)\b|\b(?:appGlobal|currentWindow|testWindow\(\)|getTestWindow\(\))\.(?:globalData|loadedFitFiles)\s*=/u;
+const chartSettingsDropdownsTestRetiredGlobalDataFixturePattern =
+    /\bstate\[\s*["']globalData["']\s*\]|\bseedGlobalData\b/u;
 const tabButtonsTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:areTabButtonsEnabled|debugTabButtons|debugTabState|forceEnableTabButtons|forceFixTabButtons|setTabButtonsEnabled|tabButtonObserver|testTabButtonClicks)["']\s*\)|\bdelete\s*\(\s*global\s+as\s+any\s*\)\.window\.tabButtonsCurrentlyEnabled\b|\bdelete\s*\(\s*globalThis\s+as[\s\S]{0,160}?\)\.tabButtonsCurrentlyEnabled\b|\b(?:globalThis|global\.window)\.(?:areTabButtonsEnabled|debugTabButtons|debugTabState|forceEnableTabButtons|forceFixTabButtons|setTabButtonsEnabled|tabButtonObserver|tabButtonsCurrentlyEnabled|testTabButtonClicks)\s*=/u;
 const chartTabIntegrationTestRetiredGlobalMutationPattern =
@@ -6658,6 +6660,20 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps chart settings dropdown tests on typed FIT raw-data fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            chartSettingsDropdownsTestRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/ensureChartSettingsDropdowns.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps tab-button tests from mutating retired renderer globals", () => {

@@ -155,6 +155,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - Vitest process-nextTick guard migration status: setup process stabilization now goes through one `ensureProcessNextTick()` helper instead of repeating the same inline `globalThis.process.nextTick` mutation in multiple setup hooks.
 - App event FIT-data test-global migration status: `tests/unit/utils/app/events.test.ts` no longer defines or deletes retired `globalData` or `loadedFitFiles` globals; listener export coverage seeds active FIT data and loaded-file state through typed domain state helpers.
 - Typed FIT-data test cleanup migration status: GPX export button, chart theme listener, and user/device info tests no longer type or delete retired `globalData`/`loadedFitFiles` globals during cleanup; they rely on typed state resets and explicit active FIT data fixtures.
+- Chart settings dropdown test fixture migration status: strict chart settings dropdown coverage now seeds the mocked state manager at `fitFile.rawData` instead of the retired `globalData` path, matching the `FitFileSelectors` source path.
 - Next removal step: keep shrinking remaining legacy renderer compatibility adapters toward typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`

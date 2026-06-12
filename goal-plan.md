@@ -308,6 +308,9 @@ those test-global mutations from returning.
 GPX export button, chart theme listener, and user/device info tests no longer type or clean retired
 `globalData`/`loadedFitFiles` globals; they rely on typed state resets and active FIT data fixtures, and
 architecture coverage blocks those cleanup patterns from returning.
+Strict chart settings dropdown tests no longer seed the mocked state manager through the retired `globalData`
+path; they use the current `fitFile.rawData` fixture path that `FitFileSelectors` reads, with architecture
+coverage blocking the stale fixture from returning.
 Chart resize listener tests no longer install or clean legacy Chart.js renderer globals while proving
 fullscreen resize uses registered chart instances, with architecture coverage preventing those mutations.
 RenderChartJS comprehensive tests no longer delete retired Chart.js runtime globals such as `Chart`,

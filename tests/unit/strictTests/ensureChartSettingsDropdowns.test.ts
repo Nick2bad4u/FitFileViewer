@@ -289,8 +289,8 @@ function queryRequiredElement<TElement extends Element>(
     return element;
 }
 
-function seedGlobalData() {
-    state["globalData"] = {
+function seedActiveFitRawData() {
+    state["fitFile.rawData"] = {
         recordMesgs: [
             {
                 speed: 1.2,
@@ -386,7 +386,6 @@ beforeEach(() => {
         localStorage.clear();
     }
     clearChartInstanceRegistryForTests();
-    delete state["globalData"];
 });
 
 afterEach(() => {
@@ -407,7 +406,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect.assertions(14);
 
         setupDOM(true);
-        seedGlobalData();
+        seedActiveFitRawData();
 
         const result = ensureChartSettingsDropdowns("chartjs-chart-container");
         expect(result).toStrictEqual({ from: "getCurrentSettings" });
@@ -459,7 +458,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect.assertions(10);
 
         setupDOM(true);
-        seedGlobalData();
+        seedActiveFitRawData();
         ensureChartSettingsDropdowns("chartjs-chart-container");
 
         const wrapper = document.getElementById("chartjs-settings-wrapper")!;
@@ -520,7 +519,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect.assertions(9);
 
         setupDOM(true);
-        seedGlobalData();
+        seedActiveFitRawData();
         ensureChartSettingsDropdowns("chartjs-chart-container");
 
         const wrapper = document.getElementById("chartjs-settings-wrapper")!;
@@ -571,7 +570,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect.assertions(10);
 
         setupDOM(true);
-        seedGlobalData();
+        seedActiveFitRawData();
 
         const dispatchSpy = vi.spyOn(window, "dispatchEvent");
         ensureChartSettingsDropdowns("chartjs-chart-container");
@@ -645,7 +644,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect.assertions(9);
 
         setupDOM(true);
-        seedGlobalData();
+        seedActiveFitRawData();
         ensureChartSettingsDropdowns("chartjs-chart-container");
 
         const wrapper = document.getElementById("chartjs-settings-wrapper")!;
@@ -711,7 +710,7 @@ describe("ensureChartSettingsDropdowns integration", () => {
         expect.assertions(4);
 
         setupDOM(true);
-        seedGlobalData();
+        seedActiveFitRawData();
         ensureChartSettingsDropdowns("chartjs-chart-container");
 
         const header = document.querySelector(".settings-header")!;
