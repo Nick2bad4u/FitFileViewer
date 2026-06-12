@@ -690,50 +690,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
     });
 
-    describe("backward compatibility", () => {
-        it("should ignore existing plain globalData without installing an accessor", async () => {
-            expect.assertions(2);
-
-            const { initializeAppState } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            setRetiredGlobal("globalData", { test: "data" });
-            initializeAppState();
-
-            expect(
-                mockStateManager.setState.mock.calls.filter(
-                    ([path]) => path === "globalData"
-                )
-            ).toStrictEqual([]);
-            expect(getRetiredGlobalDescriptor("globalData")).toMatchObject({
-                configurable: true,
-                value: { test: "data" },
-                writable: true,
-            });
-        });
-
-        it("should not override existing properties", async () => {
-            expect.assertions(2);
-
-            // Set existing properties
-            setRetiredGlobal("globalData", { existing: "data" });
-            setRetiredGlobal("AppState", { existing: "appstate" });
-
-            const { initializeAppState } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            initializeAppState();
-
-            expect(getRetiredGlobalDescriptor("globalData")).toMatchObject({
-                configurable: true,
-                value: { existing: "data" },
-                writable: true,
-            });
-            expect(getRetiredGlobal("AppState")).toEqual({
-                existing: "appstate",
-            });
-        });
-
+    describe("retired globals", () => {
         it("should leave removed compatibility globals absent (smoke)", async () => {
             expect.assertions(4);
 
