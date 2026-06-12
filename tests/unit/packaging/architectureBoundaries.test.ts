@@ -4948,6 +4948,7 @@ describe("architecture boundaries", () => {
             )
             .sort();
         const deletedCompatibilityFiles = [
+            "electron-app/main/security/externalUrlPolicy.ts",
             "electron-app/renderer/globalApiExposure.ts",
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
             "electron-app/renderer/vendorGlobals.ts",

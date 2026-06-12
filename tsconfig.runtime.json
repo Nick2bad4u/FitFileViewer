@@ -116,7 +116,6 @@
         "electron-app/main/runtime/nodeModules.ts",
         "electron-app/main/runtime/primeTestEnvironment.ts",
         "electron-app/main/runtime/setupMainLifecycle.ts",
-        "electron-app/main/security/externalUrlPolicy.ts",
         "electron-app/main/security/fileAccessPolicy.ts",
         "electron-app/main/security/fileAccessPolicyState.ts",
         "electron-app/main/security/ipcSenderPolicy.ts",
