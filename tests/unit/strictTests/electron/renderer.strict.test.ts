@@ -31,7 +31,6 @@ const importRendererFresh = async () => {
     vi.resetModules();
     // Remove globals possibly left from prior imports
     delete (window as any).electronAPI;
-    delete (window as any).__renderer_dev;
     // Fresh DOM skeleton
     const openFileBtn = document.createElement("button");
     openFileBtn.id = "openFileBtn";

@@ -3618,6 +3618,20 @@ describe("architecture boundaries", () => {
         ).toBe(false);
     });
 
+    it("keeps strict renderer startup tests off renderer dev globals", () => {
+        expect.assertions(1);
+
+        expect(
+            directRendererDevGlobalPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/electron/renderer.strict.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
     it("keeps renderer development debug helpers off global surfaces", () => {
         expect.assertions(1);
 
