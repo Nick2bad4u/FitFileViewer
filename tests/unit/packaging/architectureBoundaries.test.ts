@@ -1360,8 +1360,13 @@ describe("architecture boundaries", () => {
 
     it("keeps preload runtime utility helpers on named source exports", () => {
         const runtimeUtilityExports = [
+            [
+                "electron-app/preload/devtoolsMenuApi.ts",
+                "createDevtoolsMenuApi",
+            ],
             ["electron-app/preload/environment.ts", "isPreloadDevelopmentMode"],
             ["electron-app/preload/environment.ts", "isPreloadElectronRuntime"],
+            ["electron-app/preload/ipcHelpers.ts", "createPreloadIpcHelpers"],
             [
                 "electron-app/preload/environment.ts",
                 "shouldEnforceGenericIpcAllowlist",
@@ -1412,6 +1417,16 @@ describe("architecture boundaries", () => {
             [
                 "electron-app/preload/apiAssemblyContext.ts",
                 "createPreloadApiAssemblyContext",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiFactory.ts",
+                "createElectronApi",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronBridge.ts",
+                "resolvePreloadElectronBridge",
                 "function",
             ],
             [

@@ -1,6 +1,6 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
+
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface IpcRendererMock {
     invoke: ReturnType<
@@ -76,7 +76,7 @@ interface PreloadIpcHelpersModule {
     };
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { createPreloadIpcHelpers } = requireFromTest(
     "../../electron-app/preload/ipcHelpers.js"
 ) as PreloadIpcHelpersModule;

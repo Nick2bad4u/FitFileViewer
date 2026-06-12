@@ -1,6 +1,6 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
+
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface PreloadElectronBridgeModule {
     resolvePreloadElectronBridge: (options: {
@@ -15,7 +15,7 @@ interface PreloadElectronBridgeModule {
     };
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { resolvePreloadElectronBridge } = requireFromTest(
     "../../electron-app/preload/electronBridge.js"
 ) as PreloadElectronBridgeModule;

@@ -1,5 +1,3 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type {
@@ -7,6 +5,7 @@ import type {
     DevtoolsInjectMenuTheme,
     DevtoolsInvokeChannel,
 } from "../../electron-app/shared/ipc";
+import { createPreloadSourceRequire } from "../vitest/helpers/preloadSourceRequire";
 
 interface DevtoolsMenuApiModule {
     createDevtoolsMenuApi: (options: Record<string, unknown>) => {
@@ -17,7 +16,7 @@ interface DevtoolsMenuApiModule {
     };
 }
 
-const requireFromTest = createRequire(import.meta.url);
+const requireFromTest = createPreloadSourceRequire(import.meta.url);
 const { createDevtoolsMenuApi } = requireFromTest(
     "../../electron-app/preload/devtoolsMenuApi.js"
 ) as DevtoolsMenuApiModule;
