@@ -24,12 +24,47 @@ interface AdditionalPreloadElectronApi {
     onUpdateEvent: (eventName: unknown, callback: unknown) => void;
 }
 
+const originalGlobalDescriptors = new Map<
+    string,
+    PropertyDescriptor | undefined
+>();
+
 function getGlobalValue(name: string): unknown {
     return Reflect.get(globalThis, name);
 }
 
+function rememberGlobalDescriptor(name: string): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        originalGlobalDescriptors.set(
+            name,
+            Object.getOwnPropertyDescriptor(globalThis, name)
+        );
+    }
+}
+
 function setGlobalValue(name: string, value: unknown): void {
-    Reflect.set(globalThis, name, value);
+    rememberGlobalDescriptor(name);
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function clearGlobalValue(name: string): void {
+    rememberGlobalDescriptor(name);
+    Reflect.deleteProperty(globalThis, name);
+}
+
+function restoreGlobalValues(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        if (descriptor) {
+            Object.defineProperty(globalThis, name, descriptor);
+        } else {
+            Reflect.deleteProperty(globalThis, name);
+        }
+    }
+    originalGlobalDescriptors.clear();
 }
 
 function getExposedElectronAPI(): AdditionalPreloadElectronApi {
@@ -100,8 +135,9 @@ describe("preload edge cases", () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
-        Reflect.deleteProperty(globalThis, "electronAPI");
-        Reflect.deleteProperty(globalThis, devToolsGlobalName);
+        clearGlobalValue("electronAPI");
+        clearGlobalValue(devToolsGlobalName);
+        restoreGlobalValues();
         process.env.NODE_ENV = originalNodeEnv;
         vi.resetModules();
     });

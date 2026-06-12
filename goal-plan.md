@@ -446,6 +446,9 @@ Preload and main-UI runtime-environment tests now install temporary console hand
 fixtures instead of direct `globalThis.console` assignment, with architecture coverage blocking that pattern.
 Preload source execution tests now install their temporary development-log console through a descriptor-scoped
 helper instead of direct `global.console` assignment, with architecture coverage blocking that pattern too.
+Preload development-mode and edge-case tests now clear and restore `electronAPI`/`devTools` globals through
+descriptor-scoped helpers instead of direct global deletion, with architecture coverage blocking that cleanup
+pattern.
 Setup process-nextTick stabilization now uses one `ensureProcessNextTick()` helper instead of repeating the same
 inline `globalThis.process.nextTick` mutation in multiple setup hooks.
 

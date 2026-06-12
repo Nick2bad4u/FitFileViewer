@@ -796,6 +796,8 @@ const rendererRuntimeGlobalFallbackPattern =
     /\b(?:__fitFileViewerRuntimeGlobalFallbackForTests|runtimeGlobalFallbackFlag|getGlobalRuntimeCandidate|getWindowRuntimeCandidate)\b/u;
 const directElectronApiGlobalReadPattern =
     /\b(?:globalThis|window)\.electronAPI\b|\.\s*electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI|\b(?:Reflect\.deleteProperty|Object\.defineProperty)\(\s*(?:globalThis|window)\s*,\s*["']electronAPI["']/u;
+const preloadTestDirectElectronApiGlobalCleanupPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:["']electronAPI["']|devToolsGlobalName|developmentToolsGlobalName)\s*\)/u;
 const directExternalLinkHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.open\b/u;
 const directMapActionButtonsRuntimeGlobalPattern =
@@ -7392,6 +7394,24 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directConsoleGlobalAssignments).toStrictEqual([]);
+    });
+
+    it("keeps preload source tests on descriptor-scoped Electron API globals", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            "tests/unit/preload.development-mode.test.ts",
+            "tests/unit/preload.edgeCases.test.ts",
+        ];
+        const directGlobalCleanups = scannedFiles
+            .filter((relativeFile) =>
+                preloadTestDirectElectronApiGlobalCleanupPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directGlobalCleanups).toStrictEqual([]);
     });
 
     it("keeps handle-open-file complete tests on descriptor-scoped process fixtures", () => {
