@@ -676,6 +676,8 @@ const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
+const listenersResizeChartGlobalMutationPattern =
+    /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:Chart|renderChart|renderChartJS)["']\s*\)|\b(?:globalThis|chartGlobal)\.(?:Chart|renderChart|renderChartJS)\s*=/u;
 const directShowNotificationGlobalLookupPattern =
     /\b(?:window|globalThis|chartGlobal|globalRef|runtimeGlobal|zoneColorGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
 const directRendererDevGlobalPattern =
@@ -3569,6 +3571,20 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps resize listener tests from mutating legacy chart globals", () => {
+        expect.assertions(1);
+
+        expect(
+            listenersResizeChartGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/app/lifecycle/listenersResize.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps migrated chart notification callers on typed imports", () => {

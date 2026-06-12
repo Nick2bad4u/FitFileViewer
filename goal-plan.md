@@ -268,6 +268,8 @@ Debug sensor unit tests also no longer define or delete a stale `globalData` pro
 availability comes from active FIT state, and architecture coverage keeps that retired global mutation out.
 Loaded FIT file state tests no longer assign or delete the retired `loadedFitFiles` global while proving
 loaded-file storage stays in explicit state, and architecture coverage blocks that mutation from returning.
+Chart resize listener tests no longer install or clean legacy Chart.js renderer globals while proving
+fullscreen resize uses registered chart instances, with architecture coverage preventing those mutations.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
