@@ -2,7 +2,7 @@
  * Provides lazily-evaluated references to Electron modules. Tests can inject a
  * pre-resolved Electron module through {@link setElectronOverride}.
  */
-import { loadNodeModule } from "./nodeModules.js";
+import * as electronModule from "electron";
 
 type ElectronLike = Partial<typeof import("electron")> &
     Record<string, unknown>;
@@ -46,12 +46,11 @@ export function getElectron(): ElectronLike {
             return electronOverride;
         }
 
-        const mod = loadNodeModule("electron");
-        if (hasElectronApis(mod)) {
-            return mod;
+        if (hasElectronApis(electronModule)) {
+            return electronModule;
         }
 
-        const moduleLike = asElectronLike(mod);
+        const moduleLike = asElectronLike(electronModule);
         const defaultExport = moduleLike?.["default"];
         if (hasElectronApis(defaultExport)) {
             return defaultExport;

@@ -20,13 +20,15 @@ type SendMessage = (...args: unknown[]) => void;
 type IsDestroyed = () => boolean;
 
 // Mock setup BEFORE any imports
-const mockBrowserWindow = {
-    getAllWindows: vi.fn<() => BrowserWindowLike[]>().mockReturnValue([]),
-};
-const mockIpcMain = {
-    handle: vi.fn<(channel: string, handler: IpcHandler) => void>(),
-    removeHandler: vi.fn<(channel: string) => void>(),
-};
+const { mockBrowserWindow, mockIpcMain } = vi.hoisted(() => ({
+    mockBrowserWindow: {
+        getAllWindows: vi.fn<() => BrowserWindowLike[]>().mockReturnValue([]),
+    },
+    mockIpcMain: {
+        handle: vi.fn<(channel: string, handler: IpcHandler) => void>(),
+        removeHandler: vi.fn<(channel: string) => void>(),
+    },
+}));
 
 function installElectronOverride(): void {
     setElectronOverride({
