@@ -683,6 +683,8 @@ const chartSettingsDropdownsTestRetiredGlobalDataFixturePattern =
     /\bstate\[\s*["']globalData["']\s*\]|\bseedGlobalData\b/u;
 const renderMapStrictTestRetiredFitGlobalFixturePattern =
     /\bRenderMapWindow\b|\b(?:window|w)\.(?:globalData|loadedFitFiles)\b/u;
+const updateTabVisibilityRawDataTestRetiredGlobalDataPattern =
+    /\bcurrentGlobalData\b|\bglobalDataCallback\b|\bgetState\s*:\s*mockGetState[\s\S]*?\b["']globalData["']|updateTabVisibility\.globalDataState\.test\.ts/u;
 const tabButtonsTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:areTabButtonsEnabled|debugTabButtons|debugTabState|forceEnableTabButtons|forceFixTabButtons|setTabButtonsEnabled|tabButtonObserver|testTabButtonClicks)["']\s*\)|\bdelete\s*\(\s*global\s+as\s+any\s*\)\.window\.tabButtonsCurrentlyEnabled\b|\bdelete\s*\(\s*globalThis\s+as[\s\S]{0,160}?\)\.tabButtonsCurrentlyEnabled\b|\b(?:globalThis|global\.window)\.(?:areTabButtonsEnabled|debugTabButtons|debugTabState|forceEnableTabButtons|forceFixTabButtons|setTabButtonsEnabled|tabButtonObserver|tabButtonsCurrentlyEnabled|testTabButtonClicks)\s*=/u;
 const chartTabIntegrationTestRetiredGlobalMutationPattern =
@@ -6686,6 +6688,28 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/strictTests/maps/core/renderMap.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab visibility raw-data tests off retired globalData fixtures", () => {
+        expect.assertions(2);
+
+        expect(
+            existsSync(
+                path.join(
+                    process.cwd(),
+                    "tests/unit/utils/updateTabVisibility.globalDataState.test.ts"
+                )
+            )
+        ).toBe(false);
+        expect(
+            updateTabVisibilityRawDataTestRetiredGlobalDataPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/updateTabVisibility.fitRawDataState.test.ts"
                     )
                 )
             )

@@ -313,6 +313,9 @@ path; they use the current `fitFile.rawData` fixture path that `FitFileSelectors
 coverage blocking the stale fixture from returning.
 Strict render-map tests no longer type or assign retired FIT data globals on `window`; they seed loaded-file
 fixtures through `loadedFitFilesState`, and architecture coverage blocks the stale window fixture from returning.
+Tab visibility state tests now use the `updateTabVisibility.fitRawDataState.test.ts` filename and active raw FIT
+data callback/mocked-selector naming instead of retired `globalData` terminology, with architecture coverage
+blocking the old filename and fixture vocabulary.
 Chart resize listener tests no longer install or clean legacy Chart.js renderer globals while proving
 fullscreen resize uses registered chart instances, with architecture coverage preventing those mutations.
 RenderChartJS comprehensive tests no longer delete retired Chart.js runtime globals such as `Chart`,

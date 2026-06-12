@@ -18,7 +18,7 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
     >;
     let mockGetState: ReturnType<typeof vi.fn<(key: string) => unknown>>;
     let currentActiveTab: string;
-    let currentGlobalData: unknown;
+    let currentRawFitData: unknown;
     let currentIsLoading: boolean;
 
     function getRequiredSubscription(
@@ -47,7 +47,7 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
         mockSubscribe =
             vi.fn<(path: string, callback: (data: unknown) => void) => void>();
         currentActiveTab = "chart";
-        currentGlobalData = null;
+        currentRawFitData = null;
         currentIsLoading = false;
         mockSetState = vi.fn<
             (
@@ -62,7 +62,6 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
         });
         mockGetState = vi.fn<(key: string) => unknown>((key) => {
             if (key === "ui.activeTab") return currentActiveTab;
-            if (key === "globalData") return currentGlobalData;
             if (key === "isLoading") return currentIsLoading;
             return undefined;
         });
@@ -83,15 +82,15 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
                 FitFileSelectors: {
                     getEventMessages: () => [],
                     getLapMessages: () => [],
-                    getRawData: () => currentGlobalData,
+                    getRawData: () => currentRawFitData,
                     getRecordMessages: () =>
-                        currentGlobalData !== null &&
-                        typeof currentGlobalData === "object" &&
+                        currentRawFitData !== null &&
+                        typeof currentRawFitData === "object" &&
                         Array.isArray(
-                            (currentGlobalData as { recordMesgs?: unknown })
+                            (currentRawFitData as { recordMesgs?: unknown })
                                 .recordMesgs
                         )
-                            ? (currentGlobalData as { recordMesgs: unknown[] })
+                            ? (currentRawFitData as { recordMesgs: unknown[] })
                                   .recordMesgs
                             : [],
                     getSessionMessages: () => [],
@@ -137,19 +136,19 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
                 ["ui.activeTab", "function"],
                 ["fitFile.rawData", "function"],
             ]);
-            const requiredGlobalDataSubscription =
+            const requiredRawFitDataSubscription =
                 getRequiredSubscription("fitFile.rawData");
-            expect(requiredGlobalDataSubscription[0]).toBe("fitFile.rawData");
-            expect(requiredGlobalDataSubscription[1]).toBeTypeOf("function");
+            expect(requiredRawFitDataSubscription[0]).toBe("fitFile.rawData");
+            expect(requiredRawFitDataSubscription[1]).toBeTypeOf("function");
 
-            const globalDataCallback = requiredGlobalDataSubscription[1];
+            const rawFitDataCallback = requiredRawFitDataSubscription[1];
 
             // Trigger the state change when data is cleared.
             currentActiveTab = "chart";
 
             // Call the callback with no data (null/undefined)
-            currentGlobalData = null;
-            globalDataCallback(null);
+            currentRawFitData = null;
+            rawFitDataCallback(null);
             vi.advanceTimersByTime(260);
 
             // Should call setState to switch to summary tab.
@@ -165,8 +164,8 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
             // Test with undefined data as well
             mockSetState.mockClear();
             currentActiveTab = "chart";
-            currentGlobalData = undefined;
-            globalDataCallback(undefined);
+            currentRawFitData = undefined;
+            rawFitDataCallback(undefined);
             vi.advanceTimersByTime(260);
 
             expect(mockSetState).toHaveBeenCalledOnce();
@@ -182,16 +181,16 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
 
             // Mock getState to return 'summary' as current tab
             currentActiveTab = "summary";
-            currentGlobalData = null;
+            currentRawFitData = null;
 
             initializeTabVisibilityState();
 
             // Get the fitFile.rawData subscription callback
-            const globalDataCallback =
+            const rawFitDataCallback =
                 getRequiredSubscription("fitFile.rawData")[1];
 
             // Call with no data when already on summary tab
-            globalDataCallback(null);
+            rawFitDataCallback(null);
             vi.advanceTimersByTime(260);
 
             // Should NOT call setState since we're already on summary
@@ -211,12 +210,12 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
             initializeTabVisibilityState();
 
             // Get the fitFile.rawData subscription callback
-            const globalDataCallback =
+            const rawFitDataCallback =
                 getRequiredSubscription("fitFile.rawData")[1];
 
             // Call with valid data
-            currentGlobalData = { some: "data" };
-            globalDataCallback({ some: "data" });
+            currentRawFitData = { some: "data" };
+            rawFitDataCallback({ some: "data" });
             vi.advanceTimersByTime(260);
 
             // Should NOT call setState since data exists
@@ -236,22 +235,22 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
             initializeTabVisibilityState();
 
             // Get the fitFile.rawData subscription callback
-            const globalDataCallback =
+            const rawFitDataCallback =
                 getRequiredSubscription("fitFile.rawData")[1];
 
             // Test with falsy values that are NOT null/undefined - these should NOT trigger the switch
-            globalDataCallback(false);
+            rawFitDataCallback(false);
             expect(currentActiveTab).toBe("map");
 
-            globalDataCallback(0);
+            rawFitDataCallback(0);
             expect(mockSetState).toHaveBeenCalledTimes(0);
 
-            globalDataCallback("");
-            expect(currentGlobalData).toBeNull();
+            rawFitDataCallback("");
+            expect(currentRawFitData).toBeNull();
 
             // Test with values that SHOULD trigger the switch (null/undefined)
-            currentGlobalData = null;
-            globalDataCallback(null);
+            currentRawFitData = null;
+            rawFitDataCallback(null);
             vi.advanceTimersByTime(260);
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.activeTab",
@@ -265,8 +264,8 @@ describe("updateTabVisibility FIT raw-data state subscription", () => {
             mockSetState.mockClear();
 
             currentActiveTab = "map";
-            currentGlobalData = undefined;
-            globalDataCallback(undefined);
+            currentRawFitData = undefined;
+            rawFitDataCallback(undefined);
             vi.advanceTimersByTime(260);
             expect(mockSetState).toHaveBeenCalledOnce();
         });
