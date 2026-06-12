@@ -327,6 +327,8 @@ those names stay absent, and architecture coverage blocks those mutations from r
 Tab-button behavior tests no longer delete retired enabled-state, observer, or diagnostic helper globals such
 as `tabButtonsCurrentlyEnabled`, `tabButtonObserver`, `areTabButtonsEnabled`, or `forceFixTabButtons`; they
 now assert those names stay absent, and architecture coverage blocks those mutations from returning.
+Vitest setup no longer disconnects or deletes a retired `window.tabButtonObserver` cleanup hook; tab-button
+observer lifecycle stays in the typed tab-button module state.
 Chart tab integration tests no longer delete the retired `chartTabIntegration` global before each case; they
 now assert the typed singleton stays absent from `globalThis`, and architecture coverage blocks that mutation
 from returning.

@@ -386,19 +386,6 @@ function cleanupWindowGlobals(win) {
     } catch {
         /* Ignore errors */
     }
-    // Disconnect any MutationObserver we might have installed on window
-    try {
-        const w = /** @type {any} */ (win);
-        if (
-            w.tabButtonObserver &&
-            typeof w.tabButtonObserver.disconnect === "function"
-        ) {
-            w.tabButtonObserver.disconnect();
-            delete w.tabButtonObserver;
-        }
-    } catch {
-        /* Ignore errors */
-    }
 }
 
 /**
@@ -1710,21 +1697,6 @@ try {
         try {
             if (typeof document !== "undefined" && document.body) {
                 document.body.innerHTML = "";
-            }
-        } catch {
-            /* Ignore errors */
-        }
-        // Disconnect MutationObservers and clear timers/listeners best-effort
-        try {
-            if (typeof window !== "undefined") {
-                const w = /** @type {any} */ (window);
-                if (
-                    w.tabButtonObserver &&
-                    typeof w.tabButtonObserver.disconnect === "function"
-                ) {
-                    w.tabButtonObserver.disconnect();
-                    delete w.tabButtonObserver;
-                }
             }
         } catch {
             /* Ignore errors */
