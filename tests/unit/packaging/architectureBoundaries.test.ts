@@ -2566,6 +2566,7 @@ describe("architecture boundaries", () => {
 
         const migratedTestFiles = [
             "tests/unit/main.test.ts",
+            "tests/unit/packaging/electronBuilderConfig.test.ts",
             "tests/unit/packaging/electronBuilderFiles.test.ts",
         ];
         const violations = migratedTestFiles

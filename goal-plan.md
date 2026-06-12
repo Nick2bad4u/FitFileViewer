@@ -137,6 +137,8 @@ The runtime build now also bundles `electron-app/main.ts` to the generated Commo
 allowing Electron to launch through the root CommonJS package manifest while app source stays typed ESM-style.
 The main-process module test no longer clears CJS require cache for the ESM-imported main entrypoint, and the
 Electron builder file-list test imports the CJS config through native dynamic import instead of `createRequire`.
+The env-sensitive Electron Builder identity/signing test now loads the CJS config in a fresh Node dynamic-import
+subprocess for each environment case instead of owning a `createRequire`/`require.cache` test bridge.
 FIT parser and preload IPC documentation now show ESM-style app-code imports instead of `require(...)` examples,
 with docs-alignment coverage preventing those stale CommonJS examples from returning.
 
