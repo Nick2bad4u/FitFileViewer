@@ -156,6 +156,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
 - App event FIT-data test-global migration status: `tests/unit/utils/app/events.test.ts` no longer defines or deletes retired `globalData` or `loadedFitFiles` globals; listener export coverage seeds active FIT data and loaded-file state through typed domain state helpers.
 - Typed FIT-data test cleanup migration status: GPX export button, chart theme listener, and user/device info tests no longer type or delete retired `globalData`/`loadedFitFiles` globals during cleanup; they rely on typed state resets and explicit active FIT data fixtures.
 - Chart settings dropdown test fixture migration status: strict chart settings dropdown coverage now seeds the mocked state manager at `fitFile.rawData` instead of the retired `globalData` path, matching the `FitFileSelectors` source path.
+- Render-map strict test fixture migration status: strict render-map coverage no longer declares a window extension carrying retired `globalData` or `loadedFitFiles` globals; map tests seed loaded files through `loadedFitFilesState`.
 - Next removal step: keep shrinking remaining legacy renderer compatibility adapters toward typed services or scoped adapters once chart and map browser libraries are fully import-driven
 - Verification gates:
   - `npm run lint:app`
