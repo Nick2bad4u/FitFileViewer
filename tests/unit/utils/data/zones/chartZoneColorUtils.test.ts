@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 
 // We'll dynamically import to pick up mocked theme/localStorage each time
 const loadModule = async () => {
@@ -61,14 +61,41 @@ class LocalStorageShim {
     }
 }
 
+let originalLocalStorageDescriptor: PropertyDescriptor | undefined;
+
 const setLocalStorage = () => {
-    // @ts-ignore
-    globalThis.localStorage = new LocalStorageShim();
+    originalLocalStorageDescriptor = Object.getOwnPropertyDescriptor(
+        globalThis,
+        "localStorage"
+    );
+
+    Object.defineProperty(globalThis, "localStorage", {
+        configurable: true,
+        value: new LocalStorageShim() as unknown as Storage,
+        writable: true,
+    });
+};
+
+const restoreLocalStorage = () => {
+    if (originalLocalStorageDescriptor) {
+        Object.defineProperty(
+            globalThis,
+            "localStorage",
+            originalLocalStorageDescriptor
+        );
+    } else {
+        Reflect.deleteProperty(globalThis, "localStorage");
+    }
+    originalLocalStorageDescriptor = undefined;
 };
 
 describe("chartZoneColorUtils", () => {
     beforeEach(() => {
         setLocalStorage();
+    });
+
+    afterEach(() => {
+        restoreLocalStorage();
     });
 
     it("getZoneTypeFromField infers hr/power or null", async () => {

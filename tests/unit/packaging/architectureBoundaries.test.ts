@@ -732,6 +732,8 @@ const renderChartJSStateApiTestRetiredGlobalMutationPattern =
     /\bObject\.defineProperty\(\s*window\s*,\s*["']Chart["']|\bReflect\.(?:deleteProperty|set)\(\s*window\s*,\s*["']Chart["']\s*(?:,|\))|\bwindow\.Chart\s*=/u;
 const strictChartTestDirectGlobalFixtureMutationPattern =
     /\bglobalThis\.(?:window|document|HTMLCanvasElement|HTMLElement|console|localStorage)\s*=|\bdelete\s+(?:globalThis|zoneGlobal)\.(?:window|document|HTMLCanvasElement|HTMLElement|console|localStorage)\b/u;
+const chartZoneColorUtilsTestDirectLocalStorageAssignmentPattern =
+    /\bglobalThis\.localStorage\s*=/u;
 const renderChartJSStateApiTestRetiredGlobalDataFixturePattern =
     /\bgetMockStateValue[\s\S]*?\b["']globalData["']|\bglobalMockState\.data\.set\(\s*["']globalData["']|globalData which means hasValidData/u;
 const renderLapZoneChartsTestRetiredGlobalDataFixturePattern =
@@ -6682,6 +6684,20 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directStrictChartGlobalFixtureMutations).toStrictEqual([]);
+    });
+
+    it("keeps chart zone color tests on descriptor-scoped localStorage fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            chartZoneColorUtilsTestDirectLocalStorageAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/data/zones/chartZoneColorUtils.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps renderChartJS state API tests on active raw FIT data fixtures", () => {

@@ -339,6 +339,8 @@ names from returning.
 Strict create-enhanced-chart and zone-chart tests now install browser globals through descriptor-scoped fixtures
 instead of assigning or deleting `globalThis` properties directly, with architecture coverage blocking that
 test-harness mutation pattern.
+Chart zone color utility tests now install localStorage through a descriptor-scoped fixture instead of assigning
+`globalThis.localStorage` directly, with architecture coverage blocking that fixture mutation pattern.
 Main UI startup tests no longer delete retired renderer globals such as `devCleanup`, `injectMenu`,
 `showFitData`, `renderChartJS`, or `cleanupEventListeners` while proving those globals stay absent, and
 architecture coverage blocks those mutations from returning.
