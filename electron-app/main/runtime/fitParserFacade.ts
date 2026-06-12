@@ -1,12 +1,9 @@
-{
-    type FitParserModule = import("../../shared/fitParser").FitParserModule;
+import * as fitParserExports from "../../fitParser.js";
 
-    let fitParserModule: FitParserModule | undefined;
+type FitParserModule = import("../../shared/fitParser").FitParserModule;
 
-    function getFitParserModule(): FitParserModule {
-        fitParserModule ??= require("../../fitParser") as FitParserModule;
-        return fitParserModule;
-    }
+const fitParserModule = fitParserExports as unknown as FitParserModule;
 
-    module.exports = { getFitParserModule };
+export function getFitParserModule(): FitParserModule {
+    return fitParserModule;
 }

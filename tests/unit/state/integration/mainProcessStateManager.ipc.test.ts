@@ -23,7 +23,6 @@ function clearMainProcessStateRequireCache(): void {
     for (const modulePath of [
         "../../../../electron-app/main/runtime/electronAccess",
         "../../../../electron-app/main/ipc/ipcRegistry",
-        "../../../../electron-app/utils/state/integration/mainProcessStateManager",
     ]) {
         delete requireCjs.cache[requireCjs.resolve(modulePath)];
     }
@@ -41,10 +40,10 @@ function getRequiredHandler(
     return handler;
 }
 
-function loadMainProcessStateWithIpc(): {
+async function loadMainProcessStateWithIpc(): Promise<{
     handlers: Map<string, IpcHandler>;
     mainProcessState: MainProcessStateManagerModule["mainProcessState"];
-} {
+}> {
     const handlers = new Map<string, IpcHandler>();
     const ipcMain = {
         handle: vi.fn((channel: string, handler: IpcHandler) => {
@@ -58,9 +57,8 @@ function loadMainProcessStateWithIpc(): {
 
     electronAccess.setElectronOverride?.({ ipcMain });
 
-    const { mainProcessState } = requireCjs(
-        "../../../../electron-app/utils/state/integration/mainProcessStateManager"
-    ) as MainProcessStateManagerModule;
+    const { mainProcessState } =
+        (await import("../../../../electron-app/utils/state/integration/mainProcessStateManager.js")) as unknown as MainProcessStateManagerModule;
 
     return { handlers, mainProcessState };
 }
@@ -88,10 +86,11 @@ describe("mainProcessStateManager IPC state reads", () => {
         vi.restoreAllMocks();
     });
 
-    it("requires explicit renderer-readable state paths", () => {
+    it("requires explicit renderer-readable state paths", async () => {
         expect.assertions(7);
 
-        const { handlers, mainProcessState } = loadMainProcessStateWithIpc();
+        const { handlers, mainProcessState } =
+            await loadMainProcessStateWithIpc();
         const getMainState = getRequiredHandler(handlers, "main-state:get");
         const listenToMainState = getRequiredHandler(
             handlers,

@@ -1586,6 +1586,21 @@ describe("architecture boundaries", () => {
         expect(sharedCommonJsExportFiles).toStrictEqual([]);
     });
 
+    it("keeps the FIT parser source and facade free of source-level CommonJS exports", () => {
+        expect.assertions(3);
+
+        const parserSource = stripComments(
+            readRepositoryFile("electron-app/fitParser.ts")
+        );
+        const parserFacadeSource = stripComments(
+            readRepositoryFile("electron-app/main/runtime/fitParserFacade.ts")
+        );
+
+        expect(parserSource).not.toContain("module.exports");
+        expect(parserFacadeSource).not.toContain("module.exports");
+        expect(parserFacadeSource).not.toContain('require("../../fitParser")');
+    });
+
     it("keeps ordinary preload unit tests on native source imports", () => {
         expect.assertions(1);
 

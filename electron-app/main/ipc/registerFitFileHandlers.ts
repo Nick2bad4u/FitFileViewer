@@ -1,11 +1,10 @@
+import { getFitParserModule } from "../runtime/fitParserFacade.js";
+
 {
     type FitParserModule = Pick<
         import("../../shared/fitParser").FitParserModule,
         "decodeFitFile"
     >;
-    type FitParserFacade = {
-        getFitParserModule: () => FitParserModule;
-    };
     type FitFileInvokeChannel = import("../../shared/ipc").FitFileInvokeChannel;
     type FitFileRequestPayload =
         import("../../shared/ipc").FitFileRequestPayload;
@@ -60,8 +59,6 @@
                 try {
                     await ensureFitParserStateIntegration();
                     const buffer = normalizeFitIpcPayloadToBuffer(arrayBuffer);
-                    const { getFitParserModule } =
-                        require("../runtime/fitParserFacade") as FitParserFacade;
                     const fitParser = fitParserModule ?? getFitParserModule();
                     return await fitParser.decodeFitFile(buffer);
                 } catch (error) {

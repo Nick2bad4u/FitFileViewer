@@ -1,21 +1,16 @@
+import { mainProcessState as runtimeMainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
+import { getFitParserModule } from "./fitParserFacade.js";
+
 {
     type DecoderOptions = import("../../shared/fit").DecoderOptions;
     type FitFileStateManager =
         import("../../shared/fitParser").FitFileStateManager;
     type FitParserStateManagers =
         import("../../shared/fitParser").FitParserStateManagers;
-    type FitParserModule = Pick<
-        import("../../shared/fitParser").FitParserModule,
-        "initializeStateManagement"
-    >;
     type PerformanceMonitor =
         import("../../shared/fitParser").PerformanceMonitor;
     type SettingsStateManager =
         import("../../shared/fitParser").SettingsStateManager;
-    type FitParserFacade = {
-        getFitParserModule: () => FitParserModule;
-    };
-
     interface FitParserSettingsConf {
         get: (key: string) => unknown;
         set: (key: string, value: unknown) => void;
@@ -71,13 +66,13 @@
             context?: Record<string, unknown>
         ) => void;
     };
-    const { mainProcessState, resolveFitParserSettingsConf } =
-        require("../state/appState") as {
-            mainProcessState: MainProcessStateLike;
-            resolveFitParserSettingsConf: () => FitParserSettingsConf | null;
-        };
+    const { CONSTANTS } = require("../constants") as {
+        CONSTANTS: { SETTINGS_CONFIG_NAME: string };
+    };
+    const mainProcessState = runtimeMainProcessState as MainProcessStateLike;
 
     const FIT_PARSER_OPERATION_ID = "fitFile:decode" as const;
+    let fitParserSettingsConf: FitParserSettingsConf | null | undefined;
     let fitParserStateIntegrationPromise: Promise<void> | null = null;
 
     if (
@@ -125,11 +120,30 @@
             : Date.now();
     }
 
+    function resolveFitParserSettingsConf(): FitParserSettingsConf | null {
+        if (fitParserSettingsConf !== undefined) {
+            return fitParserSettingsConf;
+        }
+
+        try {
+            const { Conf } = require("electron-conf") as {
+                Conf: new (options?: {
+                    name?: string;
+                }) => FitParserSettingsConf;
+            };
+            fitParserSettingsConf = new Conf({
+                name: CONSTANTS.SETTINGS_CONFIG_NAME,
+            });
+        } catch {
+            fitParserSettingsConf = null;
+        }
+
+        return fitParserSettingsConf;
+    }
+
     function ensureOperationStarted(): void {
         try {
-            if (
-                mainProcessState.get(`operations.${FIT_PARSER_OPERATION_ID}`)
-            ) {
+            if (mainProcessState.get(`operations.${FIT_PARSER_OPERATION_ID}`)) {
                 return;
             }
 
@@ -168,8 +182,6 @@
 
     function initializeFitParserStateIntegration(): void {
         try {
-            const { getFitParserModule } =
-                require("./fitParserFacade") as FitParserFacade;
             const fitParser = getFitParserModule();
             if (
                 !fitParser ||
@@ -183,10 +195,7 @@
                 createFitParserStateAdapters();
             fitParser.initializeStateManagement(adapters);
 
-            logWithContext(
-                "info",
-                "Fit parser state management initialized"
-            );
+            logWithContext("info", "Fit parser state management initialized");
         } catch (error) {
             logWithContext("warn", "Skipping fit parser state integration", {
                 error: getErrorMessage(error),

@@ -47,6 +47,10 @@ Shared validation and FIT-label policy modules now use named source exports inst
 too, while existing CommonJS runtime consumers continue destructuring the compiled named exports.
 The redundant main-process external URL policy facade has been removed; callers and tests now use the shared
 policy module directly.
+The FIT parser source now exposes named exports plus a default module object instead of assigning
+`module.exports`, while the compiled CommonJS runtime still presents the same named API. The parser facade and
+FIT parser state integration now import the parser/state-manager source through typed ESM imports instead of
+requiring the source files directly.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's
