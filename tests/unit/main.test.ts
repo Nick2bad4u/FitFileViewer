@@ -336,7 +336,6 @@ vi.mock(import("../../electron-app/utils/files/recentFiles.js"), () => ({
 
 const expectedMainExportKeys = [
     "CONSTANTS",
-    "default",
     "ensureFitParserStateIntegration",
     "exposeDevHelpers",
     "getAppState",
@@ -374,10 +373,6 @@ type MainModule = {
     validateWindow: (window: unknown, context: string) => boolean;
 };
 
-type MainImport = {
-    default: MainModule;
-};
-
 type DevHelpers = {
     cleanupEventHandlers: () => void;
     getAppState: () => {
@@ -407,9 +402,7 @@ async function importMainModule({
     electronOverride = mockElectron,
 }: ImportMainModuleOptions = {}): Promise<MainModule> {
     await setMainElectronOverride(electronOverride);
-    const imported =
-        (await import("../../electron-app/main.js")) as unknown as MainImport;
-    return imported.default;
+    return (await import("../../electron-app/main.js")) as unknown as MainModule;
 }
 
 function getRegisteredIpcHandler(channel: string) {

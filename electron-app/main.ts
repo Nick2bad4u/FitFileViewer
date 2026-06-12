@@ -4,32 +4,15 @@
  * modularised helpers that live under ./main/.
  */
 import { setupApplicationEventHandlers } from "./main/app/setupApplicationEventHandlers.js";
-import { CONSTANTS } from "./main/constants.js";
 import { exposeDevHelpers } from "./main/dev/exposeDevHelpers.js";
-import { sendToRenderer } from "./main/ipc/sendToRenderer.js";
 import { setupIPCHandlers } from "./main/ipc/setupIPCHandlers.js";
 import { logWithContext } from "./main/logging/logWithContext.js";
 import { setupMenuAndEventHandlers } from "./main/menu/setupMenuAndEventHandlers.js";
-import {
-    startGyazoOAuthServer,
-    stopGyazoOAuthServer,
-} from "./main/oauth/gyazoOAuthServer.js";
 import { appRef, browserWindowRef } from "./main/runtime/electronAccess.js";
-import { ensureFitParserStateIntegration } from "./main/runtime/fitParserIntegration.js";
 import { initializeApplication } from "./main/runtime/initializeApplication.js";
 import { primeTestEnvironment } from "./main/runtime/primeTestEnvironment.js";
 import { setupMainLifecycle } from "./main/runtime/setupMainLifecycle.js";
-import { getAppState, setAppState } from "./main/state/appState.js";
-import { getThemeFromRenderer } from "./main/theme/getThemeFromRenderer.js";
-import {
-    resolveAutoUpdaterAsync,
-    resolveAutoUpdaterSync,
-} from "./main/updater/autoUpdaterAccess.js";
-import { setupAutoUpdater } from "./main/updater/setupAutoUpdater.js";
-import {
-    isWindowUsable,
-    validateWindow,
-} from "./main/window/windowValidation.js";
+import { getAppState } from "./main/state/appState.js";
 
 export { setupApplicationEventHandlers } from "./main/app/setupApplicationEventHandlers.js";
 export { CONSTANTS } from "./main/constants.js";
@@ -87,30 +70,3 @@ setupMainLifecycle({
     setupIPCHandlers: setupIPCHandlersForLifecycle,
     setupMenuAndEventHandlers,
 });
-
-const exported = {
-    CONSTANTS,
-    ensureFitParserStateIntegration,
-    exposeDevHelpers,
-    getAppState,
-    getThemeFromRenderer,
-    initializeApplication,
-    isWindowUsable,
-    logWithContext,
-    resolveAutoUpdaterAsync,
-    resolveAutoUpdaterSync,
-    sendToRenderer,
-    setAppState,
-    setupApplicationEventHandlers,
-    setupAutoUpdater,
-    setupIPCHandlers,
-    setupMainLifecycle,
-    setupMenuAndEventHandlers,
-    startGyazoOAuthServer,
-    stopGyazoOAuthServer,
-    validateWindow,
-};
-
-const defaultExport = Object.assign(exported, { default: exported });
-
-export default defaultExport;

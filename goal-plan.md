@@ -148,7 +148,8 @@ The window-state utility boundary now uses named source exports instead of a sou
 wrapper, and application-event/window-bootstrap/window-initialization source imports `createWindow` natively
 instead of requiring `windowStateUtils`.
 The main entrypoint now imports runtime helpers natively instead of using its `mainRequire` table or
-source-level `module.exports` fallback, while keeping the existing default export object for tests.
+source-level `module.exports` fallback, and the test-only default export object has been removed so tests use
+named exports directly.
 The recent-files utility now uses named source exports, and `setupIPCHandlers.ts` imports it natively instead
 of requiring the source helper.
 Root-context package CLI helper scripts now resolve package entrypoints through `import.meta.resolve`, the
