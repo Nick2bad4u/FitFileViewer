@@ -1511,7 +1511,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer core module resolution on the app-domain state facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -1523,6 +1523,10 @@ describe("architecture boundaries", () => {
         expect(coreModuleResolutionSource).not.toContain(
             "state/domain/appState.js"
         );
+        expect(coreModuleResolutionSource).not.toContain(
+            "__vitest_manual_mocks__"
+        );
+        expect(coreModuleResolutionSource).not.toContain("globalThis");
     });
 
     it("keeps renderer startup subscriptions behind the app-domain facade", () => {

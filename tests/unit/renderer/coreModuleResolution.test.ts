@@ -3,26 +3,20 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     callUnknownFunction,
     ensureCoreModules,
+    resetRendererCoreModuleTestOverrides,
     resolveExactManualMock,
     resolveManualMock,
+    setRendererCoreModuleTestOverrides,
     toModuleRecord,
 } from "../../../electron-app/renderer/coreModuleResolution.js";
 
-type ManualMockRegistryGlobal = typeof globalThis & {
-    __vitest_manual_mocks__?: Map<string, unknown>;
-};
-
-function getManualMockGlobal(): ManualMockRegistryGlobal {
-    return globalThis as ManualMockRegistryGlobal;
-}
-
 function setManualMockRegistry(registry: Map<string, unknown>): void {
-    getManualMockGlobal().__vitest_manual_mocks__ = registry;
+    setRendererCoreModuleTestOverrides(registry);
 }
 
 describe("renderer core module resolution", () => {
     afterEach(() => {
-        Reflect.deleteProperty(globalThis, "__vitest_manual_mocks__");
+        resetRendererCoreModuleTestOverrides();
         vi.restoreAllMocks();
     });
 

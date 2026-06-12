@@ -54,6 +54,9 @@ Long-term target: feature modules should import concrete services, runtime adapt
 event APIs directly. Avoid generic “helper bags,” registry-like modules, broad resolver functions, or test-
 only mutation seams.
 
+Progress: renderer core module resolution now uses module-local focused test overrides instead of reading the
+shared `__vitest_manual_mocks__` global registry for startup test doubles.
+
 6. Reduce Test Harness Global Pollution (Fully finish)
 
 Not all globalThis usage is bad: browser/runtime abstractions need it. But tests/vitest/setupVitest.mjs
