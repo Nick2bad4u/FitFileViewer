@@ -1,3 +1,5 @@
+import { loadNodeModule } from "../runtime/nodeModules.js";
+
 interface AutoUpdaterLike {
     autoDownload?: boolean;
     checkForUpdatesAndNotify?: () => unknown;
@@ -41,7 +43,7 @@ export function resolveAutoUpdaterSync(): AutoUpdaterLike | null {
     }
 
     try {
-        return resolveAutoUpdaterFromModule(require("electron-updater"));
+        return resolveAutoUpdaterFromModule(loadNodeModule("electron-updater"));
     } catch {
         return null;
     }

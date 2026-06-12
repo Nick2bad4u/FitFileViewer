@@ -81,17 +81,21 @@ that package at source level.
 Main logging, menu-creation, Electron access, and blocked-request support helpers (`logWithContext.ts`,
 `safeCreateAppMenu.ts`, `electronAccess.ts`, and `setupBlockedRequests.ts`) now use named source exports too;
 already-migrated runtime consumers import those helper boundaries natively instead of requiring their source
-files. Main-process source and the state/menu utility consumers no longer require `electronAccess.ts` directly.
+files. Main-process source and the state/menu utility consumers no longer require `electronAccess.ts` directly,
+and `electronAccess.ts` now resolves the Electron package through the centralized `loadNodeModule`
+compatibility boundary instead of owning a direct package `require("electron")` call.
 The app-menu creation boundary (`createAppMenu.ts` plus `utils/app/menu/index.ts`) now uses named source
 exports/imports instead of source-level `module.exports` or a barrel `require`, and `safeCreateAppMenu.ts`
 imports the menu creator natively. `createAppMenu.ts` also imports recent-file and file-access helpers
 natively instead of requiring those source modules.
 The auto-updater access helper now uses named source exports too, and setup/menu/bootstrap consumers import
-the updater resolver boundary natively instead of requiring its source file.
+the updater resolver boundary natively instead of requiring its source file. Its synchronous
+Electron-updater fallback now resolves through the centralized `loadNodeModule` compatibility boundary instead
+of a direct package `require("electron-updater")` call.
 The Node runtime module boundary now uses named source exports for `path`, `fs`, `httpRef`, and the scoped
 package loader used by runtime compatibility adapters; file-access, IPC sender policy, Gyazo OAuth,
-application-event, menu-event, and IPC setup consumers import that boundary natively instead of requiring its
-source file.
+application-event, menu-event, IPC setup, Electron access, and updater access consumers import that boundary
+natively instead of requiring its source file or owning separate direct package-load fallbacks.
 Electron-conf access is now centralized in `electron-app/main/runtime/electronConfAccess.ts` because the
 package's ESM entry is not safe under the current Electron CommonJS module shape. App state, FIT-parser
 integration, app-menu creation, menu event handling, and browser/info IPC handlers use that typed adapter
