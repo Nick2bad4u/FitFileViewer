@@ -56,8 +56,8 @@ import {
 } from "./renderChartSeriesCache.js";
 import {
     ensureProcessNextTick,
+    getChartLifecycleActions,
     getDebouncedChartStateManager,
-    getGlobalChartActions,
     getGlobalChartInstances,
     isChartDebugEnabled,
     isDevelopmentEnvironment,
@@ -358,7 +358,7 @@ export async function renderChartJS(
         const renderSession = await beginChartRenderSession(
             {
                 doc: document,
-                getGlobalChartActions,
+                getChartLifecycleActions,
                 isLoadingStateSuppressed,
                 now: () => performance.now(),
                 setState: callSetState,
@@ -393,7 +393,7 @@ export async function renderChartJS(
         const { success } = await executePreparedChartRender(
             {
                 createElement: (tagName) => document.createElement(tagName),
-                getGlobalChartActions,
+                getChartLifecycleActions,
                 getRendererModules: getRendererModulesSafe,
                 isTestEnvironment,
                 now: () => performance.now(),

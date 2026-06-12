@@ -1,10 +1,10 @@
-import { getGlobalChartActions } from "./renderChartRuntimeHelpers.js";
+import { getChartLifecycleActions } from "./renderChartRuntimeHelpers.js";
 
-/** Completes chart rendering through the legacy global action bridge if present. */
+/** Completes chart rendering through registered chart lifecycle actions. */
 export function safeCompleteRendering(success: boolean): void {
     try {
-        getGlobalChartActions()?.completeRendering?.(success);
+        getChartLifecycleActions()?.completeRendering?.(success);
     } catch {
-        // Compatibility bridge failures should not mask render cleanup paths.
+        // Completion hook failures should not mask render cleanup paths.
     }
 }

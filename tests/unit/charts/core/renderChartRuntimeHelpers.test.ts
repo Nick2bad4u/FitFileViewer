@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
     ensureProcessNextTick,
     getDebouncedChartStateManager,
-    getGlobalChartActions,
+    getChartLifecycleActions,
     getGlobalChartInstances,
     isDevelopmentEnvironment,
     isLoadingStateSuppressed,
@@ -222,11 +222,11 @@ describe("render chart runtime helpers", () => {
             value: globalActions,
         });
 
-        expect(getGlobalChartActions()).toBeNull();
+        expect(getChartLifecycleActions()).toBeNull();
 
         registerChartActions(registeredActions);
 
-        expect(getGlobalChartActions()).toBe(registeredActions);
+        expect(getChartLifecycleActions()).toBe(registeredActions);
         expect(Reflect.get(globalThis, "chartActions")).toBe(globalActions);
     });
 

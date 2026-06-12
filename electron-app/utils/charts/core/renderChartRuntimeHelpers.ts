@@ -143,14 +143,15 @@ export function getDebouncedChartStateManager(): DebouncedChartStateManager | nu
     return hasDebouncedRender(chartStateManager) ? chartStateManager : null;
 }
 
-/** Returns registered chart actions for legacy render lifecycle helpers. */
-export function getGlobalChartActions(): ChartActionsBridge | null {
+/** Returns registered chart actions for render lifecycle helpers. */
+export function getChartLifecycleActions(): ChartActionsBridge | null {
     const chartActions = getRegisteredChartActions();
     return hasChartAction(chartActions) ? chartActions : null;
 }
 
 /**
- * Returns registered Chart.js instances, falling back to caller-provided values.
+ * Returns registered Chart.js instances, falling back to caller-provided
+ * values.
  */
 export function getGlobalChartInstances(fallbackInstances: unknown): unknown[] {
     const instances = getRegisteredChartInstances();

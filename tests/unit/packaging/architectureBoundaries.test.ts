@@ -228,6 +228,7 @@ const migratedRenderTableRuntimeFiles = [
 ] as const;
 const migratedChartInstanceRegistryFiles = [
     "electron-app/utils/charts/core/renderChartActions.ts",
+    "electron-app/utils/charts/core/renderChartCompletion.ts",
     "electron-app/utils/charts/core/renderChartDataCharts.ts",
     "electron-app/utils/charts/core/renderChartDataCompletion.ts",
     "electron-app/utils/charts/core/renderChartDevTools.ts",
@@ -2390,7 +2391,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated chart lifecycle paths on the chart instance registry", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const violations = migratedChartInstanceRegistryFiles
             .filter((relativeFile) =>
@@ -2399,8 +2400,16 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const renderChartRuntimeHelpersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartRuntimeHelpers.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(renderChartRuntimeHelpersSource).not.toContain(
+            "getGlobalChartActions"
+        );
     });
 
     it("keeps app source off legacy Chart.js canvas expandos", () => {
