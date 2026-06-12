@@ -26,29 +26,11 @@ const leafletRuntimePluginPrelude = [
     "",
 ].join("\n");
 
-const minimapGlobalRegistrationSnippet =
-    'if(typeof window!=="undefined"&&window.L){window.L.Control.MiniMap=factory(L);window.L.control.minimap=function(layer,options){return new window.L.Control.MiniMap(layer,options)}}';
-
 /** @type {ReadonlyMap<string, (code: string) => string>} */
 const legacyLeafletPluginTransforms = new Map([
     [
         "/node_modules/leaflet-draw/dist/leaflet.draw.js",
         (code) => `${leafletRuntimePluginPrelude}${code}`,
-    ],
-    [
-        "/node_modules/leaflet-minimap/dist/Control.MiniMap.min.js",
-        (code) => {
-            if (!code.includes(minimapGlobalRegistrationSnippet)) {
-                throw new Error(
-                    "Unable to rewrite leaflet-minimap global registration"
-                );
-            }
-
-            return `${leafletRuntimePluginPrelude}${code.replace(
-                minimapGlobalRegistrationSnippet,
-                "if(true){L.Control.MiniMap=factory(L);L.control.minimap=function(layer,options){return new L.Control.MiniMap(layer,options)}}"
-            )}`;
-        },
     ],
     [
         "/node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js",

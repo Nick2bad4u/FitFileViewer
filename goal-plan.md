@@ -186,19 +186,21 @@ CommonJS-in-ESM mock patterns.
 
 The renderer dependency inventory says the app still loads browser libraries through split renderer
 compatibility bundles: /C:/Repos/FitFileViewer/docs/RENDERER_DEPENDENCY_INVENTORY.md:9. The important
-remaining problem is the Vite transform around Leaflet.draw, MiniMap, and markercluster: /C:/Repos/
+remaining problem is the Vite transform around Leaflet.draw and markercluster: /C:/Repos/
 FitFileViewer/docs/DEPRECATION_LEDGER.md:127.
 
-Long-term target: replace or wrap those Leaflet plugins with modules that accept explicit imports natively,
+Long-term target: replace or wrap the remaining transformed Leaflet plugins with modules that accept explicit imports natively,
 remove the Vite legacy-plugin transform, and eventually reduce or remove vendorGlobals\* compatibility
 entries where feature-local dynamic imports can do the job cleanly.
 
-Progress: the map vendor bundle now removes package-created `L`/`Leaflet` aliases after Leaflet.draw,
-MiniMap, markercluster, MapLibre, and the local measurement control are registered on the typed Leaflet
-runtime object. The Playwright map smoke path now resolves Leaflet through `leafletRuntime.ts` instead of
-depending on `window.L`, while the Vite legacy-plugin transform now resolves Leaflet through that typed runtime
-adapter instead of a separate legacy plugin runtime shim. Leaflet runtime unit tests now reset only the typed
-module-local adapter instead of deleting retired `L` globals from `globalThis`.
+Progress: the map vendor bundle now imports MiniMap as a constructor, registers it explicitly on the typed
+Leaflet runtime object, and removes MiniMap from the Vite legacy-plugin transform. The bundle still removes
+package-created `L`/`Leaflet` aliases after Leaflet.draw, markercluster, MapLibre, and the local measurement
+control are registered. The Playwright map smoke path now resolves Leaflet through `leafletRuntime.ts` instead
+of depending on `window.L`, while the remaining Vite legacy-plugin transform resolves Leaflet.draw and
+markercluster through that typed runtime adapter instead of a separate legacy plugin runtime shim. Leaflet
+runtime unit tests now reset only the typed module-local adapter instead of deleting retired `L` globals from
+`globalThis`.
 
 3. Finish Shrinking The Renderer Composition Root (Complete)
 

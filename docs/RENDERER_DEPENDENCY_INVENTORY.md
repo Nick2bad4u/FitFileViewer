@@ -59,10 +59,11 @@ compatibility bundles:
 - `electron-app/renderer/vendorGlobalsMap.ts` publishes Leaflet through the
   typed split-vendor readiness payload consumed by
   `electron-app/renderer/vendorBundleLoader.ts`; app modules then resolve it
-  through the module-local `leafletRuntime.ts` adapter. The renderer Vite
-  config rewrites the Leaflet.draw, Leaflet MiniMap, and markercluster package
-  entries so callbacks resolve Leaflet through the typed runtime adapter instead
-  of a persistent `L` compatibility global. The map bundle no
+  through the module-local `leafletRuntime.ts` adapter. The map bundle imports
+  MiniMap as a constructor and registers it on the typed Leaflet runtime
+  explicitly. The renderer Vite config still rewrites the Leaflet.draw and
+  markercluster package entries so callbacks resolve Leaflet through the typed
+  runtime adapter instead of a persistent `L` compatibility global. The map bundle no
   longer exposes separate `L`, `Leaflet`, or `maplibregl` aliases, and the
   app-side Leaflet adapter no longer uses a global symbol registry.
 - `electron-app/renderer/vendorGlobalsChartData.ts` publishes Chart.js,
@@ -119,7 +120,7 @@ Vite-bundled renderer output, not the npm packages themselves.
 | `leaflet`                       | `dist/renderer/vendor-globals-map.js`, `dist/renderer/vendor-globals.css`; `leafletRuntime.ts` adapter for migrated helpers                  | Registered through the runtime adapter; legacy plugin chunks close over it.    |
 | `leaflet-draw`                  | `dist/renderer/vendor-globals-map.js`, `dist/renderer/vendor-globals.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle.                  |
 | `leaflet-measure`               | `dist/renderer/vendor-globals.css`                                                                                                           | CSS/assets are bundled; CSP-safe JavaScript remains curated source.            |
-| `leaflet-minimap`               | `dist/renderer/vendor-globals-map.js`, `dist/renderer/vendor-globals.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle.                  |
+| `leaflet-minimap`               | `dist/renderer/vendor-globals-map.js`, `dist/renderer/vendor-globals.css`                                                                    | Constructor imported and registered explicitly on the typed Leaflet runtime.   |
 | `leaflet.fullscreen`            | `dist/renderer/vendor-globals-map.js`, `dist/renderer/vendor-globals.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle.                  |
 | `leaflet.locatecontrol`         | `dist/renderer/vendor-globals-map.js`, `dist/renderer/vendor-globals.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle.                  |
 | `leaflet.markercluster`         | `dist/renderer/vendor-globals-map.js`, `dist/renderer/vendor-globals.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle.                  |
@@ -213,8 +214,8 @@ directly from a `vendor/` path.
 - Remove one dependency group at a time and verify the affected feature.
 - Preserve script, CSS, and plugin ordering in the split bundle loader until
   imports make ordering explicit.
-- Keep split-vendor readiness in module-local state and keep legacy Leaflet
-  plugin chunks behind the typed Leaflet runtime adapter; do not reintroduce
+- Keep split-vendor readiness in module-local state and keep remaining legacy
+  Leaflet plugin chunks behind the typed Leaflet runtime adapter; do not reintroduce
   public `window.*` vendor globals, app-side browser-library runtime symbols, or
   persistent split-vendor payload registries.
 - Keep `electron-app/renderer/leafletMeasureLite.js` unless a CSP-safe package

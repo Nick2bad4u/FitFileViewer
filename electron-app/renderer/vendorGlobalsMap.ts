@@ -1,4 +1,5 @@
 import Leaflet from "leaflet";
+import LeafletMiniMap from "leaflet-minimap";
 /* eslint-disable import-x/no-unassigned-import -- Leaflet stylesheets must be loaded through the bundle entry. */
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
@@ -30,6 +31,7 @@ const leafletGlobal = Leaflet as typeof Leaflet & {
     Control: typeof Leaflet.Control & {
         FullScreen?: typeof FullScreen;
         Locate?: typeof LocateControl;
+        MiniMap?: new (...args: unknown[]) => unknown;
     };
     control: typeof Leaflet.control & {
         fullscreen?: (
@@ -38,6 +40,7 @@ const leafletGlobal = Leaflet as typeof Leaflet & {
         locate?: (
             options?: ConstructorParameters<typeof LocateControl>[0]
         ) => InstanceType<typeof LocateControl>;
+        minimap?: (layer: unknown, options?: unknown) => unknown;
     };
 };
 
@@ -73,13 +76,15 @@ export async function installRendererMapVendorGlobals(): Promise<void> {
 
     leafletGlobal.Control.FullScreen = FullScreen;
     leafletGlobal.Control.Locate = LocateControl;
+    leafletGlobal.Control.MiniMap = LeafletMiniMap;
     leafletGlobal.control.fullscreen = (options) => new FullScreen(options);
     leafletGlobal.control.locate = (options) => new LocateControl(options);
+    leafletGlobal.control.minimap = (layer, options) =>
+        new LeafletMiniMap(layer, options);
 
     setLeafletRuntime(Leaflet);
 
     await import("leaflet-draw");
-    await import("leaflet-minimap");
     await import("leaflet.markercluster");
     await import("@maplibre/maplibre-gl-leaflet");
     installLeafletMeasureLite(Leaflet);
