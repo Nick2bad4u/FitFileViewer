@@ -83,11 +83,6 @@ import {
     resetRendererElectronApiCandidate,
 } from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
-type SettingsModalTestGlobal = typeof globalThis & {
-    closeSettingsModal?: typeof closeSettingsModal;
-    showSettingsModal?: typeof showSettingsModal;
-};
-
 function change(element: HTMLElement): void {
     element.dispatchEvent(new Event("change", { bubbles: true }));
 }
@@ -133,8 +128,6 @@ function resetFixture(): void {
     registerRendererElectronApiCandidate({
         sendThemeChanged: mocks.sendThemeChanged,
     });
-    delete (globalThis as SettingsModalTestGlobal).closeSettingsModal;
-    delete (globalThis as SettingsModalTestGlobal).showSettingsModal;
 }
 
 function cleanupFixture(): void {
@@ -143,8 +136,6 @@ function cleanupFixture(): void {
     document.body.replaceChildren();
     document.head.replaceChildren();
     resetRendererElectronApiCandidate();
-    delete (globalThis as SettingsModalTestGlobal).closeSettingsModal;
-    delete (globalThis as SettingsModalTestGlobal).showSettingsModal;
 }
 
 describe("settingsModal", () => {

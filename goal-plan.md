@@ -296,6 +296,9 @@ they now assert typed debug utilities stay off `globalThis`, and architecture co
 from returning.
 Render chart runtime helper tests no longer create or delete retired `chartActions` or `chartStateManager`
 globals when proving registry-based resolution; architecture coverage blocks those mutations from returning.
+Settings modal tests no longer delete retired `showSettingsModal` or `closeSettingsModal` globals during
+fixture setup or cleanup; they now assert presenter helpers stay absent, and architecture coverage blocks
+those mutations from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.

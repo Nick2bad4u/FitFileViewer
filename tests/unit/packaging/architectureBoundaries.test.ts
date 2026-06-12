@@ -671,6 +671,8 @@ const zoneColorPickerTestRetiredGlobalMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:clearZoneColorData|renderChartJS|updateInlineZoneColorSelectors)["']\s*(?:,|\))|\bglobalThis\.(?:clearZoneColorData|renderChartJS|updateInlineZoneColorSelectors)\s*=/u;
 const keyboardShortcutsModalTestRetiredGlobalMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:closeKeyboardShortcutsModal|showKeyboardShortcutsModal)["']\s*(?:,|\))|\bglobalThis\.(?:closeKeyboardShortcutsModal|showKeyboardShortcutsModal)\s*=/u;
+const settingsModalTestRetiredGlobalMutationPattern =
+    /\bdelete\s*\(\s*globalThis\s+as[\s\S]{0,120}?\)\.(?:closeSettingsModal|showSettingsModal)\b|\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:closeSettingsModal|showSettingsModal)["']\s*(?:,|\))|\bglobalThis\.(?:closeSettingsModal|showSettingsModal)\s*=/u;
 const lifecycleListenersTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:copyTableAsCSV|globalData|renderChartJS|sendFitFileToAltFitReader)["']\s*\)|\b(?:globalThis|window)\.(?:copyTableAsCSV|globalData|renderChartJS|sendFitFileToAltFitReader)\s*=/u;
 const tabButtonsTestRetiredGlobalMutationPattern =
@@ -6158,6 +6160,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/ui/modals/keyboardShortcutsModal.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps settings modal tests from mutating retired renderer globals", () => {
+        expect.assertions(1);
+
+        expect(
+            settingsModalTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/settingsModal.test.ts"
                     )
                 )
             )
