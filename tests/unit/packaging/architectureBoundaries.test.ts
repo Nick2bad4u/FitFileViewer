@@ -2539,6 +2539,7 @@ describe("architecture boundaries", () => {
         const rootPackageCliScripts = [
             "scripts/build-docs.mjs",
             "scripts/build-runtime.mjs",
+            "scripts/ensure-macos-builder-deps.mjs",
             "scripts/ensure-electron-binary.mjs",
             "scripts/run-electron-builder.mjs",
             "scripts/run-electron.mjs",

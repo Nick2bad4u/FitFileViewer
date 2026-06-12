@@ -127,7 +127,8 @@ The main entrypoint now imports runtime helpers natively instead of using its `m
 source-level `module.exports` fallback, while keeping the existing default export object for tests.
 The recent-files utility now uses named source exports, and `setupIPCHandlers.ts` imports it natively instead
 of requiring the source helper.
-Root-context package CLI helper scripts now resolve package entrypoints through `import.meta.resolve`, and the
+Root-context package CLI helper scripts now resolve package entrypoints through `import.meta.resolve`, the
+macOS builder dependency helper checks optional package availability through native resolution, and the
 preload bundler imports `esbuild` natively instead of using `createRequire`/`require.resolve`; cross-workspace
 package resolvers stay intentionally separate because they resolve from another package root.
 The main-process module test no longer clears CJS require cache for the ESM-imported main entrypoint, and the
