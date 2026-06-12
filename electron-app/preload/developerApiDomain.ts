@@ -11,7 +11,8 @@
         preloadLog,
         validateOptionalNonEmptyString,
     }: PreloadApiAssemblyContext): PreloadDeveloperApiDomain {
-        const { createDevtoolsMenuApi } = modules;
+        const { createDevtoolsMenuApi, validateDevtoolsInjectMenuPayload } =
+            modules;
 
         return {
             devtoolsMenuApi: createDevtoolsMenuApi({
@@ -21,6 +22,7 @@
                     constants.CHANNELS.DEVTOOLS_INJECT_MENU,
                 ipcRenderer,
                 preloadLog,
+                validateDevtoolsInjectMenuPayload,
                 validateOptionalNonEmptyString,
             }),
         };

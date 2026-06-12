@@ -1280,6 +1280,36 @@ describe("architecture boundaries", () => {
         expect(moduleTypesSource).toContain("createPreloadApiAssemblyContext");
     });
 
+    it("keeps preload IPC policy dependencies injected through the module registry", () => {
+        expect.assertions(6);
+
+        const devtoolsMenuApiSource = stripComments(
+            readRepositoryFile("electron-app/preload/devtoolsMenuApi.ts")
+        );
+        const ipcHelpersSource = stripComments(
+            readRepositoryFile("electron-app/preload/ipcHelpers.ts")
+        );
+        const policyModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadPolicyModuleLoader.ts"
+            )
+        );
+        const moduleTypesSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
+        );
+
+        expect(devtoolsMenuApiSource).not.toContain("require(");
+        expect(ipcHelpersSource).not.toContain("require(");
+        expect(policyModuleLoaderSource).toContain(
+            "../shared/devtoolsMenuPolicy.js"
+        );
+        expect(policyModuleLoaderSource).toContain(
+            "../shared/mainStatePathPolicy.js"
+        );
+        expect(moduleTypesSource).toContain("validateExternalUrl");
+        expect(moduleTypesSource).toContain("validateMainStatePathInput");
+    });
+
     it("keeps the preload event helper free of generic IPC methods", () => {
         expect.assertions(5);
 

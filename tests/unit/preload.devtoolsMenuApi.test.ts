@@ -21,6 +21,17 @@ const requireFromTest = createRequire(import.meta.url);
 const { createDevtoolsMenuApi } = requireFromTest(
     "../../electron-app/preload/devtoolsMenuApi.js"
 ) as DevtoolsMenuApiModule;
+const { validateDevtoolsInjectMenuPayload } = requireFromTest(
+    "../../electron-app/shared/devtoolsMenuPolicy.js"
+) as {
+    validateDevtoolsInjectMenuPayload: (
+        theme: unknown,
+        fitFilePath: unknown
+    ) => {
+        fitFilePath: DevtoolsInjectMenuFitFilePath;
+        theme: DevtoolsInjectMenuTheme;
+    };
+};
 
 function createApi() {
     const invoke =
@@ -47,6 +58,7 @@ function createApi() {
             devtoolsInjectMenuChannel: "devtools-inject-menu",
             ipcRenderer: { invoke },
             preloadLog,
+            validateDevtoolsInjectMenuPayload,
             validateOptionalNonEmptyString: (
                 value: unknown
             ): value is null | string | undefined =>

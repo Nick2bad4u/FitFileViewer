@@ -48,6 +48,20 @@
                 | "registerPreloadBeforeExitHandler"
             >;
         };
+        const { loadPreloadPolicyModules } = requireModule(
+            "./preload/preloadPolicyModuleLoader.js"
+        ) as {
+            loadPreloadPolicyModules: () => Pick<
+                PreloadModuleRegistry,
+                | "validateDevtoolsInjectMenuPayload"
+                | "validateExternalUrl"
+                | "validateFitBrowserRelativePath"
+                | "validateFitBrowserRootFolderPath"
+                | "validateFitFilePathInput"
+                | "validateMainStateOperationIdInput"
+                | "validateMainStatePathInput"
+            >;
+        };
         const { loadPreloadFileModules } = requireModule(
             "./preload/preloadFileModuleLoader.js"
         ) as {
@@ -90,6 +104,7 @@
         return {
             ...loadPreloadApiAssemblyModules({ requireModule }),
             ...loadPreloadAppModules({ requireModule }),
+            ...loadPreloadPolicyModules(),
             ...loadPreloadFileModules({ requireModule }),
             ...loadPreloadIpcModules({ requireModule }),
             ...loadPreloadStateModules({ requireModule }),

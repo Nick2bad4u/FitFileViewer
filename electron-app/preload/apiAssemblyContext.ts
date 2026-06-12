@@ -46,6 +46,17 @@
         } = createPreloadIpcHelpers({
             ipcRenderer,
             preloadLog,
+            validateDevtoolsInjectMenuPayload:
+                modules.validateDevtoolsInjectMenuPayload,
+            validateExternalUrl: modules.validateExternalUrl,
+            validateFitBrowserRelativePath:
+                modules.validateFitBrowserRelativePath,
+            validateFitBrowserRootFolderPath:
+                modules.validateFitBrowserRootFolderPath,
+            validateFitFilePathInput: modules.validateFitFilePathInput,
+            validateMainStateOperationIdInput:
+                modules.validateMainStateOperationIdInput,
+            validateMainStatePathInput: modules.validateMainStatePathInput,
             validateCallback,
         });
         const shouldEnforceGenericIpcAllowlist =

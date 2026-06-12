@@ -61,6 +61,7 @@
         "electron-app/preload/preloadEventApi.ts",
         "electron-app/preload/preloadFileModuleLoader.ts",
         "electron-app/preload/preloadIpcModuleLoader.ts",
+        "electron-app/preload/preloadPolicyModuleLoader.ts",
         "electron-app/preload/preloadRuntime.ts",
         "electron-app/preload/preloadRuntimeEnvironment.ts",
         "electron-app/preload/preloadStateModuleLoader.ts",

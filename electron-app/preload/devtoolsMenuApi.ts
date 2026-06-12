@@ -10,20 +10,14 @@
         fitFilePath: DevtoolsInjectMenuFitFilePath;
         theme: DevtoolsInjectMenuTheme;
     };
+    type ValidateDevtoolsInjectMenuPayload =
+        import("./preloadModuleTypes").ValidateDevtoolsInjectMenuPayload;
 
     type PreloadLog = (
         level: "error" | "info" | "warn",
         message: string,
         ...details: unknown[]
     ) => void;
-
-    const { validateDevtoolsInjectMenuPayload } =
-        require("../shared/devtoolsMenuPolicy") as {
-            validateDevtoolsInjectMenuPayload: (
-                theme: unknown,
-                fitFilePath: unknown
-            ) => ValidatedDevtoolsInjectMenuPayload;
-        };
 
     interface DevtoolsMenuApi {
         injectMenu: (
@@ -44,6 +38,7 @@
             ) => Promise<unknown>;
         };
         preloadLog: PreloadLog;
+        validateDevtoolsInjectMenuPayload: ValidateDevtoolsInjectMenuPayload;
         validateOptionalNonEmptyString?: (
             value: unknown,
             paramName: string,
@@ -57,6 +52,7 @@
         devtoolsInjectMenuChannel,
         ipcRenderer,
         preloadLog,
+        validateDevtoolsInjectMenuPayload,
     }: DevtoolsMenuApiOptions): DevtoolsMenuApi {
         async function injectMenu(
             theme: DevtoolsInjectMenuTheme = defaultTheme,

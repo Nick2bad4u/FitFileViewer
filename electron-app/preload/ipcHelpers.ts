@@ -11,6 +11,18 @@
         fitFilePath: null | string;
         theme: null | string;
     };
+    type ValidateExternalUrl =
+        import("./preloadModuleTypes").ValidateExternalUrl;
+    type ValidateFitBrowserRelativePath =
+        import("./preloadModuleTypes").ValidateFitBrowserRelativePath;
+    type ValidateFitBrowserRootFolderPath =
+        import("./preloadModuleTypes").ValidateFitBrowserRootFolderPath;
+    type ValidateFitFilePathInput =
+        import("./preloadModuleTypes").ValidateFitFilePathInput;
+    type ValidateMainStateOperationIdInput =
+        import("./preloadModuleTypes").ValidateMainStateOperationIdInput;
+    type ValidateMainStatePathInput =
+        import("./preloadModuleTypes").ValidateMainStatePathInput;
 
     type IpcListener = (event: object, ...args: IpcResponsePayload[]) => void;
     type PreloadLog = (
@@ -20,33 +32,10 @@
     ) => void;
     type UnknownCallback = (...args: unknown[]) => unknown;
 
-    const { validateDevtoolsInjectMenuPayload } =
-        require("../shared/devtoolsMenuPolicy") as {
-            validateDevtoolsInjectMenuPayload: (
-                theme: unknown,
-                fitFilePath: unknown
-            ) => ValidatedDevtoolsInjectMenuPayload;
-        };
-    const { validateExternalUrl } = require("../shared/externalUrlPolicy") as {
-        validateExternalUrl: (url: unknown) => string;
-    };
-    const { validateFitBrowserRelativePath, validateFitBrowserRootFolderPath } =
-        require("../shared/fitBrowserPathPolicy") as {
-            validateFitBrowserRelativePath: (value: unknown) => string;
-            validateFitBrowserRootFolderPath: (value: unknown) => string;
-        };
-    const { validateFitFilePathInput } =
-        require("../shared/fitFilePathPolicy") as {
-            validateFitFilePathInput: (filePath: unknown) => string;
-        };
-    const { validateMainStateOperationIdInput, validateMainStatePathInput } =
-        require("../shared/mainStatePathPolicy") as {
-            validateMainStateOperationIdInput: (value: unknown) => string;
-            validateMainStatePathInput: (
-                value: unknown,
-                options?: { allowUndefined?: boolean }
-            ) => string | undefined;
-        };
+    type ValidateDevtoolsInjectMenuPayload = (
+        theme: unknown,
+        fitFilePath: unknown
+    ) => ValidatedDevtoolsInjectMenuPayload;
 
     interface IpcRendererLike {
         invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
@@ -82,10 +71,27 @@
     interface PreloadIpcHelpersOptions {
         ipcRenderer: IpcRendererLike;
         preloadLog: PreloadLog;
+        validateDevtoolsInjectMenuPayload: ValidateDevtoolsInjectMenuPayload;
+        validateExternalUrl: ValidateExternalUrl;
+        validateFitBrowserRelativePath: ValidateFitBrowserRelativePath;
+        validateFitBrowserRootFolderPath: ValidateFitBrowserRootFolderPath;
+        validateFitFilePathInput: ValidateFitFilePathInput;
+        validateMainStateOperationIdInput: ValidateMainStateOperationIdInput;
+        validateMainStatePathInput: ValidateMainStatePathInput;
         validateCallback: (
             callback: unknown,
             methodName: string
         ) => callback is UnknownCallback;
+    }
+
+    interface PreloadInvokeValidationPolicy {
+        validateDevtoolsInjectMenuPayload: ValidateDevtoolsInjectMenuPayload;
+        validateExternalUrl: ValidateExternalUrl;
+        validateFitBrowserRelativePath: ValidateFitBrowserRelativePath;
+        validateFitBrowserRootFolderPath: ValidateFitBrowserRootFolderPath;
+        validateFitFilePathInput: ValidateFitFilePathInput;
+        validateMainStateOperationIdInput: ValidateMainStateOperationIdInput;
+        validateMainStatePathInput: ValidateMainStatePathInput;
     }
 
     function isMissingFileError(error: unknown): boolean {
@@ -176,8 +182,19 @@
 
     function validateInvokeArgs(
         channel: string,
-        args: readonly unknown[]
+        args: readonly unknown[],
+        policy: PreloadInvokeValidationPolicy
     ): void {
+        const {
+            validateDevtoolsInjectMenuPayload,
+            validateExternalUrl,
+            validateFitBrowserRelativePath,
+            validateFitBrowserRootFolderPath,
+            validateFitFilePathInput,
+            validateMainStateOperationIdInput,
+            validateMainStatePathInput,
+        } = policy;
+
         switch (channel) {
             case "browser:getFolder":
             case "browser:isEnabled":
@@ -381,8 +398,25 @@
     function createPreloadIpcHelpers({
         ipcRenderer,
         preloadLog,
+        validateDevtoolsInjectMenuPayload,
+        validateExternalUrl,
+        validateFitBrowserRelativePath,
+        validateFitBrowserRootFolderPath,
+        validateFitFilePathInput,
+        validateMainStateOperationIdInput,
+        validateMainStatePathInput,
         validateCallback,
     }: PreloadIpcHelpersOptions): PreloadIpcHelpers {
+        const validationPolicy = {
+            validateDevtoolsInjectMenuPayload,
+            validateExternalUrl,
+            validateFitBrowserRelativePath,
+            validateFitBrowserRootFolderPath,
+            validateFitFilePathInput,
+            validateMainStateOperationIdInput,
+            validateMainStatePathInput,
+        };
+
         function createSafeEventHandler(
             channel: string,
             methodName: string,
@@ -443,7 +477,7 @@
         ) => Promise<InvokeResponsePayloadForChannel<Channel>> {
             return async (...args) => {
                 try {
-                    validateInvokeArgs(channel, args);
+                    validateInvokeArgs(channel, args, validationPolicy);
                     return (await ipcRenderer.invoke(
                         channel,
                         ...args

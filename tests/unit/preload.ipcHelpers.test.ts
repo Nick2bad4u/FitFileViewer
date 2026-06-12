@@ -39,6 +39,22 @@ interface PreloadIpcHelpersModule {
             callback: unknown,
             methodName: string
         ) => callback is (...args: unknown[]) => unknown;
+        validateDevtoolsInjectMenuPayload: (
+            theme: unknown,
+            fitFilePath: unknown
+        ) => {
+            fitFilePath: null | string;
+            theme: null | string;
+        };
+        validateExternalUrl: (url: unknown) => string;
+        validateFitBrowserRelativePath: (value: unknown) => string;
+        validateFitBrowserRootFolderPath: (value: unknown) => string;
+        validateFitFilePathInput: (filePath: unknown) => string;
+        validateMainStateOperationIdInput: (value: unknown) => string;
+        validateMainStatePathInput: (
+            value: unknown,
+            options?: { allowUndefined?: boolean }
+        ) => string | undefined;
     }) => {
         createSafeEventHandler: (
             channel: string,
@@ -64,6 +80,36 @@ const requireFromTest = createRequire(import.meta.url);
 const { createPreloadIpcHelpers } = requireFromTest(
     "../../electron-app/preload/ipcHelpers.js"
 ) as PreloadIpcHelpersModule;
+const { validateDevtoolsInjectMenuPayload } = requireFromTest(
+    "../../electron-app/shared/devtoolsMenuPolicy.js"
+) as Pick<
+    Parameters<PreloadIpcHelpersModule["createPreloadIpcHelpers"]>[0],
+    "validateDevtoolsInjectMenuPayload"
+>;
+const { validateExternalUrl } = requireFromTest(
+    "../../electron-app/shared/externalUrlPolicy.js"
+) as Pick<
+    Parameters<PreloadIpcHelpersModule["createPreloadIpcHelpers"]>[0],
+    "validateExternalUrl"
+>;
+const { validateFitBrowserRelativePath, validateFitBrowserRootFolderPath } =
+    requireFromTest(
+        "../../electron-app/shared/fitBrowserPathPolicy.js"
+    ) as Pick<
+        Parameters<PreloadIpcHelpersModule["createPreloadIpcHelpers"]>[0],
+        "validateFitBrowserRelativePath" | "validateFitBrowserRootFolderPath"
+    >;
+const { validateFitFilePathInput } = requireFromTest(
+    "../../electron-app/shared/fitFilePathPolicy.js"
+) as Pick<
+    Parameters<PreloadIpcHelpersModule["createPreloadIpcHelpers"]>[0],
+    "validateFitFilePathInput"
+>;
+const { validateMainStateOperationIdInput, validateMainStatePathInput } =
+    requireFromTest("../../electron-app/shared/mainStatePathPolicy.js") as Pick<
+        Parameters<PreloadIpcHelpersModule["createPreloadIpcHelpers"]>[0],
+        "validateMainStateOperationIdInput" | "validateMainStatePathInput"
+    >;
 
 function createIpcRendererMock(): IpcRendererMock {
     return {
@@ -106,6 +152,13 @@ function createHelpers(ipcRenderer = createIpcRendererMock()) {
         helpers: createPreloadIpcHelpers({
             ipcRenderer,
             preloadLog,
+            validateDevtoolsInjectMenuPayload,
+            validateExternalUrl,
+            validateFitBrowserRelativePath,
+            validateFitBrowserRootFolderPath,
+            validateFitFilePathInput,
+            validateMainStateOperationIdInput,
+            validateMainStatePathInput,
             validateCallback,
         }),
         ipcRenderer,

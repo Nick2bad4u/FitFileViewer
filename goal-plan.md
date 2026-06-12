@@ -9,6 +9,9 @@ Progress: `electron-app/preload/apiAssembly.ts` now consumes API assembly-contex
 from the injected preload module registry instead of requiring sibling preload modules directly. The new
 `electron-app/preload/preloadApiAssemblyModuleLoader.ts` keeps those dependencies behind the existing
 `requireModule` handoff while the packaged Electron preload output remains CommonJS-compatible.
+`electron-app/preload/ipcHelpers.ts` and `electron-app/preload/devtoolsMenuApi.ts` now consume shared validation
+policies from injected registry entries loaded by `electron-app/preload/preloadPolicyModuleLoader.ts` instead
+of requiring shared policy modules directly.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron’s
