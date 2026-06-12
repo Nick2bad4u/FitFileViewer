@@ -243,7 +243,7 @@ async function stopGyazoServerIfAvailable(): Promise<void> {
 }
 
 const showNotification: ExportNotification = (...args) => {
-    void (showNotificationOverride ?? __realShowNotification)(...args);
+    (showNotificationOverride ?? __realShowNotification)(...args);
 };
 const detectCurrentTheme = (): ReturnType<typeof __realDetectCurrentTheme> =>
     (detectCurrentThemeOverride ?? __realDetectCurrentTheme)();
