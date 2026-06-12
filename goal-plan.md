@@ -411,6 +411,9 @@ mutation pattern.
 Strict about modal tests now install their immediate `requestAnimationFrame` fixture through a descriptor-scoped
 helper instead of assigning `globalThis.requestAnimationFrame` directly, with architecture coverage blocking
 that fixture mutation pattern.
+Strict notification branch tests now rely on Vitest mock restoration for `window.requestAnimationFrame` instead
+of assigning the original callback back during cleanup, with architecture coverage blocking that direct
+animation-fixture assignment.
 Complete file-open tests now install temporary `process.env` coverage through a descriptor-scoped fixture
 instead of assigning `globalThis.process` directly, with architecture coverage blocking that fixture mutation
 pattern.

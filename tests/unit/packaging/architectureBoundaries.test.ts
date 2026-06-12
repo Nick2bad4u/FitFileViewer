@@ -734,6 +734,8 @@ const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
 const aboutModalTestDirectRequestAnimationFrameAssignmentPattern =
     /\bglobalThis\.requestAnimationFrame\s*=/u;
+const showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern =
+    /\bwindow\.requestAnimationFrame\s*=/u;
 const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
 const renderSummaryTestActiveFitFileNameMutationPattern =
@@ -6783,6 +6785,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/strictTests/ui/modals/aboutModal.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps strict notification tests off direct animation fixture assignment", () => {
+        expect.assertions(1);
+
+        expect(
+            showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/utils/ui/notifications/showNotification.branches.strict.test.ts"
                     )
                 )
             )
