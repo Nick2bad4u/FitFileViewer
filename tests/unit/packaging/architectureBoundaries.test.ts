@@ -730,6 +730,8 @@ const renderChartJSComprehensiveTestRetiredGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']\s*(?:,|\))|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']|\bglobalThis\.(?:Chart|ChartZoom|chartjsPluginZoom)\s*=/u;
 const renderChartJSStateApiTestRetiredGlobalMutationPattern =
     /\bObject\.defineProperty\(\s*window\s*,\s*["']Chart["']|\bReflect\.(?:deleteProperty|set)\(\s*window\s*,\s*["']Chart["']\s*(?:,|\))|\bwindow\.Chart\s*=/u;
+const strictChartTestDirectGlobalFixtureMutationPattern =
+    /\bglobalThis\.(?:window|document|HTMLCanvasElement|HTMLElement|console|localStorage)\s*=|\bdelete\s+(?:globalThis|zoneGlobal)\.(?:window|document|HTMLCanvasElement|HTMLElement|console|localStorage)\b/u;
 const renderChartJSStateApiTestRetiredGlobalDataFixturePattern =
     /\bgetMockStateValue[\s\S]*?\b["']globalData["']|\bglobalMockState\.data\.set\(\s*["']globalData["']|globalData which means hasValidData/u;
 const renderLapZoneChartsTestRetiredGlobalDataFixturePattern =
@@ -6662,6 +6664,24 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(false);
+    });
+
+    it("keeps strict chart tests on descriptor-scoped global fixtures", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            "tests/unit/strictTests/createEnhancedChart.test.ts",
+            "tests/unit/strictTests/renderZoneChart.test.ts",
+        ];
+        const directStrictChartGlobalFixtureMutations = scannedFiles
+            .filter((relativeFile) =>
+                strictChartTestDirectGlobalFixtureMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directStrictChartGlobalFixtureMutations).toStrictEqual([]);
     });
 
     it("keeps renderChartJS state API tests on active raw FIT data fixtures", () => {
