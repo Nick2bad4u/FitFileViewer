@@ -321,6 +321,8 @@ retired `globalData` entries, with architecture coverage blocking that stale reg
 Tab button state integration tests now model loaded FIT data only through the active `fitFile.rawData` state
 slot instead of carrying a retired `globalData` fixture slot, with architecture coverage blocking that stale
 integration fixture shape.
+Strict main UI tests no longer seed a retired `globalData` mock-state key while exercising renderer startup
+flows, with architecture coverage blocking that stale strict-test fixture.
 Chart resize listener tests no longer install or clean legacy Chart.js renderer globals while proving
 fullscreen resize uses registered chart instances, with architecture coverage preventing those mutations.
 RenderChartJS comprehensive tests no longer delete retired Chart.js runtime globals such as `Chart`,

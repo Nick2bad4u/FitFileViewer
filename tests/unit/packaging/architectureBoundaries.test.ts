@@ -689,6 +689,8 @@ const tabStateManagerRegressionTestRetiredGlobalDataFixturePattern =
     /\bglobalData:\s*\{[^}]*recordMesgs|\bglobalData:\s*(?:null|undefined)|\(\{\s*expectedDisabled,\s*globalData\s*\}\)|updateTabAvailability\(globalData/u;
 const tabButtonStateIntegrationRetiredGlobalDataFixturePattern =
     /\|\s*["']globalData["']|\bglobalData:\s*null/u;
+const strictMainUiTestRetiredGlobalDataFixturePattern =
+    /\bglobalData:\s*undefined|\bmockState\[\s*["']globalData["']\s*\]/u;
 const createShownFilesListTestRetiredLeafletGlobalPattern =
     /\bwindowMock\.L\b|\(\s*global\.window\s+as\s+any\s*\)\.L\b|\b(?:window|globalThis)\.L\b/u;
 const tabButtonsTestRetiredGlobalMutationPattern =
@@ -6519,6 +6521,18 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps strict main UI tests off retired FIT data fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            strictMainUiTestRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile("tests/unit/strictTests/ui/main-ui.test.ts")
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps zone-color picker tests from mutating retired renderer globals", () => {
