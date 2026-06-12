@@ -1274,54 +1274,6 @@ function ensureWindowWarningFreeAPIs(win) {
     mirrorToGlobal("open", openImpl);
 }
 
-// Global mocks for Electron application testing
-// These mocks provide comprehensive testing infrastructure for the Electron app
-
-// Create global mock objects that will be used in dynamic electron mocking
-globalThis.createElectronMocks = () => {
-    const mockApp = {
-        getPath: vi.fn((name) => {
-            // Use explicit mapping to avoid TypeScript index signature issues
-            if (name === "userData") return "/mock/path/userData";
-            if (name === "appData") return "/mock/path/appData";
-            if (name === "temp") return "/mock/path/temp";
-            if (name === "desktop") return "/mock/path/desktop";
-            if (name === "documents") return "/mock/path/documents";
-            if (name === "downloads") return "/mock/path/downloads";
-            if (name === "music") return "/mock/path/music";
-            if (name === "pictures") return "/mock/path/pictures";
-            if (name === "videos") return "/mock/path/videos";
-            if (name === "home") return "/mock/path/home";
-            return `/mock/path/${String(name)}`;
-        }),
-        isPackaged: false,
-        getVersion: vi.fn(() => "1.0.0"),
-        getName: vi.fn(() => "FitFileViewer"),
-        on: vi.fn(),
-        whenReady: vi.fn(() => Promise.resolve()),
-        quit: vi.fn(),
-    };
-
-    const mockIpcRenderer = {
-        invoke: vi.fn().mockResolvedValue("mock-result"),
-        send: vi.fn(),
-        on: vi.fn(),
-        once: vi.fn(),
-        removeListener: vi.fn(),
-        removeAllListeners: vi.fn(),
-    };
-
-    const mockContextBridge = {
-        exposeInMainWorld: vi.fn(),
-    };
-
-    return {
-        app: mockApp,
-        ipcRenderer: mockIpcRenderer,
-        contextBridge: mockContextBridge,
-    };
-};
-
 // Mock electron-conf to avoid Electron dependency issues in tests
 // Use default export to ensure it's compatible with both import and require
 vi.mock("electron-conf", () => {

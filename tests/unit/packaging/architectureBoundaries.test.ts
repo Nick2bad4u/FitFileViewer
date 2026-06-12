@@ -627,6 +627,7 @@ const directVitestObjectKeysThrowGlobalPattern =
     /\b__vitest_object_keys_allow_throw\b/u;
 const directVitestDocumentNativeMethodsGlobalPattern =
     /\b__vitest_doc_native_methods\b/u;
+const directVitestCreateElectronMocksGlobalPattern = /\bcreateElectronMocks\b/u;
 const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
@@ -4649,6 +4650,28 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directDocumentNativeMethodsGlobalLookups).toStrictEqual([]);
+    });
+
+    it("does not recreate the unused Electron mock factory test global", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directCreateElectronMocksGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestCreateElectronMocksGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directCreateElectronMocksGlobalLookups).toStrictEqual([]);
     });
 
     it("keeps raw globalThis any casts out of source and tests", () => {
