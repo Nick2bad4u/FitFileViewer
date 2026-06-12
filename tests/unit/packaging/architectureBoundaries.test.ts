@@ -1816,7 +1816,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main renderer-send and window validation helpers off source-level CommonJS exports", () => {
-        expect.assertions(15);
+        expect.assertions(22);
 
         const sendToRendererSource = stripComments(
             readRepositoryFile("electron-app/main/ipc/sendToRenderer.ts")
@@ -1843,12 +1843,17 @@ describe("architecture boundaries", () => {
                 "electron-app/main/menu/setupMenuAndEventHandlers.ts"
             )
         );
+        const setupIpcHandlersSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/setupIPCHandlers.ts")
+        );
         const gyazoOAuthServerSource = stripComments(
             readRepositoryFile("electron-app/main/oauth/gyazoOAuthServer.ts")
         );
 
         expect(sendToRendererSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain("module.exports");
+        expect(getThemeFromRendererSource).not.toContain("module.exports");
+        expect(setupAutoUpdaterSource).not.toContain("module.exports");
         expect(windowValidationSource).not.toContain(
             'require("../state/appState")'
         );
@@ -1870,6 +1875,12 @@ describe("architecture boundaries", () => {
         expect(initializeApplicationSource).not.toContain(
             'require("../ipc/sendToRenderer")'
         );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../theme/getThemeFromRenderer")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../updater/setupAutoUpdater")'
+        );
         expect(setupMenuAndEventHandlersSource).not.toContain(
             'require("../ipc/sendToRenderer")'
         );
@@ -1879,6 +1890,9 @@ describe("architecture boundaries", () => {
         expect(gyazoOAuthServerSource).not.toContain(
             'require("../ipc/sendToRenderer")'
         );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../theme/getThemeFromRenderer")'
+        );
         expect(sendToRendererSource).toContain(
             "export function sendToRenderer"
         );
@@ -1887,6 +1901,12 @@ describe("architecture boundaries", () => {
         );
         expect(windowValidationSource).toContain(
             "export function validateWindow"
+        );
+        expect(getThemeFromRendererSource).toContain(
+            "export async function getThemeFromRenderer"
+        );
+        expect(setupAutoUpdaterSource).toContain(
+            "export function setupAutoUpdater"
         );
     });
 

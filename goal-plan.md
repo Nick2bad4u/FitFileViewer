@@ -69,6 +69,8 @@ boundary plus main-process state manager import those migrated pieces natively i
 source files.
 The main renderer-send helper and window validation helper now use named source exports too, and direct
 main-process consumers import those migrated helpers natively instead of requiring their source files.
+The main theme retrieval helper and auto-updater setup helper now use named source exports too; initialize
+application and IPC setup import those migrated helper boundaries natively.
 
 Long-term target: make preload/runtime modules ESM-first or at least isolate CommonJS to the build boundary
 only. The exit criteria should be: app source is typed ESM-style, preload bundling handles Electron's

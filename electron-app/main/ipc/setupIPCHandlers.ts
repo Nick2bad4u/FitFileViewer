@@ -1,4 +1,5 @@
 import { assertFileReadAllowed } from "../security/fileAccessPolicy.js";
+import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
 import { registerBrowserHandlers } from "./registerBrowserHandlers.js";
 import { registerClipboardHandlers } from "./registerClipboardHandlers.js";
 import { registerDialogHandlers } from "./registerDialogHandlers.js";
@@ -117,10 +118,6 @@ import { registerRecentFileHandlers } from "./registerRecentFileHandlers.js";
         getAppState: (key: string) => unknown;
         setAppState: (key: string, value: unknown) => void;
     };
-    const { getThemeFromRenderer } =
-        require("../theme/getThemeFromRenderer") as {
-            getThemeFromRenderer: (win: BrowserWindow) => Promise<string>;
-        };
     const getErrorMessage = (error: unknown): string =>
         error instanceof Error ? error.message : String(error);
 

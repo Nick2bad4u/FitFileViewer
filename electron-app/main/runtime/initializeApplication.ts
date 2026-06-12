@@ -1,4 +1,6 @@
 import { sendToRenderer } from "../ipc/sendToRenderer.js";
+import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
+import { setupAutoUpdater } from "../updater/setupAutoUpdater.js";
 
 {
     type BrowserWindow = import("electron").BrowserWindow;
@@ -46,17 +48,10 @@ import { sendToRenderer } from "../ipc/sendToRenderer.js";
         getAppState: (key: string) => unknown;
         setAppState: (key: string, value: unknown) => void;
     };
-    const { getThemeFromRenderer } =
-        require("../theme/getThemeFromRenderer") as {
-            getThemeFromRenderer: BootstrapMainWindowDependencies["getThemeFromRenderer"];
-        };
     const { resolveAutoUpdaterAsync } =
         require("../updater/autoUpdaterAccess") as {
             resolveAutoUpdaterAsync: () => Promise<unknown>;
         };
-    const { setupAutoUpdater } = require("../updater/setupAutoUpdater") as {
-        setupAutoUpdater: BootstrapMainWindowDependencies["setupAutoUpdater"];
-    };
     const { bootstrapMainWindow } =
         require("../window/bootstrapMainWindow") as {
             bootstrapMainWindow: (
