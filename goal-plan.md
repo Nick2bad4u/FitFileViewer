@@ -259,7 +259,9 @@ test-override resolver names instead of retired manual-mock terminology. Export 
 test doubles now use the narrow `__setTestDeps` dependency override instead of the shared manual-mock registry
 or a map-style manual-mock override API. The
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
-use `setupFullscreenListeners`. `showFitData` no longer accepts the deprecated `resetRenderStates` option;
+use `setupFullscreenListeners`, and fullscreen button listener abort-controller creation now routes through
+`addFullScreenButtonRuntime.ts` instead of constructing `AbortController` directly inside
+`addFullScreenButton.ts`. `showFitData` no longer accepts the deprecated `resetRenderStates` option;
 render-state resets belong to `AppActions` and typed renderer state facades. Chart state-manager and chart-tab
 integration cleanup now calls `destroy()` directly instead of retaining `cleanup()` compatibility aliases.
 Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the retired global action bridge

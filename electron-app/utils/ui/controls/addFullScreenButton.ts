@@ -7,6 +7,7 @@ import {
 } from "./screenfullRuntime.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import { getAddFullScreenButtonRuntime } from "./addFullScreenButtonRuntime.js";
 
 type ElectronFullscreenAPI = Partial<Pick<ElectronAPI, "setFullScreen">>;
 
@@ -41,6 +42,7 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 let isWindowFullscreenRequested = false;
 let fullscreenKeydownHandler: null | StoredEventHandler = null;
 let nativeFullscreenChangeHandler: null | StoredEventHandler = null;
+const addFullScreenButtonRuntime = getAddFullScreenButtonRuntime();
 
 const getElectronAPI = (): ElectronFullscreenAPI | undefined =>
     getRendererElectronApi(isElectronFullscreenApi) ?? undefined;
@@ -113,7 +115,8 @@ export function addFullScreenButton(): void {
             btn.setAttribute("tabindex", "0");
             btn.style.pointerEvents = "auto";
             btn.append(createFullscreenIconWrapper("enter"));
-            const buttonListener = new AbortController();
+            const buttonListener =
+                addFullScreenButtonRuntime.createAbortController();
             btn.addEventListener("click", () => nativeToggleFullscreen(), {
                 signal: buttonListener.signal,
             });
@@ -137,7 +140,8 @@ export function addFullScreenButton(): void {
         btn.setAttribute("tabindex", "0");
         btn.style.pointerEvents = "auto";
         btn.append(createFullscreenIconWrapper("enter"));
-        const buttonListener = new AbortController();
+        const buttonListener =
+            addFullScreenButtonRuntime.createAbortController();
         btn.addEventListener("click", handleFullscreenToggle, {
             signal: buttonListener.signal,
         });
@@ -188,14 +192,16 @@ export function setupFullscreenListeners(): void {
                     handleKeyboardShortcuts(event);
                 }
             };
-            const keyListener = new AbortController();
+            const keyListener =
+                addFullScreenButtonRuntime.createAbortController();
             globalThis.addEventListener("keydown", keyHandler, {
                 signal: keyListener.signal,
             });
             fullscreenKeydownHandler = keyHandler;
             nativeFullscreenChangeHandler = null;
             if (document.readyState === "loading") {
-                const domReadyListener = new AbortController();
+                const domReadyListener =
+                    addFullScreenButtonRuntime.createAbortController();
                 globalThis.addEventListener(
                     "DOMContentLoaded",
                     handleDOMContentLoaded,
@@ -219,7 +225,8 @@ export function setupFullscreenListeners(): void {
                 );
             }
         };
-        const nativeListener = new AbortController();
+        const nativeListener =
+            addFullScreenButtonRuntime.createAbortController();
         for (const evt of NATIVE_FULLSCREEN_EVENTS) {
             document.addEventListener(evt, nativeHandler, {
                 signal: nativeListener.signal,
@@ -231,13 +238,15 @@ export function setupFullscreenListeners(): void {
                 handleKeyboardShortcuts(event);
             }
         };
-        const keyListener = new AbortController();
+        const keyListener =
+            addFullScreenButtonRuntime.createAbortController();
         globalThis.addEventListener("keydown", keyHandler, {
             signal: keyListener.signal,
         });
         fullscreenKeydownHandler = keyHandler;
         if (document.readyState === "loading") {
-            const domReadyListener = new AbortController();
+            const domReadyListener =
+                addFullScreenButtonRuntime.createAbortController();
             globalThis.addEventListener(
                 "DOMContentLoaded",
                 handleDOMContentLoaded,

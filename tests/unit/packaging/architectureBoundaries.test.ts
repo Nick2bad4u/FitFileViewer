@@ -346,6 +346,9 @@ const migratedSyncRendererLoadingRuntimeFiles = [
 const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
+const migratedAddFullScreenButtonRuntimeFiles = [
+    "electron-app/utils/ui/controls/addFullScreenButton.ts",
+] as const;
 const migratedElectronApiAccessorFiles = [
     "electron-app/main-ui.ts",
     "electron-app/utils/app/initialization/loadVersionInfo.ts",
@@ -968,6 +971,8 @@ const directJSZipGlobalPattern =
     /\b(?:window|globalThis|testGlobal|getExportRuntimeGlobal\(\))\.JSZip\b|\{\s*JSZip\?:\s*unknown\s*\}\)\.JSZip/u;
 const directScreenfullGlobalPattern =
     /\b(?:window|globalThis|testGlobal|getFullscreenGlobal\(\))\.screenfull\b|\{\s*screenfull\?:\s*unknown\s*\}\)\.screenfull/u;
+const directAddFullScreenButtonRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const directLeafletGlobalPattern =
     /\b(?:window|globalThis|windowExt|w|win|getWin\(\))\.L\b|\bReflect\.get\(\s*globalThis\s*,\s*["']L["']\s*\)|\{\s*L\?:\s*unknown\s*\}\)\.L/u;
 const leafletCompatibilityGlobalDefinitionPattern =
@@ -5657,6 +5662,29 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonSource).toContain("setupFullscreenListeners");
         expect(fullscreenButtonSource).not.toContain("setupDOMContentLoaded");
         expect(fullscreenButtonSource).not.toContain("Legacy DOM setup");
+    });
+
+    it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedAddFullScreenButtonRuntimeFiles
+            .filter((relativeFile) =>
+                directAddFullScreenButtonRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const fullscreenButtonSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/addFullScreenButton.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(fullscreenButtonSource).toContain(
+            "addFullScreenButtonRuntime.js"
+        );
+        expect(fullscreenButtonSource).toContain("createAbortController");
     });
 
     it("keeps screenfull wired through the runtime adapter instead of a renderer global", () => {
