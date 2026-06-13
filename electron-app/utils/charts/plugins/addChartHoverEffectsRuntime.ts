@@ -3,6 +3,7 @@ export type ChartHoverEffectsTimerHandle =
     | number;
 
 export interface ChartHoverEffectsRuntimeScope {
+    readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly requestAnimationFrame?:
         | typeof globalThis.requestAnimationFrame
         | undefined;
@@ -15,6 +16,7 @@ export interface ChartHoverEffectsRuntimeScope {
 }
 
 export interface ChartHoverEffectsRuntime {
+    createAbortController(): AbortController;
     requestAnimationFrame(callback: FrameRequestCallback): null | number;
     setTimeout(
         callback: () => void,
@@ -27,6 +29,16 @@ export function getChartHoverEffectsRuntime(
     scope: ChartHoverEffectsRuntimeScope = globalThis
 ): ChartHoverEffectsRuntime {
     return {
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "chart hover effects require an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
+        },
         requestAnimationFrame(callback): null | number {
             if (typeof scope.requestAnimationFrame !== "function") {
                 const fallbackFrameTime = Number("0");

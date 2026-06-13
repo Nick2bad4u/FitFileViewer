@@ -284,10 +284,11 @@ coverage and architecture guardrails blocking those direct scheduling globals fr
 Async cancellation token helpers now route timeout-backed token cancellation and cancellable delay scheduling
 through `cancellationTokenRuntime.ts` instead of calling timer globals directly inside `cancellationToken.ts`,
 with focused runtime/token coverage and architecture guardrails blocking those direct timer globals from returning.
-Chart hover effects now route fullscreen resize scheduling, fullscreen target waits, and ripple cleanup timers
-through `addChartHoverEffectsRuntime.ts` instead of calling animation-frame or timer globals directly inside
-`addChartHoverEffects.ts`, with focused runtime coverage and architecture guardrails blocking those direct
-scheduling globals from returning.
+Chart hover effects now route fullscreen resize scheduling, fullscreen target waits, ripple cleanup timers, and
+fullscreen cleanup abort-controller creation through `addChartHoverEffectsRuntime.ts` instead of calling
+animation-frame/timer globals or constructing `AbortController` directly inside `addChartHoverEffects.ts`, with
+focused runtime coverage and architecture guardrails blocking those direct scheduling/controller globals from
+returning.
 Quick color switcher delayed dropdown close scheduling and cleanup now route through
 `quickColorSwitcherRuntime.ts` instead of calling timer globals directly inside `quickColorSwitcher.ts`, with
 focused runtime coverage and architecture guardrails blocking those direct timer globals from returning. Quick

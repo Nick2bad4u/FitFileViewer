@@ -535,7 +535,8 @@ export function addChartHoverEffects(
         let overlayPlaceholder: HTMLDivElement | null = null;
         let overlayParent: HTMLElement | null = null;
         let overlayEscHandler: (event: KeyboardEvent) => void = () => {};
-        const cleanupController = new AbortController();
+        const cleanupController =
+            chartHoverEffectsRuntime.createAbortController();
         const { signal } = cleanupController;
         wrapperCleanupControllers.set(wrapper, cleanupController);
 

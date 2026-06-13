@@ -3,6 +3,34 @@ import { describe, expect, it, vi } from "vitest";
 import { getChartHoverEffectsRuntime } from "../../../electron-app/utils/charts/plugins/addChartHoverEffectsRuntime.js";
 
 describe("getChartHoverEffectsRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const runtime = getChartHoverEffectsRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+        });
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("throws when abort controller creation is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getChartHoverEffectsRuntime({});
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "chart hover effects require an AbortController runtime"
+        );
+    });
+
     it("schedules animation frames through the injected runtime scope", () => {
         expect.assertions(3);
 

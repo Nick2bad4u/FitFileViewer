@@ -1091,7 +1091,7 @@ const directPerformanceUtilsRuntimeGlobalPattern =
 const directCancellationTokenRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directChartHoverEffectsRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:requestAnimationFrame|setTimeout)\b|(?<![\w.])(?:requestAnimationFrame|setTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:requestAnimationFrame|setTimeout)\b|(?<![\w.])(?:requestAnimationFrame|setTimeout)\(|\bnew\s+AbortController\b/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -6740,7 +6740,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
@@ -6759,6 +6759,7 @@ describe("architecture boundaries", () => {
         expect(chartHoverEffectsSource).toContain(
             "addChartHoverEffectsRuntime.js"
         );
+        expect(chartHoverEffectsSource).toContain("createAbortController");
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
