@@ -116,4 +116,20 @@ describe("getPerformanceUtilsRuntime", () => {
             123
         );
     });
+
+    it("does not borrow ambient timers or clocks for explicit scopes", () => {
+        expect.assertions(3);
+
+        const runtime = getPerformanceUtilsRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "performanceUtils requires setTimeout"
+        );
+        expect(() => runtime.clearTimeout(1)).toThrow(
+            "performanceUtils requires clearTimeout"
+        );
+        expect(() => runtime.now()).toThrow(
+            "performanceUtils requires dateNow"
+        );
+    });
 });

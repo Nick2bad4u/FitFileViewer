@@ -300,7 +300,9 @@ clipboard paths from returning.
 App performance debounce, throttle, batch, and idle-callback helpers now route timeout scheduling/clearing,
 idle-callback scheduling/cancellation, and clock reads through `performanceUtilsRuntime.ts` instead of calling
 timer, idle-callback, or `Date.now` globals directly inside `performanceUtils.ts`, with focused behavior/runtime
-coverage and architecture guardrails blocking those direct scheduling globals from returning.
+coverage and architecture guardrails blocking those direct scheduling globals from returning. Explicit performance
+runtime scopes must now provide timer/clock primitives instead of falling back to `globalThis` or `Date.now`, with
+focused coverage blocking those ambient fallbacks from returning.
 Async cancellation token helpers now route timeout-backed token cancellation and cancellable delay scheduling
 through `cancellationTokenRuntime.ts` instead of calling timer globals directly inside `cancellationToken.ts`,
 with focused runtime/token coverage and architecture guardrails blocking those direct timer globals from returning.

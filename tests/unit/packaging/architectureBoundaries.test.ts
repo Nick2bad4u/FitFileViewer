@@ -1134,6 +1134,8 @@ const directNetworkUtilsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|fetch|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|fetch|setTimeout)\b/u;
 const directPerformanceUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\b|(?<!function\s)(?<![\w.])(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\(|\bDate\.now\(/u;
+const directPerformanceUtilsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|dateNow|setTimeout)(?:\?\.\(\))?\s*\?\?\s*(?:globalThis\.(?:clearTimeout|setTimeout)|Date\.now\(\))/u;
 const directCancellationTokenRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCancellationTokenRuntimeAmbientFallbackPattern =
@@ -7020,7 +7022,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app performance scheduling APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedPerformanceUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -7034,10 +7036,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/performance/performanceUtils.ts"
             )
         );
+        const performanceUtilsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/performance/performanceUtilsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(performanceUtilsSource).toContain(
             "performanceUtilsRuntime.js"
+        );
+        expect(performanceUtilsRuntimeSource).not.toMatch(
+            directPerformanceUtilsRuntimeAmbientFallbackPattern
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "dateNow: Date.now"
         );
     });
 
