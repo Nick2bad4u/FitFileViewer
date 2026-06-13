@@ -1184,6 +1184,8 @@ const directTabStateManagerHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+(?:AbortController|MutationObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directUnifiedControlBarRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|eventTarget|setTimeout)\s*\?\?\s*globalThis(?:\.(?:clearTimeout|setTimeout))?\b/u;
 const directQuickColorSwitcherRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directQuickColorSwitcherRuntimeAmbientTimerFallbackPattern =
@@ -7309,7 +7311,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps unified control-bar browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedUnifiedControlBarRuntimeFiles
             .filter((relativeFile) =>
@@ -7321,12 +7323,23 @@ describe("architecture boundaries", () => {
         const unifiedControlBarSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/unifiedControlBar.ts")
         );
+        const unifiedControlBarRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/unifiedControlBarRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(unifiedControlBarSource).toContain(
             "unifiedControlBarRuntime.js"
         );
         expect(unifiedControlBarSource).toContain("createAbortController");
+        expect(unifiedControlBarRuntimeSource).not.toMatch(
+            directUnifiedControlBarRuntimeAmbientFallbackPattern
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "unifiedControlBar requires a setTimeout runtime"
+        );
     });
 
     it("keeps quick color switcher timers behind the runtime facade", () => {

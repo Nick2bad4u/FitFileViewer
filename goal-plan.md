@@ -715,9 +715,10 @@ Credits marquee resize-listener fallback cleanup now creates abort controllers t
 `enhanceCreditsSectionRuntime.ts` instead of constructing `AbortController` directly in
 `enhanceCreditsSection.ts`, with focused runtime coverage and architecture coverage blocking direct credits
 marquee abort-controller construction from returning.
-Filename auto-scroll resize listener cleanup now creates abort controllers through `unifiedControlBarRuntime.ts`
-instead of constructing `AbortController` directly in `unifiedControlBar.ts`, with focused runtime coverage and
-architecture coverage blocking direct unified-control-bar abort-controller construction from returning.
+Filename auto-scroll resize-listener registration, cleanup timers, and cleanup abort-controller creation now route
+through `unifiedControlBarRuntime.ts`; explicit runtime scopes must provide resize event-target and timer
+primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture coverage
+blocking direct unified-control-bar browser primitives and ambient fallback restoration from returning.
 Strict about modal tests now install their immediate `requestAnimationFrame` fixture through a Vitest-scoped
 global stub instead of assigning, defining, or deleting `globalThis.requestAnimationFrame` directly, with
 architecture coverage blocking that fixture mutation pattern.

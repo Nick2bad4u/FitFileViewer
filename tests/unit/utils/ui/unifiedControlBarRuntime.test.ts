@@ -92,6 +92,19 @@ describe("getUnifiedControlBarRuntime", () => {
         expect(options).toStrictEqual({ passive: true });
     });
 
+    it("fails clearly when resize listener scope lacks an event target", () => {
+        expect.assertions(2);
+
+        const runtime = getUnifiedControlBarRuntime({});
+
+        expect(() => runtime.addResizeListener(() => {}, {})).toThrow(
+            "unifiedControlBar requires an event-target runtime"
+        );
+        expect(() => runtime.removeResizeListener(() => {})).toThrow(
+            "unifiedControlBar requires an event-target runtime"
+        );
+    });
+
     it("creates mutation observers through the injected constructor", () => {
         expect.assertions(3);
 
@@ -152,5 +165,18 @@ describe("getUnifiedControlBarRuntime", () => {
 
         expect(clearTimeout).toHaveBeenCalledWith(13);
         expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getUnifiedControlBarRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "unifiedControlBar requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "unifiedControlBar requires a clearTimeout runtime"
+        );
     });
 });

@@ -63,7 +63,12 @@ function getDocument(scope: UnifiedControlBarRuntimeScope): Document {
 function getEventTarget(
     scope: UnifiedControlBarRuntimeScope
 ): UnifiedControlBarEventTarget {
-    return scope.eventTarget ?? globalThis;
+    const runtimeEventTarget = scope.eventTarget;
+    if (!runtimeEventTarget) {
+        throw new Error("unifiedControlBar requires an event-target runtime");
+    }
+
+    return runtimeEventTarget;
 }
 
 function isHTMLElement(
@@ -89,7 +94,12 @@ export function getUnifiedControlBarRuntime(
             getEventTarget(scope).addEventListener("resize", listener, options);
         },
         clearTimeout(handle: UnifiedControlBarTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "unifiedControlBar requires a clearTimeout runtime"
+                );
+            }
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
@@ -134,7 +144,12 @@ export function getUnifiedControlBarRuntime(
             callback: () => void,
             timeout: number
         ): UnifiedControlBarTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "unifiedControlBar requires a setTimeout runtime"
+                );
+            }
             return setTimeoutRef(callback, timeout);
         },
     };
