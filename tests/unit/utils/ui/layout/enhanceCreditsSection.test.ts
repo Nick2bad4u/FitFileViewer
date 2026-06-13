@@ -4,13 +4,12 @@ import {
     setupCreditsMarquee,
     teardownCreditsMarquee,
 } from "../../../../../electron-app/utils/ui/layout/enhanceCreditsSection.js";
+import {
+    getCreditsMarqueeRuntime,
+    type CreditsMarqueeRuntime,
+} from "../../../../../electron-app/utils/ui/layout/enhanceCreditsSectionRuntime.js";
 
 type ResizeObserverConstructor = typeof ResizeObserver;
-
-const originalResizeObserverDescriptor = Object.getOwnPropertyDescriptor(
-    globalThis,
-    "ResizeObserver"
-);
 
 class MockResizeObserver {
     static readonly instances: MockResizeObserver[] = [];
@@ -25,26 +24,23 @@ class MockResizeObserver {
     }
 }
 
-function setTestResizeObserver(
-    value: ResizeObserverConstructor | undefined
-): void {
-    Object.defineProperty(globalThis, "ResizeObserver", {
-        configurable: true,
-        value,
-        writable: true,
-    });
-}
+function createTestRuntime(
+    options: {
+        ResizeObserver?: ResizeObserverConstructor | undefined;
+    } = {}
+): CreditsMarqueeRuntime {
+    const ResizeObserverConstructor =
+        "ResizeObserver" in options
+            ? options.ResizeObserver
+            : (MockResizeObserver as unknown as ResizeObserverConstructor);
 
-function restoreResizeObserver(): void {
-    if (originalResizeObserverDescriptor) {
-        Object.defineProperty(
-            globalThis,
-            "ResizeObserver",
-            originalResizeObserverDescriptor
-        );
-    } else {
-        Reflect.deleteProperty(globalThis, "ResizeObserver");
-    }
+    return getCreditsMarqueeRuntime({
+        document,
+        eventTarget: window,
+        HTMLElement,
+        MutationObserver,
+        ResizeObserver: ResizeObserverConstructor,
+    });
 }
 
 function resetFixture(): void {
@@ -98,15 +94,13 @@ describe(setupCreditsMarquee, () => {
         expect.assertions(5);
 
         resetFixture();
-        setTestResizeObserver(
-            MockResizeObserver as unknown as ResizeObserverConstructor
-        );
+        const runtime = createTestRuntime();
         const { footer, section } = createCreditsSection();
         setReadonlyLayoutNumber(section, "clientWidth", 100);
         setReadonlyLayoutNumber(footer, "scrollWidth", 180);
 
         try {
-            setupCreditsMarquee();
+            setupCreditsMarquee(runtime);
 
             const [observer] = MockResizeObserver.instances;
             observer?.callback([], observer as unknown as ResizeObserver);
@@ -133,7 +127,6 @@ describe(setupCreditsMarquee, () => {
                 sectionClasses: ["credits-section"],
             });
         } finally {
-            restoreResizeObserver();
             resetFixture();
         }
     });
@@ -142,9 +135,7 @@ describe(setupCreditsMarquee, () => {
         expect.assertions(1);
 
         resetFixture();
-        setTestResizeObserver(
-            MockResizeObserver as unknown as ResizeObserverConstructor
-        );
+        const runtime = createTestRuntime();
         const { footer, section } = createCreditsSection();
         setReadonlyLayoutNumber(section, "clientWidth", 200);
         setReadonlyLayoutNumber(footer, "scrollWidth", 120);
@@ -154,7 +145,7 @@ describe(setupCreditsMarquee, () => {
         footer.style.setProperty("--credits-scroll-duration", "10s");
 
         try {
-            setupCreditsMarquee();
+            setupCreditsMarquee(runtime);
 
             const [observer] = MockResizeObserver.instances;
             observer?.callback([], observer as unknown as ResizeObserver);
@@ -166,7 +157,6 @@ describe(setupCreditsMarquee, () => {
                 sectionClasses: ["credits-section"],
             });
         } finally {
-            restoreResizeObserver();
             resetFixture();
         }
     });
@@ -177,11 +167,11 @@ describe(setupCreditsMarquee, () => {
         resetFixture();
         const addSpy = vi.spyOn(window, "addEventListener");
         const removeSpy = vi.spyOn(window, "removeEventListener");
-        setTestResizeObserver(undefined);
+        const runtime = createTestRuntime({ ResizeObserver: undefined });
         createCreditsSection();
 
         try {
-            setupCreditsMarquee();
+            setupCreditsMarquee(runtime);
 
             const addResizeCall = addSpy.mock.calls.find(
                 ([type]) => type === "resize"
@@ -217,7 +207,6 @@ describe(setupCreditsMarquee, () => {
             expect(removeSpy).toHaveBeenCalledWith("resize", resizeHandler);
             expect(MockResizeObserver.instances).toHaveLength(0);
         } finally {
-            restoreResizeObserver();
             resetFixture();
         }
     });
@@ -226,7 +215,7 @@ describe(setupCreditsMarquee, () => {
         expect.assertions(2);
 
         resetFixture();
-        setTestResizeObserver(undefined);
+        const runtime = createTestRuntime({ ResizeObserver: undefined });
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const error = new Error("cleanup failed");
         vi.spyOn(window, "removeEventListener").mockImplementation(() => {
@@ -235,7 +224,7 @@ describe(setupCreditsMarquee, () => {
         createCreditsSection();
 
         try {
-            setupCreditsMarquee();
+            setupCreditsMarquee(runtime);
             teardownCreditsMarquee();
 
             expect(warnSpy).toHaveBeenCalledWith(
@@ -246,7 +235,6 @@ describe(setupCreditsMarquee, () => {
                 1
             );
         } finally {
-            restoreResizeObserver();
             resetFixture();
         }
     });

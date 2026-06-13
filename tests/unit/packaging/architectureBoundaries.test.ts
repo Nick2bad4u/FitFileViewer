@@ -912,8 +912,8 @@ const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+MutationObserver\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
-const creditsMarqueeTestDirectResizeObserverAssignmentPattern =
-    /\bglobalThis\.ResizeObserver\s*=/u;
+const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
+    /\bglobalThis\.ResizeObserver\s*=|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']ResizeObserver["']\s*,|\bReflect\.deleteProperty\([\s\S]{0,120}["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']\s*\)|\bvi\.stubGlobal\(\s*["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']/u;
 const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directCreateFieldTogglesSectionRuntimeGlobalPattern =
@@ -5642,18 +5642,21 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps credits marquee tests on descriptor-scoped ResizeObserver fixtures", () => {
+    it("keeps credits marquee tests on explicit runtime fixtures", () => {
         expect.assertions(1);
 
-        expect(
-            creditsMarqueeTestDirectResizeObserverAssignmentPattern.test(
-                stripComments(
-                    readRepositoryFile(
-                        "tests/unit/utils/ui/layout/enhanceCreditsSection.test.ts"
-                    )
+        const violations = [
+            "tests/unit/utils/ui/layout/enhanceCreditsSection.test.ts",
+            "tests/unit/strictTests/ui/layout/enhanceCreditsSection.test.ts",
+        ]
+            .filter((relativeFile) =>
+                creditsMarqueeTestDirectGlobalFixtureMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
                 )
             )
-        ).toBe(false);
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps migrated map helpers on the Leaflet runtime adapter", () => {
