@@ -89,6 +89,14 @@ const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
     "process"
 );
 
+function getOriginalProcessDescriptor(): PropertyDescriptor {
+    if (!originalProcessDescriptor) {
+        throw new Error("Expected globalThis.process to exist");
+    }
+
+    return originalProcessDescriptor;
+}
+
 function getElectronAPI(): MockElectronAPI {
     if (!currentElectronApi) {
         throw new Error("electronAPI was not configured for the test");
@@ -138,15 +146,11 @@ function setTestProcessEnv(env: Record<string, string | undefined>): void {
 }
 
 function restoreProcessGlobal(): void {
-    if (originalProcessDescriptor) {
-        Object.defineProperty(
-            globalThis,
-            "process",
-            originalProcessDescriptor
-        );
-    } else {
-        Reflect.deleteProperty(globalThis, "process");
-    }
+    Object.defineProperty(
+        globalThis,
+        "process",
+        getOriginalProcessDescriptor()
+    );
 }
 
 describe("handleOpenFile Module", () => {

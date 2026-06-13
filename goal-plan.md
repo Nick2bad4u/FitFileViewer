@@ -439,9 +439,9 @@ descriptor-scoped helpers and mock console methods through per-test Vitest spies
 globals or a replacement `global.console` directly, with architecture coverage blocking those fixture patterns.
 Strict event-message chart tests now rely on the jsdom-provided window object instead of assigning
 `global.window = window` during setup, with architecture coverage blocking that direct window fixture.
-Complete file-open tests now install temporary `process.env` coverage through a descriptor-scoped fixture
-instead of assigning `globalThis.process` directly, with architecture coverage blocking that fixture mutation
-pattern.
+Complete file-open tests now install and restore temporary `process.env` coverage through a descriptor-scoped
+fixture instead of assigning or deleting `globalThis.process` directly, with architecture coverage blocking that
+fixture mutation pattern.
 Runtime process-environment tests now restore the captured `globalThis.process` descriptor instead of deleting
 the process fixture during cleanup, with architecture coverage blocking that cleanup-time process deletion.
 Data-point filter control tests now install temporary animation-frame and microtask fixtures through

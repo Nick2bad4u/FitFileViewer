@@ -664,7 +664,7 @@ const directPreloadSourceExecutionGlobalDeletePattern =
 const directPlaywrightWindowOpenMutationPattern =
     /\bwindow\.open\s*=|\bReflect\.deleteProperty\(\s*window\s*,\s*["']open["']\s*\)/u;
 const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
-    /\bglobalThis\.process\s*=/u;
+    /\bglobalThis\.process\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
 const processEnvironmentTestDirectProcessDeletePattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
 const loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern =
