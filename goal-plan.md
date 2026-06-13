@@ -478,6 +478,9 @@ helper instead of direct `global.console` assignment, with architecture coverage
 Settings state-manager tests now mock console methods through per-test Vitest spies instead of assigning a
 replacement `global.console` object at module scope, with architecture coverage blocking that direct console
 fixture.
+Handle-open-file tests now use scoped Vitest console spies and one-shot throwing mock implementations instead
+of assigning `console.log`, `console.info`, `console.warn`, or `console.error` directly, with architecture
+coverage blocking that direct console-method fixture.
 Preload development-mode and edge-case tests now clear and restore `electronAPI`/`devTools` globals through
 descriptor-scoped helpers instead of direct global deletion, with architecture coverage blocking that cleanup
 pattern.

@@ -740,6 +740,8 @@ const showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern =
     /\bwindow\.requestAnimationFrame\s*=/u;
 const settingsStateManagerTestDirectConsoleAssignmentPattern =
     /\bglobal\.console\s*=/u;
+const handleOpenFileTestDirectConsoleMethodAssignmentPattern =
+    /\bconsole\.(?:error|info|log|warn)\s*=/u;
 const renderSingleHrZoneBarTestDirectGlobalFixtureAssignmentPattern =
     /\b(?:testGlobal|global)\.(?:console|document|HTMLCanvasElement|HTMLElement|window)\s*=/u;
 const renderAltitudeProfileChartTestDirectGlobalFixtureAssignmentPattern =
@@ -6843,6 +6845,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/state/domain/settingsStateManager.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps handle-open-file tests on scoped console spies", () => {
+        expect.assertions(1);
+
+        expect(
+            handleOpenFileTestDirectConsoleMethodAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "electron-app/utils/files/import/handleOpenFile.test.ts"
                     )
                 )
             )
