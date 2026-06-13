@@ -515,6 +515,10 @@ Tab-state map invalidation scheduling now routes frame scheduling, frame cancell
 clearing through `tabStateManagerHandlersRuntime.ts` instead of calling those globals directly in
 `tabStateManagerHandlers.ts`, with adapter tests and architecture coverage blocking direct map-tab timing globals
 from returning.
+Renderer application startup update-check scheduling now routes the production update-check timer and before-unload
+timer clearing through `applicationStartupRuntime.ts` instead of calling those globals directly in
+`applicationStartup.ts`, with adapter tests, startup behavior coverage, and architecture coverage blocking direct
+startup timer globals from returning.
 Shared configuration tests now install and restore the throwing `URLSearchParams` fixture through a
 descriptor-scoped helper instead of assigning or deleting `global.URLSearchParams` directly, with architecture
 coverage blocking that fixture mutation pattern.

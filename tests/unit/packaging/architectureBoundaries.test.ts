@@ -43,6 +43,9 @@ const rendererMainUiRuntimeEnvironmentFiles = [
 const migratedMainUiSummarySelectorRuntimeFiles = [
     "electron-app/renderer/mainUiSummarySelectorRegistration.ts",
 ] as const;
+const migratedRendererApplicationStartupRuntimeFiles = [
+    "electron-app/renderer/applicationStartup.ts",
+] as const;
 const migratedRenderSummaryRuntimeFiles = [
     "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
 ] as const;
@@ -953,6 +956,8 @@ const directRenderChartTimerRuntimeGlobalPattern =
     /(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMainUiSummarySelectorRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
+const directRendererApplicationStartupRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -5959,6 +5964,26 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(updateTabVisibilitySource).toContain(
             "updateTabVisibilityRuntime.js"
+        );
+    });
+
+    it("keeps renderer application startup timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererApplicationStartupRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererApplicationStartupRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const applicationStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/applicationStartup.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(applicationStartupSource).toContain(
+            "applicationStartupRuntime.js"
         );
     });
 
