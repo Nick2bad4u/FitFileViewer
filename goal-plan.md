@@ -499,6 +499,10 @@ State manager defaults now resolve startup timestamps and document titles throug
 `stateManagerDefaultsRuntime.ts` adapter instead of probing `globalThis.performance`, `Date.now`,
 `typeof document`, or `document.title` directly inside `stateManagerDefaults.ts`, with focused runtime coverage
 and architecture guardrails blocking those direct lookups from returning.
+Computed state manager auto-theme dark-scheme checks now resolve through the scoped
+`computedStateManagerRuntime.ts` adapter instead of probing `globalThis.matchMedia` directly inside
+`computedStateManager.ts`, with focused runtime coverage and architecture guardrails blocking that direct
+media-query lookup from returning.
 Main-process state-manager duration timing, completed-operation cleanup timers, and deferred IPC setup retry
 timers now go through the scoped `mainProcessStateRuntime.ts` adapter instead of probing
 `globalThis.performance` or `performance.now` or calling timer globals directly inside

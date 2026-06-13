@@ -4909,6 +4909,27 @@ describe("architecture boundaries", () => {
         expect(masterStateManagerSource).not.toContain("window.addEventListener");
     });
 
+    it("keeps computed state manager theme media reads behind the runtime adapter", () => {
+        expect.assertions(4);
+
+        const computedStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/computedStateManager.ts"
+            )
+        );
+
+        expect(computedStateManagerSource).toContain(
+            "computedStateManagerRuntime.js"
+        );
+        expect(computedStateManagerSource).toContain("isDarkSchemePreferred");
+        expect(computedStateManagerSource).not.toContain(
+            "globalThis.matchMedia"
+        );
+        expect(computedStateManagerSource).not.toContain(
+            "prefers-color-scheme: dark"
+        );
+    });
+
     it("keeps state development tools on typed state and runtime access", () => {
         expect.assertions(5);
 
