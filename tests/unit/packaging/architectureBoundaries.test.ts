@@ -1066,6 +1066,8 @@ const directGetCurrentSettingsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directLazyRenderingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:innerHeight|innerWidth|requestAnimationFrame|requestIdleCallback|setTimeout)\b|\bdocument\.documentElement\b|\btypeof\s+IntersectionObserver\b|\bnew\s+IntersectionObserver\b|\belement\s+instanceof\s+HTMLElement\b|\breturn\s+setTimeout\(/u;
+const directLazyRenderingRuntimeAmbientFallbackPattern =
+    /\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
 const directListenersResizeRuntimeGlobalPattern =
     /\b(?:document|window|globalThis)\.|\bReflect\.get\(|\bnew\s+AbortController\b|\binstanceof\s+(?:Element|HTMLCanvasElement)\b|\bquerySelectorByIdFlexible\(\s*document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directChartThemeRuntimeGlobalPattern =
@@ -6290,7 +6292,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lazy rendering browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedLazyRenderingRuntimeFiles
             .filter((relativeFile) =>
@@ -6304,9 +6306,20 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/performance/lazyRenderingUtils.ts"
             )
         );
+        const lazyRenderingRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/performance/lazyRenderingRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(lazyRenderingUtilsSource).toContain("lazyRenderingRuntime.js");
+        expect(lazyRenderingRuntimeSource).not.toMatch(
+            directLazyRenderingRuntimeAmbientFallbackPattern
+        );
+        expect(lazyRenderingRuntimeSource).toContain(
+            "const timeout = scope.setTimeout;"
+        );
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {

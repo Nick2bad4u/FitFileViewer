@@ -303,6 +303,9 @@ timer, idle-callback, or `Date.now` globals directly inside `performanceUtils.ts
 coverage and architecture guardrails blocking those direct scheduling globals from returning. Explicit performance
 runtime scopes must now provide timer/clock primitives instead of falling back to `globalThis` or `Date.now`, with
 focused coverage blocking those ambient fallbacks from returning.
+Lazy-rendering timeout fallback scheduling now routes through `lazyRenderingRuntime.ts`, and explicit runtime
+scopes must provide `setTimeout` instead of falling back to `globalThis`, with focused coverage blocking that
+ambient fallback from returning.
 Async cancellation token helpers now route timeout-backed token cancellation and cancellable delay scheduling
 through `cancellationTokenRuntime.ts` instead of calling timer globals directly inside `cancellationToken.ts`,
 with focused runtime/token coverage and architecture guardrails blocking those direct timer globals from returning.

@@ -120,7 +120,11 @@ export function getLazyRenderingRuntime(
             return scope.requestIdleCallback(callback, options);
         },
         setTimeout(callback: () => void): LazyRenderingTimeoutHandle {
-            const timeout = scope.setTimeout ?? globalThis.setTimeout;
+            const timeout = scope.setTimeout;
+            if (typeof timeout !== "function") {
+                throw new TypeError("lazyRenderingRuntime requires setTimeout");
+            }
+
             return timeout(callback, 0);
         },
     };

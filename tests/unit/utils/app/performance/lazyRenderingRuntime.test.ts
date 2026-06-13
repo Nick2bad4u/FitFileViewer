@@ -136,4 +136,12 @@ describe("getLazyRenderingRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 0);
         expect(callback).toHaveBeenCalledOnce();
     });
+
+    it("does not borrow the ambient timeout fallback for explicit scopes", () => {
+        expect.assertions(1);
+
+        expect(() => getLazyRenderingRuntime({}).setTimeout(() => {})).toThrow(
+            "lazyRenderingRuntime requires setTimeout"
+        );
+    });
 });
