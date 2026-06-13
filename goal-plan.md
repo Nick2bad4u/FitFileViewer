@@ -451,10 +451,10 @@ that fixture mutation pattern.
 Shared configuration tests now install and restore the throwing `URLSearchParams` fixture through a
 descriptor-scoped helper instead of assigning or deleting `global.URLSearchParams` directly, with architecture
 coverage blocking that fixture mutation pattern.
-Tab-button behavior tests now install temporary `window`, `getComputedStyle`, and `MutationObserver` browser fixtures through
-descriptor-scoped helpers instead of assigning `globalThis.window`, `(global as any).window`, or
-`globalThis.getComputedStyle`, `global.MutationObserver`, or `global.window.MutationObserver` directly, with
-architecture coverage blocking that fixture mutation pattern.
+Tab-button behavior tests now install and restore temporary `window`, `getComputedStyle`, and
+`MutationObserver` browser fixtures through descriptor-scoped helpers instead of assigning or deleting
+`globalThis.window`, `(global as any).window`, `globalThis.getComputedStyle`, `global.MutationObserver`, or
+`global.window.MutationObserver` directly, with architecture coverage blocking that fixture mutation pattern.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning.

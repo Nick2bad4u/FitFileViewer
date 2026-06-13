@@ -69,11 +69,11 @@ type TestWindowProperty = "MutationObserver";
 
 const originalGlobalDescriptors = new Map<
     TestGlobalProperty,
-    PropertyDescriptor | undefined
+    PropertyDescriptor
 >();
 const originalWindowDescriptors = new Map<
     TestWindowProperty,
-    PropertyDescriptor | undefined
+    PropertyDescriptor
 >();
 
 function createMutationObserverMock(): MutationObserverMock {
@@ -85,10 +85,13 @@ function createMutationObserverMock(): MutationObserverMock {
 
 function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
     if (!originalGlobalDescriptors.has(name)) {
-        originalGlobalDescriptors.set(
-            name,
-            Object.getOwnPropertyDescriptor(globalThis, name)
-        );
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
     }
 
     Object.defineProperty(globalThis, name, {
@@ -100,20 +103,12 @@ function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
 
 function restoreTestGlobals(): void {
     for (const [name, descriptor] of originalWindowDescriptors) {
-        if (descriptor) {
-            Object.defineProperty(globalThis.window, name, descriptor);
-        } else {
-            Reflect.deleteProperty(globalThis.window, name);
-        }
+        Object.defineProperty(globalThis.window, name, descriptor);
     }
     originalWindowDescriptors.clear();
 
     for (const [name, descriptor] of originalGlobalDescriptors) {
-        if (descriptor) {
-            Object.defineProperty(globalThis, name, descriptor);
-        } else {
-            Reflect.deleteProperty(globalThis, name);
-        }
+        Object.defineProperty(globalThis, name, descriptor);
     }
     originalGlobalDescriptors.clear();
 }
@@ -123,10 +118,16 @@ function setTestWindowProperty(
     value: unknown
 ): void {
     if (!originalWindowDescriptors.has(name)) {
-        originalWindowDescriptors.set(
-            name,
-            Object.getOwnPropertyDescriptor(globalThis.window, name)
+        const descriptor = Object.getOwnPropertyDescriptor(
+            globalThis.window,
+            name
         );
+
+        if (!descriptor) {
+            throw new Error(`Expected window.${name} to exist`);
+        }
+
+        originalWindowDescriptors.set(name, descriptor);
     }
 
     Object.defineProperty(globalThis.window, name, {
