@@ -5,6 +5,7 @@ export type QuickColorSwitcherTimerHandle =
 export interface QuickColorSwitcherRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
+    readonly document?: Document | undefined;
     readonly setTimeout?:
         | ((
               callback: () => void,
@@ -14,6 +15,10 @@ export interface QuickColorSwitcherRuntimeScope {
 }
 
 export interface QuickColorSwitcherRuntime {
+    addDocumentClickListener(
+        listener: EventListener,
+        options: AddEventListenerOptions & { readonly signal: AbortSignal }
+    ): void;
     clearTimeout(handle: QuickColorSwitcherTimerHandle): void;
     createAbortController(): AbortController;
     setTimeout(
@@ -26,6 +31,23 @@ export function getQuickColorSwitcherRuntime(
     scope: QuickColorSwitcherRuntimeScope = globalThis
 ): QuickColorSwitcherRuntime {
     return {
+        addDocumentClickListener(
+            listener: EventListener,
+            options: AddEventListenerOptions & { readonly signal: AbortSignal }
+        ): void {
+            const runtimeDocument = scope.document ?? globalThis.document;
+            if (!runtimeDocument) {
+                throw new TypeError(
+                    "quickColorSwitcher requires a document runtime"
+                );
+            }
+
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
+            runtimeDocument.addEventListener("click", listener, {
+                ...options,
+                signal: options.signal,
+            });
+        },
         clearTimeout(handle): void {
             const clearTimeoutRef =
                 scope.clearTimeout ?? globalThis.clearTimeout;

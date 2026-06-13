@@ -1099,7 +1099,7 @@ const directTabStateManagerHandlersRuntimeGlobalPattern =
 const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+(?:AbortController|MutationObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directQuickColorSwitcherRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directShownFilesListRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\b|\bdocument\.body\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
@@ -6696,7 +6696,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps quick color switcher timers behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedQuickColorSwitcherRuntimeFiles
             .filter((relativeFile) =>
@@ -6714,6 +6714,7 @@ describe("architecture boundaries", () => {
             "quickColorSwitcherRuntime.js"
         );
         expect(quickColorSwitcherSource).toContain("createAbortController");
+        expect(quickColorSwitcherSource).toContain("addDocumentClickListener");
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {

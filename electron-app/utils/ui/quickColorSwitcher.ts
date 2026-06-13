@@ -499,8 +499,7 @@ function setupSwitcherListeners(switcher: HTMLDivElement): void {
     }
 
     // Close dropdown when clicking outside
-    document.addEventListener(
-        "click",
+    quickColorSwitcherRuntime.addDocumentClickListener(
         (e) => {
             if (e.target instanceof Node && !switcher.contains(e.target)) {
                 dropdown?.classList.remove("open");

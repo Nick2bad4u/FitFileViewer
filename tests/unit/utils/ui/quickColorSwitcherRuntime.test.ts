@@ -41,6 +41,29 @@ describe("getQuickColorSwitcherRuntime", () => {
         );
     });
 
+    it("registers document click listeners through the injected document runtime", () => {
+        expect.assertions(1);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("quick color switcher");
+        let clicked = false;
+        const listener = (): void => {
+            clicked = true;
+        };
+        const controller = new AbortController();
+        const runtime = getQuickColorSwitcherRuntime({
+            document: documentRef,
+        });
+
+        runtime.addDocumentClickListener(listener, {
+            signal: controller.signal,
+        });
+        documentRef.dispatchEvent(new Event("click"));
+        controller.abort();
+
+        expect(clicked).toBe(true);
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 

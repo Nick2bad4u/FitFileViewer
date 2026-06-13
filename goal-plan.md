@@ -290,6 +290,10 @@ focused runtime coverage and architecture guardrails blocking those direct timer
 color switcher listener cleanup now also creates abort controllers through `quickColorSwitcherRuntime.ts`
 instead of constructing `AbortController` directly in `quickColorSwitcher.ts`, with focused runtime coverage
 and architecture coverage blocking direct quick-color switcher abort-controller construction from returning.
+Quick color switcher outside-click document listener registration now also routes through
+`quickColorSwitcherRuntime.ts` instead of registering that document listener directly inside
+`quickColorSwitcher.ts`, with focused runtime coverage and architecture coverage blocking direct quick-color
+switcher document listener registration from returning.
 Map theme toggle delayed refresh scheduling and cleanup now route through `mapThemeToggleRuntime.ts` instead of
 calling timer globals directly inside `mapThemeToggleState.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning.
