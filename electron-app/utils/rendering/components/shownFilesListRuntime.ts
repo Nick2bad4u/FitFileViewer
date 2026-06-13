@@ -19,6 +19,7 @@ export interface ShownFilesListRuntimeScope {
           ) => void)
         | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
+    readonly document?: Document | undefined;
     readonly innerHeight?: number | undefined;
     readonly innerWidth?: number | undefined;
     readonly setTimeout?:
@@ -30,6 +31,10 @@ export interface ShownFilesListRuntimeScope {
 }
 
 export interface ShownFilesListRuntime {
+    addBodyThemeChangeListener(
+        listener: EventListener,
+        options: AddEventListenerOptions & { readonly signal: AbortSignal }
+    ): void;
     addMouseMoveListener(
         listener: ShownFilesListMouseMoveListener,
         options: AddEventListenerOptions & { readonly signal: AbortSignal }
@@ -47,6 +52,23 @@ export function getShownFilesListRuntime(
     scope: ShownFilesListRuntimeScope = globalThis
 ): ShownFilesListRuntime {
     return {
+        addBodyThemeChangeListener(
+            listener: EventListener,
+            options: AddEventListenerOptions & { readonly signal: AbortSignal }
+        ): void {
+            const body = scope.document?.body ?? globalThis.document?.body;
+            if (!body) {
+                throw new TypeError(
+                    "shownFilesList requires a document body runtime"
+                );
+            }
+
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
+            body.addEventListener("themechange", listener, {
+                ...options,
+                signal: options.signal,
+            });
+        },
         addMouseMoveListener(
             listener: ShownFilesListMouseMoveListener,
             options: AddEventListenerOptions & { readonly signal: AbortSignal }

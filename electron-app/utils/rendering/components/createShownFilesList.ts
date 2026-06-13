@@ -13,6 +13,9 @@ import {
     updateShownFilesList,
 } from "./shownFilesListUpdater.js";
 import { clearOverlayTooltipTimeout } from "./shownFilesListTooltipState.js";
+import { getShownFilesListRuntime } from "./shownFilesListRuntime.js";
+
+const shownFilesListRuntime = getShownFilesListRuntime();
 
 type ShownFilesContainer = HTMLDivElement & {
     _dispose?: () => void;
@@ -159,7 +162,7 @@ function getStringThemeColor(
  */
 export function createShownFilesList(): HTMLElement {
     const container: ShownFilesContainer = document.createElement("div");
-    const lifecycle = new AbortController();
+    const lifecycle = shownFilesListRuntime.createAbortController();
 
     container.className = "shown-files-list map-controls-secondary-card";
     container.style.margin = "0";
@@ -198,7 +201,7 @@ export function createShownFilesList(): HTMLElement {
     };
     applyTheme();
 
-    document.body.addEventListener("themechange", applyTheme, {
+    shownFilesListRuntime.addBodyThemeChangeListener(applyTheme, {
         signal: lifecycle.signal,
     });
 

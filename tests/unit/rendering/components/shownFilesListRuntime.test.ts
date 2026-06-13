@@ -39,6 +39,29 @@ describe("getShownFilesListRuntime", () => {
         }).toThrow("shownFilesList requires an AbortController runtime");
     });
 
+    it("registers body themechange listeners through the injected document runtime", () => {
+        expect.assertions(1);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("shown files");
+        let themeApplied = false;
+        const listener = (): void => {
+            themeApplied = true;
+        };
+        const controller = new AbortController();
+        const runtime = getShownFilesListRuntime({
+            document: documentRef,
+        });
+
+        runtime.addBodyThemeChangeListener(listener, {
+            signal: controller.signal,
+        });
+        documentRef.body.dispatchEvent(new Event("themechange"));
+        controller.abort();
+
+        expect(themeApplied).toBe(true);
+    });
+
     it("registers mousemove listeners through the injected runtime scope", () => {
         expect.assertions(3);
 

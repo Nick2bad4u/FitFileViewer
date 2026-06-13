@@ -514,6 +514,7 @@ const migratedQuickColorSwitcherRuntimeFiles = [
     "electron-app/utils/ui/quickColorSwitcher.ts",
 ] as const;
 const migratedShownFilesListRuntimeFiles = [
+    "electron-app/utils/rendering/components/createShownFilesList.ts",
     "electron-app/utils/rendering/components/shownFilesListItemHandlers.ts",
     "electron-app/utils/rendering/components/shownFilesListTooltipState.ts",
 ] as const;
@@ -1100,7 +1101,7 @@ const directUnifiedControlBarRuntimeGlobalPattern =
 const directQuickColorSwitcherRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directShownFilesListRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\b|\bdocument\.body\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
@@ -6716,7 +6717,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -6743,6 +6744,17 @@ describe("architecture boundaries", () => {
             "createAbortController"
         );
         expect(shownFilesItemHandlerSource).toContain("getViewport");
+        const createShownFilesListSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/components/createShownFilesList.ts"
+            )
+        );
+        expect(createShownFilesListSource).toContain(
+            "createAbortController"
+        );
+        expect(createShownFilesListSource).toContain(
+            "addBodyThemeChangeListener"
+        );
     });
 
     it("keeps credits marquee browser APIs behind the runtime facade", () => {
