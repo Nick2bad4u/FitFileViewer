@@ -1,4 +1,5 @@
 export interface DragDropHandlerRuntimeScope {
+    readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly cancelAnimationFrame?:
         | typeof globalThis.cancelAnimationFrame
         | undefined;
@@ -9,6 +10,7 @@ export interface DragDropHandlerRuntimeScope {
 
 export interface DragDropHandlerRuntime {
     cancelAnimationFrame(handle: number): void;
+    createAbortController(): AbortController;
     requestAnimationFrame(onFrame: FrameRequestCallback): null | number;
 }
 
@@ -18,6 +20,16 @@ export function getDragDropHandlerRuntime(
     return {
         cancelAnimationFrame(handle: number): void {
             scope.cancelAnimationFrame?.(handle);
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "dragDropHandler requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         requestAnimationFrame(onFrame: FrameRequestCallback): null | number {
             if (typeof scope.requestAnimationFrame !== "function") {

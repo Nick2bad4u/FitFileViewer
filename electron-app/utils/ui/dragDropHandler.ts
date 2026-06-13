@@ -205,7 +205,8 @@ export class DragDropHandler {
     readFileAsArrayBuffer(file: File): Promise<ArrayBuffer | null> {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            const abortController = new AbortController();
+            const abortController =
+                dragDropHandlerRuntime.createAbortController();
             const cleanup = (): void => {
                 abortController.abort();
             };

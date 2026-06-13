@@ -873,7 +873,7 @@ const directSettingsModalGlobalPattern =
 const directSettingsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directDragDropHandlerTimingRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|requestAnimationFrame)\b|(?:^|[^\w.])(?:cancelAnimationFrame|requestAnimationFrame)\(/u;
+    /\bnew\s+AbortController\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|requestAnimationFrame)\b|(?:^|[^\w.])(?:cancelAnimationFrame|requestAnimationFrame)\(/u;
 const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directAboutModalTimingRuntimeGlobalPattern =
@@ -4115,8 +4115,8 @@ describe("architecture boundaries", () => {
         expect(settingsModalSource).toContain("settingsModalRuntime.js");
     });
 
-    it("keeps drag-drop animation-frame APIs behind the runtime facade", () => {
-        expect.assertions(2);
+    it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
+        expect.assertions(3);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -4131,6 +4131,7 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(dragDropHandlerSource).toContain("dragDropHandlerRuntime.js");
+        expect(dragDropHandlerSource).toContain("createAbortController");
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {

@@ -687,9 +687,10 @@ Tab-button behavior tests now install and restore temporary `window`, `getComput
 Settings modal show/close animation timing now routes close timers, timer clearing, frame scheduling, and frame
 cancellation through `settingsModalRuntime.ts` instead of calling those globals directly in `settingsModal.ts`,
 with runtime adapter tests and architecture coverage blocking direct timing globals from returning.
-Drag/drop overlay animation timing now routes animation-frame scheduling and cancellation through
-`dragDropHandlerRuntime.ts` instead of calling those globals directly in `dragDropHandler.ts`, with runtime
-adapter tests and architecture coverage blocking direct drag/drop animation-frame globals from returning.
+Drag/drop overlay animation timing and file-reader listener cleanup now route animation-frame scheduling,
+cancellation, and abort-controller creation through `dragDropHandlerRuntime.ts` instead of calling those globals or
+constructing controllers directly in `dragDropHandler.ts`, with runtime adapter tests and architecture coverage
+blocking direct drag/drop animation-frame globals and direct controller construction from returning.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning.

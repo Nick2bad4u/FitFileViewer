@@ -3,6 +3,34 @@ import { describe, expect, it, vi } from "vitest";
 import { getDragDropHandlerRuntime } from "../../../../electron-app/utils/ui/dragDropHandlerRuntime.js";
 
 describe("getDragDropHandlerRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const runtime = getDragDropHandlerRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+        });
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("throws when abort controller creation is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getDragDropHandlerRuntime({});
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "dragDropHandler requires an AbortController runtime"
+        );
+    });
+
     it("schedules animation frames through the injected runtime scope", () => {
         expect.assertions(3);
 
