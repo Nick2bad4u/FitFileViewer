@@ -653,6 +653,8 @@ const directVitestHTMLElementGlobalBridgePattern =
     /\bglobal\.HTMLElement\s*=\s*window\.HTMLElement\b/u;
 const directVitestWindowConsoleGroupPatchPattern =
     /\bwindow\.console\.group(?:Collapsed|End)?\s*=/u;
+const directVitestEnvConsoleMethodAssignmentPattern =
+    /\bconsole\.(?:error|warn)\s*=/u;
 const directRuntimeEnvironmentTestConsoleAssignmentPattern =
     /\b(?:global|globalThis)\.console\s*=/u;
 const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
@@ -7602,6 +7604,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directWindowConsoleGroupPatches).toStrictEqual([]);
+    });
+
+    it("keeps Vitest env setup console filters descriptor-scoped", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/env-setup.mjs"];
+        const directConsoleMethodAssignments = scannedFiles
+            .filter((relativeFile) =>
+                directVitestEnvConsoleMethodAssignmentPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directConsoleMethodAssignments).toStrictEqual([]);
     });
 
     it("keeps preload runtime tests from direct console global assignment", () => {

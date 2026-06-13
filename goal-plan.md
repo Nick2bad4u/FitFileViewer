@@ -471,6 +471,9 @@ The setup-level `global.HTMLElement = window.HTMLElement` bridge has also been r
 use the environment's native element constructors without another shared global assignment.
 Setup console hardening now uses the existing `ensureConsoleAlive()` path instead of separately patching
 `window.console.group`, `window.console.groupEnd`, and `window.console.groupCollapsed` in another global block.
+Vitest env setup now installs jsdom warning filters through a descriptor-scoped helper instead of assigning
+`console.error` or `console.warn` directly, with architecture coverage blocking that setup-level console-method
+assignment pattern.
 Preload and main-UI runtime-environment tests now install temporary console handles through descriptor-scoped
 fixtures instead of direct `globalThis.console` assignment, with architecture coverage blocking that pattern.
 Preload source execution tests now install their temporary development-log console through a descriptor-scoped
