@@ -1119,7 +1119,7 @@ const directQuickColorSwitcherRuntimeGlobalPattern =
 const directShownFilesListRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\b|\bdocument\.body\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:AbortController|MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
     /\bglobalThis\.ResizeObserver\s*=|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']ResizeObserver["']\s*,|\bReflect\.deleteProperty\([\s\S]{0,120}["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']\s*\)|\bvi\.stubGlobal\(\s*["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']/u;
 const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
@@ -6854,7 +6854,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps credits marquee browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedCreditsMarqueeRuntimeFiles
             .filter((relativeFile) =>
@@ -6872,6 +6872,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(enhanceCreditsSectionSource).toContain(
             "enhanceCreditsSectionRuntime.js"
+        );
+        expect(enhanceCreditsSectionSource).toContain(
+            "createAbortController"
         );
     });
 

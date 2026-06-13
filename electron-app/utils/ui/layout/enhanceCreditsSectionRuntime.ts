@@ -14,6 +14,7 @@ type CreditsMutationObserverConstructor = new (
 ) => MutationObserver;
 
 export interface CreditsMarqueeRuntimeScope {
+    readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly cancelAnimationFrame?:
         | ((handle: CreditsMarqueeAnimationFrameHandle) => void)
         | undefined;
@@ -35,6 +36,7 @@ export interface CreditsMarqueeRuntime {
     cancelAnimationFrame: (
         handle: CreditsMarqueeAnimationFrameHandle
     ) => void;
+    createAbortController: () => AbortController;
     createMutationObserver: (callback: MutationCallback) => MutationObserver;
     createResizeObserver: (
         callback: ResizeObserverCallback
@@ -88,6 +90,16 @@ export function getCreditsMarqueeRuntime(
             if (typeof scope.cancelAnimationFrame === "function") {
                 scope.cancelAnimationFrame(handle);
             }
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "credits marquee requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         createMutationObserver(callback: MutationCallback): MutationObserver {
             const Observer = scope.MutationObserver;

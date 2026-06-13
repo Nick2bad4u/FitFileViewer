@@ -610,6 +610,10 @@ that fixture mutation pattern.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
 stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFrame`, or
 `cancelAnimationFrame` globals, with architecture coverage blocking that fixture mutation pattern.
+Credits marquee resize-listener fallback cleanup now creates abort controllers through
+`enhanceCreditsSectionRuntime.ts` instead of constructing `AbortController` directly in
+`enhanceCreditsSection.ts`, with focused runtime coverage and architecture coverage blocking direct credits
+marquee abort-controller construction from returning.
 Filename auto-scroll resize listener cleanup now creates abort controllers through `unifiedControlBarRuntime.ts`
 instead of constructing `AbortController` directly in `unifiedControlBar.ts`, with focused runtime coverage and
 architecture coverage blocking direct unified-control-bar abort-controller construction from returning.

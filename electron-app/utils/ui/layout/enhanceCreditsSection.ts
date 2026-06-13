@@ -80,7 +80,7 @@ export function setupCreditsMarquee(
             resizeObserver.observe(section);
             resizeObserver.observe(footer);
         } else {
-            const listenerController = new AbortController();
+            const listenerController = runtime.createAbortController();
             const resizeHandler = (): void => updateMarquee();
             runtime.addResizeListener(resizeHandler, {
                 passive: true,

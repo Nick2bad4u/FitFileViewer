@@ -35,6 +35,7 @@ function createTestRuntime(
             : (MockResizeObserver as unknown as ResizeObserverConstructor);
 
     return getCreditsMarqueeRuntime({
+        AbortController,
         document,
         eventTarget: window,
         HTMLElement,
