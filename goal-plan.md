@@ -309,6 +309,10 @@ guardrails blocking those direct timer globals from returning.
 Renderer state integration example subscription cleanup scheduling and cleanup now route through
 `rendererStateIntegrationRuntime.ts` instead of calling timer globals directly inside `rendererStateIntegration.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
+State integration persistence debounce, performance-monitoring interval, storage lookup, performance-memory read,
+and clock reads now route through `stateIntegrationRuntime.ts` instead of calling runtime globals directly inside
+`stateIntegration.ts`, with focused runtime coverage and architecture guardrails blocking those direct runtime
+globals from returning.
 Master state manager comprehensive tests now install and restore document, window, location, storage,
 performance, timer, and listener globals through descriptor-scoped helpers instead of deleting globals during
 cleanup, with architecture coverage blocking that fixture mutation pattern.

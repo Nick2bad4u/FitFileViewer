@@ -217,6 +217,9 @@ const migratedStateDebugGlobalFreeFiles = [
     "electron-app/utils/state/core/masterStateManager.ts",
     "electron-app/utils/state/integration/stateIntegration.ts",
 ] as const;
+const migratedStateIntegrationRuntimeFiles = [
+    "electron-app/utils/state/integration/stateIntegration.ts",
+] as const;
 const migratedStateDevToolsRuntimeFiles = [
     "electron-app/utils/debug/stateDevTools.ts",
 ] as const;
@@ -688,6 +691,8 @@ const directStateIntegrationTimerGlobalPattern =
     /\b(?:window|globalThis|integrationGlobal)\.(?:__performanceMonitoringInterval|__persistenceTimeout)\b|["'](?:__performanceMonitoringInterval|__persistenceTimeout)["']/u;
 const directStateDebugGlobalPattern =
     /\b(?:window|globalThis|windowExt|globalState|getMasterGlobal\(\))\.(?:__state_debug|__stateDebug)\b|["'](?:__state_debug|__stateDebug)["']/u;
+const directStateIntegrationRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearInterval|clearTimeout|localStorage|performance|setInterval|setTimeout)\b|(?:^|[^\w.])(?:clearInterval|clearTimeout|setInterval|setTimeout)\(|\b(?:Date|performance)\.(?:now|memory)\b|\btypeof\s+(?:localStorage|performance)\b/u;
 const directStateDevToolsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|setInterval)\b|(?:^|[^\w.])(?:clearInterval|setInterval)\(/u;
 const directRendererStateIntegrationRuntimeGlobalPattern =
@@ -4723,6 +4728,26 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(stateDevToolsSource).toContain("stateDevToolsRuntime.js");
+    });
+
+    it("keeps state integration runtime APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedStateIntegrationRuntimeFiles
+            .filter((relativeFile) =>
+                directStateIntegrationRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const stateIntegrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/stateIntegration.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(stateIntegrationSource).toContain("stateIntegrationRuntime.js");
     });
 
     it("keeps renderer state integration timers behind the runtime facade", () => {
