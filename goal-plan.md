@@ -303,6 +303,9 @@ with focused runtime coverage and architecture guardrails blocking those direct 
 Custom map fullscreen-control delayed Leaflet map size invalidation now routes through
 `mapFullscreenControlRuntime.ts` instead of calling timer globals directly inside `mapFullscreenControl.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
+Map draw-laps overlay fit-bounds retry scheduling and cleanup now route through `mapDrawLapsRuntime.ts` instead
+of calling timer globals directly inside `mapDrawLaps.ts`, with focused runtime coverage and architecture
+guardrails blocking those direct timer globals from returning.
 Master state manager comprehensive tests now install and restore document, window, location, storage,
 performance, timer, and listener globals through descriptor-scoped helpers instead of deleting globals during
 cleanup, with architecture coverage blocking that fixture mutation pattern.

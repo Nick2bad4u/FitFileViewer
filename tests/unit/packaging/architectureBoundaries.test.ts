@@ -395,6 +395,9 @@ const migratedMapFullscreenControlRuntimeFiles = [
 const migratedMapMeasureToolRuntimeFiles = [
     "electron-app/utils/maps/controls/mapMeasureTool.ts",
 ] as const;
+const migratedMapDrawLapsRuntimeFiles = [
+    "electron-app/utils/maps/layers/mapDrawLaps.ts",
+] as const;
 const migratedOpenFileSelectorRuntimeFiles = [
     "electron-app/utils/files/import/openFileSelector.ts",
 ] as const;
@@ -959,6 +962,8 @@ const directMapActionButtonsRuntimeGlobalPattern =
 const directMapFullscreenControlRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapMeasureToolRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapDrawLapsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
@@ -5603,6 +5608,24 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapMeasureToolSource).toContain("mapMeasureToolRuntime.js");
+    });
+
+    it("keeps map draw-laps timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedMapDrawLapsRuntimeFiles
+            .filter((relativeFile) =>
+                directMapDrawLapsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapDrawLapsSource = stripComments(
+            readRepositoryFile("electron-app/utils/maps/layers/mapDrawLaps.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapDrawLapsSource).toContain("mapDrawLapsRuntime.js");
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {

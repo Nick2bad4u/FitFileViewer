@@ -43,8 +43,14 @@ import {
     setMainMapPolyline,
     setMainMapPolylineOriginalBounds,
 } from "../state/mapPolylineRegistryState.js";
+import {
+    getMapDrawLapsRuntime,
+    type MapDrawLapsTimer,
+} from "./mapDrawLapsRuntime.js";
 
 type FitValue = unknown;
+
+const mapDrawLapsRuntime = getMapDrawLapsRuntime();
 
 type LatLngTuple = [number, number];
 
@@ -521,12 +527,12 @@ export function mapDrawLaps(
         } catch {
             /* Ignore first attempt */
         }
-        let fitBoundsRetryTimer: ReturnType<typeof setTimeout> | undefined;
+        let fitBoundsRetryTimer: MapDrawLapsTimer | undefined;
         const scheduleFitRetry = (): void => {
             if (fitBoundsRetryTimer !== undefined) {
-                clearTimeout(fitBoundsRetryTimer);
+                mapDrawLapsRuntime.clearTimeout(fitBoundsRetryTimer);
             }
-            fitBoundsRetryTimer = setTimeout(() => {
+            fitBoundsRetryTimer = mapDrawLapsRuntime.setTimeout(() => {
                 fitBoundsRetryTimer = undefined;
                 tryFit();
             }, 50);
