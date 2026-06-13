@@ -487,6 +487,8 @@ fixture.
 Data-point filter state helper tests now rely on scoped Vitest console spies and mock restoration instead of
 assigning `console.error` directly during setup or cleanup, with architecture coverage blocking that direct
 console-method fixture.
+Tab-button behavior tests now restore log/warn capture through scoped Vitest spies instead of assigning console
+methods back during cleanup, with architecture coverage blocking that direct console-method fixture.
 Preload development-mode and edge-case tests now clear and restore `electronAPI`/`devTools` globals through
 descriptor-scoped helpers instead of direct global deletion, with architecture coverage blocking that cleanup
 pattern.

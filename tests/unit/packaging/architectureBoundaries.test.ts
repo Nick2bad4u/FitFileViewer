@@ -762,6 +762,8 @@ const tabStateManagerTestRetiredRendererGlobalMutationPattern =
     /\bdelete\s*\(\s*window\s+as\s+unknown\s+as\s+Record<string,\s*unknown>\s*\)\.renderSummary\b|\bReflect\.(?:deleteProperty|set)\(\s*window\s*,\s*["']renderSummary["']\s*(?:,|\))|\bwindow\.renderSummary\s*=/u;
 const tabStateManagerTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|log|warn)\s*=/u;
+const enableTabButtonsTestDirectConsoleMethodAssignmentPattern =
+    /\bconsole\.(?:log|warn)\s*=/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const listenersResizeChartGlobalMutationPattern =
@@ -6779,6 +6781,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/ui/tabs/tabStateManager.behavior.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab-button behavior tests on scoped console spies", () => {
+        expect.assertions(1);
+
+        expect(
+            enableTabButtonsTestDirectConsoleMethodAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/enableTabButtons.behavior.test.ts"
                     )
                 )
             )

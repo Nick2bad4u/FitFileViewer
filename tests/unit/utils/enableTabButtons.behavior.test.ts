@@ -192,8 +192,6 @@ function queryRequiredButton(selector: string): HTMLButtonElement {
 }
 
 describe("enableTabButtons behavior", () => {
-    let originalConsoleLog: typeof console.log;
-    let originalConsoleWarn: typeof console.warn;
     let consoleLogSpy: ReturnType<typeof vi.spyOn>;
     let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
@@ -214,8 +212,6 @@ describe("enableTabButtons behavior", () => {
         document.body.appendChild(testContainer);
 
         // Mock console methods to reduce noise
-        originalConsoleLog = console.log;
-        originalConsoleWarn = console.warn;
         consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
         consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -251,9 +247,8 @@ describe("enableTabButtons behavior", () => {
             testContainer.parentNode.removeChild(testContainer);
         }
 
-        // Restore console methods
-        console.log = originalConsoleLog;
-        console.warn = originalConsoleWarn;
+        consoleLogSpy.mockRestore();
+        consoleWarnSpy.mockRestore();
 
         vi.resetAllMocks();
         restoreTestGlobals();
