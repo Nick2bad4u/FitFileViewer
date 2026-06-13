@@ -337,6 +337,9 @@ const migratedSettingsModalRuntimeFiles = [
 const migratedKeyboardShortcutsModalRuntimeFiles = [
     "electron-app/utils/ui/modals/keyboardShortcutsModal.ts",
 ] as const;
+const migratedAboutModalRuntimeFiles = [
+    "electron-app/utils/ui/modals/aboutModal.ts",
+] as const;
 const migratedAltFitSenderRuntimeFiles = [
     "electron-app/utils/files/import/sendFitFileToAltFitReader.ts",
 ] as const;
@@ -765,10 +768,12 @@ const directSettingsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directAboutModalTimingRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
 const aboutModalTestDirectRequestAnimationFrameAssignmentPattern =
-    /\bglobalThis\.requestAnimationFrame\s*=|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']requestAnimationFrame["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']requestAnimationFrame["']\s*\)/u;
+    /\bglobalThis\.requestAnimationFrame\s*=|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']requestAnimationFrame["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']requestAnimationFrame["']\s*\)|\bvi\.stubGlobal\(\s*["']requestAnimationFrame["']/u;
 const showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern =
     /\bwindow\.requestAnimationFrame\s*=/u;
 const settingsStateManagerTestDirectConsoleAssignmentPattern =
@@ -3864,6 +3869,24 @@ describe("architecture boundaries", () => {
         expect(keyboardShortcutsModalSource).toContain(
             "keyboardShortcutsModalRuntime.js"
         );
+    });
+
+    it("keeps about modal timing APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedAboutModalRuntimeFiles
+            .filter((relativeFile) =>
+                directAboutModalTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const aboutModalSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/modals/aboutModal.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(aboutModalSource).toContain("aboutModalRuntime.js");
     });
 
     it("keeps settings modal timing APIs behind the runtime facade", () => {

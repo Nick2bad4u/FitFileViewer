@@ -458,6 +458,7 @@
         "electron-app/utils/ui/links/externalLinkHandlers.ts",
         "electron-app/utils/ui/layout/enhanceCreditsSectionRuntime.ts",
         "electron-app/utils/ui/layout/enhanceCreditsSection.ts",
+        "electron-app/utils/ui/modals/aboutModalRuntime.ts",
         "electron-app/utils/ui/modals/aboutModal.ts",
         "electron-app/utils/ui/modals/ensureAboutModal.ts",
         "electron-app/utils/ui/modals/injectModalStyles.ts",

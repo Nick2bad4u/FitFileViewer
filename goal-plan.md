@@ -542,6 +542,10 @@ Keyboard-shortcuts modal show/close animation timing now routes close timers, ti
 frame cancellation through `keyboardShortcutsModalRuntime.ts` instead of calling those globals directly in
 `keyboardShortcutsModal.ts`; its unit tests mock that runtime instead of stubbing animation-frame globals, with
 architecture coverage blocking both direct source globals and direct test stubs from returning.
+About modal show/hide animation timing now routes hide timers, focus timers, copy-feedback timers, frame scheduling,
+and frame cancellation through `aboutModalRuntime.ts` instead of calling those globals directly in `aboutModal.ts`;
+strict about-modal tests mock that runtime instead of stubbing animation-frame globals, with architecture coverage
+blocking direct source globals and direct test stubs from returning.
 The setup-level `global.HTMLElement = window.HTMLElement` bridge has also been removed; jsdom-backed suites now
 use the environment's native element constructors without another shared global assignment.
 Setup console hardening now uses the existing `ensureConsoleAlive()` path instead of separately patching

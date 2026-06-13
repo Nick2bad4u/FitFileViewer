@@ -8,6 +8,10 @@ import { exportUtils } from "../../files/export/exportUtils.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
 import { showNotification } from "../notifications/showNotification.js";
+import {
+    getAboutModalRuntime,
+    type AboutModalTimerHandle,
+} from "./aboutModalRuntime.js";
 import { ensureAboutModal } from "./ensureAboutModal.js";
 import { injectModalStyles } from "./injectModalStyles.js";
 import { createModalFocusTrap } from "./modalFocusTrap.js";
@@ -52,6 +56,7 @@ type ClipboardExportUtils = typeof exportUtils & {
 };
 
 const clipboardExportUtils = exportUtils as ClipboardExportUtils;
+const aboutModalRuntime = getAboutModalRuntime();
 
 const FEATURE_ITEMS: FeatureItem[] = [
     {
@@ -159,11 +164,11 @@ const TECH_BADGES: TechBadge[] = [
 ];
 
 // Module state
-let copyFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
+let copyFeedbackTimer: AboutModalTimerHandle | null = null;
 let escapeKeyCleanup: (() => void) | null = null;
-let focusTimer: ReturnType<typeof setTimeout> | null = null;
+let focusTimer: AboutModalTimerHandle | null = null;
 let focusTrapCleanup: (() => void) | null = null;
-let hideTimer: ReturnType<typeof setTimeout> | null = null;
+let hideTimer: AboutModalTimerHandle | null = null;
 let lastFocusedElement: HTMLElement | null = null;
 let modalEventCleanups: Array<() => void> = [];
 let showAnimationFrame: number | null = null;
@@ -462,7 +467,7 @@ export function showAboutModal(html = ""): void {
     const modal = document.querySelector<HTMLElement>("#about-modal");
     if (modal) {
         if (hideTimer) {
-            clearTimeout(hideTimer);
+            aboutModalRuntime.clearTimeout(hideTimer);
             hideTimer = null;
         }
 
@@ -491,9 +496,9 @@ export function showAboutModal(html = ""): void {
 
             // Trigger animation on next frame
             if (showAnimationFrame !== null) {
-                cancelAnimationFrame(showAnimationFrame);
+                aboutModalRuntime.cancelAnimationFrame(showAnimationFrame);
             }
-            showAnimationFrame = requestAnimationFrame(() => {
+            showAnimationFrame = aboutModalRuntime.requestAnimationFrame(() => {
                 showAnimationFrame = null;
                 modal.classList.add("show");
             });
@@ -542,12 +547,15 @@ export function showAboutModal(html = ""): void {
                                 const prev = btnText.textContent;
                                 btnText.textContent = "Copied";
                                 if (copyFeedbackTimer) {
-                                    clearTimeout(copyFeedbackTimer);
+                                    aboutModalRuntime.clearTimeout(
+                                        copyFeedbackTimer
+                                    );
                                 }
-                                copyFeedbackTimer = setTimeout(() => {
-                                    copyFeedbackTimer = null;
-                                    btnText.textContent = prev || "Copy";
-                                }, 1200);
+                                copyFeedbackTimer =
+                                    aboutModalRuntime.setTimeout(() => {
+                                        copyFeedbackTimer = null;
+                                        btnText.textContent = prev || "Copy";
+                                    }, 1200);
                             }
                         } catch {
                             /* ignore */
@@ -611,9 +619,9 @@ export function showAboutModal(html = ""): void {
 
             // Focus management - focus close button after animation
             if (focusTimer) {
-                clearTimeout(focusTimer);
+                aboutModalRuntime.clearTimeout(focusTimer);
             }
-            focusTimer = setTimeout(() => {
+            focusTimer = aboutModalRuntime.setTimeout(() => {
                 focusTimer = null;
                 focusTrapCleanup?.();
                 focusTrapCleanup = createModalFocusTrap(modal, closeBtn);
@@ -679,22 +687,22 @@ function hideAboutModal(): void {
         focusTrapCleanup?.();
         focusTrapCleanup = null;
         if (focusTimer) {
-            clearTimeout(focusTimer);
+            aboutModalRuntime.clearTimeout(focusTimer);
             focusTimer = null;
         }
 
         // Start closing animation
         modal.classList.remove("show");
         if (showAnimationFrame !== null) {
-            cancelAnimationFrame(showAnimationFrame);
+            aboutModalRuntime.cancelAnimationFrame(showAnimationFrame);
             showAnimationFrame = null;
         }
 
         // Wait for animation to complete before hiding
         if (hideTimer) {
-            clearTimeout(hideTimer);
+            aboutModalRuntime.clearTimeout(hideTimer);
         }
-        hideTimer = setTimeout(() => {
+        hideTimer = aboutModalRuntime.setTimeout(() => {
             hideTimer = null;
             modal.style.display = "none";
 
