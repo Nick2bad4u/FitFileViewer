@@ -575,6 +575,10 @@ coverage blocking direct resize-listener abort-controller construction from retu
 RenderChartJS comprehensive tests no longer delete retired Chart.js runtime globals such as `Chart`,
 `ChartZoom`, or `chartjsPluginZoom`; they use the typed chart runtime test API, and architecture coverage
 blocks those mutations from returning.
+RenderChartJS render session timing, prepared-render timing, chart-data render timing, completion timestamps, and
+devtools window availability now route through `renderChartJSRuntime.ts` instead of probing `performance.now`,
+`Date.now`, or `globalThis.window` directly inside `renderChartJS.ts`, with focused runtime coverage and
+architecture guardrails blocking those direct chart-render runtime probes from returning.
 Chart zoom reset plugin tests now use Vitest-scoped `CanvasRenderingContext2D` stubs when exercising the
 roundRect polyfill instead of defining or deleting `globalThis.CanvasRenderingContext2D` directly, with
 architecture coverage blocking that fixture mutation.
