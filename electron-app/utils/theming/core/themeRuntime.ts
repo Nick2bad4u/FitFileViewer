@@ -23,8 +23,11 @@ export function getThemeRuntime(
 ): ThemeRuntime {
     return {
         clearTimeout(timer): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError("theme core requires a clearTimeout runtime");
+            }
+
             clearTimeoutRef(timer);
         },
         createAbortController(): AbortController {
@@ -50,7 +53,11 @@ export function getThemeRuntime(
             return scope.window ?? null;
         },
         setTimeout(callback, delayMs): ThemeRuntimeTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError("theme core requires a setTimeout runtime");
+            }
+
             return setTimeoutRef(callback, delayMs);
         },
     };

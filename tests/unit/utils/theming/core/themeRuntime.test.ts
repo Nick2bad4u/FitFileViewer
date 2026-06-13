@@ -54,6 +54,21 @@ describe("getThemeRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
 
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const utils = getThemeRuntime({});
+
+        expect(() => utils.setTimeout(() => {}, 0)).toThrow(
+            "theme core requires a setTimeout runtime"
+        );
+        expect(() => {
+            utils.clearTimeout(
+                89 as ReturnType<typeof globalThis.setTimeout>
+            );
+        }).toThrow("theme core requires a clearTimeout runtime");
+    });
+
     it("resolves system theme media queries from the scoped runtime", () => {
         expect.assertions(4);
 

@@ -352,7 +352,9 @@ Core theme transition-class removal scheduling, system-theme media-query lookup,
 and system-theme listener abort-controller creation now route through `themeRuntime.ts` instead of probing
 `globalThis.window`, probing `globalThis.matchMedia`, calling timer globals, or constructing `AbortController`
 directly inside `theme.ts`, with focused runtime coverage and architecture guardrails blocking those direct
-browser/timer/controller globals from returning.
+browser/timer/controller globals from returning. Explicit core theme runtime scopes must now provide timer
+primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture coverage blocking
+those fallbacks from returning.
 Show FIT data post-load scroll availability checks, reduced-motion media queries, microtask scheduling, and scroll
 calls now route through `showFitDataRuntime.ts` instead of probing `globalThis.scrollTo`,
 `globalThis.matchMedia`, or `queueMicrotask` directly inside `showFitData.ts`, with focused runtime coverage and

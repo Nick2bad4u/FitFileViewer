@@ -1094,6 +1094,8 @@ const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const directThemeCoreRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|matchMedia|setTimeout|window)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+const directThemeCoreRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directSetupThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directSetupThemeRuntimeAmbientFallbackPattern =
@@ -6620,7 +6622,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -6632,12 +6634,21 @@ describe("architecture boundaries", () => {
         const themeCoreSource = stripComments(
             readRepositoryFile("electron-app/utils/theming/core/theme.ts")
         );
+        const themeRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/theming/core/themeRuntime.ts")
+        );
 
         expect(violations).toStrictEqual([]);
         expect(themeCoreSource).toContain("themeRuntime.js");
         expect(themeCoreSource).toContain("createAbortController");
         expect(themeCoreSource).toContain("getSystemThemeMediaQuery");
         expect(themeCoreSource).toContain("getWindowEventTarget");
+        expect(themeRuntimeSource).not.toMatch(
+            directThemeCoreRuntimeAmbientTimerFallbackPattern
+        );
+        expect(themeRuntimeSource).toContain(
+            "theme core requires a setTimeout runtime"
+        );
     });
 
     it("keeps setup theme fetch timers behind the runtime facade", () => {
