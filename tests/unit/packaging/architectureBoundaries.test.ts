@@ -750,6 +750,8 @@ const directStateIntegrationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|clearTimeout|localStorage|performance|setInterval|setTimeout)\b|(?:^|[^\w.])(?:clearInterval|clearTimeout|setInterval|setTimeout)\(|\b(?:Date|performance)\.(?:now|memory)\b|\btypeof\s+(?:localStorage|performance)\b/u;
 const directStateDevToolsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|setInterval)\b|(?:^|[^\w.])(?:clearInterval|setInterval)\(/u;
+const directStateDevToolsRuntimeAmbientIntervalFallbackPattern =
+    /\bscope\.(?:clearInterval|setInterval)\s*\?\?\s*globalThis\.(?:clearInterval|setInterval)\b|\bglobalThis\.(?:clearInterval|setInterval)\s*\(/u;
 const directRendererStateIntegrationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern =
@@ -5092,7 +5094,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state development tools interval APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedStateDevToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -5104,9 +5106,18 @@ describe("architecture boundaries", () => {
         const stateDevToolsSource = stripComments(
             readRepositoryFile("electron-app/utils/debug/stateDevTools.ts")
         );
+        const stateDevToolsRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/debug/stateDevToolsRuntime.ts")
+        );
 
         expect(violations).toStrictEqual([]);
         expect(stateDevToolsSource).toContain("stateDevToolsRuntime.js");
+        expect(stateDevToolsRuntimeSource).not.toMatch(
+            directStateDevToolsRuntimeAmbientIntervalFallbackPattern
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "stateDevToolsRuntime requires setInterval"
+        );
     });
 
     it("keeps state integration runtime APIs behind the runtime facade", () => {

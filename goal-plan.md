@@ -540,7 +540,9 @@ with focused runtime coverage and architecture guardrails blocking direct settin
 construction from returning.
 State development tools also route performance-monitor interval scheduling and clearing through that runtime
 adapter instead of calling interval globals directly, with focused runtime coverage and architecture guardrails
-blocking those direct timer calls from returning.
+blocking those direct timer calls from returning. Explicit state devtools runtime scopes must now provide interval
+primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture coverage blocking
+those fallbacks from returning.
 State manager defaults now resolve startup timestamps and document titles through the scoped
 `stateManagerDefaultsRuntime.ts` adapter instead of probing `globalThis.performance`, `Date.now`,
 `typeof document`, or `document.title` directly inside `stateManagerDefaults.ts`, with focused runtime coverage

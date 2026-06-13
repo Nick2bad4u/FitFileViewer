@@ -36,8 +36,12 @@ export function getStateDevToolsRuntime(
 ): StateDevToolsRuntime {
     return {
         clearInterval(handle): void {
-            const clearIntervalImplementation =
-                scope.clearInterval ?? globalThis.clearInterval;
+            const clearIntervalImplementation = scope.clearInterval;
+            if (typeof clearIntervalImplementation !== "function") {
+                throw new TypeError(
+                    "stateDevToolsRuntime requires clearInterval"
+                );
+            }
 
             clearIntervalImplementation(handle);
         },
@@ -49,8 +53,12 @@ export function getStateDevToolsRuntime(
             );
         },
         setInterval(callback, delay): StateDevToolsIntervalHandle {
-            const setIntervalImplementation =
-                scope.setInterval ?? globalThis.setInterval;
+            const setIntervalImplementation = scope.setInterval;
+            if (typeof setIntervalImplementation !== "function") {
+                throw new TypeError(
+                    "stateDevToolsRuntime requires setInterval"
+                );
+            }
 
             return setIntervalImplementation(callback, delay);
         },

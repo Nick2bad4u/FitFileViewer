@@ -71,4 +71,19 @@ describe("stateDevToolsRuntime", () => {
         expect(clearIntervalMock).toHaveBeenCalledWith(intervalHandle);
         expect(callback).not.toHaveBeenCalled();
     });
+
+    it("does not borrow ambient intervals for explicit scopes", () => {
+        expect.assertions(2);
+
+        const utils = getStateDevToolsRuntime({});
+
+        expect(() => utils.setInterval(() => {}, 0)).toThrow(
+            "stateDevToolsRuntime requires setInterval"
+        );
+        expect(() => {
+            utils.clearInterval(
+                123 as ReturnType<typeof globalThis.setInterval>
+            );
+        }).toThrow("stateDevToolsRuntime requires clearInterval");
+    });
 });
