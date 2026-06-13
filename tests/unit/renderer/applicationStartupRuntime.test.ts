@@ -3,6 +3,32 @@ import { describe, expect, it, vi } from "vitest";
 import { getRendererApplicationStartupRuntime } from "../../../electron-app/renderer/applicationStartupRuntime.js";
 
 describe("getRendererApplicationStartupRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        let controllerCount = 0;
+        const signal = Symbol("startup-signal");
+        class TestAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public constructor() {
+                controllerCount += 1;
+            }
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const utils = getRendererApplicationStartupRuntime({
+            AbortController: TestAbortController,
+        });
+
+        expect(utils.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+    });
+
     it("schedules timers through the injected runtime scope", () => {
         expect.assertions(3);
 

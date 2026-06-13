@@ -60,7 +60,8 @@ export function createRendererApplicationStartup(
 ): () => Promise<void> {
     async function initializeApplication(): Promise<void> {
         options.performanceMonitor.start("app_initialization");
-        const startupListenerController = new AbortController();
+        const startupListenerController =
+            applicationStartupRuntime.createAbortController();
 
         try {
             options.logRenderer(

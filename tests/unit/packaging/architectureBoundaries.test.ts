@@ -1051,7 +1051,7 @@ const directRenderChartTimerRuntimeGlobalPattern =
 const directMainUiSummarySelectorRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directRendererApplicationStartupRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererApplicationLifecycleWiringRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directRendererFileInputStartupRuntimeGlobalPattern =
@@ -6419,7 +6419,7 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps renderer application startup timers behind the runtime facade", () => {
+    it("keeps renderer application startup browser primitives behind the runtime facade", () => {
         expect.assertions(2);
 
         const violations = migratedRendererApplicationStartupRuntimeFiles
