@@ -97,4 +97,17 @@ describe("getQuickColorSwitcherRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getQuickColorSwitcherRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "quickColorSwitcher requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "quickColorSwitcher requires a clearTimeout runtime"
+        );
+    });
 });

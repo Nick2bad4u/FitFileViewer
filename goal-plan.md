@@ -329,8 +329,8 @@ Quick color switcher outside-click document listener registration now also route
 `quickColorSwitcherRuntime.ts` instead of registering that document listener directly inside
 `quickColorSwitcher.ts`, with focused runtime coverage and architecture coverage blocking direct quick-color
 switcher document listener registration from returning. Explicit quick color switcher runtime scopes must now
-provide their document instead of falling back to `globalThis.document`, with focused runtime coverage and
-architecture coverage blocking that fallback from returning.
+provide their document and delayed-close timer primitives instead of falling back to `globalThis`, with focused
+runtime coverage and architecture coverage blocking those fallbacks from returning.
 Map theme toggle delayed refresh scheduling and cleanup now route through `mapThemeToggleRuntime.ts` instead of
 calling timer globals directly inside `mapThemeToggleState.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning. Map theme toggle listener abort-controller
