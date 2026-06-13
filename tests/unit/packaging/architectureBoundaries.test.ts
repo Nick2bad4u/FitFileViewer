@@ -742,6 +742,8 @@ const settingsStateManagerTestDirectConsoleAssignmentPattern =
     /\bglobal\.console\s*=/u;
 const handleOpenFileTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|info|log|warn)\s*=/u;
+const dataPointFilterStateHelpersTestDirectConsoleAssignmentPattern =
+    /\bconsole\.error\s*=/u;
 const renderSingleHrZoneBarTestDirectGlobalFixtureAssignmentPattern =
     /\b(?:testGlobal|global)\.(?:console|document|HTMLCanvasElement|HTMLElement|window)\s*=/u;
 const renderAltitudeProfileChartTestDirectGlobalFixtureAssignmentPattern =
@@ -6875,6 +6877,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "electron-app/utils/files/import/handleOpenFile.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps data-point filter state helper tests on scoped console spies", () => {
+        expect.assertions(1);
+
+        expect(
+            dataPointFilterStateHelpersTestDirectConsoleAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/controls/dataPointFilterControl/stateHelpers.test.ts"
                     )
                 )
             )

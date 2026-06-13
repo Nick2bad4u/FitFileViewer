@@ -33,13 +33,10 @@ type MetricStats = {
     min: number;
 };
 
-const originalConsoleError = console.error;
-
 describe("stateHelpers", () => {
     beforeEach(() => {
         __resetStateManagerForTests();
         vi.restoreAllMocks();
-        console.error = originalConsoleError;
         resetMapDataPointFilterStateForTests();
         setActiveFitRawData({ recordMesgs: [] }, { source: "test" });
     });
@@ -47,7 +44,6 @@ describe("stateHelpers", () => {
     afterEach(() => {
         __resetStateManagerForTests();
         vi.restoreAllMocks();
-        console.error = originalConsoleError;
         resetMapDataPointFilterStateForTests();
     });
 
