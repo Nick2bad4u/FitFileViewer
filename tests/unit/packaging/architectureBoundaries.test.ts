@@ -653,6 +653,8 @@ const directVitestHTMLElementGlobalBridgePattern =
     /\bglobal\.HTMLElement\s*=\s*window\.HTMLElement\b/u;
 const directVitestWindowConsoleGroupPatchPattern =
     /\bwindow\.console\.group(?:Collapsed|End)?\s*=/u;
+const directVitestWindowConsoleAssignmentPattern =
+    /\bwindow\.console\s*=/u;
 const directVitestEnvConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|warn)\s*=/u;
 const directRuntimeEnvironmentTestConsoleAssignmentPattern =
@@ -7604,6 +7606,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directWindowConsoleGroupPatches).toStrictEqual([]);
+    });
+
+    it("keeps Vitest setup window console alignment descriptor-scoped", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directWindowConsoleAssignments = scannedFiles
+            .filter((relativeFile) =>
+                directVitestWindowConsoleAssignmentPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directWindowConsoleAssignments).toStrictEqual([]);
     });
 
     it("keeps Vitest env setup console filters descriptor-scoped", () => {

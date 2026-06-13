@@ -146,6 +146,19 @@ let __clearListeners;
 })();
 
 // Reinstall a safe console before/after each test phase to prevent teardown from leaving it undefined
+/**
+ * @param {typeof globalThis | Window} target
+ * @param {Console} consoleRef
+ */
+function setConsoleObject(target, consoleRef) {
+    Object.defineProperty(target, "console", {
+        configurable: true,
+        enumerable: true,
+        value: consoleRef,
+        writable: true,
+    });
+}
+
 function ensureConsoleAlive() {
     try {
         const noop = () => {};
@@ -179,23 +192,13 @@ function ensureConsoleAlive() {
                 profileEnd: vi.fn() || noop,
             };
             try {
-                Object.defineProperty(globalThis, "console", {
-                    configurable: true,
-                    writable: true,
-                    enumerable: true,
-                    value: base,
-                });
+                setConsoleObject(globalThis, base);
             } catch {
                 /* ignore */
             }
             if (typeof window !== "undefined") {
                 try {
-                    Object.defineProperty(window, "console", {
-                        configurable: true,
-                        writable: true,
-                        enumerable: true,
-                        value: base,
-                    });
+                    setConsoleObject(window, base);
                 } catch {
                     /* ignore */
                 }
@@ -248,7 +251,7 @@ function ensureConsoleAlive() {
             window.console !== current
         ) {
             try {
-                window.console = current;
+                setConsoleObject(window, current);
             } catch {
                 /* ignore */
             }
