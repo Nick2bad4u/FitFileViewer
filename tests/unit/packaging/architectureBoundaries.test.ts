@@ -474,6 +474,9 @@ const migratedTabStateManagerHandlersRuntimeFiles = [
 const migratedUnifiedControlBarRuntimeFiles = [
     "electron-app/utils/ui/unifiedControlBar.ts",
 ] as const;
+const migratedQuickColorSwitcherRuntimeFiles = [
+    "electron-app/utils/ui/quickColorSwitcher.ts",
+] as const;
 const migratedCreditsMarqueeRuntimeFiles = [
     "electron-app/utils/ui/layout/enhanceCreditsSection.ts",
 ] as const;
@@ -1021,6 +1024,8 @@ const directTabStateManagerHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+MutationObserver\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directQuickColorSwitcherRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
@@ -6253,6 +6258,26 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(unifiedControlBarSource).toContain(
             "unifiedControlBarRuntime.js"
+        );
+    });
+
+    it("keeps quick color switcher timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedQuickColorSwitcherRuntimeFiles
+            .filter((relativeFile) =>
+                directQuickColorSwitcherRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const quickColorSwitcherSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/quickColorSwitcher.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(quickColorSwitcherSource).toContain(
+            "quickColorSwitcherRuntime.js"
         );
     });
 

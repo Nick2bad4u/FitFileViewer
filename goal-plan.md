@@ -280,6 +280,9 @@ Chart hover effects now route fullscreen resize scheduling, fullscreen target wa
 through `addChartHoverEffectsRuntime.ts` instead of calling animation-frame or timer globals directly inside
 `addChartHoverEffects.ts`, with focused runtime coverage and architecture guardrails blocking those direct
 scheduling globals from returning.
+Quick color switcher delayed dropdown close scheduling and cleanup now route through
+`quickColorSwitcherRuntime.ts` instead of calling timer globals directly inside `quickColorSwitcher.ts`, with
+focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
 Master state manager comprehensive tests now install and restore document, window, location, storage,
 performance, timer, and listener globals through descriptor-scoped helpers instead of deleting globals during
 cleanup, with architecture coverage blocking that fixture mutation pattern.
