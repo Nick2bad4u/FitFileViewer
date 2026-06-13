@@ -244,9 +244,11 @@ describe("stateMiddleware additional branches", () => {
             .spyOn(console, "error")
             .mockImplementation(() => {});
 
-        const origSetItem = localStorage.setItem.bind(localStorage);
+        const storagePrototype = Object.getPrototypeOf(
+            window.localStorage
+        ) as Storage;
         const setItemMock = vi
-            .spyOn(window.localStorage.__proto__, "setItem")
+            .spyOn(storagePrototype, "setItem")
             .mockImplementation(() => {
                 throw new Error("quota exceeded");
             });
@@ -260,25 +262,25 @@ describe("stateMiddleware additional branches", () => {
         } =
             await import("../../electron-app/utils/state/core/stateMiddleware.js");
 
-        registerMiddleware("persist", persistenceMiddleware, 10);
-        const ctx: MiddlewareContext = {
-            path: "settings.theme",
-            value: "dark",
-        };
-        await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, ctx);
+        try {
+            registerMiddleware("persist", persistenceMiddleware, 10);
+            const ctx: MiddlewareContext = {
+                path: "settings.theme",
+                value: "dark",
+            };
+            await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, ctx);
 
-        const errorMessages = firstArguments(errorSpy.mock.calls);
-        expect({
-            persistenceSaveErrors: countMessagesContaining(
-                errorMessages,
-                '[StatePersist] Failed to save "settings.theme"'
-            ),
-        }).toStrictEqual({ persistenceSaveErrors: 1 });
-
-        setItemMock.mockRestore();
-        // restore just in case
-        window.localStorage.setItem = origSetItem;
-        cleanupMiddleware();
+            const errorMessages = firstArguments(errorSpy.mock.calls);
+            expect({
+                persistenceSaveErrors: countMessagesContaining(
+                    errorMessages,
+                    '[StatePersist] Failed to save "settings.theme"'
+                ),
+            }).toStrictEqual({ persistenceSaveErrors: 1 });
+        } finally {
+            setItemMock.mockRestore();
+            cleanupMiddleware();
+        }
     });
 
     it("warns when registering duplicate middleware names", async () => {

@@ -372,6 +372,9 @@ coverage blocking that test-harness mutation pattern.
 Chart zone color utility tests now install and restore localStorage through a descriptor-scoped fixture instead of
 assigning or deleting `globalThis.localStorage` directly, with architecture coverage blocking that fixture
 mutation pattern.
+State middleware branch tests now exercise localStorage write failures through a scoped `Storage.prototype.setItem`
+spy instead of assigning `localStorage.setItem` back during cleanup, with architecture coverage blocking that
+storage-method fixture mutation.
 Chart status indicator tests now install and restore temporary document, window, constructor, timer, and
 event-listener fixtures through captured descriptors instead of assigning browser globals, assigning event
 handlers, or deleting globals during cleanup, with architecture coverage blocking that fixture mutation pattern.

@@ -800,6 +800,8 @@ const strictChartTestDirectGlobalFixtureMutationPattern =
     /\bglobalThis\.(?:window|document|HTMLCanvasElement|HTMLElement|console|localStorage)\s*=|\bdelete\s+(?:globalThis|zoneGlobal)\.(?:window|document|HTMLCanvasElement|HTMLElement|console|localStorage)\b|\bReflect\.deleteProperty\(\s*globalThis\s*,/u;
 const chartZoneColorUtilsTestDirectLocalStorageAssignmentPattern =
     /\bglobalThis\.localStorage\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']localStorage["']\s*\)/u;
+const stateMiddlewareBranchesTestDirectLocalStorageMethodAssignmentPattern =
+    /\blocalStorage\.setItem\s*=|\blocalStorage\.__proto__/u;
 const renderChartJSStateApiTestRetiredGlobalDataFixturePattern =
     /\bgetMockStateValue[\s\S]*?\b["']globalData["']|\bglobalMockState\.data\.set\(\s*["']globalData["']|globalData which means hasValidData/u;
 const renderLapZoneChartsTestRetiredGlobalDataFixturePattern =
@@ -7125,6 +7127,18 @@ describe("architecture boundaries", () => {
                     readRepositoryFile(
                         "tests/unit/utils/data/zones/chartZoneColorUtils.test.ts"
                     )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps state middleware branch tests on scoped storage spies", () => {
+        expect.assertions(1);
+
+        expect(
+            stateMiddlewareBranchesTestDirectLocalStorageMethodAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile("tests/unit/stateMiddleware.branches.test.ts")
                 )
             )
         ).toBe(false);
