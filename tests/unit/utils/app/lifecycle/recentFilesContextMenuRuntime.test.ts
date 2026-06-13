@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { getRecentFilesContextMenuRuntime } from "../../../../../electron-app/utils/app/lifecycle/recentFilesContextMenuRuntime.js";
 
@@ -44,5 +44,25 @@ describe("recentFilesContextMenuRuntime", () => {
             height: 0,
             width: 0,
         });
+    });
+
+    it("schedules and clears timers through the injected runtime scope", () => {
+        expect.assertions(3);
+
+        const callback = vi.fn<() => void>();
+        const delayMs = Number("0");
+        const timer = 31 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const runtime = getRecentFilesContextMenuRuntime({
+            clearTimeout,
+            setTimeout,
+        });
+
+        expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+
+        expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
 });

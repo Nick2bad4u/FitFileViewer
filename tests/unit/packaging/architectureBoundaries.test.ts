@@ -4813,14 +4813,16 @@ describe("architecture boundaries", () => {
         expect(resourceManagerSource).not.toContain("AbortController");
     });
 
-    it("keeps recent-files context-menu viewport access behind the runtime adapter", () => {
-        expect.assertions(4);
+    it("keeps recent-files context-menu viewport and focus timers behind the runtime adapter", () => {
+        expect.assertions(5);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/app/lifecycle/recentFilesContextMenu.ts"
             )
         );
+        const directRecentFilesContextMenuRuntimeGlobalPattern =
+            /\b(?:globalThis|window)\.(?:clearTimeout|innerHeight|innerWidth|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 
         expect(recentFilesContextMenuSource).toContain(
             "recentFilesContextMenuRuntime.js"
@@ -4828,6 +4830,11 @@ describe("architecture boundaries", () => {
         expect(recentFilesContextMenuSource).not.toContain("globalThis.window");
         expect(recentFilesContextMenuSource).not.toContain("window.innerWidth");
         expect(recentFilesContextMenuSource).not.toContain("window.innerHeight");
+        expect(
+            directRecentFilesContextMenuRuntimeGlobalPattern.test(
+                recentFilesContextMenuSource
+            )
+        ).toBe(false);
     });
 
     it("keeps migrated state history readers on the typed history API", () => {

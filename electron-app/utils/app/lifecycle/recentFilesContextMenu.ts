@@ -16,7 +16,10 @@ import {
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
-import { getRecentFilesContextMenuRuntime } from "./recentFilesContextMenuRuntime.js";
+import {
+    getRecentFilesContextMenuRuntime,
+    type RecentFilesContextMenuTimer,
+} from "./recentFilesContextMenuRuntime.js";
 
 type RecentFilesElectronApi = Pick<
     ElectronAPI,
@@ -132,7 +135,7 @@ export function attachRecentFilesContextMenu({
             const menu = document.createElement("div");
             const menuAbortController = new AbortController();
             const { signal: menuSignal } = menuAbortController;
-            let focusTimer: ReturnType<typeof setTimeout> | undefined;
+            let focusTimer: RecentFilesContextMenuTimer | undefined;
             menu.id = "recent-files-menu";
 
             debugLog(
@@ -371,7 +374,7 @@ export function attachRecentFilesContextMenu({
                 },
                 { signal: menuSignal }
             );
-            focusTimer = setTimeout(() => {
+            focusTimer = runtime.setTimeout(() => {
                 focusTimer = undefined;
                 focusItem(0);
             }, 0);
@@ -574,7 +577,7 @@ export function attachRecentFilesContextMenu({
             // Helper to remove menu and cleanup event listener
             function cleanupMenu() {
                 if (focusTimer !== undefined) {
-                    clearTimeout(focusTimer);
+                    runtime.clearTimeout(focusTimer);
                     focusTimer = undefined;
                 }
                 if (document.body.contains(menu)) {

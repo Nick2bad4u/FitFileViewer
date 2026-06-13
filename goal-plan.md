@@ -417,10 +417,10 @@ Resource-manager unload cleanup listener registration now goes through the scope
 adapter instead of probing `globalThis.window`, calling `window.addEventListener`, or constructing
 `AbortController` directly inside `resourceManager.ts`, with focused runtime coverage and architecture guardrails
 blocking those direct operations from returning.
-Recent-files context-menu viewport clamping now gets dimensions through the scoped
+Recent-files context-menu viewport clamping and focus-delay scheduling/cleanup now go through the scoped
 `recentFilesContextMenuRuntime.ts` adapter instead of probing `globalThis.window`, `window.innerWidth`, or
-`window.innerHeight` directly inside `recentFilesContextMenu.ts`, with focused runtime coverage and architecture
-guardrails blocking those direct viewport reads from returning.
+`window.innerHeight` or calling timer globals directly inside `recentFilesContextMenu.ts`, with focused runtime
+coverage and architecture guardrails blocking those direct viewport and timer globals from returning.
 State integration unit tests no longer seed or delete retired AppState, chart-controls, globalData,
 render-state, timer, development, or state-debug globals while proving initialization leaves them absent;
 architecture coverage now blocks those retired state-integration global mutations from returning.
