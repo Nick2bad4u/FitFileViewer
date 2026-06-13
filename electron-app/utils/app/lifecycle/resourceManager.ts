@@ -1,5 +1,9 @@
 import { cleanupEventListeners } from "../../ui/events/eventListenerManager.js";
-import { registerResourceManagerUnloadCleanup } from "./resourceManagerRuntime.js";
+import {
+    clearResourceManagerTimer,
+    registerResourceManagerUnloadCleanup,
+    type ResourceManagerTimer,
+} from "./resourceManagerRuntime.js";
 
 type ResourceType =
     | "chart"
@@ -51,7 +55,7 @@ type DestroyableChart = { destroy: () => unknown };
 type RemovableMap = { remove: () => unknown };
 type DisconnectableObserver = { disconnect: () => unknown };
 type TerminableWorker = { terminate: () => unknown };
-type TimerHandle = ReturnType<typeof setTimeout>;
+type TimerHandle = ResourceManagerTimer;
 type IntervalHandle = ReturnType<typeof setInterval>;
 
 function hasFunctionProperty<TProperty extends string>(
@@ -404,7 +408,7 @@ class ResourceManager {
         return this.register(
             "timer",
             () => {
-                clearTimeout(timerId);
+                clearResourceManagerTimer(timerId);
             },
             { ...options, instance: timerId }
         );

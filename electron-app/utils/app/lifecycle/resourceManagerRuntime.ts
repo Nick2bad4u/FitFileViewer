@@ -5,7 +5,18 @@ type WindowListenerTarget = {
 
 export interface ResourceManagerRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
+    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly window?: WindowListenerTarget | undefined;
+}
+
+export type ResourceManagerTimer = ReturnType<typeof globalThis.setTimeout>;
+
+export function clearResourceManagerTimer(
+    timerId: ResourceManagerTimer,
+    scope: ResourceManagerRuntimeScope = globalThis
+): void {
+    const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
+    clearTimeoutRef(timerId);
 }
 
 export function registerResourceManagerUnloadCleanup(

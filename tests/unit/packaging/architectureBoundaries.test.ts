@@ -4798,19 +4798,26 @@ describe("architecture boundaries", () => {
         expect(appActionsSource).not.toContain("state/core/stateManager.js");
     });
 
-    it("keeps resource manager window cleanup behind the runtime adapter", () => {
-        expect.assertions(4);
+    it("keeps resource manager window cleanup and timer clearing behind the runtime adapter", () => {
+        expect.assertions(5);
 
         const resourceManagerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/app/lifecycle/resourceManager.ts"
             )
         );
+        const directResourceManagerRuntimeGlobalPattern =
+            /\b(?:globalThis|window)\.(?:clearTimeout|addEventListener)\b|(?:^|[^\w.])clearTimeout\(/u;
 
         expect(resourceManagerSource).toContain("resourceManagerRuntime.js");
         expect(resourceManagerSource).not.toContain("globalThis.window");
         expect(resourceManagerSource).not.toContain("window.addEventListener");
         expect(resourceManagerSource).not.toContain("AbortController");
+        expect(
+            directResourceManagerRuntimeGlobalPattern.test(
+                resourceManagerSource
+            )
+        ).toBe(false);
     });
 
     it("keeps recent-files context-menu viewport and focus timers behind the runtime adapter", () => {

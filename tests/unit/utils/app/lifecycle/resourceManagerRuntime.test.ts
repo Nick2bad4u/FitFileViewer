@@ -1,8 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { registerResourceManagerUnloadCleanup } from "../../../../../electron-app/utils/app/lifecycle/resourceManagerRuntime.js";
+import {
+    clearResourceManagerTimer,
+    registerResourceManagerUnloadCleanup,
+} from "../../../../../electron-app/utils/app/lifecycle/resourceManagerRuntime.js";
 
 describe("resourceManagerRuntime", () => {
+    it("clears timers through the injected runtime scope", () => {
+        expect.assertions(1);
+
+        const timer = 17 as ReturnType<typeof globalThis.setTimeout>;
+        let clearedTimer: unknown;
+        const clearTimeout: typeof globalThis.clearTimeout = (handle) => {
+            clearedTimer = handle;
+        };
+
+        clearResourceManagerTimer(timer, { clearTimeout });
+
+        expect(clearedTimer).toBe(timer);
+    });
+
     it("registers beforeunload cleanup through the scoped window target", () => {
         expect.assertions(5);
 

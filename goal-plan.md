@@ -413,10 +413,10 @@ listeners now go through the scoped `masterStateRuntime.ts` adapter instead of p
 `globalThis.window`, `globalThis.location`, `globalThis.addEventListener`, `globalThis.dispatchEvent`, or
 `window.addEventListener`, with focused adapter coverage and architecture guardrails blocking those direct runtime
 operations from returning.
-Resource-manager unload cleanup listener registration now goes through the scoped `resourceManagerRuntime.ts`
-adapter instead of probing `globalThis.window`, calling `window.addEventListener`, or constructing
-`AbortController` directly inside `resourceManager.ts`, with focused runtime coverage and architecture guardrails
-blocking those direct operations from returning.
+Resource-manager unload cleanup listener registration and registered timer cleanup now go through the scoped
+`resourceManagerRuntime.ts` adapter instead of probing `globalThis.window`, calling `window.addEventListener`,
+constructing `AbortController`, or calling `clearTimeout` directly inside `resourceManager.ts`, with focused
+runtime coverage and architecture guardrails blocking those direct operations from returning.
 Recent-files context-menu viewport clamping and focus-delay scheduling/cleanup now go through the scoped
 `recentFilesContextMenuRuntime.ts` adapter instead of probing `globalThis.window`, `window.innerWidth`, or
 `window.innerHeight` or calling timer globals directly inside `recentFilesContextMenu.ts`, with focused runtime
