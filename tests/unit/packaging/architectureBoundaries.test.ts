@@ -389,6 +389,9 @@ const migratedExternalLinkHandlersRuntimeFiles = [
 const migratedMapActionButtonsRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
 ] as const;
+const migratedMapMeasureToolRuntimeFiles = [
+    "electron-app/utils/maps/controls/mapMeasureTool.ts",
+] as const;
 const migratedOpenFileSelectorRuntimeFiles = [
     "electron-app/utils/files/import/openFileSelector.ts",
 ] as const;
@@ -946,6 +949,8 @@ const preloadTestDirectElectronApiGlobalFixturePattern =
 const directExternalLinkHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.open\b/u;
 const directMapActionButtonsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapMeasureToolRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
@@ -5524,6 +5529,26 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapActionButtonsSource).toContain("mapActionButtonsRuntime.js");
+    });
+
+    it("keeps map measure-tool timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedMapMeasureToolRuntimeFiles
+            .filter((relativeFile) =>
+                directMapMeasureToolRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapMeasureToolSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/controls/mapMeasureTool.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapMeasureToolSource).toContain("mapMeasureToolRuntime.js");
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {

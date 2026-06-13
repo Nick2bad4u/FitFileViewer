@@ -4,8 +4,13 @@ import type * as Leaflet from "leaflet";
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
+import {
+    getMapMeasureToolRuntime,
+    type MapMeasureToolTimer,
+} from "./mapMeasureToolRuntime.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
+const mapMeasureToolRuntime = getMapMeasureToolRuntime();
 
 type LatLngPoint = Leaflet.LatLng;
 
@@ -262,7 +267,7 @@ export function addSimpleMeasureTool(
     // Create the measure button up front so it's available to handlers
     const eventController = new AbortController();
     const { signal } = eventController;
-    let disableTimer: ReturnType<typeof setTimeout> | null = null;
+    let disableTimer: MapMeasureToolTimer | null = null;
     const measureBtn = document.createElement("button"),
         themeColors = getThemeColors();
     measureBtn.className = "map-action-btn";
@@ -328,7 +333,7 @@ export function addSimpleMeasureTool(
         "abort",
         () => {
             if (disableTimer) {
-                clearTimeout(disableTimer);
+                mapMeasureToolRuntime.clearTimeout(disableTimer);
                 disableTimer = null;
             }
             clearMapMeasureEscapeHandler(escapeHandler);
@@ -436,9 +441,9 @@ export function addSimpleMeasureTool(
                 enableSimpleMeasure(measureBtn);
                 measureBtn.disabled = true;
                 if (disableTimer) {
-                    clearTimeout(disableTimer);
+                    mapMeasureToolRuntime.clearTimeout(disableTimer);
                 }
-                disableTimer = setTimeout(() => {
+                disableTimer = mapMeasureToolRuntime.setTimeout(() => {
                     measureBtn.disabled = false;
                     disableTimer = null;
                 }, 2000);
