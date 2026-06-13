@@ -332,6 +332,10 @@ and system-theme listener abort-controller creation now route through `themeRunt
 `globalThis.window`, probing `globalThis.matchMedia`, calling timer globals, or constructing `AbortController`
 directly inside `theme.ts`, with focused runtime coverage and architecture guardrails blocking those direct
 browser/timer/controller globals from returning.
+Show FIT data post-load scroll availability checks, reduced-motion media queries, microtask scheduling, and scroll
+calls now route through `showFitDataRuntime.ts` instead of probing `globalThis.scrollTo`,
+`globalThis.matchMedia`, or `queueMicrotask` directly inside `showFitData.ts`, with focused runtime coverage and
+architecture guardrails blocking those direct browser scheduling APIs from returning.
 Setup theme main-process fetch timeout scheduling and cleanup now route through `setupThemeRuntime.ts` instead
 of calling timer globals directly inside `setupTheme.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning.

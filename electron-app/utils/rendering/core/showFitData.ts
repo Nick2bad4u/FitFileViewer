@@ -34,6 +34,7 @@ import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { ensureRendererVendorBundle } from "../../../renderer/vendorBundleLoader.js";
 import { createTables } from "../components/createTables.js";
 import { renderSummary } from "./renderSummary.js";
+import { getShowFitDataRuntime } from "./showFitDataRuntime.js";
 
 // Constants for better maintainability
 const DISPLAY_CONSTANTS = {
@@ -54,6 +55,7 @@ const DISPLAY_CONSTANTS = {
 } as const;
 
 const log = createRendererLogger(DISPLAY_CONSTANTS.LOG_PREFIX);
+const showFitDataRuntime = getShowFitDataRuntime();
 
 type FitRecord = Record<string, unknown>;
 
@@ -177,15 +179,12 @@ export function showFitData(
             switchToMapTabOnLoad();
 
             try {
-                if (typeof globalThis.scrollTo === "function") {
+                if (showFitDataRuntime.canScrollTo()) {
                     const prefersReducedMotion =
-                        typeof globalThis.matchMedia === "function" &&
-                        globalThis.matchMedia(
-                            "(prefers-reduced-motion: reduce)"
-                        ).matches;
+                        showFitDataRuntime.prefersReducedMotion();
 
-                    queueMicrotask(() => {
-                        globalThis.scrollTo({
+                    showFitDataRuntime.queueMicrotask(() => {
+                        showFitDataRuntime.scrollTo({
                             top: 0,
                             behavior: prefersReducedMotion ? "auto" : "smooth",
                         });
