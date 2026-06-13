@@ -5,6 +5,7 @@ import {
 } from "../../data/processing/powerEstimationSettings.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { createModalFocusTrap } from "./modalFocusTrap.js";
+import { getOpenPowerEstimationSettingsModalRuntime } from "./openPowerEstimationSettingsModalRuntime.js";
 
 type NumberInputBounds = {
     max: number;
@@ -23,6 +24,9 @@ type OpenPowerEstimationSettingsModalParams = {
     hasRealPower: boolean;
     onApply: (settings: PowerEstimationSettings) => void;
 };
+
+const openPowerEstimationSettingsModalRuntime =
+    getOpenPowerEstimationSettingsModalRuntime();
 
 /**
  * Open the Power Estimation settings modal.
@@ -50,7 +54,8 @@ export function openPowerEstimationSettingsModal({
         z-index: 10050;
         backdrop-filter: blur(4px);
     `;
-    const eventListeners = new AbortController();
+    const eventListeners =
+        openPowerEstimationSettingsModalRuntime.createAbortController();
     let focusTrapCleanup: (() => void) | undefined;
 
     function cleanup(): void {

@@ -316,6 +316,9 @@ const migratedRemoveExitFullscreenOverlayRuntimeFiles = [
 const migratedCreatePowerEstimationButtonRuntimeFiles = [
     "electron-app/utils/ui/controls/createPowerEstimationButton.ts",
 ] as const;
+const migratedOpenPowerEstimationSettingsModalRuntimeFiles = [
+    "electron-app/utils/ui/modals/openPowerEstimationSettingsModal.ts",
+] as const;
 const migratedCreateMarkerCountSelectorRuntimeFiles = [
     "electron-app/utils/ui/controls/createMarkerCountSelector.ts",
 ] as const;
@@ -1154,6 +1157,8 @@ const directRemoveExitFullscreenOverlayRuntimeGlobalPattern =
     /\binstanceof\s+HTMLElement\b/u;
 const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b/u;
+const directOpenPowerEstimationSettingsModalRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+(?:AbortController|Event)\(/u;
 const directCreateDataPointFilterControlRuntimeGlobalPattern =
@@ -5448,6 +5453,31 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(createPowerEstimationButtonSource).toContain(
             "createPowerEstimationButtonRuntime.js"
+        );
+    });
+
+    it("keeps power-estimation settings modal listener abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedOpenPowerEstimationSettingsModalRuntimeFiles
+            .filter((relativeFile) =>
+                directOpenPowerEstimationSettingsModalRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const powerEstimationSettingsModalSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/openPowerEstimationSettingsModal.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(powerEstimationSettingsModalSource).toContain(
+            "openPowerEstimationSettingsModalRuntime.js"
+        );
+        expect(powerEstimationSettingsModalSource).toContain(
+            "createAbortController"
         );
     });
 
