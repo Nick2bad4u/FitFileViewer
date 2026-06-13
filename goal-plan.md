@@ -190,7 +190,7 @@ remaining vendor problem is shrinking those split bundles further now that Leafl
 Vite package transform.
 
 Long-term target: replace the remaining Leaflet.draw virtual runtime wrapper with a package or local module that accepts explicit imports natively,
-and eventually reduce or remove vendorGlobals\* compatibility
+and eventually reduce or remove rendererVendor\* compatibility
 entries where feature-local dynamic imports can do the job cleanly.
 
 Progress: the map vendor bundle now imports MiniMap as a constructor and registers it explicitly on the typed

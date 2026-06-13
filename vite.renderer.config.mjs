@@ -3,22 +3,22 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
 import {
-    appRendererVendorGlobalsChartDataEntryPath,
-    appRendererVendorGlobalsCoreEntryPath,
-    appRendererVendorGlobalsMapEntryPath,
-    rendererVendorGlobalsBundleName,
-    rendererVendorGlobalsChartDataBundleName,
-    rendererVendorGlobalsCoreBundleName,
-    rendererVendorGlobalsMapBundleName,
-    rendererVendorGlobalsStyleFileName,
+    appRendererVendorChartDataEntryPath,
+    appRendererVendorCoreEntryPath,
+    appRendererVendorMapEntryPath,
+    rendererVendorBundleName,
+    rendererVendorChartDataBundleName,
+    rendererVendorCoreBundleName,
+    rendererVendorMapBundleName,
+    rendererVendorStyleFileName,
     repositoryRoot,
     rootRuntimeRendererRepositoryPath,
 } from "./scripts/lib/workspaces.mjs";
 
 const vendorEntryNames = new Set([
-    rendererVendorGlobalsChartDataBundleName,
-    rendererVendorGlobalsCoreBundleName,
-    rendererVendorGlobalsMapBundleName,
+    rendererVendorChartDataBundleName,
+    rendererVendorCoreBundleName,
+    rendererVendorMapBundleName,
 ]);
 
 const leafletDrawRuntimeModuleId = "fitfileviewer:leaflet-draw-runtime";
@@ -66,14 +66,14 @@ export default defineConfig({
         cssCodeSplit: false,
         emptyOutDir: false,
         lib: {
-            cssFileName: rendererVendorGlobalsBundleName,
+            cssFileName: rendererVendorBundleName,
             entry: {
-                [rendererVendorGlobalsChartDataBundleName]:
-                    appRendererVendorGlobalsChartDataEntryPath,
-                [rendererVendorGlobalsCoreBundleName]:
-                    appRendererVendorGlobalsCoreEntryPath,
-                [rendererVendorGlobalsMapBundleName]:
-                    appRendererVendorGlobalsMapEntryPath,
+                [rendererVendorChartDataBundleName]:
+                    appRendererVendorChartDataEntryPath,
+                [rendererVendorCoreBundleName]:
+                    appRendererVendorCoreEntryPath,
+                [rendererVendorMapBundleName]:
+                    appRendererVendorMapEntryPath,
             },
             fileName: (_format, entryName) => `${entryName}.js`,
             formats: ["es"],
@@ -85,7 +85,7 @@ export default defineConfig({
                 assetFileNames(assetInfo) {
                     return Array.isArray(assetInfo.names) &&
                         assetInfo.names.includes(
-                            rendererVendorGlobalsStyleFileName
+                            rendererVendorStyleFileName
                         )
                         ? "[name][extname]"
                         : "assets/[name][extname]";

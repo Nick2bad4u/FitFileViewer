@@ -8,7 +8,7 @@ import zoomPlugin from "chartjs-plugin-zoom";
 import "datatables.net-dt/css/dataTables.dataTables.css";
 /* eslint-enable import-x/no-unassigned-import */
 
-import { markRendererVendorEntryLoaded } from "./vendorGlobalsShared.js";
+import { markRendererVendorEntryLoaded } from "./rendererVendorShared.js";
 
 function isChartPluginRegistered(pluginId: string): boolean {
     try {
@@ -19,7 +19,7 @@ function isChartPluginRegistered(pluginId: string): boolean {
 }
 
 /** Registers charting and table runtimes used by charts and the Data tab. */
-export function installRendererChartDataVendorGlobals(): void {
+export function installRendererChartDataVendorEntry(): void {
     if (!isChartPluginRegistered(zoomPlugin.id)) {
         Chart.register(zoomPlugin);
     }
@@ -33,4 +33,4 @@ export function installRendererChartDataVendorGlobals(): void {
     });
 }
 
-installRendererChartDataVendorGlobals();
+installRendererChartDataVendorEntry();

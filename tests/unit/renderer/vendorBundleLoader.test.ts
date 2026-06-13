@@ -12,7 +12,7 @@ import {
 import {
     markRendererVendorEntryLoaded,
     resetRendererVendorBundleState,
-} from "../../../electron-app/renderer/vendorGlobalsShared.js";
+} from "../../../electron-app/renderer/rendererVendorShared.js";
 import {
     clearChartRuntimeForTests,
     resolveChartRuntime,

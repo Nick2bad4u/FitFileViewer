@@ -14,9 +14,9 @@ type WorkspacesModule = {
     appMainSourceAbsolutePath: string;
     appPreloadBundleAbsolutePath: string;
     appPreloadSourceAbsolutePath: string;
-    appRendererVendorGlobalsChartDataEntryPath: string;
-    appRendererVendorGlobalsCoreEntryPath: string;
-    appRendererVendorGlobalsMapEntryPath: string;
+    appRendererVendorChartDataEntryPath: string;
+    appRendererVendorCoreEntryPath: string;
+    appRendererVendorMapEntryPath: string;
     appStyleCssPath: string;
     appSourceAbsolutePath: (...segments: string[]) => string;
     appSourceDirectoryName: string;
@@ -70,14 +70,14 @@ type WorkspacesModule = {
     repositoryRoot: string;
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
-    rendererVendorGlobalsChartDataBundleName: string;
-    rendererVendorGlobalsChartDataScriptFileName: string;
-    rendererVendorGlobalsBundleName: string;
-    rendererVendorGlobalsCoreBundleName: string;
-    rendererVendorGlobalsCoreScriptFileName: string;
-    rendererVendorGlobalsMapBundleName: string;
-    rendererVendorGlobalsMapScriptFileName: string;
-    rendererVendorGlobalsStyleFileName: string;
+    rendererVendorChartDataBundleName: string;
+    rendererVendorChartDataScriptFileName: string;
+    rendererVendorBundleName: string;
+    rendererVendorCoreBundleName: string;
+    rendererVendorCoreScriptFileName: string;
+    rendererVendorMapBundleName: string;
+    rendererVendorMapScriptFileName: string;
+    rendererVendorStyleFileName: string;
     rootAgentsPath: string;
     rootChangelogPath: string;
     rootCliffConfigPath: string;
@@ -300,37 +300,37 @@ describe("workspace path helpers", () => {
             bundle: path.join(process.cwd(), "dist", "preload.js"),
             source: path.join(process.cwd(), "electron-app", "preload.ts"),
         });
-        expect(workspaces.appRendererVendorGlobalsChartDataEntryPath).toBe(
-            "electron-app/renderer/vendorGlobalsChartData.ts"
+        expect(workspaces.appRendererVendorChartDataEntryPath).toBe(
+            "electron-app/renderer/rendererVendorChartData.ts"
         );
-        expect(workspaces.appRendererVendorGlobalsCoreEntryPath).toBe(
-            "electron-app/renderer/vendorGlobalsCore.ts"
+        expect(workspaces.appRendererVendorCoreEntryPath).toBe(
+            "electron-app/renderer/rendererVendorCore.ts"
         );
-        expect(workspaces.appRendererVendorGlobalsMapEntryPath).toBe(
-            "electron-app/renderer/vendorGlobalsMap.ts"
+        expect(workspaces.appRendererVendorMapEntryPath).toBe(
+            "electron-app/renderer/rendererVendorMap.ts"
         );
-        expect(workspaces.rendererVendorGlobalsBundleName).toBe(
+        expect(workspaces.rendererVendorBundleName).toBe(
             "vendor-globals"
         );
-        expect(workspaces.rendererVendorGlobalsChartDataBundleName).toBe(
+        expect(workspaces.rendererVendorChartDataBundleName).toBe(
             "vendor-globals-chart-data"
         );
-        expect(workspaces.rendererVendorGlobalsChartDataScriptFileName).toBe(
+        expect(workspaces.rendererVendorChartDataScriptFileName).toBe(
             "vendor-globals-chart-data.js"
         );
-        expect(workspaces.rendererVendorGlobalsCoreBundleName).toBe(
+        expect(workspaces.rendererVendorCoreBundleName).toBe(
             "vendor-globals-core"
         );
-        expect(workspaces.rendererVendorGlobalsCoreScriptFileName).toBe(
+        expect(workspaces.rendererVendorCoreScriptFileName).toBe(
             "vendor-globals-core.js"
         );
-        expect(workspaces.rendererVendorGlobalsMapBundleName).toBe(
+        expect(workspaces.rendererVendorMapBundleName).toBe(
             "vendor-globals-map"
         );
-        expect(workspaces.rendererVendorGlobalsMapScriptFileName).toBe(
+        expect(workspaces.rendererVendorMapScriptFileName).toBe(
             "vendor-globals-map.js"
         );
-        expect(workspaces.rendererVendorGlobalsStyleFileName).toBe(
+        expect(workspaces.rendererVendorStyleFileName).toBe(
             "vendor-globals.css"
         );
         expect({

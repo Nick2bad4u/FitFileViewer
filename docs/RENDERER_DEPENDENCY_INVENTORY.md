@@ -44,11 +44,11 @@ compatibility bundles:
   `electron-app/utils/maps/core/leafletRuntime.ts`, and migrated fullscreen
   controls resolve screenfull through
   `electron-app/utils/ui/controls/screenfullRuntime.ts`.
-- `electron-app/renderer/vendorGlobalsCore.ts`,
-  `electron-app/renderer/vendorGlobalsChartData.ts`, and
-  `electron-app/renderer/vendorGlobalsMap.ts` import migrated renderer packages
+- `electron-app/renderer/rendererVendorCore.ts`,
+  `electron-app/renderer/rendererVendorChartData.ts`, and
+  `electron-app/renderer/rendererVendorMap.ts` import migrated renderer packages
   from npm and publish typed runtime payloads by domain.
-- `electron-app/renderer/vendorGlobalsCore.ts` publishes DOMPurify, JSZip,
+- `electron-app/renderer/rendererVendorCore.ts` publishes DOMPurify, JSZip,
   Arquero, and screenfull through the typed split-vendor readiness payload
   consumed by `electron-app/renderer/vendorBundleLoader.ts`; app modules then
   resolve them through module-local runtime adapters. It no longer exposes
@@ -56,7 +56,7 @@ compatibility bundles:
   and those adapters no longer use global symbol registries. Split-entry
   readiness is tracked in module state and synchronized through the typed
   readiness event rather than a symbol-backed `globalThis` registry.
-- `electron-app/renderer/vendorGlobalsMap.ts` publishes Leaflet through the
+- `electron-app/renderer/rendererVendorMap.ts` publishes Leaflet through the
   typed split-vendor readiness payload consumed by
   `electron-app/renderer/vendorBundleLoader.ts`; app modules then resolve it
   through the module-local `leafletRuntime.ts` adapter. The map bundle imports
@@ -68,7 +68,7 @@ compatibility bundles:
   package transform or persistent `L` compatibility global. The map bundle no
   longer exposes separate `L`, `Leaflet`, or `maplibregl` aliases, and the
   app-side Leaflet adapter no longer uses a global symbol registry.
-- `electron-app/renderer/vendorGlobalsChartData.ts` publishes Chart.js,
+- `electron-app/renderer/rendererVendorChartData.ts` publishes Chart.js,
   Chart.js zoom, and DataTables constructors through the typed split-vendor
   readiness payload consumed by `electron-app/renderer/vendorBundleLoader.ts`;
   app modules then resolve them through module-local `chartRuntime.ts` and
@@ -78,7 +78,7 @@ compatibility bundles:
 - `electron-app/utils/ui/controls/createElevationProfileButton.ts` uses
   `chartRuntime.ts` instead of importing `chart.js/auto` directly from
   unbundled runtime code.
-- The old `electron-app/renderer/vendorGlobals.ts` source-level compatibility
+- The old `electron-app/renderer/rendererVendor.ts` source-level compatibility
   aggregator has been removed; build and runtime loading use the split vendor
   entries directly.
 - `prepare-runtime-dist.mjs` rejects direct `node_modules` and repository
@@ -161,7 +161,7 @@ These files should not be removed just because a package dependency exists.
 They need a specific replacement and runtime verification.
 
 - `electron-app/renderer/leafletMeasureLite.js`: CSP-safe measurement control
-  replacement imported by `electron-app/renderer/vendorGlobalsMap.ts` and
+  replacement imported by `electron-app/renderer/rendererVendorMap.ts` and
   bundled into `dist/renderer/vendor-globals-map.js`. The upstream `leaflet-measure`
   JavaScript should not be restored unless it works without weakening the app
   CSP.

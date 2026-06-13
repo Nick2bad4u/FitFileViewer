@@ -200,25 +200,25 @@ export const appPreloadBundleAbsolutePath = repositoryPath(
     rootRuntimeDistPath,
     "preload.js"
 );
-export const appRendererVendorGlobalsCoreEntryPath = appSourceRepositoryPath(
+export const appRendererVendorCoreEntryPath = appSourceRepositoryPath(
     "renderer",
-    "vendorGlobalsCore.ts"
+    "rendererVendorCore.ts"
 );
-export const appRendererVendorGlobalsChartDataEntryPath =
-    appSourceRepositoryPath("renderer", "vendorGlobalsChartData.ts");
-export const appRendererVendorGlobalsMapEntryPath = appSourceRepositoryPath(
+export const appRendererVendorChartDataEntryPath =
+    appSourceRepositoryPath("renderer", "rendererVendorChartData.ts");
+export const appRendererVendorMapEntryPath = appSourceRepositoryPath(
     "renderer",
-    "vendorGlobalsMap.ts"
+    "rendererVendorMap.ts"
 );
-export const rendererVendorGlobalsBundleName = "vendor-globals";
-export const rendererVendorGlobalsChartDataBundleName =
+export const rendererVendorBundleName = "vendor-globals";
+export const rendererVendorChartDataBundleName =
     "vendor-globals-chart-data";
-export const rendererVendorGlobalsCoreBundleName = "vendor-globals-core";
-export const rendererVendorGlobalsMapBundleName = "vendor-globals-map";
-export const rendererVendorGlobalsChartDataScriptFileName = `${rendererVendorGlobalsChartDataBundleName}.js`;
-export const rendererVendorGlobalsCoreScriptFileName = `${rendererVendorGlobalsCoreBundleName}.js`;
-export const rendererVendorGlobalsMapScriptFileName = `${rendererVendorGlobalsMapBundleName}.js`;
-export const rendererVendorGlobalsStyleFileName = `${rendererVendorGlobalsBundleName}.css`;
+export const rendererVendorCoreBundleName = "vendor-globals-core";
+export const rendererVendorMapBundleName = "vendor-globals-map";
+export const rendererVendorChartDataScriptFileName = `${rendererVendorChartDataBundleName}.js`;
+export const rendererVendorCoreScriptFileName = `${rendererVendorCoreBundleName}.js`;
+export const rendererVendorMapScriptFileName = `${rendererVendorMapBundleName}.js`;
+export const rendererVendorStyleFileName = `${rendererVendorBundleName}.css`;
 export const appStyleCssPath = "style.css";
 export const docusaurusPackagePath =
     docusaurusWorkspaceAbsolutePath("package.json");

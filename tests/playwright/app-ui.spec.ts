@@ -958,7 +958,7 @@ test.describe("FitFileViewer Electron UI", () => {
         await expect(page.locator("#tab_map")).toHaveClass(/active/u);
         await expect(page.locator(".tab-button")).toHaveCount(7);
 
-        const vendorGlobals = await page.evaluate(() => {
+        const rendererVendorState = await page.evaluate(() => {
             const globalWindow = window as Window &
                 Record<string, Record<string, unknown> | undefined>;
 
@@ -1003,7 +1003,7 @@ test.describe("FitFileViewer Electron UI", () => {
             };
         });
 
-        expect(vendorGlobals).toStrictEqual({
+        expect(rendererVendorState).toStrictEqual({
             hasArqueroTable: false,
             hasChart: false,
             hasChartZoom: false,

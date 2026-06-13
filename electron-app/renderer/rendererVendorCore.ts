@@ -3,10 +3,10 @@ import DOMPurify from "dompurify";
 import JSZip from "jszip";
 import screenfull from "screenfull";
 
-import { markRendererVendorEntryLoaded } from "./vendorGlobalsShared.js";
+import { markRendererVendorEntryLoaded } from "./rendererVendorShared.js";
 
 /** Registers renderer vendor runtimes shared across tabs and export flows. */
-export function installRendererCoreVendorGlobals(): void {
+export function installRendererCoreVendorEntry(): void {
     markRendererVendorEntryLoaded("core", {
         core: {
             arqueroRuntime: arquero,
@@ -17,4 +17,4 @@ export function installRendererCoreVendorGlobals(): void {
     });
 }
 
-installRendererCoreVendorGlobals();
+installRendererCoreVendorEntry();

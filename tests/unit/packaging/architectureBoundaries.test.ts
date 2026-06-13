@@ -206,9 +206,9 @@ const migratedStateDebugGlobalFreeFiles = [
     "electron-app/utils/state/integration/stateIntegration.ts",
 ] as const;
 const rendererVendorBrowserPackageImportAllowedFiles = [
-    "electron-app/renderer/vendorGlobalsChartData.ts",
-    "electron-app/renderer/vendorGlobalsCore.ts",
-    "electron-app/renderer/vendorGlobalsMap.ts",
+    "electron-app/renderer/rendererVendorChartData.ts",
+    "electron-app/renderer/rendererVendorCore.ts",
+    "electron-app/renderer/rendererVendorMap.ts",
 ] as const;
 const migratedDataTableImportFiles = [
     "electron-app/utils/rendering/core/renderTable.ts",
@@ -4374,7 +4374,7 @@ describe("architecture boundaries", () => {
 
         const vendorChartDataEntry = stripComments(
             readRepositoryFile(
-                "electron-app/renderer/vendorGlobalsChartData.ts"
+                "electron-app/renderer/rendererVendorChartData.ts"
             )
         );
 
@@ -4389,7 +4389,7 @@ describe("architecture boundaries", () => {
 
         const vendorChartDataEntry = stripComments(
             readRepositoryFile(
-                "electron-app/renderer/vendorGlobalsChartData.ts"
+                "electron-app/renderer/rendererVendorChartData.ts"
             )
         );
 
@@ -4425,8 +4425,8 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/core/dataTableRuntime.ts"
             )
         );
-        const vendorGlobalsSharedSource = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsShared.ts")
+        const rendererVendorSharedSource = stripComments(
+            readRepositoryFile("electron-app/renderer/rendererVendorShared.ts")
         );
 
         expect(chartRuntimeSource).not.toContain("Symbol.for");
@@ -4435,9 +4435,9 @@ describe("architecture boundaries", () => {
         expect(chartInstanceRegistrySource).not.toContain("globalThis");
         expect(dataTableRuntimeSource).not.toContain("Symbol.for");
         expect(dataTableRuntimeSource).not.toContain("globalThis");
-        expect(vendorGlobalsSharedSource).not.toContain("Symbol.for");
-        expect(vendorGlobalsSharedSource).not.toContain("globalThis &");
-        expect(vendorGlobalsSharedSource).not.toContain(
+        expect(rendererVendorSharedSource).not.toContain("Symbol.for");
+        expect(rendererVendorSharedSource).not.toContain("globalThis &");
+        expect(rendererVendorSharedSource).not.toContain(
             "rendererVendorRuntimePayloads"
         );
     });
@@ -4478,7 +4478,7 @@ describe("architecture boundaries", () => {
         expect.assertions(2);
 
         const vendorCoreEntry = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+            readRepositoryFile("electron-app/renderer/rendererVendorCore.ts")
         );
 
         expect(vendorCoreEntry).toContain("domPurifyRuntime: DOMPurify");
@@ -4505,7 +4505,7 @@ describe("architecture boundaries", () => {
         expect.assertions(3);
 
         const vendorCoreEntry = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+            readRepositoryFile("electron-app/renderer/rendererVendorCore.ts")
         );
 
         expect(vendorCoreEntry).toContain("arqueroRuntime: arquero");
@@ -4531,7 +4531,7 @@ describe("architecture boundaries", () => {
         expect.assertions(2);
 
         const vendorCoreEntry = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+            readRepositoryFile("electron-app/renderer/rendererVendorCore.ts")
         );
 
         expect(vendorCoreEntry).toContain("exportZipRuntime: JSZip");
@@ -4902,7 +4902,7 @@ describe("architecture boundaries", () => {
         expect.assertions(2);
 
         const vendorCoreEntry = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+            readRepositoryFile("electron-app/renderer/rendererVendorCore.ts")
         );
 
         expect(vendorCoreEntry).toContain("screenfullRuntime: screenfull");
@@ -5642,7 +5642,7 @@ describe("architecture boundaries", () => {
         expect.assertions(37);
 
         const vendorMapEntry = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsMap.ts")
+            readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
         );
         const leafletRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/leafletRuntime.ts")
@@ -6464,7 +6464,7 @@ describe("architecture boundaries", () => {
             "electron-app/main/security/externalUrlPolicy.ts",
             "electron-app/renderer/globalApiExposure.ts",
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
-            "electron-app/renderer/vendorGlobals.ts",
+            "electron-app/renderer/rendererVendor.ts",
             "electron-app/utils.ts",
             "electron-app/utils/app/initialization/rendererUtils.ts",
             "electron-app/utils/ui/mainUiGlobals.ts",

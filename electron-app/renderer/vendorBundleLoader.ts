@@ -3,7 +3,7 @@ import {
     recordRendererVendorEntryLoaded,
     rendererVendorEntryLoadedEventName,
     type RendererVendorEntryLoadedEventDetail,
-} from "./vendorGlobalsShared.js";
+} from "./rendererVendorShared.js";
 import {
     isRendererVendorBundleEntry,
     rendererVendorBundleFileByEntry,

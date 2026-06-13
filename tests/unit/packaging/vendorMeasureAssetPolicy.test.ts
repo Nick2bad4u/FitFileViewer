@@ -5,9 +5,9 @@ import { describe, expect, it } from "vitest";
 
 import {
     appLeafletMeasureLitePath,
-    appRendererVendorGlobalsChartDataEntryPath,
-    appRendererVendorGlobalsCoreEntryPath,
-    appRendererVendorGlobalsMapEntryPath,
+    appRendererVendorChartDataEntryPath,
+    appRendererVendorCoreEntryPath,
+    appRendererVendorMapEntryPath,
     appSourceRepositoryPath,
     rootAppIndexHtmlPath,
     rootDocsPath,
@@ -131,9 +131,9 @@ describe("renderer vendor asset policy", () => {
             rendererDependencyInventoryPath
         );
         const vendorBundleSource = [
-            readWorkspaceFile(appRendererVendorGlobalsChartDataEntryPath),
-            readWorkspaceFile(appRendererVendorGlobalsCoreEntryPath),
-            readWorkspaceFile(appRendererVendorGlobalsMapEntryPath),
+            readWorkspaceFile(appRendererVendorChartDataEntryPath),
+            readWorkspaceFile(appRendererVendorCoreEntryPath),
+            readWorkspaceFile(appRendererVendorMapEntryPath),
         ].join("\n");
         const browserPackagesInProductionDependencies =
             rendererManagedBrowserPackages.filter(
@@ -211,8 +211,8 @@ describe("renderer vendor asset policy", () => {
         ) as {
             devDependencies?: Record<string, string>;
         };
-        const vendorGlobalsMap = readWorkspaceFile(
-            appRendererVendorGlobalsMapEntryPath
+        const rendererVendorMap = readWorkspaceFile(
+            appRendererVendorMapEntryPath
         );
         const measureLite = readWorkspaceFile(appLeafletMeasureLitePath);
 
@@ -222,16 +222,16 @@ describe("renderer vendor asset policy", () => {
                 "devDependencies"
             )["leaflet-measure"]
         ).toStrictEqual(expect.stringMatching(/\S/u));
-        expect(vendorGlobalsMap).toContain(
+        expect(rendererVendorMap).toContain(
             'import "leaflet-measure/dist/leaflet-measure.css";'
         );
-        expect(vendorGlobalsMap).toContain(
+        expect(rendererVendorMap).toContain(
             'import { installLeafletMeasureLite } from "./leafletMeasureLite.js";'
         );
-        expect(vendorGlobalsMap).toContain(
+        expect(rendererVendorMap).toContain(
             "installLeafletMeasureLite(Leaflet);"
         );
-        expect(vendorGlobalsMap).not.toContain(
+        expect(rendererVendorMap).not.toContain(
             'import "leaflet-measure/dist/leaflet-measure.js";'
         );
         expect(measureLite).toContain("violates a strict CSP");

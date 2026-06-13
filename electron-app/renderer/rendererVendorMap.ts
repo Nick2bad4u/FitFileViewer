@@ -22,7 +22,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 /* eslint-enable import-x/no-unassigned-import */
 
 import { installLeafletMeasureLite } from "./leafletMeasureLite.js";
-import { markRendererVendorEntryLoaded } from "./vendorGlobalsShared.js";
+import { markRendererVendorEntryLoaded } from "./rendererVendorShared.js";
 import { setLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
 
 const leafletGlobal = Leaflet as typeof Leaflet & {
@@ -69,7 +69,7 @@ function removeLeafletCompatibilityGlobals(): void {
 }
 
 /** Installs the Leaflet runtime and map plugins used by the Map tab. */
-export async function installRendererMapVendorGlobals(): Promise<void> {
+export async function installRendererMapVendorEntry(): Promise<void> {
     installMinimapToggleIcon();
 
     leafletGlobal.Control.FullScreen = FullScreen;
@@ -93,4 +93,4 @@ export async function installRendererMapVendorGlobals(): Promise<void> {
     });
 }
 
-await installRendererMapVendorGlobals();
+await installRendererMapVendorEntry();
