@@ -29,7 +29,7 @@ type TestGlobalProperty = "document" | "window";
 
 const originalGlobalDescriptors = new Map<
     TestGlobalProperty,
-    PropertyDescriptor | undefined
+    PropertyDescriptor
 >();
 
 // Utility to cleanly reset modules between environment permutations
@@ -40,10 +40,11 @@ const resetAll = async () => {
 
 function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
     if (!originalGlobalDescriptors.has(name)) {
-        originalGlobalDescriptors.set(
-            name,
-            Object.getOwnPropertyDescriptor(globalThis, name)
-        );
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+        originalGlobalDescriptors.set(name, descriptor);
     }
 
     Object.defineProperty(globalThis, name, {
@@ -58,11 +59,7 @@ function restoreTestGlobals(): void {
         name,
         descriptor,
     ] of [...originalGlobalDescriptors.entries()].reverse()) {
-        if (descriptor) {
-            Object.defineProperty(globalThis, name, descriptor);
-        } else {
-            Reflect.deleteProperty(globalThis, name);
-        }
+        Object.defineProperty(globalThis, name, descriptor);
     }
     originalGlobalDescriptors.clear();
 }

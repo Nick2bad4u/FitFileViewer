@@ -861,7 +861,7 @@ const directListenersResizeRuntimeGlobalPattern =
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
-    /\bReflect\.set\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*,/u;
+    /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*(?:,|\))/u;
 const themeAdditionalTestDirectGlobalFixtureMutationPattern =
     /\bReflect\.set\(\s*globalThis\s*,\s*["'](?:getComputedStyle|localStorage|matchMedia)["']\s*,/u;
 const directChartThemeListenerRuntimeGlobalPattern =
