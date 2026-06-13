@@ -413,6 +413,9 @@ const migratedChartThemeRuntimeFiles = [
 const migratedChartThemeListenerRuntimeFiles = [
     "electron-app/utils/charts/theming/chartThemeListener.ts",
 ] as const;
+const migratedMapThemeToggleRuntimeFiles = [
+    "electron-app/utils/theming/specific/mapThemeToggleState.ts",
+] as const;
 const migratedUpdateMapThemeRuntimeFiles = [
     "electron-app/utils/theming/specific/updateMapTheme.ts",
 ] as const;
@@ -966,6 +969,8 @@ const uiStateManagerTestDirectMatchMediaMutationPattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*\)/u;
 const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapThemeToggleRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusCountsRuntimeGlobalPattern =
@@ -5692,6 +5697,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(chartThemeListenerSource).toContain(
             "chartThemeListenerRuntime.js"
+        );
+    });
+
+    it("keeps map theme toggle timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedMapThemeToggleRuntimeFiles
+            .filter((relativeFile) =>
+                directMapThemeToggleRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapThemeToggleStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/theming/specific/mapThemeToggleState.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapThemeToggleStateSource).toContain(
+            "mapThemeToggleRuntime.js"
         );
     });
 

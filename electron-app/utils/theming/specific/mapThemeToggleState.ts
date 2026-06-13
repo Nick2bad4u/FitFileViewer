@@ -2,6 +2,11 @@
  * Module-owned state for map theme toggle listeners.
  */
 
+import {
+    getMapThemeToggleRuntime,
+    type MapThemeToggleTimerHandle,
+} from "./mapThemeToggleRuntime.js";
+
 /**
  * Custom map theme event names emitted by the map theme toggle.
  */
@@ -9,7 +14,8 @@ export const MAP_THEME_EVENTS = {
     CHANGED: "mapThemeChanged",
 } as const;
 
-const mapThemeToggleUpdateTimers = new Set<ReturnType<typeof setTimeout>>();
+const mapThemeToggleRuntime = getMapThemeToggleRuntime();
+const mapThemeToggleUpdateTimers = new Set<MapThemeToggleTimerHandle>();
 
 let currentMapThemeToggleUpdate: (() => void) | null = null;
 
@@ -18,7 +24,7 @@ let mapThemeToggleListenersController: AbortController | null = null;
 let mapThemeToggleListenersInstalled = false;
 
 function scheduleMapThemeToggleUpdate(callback: () => void): void {
-    const timeout = setTimeout(() => {
+    const timeout = mapThemeToggleRuntime.setTimeout(() => {
         mapThemeToggleUpdateTimers.delete(timeout);
         callback();
     }, 50);
@@ -84,7 +90,7 @@ export function resetMapThemeToggleStateForTests(): void {
     mapThemeToggleListenersController?.abort();
 
     for (const timeout of mapThemeToggleUpdateTimers) {
-        clearTimeout(timeout);
+        mapThemeToggleRuntime.clearTimeout(timeout);
     }
     mapThemeToggleUpdateTimers.clear();
 

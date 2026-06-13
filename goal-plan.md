@@ -283,6 +283,9 @@ scheduling globals from returning.
 Quick color switcher delayed dropdown close scheduling and cleanup now route through
 `quickColorSwitcherRuntime.ts` instead of calling timer globals directly inside `quickColorSwitcher.ts`, with
 focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
+Map theme toggle delayed refresh scheduling and cleanup now route through `mapThemeToggleRuntime.ts` instead of
+calling timer globals directly inside `mapThemeToggleState.ts`, with focused runtime coverage and architecture
+guardrails blocking those direct timer globals from returning.
 Master state manager comprehensive tests now install and restore document, window, location, storage,
 performance, timer, and listener globals through descriptor-scoped helpers instead of deleting globals during
 cleanup, with architecture coverage blocking that fixture mutation pattern.
