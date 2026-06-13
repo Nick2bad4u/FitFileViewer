@@ -217,6 +217,7 @@
         "electron-app/utils/logging/rendererLogger.ts",
         "electron-app/utils/logging/index.ts",
         "electron-app/utils/debug/lastAnimLog.ts",
+        "electron-app/utils/debug/stateDevToolsRuntime.ts",
         "electron-app/utils/errors/errorHandling.ts",
         "electron-app/utils/errors/index.ts",
         "electron-app/utils/app/async/cancellationToken.ts",

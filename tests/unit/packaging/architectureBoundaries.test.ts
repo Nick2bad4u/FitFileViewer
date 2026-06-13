@@ -4348,15 +4348,18 @@ describe("architecture boundaries", () => {
         ).toBe(false);
     });
 
-    it("keeps state development tools on the debug state access facade", () => {
-        expect.assertions(2);
+    it("keeps state development tools on typed state and runtime access", () => {
+        expect.assertions(5);
 
         const stateDevToolsSource = stripComments(
             readRepositoryFile("electron-app/utils/debug/stateDevTools.ts")
         );
 
         expect(stateDevToolsSource).toContain("debugStateAccess.js");
+        expect(stateDevToolsSource).toContain("stateDevToolsRuntime.js");
         expect(stateDevToolsSource).not.toContain("state/core/stateManager.js");
+        expect(stateDevToolsSource).not.toContain("globalThis.window");
+        expect(stateDevToolsSource).not.toContain("globalThis.location");
     });
 
     it("keeps app lifecycle actions on the app-actions state facade", () => {

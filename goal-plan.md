@@ -323,6 +323,9 @@ mutating those names, and architecture coverage blocks those mutations from retu
 Shared error handling no longer probes `globalRef.performanceMonitor` for ambient telemetry, and its tests no
 longer install or delete a temporary performance-monitor global fixture; architecture coverage blocks both the
 source fallback and test-global mutation pattern from returning.
+State development tools now check development-scope availability through the scoped `stateDevToolsRuntime.ts`
+adapter instead of probing `globalThis.window` or `globalThis.location` directly, with architecture coverage
+blocking those runtime-global lookups from returning.
 State integration unit tests no longer seed or delete retired AppState, chart-controls, globalData,
 render-state, timer, development, or state-debug globals while proving initialization leaves them absent;
 architecture coverage now blocks those retired state-integration global mutations from returning.
