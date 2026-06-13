@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     criticalAnimLog,
+    perfAnimLog,
     throttledAnimLog,
 } from "../../../../electron-app/utils/debug/lastAnimLog.js";
 import { setRendererDebugLoggingEnabled } from "../../../../electron-app/utils/debug/rendererDebugLoggingState.js";
@@ -30,5 +31,20 @@ describe("animation debug logging", () => {
         expect(enabledThrottledResult).toBeUndefined();
         expect(consoleLog).toHaveBeenCalledWith("[AnimCritical] enabled");
         expect(consoleLog).toHaveBeenCalledWith("[AnimDebug] progress");
+    });
+
+    it("logs performance animation messages through typed debug state", () => {
+        expect.assertions(2);
+
+        const consoleLog = vi.spyOn(console, "log").mockReturnValue(undefined);
+        vi.spyOn(performance, "now").mockReturnValue(1500);
+
+        setRendererDebugLoggingEnabled(true);
+        const result = perfAnimLog("frame", 1);
+
+        expect(result).toBeUndefined();
+        expect(consoleLog).toHaveBeenCalledWith(
+            "[AnimPerf@1500.00ms] frame (1499.00ms)"
+        );
     });
 });

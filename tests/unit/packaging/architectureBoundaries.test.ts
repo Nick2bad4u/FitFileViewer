@@ -1061,6 +1061,8 @@ const directRendererFileInputStartupRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directRendererTestOnlyBootstrapRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
+const directLastAnimLogRuntimeGlobalPattern =
+    /\bDate\.now\b|\bperformance\.now\b/u;
 const directRendererVendorBundleLoaderRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|createElement|head|querySelector|removeEventListener|setTimeout)\b|\bDate\.now\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directNetworkUtilsRuntimeGlobalPattern =
@@ -4595,6 +4597,19 @@ describe("architecture boundaries", () => {
                 "rendererDebugRuntime.js"
             );
         }
+    });
+
+    it("keeps animation debug logging clocks behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const lastAnimLogSource = stripComments(
+            readRepositoryFile("electron-app/utils/debug/lastAnimLog.ts")
+        );
+
+        expect(directLastAnimLogRuntimeGlobalPattern.test(lastAnimLogSource)).toBe(
+            false
+        );
+        expect(lastAnimLogSource).toContain("lastAnimLogRuntime.js");
     });
 
     it("keeps animation debug logging tests off renderer dev globals", () => {

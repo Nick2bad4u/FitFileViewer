@@ -387,6 +387,9 @@ Chart background, zoom-reset, and animation debug logging callers now check rend
 `rendererDebugRuntime.ts` instead of probing `globalThis.window` directly, while still taking the debug-enabled
 state from `rendererDebugLoggingState.ts`; focused runtime coverage and architecture guardrails block the direct
 renderer-window checks from returning.
+Animation debug logging clock reads now route through `lastAnimLogRuntime.ts` instead of calling `Date.now` or
+`performance.now` directly in `lastAnimLog.ts`, with focused runtime coverage and architecture coverage blocking
+direct animation debug logging clock globals from returning.
 Strict renderer startup tests also no longer delete the retired `__renderer_dev` global during fresh imports,
 with architecture coverage keeping that startup test on the typed renderer development helpers.
 Renderer development debug tests no longer clean up retired debug globals such as `__renderer_debug`,
