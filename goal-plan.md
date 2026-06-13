@@ -360,8 +360,9 @@ names from returning.
 Strict create-enhanced-chart and zone-chart tests now install browser globals through descriptor-scoped fixtures
 instead of assigning or deleting `globalThis` properties directly, with architecture coverage blocking that
 test-harness mutation pattern.
-Chart zone color utility tests now install localStorage through a descriptor-scoped fixture instead of assigning
-`globalThis.localStorage` directly, with architecture coverage blocking that fixture mutation pattern.
+Chart zone color utility tests now install and restore localStorage through a descriptor-scoped fixture instead of
+assigning or deleting `globalThis.localStorage` directly, with architecture coverage blocking that fixture
+mutation pattern.
 Chart status indicator tests now install temporary document, window, constructor, timer, and event-listener
 fixtures through descriptor-scoped helpers instead of assigning browser globals or event handlers directly, with
 architecture coverage blocking that fixture mutation pattern.

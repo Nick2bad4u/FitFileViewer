@@ -61,13 +61,17 @@ class LocalStorageShim {
     }
 }
 
-let originalLocalStorageDescriptor: PropertyDescriptor | undefined;
+let originalLocalStorageDescriptor: PropertyDescriptor;
 
 const setLocalStorage = () => {
     originalLocalStorageDescriptor = Object.getOwnPropertyDescriptor(
         globalThis,
         "localStorage"
     );
+
+    if (!originalLocalStorageDescriptor) {
+        throw new Error("Expected globalThis.localStorage to exist");
+    }
 
     Object.defineProperty(globalThis, "localStorage", {
         configurable: true,
@@ -77,16 +81,11 @@ const setLocalStorage = () => {
 };
 
 const restoreLocalStorage = () => {
-    if (originalLocalStorageDescriptor) {
-        Object.defineProperty(
-            globalThis,
-            "localStorage",
-            originalLocalStorageDescriptor
-        );
-    } else {
-        Reflect.deleteProperty(globalThis, "localStorage");
-    }
-    originalLocalStorageDescriptor = undefined;
+    Object.defineProperty(
+        globalThis,
+        "localStorage",
+        originalLocalStorageDescriptor
+    );
 };
 
 describe("chartZoneColorUtils", () => {

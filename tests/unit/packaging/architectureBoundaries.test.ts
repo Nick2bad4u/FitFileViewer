@@ -791,7 +791,7 @@ const renderChartJSStateApiTestRetiredGlobalMutationPattern =
 const strictChartTestDirectGlobalFixtureMutationPattern =
     /\bglobalThis\.(?:window|document|HTMLCanvasElement|HTMLElement|console|localStorage)\s*=|\bdelete\s+(?:globalThis|zoneGlobal)\.(?:window|document|HTMLCanvasElement|HTMLElement|console|localStorage)\b/u;
 const chartZoneColorUtilsTestDirectLocalStorageAssignmentPattern =
-    /\bglobalThis\.localStorage\s*=/u;
+    /\bglobalThis\.localStorage\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']localStorage["']\s*\)/u;
 const renderChartJSStateApiTestRetiredGlobalDataFixturePattern =
     /\bgetMockStateValue[\s\S]*?\b["']globalData["']|\bglobalMockState\.data\.set\(\s*["']globalData["']|globalData which means hasValidData/u;
 const renderLapZoneChartsTestRetiredGlobalDataFixturePattern =
