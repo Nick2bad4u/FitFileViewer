@@ -267,6 +267,32 @@ describe("dom helpers", () => {
         expect(event).toBeInstanceOf(MouseEvent);
     });
 
+    it("resolves event listener cleanup controllers through the injected runtime", () => {
+        expect.assertions(4);
+
+        const button = document.createElement("button");
+        const handler = vi.fn<(event: Event) => void>();
+        const abortController = new AbortController();
+        const abort = vi.fn(() => {
+            abortController.abort();
+        });
+        const runtime = {
+            createAbortController: vi.fn(() => ({
+                abort,
+                signal: abortController.signal,
+            })),
+        };
+
+        const cleanup = on(button, "click", handler, runtime);
+        cleanup?.();
+        button.click();
+
+        expect(runtime.createAbortController).toHaveBeenCalledOnce();
+        expect(abort).toHaveBeenCalledOnce();
+        expect(abortController.signal.aborted).toBe(true);
+        expect(handler).not.toHaveBeenCalled();
+    });
+
     it("returns undefined when attaching an event to invalid targets", () => {
         expect.assertions(2);
 

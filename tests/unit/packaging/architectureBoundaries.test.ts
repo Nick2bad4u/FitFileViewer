@@ -950,6 +950,7 @@ const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
 const directChartCanvasExpandoPattern = /\b__chartjs\b/u;
 const directDomPurifyGlobalPattern =
     /\b(?:window|globalThis|globalRef|testGlobal)\.DOMPurify\b|\bReflect\.get\(\s*globalThis\s*,\s*["']DOMPurify["']\s*\)|\{\s*DOMPurify\?:\s*unknown\s*\}\)\.DOMPurify/u;
+const directDomHelpersRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
 const directArqueroGlobalPattern =
     /\b(?:window|globalThis|summaryGlobal|testGlobal)\.(?:aq|arquero)\b|\{\s*(?:aq|arquero)\?:\s*unknown\s*\}\)\.(?:aq|arquero)/u;
 const directJSZipGlobalPattern =
@@ -5163,6 +5164,19 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps DOM helper listener cleanup behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const domHelpersSource = stripComments(
+            readRepositoryFile("electron-app/utils/dom/domHelpers.ts")
+        );
+
+        expect(directDomHelpersRuntimeGlobalPattern.test(domHelpersSource)).toBe(
+            false
+        );
+        expect(domHelpersSource).toContain("domHelpersRuntime.js");
     });
 
     it("keeps DOMPurify wired through the runtime adapter instead of a renderer global", () => {

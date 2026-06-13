@@ -3,6 +3,11 @@
  * and implicit element property access.
  */
 
+import {
+    getDomHelpersRuntime,
+    type DomHelpersRuntime,
+} from "./domHelpersRuntime.js";
+
 type CheckedElement = HTMLElement & { checked: boolean };
 type DisabledElement = HTMLElement & { disabled: boolean };
 type ValueElement = HTMLElement & { value: string };
@@ -82,10 +87,11 @@ export function isHTMLElement(el: unknown): el is HTMLElement {
 export function on(
     el: unknown,
     type: string,
-    handler: (ev: Event) => void
+    handler: (ev: Event) => void,
+    runtime: DomHelpersRuntime = getDomHelpersRuntime()
 ): (() => void) | undefined {
     if (isHTMLElement(el)) {
-        const controller = new AbortController();
+        const controller = runtime.createAbortController();
         el.addEventListener(type, handler, { signal: controller.signal });
         return () => {
             controller.abort();

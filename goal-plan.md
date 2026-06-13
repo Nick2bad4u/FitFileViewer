@@ -719,6 +719,9 @@ coverage blocking direct main UI DOM utility abort-controller construction from 
 Shared event listener manager cleanup now creates abort controllers through `eventListenerManagerRuntime.ts`
 instead of constructing `AbortController` directly in `eventListenerManager.ts`, with focused runtime coverage
 and architecture coverage blocking direct manager abort-controller construction from returning.
+Shared DOM helper listener cleanup now creates abort controllers through `domHelpersRuntime.ts` instead of
+constructing `AbortController` directly in `domHelpers.ts`, with focused runtime coverage and architecture
+coverage blocking direct DOM helper abort-controller construction from returning.
 Setup process-nextTick stabilization now uses descriptor-scoped `process` and `nextTick` helpers inside
 `ensureProcessNextTick()` instead of assigning `globalThis.process` or `globalThis.process.nextTick` directly,
 with architecture coverage blocking those direct setup mutations.
