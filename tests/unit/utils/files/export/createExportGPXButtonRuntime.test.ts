@@ -3,6 +3,32 @@ import { describe, expect, it } from "vitest";
 import { getCreateExportGPXButtonRuntime } from "../../../../../electron-app/utils/files/export/createExportGPXButtonRuntime.js";
 
 describe("getCreateExportGPXButtonRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        let controllerCount = 0;
+        const signal = Symbol("create-export-gpx-button-signal");
+        class TestAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public constructor() {
+                controllerCount += 1;
+            }
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const runtime = getCreateExportGPXButtonRuntime({
+            AbortController: TestAbortController,
+        });
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+    });
+
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
@@ -77,10 +103,13 @@ describe("getCreateExportGPXButtonRuntime", () => {
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const runtime = getCreateExportGPXButtonRuntime({});
 
+        expect(() => runtime.createAbortController()).toThrow(
+            "createExportGPXButton requires an AbortController runtime"
+        );
         expect(() => runtime.createButton()).toThrow(
             "createExportGPXButton requires a document runtime"
         );

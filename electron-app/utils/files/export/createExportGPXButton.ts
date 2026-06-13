@@ -72,7 +72,7 @@ export function createExportGPXButton(): HTMLButtonElement {
     label.textContent = "Export GPX";
     exportBtn.append(createExportIcon(runtime, primary), label);
     exportBtn.title = "Export the current track as a GPX file";
-    const listenerController = new AbortController();
+    const listenerController = runtime.createAbortController();
     exportBtn.addEventListener(
         "click",
         () => {
