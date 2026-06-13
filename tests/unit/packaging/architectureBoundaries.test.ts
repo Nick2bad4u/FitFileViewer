@@ -431,6 +431,9 @@ const migratedChartThemeRuntimeFiles = [
 const migratedThemeCoreRuntimeFiles = [
     "electron-app/utils/theming/core/theme.ts",
 ] as const;
+const migratedSetupThemeRuntimeFiles = [
+    "electron-app/utils/theming/core/setupTheme.ts",
+] as const;
 const migratedChartThemeListenerRuntimeFiles = [
     "electron-app/utils/charts/theming/chartThemeListener.ts",
 ] as const;
@@ -1002,6 +1005,8 @@ const directListenersResizeRuntimeGlobalPattern =
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const directThemeCoreRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directSetupThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*(?:,|\))/u;
@@ -5886,6 +5891,24 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(themeCoreSource).toContain("themeRuntime.js");
+    });
+
+    it("keeps setup theme fetch timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedSetupThemeRuntimeFiles
+            .filter((relativeFile) =>
+                directSetupThemeRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const setupThemeSource = stripComments(
+            readRepositoryFile("electron-app/utils/theming/core/setupTheme.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(setupThemeSource).toContain("setupThemeRuntime.js");
     });
 
     it("keeps chart theme listener browser APIs behind the runtime facade", () => {
