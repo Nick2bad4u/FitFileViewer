@@ -762,6 +762,8 @@ const listenersResizeChartGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:Chart|renderChart|renderChartJS)["']\s*\)|\b(?:globalThis|chartGlobal)\.(?:Chart|renderChart|renderChartJS)\s*=/u;
 const renderChartJSComprehensiveTestRetiredGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']\s*(?:,|\))|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']|\bglobalThis\.(?:Chart|ChartZoom|chartjsPluginZoom)\s*=/u;
+const renderChartJSComprehensiveTestDirectBrowserFixtureAssignmentPattern =
+    /\b(?:global|globalThis|utils)\.(?:document|window|performance|Node|requestAnimationFrame|cancelAnimationFrame|matchMedia|setTimeout|clearTimeout|addEventListener)\s*=/u;
 const renderChartJSStateApiTestRetiredGlobalMutationPattern =
     /\bObject\.defineProperty\(\s*window\s*,\s*["']Chart["']|\bReflect\.(?:deleteProperty|set)\(\s*window\s*,\s*["']Chart["']\s*(?:,|\))|\bwindow\.Chart\s*=/u;
 const strictChartTestDirectGlobalFixtureMutationPattern =
@@ -6768,6 +6770,20 @@ describe("architecture boundaries", () => {
 
         expect(
             renderChartJSComprehensiveTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/charts/core/renderChartJS.comprehensive.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps renderChartJS comprehensive tests on scoped browser fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderChartJSComprehensiveTestDirectBrowserFixtureAssignmentPattern.test(
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/charts/core/renderChartJS.comprehensive.test.ts"

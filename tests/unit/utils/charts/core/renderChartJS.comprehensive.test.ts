@@ -13,7 +13,7 @@
  * - Export functionality testing
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetChartListenerStateForTests } from "../../../../../electron-app/utils/charts/core/chartListenerState.js";
 
 type MockFn = (...args: unknown[]) => unknown;
@@ -21,7 +21,9 @@ type VoidFn = (...args: unknown[]) => void;
 type ChartInstanceRegistryModule =
     typeof import("../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
 type RenderChartJSTestGlobal = typeof globalThis & {
+    addEventListener?: unknown;
     cancelAnimationFrame?: unknown;
+    clearTimeout?: unknown;
     document?: unknown;
     matchMedia?: unknown;
     Node?: { ELEMENT_NODE: number };
@@ -33,11 +35,58 @@ type RenderChartJSTestGlobal = typeof globalThis & {
         ) => void;
     } & Record<string, unknown>;
     requestAnimationFrame?: unknown;
+    setTimeout?: unknown;
     window?: unknown;
 };
 
 function getRenderChartJSTestGlobal(): RenderChartJSTestGlobal {
     return globalThis as unknown as RenderChartJSTestGlobal;
+}
+
+type GlobalFixtureName =
+    | "addEventListener"
+    | "cancelAnimationFrame"
+    | "clearTimeout"
+    | "document"
+    | "matchMedia"
+    | "Node"
+    | "performance"
+    | "requestAnimationFrame"
+    | "setTimeout"
+    | "window";
+
+const originalGlobalDescriptors = new Map<
+    GlobalFixtureName,
+    PropertyDescriptor | undefined
+>();
+
+function rememberGlobalDescriptor(name: GlobalFixtureName): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        originalGlobalDescriptors.set(
+            name,
+            Object.getOwnPropertyDescriptor(globalThis, name)
+        );
+    }
+}
+
+function setGlobalValue(name: GlobalFixtureName, value: unknown): void {
+    rememberGlobalDescriptor(name);
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreGlobalValues(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        if (descriptor) {
+            Object.defineProperty(globalThis, name, descriptor);
+        } else {
+            Reflect.deleteProperty(globalThis, name);
+        }
+    }
+    originalGlobalDescriptors.clear();
 }
 
 let chartInstanceRegistryModule: ChartInstanceRegistryModule | undefined;
@@ -543,7 +592,7 @@ function setupDOMEnvironment() {
         insertBefore: vi.fn<MockFn>(),
     };
 
-    global.document = {
+    const mockDocument = {
         createElement: vi.fn<MockFn>().mockReturnValue(mockElement),
         getElementById: vi.fn<MockFn>().mockReturnValue(mockElement),
         // Return null specifically for '#content-chart' to avoid fallback path that calls getThemeConfig in catch
@@ -566,7 +615,7 @@ function setupDOMEnvironment() {
         addEventListener: vi.fn<VoidFn>(),
     };
 
-    global.window = {
+    const mockWindow = {
         addEventListener: vi.fn<MockFn>(),
         performance: {
             now: vi.fn<MockFn>().mockReturnValue(1000),
@@ -588,27 +637,34 @@ function setupDOMEnvironment() {
         ),
     };
 
+    setGlobalValue("document", mockDocument);
+    setGlobalValue("window", mockWindow);
+
     // Do NOT overwrite globalThis; instead, patch properties to avoid clobbering Vitest internals
     const utils = getRenderChartJSTestGlobal();
-    utils.window = global.window;
-    utils.document = global.document;
     if (typeof utils.addEventListener !== "function")
-        vi.stubGlobal("addEventListener", vi.fn<VoidFn>());
+        setGlobalValue("addEventListener", vi.fn<VoidFn>());
     if (typeof utils.setTimeout !== "function")
-        utils.setTimeout = (fn: () => void) => {
+        setGlobalValue("setTimeout", (fn: () => void) => {
             fn();
             return 0;
-        };
+        });
     if (typeof utils.clearTimeout !== "function")
-        vi.stubGlobal("clearTimeout", vi.fn<VoidFn>());
-    utils.performance = global.window.performance;
-    utils.Node = { ELEMENT_NODE: 1 };
+        setGlobalValue("clearTimeout", vi.fn<VoidFn>());
+    setGlobalValue("performance", mockWindow.performance);
+    setGlobalValue("Node", { ELEMENT_NODE: 1 });
     if (typeof utils.requestAnimationFrame !== "function")
-        utils.requestAnimationFrame = global.window.requestAnimationFrame;
+        setGlobalValue(
+            "requestAnimationFrame",
+            mockWindow.requestAnimationFrame
+        );
     if (typeof utils.cancelAnimationFrame !== "function")
-        utils.cancelAnimationFrame = global.window.cancelAnimationFrame;
+        setGlobalValue(
+            "cancelAnimationFrame",
+            mockWindow.cancelAnimationFrame
+        );
     if (typeof utils.matchMedia !== "function")
-        utils.matchMedia = global.window.matchMedia;
+        setGlobalValue("matchMedia", mockWindow.matchMedia);
     // Ensure a stable process.nextTick exists for any code importing this module
     if (!utils.process || typeof utils.process !== "object") utils.process = {};
     if (typeof utils.process.nextTick !== "function") {
@@ -670,6 +726,13 @@ describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
             };
             return stateMap[path];
         });
+    });
+
+    afterEach(async () => {
+        clearChartInstanceRegistryForTests();
+        resetChartListenerStateForTests();
+        await clearChartRuntime();
+        restoreGlobalValues();
     });
 
     describe("chartSettingsManager Object", () => {
