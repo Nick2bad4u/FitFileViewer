@@ -314,6 +314,9 @@ with architecture coverage keeping that startup test on the typed renderer devel
 Renderer development debug tests no longer clean up retired debug globals such as `__renderer_debug`,
 `__renderer_dev`, `__sensorDebug`, or `__debugChartFormatting`; their coverage now checks absence without
 mutating those names, and architecture coverage blocks those mutations from returning.
+Shared error handling tests now install and restore their temporary `performanceMonitor` telemetry fixture through
+a descriptor-scoped helper instead of assigning or deleting `globalRef.performanceMonitor` directly, with
+architecture coverage blocking that test-global mutation pattern.
 State integration unit tests no longer seed or delete retired AppState, chart-controls, globalData,
 render-state, timer, development, or state-debug globals while proving initialization leaves them absent;
 architecture coverage now blocks those retired state-integration global mutations from returning.

@@ -808,6 +808,8 @@ const renderLapZoneChartsTestRetiredGlobalDataFixturePattern =
     /\bLapZoneGlobalData\b|\blapZoneGlobalData\b|\bsetLapZoneGlobalData\b|global data validation|managed globalData/u;
 const directShowNotificationGlobalLookupPattern =
     /\b(?:window|globalThis|chartGlobal|globalRef|runtimeGlobal|zoneColorGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
+const errorHandlingTestDirectPerformanceMonitorFixturePattern =
+    /\bglobalRef\.performanceMonitor\s*=|\bReflect\.deleteProperty\(\s*globalRef\s*,\s*["']performanceMonitor["']\s*\)/u;
 const directRendererDevGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.__renderer_dev\b|["']__renderer_dev["']/u;
 const rendererDevelopmentDebugGlobalPattern =
@@ -4168,6 +4170,16 @@ describe("architecture boundaries", () => {
             directShowNotificationGlobalLookupPattern.test(errorHandlingSource)
         ).toBe(false);
         expect(errorHandlingSource).toContain("notifyUser");
+    });
+
+    it("keeps error handling tests on descriptor-scoped performance monitor fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            errorHandlingTestDirectPerformanceMonitorFixturePattern.test(
+                stripComments(readRepositoryFile("tests/unit/utils/errorHandling.test.ts"))
+            )
+        ).toBe(false);
     });
 
     it("keeps migrated renderer debug logging callers on typed state", () => {

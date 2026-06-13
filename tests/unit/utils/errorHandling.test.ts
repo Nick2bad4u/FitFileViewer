@@ -23,11 +23,40 @@ type TestGlobal = typeof globalThis & {
 };
 
 const globalRef = globalThis as TestGlobal;
+let restorePerformanceMonitorFixture: (() => void) | undefined;
+
+function installPerformanceMonitorFixture(
+    performanceMonitor: NonNullable<TestGlobal["performanceMonitor"]>
+): void {
+    const previousDescriptor = Object.getOwnPropertyDescriptor(
+        globalRef,
+        "performanceMonitor"
+    );
+    Object.defineProperty(globalRef, "performanceMonitor", {
+        configurable: true,
+        value: performanceMonitor,
+        writable: true,
+    });
+    restorePerformanceMonitorFixture = () => {
+        const target = globalRef;
+        if (previousDescriptor) {
+            Object.defineProperty(
+                target,
+                "performanceMonitor",
+                previousDescriptor
+            );
+            return;
+        }
+
+        Reflect.deleteProperty(target, "performanceMonitor");
+    };
+}
 
 describe("error handling utilities", () => {
     // eslint-disable-next-line vitest/no-hooks -- Shared global cleanup keeps integration mocks isolated.
     afterEach(() => {
-        Reflect.deleteProperty(globalRef, "performanceMonitor");
+        restorePerformanceMonitorFixture?.();
+        restorePerformanceMonitorFixture = undefined;
         vi.restoreAllMocks();
     });
 
@@ -286,9 +315,10 @@ describe("error handling utilities", () => {
             const errorSpy = vi
                 .spyOn(console, "error")
                 .mockReturnValue(undefined);
-            globalRef.performanceMonitor = {
+            const performanceMonitor = {
                 recordError: vi.fn<(error: Error, operation: string) => void>(),
             };
+            installPerformanceMonitorFixture(performanceMonitor);
 
             expect(logError(error, { operation: "telemetry" })).toBeUndefined();
             const [errorPrefix, errorPayload] = errorSpy.mock.calls[0] ?? [];
@@ -301,9 +331,10 @@ describe("error handling utilities", () => {
                 name: "Error",
                 prefixMatches: true,
             });
-            expect(
-                globalRef.performanceMonitor.recordError
-            ).toHaveBeenCalledWith(error, "telemetry");
+            expect(performanceMonitor.recordError).toHaveBeenCalledWith(
+                error,
+                "telemetry"
+            );
         });
     });
 });
