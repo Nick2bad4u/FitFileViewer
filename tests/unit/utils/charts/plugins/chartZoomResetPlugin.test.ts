@@ -186,21 +186,6 @@ async function loadPlugin(): Promise<{
     };
 }
 
-function restoreCanvasRenderingContext2D(
-    original: typeof CanvasRenderingContext2D | undefined
-): void {
-    if (original) {
-        Object.defineProperty(globalThis, "CanvasRenderingContext2D", {
-            configurable: true,
-            value: original,
-            writable: true,
-        });
-        return;
-    }
-
-    Reflect.deleteProperty(globalThis, "CanvasRenderingContext2D");
-}
-
 describe("chartZoomResetPlugin.afterDraw", () => {
     it("does not draw when the chart is not zoomed or panned", async () => {
         expect.assertions(2);
@@ -345,19 +330,11 @@ describe("installRoundRectPolyfill", () => {
         expect.assertions(5);
 
         const { installRoundRectPolyfill } = await loadPlugin();
-        const savedCtor = Reflect.get(
-                globalThis,
-                "CanvasRenderingContext2D"
-            ) as typeof CanvasRenderingContext2D | undefined,
-            mockProto: Partial<CanvasRenderingContext2D> = {};
+        const mockProto: Partial<CanvasRenderingContext2D> = {};
 
         expect(mockProto).not.toHaveProperty("roundRect");
 
-        Object.defineProperty(globalThis, "CanvasRenderingContext2D", {
-            configurable: true,
-            value: { prototype: mockProto },
-            writable: true,
-        });
+        vi.stubGlobal("CanvasRenderingContext2D", { prototype: mockProto });
 
         try {
             installRoundRectPolyfill();
@@ -388,7 +365,7 @@ describe("installRoundRectPolyfill", () => {
             expect(mockContext.moveTo).toHaveBeenCalledWith(15, 20);
             expect(result).toBe(mockContext);
         } finally {
-            restoreCanvasRenderingContext2D(savedCtor);
+            vi.unstubAllGlobals();
         }
     });
 });

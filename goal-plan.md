@@ -348,6 +348,9 @@ fullscreen resize uses registered chart instances, with architecture coverage pr
 RenderChartJS comprehensive tests no longer delete retired Chart.js runtime globals such as `Chart`,
 `ChartZoom`, or `chartjsPluginZoom`; they use the typed chart runtime test API, and architecture coverage
 blocks those mutations from returning.
+Chart zoom reset plugin tests now use Vitest-scoped `CanvasRenderingContext2D` stubs when exercising the
+roundRect polyfill instead of defining or deleting `globalThis.CanvasRenderingContext2D` directly, with
+architecture coverage blocking that fixture mutation.
 RenderChartJS comprehensive tests now install mocked document, window, and browser runtime globals through
 descriptor-scoped helpers instead of assigning browser fixtures directly onto global objects, with architecture
 coverage blocking those fixture mutations.
