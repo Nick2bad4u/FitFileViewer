@@ -62,7 +62,9 @@ function replaceMapMeasureEscapeHandler(
     handler: (event: KeyboardEvent) => void
 ): void {
     if (mapMeasureEscapeHandler) {
-        document.removeEventListener("keydown", mapMeasureEscapeHandler);
+        mapMeasureToolRuntime.removeDocumentKeydownListener(
+            mapMeasureEscapeHandler
+        );
     }
     mapMeasureEscapeHandler = handler;
 }
@@ -73,13 +75,15 @@ function clearMapMeasureEscapeHandler(
     if (mapMeasureEscapeHandler !== handler) {
         return;
     }
-    document.removeEventListener("keydown", handler);
+    mapMeasureToolRuntime.removeDocumentKeydownListener(handler);
     mapMeasureEscapeHandler = null;
 }
 
 export function resetMapMeasureToolStateForTests(): void {
     if (mapMeasureEscapeHandler) {
-        document.removeEventListener("keydown", mapMeasureEscapeHandler);
+        mapMeasureToolRuntime.removeDocumentKeydownListener(
+            mapMeasureEscapeHandler
+        );
     }
     mapMeasureEscapeHandler = null;
 }
@@ -265,7 +269,7 @@ export function addSimpleMeasureTool(
     // Button reference will be the created element below
 
     // Create the measure button up front so it's available to handlers
-    const eventController = new AbortController();
+    const eventController = mapMeasureToolRuntime.createAbortController();
     const { signal } = eventController;
     let disableTimer: MapMeasureToolTimer | null = null;
     const measureBtn = document.createElement("button"),
@@ -328,7 +332,7 @@ export function addSimpleMeasureTool(
         }
     };
     replaceMapMeasureEscapeHandler(escapeHandler);
-    document.addEventListener("keydown", escapeHandler, { signal });
+    mapMeasureToolRuntime.addDocumentKeydownListener(escapeHandler, { signal });
     signal.addEventListener(
         "abort",
         () => {

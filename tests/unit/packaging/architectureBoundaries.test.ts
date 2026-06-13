@@ -996,7 +996,7 @@ const directMapActionButtonsRuntimeGlobalPattern =
 const directMapFullscreenControlRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapMeasureToolRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapDrawLapsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
@@ -5769,7 +5769,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map measure-tool timers behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedMapMeasureToolRuntimeFiles
             .filter((relativeFile) =>
@@ -5786,6 +5786,7 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapMeasureToolSource).toContain("mapMeasureToolRuntime.js");
+        expect(mapMeasureToolSource).toContain("createAbortController");
     });
 
     it("keeps map draw-laps timers behind the runtime facade", () => {

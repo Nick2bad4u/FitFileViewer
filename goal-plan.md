@@ -322,7 +322,11 @@ listener, controller, or viewport globals directly inside the shown-files list m
 coverage and architecture guardrails blocking those direct browser globals from returning.
 Fallback map measurement button re-enable scheduling and cleanup now route through `mapMeasureToolRuntime.ts`
 instead of calling timer globals directly inside `mapMeasureTool.ts`, with focused runtime coverage and
-architecture guardrails blocking those direct timer globals from returning.
+architecture guardrails blocking those direct timer globals from returning. Map measurement Escape-key listener
+abort-controller creation and document keydown listener registration/removal now also route through
+`mapMeasureToolRuntime.ts` instead of constructing `AbortController` or registering/removing document listeners
+directly inside `mapMeasureTool.ts`, with focused runtime coverage and architecture guardrails blocking those
+direct browser APIs from returning.
 Chart settings header reset-button feedback timing and range-slider re-render debounce now route through
 `createSettingsHeaderRuntime.ts` instead of calling timer globals directly inside `createSettingsHeader.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
