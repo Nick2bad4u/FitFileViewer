@@ -954,7 +954,7 @@ const directCreateElevationProfileButtonRuntimeGlobalPattern =
 const directAltFitSenderRuntimeGlobalPattern =
     /\bglobalThis\.(?:console|document|location)\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.location\b/u;
+    /\b(?:globalThis|window)\.(?:clearTimeout|location|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directLazyRenderingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:innerHeight|innerWidth|requestAnimationFrame|requestIdleCallback|setTimeout)\b|\bdocument\.documentElement\b|\btypeof\s+IntersectionObserver\b|\bnew\s+IntersectionObserver\b|\belement\s+instanceof\s+HTMLElement\b|\breturn\s+setTimeout\(/u;
 const directListenersResizeRuntimeGlobalPattern =

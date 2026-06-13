@@ -286,6 +286,10 @@ focused runtime coverage and architecture guardrails blocking those direct timer
 Map theme toggle delayed refresh scheduling and cleanup now route through `mapThemeToggleRuntime.ts` instead of
 calling timer globals directly inside `mapThemeToggleState.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning.
+Shared configuration loading now routes URL search reads, chart-refresh timer scheduling, and chart-refresh
+timer cleanup through `loadSharedConfigurationRuntime.ts` instead of probing location or calling timer globals
+directly inside `loadSharedConfiguration.ts`, with focused runtime coverage and architecture guardrails blocking
+those direct location/timer globals from returning.
 Master state manager comprehensive tests now install and restore document, window, location, storage,
 performance, timer, and listener globals through descriptor-scoped helpers instead of deleting globals during
 cleanup, with architecture coverage blocking that fixture mutation pattern.

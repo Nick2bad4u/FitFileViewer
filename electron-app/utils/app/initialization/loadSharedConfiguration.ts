@@ -6,14 +6,17 @@ import {
     setChartSetting,
 } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import { getLoadSharedConfigurationRuntime } from "./loadSharedConfigurationRuntime.js";
+import {
+    getLoadSharedConfigurationRuntime,
+    type LoadSharedConfigurationTimerHandle,
+} from "./loadSharedConfigurationRuntime.js";
 
 type SharedChartConfiguration = Record<string, unknown> & {
     visibleFields?: Record<string, unknown>;
 };
 
 let sharedConfigurationRefreshTimeout:
-    | ReturnType<typeof setTimeout>
+    | LoadSharedConfigurationTimerHandle
     | undefined;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -54,11 +57,13 @@ function applySharedConfiguration(settings: SharedChartConfiguration): void {
 }
 
 function scheduleChartRefresh(): void {
+    const runtime = getLoadSharedConfigurationRuntime();
+
     if (sharedConfigurationRefreshTimeout !== undefined) {
-        clearTimeout(sharedConfigurationRefreshTimeout);
+        runtime.clearTimeout(sharedConfigurationRefreshTimeout);
     }
 
-    sharedConfigurationRefreshTimeout = setTimeout(() => {
+    sharedConfigurationRefreshTimeout = runtime.setTimeout(() => {
         sharedConfigurationRefreshTimeout = undefined;
 
         if (chartStateManager) {
