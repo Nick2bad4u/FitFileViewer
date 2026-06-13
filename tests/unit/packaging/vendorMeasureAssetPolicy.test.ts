@@ -58,6 +58,9 @@ const staleRepositoryVendorPaths = [
 type PackageJson = {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
+    exports?: unknown;
+    main?: string;
+    module?: string;
 };
 
 function getRequiredPackageEntries(
@@ -235,5 +238,39 @@ describe("renderer vendor asset policy", () => {
             'import "leaflet-measure/dist/leaflet-measure.js";'
         );
         expect(measureLite).toContain("violates a strict CSP");
+    });
+
+    it("keeps Leaflet.draw behind the wrapper until the package exposes native imports", () => {
+        expect.assertions(7);
+
+        const rootPackage = JSON.parse(
+            readWorkspaceFile(rootPackageRepositoryPath)
+        ) as PackageJson;
+        const leafletDrawPackage = JSON.parse(
+            readWorkspaceFile("node_modules/leaflet-draw/package.json")
+        ) as PackageJson;
+        const rendererDependencyInventory = readWorkspaceFile(
+            rendererDependencyInventoryPath
+        );
+        const rendererViteConfig = readWorkspaceFile("vite.renderer.config.mjs");
+
+        expect(
+            getRequiredPackageEntries(
+                rootPackage.devDependencies,
+                "devDependencies"
+            )["leaflet-draw"]
+        ).toStrictEqual(expect.stringMatching(/\S/u));
+        expect(leafletDrawPackage.main).toBe("dist/leaflet.draw.js");
+        expect(leafletDrawPackage.module).toBeUndefined();
+        expect(leafletDrawPackage.exports).toBeUndefined();
+        expect(rendererViteConfig).toContain(
+            'const leafletDrawRuntimeModuleId = "fitfileviewer:leaflet-draw-runtime"'
+        );
+        expect(rendererDependencyInventory).toContain(
+            "`leaflet-draw` currently exposes only `dist/leaflet.draw.js` through its package `main` field and has no `module` or `exports` entry"
+        );
+        expect(rendererDependencyInventory).toContain(
+            "Keep split-vendor readiness in module-local state and keep Leaflet.draw behind"
+        );
     });
 });

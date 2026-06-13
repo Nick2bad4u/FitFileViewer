@@ -207,6 +207,9 @@ deleting retired `L` globals from `globalThis`.
 Generated split renderer vendor assets now use `renderer-vendor*.js/css` filenames instead of the retired
 `vendor-globals*.js/css` compatibility wording, while preserving the typed loader entry semantics and runtime
 readiness event flow.
+The installed `leaflet-draw` package still exposes only `dist/leaflet.draw.js` through `main` and has no
+`module` or `exports` entry, so the remaining virtual runtime wrapper is now covered as an explicit package
+surface constraint instead of an untracked cleanup candidate.
 
 3. Finish Shrinking The Renderer Composition Root (Complete)
 
