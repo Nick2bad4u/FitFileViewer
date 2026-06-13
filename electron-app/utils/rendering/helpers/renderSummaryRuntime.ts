@@ -27,17 +27,18 @@ export function getRenderSummaryRuntime(
             listener: EventListener,
             options?: AddEventListenerOptions
         ): void {
-            scope.addEventListener?.call(scope, "resize", listener, options);
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Callers pass an AbortSignal option owned by the virtualized summary lifecycle.
+            scope.addEventListener?.("resize", listener, options);
         },
         cancelAnimationFrame(handle: number): void {
-            scope.cancelAnimationFrame?.call(scope, handle);
+            scope.cancelAnimationFrame?.(handle);
         },
         requestAnimationFrame(callback: FrameRequestCallback): null | number {
             if (typeof scope.requestAnimationFrame !== "function") {
                 return null;
             }
 
-            return scope.requestAnimationFrame.call(scope, callback);
+            return scope.requestAnimationFrame(callback);
         },
     };
 }

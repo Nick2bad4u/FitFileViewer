@@ -1,4 +1,7 @@
-type WindowListenerTarget = Pick<Window, "addEventListener">;
+type WindowListenerTarget = {
+    readonly addEventListener: Window["addEventListener"];
+    readonly removeEventListener?: Window["removeEventListener"];
+};
 
 export interface ResourceManagerRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
@@ -19,8 +22,10 @@ export function registerResourceManagerUnloadCleanup(
     const listener = (): void => {
         cleanup();
         abortController?.abort();
+        scope.window?.removeEventListener?.("beforeunload", listener);
     };
 
+    // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Cleanup is exposed through AbortSignal when available and the returned unregister callback.
     scope.window.addEventListener(
         "beforeunload",
         listener,
@@ -30,6 +35,7 @@ export function registerResourceManagerUnloadCleanup(
     );
 
     return (): void => {
+        scope.window?.removeEventListener?.("beforeunload", listener);
         abortController?.abort();
     };
 }

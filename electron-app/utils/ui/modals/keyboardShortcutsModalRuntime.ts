@@ -28,25 +28,30 @@ export function getKeyboardShortcutsModalRuntime(
 ): KeyboardShortcutsModalRuntime {
     return {
         cancelAnimationFrame(handle: number): void {
-            scope.cancelAnimationFrame?.call(scope, handle);
+            scope.cancelAnimationFrame?.(handle);
         },
         clearTimeout(handle: KeyboardShortcutsModalTimerHandle): void {
-            const clearTimer = scope.clearTimeout ?? globalThis.clearTimeout;
-            clearTimer.call(scope, handle);
+            if (typeof scope.clearTimeout === "function") {
+                scope.clearTimeout(handle);
+                return;
+            }
+            globalThis.clearTimeout(handle);
         },
         requestAnimationFrame(callback: FrameRequestCallback): null | number {
             if (typeof scope.requestAnimationFrame !== "function") {
                 return null;
             }
 
-            return scope.requestAnimationFrame.call(scope, callback);
+            return scope.requestAnimationFrame(callback);
         },
         setTimeout(
             callback: () => void,
             delay: number
         ): KeyboardShortcutsModalTimerHandle {
-            const scheduleTimer = scope.setTimeout ?? globalThis.setTimeout;
-            return scheduleTimer.call(scope, callback, delay);
+            if (typeof scope.setTimeout === "function") {
+                return scope.setTimeout(callback, delay);
+            }
+            return globalThis.setTimeout(callback, delay);
         },
     };
 }

@@ -549,6 +549,10 @@ blocking direct source globals and direct test stubs from returning.
 Renderer notification queue timing now routes animation-frame scheduling/cancellation, auto-hide timers, and serialized
 display timers through `showNotificationRuntime.ts` instead of calling timing globals directly in `showNotification.ts`,
 with adapter tests and architecture coverage blocking direct notification timing globals from returning.
+Runtime facade lint cleanup now keeps resource-manager unload registration, render-summary scheduling, master-state event
+forwarding, modal timing adapters, and tab document runtime helpers aligned with the app lint gate by removing stale bound-call
+patterns, naming animation-frame fallback callbacks explicitly, documenting caller-owned listener cleanup contracts, and dropping
+duplicate optional `undefined` type constituents.
 The setup-level `global.HTMLElement = window.HTMLElement` bridge has also been removed; jsdom-backed suites now
 use the environment's native element constructors without another shared global assignment.
 Setup console hardening now uses the existing `ensureConsoleAlive()` path instead of separately patching

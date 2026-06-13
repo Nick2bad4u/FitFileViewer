@@ -53,14 +53,11 @@ export function getMasterStateRuntime(
 
     return {
         addGlobalEventListener(type, listener, options): void {
-            scope.addEventListener?.call(
-                scope,
-                type,
-                listener as EventListener,
-                options
-            );
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned listener options, including AbortSignal cleanup.
+            scope.addEventListener?.(type, listener as EventListener, options);
         },
         addWindowEventListener(type, listener, options): void {
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned listener options, including AbortSignal cleanup.
             scope.window?.addEventListener(
                 type,
                 listener as EventListener,
@@ -68,7 +65,7 @@ export function getMasterStateRuntime(
             );
         },
         dispatchGlobalEvent(event): boolean {
-            return scope.dispatchEvent?.call(scope, event) ?? false;
+            return scope.dispatchEvent?.(event) ?? false;
         },
         isDevelopmentScope(options = {}): boolean {
             const location = getLocation();

@@ -1,14 +1,12 @@
 export interface UpdateActiveTabRuntimeScope {
     readonly document?: unknown;
-    readonly window?:
-        | {
-              readonly document?: unknown;
-          }
-        | undefined;
+    readonly window?: {
+        readonly document?: unknown;
+    };
 }
 
 export interface UpdateActiveTabRuntime {
-    getDocument: (testDocument?: Document | undefined) => Document | undefined;
+    getDocument: (testDocument?: Document) => Document | undefined;
 }
 
 function isDocumentLike(candidate: unknown): candidate is Document {
@@ -48,7 +46,7 @@ export function getUpdateActiveTabRuntime(
     scope: UpdateActiveTabRuntimeScope = globalThis
 ): UpdateActiveTabRuntime {
     return {
-        getDocument(testDocument?: Document | undefined): Document | undefined {
+        getDocument(testDocument?: Document): Document | undefined {
             const candidates = [
                 testDocument,
                 getScopeDocument(scope),

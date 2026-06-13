@@ -3,7 +3,7 @@ export interface TabDocumentRuntimeScope {
 }
 
 export interface TabDocumentRuntime {
-    getDocument: (testDocument?: Document | undefined) => Document | undefined;
+    getDocument: (testDocument?: Document) => Document | undefined;
 }
 
 function isDocumentLike(candidate: unknown): candidate is Document {
@@ -31,7 +31,7 @@ export function getTabDocumentRuntime(
     scope: TabDocumentRuntimeScope = globalThis
 ): TabDocumentRuntime {
     return {
-        getDocument(testDocument?: Document | undefined): Document | undefined {
+        getDocument(testDocument?: Document): Document | undefined {
             const candidates = [testDocument, getScopeDocument(scope)];
 
             return candidates.find(isDocumentLike);

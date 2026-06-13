@@ -14,7 +14,7 @@ export interface AboutModalRuntimeScope {
 export interface AboutModalRuntime {
     cancelAnimationFrame(handle: number): void;
     clearTimeout(handle: AboutModalTimerHandle): void;
-    requestAnimationFrame(callback: FrameRequestCallback): null | number;
+    requestAnimationFrame(onFrame: FrameRequestCallback): null | number;
     setTimeout(callback: () => void, delay: number): AboutModalTimerHandle;
 }
 
@@ -23,26 +23,31 @@ export function getAboutModalRuntime(
 ): AboutModalRuntime {
     return {
         cancelAnimationFrame(handle: number): void {
-            scope.cancelAnimationFrame?.call(scope, handle);
+            scope.cancelAnimationFrame?.(handle);
         },
         clearTimeout(handle: AboutModalTimerHandle): void {
-            const clearTimer = scope.clearTimeout ?? globalThis.clearTimeout;
-            clearTimer.call(scope, handle);
+            if (typeof scope.clearTimeout === "function") {
+                scope.clearTimeout(handle);
+                return;
+            }
+            globalThis.clearTimeout(handle);
         },
-        requestAnimationFrame(callback: FrameRequestCallback): null | number {
+        requestAnimationFrame(onFrame: FrameRequestCallback): null | number {
             if (typeof scope.requestAnimationFrame !== "function") {
-                callback(0);
+                onFrame(0);
                 return null;
             }
 
-            return scope.requestAnimationFrame.call(scope, callback);
+            return scope.requestAnimationFrame(onFrame);
         },
         setTimeout(
             callback: () => void,
             delay: number
         ): AboutModalTimerHandle {
-            const scheduleTimer = scope.setTimeout ?? globalThis.setTimeout;
-            return scheduleTimer.call(scope, callback, delay);
+            if (typeof scope.setTimeout === "function") {
+                return scope.setTimeout(callback, delay);
+            }
+            return globalThis.setTimeout(callback, delay);
         },
     };
 }
