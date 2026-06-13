@@ -27,42 +27,52 @@ export interface MapDocumentListenersRuntime {
     createAbortController(): AbortController;
 }
 
+function getRuntimeDocument(
+    scope: MapDocumentListenersRuntimeScope
+): MapDocumentListenersDocument {
+    const runtimeDocument = scope.document;
+    if (!runtimeDocument) {
+        throw new TypeError("mapDocumentListeners requires a document runtime");
+    }
+
+    return runtimeDocument;
+}
+
+function getRuntimeWindow(
+    scope: MapDocumentListenersRuntimeScope
+): MapDocumentListenersWindow {
+    const runtimeWindow = scope.window;
+    if (!runtimeWindow) {
+        throw new TypeError("mapDocumentListeners requires a window runtime");
+    }
+
+    return runtimeWindow;
+}
+
 export function getMapDocumentListenersRuntime(
     scope: MapDocumentListenersRuntimeScope = globalThis
 ): MapDocumentListenersRuntime {
     return {
         addDocumentMousedownListener(listener, options): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
-            if (!runtimeDocument) {
-                return;
-            }
+            const runtimeDocument = getRuntimeDocument(scope);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeDocument.addEventListener("mousedown", listener, options);
         },
         addDocumentMouseupListener(listener, options): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
-            if (!runtimeDocument) {
-                return;
-            }
+            const runtimeDocument = getRuntimeDocument(scope);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeDocument.addEventListener("mouseup", listener, options);
         },
         addDocumentTouchendListener(listener, options): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
-            if (!runtimeDocument) {
-                return;
-            }
+            const runtimeDocument = getRuntimeDocument(scope);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeDocument.addEventListener("touchend", listener, options);
         },
         addWindowResizeListener(listener, options): void {
-            const runtimeWindow = scope.window ?? globalThis.window;
-            if (!runtimeWindow) {
-                return;
-            }
+            const runtimeWindow = getRuntimeWindow(scope);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeWindow.addEventListener("resize", listener, options);

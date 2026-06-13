@@ -79,6 +79,32 @@ describe("getMapDocumentListenersRuntime", () => {
         expect(touchEndCount).toBe(1);
     });
 
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(3);
+
+        const runtime = getMapDocumentListenersRuntime({});
+        const controller = new AbortController();
+        const mouseListener = (): void => undefined;
+        const touchListener = (): void => undefined;
+
+        expect(() => {
+            runtime.addDocumentMousedownListener(mouseListener, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapDocumentListeners requires a document runtime");
+        expect(() => {
+            runtime.addDocumentMouseupListener(mouseListener, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapDocumentListeners requires a document runtime");
+        expect(() => {
+            runtime.addDocumentTouchendListener(touchListener, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapDocumentListeners requires a document runtime");
+        controller.abort();
+    });
+
     it("registers window resize listeners through the injected window", () => {
         expect.assertions(1);
 
@@ -99,6 +125,20 @@ describe("getMapDocumentListenersRuntime", () => {
         eventTarget.dispatchEvent(new Event("resize"));
 
         expect(resizeCount).toBe(1);
+    });
+
+    it("fails clearly when the window runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getMapDocumentListenersRuntime({});
+        const controller = new AbortController();
+
+        expect(() => {
+            runtime.addWindowResizeListener(() => undefined, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapDocumentListeners requires a window runtime");
+        controller.abort();
     });
 });
 

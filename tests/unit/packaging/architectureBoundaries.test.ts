@@ -416,6 +416,8 @@ const migratedMapActionButtonsRuntimeFiles = [
 const migratedMapDocumentListenersRuntimeFiles = [
     "electron-app/utils/maps/core/mapDocumentListeners.ts",
 ] as const;
+const mapDocumentListenersRuntimeSourceFile =
+    "electron-app/utils/maps/core/mapDocumentListenersRuntime.ts";
 const migratedMapFullscreenControlRuntimeFiles = [
     "electron-app/utils/maps/controls/mapFullscreenControl.ts",
 ] as const;
@@ -5968,7 +5970,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map document listeners behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(7);
 
         const violations = migratedMapDocumentListenersRuntimeFiles
             .filter((relativeFile) =>
@@ -5982,12 +5984,27 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/maps/core/mapDocumentListeners.ts"
             )
         );
+        const mapDocumentListenersRuntimeSource = stripComments(
+            readRepositoryFile(mapDocumentListenersRuntimeSourceFile)
+        );
 
         expect(violations).toStrictEqual([]);
         expect(mapDocumentListenersSource).toContain(
             "mapDocumentListenersRuntime.js"
         );
         expect(mapDocumentListenersSource).toContain("createAbortController");
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "const runtimeDocument = scope.document;"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "const runtimeWindow = scope.window;"
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
+            "globalThis.window"
+        );
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
