@@ -3499,6 +3499,18 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).not.toContain("resolveManualMock");
     });
 
+    it("keeps export utility abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const exportUtilsSource = stripComments(
+            readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
+        );
+
+        expect(exportUtilsSource).toContain("exportUtilsRuntime.js");
+        expect(exportUtilsSource).toContain("createAbortController");
+        expect(exportUtilsSource).not.toMatch(/\bnew\s+AbortController\b/u);
+    });
+
     it("keeps renderChartJS comprehensive tests off module-cache require bridges", () => {
         expect.assertions(4);
 

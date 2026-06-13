@@ -257,7 +257,10 @@ Progress: renderer core module resolution now uses module-local focused test ove
 shared `__vitest_manual_mocks__` global registry for startup test doubles, and renderer startup callers use
 test-override resolver names instead of retired manual-mock terminology. Export utility notification/theme
 test doubles now use the narrow `__setTestDeps` dependency override instead of the shared manual-mock registry
-or a map-style manual-mock override API. The
+or a map-style manual-mock override API. Export utility print image-load cleanup, Gyazo modal cleanup, and Imgur
+modal cleanup now create abort controllers through `exportUtilsRuntime.ts` instead of constructing
+`AbortController` directly inside `exportUtils.ts`, with focused runtime coverage and architecture guardrails
+blocking direct export utility controller construction from returning. The
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
 use `setupFullscreenListeners`, and fullscreen button listener abort-controller creation now routes through
 `addFullScreenButtonRuntime.ts` instead of constructing `AbortController` directly inside

@@ -18,6 +18,7 @@ import {
     type ExportZipConstructor,
     type ExportZipLike,
 } from "./exportZipRuntime.js";
+import { getExportUtilsRuntime } from "./exportUtilsRuntime.js";
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
 import { createModalFocusTrap } from "../../ui/modals/modalFocusTrap.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
@@ -53,6 +54,8 @@ type ChartDataset = {
     label?: string;
     [key: string]: LooseRecord;
 };
+
+const exportUtilsRuntime = getExportUtilsRuntime();
 
 /**
  * Minimal Chart.js-like shape accepted by export helpers.
@@ -430,7 +433,7 @@ function printWhenImageReady(
     printWindow: Window,
     imageElement: HTMLImageElement
 ): void {
-    const imageLoadController = new AbortController();
+    const imageLoadController = exportUtilsRuntime.createAbortController();
     const printAndClose = () => {
         imageLoadController.abort();
         printAndCloseWindow(printWindow);
@@ -1716,7 +1719,7 @@ export const exportUtils = {
 
         actionButtons.append(cancelBtn);
         modal.append(actionButtons);
-        const listenerController = new AbortController();
+        const listenerController = exportUtilsRuntime.createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cancelled = false;
         let cleanupModalAccessibility = () => {};
@@ -3204,7 +3207,7 @@ body {
         closeBtn.textContent = "Close";
         actionPanel.append(connectBtn, disconnectBtn, clearDataBtn, closeBtn);
         modal.append(actionPanel);
-        const listenerController = new AbortController();
+        const listenerController = exportUtilsRuntime.createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
@@ -3467,7 +3470,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         `;
         closeBtn.textContent = "Got it!";
         modal.append(title, content, closeBtn);
-        const listenerController = new AbortController();
+        const listenerController = exportUtilsRuntime.createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
@@ -3930,7 +3933,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         closeBtn.textContent = "Close";
         actions.append(setupGuideBtn, clearBtn, closeBtn);
         modal.append(actions);
-        const listenerController = new AbortController();
+        const listenerController = exportUtilsRuntime.createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
@@ -4188,7 +4191,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
 
         actions.append(backBtn, closeBtn);
         modal.append(title, content, actions);
-        const listenerController = new AbortController();
+        const listenerController = exportUtilsRuntime.createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
