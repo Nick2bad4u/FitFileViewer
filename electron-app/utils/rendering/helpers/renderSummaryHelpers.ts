@@ -165,7 +165,7 @@ export function renderTable({
         cleanupVirtualizer();
         summaryContainer._summaryVirtualCleanup = undefined;
     }
-    const renderController = new AbortController();
+    const renderController = renderSummaryRuntime.createAbortController();
     let virtualizerCleanup: (() => void) | undefined;
     summaryContainer._summaryVirtualCleanup = () => {
         renderController.abort();
@@ -510,7 +510,7 @@ function setupVirtualizedLapRows({
     const colSpan = sortedVisible.length;
     const { row: topSpacer, cell: topCell } = createSpacerRow(colSpan);
     const { row: bottomSpacer, cell: bottomCell } = createSpacerRow(colSpan);
-    const controller = new AbortController();
+    const controller = renderSummaryRuntime.createAbortController();
     let rowHeight = SUMMARY_VIRTUAL_ROW_HEIGHT_FALLBACK;
     let lastStart = -1;
     let lastEnd = -1;

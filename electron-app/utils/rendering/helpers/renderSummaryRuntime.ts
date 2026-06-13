@@ -1,4 +1,5 @@
 export interface RenderSummaryRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly addEventListener?:
         | typeof globalThis.addEventListener
         | undefined;
@@ -16,6 +17,7 @@ export interface RenderSummaryRuntime {
         options?: AddEventListenerOptions
     ): void;
     cancelAnimationFrame(handle: number): void;
+    createAbortController(): AbortController;
     requestAnimationFrame(callback: FrameRequestCallback): null | number;
 }
 
@@ -32,6 +34,16 @@ export function getRenderSummaryRuntime(
         },
         cancelAnimationFrame(handle: number): void {
             scope.cancelAnimationFrame?.(handle);
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "renderSummary requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         requestAnimationFrame(callback: FrameRequestCallback): null | number {
             if (typeof scope.requestAnimationFrame !== "function") {

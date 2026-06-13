@@ -1084,7 +1084,7 @@ const directChartStateManagerRuntimeGlobalPattern =
 const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bnew\s+AbortController\b/u;
 const directRenderSummarySchedulingRuntimeGlobalPattern =
-    /\bglobalThis\.(?:addEventListener|cancelAnimationFrame|requestAnimationFrame)\b/u;
+    /\bglobalThis\.(?:addEventListener|cancelAnimationFrame|requestAnimationFrame)\b|\bnew\s+AbortController\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.getComputedStyle\b/u;
 const directEnableTabButtonsDebugRuntimeGlobalPattern =
@@ -6348,7 +6348,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -6365,6 +6365,7 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(renderSummarySource).toContain("renderSummaryRuntime.js");
+        expect(renderSummarySource).toContain("createAbortController");
     });
 
     it("keeps controls-state computed style reads behind the runtime facade", () => {

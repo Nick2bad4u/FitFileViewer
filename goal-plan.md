@@ -633,7 +633,10 @@ explicit scope or document window instead of separately probing `globalThis.Abor
 `globalThis.queueMicrotask` for custom scopes, with architecture coverage blocking those ambient fallbacks.
 Render-summary virtualized lap-row scheduling now routes request/cancel animation-frame access and resize listener
 registration through `renderSummaryRuntime.ts` instead of direct `globalThis` probes in `renderSummaryHelpers.ts`,
-with adapter tests and architecture coverage blocking those direct scheduling globals from returning.
+with adapter tests and architecture coverage blocking those direct scheduling globals from returning. Summary render
+and virtualized lap-row cleanup abort-controller creation now also routes through `renderSummaryRuntime.ts` instead
+of constructing `AbortController` directly inside `renderSummaryHelpers.ts`, with focused runtime coverage and
+architecture coverage blocking that direct controller construction from returning.
 Tab-state map invalidation scheduling now routes frame scheduling, frame cancellation, fallback timers, and timer
 clearing through `tabStateManagerHandlersRuntime.ts` instead of calling those globals directly in
 `tabStateManagerHandlers.ts`, with adapter tests and architecture coverage blocking direct map-tab timing globals
