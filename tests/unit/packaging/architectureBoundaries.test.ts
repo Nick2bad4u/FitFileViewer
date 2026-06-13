@@ -667,6 +667,8 @@ const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
     /\bglobalThis\.process\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
 const processEnvironmentTestDirectProcessDeletePattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
+const exportUtilsOauthStateTestDirectCryptoDeletePattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']crypto["']\s*\)/u;
 const loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern =
     /\b(?:global|globalThis)\.URLSearchParams\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']URLSearchParams["']\s*\)/u;
 const directVitestTabButtonObserverCleanupPattern =
@@ -7786,6 +7788,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/runtime/processEnvironment.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps OAuth state tests on descriptor-scoped crypto restores", () => {
+        expect.assertions(1);
+
+        expect(
+            exportUtilsOauthStateTestDirectCryptoDeletePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/files/export/exportUtils.oauthState.test.ts"
                     )
                 )
             )

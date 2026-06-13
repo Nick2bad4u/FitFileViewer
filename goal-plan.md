@@ -450,6 +450,9 @@ fixture instead of assigning or deleting `globalThis.process` directly, with arc
 fixture mutation pattern.
 Runtime process-environment tests now restore the captured `globalThis.process` descriptor instead of deleting
 the process fixture during cleanup, with architecture coverage blocking that cleanup-time process deletion.
+Gyazo OAuth state tests now install and restore the unavailable-crypto fixture through a descriptor-scoped helper
+instead of deleting `globalThis.crypto` during cleanup, with architecture coverage blocking that cleanup-time
+crypto deletion.
 Data-point filter control tests now install temporary animation-frame and microtask fixtures through
 descriptor-scoped helpers instead of assigning `globalThis.requestAnimationFrame`,
 `globalThis.cancelAnimationFrame`, or `globalThis.queueMicrotask` directly, with architecture coverage blocking
