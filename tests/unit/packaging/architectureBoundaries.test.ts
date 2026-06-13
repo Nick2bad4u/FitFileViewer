@@ -4847,7 +4847,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -4856,6 +4856,8 @@ describe("architecture boundaries", () => {
         );
 
         expect(masterStateManagerSource).toContain("masterStateRuntime.js");
+        expect(masterStateManagerSource).toContain("createAbortController");
+        expect(masterStateManagerSource).not.toMatch(/\bnew\s+AbortController\b/u);
         expect(masterStateManagerSource).not.toContain("globalThis.window");
         expect(masterStateManagerSource).not.toContain("globalThis.location");
         expect(masterStateManagerSource).not.toContain(

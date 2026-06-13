@@ -495,10 +495,10 @@ timers now go through the scoped `mainProcessStateRuntime.ts` adapter instead of
 `globalThis.performance` or `performance.now` or calling timer globals directly inside
 `mainProcessStateManager.ts`, with focused runtime coverage and architecture guardrails blocking those direct
 timing globals from returning.
-Master state manager development-scope checks, global error listeners, theme-change dispatch, and window lifecycle
-listeners now go through the scoped `masterStateRuntime.ts` adapter instead of probing or registering directly on
+Master state manager development-scope checks, global error listeners, theme-change dispatch, window lifecycle
+listeners, and listener abort-controller creation now go through the scoped `masterStateRuntime.ts` adapter instead of probing
 `globalThis.window`, `globalThis.location`, `globalThis.addEventListener`, `globalThis.dispatchEvent`, or
-`window.addEventListener`, with focused adapter coverage and architecture guardrails blocking those direct runtime
+registering on `window.addEventListener`, or constructing `AbortController` directly, with focused adapter coverage and architecture guardrails blocking those direct runtime
 operations from returning.
 Resource-manager unload cleanup listener registration and registered timer cleanup now go through the scoped
 `resourceManagerRuntime.ts` adapter instead of probing `globalThis.window`, calling `window.addEventListener`,

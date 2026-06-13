@@ -209,7 +209,7 @@ export class MasterStateManager {
 
     isInitialized = false;
 
-    private eventController = new AbortController();
+    private eventController = masterStateRuntime.createAbortController();
 
     private performanceMonitorInterval: ReturnType<typeof setInterval> | null =
         null;
@@ -239,7 +239,7 @@ export class MasterStateManager {
         console.log("[MasterState] Cleaning up state management...");
 
         this.eventController.abort();
-        this.eventController = new AbortController();
+        this.eventController = masterStateRuntime.createAbortController();
 
         if (this.performanceMonitorInterval !== null) {
             clearInterval(this.performanceMonitorInterval);

@@ -10,6 +10,7 @@ type WindowEventTarget = Pick<Window, "addEventListener">;
 
 export interface MasterStateRuntimeScope {
     readonly __DEVELOPMENT__?: boolean;
+    readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly addEventListener?: typeof globalThis.addEventListener | undefined;
     readonly dispatchEvent?: typeof globalThis.dispatchEvent | undefined;
     readonly location?: LocationLike | undefined;
@@ -32,6 +33,7 @@ export interface MasterStateRuntime {
         listener: (event: WindowEventMap[K]) => void,
         options?: AddEventListenerOptions
     ) => void;
+    createAbortController: () => AbortController;
     dispatchGlobalEvent: (event: Event) => boolean;
     isDevelopmentScope: (options?: MasterStateDevelopmentOptions) => boolean;
     readonly location: LocationLike;
@@ -63,6 +65,16 @@ export function getMasterStateRuntime(
                 listener as EventListener,
                 options
             );
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "master state manager requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         dispatchGlobalEvent(event): boolean {
             return scope.dispatchEvent?.(event) ?? false;
