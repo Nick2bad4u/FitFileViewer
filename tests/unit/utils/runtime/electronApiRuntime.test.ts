@@ -23,7 +23,7 @@ function isExternalOpenApi(value: unknown): value is ExternalOpenApi {
 describe("electronApiRuntime", () => {
     afterEach(() => {
         resetRendererElectronApiCandidate();
-        Reflect.deleteProperty(globalThis, "electronAPI");
+        vi.unstubAllGlobals();
     });
 
     it("resolves a matching API from an explicit scope", () => {
@@ -73,10 +73,7 @@ describe("electronApiRuntime", () => {
         const api = {
             openExternal: vi.fn<(url: string) => Promise<boolean>>(),
         };
-        Object.defineProperty(globalThis, "electronAPI", {
-            configurable: true,
-            value: api,
-        });
+        vi.stubGlobal("electronAPI", api);
 
         expect(getRendererElectronApi(isExternalOpenApi)).toBe(api);
     });
@@ -90,10 +87,7 @@ describe("electronApiRuntime", () => {
         const registeredApi = {
             openExternal: vi.fn<(url: string) => Promise<boolean>>(),
         };
-        Object.defineProperty(globalThis, "electronAPI", {
-            configurable: true,
-            value: ambientApi,
-        });
+        vi.stubGlobal("electronAPI", ambientApi);
 
         registerRendererElectronApiCandidate(registeredApi);
         expect(getRendererElectronApi(isExternalOpenApi)).toBe(registeredApi);

@@ -838,6 +838,8 @@ const rendererRuntimeGlobalFallbackPattern =
     /\b(?:__fitFileViewerRuntimeGlobalFallbackForTests|runtimeGlobalFallbackFlag|getGlobalRuntimeCandidate|getWindowRuntimeCandidate)\b/u;
 const directElectronApiGlobalReadPattern =
     /\b(?:globalThis|window)\.electronAPI\b|\.\s*electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI|\b(?:Reflect\.deleteProperty|Object\.defineProperty)\(\s*(?:globalThis|window)\s*,\s*["']electronAPI["']/u;
+const electronApiRuntimeTestDirectGlobalFixturePattern =
+    /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*\)/u;
 const preloadTestDirectElectronApiGlobalFixturePattern =
     /\b(?:Object\.defineProperty|Reflect\.deleteProperty)\(\s*globalThis\s*,/u;
 const directExternalLinkHandlersRuntimeGlobalPattern =
@@ -7924,5 +7926,19 @@ describe("architecture boundaries", () => {
 
         expect(directElectronApiGlobals).toStrictEqual([]);
         expect(missingRuntimeLookup).toStrictEqual([]);
+    });
+
+    it("keeps Electron API runtime ambient tests on scoped global fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            electronApiRuntimeTestDirectGlobalFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/runtime/electronApiRuntime.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 });
