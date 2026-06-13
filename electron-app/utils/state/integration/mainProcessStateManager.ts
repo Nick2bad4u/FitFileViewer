@@ -20,10 +20,12 @@ import {
 } from "../../../shared/mainStatePathPolicy.js";
 import { registerIpcHandle as registerGenericIpcHandle } from "../../../main/ipc/ipcRegistry.js";
 import { getElectron as getStateRuntimeElectron } from "../../../main/runtime/electronAccess.js";
+import { getMainProcessStateRuntime } from "./mainProcessStateRuntime.js";
 
 const RENDERER_READABLE_MAIN_STATE_PATHS: ReadonlySet<string> = new Set([
     "loadedFitFilePath",
 ]);
+const mainProcessStateRuntime = getMainProcessStateRuntime();
 
 function getMainStateProcessEnvironmentValue(name: string): string | undefined {
     try {
@@ -1409,19 +1411,13 @@ function logWithContext(
 }
 
 /*
- * Monotonic time source for measuring durations. Uses performance.now when
- * available to avoid issues with system clock changes.
+ * Monotonic time source for measuring durations. Uses the runtime clock adapter
+ * to avoid issues with system clock changes when a monotonic clock exists.
  *
  * @returns {number}
  */
 function monotonicNowMs(): number {
-    if (
-        globalThis.performance &&
-        typeof globalThis.performance.now === "function"
-    ) {
-        return globalThis.performance.now();
-    }
-    return Date.now();
+    return mainProcessStateRuntime.monotonicNowMs();
 }
 
 // Lazy access to Electron to avoid import-time side effects in tests/non-Electron envs

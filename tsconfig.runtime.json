@@ -163,6 +163,7 @@
         "electron-app/utils/state/domain/rendererThemeState.ts",
         "electron-app/utils/state/domain/uiStateManager.ts",
         "electron-app/utils/state/domain/index.ts",
+        "electron-app/utils/state/integration/mainProcessStateRuntime.ts",
         "electron-app/utils/state/integration/mainProcessStateManager.ts",
         "electron-app/utils/state/integration/mainProcessStateClient.ts",
         "electron-app/utils/state/integration/rendererStateIntegration.ts",
