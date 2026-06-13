@@ -33,4 +33,32 @@ describe("getCreateSettingsHeaderRuntime", () => {
 
         expect(clearTimeout).not.toHaveBeenCalled();
     });
+
+    it("creates abort controllers through the injected runtime", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const runtime = getCreateSettingsHeaderRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+        });
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("fails clearly when the AbortController runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getCreateSettingsHeaderRuntime({});
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "createSettingsHeader requires an AbortController runtime"
+        );
+    });
 });

@@ -1145,7 +1145,7 @@ const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
 const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directCreateSettingsHeaderRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreateFieldTogglesSectionRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|dispatchEvent|querySelectorAll)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+HTMLInputElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
@@ -3800,8 +3800,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps settings-header timers behind the runtime facade", () => {
-        expect.assertions(2);
+    it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
+        expect.assertions(3);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -3820,6 +3820,7 @@ describe("architecture boundaries", () => {
         expect(settingsHeaderSource).toContain(
             "createSettingsHeaderRuntime.js"
         );
+        expect(settingsHeaderSource).toContain("createAbortController");
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {
