@@ -473,6 +473,7 @@
         "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts",
         "electron-app/utils/ui/tabs/tabStateManagerSupport.ts",
         "electron-app/utils/ui/tabs/updateActiveTab.ts",
+        "electron-app/utils/ui/tabs/updateActiveTabRuntime.ts",
         "electron-app/utils/ui/tabs/updateTabVisibilityRuntime.ts",
         "electron-app/utils/ui/tabs/updateTabVisibility.ts",
         "electron-app/utils/ui/tabs/index.ts",

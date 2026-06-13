@@ -3836,8 +3836,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps active-tab updates on the renderer state access facade", () => {
-        expect.assertions(2);
+    it("keeps active-tab updates on typed state access and runtime document resolution", () => {
+        expect.assertions(5);
 
         const updateActiveTabSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/updateActiveTab.ts")
@@ -3846,9 +3846,12 @@ describe("architecture boundaries", () => {
         expect(updateActiveTabSource).toContain(
             "rendererStateManagerAccess.js"
         );
+        expect(updateActiveTabSource).toContain("updateActiveTabRuntime.js");
         expect(updateActiveTabSource).not.toContain(
             "state/core/stateManager.js"
         );
+        expect(updateActiveTabSource).not.toContain("globalThis.document");
+        expect(updateActiveTabSource).not.toContain("globalThis.window");
     });
 
     it("keeps active-tab fallback tests on descriptor-scoped browser fixtures", () => {
