@@ -3566,7 +3566,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -3578,6 +3578,10 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/renderer/mainUiStartup.ts")
         );
         const mainUiRuntimeGlobalPattern = /\bglobalThis\.console\b/u;
+        const mainUiUnloadRuntimeGlobalPattern = /\bDate\.now\b/u;
+        const mainUiUnloadFlowSource = stripComments(
+            readRepositoryFile("electron-app/renderer/mainUiUnloadFlow.ts")
+        );
 
         expect(rendererEntrypointSource).toContain("runtimeEnvironment.js");
         expect(rendererEntrypointSource).not.toContain("globalThis.");
@@ -3585,6 +3589,10 @@ describe("architecture boundaries", () => {
         expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
         expect(mainUiStartupSource).toContain("mainUiRuntimeEnvironment.js");
+        expect(mainUiUnloadFlowSource).toContain("mainUiRuntimeEnvironment.js");
+        expect(mainUiUnloadFlowSource).not.toMatch(
+            mainUiUnloadRuntimeGlobalPattern
+        );
         expect(rendererMainUiRuntimeEnvironmentFiles).toStrictEqual([
             "electron-app/renderer/mainUiRuntimeEnvironment.ts",
         ]);

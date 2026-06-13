@@ -224,6 +224,9 @@ electron-app/renderer/mainUiStartup.ts, while preload API validation, theme sync
 cleanup/listener registration, summary selector registration, external-link startup, shutdown hooks, menu
 injection, development cleanup, drag/drop construction, state-startup logging, and vendor/fullscreen startup
 live in focused modules under electron-app/renderer/.
+FIT unload operation IDs now read time through `mainUiRuntimeEnvironment.ts` instead of calling `Date.now`
+directly in `mainUiUnloadFlow.ts`, with runtime-environment and architecture coverage blocking the direct clock
+global from returning.
 
 Maintenance target: keep `main-ui.ts` as an entrypoint-only bridge through architecture coverage. The explicit
 module exports for the drag/drop handler, menu injection request, and development cleanup stay as the narrow

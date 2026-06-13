@@ -1,5 +1,6 @@
 import type { MainUiElectronApi } from "./mainUiElectronApi.js";
 
+import { getMainUiRuntimeEnvironment } from "./mainUiRuntimeEnvironment.js";
 import { AppActions } from "../utils/app/lifecycle/appActions.js";
 import { performanceMonitor } from "../utils/debug/stateDevTools.js";
 import { fitFileStateManager } from "../utils/state/domain/fitFileState.js";
@@ -41,6 +42,8 @@ function isPerformanceMonitorEnabled(monitor: PerformanceMonitorLike): boolean {
         : Boolean(monitor.isEnabled);
 }
 
+const mainUiRuntimeEnvironment = getMainUiRuntimeEnvironment();
+
 function clearContentAreas(
     documentRef: Document,
     contentIds: readonly string[]
@@ -78,7 +81,7 @@ export function createMainUiUnloadFitFile({
     logMainUi,
 }: MainUiUnloadFlowOptions): () => void {
     return () => {
-        const operationId = `unload_file_${Date.now()}`;
+        const operationId = `unload_file_${mainUiRuntimeEnvironment.dateNow()}`;
         const pm = performanceMonitor as PerformanceMonitorLike;
         const startTimer = pm.startTimer;
 
