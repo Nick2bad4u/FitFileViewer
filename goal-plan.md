@@ -456,6 +456,8 @@ from returning.
 Shown-files list tests now pass an explicit local Leaflet runtime fixture to `setLeafletRuntime()` instead of
 stashing the fixture on `window.L` or reaching markers through `global.window.L`, with architecture coverage
 blocking that retired test fixture pattern.
+Map action-button strict tests now pass their `CircleMarker` fixture through the typed Leaflet runtime instead
+of stashing or clearing it on `window.L`, with architecture coverage blocking that retired fixture pattern.
 The shared Vitest Leaflet mock no longer advertises the removed markercluster package path through a
 `markerClusterGroup` helper, and architecture coverage keeps that stale plugin mock out of setup.
 Vitest setup no longer registers a default Leaflet runtime for every test; map-related tests install explicit

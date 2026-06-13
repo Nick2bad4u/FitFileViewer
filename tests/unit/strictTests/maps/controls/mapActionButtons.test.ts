@@ -46,7 +46,6 @@ describe("mapActionButtons", () => {
         mapButton.type = "button";
 
         document.body.replaceChildren(activeFileName, mapButton);
-        (window as any).L = undefined;
         vi.resetModules();
         const { clearLeafletRuntimeForTests } = await loadLeafletRuntime();
         clearLeafletRuntimeForTests();
@@ -177,7 +176,6 @@ describe("mapActionButtons", () => {
         const bringToFrontMarker = vi.fn<VoidFn>();
         const skipMarker = vi.fn<VoidFn>();
         const CircleMarker = function (this: any) {} as any;
-        (window as any).L = { CircleMarker };
         const { setLeafletRuntime } = await loadLeafletRuntime();
         setLeafletRuntime({ CircleMarker });
         const polylineElement = document.createElement("div");

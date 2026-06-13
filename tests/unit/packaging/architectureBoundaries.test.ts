@@ -7204,11 +7204,12 @@ describe("architecture boundaries", () => {
         expect(directRetiredRendererTestGlobals).toStrictEqual([]);
     });
 
-    it("keeps Leaflet runtime tests from mutating retired global adapters", () => {
+    it("keeps Leaflet-focused tests from mutating retired global adapters", () => {
         expect.assertions(1);
 
         const scannedFiles = [
             "tests/unit/utils/maps/core/leafletRuntime.test.ts",
+            "tests/unit/strictTests/maps/controls/mapActionButtons.test.ts",
         ];
         const leafletRuntimeGlobalMutationTests = scannedFiles
             .filter((relativeFile) =>
