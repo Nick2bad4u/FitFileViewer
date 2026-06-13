@@ -493,6 +493,9 @@ const migratedCreditsMarqueeRuntimeFiles = [
 const migratedEnsureChartSettingsDropdownsRuntimeFiles = [
     "electron-app/utils/ui/components/ensureChartSettingsDropdowns.ts",
 ] as const;
+const migratedCreateSettingsHeaderRuntimeFiles = [
+    "electron-app/utils/ui/components/createSettingsHeader.ts",
+] as const;
 const migratedCreateFieldTogglesSectionRuntimeFiles = [
     "electron-app/utils/ui/components/createFieldTogglesSection.ts",
 ] as const;
@@ -1048,6 +1051,8 @@ const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
     /\bglobalThis\.ResizeObserver\s*=|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']ResizeObserver["']\s*,|\bReflect\.deleteProperty\([\s\S]{0,120}["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']\s*\)|\bvi\.stubGlobal\(\s*["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']/u;
 const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
+const directCreateSettingsHeaderRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreateFieldTogglesSectionRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|dispatchEvent|querySelectorAll)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+HTMLInputElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
@@ -3660,6 +3665,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(chartSettingsSource).toContain(
             "ensureChartSettingsDropdownsRuntime.js"
+        );
+    });
+
+    it("keeps settings-header timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCreateSettingsHeaderRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateSettingsHeaderRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const settingsHeaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/createSettingsHeader.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(settingsHeaderSource).toContain(
+            "createSettingsHeaderRuntime.js"
         );
     });
 

@@ -12,6 +12,12 @@ import {
     setChartSetting,
 } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../notifications/showNotification.js";
+import {
+    getCreateSettingsHeaderRuntime,
+    type CreateSettingsHeaderTimer,
+} from "./createSettingsHeaderRuntime.js";
+
+const createSettingsHeaderRuntime = getCreateSettingsHeaderRuntime();
 
 type ChartDataPoint = Record<string, unknown> & {
     x?: unknown;
@@ -481,7 +487,7 @@ export function createSettingsHeader(wrapper: HTMLElement): void {
                 const success = resetAllSettings();
 
                 // Re-enable button after reset completes
-                const resetTimer = setTimeout(() => {
+                const resetTimer = createSettingsHeaderRuntime.setTimeout(() => {
                     resetBtn.style.opacity = "1";
                     resetBtn.disabled = false;
                 }, 200);
@@ -899,7 +905,7 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
     })();
 
     const slider = document.createElement("input") as HTMLInputElement & {
-        timeout?: ReturnType<typeof setTimeout>;
+        timeout?: CreateSettingsHeaderTimer;
     };
     slider.type = "range";
     slider.id = `chartjs-${option.id}-slider`;
@@ -983,8 +989,8 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
                 slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
 
                 // Debounced re-render using the same approach as the reset button
-                clearTimeout(slider.timeout);
-                slider.timeout = setTimeout(() => {
+                createSettingsHeaderRuntime.clearTimeout(slider.timeout);
+                slider.timeout = createSettingsHeaderRuntime.setTimeout(() => {
                     reRenderChartsAfterSettingChange(option.id, safeValue);
                 }, 300);
             }
