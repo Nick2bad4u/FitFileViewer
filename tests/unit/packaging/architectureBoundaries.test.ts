@@ -869,7 +869,7 @@ const directChartThemeRuntimeGlobalPattern =
 const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*(?:,|\))/u;
 const themeAdditionalTestDirectGlobalFixtureMutationPattern =
-    /\bReflect\.set\(\s*globalThis\s*,\s*["'](?:getComputedStyle|localStorage|matchMedia)["']\s*,/u;
+    /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:getComputedStyle|localStorage|matchMedia)["']\s*(?:,|\))/u;
 const uiStateManagerTestDirectMatchMediaMutationPattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*\)/u;
 const directChartThemeListenerRuntimeGlobalPattern =

@@ -416,9 +416,9 @@ summary rendering uses typed imports, and architecture coverage blocks that muta
 Active-tab fallback tests now install and restore missing-document and window-document browser fixtures through
 descriptor-scoped helpers instead of reflecting directly onto `globalThis` or deleting those globals during
 cleanup, with architecture coverage blocking that fallback fixture mutation pattern.
-Additional theme tests now install temporary `matchMedia`, `localStorage`, and `getComputedStyle` browser
-fixtures through descriptor-scoped helpers instead of reflecting directly onto `globalThis`, with architecture
-coverage blocking that fixture mutation pattern.
+Additional theme tests now install and restore temporary `matchMedia`, `localStorage`, and `getComputedStyle`
+browser fixtures through descriptor-scoped helpers instead of reflecting directly onto `globalThis` or deleting
+globals during cleanup, with architecture coverage blocking that fixture mutation pattern.
 UI state manager theme tests now install and restore temporary `matchMedia` fixtures through a descriptor-scoped
 helper instead of defining or deleting `globalThis.matchMedia` directly, with architecture coverage blocking
 that fixture mutation pattern.

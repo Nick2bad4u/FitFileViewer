@@ -15,15 +15,22 @@ type TestGlobalProperty = "getComputedStyle" | "localStorage" | "matchMedia";
 
 const originalGlobalDescriptors = new Map<
     TestGlobalProperty,
-    PropertyDescriptor | undefined
+    PropertyDescriptor
 >();
+
+function getRestoreDescriptor(name: TestGlobalProperty): PropertyDescriptor {
+    return (
+        Object.getOwnPropertyDescriptor(globalThis, name) ?? {
+            configurable: true,
+            value: undefined,
+            writable: true,
+        }
+    );
+}
 
 function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
     if (!originalGlobalDescriptors.has(name)) {
-        originalGlobalDescriptors.set(
-            name,
-            Object.getOwnPropertyDescriptor(globalThis, name)
-        );
+        originalGlobalDescriptors.set(name, getRestoreDescriptor(name));
     }
 
     Object.defineProperty(globalThis, name, {
@@ -35,11 +42,7 @@ function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
 
 function restoreTestGlobals(): void {
     for (const [name, descriptor] of originalGlobalDescriptors) {
-        if (descriptor) {
-            Object.defineProperty(globalThis, name, descriptor);
-        } else {
-            Reflect.deleteProperty(globalThis, name);
-        }
+        Object.defineProperty(globalThis, name, descriptor);
     }
     originalGlobalDescriptors.clear();
 }
