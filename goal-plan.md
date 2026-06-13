@@ -481,6 +481,9 @@ fixture.
 Handle-open-file tests now use scoped Vitest console spies and one-shot throwing mock implementations instead
 of assigning `console.log`, `console.info`, `console.warn`, or `console.error` directly, with architecture
 coverage blocking that direct console-method fixture.
+Tab-state manager behavior tests now restore log/warn/error capture through scoped Vitest spies instead of
+assigning console methods back during cleanup, with architecture coverage blocking that direct console-method
+fixture.
 Preload development-mode and edge-case tests now clear and restore `electronAPI`/`devTools` globals through
 descriptor-scoped helpers instead of direct global deletion, with architecture coverage blocking that cleanup
 pattern.

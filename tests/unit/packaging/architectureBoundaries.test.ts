@@ -758,6 +758,8 @@ const renderSummaryTestActiveFitFileNameMutationPattern =
     /\bObject\.defineProperty\(\s*window\s*,\s*["']activeFitFileName["']|Reflect\.deleteProperty\(\s*window\s*,\s*["']activeFitFileName["']\s*\)|\b(?:window|globalThis)\.activeFitFileName\s*=/u;
 const tabStateManagerTestRetiredRendererGlobalMutationPattern =
     /\bdelete\s*\(\s*window\s+as\s+unknown\s+as\s+Record<string,\s*unknown>\s*\)\.renderSummary\b|\bReflect\.(?:deleteProperty|set)\(\s*window\s*,\s*["']renderSummary["']\s*(?:,|\))|\bwindow\.renderSummary\s*=/u;
+const tabStateManagerTestDirectConsoleMethodAssignmentPattern =
+    /\bconsole\.(?:error|log|warn)\s*=/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const listenersResizeChartGlobalMutationPattern =
@@ -6758,6 +6760,20 @@ describe("architecture boundaries", () => {
 
         expect(
             tabStateManagerTestRetiredRendererGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/tabs/tabStateManager.behavior.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab-state manager tests on scoped console spies", () => {
+        expect.assertions(1);
+
+        expect(
+            tabStateManagerTestDirectConsoleMethodAssignmentPattern.test(
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/ui/tabs/tabStateManager.behavior.test.ts"
