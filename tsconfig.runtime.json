@@ -434,6 +434,7 @@
         "electron-app/utils/rendering/components/index.ts",
         "electron-app/utils/rendering/index.ts",
         "electron-app/utils/ui/events/eventListenerManager.ts",
+        "electron-app/utils/ui/dragDropHandlerRuntime.ts",
         "electron-app/utils/ui/dragDropHandler.ts",
         "electron-app/utils/ui/mainUiDomUtils.ts",
         "electron-app/utils/ui/components/LoadingOverlayRuntime.ts",

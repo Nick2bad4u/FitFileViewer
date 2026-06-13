@@ -334,6 +334,9 @@ const migratedElectronApiAccessorFiles = [
 const migratedSettingsModalRuntimeFiles = [
     "electron-app/utils/ui/settingsModal.ts",
 ] as const;
+const migratedDragDropHandlerRuntimeFiles = [
+    "electron-app/utils/ui/dragDropHandler.ts",
+] as const;
 const migratedKeyboardShortcutsModalRuntimeFiles = [
     "electron-app/utils/ui/modals/keyboardShortcutsModal.ts",
 ] as const;
@@ -773,6 +776,8 @@ const directSettingsModalGlobalPattern =
     /\b(?:window|globalThis|settingsModalGlobal)\.(?:showSettingsModal|closeSettingsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showSettingsModal|closeSettingsModal)["']\s*\)/u;
 const directSettingsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directDragDropHandlerTimingRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|requestAnimationFrame)\b|(?:^|[^\w.])(?:cancelAnimationFrame|requestAnimationFrame)\(/u;
 const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directAboutModalTimingRuntimeGlobalPattern =
@@ -3916,6 +3921,24 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(settingsModalSource).toContain("settingsModalRuntime.js");
+    });
+
+    it("keeps drag-drop animation-frame APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedDragDropHandlerRuntimeFiles
+            .filter((relativeFile) =>
+                directDragDropHandlerTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const dragDropHandlerSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/dragDropHandler.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(dragDropHandlerSource).toContain("dragDropHandlerRuntime.js");
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
