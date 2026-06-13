@@ -760,7 +760,9 @@ focused runtime coverage and architecture coverage blocking direct test-only boo
 from returning.
 Network utility fetch, AbortController creation, and fetch-timeout scheduling now route through
 `networkUtilsRuntime.ts` instead of calling network or timer globals directly in `networkUtils.ts`, with adapter
-tests and architecture coverage blocking direct network utility globals from returning.
+tests and architecture coverage blocking direct network utility globals from returning. Explicit network runtime
+scopes must now provide fetch/timer primitives instead of falling back to `globalThis`, with focused coverage
+blocking those ambient fallbacks from returning.
 Shared configuration tests now install and restore the throwing `URLSearchParams` fixture through a
 descriptor-scoped helper instead of assigning or deleting `global.URLSearchParams` directly, with architecture
 coverage blocking that fixture mutation pattern.

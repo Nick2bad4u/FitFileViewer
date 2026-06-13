@@ -12,7 +12,10 @@ export interface NetworkUtilsRuntimeScope {
 export interface NetworkUtilsRuntime {
     clearTimeout(handle: NetworkUtilsTimerHandle): void;
     createAbortController(): AbortController | undefined;
-    fetch(input: NetworkUtilsFetchInput, init?: NetworkUtilsFetchInit): Promise<Response>;
+    fetch(
+        input: NetworkUtilsFetchInput,
+        init?: NetworkUtilsFetchInit
+    ): Promise<Response>;
     setTimeout(callback: () => void, delay: number): NetworkUtilsTimerHandle;
 }
 
@@ -21,7 +24,11 @@ export function getNetworkUtilsRuntime(
 ): NetworkUtilsRuntime {
     return {
         clearTimeout(handle: NetworkUtilsTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError("networkUtils requires clearTimeout");
+            }
+
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController | undefined {
@@ -31,12 +38,23 @@ export function getNetworkUtilsRuntime(
 
             return new scope.AbortController();
         },
-        fetch(input: NetworkUtilsFetchInput, init?: NetworkUtilsFetchInit): Promise<Response> {
-            const fetchRef = scope.fetch ?? globalThis.fetch;
+        fetch(
+            input: NetworkUtilsFetchInput,
+            init?: NetworkUtilsFetchInit
+        ): Promise<Response> {
+            const fetchRef = scope.fetch;
+            if (typeof fetchRef !== "function") {
+                throw new TypeError("networkUtils requires fetch");
+            }
+
             return fetchRef(input, init);
         },
         setTimeout(callback: () => void, delay: number): NetworkUtilsTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError("networkUtils requires setTimeout");
+            }
+
             return setTimeoutRef(callback, delay);
         },
     };

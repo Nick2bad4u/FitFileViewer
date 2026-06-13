@@ -1130,6 +1130,8 @@ const directRendererVendorBundleLoaderRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|createElement|head|querySelector|removeEventListener|setTimeout)\b|\bDate\.now\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directNetworkUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:fetch|clearTimeout|setTimeout|AbortController)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:fetch|clearTimeout|setTimeout)\(/u;
+const directNetworkUtilsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|fetch|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|fetch|setTimeout)\b/u;
 const directPerformanceUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\b|(?<!function\s)(?<![\w.])(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\(|\bDate\.now\(/u;
 const directCancellationTokenRuntimeGlobalPattern =
@@ -6989,7 +6991,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps network fetch and timeout APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedNetworkUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -7001,9 +7003,18 @@ describe("architecture boundaries", () => {
         const networkUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/net/networkUtils.ts")
         );
+        const networkUtilsRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/net/networkUtilsRuntime.ts")
+        );
 
         expect(violations).toStrictEqual([]);
         expect(networkUtilsSource).toContain("networkUtilsRuntime.js");
+        expect(networkUtilsRuntimeSource).not.toMatch(
+            directNetworkUtilsRuntimeAmbientFallbackPattern
+        );
+        expect(networkUtilsRuntimeSource).toContain(
+            "const fetchRef = scope.fetch;"
+        );
     });
 
     it("keeps app performance scheduling APIs behind the runtime facade", () => {

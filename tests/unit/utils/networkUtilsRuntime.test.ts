@@ -54,4 +54,20 @@ describe("getNetworkUtilsRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(37);
         expect(clearTimeout.mock.contexts[0]).toBeUndefined();
     });
+
+    it("does not borrow ambient fetch or timer primitives for explicit scopes", () => {
+        expect.assertions(3);
+
+        const utils = getNetworkUtilsRuntime({});
+
+        expect(() => utils.fetch("https://example.test")).toThrow(
+            "networkUtils requires fetch"
+        );
+        expect(() => utils.setTimeout(() => {}, 1)).toThrow(
+            "networkUtils requires setTimeout"
+        );
+        expect(() => utils.clearTimeout(1)).toThrow(
+            "networkUtils requires clearTimeout"
+        );
+    });
 });
