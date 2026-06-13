@@ -178,12 +178,12 @@ export function getEffectiveTheme(theme: null | string = null): EffectiveTheme {
  * Get the system's preferred color scheme
  */
 export function getSystemTheme(): EffectiveTheme {
-    if (globalThis.window !== undefined && globalThis.matchMedia) {
-        return globalThis.matchMedia("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light";
+    const mediaQuery = themeRuntime.getSystemThemeMediaQuery();
+    if (!mediaQuery) {
+        return "dark";
     }
-    return "dark"; // Fallback
+
+    return mediaQuery.matches ? "dark" : "light";
 }
 
 /**
@@ -426,15 +426,15 @@ export function initializeTheme(): (() => void) | undefined {
  * Listen for system theme changes and update if using auto theme
  */
 export function listenForSystemThemeChange(): (() => void) | undefined {
-    if (globalThis.window !== undefined && globalThis.matchMedia) {
+    const mediaQuery = themeRuntime.getSystemThemeMediaQuery();
+    if (mediaQuery) {
         const listenerController = themeRuntime.createAbortController(),
             handleSystemThemeChange = () => {
                 const currentTheme = loadTheme();
                 if (currentTheme === THEME_MODES.AUTO) {
                     applyTheme(THEME_MODES.AUTO, true);
                 }
-            },
-            mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
+            };
 
         // Use the newer addEventListener if available, fallback to addListener
         if (mediaQuery.addEventListener) {
@@ -568,8 +568,9 @@ function dispatchThemeChangeEvent(theme: ThemePreference): void {
         }
     }
 
-    if (typeof globalThis === "object" && globalThis && globalThis.window) {
-        targets.push(globalThis.window);
+    const windowTarget = themeRuntime.getWindowEventTarget();
+    if (windowTarget) {
+        targets.push(windowTarget);
     }
 
     for (const target of targets) {

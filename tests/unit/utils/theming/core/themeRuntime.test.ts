@@ -53,4 +53,48 @@ describe("getThemeRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
+
+    it("resolves system theme media queries from the scoped runtime", () => {
+        expect.assertions(4);
+
+        const mediaQuery = { matches: true } as MediaQueryList;
+        const scopedMatchMedia = vi.fn(() => mediaQuery);
+        const windowMatchMedia = vi.fn(() => ({ matches: false }) as MediaQueryList);
+
+        expect(
+            getThemeRuntime({
+                matchMedia: scopedMatchMedia,
+                window: {
+                    addEventListener: vi.fn(),
+                    dispatchEvent: vi.fn(),
+                    matchMedia: windowMatchMedia,
+                    removeEventListener: vi.fn(),
+                } as unknown as Window & typeof globalThis,
+            }).getSystemThemeMediaQuery()
+        ).toBe(mediaQuery);
+        expect(scopedMatchMedia).toHaveBeenCalledWith(
+            "(prefers-color-scheme: dark)"
+        );
+        expect(windowMatchMedia).not.toHaveBeenCalled();
+        expect(getThemeRuntime({}).getSystemThemeMediaQuery()).toBeNull();
+    });
+
+    it("falls back to window matchMedia and exposes the window event target", () => {
+        expect.assertions(3);
+
+        const mediaQuery = { matches: false } as MediaQueryList;
+        const windowTarget = {
+            addEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+            matchMedia: vi.fn(() => mediaQuery),
+            removeEventListener: vi.fn(),
+        } as unknown as Window & typeof globalThis;
+        const runtime = getThemeRuntime({ window: windowTarget });
+
+        expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
+        expect(windowTarget.matchMedia).toHaveBeenCalledWith(
+            "(prefers-color-scheme: dark)"
+        );
+        expect(runtime.getWindowEventTarget()).toBe(windowTarget);
+    });
 });

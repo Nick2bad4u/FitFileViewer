@@ -1057,7 +1057,7 @@ const directListenersResizeRuntimeGlobalPattern =
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const directThemeCoreRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+    /\b(?:globalThis|window)\.(?:clearTimeout|matchMedia|setTimeout|window)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
 const directSetupThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
@@ -6246,7 +6246,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -6262,6 +6262,8 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(themeCoreSource).toContain("themeRuntime.js");
         expect(themeCoreSource).toContain("createAbortController");
+        expect(themeCoreSource).toContain("getSystemThemeMediaQuery");
+        expect(themeCoreSource).toContain("getWindowEventTarget");
     });
 
     it("keeps setup theme fetch timers behind the runtime facade", () => {
