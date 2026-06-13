@@ -518,6 +518,9 @@ Tab-button behavior tests now install and restore temporary `window`, `getComput
 `MutationObserver` browser fixtures through descriptor-scoped helpers instead of assigning or deleting
 `globalThis.window`, `(global as any).window`, `globalThis.getComputedStyle`, `global.MutationObserver`, or
 `global.window.MutationObserver` directly, with architecture coverage blocking that fixture mutation pattern.
+Settings modal show/close animation timing now routes close timers, timer clearing, frame scheduling, and frame
+cancellation through `settingsModalRuntime.ts` instead of calling those globals directly in `settingsModal.ts`,
+with runtime adapter tests and architecture coverage blocking direct timing globals from returning.
 Leaflet runtime tests no longer delete retired `L` or `Leaflet` globals while proving the typed adapter
 resolves only explicitly registered runtimes, and architecture coverage blocks those test-global mutations
 from returning.

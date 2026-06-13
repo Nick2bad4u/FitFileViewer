@@ -20,6 +20,10 @@ import { createAppIconElement } from "./icons/iconFactory.js";
 import { createModalFocusTrap } from "./modals/modalFocusTrap.js";
 import type { ElectronAPI } from "../../shared/preloadApi.js";
 import { getRendererElectronApi } from "../runtime/electronApiRuntime.js";
+import {
+    getSettingsModalRuntime,
+    type SettingsModalTimerHandle,
+} from "./settingsModalRuntime.js";
 
 const SETTINGS_MODAL_ID = "settings-modal";
 const ANIMATION_DURATION = 300;
@@ -27,21 +31,23 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 
 type SettingsModalElectronApi = Partial<Pick<ElectronAPI, "sendThemeChanged">>;
 
-let closeAnimationTimer: ReturnType<typeof setTimeout> | undefined;
+const settingsModalRuntime = getSettingsModalRuntime();
+
+let closeAnimationTimer: SettingsModalTimerHandle | undefined;
 let focusTrapCleanup: (() => void) | undefined;
 let lastFocusedElement: HTMLElement | undefined;
-let showAnimationFrameId: number | undefined;
+let showAnimationFrameId: null | number = null;
 
 function clearCloseAnimationTimer(): void {
     if (closeAnimationTimer !== undefined) {
-        clearTimeout(closeAnimationTimer);
+        settingsModalRuntime.clearTimeout(closeAnimationTimer);
         closeAnimationTimer = undefined;
     }
 }
 
 function scheduleModalClose(modal: HTMLElement): void {
     clearCloseAnimationTimer();
-    closeAnimationTimer = setTimeout(() => {
+    closeAnimationTimer = settingsModalRuntime.setTimeout(() => {
         closeAnimationTimer = undefined;
         modal.style.display = "none";
         restoreLastFocusedElement();
@@ -143,11 +149,11 @@ export async function showSettingsModal(): Promise<void> {
 
     // Show modal with animation
     modal.style.display = "flex";
-    if (showAnimationFrameId !== undefined) {
-        cancelAnimationFrame(showAnimationFrameId);
+    if (showAnimationFrameId !== null) {
+        settingsModalRuntime.cancelAnimationFrame(showAnimationFrameId);
     }
-    showAnimationFrameId = requestAnimationFrame(() => {
-        showAnimationFrameId = undefined;
+    showAnimationFrameId = settingsModalRuntime.requestAnimationFrame(() => {
+        showAnimationFrameId = null;
         modal.classList.add("show");
     });
 

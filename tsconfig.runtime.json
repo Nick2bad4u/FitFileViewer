@@ -466,6 +466,7 @@
         "electron-app/utils/ui/modals/openZoneColorPicker.ts",
         "electron-app/utils/ui/modals/openPowerEstimationSettingsModal.ts",
         "electron-app/utils/ui/modals/index.ts",
+        "electron-app/utils/ui/settingsModalRuntime.ts",
         "electron-app/utils/ui/settingsModal.ts",
         "electron-app/utils/ui/notifications/showRenderNotification.ts",
         "electron-app/utils/ui/notifications/showNotification.ts",

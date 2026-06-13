@@ -331,6 +331,9 @@ const migratedElectronApiAccessorFiles = [
     "electron-app/utils/theming/core/setupTheme.ts",
     "electron-app/utils/theming/core/theme.ts",
 ] as const;
+const migratedSettingsModalRuntimeFiles = [
+    "electron-app/utils/ui/settingsModal.ts",
+] as const;
 const migratedAltFitSenderRuntimeFiles = [
     "electron-app/utils/files/import/sendFitFileToAltFitReader.ts",
 ] as const;
@@ -753,6 +756,8 @@ const directMenuModalPresenterGlobalPattern =
     /\b(?:window|globalThis|getMenuIpcGlobal\(\)|keyboardShortcutsGlobal|menuGlobal)\.(?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)["']\s*\)/u;
 const directSettingsModalGlobalPattern =
     /\b(?:window|globalThis|settingsModalGlobal)\.(?:showSettingsModal|closeSettingsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showSettingsModal|closeSettingsModal)["']\s*\)/u;
+const directSettingsModalTimingRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
 const aboutModalTestDirectRequestAnimationFrameAssignmentPattern =
@@ -3830,6 +3835,24 @@ describe("architecture boundaries", () => {
 
         expect(settingsModalSource).toContain("rendererThemeState.js");
         expect(settingsModalSource).not.toContain("state/core/stateManager.js");
+    });
+
+    it("keeps settings modal timing APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedSettingsModalRuntimeFiles
+            .filter((relativeFile) =>
+                directSettingsModalTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const settingsModalSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/settingsModal.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(settingsModalSource).toContain("settingsModalRuntime.js");
     });
 
     it("keeps theme setup state access on the renderer theme state facade", () => {
