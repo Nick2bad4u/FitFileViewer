@@ -64,6 +64,20 @@ describe("getQuickColorSwitcherRuntime", () => {
         expect(clicked).toBe(true);
     });
 
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getQuickColorSwitcherRuntime({});
+        const controller = new AbortController();
+
+        expect(() => {
+            utils.addDocumentClickListener(() => undefined, {
+                signal: controller.signal,
+            });
+        }).toThrow("quickColorSwitcher requires a document runtime");
+        controller.abort();
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 

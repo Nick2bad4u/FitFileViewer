@@ -35,7 +35,7 @@ export function getQuickColorSwitcherRuntime(
             listener: EventListener,
             options: AddEventListenerOptions & { readonly signal: AbortSignal }
         ): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
+            const runtimeDocument = scope.document;
             if (!runtimeDocument) {
                 throw new TypeError(
                     "quickColorSwitcher requires a document runtime"

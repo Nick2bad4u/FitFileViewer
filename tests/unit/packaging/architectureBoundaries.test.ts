@@ -535,6 +535,8 @@ const migratedUnifiedControlBarRuntimeFiles = [
 const migratedQuickColorSwitcherRuntimeFiles = [
     "electron-app/utils/ui/quickColorSwitcher.ts",
 ] as const;
+const quickColorSwitcherRuntimeSourceFile =
+    "electron-app/utils/ui/quickColorSwitcherRuntime.ts";
 const migratedShownFilesListRuntimeFiles = [
     "electron-app/utils/rendering/components/createShownFilesList.ts",
     "electron-app/utils/rendering/components/shownFilesListItemHandlers.ts",
@@ -7022,7 +7024,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps quick color switcher timers behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedQuickColorSwitcherRuntimeFiles
             .filter((relativeFile) =>
@@ -7034,6 +7036,9 @@ describe("architecture boundaries", () => {
         const quickColorSwitcherSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/quickColorSwitcher.ts")
         );
+        const quickColorSwitcherRuntimeSource = stripComments(
+            readRepositoryFile(quickColorSwitcherRuntimeSourceFile)
+        );
 
         expect(violations).toStrictEqual([]);
         expect(quickColorSwitcherSource).toContain(
@@ -7041,6 +7046,12 @@ describe("architecture boundaries", () => {
         );
         expect(quickColorSwitcherSource).toContain("createAbortController");
         expect(quickColorSwitcherSource).toContain("addDocumentClickListener");
+        expect(quickColorSwitcherRuntimeSource).toContain(
+            "const runtimeDocument = scope.document;"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
