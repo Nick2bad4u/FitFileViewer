@@ -90,15 +90,9 @@ export type Validator<T = unknown> = (
     fieldName: string
 ) => boolean | ValidatorResult<T>;
 
-type GlobalWithErrorIntegrations = typeof globalThis & {
-    performanceMonitor?: {
-        recordError(error: Error, operation: string): void;
-    };
-};
-
 type MaybePromise<T> = Promise<T> | T;
 
-const globalRef = globalThis as GlobalWithErrorIntegrations;
+const globalRef = globalThis;
 let globalErrorListenerAbortController: AbortController | undefined;
 
 function getUnknownErrorMessage(error: unknown): string {
@@ -449,7 +443,7 @@ export function initializeErrorHandling(
 }
 
 /**
- * Log an error with structured context and optional performance telemetry.
+ * Log an error with structured context.
  */
 export function logError(
     error: Error,
@@ -466,17 +460,6 @@ export function logError(
     };
 
     console[level](`[${timestamp}] Error:`, errorInfo);
-
-    if (globalRef.performanceMonitor?.recordError !== undefined) {
-        try {
-            globalRef.performanceMonitor.recordError(
-                error,
-                context.operation ?? "unknown"
-            );
-        } catch {
-            // Ignore secondary telemetry failures.
-        }
-    }
 }
 
 /**

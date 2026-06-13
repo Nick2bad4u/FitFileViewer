@@ -808,6 +808,8 @@ const renderLapZoneChartsTestRetiredGlobalDataFixturePattern =
     /\bLapZoneGlobalData\b|\blapZoneGlobalData\b|\bsetLapZoneGlobalData\b|global data validation|managed globalData/u;
 const directShowNotificationGlobalLookupPattern =
     /\b(?:window|globalThis|chartGlobal|globalRef|runtimeGlobal|zoneColorGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
+const errorHandlingPerformanceMonitorGlobalLookupPattern =
+    /\bglobalRef\.performanceMonitor\b|\bperformanceMonitor\?:\s*\{/u;
 const errorHandlingTestDirectPerformanceMonitorFixturePattern =
     /\bglobalRef\.performanceMonitor\s*=|\bReflect\.deleteProperty\(\s*globalRef\s*,\s*["']performanceMonitor["']\s*\)/u;
 const directRendererDevGlobalPattern =
@@ -4159,8 +4161,8 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps shared error handling on explicit notification callbacks", () => {
-        expect.assertions(2);
+    it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
+        expect.assertions(3);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -4169,10 +4171,15 @@ describe("architecture boundaries", () => {
         expect(
             directShowNotificationGlobalLookupPattern.test(errorHandlingSource)
         ).toBe(false);
+        expect(
+            errorHandlingPerformanceMonitorGlobalLookupPattern.test(
+                errorHandlingSource
+            )
+        ).toBe(false);
         expect(errorHandlingSource).toContain("notifyUser");
     });
 
-    it("keeps error handling tests on descriptor-scoped performance monitor fixtures", () => {
+    it("keeps error handling tests off ambient performance monitor fixtures", () => {
         expect.assertions(1);
 
         expect(
