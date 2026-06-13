@@ -1136,6 +1136,8 @@ const directPerformanceUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\b|(?<!function\s)(?<![\w.])(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\(|\bDate\.now\(/u;
 const directCancellationTokenRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directCancellationTokenRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directChartHoverEffectsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:requestAnimationFrame|setTimeout)\b|(?<![\w.])(?:requestAnimationFrame|setTimeout)\(|\bnew\s+AbortController\b/u;
 const directChartStateManagerRuntimeGlobalPattern =
@@ -7040,7 +7042,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps async cancellation timers behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedCancellationTokenRuntimeFiles
             .filter((relativeFile) =>
@@ -7054,10 +7056,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/async/cancellationToken.ts"
             )
         );
+        const cancellationTokenRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/async/cancellationTokenRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(cancellationTokenSource).toContain(
             "cancellationTokenRuntime.js"
+        );
+        expect(cancellationTokenRuntimeSource).not.toMatch(
+            directCancellationTokenRuntimeAmbientFallbackPattern
+        );
+        expect(cancellationTokenRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
         );
     });
 

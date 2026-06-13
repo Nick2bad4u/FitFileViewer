@@ -25,12 +25,23 @@ export function getCancellationTokenRuntime(
 ): CancellationTokenRuntime {
     return {
         clearTimeout(handle): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "cancellationTokenRuntime requires clearTimeout"
+                );
+            }
+
             clearTimeoutRef(handle);
         },
         setTimeout(callback, timeout): CancellationTokenTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "cancellationTokenRuntime requires setTimeout"
+                );
+            }
+
             return setTimeoutRef(callback, timeout);
         },
     };

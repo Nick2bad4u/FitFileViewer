@@ -32,4 +32,17 @@ describe("getCancellationTokenRuntime", () => {
 
         expect(clearedHandles).toStrictEqual([31]);
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getCancellationTokenRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "cancellationTokenRuntime requires setTimeout"
+        );
+        expect(() => runtime.clearTimeout(1)).toThrow(
+            "cancellationTokenRuntime requires clearTimeout"
+        );
+    });
 });
