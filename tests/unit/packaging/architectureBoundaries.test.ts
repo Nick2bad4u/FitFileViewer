@@ -952,6 +952,8 @@ const renderLapZoneChartsTestRetiredGlobalDataFixturePattern =
     /\bLapZoneGlobalData\b|\blapZoneGlobalData\b|\bsetLapZoneGlobalData\b|global data validation|managed globalData/u;
 const directShowNotificationGlobalLookupPattern =
     /\b(?:window|globalThis|chartGlobal|globalRef|runtimeGlobal|zoneColorGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
+const directAccentColorPickerRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const errorHandlingPerformanceMonitorGlobalLookupPattern =
     /\bglobalRef\.performanceMonitor\b|\bperformanceMonitor\?:\s*\{/u;
 const directErrorHandlingRuntimeGlobalPattern =
@@ -4635,6 +4637,24 @@ describe("architecture boundaries", () => {
         ).toBe(false);
         expect(errorHandlingSource).toContain("notifyUser");
         expect(errorHandlingSource).toContain("errorHandlingRuntime.js");
+    });
+
+    it("keeps accent color picker listener abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const accentColorPickerSource = stripComments(
+            readRepositoryFile("electron-app/ui/modals/accentColorPicker.ts")
+        );
+
+        expect(
+            directAccentColorPickerRuntimeGlobalPattern.test(
+                accentColorPickerSource
+            )
+        ).toBe(false);
+        expect(accentColorPickerSource).toContain(
+            "accentColorPickerRuntime.js"
+        );
+        expect(accentColorPickerSource).toContain("createAbortController");
     });
 
     it("keeps error handling tests off ambient performance monitor fixtures", () => {

@@ -472,6 +472,9 @@ error-listener abort-controller creation now routes through `errorHandlingRuntim
 `AbortController` directly inside `errorHandling.ts`; its tests no longer install or delete a temporary
 performance-monitor global fixture; architecture coverage blocks the source fallback, direct controller
 construction, and test-global mutation pattern from returning.
+Accent color picker modal listener abort-controller creation now routes through `accentColorPickerRuntime.ts`
+instead of constructing `AbortController` directly inside `accentColorPicker.ts`, with focused runtime coverage
+and architecture guardrails blocking direct accent picker controller construction from returning.
 State development tools now check development-scope availability through the scoped `stateDevToolsRuntime.ts`
 adapter instead of probing `globalThis.window` or `globalThis.location` directly, with architecture coverage
 blocking those runtime-global lookups from returning.

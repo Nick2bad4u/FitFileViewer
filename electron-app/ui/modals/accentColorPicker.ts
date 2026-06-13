@@ -10,6 +10,7 @@ import {
     getEffectiveTheme,
     loadTheme,
 } from "../../utils/theming/core/theme.js";
+import { getAccentColorPickerRuntime } from "./accentColorPickerRuntime.js";
 
 // Preset accent colors for quick selection.
 const PRESET_COLORS = [
@@ -26,6 +27,7 @@ const PRESET_COLORS = [
 ] as const;
 
 let restoreFocusTarget: HTMLElement | undefined;
+const accentColorPickerRuntime = getAccentColorPickerRuntime();
 
 /**
  * Opens the accent color picker modal, creating it on first use.
@@ -516,7 +518,7 @@ function renderPresetColors(modal: HTMLElement, signal: AbortSignal): void {
 }
 
 function setupEventListeners(modal: HTMLElement): void {
-    const { signal } = new AbortController();
+    const { signal } = accentColorPickerRuntime.createAbortController();
     const closeBtn = modal.querySelector("#accent-picker-close");
     const resetBtn = modal.querySelector("#accent-color-reset");
     const applyBtn = modal.querySelector("#accent-color-apply");
