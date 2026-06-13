@@ -422,9 +422,9 @@ that fixture mutation pattern.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
 stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFrame`, or
 `cancelAnimationFrame` globals, with architecture coverage blocking that fixture mutation pattern.
-Strict about modal tests now install their immediate `requestAnimationFrame` fixture through a descriptor-scoped
-helper instead of assigning `globalThis.requestAnimationFrame` directly, with architecture coverage blocking
-that fixture mutation pattern.
+Strict about modal tests now install their immediate `requestAnimationFrame` fixture through a Vitest-scoped
+global stub instead of assigning, defining, or deleting `globalThis.requestAnimationFrame` directly, with
+architecture coverage blocking that fixture mutation pattern.
 Strict notification branch tests now rely on Vitest mock restoration for `window.requestAnimationFrame` instead
 of assigning the original callback back during cleanup, with architecture coverage blocking that direct
 animation-fixture assignment.

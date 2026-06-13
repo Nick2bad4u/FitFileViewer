@@ -747,7 +747,7 @@ const directSettingsModalGlobalPattern =
 const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
 const aboutModalTestDirectRequestAnimationFrameAssignmentPattern =
-    /\bglobalThis\.requestAnimationFrame\s*=/u;
+    /\bglobalThis\.requestAnimationFrame\s*=|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']requestAnimationFrame["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']requestAnimationFrame["']\s*\)/u;
 const showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern =
     /\bwindow\.requestAnimationFrame\s*=/u;
 const settingsStateManagerTestDirectConsoleAssignmentPattern =
