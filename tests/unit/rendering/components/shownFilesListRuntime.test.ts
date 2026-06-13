@@ -108,6 +108,20 @@ describe("getShownFilesListRuntime", () => {
         expect(listener).toHaveBeenCalledWith(event);
     });
 
+    it("fails clearly when the mousemove listener runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getShownFilesListRuntime({});
+        const controller = new AbortController();
+
+        expect(() => {
+            runtime.addMouseMoveListener(() => undefined, {
+                signal: controller.signal,
+            });
+        }).toThrow("shownFilesList requires an event target runtime");
+        controller.abort();
+    });
+
     it("reads viewport dimensions through the injected runtime scope", () => {
         expect.assertions(1);
 
@@ -120,6 +134,16 @@ describe("getShownFilesListRuntime", () => {
             height: 600,
             width: 800,
         });
+    });
+
+    it("does not borrow ambient viewport dimensions for explicit scopes", () => {
+        expect.assertions(1);
+
+        const runtime = getShownFilesListRuntime({});
+
+        expect(() => runtime.getViewport()).toThrow(
+            "shownFilesList requires a viewport runtime"
+        );
     });
 
     it("schedules and clears timers through the injected runtime scope", () => {
@@ -140,5 +164,18 @@ describe("getShownFilesListRuntime", () => {
 
         expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
+    });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getShownFilesListRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "shownFilesList requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "shownFilesList requires a clearTimeout runtime"
+        );
     });
 });

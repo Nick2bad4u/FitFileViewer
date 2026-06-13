@@ -1196,6 +1196,8 @@ const directQuickColorSwitcherRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directShownFilesListRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\b|\bdocument\.body\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directShownFilesListRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\s*\?\?\s*globalThis(?:\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout))?\b|\bglobalThis\.(?:addEventListener|clearTimeout|setTimeout)\s*\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:AbortController|MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
@@ -7419,7 +7421,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -7445,6 +7447,12 @@ describe("architecture boundaries", () => {
         );
         expect(shownFilesListRuntimeSource).not.toContain(
             "globalThis.document"
+        );
+        expect(shownFilesListRuntimeSource).not.toMatch(
+            directShownFilesListRuntimeAmbientFallbackPattern
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "shownFilesList requires a setTimeout runtime"
         );
         const shownFilesItemHandlerSource = stripComments(
             readRepositoryFile(
