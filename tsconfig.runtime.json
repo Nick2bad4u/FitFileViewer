@@ -471,6 +471,7 @@
         "electron-app/utils/ui/settingsModalRuntime.ts",
         "electron-app/utils/ui/settingsModal.ts",
         "electron-app/utils/ui/notifications/showRenderNotification.ts",
+        "electron-app/utils/ui/notifications/notificationTimerRuntime.ts",
         "electron-app/utils/ui/notifications/showNotificationRuntime.ts",
         "electron-app/utils/ui/notifications/showNotification.ts",
         "electron-app/utils/ui/notifications/showUpdateNotification.ts",

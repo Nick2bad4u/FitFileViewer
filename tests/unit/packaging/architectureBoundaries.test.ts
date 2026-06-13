@@ -343,6 +343,10 @@ const migratedAboutModalRuntimeFiles = [
 const migratedShowNotificationRuntimeFiles = [
     "electron-app/utils/ui/notifications/showNotification.ts",
 ] as const;
+const migratedNotificationTimerRuntimeFiles = [
+    "electron-app/utils/ui/notifications/showUpdateNotification.ts",
+    "electron-app/utils/ui/notifications/syncRendererNotifications.ts",
+] as const;
 const migratedAltFitSenderRuntimeFiles = [
     "electron-app/utils/files/import/sendFitFileToAltFitReader.ts",
 ] as const;
@@ -775,6 +779,8 @@ const directAboutModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directShowNotificationTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directNotificationTimerRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
 const aboutModalTestDirectRequestAnimationFrameAssignmentPattern =
@@ -3930,6 +3936,22 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(notificationSource).toContain("showNotificationRuntime.js");
+    });
+
+    it("keeps update and state-synced notification timers behind the runtime facade", () => {
+        expect.assertions(1);
+
+        const violations = migratedNotificationTimerRuntimeFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return (
+                    directNotificationTimerRuntimeGlobalPattern.test(source) ||
+                    !source.includes("notificationTimerRuntime.js")
+                );
+            })
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps theme setup state access on the renderer theme state facade", () => {
