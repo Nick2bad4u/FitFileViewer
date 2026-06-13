@@ -1031,7 +1031,7 @@ const uiStateManagerTestDirectMatchMediaMutationPattern =
 const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapThemeToggleRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusCountsRuntimeGlobalPattern =
@@ -6044,8 +6044,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps map theme toggle timers behind the runtime facade", () => {
-        expect.assertions(2);
+    it("keeps map theme toggle browser APIs behind the runtime facade", () => {
+        expect.assertions(4);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -6064,6 +6064,10 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleStateSource).toContain(
             "mapThemeToggleRuntime.js"
         );
+        expect(mapThemeToggleStateSource).toContain(
+            "createAbortController"
+        );
+        expect(mapThemeToggleStateSource).toContain("addDocumentListener");
     });
 
     it("keeps map theme browser APIs behind the runtime facade", () => {

@@ -3,6 +3,65 @@ import { describe, expect, it, vi } from "vitest";
 import { getMapThemeToggleRuntime } from "../../../../../electron-app/utils/theming/specific/mapThemeToggleRuntime.js";
 
 describe("getMapThemeToggleRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        let controllerCount = 0;
+        const signal = Symbol("map-theme-toggle-signal");
+        class TestAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public constructor() {
+                controllerCount += 1;
+            }
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const runtime = getMapThemeToggleRuntime({
+            AbortController: TestAbortController,
+        });
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+    });
+
+    it("fails clearly when the AbortController runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getMapThemeToggleRuntime({});
+
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow("mapThemeToggle requires an AbortController runtime");
+    });
+
+    it("registers document listeners through the injected document runtime", () => {
+        expect.assertions(1);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("map theme toggle");
+        let changed = false;
+        const listener = (): void => {
+            changed = true;
+        };
+        const controller = new AbortController();
+        const runtime = getMapThemeToggleRuntime({
+            document: documentRef,
+        });
+
+        runtime.addDocumentListener("mapThemeChanged", listener, {
+            signal: controller.signal,
+        });
+        documentRef.dispatchEvent(new Event("mapThemeChanged"));
+        controller.abort();
+
+        expect(changed).toBe(true);
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 

@@ -296,7 +296,10 @@ Quick color switcher outside-click document listener registration now also route
 switcher document listener registration from returning.
 Map theme toggle delayed refresh scheduling and cleanup now route through `mapThemeToggleRuntime.ts` instead of
 calling timer globals directly inside `mapThemeToggleState.ts`, with focused runtime coverage and architecture
-guardrails blocking those direct timer globals from returning.
+guardrails blocking those direct timer globals from returning. Map theme toggle listener abort-controller
+creation and document listener registration now also route through `mapThemeToggleRuntime.ts` instead of
+constructing `AbortController` or registering document listeners directly inside `mapThemeToggleState.ts`, with
+focused runtime coverage and architecture coverage blocking those direct browser APIs from returning.
 Core theme transition-class removal scheduling now routes through `themeRuntime.ts` instead of calling timer
 globals directly inside `theme.ts`, with focused runtime coverage and architecture guardrails blocking those
 direct timer globals from returning.

@@ -46,24 +46,23 @@ function ensureMapThemeToggleListenersInstalled(): void {
     }
 
     mapThemeToggleListenersInstalled = true;
-    mapThemeToggleListenersController = new AbortController();
+    mapThemeToggleListenersController =
+        mapThemeToggleRuntime.createAbortController();
 
-    if (typeof document !== "undefined" && document) {
-        document.addEventListener(
-            "themechange",
-            invokeCurrentMapThemeToggleUpdate,
-            {
-                signal: mapThemeToggleListenersController.signal,
-            }
-        );
-        document.addEventListener(
-            MAP_THEME_EVENTS.CHANGED,
-            invokeCurrentMapThemeToggleUpdate,
-            {
-                signal: mapThemeToggleListenersController.signal,
-            }
-        );
-    }
+    mapThemeToggleRuntime.addDocumentListener(
+        "themechange",
+        invokeCurrentMapThemeToggleUpdate,
+        {
+            signal: mapThemeToggleListenersController.signal,
+        }
+    );
+    mapThemeToggleRuntime.addDocumentListener(
+        MAP_THEME_EVENTS.CHANGED,
+        invokeCurrentMapThemeToggleUpdate,
+        {
+            signal: mapThemeToggleListenersController.signal,
+        }
+    );
 }
 
 /**
