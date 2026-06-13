@@ -46,6 +46,9 @@ const migratedMainUiSummarySelectorRuntimeFiles = [
 const migratedRendererApplicationStartupRuntimeFiles = [
     "electron-app/renderer/applicationStartup.ts",
 ] as const;
+const migratedRendererVendorBundleLoaderRuntimeFiles = [
+    "electron-app/renderer/vendorBundleLoader.ts",
+] as const;
 const migratedRenderSummaryRuntimeFiles = [
     "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
 ] as const;
@@ -958,6 +961,8 @@ const directMainUiSummarySelectorRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directRendererApplicationStartupRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directRendererVendorBundleLoaderRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|removeEventListener|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -5984,6 +5989,26 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(applicationStartupSource).toContain(
             "applicationStartupRuntime.js"
+        );
+    });
+
+    it("keeps renderer vendor loader timers and listeners behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererVendorBundleLoaderRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererVendorBundleLoaderRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const vendorBundleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/renderer/vendorBundleLoader.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(vendorBundleLoaderSource).toContain(
+            "vendorBundleLoaderRuntime.js"
         );
     });
 

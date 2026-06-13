@@ -5,6 +5,10 @@ import {
     type RendererVendorEntryLoadedEventDetail,
 } from "./rendererVendorShared.js";
 import {
+    getRendererVendorBundleLoaderRuntime,
+    type RendererVendorBundleLoaderTimerHandle,
+} from "./vendorBundleLoaderRuntime.js";
+import {
     isRendererVendorBundleEntry,
     rendererVendorBundleFileByEntry,
     type RendererVendorBundleEntry,
@@ -22,6 +26,7 @@ export type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
 const inFlightLoads = new Map<RendererVendorBundleEntry, Promise<void>>();
 const vendorEntryMarkerPollMs = 20;
 const vendorEntryMarkerTimeoutMs = 5000;
+const vendorBundleLoaderRuntime = getRendererVendorBundleLoaderRuntime();
 
 function isRendererVendorBundleLoaded(
     entryName: RendererVendorBundleEntry
@@ -73,26 +78,29 @@ function waitForRendererVendorEntry(
 
     return new Promise<void>((resolve, reject) => {
         const eventController = new AbortController();
-        let timeoutId: ReturnType<typeof setTimeout> | undefined;
+        let timeoutId: RendererVendorBundleLoaderTimerHandle | undefined;
 
         const clearPendingTimer = (): void => {
             if (timeoutId === undefined) {
                 return;
             }
-            clearTimeout(timeoutId);
+            vendorBundleLoaderRuntime.clearTimeout(timeoutId);
             timeoutId = undefined;
         };
         const cleanup = (): void => {
             clearPendingTimer();
             eventController.abort();
-            globalThis.removeEventListener(
+            vendorBundleLoaderRuntime.removeEventListener(
                 rendererVendorEntryLoadedEventName,
                 onEntryLoaded
             );
         };
         const scheduleCheck = (delayMs: number): void => {
             clearPendingTimer();
-            timeoutId = setTimeout(checkEntryMarker, delayMs);
+            timeoutId = vendorBundleLoaderRuntime.setTimeout(
+                checkEntryMarker,
+                delayMs
+            );
         };
         const isMatchingEntryEvent = (
             event: Event
@@ -129,7 +137,7 @@ function waitForRendererVendorEntry(
             scheduleCheck(vendorEntryMarkerPollMs);
         };
 
-        globalThis.addEventListener(
+        vendorBundleLoaderRuntime.addEventListener(
             rendererVendorEntryLoadedEventName,
             onEntryLoaded,
             { signal: eventController.signal }
