@@ -529,8 +529,9 @@ blocking that direct fixture mutation.
 Main UI DOM utility tests now use Vitest-scoped ambient `electronAPI` stubs for validation coverage instead of
 defining or deleting `globalThis.electronAPI` directly, with architecture coverage blocking that direct fixture
 mutation.
-Setup process-nextTick stabilization now uses one `ensureProcessNextTick()` helper instead of repeating the same
-inline `globalThis.process.nextTick` mutation in multiple setup hooks.
+Setup process-nextTick stabilization now uses descriptor-scoped `process` and `nextTick` helpers inside
+`ensureProcessNextTick()` instead of assigning `globalThis.process` or `globalThis.process.nextTick` directly,
+with architecture coverage blocking those direct setup mutations.
 The Playwright map elevation popup smoke path now installs and restores its temporary `window.open` override
 through the original property descriptor instead of assigning or deleting `window.open` directly, with
 architecture coverage blocking that popup-fixture mutation.

@@ -659,6 +659,8 @@ const directVitestWindowConsoleAssignmentPattern =
     /\bwindow\.console\s*=/u;
 const directVitestEnvConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|warn)\s*=/u;
+const directVitestProcessNextTickSetupAssignmentPattern =
+    /\b(?:globalThis|g)\.process\s*=|\b(?:globalThis|g)\.process\.nextTick\s*=|\b\.process\.nextTick\s*=/u;
 const directRuntimeEnvironmentTestConsoleAssignmentPattern =
     /\b(?:global|globalThis)\.console\s*=/u;
 const directPreloadSourceExecutionGlobalDeletePattern =
@@ -7882,17 +7884,21 @@ describe("architecture boundaries", () => {
         expect(directChartDevToolsGlobalCleanup).toStrictEqual([]);
     });
 
-    it("keeps process nextTick setup behind one setup helper", () => {
-        expect.assertions(2);
+    it("keeps process nextTick setup behind descriptor-scoped setup helpers", () => {
+        expect.assertions(4);
 
         const vitestSetupSource = stripComments(
             readRepositoryFile("tests/vitest/setupVitest.mjs")
         );
 
         expect(vitestSetupSource).toContain("function ensureProcessNextTick()");
+        expect(vitestSetupSource).toContain("function setRuntimeProcessObject(");
+        expect(vitestSetupSource).toContain("function setProcessNextTick(");
         expect(
-            vitestSetupSource.match(/\.process\.nextTick\s*=/gu) ?? []
-        ).toHaveLength(1);
+            directVitestProcessNextTickSetupAssignmentPattern.test(
+                vitestSetupSource
+            )
+        ).toBe(false);
     });
 
     it("keeps raw globalThis any casts out of source and tests", () => {

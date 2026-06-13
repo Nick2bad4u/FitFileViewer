@@ -261,21 +261,50 @@ function ensureConsoleAlive() {
     }
 }
 
+/**
+ * @param {Record<string, unknown>} processRef
+ */
+function setRuntimeProcessObject(processRef) {
+    Object.defineProperty(globalThis, "process", {
+        configurable: true,
+        enumerable: true,
+        value: processRef,
+        writable: true,
+    });
+}
+
+/**
+ * @param {Record<string, unknown>} processRef
+ * @param {(callback: (...args: unknown[]) => void, ...args: unknown[]) => void} nextTick
+ */
+function setProcessNextTick(processRef, nextTick) {
+    Object.defineProperty(processRef, "nextTick", {
+        configurable: true,
+        value: nextTick,
+        writable: true,
+    });
+}
+
 function ensureProcessNextTick() {
     try {
-        const g = /** @type {any} */ (globalThis);
-        if (!g.process || typeof g.process !== "object") {
-            g.process = {};
+        const currentProcess = globalThis.process;
+        const processRef =
+            currentProcess && typeof currentProcess === "object"
+                ? currentProcess
+                : {};
+        if (processRef !== currentProcess) {
+            setRuntimeProcessObject(processRef);
         }
-        if (typeof g.process.nextTick !== "function") {
-            g.process.nextTick = (cb, ...args) =>
+        if (typeof processRef.nextTick !== "function") {
+            setProcessNextTick(processRef, (cb, ...args) =>
                 Promise.resolve().then(() => {
                     try {
                         cb(...args);
                     } catch {
                         /* ignore */
                     }
-                });
+                })
+            );
         }
     } catch {
         /* ignore */
