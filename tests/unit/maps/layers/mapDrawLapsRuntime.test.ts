@@ -22,4 +22,17 @@ describe("getMapDrawLapsRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getMapDrawLapsRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "mapDrawLapsRuntime requires setTimeout"
+        );
+        expect(() =>
+            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("mapDrawLapsRuntime requires clearTimeout");
+    });
 });

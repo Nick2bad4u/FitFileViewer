@@ -1048,6 +1048,8 @@ const directMapLapSelectorRuntimeGlobalPattern =
     /\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+AbortController\b/u;
 const directMapDrawLapsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapDrawLapsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnew\s+AbortController\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
 const directLoadSingleOverlayFileRuntimeGlobalPattern =
@@ -6137,7 +6139,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map draw-laps timers behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedMapDrawLapsRuntimeFiles
             .filter((relativeFile) =>
@@ -6149,9 +6151,20 @@ describe("architecture boundaries", () => {
         const mapDrawLapsSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/layers/mapDrawLaps.ts")
         );
+        const mapDrawLapsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/layers/mapDrawLapsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(mapDrawLapsSource).toContain("mapDrawLapsRuntime.js");
+        expect(mapDrawLapsRuntimeSource).not.toMatch(
+            directMapDrawLapsRuntimeAmbientFallbackPattern
+        );
+        expect(mapDrawLapsRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {

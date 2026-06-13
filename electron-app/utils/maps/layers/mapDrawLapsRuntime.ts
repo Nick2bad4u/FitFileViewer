@@ -15,12 +15,19 @@ export function getMapDrawLapsRuntime(
 ): MapDrawLapsRuntime {
     return {
         clearTimeout(timer): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError("mapDrawLapsRuntime requires clearTimeout");
+            }
+
             clearTimeoutRef(timer);
         },
         setTimeout(callback, delayMs): MapDrawLapsTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError("mapDrawLapsRuntime requires setTimeout");
+            }
+
             return setTimeoutRef(callback, delayMs);
         },
     };

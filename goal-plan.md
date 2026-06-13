@@ -410,7 +410,9 @@ runtime scopes must now provide their document instead of falling back to `globa
 runtime coverage and architecture coverage blocking that fallback from returning.
 Map draw-laps overlay fit-bounds retry scheduling and cleanup now route through `mapDrawLapsRuntime.ts` instead
 of calling timer globals directly inside `mapDrawLaps.ts`, with focused runtime coverage and architecture
-guardrails blocking those direct timer globals from returning.
+guardrails blocking those direct timer globals from returning. Explicit map draw-laps runtime scopes must now
+provide timer primitives instead of falling back to `globalThis`, with focused coverage and architecture coverage
+blocking those ambient fallbacks from returning.
 Renderer state integration example subscription cleanup scheduling, cleanup, and state-aware event-handler
 abort-controller creation now route through `rendererStateIntegrationRuntime.ts` instead of calling timer globals
 or constructing `AbortController` directly inside `rendererStateIntegration.ts`, with focused runtime coverage
