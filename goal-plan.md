@@ -496,9 +496,10 @@ loaded-file storage stays in explicit state, and architecture coverage blocks th
 App event listener tests no longer define or delete retired `globalData` or `loadedFitFiles` globals; they seed
 active FIT data and loaded-file fixtures through typed domain state helpers, and architecture coverage blocks
 those test-global mutations from returning.
-Lifecycle listener export cleanup timer scheduling and cleanup now route through `listenersRuntime.ts` instead of
-calling timer globals directly inside `listeners.ts`, with focused runtime coverage and architecture guardrails
-blocking those direct timer globals from returning.
+Lifecycle listener export cleanup timer scheduling/cleanup and Open File click-listener abort-controller creation now
+route through `listenersRuntime.ts` instead of calling timer globals or constructing `AbortController` directly inside
+`listeners.ts`, with focused runtime coverage and architecture guardrails blocking those direct timer/controller
+globals from returning.
 GPX export button, chart theme listener, and user/device info tests no longer type or clean retired
 `globalData`/`loadedFitFiles` globals; they rely on typed state resets and active FIT data fixtures, and
 architecture coverage blocks those cleanup patterns from returning.

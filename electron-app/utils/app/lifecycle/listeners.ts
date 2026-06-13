@@ -595,7 +595,7 @@ export function setupListeners({
         });
     };
 
-    const openFileClickController = new AbortController();
+    const openFileClickController = runtime.createAbortController();
     openFileBtn.addEventListener("click", handleOpenFileClick, {
         signal: openFileClickController.signal,
     });

@@ -1,8 +1,36 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { getLifecycleListenersRuntime } from "../../../../../electron-app/utils/app/lifecycle/listenersRuntime.js";
 
 describe("getLifecycleListenersRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const runtime = getLifecycleListenersRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+        });
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("throws when abort controller creation is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getLifecycleListenersRuntime({});
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "lifecycle listeners require an AbortController runtime"
+        );
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 

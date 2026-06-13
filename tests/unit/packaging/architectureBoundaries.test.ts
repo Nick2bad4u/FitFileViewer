@@ -4930,16 +4930,17 @@ describe("architecture boundaries", () => {
         ).toBe(false);
     });
 
-    it("keeps lifecycle listener cleanup timers behind the runtime adapter", () => {
-        expect.assertions(2);
+    it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
+        expect.assertions(3);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
         );
         const directLifecycleListenersTimerGlobalPattern =
-            /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+            /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
 
         expect(lifecycleListenersSource).toContain("listenersRuntime.js");
+        expect(lifecycleListenersSource).toContain("createAbortController");
         expect(
             directLifecycleListenersTimerGlobalPattern.test(
                 lifecycleListenersSource
