@@ -3499,15 +3499,18 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).not.toContain("resolveManualMock");
     });
 
-    it("keeps export utility abort-controller creation behind the runtime facade", () => {
-        expect.assertions(3);
+    it("keeps export utility browser runtime access behind the runtime facade", () => {
+        expect.assertions(6);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
         );
 
         expect(exportUtilsSource).toContain("exportUtilsRuntime.js");
+        expect(exportUtilsSource).toContain("confirmDangerousAction");
         expect(exportUtilsSource).toContain("createAbortController");
+        expect(exportUtilsSource).not.toContain("globalThis.window");
+        expect(exportUtilsSource).not.toContain("window?.confirm");
         expect(exportUtilsSource).not.toMatch(/\bnew\s+AbortController\b/u);
     });
 

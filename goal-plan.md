@@ -258,9 +258,10 @@ shared `__vitest_manual_mocks__` global registry for startup test doubles, and r
 test-override resolver names instead of retired manual-mock terminology. Export utility notification/theme
 test doubles now use the narrow `__setTestDeps` dependency override instead of the shared manual-mock registry
 or a map-style manual-mock override API. Export utility print image-load cleanup, Gyazo modal cleanup, and Imgur
-modal cleanup now create abort controllers through `exportUtilsRuntime.ts` instead of constructing
-`AbortController` directly inside `exportUtils.ts`, with focused runtime coverage and architecture guardrails
-blocking direct export utility controller construction from returning. The
+modal cleanup now create abort controllers through `exportUtilsRuntime.ts`, and destructive-action confirmation
+prompts now route through the same runtime instead of probing `globalThis.window` directly inside
+`exportUtils.ts`, with focused runtime coverage and architecture guardrails blocking direct export utility
+browser-runtime access from returning. The
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
 use `setupFullscreenListeners`, and fullscreen button listener abort-controller creation now routes through
 `addFullScreenButtonRuntime.ts` instead of constructing `AbortController` directly inside

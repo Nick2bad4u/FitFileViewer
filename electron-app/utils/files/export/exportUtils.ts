@@ -829,7 +829,7 @@ function getImgurUploadLink(value: unknown): string | undefined {
 }
 
 function confirmDangerousAction(message: string): boolean {
-    return globalThis.window?.confirm(message) ?? false;
+    return exportUtilsRuntime.confirmDangerousAction(message);
 }
 
 function addSingleChartToZip(
