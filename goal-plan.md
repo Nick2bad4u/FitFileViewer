@@ -425,7 +425,9 @@ blocking those ambient fallbacks from returning.
 Renderer state integration example subscription cleanup scheduling, cleanup, and state-aware event-handler
 abort-controller creation now route through `rendererStateIntegrationRuntime.ts` instead of calling timer globals
 or constructing `AbortController` directly inside `rendererStateIntegration.ts`, with focused runtime coverage
-and architecture guardrails blocking those direct timer/controller globals from returning.
+and architecture guardrails blocking those direct timer/controller globals from returning. Explicit renderer state
+integration runtime scopes must now provide timer primitives instead of falling back to `globalThis`, with focused
+runtime coverage and architecture coverage blocking those fallbacks from returning.
 Main UI summary selector tab lookup, gear-button lookup, and delayed gear-button scheduling now route through
 `mainUiSummaryColumnSelectorRuntime.ts` instead of keeping DOM and timer globals inside
 `mainUiSummaryColumnSelector.ts`, with focused runtime coverage and architecture guardrails blocking those direct

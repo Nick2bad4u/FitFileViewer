@@ -752,6 +752,8 @@ const directStateDevToolsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|setInterval)\b|(?:^|[^\w.])(?:clearInterval|setInterval)\(/u;
 const directRendererStateIntegrationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const stateDevToolsTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:STATE_DEBUG_GLOBAL|["']__stateDebug["'])\s*\)|\bglobalThis\.__stateDebug\s*=/u;
 const stateIntegrationRetiredGlobalMutationPattern =
@@ -5128,7 +5130,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -5142,6 +5144,11 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/state/integration/rendererStateIntegration.ts"
             )
         );
+        const rendererStateIntegrationRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/rendererStateIntegrationRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(rendererStateIntegrationSource).toContain(
@@ -5149,6 +5156,12 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationSource).toContain(
             "createAbortController"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toMatch(
+            directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "rendererStateIntegration requires a setTimeout runtime"
         );
     });
 

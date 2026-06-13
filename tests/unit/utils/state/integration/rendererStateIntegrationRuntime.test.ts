@@ -26,6 +26,21 @@ describe("getRendererStateIntegrationRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
 
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const utils = getRendererStateIntegrationRuntime({});
+
+        expect(() => utils.setTimeout(() => {}, 0)).toThrow(
+            "rendererStateIntegration requires a setTimeout runtime"
+        );
+        expect(() => {
+            utils.clearTimeout(
+                79 as ReturnType<typeof globalThis.setTimeout>
+            );
+        }).toThrow("rendererStateIntegration requires a clearTimeout runtime");
+    });
+
     it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 

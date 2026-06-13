@@ -35,15 +35,26 @@ export function getRendererStateIntegrationRuntime(
 ): RendererStateIntegrationRuntime {
     return {
         clearTimeout(timer): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "rendererStateIntegration requires a clearTimeout runtime"
+                );
+            }
+
             clearTimeoutRef(timer);
         },
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
         },
         setTimeout(callback, delayMs): RendererStateIntegrationTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "rendererStateIntegration requires a setTimeout runtime"
+                );
+            }
+
             return setTimeoutRef(callback, delayMs);
         },
     };
