@@ -480,6 +480,10 @@ const migratedUnifiedControlBarRuntimeFiles = [
 const migratedQuickColorSwitcherRuntimeFiles = [
     "electron-app/utils/ui/quickColorSwitcher.ts",
 ] as const;
+const migratedShownFilesListRuntimeFiles = [
+    "electron-app/utils/rendering/components/shownFilesListItemHandlers.ts",
+    "electron-app/utils/rendering/components/shownFilesListTooltipState.ts",
+] as const;
 const migratedCreditsMarqueeRuntimeFiles = [
     "electron-app/utils/ui/layout/enhanceCreditsSection.ts",
 ] as const;
@@ -1030,6 +1034,8 @@ const directTabStateManagerHandlersRuntimeGlobalPattern =
 const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+MutationObserver\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directQuickColorSwitcherRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directShownFilesListRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
@@ -6306,6 +6312,27 @@ describe("architecture boundaries", () => {
         expect(quickColorSwitcherSource).toContain(
             "quickColorSwitcherRuntime.js"
         );
+    });
+
+    it("keeps shown-files list timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedShownFilesListRuntimeFiles
+            .filter((relativeFile) =>
+                directShownFilesListRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedShownFilesListRuntimeFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return !source.includes("shownFilesListRuntime.js");
+            })
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
     });
 
     it("keeps credits marquee browser APIs behind the runtime facade", () => {

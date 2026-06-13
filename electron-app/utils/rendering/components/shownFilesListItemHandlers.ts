@@ -12,6 +12,12 @@ import {
     clearOverlayTooltipTimeout,
     setOverlayTooltipTimeout,
 } from "./shownFilesListTooltipState.js";
+import {
+    getShownFilesListRuntime,
+    type ShownFilesListTimerHandle,
+} from "./shownFilesListRuntime.js";
+
+const shownFilesListRuntime = getShownFilesListRuntime();
 
 type OverlayListItem = HTMLLIElement & {
     _overlayListItemCleanup?: (() => void) | null;
@@ -78,8 +84,8 @@ function removeOverlayFilenameTooltips(): void {
     }
 }
 
-function scheduleTooltipCleanup(): ReturnType<typeof setTimeout> {
-    return setTimeout(() => {
+function scheduleTooltipCleanup(): ShownFilesListTimerHandle {
+    return shownFilesListRuntime.setTimeout(() => {
         removeOverlayFilenameTooltips();
     }, 10);
 }
@@ -121,7 +127,7 @@ function focusOverlayOnMap(polyline: OverlayPolyline): void {
 function highlightPolylineElement(
     polyline: OverlayPolyline,
     overlayIndex: number
-): ReturnType<typeof setTimeout> | null {
+): ShownFilesListTimerHandle | null {
     const polylineElement = polyline.getElement?.();
     if (!polylineElement) {
         return null;
@@ -130,7 +136,7 @@ function highlightPolylineElement(
     const color = polyline.options?.color || "#1976d2";
     polylineElement.style.transition = "filter 0.2s";
     polylineElement.style.filter = `drop-shadow(0 0 16px ${color})`;
-    return setTimeout(() => {
+    return shownFilesListRuntime.setTimeout(() => {
         if (getHighlightedOverlayIndex() === overlayIndex) {
             polylineElement.style.filter = `drop-shadow(0 0 8px ${color})`;
         }
@@ -219,8 +225,8 @@ export function attachOverlayListItemHandlers({
     const listItem = li as OverlayListItem;
     const eventListeners = new AbortController();
     const { signal } = eventListeners;
-    const timers = new Set<ReturnType<typeof setTimeout>>();
-    const trackTimer = (timer: ReturnType<typeof setTimeout> | null): void => {
+    const timers = new Set<ShownFilesListTimerHandle>();
+    const trackTimer = (timer: ShownFilesListTimerHandle | null): void => {
         if (timer) {
             timers.add(timer);
         }
@@ -231,7 +237,7 @@ export function attachOverlayListItemHandlers({
 
     const cleanup = (): void => {
         for (const timer of timers) {
-            clearTimeout(timer);
+            shownFilesListRuntime.clearTimeout(timer);
         }
         timers.clear();
         clearOverlayTooltipTimeout();
@@ -317,7 +323,7 @@ export function attachOverlayListItemHandlers({
             listItem._tooltipRemover?.();
 
             setOverlayTooltipTimeout(
-                setTimeout(() => {
+                shownFilesListRuntime.setTimeout(() => {
                     showOverlayTooltip({
                         fullPath,
                         initialEvent: event,

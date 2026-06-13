@@ -290,6 +290,10 @@ Shared configuration loading now routes URL search reads, chart-refresh timer sc
 timer cleanup through `loadSharedConfigurationRuntime.ts` instead of probing location or calling timer globals
 directly inside `loadSharedConfiguration.ts`, with focused runtime coverage and architecture guardrails blocking
 those direct location/timer globals from returning.
+Shown-files list tooltip cleanup, delayed tooltip display, polyline highlight fade timing, and stored tooltip
+timeout cleanup now route through `shownFilesListRuntime.ts` instead of calling timer globals directly inside
+`shownFilesListItemHandlers.ts` or `shownFilesListTooltipState.ts`, with focused runtime coverage and
+architecture guardrails blocking those direct timer globals from returning.
 Master state manager comprehensive tests now install and restore document, window, location, storage,
 performance, timer, and listener globals through descriptor-scoped helpers instead of deleting globals during
 cleanup, with architecture coverage blocking that fixture mutation pattern.
