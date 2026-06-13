@@ -12,6 +12,7 @@ type UnifiedControlBarMutationObserverConstructor = new (
 ) => MutationObserver;
 
 export interface UnifiedControlBarRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly clearTimeout?:
         | ((handle: UnifiedControlBarTimerHandle) => void)
         | undefined;
@@ -35,6 +36,7 @@ export interface UnifiedControlBarRuntime {
         options: AddEventListenerOptions
     ) => void;
     clearTimeout: (handle: UnifiedControlBarTimerHandle) => void;
+    createAbortController: () => AbortController;
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
@@ -89,6 +91,16 @@ export function getUnifiedControlBarRuntime(
         clearTimeout(handle: UnifiedControlBarTimerHandle): void {
             const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
             clearTimeoutRef(handle);
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "unifiedControlBar requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         createElement<K extends keyof HTMLElementTagNameMap>(
             tagName: K

@@ -1095,7 +1095,7 @@ const directUpdateTabVisibilityRuntimeGlobalPattern =
 const directTabStateManagerHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directUnifiedControlBarRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+MutationObserver\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+(?:AbortController|MutationObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directQuickColorSwitcherRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directShownFilesListRuntimeGlobalPattern =
@@ -6659,7 +6659,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps unified control-bar browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedUnifiedControlBarRuntimeFiles
             .filter((relativeFile) =>
@@ -6676,6 +6676,7 @@ describe("architecture boundaries", () => {
         expect(unifiedControlBarSource).toContain(
             "unifiedControlBarRuntime.js"
         );
+        expect(unifiedControlBarSource).toContain("createAbortController");
     });
 
     it("keeps quick color switcher timers behind the runtime facade", () => {

@@ -141,7 +141,7 @@ export function initFilenameAutoScroll(): void {
     });
 
     // Check on window resize
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
     const resizeHandler: EventListener = () => checkScroll();
     runtime.addResizeListener(resizeHandler, {
         signal: abortController.signal,

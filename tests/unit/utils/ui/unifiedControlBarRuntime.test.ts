@@ -3,6 +3,44 @@ import { describe, expect, it, vi } from "vitest";
 import { getUnifiedControlBarRuntime } from "../../../../electron-app/utils/ui/unifiedControlBarRuntime.js";
 
 describe("getUnifiedControlBarRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        let controllerCount = 0;
+        const signal = Symbol("unified-control-bar-signal");
+        class TestAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public constructor() {
+                controllerCount += 1;
+            }
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const runtime = getUnifiedControlBarRuntime({
+            AbortController: TestAbortController,
+        });
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+    });
+
+    it("fails clearly when the AbortController runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getUnifiedControlBarRuntime({});
+
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow(
+            "unifiedControlBar requires an AbortController runtime"
+        );
+    });
+
     it("creates elements and exposes the injected body", () => {
         expect.assertions(2);
 
