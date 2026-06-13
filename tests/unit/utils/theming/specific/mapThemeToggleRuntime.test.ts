@@ -95,4 +95,17 @@ describe("getMapThemeToggleRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getMapThemeToggleRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "mapThemeToggle requires a setTimeout runtime"
+        );
+        expect(() =>
+            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("mapThemeToggle requires a clearTimeout runtime");
+    });
 });

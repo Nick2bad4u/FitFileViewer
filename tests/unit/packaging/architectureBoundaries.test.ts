@@ -1100,6 +1100,8 @@ const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapThemeToggleRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directMapThemeToggleRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusCountsRuntimeGlobalPattern =
@@ -6493,7 +6495,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -6521,6 +6523,12 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleStateSource).toContain("addDocumentListener");
         expect(mapThemeToggleRuntimeSource).toContain(
             "const runtimeDocument = scope.document;"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toMatch(
+            directMapThemeToggleRuntimeAmbientFallbackPattern
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
         );
         expect(mapThemeToggleRuntimeSource).not.toContain(
             "globalThis.document"
