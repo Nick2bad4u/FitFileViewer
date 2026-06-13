@@ -1047,7 +1047,7 @@ const directMainUiSummarySelectorRuntimeGlobalPattern =
 const directRendererApplicationStartupRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererVendorBundleLoaderRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|removeEventListener|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|createElement|head|querySelector|removeEventListener|setTimeout)\b|\bDate\.now\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directNetworkUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:fetch|clearTimeout|setTimeout|AbortController)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:fetch|clearTimeout|setTimeout)\(/u;
 const directPerformanceUtilsRuntimeGlobalPattern =
@@ -6429,7 +6429,7 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps renderer vendor loader timers and listeners behind the runtime facade", () => {
+    it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
         expect.assertions(2);
 
         const violations = migratedRendererVendorBundleLoaderRuntimeFiles

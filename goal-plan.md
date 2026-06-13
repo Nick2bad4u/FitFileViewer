@@ -207,9 +207,10 @@ deleting retired `L` globals from `globalThis`.
 Generated split renderer vendor assets now use `renderer-vendor*.js/css` filenames instead of the retired
 `vendor-globals*.js/css` compatibility wording, while preserving the typed loader entry semantics and runtime
 readiness event flow.
-Renderer vendor loader readiness polling and readiness-event listener registration now route through
-`vendorBundleLoaderRuntime.ts` instead of calling listener or timer globals directly in `vendorBundleLoader.ts`,
-with adapter tests and architecture coverage blocking direct vendor-loader listener/timer globals from returning.
+Renderer vendor loader readiness polling, readiness-event listener registration, clock reads, AbortController
+creation, and vendor script lookup/injection now route through `vendorBundleLoaderRuntime.ts` instead of calling
+browser globals directly in `vendorBundleLoader.ts`, with adapter tests and architecture coverage blocking direct
+vendor-loader browser globals from returning.
 The installed `leaflet-draw` package still exposes only `dist/leaflet.draw.js` through `main` and has no
 `module` or `exports` entry, so the remaining virtual runtime wrapper is now covered as an explicit package
 surface constraint instead of an untracked cleanup candidate.
