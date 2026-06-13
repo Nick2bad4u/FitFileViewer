@@ -178,6 +178,8 @@ const globalKeys = [
     "window",
 ] as const;
 
+type GlobalKey = (typeof globalKeys)[number];
+
 const devToolsComponentName = ["dev", "Tools"].join("");
 
 describe("masterStateManager comprehensive behavior", () => {
@@ -795,18 +797,28 @@ function createModuleMocks(mocks: HarnessMocks): Record<string, unknown> {
 }
 
 function defineGlobalValue(
-    descriptors: Map<string, PropertyDescriptor | undefined>,
-    key: (typeof globalKeys)[number],
+    descriptors: Map<GlobalKey, PropertyDescriptor>,
+    key: GlobalKey,
     value: unknown
 ): void {
     if (!descriptors.has(key)) {
-        descriptors.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
+        descriptors.set(key, getGlobalRestoreDescriptor(key));
     }
     Object.defineProperty(globalThis, key, {
         configurable: true,
         value,
         writable: true,
     });
+}
+
+function getGlobalRestoreDescriptor(key: GlobalKey): PropertyDescriptor {
+    return (
+        Object.getOwnPropertyDescriptor(globalThis, key) ?? {
+            configurable: true,
+            value: undefined,
+            writable: true,
+        }
+    );
 }
 
 function dispatchListeners(
@@ -832,16 +844,9 @@ function registerListener(
     listeners.set(eventName, existingListeners);
 }
 
-function restoreGlobals(
-    descriptors: Map<string, PropertyDescriptor | undefined>
-): void {
-    for (const key of [...descriptors.keys()].reverse()) {
-        const descriptor = descriptors.get(key);
-        if (descriptor) {
-            Object.defineProperty(globalThis, key, descriptor);
-        } else {
-            Reflect.deleteProperty(globalThis, key);
-        }
+function restoreGlobals(descriptors: Map<GlobalKey, PropertyDescriptor>): void {
+    for (const [key, descriptor] of [...descriptors.entries()].reverse()) {
+        Object.defineProperty(globalThis, key, descriptor);
     }
 }
 
@@ -849,7 +854,7 @@ async function withMasterStateHarness(
     callback: (harness: Harness) => Promise<void> | void,
     options: HarnessOptions = {}
 ): Promise<void> {
-    const descriptors = new Map<string, PropertyDescriptor | undefined>();
+    const descriptors = new Map<GlobalKey, PropertyDescriptor>();
     const mocks = createHarnessMocks();
     const moduleMocks = createModuleMocks(mocks);
     const documentListeners: ListenerMap = new Map();

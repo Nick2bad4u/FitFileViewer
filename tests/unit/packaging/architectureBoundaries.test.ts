@@ -614,6 +614,8 @@ const stateIntegrationRetiredGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)["']|(?:globalThis|testGlobal)\.(?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)\s*=/u;
 const stateIntegrationBrowserGlobalFixtureMutationPattern =
     /\bglobalThis\.localStorage\s*=|\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:localStorage|performance)["']\s*(?:,|\))|\bReflect\.deleteProperty\(\s*globalThis\.performance\s*,\s*["']memory["']\s*\)/u;
+const masterStateManagerTestDirectGlobalFixtureMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:key|["'](?:__DEVELOPMENT__|addEventListener|clearInterval|dispatchEvent|document|getComputedStyle|localStorage|location|performance|setInterval|window)["'])\s*\)/u;
 const directSingletonStateSubscriptionsGlobalPattern =
     /\b(?:window|globalThis|globalState)\.__ffvSingletonStateSubscriptions\b|["']__ffvSingletonStateSubscriptions["']/u;
 const directFileAccessPolicyStateGlobalPattern =
@@ -4293,6 +4295,20 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps master state manager tests on descriptor-scoped global fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            masterStateManagerTestDirectGlobalFixtureMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/state/core/masterStateManager.comprehensive.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps state development tools on the debug state access facade", () => {
