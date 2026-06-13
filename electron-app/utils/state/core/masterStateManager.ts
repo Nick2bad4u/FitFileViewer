@@ -30,6 +30,7 @@ import {
     setState,
     subscribe,
 } from "./stateManager.js";
+import { getMasterStateRuntime } from "./masterStateRuntime.js";
 import {
     cleanupMiddleware,
     initializeDefaultMiddleware,
@@ -64,10 +65,6 @@ type ElectronRendererAPI = Partial<
     >
 >;
 
-type MasterStateGlobal = typeof globalThis & {
-    __DEVELOPMENT__?: boolean;
-};
-
 type StateManagerApi = {
     getState: typeof getState;
     getStateHistory: typeof getStateHistory;
@@ -83,10 +80,6 @@ type PerformanceWithMemory = Performance & {
     };
 };
 
-type LocationLike = Partial<
-    Pick<Location, "hash" | "hostname" | "href" | "protocol" | "search">
->;
-
 type DynamicModule = Record<string, unknown>;
 type RuntimeSettingsStateManager = typeof settingsStateManager & {
     cleanup?: () => void;
@@ -101,9 +94,7 @@ type ErrorDetails = {
 let masterStateManagerModuleMocksForTests: Record<string, unknown> | null =
     null;
 
-function getMasterGlobal(): MasterStateGlobal {
-    return globalThis;
-}
+const masterStateRuntime = getMasterStateRuntime();
 
 function hasOptionalMasterElectronFunction(
     record: Readonly<Record<string, unknown>>,
@@ -187,18 +178,6 @@ function handleFitFileDrop(event: DragEvent): void {
     }
 }
 
-function getCurrentLocationLike(): LocationLike {
-    return globalThis.window === undefined ? {} : globalThis.location;
-}
-
-function getLocationText(
-    location: LocationLike,
-    key: keyof LocationLike
-): string {
-    const value = location[key];
-    return typeof value === "string" ? value : "";
-}
-
 function hasDevelopmentModeAttribute(): boolean {
     return (
         typeof document !== "undefined" &&
@@ -207,11 +186,8 @@ function hasDevelopmentModeAttribute(): boolean {
     );
 }
 
-function hasElectronDevelopmentFlag(): boolean {
-    return (
-        globalThis.window !== undefined &&
-        getMasterElectronAPI()?.__devMode !== undefined
-    );
+function getElectronDevelopmentFlag(): boolean | undefined {
+    return getMasterElectronAPI()?.__devMode;
 }
 
 function isStateManagerApi(value: unknown): value is StateManagerApi {
@@ -660,26 +636,10 @@ export class MasterStateManager {
      */
     isDevelopmentMode() {
         try {
-            const loc = getCurrentLocationLike();
-            const masterGlobal = getMasterGlobal();
-            const hostname = getLocationText(loc, "hostname");
-            const search = getLocationText(loc, "search");
-            const hash = getLocationText(loc, "hash");
-            const protocol = getLocationText(loc, "protocol");
-            const href = getLocationText(loc, "href");
-
-            return (
-                hostname === "localhost" ||
-                hostname === "127.0.0.1" ||
-                hostname.includes("dev") ||
-                masterGlobal.__DEVELOPMENT__ === true ||
-                search.includes("debug=true") ||
-                hash.includes("debug") ||
-                hasDevelopmentModeAttribute() ||
-                protocol === "file:" ||
-                hasElectronDevelopmentFlag() ||
-                href.includes("electron")
-            );
+            return masterStateRuntime.isDevelopmentScope({
+                electronDevMode: getElectronDevelopmentFlag(),
+                hasDevelopmentModeAttribute: hasDevelopmentModeAttribute(),
+            });
         } catch {
             return false;
         }
@@ -743,7 +703,7 @@ export class MasterStateManager {
 
         // Resolve state API dynamically in handlers to respect test-time mocks
         // Global error handler
-        globalThis.addEventListener(
+        masterStateRuntime.addGlobalEventListener(
             "error",
             (event) => {
                 const stateAPI = getStateManagerAPI();
@@ -770,7 +730,7 @@ export class MasterStateManager {
         );
 
         // Unhandled promise rejection handler
-        globalThis.addEventListener(
+        masterStateRuntime.addGlobalEventListener(
             "unhandledrejection",
             (event) => {
                 const stateAPI = getStateManagerAPI();
@@ -828,7 +788,7 @@ export class MasterStateManager {
         // Integrate theme changes with maps and charts
         stateAPI.subscribe("ui.theme", (theme: unknown) => {
             // Notify other components about theme changes
-            globalThis.dispatchEvent(
+            masterStateRuntime.dispatchGlobalEvent(
                 new CustomEvent("themeChanged", { detail: { theme } })
             );
         });
@@ -959,7 +919,7 @@ export class MasterStateManager {
         const { signal } = this.eventController;
 
         // Window resize
-        window.addEventListener(
+        masterStateRuntime.addWindowEventListener(
             "resize",
             () => {
                 const { UIActions: dynUI } = getUIStateModule();
@@ -969,7 +929,7 @@ export class MasterStateManager {
         );
 
         // Window focus/blur
-        window.addEventListener(
+        masterStateRuntime.addWindowEventListener(
             "focus",
             () => {
                 const stateAPI = getStateManagerAPI();
@@ -980,7 +940,7 @@ export class MasterStateManager {
             { signal }
         );
 
-        window.addEventListener(
+        masterStateRuntime.addWindowEventListener(
             "blur",
             () => {
                 const stateAPI = getStateManagerAPI();
@@ -992,7 +952,7 @@ export class MasterStateManager {
         );
 
         // Before unload
-        window.addEventListener(
+        masterStateRuntime.addWindowEventListener(
             "beforeunload",
             () => {
                 const stateAPI = getStateManagerAPI();

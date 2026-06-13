@@ -4348,6 +4348,27 @@ describe("architecture boundaries", () => {
         ).toBe(false);
     });
 
+    it("keeps master state manager browser runtime access behind the runtime adapter", () => {
+        expect.assertions(6);
+
+        const masterStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/masterStateManager.ts"
+            )
+        );
+
+        expect(masterStateManagerSource).toContain("masterStateRuntime.js");
+        expect(masterStateManagerSource).not.toContain("globalThis.window");
+        expect(masterStateManagerSource).not.toContain("globalThis.location");
+        expect(masterStateManagerSource).not.toContain(
+            "globalThis.addEventListener"
+        );
+        expect(masterStateManagerSource).not.toContain(
+            "globalThis.dispatchEvent"
+        );
+        expect(masterStateManagerSource).not.toContain("window.addEventListener");
+    });
+
     it("keeps state development tools on typed state and runtime access", () => {
         expect.assertions(5);
 
