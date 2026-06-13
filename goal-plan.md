@@ -327,6 +327,10 @@ abort-controller creation and document keydown listener registration/removal now
 `mapMeasureToolRuntime.ts` instead of constructing `AbortController` or registering/removing document listeners
 directly inside `mapMeasureTool.ts`, with focused runtime coverage and architecture guardrails blocking those
 direct browser APIs from returning.
+Map lap selector listener abort-controller creation and document mouse/key listener registration/removal now route
+through `mapLapSelectorRuntime.ts` instead of constructing `AbortController` or touching document listeners
+directly inside `mapLapSelector.ts`, with focused runtime coverage and architecture guardrails blocking those
+direct browser APIs from returning.
 Chart settings header reset-button feedback timing and range-slider re-render debounce now route through
 `createSettingsHeaderRuntime.ts` instead of calling timer globals directly inside `createSettingsHeader.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.

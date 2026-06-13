@@ -5,6 +5,7 @@ import {
     createAppIconElement,
     type AppIconName,
 } from "../../ui/icons/iconFactory.js";
+import { getMapLapSelectorRuntime } from "./mapLapSelectorRuntime.js";
 
 type LapSelection = "all" | string[];
 type MapDrawLaps = (selection: LapSelection) => void;
@@ -20,12 +21,15 @@ type LapControlIconName = Extract<
 >;
 
 let lapSelectorMouseupHandler: null | ((event: MouseEvent) => void) = null;
+const mapLapSelectorRuntime = getMapLapSelectorRuntime();
 
 function replaceLapSelectorMouseupHandler(
     handler: (event: MouseEvent) => void
 ): void {
     if (lapSelectorMouseupHandler) {
-        document.removeEventListener("mouseup", lapSelectorMouseupHandler);
+        mapLapSelectorRuntime.removeDocumentMouseupListener(
+            lapSelectorMouseupHandler
+        );
     }
     lapSelectorMouseupHandler = handler;
 }
@@ -36,13 +40,15 @@ function clearLapSelectorMouseupHandler(
     if (lapSelectorMouseupHandler !== handler) {
         return;
     }
-    document.removeEventListener("mouseup", handler);
+    mapLapSelectorRuntime.removeDocumentMouseupListener(handler);
     lapSelectorMouseupHandler = null;
 }
 
 export function resetMapLapSelectorStateForTests(): void {
     if (lapSelectorMouseupHandler) {
-        document.removeEventListener("mouseup", lapSelectorMouseupHandler);
+        mapLapSelectorRuntime.removeDocumentMouseupListener(
+            lapSelectorMouseupHandler
+        );
     }
     lapSelectorMouseupHandler = null;
 }
@@ -72,7 +78,7 @@ export function addLapSelector(
     const lapControl = document.createElement("div");
     lapControl.className =
         "custom-lap-control-container leaflet-bottom leaflet-left";
-    const eventController = new AbortController();
+    const eventController = mapLapSelectorRuntime.createAbortController();
     const { signal } = eventController;
     // Import theme colors for consistent theming
     const themeColors = getThemeColors();
@@ -199,8 +205,10 @@ export function addLapSelector(
         tooltipPinned = false;
         helpTooltip.classList.remove("is-visible");
         helpBtn.setAttribute("aria-expanded", "false");
-        document.removeEventListener("mousedown", handleOutsideClick, true);
-        document.removeEventListener("keydown", handleEscapeKey);
+        mapLapSelectorRuntime.removeDocumentMousedownListener(
+            handleOutsideClick
+        );
+        mapLapSelectorRuntime.removeDocumentKeydownListener(handleEscapeKey);
     }
 
     function showHelpTooltip(options: HelpTooltipOptions = {}): void {
@@ -210,11 +218,16 @@ export function addLapSelector(
         helpTooltip.classList.add("is-visible");
         helpBtn.setAttribute("aria-expanded", "true");
         if (tooltipPinned) {
-            document.addEventListener("mousedown", handleOutsideClick, {
-                capture: true,
+            mapLapSelectorRuntime.addDocumentMousedownListener(
+                handleOutsideClick,
+                {
+                    capture: true,
+                    signal,
+                }
+            );
+            mapLapSelectorRuntime.addDocumentKeydownListener(handleEscapeKey, {
                 signal,
             });
-            document.addEventListener("keydown", handleEscapeKey, { signal });
         }
     }
 
@@ -429,7 +442,9 @@ export function addLapSelector(
         dragSelectValue = null;
     };
     replaceLapSelectorMouseupHandler(mouseupHandler);
-    document.addEventListener("mouseup", mouseupHandler, { signal });
+    mapLapSelectorRuntime.addDocumentMouseupListener(mouseupHandler, {
+        signal,
+    });
     signal.addEventListener(
         "abort",
         () => {

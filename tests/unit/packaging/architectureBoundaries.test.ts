@@ -413,6 +413,9 @@ const migratedMapFullscreenControlRuntimeFiles = [
 const migratedMapMeasureToolRuntimeFiles = [
     "electron-app/utils/maps/controls/mapMeasureTool.ts",
 ] as const;
+const migratedMapLapSelectorRuntimeFiles = [
+    "electron-app/utils/maps/controls/mapLapSelector.ts",
+] as const;
 const migratedMapDrawLapsRuntimeFiles = [
     "electron-app/utils/maps/layers/mapDrawLaps.ts",
 ] as const;
@@ -997,6 +1000,8 @@ const directMapFullscreenControlRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapMeasureToolRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapLapSelectorRuntimeGlobalPattern =
+    /\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+AbortController\b/u;
 const directMapDrawLapsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
@@ -5788,6 +5793,27 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(mapMeasureToolSource).toContain("mapMeasureToolRuntime.js");
         expect(mapMeasureToolSource).toContain("createAbortController");
+    });
+
+    it("keeps map lap-selector document listeners behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedMapLapSelectorRuntimeFiles
+            .filter((relativeFile) =>
+                directMapLapSelectorRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapLapSelectorSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/controls/mapLapSelector.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapLapSelectorSource).toContain("mapLapSelectorRuntime.js");
+        expect(mapLapSelectorSource).toContain("createAbortController");
     });
 
     it("keeps map draw-laps timers behind the runtime facade", () => {
