@@ -7161,7 +7161,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(37);
+        expect.assertions(39);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -7202,6 +7202,7 @@ describe("architecture boundaries", () => {
         );
 
         expect(vendorMapEntry).toContain('import LeafletMiniMap from "leaflet-minimap"');
+        expect(vendorMapEntry).toContain("rendererVendorMapRuntime.js");
         expect(vendorMapEntry).toContain("setLeafletRuntime(Leaflet)");
         expect(vendorMapEntry).toContain("leafletRuntime: Leaflet");
         expect(vendorMapEntry).toContain(
@@ -7211,6 +7212,7 @@ describe("architecture boundaries", () => {
         expect(leafletDrawImportIndex).toBeGreaterThan(setLeafletRuntimeIndex);
         expect(vendorMapEntry).not.toContain('import("leaflet-draw")');
         expect(vendorMapEntry).not.toContain("leaflet.markercluster");
+        expect(vendorMapEntry).not.toContain("globalThis.document");
         expect(leafletRuntimeSource).not.toContain("Symbol.for");
         expect(leafletRuntimeSource).not.toContain("globalThis");
         expect(vendorMapEntry).not.toContain("setLegacyLeafletPluginRuntime");

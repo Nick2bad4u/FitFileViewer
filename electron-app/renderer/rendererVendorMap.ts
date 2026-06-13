@@ -22,6 +22,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 /* eslint-enable import-x/no-unassigned-import */
 
 import { installLeafletMeasureLite } from "./leafletMeasureLite.js";
+import { getRendererVendorMapRuntime } from "./rendererVendorMapRuntime.js";
 import { markRendererVendorEntryLoaded } from "./rendererVendorShared.js";
 import { setLeafletRuntime } from "../utils/maps/core/leafletRuntime.js";
 
@@ -41,9 +42,10 @@ const leafletGlobal = Leaflet as typeof Leaflet & {
         minimap?: (layer: unknown, options?: unknown) => unknown;
     };
 };
+const rendererVendorMapRuntime = getRendererVendorMapRuntime();
 
 function installMinimapToggleIcon(): void {
-    if (!globalThis.document?.documentElement) {
+    if (!rendererVendorMapRuntime.hasDocumentElement()) {
         return;
     }
 
@@ -57,7 +59,7 @@ function installMinimapToggleIcon(): void {
         String.raw`\$&`
     );
 
-    globalThis.document.documentElement.style.setProperty(
+    rendererVendorMapRuntime.setDocumentElementStyleProperty(
         "--ffv-minimap-toggle-icon",
         `url("${escapedMinimapToggleIconUrl}")`
     );
