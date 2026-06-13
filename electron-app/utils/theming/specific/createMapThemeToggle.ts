@@ -16,6 +16,7 @@ import {
     MAP_THEME_EVENTS,
     registerMapThemeToggleUpdater,
 } from "./mapThemeToggleState.js";
+import { getMapThemeToggleRuntime } from "./mapThemeToggleRuntime.js";
 
 type MapThemeIconVariant = "moon" | "sun";
 type SvgRayCoordinates = readonly [
@@ -34,6 +35,8 @@ function getThemeColorValue(value: unknown, fallback: string): string {
 }
 
 export { MAP_THEME_EVENTS } from "./mapThemeToggleState.js";
+
+const mapThemeToggleRuntime = getMapThemeToggleRuntime();
 
 /**
  * Local storage key used for the map theme preference.
@@ -231,7 +234,8 @@ export function createMapThemeToggle(): HTMLElement {
         };
 
         // Handle button click
-        const listenerController = new AbortController();
+        const listenerController =
+            mapThemeToggleRuntime.createAbortController();
         button.addEventListener(
             "click",
             () => {

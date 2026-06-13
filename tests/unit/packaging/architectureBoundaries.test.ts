@@ -447,6 +447,7 @@ const migratedChartThemeListenerRuntimeFiles = [
     "electron-app/utils/charts/theming/chartThemeListener.ts",
 ] as const;
 const migratedMapThemeToggleRuntimeFiles = [
+    "electron-app/utils/theming/specific/createMapThemeToggle.ts",
     "electron-app/utils/theming/specific/mapThemeToggleState.ts",
 ] as const;
 const migratedUpdateMapThemeRuntimeFiles = [
