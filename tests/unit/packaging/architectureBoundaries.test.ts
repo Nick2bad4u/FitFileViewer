@@ -665,6 +665,8 @@ const directPlaywrightWindowOpenMutationPattern =
     /\bwindow\.open\s*=|\bReflect\.deleteProperty\(\s*window\s*,\s*["']open["']\s*\)/u;
 const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
     /\bglobalThis\.process\s*=/u;
+const processEnvironmentTestDirectProcessDeletePattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
 const loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern =
     /\b(?:global|globalThis)\.URLSearchParams\s*=/u;
 const directVitestTabButtonObserverCleanupPattern =
@@ -7715,6 +7717,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/files/import/handleOpenFile.complete.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps process environment tests on descriptor-scoped process restores", () => {
+        expect.assertions(1);
+
+        expect(
+            processEnvironmentTestDirectProcessDeletePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/runtime/processEnvironment.test.ts"
                     )
                 )
             )

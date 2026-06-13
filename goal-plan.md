@@ -439,6 +439,8 @@ Strict event-message chart tests now rely on the jsdom-provided window object in
 Complete file-open tests now install temporary `process.env` coverage through a descriptor-scoped fixture
 instead of assigning `globalThis.process` directly, with architecture coverage blocking that fixture mutation
 pattern.
+Runtime process-environment tests now restore the captured `globalThis.process` descriptor instead of deleting
+the process fixture during cleanup, with architecture coverage blocking that cleanup-time process deletion.
 Data-point filter control tests now install temporary animation-frame and microtask fixtures through
 descriptor-scoped helpers instead of assigning `globalThis.requestAnimationFrame`,
 `globalThis.cancelAnimationFrame`, or `globalThis.queueMicrotask` directly, with architecture coverage blocking

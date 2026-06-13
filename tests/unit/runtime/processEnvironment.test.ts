@@ -11,6 +11,9 @@ const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
     globalThis,
     "process"
 );
+if (!originalProcessDescriptor) {
+    throw new Error("Expected globalThis.process descriptor to exist");
+}
 
 function setGlobalProcess(value: unknown): void {
     Object.defineProperty(globalThis, "process", {
@@ -36,16 +39,7 @@ function getNodeEnvironmentSnapshot(): {
 
 describe("process environment runtime boundary", () => {
     afterEach(() => {
-        if (originalProcessDescriptor) {
-            Object.defineProperty(
-                globalThis,
-                "process",
-                originalProcessDescriptor
-            );
-            return;
-        }
-
-        Reflect.deleteProperty(globalThis, "process");
+        Object.defineProperty(globalThis, "process", originalProcessDescriptor);
     });
 
     it("returns undefined when process is missing", () => {
