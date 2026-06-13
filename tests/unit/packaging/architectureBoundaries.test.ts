@@ -389,6 +389,9 @@ const migratedExternalLinkHandlersRuntimeFiles = [
 const migratedMapActionButtonsRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
 ] as const;
+const migratedMapFullscreenControlRuntimeFiles = [
+    "electron-app/utils/maps/controls/mapFullscreenControl.ts",
+] as const;
 const migratedMapMeasureToolRuntimeFiles = [
     "electron-app/utils/maps/controls/mapMeasureTool.ts",
 ] as const;
@@ -952,6 +955,8 @@ const preloadTestDirectElectronApiGlobalFixturePattern =
 const directExternalLinkHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.open\b/u;
 const directMapActionButtonsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapFullscreenControlRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapMeasureToolRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
@@ -5556,6 +5561,28 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapActionButtonsSource).toContain("mapActionButtonsRuntime.js");
+    });
+
+    it("keeps map fullscreen-control timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedMapFullscreenControlRuntimeFiles
+            .filter((relativeFile) =>
+                directMapFullscreenControlRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapFullscreenControlSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/controls/mapFullscreenControl.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapFullscreenControlSource).toContain(
+            "mapFullscreenControlRuntime.js"
+        );
     });
 
     it("keeps map measure-tool timers behind the runtime facade", () => {
