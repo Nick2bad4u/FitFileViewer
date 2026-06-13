@@ -34,9 +34,7 @@ function getAbortControllerConstructor(
     scope: EnsureChartSettingsDropdownsRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "ensureChartSettingsDropdowns requires an AbortController runtime"
@@ -79,7 +77,7 @@ function getTimeoutScheduler(
     callback: DeferredCallback,
     delay: number
 ) => EnsureChartSettingsDropdownsTimerHandle {
-    const timeoutScheduler = scope.setTimeout ?? globalThis.setTimeout;
+    const timeoutScheduler = scope.setTimeout;
     if (typeof timeoutScheduler !== "function") {
         throw new TypeError(
             "ensureChartSettingsDropdowns requires a setTimeout runtime"

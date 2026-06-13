@@ -1192,6 +1192,8 @@ const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
     /\bglobalThis\.ResizeObserver\s*=|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']ResizeObserver["']\s*,|\bReflect\.deleteProperty\([\s\S]{0,120}["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']\s*\)|\bvi\.stubGlobal\(\s*["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']/u;
 const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
+const directEnsureChartSettingsDropdownsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:AbortController|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|setTimeout)\b|\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
 const directCreateSettingsHeaderRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreateSettingsHeaderRuntimeAmbientFallbackPattern =
@@ -3846,7 +3848,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings dropdown browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedEnsureChartSettingsDropdownsRuntimeFiles
             .filter((relativeFile) =>
@@ -3860,10 +3862,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/components/ensureChartSettingsDropdowns.ts"
             )
         );
+        const chartSettingsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/ensureChartSettingsDropdownsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(chartSettingsSource).toContain(
             "ensureChartSettingsDropdownsRuntime.js"
+        );
+        expect(chartSettingsRuntimeSource).not.toMatch(
+            directEnsureChartSettingsDropdownsRuntimeAmbientFallbackPattern
+        );
+        expect(chartSettingsRuntimeSource).toContain(
+            "const timeoutScheduler = scope.setTimeout;"
         );
     });
 

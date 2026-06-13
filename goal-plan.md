@@ -584,6 +584,10 @@ architecture coverage blocks those cleanup patterns from returning.
 Strict chart settings dropdown tests no longer seed the mocked state manager through the retired `globalData`
 path; they use the current `fitFile.rawData` fixture path that `FitFileSelectors` reads, with architecture
 coverage blocking the stale fixture from returning.
+Chart settings dropdown deferred setup scheduling and listener abort-controller creation now stay behind
+`ensureChartSettingsDropdownsRuntime.ts`; explicit runtime scopes must provide timer primitives and either a
+scoped or document-window abort-controller runtime instead of falling back to `globalThis`, with focused coverage
+and architecture coverage blocking those ambient fallbacks from returning.
 Strict render-map tests no longer type or assign retired FIT data globals on `window`; they seed loaded-file
 fixtures through `loadedFitFilesState`, and architecture coverage blocks the stale window fixture from returning.
 Render-map cleanup timers, layer-control hover timers, zoom-slider debounce timers, layout animation-frame
