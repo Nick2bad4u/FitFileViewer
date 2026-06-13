@@ -1064,6 +1064,8 @@ const directLoadSharedConfigurationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|location|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directGetCurrentSettingsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directGetCurrentSettingsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directLazyRenderingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:innerHeight|innerWidth|requestAnimationFrame|requestIdleCallback|setTimeout)\b|\bdocument\.documentElement\b|\btypeof\s+IntersectionObserver\b|\bnew\s+IntersectionObserver\b|\belement\s+instanceof\s+HTMLElement\b|\breturn\s+setTimeout\(/u;
 const directLazyRenderingRuntimeAmbientFallbackPattern =
@@ -6270,7 +6272,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps current settings reset timers behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedGetCurrentSettingsRuntimeFiles
             .filter((relativeFile) =>
@@ -6284,10 +6286,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/initialization/getCurrentSettings.ts"
             )
         );
+        const getCurrentSettingsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/getCurrentSettingsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(getCurrentSettingsSource).toContain(
             "getCurrentSettingsRuntime.js"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toMatch(
+            directGetCurrentSettingsRuntimeAmbientFallbackPattern
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
         );
     });
 

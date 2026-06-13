@@ -25,4 +25,17 @@ describe("getGetCurrentSettingsRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getGetCurrentSettingsRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "getCurrentSettingsRuntime requires setTimeout"
+        );
+        expect(() =>
+            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("getCurrentSettingsRuntime requires clearTimeout");
+    });
 });

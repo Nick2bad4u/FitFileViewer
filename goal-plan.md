@@ -394,7 +394,9 @@ constructing `AbortController` directly inside `createSettingsHeader.ts`, with f
 architecture guardrails blocking those direct timer/controller globals from returning.
 Current chart settings reset UI timer scheduling and cleanup now route through `getCurrentSettingsRuntime.ts`
 instead of calling timer globals directly inside `getCurrentSettings.ts`, with focused runtime coverage and
-architecture guardrails blocking those direct timer globals from returning.
+architecture guardrails blocking those direct timer globals from returning. Explicit current-settings runtime scopes
+must now provide timer primitives instead of falling back to `globalThis`, with focused coverage blocking those
+ambient fallbacks from returning.
 Custom map fullscreen-control delayed Leaflet map size invalidation now routes through
 `mapFullscreenControlRuntime.ts` instead of calling timer globals directly inside `mapFullscreenControl.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
