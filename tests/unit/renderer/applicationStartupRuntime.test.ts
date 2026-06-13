@@ -53,4 +53,20 @@ describe("getRendererApplicationStartupRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(25);
         expect(clearTimeout.mock.contexts[0]).toBeUndefined();
     });
+
+    it("does not borrow ambient browser primitives for explicit scopes", () => {
+        expect.assertions(3);
+
+        const utils = getRendererApplicationStartupRuntime({});
+
+        expect(() => utils.createAbortController()).toThrow(
+            "renderer application startup requires an AbortController"
+        );
+        expect(() => utils.setTimeout(() => {}, 1)).toThrow(
+            "renderer application startup requires setTimeout"
+        );
+        expect(() => utils.clearTimeout(1)).toThrow(
+            "renderer application startup requires clearTimeout"
+        );
+    });
 });

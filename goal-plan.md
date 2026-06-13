@@ -743,7 +743,9 @@ from returning.
 Renderer application startup listener cleanup and update-check scheduling now route the startup abort controller,
 production update-check timer, and before-unload timer clearing through `applicationStartupRuntime.ts` instead of
 calling those browser primitives directly in `applicationStartup.ts`, with adapter tests, startup behavior coverage,
-and architecture coverage blocking direct startup browser primitives from returning.
+and architecture coverage blocking direct startup browser primitives from returning. Explicit startup runtime scopes
+must now provide controller/timer primitives instead of falling back to `globalThis`, with focused coverage blocking
+that ambient fallback from returning.
 Renderer application lifecycle DOMContentLoaded and beforeunload listener cleanup now creates abort controllers
 through `applicationLifecycleWiringRuntime.ts` instead of constructing `AbortController` directly in
 `applicationLifecycleWiring.ts`, with focused runtime coverage and architecture coverage blocking direct lifecycle

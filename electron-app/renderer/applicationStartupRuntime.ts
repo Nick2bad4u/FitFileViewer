@@ -21,19 +21,36 @@ export function getRendererApplicationStartupRuntime(
 ): RendererApplicationStartupRuntime {
     return {
         clearTimeout(handle: RendererApplicationStartupTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "renderer application startup requires clearTimeout"
+                );
+            }
+
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
-            const AbortControllerRef =
-                scope.AbortController ?? globalThis.AbortController;
+            const AbortControllerRef = scope.AbortController;
+            if (typeof AbortControllerRef !== "function") {
+                throw new TypeError(
+                    "renderer application startup requires an AbortController"
+                );
+            }
+
             return new AbortControllerRef();
         },
         setTimeout(
             callback: () => void,
             delay: number
         ): RendererApplicationStartupTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "renderer application startup requires setTimeout"
+                );
+            }
+
             return setTimeoutRef(callback, delay);
         },
     };

@@ -1116,6 +1116,8 @@ const directMainUiSummarySelectorRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directRendererApplicationStartupRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directRendererApplicationStartupRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:AbortController|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|clearTimeout|setTimeout)\b/u;
 const directRendererApplicationLifecycleWiringRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directRendererFileInputStartupRuntimeGlobalPattern =
@@ -6876,7 +6878,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup browser primitives behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedRendererApplicationStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -6888,11 +6890,20 @@ describe("architecture boundaries", () => {
         const applicationStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/applicationStartup.ts")
         );
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/applicationStartupRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(applicationStartupSource).toContain(
             "applicationStartupRuntime.js"
         );
+        expect(runtimeSource).not.toMatch(
+            directRendererApplicationStartupRuntimeAmbientFallbackPattern
+        );
+        expect(runtimeSource).toContain("scope.AbortController");
     });
 
     it("keeps renderer application lifecycle abort controllers behind the runtime facade", () => {
