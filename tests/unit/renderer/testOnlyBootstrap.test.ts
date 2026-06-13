@@ -134,6 +134,52 @@ describe("renderer test-only bootstrap wiring", () => {
         expect(calls.load).toBe(1);
     });
 
+    it("resolves listener abort controllers through injected runtimes", () => {
+        expect.assertions(6);
+
+        const domAbortController = new AbortController();
+        const loadAbortController = new AbortController();
+        const abortDOMContentLoaded = vi.fn(() => {
+            domAbortController.abort();
+        });
+        const abortLoad = vi.fn(() => {
+            loadAbortController.abort();
+        });
+        const domRuntime = {
+            createAbortController: vi.fn(() => ({
+                abort: abortDOMContentLoaded,
+                signal: domAbortController.signal,
+            })),
+        };
+        const loadRuntime = {
+            createAbortController: vi.fn(() => ({
+                abort: abortLoad,
+                signal: loadAbortController.signal,
+            })),
+        };
+
+        registerTestDOMContentLoadedSetupListener(
+            document,
+            globalThis,
+            vi.fn(),
+            domRuntime
+        );
+        registerTestWindowLoadThemeSetupListener(
+            globalThis,
+            globalThis,
+            vi.fn(),
+            loadRuntime
+        );
+        globalThis.dispatchEvent(new Event("beforeunload"));
+
+        expect(domRuntime.createAbortController).toHaveBeenCalledOnce();
+        expect(loadRuntime.createAbortController).toHaveBeenCalledOnce();
+        expect(abortDOMContentLoaded).toHaveBeenCalledOnce();
+        expect(abortLoad).toHaveBeenCalledOnce();
+        expect(domAbortController.signal.aborted).toBe(true);
+        expect(loadAbortController.signal.aborted).toBe(true);
+    });
+
     it("registers the combined renderer test-only bootstrap listeners", () => {
         expect.assertions(3);
 

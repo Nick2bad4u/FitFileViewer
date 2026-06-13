@@ -1,3 +1,8 @@
+import {
+    getRendererTestOnlyBootstrapRuntime,
+    type RendererTestOnlyBootstrapRuntime,
+} from "./testOnlyBootstrapRuntime.js";
+
 type RendererUnknownFunctionCaller = (
     candidate: unknown,
     args?: unknown[]
@@ -94,9 +99,11 @@ export function createTestWindowLoadThemeSetupHandler(
 export function registerTestDOMContentLoadedSetupListener(
     documentTarget: Document,
     unloadTarget: EventTarget,
-    onTestDOMContentLoadedSetupListeners: () => void
+    onTestDOMContentLoadedSetupListeners: () => void,
+    runtime: RendererTestOnlyBootstrapRuntime =
+        getRendererTestOnlyBootstrapRuntime()
 ): void {
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
     const { signal } = abortController;
     const removeTestDOMContentLoadedSetupListener = (): void => {
         abortController.abort();
@@ -117,9 +124,11 @@ export function registerTestDOMContentLoadedSetupListener(
 export function registerTestWindowLoadThemeSetupListener(
     windowTarget: EventTarget,
     unloadTarget: EventTarget,
-    onTestWindowLoadSetupTheme: () => void
+    onTestWindowLoadSetupTheme: () => void,
+    runtime: RendererTestOnlyBootstrapRuntime =
+        getRendererTestOnlyBootstrapRuntime()
 ): void {
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
     const { signal } = abortController;
     const removeTestWindowLoadThemeSetupListener = (): void => {
         abortController.abort();

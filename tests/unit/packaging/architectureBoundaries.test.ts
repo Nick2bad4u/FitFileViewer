@@ -52,6 +52,9 @@ const migratedRendererApplicationLifecycleWiringRuntimeFiles = [
 const migratedRendererFileInputStartupRuntimeFiles = [
     "electron-app/renderer/fileInputStartup.ts",
 ] as const;
+const migratedRendererTestOnlyBootstrapRuntimeFiles = [
+    "electron-app/renderer/testOnlyBootstrap.ts",
+] as const;
 const migratedRendererVendorBundleLoaderRuntimeFiles = [
     "electron-app/renderer/vendorBundleLoader.ts",
 ] as const;
@@ -1055,6 +1058,8 @@ const directRendererApplicationStartupRuntimeGlobalPattern =
 const directRendererApplicationLifecycleWiringRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directRendererFileInputStartupRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
+const directRendererTestOnlyBootstrapRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directRendererVendorBundleLoaderRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|createElement|head|querySelector|removeEventListener|setTimeout)\b|\bDate\.now\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
@@ -6478,6 +6483,26 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(fileInputStartupSource).toContain(
             "fileInputStartupRuntime.js"
+        );
+    });
+
+    it("keeps renderer test-only bootstrap abort controllers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererTestOnlyBootstrapRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererTestOnlyBootstrapRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const testOnlyBootstrapSource = stripComments(
+            readRepositoryFile("electron-app/renderer/testOnlyBootstrap.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(testOnlyBootstrapSource).toContain(
+            "testOnlyBootstrapRuntime.js"
         );
     });
 
