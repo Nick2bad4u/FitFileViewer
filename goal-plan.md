@@ -365,7 +365,9 @@ runtime coverage and architecture coverage blocking those fallbacks from returni
 Shared configuration loading now routes URL search reads, chart-refresh timer scheduling, and chart-refresh
 timer cleanup through `loadSharedConfigurationRuntime.ts` instead of probing location or calling timer globals
 directly inside `loadSharedConfiguration.ts`, with focused runtime coverage and architecture guardrails blocking
-those direct location/timer globals from returning.
+those direct location/timer globals from returning. Explicit shared-configuration runtime scopes must now provide
+timer primitives instead of falling back to `globalThis`, with focused coverage blocking those ambient fallbacks
+from returning.
 Shown-files list tooltip cleanup, delayed tooltip display, polyline highlight fade timing, stored tooltip
 timeout cleanup, listener abort-controller creation, body theme-listener registration, tooltip mousemove
 registration, and viewport reads now route through `shownFilesListRuntime.ts` instead of calling timer,

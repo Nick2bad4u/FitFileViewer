@@ -1062,6 +1062,8 @@ const directAltFitSenderRuntimeGlobalPattern =
     /\bglobalThis\.(?:console|document|location)\b|\bnew\s+AbortController\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|location|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directLoadSharedConfigurationRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directGetCurrentSettingsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directGetCurrentSettingsRuntimeAmbientFallbackPattern =
@@ -6250,7 +6252,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared configuration URL reads behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedLoadSharedConfigurationRuntimeFiles
             .filter((relativeFile) =>
@@ -6264,10 +6266,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/initialization/loadSharedConfiguration.ts"
             )
         );
+        const loadSharedConfigurationRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/loadSharedConfigurationRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(loadSharedConfigurationSource).toContain(
             "loadSharedConfigurationRuntime.js"
+        );
+        expect(loadSharedConfigurationRuntimeSource).not.toMatch(
+            directLoadSharedConfigurationRuntimeAmbientFallbackPattern
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
         );
     });
 

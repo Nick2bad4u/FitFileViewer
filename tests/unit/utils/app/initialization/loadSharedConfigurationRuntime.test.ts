@@ -40,4 +40,17 @@ describe("getLoadSharedConfigurationRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getLoadSharedConfigurationRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "loadSharedConfigurationRuntime requires setTimeout"
+        );
+        expect(() =>
+            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("loadSharedConfigurationRuntime requires clearTimeout");
+    });
 });
