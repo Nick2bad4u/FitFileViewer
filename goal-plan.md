@@ -318,6 +318,10 @@ guardrails blocking those direct timer globals from returning.
 Renderer state integration example subscription cleanup scheduling and cleanup now route through
 `rendererStateIntegrationRuntime.ts` instead of calling timer globals directly inside `rendererStateIntegration.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
+Main UI summary selector tab lookup, gear-button lookup, and delayed gear-button scheduling now route through
+`mainUiSummaryColumnSelectorRuntime.ts` instead of keeping DOM and timer globals inside
+`mainUiSummaryColumnSelector.ts`, with focused runtime coverage and architecture guardrails blocking those direct
+DOM/timer globals from returning.
 State integration persistence debounce, performance-monitoring interval, storage lookup, performance-memory read,
 and clock reads now route through `stateIntegrationRuntime.ts` instead of calling runtime globals directly inside
 `stateIntegration.ts`, with focused runtime coverage and architecture guardrails blocking those direct runtime

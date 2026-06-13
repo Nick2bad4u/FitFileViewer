@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
     createMainUiSummaryColumnSelectorHandler,
+} from "../../../electron-app/renderer/mainUiSummaryColumnSelector.js";
+import {
     getMainUiSummaryColumnSelectorRuntime,
     type MainUiSummaryColumnSelectorRuntime,
     type MainUiSummaryColumnSelectorTimer,
-} from "../../../electron-app/renderer/mainUiSummaryColumnSelector.js";
+} from "../../../electron-app/renderer/mainUiSummaryColumnSelectorRuntime.js";
 
 function createRuntime({
     gearButton,
@@ -159,5 +161,36 @@ describe("main UI summary column selector", () => {
         expect(runtime.getSummaryTab("missing")).toBeNull();
 
         document.body.replaceChildren();
+    });
+
+    it("schedules through the injected timeout runtime", () => {
+        expect.assertions(3);
+
+        const callback = vi.fn();
+        const timer = 42 as MainUiSummaryColumnSelectorTimer;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const runtime = getMainUiSummaryColumnSelectorRuntime({
+            document,
+            HTMLElement,
+            setTimeout,
+        });
+        const scheduleTimeout = runtime.setTimeout.bind(runtime);
+
+        expect(scheduleTimeout(callback, 250)).toBe(timer);
+        expect(setTimeout).toHaveBeenCalledWith(callback, 250);
+        expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("fails clearly when the timeout runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getMainUiSummaryColumnSelectorRuntime({
+            document,
+            HTMLElement,
+        });
+
+        expect(() => {
+            runtime.setTimeout(() => {}, 250);
+        }).toThrow("main UI summary selector requires setTimeout");
     });
 });

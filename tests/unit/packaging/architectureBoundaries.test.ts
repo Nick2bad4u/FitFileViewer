@@ -41,7 +41,7 @@ const rendererMainUiRuntimeEnvironmentFiles = [
     "electron-app/renderer/mainUiRuntimeEnvironment.ts",
 ] as const;
 const migratedMainUiSummarySelectorRuntimeFiles = [
-    "electron-app/renderer/mainUiSummarySelectorRegistration.ts",
+    "electron-app/renderer/mainUiSummaryColumnSelector.ts",
 ] as const;
 const migratedRendererApplicationStartupRuntimeFiles = [
     "electron-app/renderer/applicationStartup.ts",
@@ -3617,7 +3617,7 @@ describe("architecture boundaries", () => {
             .filter(
                 (relativeFile) =>
                     !stripComments(readRepositoryFile(relativeFile)).includes(
-                        "mainUiSummaryColumnSelector.js"
+                        "mainUiSummaryColumnSelectorRuntime.js"
                     )
             )
             .sort();
