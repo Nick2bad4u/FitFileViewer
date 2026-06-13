@@ -538,6 +538,10 @@ Leaflet fixtures instead of inheriting a broad fake map library from global setu
 The broad setup fallback that fabricated `window.addEventListener`, `window.removeEventListener`, and no-op
 `window.dispatchEvent` implementations has been removed; tests now rely on jsdom's real event-target APIs or
 their own focused fixtures.
+Keyboard-shortcuts modal show/close animation timing now routes close timers, timer clearing, frame scheduling, and
+frame cancellation through `keyboardShortcutsModalRuntime.ts` instead of calling those globals directly in
+`keyboardShortcutsModal.ts`; its unit tests mock that runtime instead of stubbing animation-frame globals, with
+architecture coverage blocking both direct source globals and direct test stubs from returning.
 The setup-level `global.HTMLElement = window.HTMLElement` bridge has also been removed; jsdom-backed suites now
 use the environment's native element constructors without another shared global assignment.
 Setup console hardening now uses the existing `ensureConsoleAlive()` path instead of separately patching

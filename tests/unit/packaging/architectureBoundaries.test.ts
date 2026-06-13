@@ -334,6 +334,9 @@ const migratedElectronApiAccessorFiles = [
 const migratedSettingsModalRuntimeFiles = [
     "electron-app/utils/ui/settingsModal.ts",
 ] as const;
+const migratedKeyboardShortcutsModalRuntimeFiles = [
+    "electron-app/utils/ui/modals/keyboardShortcutsModal.ts",
+] as const;
 const migratedAltFitSenderRuntimeFiles = [
     "electron-app/utils/files/import/sendFitFileToAltFitReader.ts",
 ] as const;
@@ -707,6 +710,8 @@ const zoneColorPickerTestRetiredGlobalMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:clearZoneColorData|renderChartJS|updateInlineZoneColorSelectors)["']\s*(?:,|\))|\bglobalThis\.(?:clearZoneColorData|renderChartJS|updateInlineZoneColorSelectors)\s*=/u;
 const keyboardShortcutsModalTestRetiredGlobalMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:closeKeyboardShortcutsModal|showKeyboardShortcutsModal)["']\s*(?:,|\))|\bglobalThis\.(?:closeKeyboardShortcutsModal|showKeyboardShortcutsModal)\s*=/u;
+const keyboardShortcutsModalTestDirectAnimationFrameStubPattern =
+    /\bvi\.stubGlobal\(\s*["'](?:cancelAnimationFrame|requestAnimationFrame)["']/u;
 const settingsModalTestRetiredGlobalMutationPattern =
     /\bdelete\s*\(\s*globalThis\s+as[\s\S]{0,120}?\)\.(?:closeSettingsModal|showSettingsModal)\b|\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:closeSettingsModal|showSettingsModal)["']\s*(?:,|\))|\bglobalThis\.(?:closeSettingsModal|showSettingsModal)\s*=/u;
 const lifecycleListenersTestRetiredGlobalMutationPattern =
@@ -757,6 +762,8 @@ const directMenuModalPresenterGlobalPattern =
 const directSettingsModalGlobalPattern =
     /\b(?:window|globalThis|settingsModalGlobal)\.(?:showSettingsModal|closeSettingsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showSettingsModal|closeSettingsModal)["']\s*\)/u;
 const directSettingsModalTimingRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
@@ -3835,6 +3842,28 @@ describe("architecture boundaries", () => {
 
         expect(settingsModalSource).toContain("rendererThemeState.js");
         expect(settingsModalSource).not.toContain("state/core/stateManager.js");
+    });
+
+    it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedKeyboardShortcutsModalRuntimeFiles
+            .filter((relativeFile) =>
+                directKeyboardShortcutsModalTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const keyboardShortcutsModalSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/keyboardShortcutsModal.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime.js"
+        );
     });
 
     it("keeps settings modal timing APIs behind the runtime facade", () => {
@@ -6987,15 +7016,22 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal tests from mutating retired renderer globals", () => {
-        expect.assertions(1);
+        expect.assertions(2);
+
+        const keyboardShortcutsModalTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/utils/ui/modals/keyboardShortcutsModal.test.ts"
+            )
+        );
 
         expect(
             keyboardShortcutsModalTestRetiredGlobalMutationPattern.test(
-                stripComments(
-                    readRepositoryFile(
-                        "tests/unit/utils/ui/modals/keyboardShortcutsModal.test.ts"
-                    )
-                )
+                keyboardShortcutsModalTestSource
+            )
+        ).toBe(false);
+        expect(
+            keyboardShortcutsModalTestDirectAnimationFrameStubPattern.test(
+                keyboardShortcutsModalTestSource
             )
         ).toBe(false);
     });

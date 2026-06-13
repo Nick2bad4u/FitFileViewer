@@ -461,6 +461,7 @@
         "electron-app/utils/ui/modals/aboutModal.ts",
         "electron-app/utils/ui/modals/ensureAboutModal.ts",
         "electron-app/utils/ui/modals/injectModalStyles.ts",
+        "electron-app/utils/ui/modals/keyboardShortcutsModalRuntime.ts",
         "electron-app/utils/ui/modals/keyboardShortcutsModal.ts",
         "electron-app/utils/ui/modals/modalFocusTrap.ts",
         "electron-app/utils/ui/modals/openZoneColorPicker.ts",
