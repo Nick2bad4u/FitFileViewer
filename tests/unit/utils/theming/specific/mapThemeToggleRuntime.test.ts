@@ -62,6 +62,20 @@ describe("getMapThemeToggleRuntime", () => {
         expect(changed).toBe(true);
     });
 
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getMapThemeToggleRuntime({});
+        const controller = new AbortController();
+
+        expect(() => {
+            runtime.addDocumentListener("mapThemeChanged", () => undefined, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapThemeToggle requires a document runtime");
+        controller.abort();
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 

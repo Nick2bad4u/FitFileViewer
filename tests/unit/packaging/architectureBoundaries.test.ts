@@ -468,6 +468,8 @@ const migratedMapThemeToggleRuntimeFiles = [
     "electron-app/utils/theming/specific/createMapThemeToggle.ts",
     "electron-app/utils/theming/specific/mapThemeToggleState.ts",
 ] as const;
+const mapThemeToggleRuntimeSourceFile =
+    "electron-app/utils/theming/specific/mapThemeToggleRuntime.ts";
 const migratedUpdateMapThemeRuntimeFiles = [
     "electron-app/utils/theming/specific/updateMapTheme.ts",
 ] as const;
@@ -6342,7 +6344,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -6356,6 +6358,9 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/theming/specific/mapThemeToggleState.ts"
             )
         );
+        const mapThemeToggleRuntimeSource = stripComments(
+            readRepositoryFile(mapThemeToggleRuntimeSourceFile)
+        );
 
         expect(violations).toStrictEqual([]);
         expect(mapThemeToggleStateSource).toContain(
@@ -6365,6 +6370,12 @@ describe("architecture boundaries", () => {
             "createAbortController"
         );
         expect(mapThemeToggleStateSource).toContain("addDocumentListener");
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "const runtimeDocument = scope.document;"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
     });
 
     it("keeps map theme browser APIs behind the runtime facade", () => {

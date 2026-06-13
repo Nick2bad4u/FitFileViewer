@@ -37,9 +37,11 @@ export function getMapThemeToggleRuntime(
             listener: EventListener,
             options: AddEventListenerOptions & { readonly signal: AbortSignal }
         ): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
+            const runtimeDocument = scope.document;
             if (!runtimeDocument) {
-                return;
+                throw new TypeError(
+                    "mapThemeToggle requires a document runtime"
+                );
             }
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
