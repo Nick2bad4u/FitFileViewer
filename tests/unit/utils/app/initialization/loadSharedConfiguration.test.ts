@@ -22,15 +22,18 @@ const mockSetChartSetting = vi.fn<SetChartSetting>();
 const mockSetChartFieldVisibility = vi.fn<SetChartFieldVisibility>();
 const originalGlobalDescriptors = new Map<
     TestGlobalProperty,
-    PropertyDescriptor | undefined
+    PropertyDescriptor
 >();
 
 function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
     if (!originalGlobalDescriptors.has(name)) {
-        originalGlobalDescriptors.set(
-            name,
-            Object.getOwnPropertyDescriptor(globalThis, name)
-        );
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
     }
 
     Object.defineProperty(globalThis, name, {
@@ -42,11 +45,7 @@ function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
 
 function restoreTestGlobals(): void {
     for (const [name, descriptor] of originalGlobalDescriptors) {
-        if (descriptor) {
-            Object.defineProperty(globalThis, name, descriptor);
-        } else {
-            Reflect.deleteProperty(globalThis, name);
-        }
+        Object.defineProperty(globalThis, name, descriptor);
     }
     originalGlobalDescriptors.clear();
 }

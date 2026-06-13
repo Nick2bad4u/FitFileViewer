@@ -668,7 +668,7 @@ const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
 const processEnvironmentTestDirectProcessDeletePattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
 const loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern =
-    /\b(?:global|globalThis)\.URLSearchParams\s*=/u;
+    /\b(?:global|globalThis)\.URLSearchParams\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']URLSearchParams["']\s*\)/u;
 const directVitestTabButtonObserverCleanupPattern =
     /\btabButtonObserver\b/u;
 const directVitestChartDevToolsGlobalCleanupPattern =
