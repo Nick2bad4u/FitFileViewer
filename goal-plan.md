@@ -406,8 +406,8 @@ Custom map fullscreen-control listener abort-controller creation and document fu
 registration now also route through `mapFullscreenControlRuntime.ts` instead of constructing `AbortController`
 or registering document listeners directly inside `mapFullscreenControl.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct browser APIs from returning. Explicit custom map fullscreen-control
-runtime scopes must now provide their document instead of falling back to `globalThis.document`, with focused
-runtime coverage and architecture coverage blocking that fallback from returning.
+runtime scopes must now provide their document and timer primitives instead of falling back to `globalThis`, with
+focused runtime coverage and architecture coverage blocking those fallbacks from returning.
 Map draw-laps overlay fit-bounds retry scheduling and cleanup now route through `mapDrawLapsRuntime.ts` instead
 of calling timer globals directly inside `mapDrawLaps.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning. Explicit map draw-laps runtime scopes must now

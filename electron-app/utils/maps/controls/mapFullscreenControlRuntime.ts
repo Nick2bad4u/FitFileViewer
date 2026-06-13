@@ -44,8 +44,13 @@ export function getMapFullscreenControlRuntime(
             );
         },
         clearTimeout(timer): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "mapFullscreenControl requires a clearTimeout runtime"
+                );
+            }
+
             clearTimeoutRef(timer);
         },
         createAbortController(): AbortController {
@@ -59,7 +64,13 @@ export function getMapFullscreenControlRuntime(
             return new AbortControllerConstructor();
         },
         setTimeout(callback, delayMs): MapFullscreenControlTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "mapFullscreenControl requires a setTimeout runtime"
+                );
+            }
+
             return setTimeoutRef(callback, delayMs);
         },
     };

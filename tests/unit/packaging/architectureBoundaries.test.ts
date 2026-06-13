@@ -1042,6 +1042,8 @@ const directMapDocumentListenersRuntimeGlobalPattern =
     /\bdocument\.addEventListener\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.window\b|\bnew\s+AbortController\b/u;
 const directMapFullscreenControlRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapFullscreenControlRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapMeasureToolRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapLapSelectorRuntimeGlobalPattern =
@@ -6041,7 +6043,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const violations = migratedMapFullscreenControlRuntimeFiles
             .filter((relativeFile) =>
@@ -6066,6 +6068,12 @@ describe("architecture boundaries", () => {
         expect(mapFullscreenControlSource).toContain("createAbortController");
         expect(mapFullscreenControlRuntimeSource).toContain(
             "const runtimeDocument = scope.document;"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toMatch(
+            directMapFullscreenControlRuntimeAmbientFallbackPattern
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
         );
         expect(mapFullscreenControlRuntimeSource).not.toContain(
             "globalThis.document"

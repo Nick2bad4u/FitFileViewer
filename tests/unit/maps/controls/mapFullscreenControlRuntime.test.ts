@@ -99,4 +99,17 @@ describe("getMapFullscreenControlRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getMapFullscreenControlRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "mapFullscreenControl requires a setTimeout runtime"
+        );
+        expect(() =>
+            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("mapFullscreenControl requires a clearTimeout runtime");
+    });
 });
