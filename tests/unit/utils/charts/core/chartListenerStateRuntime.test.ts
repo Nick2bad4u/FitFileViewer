@@ -24,4 +24,12 @@ describe("getChartListenerStateRuntime", () => {
             }).createAbortController()
         ).toThrow("chartListenerState requires an AbortController");
     });
+
+    it("does not borrow the ambient AbortController for explicit scopes", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getChartListenerStateRuntime({}).createAbortController()
+        ).toThrow("chartListenerState requires an AbortController");
+    });
 });

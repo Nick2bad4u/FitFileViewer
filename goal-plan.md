@@ -309,6 +309,9 @@ fullscreen cleanup abort-controller creation through `addChartHoverEffectsRuntim
 animation-frame/timer globals or constructing `AbortController` directly inside `addChartHoverEffects.ts`, with
 focused runtime coverage and architecture guardrails blocking those direct scheduling/controller globals from
 returning.
+Chart listener lifecycle abort-controller creation now routes through `chartListenerStateRuntime.ts`, and explicit
+runtime scopes must provide their controller instead of falling back to `globalThis.AbortController`, with focused
+runtime coverage and architecture guardrails blocking the ambient controller fallback from returning.
 Quick color switcher delayed dropdown close scheduling and cleanup now route through
 `quickColorSwitcherRuntime.ts` instead of calling timer globals directly inside `quickColorSwitcher.ts`, with
 focused runtime coverage and architecture guardrails blocking those direct timer globals from returning. Quick

@@ -1100,6 +1100,8 @@ const chartStatusIndicatorTestDirectBrowserFixtureAssignmentPattern =
     /\b(?:globalThis|global|testGlobal)\.(?:addEventListener|customElements|document|HTMLElement|setTimeout|window)\s*=|\b(?:document|window)\.addEventListener\s*=|\bReflect\.deleteProperty\(\s*(?:globalThis|document|window)\s*,/u;
 const directChartListenerStateAbortControllerPattern =
     /\bnew\s+AbortController\b/u;
+const directChartListenerStateRuntimeAmbientControllerPattern =
+    /\bglobalThis\.AbortController\b/u;
 const directRenderChartDirectRerenderRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directRenderChartRequestListenerRuntimeGlobalPattern =
@@ -6550,7 +6552,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart listener AbortController creation behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedChartListenerStateRuntimeFiles
             .filter((relativeFile) =>
@@ -6567,9 +6569,20 @@ describe("architecture boundaries", () => {
                     )
             )
             .sort();
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartListenerStateRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(runtimeSource).not.toMatch(
+            directChartListenerStateRuntimeAmbientControllerPattern
+        );
+        expect(runtimeSource).toContain(
+            "const AbortControllerConstructor = scope.AbortController;"
+        );
     });
 
     it("keeps direct chart rerender DOM lookups behind the runtime facade", () => {
