@@ -51,19 +51,22 @@ function noop(): void {
 
 const originalGlobalDescriptors = new Map<
     TestGlobalProperty,
-    PropertyDescriptor | undefined
+    PropertyDescriptor
 >();
 const originalObjectDescriptors = new Map<
     object,
-    Map<TestObjectProperty, PropertyDescriptor | undefined>
+    Map<TestObjectProperty, PropertyDescriptor>
 >();
 
 function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
     if (!originalGlobalDescriptors.has(name)) {
-        originalGlobalDescriptors.set(
-            name,
-            Object.getOwnPropertyDescriptor(globalThis, name)
-        );
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
     }
 
     Object.defineProperty(globalThis, name, {
@@ -71,6 +74,23 @@ function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
         value,
         writable: true,
     });
+}
+
+function getPropertyDescriptorFromChain(
+    target: object,
+    name: TestObjectProperty
+): PropertyDescriptor | undefined {
+    let current: object | null = target;
+
+    while (current) {
+        const descriptor = Object.getOwnPropertyDescriptor(current, name);
+        if (descriptor) {
+            return descriptor;
+        }
+        current = Object.getPrototypeOf(current);
+    }
+
+    return undefined;
 }
 
 function setTestObjectProperty(
@@ -84,7 +104,16 @@ function setTestObjectProperty(
         originalObjectDescriptors.set(target, descriptors);
     }
     if (!descriptors.has(name)) {
-        descriptors.set(name, Object.getOwnPropertyDescriptor(target, name));
+        const descriptor = Object.getOwnPropertyDescriptor(
+            target,
+            name
+        ) ?? getPropertyDescriptorFromChain(target, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected test object property ${name} to exist`);
+        }
+
+        descriptors.set(name, descriptor);
     }
 
     Object.defineProperty(target, name, {
@@ -97,21 +126,13 @@ function setTestObjectProperty(
 function restoreTestGlobals(): void {
     for (const [target, descriptors] of originalObjectDescriptors) {
         for (const [name, descriptor] of descriptors) {
-            if (descriptor) {
-                Object.defineProperty(target, name, descriptor);
-            } else {
-                Reflect.deleteProperty(target, name);
-            }
+            Object.defineProperty(target, name, descriptor);
         }
     }
     originalObjectDescriptors.clear();
 
     for (const [name, descriptor] of originalGlobalDescriptors) {
-        if (descriptor) {
-            Object.defineProperty(globalThis, name, descriptor);
-        } else {
-            Reflect.deleteProperty(globalThis, name);
-        }
+        Object.defineProperty(globalThis, name, descriptor);
     }
     originalGlobalDescriptors.clear();
 }
