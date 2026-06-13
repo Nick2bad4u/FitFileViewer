@@ -546,6 +546,9 @@ About modal show/hide animation timing now routes hide timers, focus timers, cop
 and frame cancellation through `aboutModalRuntime.ts` instead of calling those globals directly in `aboutModal.ts`;
 strict about-modal tests mock that runtime instead of stubbing animation-frame globals, with architecture coverage
 blocking direct source globals and direct test stubs from returning.
+Renderer notification queue timing now routes animation-frame scheduling/cancellation, auto-hide timers, and serialized
+display timers through `showNotificationRuntime.ts` instead of calling timing globals directly in `showNotification.ts`,
+with adapter tests and architecture coverage blocking direct notification timing globals from returning.
 The setup-level `global.HTMLElement = window.HTMLElement` bridge has also been removed; jsdom-backed suites now
 use the environment's native element constructors without another shared global assignment.
 Setup console hardening now uses the existing `ensureConsoleAlive()` path instead of separately patching

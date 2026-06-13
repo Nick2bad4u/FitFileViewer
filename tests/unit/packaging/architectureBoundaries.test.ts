@@ -340,6 +340,9 @@ const migratedKeyboardShortcutsModalRuntimeFiles = [
 const migratedAboutModalRuntimeFiles = [
     "electron-app/utils/ui/modals/aboutModal.ts",
 ] as const;
+const migratedShowNotificationRuntimeFiles = [
+    "electron-app/utils/ui/notifications/showNotification.ts",
+] as const;
 const migratedAltFitSenderRuntimeFiles = [
     "electron-app/utils/files/import/sendFitFileToAltFitReader.ts",
 ] as const;
@@ -769,6 +772,8 @@ const directSettingsModalTimingRuntimeGlobalPattern =
 const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directAboutModalTimingRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directShowNotificationTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
@@ -3905,6 +3910,26 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(settingsModalSource).toContain("settingsModalRuntime.js");
+    });
+
+    it("keeps renderer notification timing APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedShowNotificationRuntimeFiles
+            .filter((relativeFile) =>
+                directShowNotificationTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const notificationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/showNotification.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(notificationSource).toContain("showNotificationRuntime.js");
     });
 
     it("keeps theme setup state access on the renderer theme state facade", () => {

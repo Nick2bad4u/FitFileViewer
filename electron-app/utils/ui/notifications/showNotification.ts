@@ -1,6 +1,10 @@
 // Enhanced notification utility with modern animations, icons, and queue management
 
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
+import {
+    getShowNotificationRuntime,
+    type ShowNotificationTimerHandle,
+} from "./showNotificationRuntime.js";
 
 /** Notification variants supported by the renderer notification utility. */
 export type NotificationType = "error" | "info" | "success" | "warning";
@@ -39,7 +43,7 @@ export type QueuedNotification = {
     readonly type: NotificationType;
 };
 
-type HideTimeout = number | ReturnType<typeof setTimeout>;
+type HideTimeout = ShowNotificationTimerHandle;
 type CleanupFunction = () => void;
 
 /** Notification host element with an optional scheduled hide timer. */
@@ -56,6 +60,7 @@ const activeAnimationFrames = new Set<number>();
 const activeTimeouts = new Set<HideTimeout>();
 let notificationDisplayToken = 0;
 const noopResolveShown = (): void => {};
+const showNotificationRuntime = getShowNotificationRuntime();
 
 // Notification type configurations with icons and default durations
 const NOTIFICATION_TYPES: Record<NotificationType, NotificationTypeConfig> = {
@@ -508,7 +513,7 @@ export const notify = {
 };
 
 function clearNotificationTimeout(timer: HideTimeout): void {
-    clearTimeout(timer);
+    showNotificationRuntime.clearTimeout(timer);
     activeTimeouts.delete(timer);
 }
 
@@ -579,7 +584,7 @@ function clearScheduledWork(): void {
     activeAnimationFrames.clear();
 
     for (const timer of activeTimeouts) {
-        clearTimeout(timer);
+        showNotificationRuntime.clearTimeout(timer);
     }
     activeTimeouts.clear();
 }
@@ -588,22 +593,24 @@ function isNotificationType(value: string): value is NotificationType {
     return Object.hasOwn(NOTIFICATION_TYPES, value);
 }
 
-function scheduleAnimationFrame(callback: FrameRequestCallback): number {
-    const requestFrame =
-        globalThis.window?.requestAnimationFrame ??
-        globalThis.requestAnimationFrame;
+function scheduleAnimationFrame(
+    callback: FrameRequestCallback
+): null | number {
     let completedSynchronously = false;
     const frameReference: { current?: number } = {};
 
-    const frame = requestFrame.call(globalThis.window ?? globalThis, (time) => {
+    const frame = showNotificationRuntime.requestAnimationFrame((time) => {
         completedSynchronously = true;
-        if (frameReference.current !== undefined) {
-            activeAnimationFrames.delete(frameReference.current);
+        const currentFrame = frameReference.current;
+        if (currentFrame !== undefined) {
+            activeAnimationFrames.delete(currentFrame);
         }
         callback(time);
     });
-    frameReference.current = frame;
-    if (!completedSynchronously) {
+    if (frame !== null) {
+        frameReference.current = frame;
+    }
+    if (frame !== null && !completedSynchronously) {
         activeAnimationFrames.add(frame);
     }
     return frame;
@@ -613,7 +620,7 @@ function scheduleNotificationTimeout(
     callback: () => void,
     duration: number
 ): HideTimeout {
-    const timer = setTimeout(() => {
+    const timer = showNotificationRuntime.setTimeout(() => {
         activeTimeouts.delete(timer);
         callback();
     }, duration);
@@ -622,8 +629,5 @@ function scheduleNotificationTimeout(
 }
 
 function cancelNotificationAnimationFrame(frame: number): void {
-    const cancelFrame =
-        globalThis.window?.cancelAnimationFrame ??
-        globalThis.cancelAnimationFrame;
-    cancelFrame.call(globalThis.window ?? globalThis, frame);
+    showNotificationRuntime.cancelAnimationFrame(frame);
 }
