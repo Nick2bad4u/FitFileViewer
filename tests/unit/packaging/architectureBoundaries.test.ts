@@ -731,6 +731,8 @@ const chartTabIntegrationTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']chartTabIntegration["']\s*\)|\bglobalThis\.chartTabIntegration\s*=/u;
 const renderChartRuntimeHelpersTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:chartActions|chartStateManager)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:chartActions|chartStateManager)["']|(?:globalThis|chartGlobal|runtimeGlobal)\.(?:chartActions|chartStateManager)\s*=/u;
+const renderChartRuntimeHelpersTestDirectProcessWindowDeletePattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:process|window)["']\s*\)/u;
 const directMainProcessDevHelpersGlobalPattern =
     /\b(?:window|globalThis)\.devHelpers\b|Object\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)/u;
 const mainProcessDevHelpersTestRetiredGlobalMutationPattern =
@@ -7273,6 +7275,20 @@ describe("architecture boundaries", () => {
 
         expect(
             renderChartRuntimeHelpersTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/charts/core/renderChartRuntimeHelpers.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps render chart runtime helper process and window fixtures descriptor-scoped", () => {
+        expect.assertions(1);
+
+        expect(
+            renderChartRuntimeHelpersTestDirectProcessWindowDeletePattern.test(
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/charts/core/renderChartRuntimeHelpers.test.ts"

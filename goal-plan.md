@@ -397,6 +397,8 @@ Vitest setup no longer deletes a retired `window.__chartjs_dev` cleanup global; 
 behind `chartDevToolsRegistry`.
 Render chart runtime helper tests no longer create or delete retired `chartActions` or `chartStateManager`
 globals when proving registry-based resolution; architecture coverage blocks those mutations from returning.
+Those chart runtime helper tests now also restore process/window fixtures through captured descriptors instead
+of deleting those globals during cleanup, with architecture coverage blocking those fixture delete fallbacks.
 Settings modal tests no longer delete retired `showSettingsModal` or `closeSettingsModal` globals during
 fixture setup or cleanup; they now assert presenter helpers stay absent, and architecture coverage blocks
 those mutations from returning.

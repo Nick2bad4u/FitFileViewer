@@ -29,6 +29,9 @@ const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
     globalThis,
     "process"
 );
+if (!originalProcessDescriptor) {
+    throw new Error("Expected globalThis.process descriptor to exist");
+}
 
 function setGlobalProcess(value: unknown): void {
     Object.defineProperty(globalThis, "process", {
@@ -39,12 +42,7 @@ function setGlobalProcess(value: unknown): void {
 }
 
 function restoreGlobalProcess(): void {
-    if (originalProcessDescriptor) {
-        Object.defineProperty(globalThis, "process", originalProcessDescriptor);
-        return;
-    }
-
-    Reflect.deleteProperty(globalThis, "process");
+    Object.defineProperty(globalThis, "process", originalProcessDescriptor);
 }
 
 function getEnvironmentSnapshot(): {
@@ -66,6 +64,9 @@ describe("render chart runtime helpers", () => {
         globalThis,
         "window"
     );
+    if (!originalWindowDescriptor) {
+        throw new Error("Expected globalThis.window descriptor to exist");
+    }
 
     afterEach(() => {
         setLoadingStateSuppressed(false);
@@ -73,16 +74,7 @@ describe("render chart runtime helpers", () => {
         resetChartStateManagerRegistryForTests();
         restoreGlobalProcess();
         clearChartInstanceRegistryForTests();
-        if (originalWindowDescriptor) {
-            Object.defineProperty(
-                globalThis,
-                "window",
-                originalWindowDescriptor
-            );
-            return;
-        }
-
-        Reflect.deleteProperty(globalThis, "window");
+        Object.defineProperty(globalThis, "window", originalWindowDescriptor);
     });
 
     it("handles missing process globals without touching process.env directly", () => {
