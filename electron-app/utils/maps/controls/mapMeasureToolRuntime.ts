@@ -28,9 +28,9 @@ export function getMapMeasureToolRuntime(
 ): MapMeasureToolRuntime {
     return {
         addDocumentKeydownListener(listener, options): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
+            const runtimeDocument = scope.document;
             if (!runtimeDocument) {
-                return;
+                throw new TypeError("mapMeasureTool requires a document runtime");
             }
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
@@ -52,8 +52,12 @@ export function getMapMeasureToolRuntime(
             return new AbortControllerConstructor();
         },
         removeDocumentKeydownListener(listener): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
-            runtimeDocument?.removeEventListener("keydown", listener);
+            const runtimeDocument = scope.document;
+            if (!runtimeDocument) {
+                throw new TypeError("mapMeasureTool requires a document runtime");
+            }
+
+            runtimeDocument.removeEventListener("keydown", listener);
         },
         setTimeout(callback, delayMs): MapMeasureToolTimer {
             const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;

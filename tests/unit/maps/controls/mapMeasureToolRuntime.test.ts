@@ -70,6 +70,24 @@ describe("getMapMeasureToolRuntime", () => {
         expect(lastKey).toBe("m");
     });
 
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(2);
+
+        const runtime = getMapMeasureToolRuntime({});
+        const controller = new AbortController();
+        const listener = (): void => undefined;
+
+        expect(() => {
+            runtime.addDocumentKeydownListener(listener, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapMeasureTool requires a document runtime");
+        expect(() => {
+            runtime.removeDocumentKeydownListener(listener);
+        }).toThrow("mapMeasureTool requires a document runtime");
+        controller.abort();
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 
