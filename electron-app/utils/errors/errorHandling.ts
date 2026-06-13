@@ -3,6 +3,8 @@
  * application.
  */
 
+import { getErrorHandlingRuntime } from "./errorHandlingRuntime.js";
+
 /**
  * Stable error code strings used across application error boundaries.
  */
@@ -93,6 +95,7 @@ export type Validator<T = unknown> = (
 type MaybePromise<T> = Promise<T> | T;
 
 const globalRef = globalThis;
+const errorHandlingRuntime = getErrorHandlingRuntime();
 let globalErrorListenerAbortController: AbortController | undefined;
 
 function getUnknownErrorMessage(error: unknown): string {
@@ -407,7 +410,8 @@ export function initializeErrorHandling(
 ): void {
     if (typeof globalRef.addEventListener === "function") {
         globalErrorListenerAbortController?.abort();
-        globalErrorListenerAbortController = new AbortController();
+        globalErrorListenerAbortController =
+            errorHandlingRuntime.createAbortController();
         const listenerOptions = {
             signal: globalErrorListenerAbortController.signal,
         };

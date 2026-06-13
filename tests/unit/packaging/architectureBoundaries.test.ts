@@ -954,6 +954,8 @@ const directShowNotificationGlobalLookupPattern =
     /\b(?:window|globalThis|chartGlobal|globalRef|runtimeGlobal|zoneColorGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
 const errorHandlingPerformanceMonitorGlobalLookupPattern =
     /\bglobalRef\.performanceMonitor\b|\bperformanceMonitor\?:\s*\{/u;
+const directErrorHandlingRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const errorHandlingTestDirectPerformanceMonitorFixturePattern =
     /\bglobalRef\.performanceMonitor\s*=|\bReflect\.deleteProperty\(\s*globalRef\s*,\s*["']performanceMonitor["']\s*\)/u;
 const directRendererDevGlobalPattern =
@@ -4613,7 +4615,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -4627,7 +4629,11 @@ describe("architecture boundaries", () => {
                 errorHandlingSource
             )
         ).toBe(false);
+        expect(
+            directErrorHandlingRuntimeGlobalPattern.test(errorHandlingSource)
+        ).toBe(false);
         expect(errorHandlingSource).toContain("notifyUser");
+        expect(errorHandlingSource).toContain("errorHandlingRuntime.js");
     });
 
     it("keeps error handling tests off ambient performance monitor fixtures", () => {

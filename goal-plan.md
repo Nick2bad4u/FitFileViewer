@@ -466,9 +466,11 @@ Renderer development debug runtime metadata now resolves location, navigator, an
 through `developmentDebugToolsRuntime.ts` instead of probing `globalThis` directly inside
 `developmentDebugTools.ts`, with focused runtime coverage and architecture guardrails blocking those direct
 metadata lookups from returning.
-Shared error handling no longer probes `globalRef.performanceMonitor` for ambient telemetry, and its tests no
-longer install or delete a temporary performance-monitor global fixture; architecture coverage blocks both the
-source fallback and test-global mutation pattern from returning.
+Shared error handling no longer probes `globalRef.performanceMonitor` for ambient telemetry, and global
+error-listener abort-controller creation now routes through `errorHandlingRuntime.ts` instead of constructing
+`AbortController` directly inside `errorHandling.ts`; its tests no longer install or delete a temporary
+performance-monitor global fixture; architecture coverage blocks the source fallback, direct controller
+construction, and test-global mutation pattern from returning.
 State development tools now check development-scope availability through the scoped `stateDevToolsRuntime.ts`
 adapter instead of probing `globalThis.window` or `globalThis.location` directly, with architecture coverage
 blocking those runtime-global lookups from returning.
