@@ -427,7 +427,7 @@ export function initializeTheme(): (() => void) | undefined {
  */
 export function listenForSystemThemeChange(): (() => void) | undefined {
     if (globalThis.window !== undefined && globalThis.matchMedia) {
-        const listenerController = new AbortController(),
+        const listenerController = themeRuntime.createAbortController(),
             handleSystemThemeChange = () => {
                 const currentTheme = loadTheme();
                 if (currentTheme === THEME_MODES.AUTO) {

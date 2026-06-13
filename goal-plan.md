@@ -309,9 +309,10 @@ theme toggle button listener controller now also comes from `mapThemeToggleRunti
 controller construction from returning. Map theme update listener cleanup now creates its abort controller through
 `updateMapThemeRuntime.ts` instead of constructing `AbortController` directly inside `updateMapTheme.ts`, with
 focused runtime coverage and architecture coverage blocking that direct controller construction from returning.
-Core theme transition-class removal scheduling now routes through `themeRuntime.ts` instead of calling timer
-globals directly inside `theme.ts`, with focused runtime coverage and architecture guardrails blocking those
-direct timer globals from returning.
+Core theme transition-class removal scheduling and system-theme listener abort-controller creation now route through
+`themeRuntime.ts` instead of calling timer globals or constructing `AbortController` directly inside `theme.ts`,
+with focused runtime coverage and architecture guardrails blocking those direct timer/controller globals from
+returning.
 Setup theme main-process fetch timeout scheduling and cleanup now route through `setupThemeRuntime.ts` instead
 of calling timer globals directly inside `setupTheme.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning.
