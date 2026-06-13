@@ -1,4 +1,5 @@
 import { isRendererDebugLoggingEnabled } from "../../debug/rendererDebugLoggingState.js";
+import { getRendererDebugRuntime } from "../../debug/rendererDebugRuntime.js";
 
 /**
  * Plugin options accepted by the background color chart plugin.
@@ -38,6 +39,7 @@ export interface ChartBackgroundColorPlugin {
 }
 
 const DEFAULT_BACKGROUND_COLOR = "#23263a";
+const rendererDebugRuntime = getRendererDebugRuntime();
 
 function getConfiguredBackgroundColor(
     chart: ChartBackgroundColorChart,
@@ -74,7 +76,9 @@ function getCanvasBackgroundColor(
 }
 
 function shouldLogDebugMessages(): boolean {
-    return globalThis.window !== undefined && isRendererDebugLoggingEnabled();
+    return rendererDebugRuntime.isRendererDebugLoggingAvailable(
+        isRendererDebugLoggingEnabled()
+    );
 }
 
 /**

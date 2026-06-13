@@ -315,6 +315,10 @@ probing `globalThis.document` or `globalThis.window` inside the feature module, 
 blocking those direct runtime lookups from returning to `updateActiveTab.ts`.
 Animation debug logging tests no longer seed the retired `__renderer_dev` global when proving typed renderer
 debug logging state controls animation logs, and architecture coverage keeps that test off the old global.
+Chart background, zoom-reset, and animation debug logging callers now check renderer availability through
+`rendererDebugRuntime.ts` instead of probing `globalThis.window` directly, while still taking the debug-enabled
+state from `rendererDebugLoggingState.ts`; focused runtime coverage and architecture guardrails block the direct
+renderer-window checks from returning.
 Strict renderer startup tests also no longer delete the retired `__renderer_dev` global during fresh imports,
 with architecture coverage keeping that startup test on the typed renderer development helpers.
 Renderer development debug tests no longer clean up retired debug globals such as `__renderer_debug`,

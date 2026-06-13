@@ -2,6 +2,7 @@ import { getThemeConfig } from "../../theming/core/theme.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { isRendererDebugLoggingEnabled } from "../../debug/rendererDebugLoggingState.js";
+import { getRendererDebugRuntime } from "../../debug/rendererDebugRuntime.js";
 
 /**
  * Bounds for the rendered reset-zoom overlay button.
@@ -64,6 +65,7 @@ const BUTTON_HEIGHT = 30,
     BUTTON_Y = 12,
     FALLBACK_ACCENT = "#667eea",
     FALLBACK_TEXT_PRIMARY = "#ffffff";
+const rendererDebugRuntime = getRendererDebugRuntime();
 
 function getThemeColor(colorKey: string, fallback: string): string {
     const value = getThemeConfig().colors[colorKey];
@@ -72,7 +74,9 @@ function getThemeColor(colorKey: string, fallback: string): string {
 }
 
 function shouldLogDebugWarnings(): boolean {
-    return globalThis.window !== undefined && isRendererDebugLoggingEnabled();
+    return rendererDebugRuntime.isRendererDebugLoggingAvailable(
+        isRendererDebugLoggingEnabled()
+    );
 }
 
 function normalizeRadius(radius: unknown): CornerRadii {

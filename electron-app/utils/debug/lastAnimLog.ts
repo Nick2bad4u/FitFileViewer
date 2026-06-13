@@ -4,6 +4,9 @@
 
 import { isDevelopmentEnvironment } from "../runtime/processEnvironment.js";
 import { isRendererDebugLoggingEnabled } from "./rendererDebugLoggingState.js";
+import { getRendererDebugRuntime } from "./rendererDebugRuntime.js";
+
+const rendererDebugRuntime = getRendererDebugRuntime();
 
 /**
  * Checks whether renderer animation debug logging should be enabled.
@@ -12,7 +15,9 @@ import { isRendererDebugLoggingEnabled } from "./rendererDebugLoggingState.js";
  */
 function isDevelopmentMode(): boolean {
     return (
-        (globalThis.window !== undefined && isRendererDebugLoggingEnabled()) ||
+        rendererDebugRuntime.isRendererDebugLoggingAvailable(
+            isRendererDebugLoggingEnabled()
+        ) ||
         isDevelopmentEnvironment()
     );
 }

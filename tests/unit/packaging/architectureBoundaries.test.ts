@@ -4202,7 +4202,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer debug logging callers on typed state", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const violations = migratedRendererDebugLoggingStateFiles
             .filter((relativeFile) =>
@@ -4213,6 +4213,23 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+        expect(
+            migratedRendererDebugLoggingStateFiles.filter((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "globalThis.window"
+                )
+            )
+        ).toStrictEqual([]);
+    });
+
+    it("keeps renderer debug logging runtime checks behind the debug runtime adapter", () => {
+        expect.assertions(3);
+
+        for (const relativeFile of migratedRendererDebugLoggingStateFiles) {
+            expect(stripComments(readRepositoryFile(relativeFile))).toContain(
+                "rendererDebugRuntime.js"
+            );
+        }
     });
 
     it("keeps animation debug logging tests off renderer dev globals", () => {
