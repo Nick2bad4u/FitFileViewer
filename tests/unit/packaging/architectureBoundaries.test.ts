@@ -552,6 +552,8 @@ const migratedShownFilesListRuntimeFiles = [
     "electron-app/utils/rendering/components/shownFilesListItemHandlers.ts",
     "electron-app/utils/rendering/components/shownFilesListTooltipState.ts",
 ] as const;
+const shownFilesListRuntimeSourceFile =
+    "electron-app/utils/rendering/components/shownFilesListRuntime.ts";
 const migratedCreditsMarqueeRuntimeFiles = [
     "electron-app/utils/ui/layout/enhanceCreditsSection.ts",
 ] as const;
@@ -7122,7 +7124,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -7137,9 +7139,18 @@ describe("architecture boundaries", () => {
                 return !source.includes("shownFilesListRuntime.js");
             })
             .sort();
+        const shownFilesListRuntimeSource = stripComments(
+            readRepositoryFile(shownFilesListRuntimeSourceFile)
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(shownFilesListRuntimeSource).toContain(
+            "const body = scope.document?.body;"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
         const shownFilesItemHandlerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/rendering/components/shownFilesListItemHandlers.ts"

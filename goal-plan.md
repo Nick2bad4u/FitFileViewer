@@ -360,7 +360,9 @@ Shown-files list tooltip cleanup, delayed tooltip display, polyline highlight fa
 timeout cleanup, listener abort-controller creation, body theme-listener registration, tooltip mousemove
 registration, and viewport reads now route through `shownFilesListRuntime.ts` instead of calling timer,
 listener, controller, or viewport globals directly inside the shown-files list modules, with focused runtime
-coverage and architecture guardrails blocking those direct browser globals from returning.
+coverage and architecture guardrails blocking those direct browser globals from returning. Explicit shown-files
+list runtime scopes must now provide their document body instead of falling back to `globalThis.document.body`,
+with focused runtime coverage and architecture coverage blocking that fallback from returning.
 Fallback map measurement button re-enable scheduling and cleanup now route through `mapMeasureToolRuntime.ts`
 instead of calling timer globals directly inside `mapMeasureTool.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct timer globals from returning. Map measurement Escape-key listener

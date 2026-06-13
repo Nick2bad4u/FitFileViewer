@@ -62,6 +62,20 @@ describe("getShownFilesListRuntime", () => {
         expect(themeApplied).toBe(true);
     });
 
+    it("fails clearly when the document body runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getShownFilesListRuntime({});
+        const controller = new AbortController();
+
+        expect(() => {
+            runtime.addBodyThemeChangeListener(() => undefined, {
+                signal: controller.signal,
+            });
+        }).toThrow("shownFilesList requires a document body runtime");
+        controller.abort();
+    });
+
     it("registers mousemove listeners through the injected runtime scope", () => {
         expect.assertions(3);
 

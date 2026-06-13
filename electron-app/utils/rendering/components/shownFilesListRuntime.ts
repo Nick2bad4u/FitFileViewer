@@ -56,7 +56,7 @@ export function getShownFilesListRuntime(
             listener: EventListener,
             options: AddEventListenerOptions & { readonly signal: AbortSignal }
         ): void {
-            const body = scope.document?.body ?? globalThis.document?.body;
+            const body = scope.document?.body;
             if (!body) {
                 throw new TypeError(
                     "shownFilesList requires a document body runtime"
