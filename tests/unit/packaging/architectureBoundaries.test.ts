@@ -4772,7 +4772,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter control browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedCreateDataPointFilterControlRuntimeFiles
             .filter((relativeFile) =>
@@ -4786,10 +4786,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createDataPointFilterControl.ts"
             )
         );
+        const dataPointFilterControlRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createDataPointFilterControlRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(dataPointFilterControlSource).toContain(
             "createDataPointFilterControlRuntime.js"
+        );
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
+            "globalThis.AbortController"
+        );
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
+            "globalThis.queueMicrotask"
         );
     });
 

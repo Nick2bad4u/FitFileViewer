@@ -14,9 +14,7 @@ function getAbortControllerConstructor(
     scope: CreateDataPointFilterControlRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createDataPointFilterControl requires an AbortController runtime"
@@ -54,8 +52,7 @@ export function getCreateDataPointFilterControlRuntime(
         scheduleMicrotask(callback: VoidFunction): void {
             const microtaskScheduler =
                 scope.queueMicrotask ??
-                scope.document?.defaultView?.queueMicrotask ??
-                globalThis.queueMicrotask;
+                scope.document?.defaultView?.queueMicrotask;
             if (typeof microtaskScheduler === "function") {
                 microtaskScheduler(callback);
                 return;

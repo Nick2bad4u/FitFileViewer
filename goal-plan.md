@@ -460,6 +460,9 @@ Data-point filter control tests now install and restore temporary animation-fram
 descriptor-scoped helpers instead of assigning or deleting `globalThis.requestAnimationFrame`,
 `globalThis.cancelAnimationFrame`, or `globalThis.queueMicrotask` directly, with architecture coverage blocking
 that fixture mutation pattern.
+The data-point filter control runtime facade now resolves AbortController and microtask scheduling from its
+explicit scope or document window instead of separately probing `globalThis.AbortController` or
+`globalThis.queueMicrotask` for custom scopes, with architecture coverage blocking those ambient fallbacks.
 Shared configuration tests now install and restore the throwing `URLSearchParams` fixture through a
 descriptor-scoped helper instead of assigning or deleting `global.URLSearchParams` directly, with architecture
 coverage blocking that fixture mutation pattern.
