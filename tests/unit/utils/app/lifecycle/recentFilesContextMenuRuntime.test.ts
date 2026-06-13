@@ -93,4 +93,19 @@ describe("recentFilesContextMenuRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getRecentFilesContextMenuRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "recent files context menu requires a setTimeout runtime"
+        );
+        expect(() => {
+            runtime.clearTimeout(
+                31 as ReturnType<typeof globalThis.setTimeout>
+            );
+        }).toThrow("recent files context menu requires a clearTimeout runtime");
+    });
 });

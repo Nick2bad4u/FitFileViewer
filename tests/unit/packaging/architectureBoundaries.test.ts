@@ -5184,15 +5184,22 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/app/lifecycle/recentFilesContextMenu.ts"
             )
         );
+        const recentFilesContextMenuRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/recentFilesContextMenuRuntime.ts"
+            )
+        );
         const directRecentFilesContextMenuRuntimeGlobalPattern =
             /\b(?:globalThis|window)\.(?:clearTimeout|innerHeight|innerWidth|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+        const directRecentFilesContextMenuAmbientTimerFallbackPattern =
+            /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 
         expect(recentFilesContextMenuSource).toContain(
             "recentFilesContextMenuRuntime.js"
@@ -5208,6 +5215,12 @@ describe("architecture boundaries", () => {
                 recentFilesContextMenuSource
             )
         ).toBe(false);
+        expect(recentFilesContextMenuRuntimeSource).not.toMatch(
+            directRecentFilesContextMenuAmbientTimerFallbackPattern
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "recent files context menu requires a setTimeout runtime"
+        );
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
