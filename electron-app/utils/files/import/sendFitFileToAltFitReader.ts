@@ -59,7 +59,7 @@ export function sendFitFileToAltFitReader(
         !iframe.src ||
         !iframe.src.includes(FILE_CONSTANTS.IFRAME_PATHS.ALT_FIT)
     ) {
-        const abortController = new AbortController();
+        const abortController = runtimeEnvironment.createAbortController();
         iframe.src = FILE_CONSTANTS.IFRAME_PATHS.ALT_FIT;
         iframe.addEventListener("load", postToIframe, {
             once: true,
@@ -73,7 +73,7 @@ export function sendFitFileToAltFitReader(
         return;
     }
 
-    const abortController = new AbortController();
+    const abortController = runtimeEnvironment.createAbortController();
     iframe.addEventListener("load", postToIframe, {
         once: true,
         signal: abortController.signal,

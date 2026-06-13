@@ -573,6 +573,10 @@ blocks that mutation from returning.
 Lifecycle listener strict tests no longer delete or define retired helper globals such as `globalData`,
 `sendFitFileToAltFitReader`, `renderChartJS`, `copyTableAsCSV`, or `createExportGPXButton`; they now assert
 those names stay absent, and architecture coverage blocks those mutations from returning.
+Alt FIT iframe lookup, logging, location reads, and load-listener abort-controller creation now route through
+`altFitSenderRuntime.ts` instead of probing global defaults or constructing controllers directly inside
+`sendFitFileToAltFitReader.ts`, with focused runtime coverage and architecture coverage blocking those direct
+Alt FIT sender runtime primitives from returning.
 Lifecycle listener strict tests now mock `window.print` through a Vitest spy instead of assigning
 `window.print` directly, with architecture coverage blocking that direct print fixture.
 Tab-button behavior tests no longer delete retired enabled-state, observer, or diagnostic helper globals such

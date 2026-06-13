@@ -1021,7 +1021,7 @@ const directFitBrowserFeatureGateRuntimeGlobalPattern =
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
     /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
 const directAltFitSenderRuntimeGlobalPattern =
-    /\bglobalThis\.(?:console|document|location)\b/u;
+    /\bglobalThis\.(?:console|document|location)\b|\bnew\s+AbortController\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|location|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directGetCurrentSettingsRuntimeGlobalPattern =
@@ -5934,7 +5934,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated AltFit handoff defaults behind the runtime facade", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const violations = migratedAltFitSenderRuntimeFiles
             .filter((relativeFile) =>
@@ -5944,7 +5944,15 @@ describe("architecture boundaries", () => {
             )
             .sort();
 
+        const altFitSenderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/sendFitFileToAltFitReader.ts"
+            )
+        );
+
         expect(violations).toStrictEqual([]);
+        expect(altFitSenderSource).toContain("altFitSenderRuntime.js");
+        expect(altFitSenderSource).toContain("createAbortController");
     });
 
     it("keeps shared configuration URL reads behind the runtime facade", () => {
