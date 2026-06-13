@@ -1084,6 +1084,8 @@ const directLazyRenderingRuntimeAmbientFallbackPattern =
     /\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
 const directListenersResizeRuntimeGlobalPattern =
     /\b(?:document|window|globalThis)\.|\bReflect\.get\(|\bnew\s+AbortController\b|\binstanceof\s+(?:Element|HTMLCanvasElement)\b|\bquerySelectorByIdFlexible\(\s*document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|requestAnimationFrame|cancelAnimationFrame)\(/u;
+const directListenersResizeRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const directThemeCoreRuntimeGlobalPattern =
@@ -6529,7 +6531,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedListenersResizeRuntimeFiles
             .filter((relativeFile) =>
@@ -6543,10 +6545,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/lifecycle/listenersResize.ts"
             )
         );
+        const listenersResizeRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/listenersResizeRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(listenersResizeSource).toContain("listenersResizeRuntime.js");
         expect(listenersResizeSource).toContain("createAbortController");
+        expect(listenersResizeRuntimeSource).not.toMatch(
+            directListenersResizeRuntimeAmbientTimerFallbackPattern
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "listenersResize requires a setTimeout runtime"
+        );
     });
 
     it("keeps chart theme browser reads behind the runtime facade", () => {

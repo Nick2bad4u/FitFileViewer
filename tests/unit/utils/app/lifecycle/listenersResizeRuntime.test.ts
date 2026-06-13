@@ -202,6 +202,19 @@ describe("getListenersResizeRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(7);
     });
 
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getListenersResizeRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "listenersResize requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(7)).toThrow(
+            "listenersResize requires a clearTimeout runtime"
+        );
+    });
+
     it("returns undefined when animation frames are unavailable", () => {
         expect.assertions(1);
 

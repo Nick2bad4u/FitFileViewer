@@ -90,7 +90,13 @@ export function getListenersResizeRuntime(
             scope.cancelAnimationFrame?.(handle);
         },
         clearTimeout(handle: ListenersResizeTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "listenersResize requires a clearTimeout runtime"
+                );
+            }
+
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
@@ -160,7 +166,13 @@ export function getListenersResizeRuntime(
             callback: () => void,
             timeout: number
         ): ListenersResizeTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "listenersResize requires a setTimeout runtime"
+                );
+            }
+
             return setTimeoutRef(callback, timeout);
         },
     };
