@@ -66,6 +66,20 @@ describe("getMapFullscreenControlRuntime", () => {
         expect(controller.signal.aborted).toBe(true);
     });
 
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getMapFullscreenControlRuntime({});
+        const controller = new AbortController();
+
+        expect(() => {
+            runtime.addDocumentFullscreenChangeListener(() => undefined, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapFullscreenControl requires a document runtime");
+        controller.abort();
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 

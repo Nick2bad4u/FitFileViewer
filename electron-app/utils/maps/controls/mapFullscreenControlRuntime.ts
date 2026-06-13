@@ -29,9 +29,11 @@ export function getMapFullscreenControlRuntime(
 ): MapFullscreenControlRuntime {
     return {
         addDocumentFullscreenChangeListener(listener, options): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
+            const runtimeDocument = scope.document;
             if (!runtimeDocument) {
-                return;
+                throw new TypeError(
+                    "mapFullscreenControl requires a document runtime"
+                );
             }
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
