@@ -365,6 +365,9 @@ globals from returning.
 User/device info box listener cleanup now creates abort controllers through `createUserDeviceInfoBoxRuntime.ts`
 instead of constructing `AbortController` directly inside `createUserDeviceInfoBox.ts`, with focused runtime
 coverage and architecture guardrails blocking direct controller construction from returning.
+Map print button listener cleanup now creates abort controllers through `createPrintButtonRuntime.ts` instead
+of constructing `AbortController` directly inside `createPrintButton.ts`, with focused runtime coverage and
+architecture guardrails blocking direct controller construction from returning.
 State integration persistence debounce, performance-monitoring interval, storage lookup, performance-memory read,
 and clock reads now route through `stateIntegrationRuntime.ts` instead of calling runtime globals directly inside
 `stateIntegration.ts`, with focused runtime coverage and architecture guardrails blocking those direct runtime

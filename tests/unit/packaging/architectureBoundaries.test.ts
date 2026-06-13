@@ -1131,7 +1131,7 @@ const directCreateFieldTogglesSectionRuntimeGlobalPattern =
 const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|dispatchEvent)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b/u;
+    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b|\bnew\s+AbortController\b/u;
 const directCopyTableAsCSVRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|execCommand)\b|\bnavigator\.clipboard\b/u;
 const directCreateExportGPXButtonRuntimeGlobalPattern =
@@ -5261,7 +5261,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps print button browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedCreatePrintButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -5280,6 +5280,7 @@ describe("architecture boundaries", () => {
         expect(createPrintButtonSource).toContain(
             "createPrintButtonRuntime.js"
         );
+        expect(createPrintButtonSource).toContain("createAbortController");
     });
 
     it("keeps CSV clipboard browser APIs behind the runtime facade", () => {

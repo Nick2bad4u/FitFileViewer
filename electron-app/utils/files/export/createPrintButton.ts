@@ -84,7 +84,7 @@ export function createPrintButton(): HTMLButtonElement {
         printBtn.title = "Print or export the current map view";
         printBtn.setAttribute("aria-label", "Print or export map");
 
-        const printButtonController = new AbortController();
+        const printButtonController = runtime.createAbortController();
         printBtn.addEventListener(
             "click",
             () => {
