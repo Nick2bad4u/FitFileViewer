@@ -310,28 +310,28 @@ describe("workspace path helpers", () => {
             "electron-app/renderer/rendererVendorMap.ts"
         );
         expect(workspaces.rendererVendorBundleName).toBe(
-            "vendor-globals"
+            "renderer-vendor"
         );
         expect(workspaces.rendererVendorChartDataBundleName).toBe(
-            "vendor-globals-chart-data"
+            "renderer-vendor-chart-data"
         );
         expect(workspaces.rendererVendorChartDataScriptFileName).toBe(
-            "vendor-globals-chart-data.js"
+            "renderer-vendor-chart-data.js"
         );
         expect(workspaces.rendererVendorCoreBundleName).toBe(
-            "vendor-globals-core"
+            "renderer-vendor-core"
         );
         expect(workspaces.rendererVendorCoreScriptFileName).toBe(
-            "vendor-globals-core.js"
+            "renderer-vendor-core.js"
         );
         expect(workspaces.rendererVendorMapBundleName).toBe(
-            "vendor-globals-map"
+            "renderer-vendor-map"
         );
         expect(workspaces.rendererVendorMapScriptFileName).toBe(
-            "vendor-globals-map.js"
+            "renderer-vendor-map.js"
         );
         expect(workspaces.rendererVendorStyleFileName).toBe(
-            "vendor-globals.css"
+            "renderer-vendor.css"
         );
         expect({
             alternativeViewerAssets:

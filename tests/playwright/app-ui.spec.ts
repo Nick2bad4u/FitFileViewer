@@ -995,7 +995,7 @@ test.describe("FitFileViewer Electron UI", () => {
                         undefined,
                 hasCoreVendorScript: Boolean(
                     document.querySelector(
-                        'script[src*="vendor-globals-core.js"]'
+                        'script[src*="renderer-vendor-core.js"]'
                     )
                 ),
                 hasVendorBundleGlobal:

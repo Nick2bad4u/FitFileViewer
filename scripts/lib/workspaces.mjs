@@ -210,11 +210,11 @@ export const appRendererVendorMapEntryPath = appSourceRepositoryPath(
     "renderer",
     "rendererVendorMap.ts"
 );
-export const rendererVendorBundleName = "vendor-globals";
+export const rendererVendorBundleName = "renderer-vendor";
 export const rendererVendorChartDataBundleName =
-    "vendor-globals-chart-data";
-export const rendererVendorCoreBundleName = "vendor-globals-core";
-export const rendererVendorMapBundleName = "vendor-globals-map";
+    "renderer-vendor-chart-data";
+export const rendererVendorCoreBundleName = "renderer-vendor-core";
+export const rendererVendorMapBundleName = "renderer-vendor-map";
 export const rendererVendorChartDataScriptFileName = `${rendererVendorChartDataBundleName}.js`;
 export const rendererVendorCoreScriptFileName = `${rendererVendorCoreBundleName}.js`;
 export const rendererVendorMapScriptFileName = `${rendererVendorMapBundleName}.js`;

@@ -172,16 +172,16 @@ describe("renderer vendor asset policy", () => {
             [...rendererManagedBrowserPackages].sort()
         );
         expect(staticAppIndex).not.toContain(
-            'src="renderer/vendor-globals-core.js"'
+            'src="renderer/renderer-vendor-core.js"'
         );
         expect(staticAppIndex).not.toContain(
-            'src="renderer/vendor-globals-chart-data.js"'
+            'src="renderer/renderer-vendor-chart-data.js"'
         );
         expect(staticAppIndex).not.toContain(
-            'src="renderer/vendor-globals-map.js"'
+            'src="renderer/renderer-vendor-map.js"'
         );
         expect(staticAppIndex).not.toContain(
-            'src="renderer/vendor-globals.js"'
+            'src="renderer/renderer-vendor.js"'
         );
     });
 
@@ -198,7 +198,7 @@ describe("renderer vendor asset policy", () => {
                 ])
             )
         );
-        expect(staticAppIndex).toContain('href="renderer/vendor-globals.css"');
+        expect(staticAppIndex).toContain('href="renderer/renderer-vendor.css"');
         expect(staticAppIndex).not.toContain("node_modules");
         expect(staticAppIndex).not.toContain("vendor/");
     });

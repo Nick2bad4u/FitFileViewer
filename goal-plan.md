@@ -204,6 +204,9 @@ transform for Leaflet.draw has been removed. Leaflet.draw now loads through the
 `fitfileviewer:leaflet-draw-runtime` virtual side-effect module, which gives the package dist file a
 module-scoped Leaflet import without publishing a persistent `L` global. Leaflet runtime unit tests now reset only the typed module-local adapter instead of
 deleting retired `L` globals from `globalThis`.
+Generated split renderer vendor assets now use `renderer-vendor*.js/css` filenames instead of the retired
+`vendor-globals*.js/css` compatibility wording, while preserving the typed loader entry semantics and runtime
+readiness event flow.
 
 3. Finish Shrinking The Renderer Composition Root (Complete)
 
