@@ -1066,6 +1066,8 @@ const themeAdditionalTestDirectGlobalFixtureMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:getComputedStyle|localStorage|matchMedia)["']\s*(?:,|\))/u;
 const uiStateManagerTestDirectMatchMediaMutationPattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*\)/u;
+const directUiStateManagerBrowserRuntimePattern =
+    /\bnew\s+AbortController\b|\bglobalThis\.(?:matchMedia|window)\b|\bwindow\.addEventListener\b/u;
 const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapThemeToggleRuntimeGlobalPattern =
@@ -4312,6 +4314,24 @@ describe("architecture boundaries", () => {
                     )
                 )
             )
+        ).toBe(false);
+    });
+
+    it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
+        expect.assertions(5);
+
+        const uiStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/uiStateManager.ts"
+            )
+        );
+
+        expect(uiStateManagerSource).toContain("uiStateManagerRuntime.js");
+        expect(uiStateManagerSource).toContain("createAbortController");
+        expect(uiStateManagerSource).toContain("addWindowEventListener");
+        expect(uiStateManagerSource).toContain("getSystemThemeMediaQuery");
+        expect(
+            directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
         ).toBe(false);
     });
 

@@ -643,6 +643,11 @@ globals during cleanup, with architecture coverage blocking that fixture mutatio
 UI state manager theme tests now install and restore temporary `matchMedia` fixtures through a descriptor-scoped
 helper instead of defining or deleting `globalThis.matchMedia` directly, with architecture coverage blocking
 that fixture mutation pattern.
+UI state manager system-theme media-query lookup, listener abort-controller creation, and module-level window
+resize/beforeunload listener registration now route through `uiStateManagerRuntime.ts` instead of probing
+`globalThis.window`, probing `globalThis.matchMedia`, registering on `window.addEventListener`, or constructing
+`AbortController` directly inside `uiStateManager.ts`, with focused runtime coverage and architecture guardrails
+blocking those direct browser/controller operations from returning.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of
 stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFrame`, or
 `cancelAnimationFrame` globals, with architecture coverage blocking that fixture mutation pattern.
