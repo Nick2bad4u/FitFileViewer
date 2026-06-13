@@ -898,6 +898,8 @@ const directSettingsModalGlobalPattern =
     /\b(?:window|globalThis|settingsModalGlobal)\.(?:showSettingsModal|closeSettingsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showSettingsModal|closeSettingsModal)["']\s*\)/u;
 const directSettingsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directModalRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\(/u;
 const directDragDropHandlerTimingRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|requestAnimationFrame)\b|(?:^|[^\w.])(?:cancelAnimationFrame|requestAnimationFrame)\(/u;
 const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
@@ -4197,7 +4199,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -4211,15 +4213,26 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/modals/keyboardShortcutsModal.ts"
             )
         );
+        const keyboardShortcutsModalRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/keyboardShortcutsModalRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(keyboardShortcutsModalSource).toContain(
             "keyboardShortcutsModalRuntime.js"
         );
+        expect(keyboardShortcutsModalRuntimeSource).not.toMatch(
+            directModalRuntimeAmbientTimerFallbackPattern
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "keyboardShortcutsModalRuntime requires a setTimeout runtime"
+        );
     });
 
     it("keeps about modal timing APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedAboutModalRuntimeFiles
             .filter((relativeFile) =>
@@ -4231,13 +4244,24 @@ describe("architecture boundaries", () => {
         const aboutModalSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/modals/aboutModal.ts")
         );
+        const aboutModalRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/aboutModalRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(aboutModalSource).toContain("aboutModalRuntime.js");
+        expect(aboutModalRuntimeSource).not.toMatch(
+            directModalRuntimeAmbientTimerFallbackPattern
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "aboutModalRuntime requires a setTimeout runtime"
+        );
     });
 
     it("keeps settings modal timing APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -4249,9 +4273,18 @@ describe("architecture boundaries", () => {
         const settingsModalSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/settingsModal.ts")
         );
+        const settingsModalRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/settingsModalRuntime.ts")
+        );
 
         expect(violations).toStrictEqual([]);
         expect(settingsModalSource).toContain("settingsModalRuntime.js");
+        expect(settingsModalRuntimeSource).not.toMatch(
+            directModalRuntimeAmbientTimerFallbackPattern
+        );
+        expect(settingsModalRuntimeSource).toContain(
+            "settingsModalRuntime requires a setTimeout runtime"
+        );
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {

@@ -27,6 +27,19 @@ describe("getSettingsModalRuntime", () => {
         });
     });
 
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getSettingsModalRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "settingsModalRuntime requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "settingsModalRuntime requires a clearTimeout runtime"
+        );
+    });
+
     it("schedules animation frames through the injected runtime scope", () => {
         expect.assertions(3);
 

@@ -27,6 +27,19 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         });
     });
 
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getKeyboardShortcutsModalRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "keyboardShortcutsModalRuntime requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "keyboardShortcutsModalRuntime requires a clearTimeout runtime"
+        );
+    });
+
     it("schedules animation frames through the injected runtime scope", () => {
         expect.assertions(3);
 

@@ -29,11 +29,12 @@ export function getSettingsModalRuntime(
             scope.cancelAnimationFrame?.(handle);
         },
         clearTimeout(handle: SettingsModalTimerHandle): void {
-            if (typeof scope.clearTimeout === "function") {
-                scope.clearTimeout(handle);
-                return;
+            if (typeof scope.clearTimeout !== "function") {
+                throw new TypeError(
+                    "settingsModalRuntime requires a clearTimeout runtime"
+                );
             }
-            globalThis.clearTimeout(handle);
+            scope.clearTimeout(handle);
         },
         requestAnimationFrame(onFrame: FrameRequestCallback): null | number {
             if (typeof scope.requestAnimationFrame !== "function") {
@@ -47,10 +48,12 @@ export function getSettingsModalRuntime(
             callback: () => void,
             delay: number
         ): SettingsModalTimerHandle {
-            if (typeof scope.setTimeout === "function") {
-                return scope.setTimeout(callback, delay);
+            if (typeof scope.setTimeout !== "function") {
+                throw new TypeError(
+                    "settingsModalRuntime requires a setTimeout runtime"
+                );
             }
-            return globalThis.setTimeout(callback, delay);
+            return scope.setTimeout(callback, delay);
         },
     };
 }

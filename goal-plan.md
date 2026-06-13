@@ -795,7 +795,9 @@ Tab-button behavior tests now install and restore temporary `window`, `getComput
 `global.window.MutationObserver` directly, with architecture coverage blocking that fixture mutation pattern.
 Settings modal show/close animation timing now routes close timers, timer clearing, frame scheduling, and frame
 cancellation through `settingsModalRuntime.ts` instead of calling those globals directly in `settingsModal.ts`,
-with runtime adapter tests and architecture coverage blocking direct timing globals from returning.
+with explicit runtime scopes now required to provide close-timer primitives instead of falling back to
+`globalThis`, and runtime adapter tests plus architecture coverage blocking direct timing globals and ambient
+timer fallbacks from returning.
 Drag/drop overlay animation timing and file-reader listener cleanup now route animation-frame scheduling,
 cancellation, and abort-controller creation through `dragDropHandlerRuntime.ts` instead of calling those globals or
 constructing controllers directly in `dragDropHandler.ts`, with runtime adapter tests and architecture coverage
@@ -823,11 +825,14 @@ their own focused fixtures.
 Keyboard-shortcuts modal show/close animation timing now routes close timers, timer clearing, frame scheduling, and
 frame cancellation through `keyboardShortcutsModalRuntime.ts` instead of calling those globals directly in
 `keyboardShortcutsModal.ts`; its unit tests mock that runtime instead of stubbing animation-frame globals, with
-architecture coverage blocking both direct source globals and direct test stubs from returning.
+explicit runtime scopes now required to provide close-timer primitives instead of falling back to `globalThis`,
+and architecture coverage blocking direct source globals, ambient timer fallbacks, and direct test stubs from
+returning.
 About modal show/hide animation timing now routes hide timers, focus timers, copy-feedback timers, frame scheduling,
 and frame cancellation through `aboutModalRuntime.ts` instead of calling those globals directly in `aboutModal.ts`;
-strict about-modal tests mock that runtime instead of stubbing animation-frame globals, with architecture coverage
-blocking direct source globals and direct test stubs from returning.
+explicit runtime scopes now required to provide hide/focus/copy-feedback timer primitives instead of falling back
+to `globalThis`, and strict about-modal tests mock that runtime instead of stubbing animation-frame globals, with
+architecture coverage blocking direct source globals, ambient timer fallbacks, and direct test stubs from returning.
 Renderer notification queue timing now routes animation-frame scheduling/cancellation, auto-hide timers, and serialized
 display timers through `showNotificationRuntime.ts` instead of calling timing globals directly in `showNotification.ts`,
 with adapter tests and architecture coverage blocking direct notification timing globals from returning.
