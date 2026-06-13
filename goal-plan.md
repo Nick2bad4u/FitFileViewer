@@ -381,9 +381,9 @@ architecture guardrails blocking those direct timer globals from returning. Map 
 abort-controller creation and document keydown listener registration/removal now also route through
 `mapMeasureToolRuntime.ts` instead of constructing `AbortController` or registering/removing document listeners
 directly inside `mapMeasureTool.ts`, with focused runtime coverage and architecture guardrails blocking those
-direct browser APIs from returning. Explicit map measurement runtime scopes must now provide their document
-instead of falling back to `globalThis.document`, with focused runtime coverage and architecture coverage blocking
-that fallback from returning.
+direct browser APIs from returning. Explicit map measurement runtime scopes must now provide their document and
+timer primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture coverage
+blocking those fallbacks from returning.
 Map lap selector listener abort-controller creation and document mouse/key listener registration/removal now route
 through `mapLapSelectorRuntime.ts` instead of constructing `AbortController` or touching document listeners
 directly inside `mapLapSelector.ts`, with focused runtime coverage and architecture guardrails blocking those

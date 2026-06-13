@@ -37,8 +37,13 @@ export function getMapMeasureToolRuntime(
             runtimeDocument.addEventListener("keydown", listener, options);
         },
         clearTimeout(timer): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "mapMeasureTool requires a clearTimeout runtime"
+                );
+            }
+
             clearTimeoutRef(timer);
         },
         createAbortController(): AbortController {
@@ -60,7 +65,13 @@ export function getMapMeasureToolRuntime(
             runtimeDocument.removeEventListener("keydown", listener);
         },
         setTimeout(callback, delayMs): MapMeasureToolTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "mapMeasureTool requires a setTimeout runtime"
+                );
+            }
+
             return setTimeoutRef(callback, delayMs);
         },
     };

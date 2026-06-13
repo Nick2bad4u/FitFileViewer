@@ -107,4 +107,17 @@ describe("getMapMeasureToolRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getMapMeasureToolRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "mapMeasureTool requires a setTimeout runtime"
+        );
+        expect(() =>
+            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("mapMeasureTool requires a clearTimeout runtime");
+    });
 });
