@@ -746,6 +746,8 @@ const renderAltitudeProfileChartTestDirectGlobalFixtureAssignmentPattern =
     /\b(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\s*=|\bdelete\s+(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\b/u;
 const renderSpeedVsDistanceChartTestDirectGlobalFixtureAssignmentPattern =
     /\b(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\s*=|\bdelete\s+(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\b/u;
+const renderPowerVsHeartRateChartTestDirectGlobalFixtureAssignmentPattern =
+    /\b(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\s*=|\bdelete\s+(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\b/u;
 const renderEventMessagesChartTestDirectWindowAssignmentPattern =
     /\bglobal\.window\s*=/u;
 const directActiveFitFileNameGlobalPattern =
@@ -6881,6 +6883,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/strictTests/renderSpeedVsDistanceChart.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps power-vs-heart-rate chart tests on scoped browser and console fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderPowerVsHeartRateChartTestDirectGlobalFixtureAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/renderPowerVsHeartRateChart.test.ts"
                     )
                 )
             )
