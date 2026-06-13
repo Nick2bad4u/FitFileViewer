@@ -319,6 +319,10 @@ returning.
 Chart listener lifecycle abort-controller creation now routes through `chartListenerStateRuntime.ts`, and explicit
 runtime scopes must provide their controller instead of falling back to `globalThis.AbortController`, with focused
 runtime coverage and architecture guardrails blocking the ambient controller fallback from returning.
+Field-toggle DOM construction, custom event dispatch, listener abort-controller creation, input checks, and fallback
+timers now route through `createFieldTogglesSectionRuntime.ts`; explicit runtime scopes must provide timer
+primitives and either scoped or document-window constructors/dispatchers instead of falling back to `globalThis`,
+with focused runtime coverage and architecture guardrails blocking those ambient fallbacks from returning.
 Quick color switcher delayed dropdown close scheduling and cleanup now route through
 `quickColorSwitcherRuntime.ts` instead of calling timer globals directly inside `quickColorSwitcher.ts`, with
 focused runtime coverage and architecture guardrails blocking those direct timer globals from returning. Quick

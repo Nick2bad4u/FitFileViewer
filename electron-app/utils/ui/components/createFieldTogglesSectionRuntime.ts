@@ -31,9 +31,7 @@ function getAbortControllerConstructor(
     scope: CreateFieldTogglesSectionRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createFieldTogglesSection requires an AbortController runtime"
@@ -47,9 +45,7 @@ function getCustomEventConstructor(
     scope: CreateFieldTogglesSectionRuntimeScope
 ): typeof CustomEvent {
     const CustomEventConstructor =
-        scope.CustomEvent ??
-        scope.document?.defaultView?.CustomEvent ??
-        globalThis.CustomEvent;
+        scope.CustomEvent ?? scope.document?.defaultView?.CustomEvent;
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(
             "createFieldTogglesSection requires a CustomEvent runtime"
@@ -66,8 +62,7 @@ function getDispatchEvent(
         scope.dispatchEvent ??
         scope.document?.defaultView?.dispatchEvent?.bind(
             scope.document.defaultView
-        ) ??
-        globalThis.dispatchEvent?.bind(globalThis);
+        );
     if (typeof dispatchEvent !== "function") {
         throw new TypeError(
             "createFieldTogglesSection requires a dispatchEvent runtime"
@@ -93,8 +88,7 @@ function getHTMLInputElementConstructor(
 ): typeof HTMLInputElement {
     const HTMLInputElementConstructor =
         scope.HTMLInputElement ??
-        scope.document?.defaultView?.HTMLInputElement ??
-        globalThis.HTMLInputElement;
+        scope.document?.defaultView?.HTMLInputElement;
     if (typeof HTMLInputElementConstructor !== "function") {
         throw new TypeError(
             "createFieldTogglesSection requires an HTMLInputElement runtime"
@@ -126,7 +120,12 @@ export function getCreateFieldTogglesSectionRuntime(
             return getDocument(scope).createElement(tagName);
         },
         clearTimeout(timer: ReturnType<typeof setTimeout>): void {
-            const clearTimer = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimer = scope.clearTimeout;
+            if (typeof clearTimer !== "function") {
+                throw new TypeError(
+                    "createFieldTogglesSection requires a clearTimeout runtime"
+                );
+            }
             clearTimer(timer);
         },
         dispatchEvent(event: Event): boolean {
@@ -144,7 +143,12 @@ export function getCreateFieldTogglesSectionRuntime(
             handler: () => void,
             timeout: number
         ): ReturnType<typeof setTimeout> {
-            const scheduleTimer = scope.setTimeout ?? globalThis.setTimeout;
+            const scheduleTimer = scope.setTimeout;
+            if (typeof scheduleTimer !== "function") {
+                throw new TypeError(
+                    "createFieldTogglesSection requires a setTimeout runtime"
+                );
+            }
             return scheduleTimer(handler, timeout);
         },
     };

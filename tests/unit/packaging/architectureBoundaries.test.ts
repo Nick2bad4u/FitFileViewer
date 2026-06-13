@@ -1210,6 +1210,8 @@ const directCreateSettingsHeaderRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directCreateFieldTogglesSectionRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|dispatchEvent|querySelectorAll)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+HTMLInputElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directCreateFieldTogglesSectionRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\b|\bglobalThis\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\b/u;
 const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|dispatchEvent)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
@@ -3925,7 +3927,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedCreateFieldTogglesSectionRuntimeFiles
             .filter((relativeFile) =>
@@ -3939,10 +3941,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/components/createFieldTogglesSection.ts"
             )
         );
+        const fieldTogglesRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/createFieldTogglesSectionRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(fieldTogglesSource).toContain(
             "createFieldTogglesSectionRuntime.js"
+        );
+        expect(fieldTogglesRuntimeSource).not.toMatch(
+            directCreateFieldTogglesSectionRuntimeAmbientFallbackPattern
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "createFieldTogglesSection requires a setTimeout runtime"
         );
     });
 
