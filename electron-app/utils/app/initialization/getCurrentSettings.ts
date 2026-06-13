@@ -34,6 +34,10 @@ import {
     parseStoredValue,
     type StoredSettingValue,
 } from "./getCurrentSettingsParsing.js";
+import {
+    getGetCurrentSettingsRuntime,
+    type GetCurrentSettingsTimer,
+} from "./getCurrentSettingsRuntime.js";
 
 /**
  * Element that exposes the legacy chart settings reset hook.
@@ -145,7 +149,8 @@ function getTypedThemeConfig(): ThemeConfigLike {
 
 // Storage/logging prefix
 const LOG_PREFIX = "[ChartSettings]";
-const resetTimerHandles = new Set<ReturnType<typeof setTimeout>>();
+const currentSettingsRuntime = getGetCurrentSettingsRuntime();
+const resetTimerHandles = new Set<GetCurrentSettingsTimer>();
 
 /**
  * Gets current settings from settings state and DOM
@@ -318,14 +323,14 @@ function clearAllStorageItems(): void {
 
 function clearScheduledResetTimers(): void {
     for (const handle of resetTimerHandles) {
-        clearTimeout(handle);
+        currentSettingsRuntime.clearTimeout(handle);
     }
 
     resetTimerHandles.clear();
 }
 
 function scheduleResetTimer(callback: () => void, delay: number): void {
-    const handle = setTimeout(() => {
+    const handle = currentSettingsRuntime.setTimeout(() => {
         resetTimerHandles.delete(handle);
         callback();
     }, delay);

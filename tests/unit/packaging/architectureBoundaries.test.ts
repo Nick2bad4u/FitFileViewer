@@ -389,6 +389,9 @@ const migratedAltFitSenderRuntimeFiles = [
 const migratedLoadSharedConfigurationRuntimeFiles = [
     "electron-app/utils/app/initialization/loadSharedConfiguration.ts",
 ] as const;
+const migratedGetCurrentSettingsRuntimeFiles = [
+    "electron-app/utils/app/initialization/getCurrentSettings.ts",
+] as const;
 const migratedExternalLinkHandlersRuntimeFiles = [
     "electron-app/utils/ui/links/externalLinkHandlers.ts",
 ] as const;
@@ -987,6 +990,8 @@ const directAltFitSenderRuntimeGlobalPattern =
     /\bglobalThis\.(?:console|document|location)\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|location|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directGetCurrentSettingsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directLazyRenderingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:innerHeight|innerWidth|requestAnimationFrame|requestIdleCallback|setTimeout)\b|\bdocument\.documentElement\b|\btypeof\s+IntersectionObserver\b|\bnew\s+IntersectionObserver\b|\belement\s+instanceof\s+HTMLElement\b|\breturn\s+setTimeout\(/u;
 const directListenersResizeRuntimeGlobalPattern =
@@ -5775,6 +5780,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(loadSharedConfigurationSource).toContain(
             "loadSharedConfigurationRuntime.js"
+        );
+    });
+
+    it("keeps current settings reset timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedGetCurrentSettingsRuntimeFiles
+            .filter((relativeFile) =>
+                directGetCurrentSettingsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const getCurrentSettingsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/getCurrentSettings.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(getCurrentSettingsSource).toContain(
+            "getCurrentSettingsRuntime.js"
         );
     });
 

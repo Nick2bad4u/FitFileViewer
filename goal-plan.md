@@ -300,6 +300,9 @@ architecture guardrails blocking those direct timer globals from returning.
 Chart settings header reset-button feedback timing and range-slider re-render debounce now route through
 `createSettingsHeaderRuntime.ts` instead of calling timer globals directly inside `createSettingsHeader.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
+Current chart settings reset UI timer scheduling and cleanup now route through `getCurrentSettingsRuntime.ts`
+instead of calling timer globals directly inside `getCurrentSettings.ts`, with focused runtime coverage and
+architecture guardrails blocking those direct timer globals from returning.
 Custom map fullscreen-control delayed Leaflet map size invalidation now routes through
 `mapFullscreenControlRuntime.ts` instead of calling timer globals directly inside `mapFullscreenControl.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
