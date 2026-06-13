@@ -4013,6 +4013,26 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps state-manager defaults on scoped runtime access", () => {
+        expect.assertions(5);
+
+        const stateManagerDefaultsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateManagerDefaults.ts"
+            )
+        );
+
+        expect(stateManagerDefaultsSource).toContain(
+            "stateManagerDefaultsRuntime.js"
+        );
+        expect(stateManagerDefaultsSource).not.toContain(
+            "globalThis.performance"
+        );
+        expect(stateManagerDefaultsSource).not.toContain("Date.now");
+        expect(stateManagerDefaultsSource).not.toContain("typeof document");
+        expect(stateManagerDefaultsSource).not.toContain("document.title");
+    });
+
     it("keeps Playwright smoke state assertions on explicit FIT activity slices", () => {
         expect.assertions(3);
 

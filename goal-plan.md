@@ -330,6 +330,10 @@ source fallback and test-global mutation pattern from returning.
 State development tools now check development-scope availability through the scoped `stateDevToolsRuntime.ts`
 adapter instead of probing `globalThis.window` or `globalThis.location` directly, with architecture coverage
 blocking those runtime-global lookups from returning.
+State manager defaults now resolve startup timestamps and document titles through the scoped
+`stateManagerDefaultsRuntime.ts` adapter instead of probing `globalThis.performance`, `Date.now`,
+`typeof document`, or `document.title` directly inside `stateManagerDefaults.ts`, with focused runtime coverage
+and architecture guardrails blocking those direct lookups from returning.
 Master state manager development-scope checks, global error listeners, theme-change dispatch, and window lifecycle
 listeners now go through the scoped `masterStateRuntime.ts` adapter instead of probing or registering directly on
 `globalThis.window`, `globalThis.location`, `globalThis.addEventListener`, `globalThis.dispatchEvent`, or

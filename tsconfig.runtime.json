@@ -129,6 +129,7 @@
         "electron-app/windowStateUtils.ts",
         "electron-app/utils/config/constants.ts",
         "electron-app/utils/config/index.ts",
+        "electron-app/utils/state/core/stateManagerDefaultsRuntime.ts",
         "electron-app/utils/state/core/stateManagerDefaults.ts",
         "electron-app/utils/state/core/stateManagerHistory.ts",
         "electron-app/utils/state/core/stateManagerPathUtils.ts",
