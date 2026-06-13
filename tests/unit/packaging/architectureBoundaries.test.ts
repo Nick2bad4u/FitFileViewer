@@ -271,6 +271,9 @@ const migratedExportZipRuntimeFiles = [
 const migratedNetworkUtilsRuntimeFiles = [
     "electron-app/utils/net/networkUtils.ts",
 ] as const;
+const migratedCopyTableAsCSVRuntimeFiles = [
+    "electron-app/utils/files/export/copyTableAsCSV.ts",
+] as const;
 const migratedCreatePrintButtonRuntimeFiles = [
     "electron-app/utils/files/export/createPrintButton.ts",
 ] as const;
@@ -1015,6 +1018,8 @@ const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|dispatchEvent)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b/u;
+const directCopyTableAsCSVRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:body|createElement|execCommand)\b|\bnavigator\.clipboard\b/u;
 const directCreateExportGPXButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|setTimeout)\b|\bURL\.(?:createObjectURL|revokeObjectURL)\b/u;
 const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
@@ -5009,6 +5014,26 @@ describe("architecture boundaries", () => {
         expect(createPrintButtonSource).toContain(
             "createPrintButtonRuntime.js"
         );
+    });
+
+    it("keeps CSV clipboard browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCopyTableAsCSVRuntimeFiles
+            .filter((relativeFile) =>
+                directCopyTableAsCSVRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const copyTableAsCSVSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/export/copyTableAsCSV.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(copyTableAsCSVSource).toContain("copyTableAsCSVRuntime.js");
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {

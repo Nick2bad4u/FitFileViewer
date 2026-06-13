@@ -265,6 +265,10 @@ imports instead of probing CJS module caches through `node:module`.
 Overlay file load concurrency now resolves navigator hardware-concurrency metadata through
 `loadOverlayFilesRuntime.ts` instead of probing `globalThis.navigator` directly inside `loadOverlayFiles.ts`,
 with focused runtime coverage and architecture guardrails blocking that direct metadata lookup from returning.
+CSV table clipboard fallback now routes browser clipboard writes and legacy textarea copy through
+`copyTableAsCSVRuntime.ts` instead of probing `navigator.clipboard` or calling document copy APIs directly inside
+`copyTableAsCSV.ts`, with focused runtime coverage and architecture guardrails blocking those direct browser
+clipboard paths from returning.
 Master state manager comprehensive tests now install and restore document, window, location, storage,
 performance, timer, and listener globals through descriptor-scoped helpers instead of deleting globals during
 cleanup, with architecture coverage blocking that fixture mutation pattern.
