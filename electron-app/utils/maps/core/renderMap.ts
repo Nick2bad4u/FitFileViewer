@@ -363,12 +363,12 @@ export function renderMap(): void {
     const runtimeBaseLayers = createBaseLayers(LeafletLib);
     resetOverlayMapPolylines();
     renderMapAbortController?.abort();
-    const renderAbortController = new AbortController();
+    const runtime = getRenderMapRuntime();
+    const renderAbortController = runtime.createAbortController();
     renderMapAbortController = renderAbortController;
     const listenerOptions: AddEventListenerOptions = {
         signal: renderAbortController.signal,
     };
-    const runtime = getRenderMapRuntime();
     const cleanupTimers = new Set<RenderMapTimer>();
     const setCleanupTimeout = (
         callback: () => void,

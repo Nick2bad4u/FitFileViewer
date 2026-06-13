@@ -3,6 +3,34 @@ import { describe, expect, it, vi } from "vitest";
 import { getRenderMapRuntime } from "../../../../../electron-app/utils/maps/core/renderMapRuntime.js";
 
 describe("getRenderMapRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const utils = getRenderMapRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+        });
+
+        expect(utils.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("throws when abort controller creation is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRenderMapRuntime({});
+
+        expect(() => utils.createAbortController()).toThrow(
+            "renderMap requires an AbortController runtime"
+        );
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 

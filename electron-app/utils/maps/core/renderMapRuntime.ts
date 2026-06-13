@@ -1,6 +1,7 @@
 export type RenderMapTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface RenderMapRuntimeScope {
+    readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly requestAnimationFrame?:
         | typeof globalThis.requestAnimationFrame
@@ -10,6 +11,7 @@ export interface RenderMapRuntimeScope {
 
 export interface RenderMapRuntime {
     clearTimeout(timer: RenderMapTimer): void;
+    createAbortController(): AbortController;
     requestAnimationFrame(frameCallback: FrameRequestCallback): void;
     setTimeout(callback: () => void, delayMs: number): RenderMapTimer;
 }
@@ -22,6 +24,16 @@ export function getRenderMapRuntime(
             const clearTimeoutRef =
                 scope.clearTimeout ?? globalThis.clearTimeout;
             clearTimeoutRef(timer);
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "renderMap requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         requestAnimationFrame(frameCallback): void {
             const requestAnimationFrameRef = scope.requestAnimationFrame;
