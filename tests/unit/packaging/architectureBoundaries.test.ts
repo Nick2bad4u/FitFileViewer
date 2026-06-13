@@ -864,6 +864,8 @@ const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*(?:,|\))/u;
 const themeAdditionalTestDirectGlobalFixtureMutationPattern =
     /\bReflect\.set\(\s*globalThis\s*,\s*["'](?:getComputedStyle|localStorage|matchMedia)["']\s*,/u;
+const uiStateManagerTestDirectMatchMediaMutationPattern =
+    /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*\)/u;
 const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
@@ -3851,6 +3853,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/theming/core/theme.additional.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps UI state manager theme tests on descriptor-scoped matchMedia fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            uiStateManagerTestDirectMatchMediaMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/state/domain/uiStateManager.test.ts"
                     )
                 )
             )
