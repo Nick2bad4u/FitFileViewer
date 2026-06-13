@@ -232,8 +232,8 @@ function getRegisteredEventHandler(
 
 describe("chartStatusIndicator.js", () => {
     // Store original properties
-    let originalConsoleError: typeof console.error;
     let originalDefineProperty: typeof Object.defineProperty;
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
         // Reset mocks
@@ -250,11 +250,10 @@ describe("chartStatusIndicator.js", () => {
         setTestGlobal("customElements", dom.window.customElements);
 
         // Save original functions
-        originalConsoleError = console.error;
         originalDefineProperty = Object.defineProperty;
 
         // Mock console.error
-        vi.spyOn(console, "error").mockImplementation(noop);
+        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(noop);
 
         // Mock setTimeout to execute immediately
         setTestGlobal(
@@ -292,7 +291,7 @@ describe("chartStatusIndicator.js", () => {
 
     afterEach(() => {
         // Restore original functions
-        if (originalConsoleError) console.error = originalConsoleError;
+        consoleErrorSpy.mockRestore();
         if (originalDefineProperty)
             Object.defineProperty = originalDefineProperty;
         restoreTestGlobals();

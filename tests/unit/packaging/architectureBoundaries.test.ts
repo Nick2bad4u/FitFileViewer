@@ -764,6 +764,8 @@ const tabStateManagerTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|log|warn)\s*=/u;
 const enableTabButtonsTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.(?:log|warn)\s*=/u;
+const chartStatusIndicatorTestDirectConsoleMethodAssignmentPattern =
+    /\bconsole\.error\s*=/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
 const listenersResizeChartGlobalMutationPattern =
@@ -6907,6 +6909,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/ui/controls/dataPointFilterControl/stateHelpers.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps chart status indicator tests on scoped console spies", () => {
+        expect.assertions(1);
+
+        expect(
+            chartStatusIndicatorTestDirectConsoleMethodAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/charts/components/chartStatusIndicator.test.ts"
                     )
                 )
             )
