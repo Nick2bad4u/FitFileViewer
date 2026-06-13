@@ -424,9 +424,9 @@ that fixture mutation pattern.
 Strict notification branch tests now rely on Vitest mock restoration for `window.requestAnimationFrame` instead
 of assigning the original callback back during cleanup, with architecture coverage blocking that direct
 animation-fixture assignment.
-Single HR-zone bar tests now install jsdom browser globals through descriptor-scoped helpers and mock console
-methods through per-test Vitest spies instead of assigning browser globals or a replacement `global.console`
-directly, with architecture coverage blocking those fixture patterns.
+Single HR-zone bar tests now install and restore jsdom browser globals through descriptor-scoped helpers and mock
+console methods through per-test Vitest spies instead of assigning or deleting browser globals or replacing
+`global.console` directly, with architecture coverage blocking those fixture patterns.
 Strict altitude profile chart tests now install jsdom browser globals and localStorage through
 descriptor-scoped helpers and mock console methods through per-test Vitest spies instead of assigning browser
 globals or a replacement `global.console` directly, with architecture coverage blocking those fixture patterns.

@@ -91,15 +91,18 @@ type GlobalFixtureName =
     | "window";
 const originalGlobalDescriptors = new Map<
     GlobalFixtureName,
-    PropertyDescriptor | undefined
+    PropertyDescriptor
 >();
 
 function rememberGlobalDescriptor(name: GlobalFixtureName): void {
     if (!originalGlobalDescriptors.has(name)) {
-        originalGlobalDescriptors.set(
-            name,
-            Object.getOwnPropertyDescriptor(globalThis, name)
-        );
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
     }
 }
 
@@ -114,11 +117,7 @@ function setGlobalValue(name: GlobalFixtureName, value: unknown): void {
 
 function restoreGlobalValues(): void {
     for (const [name, descriptor] of originalGlobalDescriptors) {
-        if (descriptor) {
-            Object.defineProperty(globalThis, name, descriptor);
-        } else {
-            Reflect.deleteProperty(globalThis, name);
-        }
+        Object.defineProperty(globalThis, name, descriptor);
     }
     originalGlobalDescriptors.clear();
 }
