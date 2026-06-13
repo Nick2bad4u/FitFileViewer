@@ -3819,21 +3819,30 @@ describe("architecture boundaries", () => {
         expect(setupThemeSource).not.toContain("state/core/stateManager.js");
     });
 
-    it("keeps tab state-manager support on the renderer state access facade", () => {
-        expect.assertions(2);
+    it("keeps tab state-manager support on typed state and document access", () => {
+        expect.assertions(6);
 
         const tabStateManagerSupportSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/ui/tabs/tabStateManagerSupport.ts"
             )
         );
+        const tabStateManagerDocSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/tabs/tabStateManagerDoc.ts")
+        );
 
         expect(tabStateManagerSupportSource).toContain(
             "rendererStateManagerAccess.js"
         );
+        expect(tabStateManagerSupportSource).toContain("tabDocumentRuntime.js");
+        expect(tabStateManagerDocSource).toContain("tabDocumentRuntime.js");
         expect(tabStateManagerSupportSource).not.toContain(
             "state/core/stateManager.js"
         );
+        expect(tabStateManagerSupportSource).not.toContain(
+            "globalThis.document"
+        );
+        expect(tabStateManagerDocSource).not.toContain("globalThis.document");
     });
 
     it("keeps active-tab updates on typed state access and runtime document resolution", () => {

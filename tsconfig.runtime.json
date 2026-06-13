@@ -464,6 +464,7 @@
         "electron-app/utils/ui/notifications/showUpdateNotification.ts",
         "electron-app/utils/ui/notifications/index.ts",
         "electron-app/utils/ui/tabs/setupTabButton.ts",
+        "electron-app/utils/ui/tabs/tabDocumentRuntime.ts",
         "electron-app/utils/ui/tabs/tabIdUtils.ts",
         "electron-app/utils/ui/tabs/tabRenderingManager.ts",
         "electron-app/utils/ui/tabs/tabStateManager.ts",

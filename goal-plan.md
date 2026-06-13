@@ -307,6 +307,9 @@ The renderChartJS comprehensive test no longer installs an ambient `utils.requir
 mocking terminology for its ESM mock setup.
 Root lint no longer reports Testing Library false-positive warnings from renderer/runtime helper names in
 non-React unit tests; those tests now use local aliases that avoid render-result and lifecycle-render heuristics.
+Tab-state manager document helpers now resolve documents through the scoped `tabDocumentRuntime.ts` adapter
+instead of probing `globalThis.document` inside each helper module, with architecture coverage blocking that
+direct runtime lookup from returning.
 Active-tab updates now resolve tab documents through the scoped `updateActiveTabRuntime.ts` adapter instead of
 probing `globalThis.document` or `globalThis.window` inside the feature module, with architecture coverage
 blocking those direct runtime lookups from returning to `updateActiveTab.ts`.

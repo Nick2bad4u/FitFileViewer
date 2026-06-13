@@ -15,63 +15,21 @@ import {
     getTabTestDocumentForTests,
     getTabTestStateManagerForTests,
 } from "./tabTestEnvironment.js";
-
-function isDocumentLike(candidate: unknown): candidate is Document {
-    return (
-        candidate !== null &&
-        typeof candidate === "object" &&
-        "getElementById" in candidate &&
-        typeof candidate.getElementById === "function" &&
-        "querySelectorAll" in candidate &&
-        typeof candidate.querySelectorAll === "function"
-    );
-}
+import { getTabDocumentRuntime } from "./tabDocumentRuntime.js";
 
 function isRecord(candidate: unknown): candidate is Record<string, unknown> {
     return candidate !== null && typeof candidate === "object";
 }
 
+const tabDocumentRuntime = getTabDocumentRuntime();
+
 /**
  * Resolve the active document used by the tab-state manager.
  */
 export function getDoc(): Document {
-    const candidates: unknown[] = [];
-
-    const testDocument = getTabTestDocumentForTests();
-    if (testDocument) {
-        candidates.push(testDocument);
-    }
-
-    // Local realm document (JSDOM/Electron)
-    try {
-        if (typeof document !== "undefined" && document) {
-            candidates.push(document);
-        }
-    } catch {
-        /* ignore */
-    }
-
-    // Global document (other realms)
-    try {
-        if (
-            typeof globalThis !== "undefined" &&
-            "document" in globalThis &&
-            globalThis.document
-        ) {
-            candidates.push(globalThis.document);
-        }
-    } catch {
-        /* ignore */
-    }
-
-    for (const candidate of candidates) {
-        if (isDocumentLike(candidate)) {
-            return candidate;
-        }
-    }
-
-    // Final fallback (should exist in JSDOM/Electron)
-    return document;
+    return (
+        tabDocumentRuntime.getDocument(getTabTestDocumentForTests()) ?? document
+    );
 }
 
 /**
