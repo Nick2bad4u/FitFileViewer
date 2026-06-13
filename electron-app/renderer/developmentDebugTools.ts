@@ -11,6 +11,7 @@ import {
     setChartFullscreenTraceEnabled,
     setChartVerboseDebugLoggingEnabled,
 } from "../utils/charts/core/chartDebugState.js";
+import { getRendererDevelopmentDebugToolsRuntime } from "./developmentDebugToolsRuntime.js";
 
 type DevelopmentDebugLogLevel = "log" | "warn";
 type DevelopmentDebugLogger = (
@@ -43,6 +44,8 @@ const APP_INFO = {
     repository: "https://github.com/user/FitFileViewer",
     version: "21.1.0",
 };
+const developmentDebugToolsRuntime =
+    getRendererDevelopmentDebugToolsRuntime();
 
 export { APP_INFO };
 
@@ -331,15 +334,13 @@ function getRecordString(
 function getRuntimeInfo(): Record<string, unknown> {
     let cookieAvailability = false;
     try {
-        const locationRecord = toModuleRecord(
-            Reflect.get(globalThis, "location")
-        );
+        const locationRecord =
+            developmentDebugToolsRuntime.getLocationRecord();
         const protocol = getRecordString(locationRecord, "protocol") ?? "";
 
         if (protocol === "http:" || protocol === "https:") {
-            const navigatorRecord = toModuleRecord(
-                Reflect.get(globalThis, "navigator")
-            );
+            const navigatorRecord =
+                developmentDebugToolsRuntime.getNavigatorRecord();
             const cookieEnabled = getRecordBoolean(
                 navigatorRecord,
                 "cookieEnabled"
@@ -350,12 +351,9 @@ function getRuntimeInfo(): Record<string, unknown> {
         cookieAvailability = false;
     }
 
-    const navigatorRecord = toModuleRecord(
-        Reflect.get(globalThis, "navigator")
-    );
-    const memoryRecord = toModuleRecord(
-        toModuleRecord(Reflect.get(globalThis, "performance"))["memory"]
-    );
+    const navigatorRecord = developmentDebugToolsRuntime.getNavigatorRecord();
+    const memoryRecord =
+        developmentDebugToolsRuntime.getPerformanceMemoryRecord();
     const memoryUsage =
         Object.keys(memoryRecord).length > 0
             ? {

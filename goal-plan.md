@@ -327,6 +327,10 @@ with architecture coverage keeping that startup test on the typed renderer devel
 Renderer development debug tests no longer clean up retired debug globals such as `__renderer_debug`,
 `__renderer_dev`, `__sensorDebug`, or `__debugChartFormatting`; their coverage now checks absence without
 mutating those names, and architecture coverage blocks those mutations from returning.
+Renderer development debug runtime metadata now resolves location, navigator, and performance-memory records
+through `developmentDebugToolsRuntime.ts` instead of probing `globalThis` directly inside
+`developmentDebugTools.ts`, with focused runtime coverage and architecture guardrails blocking those direct
+metadata lookups from returning.
 Shared error handling no longer probes `globalRef.performanceMonitor` for ambient telemetry, and its tests no
 longer install or delete a temporary performance-monitor global fixture; architecture coverage blocks both the
 source fallback and test-global mutation pattern from returning.

@@ -71,6 +71,7 @@
         "electron-app/preload/themeApi.ts",
         "electron-app/preload/validators.ts",
         "electron-app/renderer/applicationStartupRuntime.ts",
+        "electron-app/renderer/developmentDebugToolsRuntime.ts",
         "electron-app/renderer/mainUiDevelopmentActions.ts",
         "electron-app/renderer/mainUiDragDropStartup.ts",
         "electron-app/renderer/mainUiElectronApi.ts",

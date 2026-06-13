@@ -209,6 +209,9 @@ const migratedRendererDebugLoggingStateFiles = [
     "electron-app/utils/charts/plugins/chartZoomResetPlugin.ts",
     "electron-app/utils/debug/lastAnimLog.ts",
 ] as const;
+const migratedRendererDevelopmentDebugToolsRuntimeFiles = [
+    "electron-app/renderer/developmentDebugTools.ts",
+] as const;
 const migratedStateDebugGlobalFreeFiles = [
     "electron-app/utils/debug/stateDevTools.ts",
     "electron-app/utils/state/core/masterStateManager.ts",
@@ -869,6 +872,8 @@ const directRendererDevGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.__renderer_dev\b|["']__renderer_dev["']/u;
 const rendererDevelopmentDebugGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.(?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)\b|["'](?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)["']/u;
+const directRendererDevelopmentDebugToolsRuntimeGlobalPattern =
+    /\bReflect\.get\(\s*globalThis\s*,\s*["'](?:location|navigator|performance)["']\s*\)|\bglobalThis\.(?:location|navigator|performance)\b|\b(?:navigator|performance)\.(?:cookieEnabled|hardwareConcurrency|language|memory|onLine|platform|userAgent)\b/u;
 const rendererDevelopmentDebugGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)["']\s*\)|\b(?:window|globalThis)\.(?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)\s*=/u;
 const rawGlobalThisAnyCastPattern = /\(\s*globalThis\s+as\s+any\s*\)/u;
@@ -4753,6 +4758,26 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps renderer development debug runtime metadata behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererDevelopmentDebugToolsRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererDevelopmentDebugToolsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const developmentDebugToolsSource = stripComments(
+            readRepositoryFile("electron-app/renderer/developmentDebugTools.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(developmentDebugToolsSource).toContain(
+            "developmentDebugToolsRuntime.js"
+        );
     });
 
     it("keeps table renderer browser APIs behind the runtime facade", () => {
