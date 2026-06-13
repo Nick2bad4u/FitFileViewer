@@ -11,6 +11,7 @@ import {
     type SettingCategory,
     type SettingSchema,
 } from "./settingsStateSchema.js";
+import { getSettingsStateCoreRuntime } from "./settingsStateCoreRuntime.js";
 
 type SettingsSchemaMap = Record<SettingCategory, SettingSchema>;
 
@@ -25,6 +26,7 @@ interface ResetSettingsOptions {
 }
 
 const settingsSchema = SETTINGS_SCHEMA as SettingsSchemaMap;
+const settingsStateCoreRuntime = getSettingsStateCoreRuntime();
 
 function getSettingsCategories(): SettingCategory[] {
     return [...SETTING_CATEGORIES];
@@ -527,7 +529,8 @@ class SettingsStateManager {
 
         // Listen for localStorage changes from other tabs/windows
         this.storageSyncController?.abort();
-        this.storageSyncController = new AbortController();
+        this.storageSyncController =
+            settingsStateCoreRuntime.createAbortController();
 
         globalThis.addEventListener(
             "storage",

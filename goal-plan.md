@@ -479,6 +479,10 @@ and architecture guardrails blocking direct accent picker controller constructio
 State development tools now check development-scope availability through the scoped `stateDevToolsRuntime.ts`
 adapter instead of probing `globalThis.window` or `globalThis.location` directly, with architecture coverage
 blocking those runtime-global lookups from returning.
+Settings state-core storage synchronization listener abort-controller creation now routes through
+`settingsStateCoreRuntime.ts` instead of constructing `AbortController` directly inside `settingsStateCore.ts`,
+with focused runtime coverage and architecture guardrails blocking direct settings state-core controller
+construction from returning.
 State development tools also route performance-monitor interval scheduling and clearing through that runtime
 adapter instead of calling interval globals directly, with focused runtime coverage and architecture guardrails
 blocking those direct timer calls from returning.

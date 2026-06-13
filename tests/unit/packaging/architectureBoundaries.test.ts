@@ -902,6 +902,8 @@ const showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern =
     /\bwindow\.requestAnimationFrame\s*=/u;
 const settingsStateManagerTestDirectConsoleAssignmentPattern =
     /\bglobal\.console\s*=/u;
+const directSettingsStateCoreRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const handleOpenFileTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|info|log|warn)\s*=/u;
 const dataPointFilterStateHelpersTestDirectConsoleAssignmentPattern =
@@ -8347,6 +8349,26 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(false);
+    });
+
+    it("keeps settings state storage listener abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const settingsStateCoreSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/settingsStateCore.ts"
+            )
+        );
+
+        expect(
+            directSettingsStateCoreRuntimeGlobalPattern.test(
+                settingsStateCoreSource
+            )
+        ).toBe(false);
+        expect(settingsStateCoreSource).toContain(
+            "settingsStateCoreRuntime.js"
+        );
+        expect(settingsStateCoreSource).toContain("createAbortController");
     });
 
     it("keeps handle-open-file tests on scoped console spies", () => {
