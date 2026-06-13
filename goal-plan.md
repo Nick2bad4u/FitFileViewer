@@ -496,9 +496,9 @@ Tab-button behavior tests now restore log/warn capture through scoped Vitest spi
 methods back during cleanup, with architecture coverage blocking that direct console-method fixture.
 Chart status indicator tests now restore error capture through a scoped Vitest spy instead of assigning
 `console.error` back during cleanup, with architecture coverage blocking that direct console-method fixture.
-Preload development-mode and edge-case tests now clear and restore `electronAPI`/`devTools` globals through
-descriptor-scoped helpers instead of direct global deletion, with architecture coverage blocking that cleanup
-pattern.
+Preload development-mode and edge-case tests now capture mocked `contextBridge.exposeInMainWorld` calls in
+module-local exposure maps instead of clearing or restoring `electronAPI`/`devTools` globals, with architecture
+coverage blocking global fixture definitions or cleanup in those source tests.
 Setup process-nextTick stabilization now uses one `ensureProcessNextTick()` helper instead of repeating the same
 inline `globalThis.process.nextTick` mutation in multiple setup hooks.
 The Playwright map elevation popup smoke path now installs and restores its temporary `window.open` override

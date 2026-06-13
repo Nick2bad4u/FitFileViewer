@@ -33,10 +33,7 @@ interface ElectronHoistedMock {
 type ProcessOnceListener = (...args: unknown[]) => void;
 
 const developmentToolsGlobalName = ["dev", "Tools"].join("");
-const originalGlobalDescriptors = new Map<
-    string,
-    PropertyDescriptor | undefined
->();
+const exposedGlobalValues = new Map<string, unknown>();
 
 async function startPreloadWithElectronBridge(
     electronBridge: ElectronHoistedMock
@@ -53,41 +50,11 @@ async function startPreloadWithElectronBridge(
 }
 
 function getGlobalValue(name: string): unknown {
-    return Reflect.get(globalThis, name);
-}
-
-function rememberGlobalDescriptor(name: string): void {
-    if (!originalGlobalDescriptors.has(name)) {
-        originalGlobalDescriptors.set(
-            name,
-            Object.getOwnPropertyDescriptor(globalThis, name)
-        );
-    }
+    return exposedGlobalValues.get(name);
 }
 
 function setGlobalValue(name: string, value: unknown): void {
-    rememberGlobalDescriptor(name);
-    Object.defineProperty(globalThis, name, {
-        configurable: true,
-        value,
-        writable: true,
-    });
-}
-
-function clearGlobalValue(name: string): void {
-    rememberGlobalDescriptor(name);
-    Reflect.deleteProperty(globalThis, name);
-}
-
-function restoreGlobalValues(): void {
-    for (const [name, descriptor] of originalGlobalDescriptors) {
-        if (descriptor) {
-            Object.defineProperty(globalThis, name, descriptor);
-        } else {
-            Reflect.deleteProperty(globalThis, name);
-        }
-    }
-    originalGlobalDescriptors.clear();
+    exposedGlobalValues.set(name, value);
 }
 
 function getExposedElectronAPI(): ExposedElectronAPI {
@@ -104,15 +71,14 @@ describe("preload.js - Development mode coverage", () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.resetModules();
-        clearGlobalValue("electronAPI");
-        clearGlobalValue(developmentToolsGlobalName);
+        exposedGlobalValues.clear();
     });
 
     afterEach(() => {
         vi.restoreAllMocks();
         vi.resetModules();
         process.env.NODE_ENV = originalNodeEnv;
-        restoreGlobalValues();
+        exposedGlobalValues.clear();
     });
 
     it("exposes api and dev tools, logs dev messages, and handles beforeExit in development", async () => {

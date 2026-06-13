@@ -24,47 +24,14 @@ interface AdditionalPreloadElectronApi {
     onUpdateEvent: (eventName: unknown, callback: unknown) => void;
 }
 
-const originalGlobalDescriptors = new Map<
-    string,
-    PropertyDescriptor | undefined
->();
+const exposedGlobalValues = new Map<string, unknown>();
 
 function getGlobalValue(name: string): unknown {
-    return Reflect.get(globalThis, name);
-}
-
-function rememberGlobalDescriptor(name: string): void {
-    if (!originalGlobalDescriptors.has(name)) {
-        originalGlobalDescriptors.set(
-            name,
-            Object.getOwnPropertyDescriptor(globalThis, name)
-        );
-    }
+    return exposedGlobalValues.get(name);
 }
 
 function setGlobalValue(name: string, value: unknown): void {
-    rememberGlobalDescriptor(name);
-    Object.defineProperty(globalThis, name, {
-        configurable: true,
-        value,
-        writable: true,
-    });
-}
-
-function clearGlobalValue(name: string): void {
-    rememberGlobalDescriptor(name);
-    Reflect.deleteProperty(globalThis, name);
-}
-
-function restoreGlobalValues(): void {
-    for (const [name, descriptor] of originalGlobalDescriptors) {
-        if (descriptor) {
-            Object.defineProperty(globalThis, name, descriptor);
-        } else {
-            Reflect.deleteProperty(globalThis, name);
-        }
-    }
-    originalGlobalDescriptors.clear();
+    exposedGlobalValues.set(name, value);
 }
 
 function getExposedElectronAPI(): AdditionalPreloadElectronApi {
@@ -135,9 +102,7 @@ describe("preload edge cases", () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
-        clearGlobalValue("electronAPI");
-        clearGlobalValue(devToolsGlobalName);
-        restoreGlobalValues();
+        exposedGlobalValues.clear();
         process.env.NODE_ENV = originalNodeEnv;
         vi.resetModules();
     });
@@ -186,7 +151,7 @@ describe("preload edge cases", () => {
         expect(failedDevToolsCall[1]).toBeInstanceOf(Error);
 
         // And no exposeInMainWorld should have been called (since it's missing entirely)
-        expect(globalThis).not.toHaveProperty("electronAPI");
+        expect(exposedGlobalValues.has("electronAPI")).toBe(false);
 
         consoleErrorSpy.mockRestore();
         consoleLogSpy.mockRestore();
