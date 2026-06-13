@@ -13,6 +13,7 @@ import {
     getThemeConfig,
     type ThemeColorMap,
 } from "../../theming/core/theme.js";
+import { getUserDeviceInfoBoxRuntime } from "./createUserDeviceInfoBoxRuntime.js";
 
 type InfoBoxThemeColors = {
     readonly accent: string;
@@ -74,6 +75,8 @@ const INFO_BOX_THEME_FALLBACKS = {
     textSecondary: "#6b7280",
 } as const satisfies InfoBoxThemeColors;
 
+const userDeviceInfoBoxRuntime = getUserDeviceInfoBoxRuntime();
+
 function getStringThemeColor(
     colors: ThemeColorMap,
     colorKey: keyof InfoBoxThemeColors
@@ -130,7 +133,8 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
             infoBox = document.createElement("div"),
             themeConfig = getThemeConfig(),
             colors = getInfoBoxThemeColors(themeConfig.colors);
-        const { signal } = new AbortController();
+        const { signal } =
+            userDeviceInfoBoxRuntime.createAbortController();
 
         // Create info box container with theme-aware styling and hover effects.
         infoBox.className = "user-device-info-box chart-info-section";

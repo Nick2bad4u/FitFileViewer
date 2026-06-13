@@ -493,6 +493,9 @@ const migratedRenderChartTimerRuntimeFiles = [
 const migratedSummaryColModalViewportRuntimeFiles = [
     "electron-app/utils/rendering/helpers/summaryColModal.ts",
 ] as const;
+const migratedUserDeviceInfoBoxRuntimeFiles = [
+    "electron-app/utils/rendering/components/createUserDeviceInfoBox.ts",
+] as const;
 const migratedUpdateControlsStateRuntimeFiles = [
     "electron-app/utils/rendering/helpers/updateControlsState.ts",
 ] as const;
@@ -1090,6 +1093,8 @@ const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bnew\s+AbortController\b/u;
 const directRenderSummarySchedulingRuntimeGlobalPattern =
     /\bglobalThis\.(?:addEventListener|cancelAnimationFrame|requestAnimationFrame)\b|\bnew\s+AbortController\b/u;
+const directUserDeviceInfoBoxRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.getComputedStyle\b/u;
 const directEnableTabButtonsDebugRuntimeGlobalPattern =
@@ -6371,6 +6376,29 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(summaryColModalSource).toContain("summaryColModalRuntime.js");
         expect(summaryColModalSource).toContain("createAbortController");
+    });
+
+    it("keeps user/device info box listener cleanup behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedUserDeviceInfoBoxRuntimeFiles
+            .filter((relativeFile) =>
+                directUserDeviceInfoBoxRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const userDeviceInfoBoxSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/components/createUserDeviceInfoBox.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(userDeviceInfoBoxSource).toContain(
+            "createUserDeviceInfoBoxRuntime.js"
+        );
+        expect(userDeviceInfoBoxSource).toContain("createAbortController");
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {

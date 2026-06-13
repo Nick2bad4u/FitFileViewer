@@ -358,6 +358,9 @@ Summary column modal tooltip viewport reads and modal listener abort-controller 
 `summaryColModalRuntime.ts` instead of reading viewport globals or constructing `AbortController` directly inside
 `summaryColModal.ts`, with focused runtime coverage and architecture guardrails blocking those direct runtime
 globals from returning.
+User/device info box listener cleanup now creates abort controllers through `createUserDeviceInfoBoxRuntime.ts`
+instead of constructing `AbortController` directly inside `createUserDeviceInfoBox.ts`, with focused runtime
+coverage and architecture guardrails blocking direct controller construction from returning.
 State integration persistence debounce, performance-monitoring interval, storage lookup, performance-memory read,
 and clock reads now route through `stateIntegrationRuntime.ts` instead of calling runtime globals directly inside
 `stateIntegration.ts`, with focused runtime coverage and architecture guardrails blocking those direct runtime
