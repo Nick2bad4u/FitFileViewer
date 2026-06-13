@@ -34,15 +34,16 @@ const registeredListeners = new Set<CleanupFunction>();
  */
 export function addDragDropListeners(
     handlers: DragDropHandlers,
-    target: EventTarget = globalThis.window,
+    target?: EventTarget,
     runtime: EventListenerManagerRuntime = getEventListenerManagerRuntime()
 ): CleanupFunction {
-    const cleanupFunctions: CleanupFunction[] = [];
+    const cleanupFunctions: CleanupFunction[] = [],
+        listenerTarget = target ?? runtime.getDefaultEventTarget();
 
     if (handlers.onDragEnter) {
         cleanupFunctions.push(
             addEventListenerWithCleanup(
-                target,
+                listenerTarget,
                 "dragenter",
                 handlers.onDragEnter,
                 false,
@@ -54,7 +55,7 @@ export function addDragDropListeners(
     if (handlers.onDragLeave) {
         cleanupFunctions.push(
             addEventListenerWithCleanup(
-                target,
+                listenerTarget,
                 "dragleave",
                 handlers.onDragLeave,
                 false,
@@ -66,7 +67,7 @@ export function addDragDropListeners(
     if (handlers.onDragOver) {
         cleanupFunctions.push(
             addEventListenerWithCleanup(
-                target,
+                listenerTarget,
                 "dragover",
                 handlers.onDragOver,
                 false,
@@ -78,7 +79,7 @@ export function addDragDropListeners(
     if (handlers.onDrop) {
         cleanupFunctions.push(
             addEventListenerWithCleanup(
-                target,
+                listenerTarget,
                 "drop",
                 handlers.onDrop,
                 false,

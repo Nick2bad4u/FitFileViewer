@@ -1,9 +1,11 @@
 export interface EventListenerManagerRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
+    readonly window?: EventTarget | undefined;
 }
 
 export interface EventListenerManagerRuntime {
     createAbortController(): AbortController;
+    getDefaultEventTarget(): EventTarget | undefined;
 }
 
 export function getEventListenerManagerRuntime(
@@ -19,6 +21,9 @@ export function getEventListenerManagerRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        getDefaultEventTarget(): EventTarget | undefined {
+            return scope.window;
         },
     };
 }

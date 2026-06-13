@@ -3,6 +3,25 @@ import { describe, expect, it } from "vitest";
 import { getEventListenerManagerRuntime } from "../../../../../electron-app/utils/ui/events/eventListenerManagerRuntime.js";
 
 describe("getEventListenerManagerRuntime", () => {
+    it("resolves the default event target through the injected window scope", () => {
+        expect.assertions(1);
+
+        const target = new EventTarget(),
+            runtime = getEventListenerManagerRuntime({
+                window: target,
+            });
+
+        expect(runtime.getDefaultEventTarget()).toBe(target);
+    });
+
+    it("returns undefined when no default event target is available", () => {
+        expect.assertions(1);
+
+        expect(
+            getEventListenerManagerRuntime({}).getDefaultEventTarget()
+        ).toBeUndefined();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 

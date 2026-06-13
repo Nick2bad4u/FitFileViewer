@@ -826,9 +826,10 @@ mutation.
 Main UI DOM utility listener cleanup now creates abort controllers through `mainUiDomUtilsRuntime.ts` instead of
 constructing `AbortController` directly in `mainUiDomUtils.ts`, with focused runtime coverage and architecture
 coverage blocking direct main UI DOM utility abort-controller construction from returning.
-Shared event listener manager cleanup now creates abort controllers through `eventListenerManagerRuntime.ts`
-instead of constructing `AbortController` directly in `eventListenerManager.ts`, with focused runtime coverage
-and architecture coverage blocking direct manager abort-controller construction from returning.
+Shared event listener manager drag/drop default target resolution and tracked listener cleanup now route through
+`eventListenerManagerRuntime.ts` instead of probing `globalThis.window` or constructing `AbortController`
+directly in `eventListenerManager.ts`, with focused runtime coverage and architecture coverage blocking direct
+manager window and abort-controller access from returning.
 Shared DOM helper listener cleanup now creates abort controllers through `domHelpersRuntime.ts` instead of
 constructing `AbortController` directly in `domHelpers.ts`, with focused runtime coverage and architecture
 coverage blocking direct DOM helper abort-controller construction from returning.
