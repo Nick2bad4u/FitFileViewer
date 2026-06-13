@@ -407,6 +407,9 @@ const migratedExternalLinkHandlersRuntimeFiles = [
 const migratedMapActionButtonsRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
 ] as const;
+const migratedMapDocumentListenersRuntimeFiles = [
+    "electron-app/utils/maps/core/mapDocumentListeners.ts",
+] as const;
 const migratedMapFullscreenControlRuntimeFiles = [
     "electron-app/utils/maps/controls/mapFullscreenControl.ts",
 ] as const;
@@ -999,6 +1002,8 @@ const directExternalLinkHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.open\b/u;
 const directMapActionButtonsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapDocumentListenersRuntimeGlobalPattern =
+    /\bdocument\.addEventListener\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.window\b|\bnew\s+AbortController\b/u;
 const directMapFullscreenControlRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapMeasureToolRuntimeGlobalPattern =
@@ -5754,6 +5759,29 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapActionButtonsSource).toContain("mapActionButtonsRuntime.js");
+    });
+
+    it("keeps map document listeners behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedMapDocumentListenersRuntimeFiles
+            .filter((relativeFile) =>
+                directMapDocumentListenersRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapDocumentListenersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/core/mapDocumentListeners.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapDocumentListenersSource).toContain(
+            "mapDocumentListenersRuntime.js"
+        );
+        expect(mapDocumentListenersSource).toContain("createAbortController");
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {

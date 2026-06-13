@@ -311,6 +311,10 @@ direct timer globals from returning.
 Setup theme main-process fetch timeout scheduling and cleanup now route through `setupThemeRuntime.ts` instead
 of calling timer globals directly inside `setupTheme.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning.
+Map document listener abort-controller creation plus document/window listener registration now route through
+`mapDocumentListenersRuntime.ts` instead of constructing `AbortController` or registering document/window
+listeners directly inside `mapDocumentListeners.ts`, with focused runtime coverage and architecture guardrails
+blocking those direct browser APIs from returning.
 Shared configuration loading now routes URL search reads, chart-refresh timer scheduling, and chart-refresh
 timer cleanup through `loadSharedConfigurationRuntime.ts` instead of probing location or calling timer globals
 directly inside `loadSharedConfiguration.ts`, with focused runtime coverage and architecture guardrails blocking
