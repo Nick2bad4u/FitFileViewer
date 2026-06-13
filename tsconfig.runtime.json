@@ -412,6 +412,7 @@
         "electron-app/utils/theming/specific/index.ts",
         "electron-app/utils/theming/index.ts",
         "electron-app/utils/rendering/helpers/getActiveTabContent.ts",
+        "electron-app/utils/rendering/helpers/renderSummaryRuntime.ts",
         "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
         "electron-app/utils/rendering/helpers/arqueroRuntime.ts",
         "electron-app/utils/rendering/helpers/summaryColModal.ts",

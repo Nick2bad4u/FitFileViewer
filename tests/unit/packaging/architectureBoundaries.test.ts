@@ -43,6 +43,9 @@ const rendererMainUiRuntimeEnvironmentFiles = [
 const migratedMainUiSummarySelectorRuntimeFiles = [
     "electron-app/renderer/mainUiSummarySelectorRegistration.ts",
 ] as const;
+const migratedRenderSummaryRuntimeFiles = [
+    "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
+] as const;
 const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
 const rendererElectronApiRuntimeSourceFiles = [
     "electron-app/renderer/electronApiStartupHooks.ts",
@@ -918,6 +921,8 @@ const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
+const directRenderSummarySchedulingRuntimeGlobalPattern =
+    /\bglobalThis\.(?:addEventListener|cancelAnimationFrame|requestAnimationFrame)\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.getComputedStyle\b/u;
 const directEnableTabButtonsDebugRuntimeGlobalPattern =
@@ -5677,6 +5682,26 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(summaryColModalSource).toContain("summaryColModalRuntime.js");
+    });
+
+    it("keeps render-summary scheduling APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRenderSummaryRuntimeFiles
+            .filter((relativeFile) =>
+                directRenderSummarySchedulingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const renderSummarySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(renderSummarySource).toContain("renderSummaryRuntime.js");
     });
 
     it("keeps controls-state computed style reads behind the runtime facade", () => {
