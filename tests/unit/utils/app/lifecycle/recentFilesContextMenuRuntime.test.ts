@@ -3,6 +3,34 @@ import { describe, expect, it, vi } from "vitest";
 import { getRecentFilesContextMenuRuntime } from "../../../../../electron-app/utils/app/lifecycle/recentFilesContextMenuRuntime.js";
 
 describe("recentFilesContextMenuRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const runtime = getRecentFilesContextMenuRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+        });
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("throws when abort controller creation is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getRecentFilesContextMenuRuntime({});
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "recent files context menu requires an AbortController runtime"
+        );
+    });
+
     it("reads finite viewport dimensions from a scoped window", () => {
         expect.assertions(1);
 

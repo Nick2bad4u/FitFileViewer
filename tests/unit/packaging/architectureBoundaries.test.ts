@@ -4903,8 +4903,8 @@ describe("architecture boundaries", () => {
         ).toBe(false);
     });
 
-    it("keeps recent-files context-menu viewport and focus timers behind the runtime adapter", () => {
-        expect.assertions(5);
+    it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
+        expect.assertions(6);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -4912,10 +4912,13 @@ describe("architecture boundaries", () => {
             )
         );
         const directRecentFilesContextMenuRuntimeGlobalPattern =
-            /\b(?:globalThis|window)\.(?:clearTimeout|innerHeight|innerWidth|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+            /\b(?:globalThis|window)\.(?:clearTimeout|innerHeight|innerWidth|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
 
         expect(recentFilesContextMenuSource).toContain(
             "recentFilesContextMenuRuntime.js"
+        );
+        expect(recentFilesContextMenuSource).toContain(
+            "createAbortController"
         );
         expect(recentFilesContextMenuSource).not.toContain("globalThis.window");
         expect(recentFilesContextMenuSource).not.toContain("window.innerWidth");

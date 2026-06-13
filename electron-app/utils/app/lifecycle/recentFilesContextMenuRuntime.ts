@@ -1,4 +1,5 @@
 export interface RecentFilesContextMenuRuntimeScope {
+    readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly setTimeout?: typeof globalThis.setTimeout | undefined;
     readonly window?:
@@ -20,6 +21,7 @@ export interface RecentFilesContextMenuViewport {
 
 export interface RecentFilesContextMenuRuntime {
     clearTimeout: (handle: RecentFilesContextMenuTimer) => void;
+    createAbortController: () => AbortController;
     getViewport: () => RecentFilesContextMenuViewport;
     setTimeout: (
         callback: () => void,
@@ -39,6 +41,16 @@ export function getRecentFilesContextMenuRuntime(
             const clearTimeoutRef =
                 scope.clearTimeout ?? globalThis.clearTimeout;
             clearTimeoutRef(handle);
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "recent files context menu requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         getViewport(): RecentFilesContextMenuViewport {
             return {

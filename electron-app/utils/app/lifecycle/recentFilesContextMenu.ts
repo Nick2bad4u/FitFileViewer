@@ -91,8 +91,8 @@ export function attachRecentFilesContextMenu({
     setLoading,
     showNotification,
 }: AttachRecentFilesContextMenuParams): () => void {
-    const rootAbortController = new AbortController();
     const runtime = getRecentFilesContextMenuRuntime();
+    const rootAbortController = runtime.createAbortController();
 
     // Keep default quiet even in tests; enable only when explicitly requested.
     const debugEnabled =
@@ -133,7 +133,7 @@ export function attachRecentFilesContextMenu({
                 oldMenu.remove();
             }
             const menu = document.createElement("div");
-            const menuAbortController = new AbortController();
+            const menuAbortController = runtime.createAbortController();
             const { signal: menuSignal } = menuAbortController;
             let focusTimer: RecentFilesContextMenuTimer | undefined;
             menu.id = "recent-files-menu";
