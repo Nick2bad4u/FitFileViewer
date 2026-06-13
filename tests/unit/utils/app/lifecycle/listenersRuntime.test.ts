@@ -62,4 +62,19 @@ describe("getLifecycleListenersRuntime", () => {
         });
         expect(clearedTimer).toBe(timer);
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getLifecycleListenersRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "lifecycle listeners require a setTimeout runtime"
+        );
+        expect(() => {
+            runtime.clearTimeout(
+                23 as ReturnType<typeof globalThis.setTimeout>
+            );
+        }).toThrow("lifecycle listeners require a clearTimeout runtime");
+    });
 });

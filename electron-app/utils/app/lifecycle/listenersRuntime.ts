@@ -20,8 +20,13 @@ export function getLifecycleListenersRuntime(
 ): LifecycleListenersRuntime {
     return {
         clearTimeout(handle): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "lifecycle listeners require a clearTimeout runtime"
+                );
+            }
+
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
@@ -35,7 +40,13 @@ export function getLifecycleListenersRuntime(
             return new AbortControllerConstructor();
         },
         setTimeout(callback, delayMs): LifecycleListenersTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "lifecycle listeners require a setTimeout runtime"
+                );
+            }
+
             return setTimeoutRef(callback, delayMs);
         },
     };

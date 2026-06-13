@@ -5211,13 +5211,20 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
         );
+        const lifecycleListenersRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/listenersRuntime.ts"
+            )
+        );
         const directLifecycleListenersTimerGlobalPattern =
             /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+        const directLifecycleListenersAmbientTimerFallbackPattern =
+            /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 
         expect(lifecycleListenersSource).toContain("listenersRuntime.js");
         expect(lifecycleListenersSource).toContain("createAbortController");
@@ -5226,6 +5233,12 @@ describe("architecture boundaries", () => {
                 lifecycleListenersSource
             )
         ).toBe(false);
+        expect(lifecycleListenersRuntimeSource).not.toMatch(
+            directLifecycleListenersAmbientTimerFallbackPattern
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "lifecycle listeners require a setTimeout runtime"
+        );
     });
 
     it("keeps migrated state history readers on the typed history API", () => {

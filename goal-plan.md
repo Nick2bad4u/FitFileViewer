@@ -584,7 +584,9 @@ those test-global mutations from returning.
 Lifecycle listener export cleanup timer scheduling/cleanup and Open File click-listener abort-controller creation now
 route through `listenersRuntime.ts` instead of calling timer globals or constructing `AbortController` directly inside
 `listeners.ts`, with focused runtime coverage and architecture guardrails blocking those direct timer/controller
-globals from returning.
+globals from returning. Explicit lifecycle listener runtime scopes must now provide timer primitives instead of
+falling back to `globalThis`, with focused runtime coverage and architecture coverage blocking those fallbacks from
+returning.
 GPX export button, chart theme listener, and user/device info tests no longer type or clean retired
 `globalData`/`loadedFitFiles` globals; they rely on typed state resets and active FIT data fixtures, and
 architecture coverage blocks those cleanup patterns from returning.
