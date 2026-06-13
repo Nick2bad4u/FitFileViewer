@@ -1,6 +1,7 @@
 export type OpenFileSelectorTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface OpenFileSelectorRuntimeScope {
+    readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly document?: Document | undefined;
     readonly navigator?: Pick<Navigator, "userAgent"> | undefined;
@@ -11,6 +12,7 @@ export interface OpenFileSelectorRuntimeScope {
 export interface OpenFileSelectorRuntime {
     appendToBody: (element: HTMLElement) => void;
     clearTimeout: (timer: OpenFileSelectorTimer) => void;
+    createAbortController: () => AbortController;
     createInput: () => HTMLInputElement;
     isJsdom: () => boolean;
     queueMicrotask: (callback: () => void) => void;
@@ -40,6 +42,16 @@ export function getOpenFileSelectorRuntime(
             const clearTimeoutRef =
                 scope.clearTimeout ?? globalThis.clearTimeout;
             clearTimeoutRef(timer);
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "openFileSelector requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         createInput(): HTMLInputElement {
             return getDocument(scope).createElement("input");

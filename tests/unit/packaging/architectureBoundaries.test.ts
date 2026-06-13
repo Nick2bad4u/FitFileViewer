@@ -1013,7 +1013,7 @@ const directMapLapSelectorRuntimeGlobalPattern =
 const directMapDrawLapsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnew\s+AbortController\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
 const directLoadOverlayFilesRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.navigator\b|\bnavigator\.hardwareConcurrency\b/u;
 const directFitBrowserFeatureGateRuntimeGlobalPattern =
@@ -5871,7 +5871,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedOpenFileSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -5888,6 +5888,7 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(openFileSelectorSource).toContain("openFileSelectorRuntime.js");
+        expect(openFileSelectorSource).toContain("createAbortController");
     });
 
     it("keeps overlay file load concurrency metadata behind the runtime facade", () => {

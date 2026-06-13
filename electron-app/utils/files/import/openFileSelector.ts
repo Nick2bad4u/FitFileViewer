@@ -161,8 +161,9 @@ function createFileInput(): HTMLInputElement {
 function createInputProcessingController(
     input: HTMLInputElement
 ): InputProcessingController {
+    const runtime = getOpenFileSelectorRuntime();
     let handled = false;
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
     let resolveDone: (value: void | PromiseLike<void>) => void = () => {};
     const done = new Promise<void>((resolve) => {
         resolveDone = resolve;
@@ -314,7 +315,7 @@ async function triggerFileSelection(
                 /* handled in controller */
             });
         });
-        const timeoutCleanupController = new AbortController();
+        const timeoutCleanupController = runtime.createAbortController();
         let timeoutHandle: OpenFileSelectorTimer;
         const clearScheduledTimeout = (): void => {
             runtime.clearTimeout(timeoutHandle);

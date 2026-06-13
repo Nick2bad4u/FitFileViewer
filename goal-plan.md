@@ -269,6 +269,10 @@ imports instead of probing CJS module caches through `node:module`.
 Overlay file load concurrency now resolves navigator hardware-concurrency metadata through
 `loadOverlayFilesRuntime.ts` instead of probing `globalThis.navigator` directly inside `loadOverlayFiles.ts`,
 with focused runtime coverage and architecture guardrails blocking that direct metadata lookup from returning.
+Open-file selector hidden input creation, jsdom detection, microtask fallback, timeout cleanup, and
+abort-controller creation now route through `openFileSelectorRuntime.ts` instead of calling browser primitives or
+constructing controllers directly inside `openFileSelector.ts`, with focused runtime coverage and architecture
+guardrails blocking those direct selector runtime primitives from returning.
 CSV table clipboard fallback now routes browser clipboard writes and legacy textarea copy through
 `copyTableAsCSVRuntime.ts` instead of probing `navigator.clipboard` or calling document copy APIs directly inside
 `copyTableAsCSV.ts`, with focused runtime coverage and architecture guardrails blocking those direct browser
