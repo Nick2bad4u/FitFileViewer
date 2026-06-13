@@ -404,10 +404,11 @@ State manager defaults now resolve startup timestamps and document titles throug
 `stateManagerDefaultsRuntime.ts` adapter instead of probing `globalThis.performance`, `Date.now`,
 `typeof document`, or `document.title` directly inside `stateManagerDefaults.ts`, with focused runtime coverage
 and architecture guardrails blocking those direct lookups from returning.
-Main-process state-manager duration timing now goes through the scoped `mainProcessStateRuntime.ts` adapter
-instead of probing `globalThis.performance` or `performance.now` directly inside `mainProcessStateManager.ts`,
-with focused runtime coverage and architecture guardrails blocking those direct monotonic-clock lookups from
-returning.
+Main-process state-manager duration timing, completed-operation cleanup timers, and deferred IPC setup retry
+timers now go through the scoped `mainProcessStateRuntime.ts` adapter instead of probing
+`globalThis.performance` or `performance.now` or calling timer globals directly inside
+`mainProcessStateManager.ts`, with focused runtime coverage and architecture guardrails blocking those direct
+timing globals from returning.
 Master state manager development-scope checks, global error listeners, theme-change dispatch, and window lifecycle
 listeners now go through the scoped `masterStateRuntime.ts` adapter instead of probing or registering directly on
 `globalThis.window`, `globalThis.location`, `globalThis.addEventListener`, `globalThis.dispatchEvent`, or

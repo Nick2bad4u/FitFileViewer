@@ -20,7 +20,10 @@ import {
 } from "../../../shared/mainStatePathPolicy.js";
 import { registerIpcHandle as registerGenericIpcHandle } from "../../../main/ipc/ipcRegistry.js";
 import { getElectron as getStateRuntimeElectron } from "../../../main/runtime/electronAccess.js";
-import { getMainProcessStateRuntime } from "./mainProcessStateRuntime.js";
+import {
+    getMainProcessStateRuntime,
+    type MainProcessStateTimer,
+} from "./mainProcessStateRuntime.js";
 
 const RENDERER_READABLE_MAIN_STATE_PATHS: ReadonlySet<string> = new Set([
     "loadedFitFilePath",
@@ -185,7 +188,7 @@ class MainProcessState {
 
     ipcSubscriptions: Map<string, () => void>;
 
-    operationCleanupTimers: Map<string, ReturnType<typeof setTimeout>>;
+    operationCleanupTimers: Map<string, MainProcessStateTimer>;
 
     senderCleanupRegistered: Set<number>;
 
@@ -349,11 +352,11 @@ class MainProcessState {
 
         const previousCleanup = this.operationCleanupTimers.get(operationId);
         if (previousCleanup) {
-            clearTimeout(previousCleanup);
+            mainProcessStateRuntime.clearTimeout(previousCleanup);
         }
 
         // Clean up completed operation after 30 seconds
-        const cleanupTimer = setTimeout(() => {
+        const cleanupTimer = mainProcessStateRuntime.setTimeout(() => {
             this.removeOperation(operationId);
         }, 30_000);
         this.operationCleanupTimers.set(operationId, cleanupTimer);
@@ -873,7 +876,7 @@ class MainProcessState {
     removeOperation(operationId: string): void {
         const cleanupTimer = this.operationCleanupTimers.get(operationId);
         if (cleanupTimer) {
-            clearTimeout(cleanupTimer);
+            mainProcessStateRuntime.clearTimeout(cleanupTimer);
             this.operationCleanupTimers.delete(operationId);
         }
 
@@ -1549,7 +1552,7 @@ const mainProcessState = new MainProcessState();
     const state = ensureIpcHandlersReadyOnce as (() => void) & {
         done?: boolean;
         logged?: boolean;
-        retryTimer?: ReturnType<typeof setTimeout>;
+        retryTimer?: MainProcessStateTimer;
     };
     if (state.done) return;
 
@@ -1572,7 +1575,7 @@ const mainProcessState = new MainProcessState();
         const { ipcMain } = safeElectron();
         if (ipcMain && typeof ipcMain.handle === "function") {
             if (state.retryTimer) {
-                clearTimeout(state.retryTimer);
+                mainProcessStateRuntime.clearTimeout(state.retryTimer);
                 delete state.retryTimer;
             }
 
@@ -1602,10 +1605,14 @@ const mainProcessState = new MainProcessState();
                     let attempts = 0;
                     const tick = () => {
                         if (!state.done && !trySetup() && attempts++ < 50) {
-                            state.retryTimer = setTimeout(tick, 50);
+                            state.retryTimer =
+                                mainProcessStateRuntime.setTimeout(tick, 50);
                         }
                     };
-                    state.retryTimer = setTimeout(tick, 10);
+                    state.retryTimer = mainProcessStateRuntime.setTimeout(
+                        tick,
+                        10
+                    );
                 });
             return;
         }
@@ -1617,7 +1624,7 @@ const mainProcessState = new MainProcessState();
     let attempts = 0;
     const tick = () => {
         if (!state.done && !trySetup() && attempts++ < 50) {
-            state.retryTimer = setTimeout(tick, 50);
+            state.retryTimer = mainProcessStateRuntime.setTimeout(tick, 50);
         }
     };
     if (!state.logged) {
@@ -1630,7 +1637,7 @@ const mainProcessState = new MainProcessState();
             /* ignore */
         }
     }
-    state.retryTimer = setTimeout(tick, 10);
+    state.retryTimer = mainProcessStateRuntime.setTimeout(tick, 10);
 })();
 
 export { mainProcessState, MainProcessState };
