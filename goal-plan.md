@@ -511,6 +511,9 @@ coverage blocking global fixture definitions or cleanup in those source tests.
 Electron API runtime tests now use Vitest-scoped ambient `electronAPI` stubs when exercising default global
 fallback behavior instead of defining or deleting `globalThis.electronAPI` directly, with architecture coverage
 blocking that direct fixture mutation.
+Main UI DOM utility tests now use Vitest-scoped ambient `electronAPI` stubs for validation coverage instead of
+defining or deleting `globalThis.electronAPI` directly, with architecture coverage blocking that direct fixture
+mutation.
 Setup process-nextTick stabilization now uses one `ensureProcessNextTick()` helper instead of repeating the same
 inline `globalThis.process.nextTick` mutation in multiple setup hooks.
 The Playwright map elevation popup smoke path now installs and restores its temporary `window.open` override

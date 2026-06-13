@@ -840,6 +840,8 @@ const directElectronApiGlobalReadPattern =
     /\b(?:globalThis|window)\.electronAPI\b|\.\s*electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI|\b(?:Reflect\.deleteProperty|Object\.defineProperty)\(\s*(?:globalThis|window)\s*,\s*["']electronAPI["']/u;
 const electronApiRuntimeTestDirectGlobalFixturePattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*\)/u;
+const mainUiDomUtilsTestDirectElectronApiGlobalFixturePattern =
+    /\bObject\.defineProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*\)/u;
 const preloadTestDirectElectronApiGlobalFixturePattern =
     /\b(?:Object\.defineProperty|Reflect\.deleteProperty)\(\s*globalThis\s*,/u;
 const directExternalLinkHandlersRuntimeGlobalPattern =
@@ -7936,6 +7938,20 @@ describe("architecture boundaries", () => {
                 stripComments(
                     readRepositoryFile(
                         "tests/unit/utils/runtime/electronApiRuntime.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps main UI DOM utility tests on scoped Electron API fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            mainUiDomUtilsTestDirectElectronApiGlobalFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/mainUiDomUtils.test.ts"
                     )
                 )
             )

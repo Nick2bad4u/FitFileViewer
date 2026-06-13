@@ -7,8 +7,6 @@ import {
     validateElement,
 } from "../../../../electron-app/utils/ui/mainUiDomUtils.js";
 
-const ELECTRON_API_PROPERTY = "electronAPI";
-
 function getRequiredMockCall<T extends unknown[]>(calls: T[], index = 0): T {
     const call = calls[index];
 
@@ -22,7 +20,7 @@ function getRequiredMockCall<T extends unknown[]>(calls: T[], index = 0): T {
 function resetTestState(): void {
     cleanupEventListeners();
     document.body.replaceChildren();
-    Reflect.deleteProperty(globalThis, ELECTRON_API_PROPERTY);
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
 }
 
@@ -97,10 +95,7 @@ describe("mainUiDomUtils", () => {
 
         resetTestState();
 
-        Object.defineProperty(globalThis, ELECTRON_API_PROPERTY, {
-            configurable: true,
-            value: { decodeFitFile: "not-a-function" },
-        });
+        vi.stubGlobal("electronAPI", { decodeFitFile: "not-a-function" });
 
         expect({ isValid: validateElectronAPI() }).toStrictEqual({
             isValid: false,
@@ -114,9 +109,8 @@ describe("mainUiDomUtils", () => {
 
         resetTestState();
 
-        Object.defineProperty(globalThis, ELECTRON_API_PROPERTY, {
-            configurable: true,
-            value: { decodeFitFile: vi.fn<(buffer: ArrayBuffer) => unknown>() },
+        vi.stubGlobal("electronAPI", {
+            decodeFitFile: vi.fn<(buffer: ArrayBuffer) => unknown>(),
         });
 
         expect({ isValid: validateElectronAPI() }).toStrictEqual({
