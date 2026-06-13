@@ -1036,6 +1036,8 @@ const directExternalLinkHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.open\b/u;
 const directMapActionButtonsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapActionButtonsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapDocumentListenersRuntimeGlobalPattern =
     /\bdocument\.addEventListener\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.window\b|\bnew\s+AbortController\b/u;
 const directMapFullscreenControlRuntimeGlobalPattern =
@@ -5968,7 +5970,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map action timers behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedMapActionButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -5982,9 +5984,20 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/maps/controls/mapActionButtons.ts"
             )
         );
+        const mapActionButtonsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/controls/mapActionButtonsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(mapActionButtonsSource).toContain("mapActionButtonsRuntime.js");
+        expect(mapActionButtonsRuntimeSource).not.toMatch(
+            directMapActionButtonsRuntimeAmbientFallbackPattern
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
     });
 
     it("keeps map document listeners behind the runtime facade", () => {

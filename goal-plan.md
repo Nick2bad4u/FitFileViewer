@@ -796,6 +796,9 @@ stashing the fixture on `window.L` or reaching markers through `global.window.L`
 blocking that retired test fixture pattern.
 Map action-button strict tests now pass their `CircleMarker` fixture through the typed Leaflet runtime instead
 of stashing or clearing it on `window.L`, with architecture coverage blocking that retired fixture pattern.
+Map action-button active-file centering retry scheduling and cleanup now route through
+`mapActionButtonsRuntime.ts`; explicit runtime scopes must now provide timer primitives instead of falling back
+to `globalThis`, with focused coverage and architecture coverage blocking those ambient fallbacks from returning.
 The shared Vitest Leaflet mock no longer advertises the removed markercluster package path through a
 `markerClusterGroup` helper, and architecture coverage keeps that stale plugin mock out of setup.
 Vitest setup no longer registers a default Leaflet runtime for every test; map-related tests install explicit

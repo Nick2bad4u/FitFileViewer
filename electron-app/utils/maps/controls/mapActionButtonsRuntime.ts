@@ -18,12 +18,23 @@ export function getMapActionButtonsRuntime(
 ): MapActionButtonsRuntime {
     return {
         clearTimeout(timer): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "mapActionButtonsRuntime requires clearTimeout"
+                );
+            }
+
             clearTimeoutRef(timer);
         },
         setTimeout(callback, delayMs): MapActionButtonTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "mapActionButtonsRuntime requires setTimeout"
+                );
+            }
+
             return setTimeoutRef(callback, delayMs);
         },
     };
