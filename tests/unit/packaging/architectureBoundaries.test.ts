@@ -1014,7 +1014,7 @@ const directGetCurrentSettingsRuntimeGlobalPattern =
 const directLazyRenderingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:innerHeight|innerWidth|requestAnimationFrame|requestIdleCallback|setTimeout)\b|\bdocument\.documentElement\b|\btypeof\s+IntersectionObserver\b|\bnew\s+IntersectionObserver\b|\belement\s+instanceof\s+HTMLElement\b|\breturn\s+setTimeout\(/u;
 const directListenersResizeRuntimeGlobalPattern =
-    /\b(?:document|window|globalThis)\.|\bReflect\.get\(|\binstanceof\s+(?:Element|HTMLCanvasElement)\b|\bquerySelectorByIdFlexible\(\s*document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|requestAnimationFrame|cancelAnimationFrame)\(/u;
+    /\b(?:document|window|globalThis)\.|\bReflect\.get\(|\bnew\s+AbortController\b|\binstanceof\s+(?:Element|HTMLCanvasElement)\b|\bquerySelectorByIdFlexible\(\s*document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const directThemeCoreRuntimeGlobalPattern =
@@ -5945,7 +5945,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedListenersResizeRuntimeFiles
             .filter((relativeFile) =>
@@ -5962,6 +5962,7 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(listenersResizeSource).toContain("listenersResizeRuntime.js");
+        expect(listenersResizeSource).toContain("createAbortController");
     });
 
     it("keeps chart theme browser reads behind the runtime facade", () => {

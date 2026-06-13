@@ -26,8 +26,8 @@ function isResizableChart(value: unknown): value is ResizableChart {
 export function registerChartResizeListener({
     cleanupCallbacks,
 }: ChartResizeListenerParams): void {
-    const resizeListenerController = new AbortController();
     const runtime = getListenersResizeRuntime();
+    const resizeListenerController = runtime.createAbortController();
     let chartRenderTimeout: ListenersResizeTimerHandle | null = null;
     let resizeCleanup: (() => void) | undefined;
 

@@ -21,6 +21,7 @@ export interface ListenersResizeRuntimeWindow {
 }
 
 export interface ListenersResizeRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly cancelAnimationFrame?:
         | ((handle: number) => void)
         | undefined;
@@ -49,6 +50,7 @@ export interface ListenersResizeRuntime {
     ) => void;
     cancelAnimationFrame: (handle: number) => void;
     clearTimeout: (handle: ListenersResizeTimerHandle) => void;
+    createAbortController: () => AbortController;
     getFullscreenElement: () => Element | null;
     queryChartCanvases: () => HTMLCanvasElement[];
     queryChartTab: (selector: string) => Element | null;
@@ -90,6 +92,16 @@ export function getListenersResizeRuntime(
         clearTimeout(handle: ListenersResizeTimerHandle): void {
             const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
             clearTimeoutRef(handle);
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "listenersResize requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         getFullscreenElement(): Element | null {
             const runtimeDocument = scope.document;

@@ -478,7 +478,10 @@ flows, with architecture coverage blocking that stale strict-test fixture.
 Computed state manager tests now use neutral `sampleData` dependencies for generic computed-value coverage
 instead of normalizing the retired `globalData` state path, with architecture coverage blocking that stale fixture.
 Chart resize listener tests no longer install or clean legacy Chart.js renderer globals while proving
-fullscreen resize uses registered chart instances, with architecture coverage preventing those mutations.
+fullscreen resize uses registered chart instances, with architecture coverage preventing those mutations. Chart
+resize listener cleanup now creates abort controllers through `listenersResizeRuntime.ts` instead of
+constructing `AbortController` directly in `listenersResize.ts`, with focused runtime coverage and architecture
+coverage blocking direct resize-listener abort-controller construction from returning.
 RenderChartJS comprehensive tests no longer delete retired Chart.js runtime globals such as `Chart`,
 `ChartZoom`, or `chartjsPluginZoom`; they use the typed chart runtime test API, and architecture coverage
 blocks those mutations from returning.
