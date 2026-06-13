@@ -262,6 +262,9 @@ const migratedArqueroRuntimeFiles = [
 const migratedExportZipRuntimeFiles = [
     "electron-app/utils/files/export/exportUtils.ts",
 ] as const;
+const migratedNetworkUtilsRuntimeFiles = [
+    "electron-app/utils/net/networkUtils.ts",
+] as const;
 const migratedCreatePrintButtonRuntimeFiles = [
     "electron-app/utils/files/export/createPrintButton.ts",
 ] as const;
@@ -963,6 +966,8 @@ const directRendererApplicationStartupRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererVendorBundleLoaderRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|removeEventListener|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directNetworkUtilsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:fetch|clearTimeout|setTimeout|AbortController)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:fetch|clearTimeout|setTimeout)\(/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -6010,6 +6015,24 @@ describe("architecture boundaries", () => {
         expect(vendorBundleLoaderSource).toContain(
             "vendorBundleLoaderRuntime.js"
         );
+    });
+
+    it("keeps network fetch and timeout APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedNetworkUtilsRuntimeFiles
+            .filter((relativeFile) =>
+                directNetworkUtilsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const networkUtilsSource = stripComments(
+            readRepositoryFile("electron-app/utils/net/networkUtils.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(networkUtilsSource).toContain("networkUtilsRuntime.js");
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {

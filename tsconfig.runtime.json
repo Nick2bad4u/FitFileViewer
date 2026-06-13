@@ -231,6 +231,7 @@
         "electron-app/utils/app/performance/lazyRenderingUtils.ts",
         "electron-app/utils/app/performance/performanceUtils.ts",
         "electron-app/utils/async/pLimitCompat.ts",
+        "electron-app/utils/net/networkUtilsRuntime.ts",
         "electron-app/utils/net/networkUtils.ts",
         "electron-app/utils/docs/documentationStandards.ts",
         "electron-app/utils/types/sharedChartTypes.ts",
