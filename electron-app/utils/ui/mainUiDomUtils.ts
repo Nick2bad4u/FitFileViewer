@@ -3,6 +3,10 @@
  */
 
 import { getElementByIdFlexible } from "./dom/elementIdUtils.js";
+import {
+    getMainUiDomUtilsRuntime,
+    type MainUiDomUtilsRuntime,
+} from "./mainUiDomUtilsRuntime.js";
 import { getRendererElectronApi } from "../runtime/electronApiRuntime.js";
 import type { ElectronAPI } from "../../shared/preloadApi.js";
 
@@ -24,9 +28,10 @@ export function addEventListenerWithCleanup(
     element: EventTarget,
     type: string,
     handler: EventListenerOrEventListenerObject,
-    options?: AddEventListenerOptions | boolean
+    options?: AddEventListenerOptions | boolean,
+    runtime: MainUiDomUtilsRuntime = getMainUiDomUtilsRuntime()
 ): void {
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
     try {
         if (typeof options === "boolean") {
             element.addEventListener(type, handler, {

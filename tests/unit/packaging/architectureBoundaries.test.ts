@@ -981,6 +981,7 @@ const electronApiRuntimeTestDirectGlobalFixturePattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*\)/u;
 const mainUiDomUtilsTestDirectElectronApiGlobalFixturePattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*\)/u;
+const directMainUiDomUtilsRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
 const preloadTestDirectElectronApiGlobalFixturePattern =
     /\b(?:Object\.defineProperty|Reflect\.deleteProperty)\(\s*globalThis\s*,/u;
 const directExternalLinkHandlersRuntimeGlobalPattern =
@@ -9111,5 +9112,18 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(false);
+    });
+
+    it("keeps main UI DOM utility listener cleanup behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const mainUiDomUtilsSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/mainUiDomUtils.ts")
+        );
+
+        expect(
+            directMainUiDomUtilsRuntimeGlobalPattern.test(mainUiDomUtilsSource)
+        ).toBe(false);
+        expect(mainUiDomUtilsSource).toContain("mainUiDomUtilsRuntime.js");
     });
 });
