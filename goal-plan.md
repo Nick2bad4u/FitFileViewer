@@ -446,6 +446,10 @@ path; they use the current `fitFile.rawData` fixture path that `FitFileSelectors
 coverage blocking the stale fixture from returning.
 Strict render-map tests no longer type or assign retired FIT data globals on `window`; they seed loaded-file
 fixtures through `loadedFitFilesState`, and architecture coverage blocks the stale window fixture from returning.
+Render-map cleanup timers, layer-control hover timers, zoom-slider debounce timers, and layout animation-frame
+scheduling now route through `renderMapRuntime.ts` instead of calling timer or animation-frame globals directly
+inside `renderMap.ts`, with focused runtime coverage and architecture guardrails blocking those direct timing
+globals from returning.
 Map draw-laps tests now install and restore their temporary jsdom `window` through a captured descriptor instead
 of assigning or deleting `testGlobal.window` directly, with architecture coverage blocking that fixture mutation.
 Tab visibility state tests now use the `updateTabVisibility.fitRawDataState.test.ts` filename and active raw FIT

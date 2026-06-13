@@ -4263,6 +4263,21 @@ describe("architecture boundaries", () => {
         expect(renderMapSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps render-map timing behind the runtime adapter", () => {
+        expect.assertions(2);
+
+        const renderMapSource = stripComments(
+            readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
+        );
+        const directRenderMapTimingGlobalPattern =
+            /\b(?:globalThis|window)\.(?:requestAnimationFrame|clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:requestAnimationFrame|clearTimeout|setTimeout)\(/u;
+
+        expect(renderMapSource).toContain("renderMapRuntime.js");
+        expect(directRenderMapTimingGlobalPattern.test(renderMapSource)).toBe(
+            false
+        );
+    });
+
     it("keeps file-open handling off direct core state-manager imports", () => {
         expect.assertions(1);
 
