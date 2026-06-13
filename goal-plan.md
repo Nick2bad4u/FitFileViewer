@@ -357,9 +357,9 @@ and architecture coverage blocks those stale fixtures from returning.
 Strict lap-zone chart tests now name their raw-data fixtures as active FIT data instead of retired `globalData`,
 matching the production `getActiveFitActivityData()` path, and architecture coverage blocks the stale fixture
 names from returning.
-Strict create-enhanced-chart and zone-chart tests now install browser globals through descriptor-scoped fixtures
-instead of assigning or deleting `globalThis` properties directly, with architecture coverage blocking that
-test-harness mutation pattern.
+Strict create-enhanced-chart and zone-chart tests now install and restore browser globals through
+descriptor-scoped fixtures instead of assigning or deleting `globalThis` properties directly, with architecture
+coverage blocking that test-harness mutation pattern.
 Chart zone color utility tests now install and restore localStorage through a descriptor-scoped fixture instead of
 assigning or deleting `globalThis.localStorage` directly, with architecture coverage blocking that fixture
 mutation pattern.
