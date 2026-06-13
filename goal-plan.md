@@ -355,7 +355,9 @@ calls now route through `showFitDataRuntime.ts` instead of probing `globalThis.s
 architecture guardrails blocking those direct browser scheduling APIs from returning.
 Setup theme main-process fetch timeout scheduling and cleanup now route through `setupThemeRuntime.ts` instead
 of calling timer globals directly inside `setupTheme.ts`, with focused runtime coverage and architecture
-guardrails blocking those direct timer globals from returning.
+guardrails blocking those direct timer globals from returning. Explicit setup-theme runtime scopes must now
+provide timer primitives instead of falling back to `globalThis`, with focused coverage and architecture coverage
+blocking those ambient fallbacks from returning.
 Map document listener abort-controller creation plus document/window listener registration now route through
 `mapDocumentListenersRuntime.ts` instead of constructing `AbortController` or registering document/window
 listeners directly inside `mapDocumentListeners.ts`, with focused runtime coverage and architecture guardrails

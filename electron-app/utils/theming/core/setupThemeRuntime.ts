@@ -15,12 +15,19 @@ export function getSetupThemeRuntime(
 ): SetupThemeRuntime {
     return {
         clearTimeout(timer): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError("setupThemeRuntime requires clearTimeout");
+            }
+
             clearTimeoutRef(timer);
         },
         setTimeout(callback, delayMs): SetupThemeTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError("setupThemeRuntime requires setTimeout");
+            }
+
             return setTimeoutRef(callback, delayMs);
         },
     };

@@ -1088,6 +1088,8 @@ const directThemeCoreRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|matchMedia|setTimeout|window)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
 const directSetupThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directSetupThemeRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*(?:,|\))/u;
 const themeAdditionalTestDirectGlobalFixtureMutationPattern =
@@ -6455,7 +6457,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps setup theme fetch timers behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedSetupThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -6467,9 +6469,20 @@ describe("architecture boundaries", () => {
         const setupThemeSource = stripComments(
             readRepositoryFile("electron-app/utils/theming/core/setupTheme.ts")
         );
+        const setupThemeRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/theming/core/setupThemeRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(setupThemeSource).toContain("setupThemeRuntime.js");
+        expect(setupThemeRuntimeSource).not.toMatch(
+            directSetupThemeRuntimeAmbientFallbackPattern
+        );
+        expect(setupThemeRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
     });
 
     it("keeps chart theme listener browser APIs behind the runtime facade", () => {
