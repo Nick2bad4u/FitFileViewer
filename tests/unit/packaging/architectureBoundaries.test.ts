@@ -712,7 +712,7 @@ const renderMapStrictTestRetiredFitGlobalFixturePattern =
 const updateTabVisibilityRawDataTestRetiredGlobalDataPattern =
     /\bcurrentGlobalData\b|\bglobalDataCallback\b|\bgetState\s*:\s*mockGetState[\s\S]*?\b["']globalData["']|updateTabVisibility\.globalDataState\.test\.ts/u;
 const updateTabVisibilityTestDirectBrowserGlobalAssignmentPattern =
-    /\b(?:globalThis|global)\.(?:document|window)\s*=(?!=)|\(\s*global\s+as\s+any\s*\)\.(?:document|window)\s*=(?!=)/u;
+    /\b(?:globalThis|global)\.(?:document|window)\s*=(?!=)|\(\s*global\s+as\s+any\s*\)\.(?:document|window)\s*=(?!=)|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*\)/u;
 const tabStateManagerRegressionTestRetiredGlobalDataFixturePattern =
     /\bglobalData:\s*\{[^}]*recordMesgs|\bglobalData:\s*(?:null|undefined)|\(\{\s*expectedDisabled,\s*globalData\s*\}\)|updateTabAvailability\(globalData/u;
 const tabButtonStateIntegrationRetiredGlobalDataFixturePattern =

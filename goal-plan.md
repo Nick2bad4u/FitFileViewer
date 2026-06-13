@@ -332,8 +332,8 @@ fixtures through `loadedFitFilesState`, and architecture coverage blocks the sta
 Tab visibility state tests now use the `updateTabVisibility.fitRawDataState.test.ts` filename and active raw FIT
 data callback/mocked-selector naming instead of retired `globalData` terminology, with architecture coverage
 blocking the old filename and fixture vocabulary. That raw-data state coverage now also installs its jsdom
-`window`/`document` globals through descriptor-scoped helpers instead of assigning `(global as any).window` or
-`(global as any).document`, with architecture coverage blocking those direct browser-global fixtures.
+`window`/`document` globals through descriptor-scoped helpers instead of assigning or deleting direct
+browser-global fixtures, with architecture coverage blocking those mutations.
 Tab-state manager regression tests now pass `rawFitData` table fixtures into `updateTabAvailability` instead of
 retired `globalData` entries, with architecture coverage blocking that stale regression vocabulary.
 Tab button state integration tests now model loaded FIT data only through the active `fitFile.rawData` state
