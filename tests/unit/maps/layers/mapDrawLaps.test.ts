@@ -35,6 +35,7 @@ type MockFunction = (...args: any[]) => any;
 type MapDrawLapsTestGlobal = typeof globalThis & {
     window?: Window & typeof globalThis;
 };
+type WindowDescriptor = PropertyDescriptor | undefined;
 
 function mockFn<T extends MockFunction = MockFunction>(
     implementation?: T
@@ -51,23 +52,28 @@ function getMapDrawLapsTestGlobal(): MapDrawLapsTestGlobal {
     return globalThis as unknown as MapDrawLapsTestGlobal;
 }
 
-function setTestWindowGlobal(): MapDrawLapsTestGlobal["window"] {
+function setTestWindowGlobal(): WindowDescriptor {
     const testGlobal = getMapDrawLapsTestGlobal();
-    const previousWindow = testGlobal.window;
-    testGlobal.window = globalThis as Window & typeof globalThis;
-    return previousWindow;
+    const previousDescriptor = Object.getOwnPropertyDescriptor(
+        testGlobal,
+        "window"
+    );
+    Object.defineProperty(testGlobal, "window", {
+        configurable: true,
+        value: globalThis as Window & typeof globalThis,
+        writable: true,
+    });
+    return previousDescriptor;
 }
 
-function restoreTestWindowGlobal(
-    previousWindow: MapDrawLapsTestGlobal["window"]
-): void {
+function restoreTestWindowGlobal(previousDescriptor: WindowDescriptor): void {
     const testGlobal = getMapDrawLapsTestGlobal();
-    if (previousWindow) {
-        testGlobal.window = previousWindow;
+    if (previousDescriptor) {
+        Object.defineProperty(testGlobal, "window", previousDescriptor);
         return;
     }
 
-    delete testGlobal.window;
+    Reflect.deleteProperty(testGlobal, "window");
 }
 
 // Mock dependencies
@@ -114,11 +120,11 @@ describe("mapDrawLaps", () => {
     let mockGetLapColor: any;
     let mockFormatTooltipData: any;
     let mockGetLapNumForIdx: any;
-    let previousWindow: MapDrawLapsTestGlobal["window"];
+    let previousWindowDescriptor: WindowDescriptor;
 
     beforeEach(() => {
         __resetStateManagerForTests();
-        previousWindow = setTestWindowGlobal();
+        previousWindowDescriptor = setTestWindowGlobal();
 
         // Mock console methods
         vi.spyOn(console, "log").mockImplementation(() => {});
@@ -200,7 +206,7 @@ describe("mapDrawLaps", () => {
         resetMapActivityLayerStateForTests();
         resetActiveMainMapFileIndexForTests();
         resetMapDataPointFilterStateForTests();
-        restoreTestWindowGlobal(previousWindow);
+        restoreTestWindowGlobal(previousWindowDescriptor);
     });
 
     const getPolylineCall = (

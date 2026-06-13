@@ -335,6 +335,8 @@ path; they use the current `fitFile.rawData` fixture path that `FitFileSelectors
 coverage blocking the stale fixture from returning.
 Strict render-map tests no longer type or assign retired FIT data globals on `window`; they seed loaded-file
 fixtures through `loadedFitFilesState`, and architecture coverage blocks the stale window fixture from returning.
+Map draw-laps tests now install and restore their temporary jsdom `window` through a captured descriptor instead
+of assigning or deleting `testGlobal.window` directly, with architecture coverage blocking that fixture mutation.
 Tab visibility state tests now use the `updateTabVisibility.fitRawDataState.test.ts` filename and active raw FIT
 data callback/mocked-selector naming instead of retired `globalData` terminology, with architecture coverage
 blocking the old filename and fixture vocabulary. That raw-data state coverage now also installs its jsdom

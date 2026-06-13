@@ -835,6 +835,8 @@ const leafletCompatibilityGlobalDefinitionPattern =
     /\bObject\.defineProperty\(\s*[^,\n]+,\s*["']L["']/u;
 const leafletRuntimeTestGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*(?:globalThis|window)\s*,\s*["'](?:L|Leaflet)["']\s*\)|\bObject\.defineProperty\(\s*(?:globalThis|window)\s*,\s*["'](?:L|Leaflet)["']\s*,|\b(?:globalThis|window)\.(?:L|Leaflet)\s*=/u;
+const mapDrawLapsTestDirectWindowFixtureMutationPattern =
+    /\btestGlobal\.window\s*=|\bdelete\s+testGlobal\.window\b/u;
 const directMapLibreBridgePattern = /\.maplibreGL\b/u;
 const bundledBrowserVendorImportPattern =
     /(?:from\s*["']|import\(\s*["']|require\(\s*["'])(?:chart\.js\/auto|chartjs-plugin-zoom|datatables\.net-dt)/u;
@@ -7260,6 +7262,18 @@ describe("architecture boundaries", () => {
                     readRepositoryFile(
                         "tests/unit/strictTests/maps/core/renderMap.test.ts"
                     )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps map draw laps tests on descriptor-scoped window fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            mapDrawLapsTestDirectWindowFixtureMutationPattern.test(
+                stripComments(
+                    readRepositoryFile("tests/unit/maps/layers/mapDrawLaps.test.ts")
                 )
             )
         ).toBe(false);
