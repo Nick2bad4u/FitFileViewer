@@ -3,6 +3,7 @@ export type QuickColorSwitcherTimerHandle =
     | number;
 
 export interface QuickColorSwitcherRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly setTimeout?:
         | ((
@@ -14,6 +15,7 @@ export interface QuickColorSwitcherRuntimeScope {
 
 export interface QuickColorSwitcherRuntime {
     clearTimeout(handle: QuickColorSwitcherTimerHandle): void;
+    createAbortController(): AbortController;
     setTimeout(
         callback: () => void,
         timeout: number
@@ -28,6 +30,16 @@ export function getQuickColorSwitcherRuntime(
             const clearTimeoutRef =
                 scope.clearTimeout ?? globalThis.clearTimeout;
             clearTimeoutRef(handle);
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "quickColorSwitcher requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         setTimeout(callback, timeout): QuickColorSwitcherTimerHandle {
             const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;

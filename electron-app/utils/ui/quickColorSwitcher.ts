@@ -466,7 +466,8 @@ export function resetQuickColorSwitcherStateForTests(): void {
 function setupSwitcherListeners(switcher: HTMLDivElement): void {
     cleanupSwitcherState(switcher);
 
-    const listenerController = new AbortController();
+    const listenerController =
+        quickColorSwitcherRuntime.createAbortController();
     const state: QuickColorSwitcherState = {
         closeTimer: null,
         listenerController,
