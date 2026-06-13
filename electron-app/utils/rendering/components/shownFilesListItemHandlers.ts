@@ -180,23 +180,25 @@ function showOverlayTooltip({
     tooltip.textContent = `File: ${String(fullPath)}${showWarning ? "\n⚠️ This color may be hard to read in this theme." : ""}`;
     document.body.append(tooltip);
 
-    const tooltipMovement = new AbortController();
+    const tooltipMovement = shownFilesListRuntime.createAbortController();
     const moveTooltip = (event: MouseEvent): void => {
         const pad = 12;
+        const { height: viewportHeight, width: viewportWidth } =
+            shownFilesListRuntime.getViewport();
         let x = event.clientX + pad;
         let y = event.clientY + pad;
-        if (x + tooltip.offsetWidth > window.innerWidth) {
-            x = window.innerWidth - tooltip.offsetWidth - pad;
+        if (x + tooltip.offsetWidth > viewportWidth) {
+            x = viewportWidth - tooltip.offsetWidth - pad;
         }
-        if (y + tooltip.offsetHeight > window.innerHeight) {
-            y = window.innerHeight - tooltip.offsetHeight - pad;
+        if (y + tooltip.offsetHeight > viewportHeight) {
+            y = viewportHeight - tooltip.offsetHeight - pad;
         }
         tooltip.style.left = `${x}px`;
         tooltip.style.top = `${y}px`;
     };
 
     moveTooltip(initialEvent);
-    globalThis.addEventListener("mousemove", moveTooltip, {
+    shownFilesListRuntime.addMouseMoveListener(moveTooltip, {
         signal: tooltipMovement.signal,
     });
     li._tooltipRemover = () => {
@@ -223,7 +225,7 @@ export function attachOverlayListItemHandlers({
     showWarning,
 }: AttachOverlayListItemHandlersParams): () => void {
     const listItem = li as OverlayListItem;
-    const eventListeners = new AbortController();
+    const eventListeners = shownFilesListRuntime.createAbortController();
     const { signal } = eventListeners;
     const timers = new Set<ShownFilesListTimerHandle>();
     const trackTimer = (timer: ShownFilesListTimerHandle | null): void => {

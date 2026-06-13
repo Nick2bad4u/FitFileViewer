@@ -303,10 +303,11 @@ Shared configuration loading now routes URL search reads, chart-refresh timer sc
 timer cleanup through `loadSharedConfigurationRuntime.ts` instead of probing location or calling timer globals
 directly inside `loadSharedConfiguration.ts`, with focused runtime coverage and architecture guardrails blocking
 those direct location/timer globals from returning.
-Shown-files list tooltip cleanup, delayed tooltip display, polyline highlight fade timing, and stored tooltip
-timeout cleanup now route through `shownFilesListRuntime.ts` instead of calling timer globals directly inside
-`shownFilesListItemHandlers.ts` or `shownFilesListTooltipState.ts`, with focused runtime coverage and
-architecture guardrails blocking those direct timer globals from returning.
+Shown-files list tooltip cleanup, delayed tooltip display, polyline highlight fade timing, stored tooltip
+timeout cleanup, listener abort-controller creation, tooltip mousemove registration, and viewport reads now
+route through `shownFilesListRuntime.ts` instead of calling timer, listener, controller, or viewport globals
+directly inside `shownFilesListItemHandlers.ts` or `shownFilesListTooltipState.ts`, with focused runtime coverage
+and architecture guardrails blocking those direct browser globals from returning.
 Fallback map measurement button re-enable scheduling and cleanup now route through `mapMeasureToolRuntime.ts`
 instead of calling timer globals directly inside `mapMeasureTool.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct timer globals from returning.

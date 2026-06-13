@@ -1100,7 +1100,7 @@ const directUnifiedControlBarRuntimeGlobalPattern =
 const directQuickColorSwitcherRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directShownFilesListRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
@@ -6715,8 +6715,8 @@ describe("architecture boundaries", () => {
         expect(quickColorSwitcherSource).toContain("createAbortController");
     });
 
-    it("keeps shown-files list timers behind the runtime facade", () => {
-        expect.assertions(2);
+    it("keeps shown-files list browser APIs behind the runtime facade", () => {
+        expect.assertions(4);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -6734,6 +6734,15 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        const shownFilesItemHandlerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/components/shownFilesListItemHandlers.ts"
+            )
+        );
+        expect(shownFilesItemHandlerSource).toContain(
+            "createAbortController"
+        );
+        expect(shownFilesItemHandlerSource).toContain("getViewport");
     });
 
     it("keeps credits marquee browser APIs behind the runtime facade", () => {
