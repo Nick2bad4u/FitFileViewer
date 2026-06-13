@@ -1034,7 +1034,7 @@ const directChartThemeListenerRuntimeGlobalPattern =
 const directMapThemeToggleRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusCountsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bdocument\.querySelector\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directGlobalChartStatusRuntimeGlobalPattern =
@@ -6072,7 +6072,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedUpdateMapThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -6089,6 +6089,7 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(updateMapThemeSource).toContain("updateMapThemeRuntime.js");
+        expect(updateMapThemeSource).toContain("createAbortController");
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {

@@ -302,7 +302,9 @@ constructing `AbortController` or registering document listeners directly inside
 focused runtime coverage and architecture coverage blocking those direct browser APIs from returning. The map
 theme toggle button listener controller now also comes from `mapThemeToggleRuntime.ts` instead of constructing
 `AbortController` directly inside `createMapThemeToggle.ts`, with architecture coverage blocking that direct
-controller construction from returning.
+controller construction from returning. Map theme update listener cleanup now creates its abort controller through
+`updateMapThemeRuntime.ts` instead of constructing `AbortController` directly inside `updateMapTheme.ts`, with
+focused runtime coverage and architecture coverage blocking that direct controller construction from returning.
 Core theme transition-class removal scheduling now routes through `themeRuntime.ts` instead of calling timer
 globals directly inside `theme.ts`, with focused runtime coverage and architecture guardrails blocking those
 direct timer globals from returning.
