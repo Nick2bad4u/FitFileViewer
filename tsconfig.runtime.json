@@ -267,6 +267,7 @@
         "electron-app/utils/app/lifecycle/listenersResizeRuntime.ts",
         "electron-app/utils/app/lifecycle/listenersResize.ts",
         "electron-app/utils/app/lifecycle/menuIpcListeners.ts",
+        "electron-app/utils/app/lifecycle/recentFilesContextMenuRuntime.ts",
         "electron-app/utils/app/lifecycle/recentFilesContextMenu.ts",
         "electron-app/utils/app/lifecycle/resourceManagerRuntime.ts",
         "electron-app/utils/app/lifecycle/resourceManager.ts",

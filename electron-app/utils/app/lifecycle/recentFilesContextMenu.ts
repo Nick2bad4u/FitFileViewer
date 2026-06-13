@@ -16,6 +16,7 @@ import {
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import { getRecentFilesContextMenuRuntime } from "./recentFilesContextMenuRuntime.js";
 
 type RecentFilesElectronApi = Pick<
     ElectronAPI,
@@ -88,6 +89,7 @@ export function attachRecentFilesContextMenu({
     showNotification,
 }: AttachRecentFilesContextMenuParams): () => void {
     const rootAbortController = new AbortController();
+    const runtime = getRecentFilesContextMenuRuntime();
 
     // Keep default quiet even in tests; enable only when explicitly requested.
     const debugEnabled =
@@ -186,12 +188,7 @@ export function attachRecentFilesContextMenu({
                 try {
                     const margin = 8;
                     const rect = menu.getBoundingClientRect();
-                    const vw =
-                        globalThis.window === undefined ? 0 : window.innerWidth;
-                    const vh =
-                        globalThis.window === undefined
-                            ? 0
-                            : window.innerHeight;
+                    const { height: vh, width: vw } = runtime.getViewport();
 
                     let left = x;
                     let top = y;
