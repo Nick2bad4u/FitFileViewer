@@ -277,6 +277,9 @@ const migratedPerformanceUtilsRuntimeFiles = [
 const migratedCancellationTokenRuntimeFiles = [
     "electron-app/utils/app/async/cancellationToken.ts",
 ] as const;
+const migratedChartHoverEffectsRuntimeFiles = [
+    "electron-app/utils/charts/plugins/addChartHoverEffects.ts",
+] as const;
 const migratedCopyTableAsCSVRuntimeFiles = [
     "electron-app/utils/files/export/copyTableAsCSV.ts",
 ] as const;
@@ -996,6 +999,8 @@ const directPerformanceUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\b|(?<!function\s)(?<![\w.])(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\(|\bDate\.now\(/u;
 const directCancellationTokenRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directChartHoverEffectsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:requestAnimationFrame|setTimeout)\b|(?<![\w.])(?:requestAnimationFrame|setTimeout)\(/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -6184,6 +6189,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(cancellationTokenSource).toContain(
             "cancellationTokenRuntime.js"
+        );
+    });
+
+    it("keeps chart hover effect scheduling behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedChartHoverEffectsRuntimeFiles
+            .filter((relativeFile) =>
+                directChartHoverEffectsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const chartHoverEffectsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/plugins/addChartHoverEffects.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(chartHoverEffectsSource).toContain(
+            "addChartHoverEffectsRuntime.js"
         );
     });
 

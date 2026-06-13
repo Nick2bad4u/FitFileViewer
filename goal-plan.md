@@ -276,6 +276,10 @@ coverage and architecture guardrails blocking those direct scheduling globals fr
 Async cancellation token helpers now route timeout-backed token cancellation and cancellable delay scheduling
 through `cancellationTokenRuntime.ts` instead of calling timer globals directly inside `cancellationToken.ts`,
 with focused runtime/token coverage and architecture guardrails blocking those direct timer globals from returning.
+Chart hover effects now route fullscreen resize scheduling, fullscreen target waits, and ripple cleanup timers
+through `addChartHoverEffectsRuntime.ts` instead of calling animation-frame or timer globals directly inside
+`addChartHoverEffects.ts`, with focused runtime coverage and architecture guardrails blocking those direct
+scheduling globals from returning.
 Master state manager comprehensive tests now install and restore document, window, location, storage,
 performance, timer, and listener globals through descriptor-scoped helpers instead of deleting globals during
 cleanup, with architecture coverage blocking that fixture mutation pattern.
