@@ -271,6 +271,9 @@ const migratedExportZipRuntimeFiles = [
 const migratedNetworkUtilsRuntimeFiles = [
     "electron-app/utils/net/networkUtils.ts",
 ] as const;
+const migratedPerformanceUtilsRuntimeFiles = [
+    "electron-app/utils/app/performance/performanceUtils.ts",
+] as const;
 const migratedCopyTableAsCSVRuntimeFiles = [
     "electron-app/utils/files/export/copyTableAsCSV.ts",
 ] as const;
@@ -986,6 +989,8 @@ const directRendererVendorBundleLoaderRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|removeEventListener|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directNetworkUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:fetch|clearTimeout|setTimeout|AbortController)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:fetch|clearTimeout|setTimeout)\(/u;
+const directPerformanceUtilsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\b|(?<!function\s)(?<![\w.])(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\(|\bDate\.now\(/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -6131,6 +6136,28 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(networkUtilsSource).toContain("networkUtilsRuntime.js");
+    });
+
+    it("keeps app performance scheduling APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedPerformanceUtilsRuntimeFiles
+            .filter((relativeFile) =>
+                directPerformanceUtilsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const performanceUtilsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/performance/performanceUtils.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(performanceUtilsSource).toContain(
+            "performanceUtilsRuntime.js"
+        );
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
