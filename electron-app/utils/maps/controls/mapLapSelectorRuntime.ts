@@ -29,33 +29,35 @@ export interface MapLapSelectorRuntime {
     removeDocumentMouseupListener(listener: (event: MouseEvent) => void): void;
 }
 
+function getRuntimeDocument(
+    scope: MapLapSelectorRuntimeScope
+): MapLapSelectorDocument {
+    const runtimeDocument = scope.document;
+    if (!runtimeDocument) {
+        throw new TypeError("mapLapSelector requires a document runtime");
+    }
+
+    return runtimeDocument;
+}
+
 export function getMapLapSelectorRuntime(
     scope: MapLapSelectorRuntimeScope = globalThis
 ): MapLapSelectorRuntime {
     return {
         addDocumentKeydownListener(listener, options): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
-            if (!runtimeDocument) {
-                return;
-            }
+            const runtimeDocument = getRuntimeDocument(scope);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeDocument.addEventListener("keydown", listener, options);
         },
         addDocumentMousedownListener(listener, options): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
-            if (!runtimeDocument) {
-                return;
-            }
+            const runtimeDocument = getRuntimeDocument(scope);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeDocument.addEventListener("mousedown", listener, options);
         },
         addDocumentMouseupListener(listener, options): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
-            if (!runtimeDocument) {
-                return;
-            }
+            const runtimeDocument = getRuntimeDocument(scope);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeDocument.addEventListener("mouseup", listener, options);
@@ -71,16 +73,16 @@ export function getMapLapSelectorRuntime(
             return new AbortControllerConstructor();
         },
         removeDocumentKeydownListener(listener): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
-            runtimeDocument?.removeEventListener("keydown", listener);
+            const runtimeDocument = getRuntimeDocument(scope);
+            runtimeDocument.removeEventListener("keydown", listener);
         },
         removeDocumentMousedownListener(listener): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
-            runtimeDocument?.removeEventListener("mousedown", listener, true);
+            const runtimeDocument = getRuntimeDocument(scope);
+            runtimeDocument.removeEventListener("mousedown", listener, true);
         },
         removeDocumentMouseupListener(listener): void {
-            const runtimeDocument = scope.document ?? globalThis.document;
-            runtimeDocument?.removeEventListener("mouseup", listener);
+            const runtimeDocument = getRuntimeDocument(scope);
+            runtimeDocument.removeEventListener("mouseup", listener);
         },
     };
 }

@@ -371,7 +371,9 @@ that fallback from returning.
 Map lap selector listener abort-controller creation and document mouse/key listener registration/removal now route
 through `mapLapSelectorRuntime.ts` instead of constructing `AbortController` or touching document listeners
 directly inside `mapLapSelector.ts`, with focused runtime coverage and architecture guardrails blocking those
-direct browser APIs from returning.
+direct browser APIs from returning. Explicit map lap selector runtime scopes must now provide their document
+instead of falling back to `globalThis.document`, with focused runtime coverage and architecture coverage blocking
+that fallback from returning.
 Chart settings header reset-button feedback timing, range-slider re-render debounce, and listener
 abort-controller creation now route through `createSettingsHeaderRuntime.ts` instead of calling timer globals or
 constructing `AbortController` directly inside `createSettingsHeader.ts`, with focused runtime coverage and

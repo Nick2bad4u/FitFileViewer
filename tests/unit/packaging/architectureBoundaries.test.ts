@@ -429,6 +429,8 @@ const mapMeasureToolRuntimeSourceFile =
 const migratedMapLapSelectorRuntimeFiles = [
     "electron-app/utils/maps/controls/mapLapSelector.ts",
 ] as const;
+const mapLapSelectorRuntimeSourceFile =
+    "electron-app/utils/maps/controls/mapLapSelectorRuntime.ts";
 const migratedMapDrawLapsRuntimeFiles = [
     "electron-app/utils/maps/layers/mapDrawLaps.ts",
 ] as const;
@@ -6054,7 +6056,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map lap-selector document listeners behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(6);
 
         const violations = migratedMapLapSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -6068,10 +6070,22 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/maps/controls/mapLapSelector.ts"
             )
         );
+        const mapLapSelectorRuntimeSource = stripComments(
+            readRepositoryFile(mapLapSelectorRuntimeSourceFile)
+        );
 
         expect(violations).toStrictEqual([]);
         expect(mapLapSelectorSource).toContain("mapLapSelectorRuntime.js");
         expect(mapLapSelectorSource).toContain("createAbortController");
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "const runtimeDocument = scope.document;"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "runtimeDocument.removeEventListener"
+        );
     });
 
     it("keeps map draw-laps timers behind the runtime facade", () => {

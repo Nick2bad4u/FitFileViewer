@@ -93,6 +93,41 @@ describe("getMapLapSelectorRuntime", () => {
         expect(mousedownCount).toBe(1);
         expect(keydownCount).toBe(1);
     });
+
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(6);
+
+        const runtime = getMapLapSelectorRuntime({});
+        const controller = new AbortController();
+        const keydownListener = (): void => undefined;
+        const mouseListener = (): void => undefined;
+
+        expect(() => {
+            runtime.addDocumentKeydownListener(keydownListener, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapLapSelector requires a document runtime");
+        expect(() => {
+            runtime.addDocumentMousedownListener(mouseListener, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapLapSelector requires a document runtime");
+        expect(() => {
+            runtime.addDocumentMouseupListener(mouseListener, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapLapSelector requires a document runtime");
+        expect(() => {
+            runtime.removeDocumentKeydownListener(keydownListener);
+        }).toThrow("mapLapSelector requires a document runtime");
+        expect(() => {
+            runtime.removeDocumentMousedownListener(mouseListener);
+        }).toThrow("mapLapSelector requires a document runtime");
+        expect(() => {
+            runtime.removeDocumentMouseupListener(mouseListener);
+        }).toThrow("mapLapSelector requires a document runtime");
+        controller.abort();
+    });
 });
 
 function createDocumentRuntime(
