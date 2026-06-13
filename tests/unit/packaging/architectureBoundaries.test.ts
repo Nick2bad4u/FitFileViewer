@@ -4394,6 +4394,21 @@ describe("architecture boundaries", () => {
         expect(appActionsSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps resource manager window cleanup behind the runtime adapter", () => {
+        expect.assertions(4);
+
+        const resourceManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/resourceManager.ts"
+            )
+        );
+
+        expect(resourceManagerSource).toContain("resourceManagerRuntime.js");
+        expect(resourceManagerSource).not.toContain("globalThis.window");
+        expect(resourceManagerSource).not.toContain("window.addEventListener");
+        expect(resourceManagerSource).not.toContain("AbortController");
+    });
+
     it("keeps migrated state history readers on the typed history API", () => {
         expect.assertions(1);
 

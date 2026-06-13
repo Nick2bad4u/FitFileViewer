@@ -1,4 +1,5 @@
 import { cleanupEventListeners } from "../../ui/events/eventListenerManager.js";
+import { registerResourceManagerUnloadCleanup } from "./resourceManagerRuntime.js";
 
 type ResourceType =
     | "chart"
@@ -505,26 +506,12 @@ class ResourceManager {
 // Create singleton instance
 const resourceManager = new ResourceManager();
 
-// Setup window cleanup handler (only when addEventListener is available)
-if (
-    globalThis.window !== undefined &&
-    typeof globalThis.window.addEventListener === "function"
-) {
-    const beforeUnloadController = new AbortController();
-    globalThis.window.addEventListener(
-        "beforeunload",
-        () => {
-            console.log(
-                "[ResourceManager] Window unload detected, cleaning up resources..."
-            );
-            resourceManager.cleanupAll();
-            beforeUnloadController.abort();
-        },
-        {
-            signal: beforeUnloadController.signal,
-        }
+registerResourceManagerUnloadCleanup(() => {
+    console.log(
+        "[ResourceManager] Window unload detected, cleaning up resources..."
     );
-}
+    resourceManager.cleanupAll();
+});
 
 /**
  * Shared singleton that tracks app resources and centralizes cleanup.

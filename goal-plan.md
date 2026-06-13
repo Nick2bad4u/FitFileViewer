@@ -331,6 +331,10 @@ listeners now go through the scoped `masterStateRuntime.ts` adapter instead of p
 `globalThis.window`, `globalThis.location`, `globalThis.addEventListener`, `globalThis.dispatchEvent`, or
 `window.addEventListener`, with focused adapter coverage and architecture guardrails blocking those direct runtime
 operations from returning.
+Resource-manager unload cleanup listener registration now goes through the scoped `resourceManagerRuntime.ts`
+adapter instead of probing `globalThis.window`, calling `window.addEventListener`, or constructing
+`AbortController` directly inside `resourceManager.ts`, with focused runtime coverage and architecture guardrails
+blocking those direct operations from returning.
 State integration unit tests no longer seed or delete retired AppState, chart-controls, globalData,
 render-state, timer, development, or state-debug globals while proving initialization leaves them absent;
 architecture coverage now blocks those retired state-integration global mutations from returning.
