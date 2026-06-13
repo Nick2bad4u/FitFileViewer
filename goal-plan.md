@@ -273,6 +273,9 @@ App performance debounce, throttle, batch, and idle-callback helpers now route t
 idle-callback scheduling/cancellation, and clock reads through `performanceUtilsRuntime.ts` instead of calling
 timer, idle-callback, or `Date.now` globals directly inside `performanceUtils.ts`, with focused behavior/runtime
 coverage and architecture guardrails blocking those direct scheduling globals from returning.
+Async cancellation token helpers now route timeout-backed token cancellation and cancellable delay scheduling
+through `cancellationTokenRuntime.ts` instead of calling timer globals directly inside `cancellationToken.ts`,
+with focused runtime/token coverage and architecture guardrails blocking those direct timer globals from returning.
 Master state manager comprehensive tests now install and restore document, window, location, storage,
 performance, timer, and listener globals through descriptor-scoped helpers instead of deleting globals during
 cleanup, with architecture coverage blocking that fixture mutation pattern.

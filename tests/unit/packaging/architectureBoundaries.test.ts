@@ -274,6 +274,9 @@ const migratedNetworkUtilsRuntimeFiles = [
 const migratedPerformanceUtilsRuntimeFiles = [
     "electron-app/utils/app/performance/performanceUtils.ts",
 ] as const;
+const migratedCancellationTokenRuntimeFiles = [
+    "electron-app/utils/app/async/cancellationToken.ts",
+] as const;
 const migratedCopyTableAsCSVRuntimeFiles = [
     "electron-app/utils/files/export/copyTableAsCSV.ts",
 ] as const;
@@ -991,6 +994,8 @@ const directNetworkUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:fetch|clearTimeout|setTimeout|AbortController)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:fetch|clearTimeout|setTimeout)\(/u;
 const directPerformanceUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\b|(?<!function\s)(?<![\w.])(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\(|\bDate\.now\(/u;
+const directCancellationTokenRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -6157,6 +6162,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(performanceUtilsSource).toContain(
             "performanceUtilsRuntime.js"
+        );
+    });
+
+    it("keeps async cancellation timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCancellationTokenRuntimeFiles
+            .filter((relativeFile) =>
+                directCancellationTokenRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const cancellationTokenSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/async/cancellationToken.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(cancellationTokenSource).toContain(
+            "cancellationTokenRuntime.js"
         );
     });
 

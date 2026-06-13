@@ -5,6 +5,10 @@
  */
 /* eslint-disable max-classes-per-file -- Token and source intentionally share one public utility module. */
 
+import { getCancellationTokenRuntime } from "./cancellationTokenRuntime.js";
+
+const cancellationTokenRuntime = getCancellationTokenRuntime();
+
 /**
  * Cancellation token for async operations.
  */
@@ -129,11 +133,11 @@ export function createTimeoutCancellationToken(
 ): CancellationTokenSource {
     const source = new CancellationTokenSource();
 
-    const timeoutId = setTimeout(() => {
+    const timeoutId = cancellationTokenRuntime.setTimeout(() => {
         source.cancel();
     }, timeout);
     source.token.onCancel(() => {
-        clearTimeout(timeoutId);
+        cancellationTokenRuntime.clearTimeout(timeoutId);
     });
 
     return source;
@@ -159,7 +163,7 @@ export async function delay(
 
         let unsubscribe: (() => void) | undefined;
 
-        const timeoutId = setTimeout(() => {
+        const timeoutId = cancellationTokenRuntime.setTimeout(() => {
             if (unsubscribe) {
                 unsubscribe();
             }
@@ -168,7 +172,7 @@ export async function delay(
 
         if (token) {
             unsubscribe = token.onCancel(() => {
-                clearTimeout(timeoutId);
+                cancellationTokenRuntime.clearTimeout(timeoutId);
                 reject(new Error("Operation was cancelled"));
             });
         }
