@@ -2276,15 +2276,22 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/integration/mainProcessStateManager.ts"
             )
         );
+        const mainProcessStateRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/mainProcessStateRuntime.ts"
+            )
+        );
         const directMainProcessStateManagerTimingGlobalPattern =
             /\b(?:globalThis|window)\.(?:clearTimeout|performance|setTimeout)\b|\bperformance\.now\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+        const directMainProcessStateRuntimeAmbientTimerFallbackPattern =
+            /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 
         expect(mainProcessStateManagerSource).toContain(
             "mainProcessStateRuntime.js"
@@ -2300,6 +2307,12 @@ describe("architecture boundaries", () => {
                 mainProcessStateManagerSource
             )
         ).toBe(false);
+        expect(mainProcessStateRuntimeSource).not.toMatch(
+            directMainProcessStateRuntimeAmbientTimerFallbackPattern
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "mainProcessStateRuntime requires setTimeout"
+        );
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {

@@ -25,15 +25,26 @@ export function getMainProcessStateRuntime(
 ): MainProcessStateRuntime {
     return {
         clearTimeout(handle): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "mainProcessStateRuntime requires clearTimeout"
+                );
+            }
+
             clearTimeoutRef(handle);
         },
         monotonicNowMs(): number {
             return scope.performance?.now?.() ?? scope.dateNow?.() ?? Date.now();
         },
         setTimeout(callback, delayMs): MainProcessStateTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "mainProcessStateRuntime requires setTimeout"
+                );
+            }
+
             return setTimeoutRef(callback, delayMs);
         },
     };

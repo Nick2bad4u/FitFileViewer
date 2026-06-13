@@ -55,4 +55,19 @@ describe("mainProcessStateRuntime", () => {
         });
         expect(clearedTimer).toBe(timer);
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getMainProcessStateRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "mainProcessStateRuntime requires setTimeout"
+        );
+        expect(() => {
+            runtime.clearTimeout(
+                67 as ReturnType<typeof globalThis.setTimeout>
+            );
+        }).toThrow("mainProcessStateRuntime requires clearTimeout");
+    });
 });
