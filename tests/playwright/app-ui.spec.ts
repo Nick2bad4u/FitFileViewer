@@ -1657,20 +1657,19 @@ test.describe("FitFileViewer Electron UI", () => {
                 window,
                 "open"
             );
+            if (!originalOpenDescriptor) {
+                throw new Error("window.open descriptor was not available");
+            }
             const setWindowOpenFixture = (open: typeof window.open) => {
                 Object.defineProperty(window, "open", {
                     configurable: true,
-                    enumerable: originalOpenDescriptor?.enumerable ?? true,
+                    enumerable: originalOpenDescriptor.enumerable,
                     value: open,
                     writable: true,
                 });
             };
             const restoreWindowOpen = () => {
-                if (originalOpenDescriptor) {
-                    Object.defineProperty(window, "open", originalOpenDescriptor);
-                    return;
-                }
-                Reflect.deleteProperty(window, "open");
+                Object.defineProperty(window, "open", originalOpenDescriptor);
             };
             const popupWindow = {
                 document: popupDocument,
