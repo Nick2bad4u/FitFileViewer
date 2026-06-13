@@ -34,6 +34,19 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(clearTimeout).not.toHaveBeenCalled();
     });
 
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getCreateSettingsHeaderRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "createSettingsHeader requires a setTimeout runtime"
+        );
+        expect(() =>
+            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("createSettingsHeader requires a clearTimeout runtime");
+    });
+
     it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 

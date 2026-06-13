@@ -395,7 +395,9 @@ that fallback from returning.
 Chart settings header reset-button feedback timing, range-slider re-render debounce, and listener
 abort-controller creation now route through `createSettingsHeaderRuntime.ts` instead of calling timer globals or
 constructing `AbortController` directly inside `createSettingsHeader.ts`, with focused runtime coverage and
-architecture guardrails blocking those direct timer/controller globals from returning.
+architecture guardrails blocking those direct timer/controller globals from returning. Explicit settings-header
+runtime scopes must now provide timer primitives instead of falling back to `globalThis`, with focused coverage
+and architecture coverage blocking those ambient fallbacks from returning.
 Current chart settings reset UI timer scheduling and cleanup now route through `getCurrentSettingsRuntime.ts`
 instead of calling timer globals directly inside `getCurrentSettings.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct timer globals from returning. Explicit current-settings runtime scopes

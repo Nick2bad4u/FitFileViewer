@@ -1194,6 +1194,8 @@ const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directCreateSettingsHeaderRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directCreateSettingsHeaderRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directCreateFieldTogglesSectionRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|dispatchEvent|querySelectorAll)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+HTMLInputElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
@@ -3866,7 +3868,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -3880,12 +3882,23 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/components/createSettingsHeader.ts"
             )
         );
+        const settingsHeaderRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/createSettingsHeaderRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(settingsHeaderSource).toContain(
             "createSettingsHeaderRuntime.js"
         );
         expect(settingsHeaderSource).toContain("createAbortController");
+        expect(settingsHeaderRuntimeSource).not.toMatch(
+            directCreateSettingsHeaderRuntimeAmbientFallbackPattern
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {

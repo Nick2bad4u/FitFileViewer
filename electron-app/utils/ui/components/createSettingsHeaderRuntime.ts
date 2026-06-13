@@ -38,15 +38,26 @@ export function getCreateSettingsHeaderRuntime(
             if (timer === undefined) {
                 return;
             }
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "createSettingsHeader requires a clearTimeout runtime"
+                );
+            }
+
             clearTimeoutRef(timer);
         },
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
         },
         setTimeout(callback, delayMs): CreateSettingsHeaderTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "createSettingsHeader requires a setTimeout runtime"
+                );
+            }
+
             return setTimeoutRef(callback, delayMs);
         },
     };
