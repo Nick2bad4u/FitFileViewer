@@ -1204,6 +1204,8 @@ const directCopyTableAsCSVRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|execCommand)\b|\bnavigator\.clipboard\b/u;
 const directCreateExportGPXButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|setTimeout)\b|\bURL\.(?:createObjectURL|revokeObjectURL)\b|\bnew\s+AbortController\b/u;
+const directCreateExportGPXButtonRuntimeAmbientFallbackPattern =
+    /\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
 const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+AbortController\b/u;
 const directAddExitFullscreenOverlayRuntimeGlobalPattern =
@@ -5492,7 +5494,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedCreateExportGPXButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -5506,12 +5508,23 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/export/createExportGPXButton.ts"
             )
         );
+        const createExportGPXButtonRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/export/createExportGPXButtonRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(createExportGPXButtonSource).toContain(
             "createExportGPXButtonRuntime.js"
         );
         expect(createExportGPXButtonSource).toContain("createAbortController");
+        expect(createExportGPXButtonRuntimeSource).not.toMatch(
+            directCreateExportGPXButtonRuntimeAmbientFallbackPattern
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
     });
 
     it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {

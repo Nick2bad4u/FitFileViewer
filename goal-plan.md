@@ -434,8 +434,10 @@ Map print button listener cleanup now creates abort controllers through `createP
 of constructing `AbortController` directly inside `createPrintButton.ts`, with focused runtime coverage and
 architecture guardrails blocking direct controller construction from returning.
 Map GPX export button listener cleanup now creates abort controllers through `createExportGPXButtonRuntime.ts`
-instead of constructing `AbortController` directly inside `createExportGPXButton.ts`, with focused runtime
-coverage and architecture guardrails blocking direct controller construction from returning.
+instead of constructing `AbortController` directly inside `createExportGPXButton.ts`, and object-URL cleanup
+scheduling now uses that same runtime instead of falling back to `globalThis`; explicit runtime scopes must now
+provide timer primitives, with focused runtime coverage and architecture guardrails blocking direct controller
+construction and ambient timer fallbacks from returning.
 State integration persistence debounce, performance-monitoring interval, storage lookup, performance-memory read,
 and clock reads now route through `stateIntegrationRuntime.ts` instead of calling runtime globals directly inside
 `stateIntegration.ts`, with focused runtime coverage and architecture guardrails blocking those direct runtime

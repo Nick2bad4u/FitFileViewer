@@ -92,7 +92,13 @@ export function getCreateExportGPXButtonRuntime(
             getURLRuntime(scope).revokeObjectURL(url);
         },
         setTimeout(callback, timeout): CreateExportGPXButtonTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "createExportGPXButton requires a setTimeout runtime"
+                );
+            }
+
             return setTimeoutRef(callback, timeout);
         },
     };

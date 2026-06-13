@@ -102,6 +102,16 @@ describe("getCreateExportGPXButtonRuntime", () => {
         expect(scheduledTimeout).toBe(cleanupDelayMs);
     });
 
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(1);
+
+        const runtime = getCreateExportGPXButtonRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "createExportGPXButton requires a setTimeout runtime"
+        );
+    });
+
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 
