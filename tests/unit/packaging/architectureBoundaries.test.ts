@@ -431,6 +431,9 @@ const migratedMapDrawLapsRuntimeFiles = [
 const migratedOpenFileSelectorRuntimeFiles = [
     "electron-app/utils/files/import/openFileSelector.ts",
 ] as const;
+const migratedLoadSingleOverlayFileRuntimeFiles = [
+    "electron-app/utils/files/import/loadSingleOverlayFile.ts",
+] as const;
 const migratedLoadOverlayFilesRuntimeFiles = [
     "electron-app/utils/files/import/loadOverlayFiles.ts",
 ] as const;
@@ -1025,6 +1028,8 @@ const directMapDrawLapsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnew\s+AbortController\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
+const directLoadSingleOverlayFileRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const directLoadOverlayFilesRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.navigator\b|\bnavigator\.hardwareConcurrency\b/u;
 const directFitBrowserFeatureGateRuntimeGlobalPattern =
@@ -5998,6 +6003,31 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(loadOverlayFilesSource).toContain("loadOverlayFilesRuntime.js");
+    });
+
+    it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedLoadSingleOverlayFileRuntimeFiles
+            .filter((relativeFile) =>
+                directLoadSingleOverlayFileRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const loadSingleOverlayFileSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/loadSingleOverlayFile.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(loadSingleOverlayFileSource).toContain(
+            "loadSingleOverlayFileRuntime.js"
+        );
+        expect(loadSingleOverlayFileSource).toContain(
+            "createAbortController"
+        );
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {

@@ -271,6 +271,10 @@ imports instead of probing CJS module caches through `node:module`.
 Overlay file load concurrency now resolves navigator hardware-concurrency metadata through
 `loadOverlayFilesRuntime.ts` instead of probing `globalThis.navigator` directly inside `loadOverlayFiles.ts`,
 with focused runtime coverage and architecture guardrails blocking that direct metadata lookup from returning.
+Single overlay FileReader fallback listener abort-controller creation now routes through
+`loadSingleOverlayFileRuntime.ts` instead of constructing `AbortController` directly inside
+`loadSingleOverlayFile.ts`, with focused runtime coverage and architecture guardrails blocking direct
+single-overlay controller construction from returning.
 Open-file selector hidden input creation, jsdom detection, microtask fallback, timeout cleanup, and
 abort-controller creation now route through `openFileSelectorRuntime.ts` instead of calling browser primitives or
 constructing controllers directly inside `openFileSelector.ts`, with focused runtime coverage and architecture
