@@ -342,6 +342,10 @@ Main UI summary selector tab lookup, gear-button lookup, and delayed gear-button
 `mainUiSummaryColumnSelectorRuntime.ts` instead of keeping DOM and timer globals inside
 `mainUiSummaryColumnSelector.ts`, with focused runtime coverage and architecture guardrails blocking those direct
 DOM/timer globals from returning.
+Summary column modal tooltip viewport reads and modal listener abort-controller creation now route through
+`summaryColModalRuntime.ts` instead of reading viewport globals or constructing `AbortController` directly inside
+`summaryColModal.ts`, with focused runtime coverage and architecture guardrails blocking those direct runtime
+globals from returning.
 State integration persistence debounce, performance-monitoring interval, storage lookup, performance-memory read,
 and clock reads now route through `stateIntegrationRuntime.ts` instead of calling runtime globals directly inside
 `stateIntegration.ts`, with focused runtime coverage and architecture guardrails blocking those direct runtime

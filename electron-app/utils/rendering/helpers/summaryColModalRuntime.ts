@@ -1,4 +1,5 @@
 export interface SummaryColModalRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly innerHeight?: number | undefined;
     readonly innerWidth?: number | undefined;
 }
@@ -9,6 +10,7 @@ export interface SummaryColModalViewport {
 }
 
 export interface SummaryColModalRuntime {
+    createAbortController(): AbortController;
     getViewport(): SummaryColModalViewport;
 }
 
@@ -16,6 +18,16 @@ export function getSummaryColModalRuntime(
     scope: SummaryColModalRuntimeScope = globalThis
 ): SummaryColModalRuntime {
     return {
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "summaryColModal requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
+        },
         getViewport(): SummaryColModalViewport {
             return {
                 height: scope.innerHeight ?? 0,

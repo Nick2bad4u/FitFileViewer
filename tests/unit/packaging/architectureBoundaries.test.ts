@@ -1082,7 +1082,7 @@ const directChartHoverEffectsRuntimeGlobalPattern =
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
-    /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
+    /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bnew\s+AbortController\b/u;
 const directRenderSummarySchedulingRuntimeGlobalPattern =
     /\bglobalThis\.(?:addEventListener|cancelAnimationFrame|requestAnimationFrame)\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
@@ -6325,7 +6325,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps summary column modal viewport reads behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -6342,6 +6342,7 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(summaryColModalSource).toContain("summaryColModalRuntime.js");
+        expect(summaryColModalSource).toContain("createAbortController");
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
