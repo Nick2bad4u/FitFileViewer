@@ -659,6 +659,7 @@ const directVitestEnvConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|warn)\s*=/u;
 const directRuntimeEnvironmentTestConsoleAssignmentPattern =
     /\b(?:global|globalThis)\.console\s*=/u;
+const directPlaywrightWindowOpenAssignmentPattern = /\bwindow\.open\s*=/u;
 const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
     /\bglobalThis\.process\s*=/u;
 const loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern =
@@ -3974,6 +3975,20 @@ describe("architecture boundaries", () => {
             "./utils/state/domain/fitActivityDataState.js"
         );
         expect(smokeSource).toContain("getActiveFitActivityData");
+    });
+
+    it("keeps Playwright popup fixtures descriptor-scoped", () => {
+        expect.assertions(1);
+
+        const directWindowOpenFixtures = playwrightSmokeFiles
+            .filter((relativeFile) =>
+                directPlaywrightWindowOpenAssignmentPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directWindowOpenFixtures).toStrictEqual([]);
     });
 
     it("keeps direct raw FIT data selectors quarantined to the active raw-data domain helper", () => {

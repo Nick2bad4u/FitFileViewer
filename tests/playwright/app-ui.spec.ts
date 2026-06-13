@@ -1653,7 +1653,25 @@ test.describe("FitFileViewer Electron UI", () => {
             );
             const popupDocument =
                 document.implementation.createHTMLDocument("");
-            const originalOpen = window.open;
+            const originalOpenDescriptor = Object.getOwnPropertyDescriptor(
+                window,
+                "open"
+            );
+            const setWindowOpenFixture = (open: typeof window.open) => {
+                Object.defineProperty(window, "open", {
+                    configurable: true,
+                    enumerable: originalOpenDescriptor?.enumerable ?? true,
+                    value: open,
+                    writable: true,
+                });
+            };
+            const restoreWindowOpen = () => {
+                if (originalOpenDescriptor) {
+                    Object.defineProperty(window, "open", originalOpenDescriptor);
+                    return;
+                }
+                Reflect.deleteProperty(window, "open");
+            };
             const popupWindow = {
                 document: popupDocument,
             } as Window & { Chart?: unknown };
@@ -1668,7 +1686,7 @@ test.describe("FitFileViewer Electron UI", () => {
             });
 
             chartRuntimeModule.setChartRuntime(chartMock);
-            window.open = (() => popupWindow) as typeof window.open;
+            setWindowOpenFixture((() => popupWindow) as typeof window.open);
 
             try {
                 const elevationButton = Array.from(
@@ -1712,7 +1730,7 @@ test.describe("FitFileViewer Electron UI", () => {
                 } else {
                     chartRuntimeModule.clearChartRuntimeForTests();
                 }
-                window.open = originalOpen;
+                restoreWindowOpen();
             }
         });
 

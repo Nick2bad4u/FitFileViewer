@@ -501,6 +501,9 @@ descriptor-scoped helpers instead of direct global deletion, with architecture c
 pattern.
 Setup process-nextTick stabilization now uses one `ensureProcessNextTick()` helper instead of repeating the same
 inline `globalThis.process.nextTick` mutation in multiple setup hooks.
+The Playwright map elevation popup smoke path now installs and restores its temporary `window.open` override
+through the original property descriptor instead of assigning `window.open` directly, with architecture coverage
+blocking that popup-fixture assignment.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
