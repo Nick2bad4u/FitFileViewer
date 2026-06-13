@@ -659,6 +659,8 @@ const directVitestEnvConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|warn)\s*=/u;
 const directRuntimeEnvironmentTestConsoleAssignmentPattern =
     /\b(?:global|globalThis)\.console\s*=/u;
+const directPreloadSourceExecutionGlobalDeletePattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,/u;
 const directPlaywrightWindowOpenMutationPattern =
     /\bwindow\.open\s*=|\bReflect\.deleteProperty\(\s*window\s*,\s*["']open["']\s*\)/u;
 const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
@@ -7671,6 +7673,20 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directConsoleGlobalAssignments).toStrictEqual([]);
+    });
+
+    it("keeps preload source execution console fixture restores descriptor-only", () => {
+        expect.assertions(1);
+
+        expect(
+            directPreloadSourceExecutionGlobalDeletePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/preload.sourceExecution.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps preload source tests on module-local Electron API exposure maps", () => {
