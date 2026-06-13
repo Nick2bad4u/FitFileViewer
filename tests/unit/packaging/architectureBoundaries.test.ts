@@ -434,6 +434,9 @@ const migratedLoadOverlayFilesRuntimeFiles = [
 const migratedFitBrowserFeatureGateRuntimeFiles = [
     "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",
 ] as const;
+const migratedFileBrowserTabRuntimeFiles = [
+    "electron-app/utils/ui/browser/fileBrowserTab.ts",
+] as const;
 const migratedCreateElevationProfileButtonRuntimeFiles = [
     "electron-app/utils/ui/controls/createElevationProfileButton.ts",
 ] as const;
@@ -1023,6 +1026,8 @@ const directLoadOverlayFilesRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.navigator\b|\bnavigator\.hardwareConcurrency\b/u;
 const directFitBrowserFeatureGateRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:querySelector|getElementById)\b|\binstanceof\s+HTMLElement\b/u;
+const directFileBrowserTabRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
     /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
 const directAltFitSenderRuntimeGlobalPattern =
@@ -3710,6 +3715,27 @@ describe("architecture boundaries", () => {
         expect(featureGateSource).toContain(
             "initFitBrowserFeatureGateRuntime.js"
         );
+    });
+
+    it("keeps Browser tab listener abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedFileBrowserTabRuntimeFiles
+            .filter((relativeFile) =>
+                directFileBrowserTabRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const browserTabSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/browser/fileBrowserTab.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(browserTabSource).toContain("fileBrowserTabRuntime.js");
+        expect(browserTabSource).toContain("createAbortController");
     });
 
     it("keeps add-FIT overlay button state on the active FIT raw-data facade", () => {

@@ -275,6 +275,9 @@ Open-file selector hidden input creation, jsdom detection, microtask fallback, t
 abort-controller creation now route through `openFileSelectorRuntime.ts` instead of calling browser primitives or
 constructing controllers directly inside `openFileSelector.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct selector runtime primitives from returning.
+Browser tab managed listener abort-controller creation now routes through `fileBrowserTabRuntime.ts` instead
+of constructing `AbortController` directly inside `fileBrowserTab.ts`, with focused runtime coverage and
+architecture guardrails blocking direct Browser tab controller construction from returning.
 CSV table clipboard fallback now routes browser clipboard writes and legacy textarea copy through
 `copyTableAsCSVRuntime.ts` instead of probing `navigator.clipboard` or calling document copy APIs directly inside
 `copyTableAsCSV.ts`, with focused runtime coverage and architecture guardrails blocking those direct browser

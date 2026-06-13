@@ -38,6 +38,7 @@ import {
     createAppIconElement,
 } from "../icons/iconFactory.js";
 import { showNotification as showRendererNotification } from "../notifications/showNotification.js";
+import { getFileBrowserTabRuntime } from "./fileBrowserTabRuntime.js";
 
 type CalendarState = {
     monthStart: Date;
@@ -113,6 +114,7 @@ const LIB_PREFS_LAST_DAYS_KEY = "fitLibrary.lastDays";
 const LIB_PREFS_UNIT_KEY = "fitLibrary.unit";
 const CAL_PREFS_MONTH_KEY = "fitLibrary.calendarMonth";
 const CAL_PREFS_SELECTED_DAY_KEY = "fitLibrary.calendarSelectedDay";
+const fileBrowserTabRuntime = getFileBrowserTabRuntime();
 
 const showNotification = (
     ...args: Parameters<typeof showRendererNotification>
@@ -125,7 +127,7 @@ function addManagedEventListener<K extends keyof HTMLElementEventMap>(
     type: K,
     listener: (event: HTMLElementEventMap[K]) => Promise<void> | void
 ): void {
-    const controller = new AbortController();
+    const controller = fileBrowserTabRuntime.createAbortController();
     const wrappedListener = (event: HTMLElementEventMap[K]): void => {
         try {
             void Promise.resolve(listener(event)).catch((error: unknown) => {
