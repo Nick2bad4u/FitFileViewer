@@ -438,6 +438,9 @@ const migratedEnableTabButtonsHelpersRuntimeFiles = [
 const migratedUpdateTabVisibilityRuntimeFiles = [
     "electron-app/utils/ui/tabs/updateTabVisibility.ts",
 ] as const;
+const migratedTabStateManagerHandlersRuntimeFiles = [
+    "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts",
+] as const;
 const migratedUnifiedControlBarRuntimeFiles = [
     "electron-app/utils/ui/unifiedControlBar.ts",
 ] as const;
@@ -966,6 +969,8 @@ const directEnableTabButtonsHelpersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bReflect\.get\(\s*document\b|\btypeof\s+document\s*!==/u;
 const directUpdateTabVisibilityRuntimeGlobalPattern =
     /\bglobalThis\.(?:document|requestAnimationFrame)\b|\breturn\s+document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directTabStateManagerHandlersRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+MutationObserver\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
@@ -5954,6 +5959,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(updateTabVisibilitySource).toContain(
             "updateTabVisibilityRuntime.js"
+        );
+    });
+
+    it("keeps tab-state map invalidation timing behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedTabStateManagerHandlersRuntimeFiles
+            .filter((relativeFile) =>
+                directTabStateManagerHandlersRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const tabStateManagerHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(tabStateManagerHandlersSource).toContain(
+            "tabStateManagerHandlersRuntime.js"
         );
     });
 

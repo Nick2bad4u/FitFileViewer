@@ -511,6 +511,10 @@ explicit scope or document window instead of separately probing `globalThis.Abor
 Render-summary virtualized lap-row scheduling now routes request/cancel animation-frame access and resize listener
 registration through `renderSummaryRuntime.ts` instead of direct `globalThis` probes in `renderSummaryHelpers.ts`,
 with adapter tests and architecture coverage blocking those direct scheduling globals from returning.
+Tab-state map invalidation scheduling now routes frame scheduling, frame cancellation, fallback timers, and timer
+clearing through `tabStateManagerHandlersRuntime.ts` instead of calling those globals directly in
+`tabStateManagerHandlers.ts`, with adapter tests and architecture coverage blocking direct map-tab timing globals
+from returning.
 Shared configuration tests now install and restore the throwing `URLSearchParams` fixture through a
 descriptor-scoped helper instead of assigning or deleting `global.URLSearchParams` directly, with architecture
 coverage blocking that fixture mutation pattern.

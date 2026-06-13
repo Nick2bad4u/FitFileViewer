@@ -485,6 +485,7 @@
         "electron-app/utils/ui/tabs/tabStateManagerCharts.ts",
         "electron-app/utils/ui/tabs/tabStateManagerConfig.ts",
         "electron-app/utils/ui/tabs/tabStateManagerDoc.ts",
+        "electron-app/utils/ui/tabs/tabStateManagerHandlersRuntime.ts",
         "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts",
         "electron-app/utils/ui/tabs/tabStateManagerSupport.ts",
         "electron-app/utils/ui/tabs/updateActiveTab.ts",

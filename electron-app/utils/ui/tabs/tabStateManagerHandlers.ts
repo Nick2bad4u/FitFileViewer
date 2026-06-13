@@ -13,6 +13,10 @@ import { createTables } from "../../rendering/components/createTables.js";
 import { renderSummary } from "../../rendering/core/renderSummary.js";
 import { tabRenderingManager } from "./tabRenderingManager.js";
 import { attachPreRenderedCharts } from "./tabStateManagerCharts.js";
+import {
+    getTabStateManagerHandlersRuntime,
+    type TabStateManagerHandlersTimerHandle,
+} from "./tabStateManagerHandlersRuntime.js";
 import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
 
 type ActivityRecord = Record<string, unknown> & {
@@ -36,27 +40,36 @@ type LeafletMapInstance = {
 
 let mapInvalidationFrameId: number | undefined;
 let mapInvalidationSecondFrameId: number | undefined;
-let mapInvalidationTimeoutId: ReturnType<typeof setTimeout> | undefined;
+let mapInvalidationTimeoutId:
+    | TabStateManagerHandlersTimerHandle
+    | undefined;
+
+const tabStateManagerHandlersRuntime = getTabStateManagerHandlersRuntime();
 
 function clearPendingMapInvalidation(): void {
-    if (
-        mapInvalidationFrameId !== undefined &&
-        typeof cancelAnimationFrame === "function"
-    ) {
-        cancelAnimationFrame(mapInvalidationFrameId);
+    if (mapInvalidationFrameId !== undefined) {
+        tabStateManagerHandlersRuntime.cancelAnimationFrame(
+            mapInvalidationFrameId
+        );
         mapInvalidationFrameId = undefined;
     }
-    if (
-        mapInvalidationSecondFrameId !== undefined &&
-        typeof cancelAnimationFrame === "function"
-    ) {
-        cancelAnimationFrame(mapInvalidationSecondFrameId);
+    if (mapInvalidationSecondFrameId !== undefined) {
+        tabStateManagerHandlersRuntime.cancelAnimationFrame(
+            mapInvalidationSecondFrameId
+        );
         mapInvalidationSecondFrameId = undefined;
     }
     if (mapInvalidationTimeoutId !== undefined) {
-        clearTimeout(mapInvalidationTimeoutId);
+        tabStateManagerHandlersRuntime.clearTimeout(mapInvalidationTimeoutId);
         mapInvalidationTimeoutId = undefined;
     }
+}
+
+function scheduleFallbackMapInvalidation(executeInvalidation: () => void): void {
+    mapInvalidationTimeoutId = tabStateManagerHandlersRuntime.setTimeout(() => {
+        mapInvalidationTimeoutId = undefined;
+        executeInvalidation();
+    }, 75);
 }
 
 function hasRenderedFlag(value: unknown): value is { isRendered?: boolean } {
@@ -299,21 +312,22 @@ export async function handleMapTab(
         }
     };
 
-    if (typeof requestAnimationFrame === "function") {
-        clearPendingMapInvalidation();
-        mapInvalidationFrameId = requestAnimationFrame(() => {
+    clearPendingMapInvalidation();
+    mapInvalidationFrameId =
+        tabStateManagerHandlersRuntime.requestAnimationFrame(() => {
             mapInvalidationFrameId = undefined;
-            mapInvalidationSecondFrameId = requestAnimationFrame(() => {
+            mapInvalidationSecondFrameId =
+                tabStateManagerHandlersRuntime.requestAnimationFrame(() => {
+                    mapInvalidationSecondFrameId = undefined;
+                    executeInvalidation();
+                });
+            if (mapInvalidationSecondFrameId === undefined) {
                 mapInvalidationSecondFrameId = undefined;
-                executeInvalidation();
-            });
+                scheduleFallbackMapInvalidation(executeInvalidation);
+            }
         });
-    } else {
-        clearPendingMapInvalidation();
-        mapInvalidationTimeoutId = setTimeout(() => {
-            mapInvalidationTimeoutId = undefined;
-            executeInvalidation();
-        }, 75);
+    if (mapInvalidationFrameId === undefined) {
+        scheduleFallbackMapInvalidation(executeInvalidation);
     }
 }
 
