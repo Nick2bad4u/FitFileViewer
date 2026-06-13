@@ -4844,6 +4844,23 @@ describe("architecture boundaries", () => {
         ).toBe(false);
     });
 
+    it("keeps lifecycle listener cleanup timers behind the runtime adapter", () => {
+        expect.assertions(2);
+
+        const lifecycleListenersSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
+        );
+        const directLifecycleListenersTimerGlobalPattern =
+            /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+
+        expect(lifecycleListenersSource).toContain("listenersRuntime.js");
+        expect(
+            directLifecycleListenersTimerGlobalPattern.test(
+                lifecycleListenersSource
+            )
+        ).toBe(false);
+    });
+
     it("keeps migrated state history readers on the typed history API", () => {
         expect.assertions(1);
 

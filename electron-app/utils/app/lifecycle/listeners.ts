@@ -32,6 +32,10 @@ import {
     runLifecycleListenerCleanup,
     setLifecycleListenerCleanup,
 } from "./lifecycleListenerCleanupRegistry.js";
+import {
+    getLifecycleListenersRuntime,
+    type LifecycleListenersTimer,
+} from "./listenersRuntime.js";
 import { registerChartResizeListener } from "./listenersResize.js";
 import { registerMenuIpcListeners } from "./menuIpcListeners.js";
 import { attachRecentFilesContextMenu } from "./recentFilesContextMenu.js";
@@ -44,7 +48,7 @@ type ExportDownloadOptions = {
 type RegisterCleanupTimer = (
     callback: () => void,
     delayMs: number
-) => ReturnType<typeof setTimeout>;
+) => LifecycleListenersTimer;
 
 type ExportDownloadDependencies = {
     registerCleanupTimer: RegisterCleanupTimer;
@@ -555,6 +559,7 @@ export function setupListeners({
     }
 
     const cleanupCallbacks: Array<() => void> = [];
+    const runtime = getLifecycleListenersRuntime();
 
     /**
      * Track an unsubscribe function returned by preload wrappers.
@@ -570,9 +575,9 @@ export function setupListeners({
     const registerCleanupTimer = (
         callback: () => void,
         delayMs: number
-    ): ReturnType<typeof setTimeout> => {
-        const timeout = setTimeout(callback, delayMs);
-        cleanupCallbacks.push(() => clearTimeout(timeout));
+    ): LifecycleListenersTimer => {
+        const timeout = runtime.setTimeout(callback, delayMs);
+        cleanupCallbacks.push(() => runtime.clearTimeout(timeout));
         return timeout;
     };
 
