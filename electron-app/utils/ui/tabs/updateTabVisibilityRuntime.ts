@@ -33,7 +33,12 @@ export function getUpdateTabVisibilityRuntime(
 ): UpdateTabVisibilityRuntime {
     return {
         clearTimeout(handle: UpdateTabVisibilityTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "updateTabVisibility requires a clearTimeout runtime"
+                );
+            }
             clearTimeoutRef(handle);
         },
         getDocument(): Document | undefined {
@@ -52,7 +57,12 @@ export function getUpdateTabVisibilityRuntime(
             callback: () => void,
             timeout: number
         ): UpdateTabVisibilityTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "updateTabVisibility requires a setTimeout runtime"
+                );
+            }
             return setTimeoutRef(callback, timeout);
         },
     };

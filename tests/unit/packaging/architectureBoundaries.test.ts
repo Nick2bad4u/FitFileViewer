@@ -1180,8 +1180,12 @@ const directEnableTabButtonsHelpersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bReflect\.get\(\s*document\b|\btypeof\s+document\s*!==/u;
 const directUpdateTabVisibilityRuntimeGlobalPattern =
     /\bglobalThis\.(?:document|requestAnimationFrame)\b|\breturn\s+document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directUpdateTabVisibilityRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directTabStateManagerHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+(?:AbortController|MutationObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directUnifiedControlBarRuntimeAmbientFallbackPattern =
@@ -7040,7 +7044,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab visibility browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedUpdateTabVisibilityRuntimeFiles
             .filter((relativeFile) =>
@@ -7054,10 +7058,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/tabs/updateTabVisibility.ts"
             )
         );
+        const updateTabVisibilityRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/updateTabVisibilityRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(updateTabVisibilitySource).toContain(
             "updateTabVisibilityRuntime.js"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toMatch(
+            directUpdateTabVisibilityRuntimeAmbientTimerFallbackPattern
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "updateTabVisibility requires a setTimeout runtime"
         );
     });
 
@@ -7289,7 +7304,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedTabStateManagerHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -7303,10 +7318,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts"
             )
         );
+        const tabStateManagerHandlersRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/tabStateManagerHandlersRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(tabStateManagerHandlersSource).toContain(
             "tabStateManagerHandlersRuntime.js"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toMatch(
+            directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "tabStateManagerHandlers requires a setTimeout runtime"
         );
     });
 

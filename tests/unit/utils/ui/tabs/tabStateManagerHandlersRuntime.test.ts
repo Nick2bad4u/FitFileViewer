@@ -75,4 +75,17 @@ describe("getTabStateManagerHandlersRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(47);
         expect(clearTimeout.mock.contexts[0]).toBeUndefined();
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getTabStateManagerHandlersRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "tabStateManagerHandlers requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "tabStateManagerHandlers requires a clearTimeout runtime"
+        );
+    });
 });

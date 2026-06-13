@@ -30,7 +30,12 @@ export function getTabStateManagerHandlersRuntime(
             scope.cancelAnimationFrame?.(handle);
         },
         clearTimeout(handle: TabStateManagerHandlersTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "tabStateManagerHandlers requires a clearTimeout runtime"
+                );
+            }
             clearTimeoutRef(handle);
         },
         requestAnimationFrame(
@@ -46,7 +51,12 @@ export function getTabStateManagerHandlersRuntime(
             callback: () => void,
             delay: number
         ): TabStateManagerHandlersTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "tabStateManagerHandlers requires a setTimeout runtime"
+                );
+            }
             return setTimeoutRef(callback, delay);
         },
     };

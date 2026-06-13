@@ -601,6 +601,9 @@ data callback/mocked-selector naming instead of retired `globalData` terminology
 blocking the old filename and fixture vocabulary. That raw-data state coverage now also installs its jsdom
 `window`/`document` globals through descriptor-scoped helpers instead of assigning or deleting direct
 browser-global fixtures, with architecture coverage blocking those mutations.
+Tab visibility fallback timers now route through `updateTabVisibilityRuntime.ts`; explicit runtime scopes must
+provide timer primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture
+coverage blocking those ambient fallbacks from returning.
 Tab-state manager regression tests now pass `rawFitData` table fixtures into `updateTabAvailability` instead of
 retired `globalData` entries, with architecture coverage blocking that stale regression vocabulary.
 Tab button state integration tests now model loaded FIT data only through the active `fitFile.rawData` state
@@ -762,8 +765,9 @@ of constructing `AbortController` directly inside `renderSummaryHelpers.ts`, wit
 architecture coverage blocking that direct controller construction from returning.
 Tab-state map invalidation scheduling now routes frame scheduling, frame cancellation, fallback timers, and timer
 clearing through `tabStateManagerHandlersRuntime.ts` instead of calling those globals directly in
-`tabStateManagerHandlers.ts`, with adapter tests and architecture coverage blocking direct map-tab timing globals
-from returning.
+`tabStateManagerHandlers.ts`; explicit runtime scopes must provide fallback timer primitives instead of falling
+back to `globalThis`, with adapter tests and architecture coverage blocking direct map-tab timing globals and
+ambient timer fallbacks from returning.
 Renderer application startup listener cleanup and update-check scheduling now route the startup abort controller,
 production update-check timer, and before-unload timer clearing through `applicationStartupRuntime.ts` instead of
 calling those browser primitives directly in `applicationStartup.ts`, with adapter tests, startup behavior coverage,
