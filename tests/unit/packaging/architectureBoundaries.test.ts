@@ -46,6 +46,9 @@ const migratedMainUiSummarySelectorRuntimeFiles = [
 const migratedRendererApplicationStartupRuntimeFiles = [
     "electron-app/renderer/applicationStartup.ts",
 ] as const;
+const migratedRendererFileInputStartupRuntimeFiles = [
+    "electron-app/renderer/fileInputStartup.ts",
+] as const;
 const migratedRendererVendorBundleLoaderRuntimeFiles = [
     "electron-app/renderer/vendorBundleLoader.ts",
 ] as const;
@@ -1046,6 +1049,8 @@ const directMainUiSummarySelectorRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directRendererApplicationStartupRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directRendererFileInputStartupRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const directRendererVendorBundleLoaderRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|createElement|head|querySelector|removeEventListener|setTimeout)\b|\bDate\.now\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directNetworkUtilsRuntimeGlobalPattern =
@@ -6426,6 +6431,26 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(applicationStartupSource).toContain(
             "applicationStartupRuntime.js"
+        );
+    });
+
+    it("keeps renderer file-input abort controllers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererFileInputStartupRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererFileInputStartupRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const fileInputStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/fileInputStartup.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(fileInputStartupSource).toContain(
+            "fileInputStartupRuntime.js"
         );
     });
 

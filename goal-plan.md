@@ -602,6 +602,10 @@ Renderer application startup update-check scheduling now routes the production u
 timer clearing through `applicationStartupRuntime.ts` instead of calling those globals directly in
 `applicationStartup.ts`, with adapter tests, startup behavior coverage, and architecture coverage blocking direct
 startup timer globals from returning.
+Renderer file-input delegated and import-time listener cleanup now creates abort controllers through
+`fileInputStartupRuntime.ts` instead of constructing `AbortController` directly in `fileInputStartup.ts`, with
+focused runtime coverage and architecture coverage blocking direct file-input abort-controller construction from
+returning.
 Network utility fetch, AbortController creation, and fetch-timeout scheduling now route through
 `networkUtilsRuntime.ts` instead of calling network or timer globals directly in `networkUtils.ts`, with adapter
 tests and architecture coverage blocking direct network utility globals from returning.

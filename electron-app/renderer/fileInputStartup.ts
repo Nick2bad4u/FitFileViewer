@@ -1,3 +1,8 @@
+import {
+    getRendererFileInputStartupRuntime,
+    type RendererFileInputStartupRuntime,
+} from "./fileInputStartupRuntime.js";
+
 export type RendererFileInputLogger = (
     level: "warn",
     ...args: unknown[]
@@ -120,9 +125,10 @@ export function createDelegatedFileInputChangeHandler(
 export function registerDelegatedFileInputChangeListener(
     documentTarget: RendererFileInputEventTarget,
     windowTarget: RendererFileInputEventTarget,
-    onDelegatedFileInputChange: (event: Event) => void
+    onDelegatedFileInputChange: (event: Event) => void,
+    runtime: RendererFileInputStartupRuntime = getRendererFileInputStartupRuntime()
 ): void {
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
     const { signal } = abortController;
     const removeDelegatedFileInputChangeListener = (): void => {
         abortController.abort();
@@ -142,9 +148,10 @@ export function registerDelegatedFileInputChangeListener(
 export function registerImportTimeFileInputChangeHandler(
     fileInput: HTMLInputElement,
     windowTarget: RendererFileInputEventTarget,
-    options: RendererFileInputStartupOptions
+    options: RendererFileInputStartupOptions,
+    runtime: RendererFileInputStartupRuntime = getRendererFileInputStartupRuntime()
 ): void {
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
     const { signal } = abortController;
     const onImportTimeFileInputChange = (): void => {
         void handleImportTimeFileInputChange(fileInput, options);
