@@ -311,9 +311,9 @@ mutating those names, and architecture coverage blocks those mutations from retu
 State integration unit tests no longer seed or delete retired AppState, chart-controls, globalData,
 render-state, timer, development, or state-debug globals while proving initialization leaves them absent;
 architecture coverage now blocks those retired state-integration global mutations from returning.
-State integration comprehensive tests now install localStorage and performance browser fixtures through
-descriptor-scoped helpers instead of assigning or reflecting directly onto `globalThis`, with architecture
-coverage blocking that fixture mutation pattern.
+State integration tests now install and restore localStorage, performance, and performance-memory browser fixtures
+through descriptor-scoped helpers instead of assigning, reflecting directly onto `globalThis`, or deleting globals
+during cleanup, with architecture coverage blocking that fixture mutation pattern.
 Debug sensor unit tests also no longer define or delete a stale `globalData` property when proving sensor
 availability comes from active FIT state, and architecture coverage keeps that retired global mutation out.
 Loaded FIT file state tests no longer assign or delete the retired `loadedFitFiles` global while proving

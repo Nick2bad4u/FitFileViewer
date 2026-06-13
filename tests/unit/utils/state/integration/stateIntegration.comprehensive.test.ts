@@ -19,15 +19,22 @@ function getRetiredGlobalDescriptor(
 
 const originalGlobalDescriptors = new Map<
     TestGlobalProperty,
-    PropertyDescriptor | undefined
+    PropertyDescriptor
 >();
+
+function getGlobalRestoreDescriptor(name: TestGlobalProperty): PropertyDescriptor {
+    return (
+        Object.getOwnPropertyDescriptor(globalThis, name) ?? {
+            configurable: true,
+            value: undefined,
+            writable: true,
+        }
+    );
+}
 
 function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
     if (!originalGlobalDescriptors.has(name)) {
-        originalGlobalDescriptors.set(
-            name,
-            Object.getOwnPropertyDescriptor(globalThis, name)
-        );
+        originalGlobalDescriptors.set(name, getGlobalRestoreDescriptor(name));
     }
 
     Object.defineProperty(globalThis, name, {
@@ -42,11 +49,7 @@ function restoreTestGlobals(): void {
         name,
         descriptor,
     ] of [...originalGlobalDescriptors.entries()].reverse()) {
-        if (descriptor) {
-            Object.defineProperty(globalThis, name, descriptor);
-        } else {
-            Reflect.deleteProperty(globalThis, name);
-        }
+        Object.defineProperty(globalThis, name, descriptor);
     }
     originalGlobalDescriptors.clear();
 }

@@ -613,7 +613,7 @@ const stateDevToolsTestRetiredGlobalMutationPattern =
 const stateIntegrationRetiredGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)["']|(?:globalThis|testGlobal)\.(?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)\s*=/u;
 const stateIntegrationBrowserGlobalFixtureMutationPattern =
-    /\bglobalThis\.localStorage\s*=|\bReflect\.set\(\s*globalThis\s*,\s*["'](?:localStorage|performance)["']\s*,/u;
+    /\bglobalThis\.localStorage\s*=|\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:localStorage|performance)["']\s*(?:,|\))|\bReflect\.deleteProperty\(\s*globalThis\.performance\s*,\s*["']memory["']\s*\)/u;
 const directSingletonStateSubscriptionsGlobalPattern =
     /\b(?:window|globalThis|globalState)\.__ffvSingletonStateSubscriptions\b|["']__ffvSingletonStateSubscriptions["']/u;
 const directFileAccessPolicyStateGlobalPattern =
@@ -4278,18 +4278,21 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps state integration comprehensive tests on descriptor-scoped browser fixtures", () => {
+    it("keeps state integration tests on descriptor-scoped browser fixtures", () => {
         expect.assertions(1);
 
-        expect(
-            stateIntegrationBrowserGlobalFixtureMutationPattern.test(
-                stripComments(
-                    readRepositoryFile(
-                        "tests/unit/utils/state/integration/stateIntegration.comprehensive.test.ts"
-                    )
+        const violations = [
+            "tests/unit/utils/state/integration/stateIntegration.simple.test.ts",
+            "tests/unit/utils/state/integration/stateIntegration.comprehensive.test.ts",
+        ]
+            .filter((relativeFile) =>
+                stateIntegrationBrowserGlobalFixtureMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
                 )
             )
-        ).toBe(false);
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps state development tools on the debug state access facade", () => {

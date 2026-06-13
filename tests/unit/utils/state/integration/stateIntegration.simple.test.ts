@@ -9,18 +9,10 @@ import {
 import * as stateIntegration from "../../../../../electron-app/utils/state/integration/stateIntegration.js";
 
 const persistedStateKey = "fitFileViewer_uiState";
-const originalLocalStorageDescriptor = Object.getOwnPropertyDescriptor(
-    globalThis,
-    "localStorage"
-);
-const originalPerformanceMemoryDescriptor = Object.getOwnPropertyDescriptor(
-    globalThis.performance,
-    "memory"
-);
-const hasOriginalPerformanceMemory = Object.hasOwn(
-    globalThis.performance,
-    "memory"
-);
+const originalLocalStorageDescriptor =
+    getGlobalRestoreDescriptor("localStorage");
+const originalPerformanceMemoryDescriptor =
+    getPerformanceMemoryRestoreDescriptor();
 
 type PerformanceMemory = {
     jsHeapSizeLimit: number;
@@ -32,6 +24,28 @@ type StorageFixture = {
     readonly storage: Storage;
     readonly store: Map<string, string>;
 };
+
+function getGlobalRestoreDescriptor(
+    propertyName: "localStorage"
+): PropertyDescriptor {
+    return (
+        Object.getOwnPropertyDescriptor(globalThis, propertyName) ?? {
+            configurable: true,
+            value: undefined,
+            writable: true,
+        }
+    );
+}
+
+function getPerformanceMemoryRestoreDescriptor(): PropertyDescriptor {
+    return (
+        Object.getOwnPropertyDescriptor(globalThis.performance, "memory") ?? {
+            configurable: true,
+            value: undefined,
+            writable: true,
+        }
+    );
+}
 
 function createStorageFixture(initialEntries = {}): StorageFixture {
     const store = new Map(Object.entries(initialEntries));
@@ -85,27 +99,17 @@ function resetTestEnvironment(): void {
 
 function restoreGlobalProperty(
     propertyName: "localStorage",
-    descriptor: PropertyDescriptor | undefined
+    descriptor: PropertyDescriptor
 ): void {
-    if (descriptor) {
-        Object.defineProperty(globalThis, propertyName, descriptor);
-        return;
-    }
-
-    Reflect.deleteProperty(globalThis, propertyName);
+    Object.defineProperty(globalThis, propertyName, descriptor);
 }
 
 function restorePerformanceMemory(): void {
-    if (hasOriginalPerformanceMemory && originalPerformanceMemoryDescriptor) {
-        Object.defineProperty(
-            globalThis.performance,
-            "memory",
-            originalPerformanceMemoryDescriptor
-        );
-        return;
-    }
-
-    Reflect.deleteProperty(globalThis.performance, "memory");
+    Object.defineProperty(
+        globalThis.performance,
+        "memory",
+        originalPerformanceMemoryDescriptor
+    );
 }
 
 describe("stateIntegration.js - Essential Coverage", () => {
