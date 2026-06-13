@@ -177,7 +177,8 @@ export function addFullscreenControl(map: LeafletMap): void {
     }
     mapDiv.append(fullscreenControl);
 
-    const listenerController = new AbortController();
+    const listenerController =
+        mapFullscreenControlRuntime.createAbortController();
     let invalidateSizeTimer: MapFullscreenControlTimer | null = null;
     const clearPendingInvalidateSize = (): void => {
         if (invalidateSizeTimer !== null) {
@@ -212,8 +213,7 @@ export function addFullscreenControl(map: LeafletMap): void {
         { signal: listenerController.signal }
     );
 
-    document.addEventListener(
-        "fullscreenchange",
+    mapFullscreenControlRuntime.addDocumentFullscreenChangeListener(
         () => {
             const isNowFullscreen = document.fullscreenElement === mapDiv;
             if (!isNowFullscreen) {

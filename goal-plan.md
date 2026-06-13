@@ -336,6 +336,10 @@ architecture guardrails blocking those direct timer globals from returning.
 Custom map fullscreen-control delayed Leaflet map size invalidation now routes through
 `mapFullscreenControlRuntime.ts` instead of calling timer globals directly inside `mapFullscreenControl.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
+Custom map fullscreen-control listener abort-controller creation and document fullscreen-change listener
+registration now also route through `mapFullscreenControlRuntime.ts` instead of constructing `AbortController`
+or registering document listeners directly inside `mapFullscreenControl.ts`, with focused runtime coverage and
+architecture guardrails blocking those direct browser APIs from returning.
 Map draw-laps overlay fit-bounds retry scheduling and cleanup now route through `mapDrawLapsRuntime.ts` instead
 of calling timer globals directly inside `mapDrawLaps.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning.
