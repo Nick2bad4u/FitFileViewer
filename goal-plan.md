@@ -306,6 +306,9 @@ with focused runtime coverage and architecture guardrails blocking those direct 
 Map draw-laps overlay fit-bounds retry scheduling and cleanup now route through `mapDrawLapsRuntime.ts` instead
 of calling timer globals directly inside `mapDrawLaps.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning.
+Renderer state integration example subscription cleanup scheduling and cleanup now route through
+`rendererStateIntegrationRuntime.ts` instead of calling timer globals directly inside `rendererStateIntegration.ts`,
+with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
 Master state manager comprehensive tests now install and restore document, window, location, storage,
 performance, timer, and listener globals through descriptor-scoped helpers instead of deleting globals during
 cleanup, with architecture coverage blocking that fixture mutation pattern.

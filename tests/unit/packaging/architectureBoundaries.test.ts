@@ -220,6 +220,9 @@ const migratedStateDebugGlobalFreeFiles = [
 const migratedStateDevToolsRuntimeFiles = [
     "electron-app/utils/debug/stateDevTools.ts",
 ] as const;
+const migratedRendererStateIntegrationRuntimeFiles = [
+    "electron-app/utils/state/integration/rendererStateIntegration.ts",
+] as const;
 const rendererVendorBrowserPackageImportAllowedFiles = [
     "electron-app/renderer/rendererVendorChartData.ts",
     "electron-app/renderer/rendererVendorCore.ts",
@@ -687,6 +690,8 @@ const directStateDebugGlobalPattern =
     /\b(?:window|globalThis|windowExt|globalState|getMasterGlobal\(\))\.(?:__state_debug|__stateDebug)\b|["'](?:__state_debug|__stateDebug)["']/u;
 const directStateDevToolsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|setInterval)\b|(?:^|[^\w.])(?:clearInterval|setInterval)\(/u;
+const directRendererStateIntegrationRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const stateDevToolsTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:STATE_DEBUG_GLOBAL|["']__stateDebug["'])\s*\)|\bglobalThis\.__stateDebug\s*=/u;
 const stateIntegrationRetiredGlobalMutationPattern =
@@ -4718,6 +4723,28 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(stateDevToolsSource).toContain("stateDevToolsRuntime.js");
+    });
+
+    it("keeps renderer state integration timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererStateIntegrationRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererStateIntegrationRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const rendererStateIntegrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/rendererStateIntegration.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(rendererStateIntegrationSource).toContain(
+            "rendererStateIntegrationRuntime.js"
+        );
     });
 
     it("keeps app lifecycle actions on the app-actions state facade", () => {

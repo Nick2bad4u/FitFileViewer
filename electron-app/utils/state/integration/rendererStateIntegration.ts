@@ -15,11 +15,17 @@ import { UIActions } from "../domain/uiStateManager.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 // At the top of renderer.js, add these imports:
 import { initializeCompleteStateSystem } from "./stateIntegration.js";
+import {
+    getRendererStateIntegrationRuntime,
+    type RendererStateIntegrationTimer,
+} from "./rendererStateIntegrationRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type Unsubscribe = () => void;
 
 type RendererElectronAPI = Partial<Pick<ElectronAPI, "onFileOpened">>;
+
+const rendererStateIntegrationRuntime = getRendererStateIntegrationRuntime();
 
 let stateAwareEventHandlersAbortController: AbortController | undefined;
 
@@ -75,10 +81,11 @@ export function exampleStateUsage(): Unsubscribe {
     });
 
     // Later, clean up the subscription
-    const cleanupTimeout = setTimeout(() => unsubscribe(), 5000);
+    const cleanupTimeout: RendererStateIntegrationTimer =
+        rendererStateIntegrationRuntime.setTimeout(() => unsubscribe(), 5000);
 
     return () => {
-        clearTimeout(cleanupTimeout);
+        rendererStateIntegrationRuntime.clearTimeout(cleanupTimeout);
         unsubscribe();
     };
 }
