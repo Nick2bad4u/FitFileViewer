@@ -456,8 +456,8 @@ the process fixture during cleanup, with architecture coverage blocking that cle
 Gyazo OAuth state tests now install and restore the unavailable-crypto fixture through a descriptor-scoped helper
 instead of deleting `globalThis.crypto` during cleanup, with architecture coverage blocking that cleanup-time
 crypto deletion.
-Data-point filter control tests now install temporary animation-frame and microtask fixtures through
-descriptor-scoped helpers instead of assigning `globalThis.requestAnimationFrame`,
+Data-point filter control tests now install and restore temporary animation-frame and microtask fixtures through
+descriptor-scoped helpers instead of assigning or deleting `globalThis.requestAnimationFrame`,
 `globalThis.cancelAnimationFrame`, or `globalThis.queueMicrotask` directly, with architecture coverage blocking
 that fixture mutation pattern.
 Shared configuration tests now install and restore the throwing `URLSearchParams` fixture through a

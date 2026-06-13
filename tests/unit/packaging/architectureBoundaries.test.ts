@@ -947,7 +947,7 @@ const directCreateMarkerCountSelectorRuntimeGlobalPattern =
 const directCreateDataPointFilterControlRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b|\btypeof\s+queueMicrotask\b|\bPromise\.resolve\(\)\.then\(/u;
 const createDataPointFilterControlTestDirectAsyncGlobalAssignmentPattern =
-    /\bglobalThis\.(?:cancelAnimationFrame|queueMicrotask|requestAnimationFrame)\s*=/u;
+    /\bglobalThis\.(?:cancelAnimationFrame|queueMicrotask|requestAnimationFrame)\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:cancelAnimationFrame|queueMicrotask|requestAnimationFrame)["']\s*\)/u;
 const directCreateHRZoneControlsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|querySelector)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|\blocalStorage\.(?:getItem|setItem)\b/u;
 const directCreatePowerZoneControlsRuntimeGlobalPattern =
