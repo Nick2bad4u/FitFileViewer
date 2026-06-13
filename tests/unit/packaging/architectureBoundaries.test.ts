@@ -46,6 +46,9 @@ const migratedMainUiSummarySelectorRuntimeFiles = [
 const migratedRendererApplicationStartupRuntimeFiles = [
     "electron-app/renderer/applicationStartup.ts",
 ] as const;
+const migratedRendererApplicationLifecycleWiringRuntimeFiles = [
+    "electron-app/renderer/applicationLifecycleWiring.ts",
+] as const;
 const migratedRendererFileInputStartupRuntimeFiles = [
     "electron-app/renderer/fileInputStartup.ts",
 ] as const;
@@ -1049,6 +1052,8 @@ const directMainUiSummarySelectorRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directRendererApplicationStartupRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directRendererApplicationLifecycleWiringRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const directRendererFileInputStartupRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directRendererVendorBundleLoaderRuntimeGlobalPattern =
@@ -6431,6 +6436,28 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(applicationStartupSource).toContain(
             "applicationStartupRuntime.js"
+        );
+    });
+
+    it("keeps renderer application lifecycle abort controllers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererApplicationLifecycleWiringRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererApplicationLifecycleWiringRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const lifecycleWiringSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/applicationLifecycleWiring.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(lifecycleWiringSource).toContain(
+            "applicationLifecycleWiringRuntime.js"
         );
     });
 
