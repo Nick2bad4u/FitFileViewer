@@ -99,6 +99,37 @@ describe("eventListenerManager listener lifecycle", () => {
         });
     });
 
+    it("resolves listener cleanup controllers through the injected runtime", () => {
+        expect.assertions(4);
+
+        const handler = vi.fn<(event: Event) => void>();
+        const abortController = new AbortController();
+        const abort = vi.fn(() => {
+            abortController.abort();
+        });
+        const runtime = {
+            createAbortController: vi.fn(() => ({
+                abort,
+                signal: abortController.signal,
+            })),
+        };
+
+        addEventListenerWithCleanup(
+            window,
+            "click",
+            handler,
+            false,
+            runtime
+        );
+        cleanupEventListeners();
+        window.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+        expect(runtime.createAbortController).toHaveBeenCalledOnce();
+        expect(abort).toHaveBeenCalledOnce();
+        expect(abortController.signal.aborted).toBe(true);
+        expect(handler).not.toHaveBeenCalled();
+    });
+
     it("addDragDropListeners wires up provided handlers and supports cleanup", () => {
         expect.assertions(6);
 

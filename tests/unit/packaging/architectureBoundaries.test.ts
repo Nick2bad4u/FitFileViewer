@@ -982,6 +982,8 @@ const electronApiRuntimeTestDirectGlobalFixturePattern =
 const mainUiDomUtilsTestDirectElectronApiGlobalFixturePattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*\)/u;
 const directMainUiDomUtilsRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
+const directEventListenerManagerRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const preloadTestDirectElectronApiGlobalFixturePattern =
     /\b(?:Object\.defineProperty|Reflect\.deleteProperty)\(\s*globalThis\s*,/u;
 const directExternalLinkHandlersRuntimeGlobalPattern =
@@ -9125,5 +9127,24 @@ describe("architecture boundaries", () => {
             directMainUiDomUtilsRuntimeGlobalPattern.test(mainUiDomUtilsSource)
         ).toBe(false);
         expect(mainUiDomUtilsSource).toContain("mainUiDomUtilsRuntime.js");
+    });
+
+    it("keeps event listener manager cleanup behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const eventListenerManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/events/eventListenerManager.ts"
+            )
+        );
+
+        expect(
+            directEventListenerManagerRuntimeGlobalPattern.test(
+                eventListenerManagerSource
+            )
+        ).toBe(false);
+        expect(eventListenerManagerSource).toContain(
+            "eventListenerManagerRuntime.js"
+        );
     });
 });
