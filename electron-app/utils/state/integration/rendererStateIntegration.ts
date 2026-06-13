@@ -340,7 +340,8 @@ function setupStateAwareEventHandlers(): void {
     }
 
     stateAwareEventHandlersAbortController?.abort();
-    stateAwareEventHandlersAbortController = new AbortController();
+    stateAwareEventHandlersAbortController =
+        rendererStateIntegrationRuntime.createAbortController();
     const { signal } = stateAwareEventHandlersAbortController;
 
     // Tab switching (if not handled by UIStateManager)

@@ -25,4 +25,32 @@ describe("getRendererStateIntegrationRuntime", () => {
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
+
+    it("creates abort controllers through the injected runtime", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const utils = getRendererStateIntegrationRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+        });
+
+        expect(utils.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("fails clearly when the AbortController runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRendererStateIntegrationRuntime({});
+
+        expect(() => utils.createAbortController()).toThrow(
+            "rendererStateIntegration requires an AbortController runtime"
+        );
+    });
 });

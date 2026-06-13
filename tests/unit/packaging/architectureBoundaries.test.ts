@@ -737,7 +737,7 @@ const directStateIntegrationRuntimeGlobalPattern =
 const directStateDevToolsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|setInterval)\b|(?:^|[^\w.])(?:clearInterval|setInterval)\(/u;
 const directRendererStateIntegrationRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const stateDevToolsTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:STATE_DEBUG_GLOBAL|["']__stateDebug["'])\s*\)|\bglobalThis\.__stateDebug\s*=/u;
 const stateIntegrationRetiredGlobalMutationPattern =
@@ -4917,8 +4917,8 @@ describe("architecture boundaries", () => {
         expect(stateIntegrationSource).toContain("stateIntegrationRuntime.js");
     });
 
-    it("keeps renderer state integration timers behind the runtime facade", () => {
-        expect.assertions(2);
+    it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
+        expect.assertions(3);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -4936,6 +4936,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(rendererStateIntegrationSource).toContain(
             "rendererStateIntegrationRuntime.js"
+        );
+        expect(rendererStateIntegrationSource).toContain(
+            "createAbortController"
         );
     });
 
