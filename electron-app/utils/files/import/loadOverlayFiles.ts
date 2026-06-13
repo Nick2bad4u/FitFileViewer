@@ -12,6 +12,7 @@ import {
     loadSingleOverlayFile,
     type OverlayFitData as SingleOverlayFitData,
 } from "./loadSingleOverlayFile.js";
+import { getLoadOverlayFilesRuntime } from "./loadOverlayFilesRuntime.js";
 
 /** Decoded FIT data used while managing overlay file state. */
 export type OverlayFitData = SingleOverlayFitData & {
@@ -42,6 +43,7 @@ const OVERLAY_PATH_KEYS = [
     "path",
     "webkitRelativePath",
 ] as const satisfies ReadonlyArray<keyof OverlayInputFile>;
+const loadOverlayFilesRuntime = getLoadOverlayFilesRuntime();
 
 /**
  * Loads FIT files as overlays.
@@ -375,20 +377,14 @@ function normalizePath(path: string): string {
 }
 
 function resolveOverlayLoadConcurrency(): number {
-    try {
-        const hardwareConcurrency = globalThis.navigator?.hardwareConcurrency;
-        if (
-            typeof hardwareConcurrency === "number" &&
-            Number.isFinite(hardwareConcurrency) &&
-            hardwareConcurrency > 0
-        ) {
-            return Math.max(
-                1,
-                Math.min(3, Math.floor(hardwareConcurrency / 2))
-            );
-        }
-    } catch {
-        // Use the default below when navigator is unavailable.
+    const hardwareConcurrency =
+        loadOverlayFilesRuntime.getHardwareConcurrency();
+    if (
+        typeof hardwareConcurrency === "number" &&
+        Number.isFinite(hardwareConcurrency) &&
+        hardwareConcurrency > 0
+    ) {
+        return Math.max(1, Math.min(3, Math.floor(hardwareConcurrency / 2)));
     }
 
     return 2;

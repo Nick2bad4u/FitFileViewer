@@ -262,6 +262,9 @@ Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the
 wording. `createAppMenu` Electron menu tests now use module-local fixture state instead of `__electron*` and
 call-log globals on `globalThis`. `masterStateManager.ts` now uses module-local test override maps plus typed
 imports instead of probing CJS module caches through `node:module`.
+Overlay file load concurrency now resolves navigator hardware-concurrency metadata through
+`loadOverlayFilesRuntime.ts` instead of probing `globalThis.navigator` directly inside `loadOverlayFiles.ts`,
+with focused runtime coverage and architecture guardrails blocking that direct metadata lookup from returning.
 Master state manager comprehensive tests now install and restore document, window, location, storage,
 performance, timer, and listener globals through descriptor-scoped helpers instead of deleting globals during
 cleanup, with architecture coverage blocking that fixture mutation pattern.

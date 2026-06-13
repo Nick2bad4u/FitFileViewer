@@ -380,6 +380,9 @@ const migratedMapActionButtonsRuntimeFiles = [
 const migratedOpenFileSelectorRuntimeFiles = [
     "electron-app/utils/files/import/openFileSelector.ts",
 ] as const;
+const migratedLoadOverlayFilesRuntimeFiles = [
+    "electron-app/utils/files/import/loadOverlayFiles.ts",
+] as const;
 const migratedFitBrowserFeatureGateRuntimeFiles = [
     "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",
 ] as const;
@@ -924,6 +927,8 @@ const directMapActionButtonsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
+const directLoadOverlayFilesRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.navigator\b|\bnavigator\.hardwareConcurrency\b/u;
 const directFitBrowserFeatureGateRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:querySelector|getElementById)\b|\binstanceof\s+HTMLElement\b/u;
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
@@ -5483,6 +5488,26 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(openFileSelectorSource).toContain("openFileSelectorRuntime.js");
+    });
+
+    it("keeps overlay file load concurrency metadata behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedLoadOverlayFilesRuntimeFiles
+            .filter((relativeFile) =>
+                directLoadOverlayFilesRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const loadOverlayFilesSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/loadOverlayFiles.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(loadOverlayFilesSource).toContain("loadOverlayFilesRuntime.js");
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {

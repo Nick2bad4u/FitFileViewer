@@ -34,6 +34,7 @@ const mocks = vi.hoisted(() => ({
     loadingShow: vi.fn<(message: string, detail?: string) => void>(),
     loadSingleOverlayFile:
         vi.fn<(file: OverlayInputFile) => Promise<LoadSingleOverlayResult>>(),
+    getHardwareConcurrency: vi.fn<() => number | undefined>(() => 6),
     pLimitCompat: vi.fn<LimitFactory>((_concurrency) => async (task) => task()),
     renderMap: vi.fn<() => void>(),
     setLoadedFiles:
@@ -121,6 +122,15 @@ vi.mock(
 );
 
 vi.mock(
+    import("../../../../../electron-app/utils/files/import/loadOverlayFilesRuntime.js"),
+    () => ({
+        getLoadOverlayFilesRuntime: () => ({
+            getHardwareConcurrency: mocks.getHardwareConcurrency,
+        }),
+    })
+);
+
+vi.mock(
     import("../../../../../electron-app/utils/maps/core/renderMap.js"),
     () => ({
         renderMap: mocks.renderMap,
@@ -179,7 +189,7 @@ describe(loadOverlayFiles, () => {
             ]);
             expect(
                 mocks.pLimitCompat.mock.calls[0]?.[0]
-            ).toBeGreaterThanOrEqual(1);
+            ).toBe(3);
             expect(mocks.loadSingleOverlayFile).toHaveBeenCalledWith(file);
             expect(mocks.setLoadedFiles).toHaveBeenCalledWith(
                 mocks.loadedFitFilesFixture,

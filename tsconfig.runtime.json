@@ -553,6 +553,7 @@
         "electron-app/utils/files/import/handleOpenFile.ts",
         "electron-app/utils/files/import/loadOverlayFiles.ts",
         "electron-app/utils/files/import/loadSingleOverlayFile.ts",
+        "electron-app/utils/files/import/loadOverlayFilesRuntime.ts",
         "electron-app/utils/files/import/openFileSelectorRuntime.ts",
         "electron-app/utils/files/import/openFileSelector.ts",
         "electron-app/utils/files/import/openFitFileFromPath.ts",
