@@ -351,9 +351,9 @@ blocks those mutations from returning.
 Chart zoom reset plugin tests now use Vitest-scoped `CanvasRenderingContext2D` stubs when exercising the
 roundRect polyfill instead of defining or deleting `globalThis.CanvasRenderingContext2D` directly, with
 architecture coverage blocking that fixture mutation.
-RenderChartJS comprehensive tests now install mocked document, window, and browser runtime globals through
-descriptor-scoped helpers instead of assigning browser fixtures directly onto global objects, with architecture
-coverage blocking those fixture mutations.
+RenderChartJS comprehensive tests now install and restore mocked document, window, and browser runtime globals
+through descriptor-scoped helpers instead of assigning browser fixtures directly onto global objects or deleting
+globals during cleanup, with architecture coverage blocking those fixture mutations.
 RenderChartJS state API tests no longer install a retired `window.Chart` fixture for state-only helper
 coverage, their chart-data fixtures now default through `fitFile.rawData` instead of retired `globalData`,
 and architecture coverage blocks those stale fixtures from returning.
