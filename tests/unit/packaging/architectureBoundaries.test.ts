@@ -5149,15 +5149,22 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resource manager window cleanup and timer clearing behind the runtime adapter", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const resourceManagerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/app/lifecycle/resourceManager.ts"
             )
         );
+        const resourceManagerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/resourceManagerRuntime.ts"
+            )
+        );
         const directResourceManagerRuntimeGlobalPattern =
             /\b(?:globalThis|window)\.(?:clearTimeout|addEventListener)\b|(?:^|[^\w.])clearTimeout\(/u;
+        const directResourceManagerRuntimeAmbientTimerFallbackPattern =
+            /\bscope\.clearTimeout\s*\?\?\s*globalThis\.clearTimeout\b|\bglobalThis\.clearTimeout\s*\(/u;
 
         expect(resourceManagerSource).toContain("resourceManagerRuntime.js");
         expect(resourceManagerSource).not.toContain("globalThis.window");
@@ -5168,6 +5175,12 @@ describe("architecture boundaries", () => {
                 resourceManagerSource
             )
         ).toBe(false);
+        expect(resourceManagerRuntimeSource).not.toMatch(
+            directResourceManagerRuntimeAmbientTimerFallbackPattern
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "resourceManager requires clearTimeout"
+        );
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {

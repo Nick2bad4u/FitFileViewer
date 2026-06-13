@@ -15,7 +15,11 @@ export function clearResourceManagerTimer(
     timerId: ResourceManagerTimer,
     scope: ResourceManagerRuntimeScope = globalThis
 ): void {
-    const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
+    const clearTimeoutRef = scope.clearTimeout;
+    if (typeof clearTimeoutRef !== "function") {
+        throw new TypeError("resourceManager requires clearTimeout");
+    }
+
     clearTimeoutRef(timerId);
 }
 

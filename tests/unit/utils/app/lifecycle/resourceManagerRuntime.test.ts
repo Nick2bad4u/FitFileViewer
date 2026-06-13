@@ -20,6 +20,17 @@ describe("resourceManagerRuntime", () => {
         expect(clearedTimer).toBe(timer);
     });
 
+    it("fails clearly when the timer cleanup runtime is unavailable", () => {
+        expect.assertions(1);
+
+        expect(() => {
+            clearResourceManagerTimer(
+                17 as ReturnType<typeof globalThis.setTimeout>,
+                {}
+            );
+        }).toThrow("resourceManager requires clearTimeout");
+    });
+
     it("registers beforeunload cleanup through the scoped window target", () => {
         expect.assertions(5);
 
