@@ -214,6 +214,9 @@ const migratedStateDebugGlobalFreeFiles = [
     "electron-app/utils/state/core/masterStateManager.ts",
     "electron-app/utils/state/integration/stateIntegration.ts",
 ] as const;
+const migratedStateDevToolsRuntimeFiles = [
+    "electron-app/utils/debug/stateDevTools.ts",
+] as const;
 const rendererVendorBrowserPackageImportAllowedFiles = [
     "electron-app/renderer/rendererVendorChartData.ts",
     "electron-app/renderer/rendererVendorCore.ts",
@@ -642,6 +645,8 @@ const directStateIntegrationTimerGlobalPattern =
     /\b(?:window|globalThis|integrationGlobal)\.(?:__performanceMonitoringInterval|__persistenceTimeout)\b|["'](?:__performanceMonitoringInterval|__persistenceTimeout)["']/u;
 const directStateDebugGlobalPattern =
     /\b(?:window|globalThis|windowExt|globalState|getMasterGlobal\(\))\.(?:__state_debug|__stateDebug)\b|["'](?:__state_debug|__stateDebug)["']/u;
+const directStateDevToolsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearInterval|setInterval)\b|(?:^|[^\w.])(?:clearInterval|setInterval)\(/u;
 const stateDevToolsTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:STATE_DEBUG_GLOBAL|["']__stateDebug["'])\s*\)|\bglobalThis\.__stateDebug\s*=/u;
 const stateIntegrationRetiredGlobalMutationPattern =
@@ -4607,6 +4612,24 @@ describe("architecture boundaries", () => {
         expect(stateDevToolsSource).not.toContain("state/core/stateManager.js");
         expect(stateDevToolsSource).not.toContain("globalThis.window");
         expect(stateDevToolsSource).not.toContain("globalThis.location");
+    });
+
+    it("keeps state development tools interval APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedStateDevToolsRuntimeFiles
+            .filter((relativeFile) =>
+                directStateDevToolsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const stateDevToolsSource = stripComments(
+            readRepositoryFile("electron-app/utils/debug/stateDevTools.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(stateDevToolsSource).toContain("stateDevToolsRuntime.js");
     });
 
     it("keeps app lifecycle actions on the app-actions state facade", () => {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { getStateDevToolsRuntime } from "../../../../electron-app/utils/debug/stateDevToolsRuntime.js";
 
@@ -46,5 +46,29 @@ describe("stateDevToolsRuntime", () => {
                 window: undefined,
             }).isDevelopmentScope()
         ).toBe(false);
+    });
+
+    it("delegates interval scheduling and clearing through the provided scope", () => {
+        expect.assertions(4);
+
+        const intervalHandle = 123 as ReturnType<typeof globalThis.setInterval>;
+        const callback = vi.fn();
+        const clearIntervalMock = vi.fn<typeof globalThis.clearInterval>();
+        const setIntervalMock = vi.fn<typeof globalThis.setInterval>(
+            () => intervalHandle
+        );
+        const runtime = getStateDevToolsRuntime({
+            clearInterval: clearIntervalMock,
+            setInterval: setIntervalMock,
+        });
+        const handle = runtime.setInterval(callback, 1000);
+
+        expect(handle).toBe(intervalHandle);
+        expect(setIntervalMock).toHaveBeenCalledWith(callback, 1000);
+
+        runtime.clearInterval(handle);
+
+        expect(clearIntervalMock).toHaveBeenCalledWith(intervalHandle);
+        expect(callback).not.toHaveBeenCalled();
     });
 });
