@@ -1,5 +1,6 @@
 import { initializeAccentColor } from "./accentColor.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import { getThemeRuntime, type ThemeRuntimeTimer } from "./themeRuntime.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 /**
@@ -88,7 +89,8 @@ function normalizeThemePreference(
  * Theme transition class for smooth transitions
  */
 const THEME_TRANSITION_CLASS = "theme-transitioning";
-const themeTransitionTimers = new Set<ReturnType<typeof setTimeout>>();
+const themeRuntime = getThemeRuntime();
+const themeTransitionTimers = new Set<ThemeRuntimeTimer>();
 
 /**
  * Apply the given theme to the document body and persist it.
@@ -154,7 +156,7 @@ export function applyTheme(theme: string, withTransition = true): void {
 
     // Remove transition class after animation completes
     if (withTransition) {
-        const transitionTimer = setTimeout(() => {
+        const transitionTimer = themeRuntime.setTimeout(() => {
             themeTransitionTimers.delete(transitionTimer);
             document.body.classList.remove(THEME_TRANSITION_CLASS);
         }, 300);

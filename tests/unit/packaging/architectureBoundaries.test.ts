@@ -428,6 +428,9 @@ const migratedListenersResizeRuntimeFiles = [
 const migratedChartThemeRuntimeFiles = [
     "electron-app/utils/charts/theming/chartThemeUtils.ts",
 ] as const;
+const migratedThemeCoreRuntimeFiles = [
+    "electron-app/utils/theming/core/theme.ts",
+] as const;
 const migratedChartThemeListenerRuntimeFiles = [
     "electron-app/utils/charts/theming/chartThemeListener.ts",
 ] as const;
@@ -998,6 +1001,8 @@ const directListenersResizeRuntimeGlobalPattern =
     /\b(?:document|window|globalThis)\.|\bReflect\.get\(|\binstanceof\s+(?:Element|HTMLCanvasElement)\b|\bquerySelectorByIdFlexible\(\s*document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
+const directThemeCoreRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
     /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*(?:,|\))/u;
 const themeAdditionalTestDirectGlobalFixtureMutationPattern =
@@ -5863,6 +5868,24 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(chartThemeUtilsSource).toContain("chartThemeRuntime.js");
+    });
+
+    it("keeps core theme transition timers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedThemeCoreRuntimeFiles
+            .filter((relativeFile) =>
+                directThemeCoreRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const themeCoreSource = stripComments(
+            readRepositoryFile("electron-app/utils/theming/core/theme.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(themeCoreSource).toContain("themeRuntime.js");
     });
 
     it("keeps chart theme listener browser APIs behind the runtime facade", () => {

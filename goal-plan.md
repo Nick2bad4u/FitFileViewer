@@ -286,6 +286,9 @@ focused runtime coverage and architecture guardrails blocking those direct timer
 Map theme toggle delayed refresh scheduling and cleanup now route through `mapThemeToggleRuntime.ts` instead of
 calling timer globals directly inside `mapThemeToggleState.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning.
+Core theme transition-class removal scheduling now routes through `themeRuntime.ts` instead of calling timer
+globals directly inside `theme.ts`, with focused runtime coverage and architecture guardrails blocking those
+direct timer globals from returning.
 Shared configuration loading now routes URL search reads, chart-refresh timer scheduling, and chart-refresh
 timer cleanup through `loadSharedConfigurationRuntime.ts` instead of probing location or calling timer globals
 directly inside `loadSharedConfiguration.ts`, with focused runtime coverage and architecture guardrails blocking
