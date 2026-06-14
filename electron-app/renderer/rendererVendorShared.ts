@@ -1,4 +1,5 @@
 import type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
+import { getRendererVendorSharedRuntime } from "./rendererVendorSharedRuntime.js";
 
 export type { RendererVendorBundleEntry } from "./vendorBundleManifest.js";
 
@@ -42,27 +43,18 @@ export const rendererVendorEntryLoadedEventName =
     "ffv-renderer-vendor-entry-loaded";
 
 const loadedVendorEntries = new Set<RendererVendorBundleEntry>();
+const rendererVendorSharedRuntime = getRendererVendorSharedRuntime();
 
 function dispatchRendererVendorEntryLoadedEvent(
     entryName: RendererVendorBundleEntry,
     runtimePayload: RendererVendorRuntimePayload = {}
 ): void {
-    const eventTarget = globalThis;
-
-    if (
-        typeof eventTarget.dispatchEvent !== "function" ||
-        typeof CustomEvent !== "function"
-    ) {
-        return;
-    }
-
-    eventTarget.dispatchEvent(
-        new CustomEvent<RendererVendorEntryLoadedEventDetail>(
-            rendererVendorEntryLoadedEventName,
-            {
-                detail: { ...runtimePayload, entryName },
-            }
-        )
+    rendererVendorSharedRuntime.dispatchRendererVendorEntryLoadedEvent(
+        rendererVendorEntryLoadedEventName,
+        {
+            ...runtimePayload,
+            entryName,
+        } satisfies RendererVendorEntryLoadedEventDetail
     );
 }
 
