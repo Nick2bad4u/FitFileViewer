@@ -3477,7 +3477,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the core state manager free of reactive global property bridges", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -3490,6 +3490,22 @@ describe("architecture boundaries", () => {
             "Object.defineProperty(globalThis"
         );
         expect(stateManagerSource).not.toContain("Reflect.get(globalThis");
+        expect(stateManagerSource).not.toContain("localStorage.");
+        expect(stateManagerSource).toContain("stateStorageRuntime.js");
+    });
+
+    it("keeps state persistence middleware storage access behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const stateMiddlewareSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateMiddleware.ts"
+            )
+        );
+
+        expect(stateMiddlewareSource).not.toContain("localStorage.");
+        expect(stateMiddlewareSource).toContain("stateStorageRuntime.js");
+        expect(stateMiddlewareSource).toContain("stateStorageRuntime.setItem");
     });
 
     it("keeps the legacy appState domain manager removed", () => {

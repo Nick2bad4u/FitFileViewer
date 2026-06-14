@@ -1,4 +1,5 @@
 import { showNotification } from "../../ui/notifications/showNotification.js";
+import { getStateStorageRuntime } from "./stateStorageRuntime.js";
 
 /** Middleware phases supported by the state middleware manager. */
 export const MIDDLEWARE_PHASES = {
@@ -95,6 +96,7 @@ const HANDLER_PHASES = [
     MIDDLEWARE_PHASES.ON_SUBSCRIBE,
     MIDDLEWARE_PHASES.ON_UNSUBSCRIBE,
 ] as const;
+const stateStorageRuntime = getStateStorageRuntime();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === "object";
@@ -503,7 +505,14 @@ export const persistenceMiddleware: MiddlewareDefinition = {
         if (persistPaths.some((path) => context.path.startsWith(path))) {
             try {
                 const key = `ffv_state_${context.path.replaceAll(".", "_")}`;
-                localStorage.setItem(key, JSON.stringify(context.value));
+                const didPersist = stateStorageRuntime.setItem(
+                    key,
+                    JSON.stringify(context.value)
+                );
+                if (!didPersist) {
+                    return context;
+                }
+
                 console.log(
                     `[StatePersist] Saved "${context.path}" to localStorage`
                 );
