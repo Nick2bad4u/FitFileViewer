@@ -50,9 +50,7 @@ async function importGyazoOAuthServer(): Promise<{
         success: boolean;
     }>;
 }> {
-    return (await import(
-        "../../../../electron-app/main/oauth/gyazoOAuthServer.js"
-    )) as {
+    return (await import("../../../../electron-app/main/oauth/gyazoOAuthServer.js")) as {
         startGyazoOAuthServer: (port?: number) => Promise<{
             message: string;
             port: number;
@@ -173,9 +171,8 @@ describe("gyazoOAuthServer", () => {
                 httpRef: () => mockHttp,
             })
         );
-        appState = await import(
-            "../../../../electron-app/main/state/appState.js"
-        );
+        appState =
+            await import("../../../../electron-app/main/state/appState.js");
         appState.setAppState("gyazoServer", null);
         appState.setAppState("gyazoServerPort", null);
         appState.setAppState("mainWindow", null);

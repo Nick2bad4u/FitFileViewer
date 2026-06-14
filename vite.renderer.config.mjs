@@ -70,10 +70,8 @@ export default defineConfig({
             entry: {
                 [rendererVendorChartDataBundleName]:
                     appRendererVendorChartDataEntryPath,
-                [rendererVendorCoreBundleName]:
-                    appRendererVendorCoreEntryPath,
-                [rendererVendorMapBundleName]:
-                    appRendererVendorMapEntryPath,
+                [rendererVendorCoreBundleName]: appRendererVendorCoreEntryPath,
+                [rendererVendorMapBundleName]: appRendererVendorMapEntryPath,
             },
             fileName: (_format, entryName) => `${entryName}.js`,
             formats: ["es"],
@@ -84,9 +82,7 @@ export default defineConfig({
             output: {
                 assetFileNames(assetInfo) {
                     return Array.isArray(assetInfo.names) &&
-                        assetInfo.names.includes(
-                            rendererVendorStyleFileName
-                        )
+                        assetInfo.names.includes(rendererVendorStyleFileName)
                         ? "[name][extname]"
                         : "assets/[name][extname]";
                 },

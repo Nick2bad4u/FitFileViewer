@@ -26,8 +26,8 @@ describe("computedStateManagerRuntime", () => {
     it("returns false when media queries are unavailable", () => {
         expect.assertions(1);
 
-        expect(
-            getComputedStateManagerRuntime({}).isDarkSchemePreferred()
-        ).toBe(false);
+        expect(getComputedStateManagerRuntime({}).isDarkSchemePreferred()).toBe(
+            false
+        );
     });
 });

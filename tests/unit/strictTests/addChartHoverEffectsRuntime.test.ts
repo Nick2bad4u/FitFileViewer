@@ -99,12 +99,10 @@ describe("getChartHoverEffectsRuntime", () => {
     it("falls back to the timer runtime when waiting without animation frames", async () => {
         expect.assertions(3);
 
-        const setTimeout = vi.fn<typeof globalThis.setTimeout>(
-            (callback) => {
-                callback();
-                return 31;
-            }
-        );
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>((callback) => {
+            callback();
+            return 31;
+        });
         const runtime = getChartHoverEffectsRuntime({ setTimeout });
 
         await runtime.waitForAnimationFrame();

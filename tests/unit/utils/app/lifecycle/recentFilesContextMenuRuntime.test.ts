@@ -50,12 +50,12 @@ describe("recentFilesContextMenuRuntime", () => {
     it("falls back to zero dimensions outside renderer scopes", () => {
         expect.assertions(1);
 
-        expect(getRecentFilesContextMenuRuntime({}).getViewport()).toStrictEqual(
-            {
-                height: 0,
-                width: 0,
-            }
-        );
+        expect(
+            getRecentFilesContextMenuRuntime({}).getViewport()
+        ).toStrictEqual({
+            height: 0,
+            width: 0,
+        });
     });
 
     it("normalizes invalid dimensions to zero", () => {

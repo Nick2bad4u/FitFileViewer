@@ -28,12 +28,10 @@ async function importModules(): Promise<{
     readonly setupBlockedRequests: SetupBlockedRequestsModule["setupBlockedRequests"];
 }> {
     vi.resetModules();
-    const electronAccess = (await import(
-        "../../../../electron-app/main/runtime/electronAccess.js"
-    )) as ElectronAccessModule;
-    const { setupBlockedRequests } = (await import(
-        "../../../../electron-app/main/security/setupBlockedRequests.js"
-    )) as SetupBlockedRequestsModule;
+    const electronAccess =
+        (await import("../../../../electron-app/main/runtime/electronAccess.js")) as ElectronAccessModule;
+    const { setupBlockedRequests } =
+        (await import("../../../../electron-app/main/security/setupBlockedRequests.js")) as SetupBlockedRequestsModule;
     return { electronAccess, setupBlockedRequests };
 }
 

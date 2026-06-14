@@ -45,9 +45,7 @@ vi.mock(import("electron-log"), () => ({
 }));
 
 async function importSetupAutoUpdater(): Promise<SetupAutoUpdaterModule> {
-    return (await import(
-        "../../../../electron-app/main/updater/setupAutoUpdater.js"
-    )) as SetupAutoUpdaterModule;
+    return (await import("../../../../electron-app/main/updater/setupAutoUpdater.js")) as SetupAutoUpdaterModule;
 }
 
 function createMainWindow(): MainWindowLike {

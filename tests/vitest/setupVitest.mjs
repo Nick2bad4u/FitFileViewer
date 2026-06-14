@@ -275,7 +275,10 @@ function setRuntimeProcessObject(processRef) {
 
 /**
  * @param {Record<string, unknown>} processRef
- * @param {(callback: (...args: unknown[]) => void, ...args: unknown[]) => void} nextTick
+ * @param {(
+ *     callback: (...args: unknown[]) => void,
+ *     ...args: unknown[]
+ * ) => void} nextTick
  */
 function setProcessNextTick(processRef, nextTick) {
     Object.defineProperty(processRef, "nextTick", {
@@ -1740,30 +1743,24 @@ function installTrackedTimerFunction(name, value) {
                 );
             }
             if (typeof nativeClearTimeout === "function") {
-                installTrackedTimerFunction(
-                    "clearTimeout",
-                    (id) => {
-                        try {
-                            timeouts.delete(id);
-                        } catch {
-                            /* Ignore errors */
-                        }
-                        return nativeClearTimeout(id);
+                installTrackedTimerFunction("clearTimeout", (id) => {
+                    try {
+                        timeouts.delete(id);
+                    } catch {
+                        /* Ignore errors */
                     }
-                );
+                    return nativeClearTimeout(id);
+                });
             }
             if (typeof nativeClearInterval === "function") {
-                installTrackedTimerFunction(
-                    "clearInterval",
-                    (id) => {
-                        try {
-                            intervals.delete(id);
-                        } catch {
-                            /* Ignore errors */
-                        }
-                        return nativeClearInterval(id);
+                installTrackedTimerFunction("clearInterval", (id) => {
+                    try {
+                        intervals.delete(id);
+                    } catch {
+                        /* Ignore errors */
                     }
-                );
+                    return nativeClearInterval(id);
+                });
             }
 
             // DOM event listener tracking for window and document

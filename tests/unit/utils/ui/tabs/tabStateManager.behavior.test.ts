@@ -120,9 +120,7 @@ describe("tabStateManager.behavior", () => {
 
         // Quiet logs for deterministic tests
         consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        consoleWarnSpy = vi
-            .spyOn(console, "warn")
-            .mockImplementation(() => {});
+        consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         consoleErrorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});

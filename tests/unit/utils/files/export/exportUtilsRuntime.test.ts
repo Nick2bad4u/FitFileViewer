@@ -11,9 +11,9 @@ describe("exportUtilsRuntime", () => {
                 window: { confirm },
             });
 
-        expect(runtime.confirmDangerousAction("Clear saved export tokens?")).toBe(
-            true
-        );
+        expect(
+            runtime.confirmDangerousAction("Clear saved export tokens?")
+        ).toBe(true);
         expect(confirm).toHaveBeenCalledWith("Clear saved export tokens?");
     });
 
@@ -52,8 +52,8 @@ describe("exportUtilsRuntime", () => {
     it("throws when abort controllers are unavailable", () => {
         expect.assertions(1);
 
-        expect(() =>
-            getExportUtilsRuntime({}).createAbortController()
-        ).toThrow("exportUtils requires an AbortController runtime");
+        expect(() => getExportUtilsRuntime({}).createAbortController()).toThrow(
+            "exportUtils requires an AbortController runtime"
+        );
     });
 });

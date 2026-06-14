@@ -115,7 +115,9 @@ function createOnChangeMock() {
     return vi.fn<FilterChangeHandler>();
 }
 
-function getGlobalRestoreDescriptor(name: TestGlobalProperty): PropertyDescriptor {
+function getGlobalRestoreDescriptor(
+    name: TestGlobalProperty
+): PropertyDescriptor {
     return (
         Object.getOwnPropertyDescriptor(globalThis, name) ?? {
             configurable: true,
@@ -949,7 +951,6 @@ describe(createDataPointFilterControl, () => {
         await Promise.resolve();
 
         expect(summaryElement.textContent).toBe("Fallback microtask refresh");
-
     });
 
     it("promotes slider interaction to value range mode when starting in top-percent", async () => {

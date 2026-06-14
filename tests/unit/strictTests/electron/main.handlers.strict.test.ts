@@ -303,9 +303,7 @@ describe("main.js strict handlers and events", () => {
         createAppMenu = vi.fn<() => void>();
 
         const { setElectronOverride } =
-            (await import(
-                "../../../../electron-app/main/runtime/electronAccess.js"
-            )) as ElectronAccessModule;
+            (await import("../../../../electron-app/main/runtime/electronAccess.js")) as ElectronAccessModule;
         setElectronOverride({
             get app() {
                 return mockApp;
@@ -552,20 +550,16 @@ describe("main.js strict handlers and events", () => {
         // file:read returns ArrayBuffer
         // file:read is protected by a main-process allowlist; approve the path as if it
         // came from a trusted user flow (dialog/menu/recent list).
-        const policy: any = await import(
-            "../../../../electron-app/main/security/fileAccessPolicy.js"
-        );
+        const policy: any =
+            await import("../../../../electron-app/main/security/fileAccessPolicy.js");
         policy.__resetForTests?.();
 
-        const realFs = await vi.importActual<typeof import("node:fs")>(
-            "node:fs"
-        );
-        const realOs = await vi.importActual<typeof import("node:os")>(
-            "node:os"
-        );
-        const realPath = await vi.importActual<typeof import("node:path")>(
-            "node:path"
-        );
+        const realFs =
+            await vi.importActual<typeof import("node:fs")>("node:fs");
+        const realOs =
+            await vi.importActual<typeof import("node:os")>("node:os");
+        const realPath =
+            await vi.importActual<typeof import("node:path")>("node:path");
         const tempDir = realFs.mkdtempSync(
             realPath.join(realOs.tmpdir(), "ffv-read-")
         );
@@ -607,11 +601,8 @@ describe("main.js strict handlers and events", () => {
         };
         const directLog = vi.fn<(...args: unknown[]) => void>();
         let directFileRead: any;
-        const {
-            registerFileSystemHandlers,
-        }: any = await import(
-            "../../../../electron-app/main/ipc/registerFileSystemHandlers.js"
-        );
+        const { registerFileSystemHandlers }: any =
+            await import("../../../../electron-app/main/ipc/registerFileSystemHandlers.js");
         registerFileSystemHandlers({
             fs: directFs,
             logWithContext: directLog,
@@ -646,9 +637,8 @@ describe("main.js strict handlers and events", () => {
         const importedMain: any =
             await import("../../../../electron-app/main.js");
         const mainModule = importedMain.default ?? importedMain;
-        const { resolveAutoUpdaterAsync } = await import(
-            "../../../../electron-app/main/updater/autoUpdaterAccess.js"
-        );
+        const { resolveAutoUpdaterAsync } =
+            await import("../../../../electron-app/main/updater/autoUpdaterAccess.js");
         await resolveAutoUpdaterAsync();
         const updater = (await import("electron-updater")).autoUpdater as any;
         mockMainWindow.webContents.send.mockClear();
@@ -779,9 +769,8 @@ describe("main.js strict handlers and events", () => {
         const copiedFilePath = realPath.join(tempDir, "copy.fit");
         realFs.writeFileSync(approvedFilePath, "fit-data");
 
-        const policy: any = await import(
-            "../../../../electron-app/main/security/fileAccessPolicy.js"
-        );
+        const policy: any =
+            await import("../../../../electron-app/main/security/fileAccessPolicy.js");
         policy.__resetForTests?.();
 
         try {

@@ -38,9 +38,7 @@ function createIpcMainMock(): IpcMainMock {
 
 async function loadRegistry(ipcMain: IpcMainMock): Promise<IpcRegistryModule> {
     const electronAccess =
-        (await import(
-            "../../../../electron-app/main/runtime/electronAccess.js"
-        )) as ElectronAccessModule;
+        (await import("../../../../electron-app/main/runtime/electronAccess.js")) as ElectronAccessModule;
     electronAccess.setElectronOverride({
         app: {
             getAppPath: () => "C:\\mock\\app",
@@ -68,9 +66,7 @@ describe("ipcRegistry sender policy", () => {
 
         try {
             const electronAccess =
-                (await import(
-                    "../../../../electron-app/main/runtime/electronAccess.js"
-                )) as ElectronAccessModule;
+                (await import("../../../../electron-app/main/runtime/electronAccess.js")) as ElectronAccessModule;
             electronAccess.setElectronOverride(null);
         } catch {
             /* ignore */

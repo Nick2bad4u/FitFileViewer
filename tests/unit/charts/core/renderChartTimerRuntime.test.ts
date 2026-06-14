@@ -82,8 +82,8 @@ describe("getRenderChartTimerRuntime", () => {
         expect(() =>
             getChartTimerRuntime({}).setTimeout(() => undefined, 0)
         ).toThrow("render chart timers require setTimeout");
-        expect(() =>
-            getChartTimerRuntime({}).clearTimeout(timeoutId)
-        ).toThrow("render chart timers require clearTimeout");
+        expect(() => getChartTimerRuntime({}).clearTimeout(timeoutId)).toThrow(
+            "render chart timers require clearTimeout"
+        );
     });
 });

@@ -95,8 +95,8 @@ describe("rendererChartControlsState", () => {
         expect.assertions(1);
 
         const values: unknown[] = [];
-        const unsubscribe = subscribeToChartControlsVisibleState(
-            (visible) => values.push(visible)
+        const unsubscribe = subscribeToChartControlsVisibleState((visible) =>
+            values.push(visible)
         );
 
         stateManager.setState("charts.controlsVisible", undefined, {

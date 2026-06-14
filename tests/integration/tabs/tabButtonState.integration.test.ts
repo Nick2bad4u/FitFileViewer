@@ -5,10 +5,7 @@
 /* eslint-disable vitest/no-hooks -- Integration tests share DOM lifecycle setup. */
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-type StateKey =
-    | "fitFile.rawData"
-    | "ui.activeTab"
-    | "ui.tabButtonsEnabled";
+type StateKey = "fitFile.rawData" | "ui.activeTab" | "ui.tabButtonsEnabled";
 type StateShape = {
     "fitFile.rawData": null | { records: { type?: string }[] };
     "ui.activeTab": string;

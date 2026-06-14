@@ -24,7 +24,9 @@ describe("getPerformanceUtilsRuntime", () => {
         });
 
         expect(runtime.setTimeout(callback, timeoutMs)).toBe(42);
-        expect(scheduledCalls).toStrictEqual([{ callback, timeout: timeoutMs }]);
+        expect(scheduledCalls).toStrictEqual([
+            { callback, timeout: timeoutMs },
+        ]);
 
         runtime.clearTimeout(42);
 
@@ -77,9 +79,9 @@ describe("getPerformanceUtilsRuntime", () => {
             },
         });
 
-        expect(runtime.requestIdleCallback(callback, { timeout: timeoutMs })).toBe(
-            17
-        );
+        expect(
+            runtime.requestIdleCallback(callback, { timeout: timeoutMs })
+        ).toBe(17);
         expect(idleRequests).toStrictEqual([
             { callback, options: { timeout: timeoutMs } },
         ]);
@@ -101,9 +103,9 @@ describe("getPerformanceUtilsRuntime", () => {
             },
         });
 
-        expect(runtime.requestIdleCallback(callback, { timeout: timeoutMs })).toBe(
-            28
-        );
+        expect(
+            runtime.requestIdleCallback(callback, { timeout: timeoutMs })
+        ).toBe(28);
         expect(scheduledCalls).toStrictEqual([
             { callback, timeout: timeoutMs },
         ]);

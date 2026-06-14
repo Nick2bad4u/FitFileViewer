@@ -74,11 +74,9 @@ describe("rendererNotificationState", () => {
         expect.assertions(2);
 
         const received: unknown[] = [];
-        const unsubscribe = subscribeToCurrentNotification(
-            (notification) => {
-                received.push(notification);
-            }
-        );
+        const unsubscribe = subscribeToCurrentNotification((notification) => {
+            received.push(notification);
+        });
 
         setCurrentRendererNotification(
             {

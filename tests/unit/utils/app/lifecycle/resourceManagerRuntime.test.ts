@@ -56,7 +56,11 @@ describe("resourceManagerRuntime", () => {
                 AbortControllerFixture as unknown as typeof AbortController,
             window: { addEventListener },
         });
-        const [, listener, options] = addEventListener.mock.calls[0] ?? [];
+        const [
+            ,
+            listener,
+            options,
+        ] = addEventListener.mock.calls[0] ?? [];
 
         expect(constructorSpy).toHaveBeenCalledOnce();
         expect(addEventListener).toHaveBeenCalledWith(
@@ -93,7 +97,11 @@ describe("resourceManagerRuntime", () => {
         const unregister = registerResourceManagerUnloadCleanup(cleanup, {
             window: { addEventListener },
         });
-        const [, listener, options] = addEventListener.mock.calls[0] ?? [];
+        const [
+            ,
+            listener,
+            options,
+        ] = addEventListener.mock.calls[0] ?? [];
 
         (listener as () => void)();
 

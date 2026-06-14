@@ -85,9 +85,9 @@ describe("masterStateRuntime", () => {
                 window: undefined,
             }).isDevelopmentScope()
         ).toBe(false);
-        expect(getMasterStateRuntime({ __DEVELOPMENT__: false }).location).toStrictEqual(
-            {}
-        );
+        expect(
+            getMasterStateRuntime({ __DEVELOPMENT__: false }).location
+        ).toStrictEqual({});
     });
 
     it("routes global and window events through scoped targets", () => {
@@ -146,8 +146,8 @@ describe("masterStateRuntime", () => {
     it("throws when abort controllers are unavailable", () => {
         expect.assertions(1);
 
-        expect(() =>
-            getMasterStateRuntime({}).createAbortController()
-        ).toThrow("master state manager requires an AbortController runtime");
+        expect(() => getMasterStateRuntime({}).createAbortController()).toThrow(
+            "master state manager requires an AbortController runtime"
+        );
     });
 });

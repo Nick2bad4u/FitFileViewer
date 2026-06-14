@@ -252,7 +252,9 @@ describe("renderer vendor asset policy", () => {
         const rendererDependencyInventory = readWorkspaceFile(
             rendererDependencyInventoryPath
         );
-        const rendererViteConfig = readWorkspaceFile("vite.renderer.config.mjs");
+        const rendererViteConfig = readWorkspaceFile(
+            "vite.renderer.config.mjs"
+        );
 
         expect(
             getRequiredPackageEntries(

@@ -309,9 +309,7 @@ describe("workspace path helpers", () => {
         expect(workspaces.appRendererVendorMapEntryPath).toBe(
             "electron-app/renderer/rendererVendorMap.ts"
         );
-        expect(workspaces.rendererVendorBundleName).toBe(
-            "renderer-vendor"
-        );
+        expect(workspaces.rendererVendorBundleName).toBe("renderer-vendor");
         expect(workspaces.rendererVendorChartDataBundleName).toBe(
             "renderer-vendor-chart-data"
         );

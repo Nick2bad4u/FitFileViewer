@@ -113,10 +113,7 @@ function restoreTestGlobals(): void {
     originalGlobalDescriptors.clear();
 }
 
-function setTestWindowProperty(
-    name: TestWindowProperty,
-    value: unknown
-): void {
+function setTestWindowProperty(name: TestWindowProperty, value: unknown): void {
     if (!originalWindowDescriptors.has(name)) {
         const descriptor = Object.getOwnPropertyDescriptor(
             globalThis.window,

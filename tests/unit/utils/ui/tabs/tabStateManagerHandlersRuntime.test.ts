@@ -25,9 +25,7 @@ describe("getTabStateManagerHandlersRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getTabStateManagerHandlersRuntime({}).requestAnimationFrame(
-                vi.fn()
-            )
+            getTabStateManagerHandlersRuntime({}).requestAnimationFrame(vi.fn())
         ).toBeUndefined();
     });
 

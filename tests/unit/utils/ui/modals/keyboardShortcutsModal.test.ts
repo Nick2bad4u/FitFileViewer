@@ -17,9 +17,7 @@ const runtimeMocks = vi.hoisted(() => ({
 }));
 
 vi.mock(
-    import(
-        "../../../../../electron-app/utils/ui/modals/keyboardShortcutsModalRuntime.js"
-    ),
+    import("../../../../../electron-app/utils/ui/modals/keyboardShortcutsModalRuntime.js"),
     () => ({
         getKeyboardShortcutsModalRuntime: () => runtimeMocks,
     })

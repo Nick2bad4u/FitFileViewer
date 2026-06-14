@@ -46,9 +46,9 @@ describe("getCopyTableAsCSVRuntime", () => {
             navigator: { clipboard: { writeText } },
         });
 
-        await expect(
-            view.copyTextUsingBrowserClipboard("a,b")
-        ).resolves.toBe(true);
+        await expect(view.copyTextUsingBrowserClipboard("a,b")).resolves.toBe(
+            true
+        );
         expect(writeText).toHaveBeenCalledWith("a,b");
     });
 
@@ -94,9 +94,9 @@ describe("getCopyTableAsCSVRuntime", () => {
         installExecCommand(false);
         const view = getCopyTableAsCSVRuntime({ document });
 
-        expect(() =>
-            view.copyTextUsingLegacyExecCommand("a,b", {})
-        ).toThrow("execCommand('copy') returned false");
+        expect(() => view.copyTextUsingLegacyExecCommand("a,b", {})).toThrow(
+            "execCommand('copy') returned false"
+        );
         expect(document.querySelector("textarea")).toBeNull();
     });
 });

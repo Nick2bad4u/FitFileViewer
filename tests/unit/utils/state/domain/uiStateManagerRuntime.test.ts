@@ -38,7 +38,9 @@ describe("uiStateManagerRuntime", () => {
 
         const mediaQuery = { matches: true } as MediaQueryList;
         const scopedMatchMedia = vi.fn(() => mediaQuery);
-        const windowMatchMedia = vi.fn(() => ({ matches: false }) as MediaQueryList);
+        const windowMatchMedia = vi.fn(
+            () => ({ matches: false }) as MediaQueryList
+        );
 
         expect(
             getUIStateManagerRuntime({
@@ -53,7 +55,9 @@ describe("uiStateManagerRuntime", () => {
             "(prefers-color-scheme: dark)"
         );
         expect(windowMatchMedia).not.toHaveBeenCalled();
-        expect(getUIStateManagerRuntime({}).getSystemThemeMediaQuery()).toBeNull();
+        expect(
+            getUIStateManagerRuntime({}).getSystemThemeMediaQuery()
+        ).toBeNull();
     });
 
     it("falls back to window matchMedia when no direct matcher is scoped", () => {

@@ -35,9 +35,7 @@ describe("getRendererStateIntegrationRuntime", () => {
             "rendererStateIntegration requires a setTimeout runtime"
         );
         expect(() => {
-            utils.clearTimeout(
-                79 as ReturnType<typeof globalThis.setTimeout>
-            );
+            utils.clearTimeout(79 as ReturnType<typeof globalThis.setTimeout>);
         }).toThrow("rendererStateIntegration requires a clearTimeout runtime");
     });
 

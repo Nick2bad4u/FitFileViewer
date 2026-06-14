@@ -15,9 +15,10 @@ describe("showNotificationRuntime", () => {
             window: windowRuntime,
         };
 
-        const frame = getShowNotificationRuntime(
-            scopeRuntime
-        ).requestAnimationFrame(callback);
+        const frame =
+            getShowNotificationRuntime(scopeRuntime).requestAnimationFrame(
+                callback
+            );
 
         expect(frame).toBe(13);
         expect(windowRuntime.requestAnimationFrame).toHaveBeenCalledWith(
@@ -34,9 +35,10 @@ describe("showNotificationRuntime", () => {
             requestAnimationFrame: vi.fn(() => 23),
         };
 
-        const frame = getShowNotificationRuntime(
-            scopeRuntime
-        ).requestAnimationFrame(callback);
+        const frame =
+            getShowNotificationRuntime(scopeRuntime).requestAnimationFrame(
+                callback
+            );
 
         expect(frame).toBe(23);
         expect(scopeRuntime.requestAnimationFrame).toHaveBeenCalledWith(
@@ -49,9 +51,9 @@ describe("showNotificationRuntime", () => {
 
         const callback = vi.fn();
 
-        const frame = getShowNotificationRuntime(
-            {}
-        ).requestAnimationFrame(callback);
+        const frame = getShowNotificationRuntime({}).requestAnimationFrame(
+            callback
+        );
 
         expect(frame).toBeNull();
         expect(callback).toHaveBeenCalledWith(0);

@@ -52,7 +52,10 @@ let preloadElectronBridgeMock: {
     contextBridge: typeof mockContextBridge;
     ipcRenderer: typeof mockIpcRenderer;
 };
-const originalGlobalDescriptors = new Map<TestGlobalProperty, PropertyDescriptor>();
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor
+>();
 
 function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
     if (!originalGlobalDescriptors.has(name)) {

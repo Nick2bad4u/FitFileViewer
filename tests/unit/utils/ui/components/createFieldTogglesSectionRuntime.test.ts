@@ -136,10 +136,10 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
             runtimeWithoutDocumentWindowConstructors.createCustomEvent("event")
         ).toThrow("createFieldTogglesSection requires a CustomEvent runtime");
         expect(() =>
-            runtimeWithoutDocumentWindowConstructors.dispatchEvent(new Event("x"))
-        ).toThrow(
-            "createFieldTogglesSection requires a dispatchEvent runtime"
-        );
+            runtimeWithoutDocumentWindowConstructors.dispatchEvent(
+                new Event("x")
+            )
+        ).toThrow("createFieldTogglesSection requires a dispatchEvent runtime");
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()
         ).toThrow(

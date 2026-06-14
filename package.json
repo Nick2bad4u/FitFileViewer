@@ -261,11 +261,11 @@
         "test:watch:changed": "npm run build:runtime-ts && node --max-old-space-size=8192 ./node_modules/vitest/vitest.mjs --config vitest.config.ts --watch --changed",
         "typecheck": "tsc --project tsconfig.app.json --noEmit",
         "types:build": "tsc --project tsconfig.app.json --declaration --emitDeclarationOnly --declarationMap false --outDir ./types",
+        "update-actions": "npx actions-up --yes --style sha",
         "update-deps": "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",
         "verify:fast": "npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
         "verify:full": "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run release:check-signing && npm run package:unsigned && npm run test:packaged",
-        "verify:release": "npm run verify:full",
-        "update-actions": "npx actions-up --yes --style sha"
+        "verify:release": "npm run verify:full"
     },
     "overrides": {
         "remark-lint-frontmatter-schema": {

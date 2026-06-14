@@ -36,9 +36,7 @@ describe("getUnifiedControlBarRuntime", () => {
 
         expect(() => {
             runtime.createAbortController();
-        }).toThrow(
-            "unifiedControlBar requires an AbortController runtime"
-        );
+        }).toThrow("unifiedControlBar requires an AbortController runtime");
     });
 
     it("creates elements and exposes the injected body", () => {

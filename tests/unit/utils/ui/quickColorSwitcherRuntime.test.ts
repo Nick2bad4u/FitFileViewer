@@ -36,16 +36,15 @@ describe("getQuickColorSwitcherRuntime", () => {
 
         expect(() => {
             runtime.createAbortController();
-        }).toThrow(
-            "quickColorSwitcher requires an AbortController runtime"
-        );
+        }).toThrow("quickColorSwitcher requires an AbortController runtime");
     });
 
     it("registers document click listeners through the injected document runtime", () => {
         expect.assertions(1);
 
-        const documentRef =
-            document.implementation.createHTMLDocument("quick color switcher");
+        const documentRef = document.implementation.createHTMLDocument(
+            "quick color switcher"
+        );
         let clicked = false;
         const listener = (): void => {
             clicked = true;

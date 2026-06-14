@@ -61,9 +61,9 @@ describe("getSettingsModalRuntime", () => {
 
         const callback = vi.fn<FrameRequestCallback>();
 
-        expect(getSettingsModalRuntime({}).requestAnimationFrame(callback)).toBe(
-            null
-        );
+        expect(
+            getSettingsModalRuntime({}).requestAnimationFrame(callback)
+        ).toBe(null);
         expect(callback).toHaveBeenCalledWith(0);
     });
 

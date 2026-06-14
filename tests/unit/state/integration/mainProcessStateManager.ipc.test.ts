@@ -35,9 +35,8 @@ async function loadMainProcessStateWithIpc(): Promise<{
         }),
         removeHandler: vi.fn(),
     };
-    const { setElectronOverride } = await import(
-        "../../../../electron-app/main/runtime/electronAccess.js"
-    );
+    const { setElectronOverride } =
+        await import("../../../../electron-app/main/runtime/electronAccess.js");
 
     setElectronOverride({ ipcMain });
 
@@ -57,9 +56,8 @@ describe("mainProcessStateManager IPC state reads", () => {
 
     afterEach(async () => {
         process.env.NODE_ENV = originalNodeEnv;
-        const { setElectronOverride } = await import(
-            "../../../../electron-app/main/runtime/electronAccess.js"
-        );
+        const { setElectronOverride } =
+            await import("../../../../electron-app/main/runtime/electronAccess.js");
         setElectronOverride(null);
         vi.restoreAllMocks();
     });

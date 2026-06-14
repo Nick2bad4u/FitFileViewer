@@ -60,7 +60,9 @@ const originalGlobalDescriptors = new Map<
     PropertyDescriptor
 >();
 
-function getGlobalRestoreDescriptor(name: GlobalFixtureName): PropertyDescriptor {
+function getGlobalRestoreDescriptor(
+    name: GlobalFixtureName
+): PropertyDescriptor {
     return (
         Object.getOwnPropertyDescriptor(globalThis, name) ?? {
             configurable: true,
@@ -662,10 +664,7 @@ function setupDOMEnvironment() {
             mockWindow.requestAnimationFrame
         );
     if (typeof utils.cancelAnimationFrame !== "function")
-        setGlobalValue(
-            "cancelAnimationFrame",
-            mockWindow.cancelAnimationFrame
-        );
+        setGlobalValue("cancelAnimationFrame", mockWindow.cancelAnimationFrame);
     if (typeof utils.matchMedia !== "function")
         setGlobalValue("matchMedia", mockWindow.matchMedia);
     // Ensure a stable process.nextTick exists for any code importing this module

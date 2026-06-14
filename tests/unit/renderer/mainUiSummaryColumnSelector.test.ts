@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-    createMainUiSummaryColumnSelectorHandler,
-} from "../../../electron-app/renderer/mainUiSummaryColumnSelector.js";
+import { createMainUiSummaryColumnSelectorHandler } from "../../../electron-app/renderer/mainUiSummaryColumnSelector.js";
 import {
     getMainUiSummaryColumnSelectorRuntime,
     type MainUiSummaryColumnSelectorRuntime,

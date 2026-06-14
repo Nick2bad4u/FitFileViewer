@@ -57,10 +57,8 @@ describe("renderer Vite config", () => {
             entry: {
                 [rendererVendorChartDataBundleName]:
                     appRendererVendorChartDataEntryPath,
-                [rendererVendorCoreBundleName]:
-                    appRendererVendorCoreEntryPath,
-                [rendererVendorMapBundleName]:
-                    appRendererVendorMapEntryPath,
+                [rendererVendorCoreBundleName]: appRendererVendorCoreEntryPath,
+                [rendererVendorMapBundleName]: appRendererVendorMapEntryPath,
             },
             fileName: "example-entry.js",
             outDir: rootRuntimeRendererRepositoryPath,

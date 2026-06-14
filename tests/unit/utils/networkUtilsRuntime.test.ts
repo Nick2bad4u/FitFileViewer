@@ -17,8 +17,9 @@ describe("getNetworkUtilsRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getNetworkUtilsRuntime({ AbortController: undefined })
-                .createAbortController()
+            getNetworkUtilsRuntime({
+                AbortController: undefined,
+            }).createAbortController()
         ).toBeUndefined();
     });
 
@@ -26,7 +27,9 @@ describe("getNetworkUtilsRuntime", () => {
         expect.assertions(3);
 
         const response = new Response("ok", { status: 200 });
-        const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(response);
+        const fetch = vi
+            .fn<typeof globalThis.fetch>()
+            .mockResolvedValue(response);
         const utils = getNetworkUtilsRuntime({ fetch });
         const init: RequestInit = { method: "POST" };
 

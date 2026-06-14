@@ -104,10 +104,9 @@ function setTestObjectProperty(
         originalObjectDescriptors.set(target, descriptors);
     }
     if (!descriptors.has(name)) {
-        const descriptor = Object.getOwnPropertyDescriptor(
-            target,
-            name
-        ) ?? getPropertyDescriptorFromChain(target, name);
+        const descriptor =
+            Object.getOwnPropertyDescriptor(target, name) ??
+            getPropertyDescriptorFromChain(target, name);
 
         if (!descriptor) {
             throw new Error(`Expected test object property ${name} to exist`);

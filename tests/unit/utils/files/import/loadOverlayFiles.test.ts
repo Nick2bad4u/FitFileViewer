@@ -187,9 +187,7 @@ describe(loadOverlayFiles, () => {
                     sourceKey: "path:c:/rides/overlay.fit",
                 },
             ]);
-            expect(
-                mocks.pLimitCompat.mock.calls[0]?.[0]
-            ).toBe(3);
+            expect(mocks.pLimitCompat.mock.calls[0]?.[0]).toBe(3);
             expect(mocks.loadSingleOverlayFile).toHaveBeenCalledWith(file);
             expect(mocks.setLoadedFiles).toHaveBeenCalledWith(
                 mocks.loadedFitFilesFixture,

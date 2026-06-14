@@ -63,9 +63,7 @@ describe("getThemeRuntime", () => {
             "theme core requires a setTimeout runtime"
         );
         expect(() => {
-            utils.clearTimeout(
-                89 as ReturnType<typeof globalThis.setTimeout>
-            );
+            utils.clearTimeout(89 as ReturnType<typeof globalThis.setTimeout>);
         }).toThrow("theme core requires a clearTimeout runtime");
     });
 
@@ -74,7 +72,9 @@ describe("getThemeRuntime", () => {
 
         const mediaQuery = { matches: true } as MediaQueryList;
         const scopedMatchMedia = vi.fn(() => mediaQuery);
-        const windowMatchMedia = vi.fn(() => ({ matches: false }) as MediaQueryList);
+        const windowMatchMedia = vi.fn(
+            () => ({ matches: false }) as MediaQueryList
+        );
 
         expect(
             getThemeRuntime({

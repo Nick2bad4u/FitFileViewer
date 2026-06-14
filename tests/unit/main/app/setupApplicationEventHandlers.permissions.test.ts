@@ -55,9 +55,8 @@ function assertFunction<T extends (...args: unknown[]) => unknown>(
 }
 
 async function setElectronOverrideForTest(override: unknown): Promise<void> {
-    const { setElectronOverride } = await import(
-        "../../../../electron-app/main/runtime/electronAccess.js"
-    );
+    const { setElectronOverride } =
+        await import("../../../../electron-app/main/runtime/electronAccess.js");
     setElectronOverride(override);
 }
 

@@ -435,9 +435,8 @@ async function cleanupHarness(): Promise<void> {
 }
 
 async function setMainElectronOverride(override: unknown): Promise<void> {
-    const { setElectronOverride } = (await import(
-        "../../electron-app/main/runtime/electronAccess.js"
-    )) as ElectronAccessModule;
+    const { setElectronOverride } =
+        (await import("../../electron-app/main/runtime/electronAccess.js")) as ElectronAccessModule;
     setElectronOverride(override);
 }
 

@@ -115,13 +115,7 @@ describe("eventListenerManager listener lifecycle", () => {
             getDefaultEventTarget: vi.fn(() => window),
         };
 
-        addEventListenerWithCleanup(
-            window,
-            "click",
-            handler,
-            false,
-            runtime
-        );
+        addEventListenerWithCleanup(window, "click", handler, false, runtime);
         cleanupEventListeners();
         window.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
@@ -172,11 +166,7 @@ describe("eventListenerManager listener lifecycle", () => {
                 getDefaultEventTarget: vi.fn(() => target),
             };
 
-        const cleanup = addDragDropListeners(
-            { onDrop },
-            undefined,
-            runtime
-        );
+        const cleanup = addDragDropListeners({ onDrop }, undefined, runtime);
         const beforeCleanupEvent = new Event("drop");
         target.dispatchEvent(beforeCleanupEvent);
 

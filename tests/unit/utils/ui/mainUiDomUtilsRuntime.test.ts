@@ -36,8 +36,6 @@ describe("getMainUiDomUtilsRuntime", () => {
 
         expect(() => {
             utils.createAbortController();
-        }).toThrow(
-            "main UI DOM utilities require an AbortController runtime"
-        );
+        }).toThrow("main UI DOM utilities require an AbortController runtime");
     });
 });

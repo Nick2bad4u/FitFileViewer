@@ -22,7 +22,9 @@ const originalGlobalDescriptors = new Map<
     PropertyDescriptor
 >();
 
-function getGlobalRestoreDescriptor(name: TestGlobalProperty): PropertyDescriptor {
+function getGlobalRestoreDescriptor(
+    name: TestGlobalProperty
+): PropertyDescriptor {
     return (
         Object.getOwnPropertyDescriptor(globalThis, name) ?? {
             configurable: true,
@@ -45,10 +47,9 @@ function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
 }
 
 function restoreTestGlobals(): void {
-    for (const [
-        name,
-        descriptor,
-    ] of [...originalGlobalDescriptors.entries()].reverse()) {
+    for (const [name, descriptor] of [
+        ...originalGlobalDescriptors.entries(),
+    ].reverse()) {
         Object.defineProperty(globalThis, name, descriptor);
     }
     originalGlobalDescriptors.clear();

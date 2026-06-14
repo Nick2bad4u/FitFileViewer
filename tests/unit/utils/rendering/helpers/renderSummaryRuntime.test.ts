@@ -44,9 +44,11 @@ describe("getRenderSummaryRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 42);
-        const { requestAnimationFrame: requestFrame } = getRenderSummaryRuntime({
-            requestAnimationFrame,
-        });
+        const { requestAnimationFrame: requestFrame } = getRenderSummaryRuntime(
+            {
+                requestAnimationFrame,
+            }
+        );
 
         expect(requestFrame(callback)).toBe(42);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
@@ -90,13 +92,14 @@ describe("getRenderSummaryRuntime", () => {
     it("registers resize listeners through the injected runtime scope", () => {
         expect.assertions(2);
 
-        const addEventListener = vi.fn<
-            (
-                type: string,
-                listener: EventListener,
-                options?: AddEventListenerOptions
-            ) => void
-        >();
+        const addEventListener =
+            vi.fn<
+                (
+                    type: string,
+                    listener: EventListener,
+                    options?: AddEventListenerOptions
+                ) => void
+            >();
         const listener = vi.fn<EventListener>();
         const options: AddEventListenerOptions = { once: true };
         const { addResizeListener } = getRenderSummaryRuntime({

@@ -38,9 +38,9 @@ describe("renderChartJSRuntime", () => {
     it("reports window availability through the scoped runtime", () => {
         expect.assertions(2);
 
-        expect(getRenderChartJSRuntime({ window: {} }).isWindowAvailable()).toBe(
-            true
-        );
+        expect(
+            getRenderChartJSRuntime({ window: {} }).isWindowAvailable()
+        ).toBe(true);
         expect(getRenderChartJSRuntime({}).isWindowAvailable()).toBe(false);
     });
 });

@@ -103,9 +103,8 @@ async function loadStateManager(
         ipcMain,
     };
 
-    const { setElectronOverride } = await import(
-        "../../../../../electron-app/main/runtime/electronAccess.js"
-    );
+    const { setElectronOverride } =
+        await import("../../../../../electron-app/main/runtime/electronAccess.js");
     setElectronOverride(electronOverride);
 
     return (await import("../../../../../electron-app/utils/state/integration/mainProcessStateManager.js")) as unknown as MainProcessStateModule;
@@ -130,9 +129,8 @@ describe("mainProcessStateManager IPC sender policy", () => {
 
     afterEach(async () => {
         await resetIpcRegistry();
-        const { setElectronOverride } = await import(
-            "../../../../../electron-app/main/runtime/electronAccess.js"
-        );
+        const { setElectronOverride } =
+            await import("../../../../../electron-app/main/runtime/electronAccess.js");
         setElectronOverride(null);
         vi.unstubAllEnvs();
         vi.restoreAllMocks();

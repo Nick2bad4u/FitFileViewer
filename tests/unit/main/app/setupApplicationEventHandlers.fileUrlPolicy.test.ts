@@ -17,9 +17,8 @@ type MockElectron = {
 };
 
 async function setElectronOverrideForTest(override: unknown): Promise<void> {
-    const { setElectronOverride } = await import(
-        "../../../../electron-app/main/runtime/electronAccess.js"
-    );
+    const { setElectronOverride } =
+        await import("../../../../electron-app/main/runtime/electronAccess.js");
     setElectronOverride(override);
 }
 type NavigationEvent = {

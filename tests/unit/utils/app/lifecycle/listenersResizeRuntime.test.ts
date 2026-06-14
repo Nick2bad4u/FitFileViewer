@@ -41,9 +41,7 @@ describe("getListenersResizeRuntime", () => {
 
         expect(() => {
             runtime.createAbortController();
-        }).toThrow(
-            "listenersResize requires an AbortController runtime"
-        );
+        }).toThrow("listenersResize requires an AbortController runtime");
     });
 
     it("registers resize listeners on the injected window", () => {
