@@ -21,7 +21,7 @@ function createStorage(): Storage {
 
 describe("stateStorageRuntime", () => {
     it("reads and writes through the injected localStorage reference", () => {
-        expect.assertions(5);
+        expect.assertions(8);
 
         const storage = createStorage();
         const runtime = getStateStorageRuntime({ localStorage: storage });
@@ -36,15 +36,19 @@ describe("stateStorageRuntime", () => {
         );
         expect(runtime.getItem("fitFileViewer_state")).toBe('{"ui":true}');
         expect(storage.getItem).toHaveBeenCalledWith("fitFileViewer_state");
+        expect(runtime.removeItem("fitFileViewer_state")).toBe(true);
+        expect(storage.removeItem).toHaveBeenCalledWith("fitFileViewer_state");
+        expect(runtime.getItem("fitFileViewer_state")).toBeNull();
         expect(runtime.getLocalStorage()).toBe(storage);
     });
 
     it("no-ops cleanly when localStorage is unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const runtime = getStateStorageRuntime({});
 
         expect(runtime.getItem("fitFileViewer_state")).toBeNull();
+        expect(runtime.removeItem("fitFileViewer_state")).toBe(false);
         expect(runtime.setItem("fitFileViewer_state", "{}")).toBe(false);
     });
 });

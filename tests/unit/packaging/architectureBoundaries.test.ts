@@ -8936,11 +8936,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings state storage runtime globals behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(8);
 
         const settingsStateCoreSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/domain/settingsStateCore.ts"
+            )
+        );
+        const settingsStateHelpersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/settingsStateHelpers.ts"
             )
         );
 
@@ -8955,6 +8960,9 @@ describe("architecture boundaries", () => {
         expect(settingsStateCoreSource).toContain("addStorageEventListener");
         expect(settingsStateCoreSource).toContain("createAbortController");
         expect(settingsStateCoreSource).toContain("getLocalStorage");
+        expect(settingsStateHelpersSource).toContain("stateStorageRuntime.js");
+        expect(settingsStateHelpersSource).toContain("stateStorageRuntime");
+        expect(settingsStateHelpersSource).not.toContain("localStorage.");
     });
 
     it("keeps handle-open-file tests on scoped console spies", () => {
