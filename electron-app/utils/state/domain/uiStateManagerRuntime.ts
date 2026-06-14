@@ -1,4 +1,25 @@
-type WindowEventTarget = Pick<Window, "addEventListener" | "matchMedia">;
+export interface UIStateWindowStateSnapshot extends Record<string, unknown> {
+    readonly height: number;
+    readonly maximized: boolean;
+    readonly width: number;
+    readonly x: number;
+    readonly y: number;
+}
+
+type WindowEventTarget = Pick<Window, "addEventListener" | "matchMedia"> &
+    Partial<
+        Pick<
+            Window,
+            | "innerHeight"
+            | "innerWidth"
+            | "outerHeight"
+            | "outerWidth"
+            | "screenX"
+            | "screenY"
+        >
+    > & {
+        readonly screen?: Pick<Screen, "availHeight" | "availWidth">;
+    };
 
 export interface UIStateManagerRuntimeScope {
     readonly AbortController?: typeof globalThis.AbortController | undefined;
@@ -14,6 +35,7 @@ export interface UIStateManagerRuntime {
     ) => void;
     createAbortController: () => AbortController;
     getSystemThemeMediaQuery: () => MediaQueryList | null;
+    getWindowState: () => UIStateWindowStateSnapshot | null;
     hasWindow: () => boolean;
 }
 
@@ -47,6 +69,32 @@ export function getUIStateManagerRuntime(
             return typeof matchMedia === "function"
                 ? matchMedia("(prefers-color-scheme: dark)")
                 : null;
+        },
+        getWindowState(): UIStateWindowStateSnapshot | null {
+            const windowTarget = scope.window;
+            const availableScreen = windowTarget?.screen;
+            if (windowTarget === undefined || availableScreen === undefined) {
+                return null;
+            }
+
+            const {
+                innerHeight = 0,
+                innerWidth = 0,
+                outerHeight = 0,
+                outerWidth = 0,
+                screenX = 0,
+                screenY = 0,
+            } = windowTarget;
+
+            return {
+                height: innerHeight,
+                maximized:
+                    outerWidth === availableScreen.availWidth &&
+                    outerHeight === availableScreen.availHeight,
+                width: innerWidth,
+                x: screenX,
+                y: screenY,
+            };
         },
         hasWindow(): boolean {
             return scope.window !== undefined;

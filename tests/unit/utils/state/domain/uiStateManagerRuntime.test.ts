@@ -102,4 +102,65 @@ describe("uiStateManagerRuntime", () => {
         );
         expect(getUIStateManagerRuntime({}).hasWindow()).toBe(false);
     });
+
+    it("reads window state from the scoped runtime", () => {
+        expect.assertions(2);
+
+        const runtime = getUIStateManagerRuntime({
+            window: {
+                addEventListener: vi.fn(),
+                innerHeight: 800,
+                innerWidth: 1200,
+                matchMedia: vi.fn(),
+                outerHeight: 850,
+                outerWidth: 1250,
+                screen: {
+                    availHeight: 1080,
+                    availWidth: 1920,
+                },
+                screenX: 100,
+                screenY: 200,
+            },
+        });
+
+        expect(runtime.getWindowState()).toStrictEqual({
+            height: 800,
+            maximized: false,
+            width: 1200,
+            x: 100,
+            y: 200,
+        });
+        expect(
+            getUIStateManagerRuntime({
+                window: {
+                    addEventListener: vi.fn(),
+                    innerHeight: 800,
+                    innerWidth: 1200,
+                    matchMedia: vi.fn(),
+                    outerHeight: 1080,
+                    outerWidth: 1920,
+                    screen: {
+                        availHeight: 1080,
+                        availWidth: 1920,
+                    },
+                    screenX: 100,
+                    screenY: 200,
+                },
+            }).getWindowState()
+        ).toMatchObject({ maximized: true });
+    });
+
+    it("returns null when scoped window state is unavailable", () => {
+        expect.assertions(2);
+
+        expect(getUIStateManagerRuntime({}).getWindowState()).toBeNull();
+        expect(
+            getUIStateManagerRuntime({
+                window: {
+                    addEventListener: vi.fn(),
+                    matchMedia: vi.fn(),
+                },
+            }).getWindowState()
+        ).toBeNull();
+    });
 });

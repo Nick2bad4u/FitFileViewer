@@ -797,15 +797,10 @@ export class UIStateManager {
      * Update window state from DOM
      */
     updateWindowStateFromDOM() {
-        const windowState = {
-            height: window.innerHeight,
-            maximized:
-                window.outerWidth === screen.availWidth &&
-                window.outerHeight === screen.availHeight,
-            width: window.innerWidth,
-            x: window.screenX,
-            y: window.screenY,
-        };
+        const windowState = uiStateManagerRuntime.getWindowState();
+        if (windowState === null) {
+            return;
+        }
 
         updateState("ui.windowState", windowState, {
             source: "UIStateManager.updateWindowStateFromDOM",
