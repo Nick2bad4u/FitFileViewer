@@ -9,6 +9,13 @@ const recentFilesAppRef = appRef as () =>
     | undefined;
 
 let RECENT_FILES_PATH: string | undefined;
+const RECENT_FILES_CLEANUP_PATH_SYMBOL = Symbol.for(
+    "fitfileviewer.recentFiles.cleanupPath"
+);
+
+type RecentFilesCleanupListener = NodeJS.ExitListener & {
+    [RECENT_FILES_CLEANUP_PATH_SYMBOL]?: string;
+};
 
 function getRecentProcessEnvironmentValue(name: string): string | undefined {
     try {
@@ -58,17 +65,61 @@ if (RECENT_ENV) {
                 `recent-files-${testId}.json`
             );
 
-            process.on("exit", () => {
-                try {
-                    if (RECENT_FILES_PATH && fs.existsSync(RECENT_FILES_PATH)) {
-                        fs.unlinkSync(RECENT_FILES_PATH);
-                    }
-                } catch {
-                    // Ignore best-effort temp-file cleanup errors.
-                }
-            });
+            registerRecentFilesTempCleanup(RECENT_FILES_PATH);
         } catch (error) {
             console.error("Failed to create temp directory for tests:", error);
+        }
+    }
+}
+
+function registerRecentFilesTempCleanup(recentFilesPath: string): void {
+    const existingCleanup = process
+        .listeners("exit")
+        .some(
+            (listener) =>
+                (listener as RecentFilesCleanupListener)[
+                    RECENT_FILES_CLEANUP_PATH_SYMBOL
+                ] === recentFilesPath
+        );
+
+    if (existingCleanup) {
+        return;
+    }
+
+    const cleanupRecentFilesPath: RecentFilesCleanupListener = () => {
+        try {
+            if (fs.existsSync(recentFilesPath)) {
+                fs.unlinkSync(recentFilesPath);
+            }
+        } catch {
+            // Ignore best-effort temp-file cleanup errors.
+        }
+    };
+    cleanupRecentFilesPath[RECENT_FILES_CLEANUP_PATH_SYMBOL] = recentFilesPath;
+    process.on("exit", cleanupRecentFilesPath);
+}
+
+export function cleanupRecentFilesTempFileForTests(): void {
+    if (!RECENT_FILES_PATH) {
+        return;
+    }
+
+    for (const listener of process.listeners("exit")) {
+        const cleanupListener = listener as RecentFilesCleanupListener;
+        if (
+            cleanupListener[RECENT_FILES_CLEANUP_PATH_SYMBOL] !==
+            RECENT_FILES_PATH
+        ) {
+            continue;
+        }
+
+        process.removeListener("exit", cleanupListener);
+        try {
+            if (fs.existsSync(RECENT_FILES_PATH)) {
+                fs.unlinkSync(RECENT_FILES_PATH);
+            }
+        } catch {
+            // Ignore best-effort test cleanup errors.
         }
     }
 }

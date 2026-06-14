@@ -1,6 +1,8 @@
 /**
  * Tests for recentFiles module
  */
+import os from "node:os";
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 type RecentFilesModule =
@@ -59,7 +61,9 @@ describe("recentFiles utility", () => {
 
     afterEach(() => {
         // Clean up
+        recentFiles?.cleanupRecentFilesTempFileForTests();
         delete process.env.RECENT_FILES_PATH;
+        delete process.env.VITEST_WORKER_ID;
         errorSpy?.mockRestore?.();
         warnSpy?.mockRestore?.();
         logSpy?.mockRestore?.();
@@ -390,6 +394,7 @@ describe("recentFiles utility", () => {
         expect(saved.targetPath.replace(/\\/g, "/")).toMatch(
             /fit-file-viewer-tests\/recent-files-/
         );
+        rf.cleanupRecentFilesTempFileForTests();
     });
 
     it("falls back to TEMP when electron app.getPath unavailable and registers cleanup", async () => {
@@ -418,6 +423,47 @@ describe("recentFiles utility", () => {
             ((process as any).__rf_cleanup__ as () => void)()
         ).not.toThrow();
         procOn.mockRestore();
+    });
+
+    it("does not register duplicate temp cleanup listeners for the same fallback path", async () => {
+        expect.assertions(2);
+
+        delete process.env.RECENT_FILES_PATH;
+        process.env.VITEST_WORKER_ID = "recent-files-dup";
+
+        const cleanupPathSymbol = Symbol.for(
+            "fitfileviewer.recentFiles.cleanupPath"
+        );
+        const expectedPath = cpath.join(
+            process.env.TEMP || process.env.TMP || os.tmpdir(),
+            "fit-file-viewer-tests",
+            "recent-files-recent-files-dup.json"
+        );
+        const existingCleanup = (() => {}) as (() => void) & {
+            [cleanupPathSymbol]?: string;
+        };
+        existingCleanup[cleanupPathSymbol] = expectedPath;
+
+        const listenersSpy = vi
+            .spyOn(process, "listeners")
+            .mockReturnValue([existingCleanup] as any);
+        const processOnSpy = vi.spyOn(process, "on");
+
+        const rf = await importRecentFiles();
+        rf.saveRecentFiles(["deduped"]);
+
+        expect(processOnSpy).not.toHaveBeenCalledWith(
+            "exit",
+            expect.any(Function)
+        );
+        expect(getLastWrittenRecentFiles(writeSpyDefault)).toEqual({
+            encoding: "utf8",
+            entries: ["deduped"],
+            targetPath: expectedPath,
+        });
+
+        processOnSpy.mockRestore();
+        listenersSpy.mockRestore();
     });
 
     it("logs error if temp dir creation fails", async () => {

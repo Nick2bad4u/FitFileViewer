@@ -36,6 +36,9 @@ function getRequiredCommandCall(
 }
 
 describe("run-docusaurus wrapper", () => {
+    const expectedDocusaurusNodeOptions = (): string =>
+        buildDocusaurusNodeOptions(process.env.NODE_OPTIONS);
+
     it("keeps the docs commands that require asset sync explicit", () => {
         expect.assertions(2);
 
@@ -126,7 +129,7 @@ describe("run-docusaurus wrapper", () => {
             args: ["build"],
             command: process.execPath,
             cwd: docusaurusWorkspacePath,
-            nodeOptions: `--localstorage-file=${docusaurusLocalStorageFilePath}`,
+            nodeOptions: expectedDocusaurusNodeOptions(),
         });
         expect(docsArgs[0]).toMatch(
             /[\\/]@docusaurus[\\/]core[\\/]bin[\\/]docusaurus\.mjs$/u
@@ -165,7 +168,7 @@ describe("run-docusaurus wrapper", () => {
         }).toStrictEqual({
             args: ["clear"],
             cwd: docusaurusWorkspacePath,
-            nodeOptions: `--localstorage-file=${docusaurusLocalStorageFilePath}`,
+            nodeOptions: expectedDocusaurusNodeOptions(),
         });
     });
 
@@ -227,7 +230,7 @@ describe("run-docusaurus wrapper", () => {
         }).toStrictEqual({
             cwd: docusaurusWorkspacePath,
             env: {
-                NODE_OPTIONS: `--localstorage-file=${docusaurusLocalStorageFilePath}`,
+                NODE_OPTIONS: expectedDocusaurusNodeOptions(),
             },
             stdio: "inherit",
         });
