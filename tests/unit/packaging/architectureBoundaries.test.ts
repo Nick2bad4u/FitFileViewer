@@ -1003,7 +1003,7 @@ const directJSZipGlobalPattern =
 const directScreenfullGlobalPattern =
     /\b(?:window|globalThis|testGlobal|getFullscreenGlobal\(\))\.screenfull\b|\{\s*screenfull\?:\s*unknown\s*\}\)\.screenfull/u;
 const directAddFullScreenButtonRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b/u;
+    /\bnew\s+AbortController\b|\b(?:document|globalThis|window)\.(?:addEventListener|removeEventListener)\(/u;
 const directLeafletGlobalPattern =
     /\b(?:window|globalThis|windowExt|w|win|getWin\(\))\.L\b|\bReflect\.get\(\s*globalThis\s*,\s*["']L["']\s*\)|\{\s*L\?:\s*unknown\s*\}\)\.L/u;
 const leafletCompatibilityGlobalDefinitionPattern =

@@ -161,19 +161,22 @@ export function setupFullscreenListeners(): void {
     try {
         const screenfull = getScreenfullInstance();
         if (fullscreenKeydownHandler) {
-            globalThis.removeEventListener("keydown", fullscreenKeydownHandler);
+            addFullScreenButtonRuntime.removeWindowEventListener(
+                "keydown",
+                fullscreenKeydownHandler
+            );
             fullscreenKeydownHandler = null;
         }
         if (nativeFullscreenChangeHandler) {
             for (const evt of NATIVE_FULLSCREEN_EVENTS) {
-                document.removeEventListener(
+                addFullScreenButtonRuntime.removeDocumentEventListener(
                     evt,
                     nativeFullscreenChangeHandler
                 );
             }
             nativeFullscreenChangeHandler = null;
         }
-        globalThis.removeEventListener(
+        addFullScreenButtonRuntime.removeWindowEventListener(
             "DOMContentLoaded",
             handleDOMContentLoaded
         );
@@ -194,15 +197,19 @@ export function setupFullscreenListeners(): void {
             };
             const keyListener =
                 addFullScreenButtonRuntime.createAbortController();
-            globalThis.addEventListener("keydown", keyHandler, {
-                signal: keyListener.signal,
-            });
+            addFullScreenButtonRuntime.addWindowEventListener(
+                "keydown",
+                keyHandler,
+                {
+                    signal: keyListener.signal,
+                }
+            );
             fullscreenKeydownHandler = keyHandler;
             nativeFullscreenChangeHandler = null;
             if (document.readyState === "loading") {
                 const domReadyListener =
                     addFullScreenButtonRuntime.createAbortController();
-                globalThis.addEventListener(
+                addFullScreenButtonRuntime.addWindowEventListener(
                     "DOMContentLoaded",
                     handleDOMContentLoaded,
                     { signal: domReadyListener.signal }
@@ -228,9 +235,13 @@ export function setupFullscreenListeners(): void {
         const nativeListener =
             addFullScreenButtonRuntime.createAbortController();
         for (const evt of NATIVE_FULLSCREEN_EVENTS) {
-            document.addEventListener(evt, nativeHandler, {
-                signal: nativeListener.signal,
-            });
+            addFullScreenButtonRuntime.addDocumentEventListener(
+                evt,
+                nativeHandler,
+                {
+                    signal: nativeListener.signal,
+                }
+            );
         }
         nativeFullscreenChangeHandler = nativeHandler;
         const keyHandler = (event: Event): void => {
@@ -240,14 +251,18 @@ export function setupFullscreenListeners(): void {
         };
         const keyListener =
             addFullScreenButtonRuntime.createAbortController();
-        globalThis.addEventListener("keydown", keyHandler, {
-            signal: keyListener.signal,
-        });
+        addFullScreenButtonRuntime.addWindowEventListener(
+            "keydown",
+            keyHandler,
+            {
+                signal: keyListener.signal,
+            }
+        );
         fullscreenKeydownHandler = keyHandler;
         if (document.readyState === "loading") {
             const domReadyListener =
                 addFullScreenButtonRuntime.createAbortController();
-            globalThis.addEventListener(
+            addFullScreenButtonRuntime.addWindowEventListener(
                 "DOMContentLoaded",
                 handleDOMContentLoaded,
                 { signal: domReadyListener.signal }
@@ -272,13 +287,16 @@ export function setupFullscreenListeners(): void {
  */
 export function resetFullscreenListenerStateForTests(): void {
     if (fullscreenKeydownHandler) {
-        globalThis.removeEventListener("keydown", fullscreenKeydownHandler);
+        addFullScreenButtonRuntime.removeWindowEventListener(
+            "keydown",
+            fullscreenKeydownHandler
+        );
         fullscreenKeydownHandler = null;
     }
 
     if (nativeFullscreenChangeHandler) {
         for (const eventName of NATIVE_FULLSCREEN_EVENTS) {
-            document.removeEventListener(
+            addFullScreenButtonRuntime.removeDocumentEventListener(
                 eventName,
                 nativeFullscreenChangeHandler
             );
@@ -286,7 +304,10 @@ export function resetFullscreenListenerStateForTests(): void {
         nativeFullscreenChangeHandler = null;
     }
 
-    globalThis.removeEventListener("DOMContentLoaded", handleDOMContentLoaded);
+    addFullScreenButtonRuntime.removeWindowEventListener(
+        "DOMContentLoaded",
+        handleDOMContentLoaded
+    );
     isWindowFullscreenRequested = false;
 }
 /** Creates the icon wrapper used by the fullscreen button. */
