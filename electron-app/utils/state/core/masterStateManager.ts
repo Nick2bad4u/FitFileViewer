@@ -35,6 +35,7 @@ import {
     cleanupMiddleware,
     initializeDefaultMiddleware,
 } from "./stateMiddleware.js";
+import { getStateStorageRuntime } from "./stateStorageRuntime.js";
 
 type ComponentState = {
     error?: string;
@@ -95,6 +96,7 @@ let masterStateManagerModuleMocksForTests: Record<string, unknown> | null =
     null;
 
 const masterStateRuntime = getMasterStateRuntime();
+const stateStorageRuntime = getStateStorageRuntime();
 
 function hasOptionalMasterElectronFunction(
     record: Readonly<Record<string, unknown>>,
@@ -619,8 +621,8 @@ export class MasterStateManager {
 
         // Set up theme initialization
         const savedThemeRaw =
-            localStorage.getItem("ffv-theme") ||
-            localStorage.getItem("fitFileViewer_theme") ||
+            stateStorageRuntime.getItem("ffv-theme") ||
+            stateStorageRuntime.getItem("fitFileViewer_theme") ||
             "system";
 
         // Canonicalize theme values for UI state:

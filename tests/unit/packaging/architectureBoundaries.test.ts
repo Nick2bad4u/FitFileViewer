@@ -5049,7 +5049,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -5073,6 +5073,8 @@ describe("architecture boundaries", () => {
         expect(masterStateManagerSource).not.toContain(
             "window.addEventListener"
         );
+        expect(masterStateManagerSource).toContain("stateStorageRuntime.js");
+        expect(masterStateManagerSource).not.toContain("localStorage.");
     });
 
     it("keeps computed state manager theme media reads behind the runtime adapter", () => {

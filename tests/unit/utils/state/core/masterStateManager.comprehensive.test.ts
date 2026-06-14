@@ -151,6 +151,7 @@ type Harness = {
 type HarnessOptions = {
     readonly appVersion?: string;
     readonly development?: boolean;
+    readonly legacyLocalTheme?: string;
     readonly localTheme?: string;
 };
 
@@ -326,6 +327,27 @@ describe("masterStateManager comprehensive behavior", () => {
                 initialized: true,
             });
         });
+    });
+
+    it("initializes UI theme from the legacy persisted theme key", async () => {
+        expect.assertions(1);
+
+        await withMasterStateHarness(
+            async ({ mocks }) => {
+                const manager = new MasterStateManager();
+                let appliedTheme: string | undefined;
+                mocks.uiStateManager.UIActions.setTheme.mockImplementation(
+                    (themeName) => {
+                        appliedTheme = themeName;
+                    }
+                );
+
+                manager.initializeUIComponents();
+
+                expect(appliedTheme).toBe("dark");
+            },
+            { legacyLocalTheme: "dark" }
+        );
     });
 
     it("records component initialization failures and missing FIT manager errors", async () => {
@@ -966,9 +988,17 @@ async function withMasterStateHarness(
             windowMock.getComputedStyle
         );
         defineGlobalValue(descriptors, "localStorage", {
-            getItem: vi.fn<(key: string) => string | null>((key) =>
-                key === "ffv-theme" ? (options.localTheme ?? "system") : null
-            ),
+            getItem: vi.fn<(key: string) => string | null>((key) => {
+                if (key === "ffv-theme") {
+                    return options.localTheme ?? null;
+                }
+
+                if (key === "fitFileViewer_theme") {
+                    return options.legacyLocalTheme ?? null;
+                }
+
+                return null;
+            }),
             setItem: vi.fn<(key: string, value: string) => void>(),
         });
         defineGlobalValue(descriptors, "performance", {
