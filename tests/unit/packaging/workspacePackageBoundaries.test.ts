@@ -839,7 +839,7 @@ describe("workspace package boundaries", () => {
             "dependency-validation-diagnostics"
         );
         expect(dependencyValidationWorkflow).toContain(
-            "actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f"
+            "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
         );
     });
 

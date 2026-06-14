@@ -3,6 +3,9 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+type RecentFilesModule =
+    typeof import("../../../../../electron-app/utils/files/recent/recentFiles.js");
+
 describe("recentFiles utility", () => {
     const TEST_FILE_PATH = "/mock/path/recent-files-test.json";
     let cfs: any;
@@ -11,19 +14,25 @@ describe("recentFiles utility", () => {
     let warnSpy: ReturnType<typeof vi.spyOn>;
     let logSpy: ReturnType<typeof vi.spyOn>;
     let writeSpyDefault: ReturnType<typeof vi.spyOn>;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let recentFiles: any;
+    let recentFiles: RecentFilesModule;
 
-    beforeEach(() => {
+    async function importRecentFiles(
+        electronOverride: unknown = {}
+    ): Promise<RecentFilesModule> {
+        vi.resetModules();
+        vi.doMock("node:fs", () => cfs);
+        vi.doMock("node:path", () => cpath);
+
+        const { setElectronOverride } =
+            await import("../../../../../electron-app/main/runtime/electronAccess.js");
+        setElectronOverride(electronOverride);
+
+        return import("../../../../../electron-app/utils/files/recent/recentFiles.js");
+    }
+
+    beforeEach(async () => {
         // Reset all mocks
         vi.resetAllMocks();
-        vi.resetModules();
-
-        // Clear the cache to ensure fresh module load
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        delete require.cache[
-            require.resolve("../../../../../dist/utils/files/recent/recentFiles.js")
-        ];
 
         // Setup environment variable for test file path
         process.env.RECENT_FILES_PATH = TEST_FILE_PATH;
@@ -45,8 +54,7 @@ describe("recentFiles utility", () => {
             .mockImplementation(() => {});
 
         // Import the module after mocks and spies are setup
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        recentFiles = require("../../../../../dist/utils/files/recent/recentFiles.js");
+        recentFiles = await importRecentFiles();
     });
 
     afterEach(() => {
@@ -299,29 +307,13 @@ describe("recentFiles utility", () => {
     });
 
     // Initialization branch coverage
-    function requireFresh() {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const modPath =
-            require.resolve("../../../../../dist/utils/files/recent/recentFiles.js");
-        // @ts-ignore
-        delete require.cache[modPath];
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        return require("../../../../../dist/utils/files/recent/recentFiles.js");
-    }
-
     it("initializes RECENT_FILES_PATH from Electron userData when available", async () => {
         expect.assertions(1);
 
         delete process.env.RECENT_FILES_PATH;
-        // Force-inject a CommonJS cache entry for 'electron' so CJS require in implementation sees it
-        const eid = require.resolve("electron");
-        require.cache[eid] = {
-            id: eid,
-            filename: eid,
-            loaded: true,
-            exports: { app: { getPath: () => "/mock/userdata" } },
-        } as any;
-        const rf = requireFresh();
+        const rf = await importRecentFiles({
+            app: { getPath: () => "/mock/userdata" },
+        });
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         rf.saveRecentFiles(["a"]);
         const saved = getLastWrittenRecentFiles(spy);
@@ -335,20 +327,14 @@ describe("recentFiles utility", () => {
         });
     });
 
-    it("prefers RECENT_FILES_PATH env when set", () => {
+    it("prefers RECENT_FILES_PATH env when set", async () => {
         expect.assertions(1);
 
         // Ensure module re-evaluates with env path
         process.env.RECENT_FILES_PATH = TEST_FILE_PATH;
-        const eid = require.resolve("electron");
-        // Provide an electron app too; env should still take precedence
-        require.cache[eid] = {
-            id: eid,
-            filename: eid,
-            loaded: true,
-            exports: { app: { getPath: () => "/should/not/use" } },
-        } as any;
-        const rf = requireFresh();
+        const rf = await importRecentFiles({
+            app: { getPath: () => "/should/not/use" },
+        });
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         rf.saveRecentFiles(["x"]);
         expect(getLastWrittenRecentFiles(spy)).toEqual({
@@ -358,28 +344,17 @@ describe("recentFiles utility", () => {
         });
     });
 
-    it("invokes cleanup handler and unlinks temp file when present", () => {
+    it("invokes cleanup handler and unlinks temp file when present", async () => {
         expect.assertions(3);
 
         delete process.env.RECENT_FILES_PATH;
-        // Ensure electron missing
-        try {
-            const eid = require.resolve("electron");
-            delete require.cache[eid];
-            require.cache[eid] = {
-                id: eid,
-                filename: eid,
-                loaded: true,
-                exports: {},
-            } as any;
-        } catch {}
         let exitHandler: any;
         const procOn = vi
             .spyOn(process as any, "on" as any)
             .mockImplementation(((event: any, handler: any) => {
                 if (event === "exit") exitHandler = handler;
             }) as any);
-        const rf = requireFresh();
+        const rf = await importRecentFiles();
         const writeSpy = vi
             .spyOn(cfs, "writeFileSync")
             .mockImplementation(() => {});
@@ -397,25 +372,17 @@ describe("recentFiles utility", () => {
         procOn.mockRestore();
     });
 
-    it("falls back when electron app.getPath throws", () => {
+    it("falls back when electron app.getPath throws", async () => {
         expect.assertions(2);
 
         delete process.env.RECENT_FILES_PATH;
-        // Provide electron with throwing getPath
-        const eid = require.resolve("electron");
-        require.cache[eid] = {
-            id: eid,
-            filename: eid,
-            loaded: true,
-            exports: {
-                app: {
-                    getPath: () => {
-                        throw new Error("boom");
-                    },
+        const rf = await importRecentFiles({
+            app: {
+                getPath: () => {
+                    throw new Error("boom");
                 },
             },
-        } as any;
-        const rf = requireFresh();
+        });
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         rf.saveRecentFiles(["a"]);
         const saved = getLastWrittenRecentFiles(spy);
@@ -425,21 +392,10 @@ describe("recentFiles utility", () => {
         );
     });
 
-    it("falls back to TEMP when electron app.getPath unavailable and registers cleanup", () => {
+    it("falls back to TEMP when electron app.getPath unavailable and registers cleanup", async () => {
         expect.assertions(4);
 
         delete process.env.RECENT_FILES_PATH;
-        // Ensure electron CJS cache does not provide app.getPath
-        try {
-            const eid = require.resolve("electron");
-            delete require.cache[eid];
-            require.cache[eid] = {
-                id: eid,
-                filename: eid,
-                loaded: true,
-                exports: {},
-            } as any;
-        } catch {}
         const procOn = vi
             .spyOn(process as any, "on" as any)
             .mockImplementation(((event: any, handler: any) => {
@@ -448,7 +404,7 @@ describe("recentFiles utility", () => {
                     (process as any).__rf_cleanup__ = handler;
                 }
             }) as any);
-        const rf = requireFresh();
+        const rf = await importRecentFiles();
         const spy = vi.spyOn(cfs, "writeFileSync").mockImplementation(() => {});
         rf.saveRecentFiles(["a"]);
         const saved = getLastWrittenRecentFiles(spy);
@@ -464,28 +420,17 @@ describe("recentFiles utility", () => {
         procOn.mockRestore();
     });
 
-    it("logs error if temp dir creation fails", () => {
+    it("logs error if temp dir creation fails", async () => {
         expect.assertions(4);
 
         delete process.env.RECENT_FILES_PATH;
-        // Force fallback by clearing electron CJS cache
-        try {
-            const eid = require.resolve("electron");
-            delete require.cache[eid];
-            require.cache[eid] = {
-                id: eid,
-                filename: eid,
-                loaded: true,
-                exports: {},
-            } as any;
-        } catch {}
         const exists = vi
             .spyOn(cfs, "existsSync")
             .mockReturnValue(false as any);
         const mkdir = vi.spyOn(cfs, "mkdirSync").mockImplementation(() => {
             throw new Error("mkdir failed");
         });
-        const rf = requireFresh();
+        const rf = await importRecentFiles();
         expect(rf.loadRecentFiles()).toEqual([]);
         expect(() => rf.saveRecentFiles(["a"])).not.toThrow();
         expect(writeSpyDefault).not.toHaveBeenCalled();

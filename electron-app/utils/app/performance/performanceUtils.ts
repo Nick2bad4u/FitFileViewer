@@ -11,8 +11,6 @@ import {
 type TimerHandle = PerformanceUtilsTimerHandle;
 type IdleCallbackHandle = PerformanceUtilsIdleCallbackHandle;
 
-const performanceUtilsRuntime = getPerformanceUtilsRuntime();
-
 type BatchOptions = {
     readonly maxItems?: number;
     readonly maxWait?: number;
@@ -56,6 +54,7 @@ export function batchOperations<T>(
     batchCallback: (items: T[]) => void,
     options: BatchOptions = {}
 ): (item: T) => void {
+    const performanceUtilsRuntime = getPerformanceUtilsRuntime();
     const { maxItems = 100, maxWait = 50 } = options;
     const items: T[] = [];
     let timeoutId: TimerHandle | undefined;
@@ -87,7 +86,7 @@ export function batchOperations<T>(
  * browser idle-callback API is unavailable.
  */
 export function cancelIdleCallback(id: IdleCallbackHandle): void {
-    performanceUtilsRuntime.cancelIdleCallback(id);
+    getPerformanceUtilsRuntime().cancelIdleCallback(id);
 }
 
 /**
@@ -98,6 +97,7 @@ export function debounce<This, Args extends unknown[], Return>(
     wait: number,
     options: DebounceOptions = {}
 ): DebouncedFunction<This, Args, Return> {
+    const performanceUtilsRuntime = getPerformanceUtilsRuntime();
     const { leading = false, trailing = true } = options;
     let timeoutId: TimerHandle | undefined;
     let lastArgs: Args | undefined;
@@ -277,7 +277,7 @@ export function requestIdleCallback(
     callback: () => void,
     options?: IdleRequestOptions
 ): IdleCallbackHandle {
-    return performanceUtilsRuntime.requestIdleCallback(callback, options);
+    return getPerformanceUtilsRuntime().requestIdleCallback(callback, options);
 }
 
 /**

@@ -51,6 +51,18 @@ export interface UnifiedControlBarRuntime {
     ) => UnifiedControlBarTimerHandle;
 }
 
+function getDefaultUnifiedControlBarRuntimeScope(): UnifiedControlBarRuntimeScope {
+    return {
+        AbortController: globalThis.AbortController,
+        clearTimeout: globalThis.clearTimeout,
+        document: globalThis.document,
+        eventTarget: globalThis,
+        HTMLElement: globalThis.HTMLElement,
+        MutationObserver: globalThis.MutationObserver,
+        setTimeout: globalThis.setTimeout,
+    };
+}
+
 function getDocument(scope: UnifiedControlBarRuntimeScope): Document {
     const runtimeDocument = scope.document;
     if (!runtimeDocument) {
@@ -83,7 +95,7 @@ function isHTMLElement(
 }
 
 export function getUnifiedControlBarRuntime(
-    scope: UnifiedControlBarRuntimeScope = globalThis
+    scope: UnifiedControlBarRuntimeScope = getDefaultUnifiedControlBarRuntimeScope()
 ): UnifiedControlBarRuntime {
     return {
         addResizeListener(

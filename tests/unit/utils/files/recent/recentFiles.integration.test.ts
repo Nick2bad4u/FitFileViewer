@@ -3,6 +3,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+type RecentFilesModule =
+    typeof import("../../../../../electron-app/utils/files/recent/recentFiles.js");
+
 describe("recentFiles integration coverage", () => {
     const createdFiles = new Set<string>();
     const createdDirs = new Set<string>();
@@ -22,30 +25,9 @@ describe("recentFiles integration coverage", () => {
         return filePath;
     }
 
-    function setElectronMock(exports: unknown) {
-        try {
-            const electronId = require.resolve("electron");
-            require.cache[electronId] = {
-                id: electronId,
-                filename: electronId,
-                loaded: true,
-                exports,
-            } as NodeModule;
-        } catch {
-            // If resolution fails, fall back to vitest mocking as a safeguard
-            vi.doMock(import("electron"), () => exports as never);
-        }
-    }
-
     beforeEach(() => {
         vi.resetModules();
         delete process.env.RECENT_FILES_PATH;
-        try {
-            const electronId = require.resolve("electron");
-            delete require.cache[electronId];
-        } catch {
-            // ignore when module isn't cached
-        }
     });
 
     afterEach(() => {
@@ -72,31 +54,32 @@ describe("recentFiles integration coverage", () => {
         createdDirs.clear();
     });
 
-    function importRecentFiles() {
-        try {
-            const modPath =
-                require.resolve("../../../../../electron-app/utils/files/recent/recentFiles.js");
-            delete require.cache[modPath];
-        } catch {
-            // ignore cache miss
-        }
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        return require("../../../../../electron-app/utils/files/recent/recentFiles.js");
+    async function importRecentFiles(
+        electronOverride: unknown = {}
+    ): Promise<RecentFilesModule> {
+        vi.resetModules();
+        vi.doMock("node:fs", () => fs);
+        vi.doMock("node:path", () => path);
+
+        const { setElectronOverride } =
+            await import("../../../../../electron-app/main/runtime/electronAccess.js");
+        setElectronOverride(electronOverride);
+
+        return import("../../../../../electron-app/utils/files/recent/recentFiles.js");
     }
 
-    it("derives the storage path from electron userData", () => {
+    it("derives the storage path from electron userData", async () => {
         expect.assertions(2);
 
         const userDataPath = fs.mkdtempSync(
             path.join(os.tmpdir(), "ffv-user-")
         );
         registerDir(userDataPath);
-        setElectronMock({
+        const recent = await importRecentFiles({
             app: {
                 getPath: vi.fn<(name: string) => string>(() => userDataPath),
             },
         });
-        const recent = importRecentFiles();
         const expectedPath = path.join(userDataPath, "recent-files.json");
         registerFile(expectedPath);
         const fitFilePath = createTempFitFile(userDataPath, "a.fit");
@@ -107,10 +90,9 @@ describe("recentFiles integration coverage", () => {
         expect(recent.loadRecentFiles()).toEqual([fitFilePath]);
     });
 
-    it("creates a temp-backed recent file when electron app is unavailable", () => {
+    it("creates a temp-backed recent file when electron app is unavailable", async () => {
         expect.assertions(6);
 
-        setElectronMock({});
         const exitHandlers: Array<() => void> = [];
         const processOn = vi
             .spyOn(process, "on")
@@ -125,7 +107,7 @@ describe("recentFiles integration coverage", () => {
                     return process;
                 }
             );
-        const recent = importRecentFiles();
+        const recent = await importRecentFiles();
         const fitFileDir = fs.mkdtempSync(path.join(os.tmpdir(), "ffv-fit-"));
         registerDir(fitFileDir);
         const fitFilePath = createTempFitFile(fitFileDir, "temp.fit");
@@ -160,7 +142,7 @@ describe("recentFiles integration coverage", () => {
         writeSpy.mockRestore();
     });
 
-    it("saves and reloads recent files using the configured path", () => {
+    it("saves and reloads recent files using the configured path", async () => {
         expect.assertions(1);
 
         const tempDir = path.join(os.tmpdir(), "ffv-recent-integration");
@@ -169,8 +151,7 @@ describe("recentFiles integration coverage", () => {
         const filePath = path.join(tempDir, `recent-${Date.now()}.json`);
         registerFile(filePath);
         process.env.RECENT_FILES_PATH = filePath;
-        setElectronMock({});
-        const recent = importRecentFiles();
+        const recent = await importRecentFiles();
         const fitFileDir = path.join(tempDir, "activities");
         fs.mkdirSync(fitFileDir, { recursive: true });
         const entries = [
@@ -183,10 +164,9 @@ describe("recentFiles integration coverage", () => {
         expect(loaded).toEqual(entries);
     });
 
-    it("logs and continues when temp directory creation fails", () => {
+    it("logs and continues when temp directory creation fails", async () => {
         expect.assertions(3);
 
-        setElectronMock({});
         const originalExists = fs.existsSync;
         const existsSpy = vi
             .spyOn(fs, "existsSync")
@@ -205,7 +185,7 @@ describe("recentFiles integration coverage", () => {
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
-        const recent = importRecentFiles();
+        const recent = await importRecentFiles();
         expect(errorSpy).toHaveBeenCalledWith(
             "Failed to create temp directory for tests:",
             expect.any(Error)

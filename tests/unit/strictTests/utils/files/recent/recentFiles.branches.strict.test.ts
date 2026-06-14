@@ -5,17 +5,17 @@ type RecentFilesModule = {
 };
 
 describe("recentFiles.js branch coverage (strict)", () => {
-    const MODULE_PATH =
-        "../../../../../../electron-app/utils/files/recent/recentFiles.js";
     let cfs: typeof import("node:fs");
 
-    function requireFresh(): RecentFilesModule {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const modPath = require.resolve(MODULE_PATH);
-        // @ts-ignore
-        delete require.cache[modPath];
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        return require(MODULE_PATH) as RecentFilesModule;
+    async function importFresh(): Promise<RecentFilesModule> {
+        vi.resetModules();
+        vi.doMock("node:fs", () => cfs);
+
+        const { setElectronOverride } =
+            await import("../../../../../../electron-app/main/runtime/electronAccess.js");
+        setElectronOverride({});
+
+        return import("../../../../../../electron-app/utils/files/recent/recentFiles.js");
     }
 
     beforeEach(() => {
@@ -28,21 +28,11 @@ describe("recentFiles.js branch coverage (strict)", () => {
         delete process.env.RECENT_FILES_PATH;
     });
 
-    it("cleanup handler swallows unlink errors (catch branch)", () => {
+    it("cleanup handler swallows unlink errors (catch branch)", async () => {
         expect.hasAssertions();
 
         // Force fallback path (no explicit RECENT_FILES_PATH, no usable electron path)
         delete process.env.RECENT_FILES_PATH;
-        try {
-            const eid = require.resolve("electron");
-            delete require.cache[eid];
-            require.cache[eid] = {
-                id: eid,
-                filename: eid,
-                loaded: true,
-                exports: {},
-            } as any;
-        } catch {}
 
         let exitHandler: (() => void) | undefined;
         const procOn = vi
@@ -56,7 +46,7 @@ describe("recentFiles.js branch coverage (strict)", () => {
                 return process;
             });
 
-        const rf = requireFresh();
+        const rf = await importFresh();
         const writeSpy = vi
             .spyOn(cfs, "writeFileSync")
             .mockImplementation(() => {});
