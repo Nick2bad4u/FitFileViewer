@@ -920,7 +920,7 @@ const showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern =
 const settingsStateManagerTestDirectConsoleAssignmentPattern =
     /\bglobal\.console\s*=/u;
 const directSettingsStateCoreRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b/u;
+    /\bnew\s+AbortController\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\??\.localStorage\b|(?:^|[^\w.])localStorage\./u;
 const handleOpenFileTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|info|log|warn)\s*=/u;
 const dataPointFilterStateHelpersTestDirectConsoleAssignmentPattern =
@@ -8917,8 +8917,8 @@ describe("architecture boundaries", () => {
         ).toBe(false);
     });
 
-    it("keeps settings state storage listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(3);
+    it("keeps settings state storage runtime globals behind the runtime facade", () => {
+        expect.assertions(5);
 
         const settingsStateCoreSource = stripComments(
             readRepositoryFile(
@@ -8934,7 +8934,9 @@ describe("architecture boundaries", () => {
         expect(settingsStateCoreSource).toContain(
             "settingsStateCoreRuntime.js"
         );
+        expect(settingsStateCoreSource).toContain("addStorageEventListener");
         expect(settingsStateCoreSource).toContain("createAbortController");
+        expect(settingsStateCoreSource).toContain("getLocalStorage");
     });
 
     it("keeps handle-open-file tests on scoped console spies", () => {

@@ -44,6 +44,10 @@ function asRecord(value: unknown): Record<string, unknown> {
     return isRecord(value) ? value : {};
 }
 
+function getSettingsStorage(): Storage | undefined {
+    return settingsStateCoreRuntime.getLocalStorage();
+}
+
 /**
  * Settings State Manager Class
  */
@@ -92,13 +96,17 @@ class SettingsStateManager {
      */
     getChartSettings(): Record<string, unknown> {
         const settings: Record<string, unknown> = {};
+        const storage = getSettingsStorage();
+        if (storage === undefined) {
+            return settings;
+        }
 
         // Get all chartjs_ prefixed settings
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
+        for (let i = 0; i < storage.length; i++) {
+            const key = storage.key(i);
             if (key && key.startsWith("chartjs_")) {
                 const settingKey = key.replace("chartjs_", ""),
-                    value = localStorage.getItem(key);
+                    value = storage.getItem(key);
 
                 try {
                     settings[settingKey] =
@@ -124,7 +132,7 @@ class SettingsStateManager {
             return;
         }
 
-        const storage = globalThis?.localStorage;
+        const storage = getSettingsStorage();
         if (!storage || typeof storage.getItem !== "function") {
             return schema.default;
         }
@@ -318,11 +326,16 @@ class SettingsStateManager {
     async migrateFromLegacy(): Promise<void> {
         console.log("[SettingsState] Performing legacy settings migration...");
 
+        const storage = getSettingsStorage();
+        if (storage === undefined) {
+            return;
+        }
+
         // Migrate theme setting
-        const oldTheme = localStorage.getItem("theme");
-        if (oldTheme && !localStorage.getItem("ffv-theme")) {
-            localStorage.setItem("ffv-theme", oldTheme);
-            localStorage.removeItem("theme");
+        const oldTheme = storage.getItem("theme");
+        if (oldTheme && !storage.getItem("ffv-theme")) {
+            storage.setItem("ffv-theme", oldTheme);
+            storage.removeItem("theme");
         }
 
         // No other legacy migrations needed currently
@@ -334,7 +347,12 @@ class SettingsStateManager {
      */
     async migrateSettings(): Promise<void> {
         try {
-            const currentVersion = localStorage.getItem(
+            const storage = getSettingsStorage();
+            if (storage === undefined) {
+                return;
+            }
+
+            const currentVersion = storage.getItem(
                 "settings_migration_version"
             );
 
@@ -357,7 +375,7 @@ class SettingsStateManager {
             }
 
             // Set migration version
-            localStorage.setItem(
+            storage.setItem(
                 "settings_migration_version",
                 this.migrationVersion
             );
@@ -379,6 +397,11 @@ class SettingsStateManager {
     ): boolean {
         try {
             const { silent = false } = options || {};
+            const storage = getSettingsStorage();
+            if (storage === undefined) {
+                return false;
+            }
+
             if (category) {
                 // Reset specific category
                 const schema = settingsSchema[category];
@@ -392,16 +415,15 @@ class SettingsStateManager {
                 if (schema.type === "object") {
                     // Remove all keys with this prefix
                     const keysToRemove: string[] = [];
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
+                    for (let i = 0; i < storage.length; i++) {
+                        const key = storage.key(i);
                         if (key && key.startsWith(schema.key)) {
                             keysToRemove.push(key);
                         }
                     }
-                    for (const key of keysToRemove)
-                        localStorage.removeItem(key);
+                    for (const key of keysToRemove) storage.removeItem(key);
                 } else {
-                    localStorage.removeItem(schema.key);
+                    storage.removeItem(schema.key);
                 }
 
                 // Update state
@@ -456,6 +478,11 @@ class SettingsStateManager {
         }
 
         try {
+            const storage = getSettingsStorage();
+            if (storage === undefined) {
+                return false;
+            }
+
             // Validate the value
             if (!schema.validate(value)) {
                 console.error(
@@ -471,7 +498,7 @@ class SettingsStateManager {
                 // Preserve legacy behavior for string settings:
                 // historically these were stored as raw strings (e.g. "hidden"/"visible").
                 // Writing JSON strings would add quotes and break direct localStorage comparisons.
-                localStorage.setItem(
+                storage.setItem(
                     storageKey,
                     typeof value === "string" ? value : JSON.stringify(value)
                 );
@@ -490,7 +517,7 @@ class SettingsStateManager {
                 });
             } else {
                 // Set entire setting
-                localStorage.setItem(
+                storage.setItem(
                     schema.key,
                     schema.type === "boolean"
                         ? String(value)
@@ -532,8 +559,7 @@ class SettingsStateManager {
         this.storageSyncController =
             settingsStateCoreRuntime.createAbortController();
 
-        globalThis.addEventListener(
-            "storage",
+        settingsStateCoreRuntime.addStorageEventListener(
             (event) => {
                 const k = event.key || ""; // Normalize for TS nullability
                 if (
@@ -551,7 +577,7 @@ class SettingsStateManager {
                     this.syncFromLocalStorage();
                 }
             },
-            { signal: this.storageSyncController.signal }
+            this.storageSyncController.signal
         );
     }
     /**
