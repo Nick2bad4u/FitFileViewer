@@ -48,11 +48,227 @@ defaults:
         shell: "bash"
 
 jobs:
-    dependabot-auto-merge:
-        name: "Dependabot Auto Merge"
+    enable-auto-merge:
+        name: "Enable Auto-Merge"
+        if: >-
+            github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' && github.event.pull_request.user.login == 'dependabot[bot]' && github.event.pull_request.draft == false
+        runs-on: "ubuntu-latest"
+        timeout-minutes: 5
         permissions:
             contents: "write"
             pull-requests: "write"
-        uses: "Nick2bad4u/workflow-templates/.github/workflows/reusable-auto-merge-dependabot.yml@d8d4958ee20f3089dc0baeed32c27afbec4c8502"
-        with:
-            semver-policy: "patch,minor"
+
+        steps:
+            - name: "Harden runner"
+              uses: "step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411" # v2.19.4
+              with:
+                  egress-policy: "audit"
+
+            - name: "Validate Dependabot Pull Request"
+              env:
+                  GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+                  HEAD_REF: "${{ github.event.pull_request.head.ref }}"
+                  HEAD_REPOSITORY: "${{ github.event.pull_request.head.repo.full_name }}"
+                  PR_NUMBER: "${{ github.event.pull_request.number }}"
+                  REPOSITORY: "${{ github.repository }}"
+              run: |
+                  set -euo pipefail
+
+                  if [[ "${HEAD_REPOSITORY}" != "${REPOSITORY}" ]]; then
+                    echo "::error title=Unsupported Dependabot PR source::Dependabot auto-merge only supports same-repository Dependabot pull requests."
+                    exit 1
+                  fi
+
+                  if [[ "${HEAD_REF}" != dependabot/* ]]; then
+                    echo "::error title=Unexpected Dependabot branch::Dependabot auto-merge only supports dependabot/* branches."
+                    exit 1
+                  fi
+
+                  invalid_commits="$(
+                    gh api --paginate "repos/${REPOSITORY}/pulls/${PR_NUMBER}/commits" \
+                      --jq '
+                        .[]
+                        | select(
+                            (
+                              (.author.login // "") == "dependabot[bot]"
+                              or (
+                                ((.parents // []) | length) >= 2
+                                and (.commit.message | startswith("Merge branch "))
+                                and (.commit.message | contains(" into dependabot/"))
+                              )
+                            ) | not
+                          )
+                        | "\(.sha) \(.author.login // "unknown") \(.commit.message | split("\n")[0])"
+                      '
+                  )"
+
+                  if [[ -n "${invalid_commits}" ]]; then
+                    echo "::error title=Unexpected commits in Dependabot PR::Dependabot auto-merge refused commits that are not Dependabot commits or branch-update merge commits."
+                    echo "${invalid_commits}"
+                    exit 1
+                  fi
+
+            - name: "Fetch Dependabot Metadata"
+              id: "metadata"
+              uses: "dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98" # v3.1.0
+              with:
+                  github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+            - name: "Evaluate Auto-Merge Policy"
+              id: "policy"
+              env:
+                  AUTO_MERGE_SEMVER: "${{ vars['DEPENDABOT_AUTO_MERGE_SEMVER'] || 'patch,minor' }}"
+                  UPDATE_TYPE: "${{ steps.metadata.outputs.update-type }}"
+              run: |
+                  set -euo pipefail
+
+                  normalize_entry() {
+                    local entry="${1,,}"
+                    entry="${entry#version-update:semver-}"
+
+                    case "${entry}" in
+                      patch | minor | major)
+                        printf '%s\n' "${entry}"
+                        ;;
+                      "")
+                        return 1
+                        ;;
+                      *)
+                        echo "::error title=Invalid auto-merge semver policy::Unsupported DEPENDABOT_AUTO_MERGE_SEMVER entry '${entry}'. Use patch, minor, major, or a comma-separated combination." >&2
+                        return 2
+                        ;;
+                    esac
+                  }
+
+                  normalized_update_type="${UPDATE_TYPE,,}"
+                  normalized_update_type="${normalized_update_type//[[:space:]]/}"
+
+                  case "${normalized_update_type}" in
+                    version-update:semver-patch)
+                      update_semver="patch"
+                      ;;
+                    version-update:semver-minor)
+                      update_semver="minor"
+                      ;;
+                    version-update:semver-major)
+                      update_semver="major"
+                      ;;
+                    *)
+                      update_semver=""
+                      ;;
+                  esac
+
+                  configured_values="${AUTO_MERGE_SEMVER//[[:space:]]/,}"
+                  configured_values="${configured_values//;/,}"
+                  allowed_semver=()
+
+                  IFS="," read -r -a configured_entries <<< "${configured_values}"
+                  for configured_entry in "${configured_entries[@]}"; do
+                    if normalized_entry="$(normalize_entry "${configured_entry}")"; then
+                      allowed_semver+=("${normalized_entry}")
+                    elif [ "$?" -eq 2 ]; then
+                      exit 1
+                    fi
+                  done
+
+                  if [ "${#allowed_semver[@]}" -eq 0 ]; then
+                    echo "::error title=Invalid auto-merge semver policy::DEPENDABOT_AUTO_MERGE_SEMVER did not contain patch, minor, or major."
+                    exit 1
+                  fi
+
+                  should_auto_merge="false"
+                  for allowed in "${allowed_semver[@]}"; do
+                    if [[ "${allowed}" == "${update_semver}" ]]; then
+                      should_auto_merge="true"
+                      break
+                    fi
+                  done
+
+                  allowed_display="$(IFS=,; echo "${allowed_semver[*]}")"
+
+                  {
+                    echo "allowed-semver=${allowed_display}"
+                    echo "should-auto-merge=${should_auto_merge}"
+                    echo "update-semver=${update_semver:-unknown}"
+                  } >> "${GITHUB_OUTPUT}"
+
+                  echo "Dependabot update type: ${UPDATE_TYPE:-unknown}"
+                  echo "Configured auto-merge semver policy: ${allowed_display}"
+                  echo "Should auto-merge: ${should_auto_merge}"
+
+            - name: "Check Repository Auto-Merge Setting"
+              if: "steps.policy.outputs.should-auto-merge == 'true'"
+              env:
+                  GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+                  REPOSITORY: "${{ github.repository }}"
+              run: |
+                  set -euo pipefail
+
+                  owner="${REPOSITORY%%/*}"
+                  repo="${REPOSITORY#*/}"
+
+                  if ! auto_merge_allowed="$(
+                    gh api graphql \
+                      -f owner="${owner}" \
+                      -f name="${repo}" \
+                      -f query="
+                        query(\$owner: String!, \$name: String!) {
+                          repository(owner: \$owner, name: \$name) {
+                            autoMergeAllowed
+                          }
+                        }
+                      " \
+                      --jq '.data.repository.autoMergeAllowed'
+                  )"; then
+                    echo "::error title=Auto-merge setting lookup failed::Failed to read repository auto-merge setting from the GitHub API."
+                    exit 1
+                  fi
+
+                  if [[ -z "${auto_merge_allowed}" || "${auto_merge_allowed}" == "null" ]]; then
+                    echo "::error title=Auto-merge setting unavailable::GitHub API returned '${auto_merge_allowed:-<empty>}' for repository autoMergeAllowed."
+                    exit 1
+                  fi
+
+                  if [[ "${auto_merge_allowed}" != "true" ]]; then
+                    echo "::error title=Repository auto-merge disabled::Repository autoMergeAllowed is '${auto_merge_allowed}'. Enable Settings > General > Pull Requests > Allow auto-merge."
+                    exit 1
+                  fi
+
+            - name: "Enable Auto-Merge"
+              if: "steps.policy.outputs.should-auto-merge == 'true'"
+              env:
+                  GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+                  PR_URL: "${{ github.event.pull_request.html_url }}"
+              run: |
+                  set -euo pipefail
+
+                  if ! gh pr merge --auto --squash "${PR_URL}"; then
+                    echo "::error title=Auto-merge enablement failed::Failed to enable auto-merge. Check repository auto-merge, branch protection, merge method settings, and token permissions."
+                    exit 1
+                  fi
+
+            - name: "Log Skipped Update Type"
+              if: "steps.policy.outputs.should-auto-merge != 'true'"
+              env:
+                  ALLOWED_SEMVER: "${{ steps.policy.outputs.allowed-semver }}"
+                  UPDATE_SEMVER: "${{ steps.policy.outputs.update-semver }}"
+              run: |
+                  set -euo pipefail
+
+                  echo "Dependabot semver update '${UPDATE_SEMVER:-unknown}' is not configured for auto-merge."
+                  echo "Configured auto-merge semver policy: ${ALLOWED_SEMVER:-unknown}"
+
+    merge-group-status:
+        name: "Merge Group Status"
+        if: "github.event_name == 'merge_group'"
+        runs-on: "ubuntu-latest"
+        timeout-minutes: 1
+
+        steps:
+            - name: "Harden runner"
+              uses: "step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411" # v2.19.4
+              with:
+                  egress-policy: "audit"
+
+            - name: "Report Status"
+              run: 'echo "Dependabot auto-merge is skipped for merge queue events."'
