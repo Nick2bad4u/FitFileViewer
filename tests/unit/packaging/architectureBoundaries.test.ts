@@ -803,8 +803,7 @@ const directVitestHTMLElementGlobalBridgePattern =
     /\bglobal\.HTMLElement\s*=\s*window\.HTMLElement\b/u;
 const directVitestWindowConsoleGroupPatchPattern =
     /\bwindow\.console\.group(?:Collapsed|End)?\s*=/u;
-const directVitestWindowConsoleAssignmentPattern =
-    /\bwindow\.console\s*=/u;
+const directVitestWindowConsoleAssignmentPattern = /\bwindow\.console\s*=/u;
 const directVitestEnvConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|warn)\s*=/u;
 const directVitestProcessNextTickSetupAssignmentPattern =
@@ -823,10 +822,8 @@ const exportUtilsOauthStateTestDirectCryptoDeletePattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']crypto["']\s*\)/u;
 const loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern =
     /\b(?:global|globalThis)\.URLSearchParams\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']URLSearchParams["']\s*\)/u;
-const directVitestTabButtonObserverCleanupPattern =
-    /\btabButtonObserver\b/u;
-const directVitestChartDevToolsGlobalCleanupPattern =
-    /\b__chartjs_dev\b/u;
+const directVitestTabButtonObserverCleanupPattern = /\btabButtonObserver\b/u;
+const directVitestChartDevToolsGlobalCleanupPattern = /\b__chartjs_dev\b/u;
 const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
@@ -978,8 +975,7 @@ const directAccentColorPickerRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const errorHandlingPerformanceMonitorGlobalLookupPattern =
     /\bglobalRef\.performanceMonitor\b|\bperformanceMonitor\?:\s*\{/u;
-const directErrorHandlingRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b/u;
+const directErrorHandlingRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
 const errorHandlingTestDirectPerformanceMonitorFixturePattern =
     /\bglobalRef\.performanceMonitor\s*=|\bReflect\.deleteProperty\(\s*globalRef\s*,\s*["']performanceMonitor["']\s*\)/u;
 const directRendererDevGlobalPattern =
@@ -1068,8 +1064,7 @@ const directLoadOverlayFilesRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.navigator\b|\bnavigator\.hardwareConcurrency\b/u;
 const directFitBrowserFeatureGateRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:querySelector|getElementById)\b|\binstanceof\s+HTMLElement\b/u;
-const directFileBrowserTabRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b/u;
+const directFileBrowserTabRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
     /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
 const directAltFitSenderRuntimeGlobalPattern =
@@ -1110,6 +1105,8 @@ const directUiStateManagerBrowserRuntimePattern =
     /\bnew\s+AbortController\b|\bglobalThis\.(?:matchMedia|window)\b|\bwindow\.addEventListener\b/u;
 const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directChartThemeListenerRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapThemeToggleRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directMapThemeToggleRuntimeAmbientFallbackPattern =
@@ -2792,7 +2789,9 @@ describe("architecture boundaries", () => {
         expect(nodeModulesSource).toContain("export const path");
         expect(nodeModulesSource).toContain("export const fs");
         expect(nodeModulesSource).toContain("export function httpRef");
-        expect(nodeModulesSource).not.toContain("export function loadNodeModule");
+        expect(nodeModulesSource).not.toContain(
+            "export function loadNodeModule"
+        );
         expect(electronConfAccessSource).toContain(
             "export function createElectronConf"
         );
@@ -3082,9 +3081,7 @@ describe("architecture boundaries", () => {
             'import { createPreloadSystemApiDomain } from "./systemApiDomain.js";'
         );
         expect(apiAssemblyModuleLoaderSource).not.toContain("requireModule");
-        expect(moduleLoaderSource).toContain(
-            "loadPreloadApiAssemblyModules()"
-        );
+        expect(moduleLoaderSource).toContain("loadPreloadApiAssemblyModules()");
         expect(moduleLoaderSource).not.toContain(
             "loadPreloadApiAssemblyModules({ requireModule })"
         );
@@ -3215,9 +3212,7 @@ describe("architecture boundaries", () => {
         expect(bootstrapSource).toContain(
             'import { getDefaultPreloadRuntimeEnvironment } from "./preloadRuntimeEnvironment.js";'
         );
-        expect(bootstrapSource).toContain(
-            "createPreloadRuntime()"
-        );
+        expect(bootstrapSource).toContain("createPreloadRuntime()");
         expect(bootstrapSource).not.toContain("requireModule");
         expect(bootstrapSource).not.toContain(
             "createPreloadRuntime({ requireModule })"
@@ -3279,9 +3274,7 @@ describe("architecture boundaries", () => {
             "startDefaultPreloadEntrypoint();"
         );
         expect(preloadEntrySource).not.toContain("require");
-        expect(preloadEntrypointSource).toContain(
-            "startPreloadEntrypoint();"
-        );
+        expect(preloadEntrypointSource).toContain("startPreloadEntrypoint();");
         expect(preloadEntrypointSource).toContain(
             'import { startPreloadScript } from "./preloadBootstrap.js";'
         );
@@ -3308,9 +3301,7 @@ describe("architecture boundaries", () => {
         expect(preloadEntrypointSource).toContain(
             'import { startPreloadScript } from "./preloadBootstrap.js";'
         );
-        expect(preloadEntrypointSource).toContain(
-            "startPreloadScript({"
-        );
+        expect(preloadEntrypointSource).toContain("startPreloadScript({");
         expect(preloadEntrypointSource).not.toContain("require");
         expect(preloadEntrypointSource).not.toContain(
             "loadPreloadRuntimeEnvironment"
@@ -4406,7 +4397,9 @@ describe("architecture boundaries", () => {
             )
         );
         const tabStateManagerDocSource = stripComments(
-            readRepositoryFile("electron-app/utils/ui/tabs/tabStateManagerDoc.ts")
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/tabStateManagerDoc.ts"
+            )
         );
 
         expect(tabStateManagerSupportSource).toContain(
@@ -4855,7 +4848,9 @@ describe("architecture boundaries", () => {
 
         expect(
             errorHandlingTestDirectPerformanceMonitorFixturePattern.test(
-                stripComments(readRepositoryFile("tests/unit/utils/errorHandling.test.ts"))
+                stripComments(
+                    readRepositoryFile("tests/unit/utils/errorHandling.test.ts")
+                )
             )
         ).toBe(false);
     });
@@ -4898,9 +4893,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/utils/debug/lastAnimLog.ts")
         );
 
-        expect(directLastAnimLogRuntimeGlobalPattern.test(lastAnimLogSource)).toBe(
-            false
-        );
+        expect(
+            directLastAnimLogRuntimeGlobalPattern.test(lastAnimLogSource)
+        ).toBe(false);
         expect(lastAnimLogSource).toContain("lastAnimLogRuntime.js");
     });
 
@@ -5048,7 +5043,9 @@ describe("architecture boundaries", () => {
 
         expect(masterStateManagerSource).toContain("masterStateRuntime.js");
         expect(masterStateManagerSource).toContain("createAbortController");
-        expect(masterStateManagerSource).not.toMatch(/\bnew\s+AbortController\b/u);
+        expect(masterStateManagerSource).not.toMatch(
+            /\bnew\s+AbortController\b/u
+        );
         expect(masterStateManagerSource).not.toContain("globalThis.window");
         expect(masterStateManagerSource).not.toContain("globalThis.location");
         expect(masterStateManagerSource).not.toContain(
@@ -5057,7 +5054,9 @@ describe("architecture boundaries", () => {
         expect(masterStateManagerSource).not.toContain(
             "globalThis.dispatchEvent"
         );
-        expect(masterStateManagerSource).not.toContain("window.addEventListener");
+        expect(masterStateManagerSource).not.toContain(
+            "window.addEventListener"
+        );
     });
 
     it("keeps computed state manager theme media reads behind the runtime adapter", () => {
@@ -5109,7 +5108,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/utils/debug/stateDevTools.ts")
         );
         const stateDevToolsRuntimeSource = stripComments(
-            readRepositoryFile("electron-app/utils/debug/stateDevToolsRuntime.ts")
+            readRepositoryFile(
+                "electron-app/utils/debug/stateDevToolsRuntime.ts"
+            )
         );
 
         expect(violations).toStrictEqual([]);
@@ -5245,12 +5246,12 @@ describe("architecture boundaries", () => {
         expect(recentFilesContextMenuSource).toContain(
             "recentFilesContextMenuRuntime.js"
         );
-        expect(recentFilesContextMenuSource).toContain(
-            "createAbortController"
-        );
+        expect(recentFilesContextMenuSource).toContain("createAbortController");
         expect(recentFilesContextMenuSource).not.toContain("globalThis.window");
         expect(recentFilesContextMenuSource).not.toContain("window.innerWidth");
-        expect(recentFilesContextMenuSource).not.toContain("window.innerHeight");
+        expect(recentFilesContextMenuSource).not.toContain(
+            "window.innerHeight"
+        );
         expect(
             directRecentFilesContextMenuRuntimeGlobalPattern.test(
                 recentFilesContextMenuSource
@@ -5542,9 +5543,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/utils/dom/domHelpers.ts")
         );
 
-        expect(directDomHelpersRuntimeGlobalPattern.test(domHelpersSource)).toBe(
-            false
-        );
+        expect(
+            directDomHelpersRuntimeGlobalPattern.test(domHelpersSource)
+        ).toBe(false);
         expect(domHelpersSource).toContain("domHelpersRuntime.js");
     });
 
@@ -6423,9 +6424,7 @@ describe("architecture boundaries", () => {
         expect(loadSingleOverlayFileSource).toContain(
             "loadSingleOverlayFileRuntime.js"
         );
-        expect(loadSingleOverlayFileSource).toContain(
-            "createAbortController"
-        );
+        expect(loadSingleOverlayFileSource).toContain("createAbortController");
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
@@ -6635,7 +6634,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/utils/theming/core/theme.ts")
         );
         const themeRuntimeSource = stripComments(
-            readRepositoryFile("electron-app/utils/theming/core/themeRuntime.ts")
+            readRepositoryFile(
+                "electron-app/utils/theming/core/themeRuntime.ts"
+            )
         );
 
         expect(violations).toStrictEqual([]);
@@ -6681,7 +6682,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme listener browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedChartThemeListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -6695,10 +6696,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/theming/chartThemeListener.ts"
             )
         );
+        const chartThemeListenerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/theming/chartThemeListenerRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(chartThemeListenerSource).toContain(
             "chartThemeListenerRuntime.js"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toMatch(
+            directChartThemeListenerRuntimeAmbientFallbackPattern
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
         );
     });
 
@@ -6722,12 +6734,8 @@ describe("architecture boundaries", () => {
         );
 
         expect(violations).toStrictEqual([]);
-        expect(mapThemeToggleStateSource).toContain(
-            "mapThemeToggleRuntime.js"
-        );
-        expect(mapThemeToggleStateSource).toContain(
-            "createAbortController"
-        );
+        expect(mapThemeToggleStateSource).toContain("mapThemeToggleRuntime.js");
+        expect(mapThemeToggleStateSource).toContain("createAbortController");
         expect(mapThemeToggleStateSource).toContain("addDocumentListener");
         expect(mapThemeToggleRuntimeSource).toContain(
             "const runtimeDocument = scope.document;"
@@ -7223,13 +7231,14 @@ describe("architecture boundaries", () => {
     it("keeps renderer application lifecycle abort controllers behind the runtime facade", () => {
         expect.assertions(2);
 
-        const violations = migratedRendererApplicationLifecycleWiringRuntimeFiles
-            .filter((relativeFile) =>
-                directRendererApplicationLifecycleWiringRuntimeGlobalPattern.test(
-                    stripComments(readRepositoryFile(relativeFile))
+        const violations =
+            migratedRendererApplicationLifecycleWiringRuntimeFiles
+                .filter((relativeFile) =>
+                    directRendererApplicationLifecycleWiringRuntimeGlobalPattern.test(
+                        stripComments(readRepositoryFile(relativeFile))
+                    )
                 )
-            )
-            .sort();
+                .sort();
         const lifecycleWiringSource = stripComments(
             readRepositoryFile(
                 "electron-app/renderer/applicationLifecycleWiring.ts"
@@ -7257,9 +7266,7 @@ describe("architecture boundaries", () => {
         );
 
         expect(violations).toStrictEqual([]);
-        expect(fileInputStartupSource).toContain(
-            "fileInputStartupRuntime.js"
-        );
+        expect(fileInputStartupSource).toContain("fileInputStartupRuntime.js");
     });
 
     it("keeps renderer test-only bootstrap abort controllers behind the runtime facade", () => {
@@ -7351,15 +7358,11 @@ describe("architecture boundaries", () => {
         );
 
         expect(violations).toStrictEqual([]);
-        expect(performanceUtilsSource).toContain(
-            "performanceUtilsRuntime.js"
-        );
+        expect(performanceUtilsSource).toContain("performanceUtilsRuntime.js");
         expect(performanceUtilsRuntimeSource).not.toMatch(
             directPerformanceUtilsRuntimeAmbientFallbackPattern
         );
-        expect(performanceUtilsRuntimeSource).toContain(
-            "dateNow: Date.now"
-        );
+        expect(performanceUtilsRuntimeSource).toContain("dateNow: Date.now");
     });
 
     it("keeps async cancellation timers behind the runtime facade", () => {
@@ -7559,18 +7562,14 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/components/shownFilesListItemHandlers.ts"
             )
         );
-        expect(shownFilesItemHandlerSource).toContain(
-            "createAbortController"
-        );
+        expect(shownFilesItemHandlerSource).toContain("createAbortController");
         expect(shownFilesItemHandlerSource).toContain("getViewport");
         const createShownFilesListSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/rendering/components/createShownFilesList.ts"
             )
         );
-        expect(createShownFilesListSource).toContain(
-            "createAbortController"
-        );
+        expect(createShownFilesListSource).toContain("createAbortController");
         expect(createShownFilesListSource).toContain(
             "addBodyThemeChangeListener"
         );
@@ -7596,9 +7595,7 @@ describe("architecture boundaries", () => {
         expect(enhanceCreditsSectionSource).toContain(
             "enhanceCreditsSectionRuntime.js"
         );
-        expect(enhanceCreditsSectionSource).toContain(
-            "createAbortController"
-        );
+        expect(enhanceCreditsSectionSource).toContain("createAbortController");
     });
 
     it("keeps credits marquee tests on explicit runtime fixtures", () => {
@@ -7693,7 +7690,9 @@ describe("architecture boundaries", () => {
             'import("fitfileviewer:leaflet-draw-runtime")'
         );
 
-        expect(vendorMapEntry).toContain('import LeafletMiniMap from "leaflet-minimap"');
+        expect(vendorMapEntry).toContain(
+            'import LeafletMiniMap from "leaflet-minimap"'
+        );
         expect(vendorMapEntry).toContain("rendererVendorMapRuntime.js");
         expect(vendorMapEntry).toContain("setLeafletRuntime(Leaflet)");
         expect(vendorMapEntry).toContain("leafletRuntime: Leaflet");
@@ -8692,7 +8691,9 @@ describe("architecture boundaries", () => {
         expect(
             strictMainUiTestRetiredGlobalDataFixturePattern.test(
                 stripComments(
-                    readRepositoryFile("tests/unit/strictTests/ui/main-ui.test.ts")
+                    readRepositoryFile(
+                        "tests/unit/strictTests/ui/main-ui.test.ts"
+                    )
                 )
             )
         ).toBe(false);
@@ -9084,7 +9085,9 @@ describe("architecture boundaries", () => {
         expect(
             stateMiddlewareBranchesTestDirectLocalStorageMethodAssignmentPattern.test(
                 stripComments(
-                    readRepositoryFile("tests/unit/stateMiddleware.branches.test.ts")
+                    readRepositoryFile(
+                        "tests/unit/stateMiddleware.branches.test.ts"
+                    )
                 )
             )
         ).toBe(false);
@@ -9217,7 +9220,9 @@ describe("architecture boundaries", () => {
         expect(
             mapDrawLapsTestDirectWindowFixtureMutationPattern.test(
                 stripComments(
-                    readRepositoryFile("tests/unit/maps/layers/mapDrawLaps.test.ts")
+                    readRepositoryFile(
+                        "tests/unit/maps/layers/mapDrawLaps.test.ts"
+                    )
                 )
             )
         ).toBe(false);
@@ -9864,7 +9869,9 @@ describe("architecture boundaries", () => {
         );
 
         expect(vitestSetupSource).toContain("function ensureProcessNextTick()");
-        expect(vitestSetupSource).toContain("function setRuntimeProcessObject(");
+        expect(vitestSetupSource).toContain(
+            "function setRuntimeProcessObject("
+        );
         expect(vitestSetupSource).toContain("function setProcessNextTick(");
         expect(
             directVitestProcessNextTickSetupAssignmentPattern.test(

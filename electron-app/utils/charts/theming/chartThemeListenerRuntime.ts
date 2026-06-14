@@ -69,8 +69,13 @@ export function getChartThemeListenerRuntime(
             });
         },
         clearTimeout(handle: ChartThemeListenerTimerHandle): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "chartThemeListener requires a clearTimeout runtime"
+                );
+            }
+
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
@@ -87,7 +92,13 @@ export function getChartThemeListenerRuntime(
             handler: () => void,
             timeout: number
         ): ChartThemeListenerTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "chartThemeListener requires a setTimeout runtime"
+                );
+            }
+
             return setTimeoutRef(handler, timeout);
         },
     };

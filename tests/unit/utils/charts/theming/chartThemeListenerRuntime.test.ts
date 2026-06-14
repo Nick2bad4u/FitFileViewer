@@ -73,6 +73,23 @@ describe("getChartThemeListenerRuntime", () => {
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getChartThemeListenerRuntime({ document });
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "chartThemeListener requires a setTimeout runtime"
+        );
+        expect(() => {
+            runtime.clearTimeout(
+                Symbol(
+                    "theme-listener-timer"
+                ) as unknown as ChartThemeListenerTimerHandle
+            );
+        }).toThrow("chartThemeListener requires a clearTimeout runtime");
+    });
+
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 
