@@ -5,6 +5,15 @@ export type RendererStateIntegrationTimer = ReturnType<
 export interface RendererStateIntegrationRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
     readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
 
@@ -19,21 +28,16 @@ export interface RendererStateIntegrationRuntime {
 
 const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRuntimeScope =
     {
-        get AbortController() {
-            return globalThis.AbortController;
-        },
-        get clearTimeout() {
-            return globalThis.clearTimeout;
-        },
-        get setTimeout() {
-            return globalThis.setTimeout;
-        },
+        getAbortController: () => globalThis.AbortController,
+        getClearTimeout: () => globalThis.clearTimeout,
+        getSetTimeout: () => globalThis.setTimeout,
     };
 
 function getAbortControllerConstructor(
     scope: RendererStateIntegrationRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor = scope.AbortController;
+    const AbortControllerConstructor =
+        scope.getAbortController?.() ?? scope.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "rendererStateIntegration requires an AbortController runtime"
@@ -48,7 +52,8 @@ export function getRendererStateIntegrationRuntime(
 ): RendererStateIntegrationRuntime {
     return {
         clearTimeout(timer): void {
-            const clearTimeoutRef = scope.clearTimeout;
+            const clearTimeoutRef =
+                scope.getClearTimeout?.() ?? scope.clearTimeout;
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "rendererStateIntegration requires a clearTimeout runtime"
@@ -61,7 +66,7 @@ export function getRendererStateIntegrationRuntime(
             return new (getAbortControllerConstructor(scope))();
         },
         setTimeout(callback, delayMs): RendererStateIntegrationTimer {
-            const setTimeoutRef = scope.setTimeout;
+            const setTimeoutRef = scope.getSetTimeout?.() ?? scope.setTimeout;
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "rendererStateIntegration requires a setTimeout runtime"

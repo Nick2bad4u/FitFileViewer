@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getStateManagerDefaultsRuntime } from "../../../../../electron-app/utils/state/core/stateManagerDefaultsRuntime.js";
 
 describe("stateManagerDefaultsRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("prefers performance timing for startup timestamps", () => {
         expect.assertions(1);
 
@@ -48,5 +52,22 @@ describe("stateManagerDefaultsRuntime", () => {
         expect(
             getStateManagerDefaultsRuntime({}).getDefaultDocumentTitle()
         ).toBe("Fit File Viewer");
+    });
+
+    it("resolves default document and performance when runtime operations run", () => {
+        expect.assertions(3);
+
+        const document = { title: "Late Activity Viewer" };
+        const performance = {
+            now: vi.fn<() => number>(() => 77.25),
+        };
+        const runtime = getStateManagerDefaultsRuntime();
+
+        vi.stubGlobal("document", document);
+        vi.stubGlobal("performance", performance);
+
+        expect(runtime.getDefaultDocumentTitle()).toBe("Late Activity Viewer");
+        expect(runtime.getStartTime()).toBe(77.25);
+        expect(performance.now).toHaveBeenCalledOnce();
     });
 });

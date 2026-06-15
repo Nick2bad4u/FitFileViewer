@@ -755,6 +755,8 @@ const directStateIntegrationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|clearTimeout|localStorage|performance|setInterval|setTimeout)\b|(?:^|[^\w.])(?:clearInterval|clearTimeout|setInterval|setTimeout)\(|\b(?:Date|performance)\.(?:now|memory)\b|\btypeof\s+(?:localStorage|performance)\b/u;
 const directStateIntegrationRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearInterval|clearTimeout|dateNow|setInterval|setTimeout)[^;\n]*\?\?\s*(?:globalThis\.(?:clearInterval|clearTimeout|setInterval|setTimeout)|Date\.now)/u;
+const directStateIntegrationRuntimeAmbientGetterPattern =
+    /\bget\s+(?:clearInterval|clearTimeout|localStorage|performance|setInterval|setTimeout)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:clearInterval|clearTimeout|localStorage|performance|setInterval|setTimeout)\b/u;
 const directStateStorageRuntimeAmbientGetterPattern =
     /\bget\s+localStorage\s*\(\)\s*\{|\breturn\s+globalThis\.localStorage\b/u;
 const directStateDevToolsRuntimeGlobalPattern =
@@ -765,6 +767,8 @@ const directRendererStateIntegrationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+const directRendererStateIntegrationRuntimeAmbientGetterPattern =
+    /\bget\s+(?:AbortController|clearTimeout|setTimeout)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|clearTimeout|setTimeout)\b/u;
 const stateDevToolsTestRetiredGlobalMutationPattern =
     /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:STATE_DEBUG_GLOBAL|["']__stateDebug["'])\s*\)|\bglobalThis\.__stateDebug\s*=/u;
 const stateIntegrationRetiredGlobalMutationPattern =
@@ -2377,7 +2381,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
@@ -2393,6 +2397,8 @@ describe("architecture boundaries", () => {
             /\b(?:globalThis|window)\.(?:clearTimeout|performance|setTimeout)\b|\bperformance\.now\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
         const directMainProcessStateRuntimeAmbientTimerFallbackPattern =
             /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+        const directMainProcessStateRuntimeAmbientGetterPattern =
+            /\bget\s+(?:clearTimeout|performance|setTimeout)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:clearTimeout|performance|setTimeout)\b/u;
 
         expect(mainProcessStateManagerSource).toContain(
             "mainProcessStateRuntime.js"
@@ -2413,6 +2419,9 @@ describe("architecture boundaries", () => {
         );
         expect(mainProcessStateRuntimeSource).not.toMatch(
             directRuntimeAmbientClockFallbackPattern
+        );
+        expect(mainProcessStateRuntimeSource).not.toMatch(
+            directMainProcessStateRuntimeAmbientGetterPattern
         );
         expect(mainProcessStateRuntimeSource).toContain(
             "mainProcessStateRuntime requires setTimeout"
@@ -5055,7 +5064,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state-manager defaults on scoped runtime access", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const stateManagerDefaultsSource = stripComments(
             readRepositoryFile(
@@ -5067,6 +5076,8 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/state/core/stateManagerDefaultsRuntime.ts"
             )
         );
+        const stateManagerDefaultsRuntimeAmbientGetterPattern =
+            /\bget\s+(?:document|performance)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:document|performance)\b/u;
 
         expect(stateManagerDefaultsSource).toContain(
             "stateManagerDefaultsRuntime.js"
@@ -5079,6 +5090,9 @@ describe("architecture boundaries", () => {
         expect(stateManagerDefaultsSource).not.toContain("document.title");
         expect(stateManagerDefaultsRuntimeSource).not.toMatch(
             directRuntimeAmbientClockFallbackPattern
+        );
+        expect(stateManagerDefaultsRuntimeSource).not.toMatch(
+            stateManagerDefaultsRuntimeAmbientGetterPattern
         );
         expect(stateManagerDefaultsRuntimeSource).toContain(
             "stateManagerDefaultsRuntime requires a clock"
@@ -5649,7 +5663,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state integration runtime APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -5674,13 +5688,16 @@ describe("architecture boundaries", () => {
         expect(stateIntegrationRuntimeSource).not.toMatch(
             directStateIntegrationRuntimeAmbientFallbackPattern
         );
+        expect(stateIntegrationRuntimeSource).not.toMatch(
+            directStateIntegrationRuntimeAmbientGetterPattern
+        );
         expect(stateIntegrationRuntimeSource).toContain(
             "stateIntegrationRuntime requires setTimeout"
         );
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -5709,6 +5726,9 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationRuntimeSource).not.toMatch(
             directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toMatch(
+            directRendererStateIntegrationRuntimeAmbientGetterPattern
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "defaultRendererStateIntegrationRuntimeScope"

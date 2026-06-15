@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getStateIntegrationRuntime,
@@ -19,6 +19,10 @@ function createRuntimeScope(
 }
 
 describe("getStateIntegrationRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("routes timers, clock, storage, and performance memory through the injected scope", () => {
         expect.assertions(9);
 
@@ -120,4 +124,57 @@ describe("getStateIntegrationRuntime", () => {
             );
         }
     );
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(8);
+
+        const intervalCallback = vi.fn<() => void>();
+        const timeoutCallback = vi.fn<() => void>();
+        const intervalDelayMs = Number("30000");
+        const timeoutDelayMs = Number("500");
+        const interval = 11 as ReturnType<typeof globalThis.setInterval>;
+        const timeout = 13 as ReturnType<typeof globalThis.setTimeout>;
+        const storage = {} as Storage;
+        const performanceMemory = {
+            jsHeapSizeLimit: 3,
+            totalJSHeapSize: 2,
+            usedJSHeapSize: 1,
+        };
+        const clearInterval = vi.fn<typeof globalThis.clearInterval>();
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setInterval = vi.fn<typeof globalThis.setInterval>(
+            () => interval
+        );
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timeout);
+        const runtime = getStateIntegrationRuntime();
+
+        vi.stubGlobal("clearInterval", clearInterval);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        vi.stubGlobal("localStorage", storage);
+        vi.stubGlobal("performance", { memory: performanceMemory });
+        vi.stubGlobal("setInterval", setInterval);
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        expect(runtime.setInterval(intervalCallback, intervalDelayMs)).toBe(
+            interval
+        );
+        runtime.clearInterval(interval);
+        expect(runtime.setTimeout(timeoutCallback, timeoutDelayMs)).toBe(
+            timeout
+        );
+        runtime.clearTimeout(timeout);
+
+        expect(setInterval).toHaveBeenCalledWith(
+            intervalCallback,
+            intervalDelayMs
+        );
+        expect(clearInterval).toHaveBeenCalledWith(interval);
+        expect(setTimeout).toHaveBeenCalledWith(
+            timeoutCallback,
+            timeoutDelayMs
+        );
+        expect(clearTimeout).toHaveBeenCalledWith(timeout);
+        expect(runtime.getStorage()).toBe(storage);
+        expect(runtime.getPerformanceMemory()).toBe(performanceMemory);
+    });
 });

@@ -1,11 +1,20 @@
+type MainProcessPerformanceRuntime = {
+    readonly now?: (() => number) | undefined;
+};
+
 export interface MainProcessStateRuntimeScope {
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly dateNow?: (() => number) | undefined;
-    readonly performance?:
-        | {
-              readonly now?: (() => number) | undefined;
-          }
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getPerformance?:
+        | (() => MainProcessPerformanceRuntime | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
+    readonly performance?: MainProcessPerformanceRuntime | undefined;
     readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
 
@@ -21,24 +30,19 @@ export interface MainProcessStateRuntime {
 }
 
 const defaultMainProcessStateRuntimeScope: MainProcessStateRuntimeScope = {
-    get clearTimeout() {
-        return globalThis.clearTimeout.bind(globalThis);
-    },
+    getClearTimeout: () => globalThis.clearTimeout.bind(globalThis),
     dateNow: Date.now,
-    get performance() {
-        return globalThis.performance;
-    },
-    get setTimeout() {
-        return globalThis.setTimeout.bind(globalThis);
-    },
+    getPerformance: () => globalThis.performance,
+    getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
 };
 
 function getRequiredMonotonicNow(
     scope: MainProcessStateRuntimeScope
 ): () => number {
-    const performanceNow = scope.performance?.now;
+    const performance = scope.getPerformance?.() ?? scope.performance;
+    const performanceNow = performance?.now;
     if (typeof performanceNow === "function") {
-        return performanceNow.bind(scope.performance);
+        return performanceNow.bind(performance);
     }
 
     const dateNow = scope.dateNow;
@@ -54,7 +58,8 @@ export function getMainProcessStateRuntime(
 ): MainProcessStateRuntime {
     return {
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.clearTimeout;
+            const clearTimeoutRef =
+                scope.getClearTimeout?.() ?? scope.clearTimeout;
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "mainProcessStateRuntime requires clearTimeout"
@@ -67,7 +72,7 @@ export function getMainProcessStateRuntime(
             return getRequiredMonotonicNow(scope)();
         },
         setTimeout(callback, delayMs): MainProcessStateTimer {
-            const setTimeoutRef = scope.setTimeout;
+            const setTimeoutRef = scope.getSetTimeout?.() ?? scope.setTimeout;
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "mainProcessStateRuntime requires setTimeout"

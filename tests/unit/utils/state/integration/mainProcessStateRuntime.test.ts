@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getMainProcessStateRuntime } from "../../../../../electron-app/utils/state/integration/mainProcessStateRuntime.js";
 
 describe("mainProcessStateRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("prefers performance timing for monotonic durations", () => {
         expect.assertions(1);
 
@@ -77,5 +81,31 @@ describe("mainProcessStateRuntime", () => {
                 67 as ReturnType<typeof globalThis.setTimeout>
             );
         }).toThrow("mainProcessStateRuntime requires clearTimeout");
+    });
+
+    it("resolves default timers and performance clock when runtime operations run", () => {
+        expect.assertions(5);
+
+        const callback = vi.fn<() => void>();
+        const delayMs = Number("50");
+        const timer = 67 as ReturnType<typeof globalThis.setTimeout>;
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const performance = {
+            now: vi.fn<() => number>(() => 101.5),
+        };
+        const runtime = getMainProcessStateRuntime();
+
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        vi.stubGlobal("performance", performance);
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        expect(runtime.monotonicNowMs()).toBe(101.5);
+        expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+
+        expect(performance.now).toHaveBeenCalledOnce();
+        expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
 });

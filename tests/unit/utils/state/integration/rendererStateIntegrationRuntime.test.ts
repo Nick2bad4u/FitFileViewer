@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getRendererStateIntegrationRuntime } from "../../../../../electron-app/utils/state/integration/rendererStateIntegrationRuntime.js";
 
 describe("getRendererStateIntegrationRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 
@@ -65,5 +69,35 @@ describe("getRendererStateIntegrationRuntime", () => {
         expect(() => utils.createAbortController()).toThrow(
             "rendererStateIntegration requires an AbortController runtime"
         );
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(6);
+
+        const callback = vi.fn<() => void>();
+        const delayMs = Number("5000");
+        const timer = 79 as ReturnType<typeof globalThis.setTimeout>;
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const utils = getRendererStateIntegrationRuntime();
+
+        vi.stubGlobal("AbortController", AbortControllerConstructor);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        expect(utils.createAbortController()).toBe(controller);
+        expect(utils.setTimeout(callback, delayMs)).toBe(timer);
+        utils.clearTimeout(timer);
+
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+        expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(callback).not.toHaveBeenCalled();
     });
 });

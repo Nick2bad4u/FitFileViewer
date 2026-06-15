@@ -1,15 +1,21 @@
+type StateManagerDefaultsDocumentRuntime = {
+    readonly title?: string | undefined;
+};
+
+type StateManagerDefaultsPerformanceRuntime = {
+    readonly now?: (() => number) | undefined;
+};
+
 export interface StateManagerDefaultsRuntimeScope {
     readonly dateNow?: (() => number) | undefined;
-    readonly document?:
-        | {
-              readonly title?: string | undefined;
-          }
+    readonly document?: StateManagerDefaultsDocumentRuntime | undefined;
+    readonly getDocument?:
+        | (() => StateManagerDefaultsDocumentRuntime | undefined)
         | undefined;
-    readonly performance?:
-        | {
-              readonly now?: (() => number) | undefined;
-          }
+    readonly getPerformance?:
+        | (() => StateManagerDefaultsPerformanceRuntime | undefined)
         | undefined;
+    readonly performance?: StateManagerDefaultsPerformanceRuntime | undefined;
 }
 
 export interface StateManagerDefaultsRuntime {
@@ -20,20 +26,17 @@ export interface StateManagerDefaultsRuntime {
 const defaultStateManagerDefaultsRuntimeScope: StateManagerDefaultsRuntimeScope =
     {
         dateNow: Date.now,
-        get document() {
-            return globalThis.document;
-        },
-        get performance() {
-            return globalThis.performance;
-        },
+        getDocument: () => globalThis.document,
+        getPerformance: () => globalThis.performance,
     };
 
 function getRequiredStartClock(
     scope: StateManagerDefaultsRuntimeScope
 ): () => number {
-    const performanceNow = scope.performance?.now;
+    const performance = scope.getPerformance?.() ?? scope.performance;
+    const performanceNow = performance?.now;
     if (typeof performanceNow === "function") {
-        return performanceNow.bind(scope.performance);
+        return performanceNow.bind(performance);
     }
 
     const dateNow = scope.dateNow;
@@ -49,7 +52,8 @@ export function getStateManagerDefaultsRuntime(
 ): StateManagerDefaultsRuntime {
     return {
         getDefaultDocumentTitle(): string {
-            return scope.document?.title || "Fit File Viewer";
+            const document = scope.getDocument?.() ?? scope.document;
+            return document?.title || "Fit File Viewer";
         },
         getStartTime(): number {
             return getRequiredStartClock(scope)();

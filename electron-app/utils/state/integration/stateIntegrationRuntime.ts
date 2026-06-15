@@ -9,18 +9,32 @@ export type StateIntegrationPerformanceMemory = {
     usedJSHeapSize: number;
 };
 
+type StateIntegrationPerformance = Performance & {
+    readonly memory?: StateIntegrationPerformanceMemory | undefined;
+};
+
 export interface StateIntegrationRuntimeScope {
     readonly clearInterval?: typeof globalThis.clearInterval | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly dateNow?: (() => number) | undefined;
-    readonly localStorage?: Storage | undefined;
-    readonly performance?:
-        | (Performance & {
-              readonly memory?:
-                  | StateIntegrationPerformanceMemory
-                  | undefined;
-          })
+    readonly getClearInterval?:
+        | (() => typeof globalThis.clearInterval | undefined)
         | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getLocalStorage?: (() => Storage | undefined) | undefined;
+    readonly getPerformance?:
+        | (() => StateIntegrationPerformance | undefined)
+        | undefined;
+    readonly getSetInterval?:
+        | (() => typeof globalThis.setInterval | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
+    readonly localStorage?: Storage | undefined;
+    readonly performance?: StateIntegrationPerformance | undefined;
     readonly setInterval?: typeof globalThis.setInterval | undefined;
     readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
@@ -31,35 +45,24 @@ export interface StateIntegrationRuntime {
     dateNow(): number;
     getPerformanceMemory(): StateIntegrationPerformanceMemory | undefined;
     getStorage(): Storage | undefined;
-    setInterval(callback: () => void, delayMs: number): StateIntegrationInterval;
+    setInterval(
+        callback: () => void,
+        delayMs: number
+    ): StateIntegrationInterval;
     setTimeout(callback: () => void, delayMs: number): StateIntegrationTimeout;
 }
 
 const defaultStateIntegrationRuntimeScope: StateIntegrationRuntimeScope = {
-    get clearInterval() {
-        return globalThis.clearInterval;
-    },
-    get clearTimeout() {
-        return globalThis.clearTimeout;
-    },
+    getClearInterval: () => globalThis.clearInterval,
+    getClearTimeout: () => globalThis.clearTimeout,
     dateNow: Date.now,
-    get localStorage() {
-        return globalThis.localStorage;
-    },
-    get performance() {
-        return globalThis.performance;
-    },
-    get setInterval() {
-        return globalThis.setInterval;
-    },
-    get setTimeout() {
-        return globalThis.setTimeout;
-    },
+    getLocalStorage: () => globalThis.localStorage,
+    getPerformance: () => globalThis.performance,
+    getSetInterval: () => globalThis.setInterval,
+    getSetTimeout: () => globalThis.setTimeout,
 };
 
-function getRequiredDateNow(
-    scope: StateIntegrationRuntimeScope
-): () => number {
+function getRequiredDateNow(scope: StateIntegrationRuntimeScope): () => number {
     const dateNowRef = scope.dateNow;
     if (typeof dateNowRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires dateNow");
@@ -71,7 +74,7 @@ function getRequiredDateNow(
 function getRequiredClearInterval(
     scope: StateIntegrationRuntimeScope
 ): typeof globalThis.clearInterval {
-    const clearIntervalRef = scope.clearInterval;
+    const clearIntervalRef = scope.getClearInterval?.() ?? scope.clearInterval;
     if (typeof clearIntervalRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires clearInterval");
     }
@@ -82,7 +85,7 @@ function getRequiredClearInterval(
 function getRequiredClearTimeout(
     scope: StateIntegrationRuntimeScope
 ): typeof globalThis.clearTimeout {
-    const clearTimeoutRef = scope.clearTimeout;
+    const clearTimeoutRef = scope.getClearTimeout?.() ?? scope.clearTimeout;
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires clearTimeout");
     }
@@ -93,7 +96,7 @@ function getRequiredClearTimeout(
 function getRequiredSetInterval(
     scope: StateIntegrationRuntimeScope
 ): typeof globalThis.setInterval {
-    const setIntervalRef = scope.setInterval;
+    const setIntervalRef = scope.getSetInterval?.() ?? scope.setInterval;
     if (typeof setIntervalRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires setInterval");
     }
@@ -104,7 +107,7 @@ function getRequiredSetInterval(
 function getRequiredSetTimeout(
     scope: StateIntegrationRuntimeScope
 ): typeof globalThis.setTimeout {
-    const setTimeoutRef = scope.setTimeout;
+    const setTimeoutRef = scope.getSetTimeout?.() ?? scope.setTimeout;
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("stateIntegrationRuntime requires setTimeout");
     }
@@ -129,10 +132,10 @@ export function getStateIntegrationRuntime(
             return dateNowRef();
         },
         getPerformanceMemory(): StateIntegrationPerformanceMemory | undefined {
-            return scope.performance?.memory;
+            return (scope.getPerformance?.() ?? scope.performance)?.memory;
         },
         getStorage(): Storage | undefined {
-            return scope.localStorage;
+            return scope.getLocalStorage?.() ?? scope.localStorage;
         },
         setInterval(callback, delayMs): StateIntegrationInterval {
             const setIntervalRef = getRequiredSetInterval(scope);
