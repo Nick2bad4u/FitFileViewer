@@ -4979,7 +4979,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(11);
+        expect.assertions(17);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -5010,6 +5010,24 @@ describe("architecture boundaries", () => {
         );
         expect(showFitDataRuntimeSource).not.toContain(
             "scope: ShowFitDataRuntimeScope = globalThis"
+        );
+        expect(showFitDataRuntimeSource).not.toContain(
+            "const defaultShowFitDataRuntimeScope: ShowFitDataRuntimeScope = globalThis"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "getDispatchEvent: () => globalThis.dispatchEvent"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "getMatchMedia: () => globalThis.matchMedia"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "getQueueMicrotask: () => globalThis.queueMicrotask"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "getScrollTo: () => globalThis.scrollTo"
         );
     });
 

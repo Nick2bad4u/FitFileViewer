@@ -23,6 +23,56 @@ describe("showFitDataRuntime", () => {
         expect(scrollTo).toHaveBeenCalledWith({ behavior: "auto", top: 0 });
     });
 
+    it("routes browser APIs through provider functions", () => {
+        expect.assertions(17);
+
+        const callback = vi.fn<() => void>();
+        const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
+        const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
+        const queueMicrotask = vi.fn<(callback: () => void) => void>();
+        const scrollTo = vi.fn<(options: ScrollToOptions) => void>();
+        const getCustomEvent = vi.fn(() => CustomEvent);
+        const getDispatchEvent = vi.fn(() => dispatchEvent);
+        const getMatchMedia = vi.fn(() => matchMedia);
+        const getQueueMicrotask = vi.fn(() => queueMicrotask);
+        const getScrollTo = vi.fn(() => scrollTo);
+        const runtime = getShowFitDataRuntime({
+            getCustomEvent,
+            getDispatchEvent,
+            getMatchMedia,
+            getQueueMicrotask,
+            getScrollTo,
+        });
+
+        expect(runtime.canScrollTo()).toBe(true);
+        expect(runtime.prefersReducedMotion()).toBe(true);
+        const event = runtime.createCustomEvent("fitfile-loaded", {
+            detail: { filePath: "provider.fit" },
+        });
+        expect(event).toBeInstanceOf(CustomEvent);
+        expect(event.detail).toStrictEqual({ filePath: "provider.fit" });
+        expect(runtime.dispatchEvent(event)).toBe(true);
+        runtime.queueMicrotask(callback);
+        runtime.scrollTo({ behavior: "smooth", top: 12 });
+
+        expect(getScrollTo).toHaveBeenCalledTimes(2);
+        expect(getMatchMedia).toHaveBeenCalledOnce();
+        expect(getCustomEvent).toHaveBeenCalledOnce();
+        expect(getDispatchEvent).toHaveBeenCalledOnce();
+        expect(getQueueMicrotask).toHaveBeenCalledOnce();
+        expect(matchMedia).toHaveBeenCalledWith(
+            "(prefers-reduced-motion: reduce)"
+        );
+        expect(dispatchEvent).toHaveBeenCalledWith(event);
+        expect(queueMicrotask).toHaveBeenCalledWith(callback);
+        expect(scrollTo).toHaveBeenCalledWith({ behavior: "smooth", top: 12 });
+        expect(queueMicrotask.mock.contexts[0]).toMatchObject({
+            getQueueMicrotask,
+        });
+        expect(scrollTo.mock.contexts[0]).toMatchObject({ getScrollTo });
+        expect(callback).not.toHaveBeenCalled();
+    });
+
     it("falls back when optional browser APIs are unavailable", () => {
         expect.assertions(2);
 
