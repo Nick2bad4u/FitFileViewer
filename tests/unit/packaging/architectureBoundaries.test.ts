@@ -748,6 +748,8 @@ const directStateDebugGlobalPattern =
     /\b(?:window|globalThis|windowExt|globalState|getMasterGlobal\(\))\.(?:__state_debug|__stateDebug)\b|["'](?:__state_debug|__stateDebug)["']/u;
 const directStateIntegrationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|clearTimeout|localStorage|performance|setInterval|setTimeout)\b|(?:^|[^\w.])(?:clearInterval|clearTimeout|setInterval|setTimeout)\(|\b(?:Date|performance)\.(?:now|memory)\b|\btypeof\s+(?:localStorage|performance)\b/u;
+const directStateIntegrationRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearInterval|clearTimeout|dateNow|setInterval|setTimeout)[^;\n]*\?\?\s*(?:globalThis\.(?:clearInterval|clearTimeout|setInterval|setTimeout)|Date\.now)/u;
 const directStateDevToolsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|setInterval)\b|(?:^|[^\w.])(?:clearInterval|setInterval)\(/u;
 const directStateDevToolsRuntimeAmbientIntervalFallbackPattern =
@@ -5142,7 +5144,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state integration runtime APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -5156,9 +5158,20 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/state/integration/stateIntegration.ts"
             )
         );
+        const stateIntegrationRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/stateIntegrationRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(stateIntegrationSource).toContain("stateIntegrationRuntime.js");
+        expect(stateIntegrationRuntimeSource).not.toMatch(
+            directStateIntegrationRuntimeAmbientFallbackPattern
+        );
+        expect(stateIntegrationRuntimeSource).toContain(
+            "stateIntegrationRuntime requires setTimeout"
+        );
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
