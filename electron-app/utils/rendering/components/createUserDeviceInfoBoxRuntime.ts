@@ -6,11 +6,8 @@ export interface UserDeviceInfoBoxRuntime {
     createAbortController(): AbortController;
 }
 
-const defaultUserDeviceInfoBoxRuntimeScope: UserDeviceInfoBoxRuntimeScope = {
-    get AbortController(): typeof AbortController | undefined {
-        return globalThis.AbortController;
-    },
-};
+const defaultUserDeviceInfoBoxRuntimeScope: UserDeviceInfoBoxRuntimeScope =
+    globalThis;
 
 export function getUserDeviceInfoBoxRuntime(
     scope: UserDeviceInfoBoxRuntimeScope = defaultUserDeviceInfoBoxRuntimeScope

@@ -67,8 +67,10 @@ function getRequiredSetTimeout(
     return setTimeoutRef;
 }
 
+const defaultRenderTableRuntimeScope: RenderTableRuntimeScope = globalThis;
+
 export function getRenderTableRuntime(
-    scope: RenderTableRuntimeScope = globalThis
+    scope: RenderTableRuntimeScope = defaultRenderTableRuntimeScope
 ): RenderTableRuntime {
     return {
         clearTimeout(handle: RenderTableTimerHandle): void {

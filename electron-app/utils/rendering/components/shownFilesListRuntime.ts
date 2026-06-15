@@ -48,8 +48,11 @@ export interface ShownFilesListRuntime {
     ): ShownFilesListTimerHandle;
 }
 
+const defaultShownFilesListRuntimeScope: ShownFilesListRuntimeScope =
+    globalThis;
+
 export function getShownFilesListRuntime(
-    scope: ShownFilesListRuntimeScope = globalThis
+    scope: ShownFilesListRuntimeScope = defaultShownFilesListRuntimeScope
 ): ShownFilesListRuntime {
     return {
         addBodyThemeChangeListener(

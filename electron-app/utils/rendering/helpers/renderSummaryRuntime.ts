@@ -21,8 +21,10 @@ export interface RenderSummaryRuntime {
     requestAnimationFrame(callback: FrameRequestCallback): null | number;
 }
 
+const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = globalThis;
+
 export function getRenderSummaryRuntime(
-    scope: RenderSummaryRuntimeScope = globalThis
+    scope: RenderSummaryRuntimeScope = defaultRenderSummaryRuntimeScope
 ): RenderSummaryRuntime {
     return {
         addResizeListener(

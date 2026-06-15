@@ -4748,11 +4748,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/rendering/core/showFitData.ts"
+            )
+        );
+        const showFitDataRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/core/showFitDataRuntime.ts"
             )
         );
 
@@ -4769,6 +4774,12 @@ describe("architecture boundaries", () => {
             /\bglobalThis\.dispatchEvent\b|\bnew\s+CustomEvent\b/u
         );
         expect(showFitDataSource).toContain("showFitDataRuntime.dispatchEvent");
+        expect(showFitDataRuntimeSource).toContain(
+            "defaultShowFitDataRuntimeScope"
+        );
+        expect(showFitDataRuntimeSource).not.toContain(
+            "scope: ShowFitDataRuntimeScope = globalThis"
+        );
     });
 
     it("keeps map base-layer persistence on the map base-layer state facade", () => {
@@ -5722,7 +5733,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps table renderer browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedRenderTableRuntimeFiles
             .filter((relativeFile) =>
@@ -5746,6 +5757,12 @@ describe("architecture boundaries", () => {
         expect(renderTableSource).toContain("renderTableRuntime.js");
         expect(renderTableRuntimeSource).not.toMatch(
             directRenderTableRuntimeAmbientTimerFallbackPattern
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "defaultRenderTableRuntimeScope"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
+            "scope: RenderTableRuntimeScope = globalThis"
         );
         expect(renderTableRuntimeSource).toContain(
             "renderTable requires a setTimeout runtime"
@@ -7637,7 +7654,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps summary column modal viewport reads behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -7651,14 +7668,25 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/helpers/summaryColModal.ts"
             )
         );
+        const summaryColModalRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/helpers/summaryColModalRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(summaryColModalSource).toContain("summaryColModalRuntime.js");
         expect(summaryColModalSource).toContain("createAbortController");
+        expect(summaryColModalRuntimeSource).toContain(
+            "defaultSummaryColModalRuntimeScope"
+        );
+        expect(summaryColModalRuntimeSource).not.toContain(
+            "scope: SummaryColModalRuntimeScope = globalThis"
+        );
     });
 
     it("keeps user/device info box listener cleanup behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedUserDeviceInfoBoxRuntimeFiles
             .filter((relativeFile) =>
@@ -7686,10 +7714,13 @@ describe("architecture boundaries", () => {
         expect(userDeviceInfoBoxRuntimeSource).toContain(
             "defaultUserDeviceInfoBoxRuntimeScope"
         );
+        expect(userDeviceInfoBoxRuntimeSource).not.toContain(
+            "globalThis.AbortController"
+        );
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -7703,10 +7734,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts"
             )
         );
+        const renderSummaryRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/helpers/renderSummaryRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(renderSummarySource).toContain("renderSummaryRuntime.js");
         expect(renderSummarySource).toContain("createAbortController");
+        expect(renderSummaryRuntimeSource).toContain(
+            "defaultRenderSummaryRuntimeScope"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "scope: RenderSummaryRuntimeScope = globalThis"
+        );
     });
 
     it("keeps controls-state computed style reads behind the runtime facade", () => {
@@ -8244,7 +8286,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -8267,6 +8309,12 @@ describe("architecture boundaries", () => {
         expect(sourcesMissingRuntime).toStrictEqual([]);
         expect(shownFilesListRuntimeSource).toContain(
             "const body = scope.document?.body;"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "defaultShownFilesListRuntimeScope"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "scope: ShownFilesListRuntimeScope = globalThis"
         );
         expect(shownFilesListRuntimeSource).not.toContain(
             "globalThis.document"

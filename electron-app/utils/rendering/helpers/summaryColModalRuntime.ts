@@ -14,8 +14,11 @@ export interface SummaryColModalRuntime {
     getViewport(): SummaryColModalViewport;
 }
 
+const defaultSummaryColModalRuntimeScope: SummaryColModalRuntimeScope =
+    globalThis;
+
 export function getSummaryColModalRuntime(
-    scope: SummaryColModalRuntimeScope = globalThis
+    scope: SummaryColModalRuntimeScope = defaultSummaryColModalRuntimeScope
 ): SummaryColModalRuntime {
     return {
         createAbortController(): AbortController {

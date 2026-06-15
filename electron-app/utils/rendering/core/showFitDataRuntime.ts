@@ -40,8 +40,10 @@ function getDispatchEvent(
     return dispatchEvent;
 }
 
+const defaultShowFitDataRuntimeScope: ShowFitDataRuntimeScope = globalThis;
+
 export function getShowFitDataRuntime(
-    scope: ShowFitDataRuntimeScope = globalThis
+    scope: ShowFitDataRuntimeScope = defaultShowFitDataRuntimeScope
 ): ShowFitDataRuntime {
     return {
         canScrollTo(): boolean {
