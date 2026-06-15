@@ -20,8 +20,37 @@ export interface MainProcessStateRuntime {
     ) => MainProcessStateTimer;
 }
 
+const defaultMainProcessStateRuntimeScope: MainProcessStateRuntimeScope = {
+    get clearTimeout() {
+        return globalThis.clearTimeout.bind(globalThis);
+    },
+    dateNow: Date.now,
+    get performance() {
+        return globalThis.performance;
+    },
+    get setTimeout() {
+        return globalThis.setTimeout.bind(globalThis);
+    },
+};
+
+function getRequiredMonotonicNow(
+    scope: MainProcessStateRuntimeScope
+): () => number {
+    const performanceNow = scope.performance?.now;
+    if (typeof performanceNow === "function") {
+        return performanceNow.bind(scope.performance);
+    }
+
+    const dateNow = scope.dateNow;
+    if (typeof dateNow === "function") {
+        return dateNow;
+    }
+
+    throw new TypeError("mainProcessStateRuntime requires a clock");
+}
+
 export function getMainProcessStateRuntime(
-    scope: MainProcessStateRuntimeScope = globalThis
+    scope: MainProcessStateRuntimeScope = defaultMainProcessStateRuntimeScope
 ): MainProcessStateRuntime {
     return {
         clearTimeout(handle): void {
@@ -35,7 +64,7 @@ export function getMainProcessStateRuntime(
             clearTimeoutRef(handle);
         },
         monotonicNowMs(): number {
-            return scope.performance?.now?.() ?? scope.dateNow?.() ?? Date.now();
+            return getRequiredMonotonicNow(scope)();
         },
         setTimeout(callback, delayMs): MainProcessStateTimer {
             const setTimeoutRef = scope.setTimeout;

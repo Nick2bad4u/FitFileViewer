@@ -1159,6 +1159,8 @@ const directRendererTestOnlyBootstrapRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directLastAnimLogRuntimeGlobalPattern =
     /\bDate\.now\b|\bperformance\.now\b/u;
+const directRuntimeAmbientClockFallbackPattern =
+    /\?\?\s*(?:Date\.now\(\)|globalThis\.performance\.now\(\))/u;
 const directRendererVendorBundleLoaderRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|createElement|head|querySelector|removeEventListener|setTimeout)\b|\bDate\.now\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererVendorBundleLoaderRuntimeAmbientFallbackPattern =
@@ -2297,7 +2299,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
@@ -2331,8 +2333,14 @@ describe("architecture boundaries", () => {
         expect(mainProcessStateRuntimeSource).not.toMatch(
             directMainProcessStateRuntimeAmbientTimerFallbackPattern
         );
+        expect(mainProcessStateRuntimeSource).not.toMatch(
+            directRuntimeAmbientClockFallbackPattern
+        );
         expect(mainProcessStateRuntimeSource).toContain(
             "mainProcessStateRuntime requires setTimeout"
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "mainProcessStateRuntime requires a clock"
         );
     });
 
@@ -4180,11 +4188,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {
-        expect.assertions(6);
+        expect.assertions(9);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartJS.ts"
+            )
+        );
+        const renderChartRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartJSRuntime.ts"
             )
         );
 
@@ -4194,6 +4207,15 @@ describe("architecture boundaries", () => {
         expect(renderChartSource).not.toContain("globalThis.window");
         expect(renderChartSource).not.toContain("performance.now");
         expect(renderChartSource).not.toContain("Date.now");
+        expect(renderChartRuntimeSource).not.toMatch(
+            directRuntimeAmbientClockFallbackPattern
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "renderChartJSRuntime requires dateNow"
+        );
+        expect(renderChartRuntimeSource).toContain(
+            "defaultRenderChartJSRuntimeScope"
+        );
     });
 
     it("keeps chart render helpers on the chart state access boundary", () => {
@@ -4682,11 +4704,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state-manager defaults on scoped runtime access", () => {
-        expect.assertions(5);
+        expect.assertions(8);
 
         const stateManagerDefaultsSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/core/stateManagerDefaults.ts"
+            )
+        );
+        const stateManagerDefaultsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateManagerDefaultsRuntime.ts"
             )
         );
 
@@ -4699,6 +4726,15 @@ describe("architecture boundaries", () => {
         expect(stateManagerDefaultsSource).not.toContain("Date.now");
         expect(stateManagerDefaultsSource).not.toContain("typeof document");
         expect(stateManagerDefaultsSource).not.toContain("document.title");
+        expect(stateManagerDefaultsRuntimeSource).not.toMatch(
+            directRuntimeAmbientClockFallbackPattern
+        );
+        expect(stateManagerDefaultsRuntimeSource).toContain(
+            "stateManagerDefaultsRuntime requires a clock"
+        );
+        expect(stateManagerDefaultsRuntimeSource).toContain(
+            "defaultStateManagerDefaultsRuntimeScope"
+        );
     });
 
     it("keeps Playwright smoke state assertions on explicit FIT activity slices", () => {
@@ -4945,16 +4981,28 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps animation debug logging clocks behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const lastAnimLogSource = stripComments(
             readRepositoryFile("electron-app/utils/debug/lastAnimLog.ts")
+        );
+        const lastAnimLogRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/debug/lastAnimLogRuntime.ts")
         );
 
         expect(
             directLastAnimLogRuntimeGlobalPattern.test(lastAnimLogSource)
         ).toBe(false);
         expect(lastAnimLogSource).toContain("lastAnimLogRuntime.js");
+        expect(lastAnimLogRuntimeSource).not.toMatch(
+            directRuntimeAmbientClockFallbackPattern
+        );
+        expect(lastAnimLogRuntimeSource).toContain(
+            "lastAnimLogRuntime requires dateNow"
+        );
+        expect(lastAnimLogRuntimeSource).toContain(
+            "lastAnimLogRuntime requires performance.now"
+        );
     });
 
     it("keeps animation debug logging tests off renderer dev globals", () => {

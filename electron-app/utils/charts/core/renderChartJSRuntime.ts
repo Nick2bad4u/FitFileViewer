@@ -10,8 +10,38 @@ export interface RenderChartJSRuntime {
     nowPerformance: () => number;
 }
 
+const defaultRenderChartJSRuntimeScope: RenderChartJSRuntimeScope = {
+    dateNow: Date.now,
+    get performance() {
+        return globalThis.performance;
+    },
+    get window() {
+        return globalThis.window;
+    },
+};
+
+function getRequiredDateNow(scope: RenderChartJSRuntimeScope): () => number {
+    const dateNow = scope.dateNow;
+    if (typeof dateNow !== "function") {
+        throw new TypeError("renderChartJSRuntime requires dateNow");
+    }
+
+    return dateNow;
+}
+
+function getRequiredPerformanceNow(
+    scope: RenderChartJSRuntimeScope
+): () => number {
+    const performanceNow = scope.performance?.now;
+    if (typeof performanceNow !== "function") {
+        return getRequiredDateNow(scope);
+    }
+
+    return performanceNow.bind(scope.performance);
+}
+
 export function getRenderChartJSRuntime(
-    scope: RenderChartJSRuntimeScope = globalThis
+    scope: RenderChartJSRuntimeScope = defaultRenderChartJSRuntimeScope
 ): RenderChartJSRuntime {
     return {
         isWindowAvailable(): boolean {
@@ -19,11 +49,11 @@ export function getRenderChartJSRuntime(
         },
 
         now(): number {
-            return scope.dateNow?.() ?? Date.now();
+            return getRequiredDateNow(scope)();
         },
 
         nowPerformance(): number {
-            return scope.performance?.now() ?? this.now();
+            return getRequiredPerformanceNow(scope)();
         },
     };
 }

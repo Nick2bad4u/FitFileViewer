@@ -35,6 +35,19 @@ describe("renderChartJSRuntime", () => {
         expect(utils.now()).toBe(5678);
     });
 
+    it("does not borrow ambient date clocks for explicit scopes", () => {
+        expect.assertions(2);
+
+        const utils = getRenderChartJSRuntime({});
+
+        expect(() => utils.now()).toThrow(
+            "renderChartJSRuntime requires dateNow"
+        );
+        expect(() => utils.nowPerformance()).toThrow(
+            "renderChartJSRuntime requires dateNow"
+        );
+    });
+
     it("reports window availability through the scoped runtime", () => {
         expect.assertions(2);
 

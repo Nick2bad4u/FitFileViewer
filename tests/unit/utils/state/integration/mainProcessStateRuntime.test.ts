@@ -24,6 +24,14 @@ describe("mainProcessStateRuntime", () => {
         ).toBe(123);
     });
 
+    it("does not borrow ambient clocks for explicit scopes", () => {
+        expect.assertions(1);
+
+        expect(() => getMainProcessStateRuntime({}).monotonicNowMs()).toThrow(
+            "mainProcessStateRuntime requires a clock"
+        );
+    });
+
     it("schedules and clears timers through the injected runtime scope", () => {
         expect.assertions(3);
 

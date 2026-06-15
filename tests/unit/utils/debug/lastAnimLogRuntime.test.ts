@@ -24,4 +24,17 @@ describe("getLastAnimLogRuntime", () => {
         expect(utils.performanceNow()).toBe(56.78);
         expect(now).toHaveBeenCalledOnce();
     });
+
+    it("does not borrow ambient clocks for explicit scopes", () => {
+        expect.assertions(2);
+
+        const utils = getLastAnimLogRuntime({});
+
+        expect(() => utils.dateNow()).toThrow(
+            "lastAnimLogRuntime requires dateNow"
+        );
+        expect(() => utils.performanceNow()).toThrow(
+            "lastAnimLogRuntime requires performance.now"
+        );
+    });
 });

@@ -24,6 +24,14 @@ describe("stateManagerDefaultsRuntime", () => {
         ).toBe(123);
     });
 
+    it("does not borrow ambient clocks for explicit scopes", () => {
+        expect.assertions(1);
+
+        expect(() => getStateManagerDefaultsRuntime({}).getStartTime()).toThrow(
+            "stateManagerDefaultsRuntime requires a clock"
+        );
+    });
+
     it("resolves document titles with the default fallback", () => {
         expect.assertions(3);
 

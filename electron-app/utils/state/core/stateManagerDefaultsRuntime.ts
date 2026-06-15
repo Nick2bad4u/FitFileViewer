@@ -17,15 +17,42 @@ export interface StateManagerDefaultsRuntime {
     getStartTime: () => number;
 }
 
+const defaultStateManagerDefaultsRuntimeScope: StateManagerDefaultsRuntimeScope =
+    {
+        dateNow: Date.now,
+        get document() {
+            return globalThis.document;
+        },
+        get performance() {
+            return globalThis.performance;
+        },
+    };
+
+function getRequiredStartClock(
+    scope: StateManagerDefaultsRuntimeScope
+): () => number {
+    const performanceNow = scope.performance?.now;
+    if (typeof performanceNow === "function") {
+        return performanceNow.bind(scope.performance);
+    }
+
+    const dateNow = scope.dateNow;
+    if (typeof dateNow === "function") {
+        return dateNow;
+    }
+
+    throw new TypeError("stateManagerDefaultsRuntime requires a clock");
+}
+
 export function getStateManagerDefaultsRuntime(
-    scope: StateManagerDefaultsRuntimeScope = globalThis
+    scope: StateManagerDefaultsRuntimeScope = defaultStateManagerDefaultsRuntimeScope
 ): StateManagerDefaultsRuntime {
     return {
         getDefaultDocumentTitle(): string {
             return scope.document?.title || "Fit File Viewer";
         },
         getStartTime(): number {
-            return scope.performance?.now?.() ?? scope.dateNow?.() ?? Date.now();
+            return getRequiredStartClock(scope)();
         },
     };
 }
