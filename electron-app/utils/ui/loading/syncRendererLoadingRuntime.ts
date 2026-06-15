@@ -23,6 +23,9 @@ export interface SyncRendererLoadingRuntime {
     setBodyLoading: (loading: boolean) => void;
 }
 
+const defaultSyncRendererLoadingRuntimeScope: SyncRendererLoadingRuntimeScope =
+    globalThis;
+
 function getDocument(scope: SyncRendererLoadingRuntimeScope): Document {
     const runtimeDocument = scope.document;
     if (!runtimeDocument) {
@@ -42,11 +45,7 @@ function getConstructor<K extends keyof Pick<
     scope: SyncRendererLoadingRuntimeScope,
     name: K
 ): NonNullable<SyncRendererLoadingRuntimeScope[K]> | undefined {
-    return (
-        scope[name] ??
-        scope.document?.defaultView?.[name] ??
-        globalThis[name]
-    );
+    return scope[name] ?? scope.document?.defaultView?.[name];
 }
 
 function isInstanceOfConstructor<K extends keyof Pick<
@@ -65,7 +64,7 @@ function isInstanceOfConstructor<K extends keyof Pick<
 }
 
 export function getSyncRendererLoadingRuntime(
-    scope: SyncRendererLoadingRuntimeScope = globalThis
+    scope: SyncRendererLoadingRuntimeScope = defaultSyncRendererLoadingRuntimeScope
 ): SyncRendererLoadingRuntime {
     return {
         getInteractiveElements(): Element[] {

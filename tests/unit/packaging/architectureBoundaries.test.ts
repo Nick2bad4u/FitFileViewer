@@ -1247,7 +1247,7 @@ const directCreateFieldTogglesSectionRuntimeAmbientFallbackPattern =
 const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|dispatchEvent)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\b|\bglobalThis\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\b/u;
+    /\bscope\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\b|\bglobalThis\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\b|\bscope:\s*CreateInlineZoneColorSelectorRuntimeScope\s*=\s*globalThis\b/u;
 const directOpenZoneColorPickerRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.dispatchEvent\b|\bnew\s+CustomEvent\b/u;
 const directOpenZoneColorPickerRuntimeAmbientFallbackPattern =
@@ -1302,6 +1302,8 @@ const directLoadingOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|querySelector)\b/u;
 const directSyncRendererLoadingRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|querySelector|querySelectorAll)\b|\binstanceof\s+(?:HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b/u;
+const directSyncRendererLoadingRuntimeAmbientFallbackPattern =
+    /\bscope:\s*SyncRendererLoadingRuntimeScope\s*=\s*globalThis\b|\bglobalThis\s*\[\s*name\s*\]/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -4107,7 +4109,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -4133,6 +4135,12 @@ describe("architecture boundaries", () => {
         );
         expect(inlineZoneSelectorRuntimeSource).not.toMatch(
             directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "defaultCreateInlineZoneColorSelectorRuntimeScope"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "scope: CreateInlineZoneColorSelectorRuntimeScope = globalThis"
         );
         expect(inlineZoneSelectorRuntimeSource).toContain(
             "createInlineZoneColorSelector requires a setTimeout runtime"
@@ -6660,7 +6668,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer loading sync DOM APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const violations = migratedSyncRendererLoadingRuntimeFiles
             .filter((relativeFile) =>
@@ -6674,10 +6682,24 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/loading/syncRendererLoading.ts"
             )
         );
+        const syncRendererLoadingRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/loading/syncRendererLoadingRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(syncRendererLoadingSource).toContain(
             "syncRendererLoadingRuntime.js"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toMatch(
+            directSyncRendererLoadingRuntimeAmbientFallbackPattern
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "defaultSyncRendererLoadingRuntimeScope"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "scope: SyncRendererLoadingRuntimeScope = globalThis"
         );
     });
 
@@ -8644,7 +8666,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps credits marquee browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedCreditsMarqueeRuntimeFiles
             .filter((relativeFile) =>
@@ -8658,12 +8680,23 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/layout/enhanceCreditsSection.ts"
             )
         );
+        const creditsMarqueeRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/layout/enhanceCreditsSectionRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(enhanceCreditsSectionSource).toContain(
             "enhanceCreditsSectionRuntime.js"
         );
         expect(enhanceCreditsSectionSource).toContain("createAbortController");
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "defaultCreditsMarqueeRuntimeScope"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "scope: CreditsMarqueeRuntimeScope = globalThis"
+        );
     });
 
     it("keeps credits marquee tests on explicit runtime fixtures", () => {

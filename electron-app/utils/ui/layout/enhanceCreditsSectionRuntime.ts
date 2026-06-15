@@ -49,6 +49,9 @@ export interface CreditsMarqueeRuntime {
     ) => CreditsMarqueeAnimationFrameHandle | undefined;
 }
 
+const defaultCreditsMarqueeRuntimeScope: CreditsMarqueeRuntimeScope =
+    globalThis;
+
 function getDocument(scope: CreditsMarqueeRuntimeScope): Document {
     const runtimeDocument = scope.document;
     if (!runtimeDocument) {
@@ -76,7 +79,7 @@ function isHTMLElement(
 }
 
 export function getCreditsMarqueeRuntime(
-    scope: CreditsMarqueeRuntimeScope = globalThis
+    scope: CreditsMarqueeRuntimeScope = defaultCreditsMarqueeRuntimeScope
 ): CreditsMarqueeRuntime {
     return {
         addResizeListener(

@@ -29,6 +29,9 @@ export interface CreateInlineZoneColorSelectorRuntime {
     ) => ReturnType<typeof setTimeout>;
 }
 
+const defaultCreateInlineZoneColorSelectorRuntimeScope: CreateInlineZoneColorSelectorRuntimeScope =
+    globalThis;
+
 function getAbortControllerConstructor(
     scope: CreateInlineZoneColorSelectorRuntimeScope
 ): typeof AbortController {
@@ -118,7 +121,7 @@ function getRequiredSetTimeout(
 }
 
 export function getCreateInlineZoneColorSelectorRuntime(
-    scope: CreateInlineZoneColorSelectorRuntimeScope = globalThis
+    scope: CreateInlineZoneColorSelectorRuntimeScope = defaultCreateInlineZoneColorSelectorRuntimeScope
 ): CreateInlineZoneColorSelectorRuntime {
     return {
         createAbortController(): AbortController {
