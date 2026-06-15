@@ -7,6 +7,7 @@ import {
     registerTestDOMContentLoadedSetupListener,
     registerTestWindowLoadThemeSetupListener,
 } from "../../../electron-app/renderer/testOnlyBootstrap.js";
+import { getRendererTestOnlyBootstrapRuntime } from "../../../electron-app/renderer/testOnlyBootstrapRuntime.js";
 
 function createOptions(overrides: Record<string, unknown> = {}) {
     const openFileButton = document.createElement("button");
@@ -178,6 +179,18 @@ describe("renderer test-only bootstrap wiring", () => {
         expect(abortLoad).toHaveBeenCalledOnce();
         expect(domAbortController.signal.aborted).toBe(true);
         expect(loadAbortController.signal.aborted).toBe(true);
+    });
+
+    it("fails clearly when the AbortController runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRendererTestOnlyBootstrapRuntime({});
+
+        expect(() => {
+            utils.createAbortController();
+        }).toThrow(
+            "renderer test-only bootstrap requires an AbortController runtime"
+        );
     });
 
     it("registers the combined renderer test-only bootstrap listeners", () => {

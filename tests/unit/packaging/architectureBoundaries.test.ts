@@ -7655,7 +7655,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer test-only bootstrap abort controllers behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedRendererTestOnlyBootstrapRuntimeFiles
             .filter((relativeFile) =>
@@ -7667,10 +7667,18 @@ describe("architecture boundaries", () => {
         const testOnlyBootstrapSource = stripComments(
             readRepositoryFile("electron-app/renderer/testOnlyBootstrap.ts")
         );
+        const testOnlyBootstrapRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/testOnlyBootstrapRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(testOnlyBootstrapSource).toContain(
             "testOnlyBootstrapRuntime.js"
+        );
+        expect(testOnlyBootstrapRuntimeSource).toContain(
+            "defaultRendererTestOnlyBootstrapRuntimeScope"
         );
     });
 

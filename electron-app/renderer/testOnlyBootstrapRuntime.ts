@@ -6,8 +6,15 @@ export interface RendererTestOnlyBootstrapRuntime {
     createAbortController(): AbortController;
 }
 
+const defaultRendererTestOnlyBootstrapRuntimeScope: RendererTestOnlyBootstrapRuntimeScope =
+    {
+        get AbortController() {
+            return globalThis.AbortController;
+        },
+    };
+
 export function getRendererTestOnlyBootstrapRuntime(
-    scope: RendererTestOnlyBootstrapRuntimeScope = globalThis
+    scope: RendererTestOnlyBootstrapRuntimeScope = defaultRendererTestOnlyBootstrapRuntimeScope
 ): RendererTestOnlyBootstrapRuntime {
     return {
         createAbortController(): AbortController {
