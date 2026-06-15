@@ -25,6 +25,16 @@ function createStorage(
 }
 
 describe("storage utilities", () => {
+    it("resolves ambient localStorage through the default provider", () => {
+        expect.assertions(2);
+
+        const storage = createStorage({ existing: "ambient" });
+        vi.stubGlobal("localStorage", storage);
+
+        expect(resolveStorage()).toBe(storage);
+        expect(safeStorageGetItem("existing")).toBe("ambient");
+    });
+
     it("resolves injected storage and rejects unusable providers", () => {
         expect.assertions(3);
 

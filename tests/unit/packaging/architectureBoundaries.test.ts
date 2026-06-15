@@ -3652,6 +3652,23 @@ describe("architecture boundaries", () => {
         expect(stateMiddlewareSource).toContain("stateStorageRuntime.setItem");
     });
 
+    it("keeps generic storage utilities on provider-based ambient storage lookup", () => {
+        expect.assertions(4);
+
+        const storageUtilsSource = stripComments(
+            readRepositoryFile("electron-app/utils/storage/storageUtils.ts")
+        );
+
+        expect(storageUtilsSource).not.toContain(
+            "const scope = globalThis as GlobalWithStorage"
+        );
+        expect(storageUtilsSource).not.toContain("type GlobalWithStorage");
+        expect(storageUtilsSource).toContain("defaultStorageProvider");
+        expect(storageUtilsSource).toContain(
+            'Reflect.get(globalThis, "localStorage")'
+        );
+    });
+
     it("keeps the legacy appState domain manager removed", () => {
         expect.assertions(1);
 

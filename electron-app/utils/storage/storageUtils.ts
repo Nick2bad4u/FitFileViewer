@@ -20,9 +20,8 @@ export type StorageLike = {
  */
 export type StorageProvider = () => null | StorageLike;
 
-type GlobalWithStorage = typeof globalThis & {
-    localStorage?: StorageLike;
-};
+const defaultStorageProvider: StorageProvider = () =>
+    Reflect.get(globalThis, "localStorage") ?? null;
 
 /**
  * Resolve an injected storage provider or the current global localStorage.
@@ -35,11 +34,8 @@ export function resolveStorage(
     getStorage?: StorageProvider
 ): null | StorageLike {
     try {
-        const scope = globalThis as GlobalWithStorage;
         const storage =
-            getStorage === undefined
-                ? (scope.localStorage ?? null)
-                : getStorage();
+            getStorage === undefined ? defaultStorageProvider() : getStorage();
 
         if (typeof storage !== "object" || storage === null) {
             return null;
