@@ -6169,7 +6169,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps DOM helper listener cleanup behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const domHelpersSource = stripComments(
             readRepositoryFile("electron-app/utils/dom/domHelpers.ts")
@@ -6184,6 +6184,12 @@ describe("architecture boundaries", () => {
         expect(domHelpersSource).toContain("domHelpersRuntime.js");
         expect(domHelpersRuntimeSource).toContain(
             "defaultDomHelpersRuntimeScope"
+        );
+        expect(domHelpersRuntimeSource).not.toContain(
+            "const defaultDomHelpersRuntimeScope: DomHelpersRuntimeScope = globalThis"
+        );
+        expect(domHelpersRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
         );
         expect(domHelpersRuntimeSource).not.toMatch(
             directDomHelpersRuntimeAmbientGetterPattern

@@ -29,6 +29,37 @@ describe("getDomHelpersRuntime", () => {
         expect(controllerCount).toBe(1);
     });
 
+    it("creates abort controllers through provider functions", () => {
+        expect.assertions(3);
+
+        let providerCount = 0;
+        let controllerCount = 0;
+        const signal = Symbol("dom-helpers-provider-signal");
+        class TestAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public constructor() {
+                controllerCount += 1;
+            }
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const runtime = getDomHelpersRuntime({
+            getAbortController: () => {
+                providerCount += 1;
+                return TestAbortController;
+            },
+        });
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(providerCount).toBe(1);
+        expect(controllerCount).toBe(1);
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
