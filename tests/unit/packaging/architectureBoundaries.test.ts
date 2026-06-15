@@ -1187,7 +1187,7 @@ const directRendererVendorBundleLoaderRuntimeAmbientFallbackPattern =
 const directNetworkUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:fetch|clearTimeout|setTimeout|AbortController)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:fetch|clearTimeout|setTimeout)\(/u;
 const directNetworkUtilsRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:clearTimeout|fetch|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|fetch|setTimeout)\b/u;
+    /\bscope\.(?:AbortController|clearTimeout|fetch|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|clearTimeout|fetch|setTimeout)\b|\breturn\s+globalThis\.(?:AbortController|clearTimeout|fetch|setTimeout)\b/u;
 const directPerformanceUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\b|(?<!function\s)(?<![\w.])(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\(|\bDate\.now\(/u;
 const directPerformanceUtilsRuntimeAmbientFallbackPattern =

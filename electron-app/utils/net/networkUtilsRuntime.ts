@@ -19,20 +19,7 @@ export interface NetworkUtilsRuntime {
     setTimeout(callback: () => void, delay: number): NetworkUtilsTimerHandle;
 }
 
-const defaultNetworkUtilsRuntimeScope: NetworkUtilsRuntimeScope = {
-    get AbortController() {
-        return globalThis.AbortController;
-    },
-    get clearTimeout() {
-        return globalThis.clearTimeout;
-    },
-    get fetch() {
-        return globalThis.fetch;
-    },
-    get setTimeout() {
-        return globalThis.setTimeout;
-    },
-};
+const defaultNetworkUtilsRuntimeScope: NetworkUtilsRuntimeScope = globalThis;
 
 export function getNetworkUtilsRuntime(
     scope: NetworkUtilsRuntimeScope = defaultNetworkUtilsRuntimeScope
