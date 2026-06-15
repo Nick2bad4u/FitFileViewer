@@ -5351,7 +5351,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -5380,6 +5380,9 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationRuntimeSource).not.toMatch(
             directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "defaultRendererStateIntegrationRuntimeScope"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "rendererStateIntegration requires a setTimeout runtime"

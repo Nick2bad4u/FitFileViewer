@@ -17,6 +17,19 @@ export interface RendererStateIntegrationRuntime {
     ): RendererStateIntegrationTimer;
 }
 
+const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRuntimeScope =
+    {
+        get AbortController() {
+            return globalThis.AbortController;
+        },
+        get clearTimeout() {
+            return globalThis.clearTimeout;
+        },
+        get setTimeout() {
+            return globalThis.setTimeout;
+        },
+    };
+
 function getAbortControllerConstructor(
     scope: RendererStateIntegrationRuntimeScope
 ): typeof AbortController {
@@ -31,7 +44,7 @@ function getAbortControllerConstructor(
 }
 
 export function getRendererStateIntegrationRuntime(
-    scope: RendererStateIntegrationRuntimeScope = globalThis
+    scope: RendererStateIntegrationRuntimeScope = defaultRendererStateIntegrationRuntimeScope
 ): RendererStateIntegrationRuntime {
     return {
         clearTimeout(timer): void {
