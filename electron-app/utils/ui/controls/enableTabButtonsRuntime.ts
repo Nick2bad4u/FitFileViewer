@@ -91,8 +91,11 @@ function getRequiredSetTimeout(
     return scheduleTimer;
 }
 
+const defaultEnableTabButtonsRuntimeScope: EnableTabButtonsRuntimeScope =
+    globalThis;
+
 export function getEnableTabButtonsRuntime(
-    scope: EnableTabButtonsRuntimeScope = globalThis
+    scope: EnableTabButtonsRuntimeScope = defaultEnableTabButtonsRuntimeScope
 ): EnableTabButtonsRuntime {
     return {
         clearTimeout(handle: ReturnType<typeof setTimeout>): void {

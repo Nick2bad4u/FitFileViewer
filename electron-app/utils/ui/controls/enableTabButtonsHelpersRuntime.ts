@@ -20,8 +20,11 @@ export interface EnableTabButtonsHelpersRuntime {
     queryTabButtons(): HTMLElement[];
 }
 
+const defaultEnableTabButtonsHelpersRuntimeScope: EnableTabButtonsHelpersRuntimeScope =
+    globalThis;
+
 export function getEnableTabButtonsHelpersRuntime(
-    scope: EnableTabButtonsHelpersRuntimeScope = globalThis
+    scope: EnableTabButtonsHelpersRuntimeScope = defaultEnableTabButtonsHelpersRuntimeScope
 ): EnableTabButtonsHelpersRuntime {
     return {
         getComputedStyle(element: Element): CSSStyleDeclaration | undefined {

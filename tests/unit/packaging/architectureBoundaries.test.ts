@@ -7917,7 +7917,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button debug runtime checks behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedEnableTabButtonsDebugRuntimeFiles
             .filter((relativeFile) =>
@@ -7945,12 +7945,18 @@ describe("architecture boundaries", () => {
             directEnableTabButtonsDebugRuntimeAmbientFallbackPattern
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "defaultEnableTabButtonsDebugRuntimeScope"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "scope: EnableTabButtonsDebugRuntimeScope = globalThis"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
             "enableTabButtonsDebug requires a setTimeout runtime"
         );
     });
 
     it("keeps tab-button state browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedEnableTabButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -7976,12 +7982,18 @@ describe("architecture boundaries", () => {
             directEnableTabButtonsRuntimeAmbientTimerFallbackPattern
         );
         expect(enableTabButtonsRuntimeSource).toContain(
+            "defaultEnableTabButtonsRuntimeScope"
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
+            "scope: EnableTabButtonsRuntimeScope = globalThis"
+        );
+        expect(enableTabButtonsRuntimeSource).toContain(
             "enableTabButtons requires a setTimeout runtime"
         );
     });
 
     it("keeps tab-button helper DOM reads behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedEnableTabButtonsHelpersRuntimeFiles
             .filter((relativeFile) =>
@@ -7995,10 +8007,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/enableTabButtonsHelpers.ts"
             )
         );
+        const enableTabButtonsHelpersRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/enableTabButtonsHelpersRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(enableTabButtonsHelpersSource).toContain(
             "enableTabButtonsHelpersRuntime.js"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            "defaultEnableTabButtonsHelpersRuntimeScope"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
+            "scope: EnableTabButtonsHelpersRuntimeScope = globalThis"
         );
     });
 
