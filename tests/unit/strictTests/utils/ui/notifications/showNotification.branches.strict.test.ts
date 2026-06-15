@@ -15,8 +15,6 @@ import type {
 import * as notifMod from "../../../../../../electron-app/utils/ui/notifications/showNotification.js";
 
 describe("showNotification.js - branches (strict)", () => {
-    const originalRAF = window.requestAnimationFrame;
-
     beforeEach(() => {
         vi.useFakeTimers();
         vi.restoreAllMocks();
@@ -44,7 +42,6 @@ describe("showNotification.js - branches (strict)", () => {
             // ignore when no pending timers
         }
         vi.useRealTimers();
-        window.requestAnimationFrame = originalRAF;
         document.body.replaceChildren();
         clearAllNotifications();
         __testResetNotifications();

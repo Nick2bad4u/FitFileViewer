@@ -1,36 +1,21 @@
-{
-    type PreloadModuleRegistry =
-        import("./preloadModuleTypes").PreloadModuleRegistry;
-    type PreloadModuleRequire =
-        import("./preloadModuleTypes").PreloadModuleRequire;
-    type PreloadFileModules = Pick<
-        PreloadModuleRegistry,
-        "createFileApi" | "createFitBrowserApi"
-    >;
+import { createFileApi } from "./fileApi.js";
+import { createFitBrowserApi } from "./fitBrowserApi.js";
 
-    interface LoadPreloadFileModulesOptions {
-        requireModule: PreloadModuleRequire;
-    }
+type PreloadModuleRegistry =
+    import("./preloadModuleTypes").PreloadModuleRegistry;
+type PreloadFileModules = Pick<
+    PreloadModuleRegistry,
+    "createFileApi" | "createFitBrowserApi"
+>;
 
-    function loadPreloadFileModules({
-        requireModule,
-    }: LoadPreloadFileModulesOptions): PreloadFileModules {
-        const { createFitBrowserApi } = requireModule(
-            "./preload/fitBrowserApi.js"
-        ) as {
-            createFitBrowserApi: PreloadModuleRegistry["createFitBrowserApi"];
-        };
-        const { createFileApi } = requireModule("./preload/fileApi.js") as {
-            createFileApi: PreloadModuleRegistry["createFileApi"];
-        };
+const createFileApiModule =
+    createFileApi as unknown as PreloadModuleRegistry["createFileApi"];
+const createFitBrowserApiModule =
+    createFitBrowserApi as unknown as PreloadModuleRegistry["createFitBrowserApi"];
 
-        return {
-            createFileApi,
-            createFitBrowserApi,
-        };
-    }
-
-    module.exports = {
-        loadPreloadFileModules,
+export function loadPreloadFileModules(): PreloadFileModules {
+    return {
+        createFileApi: createFileApiModule,
+        createFitBrowserApi: createFitBrowserApiModule,
     };
 }

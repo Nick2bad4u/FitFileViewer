@@ -1,19 +1,5 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
-
-interface PreloadRuntimeEnvironmentModule {
-    getDefaultPreloadRuntimeEnvironment: () => {
-        consoleRef: Console;
-        globalScope: object;
-        processRef: NodeJS.Process;
-    };
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { getDefaultPreloadRuntimeEnvironment } = requireFromTest(
-    "../../electron-app/preload/preloadRuntimeEnvironment.js"
-) as PreloadRuntimeEnvironmentModule;
+import { getDefaultPreloadRuntimeEnvironment } from "../../electron-app/preload/preloadRuntimeEnvironment.js";
 
 describe("preload runtime environment", () => {
     it("centralizes the runtime globals used by the preload entrypoint", () => {
@@ -23,8 +9,15 @@ describe("preload runtime environment", () => {
             ...console,
             log: vi.fn<typeof console.log>(),
         } as Console;
-        const originalConsole = globalThis.console;
-        globalThis.console = runtimeConsole;
+        const originalConsoleDescriptor = Object.getOwnPropertyDescriptor(
+            globalThis,
+            "console"
+        );
+        Object.defineProperty(globalThis, "console", {
+            configurable: true,
+            value: runtimeConsole,
+            writable: true,
+        });
 
         try {
             expect(getDefaultPreloadRuntimeEnvironment()).toStrictEqual({
@@ -33,7 +26,13 @@ describe("preload runtime environment", () => {
                 processRef: process,
             });
         } finally {
-            globalThis.console = originalConsole;
+            if (originalConsoleDescriptor) {
+                Object.defineProperty(
+                    globalThis,
+                    "console",
+                    originalConsoleDescriptor
+                );
+            }
         }
     });
 });

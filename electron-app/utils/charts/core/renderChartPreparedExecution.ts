@@ -36,7 +36,7 @@ interface ChartLifecycleActions {
 
 interface PreparedChartRenderDependencies {
     createElement(tagName: string): HTMLElement;
-    getGlobalChartActions(): ChartLifecycleActions | null;
+    getChartLifecycleActions(): ChartLifecycleActions | null;
     getRendererModules(): RendererProbeModules;
     isTestEnvironment(): boolean;
     now(): number;
@@ -113,7 +113,8 @@ export async function executePreparedChartRender(
 
     completeChartRendering(
         {
-            getGlobalChartActions: () => dependencies.getGlobalChartActions(),
+            getChartLifecycleActions: () =>
+                dependencies.getChartLifecycleActions(),
             safeCompleteRendering: (wasSuccessful) =>
                 dependencies.safeCompleteRendering(wasSuccessful),
         },

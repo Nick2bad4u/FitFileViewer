@@ -7,13 +7,19 @@ import {
     type RendererNotification,
 } from "../../state/domain/rendererNotificationState.js";
 import { querySelectorByIdFlexible } from "../dom/elementIdUtils.js";
+import {
+    getNotificationTimerRuntime,
+    type NotificationTimerHandle,
+} from "./notificationTimerRuntime.js";
 
 export type {
     NotificationType,
     RendererNotification,
 } from "../../state/domain/rendererNotificationState.js";
 
-let notificationHideTimeout: ReturnType<typeof setTimeout> | undefined;
+const notificationTimerRuntime = getNotificationTimerRuntime();
+
+let notificationHideTimeout: NotificationTimerHandle | undefined;
 
 /**
  * Clear current notification.
@@ -88,7 +94,7 @@ export function showNotification(
     );
 
     if (timeout > 0) {
-        notificationHideTimeout = setTimeout(() => {
+        notificationHideTimeout = notificationTimerRuntime.setTimeout(() => {
             notificationHideTimeout = undefined;
             notificationElement.style.display = "none";
             clearCurrentNotification({
@@ -124,7 +130,7 @@ export function updateNotificationFromState(notification: unknown): void {
 
 function clearNotificationHideTimeout(): void {
     if (notificationHideTimeout !== undefined) {
-        clearTimeout(notificationHideTimeout);
+        notificationTimerRuntime.clearTimeout(notificationHideTimeout);
         notificationHideTimeout = undefined;
     }
 }

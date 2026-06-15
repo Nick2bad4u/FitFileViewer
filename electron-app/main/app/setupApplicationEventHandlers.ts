@@ -1,6 +1,32 @@
+import { fileURLToPath } from "node:url";
+import { validateExternalUrl } from "../../shared/externalUrlPolicy.js";
+import { createWindow } from "../../windowStateUtils.js";
+import { CONSTANTS } from "../constants.js";
+import { logWithContext } from "../logging/logWithContext.js";
+import { safeCreateAppMenu } from "../menu/safeCreateAppMenu.js";
+import {
+    startGyazoOAuthServer,
+    stopGyazoOAuthServer,
+} from "../oauth/gyazoOAuthServer.js";
+import {
+    appRef as electronAppRef,
+    browserWindowRef as electronBrowserWindowRef,
+    dialogRef as electronDialogRef,
+    shellRef as electronShellRef,
+} from "../runtime/electronAccess.js";
+import { httpRef, path } from "../runtime/nodeModules.js";
+import { getAppState, setAppState } from "../state/appState.js";
+import { getThemeFromRenderer } from "../theme/getThemeFromRenderer.js";
+import { validateWindow } from "../window/windowValidation.js";
+import { setGyazoStartupTimer } from "./gyazoStartupTimerState.js";
+
+type AppMenuWindow = Parameters<typeof safeCreateAppMenu>[0];
+type ThemeWindow = Parameters<typeof getThemeFromRenderer>[0];
+type WindowValidationCandidate = Parameters<typeof validateWindow>[0];
+
+let setupApplicationEventHandlersImpl: (() => void) | undefined;
+
 {
-    type HttpModule = typeof import("node:http");
-    type PathModule = typeof import("node:path");
     type ElectronBrowserWindow = import("electron").BrowserWindow;
     type ElectronPermissionCheckDetails =
         import("electron").PermissionCheckHandlerHandlerDetails;
@@ -103,67 +129,12 @@
         openExternal?: (url: string) => unknown;
     }
 
-    const { fileURLToPath } = require("node:url") as typeof import("node:url");
-
-    const { CONSTANTS } = require("../constants") as {
-        CONSTANTS: {
-            DEFAULT_THEME: string;
-            PLATFORMS: { DARWIN: NodeJS.Platform; LINUX: NodeJS.Platform };
-        };
-    };
-    const { logWithContext } = require("../logging/logWithContext") as {
-        logWithContext: (
-            level: string,
-            message: string,
-            context?: Record<string, unknown>
-        ) => void;
-    };
-    const { safeCreateAppMenu } = require("../menu/safeCreateAppMenu") as {
-        safeCreateAppMenu: (
-            win: unknown,
-            theme: string,
-            loadedFitFilePath?: null | string
-        ) => void;
-    };
-    const { startGyazoOAuthServer, stopGyazoOAuthServer } =
-        require("../oauth/gyazoOAuthServer") as {
-            startGyazoOAuthServer: () => Promise<unknown>;
-            stopGyazoOAuthServer: () => Promise<unknown>;
-        };
-    const { setGyazoStartupTimer } = require("./gyazoStartupTimerState") as {
-        setGyazoStartupTimer: (handle: ReturnType<typeof setTimeout>) => void;
-    };
-    const { appRef, browserWindowRef, dialogRef, shellRef } =
-        require("../runtime/electronAccess") as {
-            appRef: () => AppLike | undefined;
-            browserWindowRef: () => BrowserWindowStaticLike | undefined;
-            dialogRef: () => DialogLike | undefined;
-            shellRef: () => ShellLike | undefined;
-        };
-    const { httpRef, path } = require("../runtime/nodeModules") as {
-        httpRef: () => HttpModule | null;
-        path: PathModule;
-    };
-    const { validateExternalUrl } =
-        require("../../shared/externalUrlPolicy") as {
-            validateExternalUrl: (url: string) => string;
-        };
-    const { getAppState, setAppState } = require("../state/appState") as {
-        getAppState: (key: string) => unknown;
-        setAppState: (
-            key: string,
-            value: unknown,
-            options?: Record<string, unknown>
-        ) => void;
-    };
-    const { getThemeFromRenderer } =
-        require("../theme/getThemeFromRenderer") as {
-            getThemeFromRenderer: (win: unknown) => Promise<string>;
-        };
-    const { validateWindow } = require("../window/windowValidation") as {
-        validateWindow: (win?: unknown, context?: string) => boolean;
-    };
-
+    const appRef = electronAppRef as () => AppLike | undefined;
+    const browserWindowRef = electronBrowserWindowRef as () =>
+        | BrowserWindowStaticLike
+        | undefined;
+    const dialogRef = electronDialogRef as () => DialogLike | undefined;
+    const shellRef = electronShellRef as () => ShellLike | undefined;
     const APP_LISTENER_REGISTRY = new Map<string, AppListener>();
     const SESSION_HANDLER_REGISTRY = new WeakMap<
         object,
@@ -599,25 +570,23 @@
                         }
                     })();
                     if (Array.isArray(windows) && windows.length === 0) {
-                        const { createWindow } =
-                            require("../../windowStateUtils") as {
-                                createWindow: () => unknown;
-                            };
-                        const win = createWindow();
+                        const win = createWindow() as AppMenuWindow;
                         safeCreateAppMenu(
                             win,
                             CONSTANTS.DEFAULT_THEME,
                             getLoadedFitFilePath()
                         );
                     } else {
-                        const win =
+                        const windowCandidate =
                             (typeof BrowserWindow.getFocusedWindow ===
                             "function"
                                 ? BrowserWindow.getFocusedWindow()
                                 : null) ?? getAppState("mainWindow");
+                        const win =
+                            windowCandidate as WindowValidationCandidate;
                         if (validateWindow(win, "app activate event")) {
                             safeCreateAppMenu(
-                                win,
+                                win as AppMenuWindow,
                                 CONSTANTS.DEFAULT_THEME,
                                 getLoadedFitFilePath()
                             );
@@ -638,8 +607,14 @@
             void (async (): Promise<void> => {
                 if (process.platform === CONSTANTS.PLATFORMS.LINUX) {
                     try {
-                        const theme = await getThemeFromRenderer(win);
-                        safeCreateAppMenu(win, theme, getLoadedFitFilePath());
+                        const theme = await getThemeFromRenderer(
+                            win as ThemeWindow
+                        );
+                        safeCreateAppMenu(
+                            win as AppMenuWindow,
+                            theme,
+                            getLoadedFitFilePath()
+                        );
                     } catch (error) {
                         logWithContext(
                             "error",
@@ -814,5 +789,9 @@
         }
     }
 
-    module.exports = { setupApplicationEventHandlers };
+    setupApplicationEventHandlersImpl = setupApplicationEventHandlers;
+}
+
+export function setupApplicationEventHandlers(): void {
+    setupApplicationEventHandlersImpl?.();
 }

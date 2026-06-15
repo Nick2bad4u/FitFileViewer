@@ -54,7 +54,7 @@ describe("getCreateDataPointFilterControlRuntime", () => {
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const runtime = getCreateDataPointFilterControlRuntime({});
         const runtimeWithInvalidAbortController =
@@ -66,6 +66,9 @@ describe("getCreateDataPointFilterControlRuntime", () => {
 
         expect(() => runtime.createOption()).toThrow(
             "createDataPointFilterControl requires a document runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createDataPointFilterControl requires an AbortController runtime"
         );
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()

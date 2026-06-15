@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { createRenderTimingGate } from "../../../../electron-app/utils/charts/core/renderChartTiming.js";
+import { createRenderTimingGate as createTimingGate } from "../../../../electron-app/utils/charts/core/renderChartTiming.js";
 import type { RenderChartTimerRuntime } from "../../../../electron-app/utils/charts/core/renderChartTimerRuntime.js";
 
 function createRuntime(): RenderChartTimerRuntime {
@@ -24,7 +24,7 @@ describe("createRenderTimingGate", () => {
         vi.spyOn(Date, "now")
             .mockReturnValueOnce(1_000)
             .mockReturnValueOnce(1_050);
-        const gate = createRenderTimingGate(200, runtime);
+        const gate = createTimingGate(200, runtime);
 
         await gate.waitIfRapidRender();
         await gate.waitIfRapidRender();

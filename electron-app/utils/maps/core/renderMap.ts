@@ -86,6 +86,10 @@ import {
     resolveLeafletRuntime,
     waitForLeafletRuntime,
 } from "./leafletRuntime.js";
+import {
+    getRenderMapRuntime,
+    type RenderMapTimer,
+} from "./renderMapRuntime.js";
 
 type LooseRecord = Record<string, unknown>;
 
@@ -359,17 +363,18 @@ export function renderMap(): void {
     const runtimeBaseLayers = createBaseLayers(LeafletLib);
     resetOverlayMapPolylines();
     renderMapAbortController?.abort();
-    const renderAbortController = new AbortController();
+    const runtime = getRenderMapRuntime();
+    const renderAbortController = runtime.createAbortController();
     renderMapAbortController = renderAbortController;
     const listenerOptions: AddEventListenerOptions = {
         signal: renderAbortController.signal,
     };
-    const cleanupTimers = new Set<ReturnType<typeof setTimeout>>();
+    const cleanupTimers = new Set<RenderMapTimer>();
     const setCleanupTimeout = (
         callback: () => void,
         delay: number
-    ): ReturnType<typeof setTimeout> => {
-        const timeout = setTimeout(() => {
+    ): RenderMapTimer => {
+        const timeout = runtime.setTimeout(() => {
             cleanupTimers.delete(timeout);
             callback();
         }, delay);
@@ -380,7 +385,7 @@ export function renderMap(): void {
         "abort",
         () => {
             for (const timeout of cleanupTimers) {
-                clearTimeout(timeout);
+                runtime.clearTimeout(timeout);
             }
             cleanupTimers.clear();
         },
@@ -742,18 +747,18 @@ export function renderMap(): void {
     {
         const HOVER_OPEN_DELAY_MS = 90;
         const HOVER_CLOSE_DELAY_MS = 220;
-        let openTimer: ReturnType<typeof setTimeout> | null = null;
-        let closeTimer: ReturnType<typeof setTimeout> | null = null;
+        let openTimer: RenderMapTimer | null = null;
+        let closeTimer: RenderMapTimer | null = null;
 
         const clearOpenTimer = () => {
             if (openTimer) {
-                clearTimeout(openTimer);
+                runtime.clearTimeout(openTimer);
                 openTimer = null;
             }
         };
         const clearCloseTimer = () => {
             if (closeTimer) {
-                clearTimeout(closeTimer);
+                runtime.clearTimeout(closeTimer);
                 closeTimer = null;
             }
         };
@@ -859,13 +864,8 @@ export function renderMap(): void {
             layersListEl.style.overflowY = "";
         }
 
-        const raf =
-            typeof requestAnimationFrame === "function"
-                ? requestAnimationFrame
-                : (cb: FrameRequestCallback) => setTimeout(cb, 0);
-
         // Use RAF so we measure after Leaflet expanded class applies.
-        raf(() => {
+        runtime.requestAnimationFrame(() => {
             const layersRect = layersEl.getBoundingClientRect();
 
             // Compute a conservative bottom bound (extra padding prevents scrollbar being clipped
@@ -896,7 +896,7 @@ export function renderMap(): void {
                 layersEl.style.marginTop = `${pushDownPx}px`;
             }
 
-            raf(() => {
+            runtime.requestAnimationFrame(() => {
                 const updatedRect = layersEl.getBoundingClientRect();
                 const available = Math.floor(bottomLimit - updatedRect.top);
                 const maxHeight = Math.max(0, available);
@@ -994,12 +994,12 @@ export function renderMap(): void {
         func: (...args: Args) => void,
         wait: number
     ): (...args: Args) => void {
-        let timeout: ReturnType<typeof setTimeout> | undefined;
+        let timeout: RenderMapTimer | undefined;
         return (...args: Args) => {
             if (timeout) {
-                clearTimeout(timeout);
+                runtime.clearTimeout(timeout);
             }
-            timeout = setTimeout(() => func(...args), wait);
+            timeout = runtime.setTimeout(() => func(...args), wait);
         };
     }
     if (zoomSlider && zoomSliderCurrent) {
@@ -1203,14 +1203,6 @@ export function renderMap(): void {
     const endIcon = createEndIcon(),
         startIcon = createStartIcon();
 
-    // --- Marker cluster group (if available) ---
-    const markerClusterGroup = null;
-    // TEMPORARILY DISABLED FOR DEBUGGING - markers not showing
-    // if (L.markerClusterGroup) {
-    //     markerClusterGroup = L.markerClusterGroup();
-    //     map.addLayer(markerClusterGroup);
-    // }
-
     // --- Lap selection UI (moved to mapLapSelector.js) ---
     function mapDrawLapsWrapper(lapIdx: number | string | string[]): void {
         mapDrawLaps(lapIdx, {
@@ -1224,7 +1216,6 @@ export function renderMap(): void {
                 mapContainer ||
                 document.querySelector<HTMLElement>("#leaflet-map") ||
                 document.body,
-            markerClusterGroup,
             startIcon,
         });
         if (
@@ -1487,7 +1478,6 @@ export function renderMap(): void {
                     ),
                 getLapNumForIdx,
                 map,
-                markerClusterGroup,
                 overlayIdx: idx,
                 startIcon,
             });
@@ -1553,13 +1543,8 @@ export function renderMap(): void {
         }
     };
 
-    const raf: typeof requestAnimationFrame =
-        typeof globalThis.requestAnimationFrame === "function"
-            ? globalThis.requestAnimationFrame
-            : (cb: FrameRequestCallback) => setTimeout(cb, 0);
-
     refreshMapLayout();
-    raf(() => refreshMapLayout());
+    runtime.requestAnimationFrame(() => refreshMapLayout());
     setCleanupTimeout(refreshMapLayout, 90);
     setCleanupTimeout(refreshMapLayout, 240);
 

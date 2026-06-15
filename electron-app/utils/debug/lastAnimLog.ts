@@ -3,7 +3,12 @@
  */
 
 import { isDevelopmentEnvironment } from "../runtime/processEnvironment.js";
+import { getLastAnimLogRuntime } from "./lastAnimLogRuntime.js";
 import { isRendererDebugLoggingEnabled } from "./rendererDebugLoggingState.js";
+import { getRendererDebugRuntime } from "./rendererDebugRuntime.js";
+
+const lastAnimLogRuntime = getLastAnimLogRuntime();
+const rendererDebugRuntime = getRendererDebugRuntime();
 
 /**
  * Checks whether renderer animation debug logging should be enabled.
@@ -12,7 +17,9 @@ import { isRendererDebugLoggingEnabled } from "./rendererDebugLoggingState.js";
  */
 function isDevelopmentMode(): boolean {
     return (
-        (globalThis.window !== undefined && isRendererDebugLoggingEnabled()) ||
+        rendererDebugRuntime.isRendererDebugLoggingAvailable(
+            isRendererDebugLoggingEnabled()
+        ) ||
         isDevelopmentEnvironment()
     );
 }
@@ -42,7 +49,7 @@ export const throttledAnimLog = (() => {
             return;
         }
         try {
-            const now = Date.now();
+            const now = lastAnimLogRuntime.dateNow();
             if (now - lastAnimLogTimestamp > THROTTLE_INTERVAL_MS) {
                 console.log(`[AnimDebug] ${message}`);
                 lastAnimLogTimestamp = now;
@@ -101,7 +108,7 @@ export const perfAnimLog = (() => {
         }
 
         try {
-            const now = performance.now();
+            const now = lastAnimLogRuntime.performanceNow();
             if (now - lastPerfLogTimestamp > THROTTLE_INTERVAL_MS) {
                 const duration = startTime
                     ? ` (${(now - startTime).toFixed(2)}ms)`

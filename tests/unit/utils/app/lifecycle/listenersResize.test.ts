@@ -17,20 +17,11 @@ import {
     registerChartInstance,
 } from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 
-type ResizeListenerTestGlobal = typeof globalThis & {
-    renderChart?: () => void;
-    renderChartJS?: () => Promise<boolean> | void;
-};
-
 function cleanupFixture(cleanupCallbacks: Array<() => void> = []): void {
     for (const cleanup of cleanupCallbacks.splice(0)) {
         cleanup();
     }
 
-    const chartGlobal = globalThis as ResizeListenerTestGlobal;
-    Reflect.deleteProperty(globalThis, "Chart");
-    delete chartGlobal.renderChart;
-    delete chartGlobal.renderChartJS;
     clearChartInstanceRegistryForTests();
     updateChartsMock.mockClear();
     Reflect.deleteProperty(document, "fullscreenElement");
@@ -163,7 +154,7 @@ describe(registerChartResizeListener, () => {
         }
     });
 
-    it("ignores legacy Chart.js globals and resizes registered charts", () => {
+    it("resizes registered charts without Chart.js globals", () => {
         expect.assertions(4);
 
         const cleanupCallbacks: Array<() => void> = [];
@@ -176,10 +167,6 @@ describe(registerChartResizeListener, () => {
             canvas.className = "chart-canvas";
             document.body.append(canvas);
             const resize = vi.fn<() => void>();
-            const legacyGetChart = vi.fn<() => unknown>(() => {
-                throw new Error("legacy Chart.getChart should not be used");
-            });
-            Reflect.set(globalThis, "Chart", { getChart: legacyGetChart });
             registerChartInstance({ canvas, resize });
 
             registerChartResizeListener({ cleanupCallbacks });
@@ -188,7 +175,7 @@ describe(registerChartResizeListener, () => {
             vi.advanceTimersByTime(120);
 
             expect(resize).toHaveBeenCalledTimes(2);
-            expect(legacyGetChart).not.toHaveBeenCalled();
+            expect(Reflect.has(globalThis, "Chart")).toBe(false);
             expect(updateChartsMock).not.toHaveBeenCalled();
             expect(cleanupCallbacks).toHaveLength(1);
         } finally {

@@ -14,9 +14,21 @@
  * Main process state manager providing a minimal reactive store & IPC bridge.
  */
 
+import {
+    isSafeMainStateOperationId,
+    isSafeMainStatePath,
+} from "../../../shared/mainStatePathPolicy.js";
+import { registerIpcHandle as registerGenericIpcHandle } from "../../../main/ipc/ipcRegistry.js";
+import { getElectron as getStateRuntimeElectron } from "../../../main/runtime/electronAccess.js";
+import {
+    getMainProcessStateRuntime,
+    type MainProcessStateTimer,
+} from "./mainProcessStateRuntime.js";
+
 const RENDERER_READABLE_MAIN_STATE_PATHS: ReadonlySet<string> = new Set([
     "loadedFitFilePath",
 ]);
+const mainProcessStateRuntime = getMainProcessStateRuntime();
 
 function getMainStateProcessEnvironmentValue(name: string): string | undefined {
     try {
@@ -37,19 +49,6 @@ function isMainProcessDevelopmentEnvironment(): boolean {
 function isRendererReadableMainStatePath(path: string): boolean {
     return RENDERER_READABLE_MAIN_STATE_PATHS.has(path);
 }
-
-const { getElectron: getStateRuntimeElectron } =
-    require("../../../main/runtime/electronAccess") as {
-        getElectron: () => unknown;
-    };
-const { isSafeMainStateOperationId, isSafeMainStatePath } =
-    require("../../../shared/mainStatePathPolicy") as {
-        isSafeMainStateOperationId: (value: unknown) => value is string;
-        isSafeMainStatePath: (value: unknown) => value is string;
-    };
-const { registerIpcHandle } = require("../../../main/ipc/ipcRegistry") as {
-    registerIpcHandle: MainStateRegisterIpcHandle;
-};
 
 type ConsoleLevel = "debug" | "error" | "info" | "log" | "warn";
 
@@ -87,6 +86,8 @@ type MainStateRegisterIpcHandle = (
     channel: MainStateGenericInvokeChannel,
     handler: unknown
 ) => void;
+const registerIpcHandle =
+    registerGenericIpcHandle as MainStateRegisterIpcHandle;
 type SerializableRecord = Record<string, SerializableValue>;
 type SerializableValue = MainStateIpcValue;
 
@@ -187,7 +188,7 @@ class MainProcessState {
 
     ipcSubscriptions: Map<string, () => void>;
 
-    operationCleanupTimers: Map<string, ReturnType<typeof setTimeout>>;
+    operationCleanupTimers: Map<string, MainProcessStateTimer>;
 
     senderCleanupRegistered: Set<number>;
 
@@ -351,11 +352,11 @@ class MainProcessState {
 
         const previousCleanup = this.operationCleanupTimers.get(operationId);
         if (previousCleanup) {
-            clearTimeout(previousCleanup);
+            mainProcessStateRuntime.clearTimeout(previousCleanup);
         }
 
         // Clean up completed operation after 30 seconds
-        const cleanupTimer = setTimeout(() => {
+        const cleanupTimer = mainProcessStateRuntime.setTimeout(() => {
             this.removeOperation(operationId);
         }, 30_000);
         this.operationCleanupTimers.set(operationId, cleanupTimer);
@@ -875,7 +876,7 @@ class MainProcessState {
     removeOperation(operationId: string): void {
         const cleanupTimer = this.operationCleanupTimers.get(operationId);
         if (cleanupTimer) {
-            clearTimeout(cleanupTimer);
+            mainProcessStateRuntime.clearTimeout(cleanupTimer);
             this.operationCleanupTimers.delete(operationId);
         }
 
@@ -1413,19 +1414,13 @@ function logWithContext(
 }
 
 /*
- * Monotonic time source for measuring durations. Uses performance.now when
- * available to avoid issues with system clock changes.
+ * Monotonic time source for measuring durations. Uses the runtime clock adapter
+ * to avoid issues with system clock changes when a monotonic clock exists.
  *
  * @returns {number}
  */
 function monotonicNowMs(): number {
-    if (
-        globalThis.performance &&
-        typeof globalThis.performance.now === "function"
-    ) {
-        return globalThis.performance.now();
-    }
-    return Date.now();
+    return mainProcessStateRuntime.monotonicNowMs();
 }
 
 // Lazy access to Electron to avoid import-time side effects in tests/non-Electron envs
@@ -1557,7 +1552,7 @@ const mainProcessState = new MainProcessState();
     const state = ensureIpcHandlersReadyOnce as (() => void) & {
         done?: boolean;
         logged?: boolean;
-        retryTimer?: ReturnType<typeof setTimeout>;
+        retryTimer?: MainProcessStateTimer;
     };
     if (state.done) return;
 
@@ -1580,7 +1575,7 @@ const mainProcessState = new MainProcessState();
         const { ipcMain } = safeElectron();
         if (ipcMain && typeof ipcMain.handle === "function") {
             if (state.retryTimer) {
-                clearTimeout(state.retryTimer);
+                mainProcessStateRuntime.clearTimeout(state.retryTimer);
                 delete state.retryTimer;
             }
 
@@ -1610,10 +1605,14 @@ const mainProcessState = new MainProcessState();
                     let attempts = 0;
                     const tick = () => {
                         if (!state.done && !trySetup() && attempts++ < 50) {
-                            state.retryTimer = setTimeout(tick, 50);
+                            state.retryTimer =
+                                mainProcessStateRuntime.setTimeout(tick, 50);
                         }
                     };
-                    state.retryTimer = setTimeout(tick, 10);
+                    state.retryTimer = mainProcessStateRuntime.setTimeout(
+                        tick,
+                        10
+                    );
                 });
             return;
         }
@@ -1625,7 +1624,7 @@ const mainProcessState = new MainProcessState();
     let attempts = 0;
     const tick = () => {
         if (!state.done && !trySetup() && attempts++ < 50) {
-            state.retryTimer = setTimeout(tick, 50);
+            state.retryTimer = mainProcessStateRuntime.setTimeout(tick, 50);
         }
     };
     if (!state.logged) {
@@ -1638,12 +1637,7 @@ const mainProcessState = new MainProcessState();
             /* ignore */
         }
     }
-    state.retryTimer = setTimeout(tick, 10);
+    state.retryTimer = mainProcessStateRuntime.setTimeout(tick, 10);
 })();
 
-const __mpExports = { mainProcessState, MainProcessState };
-
-// Expose for CommonJS (Electron main/tests)
-if (typeof module !== "undefined" && module && module.exports) {
-    module.exports = __mpExports;
-}
+export { mainProcessState, MainProcessState };

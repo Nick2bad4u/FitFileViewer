@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as stateManager from "../../../../../electron-app/utils/state/core/stateManager.js";
 import {
     appendRendererChartPerformanceHistory,
-    getRendererChartPerformanceHistory,
+    getRendererChartPerformanceHistory as getChartPerformanceHistory,
     getRendererChartPerformanceTracking,
     updateRendererChartPerformanceTracking,
 } from "../../../../../electron-app/utils/state/domain/rendererChartPerformanceState.js";
@@ -46,7 +46,7 @@ describe("rendererChartPerformanceState", () => {
             );
         }
 
-        const history = getRendererChartPerformanceHistory();
+        const history = getChartPerformanceHistory();
         expect(history).toHaveLength(50);
         expect(history[0]).toEqual({
             duration: 5,

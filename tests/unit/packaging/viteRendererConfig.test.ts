@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
-    appRendererVendorGlobalsChartDataEntryPath,
-    appRendererVendorGlobalsCoreEntryPath,
-    appRendererVendorGlobalsMapEntryPath,
-    rendererVendorGlobalsChartDataBundleName,
-    rendererVendorGlobalsCoreBundleName,
-    rendererVendorGlobalsMapBundleName,
+    appRendererVendorChartDataEntryPath,
+    appRendererVendorCoreEntryPath,
+    appRendererVendorMapEntryPath,
+    rendererVendorChartDataBundleName,
+    rendererVendorCoreBundleName,
+    rendererVendorMapBundleName,
     repositoryRoot,
     rootRuntimeRendererRepositoryPath,
 } from "../../../scripts/lib/workspaces.mjs";
@@ -55,12 +55,12 @@ describe("renderer Vite config", () => {
         }).toStrictEqual({
             emptyOutDir: false,
             entry: {
-                [rendererVendorGlobalsChartDataBundleName]:
-                    appRendererVendorGlobalsChartDataEntryPath,
-                [rendererVendorGlobalsCoreBundleName]:
-                    appRendererVendorGlobalsCoreEntryPath,
-                [rendererVendorGlobalsMapBundleName]:
-                    appRendererVendorGlobalsMapEntryPath,
+                [rendererVendorChartDataBundleName]:
+                    appRendererVendorChartDataEntryPath,
+                [rendererVendorCoreBundleName]:
+                    appRendererVendorCoreEntryPath,
+                [rendererVendorMapBundleName]:
+                    appRendererVendorMapEntryPath,
             },
             fileName: "example-entry.js",
             outDir: rootRuntimeRendererRepositoryPath,

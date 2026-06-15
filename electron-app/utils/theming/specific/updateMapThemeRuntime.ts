@@ -1,6 +1,7 @@
 type UpdateMapThemeEventTarget = Pick<EventTarget, "addEventListener">;
 
 export interface UpdateMapThemeRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly document?: Document | undefined;
     readonly HTMLElement?: typeof HTMLElement | undefined;
     readonly window?: UpdateMapThemeEventTarget | undefined;
@@ -16,6 +17,7 @@ export interface UpdateMapThemeRuntime {
         listener: EventListener,
         options: AddEventListenerOptions
     ) => void;
+    createAbortController: () => AbortController;
     isHTMLElement: (element: Element | null) => element is HTMLElement;
     queryLeafletMap: () => Element | null;
 }
@@ -49,6 +51,16 @@ export function getUpdateMapThemeRuntime(
         ): void {
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Callers pass an AbortSignal owned by installUpdateMapThemeListeners.
             scope.window?.addEventListener("beforeunload", listener, options);
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "updateMapTheme requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         isHTMLElement(element: Element | null): element is HTMLElement {
             return isHTMLElement(scope, element);

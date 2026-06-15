@@ -16,6 +16,10 @@ import {
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import {
+    getRecentFilesContextMenuRuntime,
+    type RecentFilesContextMenuTimer,
+} from "./recentFilesContextMenuRuntime.js";
 
 type RecentFilesElectronApi = Pick<
     ElectronAPI,
@@ -87,7 +91,8 @@ export function attachRecentFilesContextMenu({
     setLoading,
     showNotification,
 }: AttachRecentFilesContextMenuParams): () => void {
-    const rootAbortController = new AbortController();
+    const runtime = getRecentFilesContextMenuRuntime();
+    const rootAbortController = runtime.createAbortController();
 
     // Keep default quiet even in tests; enable only when explicitly requested.
     const debugEnabled =
@@ -128,9 +133,9 @@ export function attachRecentFilesContextMenu({
                 oldMenu.remove();
             }
             const menu = document.createElement("div");
-            const menuAbortController = new AbortController();
+            const menuAbortController = runtime.createAbortController();
             const { signal: menuSignal } = menuAbortController;
-            let focusTimer: ReturnType<typeof setTimeout> | undefined;
+            let focusTimer: RecentFilesContextMenuTimer | undefined;
             menu.id = "recent-files-menu";
 
             debugLog(
@@ -186,12 +191,7 @@ export function attachRecentFilesContextMenu({
                 try {
                     const margin = 8;
                     const rect = menu.getBoundingClientRect();
-                    const vw =
-                        globalThis.window === undefined ? 0 : window.innerWidth;
-                    const vh =
-                        globalThis.window === undefined
-                            ? 0
-                            : window.innerHeight;
+                    const { height: vh, width: vw } = runtime.getViewport();
 
                     let left = x;
                     let top = y;
@@ -374,7 +374,7 @@ export function attachRecentFilesContextMenu({
                 },
                 { signal: menuSignal }
             );
-            focusTimer = setTimeout(() => {
+            focusTimer = runtime.setTimeout(() => {
                 focusTimer = undefined;
                 focusItem(0);
             }, 0);
@@ -577,7 +577,7 @@ export function attachRecentFilesContextMenu({
             // Helper to remove menu and cleanup event listener
             function cleanupMenu() {
                 if (focusTimer !== undefined) {
-                    clearTimeout(focusTimer);
+                    runtime.clearTimeout(focusTimer);
                     focusTimer = undefined;
                 }
                 if (document.body.contains(menu)) {

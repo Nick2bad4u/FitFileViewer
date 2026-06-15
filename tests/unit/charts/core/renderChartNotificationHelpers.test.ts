@@ -25,28 +25,20 @@ import {
     setNotificationSuppressed,
 } from "../../../../electron-app/utils/charts/core/renderChartNotificationHelpers.js";
 
-type NotificationGlobal = typeof globalThis & {
-    __FFV_suppressNotifications?: boolean;
-};
-
-const notificationGlobal = globalThis as NotificationGlobal;
-
 describe("render chart notification helpers", () => {
     afterEach(() => {
         notificationMocks.showNotification.mockReset();
         setNotificationSuppressed(undefined);
-        delete notificationGlobal.__FFV_suppressNotifications;
     });
 
-    it("tracks notification suppression without writing a global bridge flag", () => {
-        expect.assertions(4);
+    it("tracks notification suppression through module state", () => {
+        expect.assertions(3);
 
         expect(getNotificationSuppressed()).toBeUndefined();
 
         setNotificationSuppressed(true);
 
         expect(getNotificationSuppressed()).toBe(true);
-        expect(notificationGlobal.__FFV_suppressNotifications).toBeUndefined();
 
         setNotificationSuppressed(undefined);
 

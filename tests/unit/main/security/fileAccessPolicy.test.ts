@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { createRequire } from "node:module";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
@@ -13,26 +12,13 @@ type FileAccessPolicyModule = {
     isApprovedFilePath: (filePath: unknown) => boolean;
 };
 
-type NodeModulesRuntime = {
-    fs: {
-        realpathSync: ((filePath: string) => string) & {
-            native?: (filePath: string) => string;
-        };
-    };
-    path: typeof path;
-};
-
 /**
  * Load fileAccessPolicy with a controlled realpath implementation.
  */
-function loadPolicyWithRealpath(
+async function loadPolicyWithRealpath(
     realpathImpl: (filePath: string) => string
-): FileAccessPolicyModule {
+): Promise<FileAccessPolicyModule> {
     vi.resetModules();
-    const require = createRequire(import.meta.url);
-
-    const nodeModules =
-        require("../../../../electron-app/main/runtime/nodeModules.js") as NodeModulesRuntime;
 
     const realpathSync = Object.assign(
         ((filePath: string) => realpathImpl(filePath)) as (
@@ -43,12 +29,19 @@ function loadPolicyWithRealpath(
         }
     );
 
-    // Replace fs with a minimal stub for this test.
-    nodeModules.fs = { realpathSync };
-    nodeModules.path = path;
+    const mockedNodeModules = {
+        fs: { realpathSync },
+        httpRef: () => null,
+        path,
+    };
+
+    vi.doMock("../../../../electron-app/main/runtime/nodeModules.js", () => ({
+        ...mockedNodeModules,
+        default: mockedNodeModules,
+    }));
 
     const policy =
-        require("../../../../electron-app/main/security/fileAccessPolicy.js") as FileAccessPolicyModule;
+        await import("../../../../electron-app/main/security/fileAccessPolicy.js");
     policy.__resetForTests?.();
     return policy;
 }
@@ -123,7 +116,7 @@ describe("fileAccessPolicy", () => {
         expect.assertions(2);
 
         let target = "/real/a.fit";
-        const mod = loadPolicyWithRealpath(() => target);
+        const mod = await loadPolicyWithRealpath(() => target);
 
         mod.approveFilePath("/tmp/link.fit");
         expect(getApprovalSnapshot(mod, ["/tmp/link.fit"])).toStrictEqual({
@@ -140,7 +133,7 @@ describe("fileAccessPolicy", () => {
     it("caps the approval set to prevent unbounded growth", async () => {
         expect.assertions(1);
 
-        const mod = loadPolicyWithRealpath(() => {
+        const mod = await loadPolicyWithRealpath(() => {
             throw new Error("ENOENT");
         });
 

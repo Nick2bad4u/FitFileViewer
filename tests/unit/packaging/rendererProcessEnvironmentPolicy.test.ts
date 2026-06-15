@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const DIRECT_PROCESS_ENV_PATTERN = /\bprocess\.env\b/u;
 const RENDERER_DEVELOPMENT_DEBUG_GLOBALS =
-    "electron-app/renderer/developmentDebugGlobals.ts";
+    "electron-app/renderer/developmentDebugTools.ts";
 const RENDERER_ENTRYPOINT = "electron-app/renderer.ts";
 
 const SCANNED_SOURCE_PATHS = [
@@ -81,10 +81,10 @@ describe("renderer process environment policy", () => {
             "electron-app/preload.ts",
             "electron-app/preload/electronBridge.ts",
             "electron-app/renderer.ts",
-            "electron-app/renderer/vendorGlobalsChartData.ts",
-            "electron-app/renderer/vendorGlobalsCore.ts",
-            "electron-app/renderer/vendorGlobalsMap.ts",
-            "electron-app/renderer/vendorGlobalsShared.ts",
+            "electron-app/renderer/rendererVendorChartData.ts",
+            "electron-app/renderer/rendererVendorCore.ts",
+            "electron-app/renderer/rendererVendorMap.ts",
+            "electron-app/renderer/rendererVendorShared.ts",
             "electron-app/ui/modals/accentColorPicker.ts",
             "electron-app/utils/charts/core/renderChartRuntimeHelpers.ts",
         ];

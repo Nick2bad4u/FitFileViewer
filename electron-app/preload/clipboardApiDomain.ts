@@ -1,27 +1,21 @@
-{
-    type PreloadApiAssemblyContext =
-        import("./preloadModuleTypes").PreloadApiAssemblyContext;
-    type PreloadClipboardApiDomain =
-        import("./preloadModuleTypes").PreloadClipboardApiDomain;
+type PreloadApiAssemblyContext =
+    import("./preloadModuleTypes").PreloadApiAssemblyContext;
+type PreloadClipboardApiDomain =
+    import("./preloadModuleTypes").PreloadClipboardApiDomain;
 
-    function createPreloadClipboardApiDomain({
-        constants,
-        ipcRenderer,
-        modules,
-        preloadLog,
-    }: PreloadApiAssemblyContext): PreloadClipboardApiDomain {
-        const { createClipboardBridge } = modules;
+export function createPreloadClipboardApiDomain({
+    constants,
+    ipcRenderer,
+    modules,
+    preloadLog,
+}: PreloadApiAssemblyContext): PreloadClipboardApiDomain {
+    const { createClipboardBridge } = modules;
 
-        return {
-            clipboardBridge: createClipboardBridge({
-                channels: constants.CHANNELS,
-                ipcRenderer,
-                preloadLog,
-            }),
-        };
-    }
-
-    module.exports = {
-        createPreloadClipboardApiDomain,
+    return {
+        clipboardBridge: createClipboardBridge({
+            channels: constants.CHANNELS,
+            ipcRenderer,
+            preloadLog,
+        }),
     };
 }

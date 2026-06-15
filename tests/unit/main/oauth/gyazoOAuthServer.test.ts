@@ -1,16 +1,6 @@
 // @vitest-environment node
 
-import { createRequire } from "node:module";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const require = createRequire(import.meta.url);
-
-type CjsCacheEntry = {
-    exports: unknown;
-    filename: string;
-    id: string;
-    loaded: boolean;
-};
 
 type LogWithContext = (
     level: string,
@@ -47,27 +37,9 @@ const mockHttp = {
     ),
 };
 
-const state = new Map<string, unknown>();
+let appState: typeof import("../../../../electron-app/main/state/appState.js");
 
-function getRequireCache(): Record<string, CjsCacheEntry> {
-    return (require as unknown as { cache: Record<string, CjsCacheEntry> })
-        .cache;
-}
-
-function injectCjsMock(
-    modulePath: string,
-    exportsObj: Record<string, unknown>
-): void {
-    const cache = getRequireCache();
-    cache[modulePath] = {
-        exports: exportsObj,
-        filename: modulePath,
-        id: modulePath,
-        loaded: true,
-    };
-}
-
-function requireGyazoOAuthServer(): {
+async function importGyazoOAuthServer(): Promise<{
     startGyazoOAuthServer: (port?: number) => Promise<{
         message: string;
         port: number;
@@ -77,8 +49,20 @@ function requireGyazoOAuthServer(): {
         message: string;
         success: boolean;
     }>;
-} {
-    return require("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
+}> {
+    return (await import(
+        "../../../../electron-app/main/oauth/gyazoOAuthServer.js"
+    )) as {
+        startGyazoOAuthServer: (port?: number) => Promise<{
+            message: string;
+            port: number;
+            success: boolean;
+        }>;
+        stopGyazoOAuthServer: () => Promise<{
+            message: string;
+            success: boolean;
+        }>;
+    };
 }
 
 function withRequestHandler(): RequestHandler {
@@ -91,12 +75,20 @@ function withRequestHandler(): RequestHandler {
 const mockSend =
     vi.fn<(channel: string, payload: Record<string, string>) => void>();
 
-function getWindowLike(): { webContents: { send: typeof mockSend } } {
-    return { webContents: { send: mockSend } };
+function getWindowLike(): {
+    isDestroyed: () => false;
+    webContents: { isDestroyed: () => false; send: typeof mockSend };
+} {
+    return {
+        isDestroyed: () => false,
+        webContents: {
+            isDestroyed: () => false,
+            send: mockSend,
+        },
+    };
 }
 
 function resetMocks(): void {
-    state.clear();
     requestHandler = null;
     mockLogWithContext.mockClear();
     mockHttp.createServer.mockClear();
@@ -157,65 +149,44 @@ function getServerStateSnapshot(): {
     gyazoServerPort: unknown;
 } {
     return {
-        gyazoServer: state.get("gyazoServer"),
-        gyazoServerPort: state.get("gyazoServerPort"),
+        gyazoServer: appState.getAppState("gyazoServer"),
+        gyazoServerPort: appState.getAppState("gyazoServerPort"),
     };
 }
 
 describe("gyazoOAuthServer", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
+        vi.resetModules();
         resetMocks();
 
-        // Inject mocks for the CJS requires used by the module under test.
-        injectCjsMock(
-            require.resolve("../../../../electron-app/main/logging/logWithContext"),
-            {
+        vi.doMock(
+            "../../../../electron-app/main/logging/logWithContext.js",
+            () => ({
                 logWithContext: (...args: Parameters<LogWithContext>) =>
                     mockLogWithContext(...args),
-            }
+            })
         );
-        injectCjsMock(
-            require.resolve("../../../../electron-app/main/runtime/nodeModules"),
-            {
+        vi.doMock(
+            "../../../../electron-app/main/runtime/nodeModules.js",
+            () => ({
+                default: { httpRef: () => mockHttp },
                 httpRef: () => mockHttp,
-            }
+            })
         );
-        injectCjsMock(
-            require.resolve("../../../../electron-app/main/state/appState"),
-            {
-                getAppState: (key: string) => state.get(key),
-                setAppState: (key: string, value: unknown) =>
-                    state.set(key, value),
-            }
+        appState = await import(
+            "../../../../electron-app/main/state/appState.js"
         );
-        injectCjsMock(
-            require.resolve("../../../../electron-app/main/ipc/sendToRenderer"),
-            {
-                sendToRenderer: (
-                    win: { webContents?: { send?: typeof mockSend } } | null,
-                    channel: string,
-                    payload: Record<string, string>
-                ) => win?.webContents?.send?.(channel, payload),
-            }
-        );
-        injectCjsMock(
-            require.resolve("../../../../electron-app/main/window/windowValidation"),
-            {
-                validateWindow: () => true,
-            }
-        );
-
-        // Ensure we reload the module under test with the new cache injections.
-        const sutPath =
-            require.resolve("../../../../electron-app/main/oauth/gyazoOAuthServer.js");
-        const cache = getRequireCache();
-        delete cache[sutPath];
+        appState.setAppState("gyazoServer", null);
+        appState.setAppState("gyazoServerPort", null);
+        appState.setAppState("mainWindow", null);
+        // The module under test is imported natively; mocks follow the same
+        // source import paths as its migrated dependencies.
     });
 
     it("starts server and applies safe headers (no CORS)", async () => {
         expect.assertions(6);
 
-        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
+        const { startGyazoOAuthServer } = await importGyazoOAuthServer();
         const result = await startGyazoOAuthServer(3000);
         expect(result).toStrictEqual({
             message: "OAuth callback server started on port 3000",
@@ -257,7 +228,7 @@ describe("gyazoOAuthServer", () => {
     it("rejects non-GET/HEAD methods", async () => {
         expect.assertions(4);
 
-        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
+        const { startGyazoOAuthServer } = await importGyazoOAuthServer();
         await startGyazoOAuthServer(3000);
 
         const res = makeRes();
@@ -279,7 +250,7 @@ describe("gyazoOAuthServer", () => {
     it("rejects malformed request URLs before OAuth handling", async () => {
         expect.assertions(3);
 
-        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
+        const { startGyazoOAuthServer } = await importGyazoOAuthServer();
         await startGyazoOAuthServer(3000);
 
         const res = makeRes();
@@ -306,8 +277,8 @@ describe("gyazoOAuthServer", () => {
     it("rejects incomplete OAuth callbacks without notifying renderer", async () => {
         expect.assertions(4);
 
-        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
-        state.set("mainWindow", getWindowLike());
+        const { startGyazoOAuthServer } = await importGyazoOAuthServer();
+        appState.setAppState("mainWindow", getWindowLike());
 
         await startGyazoOAuthServer(3000);
 
@@ -334,7 +305,7 @@ describe("gyazoOAuthServer", () => {
     it("escapes error parameter in HTML response", async () => {
         expect.assertions(2);
 
-        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
+        const { startGyazoOAuthServer } = await importGyazoOAuthServer();
         await startGyazoOAuthServer(3000);
 
         const res = makeRes();
@@ -354,8 +325,8 @@ describe("gyazoOAuthServer", () => {
     it("sends callback payload to mainWindow when code/state are present", async () => {
         expect.assertions(3);
 
-        const { startGyazoOAuthServer } = requireGyazoOAuthServer();
-        state.set("mainWindow", getWindowLike());
+        const { startGyazoOAuthServer } = await importGyazoOAuthServer();
+        appState.setAppState("mainWindow", getWindowLike());
 
         await startGyazoOAuthServer(3000);
 
@@ -383,7 +354,7 @@ describe("gyazoOAuthServer", () => {
         expect.assertions(1);
 
         const { startGyazoOAuthServer, stopGyazoOAuthServer } =
-            requireGyazoOAuthServer();
+            await importGyazoOAuthServer();
 
         await startGyazoOAuthServer(3000);
         // Force close to throw

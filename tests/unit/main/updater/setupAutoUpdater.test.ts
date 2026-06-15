@@ -1,17 +1,7 @@
 // @vitest-environment node
 
-import { createRequire } from "node:module";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
-
-const require = createRequire(import.meta.url);
-
-type CjsCacheEntry = {
-    exports: unknown;
-    filename: string;
-    id: string;
-    loaded: boolean;
-};
 
 type AutoUpdaterLike = {
     autoDownload: boolean;
@@ -50,13 +40,14 @@ const mockElectronLog = {
     error: vi.fn<(message: string) => void>(),
 };
 
-function getRequireCache(): Record<string, CjsCacheEntry> {
-    return (require as unknown as { cache: Record<string, CjsCacheEntry> })
-        .cache;
-}
+vi.mock(import("electron-log"), () => ({
+    default: mockElectronLog,
+}));
 
-function requireSetupAutoUpdater(): SetupAutoUpdaterModule {
-    return require("../../../../electron-app/main/updater/setupAutoUpdater.js");
+async function importSetupAutoUpdater(): Promise<SetupAutoUpdaterModule> {
+    return (await import(
+        "../../../../electron-app/main/updater/setupAutoUpdater.js"
+    )) as SetupAutoUpdaterModule;
 }
 
 function createMainWindow(): MainWindowLike {
@@ -68,31 +59,16 @@ function createMainWindow(): MainWindowLike {
 
 describe("setupAutoUpdater", () => {
     beforeEach(() => {
+        vi.resetModules();
         mockElectronLog.transports.file.level = "";
         mockElectronLog.info.mockClear();
         mockElectronLog.error.mockClear();
-
-        // Inject electron-log mock for CJS require() consumers.
-        const electronLogPath = require.resolve("electron-log");
-        const cache = getRequireCache();
-        cache[electronLogPath] = {
-            exports: mockElectronLog,
-            filename: electronLogPath,
-            id: electronLogPath,
-            loaded: true,
-        };
-
-        // Ensure the module under test is reloaded per test.
-        const sutPath =
-            require.resolve("../../../../electron-app/main/updater/setupAutoUpdater.js");
-        delete cache[sutPath];
     });
 
     it("does not throw when autoUpdater is explicitly unavailable", async () => {
         expect.assertions(1);
 
-        // Require the CJS module so it uses our require.cache injection.
-        const { setupAutoUpdater } = requireSetupAutoUpdater();
+        const { setupAutoUpdater } = await importSetupAutoUpdater();
 
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const mockWindow = createMainWindow();
@@ -115,7 +91,7 @@ describe("setupAutoUpdater", () => {
     it("redacts credentials when logging feedURL and does not crash with minimal updater surface", async () => {
         expect.assertions(1);
 
-        const { setupAutoUpdater } = requireSetupAutoUpdater();
+        const { setupAutoUpdater } = await importSetupAutoUpdater();
         const mockWindow = createMainWindow();
 
         const autoUpdater: AutoUpdaterLike = {

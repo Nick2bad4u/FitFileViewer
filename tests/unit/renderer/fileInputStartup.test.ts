@@ -7,6 +7,7 @@ import {
     registerImportTimeFileInputChangeHandler,
     type RendererUnknownFunctionCaller,
 } from "../../../electron-app/renderer/fileInputStartup.js";
+import { getRendererFileInputStartupRuntime } from "../../../electron-app/renderer/fileInputStartupRuntime.js";
 
 function createFileInput(id = "fileInput"): {
     file: File;
@@ -84,17 +85,75 @@ describe("renderer file input startup wiring", () => {
         expect(input.id).toBe("fileInput");
     });
 
-    it("prefers delegated manual handleOpenFile resolution for test-created inputs", () => {
+    it("resolves listener abort controllers through the injected runtime", async () => {
+        expect.assertions(4);
+
+        const { file, input } = createFileInput();
+        const abortController = new AbortController();
+        const abort = vi.fn(() => {
+            abortController.abort();
+        });
+        const handleOpenFile = vi.fn<() => void>();
+        const callUnknownFunction = vi.fn<RendererUnknownFunctionCaller>();
+        const fileInputStartupAdapter = {
+            createAbortController: vi.fn(() => ({
+                abort,
+                signal: abortController.signal,
+            })),
+        };
+
+        registerImportTimeFileInputChangeHandler(
+            input,
+            window,
+            {
+                callUnknownFunction,
+                getHandleOpenFile: async () => handleOpenFile,
+            },
+            fileInputStartupAdapter
+        );
+        input.dispatchEvent(new Event("change"));
+        await Promise.resolve();
+
+        expect(callUnknownFunction).toHaveBeenCalledExactlyOnceWith(
+            handleOpenFile,
+            [file]
+        );
+
+        window.dispatchEvent(new Event("beforeunload"));
+        callUnknownFunction.mockClear();
+        input.dispatchEvent(new Event("change"));
+        await Promise.resolve();
+
+        expect(
+            fileInputStartupAdapter.createAbortController
+        ).toHaveBeenCalledOnce();
+        expect(callUnknownFunction).not.toHaveBeenCalled();
+        expect(abort).toHaveBeenCalledOnce();
+    });
+
+    it("fails clearly when the AbortController runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRendererFileInputStartupRuntime({});
+
+        expect(() => {
+            utils.createAbortController();
+        }).toThrow(
+            "renderer file input startup requires an AbortController runtime"
+        );
+    });
+
+    it("prefers delegated override handleOpenFile resolution for test-created inputs", () => {
         expect.assertions(1);
 
         const { file, input } = createFileInput();
-        const manualHandleOpenFile = vi.fn<() => void>();
+        const overrideHandleOpenFile = vi.fn<() => void>();
         const asyncHandleOpenFile = vi.fn<() => void>();
         const callUnknownFunction = vi.fn<RendererUnknownFunctionCaller>();
         const delegatedHandler = createDelegatedFileInputChangeHandler({
             callUnknownFunction,
             getHandleOpenFile: async () => asyncHandleOpenFile,
-            getManualHandleOpenFile: () => manualHandleOpenFile,
+            getOverrideHandleOpenFile: () => overrideHandleOpenFile,
             htmlInputElementConstructor: window.HTMLInputElement,
         });
 
@@ -106,12 +165,12 @@ describe("renderer file input startup wiring", () => {
         input.dispatchEvent(new Event("change", { bubbles: true }));
 
         expect(callUnknownFunction).toHaveBeenCalledExactlyOnceWith(
-            manualHandleOpenFile,
+            overrideHandleOpenFile,
             [file]
         );
     });
 
-    it("falls back to async handleOpenFile resolution when no manual handler is available", async () => {
+    it("falls back to async handleOpenFile resolution when no override handler is available", async () => {
         expect.assertions(1);
 
         const { file, input } = createFileInput();
@@ -120,7 +179,7 @@ describe("renderer file input startup wiring", () => {
         const delegatedHandler = createDelegatedFileInputChangeHandler({
             callUnknownFunction,
             getHandleOpenFile: async () => asyncHandleOpenFile,
-            getManualHandleOpenFile: () => undefined,
+            getOverrideHandleOpenFile: () => undefined,
             htmlInputElementConstructor: window.HTMLInputElement,
         });
 

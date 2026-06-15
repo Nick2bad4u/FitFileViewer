@@ -1,8 +1,8 @@
-import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import path from "node:path";
 
 import { describe, expect, it } from "vitest";
-
-const require = createRequire(import.meta.url);
 
 type AppPackage = {
     appid: string;
@@ -36,27 +36,45 @@ function toDistPath(exportPath: string): string {
     return exportPath.replace(/^\.\//u, "");
 }
 
-describe("electron-builder config", () => {
-    function loadBuilderConfig(): ElectronBuilderConfig {
-        const configPath =
-            require.resolve("../../../electron-builder.config.cjs");
-        delete require.cache[configPath];
+function loadAppPackage(): AppPackage {
+    return JSON.parse(
+        readFileSync(path.join(process.cwd(), "package.json"), "utf8")
+    ) as AppPackage;
+}
 
-        return require("../../../electron-builder.config.cjs") as ElectronBuilderConfig;
+describe("electron-builder config", () => {
+    function loadBuilderConfig(
+        requireCodeSigning?: string
+    ): ElectronBuilderConfig {
+        const childEnvironment = { ...process.env };
+        if (requireCodeSigning === undefined) {
+            delete childEnvironment.REQUIRE_CODE_SIGNING;
+        } else {
+            childEnvironment.REQUIRE_CODE_SIGNING = requireCodeSigning;
+        }
+        const serializedConfig = execFileSync(
+            process.execPath,
+            [
+                "--input-type=module",
+                "--eval",
+                'const config = (await import("./electron-builder.config.cjs")).default; console.log(JSON.stringify(config));',
+            ],
+            {
+                cwd: process.cwd(),
+                encoding: "utf8",
+                env: childEnvironment,
+            }
+        );
+
+        return JSON.parse(serializedConfig) as ElectronBuilderConfig;
     }
 
     it("uses the root app package as the app identity source", () => {
         expect.assertions(11);
 
-        const appPackage = require("../../../package.json") as AppPackage;
-        const previousValue = process.env.REQUIRE_CODE_SIGNING;
-        delete process.env.REQUIRE_CODE_SIGNING;
+        const appPackage = loadAppPackage();
         const builderConfig = loadBuilderConfig();
         const [maintainer] = appPackage.maintainers;
-
-        if (previousValue !== undefined) {
-            process.env.REQUIRE_CODE_SIGNING = previousValue;
-        }
 
         expect(builderConfig.appId).toBe(appPackage.appid);
         expect(builderConfig.productName).toBe(appPackage.productName);
@@ -82,19 +100,9 @@ describe("electron-builder config", () => {
     it("requires code signing when the release build environment enables it", () => {
         expect.assertions(2);
 
-        const previousValue = process.env.REQUIRE_CODE_SIGNING;
+        const builderConfig = loadBuilderConfig("true");
 
-        process.env.REQUIRE_CODE_SIGNING = "true";
-
-        try {
-            expect(loadBuilderConfig().forceCodeSigning).toBe(true);
-            expect(loadBuilderConfig().win.signExecutable).toBe(true);
-        } finally {
-            if (previousValue === undefined) {
-                delete process.env.REQUIRE_CODE_SIGNING;
-            } else {
-                process.env.REQUIRE_CODE_SIGNING = previousValue;
-            }
-        }
+        expect(builderConfig.forceCodeSigning).toBe(true);
+        expect(builderConfig.win.signExecutable).toBe(true);
     });
 });

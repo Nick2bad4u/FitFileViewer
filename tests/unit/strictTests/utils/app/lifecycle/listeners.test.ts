@@ -18,7 +18,6 @@ type BlobMock = (
     parts: any[];
     type: string;
 };
-type CreateExportGpxButtonMock = () => boolean;
 type CreateObjectUrlMock = (object: Blob | MediaSource) => string;
 type CreateTestAnchorMock = (tagName: string) => HTMLAnchorElement;
 type HandleOpenFileMock = (options: unknown) => Promise<void> | void;
@@ -277,12 +276,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         // Clean up all DOM elements thoroughly
         document.body.innerHTML = "";
 
-        // Clear any global state that might interfere.
-        Reflect.deleteProperty(globalThis, "globalData");
-        Reflect.deleteProperty(globalThis, "sendFitFileToAltFitReader");
-        Reflect.deleteProperty(globalThis, "renderChartJS");
-        Reflect.deleteProperty(globalThis, "copyTableAsCSV");
-
         // Clear any remaining timeouts that might interfere with subsequent tests
         for (let i = 1; i < 9999; i++) {
             clearTimeout(i);
@@ -331,6 +324,30 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             setLoading,
             showNotification,
         });
+    });
+
+    it("does not publish retired lifecycle helper globals", () => {
+        expect.assertions(1);
+
+        setupListeners({
+            openFileBtn,
+            isOpeningFileRef: { current: false },
+            setLoading,
+            showNotification,
+            handleOpenFile,
+            showUpdateNotification,
+            showAboutModal,
+        });
+
+        expect(
+            [
+                "copyTableAsCSV",
+                "createExportGPXButton",
+                "globalData",
+                "renderChartJS",
+                "sendFitFileToAltFitReader",
+            ].filter((globalName) => Reflect.has(globalThis, globalName))
+        ).toStrictEqual([]);
     });
 
     it("contextmenu: no recentFiles available -> no action", async () => {
@@ -613,9 +630,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             showAboutModal,
         });
 
-        // Feature flag present
-        (window as any).createExportGPXButton = (): void => {};
-
         // Case 1: valid coords -> click happens
         const clickSpy = vi.fn<() => void>();
         const createEl = document.createElement.bind(document);
@@ -690,8 +704,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect.hasAssertions();
 
         const printSpy = vi.fn<() => void>();
-        // @ts-ignore
-        window.print = printSpy;
+        vi.spyOn(window, "print").mockImplementation(printSpy);
 
         setupListeners({
             openFileBtn,
@@ -1393,7 +1406,7 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
         expect(links).toHaveLength(0);
     });
 
-    it("export-file: gpx without createExportGPXButton function", async () => {
+    it("export-file: gpx downloads without renderer global helpers", async () => {
         expect.hasAssertions();
 
         installURLMocks();
@@ -1414,9 +1427,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
             },
             { source: "test" }
         );
-
-        // Remove createExportGPXButton
-        (window as any).createExportGPXButton = undefined;
 
         await electronAPI.emit("export-file", "C:/tmp/out.gpx");
 
@@ -1955,16 +1965,6 @@ describe("setupListeners (utils/app/lifecycle/listeners)", () => {
 
     it("export-file: gpx with valid coordinates for setTimeout cleanup (lines 350-351)", async () => {
         expect.hasAssertions();
-
-        // Mock createExportGPXButton to exist on globalThis
-        const createExportGPXButton = vi.fn<CreateExportGpxButtonMock>(
-            () => true
-        );
-        Object.defineProperty(globalThis, "createExportGPXButton", {
-            configurable: true,
-            value: createExportGPXButton,
-            writable: true,
-        });
 
         // Create valid coordinate data in semicircle format
         // Coordinates in semicircles: lat/lng * 2^31 / 180

@@ -11,8 +11,13 @@ import type { FitSdkModule } from "./fitSdk";
 
 /** Settings adapter surface consumed by the FIT parser. */
 export interface SettingsStateManager {
-    getCategory: (category: string) => Partial<DecoderOptions> | null | undefined;
-    /** Persist a category synchronously; async adapters are rejected by the parser. */
+    getCategory: (
+        category: string
+    ) => Partial<DecoderOptions> | null | undefined;
+    /**
+     * Persist a category synchronously; async adapters are rejected by the
+     * parser.
+     */
     updateCategory: (
         category: string,
         value: Partial<DecoderOptions>,
@@ -105,7 +110,7 @@ export type FitDecodeErrorConstructor = new (
     toJSON: () => SerializedFitDecodeError;
 };
 
-/** Complete CommonJS export surface currently exposed by fitParser.js. */
+/** Complete runtime export surface currently exposed by fitParser.js. */
 export interface FitParserModule {
     applyUnknownMessageLabels: (messages: FitMessages) => FitMessages;
     decodeFitFile: (
@@ -113,14 +118,15 @@ export interface FitParserModule {
         options?: Partial<DecoderOptions>,
         fitsdk?: FitSdkModule | null
     ) => Promise<FitDecodeResult>;
-    DECODER_OPTIONS_SCHEMA: Record<keyof DecoderOptions, DecoderOptionSchemaEntry>;
+    DECODER_OPTIONS_SCHEMA: Record<
+        keyof DecoderOptions,
+        DecoderOptionSchemaEntry
+    >;
     FitDecodeError: FitDecodeErrorConstructor;
     getCurrentDecoderOptions: () => DecoderOptions;
     getDefaultDecoderOptions: () => DecoderOptions;
     getPersistedDecoderOptions: () => DecoderOptions;
-    initializeStateManagement: (
-        stateManagers?: FitParserStateManagers
-    ) => void;
+    initializeStateManagement: (stateManagers?: FitParserStateManagers) => void;
     resetDecoderOptions: () => DecoderOptionsUpdateResult;
     updateDecoderOptions: (
         newOptions: Partial<DecoderOptions>

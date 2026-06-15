@@ -44,7 +44,7 @@ TypeScript source files. For utility APIs, use the domain paths under
 
 - Keep root tooling, package metadata, and scripts in the repository root.
 - Keep package-sourced renderer libraries managed through root `package.json`
-  and the `vendor-globals` bundle.
+  and the `renderer-vendor` bundle.
 - Do not reintroduce a second API reference here with speculative plugin,
   testing, or utility examples.
 - Update the Docusaurus API reference pages when API behavior changes.

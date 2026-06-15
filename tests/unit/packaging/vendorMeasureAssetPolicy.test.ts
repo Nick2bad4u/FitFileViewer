@@ -5,9 +5,9 @@ import { describe, expect, it } from "vitest";
 
 import {
     appLeafletMeasureLitePath,
-    appRendererVendorGlobalsChartDataEntryPath,
-    appRendererVendorGlobalsCoreEntryPath,
-    appRendererVendorGlobalsMapEntryPath,
+    appRendererVendorChartDataEntryPath,
+    appRendererVendorCoreEntryPath,
+    appRendererVendorMapEntryPath,
     appSourceRepositoryPath,
     rootAppIndexHtmlPath,
     rootDocsPath,
@@ -31,7 +31,6 @@ const rendererImportedBrowserPackages = [
     "leaflet-minimap",
     "leaflet.fullscreen",
     "leaflet.locatecontrol",
-    "leaflet.markercluster",
     "maplibre-gl",
     "screenfull",
 ] as const;
@@ -59,6 +58,9 @@ const staleRepositoryVendorPaths = [
 type PackageJson = {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
+    exports?: unknown;
+    main?: string;
+    module?: string;
 };
 
 function getRequiredPackageEntries(
@@ -132,9 +134,9 @@ describe("renderer vendor asset policy", () => {
             rendererDependencyInventoryPath
         );
         const vendorBundleSource = [
-            readWorkspaceFile(appRendererVendorGlobalsChartDataEntryPath),
-            readWorkspaceFile(appRendererVendorGlobalsCoreEntryPath),
-            readWorkspaceFile(appRendererVendorGlobalsMapEntryPath),
+            readWorkspaceFile(appRendererVendorChartDataEntryPath),
+            readWorkspaceFile(appRendererVendorCoreEntryPath),
+            readWorkspaceFile(appRendererVendorMapEntryPath),
         ].join("\n");
         const browserPackagesInProductionDependencies =
             rendererManagedBrowserPackages.filter(
@@ -173,16 +175,16 @@ describe("renderer vendor asset policy", () => {
             [...rendererManagedBrowserPackages].sort()
         );
         expect(staticAppIndex).not.toContain(
-            'src="renderer/vendor-globals-core.js"'
+            'src="renderer/renderer-vendor-core.js"'
         );
         expect(staticAppIndex).not.toContain(
-            'src="renderer/vendor-globals-chart-data.js"'
+            'src="renderer/renderer-vendor-chart-data.js"'
         );
         expect(staticAppIndex).not.toContain(
-            'src="renderer/vendor-globals-map.js"'
+            'src="renderer/renderer-vendor-map.js"'
         );
         expect(staticAppIndex).not.toContain(
-            'src="renderer/vendor-globals.js"'
+            'src="renderer/renderer-vendor.js"'
         );
     });
 
@@ -199,7 +201,7 @@ describe("renderer vendor asset policy", () => {
                 ])
             )
         );
-        expect(staticAppIndex).toContain('href="renderer/vendor-globals.css"');
+        expect(staticAppIndex).toContain('href="renderer/renderer-vendor.css"');
         expect(staticAppIndex).not.toContain("node_modules");
         expect(staticAppIndex).not.toContain("vendor/");
     });
@@ -212,8 +214,8 @@ describe("renderer vendor asset policy", () => {
         ) as {
             devDependencies?: Record<string, string>;
         };
-        const vendorGlobalsMap = readWorkspaceFile(
-            appRendererVendorGlobalsMapEntryPath
+        const rendererVendorMap = readWorkspaceFile(
+            appRendererVendorMapEntryPath
         );
         const measureLite = readWorkspaceFile(appLeafletMeasureLitePath);
 
@@ -223,18 +225,52 @@ describe("renderer vendor asset policy", () => {
                 "devDependencies"
             )["leaflet-measure"]
         ).toStrictEqual(expect.stringMatching(/\S/u));
-        expect(vendorGlobalsMap).toContain(
+        expect(rendererVendorMap).toContain(
             'import "leaflet-measure/dist/leaflet-measure.css";'
         );
-        expect(vendorGlobalsMap).toContain(
+        expect(rendererVendorMap).toContain(
             'import { installLeafletMeasureLite } from "./leafletMeasureLite.js";'
         );
-        expect(vendorGlobalsMap).toContain(
+        expect(rendererVendorMap).toContain(
             "installLeafletMeasureLite(Leaflet);"
         );
-        expect(vendorGlobalsMap).not.toContain(
+        expect(rendererVendorMap).not.toContain(
             'import "leaflet-measure/dist/leaflet-measure.js";'
         );
         expect(measureLite).toContain("violates a strict CSP");
+    });
+
+    it("keeps Leaflet.draw behind the wrapper until the package exposes native imports", () => {
+        expect.assertions(7);
+
+        const rootPackage = JSON.parse(
+            readWorkspaceFile(rootPackageRepositoryPath)
+        ) as PackageJson;
+        const leafletDrawPackage = JSON.parse(
+            readWorkspaceFile("node_modules/leaflet-draw/package.json")
+        ) as PackageJson;
+        const rendererDependencyInventory = readWorkspaceFile(
+            rendererDependencyInventoryPath
+        );
+        const rendererViteConfig = readWorkspaceFile("vite.renderer.config.mjs");
+
+        expect(
+            getRequiredPackageEntries(
+                rootPackage.devDependencies,
+                "devDependencies"
+            )["leaflet-draw"]
+        ).toStrictEqual(expect.stringMatching(/\S/u));
+        expect(leafletDrawPackage.main).toBe("dist/leaflet.draw.js");
+        expect(leafletDrawPackage.module).toBeUndefined();
+        expect(leafletDrawPackage.exports).toBeUndefined();
+        expect(rendererViteConfig).toContain(
+            'const leafletDrawRuntimeModuleId = "fitfileviewer:leaflet-draw-runtime"'
+        );
+        expect(rendererDependencyInventory).toContain(
+            "`leaflet-draw` currently exposes only `dist/leaflet.draw.js` through its package `main` field and has no `module` or `exports` entry"
+        );
+        expect(rendererDependencyInventory).toContain(
+            "Keep split-vendor readiness in module-local state and keep Leaflet.draw behind"
+        );
     });
 });

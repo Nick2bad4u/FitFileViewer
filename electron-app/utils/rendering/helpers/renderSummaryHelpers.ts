@@ -3,6 +3,7 @@ import { patchSummaryFields } from "../../data/processing/patchSummaryFields.js"
 import { exportUtils } from "../../files/export/exportUtils.js";
 import { getActiveFitFileMetadata } from "../../state/domain/activeFitFileMetadataState.js";
 import { resolveArqueroRuntime } from "./arqueroRuntime.js";
+import { getRenderSummaryRuntime } from "./renderSummaryRuntime.js";
 
 /** Generic row shape used by summary and lap table renderers. */
 export type SummaryRecord = Record<string, unknown>;
@@ -50,6 +51,7 @@ export const LABEL_COL = "__row_label__";
 const SUMMARY_VIRTUAL_ROW_THRESHOLD = 200;
 const SUMMARY_VIRTUAL_ROW_HEIGHT_FALLBACK = 34;
 const SUMMARY_VIRTUAL_OVERSCAN = 8;
+const renderSummaryRuntime = getRenderSummaryRuntime();
 
 /**
  * Determines whether a Summary column key is numeric-only, such as "0" or "1".
@@ -163,7 +165,7 @@ export function renderTable({
         cleanupVirtualizer();
         summaryContainer._summaryVirtualCleanup = undefined;
     }
-    const renderController = new AbortController();
+    const renderController = renderSummaryRuntime.createAbortController();
     let virtualizerCleanup: (() => void) | undefined;
     summaryContainer._summaryVirtualCleanup = () => {
         renderController.abort();
@@ -423,10 +425,10 @@ export function renderTable({
     section.append(table);
 
     if (typeof virtualizerInit === "function") {
-        const raf = globalThis.requestAnimationFrame;
-        if (typeof raf === "function") {
-            raf(() => virtualizerInit && virtualizerInit());
-        } else {
+        const frameHandle = renderSummaryRuntime.requestAnimationFrame(
+            () => virtualizerInit?.()
+        );
+        if (frameHandle === null) {
             virtualizerInit();
         }
     }
@@ -508,11 +510,11 @@ function setupVirtualizedLapRows({
     const colSpan = sortedVisible.length;
     const { row: topSpacer, cell: topCell } = createSpacerRow(colSpan);
     const { row: bottomSpacer, cell: bottomCell } = createSpacerRow(colSpan);
-    const controller = new AbortController();
+    const controller = renderSummaryRuntime.createAbortController();
     let rowHeight = SUMMARY_VIRTUAL_ROW_HEIGHT_FALLBACK;
     let lastStart = -1;
     let lastEnd = -1;
-    let rafHandle = 0;
+    let rafHandle: null | number = null;
 
     const measureRow = createLapRowElement(
         0,
@@ -572,13 +574,16 @@ function setupVirtualizedLapRows({
     };
 
     const scheduleUpdate = () => {
-        if (rafHandle) {
+        if (rafHandle !== null) {
             return;
         }
-        rafHandle = globalThis.requestAnimationFrame(() => {
-            rafHandle = 0;
+        rafHandle = renderSummaryRuntime.requestAnimationFrame(() => {
+            rafHandle = null;
             updateVirtualRows();
         });
+        if (rafHandle === null) {
+            updateVirtualRows();
+        }
     };
 
     const onScroll = () => scheduleUpdate();
@@ -588,7 +593,7 @@ function setupVirtualizedLapRows({
         passive: true,
         signal: controller.signal,
     });
-    globalThis.addEventListener("resize", onResize, {
+    renderSummaryRuntime.addResizeListener(onResize, {
         signal: controller.signal,
     });
 
@@ -596,9 +601,9 @@ function setupVirtualizedLapRows({
 
     return () => {
         controller.abort();
-        if (rafHandle) {
-            globalThis.cancelAnimationFrame(rafHandle);
-            rafHandle = 0;
+        if (rafHandle !== null) {
+            renderSummaryRuntime.cancelAnimationFrame(rafHandle);
+            rafHandle = null;
         }
     };
 }

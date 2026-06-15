@@ -1,93 +1,63 @@
-{
-    type PreloadModuleRegistry =
-        import("./preloadModuleTypes").PreloadModuleRegistry;
-    type PreloadModuleRequire =
-        import("./preloadModuleTypes").PreloadModuleRequire;
-    type PreloadAppModules = Pick<
-        PreloadModuleRegistry,
-        | "createApiDiagnostics"
-        | "createAppInfoApi"
-        | "createClipboardBridge"
-        | "createDevtoolsMenuApi"
-        | "createGyazoExternalApi"
-        | "createShellExternalApi"
-        | "createThemeApi"
-        | "exposeDevelopmentToolsGlobal"
-        | "isPreloadDevelopmentMode"
-        | "registerPreloadBeforeExitHandler"
-    >;
+import { createApiDiagnostics } from "./apiDiagnostics.js";
+import { createAppInfoApi } from "./appInfoApi.js";
+import { registerPreloadBeforeExitHandler } from "./beforeExitHandler.js";
+import { createClipboardBridge } from "./clipboardBridge.js";
+import { createDevtoolsMenuApi } from "./devtoolsMenuApi.js";
+import { exposeDevelopmentToolsGlobal } from "./developmentToolsGlobal.js";
+import { isPreloadDevelopmentMode } from "./environment.js";
+import { createGyazoExternalApi } from "./gyazoExternalApi.js";
+import { createShellExternalApi } from "./shellExternalApi.js";
+import { createThemeApi } from "./themeApi.js";
 
-    interface LoadPreloadAppModulesOptions {
-        requireModule: PreloadModuleRequire;
-    }
+type PreloadModuleRegistry =
+    import("./preloadModuleTypes").PreloadModuleRegistry;
+type PreloadAppModules = Pick<
+    PreloadModuleRegistry,
+    | "createApiDiagnostics"
+    | "createAppInfoApi"
+    | "createClipboardBridge"
+    | "createDevtoolsMenuApi"
+    | "createGyazoExternalApi"
+    | "createShellExternalApi"
+    | "createThemeApi"
+    | "exposeDevelopmentToolsGlobal"
+    | "isPreloadDevelopmentMode"
+    | "registerPreloadBeforeExitHandler"
+>;
 
-    function loadPreloadAppModules({
-        requireModule,
-    }: LoadPreloadAppModulesOptions): PreloadAppModules {
-        const { createApiDiagnostics } = requireModule(
-            "./preload/apiDiagnostics.js"
-        ) as {
-            createApiDiagnostics: PreloadModuleRegistry["createApiDiagnostics"];
-        };
-        const { createAppInfoApi } = requireModule(
-            "./preload/appInfoApi.js"
-        ) as {
-            createAppInfoApi: PreloadModuleRegistry["createAppInfoApi"];
-        };
-        const { registerPreloadBeforeExitHandler } = requireModule(
-            "./preload/beforeExitHandler.js"
-        ) as {
-            registerPreloadBeforeExitHandler: PreloadModuleRegistry["registerPreloadBeforeExitHandler"];
-        };
-        const { createClipboardBridge } = requireModule(
-            "./preload/clipboardBridge.js"
-        ) as {
-            createClipboardBridge: PreloadModuleRegistry["createClipboardBridge"];
-        };
-        const { createDevtoolsMenuApi } = requireModule(
-            "./preload/devtoolsMenuApi.js"
-        ) as {
-            createDevtoolsMenuApi: PreloadModuleRegistry["createDevtoolsMenuApi"];
-        };
-        const { exposeDevelopmentToolsGlobal } = requireModule(
-            "./preload/developmentToolsGlobal.js"
-        ) as {
-            exposeDevelopmentToolsGlobal: PreloadModuleRegistry["exposeDevelopmentToolsGlobal"];
-        };
-        const { createGyazoExternalApi } = requireModule(
-            "./preload/gyazoExternalApi.js"
-        ) as {
-            createGyazoExternalApi: PreloadModuleRegistry["createGyazoExternalApi"];
-        };
-        const { createShellExternalApi } = requireModule(
-            "./preload/shellExternalApi.js"
-        ) as {
-            createShellExternalApi: PreloadModuleRegistry["createShellExternalApi"];
-        };
-        const { createThemeApi } = requireModule("./preload/themeApi.js") as {
-            createThemeApi: PreloadModuleRegistry["createThemeApi"];
-        };
-        const { isPreloadDevelopmentMode } = requireModule(
-            "./preload/environment.js"
-        ) as {
-            isPreloadDevelopmentMode: PreloadModuleRegistry["isPreloadDevelopmentMode"];
-        };
+const createApiDiagnosticsModule =
+    createApiDiagnostics as unknown as PreloadModuleRegistry["createApiDiagnostics"];
+const createAppInfoApiModule =
+    createAppInfoApi as unknown as PreloadModuleRegistry["createAppInfoApi"];
+const createClipboardBridgeModule =
+    createClipboardBridge as unknown as PreloadModuleRegistry["createClipboardBridge"];
+const createDevtoolsMenuApiModule =
+    createDevtoolsMenuApi as unknown as PreloadModuleRegistry["createDevtoolsMenuApi"];
+const createGyazoExternalApiModule =
+    createGyazoExternalApi as unknown as PreloadModuleRegistry["createGyazoExternalApi"];
+const createShellExternalApiModule =
+    createShellExternalApi as unknown as PreloadModuleRegistry["createShellExternalApi"];
+const createThemeApiModule =
+    createThemeApi as unknown as PreloadModuleRegistry["createThemeApi"];
+const exposeDevelopmentToolsGlobalModule =
+    exposeDevelopmentToolsGlobal as unknown as PreloadModuleRegistry["exposeDevelopmentToolsGlobal"];
+const isPreloadDevelopmentModeModule =
+    isPreloadDevelopmentMode as PreloadModuleRegistry["isPreloadDevelopmentMode"];
+const registerPreloadBeforeExitHandlerModule =
+    registerPreloadBeforeExitHandler as unknown as PreloadModuleRegistry["registerPreloadBeforeExitHandler"];
 
-        return {
-            createApiDiagnostics,
-            createAppInfoApi,
-            createClipboardBridge,
-            createDevtoolsMenuApi,
-            createGyazoExternalApi,
-            createShellExternalApi,
-            createThemeApi,
-            exposeDevelopmentToolsGlobal,
-            isPreloadDevelopmentMode,
-            registerPreloadBeforeExitHandler,
-        };
-    }
-
-    module.exports = {
-        loadPreloadAppModules,
+export function loadPreloadAppModules(): PreloadAppModules {
+    return {
+        createApiDiagnostics: createApiDiagnosticsModule,
+        createAppInfoApi: createAppInfoApiModule,
+        createClipboardBridge: createClipboardBridgeModule,
+        createDevtoolsMenuApi: createDevtoolsMenuApiModule,
+        createGyazoExternalApi: createGyazoExternalApiModule,
+        createShellExternalApi: createShellExternalApiModule,
+        createThemeApi: createThemeApiModule,
+        exposeDevelopmentToolsGlobal: exposeDevelopmentToolsGlobalModule,
+        isPreloadDevelopmentMode: isPreloadDevelopmentModeModule,
+        registerPreloadBeforeExitHandler:
+            registerPreloadBeforeExitHandlerModule,
     };
 }

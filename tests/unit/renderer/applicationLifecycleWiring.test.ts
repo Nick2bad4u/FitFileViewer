@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { registerRendererApplicationLifecycle } from "../../../electron-app/renderer/applicationLifecycleWiring.js";
+import { getRendererApplicationLifecycleWiringRuntime } from "../../../electron-app/renderer/applicationLifecycleWiringRuntime.js";
 
 function createDocumentTarget(readyState: DocumentReadyState): Document {
     return {
@@ -105,5 +106,54 @@ describe("renderer application lifecycle wiring", () => {
         delayedCallbacks[0]?.();
 
         expect(lifecycleState.initialized).toBe(true);
+    });
+
+    it("resolves cleanup abort controllers through the injected runtime", () => {
+        expect.assertions(4);
+
+        const abortController = new AbortController();
+        const abort = vi.fn(() => {
+            abortController.abort();
+        });
+        const lifecycleWiringAdapter = {
+            createAbortController: vi.fn(() => ({
+                abort,
+                signal: abortController.signal,
+            })),
+        };
+        const cleanup = vi.fn();
+        const documentTarget = createDocumentTarget("loading");
+        const windowTarget = createWindowTarget();
+
+        registerRendererApplicationLifecycle({
+            cleanup,
+            documentTarget,
+            initializeApplication: async () => {},
+            runtime: lifecycleWiringAdapter,
+            setTimeout: vi.fn<typeof globalThis.setTimeout>(),
+            windowTarget,
+        });
+        const onBeforeUnload = vi.mocked(windowTarget.addEventListener).mock
+            .calls[0]?.[1] as () => void;
+        onBeforeUnload();
+
+        expect(
+            lifecycleWiringAdapter.createAbortController
+        ).toHaveBeenCalledOnce();
+        expect(cleanup).toHaveBeenCalledOnce();
+        expect(abort).toHaveBeenCalledOnce();
+        expect(abortController.signal.aborted).toBe(true);
+    });
+
+    it("fails clearly when the AbortController runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRendererApplicationLifecycleWiringRuntime({});
+
+        expect(() => {
+            utils.createAbortController();
+        }).toThrow(
+            "renderer application lifecycle wiring requires an AbortController runtime"
+        );
     });
 });

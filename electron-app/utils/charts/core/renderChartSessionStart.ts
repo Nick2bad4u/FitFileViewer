@@ -24,7 +24,7 @@ interface ChartLifecycleActions {
 
 interface ChartRenderSessionStartDependencies {
     doc: Document;
-    getGlobalChartActions(): ChartLifecycleActions | null;
+    getChartLifecycleActions(): ChartLifecycleActions | null;
     isLoadingStateSuppressed(): boolean;
     now(): number;
     setState: SetStateFunction;
@@ -60,7 +60,7 @@ export async function beginChartRenderSession(
     touchStringTargetContainer(dependencies.doc, input.targetContainer);
 
     startChartRendering({
-        getGlobalChartActions: () => dependencies.getGlobalChartActions(),
+        getChartLifecycleActions: () => dependencies.getChartLifecycleActions(),
         isLoadingStateSuppressed: () => dependencies.isLoadingStateSuppressed(),
         setState: (path, value, options) =>
             dependencies.setState(
@@ -77,7 +77,7 @@ export async function beginChartRenderSession(
     getRegisteredChartInstances();
 
     clearExistingCharts({
-        getGlobalChartActions: () => dependencies.getGlobalChartActions(),
+        getChartLifecycleActions: () => dependencies.getChartLifecycleActions(),
         updateState: (path, value, options) =>
             dependencies.updateState(
                 path,

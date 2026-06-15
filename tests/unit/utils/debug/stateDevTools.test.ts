@@ -13,7 +13,6 @@ describe("state development tools", () => {
     afterEach(() => {
         cleanupStateDevTools();
         performanceMonitor.resetMetrics();
-        Reflect.deleteProperty(globalThis, STATE_DEBUG_GLOBAL);
         vi.restoreAllMocks();
     });
 
@@ -21,7 +20,6 @@ describe("state development tools", () => {
         expect.assertions(4);
 
         const consoleLog = vi.spyOn(console, "log").mockReturnValue(undefined);
-        Reflect.deleteProperty(globalThis, STATE_DEBUG_GLOBAL);
 
         initializeStateDevTools(true);
 

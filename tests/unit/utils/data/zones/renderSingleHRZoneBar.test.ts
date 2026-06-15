@@ -76,10 +76,6 @@ type ShowNotification = (
 
 type TestGlobal = typeof globalThis & {
     __lastChartConfig?: ChartConfig;
-    document?: Document;
-    HTMLCanvasElement?: typeof HTMLCanvasElement;
-    HTMLElement?: typeof HTMLElement;
-    window?: (Window & typeof globalThis) | undefined;
 };
 
 type TooltipContext = {
@@ -88,6 +84,43 @@ type TooltipContext = {
 };
 
 const testGlobal = globalThis as TestGlobal;
+type GlobalFixtureName =
+    | "document"
+    | "HTMLCanvasElement"
+    | "HTMLElement"
+    | "window";
+const originalGlobalDescriptors = new Map<
+    GlobalFixtureName,
+    PropertyDescriptor
+>();
+
+function rememberGlobalDescriptor(name: GlobalFixtureName): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
+    }
+}
+
+function setGlobalValue(name: GlobalFixtureName, value: unknown): void {
+    rememberGlobalDescriptor(name);
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreGlobalValues(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
+}
 
 const chartModuleMock = vi.hoisted(() => {
     const state = {
@@ -221,10 +254,10 @@ describe(renderSingleHRZoneBar, () => {
             resources: "usable",
         });
 
-        testGlobal.window = dom.window as Window & typeof globalThis;
-        testGlobal.document = dom.window.document;
-        testGlobal.HTMLCanvasElement = dom.window.HTMLCanvasElement;
-        testGlobal.HTMLElement = dom.window.HTMLElement;
+        setGlobalValue("window", dom.window);
+        setGlobalValue("document", dom.window.document);
+        setGlobalValue("HTMLCanvasElement", dom.window.HTMLCanvasElement);
+        setGlobalValue("HTMLElement", dom.window.HTMLElement);
 
         // Create a canvas element for testing
         canvas = document.createElement("canvas");
@@ -268,14 +301,11 @@ describe(renderSingleHRZoneBar, () => {
 
         notificationMocks.showNotification.mockReset();
 
-        // Mock console methods
-        global.console = {
-            log: vi.fn<typeof console.log>(),
-            error: vi.fn<typeof console.error>(),
-            warn: vi.fn<typeof console.warn>(),
-            info: vi.fn<typeof console.info>(),
-            debug: vi.fn<typeof console.debug>(),
-        } as Console;
+        vi.spyOn(console, "log").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(console, "warn").mockImplementation(() => {});
+        vi.spyOn(console, "info").mockImplementation(() => {});
+        vi.spyOn(console, "debug").mockImplementation(() => {});
 
         vi.mocked(chartZoneColorUtils.getChartZoneColors).mockReturnValue([
             "#ff0000",
@@ -292,15 +322,13 @@ describe(renderSingleHRZoneBar, () => {
             document.body.replaceChildren();
         }
 
-        // Clean up JSDOM
-        testGlobal.window = undefined;
-        delete testGlobal.document;
-        delete testGlobal.HTMLCanvasElement;
-        delete testGlobal.HTMLElement;
+        restoreGlobalValues();
+        dom.window.close();
 
         // Reset all mocks
         clearChartRuntimeForTests();
         vi.clearAllMocks();
+        vi.restoreAllMocks();
     });
 
     function getCapturedChartConfig(view?: unknown): ChartConfig {

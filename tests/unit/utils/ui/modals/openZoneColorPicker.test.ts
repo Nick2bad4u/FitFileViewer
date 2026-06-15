@@ -207,9 +207,6 @@ describe("openZoneColorPicker", () => {
         document.body.replaceChildren();
         document.head.replaceChildren();
         localStorage.clear();
-        Reflect.deleteProperty(globalThis, "clearZoneColorData");
-        Reflect.deleteProperty(globalThis, "updateInlineZoneColorSelectors");
-        Reflect.deleteProperty(globalThis, "renderChartJS");
         clearChartInstanceRegistryForTests();
 
         chartStateManagerRef.current = { debouncedRender: debouncedRenderMock };
@@ -237,9 +234,6 @@ describe("openZoneColorPicker", () => {
     });
 
     afterEach(() => {
-        Reflect.deleteProperty(globalThis, "clearZoneColorData");
-        Reflect.deleteProperty(globalThis, "updateInlineZoneColorSelectors");
-        Reflect.deleteProperty(globalThis, "renderChartJS");
         clearChartInstanceRegistryForTests();
     });
 
@@ -293,12 +287,6 @@ describe("openZoneColorPicker", () => {
             { zone: 1, time: 60, label: "Zone 1" },
             { zone: 2, time: 90, label: "Zone 2" },
         ]);
-        const inlineSelectorsMock = vi.fn<(root: HTMLElement) => void>();
-        Reflect.set(
-            globalThis,
-            "updateInlineZoneColorSelectors",
-            inlineSelectorsMock
-        );
 
         openZoneColorPicker("hr_zone");
 
@@ -383,7 +371,13 @@ describe("openZoneColorPicker", () => {
         expect(renderedColorPreview.style.background.toLowerCase()).toBe(
             "rgb(18, 52, 86)"
         );
-        expect(inlineSelectorsMock).not.toHaveBeenCalled();
+        expect(
+            [
+                "clearZoneColorData",
+                "renderChartJS",
+                "updateInlineZoneColorSelectors",
+            ].filter((globalName) => Reflect.has(globalThis, globalName))
+        ).toStrictEqual([]);
         expect(updateInlineZoneColorSelectorsMock).toHaveBeenCalledWith(
             document.body
         );

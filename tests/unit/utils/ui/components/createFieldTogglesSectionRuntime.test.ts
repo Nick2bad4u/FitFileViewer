@@ -82,10 +82,30 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
-    it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(4);
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
 
         const runtime = getCreateFieldTogglesSectionRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "createFieldTogglesSection requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "createFieldTogglesSection requires a clearTimeout runtime"
+        );
+    });
+
+    it("fails clearly when required runtimes are unavailable", () => {
+        expect.assertions(7);
+
+        const runtime = getCreateFieldTogglesSectionRuntime({});
+        const runtimeWithoutDocumentWindowConstructors =
+            getCreateFieldTogglesSectionRuntime({
+                document: {
+                    createElement: document.createElement.bind(document),
+                    querySelectorAll: document.querySelectorAll.bind(document),
+                } as Document,
+            });
         const runtimeWithInvalidAbortController =
             getCreateFieldTogglesSectionRuntime({
                 AbortController:
@@ -106,6 +126,19 @@ describe("getCreateFieldTogglesSectionRuntime", () => {
 
         expect(() => runtime.createElement("div")).toThrow(
             "createFieldTogglesSection requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithoutDocumentWindowConstructors.createAbortController()
+        ).toThrow(
+            "createFieldTogglesSection requires an AbortController runtime"
+        );
+        expect(() =>
+            runtimeWithoutDocumentWindowConstructors.createCustomEvent("event")
+        ).toThrow("createFieldTogglesSection requires a CustomEvent runtime");
+        expect(() =>
+            runtimeWithoutDocumentWindowConstructors.dispatchEvent(new Event("x"))
+        ).toThrow(
+            "createFieldTogglesSection requires a dispatchEvent runtime"
         );
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()

@@ -1,83 +1,20 @@
-{
-    type PreloadModuleRegistry =
-        import("./preloadModuleTypes").PreloadModuleRegistry;
-    type PreloadModuleRequire =
-        import("./preloadModuleTypes").PreloadModuleRequire;
+import { loadPreloadApiAssemblyModules } from "./preloadApiAssemblyModuleLoader.js";
+import { loadPreloadAppModules } from "./preloadAppModuleLoader.js";
+import { loadPreloadFileModules } from "./preloadFileModuleLoader.js";
+import { loadPreloadIpcModules } from "./preloadIpcModuleLoader.js";
+import { loadPreloadPolicyModules } from "./preloadPolicyModuleLoader.js";
+import { loadPreloadStateModules } from "./preloadStateModuleLoader.js";
 
-    interface LoadPreloadModulesOptions {
-        requireModule: PreloadModuleRequire;
-    }
+type PreloadModuleRegistry =
+    import("./preloadModuleTypes").PreloadModuleRegistry;
 
-    function loadPreloadModules({
-        requireModule,
-    }: LoadPreloadModulesOptions): PreloadModuleRegistry {
-        const { loadPreloadAppModules } = requireModule(
-            "./preload/preloadAppModuleLoader.js"
-        ) as {
-            loadPreloadAppModules: (
-                options: LoadPreloadModulesOptions
-            ) => Pick<
-                PreloadModuleRegistry,
-                | "createApiDiagnostics"
-                | "createAppInfoApi"
-                | "createClipboardBridge"
-                | "createDevtoolsMenuApi"
-                | "createGyazoExternalApi"
-                | "createShellExternalApi"
-                | "createThemeApi"
-                | "exposeDevelopmentToolsGlobal"
-                | "isPreloadDevelopmentMode"
-                | "registerPreloadBeforeExitHandler"
-            >;
-        };
-        const { loadPreloadFileModules } = requireModule(
-            "./preload/preloadFileModuleLoader.js"
-        ) as {
-            loadPreloadFileModules: (
-                options: LoadPreloadModulesOptions
-            ) => Pick<
-                PreloadModuleRegistry,
-                "createFileApi" | "createFitBrowserApi"
-            >;
-        };
-        const { loadPreloadIpcModules } = requireModule(
-            "./preload/preloadIpcModuleLoader.js"
-        ) as {
-            loadPreloadIpcModules: (
-                options: LoadPreloadModulesOptions
-            ) => Pick<
-                PreloadModuleRegistry,
-                | "createMenuEventApi"
-                | "createPreloadEventApi"
-                | "createPreloadIpcHelpers"
-                | "createPreloadLogger"
-                | "createPreloadValidators"
-                | "exposeElectronApi"
-                | "ipcBridgeCatalog"
-                | "resolvePreloadElectronBridge"
-                | "shouldEnforceGenericIpcAllowlist"
-            >;
-        };
-        const { loadPreloadStateModules } = requireModule(
-            "./preload/preloadStateModuleLoader.js"
-        ) as {
-            loadPreloadStateModules: (
-                options: LoadPreloadModulesOptions
-            ) => Pick<
-                PreloadModuleRegistry,
-                "createMainStateApi" | "createMainStateBridge"
-            >;
-        };
-
-        return {
-            ...loadPreloadAppModules({ requireModule }),
-            ...loadPreloadFileModules({ requireModule }),
-            ...loadPreloadIpcModules({ requireModule }),
-            ...loadPreloadStateModules({ requireModule }),
-        };
-    }
-
-    module.exports = {
-        loadPreloadModules,
+export function loadPreloadModules(): PreloadModuleRegistry {
+    return {
+        ...loadPreloadApiAssemblyModules(),
+        ...loadPreloadAppModules(),
+        ...loadPreloadPolicyModules(),
+        ...loadPreloadFileModules(),
+        ...loadPreloadIpcModules(),
+        ...loadPreloadStateModules(),
     };
 }

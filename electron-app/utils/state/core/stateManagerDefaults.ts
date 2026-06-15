@@ -1,3 +1,7 @@
+import { getStateManagerDefaultsRuntime } from "./stateManagerDefaultsRuntime.js";
+
+const stateManagerDefaultsRuntime = getStateManagerDefaultsRuntime();
+
 /**
  * Persisted window geometry and maximized state.
  */
@@ -265,27 +269,6 @@ export type AppStateShape = {
  */
 export type ResetAppStateShape = Omit<AppStateShape, "app" | "system">;
 
-function getStartTime(): number {
-    return globalThis.performance?.now() ?? Date.now();
-}
-
-/**
- * Resolve the default document title when running in a browser context.
- *
- * @returns Default application document title.
- */
-function getDefaultDocumentTitle(): string {
-    if (typeof document === "undefined") {
-        return "Fit File Viewer";
-    }
-
-    if (document.title) {
-        return document.title;
-    }
-
-    return "Fit File Viewer";
-}
-
 /**
  * Creates a fresh default application state.
  *
@@ -296,7 +279,7 @@ export function createDefaultAppState(): AppStateShape {
         app: {
             initialized: false,
             isOpeningFile: false,
-            startTime: getStartTime(),
+            startTime: stateManagerDefaultsRuntime.getStartTime(),
         },
         browser: {
             listing: {
@@ -391,7 +374,7 @@ export function createDefaultAppState(): AppStateShape {
             fileInfo: {
                 displayName: "",
                 hasFile: false,
-                title: getDefaultDocumentTitle(),
+                title: stateManagerDefaultsRuntime.getDefaultDocumentTitle(),
             },
             isFullscreen: false,
             loadingIndicator: {

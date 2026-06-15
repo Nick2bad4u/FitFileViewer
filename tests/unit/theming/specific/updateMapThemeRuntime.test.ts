@@ -3,6 +3,42 @@ import { describe, expect, it, vi } from "vitest";
 import { getUpdateMapThemeRuntime } from "../../../../electron-app/utils/theming/specific/updateMapThemeRuntime.js";
 
 describe("getUpdateMapThemeRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        let controllerCount = 0;
+        const signal = Symbol("update-map-theme-signal");
+        class TestAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public constructor() {
+                controllerCount += 1;
+            }
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const runtime = getUpdateMapThemeRuntime({
+            AbortController: TestAbortController,
+        });
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+    });
+
+    it("fails clearly when the AbortController runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getUpdateMapThemeRuntime({});
+
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow("updateMapTheme requires an AbortController runtime");
+    });
+
     it("queries the Leaflet map through the injected document", () => {
         expect.assertions(1);
 

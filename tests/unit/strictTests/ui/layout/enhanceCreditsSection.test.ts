@@ -4,11 +4,13 @@ import {
     setupCreditsMarquee,
     teardownCreditsMarquee,
 } from "../../../../../electron-app/utils/ui/layout/enhanceCreditsSection.js";
+import {
+    getCreditsMarqueeRuntime,
+    type CreditsMarqueeRuntime,
+} from "../../../../../electron-app/utils/ui/layout/enhanceCreditsSectionRuntime.js";
 
 describe("enhanceCreditsSection", () => {
-    const originalResizeObserver = global.ResizeObserver;
-    const originalRequestAnimationFrame = global.requestAnimationFrame;
-    const originalCancelAnimationFrame = global.cancelAnimationFrame;
+    let runtime: CreditsMarqueeRuntime;
 
     function renderCreditsFixture(text: string, width: string) {
         const section = document.createElement("div");
@@ -25,14 +27,16 @@ describe("enhanceCreditsSection", () => {
 
     beforeEach(() => {
         document.body.replaceChildren();
-        vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
-            cb(performance.now());
-            return 1;
-        });
-        vi.stubGlobal("cancelAnimationFrame", vi.fn());
-        vi.stubGlobal(
-            "ResizeObserver",
-            vi
+        runtime = getCreditsMarqueeRuntime({
+            cancelAnimationFrame: vi.fn(),
+            document,
+            HTMLElement,
+            MutationObserver,
+            requestAnimationFrame: (callback: FrameRequestCallback) => {
+                callback(performance.now());
+                return 1;
+            },
+            ResizeObserver: vi
                 .fn<(callback: ResizeObserverCallback) => ResizeObserver>()
                 .mockImplementation(function ResizeObserverMock(callback) {
                     const observer = {
@@ -44,40 +48,13 @@ describe("enhanceCreditsSection", () => {
                     } as ResizeObserver;
 
                     return observer;
-                })
-        );
+                }),
+        });
     });
 
     afterEach(() => {
         teardownCreditsMarquee();
         document.body.replaceChildren();
-        if (originalResizeObserver) {
-            vi.stubGlobal("ResizeObserver", originalResizeObserver);
-        } else {
-            Reflect.deleteProperty(
-                globalThis as Record<string, unknown>,
-                "ResizeObserver"
-            );
-        }
-        if (originalRequestAnimationFrame) {
-            vi.stubGlobal(
-                "requestAnimationFrame",
-                originalRequestAnimationFrame
-            );
-        } else {
-            Reflect.deleteProperty(
-                globalThis as Record<string, unknown>,
-                "requestAnimationFrame"
-            );
-        }
-        if (originalCancelAnimationFrame) {
-            vi.stubGlobal("cancelAnimationFrame", originalCancelAnimationFrame);
-        } else {
-            Reflect.deleteProperty(
-                globalThis as Record<string, unknown>,
-                "cancelAnimationFrame"
-            );
-        }
         vi.restoreAllMocks();
     });
 
@@ -98,7 +75,7 @@ describe("enhanceCreditsSection", () => {
             value: 420,
         });
 
-        setupCreditsMarquee();
+        setupCreditsMarquee(runtime);
 
         expect(footer.classList.contains("credits-marquee")).toBe(true);
         expect(
@@ -126,7 +103,7 @@ describe("enhanceCreditsSection", () => {
             value: 320,
         });
 
-        setupCreditsMarquee();
+        setupCreditsMarquee(runtime);
 
         expect(footer.classList.contains("credits-marquee")).toBe(false);
         expect(

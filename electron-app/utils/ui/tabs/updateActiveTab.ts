@@ -13,6 +13,7 @@ import {
     getTabTestDocumentForTests,
     getTabTestStateManagerForTests,
 } from "./tabTestEnvironment.js";
+import { getUpdateActiveTabRuntime } from "./updateActiveTabRuntime.js";
 
 type TabButtonLike = EventTarget & {
     readonly classList: DOMTokenList;
@@ -24,57 +25,10 @@ type TabButtonLike = EventTarget & {
 };
 
 let activeTabUnsubscribe: (() => void) | null = null;
-
-function canUseDocument(candidate: unknown): candidate is Document {
-    return (
-        candidate !== null &&
-        typeof candidate === "object" &&
-        "getElementById" in candidate &&
-        typeof candidate.getElementById === "function" &&
-        "querySelectorAll" in candidate &&
-        typeof candidate.querySelectorAll === "function"
-    );
-}
-
-function getWindowDocument(): Document | undefined {
-    try {
-        return globalThis.window === undefined
-            ? undefined
-            : globalThis.window.document;
-    } catch {
-        return undefined;
-    }
-}
-
-function getGlobalDocument(): Document | undefined {
-    try {
-        return globalThis.document === undefined
-            ? undefined
-            : globalThis.document;
-    } catch {
-        return undefined;
-    }
-}
-
-function getEffectiveDocument(): Document | undefined {
-    return getTabTestDocumentForTests();
-}
+const activeTabRuntime = getUpdateActiveTabRuntime();
 
 function getDoc(): Document {
-    const candidates = [
-        getGlobalDocument(),
-        getWindowDocument(),
-        getGlobalDocument(),
-        getEffectiveDocument(),
-    ];
-
-    for (const candidate of candidates) {
-        if (canUseDocument(candidate)) {
-            return candidate;
-        }
-    }
-
-    return document;
+    return activeTabRuntime.getDocument(getTabTestDocumentForTests()) ?? document;
 }
 
 function getStateMgr(): RendererStateManagerAccess {

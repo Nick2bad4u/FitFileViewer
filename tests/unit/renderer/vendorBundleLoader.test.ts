@@ -12,7 +12,7 @@ import {
 import {
     markRendererVendorEntryLoaded,
     resetRendererVendorBundleState,
-} from "../../../electron-app/renderer/vendorGlobalsShared.js";
+} from "../../../electron-app/renderer/rendererVendorShared.js";
 import {
     clearChartRuntimeForTests,
     resolveChartRuntime,
@@ -101,9 +101,9 @@ describe("renderer vendor bundle loader", () => {
             "map",
         ]);
         expect(rendererVendorBundleFileByEntry).toStrictEqual({
-            "chart-data": "vendor-globals-chart-data.js",
-            core: "vendor-globals-core.js",
-            map: "vendor-globals-map.js",
+            "chart-data": "renderer-vendor-chart-data.js",
+            core: "renderer-vendor-core.js",
+            map: "renderer-vendor-map.js",
         });
         expect(isRendererVendorBundleEntry("map")).toBe(true);
         expect(isRendererVendorBundleEntry("summary")).toBe(false);
@@ -120,7 +120,7 @@ describe("renderer vendor bundle loader", () => {
 
         expect(script.type).toBe("module");
         expect(script.defer).toBe(true);
-        expect(script.src).toMatch(/\/vendor-globals-map\.js$/u);
+        expect(script.src).toMatch(/\/renderer-vendor-map\.js$/u);
         expect(
             document.querySelectorAll(
                 'script[data-ffv-renderer-vendor-entry="map"]'
@@ -316,7 +316,7 @@ describe("renderer vendor bundle loader", () => {
         script.dispatchEvent(new Event("error"));
 
         await expect(vendorReadiness[0]).rejects.toThrow(
-            "Failed to load renderer vendor bundle: vendor-globals-chart-data.js"
+            "Failed to load renderer vendor bundle: renderer-vendor-chart-data.js"
         );
     });
 });

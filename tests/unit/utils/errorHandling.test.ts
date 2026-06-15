@@ -16,18 +16,11 @@ import {
     type NotificationType,
 } from "../../../electron-app/utils/errors/index.js";
 
-type TestGlobal = typeof globalThis & {
-    performanceMonitor?: {
-        recordError: ReturnType<typeof vi.fn>;
-    };
-};
-
-const globalRef = globalThis as TestGlobal;
+const globalRef = globalThis;
 
 describe("error handling utilities", () => {
     // eslint-disable-next-line vitest/no-hooks -- Shared global cleanup keeps integration mocks isolated.
     afterEach(() => {
-        Reflect.deleteProperty(globalRef, "performanceMonitor");
         vi.restoreAllMocks();
     });
 
@@ -279,16 +272,13 @@ describe("error handling utilities", () => {
             );
         });
 
-        it("logs errors to the performance monitor when present", () => {
-            expect.assertions(3);
+        it("logs structured errors with operation context", () => {
+            expect.assertions(2);
 
             const error = new Error("Telemetry failure");
             const errorSpy = vi
                 .spyOn(console, "error")
                 .mockReturnValue(undefined);
-            globalRef.performanceMonitor = {
-                recordError: vi.fn<(error: Error, operation: string) => void>(),
-            };
 
             expect(logError(error, { operation: "telemetry" })).toBeUndefined();
             const [errorPrefix, errorPayload] = errorSpy.mock.calls[0] ?? [];
@@ -301,9 +291,6 @@ describe("error handling utilities", () => {
                 name: "Error",
                 prefixMatches: true,
             });
-            expect(
-                globalRef.performanceMonitor.recordError
-            ).toHaveBeenCalledWith(error, "telemetry");
         });
     });
 });

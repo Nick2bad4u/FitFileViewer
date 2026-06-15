@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
     ensureProcessNextTick,
     getDebouncedChartStateManager,
-    getGlobalChartActions,
+    getChartLifecycleActions,
     getGlobalChartInstances,
     isDevelopmentEnvironment,
     isLoadingStateSuppressed,
@@ -29,6 +29,9 @@ const originalProcessDescriptor = Object.getOwnPropertyDescriptor(
     globalThis,
     "process"
 );
+if (!originalProcessDescriptor) {
+    throw new Error("Expected globalThis.process descriptor to exist");
+}
 
 function setGlobalProcess(value: unknown): void {
     Object.defineProperty(globalThis, "process", {
@@ -39,12 +42,7 @@ function setGlobalProcess(value: unknown): void {
 }
 
 function restoreGlobalProcess(): void {
-    if (originalProcessDescriptor) {
-        Object.defineProperty(globalThis, "process", originalProcessDescriptor);
-        return;
-    }
-
-    Reflect.deleteProperty(globalThis, "process");
+    Object.defineProperty(globalThis, "process", originalProcessDescriptor);
 }
 
 function getEnvironmentSnapshot(): {
@@ -66,26 +64,17 @@ describe("render chart runtime helpers", () => {
         globalThis,
         "window"
     );
+    if (!originalWindowDescriptor) {
+        throw new Error("Expected globalThis.window descriptor to exist");
+    }
 
     afterEach(() => {
         setLoadingStateSuppressed(false);
-        Reflect.deleteProperty(globalThis, "__FFV_suppressLoadingState");
-        Reflect.deleteProperty(globalThis, "chartActions");
-        Reflect.deleteProperty(globalThis, "chartStateManager");
         resetChartActionsRegistryForTests();
         resetChartStateManagerRegistryForTests();
         restoreGlobalProcess();
         clearChartInstanceRegistryForTests();
-        if (originalWindowDescriptor) {
-            Object.defineProperty(
-                globalThis,
-                "window",
-                originalWindowDescriptor
-            );
-            return;
-        }
-
-        Reflect.deleteProperty(globalThis, "window");
+        Object.defineProperty(globalThis, "window", originalWindowDescriptor);
     });
 
     it("handles missing process globals without touching process.env directly", () => {
@@ -189,56 +178,33 @@ describe("render chart runtime helpers", () => {
         expect(getGlobalChartInstances("invalid")).toStrictEqual([]);
     });
 
-    it("returns the registered chart state manager without reading a renderer global", () => {
-        expect.assertions(3);
+    it("returns the registered chart state manager from the typed registry", () => {
+        expect.assertions(2);
 
-        const globalRender = () => undefined,
-            registeredRender = () => undefined,
+        const registeredRender = () => undefined,
             registeredManager = { debouncedRender: registeredRender };
-
-        Object.defineProperty(globalThis, "chartStateManager", {
-            configurable: true,
-            value: { debouncedRender: globalRender },
-        });
 
         expect(getDebouncedChartStateManager()).toBeNull();
 
         registerChartStateManager(registeredManager);
 
         expect(getDebouncedChartStateManager()).toBe(registeredManager);
-        expect(Reflect.get(globalThis, "chartStateManager")).not.toBe(
-            registeredManager
-        );
     });
 
-    it("returns registered chart actions without reading a renderer global", () => {
-        expect.assertions(3);
+    it("returns registered chart actions from the typed registry", () => {
+        expect.assertions(2);
 
-        const globalActions = { completeRendering: () => undefined },
-            registeredActions = { completeRendering: () => undefined };
+        const registeredActions = { completeRendering: () => undefined };
 
-        Object.defineProperty(globalThis, "chartActions", {
-            configurable: true,
-            value: globalActions,
-        });
-
-        expect(getGlobalChartActions()).toBeNull();
+        expect(getChartLifecycleActions()).toBeNull();
 
         registerChartActions(registeredActions);
 
-        expect(getGlobalChartActions()).toBe(registeredActions);
-        expect(Reflect.get(globalThis, "chartActions")).toBe(globalActions);
+        expect(getChartLifecycleActions()).toBe(registeredActions);
     });
 
-    it("tracks loading suppression without reading the legacy global flag", () => {
-        expect.assertions(5);
-
-        expect(isLoadingStateSuppressed()).toBe(false);
-
-        Object.defineProperty(globalThis, "__FFV_suppressLoadingState", {
-            configurable: true,
-            value: true,
-        });
+    it("tracks loading suppression through module state", () => {
+        expect.assertions(3);
 
         expect(isLoadingStateSuppressed()).toBe(false);
 
@@ -249,8 +215,5 @@ describe("render chart runtime helpers", () => {
         setLoadingStateSuppressed(false);
 
         expect(isLoadingStateSuppressed()).toBe(false);
-        expect(Reflect.get(globalThis, "__FFV_suppressLoadingState")).toBe(
-            true
-        );
     });
 });

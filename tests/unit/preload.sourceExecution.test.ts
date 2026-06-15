@@ -1,12 +1,5 @@
 /* eslint-disable case-police/string-check -- devTools is the preload API contract name. */
-import { createRequire } from "node:module";
-import path from "node:path";
-
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
-const preloadSourceRequire = createRequire(
-    path.join(process.cwd(), "electron-app", "preload.ts")
-);
 
 interface ExposedElectronAPI {
     addRecentFile: (...args: unknown[]) => Promise<unknown>;
@@ -40,6 +33,8 @@ interface ExposedDevTools {
     testIPC: () => Promise<boolean>;
 }
 
+type TestGlobalProperty = "console";
+
 const mockContextBridge = {
     exposeInMainWorld: vi.fn<(apiName: string, api: unknown) => void>(),
 };
@@ -57,11 +52,36 @@ let preloadElectronBridgeMock: {
     contextBridge: typeof mockContextBridge;
     ipcRenderer: typeof mockIpcRenderer;
 };
+const originalGlobalDescriptors = new Map<TestGlobalProperty, PropertyDescriptor>();
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+        originalGlobalDescriptors.set(name, descriptor);
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
+}
 
 async function startPreloadWithElectronBridge(): Promise<void> {
     const { startPreloadEntrypoint } =
         await import("../../electron-app/preload/preloadEntrypoint.js");
-    startPreloadEntrypoint(preloadSourceRequire, {
+
+    startPreloadEntrypoint({
         consoleRef: console,
         electronBridgeOverride: preloadElectronBridgeMock,
         globalScope: globalThis,
@@ -117,15 +137,16 @@ describe("preload.js source execution", () => {
             ipcRenderer: mockIpcRenderer,
         };
 
-        global.console = {
-            ...console,
+        setTestGlobal("console", {
+            ...globalThis.console,
             log: vi.fn<(...data: unknown[]) => void>(),
             error: vi.fn<(...data: unknown[]) => void>(),
-        };
+        });
     });
 
     afterEach(() => {
         vi.resetModules();
+        restoreTestGlobals();
 
         delete process.env.NODE_ENV;
 

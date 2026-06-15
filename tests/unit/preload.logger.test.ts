@@ -1,23 +1,5 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it } from "vitest";
-
-interface PreloadLoggerModule {
-    createPreloadLogger: (consoleRef?: {
-        error?: (...args: unknown[]) => void;
-        log?: (...args: unknown[]) => void;
-        warn?: (...args: unknown[]) => void;
-    }) => (
-        level: "error" | "info" | "warn",
-        message: string,
-        ...details: unknown[]
-    ) => void;
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { createPreloadLogger } = requireFromTest(
-    "../../electron-app/preload/logger.js"
-) as PreloadLoggerModule;
+import { createPreloadLogger } from "../../electron-app/preload/logger.js";
 
 describe("preload logger", () => {
     it("routes info logs through console.log", () => {

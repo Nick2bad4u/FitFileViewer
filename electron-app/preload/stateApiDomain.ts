@@ -1,38 +1,32 @@
-{
-    type PreloadApiAssemblyContext =
-        import("./preloadModuleTypes").PreloadApiAssemblyContext;
-    type PreloadStateApiDomain =
-        import("./preloadModuleTypes").PreloadStateApiDomain;
+type PreloadApiAssemblyContext =
+    import("./preloadModuleTypes").PreloadApiAssemblyContext;
+type PreloadStateApiDomain =
+    import("./preloadModuleTypes").PreloadStateApiDomain;
 
-    function createPreloadStateApiDomain({
-        createSafeInvokeHandler,
+export function createPreloadStateApiDomain({
+    createSafeInvokeHandler,
+    ipcRenderer,
+    modules,
+    preloadLog,
+    removeIpcListener,
+    validateCallback,
+    validateRequiredNonEmptyString,
+}: PreloadApiAssemblyContext): PreloadStateApiDomain {
+    const { createMainStateApi, createMainStateBridge } = modules;
+    const mainStateBridge = createMainStateBridge({
         ipcRenderer,
-        modules,
         preloadLog,
         removeIpcListener,
-        validateCallback,
-        validateRequiredNonEmptyString,
-    }: PreloadApiAssemblyContext): PreloadStateApiDomain {
-        const { createMainStateApi, createMainStateBridge } = modules;
-        const mainStateBridge = createMainStateBridge({
+    });
+
+    return {
+        mainStateApi: createMainStateApi({
+            createSafeInvokeHandler,
             ipcRenderer,
+            mainStateBridge,
             preloadLog,
-            removeIpcListener,
-        });
-
-        return {
-            mainStateApi: createMainStateApi({
-                createSafeInvokeHandler,
-                ipcRenderer,
-                mainStateBridge,
-                preloadLog,
-                validateCallback,
-                validateRequiredNonEmptyString,
-            }),
-        };
-    }
-
-    module.exports = {
-        createPreloadStateApiDomain,
+            validateCallback,
+            validateRequiredNonEmptyString,
+        }),
     };
 }

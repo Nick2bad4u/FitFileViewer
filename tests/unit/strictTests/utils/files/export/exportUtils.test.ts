@@ -1,9 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
-function loadExportUtils() {
-    return import("../../../../../../electron-app/utils/files/export/exportUtils.js");
-}
-
 type ClipboardWrite = (data: ClipboardItem[]) => Promise<void>;
 type ClipboardWriteText = (data: string) => Promise<void>;
 type CreateObjectUrl = (object: Blob | MediaSource) => string;
@@ -23,10 +19,6 @@ type ExportableChartLike = {
         backgroundColor?: string
     ) => string;
 };
-type ManualMockModule = {
-    detectCurrentTheme?: ReturnType<typeof vi.fn<DetectCurrentTheme>>;
-    showNotification?: ReturnType<typeof vi.fn<ShowNotification>>;
-};
 type ShowNotification = (
     message: string,
     type?: string,
@@ -34,7 +26,6 @@ type ShowNotification = (
     options?: unknown
 ) => Promise<void> | void;
 type TestGlobal = typeof globalThis & {
-    __vitest_manual_mocks__?: Map<string, ManualMockModule>;
     ClipboardItem?: new (items: Record<string, Blob>) => Record<string, Blob>;
     navigator: Navigator & {
         clipboard?: {
@@ -47,6 +38,22 @@ type TestGlobal = typeof globalThis & {
 type ToBase64Image = NonNullable<ExportableChartLike["toBase64Image"]>;
 
 const testGlobal = globalThis as TestGlobal;
+let detectCurrentThemeMock:
+    | ReturnType<typeof vi.fn<DetectCurrentTheme>>
+    | undefined;
+let showNotificationMock:
+    | ReturnType<typeof vi.fn<ShowNotification>>
+    | undefined;
+
+async function loadExportUtils() {
+    const module =
+        await import("../../../../../../electron-app/utils/files/export/exportUtils.js");
+    module.__setTestDeps({
+        detectCurrentTheme: getDetectCurrentThemeMock(),
+        showNotification: getNotificationMock(),
+    });
+    return module;
+}
 
 // Minimal DOM and API shims for canvas, URL, and clipboard
 function installCanvasMocks() {
@@ -171,13 +178,19 @@ async function installJSZipMock() {
 }
 
 function getNotificationMock(): ReturnType<typeof vi.fn<ShowNotification>> {
-    const notificationModule = testGlobal.__vitest_manual_mocks__?.get(
-        "/utils/ui/notifications/showNotification.js"
-    );
-    if (!notificationModule?.showNotification) {
+    if (!showNotificationMock) {
         throw new Error("Missing showNotification mock");
     }
-    return notificationModule.showNotification;
+    return showNotificationMock;
+}
+
+function getDetectCurrentThemeMock(): ReturnType<
+    typeof vi.fn<DetectCurrentTheme>
+> {
+    if (!detectCurrentThemeMock) {
+        throw new Error("Missing detectCurrentTheme mock");
+    }
+    return detectCurrentThemeMock;
 }
 
 function createChart(
@@ -253,17 +266,10 @@ describe("exportUtils core flows", () => {
         localStorage.clear();
         vi.restoreAllMocks();
         vi.resetModules();
-        // Provide manual mock registry for exportUtils suffix resolver
-        const reg = new Map<string, ManualMockModule>();
-        testGlobal.__vitest_manual_mocks__ = reg;
-        reg.set("/utils/ui/notifications/showNotification.js", {
-            showNotification: vi.fn<ShowNotification>(),
-        });
-        reg.set("/utils/charts/theming/chartThemeUtils.js", {
-            detectCurrentTheme: vi
-                .fn<DetectCurrentTheme>()
-                .mockReturnValue("light"),
-        });
+        showNotificationMock = vi.fn<ShowNotification>();
+        detectCurrentThemeMock = vi
+            .fn<DetectCurrentTheme>()
+            .mockReturnValue("light");
         installCanvasMocks();
         installURLMocks();
         installClipboardMock();
@@ -272,6 +278,8 @@ describe("exportUtils core flows", () => {
 
     afterEach(async () => {
         await clearExportZipRuntime();
+        detectCurrentThemeMock = undefined;
+        showNotificationMock = undefined;
         // Ensure body is clean between tests
         document.body.innerHTML = "";
     });

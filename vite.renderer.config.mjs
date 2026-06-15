@@ -1,86 +1,62 @@
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 
 import {
-    appRendererVendorGlobalsChartDataEntryPath,
-    appRendererVendorGlobalsCoreEntryPath,
-    appRendererVendorGlobalsMapEntryPath,
-    rendererVendorGlobalsBundleName,
-    rendererVendorGlobalsChartDataBundleName,
-    rendererVendorGlobalsCoreBundleName,
-    rendererVendorGlobalsMapBundleName,
-    rendererVendorGlobalsStyleFileName,
+    appRendererVendorChartDataEntryPath,
+    appRendererVendorCoreEntryPath,
+    appRendererVendorMapEntryPath,
+    rendererVendorBundleName,
+    rendererVendorChartDataBundleName,
+    rendererVendorCoreBundleName,
+    rendererVendorMapBundleName,
+    rendererVendorStyleFileName,
     repositoryRoot,
     rootRuntimeRendererRepositoryPath,
 } from "./scripts/lib/workspaces.mjs";
 
 const vendorEntryNames = new Set([
-    rendererVendorGlobalsChartDataBundleName,
-    rendererVendorGlobalsCoreBundleName,
-    rendererVendorGlobalsMapBundleName,
+    rendererVendorChartDataBundleName,
+    rendererVendorCoreBundleName,
+    rendererVendorMapBundleName,
 ]);
 
-const leafletRuntimePluginPrelude = [
-    'import { getLegacyLeafletPluginRuntime } from "/electron-app/renderer/legacyLeafletPluginRuntime.ts";',
-    "const L = getLegacyLeafletPluginRuntime();",
-    'if (!L) throw new Error("Leaflet runtime is required before loading legacy Leaflet plugins.");',
-    "",
-].join("\n");
-
-const minimapGlobalRegistrationSnippet =
-    'if(typeof window!=="undefined"&&window.L){window.L.Control.MiniMap=factory(L);window.L.control.minimap=function(layer,options){return new window.L.Control.MiniMap(layer,options)}}';
-
-/** @type {ReadonlyMap<string, (code: string) => string>} */
-const legacyLeafletPluginTransforms = new Map([
-    [
-        "/node_modules/leaflet-draw/dist/leaflet.draw.js",
-        (code) => `${leafletRuntimePluginPrelude}${code}`,
-    ],
-    [
-        "/node_modules/leaflet-minimap/dist/Control.MiniMap.min.js",
-        (code) => {
-            if (!code.includes(minimapGlobalRegistrationSnippet)) {
-                throw new Error(
-                    "Unable to rewrite leaflet-minimap global registration"
-                );
-            }
-
-            return `${leafletRuntimePluginPrelude}${code.replace(
-                minimapGlobalRegistrationSnippet,
-                "if(true){L.Control.MiniMap=factory(L);L.control.minimap=function(layer,options){return new L.Control.MiniMap(layer,options)}}"
-            )}`;
-        },
-    ],
-    [
-        "/node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js",
-        (code) => `${leafletRuntimePluginPrelude}${code}`,
-    ],
-]);
+const leafletDrawRuntimeModuleId = "fitfileviewer:leaflet-draw-runtime";
+const resolvedLeafletDrawRuntimeModuleId = `\0${leafletDrawRuntimeModuleId}`;
+const leafletDrawDistPath = fileURLToPath(import.meta.resolve("leaflet-draw"));
 
 /** @returns {import("vite").Plugin} */
-function legacyLeafletPluginRuntimeTransform() {
+function leafletDrawRuntimeModule() {
     return {
-        enforce: "pre",
-        name: "fitfileviewer-legacy-leaflet-plugin-runtime",
-        /**
-         * @param {string} code
-         * @param {string} id
-         *
-         * @returns {import("vite").TransformResult}
-         */
-        transform(code, id) {
-            const normalizedId = id.replaceAll("\\", "/");
-            const transformLegacyPlugin = [
-                ...legacyLeafletPluginTransforms.entries(),
-            ].find(([pluginPath]) => normalizedId.includes(pluginPath))?.[1];
-
-            if (!transformLegacyPlugin) {
+        /** @param {string} id */
+        async load(id) {
+            if (id !== resolvedLeafletDrawRuntimeModuleId) {
                 return null;
             }
 
-            return {
-                code: transformLegacyPlugin(code),
-                map: null,
-            };
+            // eslint-disable-next-line security/detect-non-literal-fs-filename -- Resolved once from the installed leaflet-draw package entrypoint.
+            const leafletDrawSource = await readFile(
+                leafletDrawDistPath,
+                "utf8"
+            );
+
+            return [
+                'import Leaflet from "leaflet";',
+                "const L = Leaflet;",
+                leafletDrawSource,
+                "export {};",
+            ].join("\n");
+        },
+        name: "fitfileviewer-leaflet-draw-runtime-module",
+        /**
+         * @param {string} id
+         *
+         * @returns {string | null}
+         */
+        resolveId(id) {
+            return id === leafletDrawRuntimeModuleId
+                ? resolvedLeafletDrawRuntimeModuleId
+                : null;
         },
     };
 }
@@ -90,14 +66,14 @@ export default defineConfig({
         cssCodeSplit: false,
         emptyOutDir: false,
         lib: {
-            cssFileName: rendererVendorGlobalsBundleName,
+            cssFileName: rendererVendorBundleName,
             entry: {
-                [rendererVendorGlobalsChartDataBundleName]:
-                    appRendererVendorGlobalsChartDataEntryPath,
-                [rendererVendorGlobalsCoreBundleName]:
-                    appRendererVendorGlobalsCoreEntryPath,
-                [rendererVendorGlobalsMapBundleName]:
-                    appRendererVendorGlobalsMapEntryPath,
+                [rendererVendorChartDataBundleName]:
+                    appRendererVendorChartDataEntryPath,
+                [rendererVendorCoreBundleName]:
+                    appRendererVendorCoreEntryPath,
+                [rendererVendorMapBundleName]:
+                    appRendererVendorMapEntryPath,
             },
             fileName: (_format, entryName) => `${entryName}.js`,
             formats: ["es"],
@@ -109,7 +85,7 @@ export default defineConfig({
                 assetFileNames(assetInfo) {
                     return Array.isArray(assetInfo.names) &&
                         assetInfo.names.includes(
-                            rendererVendorGlobalsStyleFileName
+                            rendererVendorStyleFileName
                         )
                         ? "[name][extname]"
                         : "assets/[name][extname]";
@@ -125,7 +101,7 @@ export default defineConfig({
         sourcemap: false,
         target: "es2024",
     },
-    plugins: [legacyLeafletPluginRuntimeTransform()],
+    plugins: [leafletDrawRuntimeModule()],
     publicDir: false,
     root: repositoryRoot,
 });

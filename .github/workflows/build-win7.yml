@@ -1,14 +1,17 @@
-name: Build Windows 7 Compatibility Artifact
-run-name: Build Windows 7 Compatibility Artifact (${{ github.ref_name }})
+name: Carry Forward Windows 7 Compatibility Artifact
+run-name: Carry Forward Windows 7 Compatibility Artifact (${{ github.ref_name }})
 
 on:
     workflow_dispatch:
         inputs:
-            ref:
-                description: "Branch, tag, or commit to build"
+            target_tag:
+                description: "Release tag that should receive the legacy Windows 7 assets. Defaults to the latest release."
                 type: string
                 required: false
-                default: "main"
+            source_tag:
+                description: "Release tag that already has legacy Windows 7 assets. Defaults to the newest prior matching release."
+                type: string
+                required: false
     workflow_run:
         workflows: ["Build And Release Electron App"]
         types:
@@ -17,103 +20,104 @@ on:
             - main
 
 concurrency:
-    group: win7-build-${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref }}
+    group: win7-carry-forward-${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref }}
     cancel-in-progress: true
 
 permissions:
     contents: write
 
 jobs:
-    win7-build:
-        name: Win7 Portable Build
-        runs-on: windows-latest
-        timeout-minutes: 60
+    carry-forward-win7:
+        name: Carry Forward Win7 Portable Snapshot
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
         if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
-        defaults:
-            run:
-                shell: pwsh
         steps:
             - name: Harden the runner (audit only)
-              uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+              uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
               with:
                   egress-policy: audit
 
-            - name: Checkout repository
-              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-              with:
-                  ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.ref || github.ref }}
-
-            - name: Setup Node.js 20.x
-              uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
-              with:
-                  node-version: 20
-                  cache: "npm"
-                  cache-dependency-path: package-lock.json
-
-            - name: Install dependencies
-              run: npm ci --no-audit --no-fund
-
-            - name: Build Win7 portable artifact
+            - name: Resolve source and target releases
+              id: releases
+              shell: pwsh
               env:
-                  CI: true
-              run: npm run build:win7
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  MANUAL_SOURCE_TAG: ${{ inputs.source_tag }}
+                  MANUAL_TARGET_TAG: ${{ inputs.target_tag }}
+              run: |
+                  $ErrorActionPreference = "Stop"
+                  $releases = gh release list --repo $env:GITHUB_REPOSITORY --limit 100 --json tagName,isDraft,publishedAt | ConvertFrom-Json
+                  $publishedReleases = @($releases | Where-Object { -not $_.isDraft })
 
-            - name: Upload Win7 artifact
-              uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-              with:
-                  name: win7-dist-${{ github.run_id }}
-                  path: release-dist/win7
-                  if-no-files-found: error
+                  if ($publishedReleases.Count -eq 0) {
+                      throw "No published releases found for $env:GITHUB_REPOSITORY"
+                  }
 
-            - name: Get latest release tag
-              if: github.event_name == 'workflow_run'
-              id: get_release
-              uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
-              with:
-                  script: |
-                      const releases = await github.rest.repos.listReleases({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                      });
-                      if (releases.data.length === 0) {
-                        throw new Error('No releases found');
+                  $targetTag = $env:MANUAL_TARGET_TAG
+                  if ([string]::IsNullOrWhiteSpace($targetTag)) {
+                      $targetTag = $publishedReleases[0].tagName
+                  }
+
+                  gh release view $targetTag --repo $env:GITHUB_REPOSITORY --json tagName | Out-Null
+
+                  $sourceTag = $env:MANUAL_SOURCE_TAG
+                  if ([string]::IsNullOrWhiteSpace($sourceTag)) {
+                      foreach ($release in $publishedReleases) {
+                          if ($release.tagName -eq $targetTag) {
+                              continue
+                          }
+
+                          $sourceRelease = gh release view $release.tagName --repo $env:GITHUB_REPOSITORY --json assets | ConvertFrom-Json
+                          $win7Assets = @($sourceRelease.assets | Where-Object { $_.name -like "Fit-File-Viewer-win7-*" })
+                          if ($win7Assets.Count -gt 0) {
+                              $sourceTag = $release.tagName
+                              break
+                          }
                       }
-                      return releases.data[0].tag_name;
-                  result-encoding: string
-
-            - name: Prepare Win7 artifact for release
-              if: github.event_name == 'workflow_run'
-              id: prepare_release
-              run: |
-                  $releaseTag = "${{ steps.get_release.outputs.result }}"
-                  $distDir = [System.IO.Path]::Combine((Get-Location).Path, "release-dist", "win7")
-                  if (-not (Test-Path $distDir)) {
-                      throw "Win7 dist directory not found: $distDir"
                   }
 
-                  $exe = Get-ChildItem -Path $distDir -Filter *.exe | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-                  if (-not $exe) {
-                      throw "No Win7 portable executable found in $distDir"
+                  if ([string]::IsNullOrWhiteSpace($sourceTag)) {
+                      throw "No prior release with Fit-File-Viewer-win7-* assets was found"
                   }
 
-                  $releaseExe = Join-Path $distDir "Fit-File-Viewer-win7-$releaseTag.exe"
-                  Copy-Item $exe.FullName $releaseExe -Force
-
-                  $zipPath = "$releaseExe.zip"
-                  if (Test-Path $zipPath) {
-                      Remove-Item $zipPath -Force
+                  if ($sourceTag -eq $targetTag) {
+                      throw "The Windows 7 source release cannot be the same as the target release: $targetTag"
                   }
-                  Compress-Archive -Path $releaseExe -DestinationPath $zipPath -Force
 
-                  "exe_path=$releaseExe" >> $env:GITHUB_OUTPUT
-                  "zip_path=$zipPath" >> $env:GITHUB_OUTPUT
+                  $validatedSource = gh release view $sourceTag --repo $env:GITHUB_REPOSITORY --json assets | ConvertFrom-Json
+                  $sourceAssets = @($validatedSource.assets | Where-Object { $_.name -like "Fit-File-Viewer-win7-*" })
+                  if ($sourceAssets.Count -eq 0) {
+                      throw "Source release $sourceTag does not contain Fit-File-Viewer-win7-* assets"
+                  }
 
-            - name: Upload Win7 artifact to release
-              if: github.event_name == 'workflow_run'
+                  "source_tag=$sourceTag" >> $env:GITHUB_OUTPUT
+                  "target_tag=$targetTag" >> $env:GITHUB_OUTPUT
+                  "asset_count=$($sourceAssets.Count)" >> $env:GITHUB_OUTPUT
+
+            - name: Download legacy Windows 7 assets
+              shell: pwsh
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  RELEASE_TAG: ${{ steps.get_release.outputs.result }}
-                  RELEASE_EXE: ${{ steps.prepare_release.outputs.exe_path }}
-                  RELEASE_ZIP: ${{ steps.prepare_release.outputs.zip_path }}
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  SOURCE_TAG: ${{ steps.releases.outputs.source_tag }}
               run: |
-                  gh release upload "$env:RELEASE_TAG" "$env:RELEASE_EXE" "$env:RELEASE_ZIP" --clobber
+                  $ErrorActionPreference = "Stop"
+                  New-Item -ItemType Directory -Force -Path legacy-win7-assets | Out-Null
+                  gh release download $env:SOURCE_TAG --repo $env:GITHUB_REPOSITORY --pattern "Fit-File-Viewer-win7-*" --dir legacy-win7-assets --clobber
+                  $assets = @(Get-ChildItem -Path legacy-win7-assets -File)
+
+                  if ($assets.Count -eq 0) {
+                      throw "No Windows 7 assets were downloaded from $env:SOURCE_TAG"
+                  }
+
+            - name: Upload legacy Windows 7 assets to target release
+              shell: pwsh
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  TARGET_TAG: ${{ steps.releases.outputs.target_tag }}
+              run: |
+                  $ErrorActionPreference = "Stop"
+                  $assets = @(Get-ChildItem -Path legacy-win7-assets -File)
+                  $assetPaths = @($assets | ForEach-Object { $_.FullName })
+                  gh release upload $env:TARGET_TAG @assetPaths --repo $env:GITHUB_REPOSITORY --clobber
+                  "Carried forward $($assets.Count) Windows 7 asset(s) to $env:TARGET_TAG."

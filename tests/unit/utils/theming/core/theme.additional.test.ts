@@ -11,12 +11,45 @@ function getBodyClasses(): string[] {
     return [...document.body.classList];
 }
 
+type TestGlobalProperty = "getComputedStyle" | "localStorage" | "matchMedia";
+
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor
+>();
+
+function getRestoreDescriptor(name: TestGlobalProperty): PropertyDescriptor {
+    return (
+        Object.getOwnPropertyDescriptor(globalThis, name) ?? {
+            configurable: true,
+            value: undefined,
+            writable: true,
+        }
+    );
+}
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        originalGlobalDescriptors.set(name, getRestoreDescriptor(name));
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
+}
+
 describe("utils/theming/core/theme.js - additional coverage", () => {
     const originalMatchMedia = Reflect.get(globalThis, "matchMedia") as
         | typeof globalThis.matchMedia
-        | undefined;
-    let originalGetComputedStyle:
-        | typeof globalThis.getComputedStyle
         | undefined;
 
     beforeEach(() => {
@@ -25,20 +58,14 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         // reset localStorage
         localStorage.clear();
         // restore matchMedia default
-        Reflect.set(globalThis, "matchMedia", originalMatchMedia);
+        setTestGlobal("matchMedia", originalMatchMedia);
         clearElectronApiCandidate();
-        // save getComputedStyle
-        originalGetComputedStyle = Reflect.get(
-            globalThis,
-            "getComputedStyle"
-        ) as typeof globalThis.getComputedStyle | undefined;
     });
 
     afterEach(() => {
         vi.useRealTimers();
         clearElectronApiCandidate();
-        // restore getComputedStyle
-        Reflect.set(globalThis, "getComputedStyle", originalGetComputedStyle);
+        restoreTestGlobals();
     });
 
     it("loadTheme returns saved value and falls back to dark on error", () => {
@@ -52,14 +79,9 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
             getItem: vi.fn<() => string | null>(() => {
                 throw new Error("ls error");
             }),
-        } as any;
-        const original = Reflect.get(globalThis, "localStorage") as Storage;
-        Reflect.set(globalThis, "localStorage", badStorage);
-        try {
-            expect(theme.loadTheme()).toBe("dark");
-        } finally {
-            Reflect.set(globalThis, "localStorage", original);
-        }
+        } as Storage;
+        setTestGlobal("localStorage", badStorage);
+        expect(theme.loadTheme()).toBe("dark");
     });
 
     it("applyTheme adds/removes classes, persists, dispatches event, updates meta", () => {
@@ -105,7 +127,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect.assertions(1);
 
         // Configure environment so getSystemTheme() resolves to light
-        Reflect.set(globalThis, "matchMedia", () => ({ matches: false }));
+        setTestGlobal("matchMedia", () => ({ matches: false }));
         theme.applyTheme(theme.THEME_MODES.AUTO, false);
         expect(getBodyClasses()).toContain("theme-light");
     });
@@ -126,13 +148,13 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
         expect.assertions(2);
 
         // with matchMedia
-        Reflect.set(globalThis, "matchMedia", (_query: string) => ({
+        setTestGlobal("matchMedia", (_query: string) => ({
             matches: false,
         }));
         expect(theme.getSystemTheme()).toBe("light");
 
         // without matchMedia
-        Reflect.set(globalThis, "matchMedia", undefined);
+        setTestGlobal("matchMedia", undefined);
         expect(theme.getSystemTheme()).toBe("dark"); // fallback
     });
 
@@ -146,7 +168,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
             ["--color-accent", "#123456"],
             ["--color-border", "#eeeeee"],
         ]);
-        Reflect.set(globalThis, "getComputedStyle", () => ({
+        setTestGlobal("getComputedStyle", () => ({
             getPropertyValue: (k: string) => styles.get(k) || "",
         }));
 
@@ -172,7 +194,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
     it("listenForSystemThemeChange returns undefined when matchMedia is unavailable", () => {
         expect.assertions(1);
 
-        Reflect.set(globalThis, "matchMedia", undefined);
+        setTestGlobal("matchMedia", undefined);
         const cleanup = theme.listenForSystemThemeChange();
         expect(cleanup).toBeUndefined();
     });
@@ -215,7 +237,7 @@ describe("utils/theming/core/theme.js - additional coverage", () => {
 
         localStorage.setItem("ffv-theme", "dark");
         // Provide a minimal matchMedia impl so initializeTheme returns a cleanup function
-        Reflect.set(globalThis, "matchMedia", () => ({
+        setTestGlobal("matchMedia", () => ({
             addEventListener: () => {},
             matches: true,
             removeEventListener: () => {},

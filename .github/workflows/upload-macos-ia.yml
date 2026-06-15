@@ -25,13 +25,13 @@ jobs:
         timeout-minutes: 20
         steps:
             - name: Harden the runner (Audit all outbound calls)
-              uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+              uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
               with:
                   egress-policy: audit
 
             - name: Download macOS release assets (darwin-)
               id: download_darwin
-              uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+              uses: robinraju/release-downloader@28fc21f50d76778e7023361aa1f863e717d3d56f # v1.13
               with:
                   latest: true
                   fileName: "Fit-File-Viewer-darwin-*"
@@ -40,7 +40,7 @@ jobs:
 
             - name: Download macOS release assets (dmg-)
               id: download_dmg
-              uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+              uses: robinraju/release-downloader@28fc21f50d76778e7023361aa1f863e717d3d56f # v1.13
               with:
                   latest: true
                   fileName: "Fit-File-Viewer-dmg-*"
@@ -49,7 +49,7 @@ jobs:
 
             - name: Download macOS release assets (pkg-)
               id: download_pkg
-              uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+              uses: robinraju/release-downloader@28fc21f50d76778e7023361aa1f863e717d3d56f # v1.13
               with:
                   latest: true
                   fileName: "Fit-File-Viewer-pkg-*"
@@ -58,7 +58,7 @@ jobs:
 
             - name: Download macOS release assets (latest-mac.yml)
               id: download_latest
-              uses: robinraju/release-downloader@daf26c55d821e836577a15f77d86ddc078948b05 # v1.12
+              uses: robinraju/release-downloader@28fc21f50d76778e7023361aa1f863e717d3d56f # v1.13
               with:
                   latest: true
                   fileName: "latest-mac*.yml"
@@ -66,7 +66,7 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Upload macOS distributables to archive.org
-              uses: Nick2bad4u/internet-archive-upload@947bc6bdf79d0bcf816b576082fd7b503d33ddc9 # v1.6
+              uses: Nick2bad4u/internet-archive-upload@369aaddeede5cca7f0be4cb39dcc89e35afbdf48 # v2.0.0
               with:
                   access-key: ${{ secrets.IA_ACCESS_KEY }}
                   secret-key: ${{ secrets.IA_SECRET_KEY }}

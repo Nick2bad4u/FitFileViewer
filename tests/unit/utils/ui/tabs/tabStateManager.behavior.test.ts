@@ -79,12 +79,9 @@ function getAltFitIframePathname(iframe: HTMLIFrameElement): string {
 describe("tabStateManager.behavior", () => {
     /* @type {HTMLDivElement} */
     let root;
-    /* @type {any} */
-    let originalConsoleLog;
-    /* @type {any} */
-    let originalConsoleWarn;
-    /* @type {any} */
-    let originalConsoleError;
+    let consoleLogSpy: ReturnType<typeof vi.spyOn>;
+    let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
         root = document.createElement("div");
@@ -122,12 +119,13 @@ describe("tabStateManager.behavior", () => {
         });
 
         // Quiet logs for deterministic tests
-        originalConsoleLog = console.log;
-        originalConsoleWarn = console.warn;
-        originalConsoleError = console.error;
-        vi.spyOn(console, "log").mockImplementation();
-        vi.spyOn(console, "warn").mockImplementation();
-        vi.spyOn(console, "error").mockImplementation();
+        consoleLogSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+        consoleWarnSpy = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => {});
+        consoleErrorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
 
         mockCreateTables.mockImplementation(() => undefined);
         mockRenderMap.mockImplementation(() => undefined);
@@ -136,9 +134,9 @@ describe("tabStateManager.behavior", () => {
 
     afterEach(() => {
         root?.remove();
-        console.log = /* @type {any} */ originalConsoleLog;
-        console.warn = /* @type {any} */ originalConsoleWarn;
-        console.error = /* @type {any} */ originalConsoleError;
+        consoleLogSpy.mockRestore();
+        consoleWarnSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
         vi.resetAllMocks();
     });
 
@@ -421,10 +419,9 @@ describe("tabStateManager.behavior", () => {
 
     it("updateContentVisibility warns for unknown tab", () => {
         expect.assertions(2);
-        const warnSpy = vi.spyOn(console, "warn");
         tabStateManager.updateContentVisibility("unknown");
         expect(TAB_CONFIG.unknown).toBeUndefined();
-        expect(warnSpy).toHaveBeenCalledWith(
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
             "[TabStateManager] Unknown tab: unknown"
         );
     });
@@ -518,7 +515,6 @@ describe("tabStateManager.behavior", () => {
 
     it("handleSummaryTab uses typed renderer import without a global renderer", async () => {
         expect.assertions(2);
-        delete (window as unknown as Record<string, unknown>).renderSummary;
         const data = { recordMesgs: [{}] };
         await tabStateManager.handleSummaryTab(data);
         expect(window).not.toHaveProperty("renderSummary");

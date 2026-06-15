@@ -59,10 +59,10 @@ beforeAll(async () => {
 });
 
 // Mock console methods
-const mockConsoleLog = vi.spyOn(console, "log");
-const mockConsoleInfo = vi.spyOn(console, "info");
-const mockConsoleWarn = vi.spyOn(console, "warn");
-const mockConsoleError = vi.spyOn(console, "error");
+let mockConsoleLog: ReturnType<typeof vi.spyOn>;
+let mockConsoleInfo: ReturnType<typeof vi.spyOn>;
+let mockConsoleWarn: ReturnType<typeof vi.spyOn>;
+let mockConsoleError: ReturnType<typeof vi.spyOn>;
 
 // Mock Electron API
 const mockElectronAPI = {
@@ -82,17 +82,10 @@ Object.defineProperty(global, "window", {
 let mockShowNotification: ReturnType<typeof vi.fn>;
 let mockSetLoading: ReturnType<typeof vi.fn>;
 
-// Mock console methods globally
-const originalConsole = { ...console };
 beforeEach(() => {
     // Reset all mocks including the setState spy
     mockSetState.mockReset();
 
-    // Clear console mocks
-    mockConsoleLog.mockClear();
-    mockConsoleInfo.mockClear();
-    mockConsoleWarn.mockClear();
-    mockConsoleError.mockClear();
     renderDecodedFitDataMock.mockReset();
     renderDecodedFitDataMock.mockResolvedValue(undefined);
     sendFitFileToAltFitReaderMock.mockReset();
@@ -106,21 +99,21 @@ beforeEach(() => {
     mockShowNotification = vi.fn();
     mockSetLoading = vi.fn();
 
-    // Mock console methods for each test
-    console.log = vi.fn();
-    console.info = vi.fn();
-    console.warn = vi.fn();
-    console.error = vi.fn();
+    mockConsoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
+    mockConsoleInfo = vi.spyOn(console, "info").mockImplementation(() => {});
+    mockConsoleWarn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    mockConsoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 });
 
 afterEach(() => {
     vi.clearAllTimers();
     resetElectronApiCandidate();
-    // Restore original console methods
-    console.log = originalConsole.log;
-    console.info = originalConsole.info;
-    console.warn = originalConsole.warn;
-    console.error = originalConsole.error;
+    mockConsoleLog.mockRestore();
+    mockConsoleInfo.mockRestore();
+    mockConsoleWarn.mockRestore();
+    mockConsoleError.mockRestore();
 });
 
 describe("handleOpenFile.js", () => {
@@ -175,17 +168,12 @@ describe("handleOpenFile.js", () => {
         it("should handle logging errors gracefully", () => {
             const { logWithContext } = handleOpenFileModule;
 
-            // Mock console.log to throw
-            const originalLog = console.log;
-            console.log = vi.fn(() => {
+            mockConsoleLog.mockImplementationOnce(() => {
                 throw new Error("Console error");
             });
 
             // Should not throw
             expect(() => logWithContext("Test")).not.toThrow();
-
-            // Restore console.log
-            console.log = originalLog;
         });
     });
 
@@ -793,9 +781,7 @@ describe("handleOpenFile.js", () => {
         it("should handle console method errors gracefully", () => {
             const { logWithContext } = handleOpenFileModule;
 
-            // Mock console.log to throw an error
-            const originalConsoleLog = console.log;
-            console.log = vi.fn(() => {
+            mockConsoleLog.mockImplementationOnce(() => {
                 throw new Error("Console error");
             });
 
@@ -804,8 +790,6 @@ describe("handleOpenFile.js", () => {
                 logWithContext("test message", "info");
             }).not.toThrow();
 
-            // Restore console.log
-            console.log = originalConsoleLog;
         });
     });
 

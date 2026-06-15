@@ -1,13 +1,10 @@
 import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
-import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import { resolveCommandForPlatform } from "./lib/child-process.mjs";
 import { repositoryRoot } from "./lib/workspaces.mjs";
 
-const require = createRequire(path.join(repositoryRoot, "package.json"));
 export const dmgLicensePackageName = "dmg-license";
 export const installDmgLicenseArgs = [
     "install",
@@ -19,9 +16,13 @@ export const installDmgLicenseArgs = [
     dmgLicensePackageName,
 ];
 
+function resolvePackageSpecifier(specifier) {
+    return import.meta.resolve(specifier);
+}
+
 export function isPackageAvailable(
     packageName = dmgLicensePackageName,
-    resolver = (specifier) => require.resolve(specifier)
+    resolver = resolvePackageSpecifier
 ) {
     try {
         resolver(`${packageName}/package.json`);
@@ -35,8 +36,7 @@ export function ensureMacosBuilderDependencies(options = {}) {
     const commandRunner = options.commandRunner ?? spawnSync;
     const logger = options.logger ?? console.log;
     const platform = options.platform ?? process.platform;
-    const resolver =
-        options.resolver ?? ((specifier) => require.resolve(specifier));
+    const resolver = options.resolver ?? resolvePackageSpecifier;
 
     if (platform !== "darwin") {
         logger("[ensure-macos-builder-deps] Skipping non-macOS runner.");

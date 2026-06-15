@@ -49,6 +49,16 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
         expect(setTimeoutMock).toHaveBeenCalledWith(callback, 0);
     });
 
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(1);
+
+        const runtime = getEnsureChartSettingsDropdownsRuntime({ document });
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "ensureChartSettingsDropdowns requires a setTimeout runtime"
+        );
+    });
+
     it("creates abort controllers through the injected runtime", () => {
         expect.assertions(2);
 
@@ -63,7 +73,7 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const runtime = getEnsureChartSettingsDropdownsRuntime({
             document: {
@@ -72,6 +82,13 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
             } as Document,
             HTMLElement: "HTMLElement" as unknown as typeof HTMLElement,
         });
+        const runtimeWithoutAbortController =
+            getEnsureChartSettingsDropdownsRuntime({
+                document: {
+                    body: document.body,
+                    createElement: document.createElement.bind(document),
+                } as Document,
+            });
         const runtimeWithInvalidAbortController =
             getEnsureChartSettingsDropdownsRuntime({
                 AbortController:
@@ -84,6 +101,11 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
         );
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()
+        ).toThrow(
+            "ensureChartSettingsDropdowns requires an AbortController runtime"
+        );
+        expect(() =>
+            runtimeWithoutAbortController.createAbortController()
         ).toThrow(
             "ensureChartSettingsDropdowns requires an AbortController runtime"
         );

@@ -1,22 +1,19 @@
 // @ts-nocheck
 /**
- * Tests the 1510-line chart rendering utility using proven Module cache
- * injection technique to achieve significant coverage improvement from baseline
- * 52.69% to target 80%+
+ * Tests the chart rendering utility with focused ESM mocks and a controlled DOM
+ * environment.
  *
  * TESTING STRATEGY:
  *
- * - Module cache injection for all 27+ dependencies
+ * - ESM mocks for chart/rendering dependencies
  * - DOM environment mocking for Chart.js rendering
  * - State management integration testing
  * - Error handling and edge case coverage
  * - Performance monitoring validation
  * - Export functionality testing
- *
- * TARGET COVERAGE IMPROVEMENT: 52.69% → 80%+ (27+ percentage point improvement)
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetChartListenerStateForTests } from "../../../../../electron-app/utils/charts/core/chartListenerState.js";
 
 type MockFn = (...args: unknown[]) => unknown;
@@ -24,7 +21,9 @@ type VoidFn = (...args: unknown[]) => void;
 type ChartInstanceRegistryModule =
     typeof import("../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
 type RenderChartJSTestGlobal = typeof globalThis & {
+    addEventListener?: unknown;
     cancelAnimationFrame?: unknown;
+    clearTimeout?: unknown;
     document?: unknown;
     matchMedia?: unknown;
     Node?: { ELEMENT_NODE: number };
@@ -36,12 +35,61 @@ type RenderChartJSTestGlobal = typeof globalThis & {
         ) => void;
     } & Record<string, unknown>;
     requestAnimationFrame?: unknown;
-    require?: (id: string) => unknown;
+    setTimeout?: unknown;
     window?: unknown;
 };
 
 function getRenderChartJSTestGlobal(): RenderChartJSTestGlobal {
     return globalThis as unknown as RenderChartJSTestGlobal;
+}
+
+type GlobalFixtureName =
+    | "addEventListener"
+    | "cancelAnimationFrame"
+    | "clearTimeout"
+    | "document"
+    | "matchMedia"
+    | "Node"
+    | "performance"
+    | "requestAnimationFrame"
+    | "setTimeout"
+    | "window";
+
+const originalGlobalDescriptors = new Map<
+    GlobalFixtureName,
+    PropertyDescriptor
+>();
+
+function getGlobalRestoreDescriptor(name: GlobalFixtureName): PropertyDescriptor {
+    return (
+        Object.getOwnPropertyDescriptor(globalThis, name) ?? {
+            configurable: true,
+            value: undefined,
+            writable: true,
+        }
+    );
+}
+
+function rememberGlobalDescriptor(name: GlobalFixtureName): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        originalGlobalDescriptors.set(name, getGlobalRestoreDescriptor(name));
+    }
+}
+
+function setGlobalValue(name: GlobalFixtureName, value: unknown): void {
+    rememberGlobalDescriptor(name);
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreGlobalValues(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
 }
 
 let chartInstanceRegistryModule: ChartInstanceRegistryModule | undefined;
@@ -191,13 +239,7 @@ vi.mock(
     })
 );
 
-// Mock all dependencies before import using Module cache injection
 function injectChartJSMocks() {
-    // Module cache injection technique - intercept require() calls
-    const utils = getRenderChartJSTestGlobal();
-    const originalRequire = utils.require;
-    const moduleCache = new Map();
-
     // Enhanced DOM environment for Chart.js testing
     setupDOMEnvironment();
 
@@ -520,43 +562,6 @@ function injectChartJSMocks() {
         () => mocks.createUserDeviceInfoBox
     );
 
-    // Enhanced module cache injection
-    utils.require = function (id) {
-        const normalizedId = id
-            .replace(/^\.\.\/\.\.\//, "../../")
-            .replace(/\.js$/, "");
-
-        // Check cache first
-        if (moduleCache.has(normalizedId)) {
-            return moduleCache.get(normalizedId);
-        }
-
-        // Find matching mock
-        for (const [mockKey, mockValue] of Object.entries(mocks)) {
-            if (
-                normalizedId.includes(mockKey) ||
-                normalizedId.endsWith(mockKey)
-            ) {
-                moduleCache.set(normalizedId, mockValue);
-                return mockValue;
-            }
-        }
-
-        // Fallback to original require
-        if (originalRequire) {
-            try {
-                return originalRequire(id);
-            } catch (error) {
-                console.warn(
-                    `[Test] Module not found: ${id}, returning empty mock`
-                );
-                return {};
-            }
-        }
-
-        return {};
-    };
-
     return mocks;
 }
 
@@ -590,7 +595,7 @@ function setupDOMEnvironment() {
         insertBefore: vi.fn<MockFn>(),
     };
 
-    global.document = {
+    const mockDocument = {
         createElement: vi.fn<MockFn>().mockReturnValue(mockElement),
         getElementById: vi.fn<MockFn>().mockReturnValue(mockElement),
         // Return null specifically for '#content-chart' to avoid fallback path that calls getThemeConfig in catch
@@ -613,7 +618,7 @@ function setupDOMEnvironment() {
         addEventListener: vi.fn<VoidFn>(),
     };
 
-    global.window = {
+    const mockWindow = {
         addEventListener: vi.fn<MockFn>(),
         performance: {
             now: vi.fn<MockFn>().mockReturnValue(1000),
@@ -635,27 +640,34 @@ function setupDOMEnvironment() {
         ),
     };
 
+    setGlobalValue("document", mockDocument);
+    setGlobalValue("window", mockWindow);
+
     // Do NOT overwrite globalThis; instead, patch properties to avoid clobbering Vitest internals
     const utils = getRenderChartJSTestGlobal();
-    utils.window = global.window;
-    utils.document = global.document;
     if (typeof utils.addEventListener !== "function")
-        vi.stubGlobal("addEventListener", vi.fn<VoidFn>());
+        setGlobalValue("addEventListener", vi.fn<VoidFn>());
     if (typeof utils.setTimeout !== "function")
-        utils.setTimeout = (fn: () => void) => {
+        setGlobalValue("setTimeout", (fn: () => void) => {
             fn();
             return 0;
-        };
+        });
     if (typeof utils.clearTimeout !== "function")
-        vi.stubGlobal("clearTimeout", vi.fn<VoidFn>());
-    utils.performance = global.window.performance;
-    utils.Node = { ELEMENT_NODE: 1 };
+        setGlobalValue("clearTimeout", vi.fn<VoidFn>());
+    setGlobalValue("performance", mockWindow.performance);
+    setGlobalValue("Node", { ELEMENT_NODE: 1 });
     if (typeof utils.requestAnimationFrame !== "function")
-        utils.requestAnimationFrame = global.window.requestAnimationFrame;
+        setGlobalValue(
+            "requestAnimationFrame",
+            mockWindow.requestAnimationFrame
+        );
     if (typeof utils.cancelAnimationFrame !== "function")
-        utils.cancelAnimationFrame = global.window.cancelAnimationFrame;
+        setGlobalValue(
+            "cancelAnimationFrame",
+            mockWindow.cancelAnimationFrame
+        );
     if (typeof utils.matchMedia !== "function")
-        utils.matchMedia = global.window.matchMedia;
+        setGlobalValue("matchMedia", mockWindow.matchMedia);
     // Ensure a stable process.nextTick exists for any code importing this module
     if (!utils.process || typeof utils.process !== "object") utils.process = {};
     if (typeof utils.process.nextTick !== "function") {
@@ -674,7 +686,7 @@ function setupDOMEnvironment() {
     }
 }
 
-describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection", () => {
+describe("renderChartJS.js - Comprehensive Coverage with ESM mocks", () => {
     let mocks;
 
     beforeEach(async () => {
@@ -682,9 +694,6 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
         vi.clearAllMocks();
         chartJsModuleMocks.Chart.registry.plugins.get.mockReturnValue(false);
         mocks = injectChartJSMocks();
-        Reflect.deleteProperty(globalThis, "Chart");
-        Reflect.deleteProperty(globalThis, "ChartZoom");
-        Reflect.deleteProperty(globalThis, "chartjsPluginZoom");
         await registerChartRuntime(
             chartJsModuleMocks.Chart,
             chartJsModuleMocks.zoomPlugin
@@ -720,6 +729,13 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             };
             return stateMap[path];
         });
+    });
+
+    afterEach(async () => {
+        clearChartInstanceRegistryForTests();
+        resetChartListenerStateForTests();
+        await clearChartRuntime();
+        restoreGlobalValues();
     });
 
     describe("chartSettingsManager Object", () => {
@@ -883,7 +899,6 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
 
         it("should handle Chart.js not available scenario", async () => {
             expect.assertions(2);
-            Reflect.deleteProperty(globalThis, "Chart");
             await clearChartRuntime();
 
             const { chartActions, chartState } =
@@ -1258,15 +1273,15 @@ describe("renderChartJS.js - Comprehensive Coverage with Module Cache Injection"
             expect({ rendered: view }).toStrictEqual({ rendered: false });
         });
 
-        it("should ignore legacy Chart.js unavailable global sentinel", async () => {
-            expect.assertions(2);
-            Reflect.set(globalThis, "Chart", null);
+        it("should render through the typed Chart.js runtime without a global sentinel", async () => {
+            expect.assertions(3);
 
             const { renderChartJS } =
                 await import("../../../../../electron-app/utils/charts/core/renderChartJS.js");
 
             const view = await renderChartJS();
 
+            expect(Object.hasOwn(globalThis, "Chart")).toBe(false);
             expect(
                 mocks.showNotification.showNotification
             ).not.toHaveBeenCalledWith("Chart library not available", "error");

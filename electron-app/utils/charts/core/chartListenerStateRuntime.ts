@@ -9,8 +9,7 @@ export interface ChartListenerStateRuntime {
 function getAbortControllerConstructor(
     scope: ChartListenerStateRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.AbortController ?? globalThis.AbortController;
+    const AbortControllerConstructor = scope.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError("chartListenerState requires an AbortController");
     }

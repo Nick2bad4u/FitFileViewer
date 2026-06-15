@@ -115,10 +115,6 @@ export const rootRuntimeRendererRepositoryPath = path.posix.join(
 );
 export const rootTypesPath = "types";
 export const rootTypesAbsolutePath = repositoryPath(rootTypesPath);
-export const rootWin7ReleaseDistPath = repositoryPath(
-    rootReleaseDistPath,
-    "win7"
-);
 export const rootRuntimeTsconfigPath = "tsconfig.runtime.json";
 export const rootRuntimeTsconfigAbsolutePath = repositoryPath(
     rootRuntimeTsconfigPath
@@ -194,30 +190,35 @@ export const appLeafletMeasureLitePath = appSourceRepositoryPath(
     "renderer",
     "leafletMeasureLite.js"
 );
+export const appMainSourceAbsolutePath = appSourceAbsolutePath("main.ts");
+export const appMainBundleAbsolutePath = repositoryPath(
+    rootRuntimeDistPath,
+    "main.js"
+);
 export const appPreloadSourceAbsolutePath = appSourceAbsolutePath("preload.ts");
 export const appPreloadBundleAbsolutePath = repositoryPath(
     rootRuntimeDistPath,
     "preload.js"
 );
-export const appRendererVendorGlobalsCoreEntryPath = appSourceRepositoryPath(
+export const appRendererVendorCoreEntryPath = appSourceRepositoryPath(
     "renderer",
-    "vendorGlobalsCore.ts"
+    "rendererVendorCore.ts"
 );
-export const appRendererVendorGlobalsChartDataEntryPath =
-    appSourceRepositoryPath("renderer", "vendorGlobalsChartData.ts");
-export const appRendererVendorGlobalsMapEntryPath = appSourceRepositoryPath(
+export const appRendererVendorChartDataEntryPath =
+    appSourceRepositoryPath("renderer", "rendererVendorChartData.ts");
+export const appRendererVendorMapEntryPath = appSourceRepositoryPath(
     "renderer",
-    "vendorGlobalsMap.ts"
+    "rendererVendorMap.ts"
 );
-export const rendererVendorGlobalsBundleName = "vendor-globals";
-export const rendererVendorGlobalsChartDataBundleName =
-    "vendor-globals-chart-data";
-export const rendererVendorGlobalsCoreBundleName = "vendor-globals-core";
-export const rendererVendorGlobalsMapBundleName = "vendor-globals-map";
-export const rendererVendorGlobalsChartDataScriptFileName = `${rendererVendorGlobalsChartDataBundleName}.js`;
-export const rendererVendorGlobalsCoreScriptFileName = `${rendererVendorGlobalsCoreBundleName}.js`;
-export const rendererVendorGlobalsMapScriptFileName = `${rendererVendorGlobalsMapBundleName}.js`;
-export const rendererVendorGlobalsStyleFileName = `${rendererVendorGlobalsBundleName}.css`;
+export const rendererVendorBundleName = "renderer-vendor";
+export const rendererVendorChartDataBundleName =
+    "renderer-vendor-chart-data";
+export const rendererVendorCoreBundleName = "renderer-vendor-core";
+export const rendererVendorMapBundleName = "renderer-vendor-map";
+export const rendererVendorChartDataScriptFileName = `${rendererVendorChartDataBundleName}.js`;
+export const rendererVendorCoreScriptFileName = `${rendererVendorCoreBundleName}.js`;
+export const rendererVendorMapScriptFileName = `${rendererVendorMapBundleName}.js`;
+export const rendererVendorStyleFileName = `${rendererVendorBundleName}.css`;
 export const appStyleCssPath = "style.css";
 export const docusaurusPackagePath =
     docusaurusWorkspaceAbsolutePath("package.json");
@@ -384,6 +385,7 @@ export const repositoryPrettierTargets = [
     appLeafletMeasureLitePath,
 ];
 export const scriptsPath = path.join(repositoryRoot, "scripts");
+export const bundleMainScriptPath = repositoryScriptPath("bundle-main.mjs");
 export const bundlePreloadScriptPath =
     repositoryScriptPath("bundle-preload.mjs");
 export const applyElectronFusesScriptPath = repositoryScriptPath(

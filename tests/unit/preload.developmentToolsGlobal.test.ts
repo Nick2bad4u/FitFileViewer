@@ -1,29 +1,10 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
-
-interface DevelopmentToolsGlobalModule {
-    DEVELOPMENT_TOOLS_GLOBAL_NAME: string;
-    exposeDevelopmentToolsGlobal: (options: {
-        api: ElectronAPI;
-        constants: unknown;
-        contextBridge:
-            | {
-                  exposeInMainWorld?: (key: string, api: unknown) => void;
-              }
-            | null
-            | undefined;
-        isDevelopmentMode: () => boolean;
-        preloadLog: (
-            level: "error" | "info" | "warn",
-            message: string,
-            ...details: unknown[]
-        ) => void;
-    }) => boolean;
-}
-
+import {
+    DEVELOPMENT_TOOLS_GLOBAL_NAME,
+    exposeDevelopmentToolsGlobal,
+} from "../../electron-app/preload/developmentToolsGlobal.js";
 interface ExposedDevelopmentToolsApi {
     getPreloadInfo: () => {
         apiMethods: string[];
@@ -34,12 +15,6 @@ interface ExposedDevelopmentToolsApi {
     logAPIState: () => void;
     testIPC: () => Promise<boolean>;
 }
-
-const requireFromTest = createRequire(import.meta.url);
-const { DEVELOPMENT_TOOLS_GLOBAL_NAME, exposeDevelopmentToolsGlobal } =
-    requireFromTest(
-        "../../electron-app/preload/developmentToolsGlobal.js"
-    ) as DevelopmentToolsGlobalModule;
 
 function createApi(getAppVersion = vi.fn<() => Promise<string>>()) {
     return {

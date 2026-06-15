@@ -51,8 +51,12 @@ function createFileInput(id: string): {
 function createWiring(overrides: {
     readonly ensureCoreModules?: () => Promise<RendererCoreModules>;
     readonly getFileInput?: () => HTMLInputElement | null;
-    readonly resolveExactManualMock?: (testId: string) => null | unknown;
-    readonly resolveManualMock?: (pathSuffix: string) => null | unknown;
+    readonly resolveExactRendererCoreTestOverride?: (
+        testId: string
+    ) => null | unknown;
+    readonly resolveRendererCoreTestOverride?: (
+        pathSuffix: string
+    ) => null | unknown;
 }) {
     return createRendererFileInputWiring({
         callUnknownFunction: vi.fn(
@@ -66,9 +70,10 @@ function createWiring(overrides: {
             (async () => createCoreModules(vi.fn())),
         getFileInput: overrides.getFileInput ?? (() => null),
         logRenderer: vi.fn(),
-        resolveExactManualMock:
-            overrides.resolveExactManualMock ?? (() => null),
-        resolveManualMock: overrides.resolveManualMock ?? (() => null),
+        resolveExactRendererCoreTestOverride:
+            overrides.resolveExactRendererCoreTestOverride ?? (() => null),
+        resolveRendererCoreTestOverride:
+            overrides.resolveRendererCoreTestOverride ?? (() => null),
         toModuleRecord: (value) =>
             typeof value === "object" && value !== null
                 ? (value as Record<string, unknown>)
@@ -113,36 +118,38 @@ describe("renderer file input wiring", () => {
         expect(handleOpenFile).not.toHaveBeenCalled();
     });
 
-    it("uses the exact manual handleOpenFile mock before suffix matches", () => {
+    it("uses the exact handleOpenFile test override before suffix matches", () => {
         expect.assertions(3);
 
         const { file, input } = createFileInput("fileInput");
-        const exactManualHandleOpenFile = vi.fn<UnknownRendererFunction>();
-        const suffixManualHandleOpenFile = vi.fn<UnknownRendererFunction>();
+        const exactOverrideHandleOpenFile = vi.fn<UnknownRendererFunction>();
+        const suffixOverrideHandleOpenFile = vi.fn<UnknownRendererFunction>();
         const asyncHandleOpenFile = vi.fn<UnknownRendererFunction>();
         const utils = createWiring({
             ensureCoreModules: async () =>
                 createCoreModules(asyncHandleOpenFile),
             getFileInput: () => input,
-            resolveExactManualMock: (testId) =>
+            resolveExactRendererCoreTestOverride: (testId) =>
                 testId === "../../utils/files/import/handleOpenFile.js"
-                    ? { handleOpenFile: exactManualHandleOpenFile }
+                    ? { handleOpenFile: exactOverrideHandleOpenFile }
                     : null,
-            resolveManualMock: (pathSuffix) =>
+            resolveRendererCoreTestOverride: (pathSuffix) =>
                 pathSuffix === "/utils/files/import/handleOpenFile.js"
-                    ? { handleOpenFile: suffixManualHandleOpenFile }
+                    ? { handleOpenFile: suffixOverrideHandleOpenFile }
                     : null,
         });
 
         utils.registerDelegatedFileInputChangeListener(document, window);
         input.dispatchEvent(new Event("change", { bubbles: true }));
 
-        expect(exactManualHandleOpenFile).toHaveBeenCalledExactlyOnceWith(file);
-        expect(suffixManualHandleOpenFile).not.toHaveBeenCalled();
+        expect(exactOverrideHandleOpenFile).toHaveBeenCalledExactlyOnceWith(
+            file
+        );
+        expect(suffixOverrideHandleOpenFile).not.toHaveBeenCalled();
         expect(asyncHandleOpenFile).not.toHaveBeenCalled();
     });
 
-    it("falls back to async handleOpenFile when no manual mock resolves", async () => {
+    it("falls back to async handleOpenFile when no test override resolves", async () => {
         expect.assertions(1);
 
         const { file, input } = createFileInput("fileInput");

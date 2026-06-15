@@ -125,7 +125,6 @@ for exact module names when adding or changing utilities.
 ├── renderer-style-imports.d.ts      # Root-owned renderer CSS/SVG/package module shims
 ├── scripts/
 │   ├── analyze-coverage.mjs         # Root-owned coverage analysis helper
-│   ├── build-win7.mjs               # Root-owned Windows 7 compatibility build helper
 │   ├── bundle-preload.mjs           # Root-owned preload bundling helper
 │   ├── clean-runtime-dist.mjs       # Root-owned runtime output cleanup helper
 │   ├── format-runtime-output.mjs    # Root-owned runtime output formatter
@@ -233,7 +232,7 @@ Application screenshots used by repository documentation live in
 .github/
 ├── workflows/                       # GitHub Actions workflows (30+ workflows)
 │   ├── Build.yml                   # Root lint/test/docs gate plus multi-platform builds
-│   ├── build-win7.yml              # Windows 7 compatibility build
+│   ├── build-win7.yml              # Windows 7 legacy release-asset carry-forward
 │   ├── docusaurus.yml              # Documentation site build and deploy
 │   ├── codeql.yml                  # Security analysis
 │   ├── dependency-review.yml       # Dependency review gate

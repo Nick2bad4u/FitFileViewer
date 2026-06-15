@@ -1,7 +1,7 @@
-import { createRequire } from "node:module";
 import { describe, expect, it, vi } from "vitest";
 
 import type { MainStateChange } from "../../electron-app/shared/ipc";
+import { createMainStateBridge } from "../../electron-app/preload/mainStateBridge.js";
 
 interface IpcRendererMock {
     invoke: ReturnType<
@@ -16,24 +16,6 @@ interface IpcRendererMock {
         >
     >;
 }
-
-interface MainStateBridgeModule {
-    createMainStateBridge: (options: {
-        ipcRenderer: IpcRendererMock;
-        preloadLog: PreloadLogMock;
-        removeIpcListener: RemoveIpcListenerMock;
-    }) => {
-        listenToMainState: (
-            path: string,
-            callback: (change: MainStateChange) => void
-        ) => Promise<boolean>;
-        unlistenFromMainState: (
-            path: string,
-            callback: (change: MainStateChange) => void
-        ) => Promise<boolean>;
-    };
-}
-
 type PreloadLogMock = ReturnType<
     typeof vi.fn<
         (
@@ -52,11 +34,6 @@ type RemoveIpcListenerMock = ReturnType<
         ) => void
     >
 >;
-
-const requireFromTest = createRequire(import.meta.url);
-const { createMainStateBridge } = requireFromTest(
-    "../../electron-app/preload/mainStateBridge.js"
-) as MainStateBridgeModule;
 
 function createBridge() {
     const ipcRenderer: IpcRendererMock = {

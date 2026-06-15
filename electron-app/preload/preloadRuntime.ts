@@ -1,52 +1,19 @@
-{
-    type AssemblePreloadApi = import("./preloadModuleTypes").AssemblePreloadApi;
-    type CreateElectronApi = import("./preloadModuleTypes").CreateElectronApi;
-    type PreloadConstants = import("./preloadModuleTypes").PreloadConstants;
-    type PreloadModuleRegistry =
-        import("./preloadModuleTypes").PreloadModuleRegistry;
-    type PreloadModuleRequire =
-        import("./preloadModuleTypes").PreloadModuleRequire;
-    type PreloadRuntime = import("./preloadModuleTypes").PreloadRuntime;
+import { assemblePreloadApi, createPreloadConstants } from "./apiAssembly.js";
+import { createElectronApi } from "./electronApiFactory.js";
+import { loadPreloadModules } from "./preloadModuleLoader.js";
 
-    interface CreatePreloadRuntimeOptions {
-        requireModule: PreloadModuleRequire;
-    }
+type PreloadRuntime = import("./preloadModuleTypes").PreloadRuntime;
 
-    function createPreloadRuntime({
-        requireModule,
-    }: CreatePreloadRuntimeOptions): PreloadRuntime {
-        const { loadPreloadModules } = requireModule(
-            "./preload/preloadModuleLoader.js"
-        ) as {
-            loadPreloadModules: (options: {
-                requireModule: PreloadModuleRequire;
-            }) => PreloadModuleRegistry;
-        };
-        const { createElectronApi } = requireModule(
-            "./preload/electronApiFactory.js"
-        ) as {
-            createElectronApi: CreateElectronApi;
-        };
-        const { assemblePreloadApi, createPreloadConstants } = requireModule(
-            "./preload/apiAssembly.js"
-        ) as {
-            assemblePreloadApi: AssemblePreloadApi;
-            createPreloadConstants: (
-                ipcBridgeCatalog: PreloadModuleRegistry["ipcBridgeCatalog"]
-            ) => PreloadConstants;
-        };
-        const modules = loadPreloadModules({ requireModule });
+const createElectronApiModule =
+    createElectronApi as unknown as PreloadRuntime["createElectronApi"];
 
-        return {
-            assemblePreloadApi,
-            constants: createPreloadConstants(modules.ipcBridgeCatalog),
-            createElectronApi,
-            modules,
-            requireModule,
-        };
-    }
+export function createPreloadRuntime(): PreloadRuntime {
+    const modules = loadPreloadModules();
 
-    module.exports = {
-        createPreloadRuntime,
+    return {
+        assemblePreloadApi,
+        constants: createPreloadConstants(modules.ipcBridgeCatalog),
+        createElectronApi: createElectronApiModule,
+        modules,
     };
 }

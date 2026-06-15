@@ -7,8 +7,6 @@ import {
     validateElement,
 } from "../../../../electron-app/utils/ui/mainUiDomUtils.js";
 
-const ELECTRON_API_PROPERTY = "electronAPI";
-
 function getRequiredMockCall<T extends unknown[]>(calls: T[], index = 0): T {
     const call = calls[index];
 
@@ -22,7 +20,7 @@ function getRequiredMockCall<T extends unknown[]>(calls: T[], index = 0): T {
 function resetTestState(): void {
     cleanupEventListeners();
     document.body.replaceChildren();
-    Reflect.deleteProperty(globalThis, ELECTRON_API_PROPERTY);
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
 }
 
@@ -43,6 +41,42 @@ describe("mainUiDomUtils", () => {
 
         expect(handler).toHaveBeenCalledOnce();
         expect(getRequiredMockCall(handler.mock.calls)[0].type).toBe("click");
+
+        resetTestState();
+    });
+
+    it("resolves listener cleanup controllers through the injected runtime", () => {
+        expect.assertions(4);
+
+        resetTestState();
+
+        const button = document.createElement("button");
+        const handler = vi.fn<(event: Event) => void>();
+        const abortController = new AbortController();
+        const abort = vi.fn(() => {
+            abortController.abort();
+        });
+        const runtime = {
+            createAbortController: vi.fn(() => ({
+                abort,
+                signal: abortController.signal,
+            })),
+        };
+
+        addEventListenerWithCleanup(
+            button,
+            "click",
+            handler,
+            undefined,
+            runtime
+        );
+        cleanupEventListeners();
+        button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+        expect(runtime.createAbortController).toHaveBeenCalledOnce();
+        expect(abort).toHaveBeenCalledOnce();
+        expect(abortController.signal.aborted).toBe(true);
+        expect(handler).not.toHaveBeenCalled();
 
         resetTestState();
     });
@@ -97,10 +131,7 @@ describe("mainUiDomUtils", () => {
 
         resetTestState();
 
-        Object.defineProperty(globalThis, ELECTRON_API_PROPERTY, {
-            configurable: true,
-            value: { decodeFitFile: "not-a-function" },
-        });
+        vi.stubGlobal("electronAPI", { decodeFitFile: "not-a-function" });
 
         expect({ isValid: validateElectronAPI() }).toStrictEqual({
             isValid: false,
@@ -114,9 +145,8 @@ describe("mainUiDomUtils", () => {
 
         resetTestState();
 
-        Object.defineProperty(globalThis, ELECTRON_API_PROPERTY, {
-            configurable: true,
-            value: { decodeFitFile: vi.fn<(buffer: ArrayBuffer) => unknown>() },
+        vi.stubGlobal("electronAPI", {
+            decodeFitFile: vi.fn<(buffer: ArrayBuffer) => unknown>(),
         });
 
         expect({ isValid: validateElectronAPI() }).toStrictEqual({

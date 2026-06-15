@@ -121,13 +121,6 @@ type TestElectronAPI = {
     send: ReturnType<typeof vi.fn<(channel: string) => void>>;
 };
 
-type TestGlobals = typeof globalThis & {
-    globalData?: unknown;
-    loadedFitFiles?: unknown[];
-};
-
-const globalAny = globalThis as TestGlobals;
-
 function requireElement<T extends Element>(
     element: T | null,
     label: string
@@ -148,17 +141,6 @@ function requireHandler<T extends IpcHandler>(
     }
 
     return handler;
-}
-
-function defineGlobalValue<K extends keyof TestGlobals>(
-    key: K,
-    value: TestGlobals[K]
-): void {
-    Object.defineProperty(globalAny, key, {
-        configurable: true,
-        value,
-        writable: true,
-    });
 }
 
 function getCreatedBlob(createObjectURLSpy: {
@@ -283,13 +265,13 @@ describe(setupListeners, () => {
         resetElectronApiCandidate();
         registerElectronApiCandidate(electronAPI);
         setActiveFitRawData({ recordMesgs: [] }, { source: "test" });
+        setLoadedFitFiles([], "test");
         csvExportMocks.serializeTableToCSV.mockReset();
         csvExportMocks.serializeTableToCSV.mockReturnValue("header\nvalue");
         fitDataRendererMocks.renderDecodedFitData.mockReset();
         fitDataRendererMocks.renderDecodedFitData.mockResolvedValue(undefined);
         altFitMocks.sendFitFileToAltFitReader.mockReset();
         keyboardShortcutsModalMock.showKeyboardShortcutsModal.mockReset();
-        defineGlobalValue("loadedFitFiles", []);
 
         setupListeners({
             openFileBtn: openButton,
@@ -308,8 +290,6 @@ describe(setupListeners, () => {
         vi.useRealTimers();
         document.body.replaceChildren();
         resetElectronApiCandidate();
-        delete globalAny.globalData;
-        delete globalAny.loadedFitFiles;
     });
 
     it("delegates open file clicks to the provided handler", () => {
@@ -798,7 +778,9 @@ describe(setupListeners, () => {
         expect(
             keyboardShortcutsModalMock.showKeyboardShortcutsModal
         ).toHaveBeenCalledOnce();
-        expect("showKeyboardShortcutsModal" in globalAny).toBe(false);
+        expect(Reflect.has(globalThis, "showKeyboardShortcutsModal")).toBe(
+            false
+        );
     });
 
     it("does not use script tag injection for keyboard shortcuts", async () => {
@@ -842,6 +824,8 @@ describe(setupListeners, () => {
         expect(
             keyboardShortcutsModalMock.showKeyboardShortcutsModal
         ).toHaveBeenCalledTimes(2);
-        expect("showKeyboardShortcutsModal" in globalAny).toBe(false);
+        expect(Reflect.has(globalThis, "showKeyboardShortcutsModal")).toBe(
+            false
+        );
     });
 });

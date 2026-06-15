@@ -36,6 +36,13 @@ type ThemeColors = {
     surface: string;
     text: string;
 };
+type MockLeafletCircleMarker = {
+    bringToFront: ReturnType<typeof vi.fn<() => void>>;
+    options: unknown;
+};
+type MockLeafletRuntime = {
+    CircleMarker: new (options: unknown) => MockLeafletCircleMarker;
+};
 
 // Mock dependencies
 const mockGetThemeColors = vi.fn<() => Partial<ThemeColors>>();
@@ -343,6 +350,7 @@ function getClearAllButtonState(container: HTMLElement) {
 describe("createShownFilesList", () => {
     let createShownFilesList: () => HTMLElement;
     let updateShownFilesList: () => void;
+    let leafletRuntime: MockLeafletRuntime;
 
     beforeEach(async () => {
         // Reset DOM
@@ -391,17 +399,16 @@ describe("createShownFilesList", () => {
             border: "#cccccc",
         });
 
-        const windowMock = global.window as any;
         loadedFitFilesFixture.files = [];
         clearOverlayTooltipTimeout();
         renderMapMocks.renderMap.mockClear();
-        windowMock.L = {
+        leafletRuntime = {
             CircleMarker: class MockCircleMarker {
-                constructor(public options: any) {}
+                constructor(public options: unknown) {}
                 bringToFront = vi.fn<() => void>();
             },
         };
-        setLeafletRuntime(windowMock.L);
+        setLeafletRuntime(leafletRuntime);
 
         // Import the function dynamically
         const module =
@@ -1718,7 +1725,7 @@ describe("createShownFilesList", () => {
         it("brings matching markers to front", () => {
             expect.assertions(3);
             // Create CircleMarker instance
-            const mockMarker = new (global.window as any).L.CircleMarker({
+            const mockMarker = new leafletRuntime.CircleMarker({
                 color: "#1976d2",
             });
             mockPolyline._map._layers.marker1 = mockMarker;

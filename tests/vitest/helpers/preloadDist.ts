@@ -77,14 +77,16 @@ function hasDelegatedPreloadModules(): boolean {
 
 function isBundledPreloadCode(code: string): boolean {
     return (
-        code.includes("var __commonJS =") &&
+        code.includes("// electron-app/preload.ts") &&
+        code.includes("startDefaultPreloadEntrypoint();") &&
+        code.includes("function startPreloadEntrypoint(") &&
         !code.includes('require("./preload/')
     );
 }
 
 function isDelegatedPreloadCode(code: string): boolean {
     return (
-        code.includes("startPreloadEntrypoint(require,") &&
+        code.includes("startPreloadEntrypoint();") &&
         code.includes('"./preload/preloadBootstrap.js"') &&
         hasDelegatedPreloadModules()
     );

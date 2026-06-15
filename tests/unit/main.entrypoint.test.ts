@@ -1,9 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-const { clearPrimeTestEnvironmentTimers } =
-    require("../../electron-app/main/runtime/primeTestEnvironment") as {
-        clearPrimeTestEnvironmentTimers: () => void;
-    };
+import { clearPrimeTestEnvironmentTimers } from "../../electron-app/main/runtime/primeTestEnvironment.js";
 
 type ElectronAccessModule = {
     setElectronOverride: (override: unknown) => void;
@@ -424,10 +421,9 @@ function resetHarness(): void {
     delete process.env.GYAZO_CLIENT_ID;
     delete process.env.GYAZO_CLIENT_SECRET;
     restorePlatform();
-    setMainElectronOverride(harness.electronModule);
 }
 
-function cleanupHarness(): void {
+async function cleanupHarness(): Promise<void> {
     clearRuntimeTimers();
     vi.clearAllTimers();
     vi.useRealTimers();
@@ -435,12 +431,13 @@ function cleanupHarness(): void {
     delete process.env.GYAZO_CLIENT_ID;
     delete process.env.GYAZO_CLIENT_SECRET;
     restorePlatform();
-    setMainElectronOverride(null);
+    await setMainElectronOverride(null);
 }
 
-function setMainElectronOverride(override: unknown): void {
-    const { setElectronOverride } =
-        require("../../electron-app/main/runtime/electronAccess") as ElectronAccessModule;
+async function setMainElectronOverride(override: unknown): Promise<void> {
+    const { setElectronOverride } = (await import(
+        "../../electron-app/main/runtime/electronAccess.js"
+    )) as ElectronAccessModule;
     setElectronOverride(override);
 }
 
@@ -455,7 +452,7 @@ async function importMainWithEnvironment(
 ): Promise<MainExports> {
     vi.resetModules();
     process.env.NODE_ENV = nodeEnvironment;
-    setMainElectronOverride(harness.electronModule);
+    await setMainElectronOverride(harness.electronModule);
 
     const mainModule =
         (await import("../../electron-app/main.js")) as MainExports;
@@ -566,7 +563,7 @@ describe("main.js entrypoint behavior", () => {
             });
             expect(allowedRequestCallback).toHaveBeenCalledWith({});
         } finally {
-            cleanupHarness();
+            await cleanupHarness();
         }
     });
 
@@ -602,7 +599,7 @@ describe("main.js entrypoint behavior", () => {
                 "unexpected-channel"
             );
         } finally {
-            cleanupHarness();
+            await cleanupHarness();
         }
     });
 });

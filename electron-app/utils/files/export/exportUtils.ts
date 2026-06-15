@@ -18,16 +18,13 @@ import {
     type ExportZipConstructor,
     type ExportZipLike,
 } from "./exportZipRuntime.js";
+import { getExportUtilsRuntime } from "./exportUtilsRuntime.js";
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
 import { createModalFocusTrap } from "../../ui/modals/modalFocusTrap.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type LooseRecord = unknown;
-type ManualMockModule = Record<string, LooseRecord>;
-type VitestManualMockGlobal = typeof globalThis & {
-    __vitest_manual_mocks__?: Map<string, unknown>;
-};
 type ExportStorageLike = {
     getItem?: (key: string) => null | string;
     removeItem?: (key: string) => void;
@@ -57,6 +54,8 @@ type ChartDataset = {
     label?: string;
     [key: string]: LooseRecord;
 };
+
+const exportUtilsRuntime = getExportUtilsRuntime();
 
 /**
  * Minimal Chart.js-like shape accepted by export helpers.
@@ -138,6 +137,8 @@ type ExportModalAccessibilityOptions = {
 };
 
 let exportModalTitleCounter = 0;
+let detectCurrentThemeOverride: typeof __realDetectCurrentTheme | null = null;
+let showNotificationOverride: ExportNotification | null = null;
 
 function hasOptionalElectronFunction(
     record: Readonly<Record<string, unknown>>,
@@ -244,110 +245,11 @@ async function stopGyazoServerIfAvailable(): Promise<void> {
     }
 }
 
-// In test environment, allow vi.mock to be honored even for modules this file imports statically
-// By consulting a minimal manual mock registry installed by the Vitest setup. When not under tests,
-// Or when no mock is registered, we simply use the real implementations.
-
-/*
- * @param {unknown} value
- *
- * @returns {value is ManualMockModule}
- */
-function __isManualMockModule(value: unknown): value is ManualMockModule {
-    return typeof value === "object" && value !== null;
-}
-
-/*
- * @returns {Map<string, unknown> | undefined}
- */
-function __getManualMockRegistry(): Map<string, unknown> | undefined {
-    return (globalThis as VitestManualMockGlobal).__vitest_manual_mocks__;
-}
-
-/*
- * @param {unknown} mock
- *
- * @returns {ManualMockModule | null}
- */
-function __normalizeManualMock(mock: unknown): ManualMockModule | null {
-    if (!__isManualMockModule(mock)) {
-        return null;
-    }
-
-    return __isManualMockModule(mock["default"]) ? mock["default"] : mock;
-}
-
-/*
- * @param {string} p
- *
- * @returns {ManualMockModule | null}
- */
-function __resolveManualMockBySuffix(p: string): ManualMockModule | null {
-    try {
-        const reg = __getManualMockRegistry();
-        if (reg && typeof reg.forEach === "function") {
-            for (const [id, mod] of reg.entries()) {
-                const norm = String(id).replaceAll("\\", "/");
-                if (norm.endsWith(p)) {
-                    return __normalizeManualMock(mod);
-                }
-            }
-        }
-    } catch {
-        /* Ignore errors */
-    }
-    return null;
-}
-
-// Resolve possibly-mocked dependencies
-const __notifMod = __resolveManualMockBySuffix(
-    "/utils/ui/notifications/showNotification.js"
-);
-const __chartThemeMod = __resolveManualMockBySuffix(
-    "/utils/charts/theming/chartThemeUtils.js"
-);
-
-// Debug logging for mock resolution is useful when diagnosing tricky Vitest ESM mocking,
-// but it is extremely noisy in normal test runs. Gate it behind an explicit env flag.
-try {
-    // Only enable when explicitly requested.
-    const debugEnabled =
-        getProcessEnvironmentValue("FFV_DEBUG_TEST_MOCKS") === "1";
-
-    if (debugEnabled) {
-        const __dbgReg = __getManualMockRegistry();
-        if (__dbgReg && typeof __dbgReg.forEach === "function") {
-            const keys: string[] = [];
-            for (const [k] of __dbgReg.entries()) keys.push(String(k));
-            console.log("[exportUtils][debug] manual-mock keys:", keys);
-            console.log(
-                "[exportUtils][debug] resolved showNotification mock?",
-                Boolean(__notifMod && __notifMod["showNotification"])
-            );
-            console.log(
-                "[exportUtils][debug] resolved detectCurrentTheme mock?",
-                Boolean(
-                    __chartThemeMod && __chartThemeMod["detectCurrentTheme"]
-                )
-            );
-        }
-    }
-} catch {
-    /* Ignore errors */
-}
-
-// Local call sites use these, which point to mocked versions in tests when available
-const resolvedShowNotification =
-    (__notifMod?.["showNotification"] as
-        | typeof __realShowNotification
-        | undefined) ?? __realShowNotification;
 const showNotification: ExportNotification = (...args) => {
-    void resolvedShowNotification(...args);
+    (showNotificationOverride ?? __realShowNotification)(...args);
 };
-const detectCurrentTheme =
-    (__chartThemeMod?.["detectCurrentTheme"] as
-        | typeof __realDetectCurrentTheme
-        | undefined) ?? __realDetectCurrentTheme;
+const detectCurrentTheme = (): ReturnType<typeof __realDetectCurrentTheme> =>
+    (detectCurrentThemeOverride ?? __realDetectCurrentTheme)();
 
 /*
  * Convert a base64 data URL (e.g. data:image/png;base64,...) into a Blob
@@ -531,7 +433,7 @@ function printWhenImageReady(
     printWindow: Window,
     imageElement: HTMLImageElement
 ): void {
-    const imageLoadController = new AbortController();
+    const imageLoadController = exportUtilsRuntime.createAbortController();
     const printAndClose = () => {
         imageLoadController.abort();
         printAndCloseWindow(printWindow);
@@ -849,6 +751,13 @@ let __deps: {
 export function __setTestDeps(overrides: Partial<typeof __deps>): void {
     try {
         if (overrides && typeof overrides === "object") {
+            if (Object.hasOwn(overrides, "detectCurrentTheme")) {
+                detectCurrentThemeOverride =
+                    overrides.detectCurrentTheme ?? null;
+            }
+            if (Object.hasOwn(overrides, "showNotification")) {
+                showNotificationOverride = overrides.showNotification ?? null;
+            }
             __deps = { ...__deps, ...overrides };
         }
     } catch {
@@ -920,7 +829,7 @@ function getImgurUploadLink(value: unknown): string | undefined {
 }
 
 function confirmDangerousAction(message: string): boolean {
-    return globalThis.window?.confirm(message) ?? false;
+    return exportUtilsRuntime.confirmDangerousAction(message);
 }
 
 function addSingleChartToZip(
@@ -1810,7 +1719,7 @@ export const exportUtils = {
 
         actionButtons.append(cancelBtn);
         modal.append(actionButtons);
-        const listenerController = new AbortController();
+        const listenerController = exportUtilsRuntime.createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cancelled = false;
         let cleanupModalAccessibility = () => {};
@@ -3298,7 +3207,7 @@ body {
         closeBtn.textContent = "Close";
         actionPanel.append(connectBtn, disconnectBtn, clearDataBtn, closeBtn);
         modal.append(actionPanel);
-        const listenerController = new AbortController();
+        const listenerController = exportUtilsRuntime.createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
@@ -3561,7 +3470,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         `;
         closeBtn.textContent = "Got it!";
         modal.append(title, content, closeBtn);
-        const listenerController = new AbortController();
+        const listenerController = exportUtilsRuntime.createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
@@ -4024,7 +3933,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
         closeBtn.textContent = "Close";
         actions.append(setupGuideBtn, clearBtn, closeBtn);
         modal.append(actions);
-        const listenerController = new AbortController();
+        const listenerController = exportUtilsRuntime.createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {
@@ -4282,7 +4191,7 @@ Client Secret: YOUR_ACTUAL_CLIENT_SECRET`;
 
         actions.append(backBtn, closeBtn);
         modal.append(title, content, actions);
-        const listenerController = new AbortController();
+        const listenerController = exportUtilsRuntime.createAbortController();
         const listenerOptions = { signal: listenerController.signal };
         let cleanupModalAccessibility = () => {};
         const closeOverlay = () => {

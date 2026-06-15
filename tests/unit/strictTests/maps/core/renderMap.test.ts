@@ -11,6 +11,7 @@ import {
 } from "../../../../../electron-app/utils/maps/state/mapLeafletInstanceState.js";
 import { resetRegisteredMapPluginControlsForTests } from "../../../../../electron-app/utils/maps/state/mapPluginControlState.js";
 import { setActiveFitRawData } from "../../../../../electron-app/utils/state/domain/activeFitRawDataState.js";
+import { setLoadedFitFiles } from "../../../../../electron-app/utils/state/domain/loadedFitFilesState.js";
 import { getMapBaseLayer } from "../../../../../electron-app/utils/state/domain/mapBaseLayerState.js";
 import {
     __resetStateManagerForTests,
@@ -65,11 +66,6 @@ type PowerEstimationButtonOptions = {
 type BaseLayerLeafletStub = {
     maplibreGL: Mock<() => Record<string, never>>;
     tileLayer: Mock<() => Record<string, never>>;
-};
-
-type RenderMapWindow = Window & {
-    globalData: { recordMesgs: unknown[]; sessionMesgs?: unknown[] };
-    loadedFitFiles: unknown[];
 };
 
 function setActiveFitTestData(data: Record<string, unknown>): void {
@@ -327,10 +323,8 @@ describe("renderMap core", () => {
         container.id = "content-map";
         document.body.appendChild(container);
 
-        // Reset window extensions used by the module
-        const w = window as RenderMapWindow;
         setActiveFitTestData({ recordMesgs: [] });
-        w.loadedFitFiles = [];
+        setLoadedFitFiles([], "test");
         mockCreateTables.mockReset();
         mockInvalidateChartRenderCache.mockReset();
         mockRenderChartJS.mockReset();

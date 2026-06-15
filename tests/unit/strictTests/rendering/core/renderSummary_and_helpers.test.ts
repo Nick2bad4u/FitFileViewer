@@ -79,13 +79,7 @@ describe("renderSummary helpers + renderSummary", () => {
 
         setState("fitFile.currentFile", null, { source: "test.clear" });
         setState("fitFile.rawData", null, { source: "test.clear" });
-        Object.defineProperty(window, "activeFitFileName", {
-            configurable: true,
-            value: "active.fit",
-            writable: true,
-        });
         expect(getStorageKey({}, [])).toBe("summaryColSel_default");
-        Reflect.deleteProperty(window, "activeFitFileName");
     });
 
     it("save/load column preferences roundtrip", async () => {

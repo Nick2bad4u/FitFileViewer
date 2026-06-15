@@ -1,46 +1,5 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
-
-interface ApiDiagnosticsModule {
-    createApiDiagnostics: (options: {
-        channels: Record<string, string>;
-        contextBridge:
-            | {
-                  exposeInMainWorld?: (key: string, api: unknown) => void;
-              }
-            | null
-            | undefined;
-        events: Record<string, string>;
-        ipcRenderer:
-            | {
-                  invoke?: (...args: unknown[]) => Promise<unknown>;
-                  on?: (...args: unknown[]) => void;
-                  send?: (...args: unknown[]) => void;
-              }
-            | null
-            | undefined;
-        isDevelopmentMode: () => boolean;
-        preloadLog: (
-            level: "error" | "info" | "warn",
-            message: string,
-            ...details: unknown[]
-        ) => void;
-    }) => {
-        getChannelInfo: () => {
-            channels: Record<string, string>;
-            events: Record<string, string>;
-            totalChannels: number;
-            totalEvents: number;
-        };
-        validateAPI: () => boolean;
-    };
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { createApiDiagnostics } = requireFromTest(
-    "../../electron-app/preload/apiDiagnostics.js"
-) as ApiDiagnosticsModule;
+import { createApiDiagnostics } from "../../electron-app/preload/apiDiagnostics.js";
 
 function createDiagnostics({
     contextBridge = {

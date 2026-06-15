@@ -1,17 +1,5 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
-
-interface ApiAssemblyContextModule {
-    createPreloadApiAssemblyContext: (
-        options: Record<string, unknown>
-    ) => Record<string, unknown>;
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { createPreloadApiAssemblyContext } = requireFromTest(
-    "../../electron-app/preload/apiAssemblyContext.js"
-) as ApiAssemblyContextModule;
+import { createPreloadApiAssemblyContext } from "../../electron-app/preload/apiAssemblyContext.js";
 
 function createModules() {
     const validateCallback = vi.fn();

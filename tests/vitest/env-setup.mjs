@@ -83,16 +83,26 @@ function shouldSuppressJsdomWarning(candidate) {
     return JS_DOM_WARNING_PATTERNS.some((pattern) => pattern.test(message));
 }
 
-console.error = function (...args) {
-    if (args.length > 0 && shouldSuppressJsdomWarning(args[0])) {
-        return;
-    }
-    return originalConsoleError.apply(this, args);
-};
+/**
+ * Install a console warning filter without direct method assignment, matching
+ * the descriptor-scoped fixture pattern used by the rest of the Vitest setup.
+ *
+ * @param {"error" | "warn"} methodName
+ * @param {(...args: unknown[]) => unknown} originalMethod
+ */
+function installFilteredConsoleMethod(methodName, originalMethod) {
+    Object.defineProperty(console, methodName, {
+        configurable: true,
+        value: function filteredConsoleMethod(...args) {
+            if (args.length > 0 && shouldSuppressJsdomWarning(args[0])) {
+                return;
+            }
 
-console.warn = function (...args) {
-    if (args.length > 0 && shouldSuppressJsdomWarning(args[0])) {
-        return;
-    }
-    return originalConsoleWarn.apply(this, args);
-};
+            return originalMethod.apply(this, args);
+        },
+        writable: true,
+    });
+}
+
+installFilteredConsoleMethod("error", originalConsoleError);
+installFilteredConsoleMethod("warn", originalConsoleWarn);

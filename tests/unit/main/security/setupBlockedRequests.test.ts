@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { createRequire } from "node:module";
 import { describe, expect, it, vi } from "vitest";
 
 type RequestDecision = {
@@ -24,17 +23,17 @@ type SetupBlockedRequestsModule = {
     readonly setupBlockedRequests: () => void;
 };
 
-function loadModules(): {
+async function importModules(): Promise<{
     readonly electronAccess: ElectronAccessModule;
     readonly setupBlockedRequests: SetupBlockedRequestsModule["setupBlockedRequests"];
-} {
+}> {
     vi.resetModules();
-    const require = createRequire(import.meta.url);
-    const electronAccess =
-        require("../../../../electron-app/main/runtime/electronAccess.js") as ElectronAccessModule;
-    const { setupBlockedRequests } =
-        require("../../../../electron-app/main/security/setupBlockedRequests.js") as SetupBlockedRequestsModule;
-
+    const electronAccess = (await import(
+        "../../../../electron-app/main/runtime/electronAccess.js"
+    )) as ElectronAccessModule;
+    const { setupBlockedRequests } = (await import(
+        "../../../../electron-app/main/security/setupBlockedRequests.js"
+    )) as SetupBlockedRequestsModule;
     return { electronAccess, setupBlockedRequests };
 }
 
@@ -73,19 +72,19 @@ function createWebRequestHarness(): {
 }
 
 describe("setupBlockedRequests", () => {
-    it("no-ops when Electron session is unavailable", () => {
+    it("no-ops when Electron session is unavailable", async () => {
         expect.assertions(1);
 
-        const { electronAccess, setupBlockedRequests } = loadModules();
+        const { electronAccess, setupBlockedRequests } = await importModules();
         electronAccess.setElectronOverride({});
 
         expect(setupBlockedRequests()).toBeUndefined();
     });
 
-    it("registers a request guard that cancels only blocked hostnames", () => {
+    it("registers a request guard that cancels only blocked hostnames", async () => {
         expect.assertions(3);
 
-        const { electronAccess, setupBlockedRequests } = loadModules();
+        const { electronAccess, setupBlockedRequests } = await importModules();
         const webRequest = createWebRequestHarness();
         electronAccess.setElectronOverride({
             session: {

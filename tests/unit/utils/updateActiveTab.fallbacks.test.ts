@@ -25,12 +25,44 @@ type TabButtonState = {
     classes: string[];
     id: string;
 };
+type TestGlobalProperty = "document" | "window";
+
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor
+>();
 
 // Utility to cleanly reset modules between environment permutations
 const resetAll = async () => {
     vi.clearAllMocks();
     vi.resetModules();
 };
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+        originalGlobalDescriptors.set(name, descriptor);
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [
+        name,
+        descriptor,
+    ] of [...originalGlobalDescriptors.entries()].reverse()) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
+}
 
 async function setTabTestEnvironment(
     environment: Parameters<
@@ -124,6 +156,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
     afterEach(async () => {
         await setTabTestEnvironment(null);
+        restoreTestGlobals();
         await resetAll();
     });
 
@@ -178,8 +211,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
         // Invalidate the standard globals so getDoc() prefers the effective document
         // Note: typeof checks in getDoc guard these assignments.
-        Reflect.set(globalThis, "document", undefined);
-        Reflect.set(globalThis, "window", undefined);
+        setTestGlobal("document", undefined);
+        setTestGlobal("window", undefined);
 
         // Provide a minimal viable state manager to satisfy calls
         const setState = vi.fn<SetState>();
@@ -220,8 +253,8 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         );
 
         // Invalidate document; provide window.document only
-        Reflect.set(globalThis, "document", undefined);
-        Reflect.set(globalThis, "window", { document: dom.window.document });
+        setTestGlobal("document", undefined);
+        setTestGlobal("window", { document: dom.window.document });
 
         const setState = vi.fn<SetState>();
         const getState = vi.fn<GetState>().mockReturnValue("win");

@@ -453,4 +453,4 @@ export function testProductId(
 }
 
 // Debug functions are exported for use in renderer.js
-// The renderer will expose them globally in development mode
+// Debug functions stay as module exports for development diagnostics.

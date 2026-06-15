@@ -29,8 +29,8 @@ import {
 import {
     callUnknownFunction,
     ensureCoreModules,
-    resolveExactManualMock,
-    resolveManualMock,
+    resolveExactRendererCoreTestOverride,
+    resolveRendererCoreTestOverride,
     toModuleRecord,
 } from "./renderer/coreModuleResolution.js";
 import { installRendererElectronApiWiring } from "./renderer/electronApiWiring.js";
@@ -95,8 +95,8 @@ const importTimeBootstrap = createRendererImportTimeBootstrap({
     getOpenFileButton: domAccess.getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
-    resolveExactManualMock,
-    resolveManualMock,
+    resolveExactRendererCoreTestOverride,
+    resolveRendererCoreTestOverride,
     setLoading,
     toModuleRecord,
 });
@@ -108,8 +108,8 @@ const fileInputWiring = createRendererFileInputWiring({
     ensureCoreModules,
     getFileInput: domAccess.getFileInput,
     logRenderer,
-    resolveExactManualMock,
-    resolveManualMock,
+    resolveExactRendererCoreTestOverride,
+    resolveRendererCoreTestOverride,
     toModuleRecord,
 });
 
@@ -117,8 +117,8 @@ const testOnlyBootstrapOptions = {
     callUnknownFunction,
     getOpenFileButton: domAccess.getOpenFileButton,
     isOpeningFileRef,
-    resolveExactManualMock,
-    resolveManualMock,
+    resolveExactRendererCoreTestOverride,
+    resolveRendererCoreTestOverride,
     scheduleImportTimeThemeSetup,
     setLoading,
 };

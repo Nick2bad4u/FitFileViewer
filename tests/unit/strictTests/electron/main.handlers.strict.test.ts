@@ -1,9 +1,6 @@
 // @vitest-environment jsdom
-import { createRequire } from "node:module";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-const requireCjs = createRequire(import.meta.url);
 
 type EventHandler = (...args: unknown[]) => void;
 type NodeCallback<T> = (error: Error | null, value: T) => void;
@@ -305,9 +302,10 @@ describe("main.js strict handlers and events", () => {
         createWindowMock = vi.fn<() => unknown>(() => mockMainWindow);
         createAppMenu = vi.fn<() => void>();
 
-        const { setElectronOverride } = requireCjs(
-            "../../../../electron-app/main/runtime/electronAccess.js"
-        ) as ElectronAccessModule;
+        const { setElectronOverride } =
+            (await import(
+                "../../../../electron-app/main/runtime/electronAccess.js"
+            )) as ElectronAccessModule;
         setElectronOverride({
             get app() {
                 return mockApp;
@@ -554,31 +552,46 @@ describe("main.js strict handlers and events", () => {
         // file:read returns ArrayBuffer
         // file:read is protected by a main-process allowlist; approve the path as if it
         // came from a trusted user flow (dialog/menu/recent list).
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const policy: any = require("../../../../electron-app/main/security/fileAccessPolicy");
+        const policy: any = await import(
+            "../../../../electron-app/main/security/fileAccessPolicy.js"
+        );
         policy.__resetForTests?.();
-        policy.approveFilePath?.("C:/x.fit", { source: "test" });
 
-        // Override fs.readFile for this call using spy with loose typing
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const fsMod: any = require("fs");
-        (vi.spyOn(fsMod as any, "stat") as any).mockImplementation(
-            (p: string, cb: Function) => cb(null, { size: 3 })
+        const realFs = await vi.importActual<typeof import("node:fs")>(
+            "node:fs"
         );
-        (vi.spyOn(fsMod as any, "readFile") as any).mockImplementation(
-            (p: string, cb: Function) => cb(null, Buffer.from("abc"))
+        const realOs = await vi.importActual<typeof import("node:os")>(
+            "node:os"
         );
-        const buf = await getRequiredHandler(fileRead)({}, "C:/x.fit");
-        expect(Object.prototype.toString.call(buf)).toBe(
-            "[object ArrayBuffer]"
+        const realPath = await vi.importActual<typeof import("node:path")>(
+            "node:path"
         );
-        expect(new Uint8Array(buf)).toEqual(
-            new Uint8Array([
-                97,
-                98,
-                99,
-            ])
+        const tempDir = realFs.mkdtempSync(
+            realPath.join(realOs.tmpdir(), "ffv-read-")
         );
+        const approvedReadPath = realPath.join(tempDir, "x.fit");
+
+        try {
+            realFs.writeFileSync(approvedReadPath, "abc");
+            policy.approveFilePath?.(approvedReadPath, { source: "test" });
+
+            const buf = await getRequiredHandler(fileRead)(
+                {},
+                approvedReadPath
+            );
+            expect(Object.prototype.toString.call(buf)).toBe(
+                "[object ArrayBuffer]"
+            );
+            expect(new Uint8Array(buf)).toEqual(
+                new Uint8Array([
+                    97,
+                    98,
+                    99,
+                ])
+            );
+        } finally {
+            realFs.rmSync(tempDir, { force: true, recursive: true });
+        }
 
         const missingFileError = Object.assign(
             new Error("ENOENT: no such file or directory, stat 'C:/x.fit'"),
@@ -594,10 +607,11 @@ describe("main.js strict handlers and events", () => {
         };
         const directLog = vi.fn<(...args: unknown[]) => void>();
         let directFileRead: any;
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const {
             registerFileSystemHandlers,
-        }: any = require("../../../../electron-app/main/ipc/registerFileSystemHandlers");
+        }: any = await import(
+            "../../../../electron-app/main/ipc/registerFileSystemHandlers.js"
+        );
         registerFileSystemHandlers({
             fs: directFs,
             logWithContext: directLog,
@@ -632,6 +646,10 @@ describe("main.js strict handlers and events", () => {
         const importedMain: any =
             await import("../../../../electron-app/main.js");
         const mainModule = importedMain.default ?? importedMain;
+        const { resolveAutoUpdaterAsync } = await import(
+            "../../../../electron-app/main/updater/autoUpdaterAccess.js"
+        );
+        await resolveAutoUpdaterAsync();
         const updater = (await import("electron-updater")).autoUpdater as any;
         mockMainWindow.webContents.send.mockClear();
 
@@ -655,7 +673,7 @@ describe("main.js strict handlers and events", () => {
             "error"
         );
         mainModule.setAppState("autoUpdaterInitialized", true);
-        getRequiredHandler(updaterCheck)({
+        await getRequiredHandler(updaterCheck)({
             sender: mockMainWindow.webContents,
         });
         expect(updater.checkForUpdates).toHaveBeenCalledOnce();
@@ -672,7 +690,7 @@ describe("main.js strict handlers and events", () => {
             expect(install[0]).toBe("install-update");
             updater.quitAndInstall.mockClear();
             mainModule.setAppState("autoUpdater.updateDownloaded", false);
-            getRequiredHandler(install)({
+            await getRequiredHandler(install)({
                 sender: mockMainWindow.webContents,
             });
             expect(updater.quitAndInstall).not.toHaveBeenCalled();
@@ -682,7 +700,7 @@ describe("main.js strict handlers and events", () => {
                 "error"
             );
             mainModule.setAppState("autoUpdater.updateDownloaded", true);
-            getRequiredHandler(install)({
+            await getRequiredHandler(install)({
                 sender: mockMainWindow.webContents,
             });
             expect(updater.quitAndInstall).toHaveBeenCalledOnce();
@@ -761,7 +779,9 @@ describe("main.js strict handlers and events", () => {
         const copiedFilePath = realPath.join(tempDir, "copy.fit");
         realFs.writeFileSync(approvedFilePath, "fit-data");
 
-        const policy: any = require("../../../../electron-app/main/security/fileAccessPolicy");
+        const policy: any = await import(
+            "../../../../electron-app/main/security/fileAccessPolicy.js"
+        );
         policy.__resetForTests?.();
 
         try {

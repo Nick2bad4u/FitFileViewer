@@ -196,6 +196,8 @@ describe("source entrypoint documentation", () => {
             "setupFitParserIPC",
             "setupFitParserPreload",
             "import { parseFitFile }",
+            'require("./fitParser.js")',
+            'require("electron")',
             "// renderer.js",
             "// preload.js",
         ];

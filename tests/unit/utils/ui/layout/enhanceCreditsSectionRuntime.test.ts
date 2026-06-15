@@ -3,6 +3,34 @@ import { describe, expect, it, vi } from "vitest";
 import { getCreditsMarqueeRuntime } from "../../../../../electron-app/utils/ui/layout/enhanceCreditsSectionRuntime.js";
 
 describe("getCreditsMarqueeRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const runtime = getCreditsMarqueeRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+        });
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("throws when abort controller creation is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getCreditsMarqueeRuntime({});
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "credits marquee requires an AbortController runtime"
+        );
+    });
+
     it("queries credits sections through the injected document", () => {
         expect.assertions(2);
 

@@ -21,7 +21,6 @@ function isTestLeafletRuntime(value: unknown): value is TestLeafletRuntime {
 
 afterEach(() => {
     clearLeafletRuntimeForTests();
-    Reflect.deleteProperty(globalThis, "L");
 });
 
 describe("leafletRuntime", () => {

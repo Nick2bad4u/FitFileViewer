@@ -1,41 +1,20 @@
-{
-    const path = require("node:path") as typeof import("node:path");
+import * as fsModule from "node:fs";
+import * as httpModule from "node:http";
+import * as pathModule from "node:path";
 
-    type FileSystemModule = typeof import("node:fs");
-    type HttpModule = typeof import("node:http");
+type HttpModule = typeof import("node:http");
 
-    const requireNodeModule = (specifier: string): unknown => {
-        try {
-            return require(specifier);
-        } catch {
-            return null;
-        }
-    };
+// eslint-disable-next-line unicorn/prefer-export-from -- export-from exposes deprecated Node namespace members to lint.
+export const path = pathModule;
+// eslint-disable-next-line unicorn/prefer-export-from -- export-from exposes deprecated Node namespace members to lint.
+export const fs = fsModule;
 
-    /**
-     * Attempts to resolve Node's fs module while supporting test environments
-     * that mock either "fs" or "node:fs".
-     */
-    const fs =
-        (requireNodeModule("node:fs") as FileSystemModule | null) ??
-        (requireNodeModule("fs") as FileSystemModule | null);
-
-    /**
-     * Lazily resolves the http module, preferring the classic specifier so
-     * tests can stub it easily.
-     *
-     * @returns Node http module or null when unavailable.
-     */
-    function httpRef(): HttpModule | null {
-        return (
-            (requireNodeModule("http") as HttpModule | null) ??
-            (requireNodeModule("node:http") as HttpModule | null)
-        );
-    }
-
-    module.exports = {
-        fs,
-        httpRef,
-        path,
-    };
+/**
+ * Returns Node's http module through the runtime boundary used by main-process
+ * callers.
+ *
+ * @returns Node http module.
+ */
+export function httpRef(): HttpModule {
+    return httpModule;
 }

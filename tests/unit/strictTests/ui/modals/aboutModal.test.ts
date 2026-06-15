@@ -13,6 +13,22 @@ type AboutElectronApi = {
     openExternal: (url: string) => void;
 };
 
+const aboutModalRuntimeMocks = vi.hoisted(() => ({
+    cancelAnimationFrame: vi.fn<(handle: number) => void>(),
+    clearTimeout: vi.fn<typeof globalThis.clearTimeout>((handle) =>
+        globalThis.clearTimeout(handle)
+    ),
+    requestAnimationFrame: vi.fn<(callback: FrameRequestCallback) => number>(
+        (callback) => {
+            callback(0);
+            return 1;
+        }
+    ),
+    setTimeout: vi.fn<typeof globalThis.setTimeout>((callback, delay) =>
+        globalThis.setTimeout(callback, delay)
+    ),
+}));
+
 // Mock heavy side-effect modules before importing the subject under test
 vi.mock(
     import("../../../../../electron-app/utils/app/initialization/loadVersionInfo.js"),
@@ -30,6 +46,13 @@ vi.mock(
     })
 );
 
+vi.mock(
+    import("../../../../../electron-app/utils/ui/modals/aboutModalRuntime.js"),
+    () => ({
+        getAboutModalRuntime: () => aboutModalRuntimeMocks,
+    })
+);
+
 // Utilities to import after mocks
 const importModules = async (): Promise<AboutModalModules> => {
     const ensureAboutModalMod =
@@ -37,15 +60,6 @@ const importModules = async (): Promise<AboutModalModules> => {
     const aboutModalMod =
         await import("../../../../../electron-app/utils/ui/modals/aboutModal.js");
     return { ...ensureAboutModalMod, ...aboutModalMod };
-};
-
-// Helpers
-const rafImmediate = (): void => {
-    // Execute RAF callbacks immediately to allow class toggles and transitions
-    globalThis.requestAnimationFrame = (cb: FrameRequestCallback): number => {
-        cb(0);
-        return 1;
-    };
 };
 
 function getRequiredElementById(id: string): HTMLElement {
@@ -102,7 +116,10 @@ describe("about modal UI behaviors", () => {
 
         aboutElectronAPI = registerAboutElectronApi();
 
-        rafImmediate();
+        aboutModalRuntimeMocks.cancelAnimationFrame.mockClear();
+        aboutModalRuntimeMocks.clearTimeout.mockClear();
+        aboutModalRuntimeMocks.requestAnimationFrame.mockClear();
+        aboutModalRuntimeMocks.setTimeout.mockClear();
     });
 
     afterEach(() => {

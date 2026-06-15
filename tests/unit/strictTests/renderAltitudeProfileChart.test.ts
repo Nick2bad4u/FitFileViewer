@@ -70,6 +70,13 @@ type ChartSettingsManagerMock = {
 type ChartInstanceRegistryModule =
     typeof import("../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
 
+type GlobalFixtureName =
+    | "document"
+    | "HTMLCanvasElement"
+    | "HTMLElement"
+    | "localStorage"
+    | "window";
+
 type ChartTestGlobal = typeof globalThis & {
     HTMLCanvasElement?: typeof HTMLCanvasElement;
     HTMLElement?: typeof HTMLElement;
@@ -132,6 +139,11 @@ let renderAltitudeProfileChart: RenderAltitudeProfileChart;
 let mockLocalStorage: StorageMock;
 let mockChartSettingsManager: ChartSettingsManagerMock;
 let chartInstanceRegistryModule: ChartInstanceRegistryModule | undefined;
+let dom: JSDOM | undefined;
+const originalGlobalDescriptors = new Map<
+    GlobalFixtureName,
+    PropertyDescriptor
+>();
 
 async function loadChartInstanceRegistry(): Promise<ChartInstanceRegistryModule> {
     chartInstanceRegistryModule =
@@ -145,6 +157,34 @@ function clearChartInstanceRegistryForTests(): void {
 
 function getRegisteredChartInstances(): unknown[] {
     return chartInstanceRegistryModule?.getRegisteredChartInstances() ?? [];
+}
+
+function rememberGlobalDescriptor(name: GlobalFixtureName): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
+    }
+}
+
+function setGlobalValue(name: GlobalFixtureName, value: unknown): void {
+    rememberGlobalDescriptor(name);
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreGlobalValues(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
 }
 
 async function clearChartRuntime(): Promise<void> {
@@ -163,26 +203,30 @@ async function registerChartRuntime(runtime: unknown): Promise<void> {
 
 describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () => {
     beforeEach(async () => {
-        // Setup console first
-        global.console = {
-            log: vi.fn<(...data: unknown[]) => void>(),
-            error: vi.fn<(...data: unknown[]) => void>(),
-            warn: vi.fn<(...data: unknown[]) => void>(),
-        } as unknown as Console;
+        vi.spyOn(console, "log").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(console, "warn").mockImplementation(() => {});
 
         // Setup JSDOM environment
-        const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
+        dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
             url: "http://localhost",
             pretendToBeVisual: true,
             resources: "usable",
         });
 
-        global.window = dom.window as unknown as Window & typeof globalThis;
-        global.document = dom.window.document;
-        global.HTMLCanvasElement = dom.window
-            .HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
-        global.HTMLElement = dom.window
-            .HTMLElement as unknown as typeof HTMLElement;
+        setGlobalValue(
+            "window",
+            dom.window as unknown as Window & typeof globalThis
+        );
+        setGlobalValue("document", dom.window.document);
+        setGlobalValue(
+            "HTMLCanvasElement",
+            dom.window.HTMLCanvasElement as unknown as typeof HTMLCanvasElement
+        );
+        setGlobalValue(
+            "HTMLElement",
+            dom.window.HTMLElement as unknown as typeof HTMLElement
+        );
 
         // Mock localStorage
         mockLocalStorage = {
@@ -191,7 +235,7 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
             removeItem: vi.fn<(key: string) => void>(),
             clear: vi.fn<() => void>(),
         };
-        getChartTestGlobal().localStorage = mockLocalStorage;
+        setGlobalValue("localStorage", mockLocalStorage);
 
         // Mock Chart.js
         chartInstanceMock = {
@@ -319,12 +363,10 @@ describe("renderAltitudeProfileChart.js - Altitude Profile Chart Utility", () =>
         vi.clearAllMocks();
         vi.resetAllMocks();
         vi.resetModules();
-        delete getChartTestGlobal().window;
-        delete getChartTestGlobal().document;
-        delete getChartTestGlobal().HTMLCanvasElement;
-        delete getChartTestGlobal().HTMLElement;
-        delete getChartTestGlobal().console;
-        delete getChartTestGlobal().localStorage;
+        dom?.window.close();
+        dom = undefined;
+        restoreGlobalValues();
+        vi.restoreAllMocks();
     });
 
     describe("data validation and processing", () => {

@@ -21,6 +21,7 @@ export interface ListenersResizeRuntimeWindow {
 }
 
 export interface ListenersResizeRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly cancelAnimationFrame?:
         | ((handle: number) => void)
         | undefined;
@@ -49,6 +50,7 @@ export interface ListenersResizeRuntime {
     ) => void;
     cancelAnimationFrame: (handle: number) => void;
     clearTimeout: (handle: ListenersResizeTimerHandle) => void;
+    createAbortController: () => AbortController;
     getFullscreenElement: () => Element | null;
     queryChartCanvases: () => HTMLCanvasElement[];
     queryChartTab: (selector: string) => Element | null;
@@ -88,8 +90,24 @@ export function getListenersResizeRuntime(
             scope.cancelAnimationFrame?.(handle);
         },
         clearTimeout(handle: ListenersResizeTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = scope.clearTimeout;
+            if (typeof clearTimeoutRef !== "function") {
+                throw new TypeError(
+                    "listenersResize requires a clearTimeout runtime"
+                );
+            }
+
             clearTimeoutRef(handle);
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "listenersResize requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
         },
         getFullscreenElement(): Element | null {
             const runtimeDocument = scope.document;
@@ -148,7 +166,13 @@ export function getListenersResizeRuntime(
             callback: () => void,
             timeout: number
         ): ListenersResizeTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "listenersResize requires a setTimeout runtime"
+                );
+            }
+
             return setTimeoutRef(callback, timeout);
         },
     };

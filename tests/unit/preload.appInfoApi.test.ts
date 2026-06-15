@@ -1,39 +1,8 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type { GenericInvokeChannel } from "../../electron-app/shared/ipc";
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
-
-interface AppInfoApiModule {
-    createAppInfoApi: (options: {
-        channels: {
-            APP_VERSION: "getAppVersion";
-            CHROME_VERSION: "getChromeVersion";
-            ELECTRON_VERSION: "getElectronVersion";
-            LICENSE_INFO: "getLicenseInfo";
-            NODE_VERSION: "getNodeVersion";
-            PLATFORM_INFO: "getPlatformInfo";
-        };
-        createSafeInvokeHandler: (
-            channel: GenericInvokeChannel,
-            methodName: string
-        ) => (...args: unknown[]) => Promise<unknown>;
-    }) => Pick<
-        ElectronAPI,
-        | "getAppVersion"
-        | "getChromeVersion"
-        | "getElectronVersion"
-        | "getLicenseInfo"
-        | "getNodeVersion"
-        | "getPlatformInfo"
-    >;
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { createAppInfoApi } = requireFromTest(
-    "../../electron-app/preload/appInfoApi.js"
-) as AppInfoApiModule;
+import { createAppInfoApi } from "../../electron-app/preload/appInfoApi.js";
 
 describe("preload app info API", () => {
     it("routes version, license, and platform methods through expected IPC channels", async () => {

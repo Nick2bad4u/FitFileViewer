@@ -1,15 +1,9 @@
-import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
 
-const requireCjs = createRequire(import.meta.url);
-
 type AppEventHandler = (...args: unknown[]) => void;
-type ElectronAccessModule = {
-    setElectronOverride: (override: unknown) => void;
-};
 type MockElectron = {
     app: {
         getAppPath: Mock<() => string>;
@@ -21,6 +15,13 @@ type MockElectron = {
         openExternal: Mock<(url: string) => Promise<void>>;
     };
 };
+
+async function setElectronOverrideForTest(override: unknown): Promise<void> {
+    const { setElectronOverride } = await import(
+        "../../../../electron-app/main/runtime/electronAccess.js"
+    );
+    setElectronOverride(override);
+}
 type NavigationEvent = {
     preventDefault: Mock<() => void>;
 };
@@ -85,17 +86,9 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         process.env.NODE_ENV = "production";
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         // Ensure we don't leak Electron overrides across tests.
-        try {
-            const { setElectronOverride } = requireCjs(
-                "../../../../electron-app/main/runtime/electronAccess.js"
-            ) as ElectronAccessModule;
-            setElectronOverride(null);
-        } catch {
-            /* ignore */
-        }
-
+        await setElectronOverrideForTest(null);
         vi.restoreAllMocks();
     });
 
@@ -105,10 +98,7 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);
 
-        const { setElectronOverride } = requireCjs(
-            "../../../../electron-app/main/runtime/electronAccess.js"
-        ) as ElectronAccessModule;
-        setElectronOverride(mockElectron);
+        await setElectronOverrideForTest(mockElectron);
 
         const { setupApplicationEventHandlers } =
             await import("../../../../electron-app/main/app/setupApplicationEventHandlers.js");
@@ -201,10 +191,7 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);
 
-        const { setElectronOverride } = requireCjs(
-            "../../../../electron-app/main/runtime/electronAccess.js"
-        ) as ElectronAccessModule;
-        setElectronOverride(mockElectron);
+        await setElectronOverrideForTest(mockElectron);
 
         const { setupApplicationEventHandlers } =
             await import("../../../../electron-app/main/app/setupApplicationEventHandlers.js");
@@ -309,10 +296,7 @@ describe("setupApplicationEventHandlers file:// policy", () => {
         const handlers = new Map<string, AppEventHandler>();
         const mockElectron = createMockElectron(handlers);
 
-        const { setElectronOverride } = requireCjs(
-            "../../../../electron-app/main/runtime/electronAccess.js"
-        ) as ElectronAccessModule;
-        setElectronOverride(mockElectron);
+        await setElectronOverrideForTest(mockElectron);
 
         const { setupApplicationEventHandlers } =
             await import("../../../../electron-app/main/app/setupApplicationEventHandlers.js");

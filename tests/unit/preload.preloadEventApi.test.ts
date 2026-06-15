@@ -1,5 +1,3 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type {
@@ -8,6 +6,7 @@ import type {
     IpcResponsePayload,
     UpdateEventName,
 } from "../../electron-app/shared/ipc";
+import { createPreloadEventApi } from "../../electron-app/preload/preloadEventApi.js";
 
 interface IpcRendererMock {
     on: ReturnType<
@@ -22,21 +21,6 @@ interface IpcRendererMock {
         typeof vi.fn<(channel: string, ...args: IpcRequestPayload[]) => void>
     >;
 }
-
-interface PreloadEventApiModule {
-    createPreloadEventApi: (options: Record<string, unknown>) => {
-        notifyFitFileLoaded: (filePath: null | string) => void;
-        onUpdateEvent: (
-            eventName: UpdateEventName,
-            callback: (...args: IpcResponsePayload[]) => unknown
-        ) => (() => void) | undefined;
-    };
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { createPreloadEventApi } = requireFromTest(
-    "../../electron-app/preload/preloadEventApi.js"
-) as PreloadEventApiModule;
 
 function createIpcMock(): IpcRendererMock {
     return {

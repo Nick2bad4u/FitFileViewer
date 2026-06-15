@@ -5,23 +5,11 @@ type StateSubscriber = (newValue?: unknown, oldValue?: unknown) => void;
 type StateUnsubscribe = () => void;
 type RetiredStateGlobalName =
     | "AppState"
-    | "__DEVELOPMENT__"
     | "__performanceMonitoringInterval"
     | "__persistenceTimeout"
-    | "chartControlsState"
-    | "electronAPI"
     | "globalData"
     | "isChartRendered";
-
-function deleteRetiredGlobal(name: RetiredStateGlobalName): void {
-    Reflect.deleteProperty(globalThis, name);
-}
-
-function getRetiredGlobal<T = unknown>(
-    name: RetiredStateGlobalName
-): T | undefined {
-    return Reflect.get(globalThis, name) as T | undefined;
-}
+type TestGlobalProperty = "localStorage" | "performance";
 
 function getRetiredGlobalDescriptor(
     name: RetiredStateGlobalName | "__state_debug"
@@ -29,8 +17,41 @@ function getRetiredGlobalDescriptor(
     return Object.getOwnPropertyDescriptor(globalThis, name);
 }
 
-function setRetiredGlobal(name: RetiredStateGlobalName, value: unknown): void {
-    Reflect.set(globalThis, name, value);
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor
+>();
+
+function getGlobalRestoreDescriptor(name: TestGlobalProperty): PropertyDescriptor {
+    return (
+        Object.getOwnPropertyDescriptor(globalThis, name) ?? {
+            configurable: true,
+            value: undefined,
+            writable: true,
+        }
+    );
+}
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        originalGlobalDescriptors.set(name, getGlobalRestoreDescriptor(name));
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [
+        name,
+        descriptor,
+    ] of [...originalGlobalDescriptors.entries()].reverse()) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
 }
 
 // Setup comprehensive mocks
@@ -101,47 +122,21 @@ const mockPerformance = {
 } as any;
 
 describe("stateIntegration comprehensive coverage", () => {
-    let originalLocalStorage: any;
-    let originalPerformance: any;
-
     beforeEach(() => {
         // Clear all mocks
         vi.clearAllMocks();
 
-        // Save original globals
-        originalLocalStorage = globalThis.localStorage;
-        originalPerformance = globalThis.performance;
-
         // Setup mocks
-        globalThis.localStorage = mockLocalStorage;
-        Reflect.set(globalThis, "performance", mockPerformance);
+        setTestGlobal("localStorage", mockLocalStorage);
+        setTestGlobal("performance", mockPerformance);
 
-        // Clean up global state
-        deleteRetiredGlobal("globalData");
-        deleteRetiredGlobal("isChartRendered");
-        deleteRetiredGlobal("AppState");
-        deleteRetiredGlobal("chartControlsState");
-        Reflect.deleteProperty(globalThis, "__state_debug");
-        deleteRetiredGlobal("__persistenceTimeout");
-        deleteRetiredGlobal("__performanceMonitoringInterval");
-        deleteRetiredGlobal("__DEVELOPMENT__");
         restoreLocation();
     });
 
     afterEach(() => {
         // Restore original globals
-        globalThis.localStorage = originalLocalStorage;
-        Reflect.set(globalThis, "performance", originalPerformance);
+        restoreTestGlobals();
 
-        // Clean up test globals
-        deleteRetiredGlobal("globalData");
-        deleteRetiredGlobal("isChartRendered");
-        deleteRetiredGlobal("AppState");
-        deleteRetiredGlobal("chartControlsState");
-        Reflect.deleteProperty(globalThis, "__state_debug");
-        deleteRetiredGlobal("__persistenceTimeout");
-        deleteRetiredGlobal("__performanceMonitoringInterval");
-        deleteRetiredGlobal("__DEVELOPMENT__");
         restoreLocation();
 
         // Clear any timers
@@ -268,11 +263,8 @@ describe("stateIntegration comprehensive coverage", () => {
             consoleSpy.mockRestore();
         });
 
-        it("should initialize app state in development mode (smoke)", async () => {
+        it("should initialize app state without debug globals (smoke)", async () => {
             expect.assertions(3);
-
-            // Set development mode
-            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -317,50 +309,12 @@ describe("stateIntegration comprehensive coverage", () => {
         });
     });
 
-    describe("integration functions", () => {
-        it("should leave retired chartControlsState compatibility globals untouched", async () => {
-            expect.assertions(4);
-
-            const { migrateChartControlsState } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            setRetiredGlobal("chartControlsState", { isVisible: true });
-
-            const consoleSpy = vi
-                .spyOn(console, "log")
-                .mockImplementation(() => {});
-
-            migrateChartControlsState();
-
-            expect(getRetiredGlobal("chartControlsState")).toStrictEqual({
-                isVisible: true,
-            });
-            expect(mockStateManager.setState).not.toHaveBeenCalled();
-            expect(mockStateManager.getState).not.toHaveBeenCalled();
-            expect(consoleSpy).not.toHaveBeenCalled();
-
-            consoleSpy.mockRestore();
-        });
-
-        it("should handle missing chartControlsState gracefully", async () => {
-            expect.assertions(3);
-
-            const { migrateChartControlsState } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            expect(() => migrateChartControlsState()).not.toThrow();
-
-            expect(getRetiredGlobal("chartControlsState")).toBeUndefined();
-            expect(mockStateManager.setState).not.toHaveBeenCalled();
-        });
-    });
-
     describe("performance monitoring", () => {
         it("should set up performance monitoring with memory info (smoke)", async () => {
             expect.assertions(3);
 
             vi.useFakeTimers();
-            Reflect.set(globalThis, "performance", mockPerformance);
+            setTestGlobal("performance", mockPerformance);
 
             const { setupStatePerformanceMonitoring } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -415,7 +369,7 @@ describe("stateIntegration comprehensive coverage", () => {
             expect.assertions(3);
 
             vi.useFakeTimers();
-            Reflect.set(globalThis, "performance", mockPerformance);
+            setTestGlobal("performance", mockPerformance);
 
             // Remove memory from performance mock
             delete (globalThis.performance as any).memory;
@@ -628,10 +582,8 @@ describe("stateIntegration comprehensive coverage", () => {
             expect(getRetiredGlobalDescriptor("__state_debug")).toBeUndefined();
         });
 
-        it("should initialize development mode without publishing state debug globals", async () => {
+        it("should initialize without publishing state debug globals", async () => {
             expect.assertions(2);
-
-            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -690,50 +642,7 @@ describe("stateIntegration comprehensive coverage", () => {
         });
     });
 
-    describe("backward compatibility", () => {
-        it("should ignore existing plain globalData without installing an accessor", async () => {
-            expect.assertions(2);
-
-            const { initializeAppState } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            setRetiredGlobal("globalData", { test: "data" });
-            initializeAppState();
-
-            expect(
-                mockStateManager.setState.mock.calls.filter(
-                    ([path]) => path === "globalData"
-                )
-            ).toStrictEqual([]);
-            expect(getRetiredGlobalDescriptor("globalData")).toMatchObject({
-                configurable: true,
-                value: { test: "data" },
-                writable: true,
-            });
-        });
-
-        it("should not override existing properties", async () => {
-            expect.assertions(2);
-
-            // Set existing properties
-            setRetiredGlobal("globalData", { existing: "data" });
-            setRetiredGlobal("AppState", { existing: "appstate" });
-
-            const { initializeAppState } =
-                await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
-
-            initializeAppState();
-
-            expect(getRetiredGlobalDescriptor("globalData")).toMatchObject({
-                configurable: true,
-                value: { existing: "data" },
-                writable: true,
-            });
-            expect(getRetiredGlobal("AppState")).toEqual({
-                existing: "appstate",
-            });
-        });
-
+    describe("retired globals", () => {
         it("should leave removed compatibility globals absent (smoke)", async () => {
             expect.assertions(4);
 
@@ -758,10 +667,8 @@ describe("stateIntegration comprehensive coverage", () => {
     });
 
     describe("debug utilities", () => {
-        it("should keep state debug globals absent in development mode", async () => {
+        it("should keep state debug globals absent", async () => {
             expect.assertions(3);
-
-            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");
@@ -777,8 +684,6 @@ describe("stateIntegration comprehensive coverage", () => {
 
         it("should not expose global debug utility actions", async () => {
             expect.assertions(4);
-
-            setRetiredGlobal("__DEVELOPMENT__", true);
 
             const { initializeAppState } =
                 await import("../../../../../electron-app/utils/state/integration/stateIntegration.js");

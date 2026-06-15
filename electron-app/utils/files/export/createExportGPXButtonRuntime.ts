@@ -3,6 +3,7 @@ export type CreateExportGPXButtonTimer = ReturnType<
 >;
 
 export interface CreateExportGPXButtonRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly document?: Document | undefined;
     readonly setTimeout?: typeof globalThis.setTimeout | undefined;
     readonly URL?:
@@ -12,6 +13,7 @@ export interface CreateExportGPXButtonRuntimeScope {
 
 export interface CreateExportGPXButtonRuntime {
     appendToBody: (element: HTMLElement) => void;
+    createAbortController: () => AbortController;
     createButton: () => HTMLButtonElement;
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
@@ -60,6 +62,16 @@ export function getCreateExportGPXButtonRuntime(
         appendToBody(element): void {
             getDocument(scope).body.append(element);
         },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "createExportGPXButton requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
+        },
         createButton(): HTMLButtonElement {
             return getDocument(scope).createElement("button");
         },
@@ -80,7 +92,13 @@ export function getCreateExportGPXButtonRuntime(
             getURLRuntime(scope).revokeObjectURL(url);
         },
         setTimeout(callback, timeout): CreateExportGPXButtonTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = scope.setTimeout;
+            if (typeof setTimeoutRef !== "function") {
+                throw new TypeError(
+                    "createExportGPXButton requires a setTimeout runtime"
+                );
+            }
+
             return setTimeoutRef(callback, timeout);
         },
     };

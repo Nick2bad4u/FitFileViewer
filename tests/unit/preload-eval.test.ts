@@ -1,11 +1,4 @@
-import { createRequire } from "node:module";
-import path from "node:path";
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-const preloadSourceRequire = createRequire(
-    path.join(process.cwd(), "electron-app", "preload.ts")
-);
 
 type BeforeExitCallback = () => void;
 type ExposeInMainWorld = (name: string, api: unknown) => void;
@@ -50,7 +43,8 @@ async function startPreloadWithElectronBridge(
 ): Promise<void> {
     const { startPreloadEntrypoint } =
         await import("../../electron-app/preload/preloadEntrypoint.js");
-    startPreloadEntrypoint(preloadSourceRequire, {
+
+    startPreloadEntrypoint({
         consoleRef: console,
         electronBridgeOverride: electronBridge,
         globalScope: globalThis,

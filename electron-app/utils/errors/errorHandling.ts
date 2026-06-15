@@ -3,6 +3,8 @@
  * application.
  */
 
+import { getErrorHandlingRuntime } from "./errorHandlingRuntime.js";
+
 /**
  * Stable error code strings used across application error boundaries.
  */
@@ -90,15 +92,10 @@ export type Validator<T = unknown> = (
     fieldName: string
 ) => boolean | ValidatorResult<T>;
 
-type GlobalWithErrorIntegrations = typeof globalThis & {
-    performanceMonitor?: {
-        recordError(error: Error, operation: string): void;
-    };
-};
-
 type MaybePromise<T> = Promise<T> | T;
 
-const globalRef = globalThis as GlobalWithErrorIntegrations;
+const globalRef = globalThis;
+const errorHandlingRuntime = getErrorHandlingRuntime();
 let globalErrorListenerAbortController: AbortController | undefined;
 
 function getUnknownErrorMessage(error: unknown): string {
@@ -413,7 +410,8 @@ export function initializeErrorHandling(
 ): void {
     if (typeof globalRef.addEventListener === "function") {
         globalErrorListenerAbortController?.abort();
-        globalErrorListenerAbortController = new AbortController();
+        globalErrorListenerAbortController =
+            errorHandlingRuntime.createAbortController();
         const listenerOptions = {
             signal: globalErrorListenerAbortController.signal,
         };
@@ -449,7 +447,7 @@ export function initializeErrorHandling(
 }
 
 /**
- * Log an error with structured context and optional performance telemetry.
+ * Log an error with structured context.
  */
 export function logError(
     error: Error,
@@ -466,17 +464,6 @@ export function logError(
     };
 
     console[level](`[${timestamp}] Error:`, errorInfo);
-
-    if (globalRef.performanceMonitor?.recordError !== undefined) {
-        try {
-            globalRef.performanceMonitor.recordError(
-                error,
-                context.operation ?? "unknown"
-            );
-        } catch {
-            // Ignore secondary telemetry failures.
-        }
-    }
 }
 
 /**

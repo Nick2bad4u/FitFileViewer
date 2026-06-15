@@ -10,6 +10,7 @@ type SetChartFieldVisibility = (
 ) => void;
 type SetChartSetting = (key: string, value: unknown) => void;
 type ShowNotification = (message: string, type: "success" | "warning") => void;
+type TestGlobalProperty = "URLSearchParams";
 
 // Mock dependencies
 const mockRenderChartJS = vi.fn<RenderChart>();
@@ -19,6 +20,35 @@ const mockChartStateManager = {
 };
 const mockSetChartSetting = vi.fn<SetChartSetting>();
 const mockSetChartFieldVisibility = vi.fn<SetChartFieldVisibility>();
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor
+>();
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
+}
 
 // Mock modules
 vi.mock(
@@ -94,6 +124,7 @@ describe("loadSharedConfiguration.js", () => {
     afterEach(() => {
         consoleErrorSpy.mockRestore();
         vi.useRealTimers();
+        restoreTestGlobals();
     });
 
     it("should load configuration from URL and update chart settings", async () => {
@@ -328,10 +359,12 @@ describe("loadSharedConfiguration.js", () => {
 
         // Set up a situation that will cause an error
         // Mock URLSearchParams to throw an error
-        const originalURLSearchParams = global.URLSearchParams;
-        global.URLSearchParams = vi.fn<typeof URLSearchParams>(() => {
-            throw new Error("Mock URLSearchParams error");
-        }) as any;
+        setTestGlobal(
+            "URLSearchParams",
+            vi.fn<typeof URLSearchParams>(() => {
+                throw new Error("Mock URLSearchParams error");
+            }) as unknown as typeof URLSearchParams
+        );
 
         // Import module under test
         const { loadSharedConfiguration } =
@@ -351,8 +384,5 @@ describe("loadSharedConfiguration.js", () => {
             "Failed to load shared configuration",
             "warning"
         );
-
-        // Restore original URLSearchParams
-        global.URLSearchParams = originalURLSearchParams;
     });
 });

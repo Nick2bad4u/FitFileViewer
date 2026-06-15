@@ -1,6 +1,16 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
+import { createPreloadIpcHelpers } from "../../electron-app/preload/ipcHelpers.js";
+import { validateDevtoolsInjectMenuPayload } from "../../electron-app/shared/devtoolsMenuPolicy.js";
+import { validateExternalUrl } from "../../electron-app/shared/externalUrlPolicy.js";
+import {
+    validateFitBrowserRelativePath,
+    validateFitBrowserRootFolderPath,
+} from "../../electron-app/shared/fitBrowserPathPolicy.js";
+import { validateFitFilePathInput } from "../../electron-app/shared/fitFilePathPolicy.js";
+import {
+    validateMainStateOperationIdInput,
+    validateMainStatePathInput,
+} from "../../electron-app/shared/mainStatePathPolicy.js";
 
 interface IpcRendererMock {
     invoke: ReturnType<
@@ -26,44 +36,6 @@ interface IpcRendererMock {
         typeof vi.fn<(channel: string, ...args: unknown[]) => void>
     >;
 }
-
-interface PreloadIpcHelpersModule {
-    createPreloadIpcHelpers: (options: {
-        ipcRenderer: IpcRendererMock;
-        preloadLog: (
-            level: "error" | "info" | "warn",
-            message: string,
-            ...details: unknown[]
-        ) => void;
-        validateCallback: (
-            callback: unknown,
-            methodName: string
-        ) => callback is (...args: unknown[]) => unknown;
-    }) => {
-        createSafeEventHandler: (
-            channel: string,
-            methodName: string,
-            transform?: (...args: unknown[]) => null | unknown
-        ) => (callback: (...args: unknown[]) => unknown) => () => void;
-        createSafeInvokeHandler: (
-            channel: string,
-            methodName: string
-        ) => (...args: unknown[]) => Promise<unknown>;
-        createSafeSendHandler: (
-            channel: string,
-            methodName: string
-        ) => (...args: unknown[]) => void;
-        removeIpcListener: (
-            channel: string,
-            handler: (...args: unknown[]) => void
-        ) => void;
-    };
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { createPreloadIpcHelpers } = requireFromTest(
-    "../../electron-app/preload/ipcHelpers.js"
-) as PreloadIpcHelpersModule;
 
 function createIpcRendererMock(): IpcRendererMock {
     return {
@@ -106,6 +78,13 @@ function createHelpers(ipcRenderer = createIpcRendererMock()) {
         helpers: createPreloadIpcHelpers({
             ipcRenderer,
             preloadLog,
+            validateDevtoolsInjectMenuPayload,
+            validateExternalUrl,
+            validateFitBrowserRelativePath,
+            validateFitBrowserRootFolderPath,
+            validateFitFilePathInput,
+            validateMainStateOperationIdInput,
+            validateMainStatePathInput,
             validateCallback,
         }),
         ipcRenderer,

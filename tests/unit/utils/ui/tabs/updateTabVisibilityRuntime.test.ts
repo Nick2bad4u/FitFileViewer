@@ -60,4 +60,17 @@ describe("getUpdateTabVisibilityRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(8);
         expect(callback).not.toHaveBeenCalled();
     });
+
+    it("does not borrow ambient timers for explicit scopes", () => {
+        expect.assertions(2);
+
+        const runtime = getUpdateTabVisibilityRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "updateTabVisibility requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "updateTabVisibility requires a clearTimeout runtime"
+        );
+    });
 });

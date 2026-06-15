@@ -99,6 +99,38 @@ describe("eventListenerManager listener lifecycle", () => {
         });
     });
 
+    it("resolves listener cleanup controllers through the injected runtime", () => {
+        expect.assertions(4);
+
+        const handler = vi.fn<(event: Event) => void>();
+        const abortController = new AbortController();
+        const abort = vi.fn(() => {
+            abortController.abort();
+        });
+        const runtime = {
+            createAbortController: vi.fn(() => ({
+                abort,
+                signal: abortController.signal,
+            })),
+            getDefaultEventTarget: vi.fn(() => window),
+        };
+
+        addEventListenerWithCleanup(
+            window,
+            "click",
+            handler,
+            false,
+            runtime
+        );
+        cleanupEventListeners();
+        window.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+
+        expect(runtime.createAbortController).toHaveBeenCalledOnce();
+        expect(abort).toHaveBeenCalledOnce();
+        expect(abortController.signal.aborted).toBe(true);
+        expect(handler).not.toHaveBeenCalled();
+    });
+
     it("addDragDropListeners wires up provided handlers and supports cleanup", () => {
         expect.assertions(6);
 
@@ -127,5 +159,35 @@ describe("eventListenerManager listener lifecycle", () => {
         expect({ listenerCount: getListenerCount() }).toStrictEqual({
             listenerCount: 0,
         });
+    });
+
+    it("addDragDropListeners resolves the default target through the runtime", () => {
+        expect.assertions(5);
+
+        const onDrop = vi.fn<(event: Event) => void>(),
+            target = new EventTarget(),
+            abortController = new AbortController(),
+            runtime = {
+                createAbortController: vi.fn(() => abortController),
+                getDefaultEventTarget: vi.fn(() => target),
+            };
+
+        const cleanup = addDragDropListeners(
+            { onDrop },
+            undefined,
+            runtime
+        );
+        const beforeCleanupEvent = new Event("drop");
+        target.dispatchEvent(beforeCleanupEvent);
+
+        cleanup();
+        const afterCleanupEvent = new Event("drop");
+        target.dispatchEvent(afterCleanupEvent);
+
+        expect(runtime.getDefaultEventTarget).toHaveBeenCalledOnce();
+        expect(runtime.createAbortController).toHaveBeenCalledOnce();
+        expect(onDrop).toHaveBeenCalledWith(beforeCleanupEvent);
+        expect(onDrop).toHaveBeenCalledTimes(1);
+        expect(abortController.signal.aborted).toBe(true);
     });
 });

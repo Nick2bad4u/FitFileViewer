@@ -1,103 +1,80 @@
-{
-    type StateUpdateOptions = Record<string, unknown>;
+import { mainProcessState as runtimeMainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
+import { CONSTANTS } from "../constants.js";
+import { createElectronConf } from "../runtime/electronConfAccess.js";
 
-    interface FitParserSettingsConf {
-        get: (key: string) => unknown;
-        set: (key: string, value: unknown) => void;
-    }
+type StateUpdateOptions = Record<string, unknown>;
 
-    type FitParserSettingsConfConstructor = new (options?: {
-        name?: string;
-    }) => FitParserSettingsConf;
+interface FitParserSettingsConf {
+    get: (key: string) => unknown;
+    set: (key: string, value: unknown) => void;
+}
 
-    interface MainProcessStateLike {
-        cleanupEventHandlers: () => void;
-        data: Record<string, unknown>;
-        get: (statePath: string) => unknown;
-        set: (
-            statePath: string,
-            value: unknown,
-            options?: StateUpdateOptions
-        ) => void;
-    }
+let fitParserSettingsConf: FitParserSettingsConf | null | undefined;
 
-    const { mainProcessState } =
-        require("../../utils/state/integration/mainProcessStateManager") as {
-            mainProcessState: MainProcessStateLike;
-        };
-    const { CONSTANTS } = require("../constants") as {
-        CONSTANTS: { SETTINGS_CONFIG_NAME: string };
-    };
+/**
+ * Clears all event handlers registered within the main process state (used by
+ * dev helpers/tests).
+ */
+export function cleanupEventHandlers(): void {
+    runtimeMainProcessState.cleanupEventHandlers();
+}
 
-    let fitParserSettingsConf: FitParserSettingsConf | null | undefined;
+/**
+ * Returns the current value for a state key from the main process state
+ * manager.
+ *
+ * @param statePath - Dot-notation state path, for example "fitFile.lastResult".
+ *
+ * @returns Stored state value.
+ */
+export function getAppState(statePath: string): unknown {
+    return runtimeMainProcessState.get(statePath);
+}
 
-    /**
-     * Clears all event handlers registered within the main process state (used
-     * by dev helpers/tests).
-     */
-    function cleanupEventHandlers(): void {
-        mainProcessState.cleanupEventHandlers();
-    }
-
-    /**
-     * Returns the current value for a state key from the main process state
-     * manager.
-     *
-     * @param statePath - Dot-notation state path, for example
-     *   "fitFile.lastResult".
-     *
-     * @returns Stored state value.
-     */
-    function getAppState(statePath: string): unknown {
-        return mainProcessState.get(statePath);
-    }
-
-    /**
-     * Lazily resolves the configuration store used for fit parser decoder
-     * settings. The factory mirrors the previous implementation to keep test
-     * hooks unchanged.
-     *
-     * @returns Electron-conf instance or null when unavailable.
-     */
-    function resolveFitParserSettingsConf(): FitParserSettingsConf | null {
-        if (fitParserSettingsConf !== undefined) {
-            return fitParserSettingsConf;
-        }
-
-        try {
-            const { Conf } = require("electron-conf") as {
-                Conf: FitParserSettingsConfConstructor;
-            };
-            fitParserSettingsConf = new Conf({
-                name: CONSTANTS.SETTINGS_CONFIG_NAME,
-            });
-        } catch {
-            fitParserSettingsConf = null;
-        }
-
+/**
+ * Lazily resolves the configuration store used for fit parser decoder settings.
+ * The factory mirrors the previous implementation to keep test hooks
+ * unchanged.
+ *
+ * @returns Electron-conf instance or null when unavailable.
+ */
+export function resolveFitParserSettingsConf(): FitParserSettingsConf | null {
+    if (fitParserSettingsConf !== undefined) {
         return fitParserSettingsConf;
     }
 
-    /**
-     * Persists a value into main process state.
-     *
-     * @param statePath - Dot-notation path to update.
-     * @param value - Value to persist.
-     * @param options - Additional metadata forwarded to the state manager.
-     */
-    function setAppState(
-        statePath: string,
-        value: unknown,
-        options: StateUpdateOptions = {}
-    ): void {
-        mainProcessState.set(statePath, value, options);
+    try {
+        fitParserSettingsConf = createElectronConf<FitParserSettingsConf>({
+            name: CONSTANTS.SETTINGS_CONFIG_NAME,
+        });
+    } catch {
+        fitParserSettingsConf = null;
     }
 
-    module.exports = {
-        cleanupEventHandlers,
-        getAppState,
-        mainProcessState,
-        resolveFitParserSettingsConf,
-        setAppState,
-    };
+    return fitParserSettingsConf;
 }
+
+/**
+ * Persists a value into main process state.
+ *
+ * @param statePath - Dot-notation path to update.
+ * @param value - Value to persist.
+ * @param options - Additional metadata forwarded to the state manager.
+ */
+export function setAppState(
+    statePath: string,
+    value: unknown,
+    options: StateUpdateOptions = {}
+): void {
+    runtimeMainProcessState.set(statePath, value, options);
+}
+
+export { mainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
+
+export default {
+    cleanupEventHandlers,
+    getAppState,
+    mainProcessState: runtimeMainProcessState,
+    resolveFitParserSettingsConf,
+    setAppState,
+};

@@ -3,26 +3,20 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
     callUnknownFunction,
     ensureCoreModules,
-    resolveExactManualMock,
-    resolveManualMock,
+    resetRendererCoreModuleTestOverrides,
+    resolveExactRendererCoreTestOverride,
+    resolveRendererCoreTestOverride,
+    setRendererCoreModuleTestOverrides,
     toModuleRecord,
 } from "../../../electron-app/renderer/coreModuleResolution.js";
 
-type ManualMockRegistryGlobal = typeof globalThis & {
-    __vitest_manual_mocks__?: Map<string, unknown>;
-};
-
-function getManualMockGlobal(): ManualMockRegistryGlobal {
-    return globalThis as ManualMockRegistryGlobal;
-}
-
-function setManualMockRegistry(registry: Map<string, unknown>): void {
-    getManualMockGlobal().__vitest_manual_mocks__ = registry;
+function setTestOverrideRegistry(registry: Map<string, unknown>): void {
+    setRendererCoreModuleTestOverrides(registry);
 }
 
 describe("renderer core module resolution", () => {
     afterEach(() => {
-        Reflect.deleteProperty(globalThis, "__vitest_manual_mocks__");
+        resetRendererCoreModuleTestOverrides();
         vi.restoreAllMocks();
     });
 
@@ -46,12 +40,12 @@ describe("renderer core module resolution", () => {
         expect(toModuleRecord(null)).toStrictEqual({});
     });
 
-    it("resolves exact and suffix-matched manual mocks", () => {
+    it("resolves exact and suffix-matched test overrides", () => {
         expect.assertions(3);
 
         const exactMock = { default: { exact: true } };
         const suffixMock = { suffix: true };
-        setManualMockRegistry(
+        setTestOverrideRegistry(
             new Map<string, unknown>([
                 ["../../utils/files/import/handleOpenFile.js", exactMock],
                 [
@@ -62,15 +56,17 @@ describe("renderer core module resolution", () => {
         );
 
         expect(
-            resolveExactManualMock("../../utils/files/import/handleOpenFile.js")
+            resolveExactRendererCoreTestOverride(
+                "../../utils/files/import/handleOpenFile.js"
+            )
         ).toStrictEqual({ exact: true });
-        expect(resolveManualMock("/utils/theming/core/theme.js")).toStrictEqual(
-            suffixMock
-        );
-        expect(resolveManualMock("/utils/missing.js")).toBeNull();
+        expect(
+            resolveRendererCoreTestOverride("/utils/theming/core/theme.js")
+        ).toStrictEqual(suffixMock);
+        expect(resolveRendererCoreTestOverride("/utils/missing.js")).toBeNull();
     });
 
-    it("builds the core module facade from manual mocks", async () => {
+    it("builds the core module facade from test overrides", async () => {
         expect.assertions(10);
 
         const applyTheme = vi.fn();
@@ -88,7 +84,7 @@ describe("renderer core module resolution", () => {
         const masterStateManager = { initialize: vi.fn() };
         const uiStateManager = { ready: true };
 
-        setManualMockRegistry(
+        setTestOverrideRegistry(
             new Map<string, unknown>([
                 [
                     "../../utils/ui/notifications/showNotification.js",

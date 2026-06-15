@@ -71,13 +71,6 @@ export class ChartStateManager {
     }
 
     /**
-     * Backwards compatibility alias expected by legacy window cleanup code.
-     */
-    cleanup(): void {
-        this.destroy();
-    }
-
-    /**
      * Clears chart state when new data is loaded or charts are unloaded.
      */
     clearChartState(): void {

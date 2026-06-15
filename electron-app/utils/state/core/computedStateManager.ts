@@ -1,5 +1,6 @@
 import { getState, subscribe } from "./stateManager.js";
 import type { AppStateShape } from "./stateManagerDefaults.js";
+import { getComputedStateManagerRuntime } from "./computedStateManagerRuntime.js";
 
 type Unsubscribe = () => void;
 type ComputedFunction = (state: ComputedStateInput) => unknown;
@@ -73,6 +74,8 @@ type ReactiveComputedDescriptor = PropertyDescriptor & {
     get(): unknown;
 };
 
+const computedStateManagerRuntime = getComputedStateManagerRuntime();
+
 function getComputedStateInput(): ComputedStateInput {
     return getState("") as ComputedStateInput;
 }
@@ -95,9 +98,7 @@ function hasLoadedRawFitData(state: ComputedStateInput): boolean {
 }
 
 function isDarkSchemePreferred(): boolean {
-    return Boolean(
-        globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches
-    );
+    return computedStateManagerRuntime.isDarkSchemePreferred();
 }
 
 /**

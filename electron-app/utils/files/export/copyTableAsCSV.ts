@@ -5,6 +5,7 @@
  */
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import { getCopyTableAsCSVRuntime } from "./copyTableAsCSVRuntime.js";
 
 const CSV_CONFIG = {
     HEADER_ENABLED: true,
@@ -21,6 +22,7 @@ const CSV_CONFIG = {
         position: "fixed",
     },
 };
+const copyTableAsCSVRuntime = getCopyTableAsCSVRuntime();
 
 type TableRow = Record<string, unknown>;
 
@@ -119,7 +121,7 @@ async function copyToClipboard(text: string): Promise<void> {
                 return;
             }
 
-            // If we have the Electron bridge but it failed, skip navigator.clipboard (commonly denied)
+            // If we have the Electron bridge but it failed, skip the browser clipboard path (commonly denied)
             // and use the legacy fallback directly.
             console.error(
                 "[copyTableAsCSV] Electron clipboard bridge failed; using legacy fallback."
@@ -131,20 +133,13 @@ async function copyToClipboard(text: string): Promise<void> {
         /* ignore */
     }
 
-    // Try modern Clipboard API.
-    const { clipboard } = navigator;
-    if (clipboard && typeof clipboard.writeText === "function") {
-        try {
-            await clipboard.writeText(text);
-            console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.SUCCESS}`);
-            return;
-        } catch {
-            // Do not treat as a hard error; permissions are commonly denied in non-secure contexts.
-        }
+    if (await copyTableAsCSVRuntime.copyTextUsingBrowserClipboard(text)) {
+        console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.SUCCESS}`);
+        return;
     }
 
     // Fallback to legacy method (mainly for tests / non-Electron contexts).
-    // Do not warn here; Electron file:// contexts frequently deny navigator.clipboard.
+    // Do not warn here; Electron file:// contexts frequently deny browser clipboard access.
     copyToClipboardFallback(text);
 }
 
@@ -154,33 +149,18 @@ async function copyToClipboard(text: string): Promise<void> {
  * @throws When the browser refuses the legacy copy command.
  */
 function copyToClipboardFallback(text: string): void {
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-
-    // Apply styles to prevent visual disruption
-    Object.assign(textarea.style, CSV_CONFIG.TEXTAREA_STYLES);
-
-    document.body.append(textarea);
-    textarea.focus();
-    textarea.select();
-
     try {
-        const successful = document.execCommand("copy");
-        if (successful) {
-            console.log(
-                `[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_SUCCESS}`
-            );
-        } else {
-            throw new Error("execCommand('copy') returned false");
-        }
+        copyTableAsCSVRuntime.copyTextUsingLegacyExecCommand(
+            text,
+            CSV_CONFIG.TEXTAREA_STYLES
+        );
+        console.log(`[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_SUCCESS}`);
     } catch (error) {
         console.error(
             `[copyTableAsCSV] ${CSV_CONFIG.MESSAGES.FALLBACK_ERROR}`,
             error
         );
         throw error;
-    } finally {
-        textarea.remove();
     }
 }
 

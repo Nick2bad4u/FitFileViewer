@@ -79,12 +79,12 @@ type ChartInstanceMock = {
     update: Mock<() => void>;
 };
 
-type ChartTestGlobal = typeof globalThis & {
-    HTMLCanvasElement?: typeof HTMLCanvasElement;
-    HTMLElement?: typeof HTMLElement;
-    localStorage?: StorageMock;
-    window?: Window & typeof globalThis;
-};
+type GlobalFixtureName =
+    | "document"
+    | "HTMLCanvasElement"
+    | "HTMLElement"
+    | "localStorage"
+    | "window";
 
 type RenderSpeedVsDistanceChart = (
     container: HTMLElement,
@@ -125,14 +125,6 @@ type TooltipContext = {
     };
 };
 
-function getChartTestGlobal(): ChartTestGlobal {
-    return globalThis as ChartTestGlobal;
-}
-
-function getChartTestWindow(): Window & typeof globalThis {
-    return global.window as unknown as Window & typeof globalThis;
-}
-
 function getLatestChartConfig(): ChartConfig {
     const config = chartMock.mock.calls[0]?.[1];
     if (!config) {
@@ -155,27 +147,65 @@ let chartMock: ChartConstructorMock;
 let chartInstanceMock: ChartInstanceMock;
 let renderSpeedVsDistanceChart: RenderSpeedVsDistanceChart;
 let mockLocalStorage: StorageMock;
+let dom: JSDOM | undefined;
+const originalGlobalDescriptors = new Map<
+    GlobalFixtureName,
+    PropertyDescriptor
+>();
+
+function rememberGlobalDescriptor(name: GlobalFixtureName): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
+    }
+}
+
+function setGlobalValue(name: GlobalFixtureName, value: unknown): void {
+    rememberGlobalDescriptor(name);
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreGlobalValues(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
+}
 
 describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () => {
     beforeEach(async () => {
         // Setup JSDOM environment
-        const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
+        dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
             url: "http://localhost",
             pretendToBeVisual: true,
             resources: "usable",
         });
 
-        global.window = dom.window as unknown as Window & typeof globalThis;
-        global.document = dom.window.document;
-        global.HTMLCanvasElement = dom.window
-            .HTMLCanvasElement as unknown as typeof HTMLCanvasElement;
-        global.HTMLElement = dom.window
-            .HTMLElement as unknown as typeof HTMLElement;
-        global.console = {
-            log: vi.fn<Console["log"]>(),
-            error: vi.fn<Console["error"]>(),
-            warn: vi.fn<Console["warn"]>(),
-        } as unknown as Console;
+        setGlobalValue(
+            "window",
+            dom.window as unknown as Window & typeof globalThis
+        );
+        setGlobalValue("document", dom.window.document);
+        setGlobalValue(
+            "HTMLCanvasElement",
+            dom.window.HTMLCanvasElement as unknown as typeof HTMLCanvasElement
+        );
+        setGlobalValue(
+            "HTMLElement",
+            dom.window.HTMLElement as unknown as typeof HTMLElement
+        );
+        vi.spyOn(console, "log").mockImplementation(() => {});
+        vi.spyOn(console, "error").mockImplementation(() => {});
+        vi.spyOn(console, "warn").mockImplementation(() => {});
 
         // Mock localStorage
         mockLocalStorage = {
@@ -184,7 +214,7 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
             removeItem: vi.fn<(key: string) => void>(),
             clear: vi.fn<() => void>(),
         };
-        getChartTestGlobal().localStorage = mockLocalStorage;
+        setGlobalValue("localStorage", mockLocalStorage);
 
         // Mock Chart.js
         chartInstanceMock = {
@@ -224,15 +254,10 @@ describe("renderSpeedVsDistanceChart.js - speed vs distance chart utility", () =
         clearChartInstanceRegistryForTests();
         clearChartRuntimeForTests();
 
-        // Clean up JSDOM
-        if (global.window) {
-            getChartTestWindow().close();
-        }
-        getChartTestGlobal().window = undefined;
-        getChartTestGlobal().document = undefined;
-        getChartTestGlobal().HTMLCanvasElement = undefined;
-        getChartTestGlobal().HTMLElement = undefined;
-        getChartTestGlobal().localStorage = undefined;
+        dom?.window.close();
+        dom = undefined;
+        restoreGlobalValues();
+        vi.restoreAllMocks();
     });
 
     describe("data validation and processing", () => {

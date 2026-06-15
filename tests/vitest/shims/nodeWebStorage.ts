@@ -6,6 +6,7 @@
  */
 
 type StorageName = "localStorage" | "sessionStorage";
+type StorageTarget = typeof globalThis | (Window & typeof globalThis);
 
 type MaybeStorage =
     | null
@@ -105,6 +106,13 @@ class MemoryStorage implements StorageLike {
     }
 }
 
+const storageConstructorDescriptor: PropertyDescriptor = {
+    configurable: true,
+    enumerable: true,
+    value: MemoryStorage,
+    writable: true,
+};
+
 const safeGet = <T>(target: unknown, property: PropertyKey): T | undefined => {
     if (target === null || target === undefined) {
         return undefined;
@@ -121,6 +129,41 @@ const safeGet = <T>(target: unknown, property: PropertyKey): T | undefined => {
     }
 };
 
+const installProperty = (
+    target: StorageTarget,
+    property: PropertyKey,
+    descriptor: PropertyDescriptor
+): void => {
+    try {
+        Reflect.defineProperty(target, property, descriptor);
+    } catch {
+        // Ignore sealed test globals; callers fall back to whichever storage is
+        // already available on the other runtime target.
+    }
+};
+
+const ensureStorageConstructor = (target: StorageTarget): void => {
+    const existingConstructor = safeGet<unknown>(target, "Storage");
+    if (typeof existingConstructor === "function") {
+        return;
+    }
+
+    installProperty(target, "Storage", storageConstructorDescriptor);
+};
+
+const installStorageProperty = (
+    target: StorageTarget,
+    name: StorageName,
+    storage: StorageLike
+): void => {
+    installProperty(target, name, {
+        configurable: true,
+        enumerable: true,
+        value: storage,
+        writable: true,
+    });
+};
+
 /**
  * Installs an in-memory storage shim when the global scope lacks a native
  * implementation.
@@ -130,27 +173,21 @@ const installStorage = (name: StorageName): void => {
         return;
     }
 
-    const existing = safeGet<MaybeStorage>(globalThis, name);
-    if (isStorageLike(existing)) {
-        return;
+    const windowCandidate = safeGet<object>(globalThis, "window");
+    const storageTargets: StorageTarget[] = [globalThis];
+    if (typeof windowCandidate === "object" && windowCandidate !== null) {
+        storageTargets.push(windowCandidate as StorageTarget);
     }
 
-    const storage = new MemoryStorage();
+    const existingStorage = storageTargets
+        .map((target) => safeGet<MaybeStorage>(target, name))
+        .find(isStorageLike);
+    const storage = existingStorage ?? new MemoryStorage();
 
-    const descriptor: PropertyDescriptor = {
-        configurable: true,
-        enumerable: true,
-        value: storage,
-        writable: true,
-    };
-
-    Reflect.defineProperty(globalThis, name, descriptor);
-
-    const windowCandidate = safeGet<object>(globalThis, "window");
-    if (typeof windowCandidate === "object" && windowCandidate !== null) {
-        const maybeStorage = safeGet<MaybeStorage>(windowCandidate, name);
-        if (!isStorageLike(maybeStorage)) {
-            Reflect.defineProperty(windowCandidate, name, descriptor);
+    for (const target of storageTargets) {
+        ensureStorageConstructor(target);
+        if (!isStorageLike(safeGet<MaybeStorage>(target, name))) {
+            installStorageProperty(target, name, storage);
         }
     }
 };

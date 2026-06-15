@@ -2,6 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createRendererApplicationStartup } from "../../../electron-app/renderer/applicationStartup.js";
 import type { RendererCoreModules } from "../../../electron-app/renderer/coreModuleResolution.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function createCoreModules(
     overrides: Partial<RendererCoreModules> = {}
@@ -48,6 +52,11 @@ function createPerformanceMonitor() {
 }
 
 describe("renderer application startup", () => {
+    afterEach(() => {
+        resetRendererElectronApiCandidate();
+        vi.useRealTimers();
+    });
+
     it("initializes state, DOM, components, file input, hooks, and app actions", async () => {
         expect.assertions(16);
 
@@ -152,6 +161,69 @@ describe("renderer application startup", () => {
         ]);
         expect(coreModules.showAboutModal).not.toHaveBeenCalled();
         expect(coreModules.showUpdateNotification).not.toHaveBeenCalled();
+    });
+
+    it("schedules production update checks and cancels the pending timer before unload", async () => {
+        expect.assertions(3);
+
+        vi.useFakeTimers();
+
+        const checkForUpdates = vi.fn<() => void>();
+        const coreModules = createCoreModules();
+        const addEventListener = vi.fn<typeof globalThis.addEventListener>();
+        const performance = createPerformanceMonitor();
+        const utils = createRendererApplicationStartup({
+            addEventListener,
+            callUnknownFunction: vi.fn(
+                (candidate: unknown, args: unknown[] = []) =>
+                    typeof candidate === "function"
+                        ? (candidate as (...values: unknown[]) => unknown)(
+                              ...args
+                          )
+                        : undefined
+            ),
+            ensureCoreModules: async () => coreModules,
+            errorHandlers: {
+                handleUncaughtError: vi.fn(),
+                handleUnhandledRejection: vi.fn(),
+                onUncaughtErrorEvent: vi.fn(),
+                onUnhandledRejectionEvent: vi.fn(),
+            },
+            getFileInput: () => null,
+            getOpenFileButton: () => null,
+            initializeStateManager: async () => undefined,
+            isDevelopmentMode: () => false,
+            isOpeningFileRef: { value: false },
+            logRenderer: vi.fn(),
+            performanceMonitor: performance.monitor,
+            setLoading: vi.fn(),
+            setupCreditsMarquee: vi.fn(),
+            validateDOMElements: () => true,
+        });
+
+        registerRendererElectronApiCandidate({ checkForUpdates });
+
+        await utils();
+
+        const beforeUnloadListener = addEventListener.mock.calls.find(
+            ([eventName]) => eventName === "beforeunload"
+        )?.[1];
+        if (typeof beforeUnloadListener === "function") {
+            beforeUnloadListener(new Event("beforeunload"));
+        }
+
+        await vi.advanceTimersByTimeAsync(Number("5000"));
+
+        expect(typeof beforeUnloadListener).toBe("function");
+        expect(checkForUpdates).not.toHaveBeenCalled();
+        expect(addEventListener).toHaveBeenCalledWith(
+            "beforeunload",
+            expect.any(Function),
+            expect.objectContaining({
+                once: true,
+                signal: expect.any(AbortSignal),
+            })
+        );
     });
 
     it("shows initialization failure notifications without throwing", async () => {

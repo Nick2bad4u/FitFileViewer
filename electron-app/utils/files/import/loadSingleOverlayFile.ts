@@ -11,6 +11,7 @@ import {
 import type { FitMessageRow, FitMessages } from "../../../shared/fit";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import { getLoadSingleOverlayFileRuntime } from "./loadSingleOverlayFileRuntime.js";
 
 /** Decoded FIT data used by map overlay loading. */
 export type OverlayFitData = {
@@ -38,6 +39,8 @@ type OverlayFileLike = {
     name?: unknown;
     size?: unknown;
 };
+
+const loadSingleOverlayFileRuntime = getLoadSingleOverlayFileRuntime();
 
 /**
  * Loads one FIT file as a map overlay.
@@ -180,7 +183,7 @@ async function readOverlayArrayBuffer(
 function readFileWithFileReader(file: Blob): Promise<ArrayBuffer | undefined> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        const controller = new AbortController();
+        const controller = loadSingleOverlayFileRuntime.createAbortController();
         reader.addEventListener(
             "load",
             () => {

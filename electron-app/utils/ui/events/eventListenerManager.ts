@@ -6,6 +6,11 @@
  * event listeners can be properly removed when needed.
  */
 
+import {
+    getEventListenerManagerRuntime,
+    type EventListenerManagerRuntime,
+} from "./eventListenerManagerRuntime.js";
+
 /** Drag-and-drop event handlers registered as a group. */
 export type DragDropHandlers = {
     onDragEnter?: EventListener;
@@ -29,16 +34,20 @@ const registeredListeners = new Set<CleanupFunction>();
  */
 export function addDragDropListeners(
     handlers: DragDropHandlers,
-    target: EventTarget = globalThis.window
+    target?: EventTarget,
+    runtime: EventListenerManagerRuntime = getEventListenerManagerRuntime()
 ): CleanupFunction {
-    const cleanupFunctions: CleanupFunction[] = [];
+    const cleanupFunctions: CleanupFunction[] = [],
+        listenerTarget = target ?? runtime.getDefaultEventTarget();
 
     if (handlers.onDragEnter) {
         cleanupFunctions.push(
             addEventListenerWithCleanup(
-                target,
+                listenerTarget,
                 "dragenter",
-                handlers.onDragEnter
+                handlers.onDragEnter,
+                false,
+                runtime
             )
         );
     }
@@ -46,22 +55,36 @@ export function addDragDropListeners(
     if (handlers.onDragLeave) {
         cleanupFunctions.push(
             addEventListenerWithCleanup(
-                target,
+                listenerTarget,
                 "dragleave",
-                handlers.onDragLeave
+                handlers.onDragLeave,
+                false,
+                runtime
             )
         );
     }
 
     if (handlers.onDragOver) {
         cleanupFunctions.push(
-            addEventListenerWithCleanup(target, "dragover", handlers.onDragOver)
+            addEventListenerWithCleanup(
+                listenerTarget,
+                "dragover",
+                handlers.onDragOver,
+                false,
+                runtime
+            )
         );
     }
 
     if (handlers.onDrop) {
         cleanupFunctions.push(
-            addEventListenerWithCleanup(target, "drop", handlers.onDrop)
+            addEventListenerWithCleanup(
+                listenerTarget,
+                "drop",
+                handlers.onDrop,
+                false,
+                runtime
+            )
         );
     }
 
@@ -85,7 +108,8 @@ export function addEventListenerWithCleanup(
     element: EventTarget | null | undefined,
     eventType: string,
     handler: EventListener | null | undefined,
-    options: AddEventListenerOptions | boolean = false
+    options: AddEventListenerOptions | boolean = false,
+    runtime: EventListenerManagerRuntime = getEventListenerManagerRuntime()
 ): CleanupFunction {
     if (!element || typeof element.addEventListener !== "function") {
         console.warn(
@@ -101,7 +125,7 @@ export function addEventListenerWithCleanup(
         return () => {}; // Return a no-op cleanup function
     }
 
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
 
     if (typeof options === "boolean") {
         element.addEventListener(eventType, handler, {

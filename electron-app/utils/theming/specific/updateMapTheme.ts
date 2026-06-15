@@ -31,14 +31,14 @@ export function installUpdateMapThemeListeners(): void {
     }
 
     mapThemeListenersInstalled = true;
-    updateMapThemeAbortController = new AbortController();
+    const runtime = getUpdateMapThemeRuntime();
+    updateMapThemeAbortController = runtime.createAbortController();
     updateMapThemeListener = () => {
         updateMapTheme();
     };
     const listenerOptions = {
         signal: updateMapThemeAbortController.signal,
     };
-    const runtime = getUpdateMapThemeRuntime();
 
     // themechange is dispatched on body in some places, but it bubbles and document receives it.
     runtime.addDocumentListener(

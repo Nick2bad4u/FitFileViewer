@@ -1,5 +1,3 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type {
@@ -7,61 +5,7 @@ import type {
     IpcResponsePayload,
 } from "../../electron-app/shared/ipc";
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
-
-interface MenuEventApiModule {
-    createMenuEventApi: (options: {
-        channels: {
-            DECODER_OPTIONS_CHANGED: string;
-            EXPORT_FILE: string;
-            INSTALL_UPDATE: "install-update";
-            MENU_ABOUT: string;
-            MENU_CHECK_FOR_UPDATES: "menu-check-for-updates";
-            MENU_EXPORT: "menu-export";
-            MENU_KEYBOARD_SHORTCUTS: string;
-            MENU_OPEN_FILE: string;
-            MENU_OPEN_OVERLAY: string;
-            MENU_PRINT: string;
-            MENU_RESTART_UPDATE: string;
-            MENU_SAVE_AS: "menu-save-as";
-            OPEN_ACCENT_COLOR_PICKER: string;
-            OPEN_RECENT_FILE: string;
-            OPEN_SUMMARY_COLUMN_SELECTOR: string;
-            SET_FONT_SIZE: string;
-            SET_FULLSCREEN: "set-fullscreen";
-            SET_HIGH_CONTRAST: string;
-            SET_THEME: string;
-            SHOW_NOTIFICATION: string;
-            THEME_CHANGED: "theme-changed";
-            UNLOAD_FIT_FILE: string;
-        };
-        createSafeEventHandler: (
-            channel: string,
-            methodName: string,
-            transform?: (...args: IpcResponsePayload[]) => IpcResponsePayload
-        ) => (callback: (...args: unknown[]) => unknown) => () => void;
-        createSafeSendHandler: (
-            channel: GenericSendChannel,
-            methodName: string
-        ) => (...args: unknown[]) => void;
-    }) => Pick<
-        ElectronAPI,
-        | "checkForUpdates"
-        | "installUpdate"
-        | "onMenuAbout"
-        | "onMenuOpenFile"
-        | "onOpenRecentFile"
-        | "onSetTheme"
-        | "requestExport"
-        | "requestSaveAs"
-        | "sendThemeChanged"
-        | "setFullScreen"
-    >;
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { createMenuEventApi } = requireFromTest(
-    "../../electron-app/preload/menuEventApi.js"
-) as MenuEventApiModule;
+import { createMenuEventApi } from "../../electron-app/preload/menuEventApi.js";
 
 function createApi() {
     const eventHandlers: Array<{

@@ -1,44 +1,8 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type { FitBrowserInvokeChannel } from "../../electron-app/shared/ipc";
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
-
-interface FitBrowserApiModule {
-    createFitBrowserApi: (options: {
-        channels: {
-            FIT_BROWSER_ENABLED_CHANGED: string;
-            FIT_BROWSER_GET_FOLDER: "browser:getFolder";
-            FIT_BROWSER_IS_ENABLED: "browser:isEnabled";
-            FIT_BROWSER_LIST_FOLDER: "browser:listFolder";
-            FIT_BROWSER_SET_ENABLED: "browser:setEnabled";
-            FIT_BROWSER_SET_FOLDER: "browser:setFolder";
-        };
-        createSafeEventHandler: (
-            channel: string,
-            methodName: string,
-            transform?: (...args: unknown[]) => boolean
-        ) => (callback: (...args: unknown[]) => unknown) => () => void;
-        createSafeInvokeHandler: (
-            channel: FitBrowserInvokeChannel,
-            methodName: string
-        ) => (...args: unknown[]) => Promise<unknown>;
-    }) => Pick<
-        ElectronAPI,
-        | "getFitBrowserFolder"
-        | "isFitBrowserEnabled"
-        | "listFitBrowserFolder"
-        | "onFitBrowserEnabledChanged"
-        | "setFitBrowserEnabled"
-        | "setFitBrowserFolder"
-    >;
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { createFitBrowserApi } = requireFromTest(
-    "../../electron-app/preload/fitBrowserApi.js"
-) as FitBrowserApiModule;
+import { createFitBrowserApi } from "../../electron-app/preload/fitBrowserApi.js";
 
 function createApi() {
     const invokeCalls: Array<{

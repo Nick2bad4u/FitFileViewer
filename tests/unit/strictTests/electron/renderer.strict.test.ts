@@ -31,7 +31,6 @@ const importRendererFresh = async () => {
     vi.resetModules();
     // Remove globals possibly left from prior imports
     delete (window as any).electronAPI;
-    delete (window as any).__renderer_dev;
     // Fresh DOM skeleton
     const openFileBtn = document.createElement("button");
     openFileBtn.id = "openFileBtn";
@@ -83,7 +82,7 @@ const importRendererFresh = async () => {
     };
     (window as any).electronAPI = api;
 
-    // Manual mocks for all modules dynamically resolved via ensureCoreModules()
+    // Test overrides for all modules dynamically resolved via ensureCoreModules()
     const showNotification = vi.fn<(...args: unknown[]) => void>();
     const handleOpenFile = vi.fn<(...args: unknown[]) => void>();
     const setupTheme = vi.fn<(...args: unknown[]) => void>();
@@ -116,7 +115,7 @@ const importRendererFresh = async () => {
     const getAppDomainState = vi.fn<() => number>(() => Date.now());
     const subscribeAppDomain = vi.fn<(...args: unknown[]) => void>();
 
-    // NOTE: renderer.js expects the exact '../../../electron-app/utils/...' ids to match resolveExactManualMock
+    // NOTE: renderer.js expects the exact '../../../electron-app/utils/...' ids to match resolveExactRendererCoreTestOverride
     vi.doMock(
         import("../../../electron-app/utils/ui/notifications/showNotification.js"),
         () => ({
@@ -214,7 +213,7 @@ const importRendererFresh = async () => {
 
 async function getRendererDevToolsForStrictTest(): Promise<any> {
     const { getRendererDevelopmentDebugToolsForTests } =
-        await import("../../../../electron-app/renderer/developmentDebugGlobals.js");
+        await import("../../../../electron-app/renderer/developmentDebugTools.js");
 
     return getRendererDevelopmentDebugToolsForTests()?.rendererDev;
 }

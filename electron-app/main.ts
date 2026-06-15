@@ -1,151 +1,69 @@
 /**
- * FitFileViewer Electron main-process entry point. This module now focuses on
+ * FitFileViewer Electron main-process entry point. This module focuses on
  * orchestrating the startup lifecycle while delegating the heavy lifting to the
- * modularised helpers that live under ./main/. The refactor preserves
- * test-oriented side effects (priming whenReady, IPC wiring, and Gyazo OAuth
- * support) yet keeps the file comfortably under the max-lines lint threshold.
+ * modularised helpers that live under ./main/.
  */
-{
-    type MainConstants = Record<string, unknown>;
+import { setupApplicationEventHandlers } from "./main/app/setupApplicationEventHandlers.js";
+import { exposeDevHelpers } from "./main/dev/exposeDevHelpers.js";
+import { setupIPCHandlers } from "./main/ipc/setupIPCHandlers.js";
+import { logWithContext } from "./main/logging/logWithContext.js";
+import { setupMenuAndEventHandlers } from "./main/menu/setupMenuAndEventHandlers.js";
+import { appRef, browserWindowRef } from "./main/runtime/electronAccess.js";
+import { initializeApplication } from "./main/runtime/initializeApplication.js";
+import { primeTestEnvironment } from "./main/runtime/primeTestEnvironment.js";
+import { setupMainLifecycle } from "./main/runtime/setupMainLifecycle.js";
+import { getAppState } from "./main/state/appState.js";
 
-    type GetAppState = (key: string) => unknown;
+export { setupApplicationEventHandlers } from "./main/app/setupApplicationEventHandlers.js";
+export { CONSTANTS } from "./main/constants.js";
+export { exposeDevHelpers } from "./main/dev/exposeDevHelpers.js";
+export { sendToRenderer } from "./main/ipc/sendToRenderer.js";
+export { setupIPCHandlers } from "./main/ipc/setupIPCHandlers.js";
+export { logWithContext } from "./main/logging/logWithContext.js";
+export { setupMenuAndEventHandlers } from "./main/menu/setupMenuAndEventHandlers.js";
+export {
+    startGyazoOAuthServer,
+    stopGyazoOAuthServer,
+} from "./main/oauth/gyazoOAuthServer.js";
+export { ensureFitParserStateIntegration } from "./main/runtime/fitParserIntegration.js";
+export { initializeApplication } from "./main/runtime/initializeApplication.js";
+export { setupMainLifecycle } from "./main/runtime/setupMainLifecycle.js";
+export { getAppState, setAppState } from "./main/state/appState.js";
+export { getThemeFromRenderer } from "./main/theme/getThemeFromRenderer.js";
+export { resolveAutoUpdaterAsync } from "./main/updater/autoUpdaterAccess.js";
+export { setupAutoUpdater } from "./main/updater/setupAutoUpdater.js";
+export {
+    isWindowUsable,
+    validateWindow,
+} from "./main/window/windowValidation.js";
 
-    type SetAppState = (key: string, value: unknown) => void;
+type LifecycleDependencies = Parameters<typeof setupMainLifecycle>[0];
+type PrimeInitializeApplication = Parameters<typeof primeTestEnvironment>[0];
 
-    type LogWithContext = (
-        level: string,
-        message: string,
-        context?: Record<string, unknown>
-    ) => void;
+const initializeApplicationForLifecycle: LifecycleDependencies["initializeApplication"] =
+    () =>
+        initializeApplication() as ReturnType<
+            LifecycleDependencies["initializeApplication"]
+        >;
 
-    type InitializeApplication = () => Promise<unknown>;
+const initializeApplicationForPrime: PrimeInitializeApplication = () =>
+    initializeApplication() as ReturnType<PrimeInitializeApplication>;
 
-    interface MainLifecycleDependencies {
-        appRef: () => unknown;
-        browserWindowRef: () => unknown;
-        exposeDevHelpers: () => unknown;
-        getAppState: GetAppState;
-        initializeApplication: InitializeApplication;
-        logWithContext: LogWithContext;
-        setupApplicationEventHandlers: () => void;
-        setupIPCHandlers: (win: unknown) => void;
-        setupMenuAndEventHandlers: () => void;
-    }
-
-    const mainRequire = require as (moduleId: string) => unknown;
-
-    const { setupApplicationEventHandlers } = mainRequire(
-        "./main/app/setupApplicationEventHandlers"
-    ) as { setupApplicationEventHandlers: () => void };
-    const { CONSTANTS } = mainRequire("./main/constants") as {
-        CONSTANTS: MainConstants;
-    };
-    const { exposeDevHelpers } = mainRequire("./main/dev/exposeDevHelpers") as {
-        exposeDevHelpers: () => unknown;
-    };
-    const { sendToRenderer } = mainRequire("./main/ipc/sendToRenderer") as {
-        sendToRenderer: (...args: unknown[]) => void;
-    };
-    const { setupIPCHandlers } = mainRequire("./main/ipc/setupIPCHandlers") as {
-        setupIPCHandlers: (win: unknown) => void;
-    };
-    const { logWithContext } = mainRequire("./main/logging/logWithContext") as {
-        logWithContext: LogWithContext;
-    };
-    const { setupMenuAndEventHandlers } = mainRequire(
-        "./main/menu/setupMenuAndEventHandlers"
-    ) as { setupMenuAndEventHandlers: () => void };
-    const { startGyazoOAuthServer, stopGyazoOAuthServer } = mainRequire(
-        "./main/oauth/gyazoOAuthServer"
-    ) as {
-        startGyazoOAuthServer: (...args: unknown[]) => unknown;
-        stopGyazoOAuthServer: (...args: unknown[]) => unknown;
-    };
-    const { appRef, browserWindowRef } = mainRequire(
-        "./main/runtime/electronAccess"
-    ) as {
-        appRef: () => unknown;
-        browserWindowRef: () => unknown;
-    };
-    const { ensureFitParserStateIntegration } = mainRequire(
-        "./main/runtime/fitParserIntegration"
-    ) as {
-        ensureFitParserStateIntegration: (...args: unknown[]) => unknown;
-    };
-    const { initializeApplication } = mainRequire(
-        "./main/runtime/initializeApplication"
-    ) as { initializeApplication: InitializeApplication };
-    const { primeTestEnvironment } = mainRequire(
-        "./main/runtime/primeTestEnvironment"
-    ) as {
-        primeTestEnvironment: (
-            initializeApplication: InitializeApplication
-        ) => void;
-    };
-    const { setupMainLifecycle } = mainRequire(
-        "./main/runtime/setupMainLifecycle"
-    ) as { setupMainLifecycle: (deps: MainLifecycleDependencies) => void };
-    const { getAppState, setAppState } = mainRequire(
-        "./main/state/appState"
-    ) as {
-        getAppState: GetAppState;
-        setAppState: SetAppState;
-    };
-    const { getThemeFromRenderer } = mainRequire(
-        "./main/theme/getThemeFromRenderer"
-    ) as { getThemeFromRenderer: (...args: unknown[]) => Promise<string> };
-    const { resolveAutoUpdaterAsync, resolveAutoUpdaterSync } = mainRequire(
-        "./main/updater/autoUpdaterAccess"
-    ) as {
-        resolveAutoUpdaterAsync: () => Promise<unknown>;
-        resolveAutoUpdaterSync: () => unknown;
-    };
-    const { setupAutoUpdater } = mainRequire(
-        "./main/updater/setupAutoUpdater"
-    ) as { setupAutoUpdater: (...args: unknown[]) => unknown };
-    const { isWindowUsable, validateWindow } = mainRequire(
-        "./main/window/windowValidation"
-    ) as {
-        isWindowUsable: (...args: unknown[]) => boolean;
-        validateWindow: (...args: unknown[]) => boolean;
+const setupIPCHandlersForLifecycle: LifecycleDependencies["setupIPCHandlers"] =
+    (win) => {
+        setupIPCHandlers(win as Parameters<typeof setupIPCHandlers>[0]);
     };
 
-    primeTestEnvironment(() => initializeApplication());
+primeTestEnvironment(initializeApplicationForPrime);
 
-    setupMainLifecycle({
-        appRef,
-        browserWindowRef,
-        exposeDevHelpers,
-        getAppState,
-        initializeApplication,
-        logWithContext,
-        setupApplicationEventHandlers,
-        setupIPCHandlers,
-        setupMenuAndEventHandlers,
-    });
-
-    const exported = {
-        CONSTANTS,
-        ensureFitParserStateIntegration,
-        exposeDevHelpers,
-        getAppState,
-        getThemeFromRenderer,
-        initializeApplication,
-        isWindowUsable,
-        logWithContext,
-        resolveAutoUpdaterAsync,
-        resolveAutoUpdaterSync,
-        sendToRenderer,
-        setAppState,
-        setupApplicationEventHandlers,
-        setupAutoUpdater,
-        setupIPCHandlers,
-        setupMainLifecycle,
-        setupMenuAndEventHandlers,
-        startGyazoOAuthServer,
-        stopGyazoOAuthServer,
-        validateWindow,
-    };
-
-    module.exports = Object.assign(exported, { default: exported });
-}
+setupMainLifecycle({
+    appRef,
+    browserWindowRef,
+    exposeDevHelpers,
+    getAppState,
+    initializeApplication: initializeApplicationForLifecycle,
+    logWithContext,
+    setupApplicationEventHandlers,
+    setupIPCHandlers: setupIPCHandlersForLifecycle,
+    setupMenuAndEventHandlers,
+});

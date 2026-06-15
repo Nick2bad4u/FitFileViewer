@@ -1,3 +1,8 @@
+import {
+    getRendererFileInputStartupRuntime,
+    type RendererFileInputStartupRuntime,
+} from "./fileInputStartupRuntime.js";
+
 export type RendererFileInputLogger = (
     level: "warn",
     ...args: unknown[]
@@ -16,7 +21,7 @@ export type RendererFileInputEventTarget = Pick<
 export interface RendererFileInputStartupOptions {
     callUnknownFunction: RendererUnknownFunctionCaller;
     getHandleOpenFile: () => Promise<unknown>;
-    getManualHandleOpenFile?: () => unknown;
+    getOverrideHandleOpenFile?: () => unknown;
     htmlInputElementConstructor?: typeof HTMLInputElement;
     logRenderer?: RendererFileInputLogger;
 }
@@ -98,7 +103,7 @@ export function createDelegatedFileInputChangeHandler(
             if (target?.id === "fileInput" && firstFile !== undefined) {
                 try {
                     const handleOpenFileFn =
-                        options.getManualHandleOpenFile?.();
+                        options.getOverrideHandleOpenFile?.();
                     if (typeof handleOpenFileFn === "function") {
                         options.callUnknownFunction(handleOpenFileFn, [
                             firstFile,
@@ -120,9 +125,10 @@ export function createDelegatedFileInputChangeHandler(
 export function registerDelegatedFileInputChangeListener(
     documentTarget: RendererFileInputEventTarget,
     windowTarget: RendererFileInputEventTarget,
-    onDelegatedFileInputChange: (event: Event) => void
+    onDelegatedFileInputChange: (event: Event) => void,
+    runtime: RendererFileInputStartupRuntime = getRendererFileInputStartupRuntime()
 ): void {
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
     const { signal } = abortController;
     const removeDelegatedFileInputChangeListener = (): void => {
         abortController.abort();
@@ -142,9 +148,10 @@ export function registerDelegatedFileInputChangeListener(
 export function registerImportTimeFileInputChangeHandler(
     fileInput: HTMLInputElement,
     windowTarget: RendererFileInputEventTarget,
-    options: RendererFileInputStartupOptions
+    options: RendererFileInputStartupOptions,
+    runtime: RendererFileInputStartupRuntime = getRendererFileInputStartupRuntime()
 ): void {
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
     const { signal } = abortController;
     const onImportTimeFileInputChange = (): void => {
         void handleImportTimeFileInputChange(fileInput, options);

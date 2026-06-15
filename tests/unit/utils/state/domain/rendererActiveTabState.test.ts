@@ -7,7 +7,7 @@ import {
     normalizeRendererActiveTab,
     replaceRendererActiveTab,
     setRendererActiveTab,
-    subscribeToRendererActiveTab,
+    subscribeToRendererActiveTab as subscribeToActiveTab,
 } from "../../../../../electron-app/utils/state/domain/rendererActiveTabState.js";
 
 describe("rendererActiveTabState", () => {
@@ -43,7 +43,7 @@ describe("rendererActiveTabState", () => {
         expect.assertions(2);
 
         const changes: unknown[] = [];
-        const unsubscribe = subscribeToRendererActiveTab((newValue) => {
+        const unsubscribe = subscribeToActiveTab((newValue) => {
             changes.push(newValue);
         });
 

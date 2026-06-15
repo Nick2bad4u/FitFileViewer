@@ -1,20 +1,15 @@
 import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
-import path from "node:path";
 import process from "node:process";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
     repositoryRoot,
     rootElectronBuilderConfigPath,
 } from "./lib/workspaces.mjs";
 
-const require = createRequire(
-    pathToFileURL(
-        path.join(repositoryRoot, "scripts", "run-electron-builder.mjs")
-    ).href
+const electronBuilderCliPath = fileURLToPath(
+    import.meta.resolve("electron-builder/cli.js")
 );
-const electronBuilderCliPath = require.resolve("electron-builder/cli.js");
 export const electronBuilderBaseArgs = [
     "--projectDir",
     ".",

@@ -10,11 +10,13 @@ type WorkspacesModule = {
     appIconsPath: string;
     appIndexHtmlPath: string;
     appLeafletMeasureLitePath: string;
+    appMainBundleAbsolutePath: string;
+    appMainSourceAbsolutePath: string;
     appPreloadBundleAbsolutePath: string;
     appPreloadSourceAbsolutePath: string;
-    appRendererVendorGlobalsChartDataEntryPath: string;
-    appRendererVendorGlobalsCoreEntryPath: string;
-    appRendererVendorGlobalsMapEntryPath: string;
+    appRendererVendorChartDataEntryPath: string;
+    appRendererVendorCoreEntryPath: string;
+    appRendererVendorMapEntryPath: string;
     appStyleCssPath: string;
     appSourceAbsolutePath: (...segments: string[]) => string;
     appSourceDirectoryName: string;
@@ -23,6 +25,7 @@ type WorkspacesModule = {
     appSourceRelativePath: (...segments: string[]) => string;
     applyElectronFusesScriptPath: string;
     buildRuntimeScriptPath: string;
+    bundleMainScriptPath: string;
     bundlePreloadScriptPath: string;
     cleanRuntimeDistScriptPath: string;
     docusaurusAdvancedFitParserMigrationDocPath: string;
@@ -67,14 +70,14 @@ type WorkspacesModule = {
     repositoryRoot: string;
     repositoryPath: (...segments: string[]) => string;
     repositoryScriptPath: (...segments: string[]) => string;
-    rendererVendorGlobalsChartDataBundleName: string;
-    rendererVendorGlobalsChartDataScriptFileName: string;
-    rendererVendorGlobalsBundleName: string;
-    rendererVendorGlobalsCoreBundleName: string;
-    rendererVendorGlobalsCoreScriptFileName: string;
-    rendererVendorGlobalsMapBundleName: string;
-    rendererVendorGlobalsMapScriptFileName: string;
-    rendererVendorGlobalsStyleFileName: string;
+    rendererVendorChartDataBundleName: string;
+    rendererVendorChartDataScriptFileName: string;
+    rendererVendorBundleName: string;
+    rendererVendorCoreBundleName: string;
+    rendererVendorCoreScriptFileName: string;
+    rendererVendorMapBundleName: string;
+    rendererVendorMapScriptFileName: string;
+    rendererVendorStyleFileName: string;
     rootAgentsPath: string;
     rootChangelogPath: string;
     rootCliffConfigPath: string;
@@ -166,7 +169,6 @@ type WorkspacesModule = {
     rootVitestSetupFilePath: string;
     rootVitestSupportPath: string;
     rootVitestTypecheckTsconfigPath: string;
-    rootWin7ReleaseDistPath: string;
     ensureElectronBinaryScriptPath: string;
     runDocusaurusScriptPath: string;
     runElectronBuilderScriptPath: string;
@@ -214,7 +216,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes root script paths", async () => {
-        expect.assertions(15);
+        expect.assertions(16);
 
         const workspaces = await importWorkspaces();
 
@@ -232,6 +234,9 @@ describe("workspace path helpers", () => {
         );
         expect(workspaces.validateRuntimeTsconfigScriptPath).toBe(
             path.join(process.cwd(), "scripts", "validate-runtime-tsconfig.mjs")
+        );
+        expect(workspaces.bundleMainScriptPath).toBe(
+            path.join(process.cwd(), "scripts", "bundle-main.mjs")
         );
         expect(workspaces.bundlePreloadScriptPath).toBe(
             path.join(process.cwd(), "scripts", "bundle-preload.mjs")
@@ -270,7 +275,7 @@ describe("workspace path helpers", () => {
     });
 
     it("centralizes app runtime asset paths", async () => {
-        expect.assertions(19);
+        expect.assertions(20);
 
         const workspaces = await importWorkspaces();
 
@@ -282,44 +287,51 @@ describe("workspace path helpers", () => {
             "electron-app/renderer/leafletMeasureLite.js"
         );
         expect({
+            bundle: workspaces.appMainBundleAbsolutePath,
+            source: workspaces.appMainSourceAbsolutePath,
+        }).toStrictEqual({
+            bundle: path.join(process.cwd(), "dist", "main.js"),
+            source: path.join(process.cwd(), "electron-app", "main.ts"),
+        });
+        expect({
             bundle: workspaces.appPreloadBundleAbsolutePath,
             source: workspaces.appPreloadSourceAbsolutePath,
         }).toStrictEqual({
             bundle: path.join(process.cwd(), "dist", "preload.js"),
             source: path.join(process.cwd(), "electron-app", "preload.ts"),
         });
-        expect(workspaces.appRendererVendorGlobalsChartDataEntryPath).toBe(
-            "electron-app/renderer/vendorGlobalsChartData.ts"
+        expect(workspaces.appRendererVendorChartDataEntryPath).toBe(
+            "electron-app/renderer/rendererVendorChartData.ts"
         );
-        expect(workspaces.appRendererVendorGlobalsCoreEntryPath).toBe(
-            "electron-app/renderer/vendorGlobalsCore.ts"
+        expect(workspaces.appRendererVendorCoreEntryPath).toBe(
+            "electron-app/renderer/rendererVendorCore.ts"
         );
-        expect(workspaces.appRendererVendorGlobalsMapEntryPath).toBe(
-            "electron-app/renderer/vendorGlobalsMap.ts"
+        expect(workspaces.appRendererVendorMapEntryPath).toBe(
+            "electron-app/renderer/rendererVendorMap.ts"
         );
-        expect(workspaces.rendererVendorGlobalsBundleName).toBe(
-            "vendor-globals"
+        expect(workspaces.rendererVendorBundleName).toBe(
+            "renderer-vendor"
         );
-        expect(workspaces.rendererVendorGlobalsChartDataBundleName).toBe(
-            "vendor-globals-chart-data"
+        expect(workspaces.rendererVendorChartDataBundleName).toBe(
+            "renderer-vendor-chart-data"
         );
-        expect(workspaces.rendererVendorGlobalsChartDataScriptFileName).toBe(
-            "vendor-globals-chart-data.js"
+        expect(workspaces.rendererVendorChartDataScriptFileName).toBe(
+            "renderer-vendor-chart-data.js"
         );
-        expect(workspaces.rendererVendorGlobalsCoreBundleName).toBe(
-            "vendor-globals-core"
+        expect(workspaces.rendererVendorCoreBundleName).toBe(
+            "renderer-vendor-core"
         );
-        expect(workspaces.rendererVendorGlobalsCoreScriptFileName).toBe(
-            "vendor-globals-core.js"
+        expect(workspaces.rendererVendorCoreScriptFileName).toBe(
+            "renderer-vendor-core.js"
         );
-        expect(workspaces.rendererVendorGlobalsMapBundleName).toBe(
-            "vendor-globals-map"
+        expect(workspaces.rendererVendorMapBundleName).toBe(
+            "renderer-vendor-map"
         );
-        expect(workspaces.rendererVendorGlobalsMapScriptFileName).toBe(
-            "vendor-globals-map.js"
+        expect(workspaces.rendererVendorMapScriptFileName).toBe(
+            "renderer-vendor-map.js"
         );
-        expect(workspaces.rendererVendorGlobalsStyleFileName).toBe(
-            "vendor-globals.css"
+        expect(workspaces.rendererVendorStyleFileName).toBe(
+            "renderer-vendor.css"
         );
         expect({
             alternativeViewerAssets:
@@ -638,7 +650,6 @@ describe("workspace path helpers", () => {
             vitestPreloadDistHelper: workspaces.rootVitestPreloadDistHelperPath,
             vitestSetupFile: workspaces.rootVitestSetupFilePath,
             vitestSupport: workspaces.rootVitestSupportPath,
-            win7ReleaseDist: workspaces.rootWin7ReleaseDistPath,
         }).toStrictEqual({
             artifacts: "artifacts",
             coverage: "coverage",
@@ -665,7 +676,6 @@ describe("workspace path helpers", () => {
             vitestPreloadDistHelper: "tests/vitest/helpers/preloadDist.ts",
             vitestSetupFile: "tests/vitest/setupVitest.mjs",
             vitestSupport: "tests/vitest",
-            win7ReleaseDist: path.join(process.cwd(), "release-dist", "win7"),
         });
         expect(
             workspaces.rootReleaseDistRelativePath(

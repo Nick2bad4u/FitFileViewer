@@ -6,8 +6,8 @@ interface RendererImportTimeBootstrapOptions {
     getOpenFileButton: () => HTMLElement | null;
     initializeStateManager: () => Promise<void>;
     isOpeningFileRef: { value: boolean };
-    resolveExactManualMock: (testId: string) => null | unknown;
-    resolveManualMock: (pathSuffix: string) => null | unknown;
+    resolveExactRendererCoreTestOverride: (testId: string) => null | unknown;
+    resolveRendererCoreTestOverride: (pathSuffix: string) => null | unknown;
     setLoading: (loading: boolean) => void;
     toModuleRecord: (value: unknown) => Record<string, unknown>;
 }
@@ -25,8 +25,8 @@ export function createRendererImportTimeBootstrap({
     getOpenFileButton,
     initializeStateManager,
     isOpeningFileRef,
-    resolveExactManualMock,
-    resolveManualMock,
+    resolveExactRendererCoreTestOverride,
+    resolveRendererCoreTestOverride,
     setLoading,
     toModuleRecord,
 }: RendererImportTimeBootstrapOptions): RendererImportTimeBootstrap {
@@ -38,18 +38,24 @@ export function createRendererImportTimeBootstrap({
         } catch {
             /* Ignore errors */
         }
-        await initializeManualMasterStateManager();
+        await initializeTestOverrideMasterStateManager();
     }
 
-    async function initializeManualMasterStateManager(): Promise<void> {
-        await callRecordMethod(resolveManualMasterStateManager(), "initialize");
+    async function initializeTestOverrideMasterStateManager(): Promise<void> {
+        await callRecordMethod(
+            resolveTestOverrideMasterStateManager(),
+            "initialize"
+        );
     }
 
-    function resolveManualMasterStateManager(): unknown {
+    function resolveTestOverrideMasterStateManager(): unknown {
         const resolved =
-            resolveExactManualMock(
+            resolveExactRendererCoreTestOverride(
                 "../../utils/state/core/masterStateManager.js"
-            ) ?? resolveManualMock("/utils/state/core/masterStateManager.js");
+            ) ??
+            resolveRendererCoreTestOverride(
+                "/utils/state/core/masterStateManager.js"
+            );
         const resolvedRecord = toModuleRecord(resolved);
 
         return (

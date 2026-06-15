@@ -4,7 +4,10 @@
  * that scrolls horizontally without wrapping to additional lines.
  */
 
-import { getCreditsMarqueeRuntime } from "./enhanceCreditsSectionRuntime.js";
+import {
+    getCreditsMarqueeRuntime,
+    type CreditsMarqueeRuntime,
+} from "./enhanceCreditsSectionRuntime.js";
 
 const CREDITS_SECTION_SELECTOR = "body > .credits-section";
 const MARQUEE_CLASS = "credits-marquee";
@@ -18,10 +21,11 @@ let cleanupCallbacks: (() => void)[] = [];
  * and adapts to window resizes or content changes via
  * ResizeObserver/MutationObserver fallbacks.
  */
-export function setupCreditsMarquee(): void {
+export function setupCreditsMarquee(
+    runtime: CreditsMarqueeRuntime = getCreditsMarqueeRuntime()
+): void {
     teardownCreditsMarquee();
 
-    const runtime = getCreditsMarqueeRuntime();
     const sections = runtime.queryCreditsSections(CREDITS_SECTION_SELECTOR);
     for (const section of sections) {
         const footer = section.querySelector("footer");
@@ -76,7 +80,7 @@ export function setupCreditsMarquee(): void {
             resizeObserver.observe(section);
             resizeObserver.observe(footer);
         } else {
-            const listenerController = new AbortController();
+            const listenerController = runtime.createAbortController();
             const resizeHandler = (): void => updateMarquee();
             runtime.addResizeListener(resizeHandler, {
                 passive: true,

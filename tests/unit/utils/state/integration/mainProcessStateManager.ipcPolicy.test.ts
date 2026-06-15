@@ -1,10 +1,5 @@
-import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-interface ElectronAccessModule {
-    setElectronOverride: (override: unknown) => void;
-}
 
 type IpcHandler = (event: unknown, ...args: unknown[]) => unknown;
 
@@ -30,7 +25,6 @@ const APP_INDEX_URL = pathToFileURL(
 const OUTSIDE_FILE_URL = pathToFileURL(
     String.raw`C:\Users\Nick\Desktop\index.html`
 ).toString();
-const requireCjs = createRequire(import.meta.url);
 
 function createAllowedIpcEvent(): unknown {
     return {
@@ -96,7 +90,9 @@ function getRegisteredIpcHandler(
     return handler;
 }
 
-function loadStateManager(ipcMain: IpcMainMock): MainProcessStateModule {
+async function loadStateManager(
+    ipcMain: IpcMainMock
+): Promise<MainProcessStateModule> {
     const electronOverride = {
         app: {
             getAppPath: () => APP_ROOT,
@@ -107,21 +103,18 @@ function loadStateManager(ipcMain: IpcMainMock): MainProcessStateModule {
         ipcMain,
     };
 
-    const electronAccess = requireCjs(
+    const { setElectronOverride } = await import(
         "../../../../../electron-app/main/runtime/electronAccess.js"
-    ) as ElectronAccessModule;
-    electronAccess.setElectronOverride(electronOverride);
+    );
+    setElectronOverride(electronOverride);
 
-    return requireCjs(
-        "../../../../../electron-app/utils/state/integration/mainProcessStateManager.js"
-    ) as MainProcessStateModule;
+    return (await import("../../../../../electron-app/utils/state/integration/mainProcessStateManager.js")) as unknown as MainProcessStateModule;
 }
 
-function resetIpcRegistry(): void {
+async function resetIpcRegistry(): Promise<void> {
     try {
-        const registry = requireCjs(
-            "../../../../../electron-app/main/ipc/ipcRegistry.js"
-        ) as IpcRegistryModule;
+        const registry =
+            (await import("../../../../../electron-app/main/ipc/ipcRegistry.js")) as unknown as IpcRegistryModule;
         registry.resetIpcRegistries();
     } catch {
         /* Ignore cleanup failures */
@@ -129,21 +122,25 @@ function resetIpcRegistry(): void {
 }
 
 describe("mainProcessStateManager IPC sender policy", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.resetModules();
         vi.stubEnv("NODE_ENV", "production");
-        resetIpcRegistry();
+        await resetIpcRegistry();
     });
 
-    afterEach(() => {
-        resetIpcRegistry();
+    afterEach(async () => {
+        await resetIpcRegistry();
+        const { setElectronOverride } = await import(
+            "../../../../../electron-app/main/runtime/electronAccess.js"
+        );
+        setElectronOverride(null);
         vi.unstubAllEnvs();
         vi.restoreAllMocks();
     });
 
-    it("wraps every main-state IPC handler with app-file sender validation", () => {
+    it("wraps every main-state IPC handler with app-file sender validation", async () => {
         const ipcMain = createIpcMainMock();
-        const { MainProcessState } = loadStateManager(ipcMain);
+        const { MainProcessState } = await loadStateManager(ipcMain);
         const handlerCalls: Array<{
             args: unknown[];
             channel: string;

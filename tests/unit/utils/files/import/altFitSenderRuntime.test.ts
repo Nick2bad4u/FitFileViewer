@@ -3,6 +3,35 @@ import { describe, expect, it, vi } from "vitest";
 import { getAltFitSenderRuntimeEnvironment } from "../../../../../electron-app/utils/files/import/altFitSenderRuntime.js";
 
 describe("altFitSenderRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const runtime = getAltFitSenderRuntimeEnvironment({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            console,
+        });
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("throws when abort controller creation is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getAltFitSenderRuntimeEnvironment({ console });
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "Alt FIT sender requires an AbortController runtime"
+        );
+    });
+
     it("centralizes default DOM, logging, and location dependencies", () => {
         expect.assertions(3);
 

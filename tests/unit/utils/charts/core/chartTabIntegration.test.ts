@@ -139,7 +139,6 @@ function resetState(): void {
         return typeof activeTab === "string" ? activeTab : "summary";
     });
     document.body.replaceChildren();
-    Reflect.deleteProperty(globalThis, "chartTabIntegration");
 }
 
 describe(ChartTabIntegration, () => {

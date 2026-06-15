@@ -17,6 +17,7 @@ import {
     updateState,
 } from "../core/stateManager.js";
 import { getActiveFitRawData } from "./activeFitRawDataState.js";
+import { getUIStateManagerRuntime } from "./uiStateManagerRuntime.js";
 
 type NotificationInput =
     | string
@@ -56,13 +57,16 @@ const DEFAULT_DOCUMENT_TITLE =
         ? document.title
         : "Fit File Viewer";
 
+const uiStateManagerRuntime = getUIStateManagerRuntime();
+
 /**
  * UI State Manager - handles common UI state operations
  */
 export class UIStateManager {
     private readonly eventListeners = new Map<string, EventListener>();
 
-    private eventListenerAbortController = new AbortController();
+    private eventListenerAbortController =
+        uiStateManagerRuntime.createAbortController();
 
     private systemThemeListener: ((event: MediaQueryListEvent) => void) | null =
         null;
@@ -82,14 +86,10 @@ export class UIStateManager {
             delete root.dataset["theme"];
 
             // Listen for system theme changes if supported
-            if (
-                globalThis.window !== undefined &&
-                typeof globalThis.matchMedia === "function"
-            ) {
-                const mediaQuery = globalThis.matchMedia(
-                        "(prefers-color-scheme: dark)"
-                    ),
-                    systemTheme = mediaQuery.matches ? "dark" : "light";
+            const mediaQuery =
+                uiStateManagerRuntime.getSystemThemeMediaQuery();
+            if (mediaQuery) {
+                const systemTheme = mediaQuery.matches ? "dark" : "light";
                 root.dataset["theme"] = systemTheme;
 
                 // Update on system theme change
@@ -122,13 +122,9 @@ export class UIStateManager {
 
             // Remove system theme listener if it exists
             if (this.systemThemeListener) {
-                if (
-                    globalThis.window !== undefined &&
-                    typeof globalThis.matchMedia === "function"
-                ) {
-                    const mediaQuery = globalThis.matchMedia(
-                        "(prefers-color-scheme: dark)"
-                    );
+                const mediaQuery =
+                    uiStateManagerRuntime.getSystemThemeMediaQuery();
+                if (mediaQuery) {
                     if (typeof mediaQuery.removeEventListener === "function") {
                         mediaQuery.removeEventListener(
                             "change",
@@ -169,15 +165,14 @@ export class UIStateManager {
     cleanup() {
         // Remove system theme listener if it exists
         if (this.systemThemeListener) {
-            const mediaQuery = globalThis.matchMedia(
-                "(prefers-color-scheme: dark)"
-            );
-            mediaQuery.removeEventListener("change", this.systemThemeListener);
+            const mediaQuery = uiStateManagerRuntime.getSystemThemeMediaQuery();
+            mediaQuery?.removeEventListener("change", this.systemThemeListener);
         }
 
         // Clear custom event listeners
         this.eventListenerAbortController.abort();
-        this.eventListenerAbortController = new AbortController();
+        this.eventListenerAbortController =
+            uiStateManagerRuntime.createAbortController();
         this.eventListeners.clear();
 
         console.log("[UIStateManager] Cleaned up");
@@ -871,10 +866,11 @@ export const UIActions = {
 };
 
 // Set up window resize listener
-if (globalThis.window !== undefined) {
-    const windowListenerAbortController = new AbortController();
+if (uiStateManagerRuntime.hasWindow()) {
+    const windowListenerAbortController =
+        uiStateManagerRuntime.createAbortController();
 
-    window.addEventListener(
+    uiStateManagerRuntime.addWindowEventListener(
         "resize",
         () => {
             UIActions.updateWindowState();
@@ -885,7 +881,7 @@ if (globalThis.window !== undefined) {
     );
 
     // Set up beforeunload to save state
-    window.addEventListener(
+    uiStateManagerRuntime.addWindowEventListener(
         "beforeunload",
         () => {
             UIActions.updateWindowState();

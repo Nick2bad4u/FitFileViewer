@@ -416,9 +416,6 @@ npm run build -- --win
 npm run build -- --mac
 npm run build -- --linux
 
-# Windows 7 portable build (Electron 22, ia32 portable target)
-npm run build:win7
-
 # Publish release (automated via GitHub Actions)
 # Triggered by creating a new release tag
 ```
@@ -447,8 +444,8 @@ missing variable.
   `APPLE_KEYCHAIN_PROFILE`.
 - Linux builds do not require signing variables, even when the release matrix
   sets `REQUIRE_CODE_SIGNING=true`.
-- Windows 7 compatibility builds stay isolated in `build-win7.yml` and do not
-  share the primary signed release path.
+- Windows 7 compatibility is limited to a carried-forward legacy snapshot in
+  `build-win7.yml`; the current app is not rebuilt against Electron 22.
 
 After signed Windows or macOS packaging completes, use
 `npm run release:verify-signing-artifacts` to verify the produced artifacts.
@@ -480,12 +477,17 @@ Use `require-code-signing=true` only when the required signing secrets are
 expected to be present. Leave `fail-fast=false` when you want every platform to
 complete and report its own readiness result.
 
-### Windows 7 Compatibility Builds
+### Windows 7 Compatibility Snapshot
 
-- `npm run build:win7` calls `scripts/build-win7.mjs`, forcing an Electron 22, ia32 portable build whose output is stored under `release-dist/win7`. Use this script when you need to verify behavior on legacy Windows 7 hardware.
-- Because Electron 22's Node runtime cannot load ESM packages from inside an `.asar`, the Win7 helper disables asar packaging entirely. Expect a slightly larger artifact, but all dependencies (notably `@garmin/fitsdk`) remain accessible at runtime.
-- To generate the same artifact in CI, trigger the GitHub Actions workflow **“Build Windows 7 Compatibility Artifact.”** Choose the branch or tag you want to validate, run the workflow, and download the `win7-dist-*` artifact for installation/testing on a Windows 7 VM.
-- These builds are intentionally isolated from the primary release train. Treat them as ad-hoc compatibility snapshots rather than officially supported releases.
+- Current releases do not rebuild a Windows 7 binary. The previous `build:win7`
+  Electron 22 path has been retired.
+- `build-win7.yml` carries forward the newest prior
+  `Fit-File-Viewer-win7-*` release assets onto the target release after the
+  primary release workflow succeeds.
+- Keep the carried-forward asset filenames unchanged. Renaming them to the
+  current version would imply a newly built and tested Windows 7 binary.
+- Treat the snapshot as a legacy convenience for existing Windows 7 users, not
+  an actively supported release target.
 
 ### Build Configuration
 

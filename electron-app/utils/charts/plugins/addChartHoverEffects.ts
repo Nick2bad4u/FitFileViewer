@@ -11,6 +11,7 @@ import { getRegisteredChartInstanceForCanvas } from "../core/chartInstanceRegist
 import { resolveChartRuntime } from "../core/chartRuntime.js";
 import { isObjectRecord } from "../core/renderChartModuleHelpers.js";
 import { resolveChartTitleIconName } from "./chartTitleOverlayUtils.js";
+import { getChartHoverEffectsRuntime } from "./addChartHoverEffectsRuntime.js";
 const FULLSCREEN_EVENTS = [
     "fullscreenchange",
     "webkitfullscreenchange",
@@ -63,6 +64,7 @@ interface ChartHoverGlobal {
 }
 
 const chartHoverGlobal = globalThis as typeof globalThis & ChartHoverGlobal;
+const chartHoverEffectsRuntime = getChartHoverEffectsRuntime();
 const wrapperCleanupControllers = new WeakMap<HTMLElement, AbortController>();
 
 /** Theme color values consumed by chart hover styling. */
@@ -163,12 +165,7 @@ function scheduleAnimationFrame(
     callback: () => void,
     signal?: AbortSignal
 ): void {
-    if (typeof globalThis.requestAnimationFrame !== "function") {
-        callback();
-        return;
-    }
-
-    const animationFrameId = globalThis.requestAnimationFrame(() => {
+    const animationFrameId = chartHoverEffectsRuntime.requestAnimationFrame(() => {
         if (signal?.aborted === true) {
             return;
         }
@@ -183,7 +180,7 @@ function scheduleTimeout(
     delay: number,
     signal?: AbortSignal
 ): void {
-    const timeoutId = setTimeout(() => {
+    const timeoutId = chartHoverEffectsRuntime.setTimeout(() => {
         if (signal?.aborted === true) {
             return;
         }
@@ -301,18 +298,7 @@ function getFullscreenElement(): Element | null {
 }
 
 async function waitForAnimationFrame(): Promise<void> {
-    await new Promise<void>((resolve) => {
-        if (typeof globalThis.requestAnimationFrame !== "function") {
-            const timeoutId = setTimeout(resolve, 0);
-            void timeoutId;
-            return;
-        }
-
-        const animationFrameId = globalThis.requestAnimationFrame(() => {
-            resolve();
-        });
-        void animationFrameId;
-    });
+    await chartHoverEffectsRuntime.waitForAnimationFrame();
 }
 
 async function waitForFullscreenTarget(
@@ -549,7 +535,8 @@ export function addChartHoverEffects(
         let overlayPlaceholder: HTMLDivElement | null = null;
         let overlayParent: HTMLElement | null = null;
         let overlayEscHandler: (event: KeyboardEvent) => void = () => {};
-        const cleanupController = new AbortController();
+        const cleanupController =
+            chartHoverEffectsRuntime.createAbortController();
         const { signal } = cleanupController;
         wrapperCleanupControllers.set(wrapper, cleanupController);
 
@@ -631,13 +618,9 @@ export function addChartHoverEffects(
                     : `View ${overlayTitleText} in fullscreen`
             );
 
-            if (typeof globalThis.requestAnimationFrame === "function") {
-                scheduleAnimationFrame(() => {
-                    requestChartResize(chartCanvas);
-                }, signal);
-            } else {
+            scheduleAnimationFrame(() => {
                 requestChartResize(chartCanvas);
-            }
+            }, signal);
         };
 
         overlayEscHandler = (event: KeyboardEvent) => {

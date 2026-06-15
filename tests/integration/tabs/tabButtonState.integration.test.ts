@@ -7,12 +7,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 type StateKey =
     | "fitFile.rawData"
-    | "globalData"
     | "ui.activeTab"
     | "ui.tabButtonsEnabled";
 type StateShape = {
     "fitFile.rawData": null | { records: { type?: string }[] };
-    globalData: null | { records: { type?: string }[] };
     "ui.activeTab": string;
     "ui.tabButtonsEnabled": boolean;
 };
@@ -29,7 +27,6 @@ let globalState: StateShape = {
     "fitFile.rawData": null,
     "ui.activeTab": "summary",
     "ui.tabButtonsEnabled": false,
-    globalData: null,
 };
 
 const TAB_FIXTURES = [
@@ -101,7 +98,6 @@ describe("tab button state integration", () => {
             "fitFile.rawData": null,
             "ui.activeTab": "summary",
             "ui.tabButtonsEnabled": false,
-            globalData: null,
         };
 
         vi.clearAllMocks();

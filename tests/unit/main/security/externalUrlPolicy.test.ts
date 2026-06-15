@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { validateExternalUrl } from "../../../../electron-app/main/security/externalUrlPolicy.js";
+import { validateExternalUrl } from "../../../../electron-app/shared/externalUrlPolicy.js";
 
 describe("externalUrlPolicy.validateExternalUrl", () => {
     it("allows https and mailto URLs", () => {

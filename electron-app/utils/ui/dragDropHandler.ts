@@ -19,6 +19,7 @@ import {
     addEventListenerWithCleanup,
     validateElement,
 } from "./mainUiDomUtils.js";
+import { getDragDropHandlerRuntime } from "./dragDropHandlerRuntime.js";
 import { showNotification } from "./notifications/showNotification.js";
 import type { ElectronAPI } from "../../shared/preloadApi.js";
 
@@ -31,6 +32,8 @@ type PerformanceMonitorLike = {
     isEnabled?: boolean | (() => boolean);
     startTimer?: (id: string) => void;
 };
+
+const dragDropHandlerRuntime = getDragDropHandlerRuntime();
 
 function getDragDropElectronApi(): ElectronApiLike | null {
     return getRendererElectronApi(isDragDropElectronApi);
@@ -202,7 +205,8 @@ export class DragDropHandler {
     readFileAsArrayBuffer(file: File): Promise<ArrayBuffer | null> {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            const abortController = new AbortController();
+            const abortController =
+                dragDropHandlerRuntime.createAbortController();
             const cleanup = (): void => {
                 abortController.abort();
             };
@@ -234,16 +238,22 @@ export class DragDropHandler {
             return;
         }
         this.dragOverScheduled = true;
-        this.dragOverAnimationFrame = requestAnimationFrame(() => {
-            this.dragOverAnimationFrame = null;
+        this.dragOverAnimationFrame =
+            dragDropHandlerRuntime.requestAnimationFrame(() => {
+                this.dragOverAnimationFrame = null;
+                this.dragOverScheduled = false;
+                this.showDropOverlay();
+            });
+        if (this.dragOverAnimationFrame === null) {
             this.dragOverScheduled = false;
-            this.showDropOverlay();
-        });
+        }
     }
 
     private cancelScheduledDropOverlay(): void {
         if (this.dragOverAnimationFrame !== null) {
-            cancelAnimationFrame(this.dragOverAnimationFrame);
+            dragDropHandlerRuntime.cancelAnimationFrame(
+                this.dragOverAnimationFrame
+            );
             this.dragOverAnimationFrame = null;
         }
         this.dragOverScheduled = false;

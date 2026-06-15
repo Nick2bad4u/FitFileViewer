@@ -1,26 +1,5 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it } from "vitest";
-
-interface PreloadEnvironmentModule {
-    isPreloadDevelopmentMode: (processRef?: {
-        env?: Record<string, unknown>;
-        versions?: Record<string, unknown>;
-    }) => boolean;
-    isPreloadElectronRuntime: (processRef?: {
-        env?: Record<string, unknown>;
-        versions?: Record<string, unknown>;
-    }) => boolean;
-    shouldEnforceGenericIpcAllowlist: (processRef?: {
-        env?: Record<string, unknown>;
-        versions?: Record<string, unknown>;
-    }) => boolean;
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const preloadEnvironment = requireFromTest(
-    "../../electron-app/preload/environment.js"
-) as PreloadEnvironmentModule;
+import * as preloadEnvironment from "../../electron-app/preload/environment.js";
 
 describe("preload environment helpers", () => {
     it("detects development mode only from NODE_ENV=development", () => {

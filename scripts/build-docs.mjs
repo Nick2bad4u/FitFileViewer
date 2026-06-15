@@ -1,8 +1,7 @@
 import { spawnSync } from "node:child_process";
-import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
     docusaurusWorkspacePath,
@@ -12,8 +11,9 @@ import {
     rootTypedocConfigPath,
 } from "./lib/workspaces.mjs";
 
-const require = createRequire(import.meta.url);
-const typedocPackagePath = require.resolve("typedoc/package.json");
+const typedocPackagePath = fileURLToPath(
+    import.meta.resolve("typedoc/package.json")
+);
 const typedocCliPath = path.join(
     path.dirname(typedocPackagePath),
     "bin",

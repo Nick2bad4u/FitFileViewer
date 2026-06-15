@@ -3,6 +3,7 @@ import {
     registerStartupElectronHooks,
     type RendererApplyTheme as ApplyTheme,
 } from "./electronApiStartupHooks.js";
+import { getRendererApplicationStartupRuntime } from "./applicationStartupRuntime.js";
 import {
     getRendererErrorMessage,
     type RendererErrorEventHandlers,
@@ -22,6 +23,8 @@ type RendererStartupLogger = (
     level: RendererStartupLogLevel,
     ...args: unknown[]
 ) => void;
+
+const applicationStartupRuntime = getRendererApplicationStartupRuntime();
 
 export interface RendererDependencies {
     applyTheme: ApplyTheme | undefined;
@@ -57,7 +60,8 @@ export function createRendererApplicationStartup(
 ): () => Promise<void> {
     async function initializeApplication(): Promise<void> {
         options.performanceMonitor.start("app_initialization");
-        const startupListenerController = new AbortController();
+        const startupListenerController =
+            applicationStartupRuntime.createAbortController();
 
         try {
             options.logRenderer(
@@ -206,13 +210,18 @@ async function initializeAsyncComponents(
             !options.isDevelopmentMode()
         ) {
             try {
-                const updateCheckTimer = setTimeout(() => {
-                    electronApiHooks.checkForUpdates?.();
-                }, 5000);
+                const updateCheckTimer = applicationStartupRuntime.setTimeout(
+                    () => {
+                        electronApiHooks.checkForUpdates?.();
+                    },
+                    5000
+                );
                 options.addEventListener(
                     "beforeunload",
                     () => {
-                        clearTimeout(updateCheckTimer);
+                        applicationStartupRuntime.clearTimeout(
+                            updateCheckTimer
+                        );
                     },
                     {
                         once: true,

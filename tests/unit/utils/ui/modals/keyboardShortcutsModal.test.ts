@@ -1,20 +1,34 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-type ModalExports = {
-    showKeyboardShortcutsModal: () => void;
-    closeKeyboardShortcutsModal: () => void;
-};
-
-const rafMock = vi.fn<(callback: FrameRequestCallback) => number>(
+const runtimeMocks = vi.hoisted(() => ({
+    cancelAnimationFrame: vi.fn<(handle: number) => void>(),
+    clearTimeout: vi.fn<typeof globalThis.clearTimeout>((handle) =>
+        globalThis.clearTimeout(handle)
+    ),
+    requestAnimationFrame: vi.fn<(callback: FrameRequestCallback) => number>(
         (callback) => {
             callback(0);
             return 1;
         }
     ),
-    cancelRafMock = vi.fn<(handle: number) => void>();
+    setTimeout: vi.fn<typeof globalThis.setTimeout>((callback, delay) =>
+        globalThis.setTimeout(callback, delay)
+    ),
+}));
 
-vi.stubGlobal("requestAnimationFrame", rafMock);
-vi.stubGlobal("cancelAnimationFrame", cancelRafMock);
+vi.mock(
+    import(
+        "../../../../../electron-app/utils/ui/modals/keyboardShortcutsModalRuntime.js"
+    ),
+    () => ({
+        getKeyboardShortcutsModalRuntime: () => runtimeMocks,
+    })
+);
+
+type ModalExports = {
+    showKeyboardShortcutsModal: () => void;
+    closeKeyboardShortcutsModal: () => void;
+};
 
 function resolveModalExports(
     module: Partial<ModalExports> & { default?: Partial<ModalExports> }
@@ -40,8 +54,6 @@ function resolveModalExports(
 
 async function loadModal() {
     await vi.resetModules();
-    Reflect.deleteProperty(globalThis, "showKeyboardShortcutsModal");
-    Reflect.deleteProperty(globalThis, "closeKeyboardShortcutsModal");
     const module =
         await import("../../../../../electron-app/utils/ui/modals/keyboardShortcutsModal.js");
     return resolveModalExports(module);
@@ -103,9 +115,24 @@ describe("keyboardShortcutsModal", () => {
         document.head.replaceChildren();
         document.body.style.overflow = "";
         await resetRegisteredElectronApi();
-        rafMock.mockClear();
-        cancelRafMock.mockClear();
+        runtimeMocks.cancelAnimationFrame.mockClear();
+        runtimeMocks.clearTimeout.mockClear();
+        runtimeMocks.requestAnimationFrame.mockClear();
+        runtimeMocks.setTimeout.mockClear();
         vi.useRealTimers();
+    });
+
+    it("does not publish compatibility globals", async () => {
+        expect.assertions(1);
+
+        await loadModal();
+
+        expect(
+            [
+                "closeKeyboardShortcutsModal",
+                "showKeyboardShortcutsModal",
+            ].filter((globalName) => Reflect.has(globalThis, globalName))
+        ).toStrictEqual([]);
     });
 
     it("creates and displays the modal when triggered", async () => {
@@ -241,10 +268,10 @@ describe("keyboardShortcutsModal", () => {
         expect(document.body.style.overflow).toBe("");
         expect(document.activeElement).toBe(trigger);
 
-        cancelRafMock.mockClear();
+        runtimeMocks.cancelAnimationFrame.mockClear();
         closeKeyboardShortcutsModal();
 
-        expect(cancelRafMock).not.toHaveBeenCalled();
+        expect(runtimeMocks.cancelAnimationFrame).not.toHaveBeenCalled();
         expect(vi.getTimerCount()).toBe(0);
     });
 

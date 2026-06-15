@@ -10,7 +10,6 @@ import {
     afterAll as vitestAfterAll,
 } from "vitest";
 
-import { setLeafletRuntime } from "../../electron-app/utils/maps/core/leafletRuntime.js";
 import { appSourcePath } from "../../scripts/lib/workspaces.mjs";
 
 const electronAppRoot = appSourcePath;
@@ -30,6 +29,7 @@ const generatedRuntimeRootFiles = new Set([
     "renderer.js",
     "windowStateUtils.js",
 ]);
+let fitFileViewerVitestDistResolverInstalled = false;
 
 function isGeneratedRuntimePath(relativePath) {
     const normalized = relativePath.replaceAll(path.sep, "/");
@@ -101,7 +101,7 @@ function resolveDistRuntimeRequest(request, parentFilename) {
     }
 }
 
-if (!globalThis.__fitFileViewerVitestDistResolverInstalled) {
+if (!fitFileViewerVitestDistResolverInstalled) {
     const originalResolveFilename = Module._resolveFilename;
     Module._resolveFilename = function resolveFilename(
         request,
@@ -124,7 +124,7 @@ if (!globalThis.__fitFileViewerVitestDistResolverInstalled) {
             options
         );
     };
-    globalThis.__fitFileViewerVitestDistResolverInstalled = true;
+    fitFileViewerVitestDistResolverInstalled = true;
 }
 
 // Soft import of state manager test-only resets; guarded to avoid module init cost when not present
@@ -146,6 +146,19 @@ let __clearListeners;
 })();
 
 // Reinstall a safe console before/after each test phase to prevent teardown from leaving it undefined
+/**
+ * @param {typeof globalThis | Window} target
+ * @param {Console} consoleRef
+ */
+function setConsoleObject(target, consoleRef) {
+    Object.defineProperty(target, "console", {
+        configurable: true,
+        enumerable: true,
+        value: consoleRef,
+        writable: true,
+    });
+}
+
 function ensureConsoleAlive() {
     try {
         const noop = () => {};
@@ -179,23 +192,13 @@ function ensureConsoleAlive() {
                 profileEnd: vi.fn() || noop,
             };
             try {
-                Object.defineProperty(globalThis, "console", {
-                    configurable: true,
-                    writable: true,
-                    enumerable: true,
-                    value: base,
-                });
+                setConsoleObject(globalThis, base);
             } catch {
                 /* ignore */
             }
             if (typeof window !== "undefined") {
                 try {
-                    Object.defineProperty(window, "console", {
-                        configurable: true,
-                        writable: true,
-                        enumerable: true,
-                        value: base,
-                    });
+                    setConsoleObject(window, base);
                 } catch {
                     /* ignore */
                 }
@@ -248,10 +251,60 @@ function ensureConsoleAlive() {
             window.console !== current
         ) {
             try {
-                window.console = current;
+                setConsoleObject(window, current);
             } catch {
                 /* ignore */
             }
+        }
+    } catch {
+        /* ignore */
+    }
+}
+
+/**
+ * @param {Record<string, unknown>} processRef
+ */
+function setRuntimeProcessObject(processRef) {
+    Object.defineProperty(globalThis, "process", {
+        configurable: true,
+        enumerable: true,
+        value: processRef,
+        writable: true,
+    });
+}
+
+/**
+ * @param {Record<string, unknown>} processRef
+ * @param {(callback: (...args: unknown[]) => void, ...args: unknown[]) => void} nextTick
+ */
+function setProcessNextTick(processRef, nextTick) {
+    Object.defineProperty(processRef, "nextTick", {
+        configurable: true,
+        value: nextTick,
+        writable: true,
+    });
+}
+
+function ensureProcessNextTick() {
+    try {
+        const currentProcess = globalThis.process;
+        const processRef =
+            currentProcess && typeof currentProcess === "object"
+                ? currentProcess
+                : {};
+        if (processRef !== currentProcess) {
+            setRuntimeProcessObject(processRef);
+        }
+        if (typeof processRef.nextTick !== "function") {
+            setProcessNextTick(processRef, (cb, ...args) =>
+                Promise.resolve().then(() => {
+                    try {
+                        cb(...args);
+                    } catch {
+                        /* ignore */
+                    }
+                })
+            );
         }
     } catch {
         /* ignore */
@@ -265,22 +318,7 @@ function ensureConsoleAlive() {
 try {
     vitestBeforeEach(() => {
         ensureConsoleAlive();
-        try {
-            const g = /** @type {any} */ (globalThis);
-            if (!g.process || typeof g.process !== "object") g.process = {};
-            if (typeof g.process.nextTick !== "function") {
-                g.process.nextTick = (cb, ...args) =>
-                    Promise.resolve().then(() => {
-                        try {
-                            cb(...args);
-                        } catch {
-                            /* ignore */
-                        }
-                    });
-            }
-        } catch {
-            /* ignore */
-        }
+        ensureProcessNextTick();
     });
 } catch {
     /* ignore: runner not yet available */
@@ -288,22 +326,7 @@ try {
 try {
     vitestAfterEach(() => {
         ensureConsoleAlive();
-        try {
-            const g = /** @type {any} */ (globalThis);
-            if (!g.process || typeof g.process !== "object") g.process = {};
-            if (typeof g.process.nextTick !== "function") {
-                g.process.nextTick = (cb, ...args) =>
-                    Promise.resolve().then(() => {
-                        try {
-                            cb(...args);
-                        } catch {
-                            /* ignore */
-                        }
-                    });
-            }
-        } catch {
-            /* ignore */
-        }
+        ensureProcessNextTick();
     });
 } catch {
     /* ignore: runner not yet available */
@@ -326,26 +349,7 @@ if (typeof document !== "undefined") {
 }
 
 // Ensure a stable global process object for libraries/tests that expect Node-like globals
-(() => {
-    try {
-        const g = /** @type {any} */ (globalThis);
-        if (!g.process || typeof g.process !== "object") {
-            g.process = {};
-        }
-        if (typeof g.process.nextTick !== "function") {
-            g.process.nextTick = (cb, ...args) =>
-                Promise.resolve().then(() => {
-                    try {
-                        cb(...args);
-                    } catch {
-                        /* ignore */
-                    }
-                });
-        }
-    } catch {
-        /* ignore */
-    }
-})();
+ensureProcessNextTick();
 
 // Capture native references to the initial jsdom window/document so we can restore
 // them between tests if a suite replaces global.document with a plain object.
@@ -375,17 +379,6 @@ const __nativeWindow = typeof window !== "undefined" ? window : undefined;
  */
 function cleanupWindowGlobals(win) {
     if (!win) return;
-    try {
-        if (win.__chartjs_dev) {
-            try {
-                delete win.__chartjs_dev;
-            } catch {
-                win.__chartjs_dev = undefined;
-            }
-        }
-    } catch {
-        /* Ignore errors */
-    }
     // Clear storage to avoid unit selection bleed (seconds/minutes/hours) between tests
     try {
         if (win.localStorage && typeof win.localStorage.clear === "function") {
@@ -414,16 +407,23 @@ function cleanupWindowGlobals(win) {
     } catch {
         /* Ignore errors */
     }
-    // Disconnect any MutationObserver we might have installed on window
+}
+
+/**
+ * @param {object | undefined} target
+ * @param {Document} documentValue
+ */
+function setRuntimeDocument(target, documentValue) {
+    if (!target || typeof target !== "object") {
+        return;
+    }
+
     try {
-        const w = /** @type {any} */ (win);
-        if (
-            w.tabButtonObserver &&
-            typeof w.tabButtonObserver.disconnect === "function"
-        ) {
-            w.tabButtonObserver.disconnect();
-            delete w.tabButtonObserver;
-        }
+        Object.defineProperty(target, "document", {
+            configurable: true,
+            value: documentValue,
+            writable: true,
+        });
     } catch {
         /* Ignore errors */
     }
@@ -500,10 +500,10 @@ function restoreNativeDom() {
         if (!isValidDoc(curDoc) && __nativeDocument) {
             try {
                 // Restore global document reference
-                globalThis.document = __nativeDocument;
+                setRuntimeDocument(globalThis, __nativeDocument);
                 if (curWin && typeof curWin === "object") {
                     // Keep the same window object but ensure it points to the restored document
-                    curWin.document = __nativeDocument;
+                    setRuntimeDocument(curWin, __nativeDocument);
                 }
             } catch {
                 /* Ignore errors */
@@ -522,20 +522,14 @@ function restoreNativeDom() {
         if (effDoc) {
             // Always realign global and window document references to the same instance
             try {
-                globalThis.document = effDoc;
+                setRuntimeDocument(globalThis, effDoc);
             } catch {
                 /* Ignore errors */
             }
             try {
                 if (curWin && typeof curWin === "object") {
-                    curWin.document = effDoc;
+                    setRuntimeDocument(curWin, effDoc);
                 }
-            } catch {
-                /* Ignore errors */
-            }
-            // Expose a canonical reference for modules to use, avoiding cross-realm mismatches
-            try {
-                globalThis.__vitest_effective_document__ = effDoc;
             } catch {
                 /* Ignore errors */
             }
@@ -666,271 +660,12 @@ function restoreNativeDom() {
     }
 })();
 
-// Even if a console already exists, ensure group APIs are present to avoid TypeError
-try {
-    if (globalThis.console) {
-        if (typeof globalThis.console.group !== "function") {
-            globalThis.console.group = vi.fn();
-        }
-        if (typeof globalThis.console.groupEnd !== "function") {
-            globalThis.console.groupEnd = vi.fn();
-        }
-        if (typeof globalThis.console.groupCollapsed !== "function") {
-            globalThis.console.groupCollapsed = vi.fn();
-        }
-    }
-    if (typeof window !== "undefined" && window.console) {
-        if (typeof window.console.group !== "function") {
-            window.console.group = /** @type {any} */ (
-                globalThis.console.group || vi.fn()
-            );
-        }
-        if (typeof window.console.groupEnd !== "function") {
-            window.console.groupEnd = /** @type {any} */ (
-                globalThis.console.groupEnd || vi.fn()
-            );
-        }
-        if (typeof window.console.groupCollapsed !== "function") {
-            window.console.groupCollapsed = /** @type {any} */ (
-                globalThis.console.groupCollapsed || vi.fn()
-            );
-        }
-    }
-} catch {
-    /* Ignore errors */
-}
-
-/** @typedef {Record<string, string>} StorageRecord */
-
-const STORAGE_METHODS = [
-    "getItem",
-    "setItem",
-    "removeItem",
-    "clear",
-    "key",
-];
-
-/**
- * In-memory implementation of the Web Storage API used to polyfill environments
- * where the experimental Node localStorage either throws or exposes incomplete
- * prototypes.
- */
-class StorageMock {
-    constructor() {
-        /** @type {StorageRecord} */
-        this.store = {};
-    }
-
-    get length() {
-        return Object.keys(this.store).length;
-    }
-
-    /**
-     * @param {string} key
-     *
-     * @returns {string | null}
-     */
-    getItem(key) {
-        return Object.prototype.hasOwnProperty.call(this.store, key)
-            ? this.store[key]
-            : null;
-    }
-
-    /**
-     * @param {string} key
-     * @param {unknown} value
-     *
-     * @returns {void}
-     */
-    setItem(key, value) {
-        this.store[key] = String(value);
-    }
-
-    /**
-     * @param {string} key
-     *
-     * @returns {void}
-     */
-    removeItem(key) {
-        delete this.store[key];
-    }
-
-    /**
-     * @returns {void}
-     */
-    clear() {
-        this.store = {};
-    }
-
-    /**
-     * @param {number} index
-     *
-     * @returns {string | null}
-     */
-    key(index) {
-        return Object.keys(this.store)[index] ?? null;
-    }
-}
+ensureConsoleAlive();
 
 const spyFactory =
     typeof vi !== "undefined" && typeof vi.fn === "function"
         ? (fn) => vi.fn(fn)
         : (fn) => fn;
-
-STORAGE_METHODS.forEach((method) => {
-    const original = /** @type {(...args: any[]) => unknown} */ (
-        StorageMock.prototype[method]
-    );
-    if (typeof original === "function") {
-        Object.defineProperty(StorageMock.prototype, method, {
-            value: spyFactory(function (/** @type {unknown[]} */ ...args) {
-                return original.apply(this, args);
-            }),
-            configurable: true,
-            writable: true,
-        });
-    }
-});
-
-const storageLengthDescriptor = Object.getOwnPropertyDescriptor(
-    StorageMock.prototype,
-    "length"
-);
-if (storageLengthDescriptor?.get) {
-    Object.defineProperty(StorageMock.prototype, "length", {
-        get: function () {
-            return storageLengthDescriptor.get.call(this);
-        },
-        configurable: true,
-    });
-}
-
-// Global localStorage mock setup (handles opaque origin throwing on access)
-function ensureSafeLocalStorage() {
-    if (typeof window === "undefined") return;
-    /** @type {any} */
-    const w = window;
-    const createMock = () => {
-        const mock = new StorageMock();
-        try {
-            globalThis.Storage = StorageMock;
-        } catch {
-            /** @type {any} */ (globalThis).Storage = /** @type {any} */ (
-                StorageMock
-            );
-        }
-        try {
-            w.Storage = /** @type {any} */ (StorageMock);
-        } catch {
-            /** @type {any} */ (w).Storage = /** @type {any} */ (StorageMock);
-        }
-        return mock;
-    };
-    let needsOverride = false;
-    try {
-        // Accessor can throw in jsdom for opaque origins
-        if (w.localStorage) {
-            void w.localStorage.length;
-        }
-    } catch {
-        needsOverride = true;
-    }
-    if (!needsOverride) {
-        const storageCandidate = /** @type {any} */ (w.localStorage);
-        const hasStorageShape =
-            storageCandidate &&
-            typeof storageCandidate === "object" &&
-            !Array.isArray(storageCandidate);
-        const requiredFns = [
-            "getItem",
-            "setItem",
-            "removeItem",
-            "clear",
-            "key",
-        ];
-        if (!hasStorageShape) {
-            needsOverride = true;
-        } else {
-            const missingFn = requiredFns.some(
-                (method) => typeof storageCandidate[method] !== "function"
-            );
-            const lengthIsNumber = typeof storageCandidate.length === "number";
-            if (missingFn || !lengthIsNumber) {
-                needsOverride = true;
-            }
-        }
-    }
-    if (needsOverride) {
-        const mock = createMock();
-        try {
-            Object.defineProperty(w, "localStorage", {
-                value: mock,
-                configurable: true,
-                writable: true,
-            });
-        } catch {
-            // Fallback assignment
-            w.localStorage = /** @type {any} */ (mock);
-        }
-        // Mirror on globalThis for code accessing it directly
-        try {
-            Object.defineProperty(globalThis, "localStorage", {
-                value: mock,
-                configurable: true,
-                writable: true,
-            });
-        } catch {
-            /** @type {any} */ (globalThis).localStorage = /** @type {any} */ (
-                mock
-            );
-        }
-    }
-}
-
-ensureSafeLocalStorage();
-
-// Global sessionStorage mock setup (handles opaque origin throwing on access)
-function ensureSafeSessionStorage() {
-    if (typeof window === "undefined") return;
-    /** @type {any} */
-    const w = window;
-    const createMock = () => new StorageMock();
-    let needsOverride = false;
-    try {
-        // Accessor can throw in jsdom for opaque origins
-        if (w.sessionStorage) {
-            void w.sessionStorage.length;
-        }
-    } catch {
-        needsOverride = true;
-    }
-    if (needsOverride) {
-        const mock = createMock();
-        try {
-            Object.defineProperty(w, "sessionStorage", {
-                value: mock,
-                configurable: true,
-                writable: true,
-            });
-        } catch {
-            // Fallback assignment
-            w.sessionStorage = /** @type {any} */ (mock);
-        }
-        // Mirror on globalThis for code accessing it directly
-        try {
-            Object.defineProperty(globalThis, "sessionStorage", {
-                value: mock,
-                configurable: true,
-                writable: true,
-            });
-        } catch {
-            /** @type {any} */ (globalThis).sessionStorage =
-                /** @type {any} */ (mock);
-        }
-    }
-}
-
-ensureSafeSessionStorage();
 
 /**
  * Resolve a URL-like input against a fallback href, mirroring the browser's
@@ -1075,14 +810,12 @@ function installWindowNavigationShim(win) {
             throw error;
         }
         try {
-            /** @type {any} */ (nativeLocation).__ffvNavigationHistory ??= [];
-            /**
-             * @type {{
-             *     href: string;
-             *     reason: string;
-             *     timestamp: number;
-             * }[]}
-             */ (nativeLocation.__ffvNavigationHistory).push({
+            let history = vitestNavigationHistory.get(nativeLocation);
+            if (!history) {
+                history = [];
+                vitestNavigationHistory.set(nativeLocation, history);
+            }
+            history.push({
                 href: currentUrl.href,
                 reason,
                 timestamp: Date.now(),
@@ -1274,54 +1007,6 @@ function ensureWindowWarningFreeAPIs(win) {
     mirrorToGlobal("open", openImpl);
 }
 
-// Global mocks for Electron application testing
-// These mocks provide comprehensive testing infrastructure for the Electron app
-
-// Create global mock objects that will be used in dynamic electron mocking
-globalThis.createElectronMocks = () => {
-    const mockApp = {
-        getPath: vi.fn((name) => {
-            // Use explicit mapping to avoid TypeScript index signature issues
-            if (name === "userData") return "/mock/path/userData";
-            if (name === "appData") return "/mock/path/appData";
-            if (name === "temp") return "/mock/path/temp";
-            if (name === "desktop") return "/mock/path/desktop";
-            if (name === "documents") return "/mock/path/documents";
-            if (name === "downloads") return "/mock/path/downloads";
-            if (name === "music") return "/mock/path/music";
-            if (name === "pictures") return "/mock/path/pictures";
-            if (name === "videos") return "/mock/path/videos";
-            if (name === "home") return "/mock/path/home";
-            return `/mock/path/${String(name)}`;
-        }),
-        isPackaged: false,
-        getVersion: vi.fn(() => "1.0.0"),
-        getName: vi.fn(() => "FitFileViewer"),
-        on: vi.fn(),
-        whenReady: vi.fn(() => Promise.resolve()),
-        quit: vi.fn(),
-    };
-
-    const mockIpcRenderer = {
-        invoke: vi.fn().mockResolvedValue("mock-result"),
-        send: vi.fn(),
-        on: vi.fn(),
-        once: vi.fn(),
-        removeListener: vi.fn(),
-        removeAllListeners: vi.fn(),
-    };
-
-    const mockContextBridge = {
-        exposeInMainWorld: vi.fn(),
-    };
-
-    return {
-        app: mockApp,
-        ipcRenderer: mockIpcRenderer,
-        contextBridge: mockContextBridge,
-    };
-};
-
 // Mock electron-conf to avoid Electron dependency issues in tests
 // Use default export to ensure it's compatible with both import and require
 vi.mock("electron-conf", () => {
@@ -1366,102 +1051,21 @@ vi.mock("electron-conf", () => {
     };
 });
 
-const leafletMock = {
-    tileLayer: vi.fn(() => ({
-        addTo: vi.fn(),
-        setZIndex: vi.fn(),
-        on: vi.fn(),
-        remove: vi.fn(),
-    })),
-    map: vi.fn(() => ({
-        setView: vi.fn(),
-        addLayer: vi.fn(),
-        on: vi.fn(),
-        remove: vi.fn(),
-        getCenter: vi.fn(() => ({ lat: 0, lng: 0 })),
-        getZoom: vi.fn(() => 13),
-        fitBounds: vi.fn(),
-        invalidateSize: vi.fn(),
-        addControl: vi.fn(),
-        removeControl: vi.fn(),
-        eachLayer: vi.fn(),
-    })),
-    control: {
-        layers: vi.fn(() => ({ addTo: vi.fn() })),
-        scale: vi.fn(() => ({ addTo: vi.fn() })),
-        fullscreen: vi.fn(() => ({ addTo: vi.fn() })),
-        locate: vi.fn(() => ({ addTo: vi.fn() })),
-        measure: vi.fn(() => ({ addTo: vi.fn() })),
-        Draw: { Event: { CREATED: "created" } },
-    },
-    markerClusterGroup: vi.fn(() => ({ addLayer: vi.fn() })),
-    marker: vi.fn(() => ({
-        addTo: vi.fn(() => ({ getElement: vi.fn(() => null) })),
-    })),
-    polyline: vi.fn(() => ({ addTo: vi.fn() })),
-    latLng: vi.fn((lat, lng) => ({ lat, lng })),
-    divIcon: vi.fn(() => ({})),
-    FeatureGroup: vi.fn(() => ({ addLayer: vi.fn() })),
-    Control: {
-        MiniMap: vi.fn(() => ({ addTo: vi.fn() })),
-        Draw: vi.fn(() => ({ addTo: vi.fn() })),
-    },
-    maplibreGL: vi.fn(() => ({
-        addTo: vi.fn(),
-        setZIndex: vi.fn(),
-        on: vi.fn(),
-        remove: vi.fn(),
-    })),
-};
-setLeafletRuntime(leafletMock);
-try {
-    vitestBeforeEach(() => {
-        setLeafletRuntime(leafletMock);
-    });
-} catch {
-    /* ignore: runner not yet available */
-}
-
-// Ensure HTMLElement is available globally for instanceof checks
-if (
-    typeof window !== "undefined" &&
-    typeof window.HTMLElement !== "undefined"
-) {
-    global.HTMLElement = window.HTMLElement;
-}
-
-if (typeof window !== "undefined") {
-    // Ensure window.addEventListener is mocked
-    if (!window.addEventListener) {
-        window.addEventListener = vi.fn();
-        window.removeEventListener = vi.fn();
-    }
-    // Ensure window.dispatchEvent exists for jsdom-like environments
-    if (typeof window.dispatchEvent !== "function") {
-        try {
-            // Bind to EventTarget prototype if available
-            const et =
-                typeof EventTarget !== "undefined"
-                    ? EventTarget.prototype.dispatchEvent
-                    : undefined;
-            if (typeof et === "function") {
-                window.dispatchEvent =
-                    /** @type {(event: Event) => boolean} */ (et.bind(window));
-            } else {
-                // Fallback no-op to avoid hard failures in tests that call dispatchEvent
-                /** @type {(event: Event) => boolean} */
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const noop = (_event) => true;
-                window.dispatchEvent = noop;
-            }
-        } catch {
-            /** @type {(event: Event) => boolean} */
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const noop = (_event) => true;
-            window.dispatchEvent = noop;
-        }
-    }
-}
+/** @type {WeakMap<Document, any>} */
+const vitestDocumentNativeMethods = new WeakMap();
+const vitestTrackedTimeouts = new Set();
+const vitestTrackedIntervals = new Set();
+/** @type {any[]} */
+const vitestTrackedDomListeners = [];
+const vitestWrappedEventListenerMethods = new WeakSet();
+let vitestTimerAndListenerTrackingInstalled = false;
+/**
+ * @type {WeakMap<
+ *     Location,
+ *     { href: string; reason: string; timestamp: number }[]
+ * >}
+ */
+const vitestNavigationHistory = new WeakMap();
 
 // Helper to install guards on a specific Document instance (handles reassignments)
 /**
@@ -1516,12 +1120,8 @@ function installDocumentGuards(doc) {
     } catch {
         /* Ignore errors */
     }
-    // Cache of native methods per Document instance to survive prototype tampering (legacy fallback)
-    /** @type {WeakMap<Document, any>} */
-    const nativeMap =
-        /** @type {any} */ (globalThis).__vitest_doc_native_methods ||
-        new WeakMap();
-    /** @type {any} */ (globalThis).__vitest_doc_native_methods = nativeMap;
+    // Cache native methods per Document instance to survive prototype tampering.
+    const nativeMap = vitestDocumentNativeMethods;
     try {
         let natives = nativeMap.get(doc);
         if (!natives) {
@@ -1907,13 +1507,6 @@ try {
         } catch {
             /* Ignore errors */
         }
-        // Ensure canonical effective document reflects the current global document
-        try {
-            globalThis.__vitest_effective_document__ =
-                typeof document !== "undefined" ? document : undefined;
-        } catch {
-            /* Ignore errors */
-        }
         // Ensure no DOM from a previous test leaks into the next one
         try {
             if (typeof document !== "undefined" && document.body) {
@@ -1922,29 +1515,10 @@ try {
         } catch {
             /* Ignore errors */
         }
-        // Disconnect MutationObservers and clear timers/listeners best-effort
-        try {
-            if (typeof window !== "undefined") {
-                const w = /** @type {any} */ (window);
-                if (
-                    w.tabButtonObserver &&
-                    typeof w.tabButtonObserver.disconnect === "function"
-                ) {
-                    w.tabButtonObserver.disconnect();
-                    delete w.tabButtonObserver;
-                }
-            }
-        } catch {
-            /* Ignore errors */
-        }
         // Clear tracked timers
         try {
-            /** @type {Set<number>} */
-            const timeouts = /** @type {any} */ (globalThis)
-                .__vitest_tracked_timeouts;
-            /** @type {Set<number>} */
-            const intervals = /** @type {any} */ (globalThis)
-                .__vitest_tracked_intervals;
+            const timeouts = vitestTrackedTimeouts;
+            const intervals = vitestTrackedIntervals;
             if (timeouts && typeof clearTimeout === "function") {
                 for (const id of Array.from(timeouts)) {
                     try {
@@ -1978,8 +1552,7 @@ try {
              *     options?: any;
              * }[]}
              */
-            const listeners = /** @type {any} */ (globalThis)
-                .__vitest_tracked_dom_listeners;
+            const listeners = vitestTrackedDomListeners;
             if (Array.isArray(listeners)) {
                 for (const rec of listeners.splice(0, listeners.length)) {
                     try {
@@ -2002,8 +1575,8 @@ try {
         } catch {
             /* Ignore errors */
         }
-        // Note: do NOT clear the manual mock registry here.
-        // We rely on vi.mock hoisting once per test file; clearing per-test breaks
+        // Note: do NOT reset Vitest module mocks here.
+        // We rely on vi.mock hoisting once per test file; resetting per-test breaks
         // identity linking between test-imported spies and modules under test.
     });
 } catch {
@@ -2017,13 +1590,6 @@ try {
         try {
             // Ensure we start each test from a clean native jsdom window/document
             restoreNativeDom();
-        } catch {
-            /* Ignore errors */
-        }
-        // Ensure canonical effective document reflects the current global document
-        try {
-            globalThis.__vitest_effective_document__ =
-                typeof document !== "undefined" ? document : undefined;
         } catch {
             /* Ignore errors */
         }
@@ -2059,20 +1625,28 @@ try {
         const nativeKeys = Object.keys.bind(Object);
         /** @type {(o: any) => string[]} */
         let current = nativeKeys;
-        // Global opt-in flag to allow tests to force throw-through
-        if (typeof globalThis.__vitest_object_keys_allow_throw !== "boolean") {
-            globalThis.__vitest_object_keys_allow_throw = false;
-        }
+        const objectKeysWrappers = new WeakSet();
+
+        const isLogWithLevelCall = () => {
+            try {
+                return /\blogWithLevel\.(?:ts|js)\b/u.test(
+                    String(new Error("Capture stack").stack ?? "")
+                );
+            } catch {
+                return false;
+            }
+        };
+
         /**
          * Create a stable wrapper function that delegates to the current
-         * implementation and falls back to native when errors occur, unless
-         * tests opt-in to throw-through.
+         * implementation and falls back to native when errors occur, unless the
+         * call came from the logWithLevel failure-path tests.
          */
         const wrapped = (/** @type {any} */ o) => {
             try {
                 return /** @type {any} */ (current)(o);
             } catch (err) {
-                if (globalThis.__vitest_object_keys_allow_throw) {
+                if (isLogWithLevelCall()) {
                     throw err;
                 }
                 try {
@@ -2082,11 +1656,7 @@ try {
                 }
             }
         };
-        // Mark the wrapper so restoring Object.keys to this function resets to native
-        Object.defineProperty(wrapped, "__isObjectKeysWrapper", {
-            value: true,
-            enumerable: false,
-        });
+        objectKeysWrappers.add(wrapped);
 
         Object.defineProperty(Object, "keys", {
             configurable: true,
@@ -2095,7 +1665,7 @@ try {
             },
             set(v) {
                 if (typeof v === "function") {
-                    if (v && v.__isObjectKeysWrapper) {
+                    if (objectKeysWrappers.has(v)) {
                         current = nativeKeys; // reset to native to avoid recursion
                     } else {
                         current = /** @type {(o: any) => string[]} */ (v);
@@ -2110,17 +1680,29 @@ try {
     }
 })();
 
+/**
+ * @param {"clearInterval" | "clearTimeout" | "setInterval" | "setTimeout"} name
+ * @param {unknown} value
+ */
+function installTrackedTimerFunction(name, value) {
+    try {
+        Object.defineProperty(globalThis, name, {
+            configurable: true,
+            value,
+            writable: true,
+        });
+    } catch {
+        /* Ignore errors */
+    }
+}
+
 // --- Track and clean up timers and DOM event listeners to prevent leaks across tests ---
 (function installTimerAndListenerTracking() {
     try {
-        if (!("__vitest_timers_wrapped" in /** @type {any} */ (globalThis))) {
+        if (!vitestTimerAndListenerTrackingInstalled) {
             // Timer tracking
-            const timeouts = new Set();
-            const intervals = new Set();
-            /** @type {any} */ (globalThis).__vitest_tracked_timeouts =
-                timeouts;
-            /** @type {any} */ (globalThis).__vitest_tracked_intervals =
-                intervals;
+            const timeouts = vitestTrackedTimeouts;
+            const intervals = vitestTrackedIntervals;
 
             const nativeSetTimeout = globalThis.setTimeout?.bind(globalThis);
             const nativeSetInterval = globalThis.setInterval?.bind(globalThis);
@@ -2130,7 +1712,8 @@ try {
                 globalThis.clearInterval?.bind(globalThis);
 
             if (typeof nativeSetTimeout === "function") {
-                globalThis.setTimeout = /** @type {any} */ (
+                installTrackedTimerFunction(
+                    "setTimeout",
                     (fn, delay, ...args) => {
                         const id = nativeSetTimeout(fn, delay, ...args);
                         try {
@@ -2143,7 +1726,8 @@ try {
                 );
             }
             if (typeof nativeSetInterval === "function") {
-                globalThis.setInterval = /** @type {any} */ (
+                installTrackedTimerFunction(
+                    "setInterval",
                     (fn, delay, ...args) => {
                         const id = nativeSetInterval(fn, delay, ...args);
                         try {
@@ -2156,7 +1740,8 @@ try {
                 );
             }
             if (typeof nativeClearTimeout === "function") {
-                globalThis.clearTimeout = /** @type {any} */ (
+                installTrackedTimerFunction(
+                    "clearTimeout",
                     (id) => {
                         try {
                             timeouts.delete(id);
@@ -2168,7 +1753,8 @@ try {
                 );
             }
             if (typeof nativeClearInterval === "function") {
-                globalThis.clearInterval = /** @type {any} */ (
+                installTrackedTimerFunction(
+                    "clearInterval",
                     (id) => {
                         try {
                             intervals.delete(id);
@@ -2181,16 +1767,19 @@ try {
             }
 
             // DOM event listener tracking for window and document
-            /** @type {any[]} */
-            const domListeners = [];
-            /** @type {any} */ (globalThis).__vitest_tracked_dom_listeners =
-                domListeners;
+            const domListeners = vitestTrackedDomListeners;
 
             function wrapAddRemove(target) {
                 try {
-                    const add = target.addEventListener?.bind(target);
-                    const remove = target.removeEventListener?.bind(target);
-                    if (typeof add === "function" && !add.__vitest_wrapped) {
+                    const rawAdd = target.addEventListener;
+                    const rawRemove = target.removeEventListener;
+                    const add = rawAdd?.bind(target);
+                    const remove = rawRemove?.bind(target);
+                    if (
+                        typeof add === "function" &&
+                        typeof rawAdd === "function" &&
+                        !vitestWrappedEventListenerMethods.has(rawAdd)
+                    ) {
                         const wrappedAdd = function (type, listener, options) {
                             try {
                                 domListeners.push({
@@ -2204,14 +1793,15 @@ try {
                             }
                             return add(type, listener, options);
                         };
-                        wrappedAdd.__vitest_wrapped = true;
+                        vitestWrappedEventListenerMethods.add(wrappedAdd);
                         target.addEventListener = /** @type {any} */ (
                             wrappedAdd
                         );
                     }
                     if (
                         typeof remove === "function" &&
-                        !remove.__vitest_wrapped
+                        typeof rawRemove === "function" &&
+                        !vitestWrappedEventListenerMethods.has(rawRemove)
                     ) {
                         const wrappedRemove = function (
                             type,
@@ -2231,7 +1821,7 @@ try {
                             }
                             return remove(type, listener, options);
                         };
-                        wrappedRemove.__vitest_wrapped = true;
+                        vitestWrappedEventListenerMethods.add(wrappedRemove);
                         target.removeEventListener = /** @type {any} */ (
                             wrappedRemove
                         );
@@ -2248,7 +1838,7 @@ try {
                 wrapAddRemove(document);
             }
 
-            /** @type {any} */ (globalThis).__vitest_timers_wrapped = true;
+            vitestTimerAndListenerTrackingInstalled = true;
         }
     } catch {
         // ignore

@@ -15,14 +15,17 @@ describe("getChartStateManagerRuntime", () => {
         >(() => timer);
         const clearTimeoutMock =
             vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
-        const runtime = getChartStateManagerRuntime({
+        const {
+            clearRenderTimeout: clearChartTimeout,
+            setRenderTimeout: setChartTimeout,
+        } = getChartStateManagerRuntime({
             clearTimeout: clearTimeoutMock,
             setTimeout: setTimeoutMock,
         });
         const callback = () => undefined;
 
-        const timeout = runtime.setRenderTimeout(callback, 250);
-        runtime.clearRenderTimeout(timeout);
+        const timeout = setChartTimeout(callback, 250);
+        clearChartTimeout(timeout);
 
         expect(timeout).toBe(timer);
         expect(setTimeoutMock).toHaveBeenCalledWith(callback, 250);

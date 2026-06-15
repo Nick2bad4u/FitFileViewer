@@ -1,86 +1,58 @@
-{
-    type PreloadModuleRegistry =
-        import("./preloadModuleTypes").PreloadModuleRegistry;
-    type PreloadModuleRequire =
-        import("./preloadModuleTypes").PreloadModuleRequire;
-    type PreloadIpcModules = Pick<
-        PreloadModuleRegistry,
-        | "createMenuEventApi"
-        | "createPreloadEventApi"
-        | "createPreloadIpcHelpers"
-        | "createPreloadLogger"
-        | "createPreloadValidators"
-        | "exposeElectronApi"
-        | "ipcBridgeCatalog"
-        | "resolvePreloadElectronBridge"
-        | "shouldEnforceGenericIpcAllowlist"
-    >;
+import { resolvePreloadElectronBridge } from "./electronBridge.js";
+import { exposeElectronApi } from "./electronApiExposure.js";
+import { shouldEnforceGenericIpcAllowlist } from "./environment.js";
+import { createPreloadIpcHelpers } from "./ipcHelpers.js";
+import * as ipcBridgeCatalog from "./ipcBridgeCatalog.js";
+import { createPreloadLogger } from "./logger.js";
+import { createMenuEventApi } from "./menuEventApi.js";
+import { createPreloadEventApi } from "./preloadEventApi.js";
+import { createPreloadValidators } from "./validators.js";
 
-    interface LoadPreloadIpcModulesOptions {
-        requireModule: PreloadModuleRequire;
-    }
+type PreloadModuleRegistry =
+    import("./preloadModuleTypes").PreloadModuleRegistry;
+type PreloadIpcModules = Pick<
+    PreloadModuleRegistry,
+    | "createMenuEventApi"
+    | "createPreloadEventApi"
+    | "createPreloadIpcHelpers"
+    | "createPreloadLogger"
+    | "createPreloadValidators"
+    | "exposeElectronApi"
+    | "ipcBridgeCatalog"
+    | "resolvePreloadElectronBridge"
+    | "shouldEnforceGenericIpcAllowlist"
+>;
 
-    function loadPreloadIpcModules({
-        requireModule,
-    }: LoadPreloadIpcModulesOptions): PreloadIpcModules {
-        const { createPreloadValidators } = requireModule(
-            "./preload/validators.js"
-        ) as {
-            createPreloadValidators: PreloadModuleRegistry["createPreloadValidators"];
-        };
-        const { shouldEnforceGenericIpcAllowlist } = requireModule(
-            "./preload/environment.js"
-        ) as {
-            shouldEnforceGenericIpcAllowlist: PreloadModuleRegistry["shouldEnforceGenericIpcAllowlist"];
-        };
-        const { createPreloadEventApi } = requireModule(
-            "./preload/preloadEventApi.js"
-        ) as {
-            createPreloadEventApi: PreloadModuleRegistry["createPreloadEventApi"];
-        };
-        const { resolvePreloadElectronBridge } = requireModule(
-            "./preload/electronBridge.js"
-        ) as {
-            resolvePreloadElectronBridge: PreloadModuleRegistry["resolvePreloadElectronBridge"];
-        };
-        const { exposeElectronApi } = requireModule(
-            "./preload/electronApiExposure.js"
-        ) as {
-            exposeElectronApi: PreloadModuleRegistry["exposeElectronApi"];
-        };
-        const { createPreloadIpcHelpers } = requireModule(
-            "./preload/ipcHelpers.js"
-        ) as {
-            createPreloadIpcHelpers: PreloadModuleRegistry["createPreloadIpcHelpers"];
-        };
-        const { createPreloadLogger } = requireModule(
-            "./preload/logger.js"
-        ) as {
-            createPreloadLogger: PreloadModuleRegistry["createPreloadLogger"];
-        };
-        const { createMenuEventApi } = requireModule(
-            "./preload/menuEventApi.js"
-        ) as {
-            createMenuEventApi: PreloadModuleRegistry["createMenuEventApi"];
-        };
-        const ipcBridgeCatalog = requireModule(
-            "./preload/ipcBridgeCatalog.js"
-        ) as PreloadModuleRegistry["ipcBridgeCatalog"];
+const createMenuEventApiModule =
+    createMenuEventApi as unknown as PreloadModuleRegistry["createMenuEventApi"];
+const createPreloadEventApiModule =
+    createPreloadEventApi as unknown as PreloadModuleRegistry["createPreloadEventApi"];
+const createPreloadIpcHelpersModule =
+    createPreloadIpcHelpers as unknown as PreloadModuleRegistry["createPreloadIpcHelpers"];
+const createPreloadLoggerModule =
+    createPreloadLogger as unknown as PreloadModuleRegistry["createPreloadLogger"];
+const createPreloadValidatorsModule =
+    createPreloadValidators as unknown as PreloadModuleRegistry["createPreloadValidators"];
+const exposeElectronApiModule =
+    exposeElectronApi as unknown as PreloadModuleRegistry["exposeElectronApi"];
+const ipcBridgeCatalogModule =
+    ipcBridgeCatalog as unknown as PreloadModuleRegistry["ipcBridgeCatalog"];
+const resolvePreloadElectronBridgeModule =
+    resolvePreloadElectronBridge as unknown as PreloadModuleRegistry["resolvePreloadElectronBridge"];
+const shouldEnforceGenericIpcAllowlistModule =
+    shouldEnforceGenericIpcAllowlist as PreloadModuleRegistry["shouldEnforceGenericIpcAllowlist"];
 
-        return {
-            createMenuEventApi,
-            createPreloadEventApi,
-            createPreloadIpcHelpers,
-            createPreloadLogger,
-            createPreloadValidators,
-            exposeElectronApi,
-            ipcBridgeCatalog,
-            resolvePreloadElectronBridge,
-            shouldEnforceGenericIpcAllowlist,
-        };
-    }
-
-    module.exports = {
-        loadPreloadIpcModules,
+export function loadPreloadIpcModules(): PreloadIpcModules {
+    return {
+        createMenuEventApi: createMenuEventApiModule,
+        createPreloadEventApi: createPreloadEventApiModule,
+        createPreloadIpcHelpers: createPreloadIpcHelpersModule,
+        createPreloadLogger: createPreloadLoggerModule,
+        createPreloadValidators: createPreloadValidatorsModule,
+        exposeElectronApi: exposeElectronApiModule,
+        ipcBridgeCatalog: ipcBridgeCatalogModule,
+        resolvePreloadElectronBridge: resolvePreloadElectronBridgeModule,
+        shouldEnforceGenericIpcAllowlist:
+            shouldEnforceGenericIpcAllowlistModule,
     };
 }

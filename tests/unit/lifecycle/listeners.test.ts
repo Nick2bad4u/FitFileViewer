@@ -33,8 +33,8 @@ import { setupListeners } from "../../../electron-app/utils/app/lifecycle/listen
 import { getLifecycleListenerCleanup } from "../../../electron-app/utils/app/lifecycle/lifecycleListenerCleanupRegistry.js";
 import { resetMenuIpcListenerStateForTests } from "../../../electron-app/utils/app/lifecycle/menuIpcListeners.js";
 import {
-    registerRendererElectronApiCandidate,
-    resetRendererElectronApiCandidate,
+    registerRendererElectronApiCandidate as registerElectronApiCandidate,
+    resetRendererElectronApiCandidate as resetElectronApiCandidate,
 } from "../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 type TestElectronAPI = {
@@ -94,7 +94,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
             renderChartJS: undefined,
         });
         resetMenuIpcListenerStateForTests();
-        resetRendererElectronApiCandidate();
+        resetElectronApiCandidate();
         updateChartsMock.mockClear();
     });
 
@@ -139,7 +139,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
             addRecentFile: vi.fn<ElectronAPI["addRecentFile"]>(),
             onIpc: vi.fn<ElectronAPI["onIpc"]>(),
         };
-        registerRendererElectronApiCandidate(electronAPI);
+        registerElectronApiCandidate(electronAPI);
 
         setupListeners({
             openFileBtn,
@@ -212,7 +212,7 @@ describe("utils/app/lifecycle/listeners.js", () => {
         expect.assertions(1);
 
         const { openFileBtn } = mount(null);
-        resetRendererElectronApiCandidate();
+        resetElectronApiCandidate();
         const evt = new MouseEvent("contextmenu", {
             bubbles: true,
             cancelable: true,

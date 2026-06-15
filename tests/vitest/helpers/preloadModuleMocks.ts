@@ -1,130 +1,46 @@
-import { createRequire } from "node:module";
-
-const requireFromTest = createRequire(import.meta.url);
-
-const preloadApiAssembly = requireFromTest(
-    "../../../electron-app/preload/apiAssembly.js"
-);
-const preloadApiAssemblyContext = requireFromTest(
-    "../../../electron-app/preload/apiAssemblyContext.js"
-);
-const preloadClipboardApiDomain = requireFromTest(
-    "../../../electron-app/preload/clipboardApiDomain.js"
-);
-const preloadDeveloperApiDomain = requireFromTest(
-    "../../../electron-app/preload/developerApiDomain.js"
-);
-const preloadDiagnosticsApiDomain = requireFromTest(
-    "../../../electron-app/preload/diagnosticsApiDomain.js"
-);
-const preloadExternalApiDomain = requireFromTest(
-    "../../../electron-app/preload/externalApiDomain.js"
-);
-const preloadFileApiDomain = requireFromTest(
-    "../../../electron-app/preload/fileApiDomain.js"
-);
-const preloadIpcEventApiDomain = requireFromTest(
-    "../../../electron-app/preload/ipcEventApiDomain.js"
-);
-const preloadStateApiDomain = requireFromTest(
-    "../../../electron-app/preload/stateApiDomain.js"
-);
-const preloadSystemApiDomain = requireFromTest(
-    "../../../electron-app/preload/systemApiDomain.js"
-);
-const preloadRuntime = requireFromTest(
-    "../../../electron-app/preload/preloadRuntime.js"
-);
-const preloadRuntimeEnvironment = requireFromTest(
-    "../../../electron-app/preload/preloadRuntimeEnvironment.js"
-);
-const preloadBootstrap = requireFromTest(
-    "../../../electron-app/preload/preloadBootstrap.js"
-);
-const preloadModuleLoader = requireFromTest(
-    "../../../electron-app/preload/preloadModuleLoader.js"
-);
-const preloadAppModuleLoader = requireFromTest(
-    "../../../electron-app/preload/preloadAppModuleLoader.js"
-);
-const preloadFileModuleLoader = requireFromTest(
-    "../../../electron-app/preload/preloadFileModuleLoader.js"
-);
-const preloadIpcModuleLoader = requireFromTest(
-    "../../../electron-app/preload/preloadIpcModuleLoader.js"
-);
-const preloadIpcBridgeCatalog = requireFromTest(
-    "../../../electron-app/preload/ipcBridgeCatalog.js"
-);
-const preloadApiDiagnostics = requireFromTest(
-    "../../../electron-app/preload/apiDiagnostics.js"
-);
-const preloadAppInfoApi = requireFromTest(
-    "../../../electron-app/preload/appInfoApi.js"
-);
-const preloadBeforeExitHandler = requireFromTest(
-    "../../../electron-app/preload/beforeExitHandler.js"
-);
-const preloadClipboardBridge = requireFromTest(
-    "../../../electron-app/preload/clipboardBridge.js"
-);
-const preloadDevtoolsMenuApi = requireFromTest(
-    "../../../electron-app/preload/devtoolsMenuApi.js"
-);
-const preloadDevelopmentToolsGlobal = requireFromTest(
-    "../../../electron-app/preload/developmentToolsGlobal.js"
-);
-const preloadElectronApiExposure = requireFromTest(
-    "../../../electron-app/preload/electronApiExposure.js"
-);
-const preloadElectronApiFactory = requireFromTest(
-    "../../../electron-app/preload/electronApiFactory.js"
-);
-const preloadElectronBridge = requireFromTest(
-    "../../../electron-app/preload/electronBridge.js"
-);
-const preloadEnvironment = requireFromTest(
-    "../../../electron-app/preload/environment.js"
-);
-const preloadGyazoExternalApi = requireFromTest(
-    "../../../electron-app/preload/gyazoExternalApi.js"
-);
-const preloadEventApi = requireFromTest(
-    "../../../electron-app/preload/preloadEventApi.js"
-);
-const preloadFileApi = requireFromTest(
-    "../../../electron-app/preload/fileApi.js"
-);
-const preloadFitBrowserApi = requireFromTest(
-    "../../../electron-app/preload/fitBrowserApi.js"
-);
-const preloadIpcHelpers = requireFromTest(
-    "../../../electron-app/preload/ipcHelpers.js"
-);
-const preloadLogger = requireFromTest(
-    "../../../electron-app/preload/logger.js"
-);
-const preloadMainStateApi = requireFromTest(
-    "../../../electron-app/preload/mainStateApi.js"
-);
-const preloadMainStateBridge = requireFromTest(
-    "../../../electron-app/preload/mainStateBridge.js"
-);
-const preloadMenuEventApi = requireFromTest(
-    "../../../electron-app/preload/menuEventApi.js"
-);
-const preloadThemeApi = requireFromTest(
-    "../../../electron-app/preload/themeApi.js"
-);
-const preloadValidators = requireFromTest(
-    "../../../electron-app/preload/validators.js"
-);
-const preloadStateModuleLoader = requireFromTest(
-    "../../../electron-app/preload/preloadStateModuleLoader.js"
-);
-const preloadShellExternalApi = requireFromTest(
-    "../../../electron-app/preload/shellExternalApi.js"
-);
+import * as preloadApiAssembly from "../../../electron-app/preload/apiAssembly.js";
+import * as preloadApiAssemblyContext from "../../../electron-app/preload/apiAssemblyContext.js";
+import * as preloadApiAssemblyModuleLoader from "../../../electron-app/preload/preloadApiAssemblyModuleLoader.js";
+import * as preloadApiDiagnostics from "../../../electron-app/preload/apiDiagnostics.js";
+import * as preloadAppInfoApi from "../../../electron-app/preload/appInfoApi.js";
+import * as preloadAppModuleLoader from "../../../electron-app/preload/preloadAppModuleLoader.js";
+import * as preloadBeforeExitHandler from "../../../electron-app/preload/beforeExitHandler.js";
+import * as preloadBootstrap from "../../../electron-app/preload/preloadBootstrap.js";
+import * as preloadClipboardApiDomain from "../../../electron-app/preload/clipboardApiDomain.js";
+import * as preloadClipboardBridge from "../../../electron-app/preload/clipboardBridge.js";
+import * as preloadDeveloperApiDomain from "../../../electron-app/preload/developerApiDomain.js";
+import * as preloadDevtoolsMenuApi from "../../../electron-app/preload/devtoolsMenuApi.js";
+import * as preloadDevelopmentToolsGlobal from "../../../electron-app/preload/developmentToolsGlobal.js";
+import * as preloadDiagnosticsApiDomain from "../../../electron-app/preload/diagnosticsApiDomain.js";
+import * as preloadElectronApiExposure from "../../../electron-app/preload/electronApiExposure.js";
+import * as preloadElectronApiFactory from "../../../electron-app/preload/electronApiFactory.js";
+import * as preloadElectronBridge from "../../../electron-app/preload/electronBridge.js";
+import * as preloadEnvironment from "../../../electron-app/preload/environment.js";
+import * as preloadEventApi from "../../../electron-app/preload/preloadEventApi.js";
+import * as preloadExternalApiDomain from "../../../electron-app/preload/externalApiDomain.js";
+import * as preloadFileApi from "../../../electron-app/preload/fileApi.js";
+import * as preloadFileApiDomain from "../../../electron-app/preload/fileApiDomain.js";
+import * as preloadFileModuleLoader from "../../../electron-app/preload/preloadFileModuleLoader.js";
+import * as preloadFitBrowserApi from "../../../electron-app/preload/fitBrowserApi.js";
+import * as preloadGyazoExternalApi from "../../../electron-app/preload/gyazoExternalApi.js";
+import * as preloadIpcBridgeCatalog from "../../../electron-app/preload/ipcBridgeCatalog.js";
+import * as preloadIpcEventApiDomain from "../../../electron-app/preload/ipcEventApiDomain.js";
+import * as preloadIpcHelpers from "../../../electron-app/preload/ipcHelpers.js";
+import * as preloadIpcModuleLoader from "../../../electron-app/preload/preloadIpcModuleLoader.js";
+import * as preloadLogger from "../../../electron-app/preload/logger.js";
+import * as preloadMainStateApi from "../../../electron-app/preload/mainStateApi.js";
+import * as preloadMainStateBridge from "../../../electron-app/preload/mainStateBridge.js";
+import * as preloadMenuEventApi from "../../../electron-app/preload/menuEventApi.js";
+import * as preloadModuleLoader from "../../../electron-app/preload/preloadModuleLoader.js";
+import * as preloadPolicyModuleLoader from "../../../electron-app/preload/preloadPolicyModuleLoader.js";
+import * as preloadRuntime from "../../../electron-app/preload/preloadRuntime.js";
+import * as preloadRuntimeEnvironment from "../../../electron-app/preload/preloadRuntimeEnvironment.js";
+import * as preloadShellExternalApi from "../../../electron-app/preload/shellExternalApi.js";
+import * as preloadStateApiDomain from "../../../electron-app/preload/stateApiDomain.js";
+import * as preloadStateModuleLoader from "../../../electron-app/preload/preloadStateModuleLoader.js";
+import * as preloadSystemApiDomain from "../../../electron-app/preload/systemApiDomain.js";
+import * as preloadThemeApi from "../../../electron-app/preload/themeApi.js";
+import * as preloadValidators from "../../../electron-app/preload/validators.js";
 
 export function resolvePreloadScriptRequire(
     moduleName: string,
@@ -194,8 +110,16 @@ export function resolvePreloadScriptRequire(
         return preloadModuleLoader;
     }
 
+    if (moduleName === "./preload/preloadApiAssemblyModuleLoader.js") {
+        return preloadApiAssemblyModuleLoader;
+    }
+
     if (moduleName === "./preload/preloadAppModuleLoader.js") {
         return preloadAppModuleLoader;
+    }
+
+    if (moduleName === "./preload/preloadPolicyModuleLoader.js") {
+        return preloadPolicyModuleLoader;
     }
 
     if (moduleName === "./preload/preloadFileModuleLoader.js") {

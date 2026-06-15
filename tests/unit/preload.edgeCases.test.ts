@@ -1,11 +1,4 @@
-import { createRequire } from "node:module";
-import path from "node:path";
-
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
-const preloadSourceRequire = createRequire(
-    path.join(process.cwd(), "electron-app", "preload.ts")
-);
 
 type IpcListener = (event: unknown, ...args: unknown[]) => void;
 type RecentFileCallback = (filePath: string) => void;
@@ -31,12 +24,14 @@ interface AdditionalPreloadElectronApi {
     onUpdateEvent: (eventName: unknown, callback: unknown) => void;
 }
 
+const exposedGlobalValues = new Map<string, unknown>();
+
 function getGlobalValue(name: string): unknown {
-    return Reflect.get(globalThis, name);
+    return exposedGlobalValues.get(name);
 }
 
 function setGlobalValue(name: string, value: unknown): void {
-    Reflect.set(globalThis, name, value);
+    exposedGlobalValues.set(name, value);
 }
 
 function getExposedElectronAPI(): AdditionalPreloadElectronApi {
@@ -91,7 +86,8 @@ describe("preload edge cases", () => {
     async function importPreloadWithMock(electronBridge: unknown) {
         const { startPreloadEntrypoint } =
             await import("../../electron-app/preload/preloadEntrypoint.js");
-        startPreloadEntrypoint(preloadSourceRequire, {
+
+        startPreloadEntrypoint({
             consoleRef: console,
             electronBridgeOverride: electronBridge as never,
             globalScope: globalThis,
@@ -106,8 +102,7 @@ describe("preload edge cases", () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
-        Reflect.deleteProperty(globalThis, "electronAPI");
-        Reflect.deleteProperty(globalThis, devToolsGlobalName);
+        exposedGlobalValues.clear();
         process.env.NODE_ENV = originalNodeEnv;
         vi.resetModules();
     });
@@ -130,7 +125,7 @@ describe("preload edge cases", () => {
             .spyOn(console, "log")
             .mockImplementation(() => {});
 
-        await importPreloadWithMock({ ipcRenderer });
+        await importPreloadWithMock({ contextBridge: null, ipcRenderer });
 
         expect(
             consoleErrorSpy.mock.calls.map(([message, detail]) => ({
@@ -156,7 +151,7 @@ describe("preload edge cases", () => {
         expect(failedDevToolsCall[1]).toBeInstanceOf(Error);
 
         // And no exposeInMainWorld should have been called (since it's missing entirely)
-        expect(globalThis).not.toHaveProperty("electronAPI");
+        expect(exposedGlobalValues.has("electronAPI")).toBe(false);
 
         consoleErrorSpy.mockRestore();
         consoleLogSpy.mockRestore();

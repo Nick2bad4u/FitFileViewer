@@ -63,13 +63,6 @@ export class ChartTabIntegration {
     }
 
     /**
-     * Cleanup compatibility alias.
-     */
-    cleanup(): void {
-        this.destroy();
-    }
-
-    /**
      * Clean up integration state.
      */
     destroy(): void {

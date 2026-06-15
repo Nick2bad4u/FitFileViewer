@@ -43,8 +43,14 @@ import {
     setMainMapPolyline,
     setMainMapPolylineOriginalBounds,
 } from "../state/mapPolylineRegistryState.js";
+import {
+    getMapDrawLapsRuntime,
+    type MapDrawLapsTimer,
+} from "./mapDrawLapsRuntime.js";
 
 type FitValue = unknown;
+
+const mapDrawLapsRuntime = getMapDrawLapsRuntime();
 
 type LatLngTuple = [number, number];
 
@@ -73,11 +79,6 @@ type LeafletLayerLike = {
 };
 
 type LayerTargetLike = Leaflet.Layer & {
-    clearLayers?: () => unknown;
-};
-
-type MarkerClusterLike = {
-    addLayer: (layer: unknown) => unknown;
     clearLayers?: () => unknown;
 };
 
@@ -160,7 +161,6 @@ type DrawOverlayForFitFileOptions = {
         lapMesgs: LapMesg[]
     ) => null | number | undefined;
     map: MapLike;
-    markerClusterGroup?: MarkerClusterLike | null | undefined;
     overlayIdx?: number | undefined;
     startIcon?: unknown;
 };
@@ -183,7 +183,6 @@ type MapDrawLapsOptions = {
     ) => null | number | undefined;
     map: MapLike;
     mapContainer: HTMLElement;
-    markerClusterGroup?: MarkerClusterLike | null | undefined;
     startIcon?: unknown;
     [key: string]: unknown;
 };
@@ -193,7 +192,6 @@ type AddLapDataPointMarkerOptions = {
     coord: CoordTuple;
     formatTooltipData: MapDrawLapsOptions["formatTooltipData"];
     leaflet: LeafletRuntimeLike;
-    markerClusterGroup?: MarkerClusterLike | null | undefined;
     polyColor: string;
     recordMesgs: RecordMesg[];
     registerDataPointMarker: (marker: LeafletLayerLike) => void;
@@ -212,7 +210,6 @@ type DrawLoadedFitFileOverlaysOptions = {
     getLapNumForIdx: MapDrawLapsOptions["getLapNumForIdx"];
     leaflet: LeafletRuntimeLike;
     map: MapLike;
-    markerClusterGroup?: MarkerClusterLike | null | undefined;
     startIcon?: unknown;
 };
 
@@ -226,7 +223,6 @@ export function drawOverlayForFitFile({
     formatTooltipData,
     getLapNumForIdx,
     map,
-    markerClusterGroup,
     overlayIdx,
     startIcon,
 }: DrawOverlayForFitFileOptions): LeafletBoundsLike | null {
@@ -342,11 +338,7 @@ export function drawOverlayForFitFile({
                     }
                 });
             }
-            if (markerClusterGroup) {
-                markerClusterGroup.addLayer(marker);
-            } else {
-                marker.addTo(map);
-            }
+            marker.addTo(map);
 
             const lapDisplay =
                 getLapNumForIdx &&
@@ -411,7 +403,6 @@ export function mapDrawLaps(
         getLapNumForIdx,
         map,
         mapContainer,
-        markerClusterGroup,
         startIcon,
     }: MapDrawLapsOptions
 ): void {
@@ -493,14 +484,6 @@ export function mapDrawLaps(
         }
     };
 
-    // Clear clustered markers if used (the cluster layer itself should remain on the map).
-    if (
-        markerClusterGroup &&
-        typeof markerClusterGroup.clearLayers === "function"
-    ) {
-        markerClusterGroup.clearLayers();
-    }
-
     // --- If switching main files, ensure overlays are cleared and only the new main file is plotted ---
     const activeMainFileIndex = getActiveMainMapFileIndex();
     if (
@@ -544,12 +527,12 @@ export function mapDrawLaps(
         } catch {
             /* Ignore first attempt */
         }
-        let fitBoundsRetryTimer: ReturnType<typeof setTimeout> | undefined;
+        let fitBoundsRetryTimer: MapDrawLapsTimer | undefined;
         const scheduleFitRetry = (): void => {
             if (fitBoundsRetryTimer !== undefined) {
-                clearTimeout(fitBoundsRetryTimer);
+                mapDrawLapsRuntime.clearTimeout(fitBoundsRetryTimer);
             }
-            fitBoundsRetryTimer = setTimeout(() => {
+            fitBoundsRetryTimer = mapDrawLapsRuntime.setTimeout(() => {
                 fitBoundsRetryTimer = undefined;
                 tryFit();
             }, 50);
@@ -711,11 +694,7 @@ export function mapDrawLaps(
                     weight: 2,
                     zIndexOffset: 1500,
                 });
-                if (markerClusterGroup) {
-                    markerClusterGroup.addLayer(marker);
-                } else {
-                    marker.addTo(activityLayerTarget);
-                }
+                marker.addTo(activityLayerTarget);
                 // Always keep points above the track.
                 try {
                     marker.bringToFront?.();
@@ -746,7 +725,6 @@ export function mapDrawLaps(
             getLapNumForIdx,
             leaflet: L,
             map,
-            markerClusterGroup,
             startIcon,
         });
         if (lastOverlayBounds) {
@@ -857,11 +835,7 @@ export function mapDrawLaps(
                         weight: 2,
                         zIndexOffset: 1500,
                     });
-                    if (markerClusterGroup) {
-                        markerClusterGroup.addLayer(marker);
-                    } else {
-                        marker.addTo(activityLayerTarget);
-                    }
+                    marker.addTo(activityLayerTarget);
                     try {
                         marker.bringToFront?.();
                     } catch {
@@ -884,7 +858,6 @@ export function mapDrawLaps(
                 getLapNumForIdx,
                 leaflet: L,
                 map,
-                markerClusterGroup,
                 startIcon,
             });
             if (lastOverlayBounds) {
@@ -970,7 +943,6 @@ export function mapDrawLaps(
                                 coord: c,
                                 formatTooltipData,
                                 leaflet: L,
-                                markerClusterGroup,
                                 polyColor,
                                 recordMesgs,
                                 registerDataPointMarker,
@@ -993,7 +965,6 @@ export function mapDrawLaps(
             getLapNumForIdx,
             leaflet: L,
             map,
-            markerClusterGroup,
             startIcon,
         });
         if (lastOverlayBounds) {
@@ -1169,11 +1140,7 @@ export function mapDrawLaps(
                 weight: 2,
                 zIndexOffset: 1500,
             });
-            if (markerClusterGroup) {
-                markerClusterGroup.addLayer(marker);
-            } else {
-                marker.addTo(activityLayerTarget);
-            }
+            marker.addTo(activityLayerTarget);
             try {
                 marker.bringToFront?.();
             } catch {
@@ -1195,7 +1162,6 @@ export function mapDrawLaps(
             getLapNumForIdx,
             leaflet: L,
             map,
-            markerClusterGroup,
             startIcon,
         });
         if (lastOverlayBounds) {
@@ -1228,7 +1194,6 @@ function addLapDataPointMarker({
     coord,
     formatTooltipData,
     leaflet,
-    markerClusterGroup,
     polyColor,
     recordMesgs,
     registerDataPointMarker,
@@ -1247,11 +1212,7 @@ function addLapDataPointMarker({
         zIndexOffset: 1500,
     });
 
-    if (markerClusterGroup) {
-        markerClusterGroup.addLayer(marker);
-    } else {
-        marker.addTo(activityLayerTarget);
-    }
+    marker.addTo(activityLayerTarget);
 
     safelyBringLayerToFront(marker);
     registerDataPointMarker(marker);
@@ -1303,7 +1264,6 @@ function drawLoadedFitFileOverlays({
     getLapNumForIdx,
     leaflet,
     map,
-    markerClusterGroup,
     startIcon,
 }: DrawLoadedFitFileOverlaysOptions): LeafletBoundsLike | null {
     let lastOverlayBounds: LeafletBoundsLike | null = null;
@@ -1336,7 +1296,6 @@ function drawLoadedFitFileOverlays({
                 formatTooltipData,
                 getLapNumForIdx,
                 map,
-                markerClusterGroup,
                 overlayIdx: fileIndex,
                 startIcon,
             });

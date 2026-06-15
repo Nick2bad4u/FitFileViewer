@@ -26,16 +26,6 @@ const preloadRoots = [
     "electron-app/preload",
     "electron-app/preload.ts",
 ] as const;
-const preloadInjectedRequireFiles = [
-    "electron-app/preload/preloadEntrypoint.ts",
-    "electron-app/preload/preloadBootstrap.ts",
-    "electron-app/preload/preloadRuntime.ts",
-    "electron-app/preload/preloadModuleLoader.ts",
-    "electron-app/preload/preloadAppModuleLoader.ts",
-    "electron-app/preload/preloadFileModuleLoader.ts",
-    "electron-app/preload/preloadIpcModuleLoader.ts",
-    "electron-app/preload/preloadStateModuleLoader.ts",
-] as const;
 const preloadRuntimeEnvironmentFiles = [
     "electron-app/preload/preloadRuntimeEnvironment.ts",
 ] as const;
@@ -51,7 +41,25 @@ const rendererMainUiRuntimeEnvironmentFiles = [
     "electron-app/renderer/mainUiRuntimeEnvironment.ts",
 ] as const;
 const migratedMainUiSummarySelectorRuntimeFiles = [
-    "electron-app/main-ui.ts",
+    "electron-app/renderer/mainUiSummaryColumnSelector.ts",
+] as const;
+const migratedRendererApplicationStartupRuntimeFiles = [
+    "electron-app/renderer/applicationStartup.ts",
+] as const;
+const migratedRendererApplicationLifecycleWiringRuntimeFiles = [
+    "electron-app/renderer/applicationLifecycleWiring.ts",
+] as const;
+const migratedRendererFileInputStartupRuntimeFiles = [
+    "electron-app/renderer/fileInputStartup.ts",
+] as const;
+const migratedRendererTestOnlyBootstrapRuntimeFiles = [
+    "electron-app/renderer/testOnlyBootstrap.ts",
+] as const;
+const migratedRendererVendorBundleLoaderRuntimeFiles = [
+    "electron-app/renderer/vendorBundleLoader.ts",
+] as const;
+const migratedRenderSummaryRuntimeFiles = [
+    "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
 ] as const;
 const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
 const rendererElectronApiRuntimeSourceFiles = [
@@ -210,15 +218,27 @@ const migratedRendererDebugLoggingStateFiles = [
     "electron-app/utils/charts/plugins/chartZoomResetPlugin.ts",
     "electron-app/utils/debug/lastAnimLog.ts",
 ] as const;
+const migratedRendererDevelopmentDebugToolsRuntimeFiles = [
+    "electron-app/renderer/developmentDebugTools.ts",
+] as const;
 const migratedStateDebugGlobalFreeFiles = [
     "electron-app/utils/debug/stateDevTools.ts",
     "electron-app/utils/state/core/masterStateManager.ts",
     "electron-app/utils/state/integration/stateIntegration.ts",
 ] as const;
+const migratedStateIntegrationRuntimeFiles = [
+    "electron-app/utils/state/integration/stateIntegration.ts",
+] as const;
+const migratedStateDevToolsRuntimeFiles = [
+    "electron-app/utils/debug/stateDevTools.ts",
+] as const;
+const migratedRendererStateIntegrationRuntimeFiles = [
+    "electron-app/utils/state/integration/rendererStateIntegration.ts",
+] as const;
 const rendererVendorBrowserPackageImportAllowedFiles = [
-    "electron-app/renderer/vendorGlobalsChartData.ts",
-    "electron-app/renderer/vendorGlobalsCore.ts",
-    "electron-app/renderer/vendorGlobalsMap.ts",
+    "electron-app/renderer/rendererVendorChartData.ts",
+    "electron-app/renderer/rendererVendorCore.ts",
+    "electron-app/renderer/rendererVendorMap.ts",
 ] as const;
 const migratedDataTableImportFiles = [
     "electron-app/utils/rendering/core/renderTable.ts",
@@ -228,6 +248,7 @@ const migratedRenderTableRuntimeFiles = [
 ] as const;
 const migratedChartInstanceRegistryFiles = [
     "electron-app/utils/charts/core/renderChartActions.ts",
+    "electron-app/utils/charts/core/renderChartCompletion.ts",
     "electron-app/utils/charts/core/renderChartDataCharts.ts",
     "electron-app/utils/charts/core/renderChartDataCompletion.ts",
     "electron-app/utils/charts/core/renderChartDevTools.ts",
@@ -262,6 +283,21 @@ const migratedArqueroRuntimeFiles = [
 const migratedExportZipRuntimeFiles = [
     "electron-app/utils/files/export/exportUtils.ts",
 ] as const;
+const migratedNetworkUtilsRuntimeFiles = [
+    "electron-app/utils/net/networkUtils.ts",
+] as const;
+const migratedPerformanceUtilsRuntimeFiles = [
+    "electron-app/utils/app/performance/performanceUtils.ts",
+] as const;
+const migratedCancellationTokenRuntimeFiles = [
+    "electron-app/utils/app/async/cancellationToken.ts",
+] as const;
+const migratedChartHoverEffectsRuntimeFiles = [
+    "electron-app/utils/charts/plugins/addChartHoverEffects.ts",
+] as const;
+const migratedCopyTableAsCSVRuntimeFiles = [
+    "electron-app/utils/files/export/copyTableAsCSV.ts",
+] as const;
 const migratedCreatePrintButtonRuntimeFiles = [
     "electron-app/utils/files/export/createPrintButton.ts",
 ] as const;
@@ -279,6 +315,9 @@ const migratedRemoveExitFullscreenOverlayRuntimeFiles = [
 ] as const;
 const migratedCreatePowerEstimationButtonRuntimeFiles = [
     "electron-app/utils/ui/controls/createPowerEstimationButton.ts",
+] as const;
+const migratedOpenPowerEstimationSettingsModalRuntimeFiles = [
+    "electron-app/utils/ui/modals/openPowerEstimationSettingsModal.ts",
 ] as const;
 const migratedCreateMarkerCountSelectorRuntimeFiles = [
     "electron-app/utils/ui/controls/createMarkerCountSelector.ts",
@@ -310,6 +349,9 @@ const migratedSyncRendererLoadingRuntimeFiles = [
 const migratedScreenfullRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
 ] as const;
+const migratedAddFullScreenButtonRuntimeFiles = [
+    "electron-app/utils/ui/controls/addFullScreenButton.ts",
+] as const;
 const migratedElectronApiAccessorFiles = [
     "electron-app/main-ui.ts",
     "electron-app/utils/app/initialization/loadVersionInfo.ts",
@@ -337,11 +379,33 @@ const migratedElectronApiAccessorFiles = [
     "electron-app/utils/theming/core/setupTheme.ts",
     "electron-app/utils/theming/core/theme.ts",
 ] as const;
+const migratedSettingsModalRuntimeFiles = [
+    "electron-app/utils/ui/settingsModal.ts",
+] as const;
+const migratedDragDropHandlerRuntimeFiles = [
+    "electron-app/utils/ui/dragDropHandler.ts",
+] as const;
+const migratedKeyboardShortcutsModalRuntimeFiles = [
+    "electron-app/utils/ui/modals/keyboardShortcutsModal.ts",
+] as const;
+const migratedAboutModalRuntimeFiles = [
+    "electron-app/utils/ui/modals/aboutModal.ts",
+] as const;
+const migratedShowNotificationRuntimeFiles = [
+    "electron-app/utils/ui/notifications/showNotification.ts",
+] as const;
+const migratedNotificationTimerRuntimeFiles = [
+    "electron-app/utils/ui/notifications/showUpdateNotification.ts",
+    "electron-app/utils/ui/notifications/syncRendererNotifications.ts",
+] as const;
 const migratedAltFitSenderRuntimeFiles = [
     "electron-app/utils/files/import/sendFitFileToAltFitReader.ts",
 ] as const;
 const migratedLoadSharedConfigurationRuntimeFiles = [
     "electron-app/utils/app/initialization/loadSharedConfiguration.ts",
+] as const;
+const migratedGetCurrentSettingsRuntimeFiles = [
+    "electron-app/utils/app/initialization/getCurrentSettings.ts",
 ] as const;
 const migratedExternalLinkHandlersRuntimeFiles = [
     "electron-app/utils/ui/links/externalLinkHandlers.ts",
@@ -349,11 +413,43 @@ const migratedExternalLinkHandlersRuntimeFiles = [
 const migratedMapActionButtonsRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
 ] as const;
+const migratedMapDocumentListenersRuntimeFiles = [
+    "electron-app/utils/maps/core/mapDocumentListeners.ts",
+] as const;
+const mapDocumentListenersRuntimeSourceFile =
+    "electron-app/utils/maps/core/mapDocumentListenersRuntime.ts";
+const migratedMapFullscreenControlRuntimeFiles = [
+    "electron-app/utils/maps/controls/mapFullscreenControl.ts",
+] as const;
+const mapFullscreenControlRuntimeSourceFile =
+    "electron-app/utils/maps/controls/mapFullscreenControlRuntime.ts";
+const migratedMapMeasureToolRuntimeFiles = [
+    "electron-app/utils/maps/controls/mapMeasureTool.ts",
+] as const;
+const mapMeasureToolRuntimeSourceFile =
+    "electron-app/utils/maps/controls/mapMeasureToolRuntime.ts";
+const migratedMapLapSelectorRuntimeFiles = [
+    "electron-app/utils/maps/controls/mapLapSelector.ts",
+] as const;
+const mapLapSelectorRuntimeSourceFile =
+    "electron-app/utils/maps/controls/mapLapSelectorRuntime.ts";
+const migratedMapDrawLapsRuntimeFiles = [
+    "electron-app/utils/maps/layers/mapDrawLaps.ts",
+] as const;
 const migratedOpenFileSelectorRuntimeFiles = [
     "electron-app/utils/files/import/openFileSelector.ts",
 ] as const;
+const migratedLoadSingleOverlayFileRuntimeFiles = [
+    "electron-app/utils/files/import/loadSingleOverlayFile.ts",
+] as const;
+const migratedLoadOverlayFilesRuntimeFiles = [
+    "electron-app/utils/files/import/loadOverlayFiles.ts",
+] as const;
 const migratedFitBrowserFeatureGateRuntimeFiles = [
     "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts",
+] as const;
+const migratedFileBrowserTabRuntimeFiles = [
+    "electron-app/utils/ui/browser/fileBrowserTab.ts",
 ] as const;
 const migratedCreateElevationProfileButtonRuntimeFiles = [
     "electron-app/utils/ui/controls/createElevationProfileButton.ts",
@@ -367,9 +463,21 @@ const migratedListenersResizeRuntimeFiles = [
 const migratedChartThemeRuntimeFiles = [
     "electron-app/utils/charts/theming/chartThemeUtils.ts",
 ] as const;
+const migratedThemeCoreRuntimeFiles = [
+    "electron-app/utils/theming/core/theme.ts",
+] as const;
+const migratedSetupThemeRuntimeFiles = [
+    "electron-app/utils/theming/core/setupTheme.ts",
+] as const;
 const migratedChartThemeListenerRuntimeFiles = [
     "electron-app/utils/charts/theming/chartThemeListener.ts",
 ] as const;
+const migratedMapThemeToggleRuntimeFiles = [
+    "electron-app/utils/theming/specific/createMapThemeToggle.ts",
+    "electron-app/utils/theming/specific/mapThemeToggleState.ts",
+] as const;
+const mapThemeToggleRuntimeSourceFile =
+    "electron-app/utils/theming/specific/mapThemeToggleRuntime.ts";
 const migratedUpdateMapThemeRuntimeFiles = [
     "electron-app/utils/theming/specific/updateMapTheme.ts",
 ] as const;
@@ -410,6 +518,9 @@ const migratedRenderChartTimerRuntimeFiles = [
 const migratedSummaryColModalViewportRuntimeFiles = [
     "electron-app/utils/rendering/helpers/summaryColModal.ts",
 ] as const;
+const migratedUserDeviceInfoBoxRuntimeFiles = [
+    "electron-app/utils/rendering/components/createUserDeviceInfoBox.ts",
+] as const;
 const migratedUpdateControlsStateRuntimeFiles = [
     "electron-app/utils/rendering/helpers/updateControlsState.ts",
 ] as const;
@@ -425,14 +536,32 @@ const migratedEnableTabButtonsHelpersRuntimeFiles = [
 const migratedUpdateTabVisibilityRuntimeFiles = [
     "electron-app/utils/ui/tabs/updateTabVisibility.ts",
 ] as const;
+const migratedTabStateManagerHandlersRuntimeFiles = [
+    "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts",
+] as const;
 const migratedUnifiedControlBarRuntimeFiles = [
     "electron-app/utils/ui/unifiedControlBar.ts",
 ] as const;
+const migratedQuickColorSwitcherRuntimeFiles = [
+    "electron-app/utils/ui/quickColorSwitcher.ts",
+] as const;
+const quickColorSwitcherRuntimeSourceFile =
+    "electron-app/utils/ui/quickColorSwitcherRuntime.ts";
+const migratedShownFilesListRuntimeFiles = [
+    "electron-app/utils/rendering/components/createShownFilesList.ts",
+    "electron-app/utils/rendering/components/shownFilesListItemHandlers.ts",
+    "electron-app/utils/rendering/components/shownFilesListTooltipState.ts",
+] as const;
+const shownFilesListRuntimeSourceFile =
+    "electron-app/utils/rendering/components/shownFilesListRuntime.ts";
 const migratedCreditsMarqueeRuntimeFiles = [
     "electron-app/utils/ui/layout/enhanceCreditsSection.ts",
 ] as const;
 const migratedEnsureChartSettingsDropdownsRuntimeFiles = [
     "electron-app/utils/ui/components/ensureChartSettingsDropdowns.ts",
+] as const;
+const migratedCreateSettingsHeaderRuntimeFiles = [
+    "electron-app/utils/ui/components/createSettingsHeader.ts",
 ] as const;
 const migratedCreateFieldTogglesSectionRuntimeFiles = [
     "electron-app/utils/ui/components/createFieldTogglesSection.ts",
@@ -468,6 +597,10 @@ const directGlobalDataReadPattern =
     /\b(?:window|globalThis)\.globalData\b|\.globalData\b/u;
 const directGlobalDataPropertyDefinitionPattern =
     /\bObject\.defineProperty\(\s*(?:window|globalThis)\s*,\s*["']globalData["']/u;
+const debugSensorInfoTestGlobalDataMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']globalData["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']globalData["']/u;
+const unifiedStateManagerGlobalDataTestMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']globalData["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']globalData["']/u;
 const directGlobalDataReactivePropertyPattern =
     /\bcreateReactiveProperty\(\s*["']globalData["']/u;
 const legacyAppStateGlobalDataPattern = /\bAppState\.globalData\b/u;
@@ -493,6 +626,8 @@ const legacyLoadedFitFilesStatePathPattern =
     /["']globalData\.loadedFitFiles["']/u;
 const legacyLoadedFitFilesGlobalLookupPattern =
     /\b(?:appGlobal|lifecycleGlobal|overlayGlobal|windowExt|win|window|globalThis)\.loadedFitFiles\b|Reflect\.deleteProperty\(\s*globalThis\s*,\s*["']loadedFitFiles["']\s*\)/u;
+const loadedFitFilesTestGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*(?:globalThis|testGlobal)\s*,\s*["']loadedFitFiles["']\s*\)|\b(?:globalThis|testGlobal)\.loadedFitFiles\s*=/u;
 const directRendererUtilsGlobalPattern =
     /\b(?:window|globalThis)\.rendererUtils\s*=/u;
 const directShowFitDataGlobalPattern =
@@ -555,6 +690,8 @@ const directPreloadBeforeExitRegistryGlobalPattern =
     /\b(?:window|globalThis|globalScope)\.__ffv_preload_beforeExitRegistry__\b|["']__ffv_preload_beforeExitRegistry__["']/u;
 const directAppMenuExportsGlobalPattern =
     /\b(?:window|globalThis|getMenuGlobal\(\))\.__FFV_createAppMenuExports\b|["']__FFV_createAppMenuExports["']/u;
+const directCreateAppMenuTestFixtureGlobalPattern =
+    /\b(?:CreateAppMenuTestGlobal|getCreateAppMenuTestGlobal|__(?:clipboardWrites|electronClipboardWriteSpy|electronMockFixture|electronSendSpy|electronShellOpenSpy|electronShellShowSpy|ipcCalls|shellOpenCalls|shellRevealCalls))\b/u;
 const directFitFileStateManagerGlobalPattern =
     /\b(?:window|globalThis|getFileOpenGlobal\(\)|getOpenFitFileGlobal\(\)|getShowFitDataGlobal\(\))\.__FFV_fitFileStateManager\b|["']__FFV_fitFileStateManager["']/u;
 const directMainProcessStateManagerExportsGlobalPattern =
@@ -609,6 +746,24 @@ const directStateIntegrationTimerGlobalPattern =
     /\b(?:window|globalThis|integrationGlobal)\.(?:__performanceMonitoringInterval|__persistenceTimeout)\b|["'](?:__performanceMonitoringInterval|__persistenceTimeout)["']/u;
 const directStateDebugGlobalPattern =
     /\b(?:window|globalThis|windowExt|globalState|getMasterGlobal\(\))\.(?:__state_debug|__stateDebug)\b|["'](?:__state_debug|__stateDebug)["']/u;
+const directStateIntegrationRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearInterval|clearTimeout|localStorage|performance|setInterval|setTimeout)\b|(?:^|[^\w.])(?:clearInterval|clearTimeout|setInterval|setTimeout)\(|\b(?:Date|performance)\.(?:now|memory)\b|\btypeof\s+(?:localStorage|performance)\b/u;
+const directStateDevToolsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearInterval|setInterval)\b|(?:^|[^\w.])(?:clearInterval|setInterval)\(/u;
+const directStateDevToolsRuntimeAmbientIntervalFallbackPattern =
+    /\bscope\.(?:clearInterval|setInterval)\s*\?\?\s*globalThis\.(?:clearInterval|setInterval)\b|\bglobalThis\.(?:clearInterval|setInterval)\s*\(/u;
+const directRendererStateIntegrationRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+const stateDevToolsTestRetiredGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:STATE_DEBUG_GLOBAL|["']__stateDebug["'])\s*\)|\bglobalThis\.__stateDebug\s*=/u;
+const stateIntegrationRetiredGlobalMutationPattern =
+    /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)["']|(?:globalThis|testGlobal)\.(?:AppState|__DEVELOPMENT__|__performanceMonitoringInterval|__persistenceTimeout|__state_debug|chartControlsState|globalData|isChartRendered)\s*=/u;
+const stateIntegrationBrowserGlobalFixtureMutationPattern =
+    /\bglobalThis\.localStorage\s*=|\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:localStorage|performance)["']\s*(?:,|\))|\bReflect\.deleteProperty\(\s*globalThis\.performance\s*,\s*["']memory["']\s*\)/u;
+const masterStateManagerTestDirectGlobalFixtureMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:key|["'](?:__DEVELOPMENT__|addEventListener|clearInterval|dispatchEvent|document|getComputedStyle|localStorage|location|performance|setInterval|window)["'])\s*\)/u;
 const directSingletonStateSubscriptionsGlobalPattern =
     /\b(?:window|globalThis|globalState)\.__ffvSingletonStateSubscriptions\b|["']__ffvSingletonStateSubscriptions["']/u;
 const directFileAccessPolicyStateGlobalPattern =
@@ -625,6 +780,53 @@ const directTabVitestEnvironmentGlobalPattern =
     /\b__vitest_effective_(?:document|stateManager)__\b/u;
 const directVitestObjectKeysThrowGlobalPattern =
     /\b__vitest_object_keys_allow_throw\b/u;
+const directVitestObjectKeysWrapperMarkerPattern = /\b__isObjectKeysWrapper\b/u;
+const directVitestDocumentNativeMethodsGlobalPattern =
+    /\b__vitest_doc_native_methods\b/u;
+const directVitestDocumentRealignmentAssignmentPattern =
+    /\b(?:globalThis|curWin)\.document\s*=/u;
+const directVitestCreateElectronMocksGlobalPattern = /\bcreateElectronMocks\b/u;
+const directVitestInlineWebStorageMockPattern =
+    /\b(?:StorageMock|ensureSafeLocalStorage|ensureSafeSessionStorage)\b|\b(?:globalThis|w)\.(?:Storage|localStorage|sessionStorage)\s*=/u;
+const directVitestTimerTrackingGlobalPattern =
+    /\b__vitest_(?:tracked_(?:timeouts|intervals|dom_listeners)|timers_wrapped)\b/u;
+const directVitestTimerWrapperAssignmentPattern =
+    /\bglobalThis\.(?:clearInterval|clearTimeout|setInterval|setTimeout)\s*=/u;
+const directVitestDistResolverGlobalPattern =
+    /\b__fitFileViewerVitestDistResolverInstalled\b/u;
+const directVitestWrappedEventListenerMarkerPattern = /\b__vitest_wrapped\b/u;
+const directVitestNavigationHistoryExpandoPattern =
+    /\b__ffvNavigationHistory\b/u;
+const directVitestWindowEventTargetFallbackPattern =
+    /\bwindow\.(?:addEventListener|removeEventListener|dispatchEvent)\s*=|\btypeof\s+window\.dispatchEvent\s*!==\s*["']function["']/u;
+const directVitestHTMLElementGlobalBridgePattern =
+    /\bglobal\.HTMLElement\s*=\s*window\.HTMLElement\b/u;
+const directVitestWindowConsoleGroupPatchPattern =
+    /\bwindow\.console\.group(?:Collapsed|End)?\s*=/u;
+const directVitestWindowConsoleAssignmentPattern =
+    /\bwindow\.console\s*=/u;
+const directVitestEnvConsoleMethodAssignmentPattern =
+    /\bconsole\.(?:error|warn)\s*=/u;
+const directVitestProcessNextTickSetupAssignmentPattern =
+    /\b(?:globalThis|g)\.process\s*=|\b(?:globalThis|g)\.process\.nextTick\s*=|\b\.process\.nextTick\s*=/u;
+const directRuntimeEnvironmentTestConsoleAssignmentPattern =
+    /\b(?:global|globalThis)\.console\s*=/u;
+const directPreloadSourceExecutionGlobalDeletePattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,/u;
+const directPlaywrightWindowOpenMutationPattern =
+    /\bwindow\.open\s*=|\bReflect\.deleteProperty\(\s*window\s*,\s*["']open["']\s*\)/u;
+const handleOpenFileCompleteTestDirectProcessAssignmentPattern =
+    /\bglobalThis\.process\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
+const processEnvironmentTestDirectProcessDeletePattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']process["']\s*\)/u;
+const exportUtilsOauthStateTestDirectCryptoDeletePattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']crypto["']\s*\)/u;
+const loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern =
+    /\b(?:global|globalThis)\.URLSearchParams\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']URLSearchParams["']\s*\)/u;
+const directVitestTabButtonObserverCleanupPattern =
+    /\btabButtonObserver\b/u;
+const directVitestChartDevToolsGlobalCleanupPattern =
+    /\b__chartjs_dev\b/u;
 const directChartTabIntegrationGlobalPattern =
     /\b(?:window|globalThis|chartGlobal)\.chartTabIntegration\b|\(\s*globalThis\s+as\s+ChartTabIntegrationGlobal\s*\)\.chartTabIntegration\b/u;
 const directChartStateManagerGlobalPattern =
@@ -641,8 +843,56 @@ const retiredRendererAmbientGlobalPattern =
     /\b(?:__appState|__DEVELOPMENT__|__persistenceTimeout|__state_debug|_chartjsInstances|_mapThemeListener|aboutModalDevHelpers|AppState|areTabButtonsEnabled|Chart|chartControlsState|ChartUpdater|chartUpdater|chartStateManager|clearZoneColorData|closeKeyboardShortcutsModal|createTables|debugTabButtons|debugTabState|devCleanup|dragDropHandler|enableDragAndDrop|forceEnableTabButtons|forceFixTabButtons|globalData|heartRateZones|injectMenu|L|loadedFitFiles|mapMarkerCount|powerZones|rendererUtils|renderChartJS|renderMap|renderSummary|resetAllSettings|screenfull|setTabButtonsEnabled|showFitData|showKeyboardShortcutsModal|showNotification|tabStateManager|testTabButtonClicks|updateInlineZoneColorSelectors|updateMapTheme)\?:|\bvar\s+(?:__vitest_effective_document__|L)\b/u;
 const directMainUiDevelopmentHelperGlobalPattern =
     /\b(?:window|globalThis|getMainUiGlobal\(\)|mainUiGlobal)\.(?:injectMenu|devCleanup)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:injectMenu|devCleanup)["']\s*\)/u;
+const mainUiTestRetiredGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:cleanupEventListeners|devCleanup|injectMenu|renderChartJS|showFitData)["']\s*\)|\b(?:globalThis|mainUiGlobal)\.(?:cleanupEventListeners|devCleanup|injectMenu|renderChartJS|showFitData)\s*=/u;
+const zoneColorPickerTestRetiredGlobalMutationPattern =
+    /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:clearZoneColorData|renderChartJS|updateInlineZoneColorSelectors)["']\s*(?:,|\))|\bglobalThis\.(?:clearZoneColorData|renderChartJS|updateInlineZoneColorSelectors)\s*=/u;
+const keyboardShortcutsModalTestRetiredGlobalMutationPattern =
+    /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:closeKeyboardShortcutsModal|showKeyboardShortcutsModal)["']\s*(?:,|\))|\bglobalThis\.(?:closeKeyboardShortcutsModal|showKeyboardShortcutsModal)\s*=/u;
+const keyboardShortcutsModalTestDirectAnimationFrameStubPattern =
+    /\bvi\.stubGlobal\(\s*["'](?:cancelAnimationFrame|requestAnimationFrame)["']/u;
+const settingsModalTestRetiredGlobalMutationPattern =
+    /\bdelete\s*\(\s*globalThis\s+as[\s\S]{0,120}?\)\.(?:closeSettingsModal|showSettingsModal)\b|\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:closeSettingsModal|showSettingsModal)["']\s*(?:,|\))|\bglobalThis\.(?:closeSettingsModal|showSettingsModal)\s*=/u;
+const lifecycleListenersTestRetiredGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:copyTableAsCSV|createExportGPXButton|globalData|renderChartJS|sendFitFileToAltFitReader)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']createExportGPXButton["']\s*,|\b(?:globalThis|window)\.(?:copyTableAsCSV|createExportGPXButton|globalData|renderChartJS|sendFitFileToAltFitReader)\s*=/u;
+const lifecycleListenersTestDirectPrintAssignmentPattern =
+    /\bwindow\.print\s*=/u;
+const appEventsTestRetiredFitDataGlobalMutationPattern =
+    /\b(?:globalData|loadedFitFiles)\?:|\bObject\.defineProperty\(\s*(?:globalThis|globalAny|testGlobal)\s*,\s*["'](?:globalData|loadedFitFiles)["']|\bdelete\s+(?:globalAny|testGlobal)\.(?:globalData|loadedFitFiles)\b|\b(?:globalThis|globalAny|testGlobal)\.(?:globalData|loadedFitFiles)\s*=/u;
+const typedFitDataTestRetiredGlobalCleanupPattern =
+    /\b(?:globalData|loadedFitFiles)\?:|\bdelete\s+(?:appGlobal|currentWindow|testWindow\(\)|getTestWindow\(\))\.(?:globalData|loadedFitFiles)\b|\b(?:appGlobal|currentWindow|testWindow\(\)|getTestWindow\(\))\.(?:globalData|loadedFitFiles)\s*=/u;
+const chartSettingsDropdownsTestRetiredGlobalDataFixturePattern =
+    /\bstate\[\s*["']globalData["']\s*\]|\bseedGlobalData\b/u;
+const renderMapStrictTestRetiredFitGlobalFixturePattern =
+    /\bRenderMapWindow\b|\b(?:window|w)\.(?:globalData|loadedFitFiles)\b/u;
+const updateTabVisibilityRawDataTestRetiredGlobalDataPattern =
+    /\bcurrentGlobalData\b|\bglobalDataCallback\b|\bgetState\s*:\s*mockGetState[\s\S]*?\b["']globalData["']|updateTabVisibility\.globalDataState\.test\.ts/u;
+const updateTabVisibilityTestDirectBrowserGlobalAssignmentPattern =
+    /\b(?:globalThis|global)\.(?:document|window)\s*=(?!=)|\(\s*global\s+as\s+any\s*\)\.(?:document|window)\s*=(?!=)|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*\)/u;
+const tabStateManagerRegressionTestRetiredGlobalDataFixturePattern =
+    /\bglobalData:\s*\{[^}]*recordMesgs|\bglobalData:\s*(?:null|undefined)|\(\{\s*expectedDisabled,\s*globalData\s*\}\)|updateTabAvailability\(globalData/u;
+const tabButtonStateIntegrationRetiredGlobalDataFixturePattern =
+    /\|\s*["']globalData["']|\bglobalData:\s*null/u;
+const strictMainUiTestRetiredGlobalDataFixturePattern =
+    /\bglobalData:\s*undefined|\bmockState\[\s*["']globalData["']\s*\]/u;
+const computedStateManagerTestRetiredGlobalDataFixturePattern =
+    /\bglobalData(?:\.(?:missing|test))?\b/u;
+const createShownFilesListTestRetiredLeafletGlobalPattern =
+    /\bwindowMock\.L\b|\(\s*global\.window\s+as\s+any\s*\)\.L\b|\b(?:window|globalThis)\.L\b/u;
+const tabButtonsTestRetiredGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:areTabButtonsEnabled|debugTabButtons|debugTabState|forceEnableTabButtons|forceFixTabButtons|setTabButtonsEnabled|tabButtonObserver|testTabButtonClicks)["']\s*\)|\bdelete\s*\(\s*global\s+as\s+any\s*\)\.window\.tabButtonsCurrentlyEnabled\b|\bdelete\s*\(\s*globalThis\s+as[\s\S]{0,160}?\)\.tabButtonsCurrentlyEnabled\b|\b(?:globalThis|global\.window)\.(?:areTabButtonsEnabled|debugTabButtons|debugTabState|forceEnableTabButtons|forceFixTabButtons|setTabButtonsEnabled|tabButtonObserver|tabButtonsCurrentlyEnabled|testTabButtonClicks)\s*=/u;
+const tabButtonsTestDirectBrowserGlobalFixtureAssignmentPattern =
+    /\bglobalThis\.(?:getComputedStyle|MutationObserver|window)\s*=(?!=)|\b(?:global|\(\s*global\s+as\s+any\s*\))\.window\s*=(?!=)|\bglobal\.MutationObserver\s*=(?!=)|\bglobal\.window\.MutationObserver\s*=(?!=)|\bReflect\.deleteProperty\(\s*globalThis(?:\.window)?\s*,\s*["'](?:getComputedStyle|MutationObserver|window)["']\s*\)/u;
+const chartTabIntegrationTestRetiredGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']chartTabIntegration["']\s*\)|\bglobalThis\.chartTabIntegration\s*=/u;
+const renderChartRuntimeHelpersTestRetiredGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:chartActions|chartStateManager)["']\s*\)|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:chartActions|chartStateManager)["']|(?:globalThis|chartGlobal|runtimeGlobal)\.(?:chartActions|chartStateManager)\s*=/u;
+const renderChartRuntimeHelpersTestDirectProcessWindowDeletePattern =
+    /\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:process|window)["']\s*\)/u;
 const directMainProcessDevHelpersGlobalPattern =
     /\b(?:window|globalThis)\.devHelpers\b|Object\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']devHelpers["']\s*\)/u;
+const mainProcessDevHelpersTestRetiredGlobalMutationPattern =
+    /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["']devHelpers["']\s*(?:,|\))|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']devHelpers["']|\bglobalThis\.devHelpers\s*=/u;
 const directElectronHoistedMockGlobalAllowedFiles = new Set<string>();
 const directElectronHoistedMockGlobalPattern =
     /\b(?:window|globalThis|getMenuGlobal\(\))\.__electronHoistedMock\b|Reflect\.(?:get|set|deleteProperty)\(\s*globalThis\s*,\s*["']__electronHoistedMock["']/u;
@@ -650,18 +900,96 @@ const directMenuModalPresenterGlobalPattern =
     /\b(?:window|globalThis|getMenuIpcGlobal\(\)|keyboardShortcutsGlobal|menuGlobal)\.(?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showAccentColorPicker|showKeyboardShortcutsModal|closeKeyboardShortcutsModal)["']\s*\)/u;
 const directSettingsModalGlobalPattern =
     /\b(?:window|globalThis|settingsModalGlobal)\.(?:showSettingsModal|closeSettingsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showSettingsModal|closeSettingsModal)["']\s*\)/u;
+const directSettingsModalTimingRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directModalRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\(/u;
+const directDragDropHandlerTimingRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|requestAnimationFrame)\b|(?:^|[^\w.])(?:cancelAnimationFrame|requestAnimationFrame)\(/u;
+const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directAboutModalTimingRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directShowNotificationTimingRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directNotificationTimerRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
+const aboutModalTestDirectRequestAnimationFrameAssignmentPattern =
+    /\bglobalThis\.requestAnimationFrame\s*=|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']requestAnimationFrame["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']requestAnimationFrame["']\s*\)|\bvi\.stubGlobal\(\s*["']requestAnimationFrame["']/u;
+const showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern =
+    /\bwindow\.requestAnimationFrame\s*=/u;
+const settingsStateManagerTestDirectConsoleAssignmentPattern =
+    /\bglobal\.console\s*=/u;
+const directSettingsStateCoreRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
+const handleOpenFileTestDirectConsoleMethodAssignmentPattern =
+    /\bconsole\.(?:error|info|log|warn)\s*=/u;
+const dataPointFilterStateHelpersTestDirectConsoleAssignmentPattern =
+    /\bconsole\.error\s*=/u;
+const renderSingleHrZoneBarTestDirectGlobalFixtureAssignmentPattern =
+    /\b(?:testGlobal|global)\.(?:console|document|HTMLCanvasElement|HTMLElement|window)\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,/u;
+const renderAltitudeProfileChartTestDirectGlobalFixtureAssignmentPattern =
+    /\b(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\s*=|\bdelete\s+(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\b/u;
+const renderSpeedVsDistanceChartTestDirectGlobalFixtureAssignmentPattern =
+    /\b(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\s*=|\bdelete\s+(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\b/u;
+const renderPowerVsHeartRateChartTestDirectGlobalFixtureAssignmentPattern =
+    /\b(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\s*=|\bdelete\s+(?:global|getChartTestGlobal\(\))\.(?:console|document|HTMLCanvasElement|HTMLElement|localStorage|window)\b/u;
+const renderEventMessagesChartTestDirectWindowAssignmentPattern =
+    /\bglobal\.window\s*=/u;
 const directActiveFitFileNameGlobalPattern =
     /\b(?:window|globalThis|windowGlobal|summaryGlobal)\.activeFitFileName\b|["']activeFitFileName["']/u;
+const renderSummaryTestActiveFitFileNameMutationPattern =
+    /\bObject\.defineProperty\(\s*window\s*,\s*["']activeFitFileName["']|Reflect\.deleteProperty\(\s*window\s*,\s*["']activeFitFileName["']\s*\)|\b(?:window|globalThis)\.activeFitFileName\s*=/u;
+const tabStateManagerTestRetiredRendererGlobalMutationPattern =
+    /\bdelete\s*\(\s*window\s+as\s+unknown\s+as\s+Record<string,\s*unknown>\s*\)\.renderSummary\b|\bReflect\.(?:deleteProperty|set)\(\s*window\s*,\s*["']renderSummary["']\s*(?:,|\))|\bwindow\.renderSummary\s*=/u;
+const tabStateManagerTestDirectConsoleMethodAssignmentPattern =
+    /\bconsole\.(?:error|log|warn)\s*=/u;
+const enableTabButtonsTestDirectConsoleMethodAssignmentPattern =
+    /\bconsole\.(?:log|warn)\s*=/u;
+const chartStatusIndicatorTestDirectConsoleMethodAssignmentPattern =
+    /\bconsole\.error\s*=/u;
 const directChartConstructorGlobalPattern =
     /\b(?:window|globalThis|runtimeGlobal|chartGlobal|zoneGlobal)\.Chart\b/u;
+const listenersResizeChartGlobalMutationPattern =
+    /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:Chart|renderChart|renderChartJS)["']\s*\)|\b(?:globalThis|chartGlobal)\.(?:Chart|renderChart|renderChartJS)\s*=/u;
+const renderChartJSComprehensiveTestRetiredGlobalMutationPattern =
+    /\bReflect\.(?:set|deleteProperty)\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']\s*(?:,|\))|\bObject\.defineProperty\(\s*globalThis\s*,\s*["'](?:Chart|ChartZoom|chartjsPluginZoom)["']|\bglobalThis\.(?:Chart|ChartZoom|chartjsPluginZoom)\s*=/u;
+const renderChartJSComprehensiveTestDirectBrowserFixtureAssignmentPattern =
+    /\b(?:global|globalThis|utils)\.(?:document|window|performance|Node|requestAnimationFrame|cancelAnimationFrame|matchMedia|setTimeout|clearTimeout|addEventListener)\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:addEventListener|cancelAnimationFrame|clearTimeout|document|matchMedia|Node|performance|requestAnimationFrame|setTimeout|window)["']\s*\)/u;
+const chartZoomResetPluginTestDirectCanvasConstructorFixturePattern =
+    /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']CanvasRenderingContext2D["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']CanvasRenderingContext2D["']\s*\)/u;
+const renderChartJSStateApiTestRetiredGlobalMutationPattern =
+    /\bObject\.defineProperty\(\s*window\s*,\s*["']Chart["']|\bReflect\.(?:deleteProperty|set)\(\s*window\s*,\s*["']Chart["']\s*(?:,|\))|\bwindow\.Chart\s*=/u;
+const strictChartTestDirectGlobalFixtureMutationPattern =
+    /\bglobalThis\.(?:window|document|HTMLCanvasElement|HTMLElement|console|localStorage)\s*=|\bdelete\s+(?:globalThis|zoneGlobal)\.(?:window|document|HTMLCanvasElement|HTMLElement|console|localStorage)\b|\bReflect\.deleteProperty\(\s*globalThis\s*,/u;
+const chartZoneColorUtilsTestDirectLocalStorageAssignmentPattern =
+    /\bglobalThis\.localStorage\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']localStorage["']\s*\)/u;
+const stateMiddlewareBranchesTestDirectLocalStorageMethodAssignmentPattern =
+    /\blocalStorage\.setItem\s*=|\blocalStorage\.__proto__/u;
+const renderChartJSStateApiTestRetiredGlobalDataFixturePattern =
+    /\bgetMockStateValue[\s\S]*?\b["']globalData["']|\bglobalMockState\.data\.set\(\s*["']globalData["']|globalData which means hasValidData/u;
+const renderLapZoneChartsTestRetiredGlobalDataFixturePattern =
+    /\bLapZoneGlobalData\b|\blapZoneGlobalData\b|\bsetLapZoneGlobalData\b|global data validation|managed globalData/u;
 const directShowNotificationGlobalLookupPattern =
     /\b(?:window|globalThis|chartGlobal|globalRef|runtimeGlobal|zoneColorGlobal|getRuntimeGlobal\(\))\.showNotification\b/u;
+const directAccentColorPickerRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
+const errorHandlingPerformanceMonitorGlobalLookupPattern =
+    /\bglobalRef\.performanceMonitor\b|\bperformanceMonitor\?:\s*\{/u;
+const directErrorHandlingRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
+const errorHandlingTestDirectPerformanceMonitorFixturePattern =
+    /\bglobalRef\.performanceMonitor\s*=|\bReflect\.deleteProperty\(\s*globalRef\s*,\s*["']performanceMonitor["']\s*\)/u;
 const directRendererDevGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.__renderer_dev\b|["']__renderer_dev["']/u;
 const rendererDevelopmentDebugGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.(?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)\b|["'](?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)["']/u;
+const directRendererDevelopmentDebugToolsRuntimeGlobalPattern =
+    /\bReflect\.get\(\s*globalThis\s*,\s*["'](?:location|navigator|performance)["']\s*\)|\bglobalThis\.(?:location|navigator|performance)\b|\b(?:navigator|performance)\.(?:cookieEnabled|hardwareConcurrency|language|memory|onLine|platform|userAgent)\b/u;
+const rendererDevelopmentDebugGlobalMutationPattern =
+    /\bReflect\.(?:set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)["']\s*\)|\b(?:window|globalThis)\.(?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)\s*=/u;
 const rawGlobalThisAnyCastPattern = /\(\s*globalThis\s+as\s+any\s*\)/u;
 const directDataTableGlobalPattern =
     /\b(?:window|globalThis|tableGlobal|renderTableGlobal)\.(?:\$|jQuery|DataTable)\b|\.jQuery\b/u;
@@ -671,16 +999,23 @@ const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
 const directChartCanvasExpandoPattern = /\b__chartjs\b/u;
 const directDomPurifyGlobalPattern =
     /\b(?:window|globalThis|globalRef|testGlobal)\.DOMPurify\b|\bReflect\.get\(\s*globalThis\s*,\s*["']DOMPurify["']\s*\)|\{\s*DOMPurify\?:\s*unknown\s*\}\)\.DOMPurify/u;
+const directDomHelpersRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
 const directArqueroGlobalPattern =
     /\b(?:window|globalThis|summaryGlobal|testGlobal)\.(?:aq|arquero)\b|\{\s*(?:aq|arquero)\?:\s*unknown\s*\}\)\.(?:aq|arquero)/u;
 const directJSZipGlobalPattern =
     /\b(?:window|globalThis|testGlobal|getExportRuntimeGlobal\(\))\.JSZip\b|\{\s*JSZip\?:\s*unknown\s*\}\)\.JSZip/u;
 const directScreenfullGlobalPattern =
     /\b(?:window|globalThis|testGlobal|getFullscreenGlobal\(\))\.screenfull\b|\{\s*screenfull\?:\s*unknown\s*\}\)\.screenfull/u;
+const directAddFullScreenButtonRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const directLeafletGlobalPattern =
     /\b(?:window|globalThis|windowExt|w|win|getWin\(\))\.L\b|\bReflect\.get\(\s*globalThis\s*,\s*["']L["']\s*\)|\{\s*L\?:\s*unknown\s*\}\)\.L/u;
 const leafletCompatibilityGlobalDefinitionPattern =
     /\bObject\.defineProperty\(\s*[^,\n]+,\s*["']L["']/u;
+const leafletRuntimeTestGlobalMutationPattern =
+    /\bReflect\.deleteProperty\(\s*(?:globalThis|window)\s*,\s*["'](?:L|Leaflet)["']\s*\)|\bObject\.defineProperty\(\s*(?:globalThis|window)\s*,\s*["'](?:L|Leaflet)["']\s*,|\b(?:globalThis|window)\.(?:L|Leaflet)\s*=/u;
+const mapDrawLapsTestDirectWindowFixtureMutationPattern =
+    /\btestGlobal\.window\s*=|\bdelete\s+testGlobal\.window\b/u;
 const directMapLibreBridgePattern = /\.maplibreGL\b/u;
 const bundledBrowserVendorImportPattern =
     /(?:from\s*["']|import\(\s*["']|require\(\s*["'])(?:chart\.js\/auto|chartjs-plugin-zoom|datatables\.net-dt)/u;
@@ -694,30 +1029,93 @@ const rendererRuntimeGlobalFallbackPattern =
     /\b(?:__fitFileViewerRuntimeGlobalFallbackForTests|runtimeGlobalFallbackFlag|getGlobalRuntimeCandidate|getWindowRuntimeCandidate)\b/u;
 const directElectronApiGlobalReadPattern =
     /\b(?:globalThis|window)\.electronAPI\b|\.\s*electronAPI\b|\(\s*globalThis\s+as\s+\{[^}]*electronAPI|\b(?:Reflect\.deleteProperty|Object\.defineProperty)\(\s*(?:globalThis|window)\s*,\s*["']electronAPI["']/u;
+const electronApiRuntimeTestDirectGlobalFixturePattern =
+    /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']electronAPI["']\s*\)/u;
+const mainUiDomUtilsTestDirectElectronApiGlobalFixturePattern =
+    /\bObject\.defineProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*\)/u;
+const directMainUiDomUtilsRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
+const directEventListenerManagerRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b|\bglobalThis\.window\b/u;
+const preloadTestDirectElectronApiGlobalFixturePattern =
+    /\b(?:Object\.defineProperty|Reflect\.deleteProperty)\(\s*globalThis\s*,/u;
 const directExternalLinkHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.open\b/u;
 const directMapActionButtonsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapActionButtonsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+const directMapDocumentListenersRuntimeGlobalPattern =
+    /\bdocument\.addEventListener\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.window\b|\bnew\s+AbortController\b/u;
+const directMapFullscreenControlRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapFullscreenControlRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+const directMapMeasureToolRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapMeasureToolRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+const directMapLapSelectorRuntimeGlobalPattern =
+    /\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+AbortController\b/u;
+const directMapDrawLapsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapDrawLapsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnew\s+AbortController\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
+const directLoadSingleOverlayFileRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
+const directLoadOverlayFilesRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.navigator\b|\bnavigator\.hardwareConcurrency\b/u;
 const directFitBrowserFeatureGateRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:querySelector|getElementById)\b|\binstanceof\s+HTMLElement\b/u;
+const directFileBrowserTabRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
     /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
 const directAltFitSenderRuntimeGlobalPattern =
-    /\bglobalThis\.(?:console|document|location)\b/u;
+    /\bglobalThis\.(?:console|document|location)\b|\bnew\s+AbortController\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.location\b/u;
+    /\b(?:globalThis|window)\.(?:clearTimeout|location|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directLoadSharedConfigurationRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+const directGetCurrentSettingsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directGetCurrentSettingsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directLazyRenderingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:innerHeight|innerWidth|requestAnimationFrame|requestIdleCallback|setTimeout)\b|\bdocument\.documentElement\b|\btypeof\s+IntersectionObserver\b|\bnew\s+IntersectionObserver\b|\belement\s+instanceof\s+HTMLElement\b|\breturn\s+setTimeout\(/u;
+const directLazyRenderingRuntimeAmbientFallbackPattern =
+    /\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
 const directListenersResizeRuntimeGlobalPattern =
-    /\b(?:document|window|globalThis)\.|\bReflect\.get\(|\binstanceof\s+(?:Element|HTMLCanvasElement)\b|\bquerySelectorByIdFlexible\(\s*document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|requestAnimationFrame|cancelAnimationFrame)\(/u;
+    /\b(?:document|window|globalThis)\.|\bReflect\.get\(|\bnew\s+AbortController\b|\binstanceof\s+(?:Element|HTMLCanvasElement)\b|\bquerySelectorByIdFlexible\(\s*document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|requestAnimationFrame|cancelAnimationFrame)\(/u;
+const directListenersResizeRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
+const directThemeCoreRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|matchMedia|setTimeout|window)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+const directThemeCoreRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+const directSetupThemeRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directSetupThemeRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+const updateActiveTabFallbackDirectGlobalFixtureMutationPattern =
+    /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:document|window)["']\s*(?:,|\))/u;
+const themeAdditionalTestDirectGlobalFixtureMutationPattern =
+    /\bReflect\.(?:deleteProperty|set)\(\s*globalThis\s*,\s*["'](?:getComputedStyle|localStorage|matchMedia)["']\s*(?:,|\))/u;
+const uiStateManagerTestDirectMatchMediaMutationPattern =
+    /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*\)/u;
+const directUiStateManagerBrowserRuntimePattern =
+    /\bnew\s+AbortController\b|\bglobalThis\.(?:matchMedia|window)\b|\bwindow\.addEventListener\b/u;
 const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directMapThemeToggleRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directMapThemeToggleRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusCountsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bdocument\.querySelector\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directGlobalChartStatusRuntimeGlobalPattern =
@@ -726,8 +1124,12 @@ const directGlobalChartStatusUpdaterRuntimeGlobalPattern =
     /\bdocument\.(?:body|querySelector)\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusEventGlobalPattern =
     /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\(\s*["']fieldToggleChanged["']|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const chartStatusIndicatorTestDirectBrowserFixtureAssignmentPattern =
+    /\b(?:globalThis|global|testGlobal)\.(?:addEventListener|customElements|document|HTMLElement|setTimeout|window)\s*=|\b(?:document|window)\.addEventListener\s*=|\bReflect\.deleteProperty\(\s*(?:globalThis|document|window)\s*,/u;
 const directChartListenerStateAbortControllerPattern =
     /\bnew\s+AbortController\b/u;
+const directChartListenerStateRuntimeAmbientControllerPattern =
+    /\bglobalThis\.AbortController\b/u;
 const directRenderChartDirectRerenderRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directRenderChartRequestListenerRuntimeGlobalPattern =
@@ -740,10 +1142,42 @@ const directRenderChartTimerRuntimeGlobalPattern =
     /(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMainUiSummarySelectorRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
+const directRendererApplicationStartupRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directRendererApplicationStartupRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:AbortController|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|clearTimeout|setTimeout)\b/u;
+const directRendererApplicationLifecycleWiringRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
+const directRendererFileInputStartupRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
+const directRendererTestOnlyBootstrapRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
+const directLastAnimLogRuntimeGlobalPattern =
+    /\bDate\.now\b|\bperformance\.now\b/u;
+const directRendererVendorBundleLoaderRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|createElement|head|querySelector|removeEventListener|setTimeout)\b|\bDate\.now\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directNetworkUtilsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:fetch|clearTimeout|setTimeout|AbortController)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:fetch|clearTimeout|setTimeout)\(/u;
+const directNetworkUtilsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|fetch|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|fetch|setTimeout)\b/u;
+const directPerformanceUtilsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\b|(?<!function\s)(?<![\w.])(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\(|\bDate\.now\(/u;
+const directPerformanceUtilsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|dateNow|setTimeout)(?:\?\.\(\))?\s*\?\?\s*(?:globalThis\.(?:clearTimeout|setTimeout)|Date\.now\(\))/u;
+const directCancellationTokenRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directCancellationTokenRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+const directChartHoverEffectsRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:requestAnimationFrame|setTimeout)\b|(?<![\w.])(?:requestAnimationFrame|setTimeout)\(|\bnew\s+AbortController\b/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
-    /\b(?:globalThis|window)\.inner(?:Height|Width)\b/u;
+    /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bnew\s+AbortController\b/u;
+const directRenderSummarySchedulingRuntimeGlobalPattern =
+    /\bglobalThis\.(?:addEventListener|cancelAnimationFrame|requestAnimationFrame)\b|\bnew\s+AbortController\b/u;
+const directUserDeviceInfoBoxRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.getComputedStyle\b/u;
 const directEnableTabButtonsDebugRuntimeGlobalPattern =
@@ -754,20 +1188,50 @@ const directEnableTabButtonsHelpersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bReflect\.get\(\s*document\b|\btypeof\s+document\s*!==/u;
 const directUpdateTabVisibilityRuntimeGlobalPattern =
     /\bglobalThis\.(?:document|requestAnimationFrame)\b|\breturn\s+document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directUpdateTabVisibilityRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+const directTabStateManagerHandlersRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directUnifiedControlBarRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+MutationObserver\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+(?:AbortController|MutationObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directUnifiedControlBarRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|eventTarget|setTimeout)\s*\?\?\s*globalThis(?:\.(?:clearTimeout|setTimeout))?\b/u;
+const directQuickColorSwitcherRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directQuickColorSwitcherRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+const directShownFilesListRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\b|\bdocument\.body\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directShownFilesListRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\s*\?\?\s*globalThis(?:\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout))?\b|\bglobalThis\.(?:addEventListener|clearTimeout|setTimeout)\s*\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:AbortController|MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
+const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
+    /\bglobalThis\.ResizeObserver\s*=|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']ResizeObserver["']\s*,|\bReflect\.deleteProperty\([\s\S]{0,120}["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']\s*\)|\bvi\.stubGlobal\(\s*["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']/u;
 const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
+const directEnsureChartSettingsDropdownsRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:AbortController|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|setTimeout)\b|\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
+const directCreateSettingsHeaderRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directCreateSettingsHeaderRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directCreateFieldTogglesSectionRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|dispatchEvent|querySelectorAll)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+HTMLInputElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directCreateFieldTogglesSectionRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\b|\bglobalThis\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\b/u;
 const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|dispatchEvent)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b/u;
+    /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b|\bnew\s+AbortController\b/u;
+const directCopyTableAsCSVRuntimeGlobalPattern =
+    /\b(?:document|globalThis|window)\.(?:body|createElement|execCommand)\b|\bnavigator\.clipboard\b/u;
 const directCreateExportGPXButtonRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|setTimeout)\b|\bURL\.(?:createObjectURL|revokeObjectURL)\b/u;
+    /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|setTimeout)\b|\bURL\.(?:createObjectURL|revokeObjectURL)\b|\bnew\s+AbortController\b/u;
+const directCreateExportGPXButtonRuntimeAmbientFallbackPattern =
+    /\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
 const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+AbortController\b/u;
 const directAddExitFullscreenOverlayRuntimeGlobalPattern =
@@ -776,10 +1240,14 @@ const directRemoveExitFullscreenOverlayRuntimeGlobalPattern =
     /\binstanceof\s+HTMLElement\b/u;
 const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b/u;
+const directOpenPowerEstimationSettingsModalRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b/u;
 const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+(?:AbortController|Event)\(/u;
 const directCreateDataPointFilterControlRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b|\btypeof\s+queueMicrotask\b|\bPromise\.resolve\(\)\.then\(/u;
+const createDataPointFilterControlTestDirectAsyncGlobalAssignmentPattern =
+    /\bglobalThis\.(?:cancelAnimationFrame|queueMicrotask|requestAnimationFrame)\s*=|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["'](?:cancelAnimationFrame|queueMicrotask|requestAnimationFrame)["']\s*\)/u;
 const directCreateHRZoneControlsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|querySelector)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|\blocalStorage\.(?:getItem|setItem)\b/u;
 const directCreatePowerZoneControlsRuntimeGlobalPattern =
@@ -1233,7 +1701,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload shell and Gyazo external APIs split in external assembly", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -1256,12 +1724,1514 @@ describe("architecture boundaries", () => {
         );
         expect(apiAssemblySource).toContain("createPreloadExternalApiDomain");
         expect(apiAssemblySource).toContain("createPreloadClipboardApiDomain");
+        expect(apiAssemblySource).not.toContain("require(");
         expect(externalApiDomainSource).toContain("createGyazoExternalApi");
         expect(externalApiDomainSource).toContain("createShellExternalApi");
         expect(externalApiDomainSource).not.toContain("createExternalApi");
         expect(electronApiFactorySource).toContain("gyazoExternalApi");
         expect(electronApiFactorySource).toContain("shellExternalApi");
         expect(moduleTypesSource).toContain("ElectronShellExternalApi");
+        expect(moduleTypesSource).toContain("createPreloadApiAssemblyContext");
+    });
+
+    it("keeps preload API assembly domains on named source exports", () => {
+        const assemblyDomainExports = [
+            [
+                "electron-app/preload/clipboardApiDomain.ts",
+                "createPreloadClipboardApiDomain",
+            ],
+            [
+                "electron-app/preload/developerApiDomain.ts",
+                "createPreloadDeveloperApiDomain",
+            ],
+            [
+                "electron-app/preload/diagnosticsApiDomain.ts",
+                "createPreloadDiagnosticsApiDomain",
+            ],
+            [
+                "electron-app/preload/externalApiDomain.ts",
+                "createPreloadExternalApiDomain",
+            ],
+            [
+                "electron-app/preload/fileApiDomain.ts",
+                "createPreloadFileApiDomain",
+            ],
+            [
+                "electron-app/preload/stateApiDomain.ts",
+                "createPreloadStateApiDomain",
+            ],
+            [
+                "electron-app/preload/systemApiDomain.ts",
+                "createPreloadSystemApiDomain",
+            ],
+        ] as const;
+
+        expect.assertions(assemblyDomainExports.length * 2);
+
+        for (const [filePath, exportName] of assemblyDomainExports) {
+            const source = stripComments(readRepositoryFile(filePath));
+
+            expect(source).toContain(`export function ${exportName}`);
+            expect(source).not.toContain("module.exports");
+        }
+    });
+
+    it("keeps preload app API leaf factories on named source exports", () => {
+        const appApiFactoryExports = [
+            ["electron-app/preload/apiDiagnostics.ts", "createApiDiagnostics"],
+            ["electron-app/preload/appInfoApi.ts", "createAppInfoApi"],
+            [
+                "electron-app/preload/clipboardBridge.ts",
+                "createClipboardBridge",
+            ],
+            ["electron-app/preload/fileApi.ts", "createFileApi"],
+            ["electron-app/preload/fitBrowserApi.ts", "createFitBrowserApi"],
+            [
+                "electron-app/preload/gyazoExternalApi.ts",
+                "createGyazoExternalApi",
+            ],
+            [
+                "electron-app/preload/shellExternalApi.ts",
+                "createShellExternalApi",
+            ],
+            ["electron-app/preload/mainStateApi.ts", "createMainStateApi"],
+            [
+                "electron-app/preload/mainStateBridge.ts",
+                "createMainStateBridge",
+            ],
+            ["electron-app/preload/themeApi.ts", "createThemeApi"],
+        ] as const;
+
+        expect.assertions(appApiFactoryExports.length * 2);
+
+        for (const [filePath, exportName] of appApiFactoryExports) {
+            const source = stripComments(readRepositoryFile(filePath));
+
+            expect(source).toContain(`export function ${exportName}`);
+            expect(source).not.toContain("module.exports");
+        }
+    });
+
+    it("keeps preload runtime utility helpers on named source exports", () => {
+        const runtimeUtilityExports = [
+            [
+                "electron-app/preload/devtoolsMenuApi.ts",
+                "createDevtoolsMenuApi",
+            ],
+            ["electron-app/preload/environment.ts", "isPreloadDevelopmentMode"],
+            ["electron-app/preload/environment.ts", "isPreloadElectronRuntime"],
+            ["electron-app/preload/ipcHelpers.ts", "createPreloadIpcHelpers"],
+            [
+                "electron-app/preload/environment.ts",
+                "shouldEnforceGenericIpcAllowlist",
+            ],
+            ["electron-app/preload/logger.ts", "createPreloadLogger"],
+            [
+                "electron-app/preload/preloadRuntimeEnvironment.ts",
+                "getDefaultPreloadRuntimeEnvironment",
+            ],
+            ["electron-app/preload/validators.ts", "createPreloadValidators"],
+        ] as const;
+
+        expect.assertions(runtimeUtilityExports.length * 2);
+
+        for (const [filePath, exportName] of runtimeUtilityExports) {
+            const source = stripComments(readRepositoryFile(filePath));
+
+            expect(source).toContain(`export function ${exportName}`);
+            expect(source).not.toContain("module.exports");
+        }
+    });
+
+    it("keeps preload event API factories on named source exports", () => {
+        const eventApiFactoryExports = [
+            [
+                "electron-app/preload/ipcEventApiDomain.ts",
+                "createPreloadIpcEventApiDomain",
+            ],
+            ["electron-app/preload/menuEventApi.ts", "createMenuEventApi"],
+            [
+                "electron-app/preload/preloadEventApi.ts",
+                "createPreloadEventApi",
+            ],
+        ] as const;
+
+        expect.assertions(eventApiFactoryExports.length * 2);
+
+        for (const [filePath, exportName] of eventApiFactoryExports) {
+            const source = stripComments(readRepositoryFile(filePath));
+
+            expect(source).toContain(`export function ${exportName}`);
+            expect(source).not.toContain("module.exports");
+        }
+    });
+
+    it("keeps preload catalog and assembly context helpers on named source exports", () => {
+        const supportExports = [
+            [
+                "electron-app/preload/apiAssemblyContext.ts",
+                "createPreloadApiAssemblyContext",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiFactory.ts",
+                "createElectronApi",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronBridge.ts",
+                "resolvePreloadElectronBridge",
+                "function",
+            ],
+            [
+                "electron-app/preload/beforeExitHandler.ts",
+                "registerPreloadBeforeExitHandler",
+                "function",
+            ],
+            [
+                "electron-app/preload/developmentToolsGlobal.ts",
+                "DEVELOPMENT_TOOLS_GLOBAL_NAME",
+                "const",
+            ],
+            [
+                "electron-app/preload/developmentToolsGlobal.ts",
+                "exposeDevelopmentToolsGlobal",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiExposure.ts",
+                "exposeElectronApi",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiExposure.ts",
+                "getApiStructure",
+                "function",
+            ],
+            [
+                "electron-app/preload/ipcBridgeCatalog.ts",
+                "PRELOAD_CHANNELS",
+                "const",
+            ],
+            [
+                "electron-app/preload/ipcBridgeCatalog.ts",
+                "PRELOAD_EVENTS",
+                "const",
+            ],
+            [
+                "electron-app/preload/ipcBridgeCatalog.ts",
+                "isAllowedUpdateEventName",
+                "function",
+            ],
+        ] as const;
+
+        expect.assertions(supportExports.length * 2);
+
+        for (const [
+            filePath,
+            exportName,
+            exportKind,
+        ] of supportExports) {
+            const source = stripComments(readRepositoryFile(filePath));
+
+            expect(source).toContain(`export ${exportKind} ${exportName}`);
+            expect(source).not.toContain("module.exports");
+        }
+    });
+
+    it("keeps preload runtime loaders on named source exports", () => {
+        const loaderExports = [
+            [
+                "electron-app/preload/apiAssembly.ts",
+                "assemblePreloadApi",
+                "const",
+            ],
+            [
+                "electron-app/preload/apiAssembly.ts",
+                "createPreloadConstants",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadApiAssemblyModuleLoader.ts",
+                "loadPreloadApiAssemblyModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadAppModuleLoader.ts",
+                "loadPreloadAppModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadBootstrap.ts",
+                "startPreloadScript",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadFileModuleLoader.ts",
+                "loadPreloadFileModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadIpcModuleLoader.ts",
+                "loadPreloadIpcModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadModuleLoader.ts",
+                "loadPreloadModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadPolicyModuleLoader.ts",
+                "loadPreloadPolicyModules",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadRuntime.ts",
+                "createPreloadRuntime",
+                "function",
+            ],
+            [
+                "electron-app/preload/preloadStateModuleLoader.ts",
+                "loadPreloadStateModules",
+                "function",
+            ],
+        ] as const;
+
+        expect.assertions(loaderExports.length * 2);
+
+        for (const [
+            filePath,
+            exportName,
+            exportKind,
+        ] of loaderExports) {
+            const source = stripComments(readRepositoryFile(filePath));
+
+            expect(source).toContain(`export ${exportKind} ${exportName}`);
+            expect(source).not.toContain("module.exports");
+        }
+    });
+
+    it("keeps preload TypeScript source free of source-level CommonJS exports", () => {
+        expect.assertions(1);
+
+        const preloadCommonJsExportFiles = collectSourceFiles(
+            "electron-app/preload"
+        ).filter((relativeFile) =>
+            stripComments(readRepositoryFile(relativeFile)).includes(
+                "module.exports"
+            )
+        );
+
+        expect(preloadCommonJsExportFiles).toStrictEqual([]);
+    });
+
+    it("keeps shared TypeScript source free of source-level CommonJS exports", () => {
+        expect.assertions(1);
+
+        const sharedCommonJsExportFiles = collectSourceFiles(
+            "electron-app/shared"
+        ).filter((relativeFile) =>
+            stripComments(readRepositoryFile(relativeFile)).includes(
+                "module.exports"
+            )
+        );
+
+        expect(sharedCommonJsExportFiles).toStrictEqual([]);
+    });
+
+    it("keeps the FIT parser source and facade free of source-level CommonJS exports", () => {
+        expect.assertions(3);
+
+        const parserSource = stripComments(
+            readRepositoryFile("electron-app/fitParser.ts")
+        );
+        const parserFacadeSource = stripComments(
+            readRepositoryFile("electron-app/main/runtime/fitParserFacade.ts")
+        );
+
+        expect(parserSource).not.toContain("module.exports");
+        expect(parserFacadeSource).not.toContain("module.exports");
+        expect(parserFacadeSource).not.toContain('require("../../fitParser")');
+    });
+
+    it("keeps migrated main state source modules off source-level CommonJS exports", () => {
+        expect.assertions(13);
+
+        const appStateSource = stripComments(
+            readRepositoryFile("electron-app/main/state/appState.ts")
+        );
+        const constantsSource = stripComments(
+            readRepositoryFile("electron-app/main/constants.ts")
+        );
+        const gyazoStartupTimerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/app/gyazoStartupTimerState.ts"
+            )
+        );
+        const primeTestEnvironmentSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/runtime/primeTestEnvironment.ts"
+            )
+        );
+        const stateIntegrationBarrelSource = stripComments(
+            readRepositoryFile("electron-app/utils/state/integration/index.ts")
+        );
+        const appEventHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/app/setupApplicationEventHandlers.ts"
+            )
+        );
+
+        expect(appStateSource).not.toContain("module.exports");
+        expect(appStateSource).not.toContain(
+            'require("../../utils/state/integration/mainProcessStateManager")'
+        );
+        expect(constantsSource).not.toContain("module.exports");
+        expect(gyazoStartupTimerSource).not.toContain("module.exports");
+        expect(primeTestEnvironmentSource).not.toContain("module.exports");
+        expect(primeTestEnvironmentSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(stateIntegrationBarrelSource).not.toContain("module.exports");
+        expect(stateIntegrationBarrelSource).not.toContain(
+            'require("./mainProcessStateManager.js")'
+        );
+        expect(appEventHandlersSource).not.toContain("module.exports");
+        expect(appEventHandlersSource).not.toContain('require("../constants")');
+        expect(appEventHandlersSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(appEventHandlersSource).not.toContain(
+            'require("./gyazoStartupTimerState")'
+        );
+        expect(appEventHandlersSource).toContain("startGyazoOAuthServer");
+    });
+
+    it("keeps migrated main IPC payload and policy modules off source-level CommonJS exports", () => {
+        expect.assertions(49);
+
+        const fileReadPayloadSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/fileReadPayload.ts")
+        );
+        const fitIpcPayloadSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/fitIpcPayload.ts")
+        );
+        const fileAccessPolicySource = stripComments(
+            readRepositoryFile("electron-app/main/security/fileAccessPolicy.ts")
+        );
+        const fileAccessPolicyStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/security/fileAccessPolicyState.ts"
+            )
+        );
+        const registerFileSystemHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerFileSystemHandlers.ts"
+            )
+        );
+        const registerFitFileHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerFitFileHandlers.ts"
+            )
+        );
+        const registerBrowserHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerBrowserHandlers.ts"
+            )
+        );
+        const registerDialogHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerDialogHandlers.ts"
+            )
+        );
+        const registerRecentFileHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerRecentFileHandlers.ts"
+            )
+        );
+        const setupIpcHandlersSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/setupIPCHandlers.ts")
+        );
+        const ipcRegistrySource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/ipcRegistry.ts")
+        );
+        const ipcSenderPolicySource = stripComments(
+            readRepositoryFile("electron-app/main/security/ipcSenderPolicy.ts")
+        );
+        const mainProcessStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/mainProcessStateManager.ts"
+            )
+        );
+        const registerClipboardHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerClipboardHandlers.ts"
+            )
+        );
+        const registerExternalHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerExternalHandlers.ts"
+            )
+        );
+        const registerInfoHandlersSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/registerInfoHandlers.ts")
+        );
+
+        expect(fileReadPayloadSource).not.toContain("module.exports");
+        expect(fitIpcPayloadSource).not.toContain("module.exports");
+        expect(fileAccessPolicySource).not.toContain("module.exports");
+        expect(fileAccessPolicyStateSource).not.toContain("module.exports");
+        expect(fileAccessPolicySource).not.toContain(
+            'require("./fileAccessPolicyState")'
+        );
+        expect(registerFileSystemHandlersSource).not.toContain(
+            'require("./fileReadPayload")'
+        );
+        expect(registerFileSystemHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(registerFitFileHandlersSource).not.toContain(
+            'require("./fitIpcPayload")'
+        );
+        expect(registerFileSystemHandlersSource).not.toContain(
+            "module.exports"
+        );
+        expect(registerFileSystemHandlersSource).not.toContain(
+            'require("zod")'
+        );
+        expect(registerFileSystemHandlersSource).toContain(
+            'import { z } from "zod"'
+        );
+        expect(registerFitFileHandlersSource).not.toContain("module.exports");
+        expect(registerBrowserHandlersSource).not.toContain("module.exports");
+        expect(registerDialogHandlersSource).not.toContain("module.exports");
+        expect(registerRecentFileHandlersSource).not.toContain(
+            "module.exports"
+        );
+        expect(registerClipboardHandlersSource).not.toContain("module.exports");
+        expect(registerExternalHandlersSource).not.toContain("module.exports");
+        expect(registerClipboardHandlersSource).not.toContain('require("zod")');
+        expect(registerExternalHandlersSource).not.toContain('require("zod")');
+        expect(registerClipboardHandlersSource).toContain(
+            'import { z } from "zod"'
+        );
+        expect(registerExternalHandlersSource).toContain(
+            'import { z } from "zod"'
+        );
+        expect(registerInfoHandlersSource).not.toContain("module.exports");
+        expect(ipcRegistrySource).not.toContain("module.exports");
+        expect(ipcSenderPolicySource).not.toContain("module.exports");
+        expect(ipcRegistrySource).not.toContain(
+            'require("../security/ipcSenderPolicy")'
+        );
+        expect(registerBrowserHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(registerDialogHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(registerRecentFileHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerBrowserHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerDialogHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerFileSystemHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerFitFileHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerRecentFileHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerClipboardHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerExternalHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./registerInfoHandlers")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("./ipcRegistry")'
+        );
+        expect(mainProcessStateManagerSource).not.toContain(
+            'require("../../../main/ipc/ipcRegistry")'
+        );
+        expect(fileReadPayloadSource).toContain("export function");
+        expect(fitIpcPayloadSource).toContain("export function");
+        expect(fileAccessPolicySource).toContain("export function");
+        expect(fileAccessPolicyStateSource).toContain("export function");
+        expect(registerClipboardHandlersSource).toContain("export function");
+        expect(registerExternalHandlersSource).toContain("export function");
+        expect(registerInfoHandlersSource).toContain("export function");
+        expect(ipcRegistrySource).toContain("export function");
+        expect(ipcSenderPolicySource).toContain("export function");
+        expect(mainProcessStateManagerSource).toContain(
+            "registerGenericIpcHandle"
+        );
+    });
+
+    it("keeps main-process state-manager timing behind the runtime adapter", () => {
+        expect.assertions(8);
+
+        const mainProcessStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/mainProcessStateManager.ts"
+            )
+        );
+        const mainProcessStateRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/mainProcessStateRuntime.ts"
+            )
+        );
+        const directMainProcessStateManagerTimingGlobalPattern =
+            /\b(?:globalThis|window)\.(?:clearTimeout|performance|setTimeout)\b|\bperformance\.now\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+        const directMainProcessStateRuntimeAmbientTimerFallbackPattern =
+            /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+
+        expect(mainProcessStateManagerSource).toContain(
+            "mainProcessStateRuntime.js"
+        );
+        expect(mainProcessStateManagerSource).not.toContain(
+            "globalThis.performance"
+        );
+        expect(mainProcessStateManagerSource).not.toContain("performance.now");
+        expect(mainProcessStateManagerSource).toContain("monotonicNowMs");
+        expect(mainProcessStateManagerSource).toContain("setTimeout");
+        expect(
+            directMainProcessStateManagerTimingGlobalPattern.test(
+                mainProcessStateManagerSource
+            )
+        ).toBe(false);
+        expect(mainProcessStateRuntimeSource).not.toMatch(
+            directMainProcessStateRuntimeAmbientTimerFallbackPattern
+        );
+        expect(mainProcessStateRuntimeSource).toContain(
+            "mainProcessStateRuntime requires setTimeout"
+        );
+    });
+
+    it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
+        expect.assertions(169);
+
+        const mainSource = stripComments(
+            readRepositoryFile("electron-app/main.ts")
+        );
+        const logWithContextSource = stripComments(
+            readRepositoryFile("electron-app/main/logging/logWithContext.ts")
+        );
+        const safeCreateAppMenuSource = stripComments(
+            readRepositoryFile("electron-app/main/menu/safeCreateAppMenu.ts")
+        );
+        const setupBlockedRequestsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/security/setupBlockedRequests.ts"
+            )
+        );
+        const electronAccessSource = stripComments(
+            readRepositoryFile("electron-app/main/runtime/electronAccess.ts")
+        );
+        const appStateSource = stripComments(
+            readRepositoryFile("electron-app/main/state/appState.ts")
+        );
+        const sendToRendererSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/sendToRenderer.ts")
+        );
+        const windowValidationSource = stripComments(
+            readRepositoryFile("electron-app/main/window/windowValidation.ts")
+        );
+        const exposeDevHelpersSource = stripComments(
+            readRepositoryFile("electron-app/main/dev/exposeDevHelpers.ts")
+        );
+        const getThemeFromRendererSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/theme/getThemeFromRenderer.ts"
+            )
+        );
+        const setupAutoUpdaterSource = stripComments(
+            readRepositoryFile("electron-app/main/updater/setupAutoUpdater.ts")
+        );
+        const autoUpdaterAccessSource = stripComments(
+            readRepositoryFile("electron-app/main/updater/autoUpdaterAccess.ts")
+        );
+        const nodeModulesSource = stripComments(
+            readRepositoryFile("electron-app/main/runtime/nodeModules.ts")
+        );
+        const electronConfAccessSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/runtime/electronConfAccess.ts"
+            )
+        );
+        const fitParserIntegrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/runtime/fitParserIntegration.ts"
+            )
+        );
+        const initializeApplicationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/runtime/initializeApplication.ts"
+            )
+        );
+        const bootstrapMainWindowSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/window/bootstrapMainWindow.ts"
+            )
+        );
+        const initializeMainWindowSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/window/initializeMainWindow.ts"
+            )
+        );
+        const windowStateUtilsSource = stripComments(
+            readRepositoryFile("electron-app/windowStateUtils.ts")
+        );
+        const setupApplicationEventHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/app/setupApplicationEventHandlers.ts"
+            )
+        );
+        const setupMenuAndEventHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/menu/setupMenuAndEventHandlers.ts"
+            )
+        );
+        const setupIpcHandlersSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/setupIPCHandlers.ts")
+        );
+        const registerBrowserHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/ipc/registerBrowserHandlers.ts"
+            )
+        );
+        const registerInfoHandlersSource = stripComments(
+            readRepositoryFile("electron-app/main/ipc/registerInfoHandlers.ts")
+        );
+        const gyazoOAuthServerSource = stripComments(
+            readRepositoryFile("electron-app/main/oauth/gyazoOAuthServer.ts")
+        );
+        const fileAccessPolicySource = stripComments(
+            readRepositoryFile("electron-app/main/security/fileAccessPolicy.ts")
+        );
+        const ipcSenderPolicySource = stripComments(
+            readRepositoryFile("electron-app/main/security/ipcSenderPolicy.ts")
+        );
+        const setupMainLifecycleSource = stripComments(
+            readRepositoryFile(
+                "electron-app/main/runtime/setupMainLifecycle.ts"
+            )
+        );
+        const createAppMenuSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/menu/createAppMenu.ts")
+        );
+        const createAppMenuIndexSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/menu/index.ts")
+        );
+        const recentFilesSource = stripComments(
+            readRepositoryFile("electron-app/utils/files/recent/recentFiles.ts")
+        );
+        const masterStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/masterStateManager.ts"
+            )
+        );
+        const mainProcessStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/mainProcessStateManager.ts"
+            )
+        );
+
+        expect(mainSource).not.toContain("module.exports");
+        expect(mainSource).not.toContain("mainRequire");
+        expect(mainSource).not.toContain("require(");
+        expect(logWithContextSource).not.toContain("module.exports");
+        expect(safeCreateAppMenuSource).not.toContain("module.exports");
+        expect(setupBlockedRequestsSource).not.toContain("module.exports");
+        expect(electronAccessSource).not.toContain("module.exports");
+        expect(electronAccessSource).not.toContain("export default");
+        expect(sendToRendererSource).not.toContain("module.exports");
+        expect(windowValidationSource).not.toContain("module.exports");
+        expect(getThemeFromRendererSource).not.toContain("module.exports");
+        expect(setupAutoUpdaterSource).not.toContain("module.exports");
+        expect(autoUpdaterAccessSource).not.toContain("module.exports");
+        expect(autoUpdaterAccessSource).not.toContain("export default");
+        expect(nodeModulesSource).not.toContain("module.exports");
+        expect(nodeModulesSource).not.toContain("export default");
+        expect(nodeModulesSource).toContain(
+            'import * as fsModule from "node:fs"'
+        );
+        expect(nodeModulesSource).toContain(
+            'import * as httpModule from "node:http"'
+        );
+        expect(nodeModulesSource).toContain(
+            'import * as pathModule from "node:path"'
+        );
+        expect(nodeModulesSource).not.toContain(
+            'loadNodeModule<FileSystemModule>("node:fs")'
+        );
+        expect(nodeModulesSource).not.toContain(
+            'loadNodeModule<FileSystemModule>("fs")'
+        );
+        expect(nodeModulesSource).not.toContain(
+            'loadNodeModule<HttpModule>("http")'
+        );
+        expect(nodeModulesSource).not.toContain(
+            'loadNodeModule<HttpModule>("node:http")'
+        );
+        expect(electronConfAccessSource).not.toContain("module.exports");
+        expect(electronConfAccessSource).not.toContain("export default");
+        expect(electronAccessSource).toContain(
+            'import * as electronModule from "electron"'
+        );
+        expect(electronAccessSource).not.toContain('require("electron")');
+        expect(electronAccessSource).not.toContain(
+            'loadNodeModule("electron")'
+        );
+        expect(autoUpdaterAccessSource).not.toContain(
+            'require("electron-updater")'
+        );
+        expect(autoUpdaterAccessSource).not.toContain(
+            'loadNodeModule("electron-updater")'
+        );
+        expect(autoUpdaterAccessSource).toContain(
+            'await import("electron-updater")'
+        );
+        expect(initializeApplicationSource).not.toContain("module.exports");
+        expect(setupIpcHandlersSource).not.toContain("module.exports");
+        expect(gyazoOAuthServerSource).not.toContain("module.exports");
+        expect(setupMainLifecycleSource).not.toContain("module.exports");
+        expect(exposeDevHelpersSource).not.toContain("module.exports");
+        expect(bootstrapMainWindowSource).not.toContain("module.exports");
+        expect(initializeMainWindowSource).not.toContain("module.exports");
+        expect(fitParserIntegrationSource).not.toContain("module.exports");
+        expect(mainProcessStateManagerSource).not.toContain("module.exports");
+        expect(masterStateManagerSource).not.toContain("module.exports");
+        expect(masterStateManagerSource).not.toContain(
+            'require("node:module")'
+        );
+        expect(masterStateManagerSource).not.toContain("getCjsRequire");
+        expect(masterStateManagerSource).not.toContain("getNodeModuleCache");
+        expect(masterStateManagerSource).not.toContain("require.cache");
+        expect(masterStateManagerSource).not.toContain(
+            "getModuleExportsFromCache"
+        );
+        expect(masterStateManagerSource).toContain(
+            "getModuleExportsFromOverride"
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain("module.exports");
+        expect(windowStateUtilsSource).not.toContain("module.exports");
+        expect(createAppMenuSource).not.toContain("module.exports");
+        expect(createAppMenuIndexSource).not.toContain("require(");
+        expect(recentFilesSource).not.toContain("module.exports");
+        expect(recentFilesSource).not.toContain("require(");
+        expect(windowValidationSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(windowValidationSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(safeCreateAppMenuSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(setupAutoUpdaterSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(sendToRendererSource).not.toContain(
+            'require("../window/windowValidation")'
+        );
+        expect(exposeDevHelpersSource).not.toContain(
+            'require("../window/windowValidation")'
+        );
+        expect(exposeDevHelpersSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(getThemeFromRendererSource).not.toContain(
+            'require("../window/windowValidation")'
+        );
+        expect(setupAutoUpdaterSource).not.toContain(
+            'require("../ipc/sendToRenderer")'
+        );
+        expect(setupAutoUpdaterSource).not.toContain(
+            'require("../window/windowValidation")'
+        );
+        expect(setupAutoUpdaterSource).not.toContain(
+            'require("../runtime/electronAccess")'
+        );
+        expect(setupAutoUpdaterSource).not.toContain(
+            'require("./autoUpdaterAccess")'
+        );
+        expect(setupAutoUpdaterSource).not.toContain('require("electron-log")');
+        expect(setupAutoUpdaterSource).toContain(
+            'import electronLog from "electron-log"'
+        );
+        expect(electronConfAccessSource).not.toContain(
+            'loadNodeModule<ElectronConfModuleLike<TStore>>("electron-conf")'
+        );
+        expect(appStateSource).not.toContain('require("electron-conf")');
+        expect(fitParserIntegrationSource).not.toContain(
+            'require("electron-conf")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("electron-conf")'
+        );
+        expect(createAppMenuSource).not.toContain('require("electron-conf")');
+        expect(registerBrowserHandlersSource).not.toContain(
+            'require("electron-conf")'
+        );
+        expect(registerInfoHandlersSource).not.toContain(
+            'require("electron-conf")'
+        );
+        expect(appStateSource).toContain("createElectronConf");
+        expect(fitParserIntegrationSource).toContain("createElectronConf");
+        expect(setupMenuAndEventHandlersSource).toContain("createElectronConf");
+        expect(createAppMenuSource).toContain("createElectronConf");
+        expect(initializeApplicationSource).not.toContain(
+            'require("../constants")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../ipc/sendToRenderer")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../theme/getThemeFromRenderer")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../updater/setupAutoUpdater")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../updater/autoUpdaterAccess")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../menu/safeCreateAppMenu")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../runtime/electronAccess")'
+        );
+        expect(initializeApplicationSource).not.toContain(
+            'require("../window/bootstrapMainWindow")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../ipc/sendToRenderer")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../window/windowValidation")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../updater/autoUpdaterAccess")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../runtime/nodeModules")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../constants")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../ipc/ipcRegistry")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../security/fileAccessPolicy")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(setupMenuAndEventHandlersSource).not.toContain(
+            'require("./safeCreateAppMenu")'
+        );
+        expect(gyazoOAuthServerSource).not.toContain(
+            'require("../ipc/sendToRenderer")'
+        );
+        expect(gyazoOAuthServerSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(gyazoOAuthServerSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(gyazoOAuthServerSource).not.toContain(
+            'require("../runtime/nodeModules")'
+        );
+        expect(fileAccessPolicySource).not.toContain(
+            'require("../runtime/nodeModules")'
+        );
+        expect(ipcSenderPolicySource).not.toContain(
+            'require("../runtime/nodeModules")'
+        );
+        expect(ipcSenderPolicySource).not.toContain('require("node:url")');
+        expect(setupIpcHandlersSource).not.toContain('require("../constants")');
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../menu/safeCreateAppMenu")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../oauth/gyazoOAuthServer")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../runtime/electronAccess")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../state/appState")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../theme/getThemeFromRenderer")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../runtime/nodeModules")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../runtime/fitParserIntegration")'
+        );
+        expect(setupIpcHandlersSource).not.toContain(
+            'require("../../utils/files/recent/recentFiles")'
+        );
+        expect(fitParserIntegrationSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(fitParserIntegrationSource).not.toContain(
+            'require("../constants")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../runtime/nodeModules")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../logging/logWithContext")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../menu/safeCreateAppMenu")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../oauth/gyazoOAuthServer")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../theme/getThemeFromRenderer")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../window/windowValidation")'
+        );
+        expect(setupApplicationEventHandlersSource).not.toContain(
+            'require("../../windowStateUtils")'
+        );
+        expect(bootstrapMainWindowSource).not.toContain(
+            'require("../../windowStateUtils")'
+        );
+        expect(initializeMainWindowSource).not.toContain(
+            'require("../windowStateUtils")'
+        );
+        expect(initializeMainWindowSource).not.toContain(
+            'require("../../windowStateUtils")'
+        );
+        expect(setupBlockedRequestsSource).not.toContain(
+            'require("../runtime/electronAccess")'
+        );
+        expect(setupMainLifecycleSource).not.toContain(
+            'require("../security/setupBlockedRequests")'
+        );
+        expect(createAppMenuSource).not.toContain(
+            'require("../../../main/runtime/electronAccess")'
+        );
+        expect(createAppMenuSource).not.toContain(
+            'require("../../../utils/files/recent/recentFiles")'
+        );
+        expect(createAppMenuSource).not.toContain(
+            'require("../../../main/security/fileAccessPolicy")'
+        );
+        expect(safeCreateAppMenuSource).not.toContain(
+            'require("../../utils/app/menu/createAppMenu")'
+        );
+        expect(mainProcessStateManagerSource).not.toContain(
+            'require("../../../main/runtime/electronAccess")'
+        );
+        expect(logWithContextSource).toContain(
+            "export function logWithContext"
+        );
+        expect(safeCreateAppMenuSource).toContain(
+            "export function safeCreateAppMenu"
+        );
+        expect(setupBlockedRequestsSource).toContain(
+            "export function setupBlockedRequests"
+        );
+        expect(electronAccessSource).toContain("export function getElectron");
+        expect(sendToRendererSource).toContain(
+            "export function sendToRenderer"
+        );
+        expect(windowValidationSource).toContain(
+            "export function isWindowUsable"
+        );
+        expect(windowValidationSource).toContain(
+            "export function validateWindow"
+        );
+        expect(getThemeFromRendererSource).toContain(
+            "export async function getThemeFromRenderer"
+        );
+        expect(setupAutoUpdaterSource).toContain(
+            "export function setupAutoUpdater"
+        );
+        expect(autoUpdaterAccessSource).toContain(
+            "export async function resolveAutoUpdaterAsync"
+        );
+        expect(autoUpdaterAccessSource).not.toContain(
+            "export function resolveAutoUpdaterSync"
+        );
+        expect(nodeModulesSource).toContain("export const path");
+        expect(nodeModulesSource).toContain("export const fs");
+        expect(nodeModulesSource).toContain("export function httpRef");
+        expect(nodeModulesSource).not.toContain("export function loadNodeModule");
+        expect(electronConfAccessSource).toContain(
+            "export function createElectronConf"
+        );
+        expect(mainSource).not.toContain("defaultExport");
+        expect(mainSource).not.toContain("export default");
+        expect(initializeApplicationSource).toContain(
+            "export async function initializeApplication"
+        );
+        expect(bootstrapMainWindowSource).toContain(
+            "export function bootstrapMainWindow"
+        );
+        expect(initializeMainWindowSource).toContain(
+            "export function initializeMainWindow"
+        );
+        expect(windowStateUtilsSource).toContain(
+            "export function createWindow"
+        );
+        expect(windowStateUtilsSource).toContain(
+            "export function getWindowState"
+        );
+        expect(recentFilesSource).toContain("export function loadRecentFiles");
+        expect(fitParserIntegrationSource).toContain(
+            "export const FIT_PARSER_OPERATION_ID"
+        );
+        expect(fitParserIntegrationSource).toContain(
+            "export function createFitParserStateAdapters"
+        );
+        expect(fitParserIntegrationSource).toContain(
+            "export async function ensureFitParserStateIntegration"
+        );
+        expect(setupIpcHandlersSource).toContain(
+            "export function setupIPCHandlers"
+        );
+        expect(setupMenuAndEventHandlersSource).toContain(
+            "export function setupMenuAndEventHandlers"
+        );
+        expect(createAppMenuSource).toContain("export function createAppMenu");
+        expect(createAppMenuIndexSource).toContain("export { createAppMenu }");
+        expect(gyazoOAuthServerSource).toContain(
+            "export async function startGyazoOAuthServer"
+        );
+        expect(gyazoOAuthServerSource).toContain(
+            "export async function stopGyazoOAuthServer"
+        );
+        expect(setupMainLifecycleSource).toContain(
+            "export function setupMainLifecycle"
+        );
+        expect(exposeDevHelpersSource).toContain(
+            "export function exposeDevHelpers"
+        );
+    });
+
+    it("keeps ordinary preload unit tests on native source imports", () => {
+        expect.assertions(2);
+
+        const directSourceRequireTestFiles = collectSourceFiles("tests/unit")
+            .filter(
+                (relativeFile) =>
+                    relativeFile !==
+                    "tests/unit/packaging/architectureBoundaries.test.ts"
+            )
+            .filter((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "createPreloadSourceRequire"
+                )
+            )
+            .sort();
+
+        expect(directSourceRequireTestFiles).toStrictEqual([]);
+
+        const commonJsPreloadTestFiles = collectSourceFiles("tests/unit")
+            .filter((relativeFile) =>
+                /^tests\/unit\/preload.*\.test\.ts$/u.test(relativeFile)
+            )
+            .filter((relativeFile) =>
+                /\b(?:createRequire|preloadSourceRequire)\b/u.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(commonJsPreloadTestFiles).toStrictEqual([]);
+    });
+
+    it("keeps the obsolete preload cache-injection debug test deleted", () => {
+        expect.assertions(1);
+
+        expect(hasRepositoryFile("tests/unit/preload.debug.test.ts")).toBe(
+            false
+        );
+    });
+
+    it("keeps preload policy unit tests on native source imports", () => {
+        expect.assertions(1);
+
+        const policyTestFiles = [
+            "tests/unit/preload.devtoolsMenuPolicy.test.ts",
+            "tests/unit/preload.fitBrowserPathPolicy.test.ts",
+            "tests/unit/preload.fitFilePathPolicy.test.ts",
+            "tests/unit/preload.mainStatePathPolicy.test.ts",
+        ];
+        const commonJsPolicyTestLoads = policyTestFiles
+            .filter((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "createRequire"
+                )
+            )
+            .sort();
+
+        expect(commonJsPolicyTestLoads).toStrictEqual([]);
+    });
+
+    it("keeps the preload module-mock fixture on native source imports", () => {
+        expect.assertions(1);
+
+        const moduleMockSource = stripComments(
+            readRepositoryFile("tests/vitest/helpers/preloadModuleMocks.ts")
+        );
+
+        expect(moduleMockSource).not.toContain("createPreloadSourceRequire");
+    });
+
+    it("keeps preload IPC policy dependencies injected through the module registry", () => {
+        expect.assertions(6);
+
+        const devtoolsMenuApiSource = stripComments(
+            readRepositoryFile("electron-app/preload/devtoolsMenuApi.ts")
+        );
+        const ipcHelpersSource = stripComments(
+            readRepositoryFile("electron-app/preload/ipcHelpers.ts")
+        );
+        const policyModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadPolicyModuleLoader.ts"
+            )
+        );
+        const moduleTypesSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
+        );
+
+        expect(devtoolsMenuApiSource).not.toContain("require(");
+        expect(ipcHelpersSource).not.toContain("require(");
+        expect(policyModuleLoaderSource).toContain(
+            "../shared/devtoolsMenuPolicy.js"
+        );
+        expect(policyModuleLoaderSource).toContain(
+            "../shared/mainStatePathPolicy.js"
+        );
+        expect(moduleTypesSource).toContain("validateExternalUrl");
+        expect(moduleTypesSource).toContain("validateMainStatePathInput");
+    });
+
+    it("keeps preload state leaf modules on native imports", () => {
+        expect.assertions(5);
+
+        const stateModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadStateModuleLoader.ts"
+            )
+        );
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+
+        expect(stateModuleLoaderSource).toContain(
+            'import { createMainStateApi } from "./mainStateApi.js";'
+        );
+        expect(stateModuleLoaderSource).toContain(
+            'import { createMainStateBridge } from "./mainStateBridge.js";'
+        );
+        expect(stateModuleLoaderSource).not.toContain("requireModule");
+        expect(moduleLoaderSource).toContain("loadPreloadStateModules()");
+        expect(moduleLoaderSource).not.toContain(
+            "loadPreloadStateModules({ requireModule })"
+        );
+    });
+
+    it("keeps preload file leaf modules on native imports", () => {
+        expect.assertions(5);
+
+        const fileModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadFileModuleLoader.ts"
+            )
+        );
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+
+        expect(fileModuleLoaderSource).toContain(
+            'import { createFileApi } from "./fileApi.js";'
+        );
+        expect(fileModuleLoaderSource).toContain(
+            'import { createFitBrowserApi } from "./fitBrowserApi.js";'
+        );
+        expect(fileModuleLoaderSource).not.toContain("requireModule");
+        expect(moduleLoaderSource).toContain("loadPreloadFileModules()");
+        expect(moduleLoaderSource).not.toContain(
+            "loadPreloadFileModules({ requireModule })"
+        );
+    });
+
+    it("keeps preload app leaf modules on native imports", () => {
+        expect.assertions(13);
+
+        const appModuleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadAppModuleLoader.ts")
+        );
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+
+        expect(appModuleLoaderSource).toContain(
+            'import { createApiDiagnostics } from "./apiDiagnostics.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createAppInfoApi } from "./appInfoApi.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { registerPreloadBeforeExitHandler } from "./beforeExitHandler.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createClipboardBridge } from "./clipboardBridge.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createDevtoolsMenuApi } from "./devtoolsMenuApi.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { exposeDevelopmentToolsGlobal } from "./developmentToolsGlobal.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { isPreloadDevelopmentMode } from "./environment.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createGyazoExternalApi } from "./gyazoExternalApi.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createShellExternalApi } from "./shellExternalApi.js";'
+        );
+        expect(appModuleLoaderSource).toContain(
+            'import { createThemeApi } from "./themeApi.js";'
+        );
+        expect(appModuleLoaderSource).not.toContain("requireModule");
+        expect(moduleLoaderSource).toContain("loadPreloadAppModules()");
+        expect(moduleLoaderSource).not.toContain(
+            "loadPreloadAppModules({ requireModule })"
+        );
+    });
+
+    it("keeps preload API assembly modules on native imports", () => {
+        expect.assertions(12);
+
+        const apiAssemblyModuleLoaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/preloadApiAssemblyModuleLoader.ts"
+            )
+        );
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadApiAssemblyContext } from "./apiAssemblyContext.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadClipboardApiDomain } from "./clipboardApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadDeveloperApiDomain } from "./developerApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadDiagnosticsApiDomain } from "./diagnosticsApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadExternalApiDomain } from "./externalApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadFileApiDomain } from "./fileApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadIpcEventApiDomain } from "./ipcEventApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadStateApiDomain } from "./stateApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadSystemApiDomain } from "./systemApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).not.toContain("requireModule");
+        expect(moduleLoaderSource).toContain(
+            "loadPreloadApiAssemblyModules()"
+        );
+        expect(moduleLoaderSource).not.toContain(
+            "loadPreloadApiAssemblyModules({ requireModule })"
+        );
+    });
+
+    it("keeps preload IPC modules on native imports", () => {
+        expect.assertions(12);
+
+        const ipcModuleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadIpcModuleLoader.ts")
+        );
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+
+        expect(ipcModuleLoaderSource).toContain(
+            'import { resolvePreloadElectronBridge } from "./electronBridge.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { exposeElectronApi } from "./electronApiExposure.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { shouldEnforceGenericIpcAllowlist } from "./environment.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { createPreloadIpcHelpers } from "./ipcHelpers.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import * as ipcBridgeCatalog from "./ipcBridgeCatalog.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { createPreloadLogger } from "./logger.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { createMenuEventApi } from "./menuEventApi.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { createPreloadEventApi } from "./preloadEventApi.js";'
+        );
+        expect(ipcModuleLoaderSource).toContain(
+            'import { createPreloadValidators } from "./validators.js";'
+        );
+        expect(ipcModuleLoaderSource).not.toContain("requireModule");
+        expect(moduleLoaderSource).toContain("loadPreloadIpcModules()");
+        expect(moduleLoaderSource).not.toContain(
+            "loadPreloadIpcModules({ requireModule })"
+        );
+    });
+
+    it("keeps the preload module loader on native loader imports", () => {
+        expect.assertions(10);
+
+        const moduleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
+        );
+        const runtimeSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadRuntime.ts")
+        );
+
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadApiAssemblyModules } from "./preloadApiAssemblyModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadAppModules } from "./preloadAppModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadFileModules } from "./preloadFileModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadIpcModules } from "./preloadIpcModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadPolicyModules } from "./preloadPolicyModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).toContain(
+            'import { loadPreloadStateModules } from "./preloadStateModuleLoader.js";'
+        );
+        expect(moduleLoaderSource).not.toContain("requireModule");
+        expect(runtimeSource).toContain("loadPreloadModules()");
+        expect(runtimeSource).not.toContain(
+            "loadPreloadModules({ requireModule })"
+        );
+        expect(moduleLoaderSource).not.toContain("./preload/");
+    });
+
+    it("keeps the preload runtime on native composition imports", () => {
+        expect.assertions(11);
+
+        const runtimeSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadRuntime.ts")
+        );
+
+        expect(runtimeSource).toContain(
+            'import { assemblePreloadApi, createPreloadConstants } from "./apiAssembly.js";'
+        );
+        expect(runtimeSource).toContain(
+            'import { createElectronApi } from "./electronApiFactory.js";'
+        );
+        expect(runtimeSource).toContain(
+            'import { loadPreloadModules } from "./preloadModuleLoader.js";'
+        );
+        expect(runtimeSource).toContain("createPreloadRuntime()");
+        expect(runtimeSource).toContain("loadPreloadModules()");
+        expect(runtimeSource).not.toContain("PreloadModuleRequire");
+        expect(runtimeSource).not.toContain("CreatePreloadRuntimeOptions");
+        expect(runtimeSource).not.toContain("requireModule");
+        expect(runtimeSource).not.toContain(
+            "const { loadPreloadModules } = requireModule"
+        );
+        expect(runtimeSource).not.toContain(
+            "const { createElectronApi } = requireModule"
+        );
+        expect(runtimeSource).not.toContain(
+            "const { assemblePreloadApi, createPreloadConstants } = requireModule"
+        );
+    });
+
+    it("keeps the preload bootstrap on native runtime imports", () => {
+        expect.assertions(9);
+
+        const bootstrapSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadBootstrap.ts")
+        );
+
+        expect(bootstrapSource).toContain(
+            'import { createPreloadRuntime } from "./preloadRuntime.js";'
+        );
+        expect(bootstrapSource).toContain(
+            'import { getDefaultPreloadRuntimeEnvironment } from "./preloadRuntimeEnvironment.js";'
+        );
+        expect(bootstrapSource).toContain(
+            "createPreloadRuntime()"
+        );
+        expect(bootstrapSource).not.toContain("requireModule");
+        expect(bootstrapSource).not.toContain(
+            "createPreloadRuntime({ requireModule })"
+        );
+        expect(bootstrapSource).not.toContain("runtime.requireModule");
+        expect(bootstrapSource).not.toContain(
+            "const { createPreloadRuntime } = requireModule"
+        );
+        expect(bootstrapSource).not.toContain(
+            "const { getDefaultPreloadRuntimeEnvironment } = requireModule"
+        );
+        expect(bootstrapSource).not.toContain(
+            "resolvePreloadRuntimeEnvironment({\n        consoleRef,\n        globalScope,\n        processRef,\n        requireModule,"
+        );
     });
 
     it("keeps the preload event helper free of generic IPC methods", () => {
@@ -1289,7 +3259,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the root preload entrypoint delegated to the preload entrypoint module", () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const preloadEntrySource = stripComments(
             readRepositoryFile("electron-app/preload.ts")
@@ -1309,12 +3279,13 @@ describe("architecture boundaries", () => {
             "startDefaultPreloadEntrypoint();"
         );
         expect(preloadEntrySource).not.toContain("require");
-        expect(preloadEntrypointSource).toMatch(
-            /startPreloadEntrypoint\(\s*require\s*,/u
+        expect(preloadEntrypointSource).toContain(
+            "startPreloadEntrypoint();"
         );
         expect(preloadEntrypointSource).toContain(
-            "loadPreloadRuntimeEnvironment("
+            'import { startPreloadScript } from "./preloadBootstrap.js";'
         );
+        expect(preloadEntrypointSource).not.toContain("require");
         expect(preloadEntrypointSource).not.toContain("globalThis");
         expect(preloadEntrySource).not.toContain(
             'require("./preload/preloadEntrypoint.js")'
@@ -1327,11 +3298,38 @@ describe("architecture boundaries", () => {
         ]);
     });
 
-    it("keeps preload bootstrap loaders on the injected module require", () => {
+    it("keeps the preload entrypoint on native bootstrap imports", () => {
+        expect.assertions(7);
+
+        const preloadEntrypointSource = stripComments(
+            readRepositoryFile("electron-app/preload/preloadEntrypoint.ts")
+        );
+
+        expect(preloadEntrypointSource).toContain(
+            'import { startPreloadScript } from "./preloadBootstrap.js";'
+        );
+        expect(preloadEntrypointSource).toContain(
+            "startPreloadScript({"
+        );
+        expect(preloadEntrypointSource).not.toContain("require");
+        expect(preloadEntrypointSource).not.toContain(
+            "loadPreloadRuntimeEnvironment"
+        );
+        expect(preloadEntrypointSource).not.toContain("loadPreloadBootstrap");
+        expect(preloadEntrypointSource).not.toContain(
+            "createPreloadEntrypointRequire"
+        );
+        expect(preloadEntrypointSource).not.toContain(
+            "isCannotFindModuleError"
+        );
+    });
+
+    it("keeps preload source free of ambient require calls", () => {
         expect.assertions(1);
 
         const ambientRequirePattern = /\brequire\s*\(/u;
-        const violations = preloadInjectedRequireFiles
+        const violations = preloadRoots
+            .flatMap(collectSourceFiles)
             .filter((relativeFile) =>
                 ambientRequirePattern.test(
                     stripComments(readRepositoryFile(relativeFile))
@@ -1371,25 +3369,67 @@ describe("architecture boundaries", () => {
         ).toBe(true);
     });
 
-    it("keeps the preload build transform bundling injected require calls", () => {
-        expect.assertions(4);
+    it("keeps the preload build free of the retired injected require transform", () => {
+        expect.assertions(5);
 
         const bundlePreloadSource = stripComments(
             readRepositoryFile("scripts/bundle-preload.mjs")
         );
 
-        expect(bundlePreloadSource).toContain(
+        expect(bundlePreloadSource).toContain('external: ["electron"]');
+        expect(bundlePreloadSource).not.toContain(
             "preloadInjectedRequireBundlingPlugin"
         );
-        expect(bundlePreloadSource).toContain(
+        expect(bundlePreloadSource).not.toContain(
             "preload-injected-require-bundling"
         );
-        expect(bundlePreloadSource).toContain(
-            '.replace(/\\brequireModule\\s*\\(/gu, "require(")'
-        );
-        expect(bundlePreloadSource).toContain(
+        expect(bundlePreloadSource).not.toContain("requireModule");
+        expect(bundlePreloadSource).not.toContain(
             '.replace(/(["\'])\\.\\/preload\\//gu, "$1./")'
         );
+    });
+
+    it("keeps root package CLI scripts on native ESM resolution", () => {
+        expect.assertions(1);
+
+        const rootPackageCliScripts = [
+            "scripts/build-docs.mjs",
+            "scripts/build-runtime.mjs",
+            "scripts/ensure-macos-builder-deps.mjs",
+            "scripts/ensure-electron-binary.mjs",
+            "scripts/run-electron-builder.mjs",
+            "scripts/run-electron.mjs",
+            "scripts/run-eslint.mjs",
+            "scripts/update-deps.mjs",
+        ];
+        const violations = rootPackageCliScripts
+            .filter((relativeFile) =>
+                /\b(?:createRequire|require\.resolve)\b/u.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps migrated packaging and main tests off avoidable CJS loading", () => {
+        expect.assertions(1);
+
+        const migratedTestFiles = [
+            "tests/unit/main.test.ts",
+            "tests/unit/packaging/electronBuilderConfig.test.ts",
+            "tests/unit/packaging/electronBuilderFiles.test.ts",
+        ];
+        const violations = migratedTestFiles
+            .filter((relativeFile) =>
+                /\b(?:createRequire|require\.resolve|require\s*\()/u.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps state domain modules out of broad renderer utilities", () => {
@@ -1485,8 +3525,8 @@ describe("architecture boundaries", () => {
         expect(appDomainFacadeSource).not.toContain("./appState.js");
     });
 
-    it("keeps renderer import-time bootstrap off legacy appState manual mocks", () => {
-        expect.assertions(2);
+    it("keeps renderer import-time bootstrap off legacy appState test overrides", () => {
+        expect.assertions(3);
 
         const importTimeBootstrapSource = stripComments(
             readRepositoryFile("electron-app/renderer/importTimeBootstrap.ts")
@@ -1498,10 +3538,11 @@ describe("architecture boundaries", () => {
         expect(importTimeBootstrapSource).not.toContain(
             "touchManualAppStartTime"
         );
+        expect(importTimeBootstrapSource).not.toContain("Manual");
     });
 
     it("keeps renderer core module resolution on the app-domain state facade", () => {
-        expect.assertions(2);
+        expect.assertions(7);
 
         const coreModuleResolutionSource = stripComments(
             readRepositoryFile("electron-app/renderer/coreModuleResolution.ts")
@@ -1512,6 +3553,146 @@ describe("architecture boundaries", () => {
         );
         expect(coreModuleResolutionSource).not.toContain(
             "state/domain/appState.js"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
+            "__vitest_manual_mocks__"
+        );
+        expect(coreModuleResolutionSource).not.toContain(
+            "resolveExactManualMock"
+        );
+        expect(coreModuleResolutionSource).not.toContain("resolveManualMock");
+        expect(coreModuleResolutionSource).not.toContain(
+            "toManualMockPathSuffix"
+        );
+        expect(coreModuleResolutionSource).not.toContain("globalThis");
+    });
+
+    it("keeps export utility test overrides off manual mock registries", () => {
+        expect.assertions(4);
+
+        const exportUtilsSource = stripComments(
+            readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
+        );
+
+        expect(exportUtilsSource).toContain("__setTestDeps");
+        expect(exportUtilsSource).not.toContain("__vitest_manual_mocks__");
+        expect(exportUtilsSource).not.toContain(
+            "setExportUtilsTestModuleOverrides"
+        );
+        expect(exportUtilsSource).not.toContain("resolveManualMock");
+    });
+
+    it("keeps export utility browser runtime access behind the runtime facade", () => {
+        expect.assertions(6);
+
+        const exportUtilsSource = stripComments(
+            readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
+        );
+
+        expect(exportUtilsSource).toContain("exportUtilsRuntime.js");
+        expect(exportUtilsSource).toContain("confirmDangerousAction");
+        expect(exportUtilsSource).toContain("createAbortController");
+        expect(exportUtilsSource).not.toContain("globalThis.window");
+        expect(exportUtilsSource).not.toContain("window?.confirm");
+        expect(exportUtilsSource).not.toMatch(/\bnew\s+AbortController\b/u);
+    });
+
+    it("keeps renderChartJS comprehensive tests off module-cache require bridges", () => {
+        expect.assertions(4);
+
+        const renderChartJsComprehensiveTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/utils/charts/core/renderChartJS.comprehensive.test.ts"
+            )
+        );
+
+        expect(renderChartJsComprehensiveTestSource).not.toMatch(
+            /\b(?:createRequire|requireCjs|require\s*\()/u
+        );
+        expect(renderChartJsComprehensiveTestSource).not.toContain(
+            "utils.require"
+        );
+        expect(renderChartJsComprehensiveTestSource).not.toContain(
+            "moduleCache"
+        );
+        expect(renderChartJsComprehensiveTestSource).toContain("vi.doMock");
+    });
+
+    it("keeps createAppMenu Electron test fixtures module-local", () => {
+        expect.assertions(4);
+
+        const createAppMenuTestSource = stripComments(
+            readRepositoryFile("tests/unit/menu/createAppMenu.test.ts")
+        );
+
+        expect(createAppMenuTestSource).not.toMatch(
+            directCreateAppMenuTestFixtureGlobalPattern
+        );
+        expect(createAppMenuTestSource).toContain("let electronMockFixture");
+        expect(createAppMenuTestSource).not.toMatch(
+            /\b(?:createRequire|requireCjs|require\s*\()/u
+        );
+        expect(createAppMenuTestSource).not.toMatch(
+            directAppMenuExportsGlobalPattern
+        );
+    });
+
+    it("keeps IPC sender-policy tests on native module imports", () => {
+        expect.assertions(3);
+
+        const ipcSenderPolicyTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/main/ipc/ipcRegistry.senderPolicy.test.ts"
+            )
+        );
+
+        expect(ipcSenderPolicyTestSource).not.toMatch(
+            /\b(?:createRequire|requireCjs|require\s*\()/u
+        );
+        expect(ipcSenderPolicyTestSource).toContain("setElectronOverride");
+        expect(ipcSenderPolicyTestSource).toContain(
+            "../../../../electron-app/main/runtime/electronAccess.js"
+        );
+    });
+
+    it("keeps strict Electron main-handler tests on native module imports", () => {
+        expect.assertions(3);
+
+        const mainHandlersStrictTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/strictTests/electron/main.handlers.strict.test.ts"
+            )
+        );
+
+        expect(mainHandlersStrictTestSource).not.toMatch(
+            /\b(?:createRequire|requireCjs|require\s*\()/u
+        );
+        expect(mainHandlersStrictTestSource).toContain("setElectronOverride");
+        expect(mainHandlersStrictTestSource).toContain(
+            "../../../../electron-app/main/security/fileAccessPolicy.js"
+        );
+    });
+
+    it("keeps main-process state-manager tests off global require patches", () => {
+        expect.assertions(4);
+
+        const mainProcessStateManagerTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/utils/state/integration/mainProcessStateManager.test.ts"
+            )
+        );
+
+        expect(mainProcessStateManagerTestSource).not.toMatch(
+            /\b(?:createRequire|requireCjs|require\s*\()/u
+        );
+        expect(mainProcessStateManagerTestSource).not.toContain(
+            "global.require"
+        );
+        expect(mainProcessStateManagerTestSource).not.toContain(
+            "require.cache"
+        );
+        expect(mainProcessStateManagerTestSource).toContain(
+            "setElectronOverride"
         );
     });
 
@@ -1532,7 +3713,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(7);
+        expect.assertions(10);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -1540,13 +3721,25 @@ describe("architecture boundaries", () => {
         const mainUiSource = stripComments(
             readRepositoryFile("electron-app/main-ui.ts")
         );
+        const mainUiStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/mainUiStartup.ts")
+        );
         const mainUiRuntimeGlobalPattern = /\bglobalThis\.console\b/u;
+        const mainUiUnloadRuntimeGlobalPattern = /\bDate\.now\b/u;
+        const mainUiUnloadFlowSource = stripComments(
+            readRepositoryFile("electron-app/renderer/mainUiUnloadFlow.ts")
+        );
 
         expect(rendererEntrypointSource).toContain("runtimeEnvironment.js");
         expect(rendererEntrypointSource).not.toContain("globalThis.");
         expect(rendererEntrypointSource).not.toContain("document,");
-        expect(mainUiSource).toContain("renderer/mainUiRuntimeEnvironment.js");
+        expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
+        expect(mainUiStartupSource).toContain("mainUiRuntimeEnvironment.js");
+        expect(mainUiUnloadFlowSource).toContain("mainUiRuntimeEnvironment.js");
+        expect(mainUiUnloadFlowSource).not.toMatch(
+            mainUiUnloadRuntimeGlobalPattern
+        );
         expect(rendererMainUiRuntimeEnvironmentFiles).toStrictEqual([
             "electron-app/renderer/mainUiRuntimeEnvironment.ts",
         ]);
@@ -1557,6 +3750,29 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(true);
+    });
+
+    it("keeps main-ui as an entrypoint-only startup bridge", () => {
+        expect.assertions(5);
+
+        const mainUiSource = stripComments(
+            readRepositoryFile("electron-app/main-ui.ts")
+        );
+        const importStatements = mainUiSource.match(/^import\s.+$/gmu) ?? [];
+
+        expect(importStatements).toStrictEqual([
+            'import { initializeMainUiStartup } from "./renderer/mainUiStartup.js";',
+        ]);
+        expect(mainUiSource).toContain("await initializeMainUiStartup()");
+        expect(mainUiSource).toContain(
+            "export const { mainUiDragDropHandler }"
+        );
+        expect(mainUiSource).toContain(
+            "export const { requestMainUiMenuInjection }"
+        );
+        expect(mainUiSource).toContain(
+            "export const { runMainUiDevelopmentCleanup }"
+        );
     });
 
     it("keeps main-ui summary selector DOM timers behind its runtime facade", () => {
@@ -1573,7 +3789,7 @@ describe("architecture boundaries", () => {
             .filter(
                 (relativeFile) =>
                     !stripComments(readRepositoryFile(relativeFile)).includes(
-                        "mainUiSummaryColumnSelector.js"
+                        "mainUiSummaryColumnSelectorRuntime.js"
                     )
             )
             .sort();
@@ -1617,6 +3833,27 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps Browser tab listener abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedFileBrowserTabRuntimeFiles
+            .filter((relativeFile) =>
+                directFileBrowserTabRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const browserTabSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/browser/fileBrowserTab.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(browserTabSource).toContain("fileBrowserTabRuntime.js");
+        expect(browserTabSource).toContain("createAbortController");
+    });
+
     it("keeps add-FIT overlay button state on the active FIT raw-data facade", () => {
         expect.assertions(2);
 
@@ -1646,7 +3883,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings dropdown browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedEnsureChartSettingsDropdownsRuntimeFiles
             .filter((relativeFile) =>
@@ -1660,15 +3897,60 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/components/ensureChartSettingsDropdowns.ts"
             )
         );
+        const chartSettingsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/ensureChartSettingsDropdownsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(chartSettingsSource).toContain(
             "ensureChartSettingsDropdownsRuntime.js"
         );
+        expect(chartSettingsRuntimeSource).not.toMatch(
+            directEnsureChartSettingsDropdownsRuntimeAmbientFallbackPattern
+        );
+        expect(chartSettingsRuntimeSource).toContain(
+            "const timeoutScheduler = scope.setTimeout;"
+        );
+    });
+
+    it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
+        expect.assertions(5);
+
+        const violations = migratedCreateSettingsHeaderRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateSettingsHeaderRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const settingsHeaderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/createSettingsHeader.ts"
+            )
+        );
+        const settingsHeaderRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/createSettingsHeaderRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(settingsHeaderSource).toContain(
+            "createSettingsHeaderRuntime.js"
+        );
+        expect(settingsHeaderSource).toContain("createAbortController");
+        expect(settingsHeaderRuntimeSource).not.toMatch(
+            directCreateSettingsHeaderRuntimeAmbientFallbackPattern
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedCreateFieldTogglesSectionRuntimeFiles
             .filter((relativeFile) =>
@@ -1682,10 +3964,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/components/createFieldTogglesSection.ts"
             )
         );
+        const fieldTogglesRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/createFieldTogglesSectionRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(fieldTogglesSource).toContain(
             "createFieldTogglesSectionRuntime.js"
+        );
+        expect(fieldTogglesRuntimeSource).not.toMatch(
+            directCreateFieldTogglesSectionRuntimeAmbientFallbackPattern
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "createFieldTogglesSection requires a setTimeout runtime"
         );
     });
 
@@ -1712,16 +4005,24 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart controls synchronization on the chart-controls state facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const chartControlsSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/rendering/helpers/updateControlsState.ts"
             )
         );
+        const stateIntegrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/stateIntegration.ts"
+            )
+        );
 
         expect(chartControlsSource).toContain("rendererChartControlsState.js");
         expect(chartControlsSource).not.toContain("state/core/stateManager.js");
+        expect(stateIntegrationSource).not.toContain(
+            "migrateChartControlsState"
+        );
     });
 
     it("keeps chart status raw-data subscriptions on the active FIT facade", () => {
@@ -1738,7 +4039,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart tab integration on renderer state facades", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const chartTabIntegrationSource = stripComments(
             readRepositoryFile(
@@ -1763,6 +4064,7 @@ describe("architecture boundaries", () => {
         expect(chartTabIntegrationSource).not.toContain(
             "instanceof HTMLElement"
         );
+        expect(chartTabIntegrationSource).not.toContain("cleanup()");
     });
 
     it("keeps chart notification state on the chart render-state facade", () => {
@@ -1800,7 +4102,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart state manager on chart and renderer state facades", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const chartStateManagerSource = stripComments(
             readRepositoryFile(
@@ -1815,6 +4117,7 @@ describe("architecture boundaries", () => {
         expect(chartStateManagerSource).not.toContain(
             "state/core/stateManager.js"
         );
+        expect(chartStateManagerSource).not.toContain("cleanup()");
     });
 
     it("keeps chart state manager browser APIs behind the runtime facade", () => {
@@ -1840,8 +4143,8 @@ describe("architecture boundaries", () => {
         expect(sourcesMissingRuntime).toStrictEqual([]);
     });
 
-    it("keeps renderChartJS on the chart state access boundary", () => {
-        expect.assertions(2);
+    it("keeps renderChartJS on chart state access and runtime boundaries", () => {
+        expect.assertions(6);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
@@ -1850,7 +4153,11 @@ describe("architecture boundaries", () => {
         );
 
         expect(renderChartSource).toContain("renderChartStateAccess.js");
+        expect(renderChartSource).toContain("renderChartJSRuntime.js");
         expect(renderChartSource).not.toContain("state/core/stateManager.js");
+        expect(renderChartSource).not.toContain("globalThis.window");
+        expect(renderChartSource).not.toContain("performance.now");
+        expect(renderChartSource).not.toContain("Date.now");
     });
 
     it("keeps chart render helpers on the chart state access boundary", () => {
@@ -1935,6 +4242,150 @@ describe("architecture boundaries", () => {
         expect(settingsModalSource).not.toContain("state/core/stateManager.js");
     });
 
+    it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedKeyboardShortcutsModalRuntimeFiles
+            .filter((relativeFile) =>
+                directKeyboardShortcutsModalTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const keyboardShortcutsModalSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/keyboardShortcutsModal.ts"
+            )
+        );
+        const keyboardShortcutsModalRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/keyboardShortcutsModalRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(keyboardShortcutsModalSource).toContain(
+            "keyboardShortcutsModalRuntime.js"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toMatch(
+            directModalRuntimeAmbientTimerFallbackPattern
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "keyboardShortcutsModalRuntime requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps about modal timing APIs behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedAboutModalRuntimeFiles
+            .filter((relativeFile) =>
+                directAboutModalTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const aboutModalSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/modals/aboutModal.ts")
+        );
+        const aboutModalRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/aboutModalRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(aboutModalSource).toContain("aboutModalRuntime.js");
+        expect(aboutModalRuntimeSource).not.toMatch(
+            directModalRuntimeAmbientTimerFallbackPattern
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "aboutModalRuntime requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps settings modal timing APIs behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedSettingsModalRuntimeFiles
+            .filter((relativeFile) =>
+                directSettingsModalTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const settingsModalSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/settingsModal.ts")
+        );
+        const settingsModalRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/settingsModalRuntime.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(settingsModalSource).toContain("settingsModalRuntime.js");
+        expect(settingsModalRuntimeSource).not.toMatch(
+            directModalRuntimeAmbientTimerFallbackPattern
+        );
+        expect(settingsModalRuntimeSource).toContain(
+            "settingsModalRuntime requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedDragDropHandlerRuntimeFiles
+            .filter((relativeFile) =>
+                directDragDropHandlerTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const dragDropHandlerSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/dragDropHandler.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(dragDropHandlerSource).toContain("dragDropHandlerRuntime.js");
+        expect(dragDropHandlerSource).toContain("createAbortController");
+    });
+
+    it("keeps renderer notification timing APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedShowNotificationRuntimeFiles
+            .filter((relativeFile) =>
+                directShowNotificationTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const notificationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/showNotification.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(notificationSource).toContain("showNotificationRuntime.js");
+    });
+
+    it("keeps update and state-synced notification timers behind the runtime facade", () => {
+        expect.assertions(1);
+
+        const violations = migratedNotificationTimerRuntimeFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return (
+                    directNotificationTimerRuntimeGlobalPattern.test(source) ||
+                    !source.includes("notificationTimerRuntime.js")
+                );
+            })
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
     it("keeps theme setup state access on the renderer theme state facade", () => {
         expect.assertions(2);
 
@@ -1946,25 +4397,34 @@ describe("architecture boundaries", () => {
         expect(setupThemeSource).not.toContain("state/core/stateManager.js");
     });
 
-    it("keeps tab state-manager support on the renderer state access facade", () => {
-        expect.assertions(2);
+    it("keeps tab state-manager support on typed state and document access", () => {
+        expect.assertions(6);
 
         const tabStateManagerSupportSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/ui/tabs/tabStateManagerSupport.ts"
             )
         );
+        const tabStateManagerDocSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/tabs/tabStateManagerDoc.ts")
+        );
 
         expect(tabStateManagerSupportSource).toContain(
             "rendererStateManagerAccess.js"
         );
+        expect(tabStateManagerSupportSource).toContain("tabDocumentRuntime.js");
+        expect(tabStateManagerDocSource).toContain("tabDocumentRuntime.js");
         expect(tabStateManagerSupportSource).not.toContain(
             "state/core/stateManager.js"
         );
+        expect(tabStateManagerSupportSource).not.toContain(
+            "globalThis.document"
+        );
+        expect(tabStateManagerDocSource).not.toContain("globalThis.document");
     });
 
-    it("keeps active-tab updates on the renderer state access facade", () => {
-        expect.assertions(2);
+    it("keeps active-tab updates on typed state access and runtime document resolution", () => {
+        expect.assertions(5);
 
         const updateActiveTabSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/updateActiveTab.ts")
@@ -1973,9 +4433,72 @@ describe("architecture boundaries", () => {
         expect(updateActiveTabSource).toContain(
             "rendererStateManagerAccess.js"
         );
+        expect(updateActiveTabSource).toContain("updateActiveTabRuntime.js");
         expect(updateActiveTabSource).not.toContain(
             "state/core/stateManager.js"
         );
+        expect(updateActiveTabSource).not.toContain("globalThis.document");
+        expect(updateActiveTabSource).not.toContain("globalThis.window");
+    });
+
+    it("keeps active-tab fallback tests on descriptor-scoped browser fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            updateActiveTabFallbackDirectGlobalFixtureMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/updateActiveTab.fallbacks.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps additional theme tests on descriptor-scoped browser fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            themeAdditionalTestDirectGlobalFixtureMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/theming/core/theme.additional.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps UI state manager theme tests on descriptor-scoped matchMedia fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            uiStateManagerTestDirectMatchMediaMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/state/domain/uiStateManager.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
+        expect.assertions(5);
+
+        const uiStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/uiStateManager.ts"
+            )
+        );
+
+        expect(uiStateManagerSource).toContain("uiStateManagerRuntime.js");
+        expect(uiStateManagerSource).toContain("createAbortController");
+        expect(uiStateManagerSource).toContain("addWindowEventListener");
+        expect(uiStateManagerSource).toContain("getSystemThemeMediaQuery");
+        expect(
+            directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
+        ).toBe(false);
     });
 
     it("keeps tab visibility updates on the renderer state access facade", () => {
@@ -1995,8 +4518,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps FIT data display on renderer state facades", () => {
-        expect.assertions(3);
+    it("keeps FIT data display on renderer state facades and runtime adapters", () => {
+        expect.assertions(7);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -2004,9 +4527,15 @@ describe("architecture boundaries", () => {
             )
         );
 
+        expect(showFitDataSource).toContain("showFitDataRuntime.js");
+        expect(showFitDataSource).toContain("getShowFitDataRuntime");
         expect(showFitDataSource).toContain("rendererActiveFileState.js");
         expect(showFitDataSource).toContain("rendererMapRenderState.js");
         expect(showFitDataSource).not.toContain("state/core/stateManager.js");
+        expect(showFitDataSource).not.toContain("resetRenderStates");
+        expect(showFitDataSource).not.toMatch(
+            /\bglobalThis\.(?:matchMedia|scrollTo)\b|(?:^|[^\w.])queueMicrotask\(/u
+        );
     });
 
     it("keeps map base-layer persistence on the map base-layer state facade", () => {
@@ -2018,6 +4547,22 @@ describe("architecture boundaries", () => {
 
         expect(renderMapSource).toContain("mapBaseLayerState.js");
         expect(renderMapSource).not.toContain("state/core/stateManager.js");
+    });
+
+    it("keeps render-map timing and abort controllers behind the runtime adapter", () => {
+        expect.assertions(3);
+
+        const renderMapSource = stripComments(
+            readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
+        );
+        const directRenderMapTimingGlobalPattern =
+            /\b(?:globalThis|window)\.(?:requestAnimationFrame|clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:requestAnimationFrame|clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+
+        expect(renderMapSource).toContain("renderMapRuntime.js");
+        expect(renderMapSource).toContain("createAbortController");
+        expect(directRenderMapTimingGlobalPattern.test(renderMapSource)).toBe(
+            false
+        );
     });
 
     it("keeps file-open handling off direct core state-manager imports", () => {
@@ -2085,6 +4630,26 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps state-manager defaults on scoped runtime access", () => {
+        expect.assertions(5);
+
+        const stateManagerDefaultsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateManagerDefaults.ts"
+            )
+        );
+
+        expect(stateManagerDefaultsSource).toContain(
+            "stateManagerDefaultsRuntime.js"
+        );
+        expect(stateManagerDefaultsSource).not.toContain(
+            "globalThis.performance"
+        );
+        expect(stateManagerDefaultsSource).not.toContain("Date.now");
+        expect(stateManagerDefaultsSource).not.toContain("typeof document");
+        expect(stateManagerDefaultsSource).not.toContain("document.title");
+    });
+
     it("keeps Playwright smoke state assertions on explicit FIT activity slices", () => {
         expect.assertions(3);
 
@@ -2102,6 +4667,20 @@ describe("architecture boundaries", () => {
             "./utils/state/domain/fitActivityDataState.js"
         );
         expect(smokeSource).toContain("getActiveFitActivityData");
+    });
+
+    it("keeps Playwright popup fixtures descriptor-scoped", () => {
+        expect.assertions(1);
+
+        const directWindowOpenMutations = playwrightSmokeFiles
+            .filter((relativeFile) =>
+                directPlaywrightWindowOpenMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directWindowOpenMutations).toStrictEqual([]);
     });
 
     it("keeps direct raw FIT data selectors quarantined to the active raw-data domain helper", () => {
@@ -2203,6 +4782,20 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps resize listener tests from mutating legacy chart globals", () => {
+        expect.assertions(1);
+
+        expect(
+            listenersResizeChartGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/app/lifecycle/listenersResize.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
     it("keeps migrated chart notification callers on typed imports", () => {
         expect.assertions(1);
 
@@ -2217,8 +4810,8 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps shared error handling on explicit notification callbacks", () => {
-        expect.assertions(2);
+    it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
+        expect.assertions(5);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -2227,11 +4820,48 @@ describe("architecture boundaries", () => {
         expect(
             directShowNotificationGlobalLookupPattern.test(errorHandlingSource)
         ).toBe(false);
+        expect(
+            errorHandlingPerformanceMonitorGlobalLookupPattern.test(
+                errorHandlingSource
+            )
+        ).toBe(false);
+        expect(
+            directErrorHandlingRuntimeGlobalPattern.test(errorHandlingSource)
+        ).toBe(false);
         expect(errorHandlingSource).toContain("notifyUser");
+        expect(errorHandlingSource).toContain("errorHandlingRuntime.js");
+    });
+
+    it("keeps accent color picker listener abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const accentColorPickerSource = stripComments(
+            readRepositoryFile("electron-app/ui/modals/accentColorPicker.ts")
+        );
+
+        expect(
+            directAccentColorPickerRuntimeGlobalPattern.test(
+                accentColorPickerSource
+            )
+        ).toBe(false);
+        expect(accentColorPickerSource).toContain(
+            "accentColorPickerRuntime.js"
+        );
+        expect(accentColorPickerSource).toContain("createAbortController");
+    });
+
+    it("keeps error handling tests off ambient performance monitor fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            errorHandlingTestDirectPerformanceMonitorFixturePattern.test(
+                stripComments(readRepositoryFile("tests/unit/utils/errorHandling.test.ts"))
+            )
+        ).toBe(false);
     });
 
     it("keeps migrated renderer debug logging callers on typed state", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const violations = migratedRendererDebugLoggingStateFiles
             .filter((relativeFile) =>
@@ -2242,6 +4872,78 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+        expect(
+            migratedRendererDebugLoggingStateFiles.filter((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "globalThis.window"
+                )
+            )
+        ).toStrictEqual([]);
+    });
+
+    it("keeps renderer debug logging runtime checks behind the debug runtime adapter", () => {
+        expect.assertions(3);
+
+        for (const relativeFile of migratedRendererDebugLoggingStateFiles) {
+            expect(stripComments(readRepositoryFile(relativeFile))).toContain(
+                "rendererDebugRuntime.js"
+            );
+        }
+    });
+
+    it("keeps animation debug logging clocks behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const lastAnimLogSource = stripComments(
+            readRepositoryFile("electron-app/utils/debug/lastAnimLog.ts")
+        );
+
+        expect(directLastAnimLogRuntimeGlobalPattern.test(lastAnimLogSource)).toBe(
+            false
+        );
+        expect(lastAnimLogSource).toContain("lastAnimLogRuntime.js");
+    });
+
+    it("keeps animation debug logging tests off renderer dev globals", () => {
+        expect.assertions(1);
+
+        expect(
+            directRendererDevGlobalPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/debug/lastAnimLog.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps strict renderer startup tests off renderer dev globals", () => {
+        expect.assertions(1);
+
+        expect(
+            directRendererDevGlobalPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/electron/renderer.strict.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps renderer development debug tests from mutating retired debug globals", () => {
+        expect.assertions(1);
+
+        expect(
+            rendererDevelopmentDebugGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/renderer/developmentDebugTools.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps renderer development debug helpers off global surfaces", () => {
@@ -2273,15 +4975,207 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
-    it("keeps state development tools on the debug state access facade", () => {
-        expect.assertions(2);
+    it("keeps state devtools tests from mutating retired state debug globals", () => {
+        expect.assertions(1);
+
+        expect(
+            stateDevToolsTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/debug/stateDevTools.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps state integration tests from mutating retired state globals", () => {
+        expect.assertions(1);
+
+        const violations = [
+            "tests/unit/utils/state/integration/stateIntegration.simple.test.ts",
+            "tests/unit/utils/state/integration/stateIntegration.comprehensive.test.ts",
+        ]
+            .filter((relativeFile) =>
+                stateIntegrationRetiredGlobalMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps state integration tests on descriptor-scoped browser fixtures", () => {
+        expect.assertions(1);
+
+        const violations = [
+            "tests/unit/utils/state/integration/stateIntegration.simple.test.ts",
+            "tests/unit/utils/state/integration/stateIntegration.comprehensive.test.ts",
+        ]
+            .filter((relativeFile) =>
+                stateIntegrationBrowserGlobalFixtureMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps master state manager tests on descriptor-scoped global fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            masterStateManagerTestDirectGlobalFixtureMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/state/core/masterStateManager.comprehensive.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps master state manager browser runtime access behind the runtime adapter", () => {
+        expect.assertions(8);
+
+        const masterStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/masterStateManager.ts"
+            )
+        );
+
+        expect(masterStateManagerSource).toContain("masterStateRuntime.js");
+        expect(masterStateManagerSource).toContain("createAbortController");
+        expect(masterStateManagerSource).not.toMatch(/\bnew\s+AbortController\b/u);
+        expect(masterStateManagerSource).not.toContain("globalThis.window");
+        expect(masterStateManagerSource).not.toContain("globalThis.location");
+        expect(masterStateManagerSource).not.toContain(
+            "globalThis.addEventListener"
+        );
+        expect(masterStateManagerSource).not.toContain(
+            "globalThis.dispatchEvent"
+        );
+        expect(masterStateManagerSource).not.toContain("window.addEventListener");
+    });
+
+    it("keeps computed state manager theme media reads behind the runtime adapter", () => {
+        expect.assertions(4);
+
+        const computedStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/computedStateManager.ts"
+            )
+        );
+
+        expect(computedStateManagerSource).toContain(
+            "computedStateManagerRuntime.js"
+        );
+        expect(computedStateManagerSource).toContain("isDarkSchemePreferred");
+        expect(computedStateManagerSource).not.toContain(
+            "globalThis.matchMedia"
+        );
+        expect(computedStateManagerSource).not.toContain(
+            "prefers-color-scheme: dark"
+        );
+    });
+
+    it("keeps state development tools on typed state and runtime access", () => {
+        expect.assertions(5);
 
         const stateDevToolsSource = stripComments(
             readRepositoryFile("electron-app/utils/debug/stateDevTools.ts")
         );
 
         expect(stateDevToolsSource).toContain("debugStateAccess.js");
+        expect(stateDevToolsSource).toContain("stateDevToolsRuntime.js");
         expect(stateDevToolsSource).not.toContain("state/core/stateManager.js");
+        expect(stateDevToolsSource).not.toContain("globalThis.window");
+        expect(stateDevToolsSource).not.toContain("globalThis.location");
+    });
+
+    it("keeps state development tools interval APIs behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedStateDevToolsRuntimeFiles
+            .filter((relativeFile) =>
+                directStateDevToolsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const stateDevToolsSource = stripComments(
+            readRepositoryFile("electron-app/utils/debug/stateDevTools.ts")
+        );
+        const stateDevToolsRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/debug/stateDevToolsRuntime.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(stateDevToolsSource).toContain("stateDevToolsRuntime.js");
+        expect(stateDevToolsRuntimeSource).not.toMatch(
+            directStateDevToolsRuntimeAmbientIntervalFallbackPattern
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "stateDevToolsRuntime requires setInterval"
+        );
+    });
+
+    it("keeps state integration runtime APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedStateIntegrationRuntimeFiles
+            .filter((relativeFile) =>
+                directStateIntegrationRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const stateIntegrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/stateIntegration.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(stateIntegrationSource).toContain("stateIntegrationRuntime.js");
+    });
+
+    it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
+        expect.assertions(5);
+
+        const violations = migratedRendererStateIntegrationRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererStateIntegrationRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const rendererStateIntegrationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/rendererStateIntegration.ts"
+            )
+        );
+        const rendererStateIntegrationRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/integration/rendererStateIntegrationRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(rendererStateIntegrationSource).toContain(
+            "rendererStateIntegrationRuntime.js"
+        );
+        expect(rendererStateIntegrationSource).toContain(
+            "createAbortController"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toMatch(
+            directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "rendererStateIntegration requires a setTimeout runtime"
+        );
     });
 
     it("keeps app lifecycle actions on the app-actions state facade", () => {
@@ -2293,6 +5187,112 @@ describe("architecture boundaries", () => {
 
         expect(appActionsSource).toContain("appActionsState.js");
         expect(appActionsSource).not.toContain("state/core/stateManager.js");
+    });
+
+    it("keeps resource manager window cleanup and timer clearing behind the runtime adapter", () => {
+        expect.assertions(7);
+
+        const resourceManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/resourceManager.ts"
+            )
+        );
+        const resourceManagerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/resourceManagerRuntime.ts"
+            )
+        );
+        const directResourceManagerRuntimeGlobalPattern =
+            /\b(?:globalThis|window)\.(?:clearTimeout|addEventListener)\b|(?:^|[^\w.])clearTimeout\(/u;
+        const directResourceManagerRuntimeAmbientTimerFallbackPattern =
+            /\bscope\.clearTimeout\s*\?\?\s*globalThis\.clearTimeout\b|\bglobalThis\.clearTimeout\s*\(/u;
+
+        expect(resourceManagerSource).toContain("resourceManagerRuntime.js");
+        expect(resourceManagerSource).not.toContain("globalThis.window");
+        expect(resourceManagerSource).not.toContain("window.addEventListener");
+        expect(resourceManagerSource).not.toContain("AbortController");
+        expect(
+            directResourceManagerRuntimeGlobalPattern.test(
+                resourceManagerSource
+            )
+        ).toBe(false);
+        expect(resourceManagerRuntimeSource).not.toMatch(
+            directResourceManagerRuntimeAmbientTimerFallbackPattern
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "resourceManager requires clearTimeout"
+        );
+    });
+
+    it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
+        expect.assertions(8);
+
+        const recentFilesContextMenuSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/recentFilesContextMenu.ts"
+            )
+        );
+        const recentFilesContextMenuRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/recentFilesContextMenuRuntime.ts"
+            )
+        );
+        const directRecentFilesContextMenuRuntimeGlobalPattern =
+            /\b(?:globalThis|window)\.(?:clearTimeout|innerHeight|innerWidth|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+        const directRecentFilesContextMenuAmbientTimerFallbackPattern =
+            /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+
+        expect(recentFilesContextMenuSource).toContain(
+            "recentFilesContextMenuRuntime.js"
+        );
+        expect(recentFilesContextMenuSource).toContain(
+            "createAbortController"
+        );
+        expect(recentFilesContextMenuSource).not.toContain("globalThis.window");
+        expect(recentFilesContextMenuSource).not.toContain("window.innerWidth");
+        expect(recentFilesContextMenuSource).not.toContain("window.innerHeight");
+        expect(
+            directRecentFilesContextMenuRuntimeGlobalPattern.test(
+                recentFilesContextMenuSource
+            )
+        ).toBe(false);
+        expect(recentFilesContextMenuRuntimeSource).not.toMatch(
+            directRecentFilesContextMenuAmbientTimerFallbackPattern
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "recent files context menu requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
+        expect.assertions(5);
+
+        const lifecycleListenersSource = stripComments(
+            readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
+        );
+        const lifecycleListenersRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/listenersRuntime.ts"
+            )
+        );
+        const directLifecycleListenersTimerGlobalPattern =
+            /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+        const directLifecycleListenersAmbientTimerFallbackPattern =
+            /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+
+        expect(lifecycleListenersSource).toContain("listenersRuntime.js");
+        expect(lifecycleListenersSource).toContain("createAbortController");
+        expect(
+            directLifecycleListenersTimerGlobalPattern.test(
+                lifecycleListenersSource
+            )
+        ).toBe(false);
+        expect(lifecycleListenersRuntimeSource).not.toMatch(
+            directLifecycleListenersAmbientTimerFallbackPattern
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "lifecycle listeners require a setTimeout runtime"
+        );
     });
 
     it("keeps migrated state history readers on the typed history API", () => {
@@ -2325,7 +5325,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated chart lifecycle paths on the chart instance registry", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const violations = migratedChartInstanceRegistryFiles
             .filter((relativeFile) =>
@@ -2334,8 +5334,16 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const renderChartRuntimeHelpersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartRuntimeHelpers.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(renderChartRuntimeHelpersSource).not.toContain(
+            "getGlobalChartActions"
+        );
     });
 
     it("keeps app source off legacy Chart.js canvas expandos", () => {
@@ -2365,6 +5373,26 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps renderer development debug runtime metadata behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererDevelopmentDebugToolsRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererDevelopmentDebugToolsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const developmentDebugToolsSource = stripComments(
+            readRepositoryFile("electron-app/renderer/developmentDebugTools.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(developmentDebugToolsSource).toContain(
+            "developmentDebugToolsRuntime.js"
+        );
     });
 
     it("keeps table renderer browser APIs behind the runtime facade", () => {
@@ -2407,7 +5435,7 @@ describe("architecture boundaries", () => {
 
         const vendorChartDataEntry = stripComments(
             readRepositoryFile(
-                "electron-app/renderer/vendorGlobalsChartData.ts"
+                "electron-app/renderer/rendererVendorChartData.ts"
             )
         );
 
@@ -2422,7 +5450,7 @@ describe("architecture boundaries", () => {
 
         const vendorChartDataEntry = stripComments(
             readRepositoryFile(
-                "electron-app/renderer/vendorGlobalsChartData.ts"
+                "electron-app/renderer/rendererVendorChartData.ts"
             )
         );
 
@@ -2458,8 +5486,8 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/core/dataTableRuntime.ts"
             )
         );
-        const vendorGlobalsSharedSource = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsShared.ts")
+        const rendererVendorSharedSource = stripComments(
+            readRepositoryFile("electron-app/renderer/rendererVendorShared.ts")
         );
 
         expect(chartRuntimeSource).not.toContain("Symbol.for");
@@ -2468,9 +5496,9 @@ describe("architecture boundaries", () => {
         expect(chartInstanceRegistrySource).not.toContain("globalThis");
         expect(dataTableRuntimeSource).not.toContain("Symbol.for");
         expect(dataTableRuntimeSource).not.toContain("globalThis");
-        expect(vendorGlobalsSharedSource).not.toContain("Symbol.for");
-        expect(vendorGlobalsSharedSource).not.toContain("globalThis &");
-        expect(vendorGlobalsSharedSource).not.toContain(
+        expect(rendererVendorSharedSource).not.toContain("Symbol.for");
+        expect(rendererVendorSharedSource).not.toContain("globalThis &");
+        expect(rendererVendorSharedSource).not.toContain(
             "rendererVendorRuntimePayloads"
         );
     });
@@ -2507,11 +5535,24 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
     });
 
+    it("keeps DOM helper listener cleanup behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const domHelpersSource = stripComments(
+            readRepositoryFile("electron-app/utils/dom/domHelpers.ts")
+        );
+
+        expect(directDomHelpersRuntimeGlobalPattern.test(domHelpersSource)).toBe(
+            false
+        );
+        expect(domHelpersSource).toContain("domHelpersRuntime.js");
+    });
+
     it("keeps DOMPurify wired through the runtime adapter instead of a renderer global", () => {
         expect.assertions(2);
 
         const vendorCoreEntry = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+            readRepositoryFile("electron-app/renderer/rendererVendorCore.ts")
         );
 
         expect(vendorCoreEntry).toContain("domPurifyRuntime: DOMPurify");
@@ -2538,7 +5579,7 @@ describe("architecture boundaries", () => {
         expect.assertions(3);
 
         const vendorCoreEntry = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+            readRepositoryFile("electron-app/renderer/rendererVendorCore.ts")
         );
 
         expect(vendorCoreEntry).toContain("arqueroRuntime: arquero");
@@ -2564,7 +5605,7 @@ describe("architecture boundaries", () => {
         expect.assertions(2);
 
         const vendorCoreEntry = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+            readRepositoryFile("electron-app/renderer/rendererVendorCore.ts")
         );
 
         expect(vendorCoreEntry).toContain("exportZipRuntime: JSZip");
@@ -2572,7 +5613,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps print button browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedCreatePrintButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -2591,10 +5632,31 @@ describe("architecture boundaries", () => {
         expect(createPrintButtonSource).toContain(
             "createPrintButtonRuntime.js"
         );
+        expect(createPrintButtonSource).toContain("createAbortController");
+    });
+
+    it("keeps CSV clipboard browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedCopyTableAsCSVRuntimeFiles
+            .filter((relativeFile) =>
+                directCopyTableAsCSVRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const copyTableAsCSVSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/export/copyTableAsCSV.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(copyTableAsCSVSource).toContain("copyTableAsCSVRuntime.js");
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const violations = migratedCreateExportGPXButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -2608,10 +5670,22 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/export/createExportGPXButton.ts"
             )
         );
+        const createExportGPXButtonRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/export/createExportGPXButtonRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(createExportGPXButtonSource).toContain(
             "createExportGPXButtonRuntime.js"
+        );
+        expect(createExportGPXButtonSource).toContain("createAbortController");
+        expect(createExportGPXButtonRuntimeSource).not.toMatch(
+            directCreateExportGPXButtonRuntimeAmbientFallbackPattern
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
         );
     });
 
@@ -2703,6 +5777,31 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps power-estimation settings modal listener abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedOpenPowerEstimationSettingsModalRuntimeFiles
+            .filter((relativeFile) =>
+                directOpenPowerEstimationSettingsModalRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const powerEstimationSettingsModalSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/openPowerEstimationSettingsModal.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(powerEstimationSettingsModalSource).toContain(
+            "openPowerEstimationSettingsModalRuntime.js"
+        );
+        expect(powerEstimationSettingsModalSource).toContain(
+            "createAbortController"
+        );
+    });
+
     it("keeps marker-count selector browser APIs behind the runtime facade", () => {
         expect.assertions(2);
 
@@ -2726,7 +5825,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter control browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedCreateDataPointFilterControlRuntimeFiles
             .filter((relativeFile) =>
@@ -2740,11 +5839,36 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createDataPointFilterControl.ts"
             )
         );
+        const dataPointFilterControlRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createDataPointFilterControlRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(dataPointFilterControlSource).toContain(
             "createDataPointFilterControlRuntime.js"
         );
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
+            "globalThis.AbortController"
+        );
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
+            "globalThis.queueMicrotask"
+        );
+    });
+
+    it("keeps data-point filter control tests on descriptor-scoped async fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            createDataPointFilterControlTestDirectAsyncGlobalAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/controls/createDataPointFilterControl.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
     });
 
     it("keeps HR zone controls browser APIs behind the runtime facade", () => {
@@ -2896,7 +6020,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated fullscreen controls on the screenfull runtime adapter", () => {
-        expect.assertions(1);
+        expect.assertions(4);
 
         const violations = migratedScreenfullRuntimeFiles
             .filter((relativeFile) =>
@@ -2905,15 +6029,46 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const fullscreenButtonSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/addFullScreenButton.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(fullscreenButtonSource).toContain("setupFullscreenListeners");
+        expect(fullscreenButtonSource).not.toContain("setupDOMContentLoaded");
+        expect(fullscreenButtonSource).not.toContain("Legacy DOM setup");
+    });
+
+    it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedAddFullScreenButtonRuntimeFiles
+            .filter((relativeFile) =>
+                directAddFullScreenButtonRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const fullscreenButtonSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/addFullScreenButton.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(fullscreenButtonSource).toContain(
+            "addFullScreenButtonRuntime.js"
+        );
+        expect(fullscreenButtonSource).toContain("createAbortController");
     });
 
     it("keeps screenfull wired through the runtime adapter instead of a renderer global", () => {
         expect.assertions(2);
 
         const vendorCoreEntry = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsCore.ts")
+            readRepositoryFile("electron-app/renderer/rendererVendorCore.ts")
         );
 
         expect(vendorCoreEntry).toContain("screenfullRuntime: screenfull");
@@ -3000,7 +6155,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map action timers behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedMapActionButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -3014,13 +6169,201 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/maps/controls/mapActionButtons.ts"
             )
         );
+        const mapActionButtonsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/controls/mapActionButtonsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(mapActionButtonsSource).toContain("mapActionButtonsRuntime.js");
+        expect(mapActionButtonsRuntimeSource).not.toMatch(
+            directMapActionButtonsRuntimeAmbientFallbackPattern
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
+    });
+
+    it("keeps map document listeners behind the runtime facade", () => {
+        expect.assertions(7);
+
+        const violations = migratedMapDocumentListenersRuntimeFiles
+            .filter((relativeFile) =>
+                directMapDocumentListenersRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapDocumentListenersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/core/mapDocumentListeners.ts"
+            )
+        );
+        const mapDocumentListenersRuntimeSource = stripComments(
+            readRepositoryFile(mapDocumentListenersRuntimeSourceFile)
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapDocumentListenersSource).toContain(
+            "mapDocumentListenersRuntime.js"
+        );
+        expect(mapDocumentListenersSource).toContain("createAbortController");
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "const runtimeDocument = scope.document;"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "const runtimeWindow = scope.window;"
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
+            "globalThis.window"
+        );
+    });
+
+    it("keeps map fullscreen-control timers behind the runtime facade", () => {
+        expect.assertions(7);
+
+        const violations = migratedMapFullscreenControlRuntimeFiles
+            .filter((relativeFile) =>
+                directMapFullscreenControlRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapFullscreenControlSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/controls/mapFullscreenControl.ts"
+            )
+        );
+        const mapFullscreenControlRuntimeSource = stripComments(
+            readRepositoryFile(mapFullscreenControlRuntimeSourceFile)
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapFullscreenControlSource).toContain(
+            "mapFullscreenControlRuntime.js"
+        );
+        expect(mapFullscreenControlSource).toContain("createAbortController");
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "const runtimeDocument = scope.document;"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toMatch(
+            directMapFullscreenControlRuntimeAmbientFallbackPattern
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
+    });
+
+    it("keeps map measure-tool timers behind the runtime facade", () => {
+        expect.assertions(8);
+
+        const violations = migratedMapMeasureToolRuntimeFiles
+            .filter((relativeFile) =>
+                directMapMeasureToolRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapMeasureToolSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/controls/mapMeasureTool.ts"
+            )
+        );
+        const mapMeasureToolRuntimeSource = stripComments(
+            readRepositoryFile(mapMeasureToolRuntimeSourceFile)
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapMeasureToolSource).toContain("mapMeasureToolRuntime.js");
+        expect(mapMeasureToolSource).toContain("createAbortController");
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "const runtimeDocument = scope.document;"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toMatch(
+            directMapMeasureToolRuntimeAmbientFallbackPattern
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "runtimeDocument.removeEventListener"
+        );
+    });
+
+    it("keeps map lap-selector document listeners behind the runtime facade", () => {
+        expect.assertions(6);
+
+        const violations = migratedMapLapSelectorRuntimeFiles
+            .filter((relativeFile) =>
+                directMapLapSelectorRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapLapSelectorSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/controls/mapLapSelector.ts"
+            )
+        );
+        const mapLapSelectorRuntimeSource = stripComments(
+            readRepositoryFile(mapLapSelectorRuntimeSourceFile)
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapLapSelectorSource).toContain("mapLapSelectorRuntime.js");
+        expect(mapLapSelectorSource).toContain("createAbortController");
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "const runtimeDocument = scope.document;"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "runtimeDocument.removeEventListener"
+        );
+    });
+
+    it("keeps map draw-laps timers behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedMapDrawLapsRuntimeFiles
+            .filter((relativeFile) =>
+                directMapDrawLapsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapDrawLapsSource = stripComments(
+            readRepositoryFile("electron-app/utils/maps/layers/mapDrawLaps.ts")
+        );
+        const mapDrawLapsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/maps/layers/mapDrawLapsRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapDrawLapsSource).toContain("mapDrawLapsRuntime.js");
+        expect(mapDrawLapsRuntimeSource).not.toMatch(
+            directMapDrawLapsRuntimeAmbientFallbackPattern
+        );
+        expect(mapDrawLapsRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedOpenFileSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -3037,6 +6380,52 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(openFileSelectorSource).toContain("openFileSelectorRuntime.js");
+        expect(openFileSelectorSource).toContain("createAbortController");
+    });
+
+    it("keeps overlay file load concurrency metadata behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedLoadOverlayFilesRuntimeFiles
+            .filter((relativeFile) =>
+                directLoadOverlayFilesRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const loadOverlayFilesSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/loadOverlayFiles.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(loadOverlayFilesSource).toContain("loadOverlayFilesRuntime.js");
+    });
+
+    it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedLoadSingleOverlayFileRuntimeFiles
+            .filter((relativeFile) =>
+                directLoadSingleOverlayFileRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const loadSingleOverlayFileSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/loadSingleOverlayFile.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(loadSingleOverlayFileSource).toContain(
+            "loadSingleOverlayFileRuntime.js"
+        );
+        expect(loadSingleOverlayFileSource).toContain(
+            "createAbortController"
+        );
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
@@ -3062,7 +6451,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated AltFit handoff defaults behind the runtime facade", () => {
-        expect.assertions(1);
+        expect.assertions(3);
 
         const violations = migratedAltFitSenderRuntimeFiles
             .filter((relativeFile) =>
@@ -3072,11 +6461,19 @@ describe("architecture boundaries", () => {
             )
             .sort();
 
+        const altFitSenderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/sendFitFileToAltFitReader.ts"
+            )
+        );
+
         expect(violations).toStrictEqual([]);
+        expect(altFitSenderSource).toContain("altFitSenderRuntime.js");
+        expect(altFitSenderSource).toContain("createAbortController");
     });
 
     it("keeps shared configuration URL reads behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedLoadSharedConfigurationRuntimeFiles
             .filter((relativeFile) =>
@@ -3090,15 +6487,59 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/initialization/loadSharedConfiguration.ts"
             )
         );
+        const loadSharedConfigurationRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/loadSharedConfigurationRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(loadSharedConfigurationSource).toContain(
             "loadSharedConfigurationRuntime.js"
         );
+        expect(loadSharedConfigurationRuntimeSource).not.toMatch(
+            directLoadSharedConfigurationRuntimeAmbientFallbackPattern
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
+    });
+
+    it("keeps current settings reset timers behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedGetCurrentSettingsRuntimeFiles
+            .filter((relativeFile) =>
+                directGetCurrentSettingsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const getCurrentSettingsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/getCurrentSettings.ts"
+            )
+        );
+        const getCurrentSettingsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/getCurrentSettingsRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(getCurrentSettingsSource).toContain(
+            "getCurrentSettingsRuntime.js"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toMatch(
+            directGetCurrentSettingsRuntimeAmbientFallbackPattern
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
     });
 
     it("keeps lazy rendering browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedLazyRenderingRuntimeFiles
             .filter((relativeFile) =>
@@ -3112,13 +6553,24 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/performance/lazyRenderingUtils.ts"
             )
         );
+        const lazyRenderingRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/performance/lazyRenderingRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(lazyRenderingUtilsSource).toContain("lazyRenderingRuntime.js");
+        expect(lazyRenderingRuntimeSource).not.toMatch(
+            directLazyRenderingRuntimeAmbientFallbackPattern
+        );
+        expect(lazyRenderingRuntimeSource).toContain(
+            "const timeout = scope.setTimeout;"
+        );
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const violations = migratedListenersResizeRuntimeFiles
             .filter((relativeFile) =>
@@ -3132,9 +6584,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/lifecycle/listenersResize.ts"
             )
         );
+        const listenersResizeRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/lifecycle/listenersResizeRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(listenersResizeSource).toContain("listenersResizeRuntime.js");
+        expect(listenersResizeSource).toContain("createAbortController");
+        expect(listenersResizeRuntimeSource).not.toMatch(
+            directListenersResizeRuntimeAmbientTimerFallbackPattern
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "listenersResize requires a setTimeout runtime"
+        );
     });
 
     it("keeps chart theme browser reads behind the runtime facade", () => {
@@ -3155,6 +6619,65 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(chartThemeUtilsSource).toContain("chartThemeRuntime.js");
+    });
+
+    it("keeps core theme transition timers behind the runtime facade", () => {
+        expect.assertions(7);
+
+        const violations = migratedThemeCoreRuntimeFiles
+            .filter((relativeFile) =>
+                directThemeCoreRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const themeCoreSource = stripComments(
+            readRepositoryFile("electron-app/utils/theming/core/theme.ts")
+        );
+        const themeRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/theming/core/themeRuntime.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(themeCoreSource).toContain("themeRuntime.js");
+        expect(themeCoreSource).toContain("createAbortController");
+        expect(themeCoreSource).toContain("getSystemThemeMediaQuery");
+        expect(themeCoreSource).toContain("getWindowEventTarget");
+        expect(themeRuntimeSource).not.toMatch(
+            directThemeCoreRuntimeAmbientTimerFallbackPattern
+        );
+        expect(themeRuntimeSource).toContain(
+            "theme core requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps setup theme fetch timers behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedSetupThemeRuntimeFiles
+            .filter((relativeFile) =>
+                directSetupThemeRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const setupThemeSource = stripComments(
+            readRepositoryFile("electron-app/utils/theming/core/setupTheme.ts")
+        );
+        const setupThemeRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/theming/core/setupThemeRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(setupThemeSource).toContain("setupThemeRuntime.js");
+        expect(setupThemeRuntimeSource).not.toMatch(
+            directSetupThemeRuntimeAmbientFallbackPattern
+        );
+        expect(setupThemeRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
     });
 
     it("keeps chart theme listener browser APIs behind the runtime facade", () => {
@@ -3179,8 +6702,49 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps map theme toggle browser APIs behind the runtime facade", () => {
+        expect.assertions(8);
+
+        const violations = migratedMapThemeToggleRuntimeFiles
+            .filter((relativeFile) =>
+                directMapThemeToggleRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const mapThemeToggleStateSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/theming/specific/mapThemeToggleState.ts"
+            )
+        );
+        const mapThemeToggleRuntimeSource = stripComments(
+            readRepositoryFile(mapThemeToggleRuntimeSourceFile)
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(mapThemeToggleStateSource).toContain(
+            "mapThemeToggleRuntime.js"
+        );
+        expect(mapThemeToggleStateSource).toContain(
+            "createAbortController"
+        );
+        expect(mapThemeToggleStateSource).toContain("addDocumentListener");
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "const runtimeDocument = scope.document;"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toMatch(
+            directMapThemeToggleRuntimeAmbientFallbackPattern
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
+    });
+
     it("keeps map theme browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedUpdateMapThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -3197,6 +6761,7 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(updateMapThemeSource).toContain("updateMapThemeRuntime.js");
+        expect(updateMapThemeSource).toContain("createAbortController");
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
@@ -3292,7 +6857,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart listener AbortController creation behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedChartListenerStateRuntimeFiles
             .filter((relativeFile) =>
@@ -3309,9 +6874,20 @@ describe("architecture boundaries", () => {
                     )
             )
             .sort();
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartListenerStateRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(runtimeSource).not.toMatch(
+            directChartListenerStateRuntimeAmbientControllerPattern
+        );
+        expect(runtimeSource).toContain(
+            "const AbortControllerConstructor = scope.AbortController;"
+        );
     });
 
     it("keeps direct chart rerender DOM lookups behind the runtime facade", () => {
@@ -3432,7 +7008,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps summary column modal viewport reads behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -3449,6 +7025,51 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(summaryColModalSource).toContain("summaryColModalRuntime.js");
+        expect(summaryColModalSource).toContain("createAbortController");
+    });
+
+    it("keeps user/device info box listener cleanup behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedUserDeviceInfoBoxRuntimeFiles
+            .filter((relativeFile) =>
+                directUserDeviceInfoBoxRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const userDeviceInfoBoxSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/components/createUserDeviceInfoBox.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(userDeviceInfoBoxSource).toContain(
+            "createUserDeviceInfoBoxRuntime.js"
+        );
+        expect(userDeviceInfoBoxSource).toContain("createAbortController");
+    });
+
+    it("keeps render-summary scheduling APIs behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedRenderSummaryRuntimeFiles
+            .filter((relativeFile) =>
+                directRenderSummarySchedulingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const renderSummarySource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(renderSummarySource).toContain("renderSummaryRuntime.js");
+        expect(renderSummarySource).toContain("createAbortController");
     });
 
     it("keeps controls-state computed style reads behind the runtime facade", () => {
@@ -3538,7 +7159,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab visibility browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedUpdateTabVisibilityRuntimeFiles
             .filter((relativeFile) =>
@@ -3552,15 +7173,286 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/tabs/updateTabVisibility.ts"
             )
         );
+        const updateTabVisibilityRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/updateTabVisibilityRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(updateTabVisibilitySource).toContain(
             "updateTabVisibilityRuntime.js"
         );
+        expect(updateTabVisibilityRuntimeSource).not.toMatch(
+            directUpdateTabVisibilityRuntimeAmbientTimerFallbackPattern
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "updateTabVisibility requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps renderer application startup browser primitives behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedRendererApplicationStartupRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererApplicationStartupRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const applicationStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/applicationStartup.ts")
+        );
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/applicationStartupRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(applicationStartupSource).toContain(
+            "applicationStartupRuntime.js"
+        );
+        expect(runtimeSource).not.toMatch(
+            directRendererApplicationStartupRuntimeAmbientFallbackPattern
+        );
+        expect(runtimeSource).toContain("scope.AbortController");
+    });
+
+    it("keeps renderer application lifecycle abort controllers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererApplicationLifecycleWiringRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererApplicationLifecycleWiringRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const lifecycleWiringSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/applicationLifecycleWiring.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(lifecycleWiringSource).toContain(
+            "applicationLifecycleWiringRuntime.js"
+        );
+    });
+
+    it("keeps renderer file-input abort controllers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererFileInputStartupRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererFileInputStartupRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const fileInputStartupSource = stripComments(
+            readRepositoryFile("electron-app/renderer/fileInputStartup.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(fileInputStartupSource).toContain(
+            "fileInputStartupRuntime.js"
+        );
+    });
+
+    it("keeps renderer test-only bootstrap abort controllers behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererTestOnlyBootstrapRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererTestOnlyBootstrapRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const testOnlyBootstrapSource = stripComments(
+            readRepositoryFile("electron-app/renderer/testOnlyBootstrap.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(testOnlyBootstrapSource).toContain(
+            "testOnlyBootstrapRuntime.js"
+        );
+    });
+
+    it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const violations = migratedRendererVendorBundleLoaderRuntimeFiles
+            .filter((relativeFile) =>
+                directRendererVendorBundleLoaderRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const vendorBundleLoaderSource = stripComments(
+            readRepositoryFile("electron-app/renderer/vendorBundleLoader.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(vendorBundleLoaderSource).toContain(
+            "vendorBundleLoaderRuntime.js"
+        );
+    });
+
+    it("keeps network fetch and timeout APIs behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedNetworkUtilsRuntimeFiles
+            .filter((relativeFile) =>
+                directNetworkUtilsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const networkUtilsSource = stripComments(
+            readRepositoryFile("electron-app/utils/net/networkUtils.ts")
+        );
+        const networkUtilsRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/net/networkUtilsRuntime.ts")
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(networkUtilsSource).toContain("networkUtilsRuntime.js");
+        expect(networkUtilsRuntimeSource).not.toMatch(
+            directNetworkUtilsRuntimeAmbientFallbackPattern
+        );
+        expect(networkUtilsRuntimeSource).toContain(
+            "const fetchRef = scope.fetch;"
+        );
+    });
+
+    it("keeps app performance scheduling APIs behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedPerformanceUtilsRuntimeFiles
+            .filter((relativeFile) =>
+                directPerformanceUtilsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const performanceUtilsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/performance/performanceUtils.ts"
+            )
+        );
+        const performanceUtilsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/performance/performanceUtilsRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(performanceUtilsSource).toContain(
+            "performanceUtilsRuntime.js"
+        );
+        expect(performanceUtilsRuntimeSource).not.toMatch(
+            directPerformanceUtilsRuntimeAmbientFallbackPattern
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "dateNow: Date.now"
+        );
+    });
+
+    it("keeps async cancellation timers behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedCancellationTokenRuntimeFiles
+            .filter((relativeFile) =>
+                directCancellationTokenRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const cancellationTokenSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/async/cancellationToken.ts"
+            )
+        );
+        const cancellationTokenRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/async/cancellationTokenRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(cancellationTokenSource).toContain(
+            "cancellationTokenRuntime.js"
+        );
+        expect(cancellationTokenRuntimeSource).not.toMatch(
+            directCancellationTokenRuntimeAmbientFallbackPattern
+        );
+        expect(cancellationTokenRuntimeSource).toContain(
+            "const setTimeoutRef = scope.setTimeout;"
+        );
+    });
+
+    it("keeps chart hover effect scheduling behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const violations = migratedChartHoverEffectsRuntimeFiles
+            .filter((relativeFile) =>
+                directChartHoverEffectsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const chartHoverEffectsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/plugins/addChartHoverEffects.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(chartHoverEffectsSource).toContain(
+            "addChartHoverEffectsRuntime.js"
+        );
+        expect(chartHoverEffectsSource).toContain("createAbortController");
+    });
+
+    it("keeps tab-state map invalidation timing behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedTabStateManagerHandlersRuntimeFiles
+            .filter((relativeFile) =>
+                directTabStateManagerHandlersRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const tabStateManagerHandlersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/tabStateManagerHandlers.ts"
+            )
+        );
+        const tabStateManagerHandlersRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/tabStateManagerHandlersRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(tabStateManagerHandlersSource).toContain(
+            "tabStateManagerHandlersRuntime.js"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toMatch(
+            directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "tabStateManagerHandlers requires a setTimeout runtime"
+        );
     });
 
     it("keeps unified control-bar browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const violations = migratedUnifiedControlBarRuntimeFiles
             .filter((relativeFile) =>
@@ -3572,15 +7464,120 @@ describe("architecture boundaries", () => {
         const unifiedControlBarSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/unifiedControlBar.ts")
         );
+        const unifiedControlBarRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/unifiedControlBarRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(unifiedControlBarSource).toContain(
             "unifiedControlBarRuntime.js"
         );
+        expect(unifiedControlBarSource).toContain("createAbortController");
+        expect(unifiedControlBarRuntimeSource).not.toMatch(
+            directUnifiedControlBarRuntimeAmbientFallbackPattern
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "unifiedControlBar requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps quick color switcher timers behind the runtime facade", () => {
+        expect.assertions(8);
+
+        const violations = migratedQuickColorSwitcherRuntimeFiles
+            .filter((relativeFile) =>
+                directQuickColorSwitcherRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const quickColorSwitcherSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/quickColorSwitcher.ts")
+        );
+        const quickColorSwitcherRuntimeSource = stripComments(
+            readRepositoryFile(quickColorSwitcherRuntimeSourceFile)
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(quickColorSwitcherSource).toContain(
+            "quickColorSwitcherRuntime.js"
+        );
+        expect(quickColorSwitcherSource).toContain("createAbortController");
+        expect(quickColorSwitcherSource).toContain("addDocumentClickListener");
+        expect(quickColorSwitcherRuntimeSource).toContain(
+            "const runtimeDocument = scope.document;"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toMatch(
+            directQuickColorSwitcherRuntimeAmbientTimerFallbackPattern
+        );
+        expect(quickColorSwitcherRuntimeSource).toContain(
+            "quickColorSwitcher requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps shown-files list browser APIs behind the runtime facade", () => {
+        expect.assertions(10);
+
+        const violations = migratedShownFilesListRuntimeFiles
+            .filter((relativeFile) =>
+                directShownFilesListRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedShownFilesListRuntimeFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return !source.includes("shownFilesListRuntime.js");
+            })
+            .sort();
+        const shownFilesListRuntimeSource = stripComments(
+            readRepositoryFile(shownFilesListRuntimeSourceFile)
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(shownFilesListRuntimeSource).toContain(
+            "const body = scope.document?.body;"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "globalThis.document"
+        );
+        expect(shownFilesListRuntimeSource).not.toMatch(
+            directShownFilesListRuntimeAmbientFallbackPattern
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "shownFilesList requires a setTimeout runtime"
+        );
+        const shownFilesItemHandlerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/components/shownFilesListItemHandlers.ts"
+            )
+        );
+        expect(shownFilesItemHandlerSource).toContain(
+            "createAbortController"
+        );
+        expect(shownFilesItemHandlerSource).toContain("getViewport");
+        const createShownFilesListSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/components/createShownFilesList.ts"
+            )
+        );
+        expect(createShownFilesListSource).toContain(
+            "createAbortController"
+        );
+        expect(createShownFilesListSource).toContain(
+            "addBodyThemeChangeListener"
+        );
     });
 
     it("keeps credits marquee browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedCreditsMarqueeRuntimeFiles
             .filter((relativeFile) =>
@@ -3599,6 +7596,26 @@ describe("architecture boundaries", () => {
         expect(enhanceCreditsSectionSource).toContain(
             "enhanceCreditsSectionRuntime.js"
         );
+        expect(enhanceCreditsSectionSource).toContain(
+            "createAbortController"
+        );
+    });
+
+    it("keeps credits marquee tests on explicit runtime fixtures", () => {
+        expect.assertions(1);
+
+        const violations = [
+            "tests/unit/utils/ui/layout/enhanceCreditsSection.test.ts",
+            "tests/unit/strictTests/ui/layout/enhanceCreditsSection.test.ts",
+        ]
+            .filter((relativeFile) =>
+                creditsMarqueeTestDirectGlobalFixtureMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
     });
 
     it("keeps migrated map helpers on the Leaflet runtime adapter", () => {
@@ -3636,21 +7653,25 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(22);
+        expect.assertions(39);
 
         const vendorMapEntry = stripComments(
-            readRepositoryFile("electron-app/renderer/vendorGlobalsMap.ts")
+            readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
         );
         const leafletRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/leafletRuntime.ts")
         );
-        const legacyLeafletPluginRuntimeSource = stripComments(
-            readRepositoryFile(
-                "electron-app/renderer/legacyLeafletPluginRuntime.ts"
-            )
-        );
         const viteRendererConfig = stripComments(
             readRepositoryFile("vite.renderer.config.mjs")
+        );
+        const vitestSetupSource = stripComments(
+            readRepositoryFile("tests/vitest/setupVitest.mjs")
+        );
+        const renderMapSource = stripComments(
+            readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
+        );
+        const mapDrawLapsSource = stripComments(
+            readRepositoryFile("electron-app/utils/maps/layers/mapDrawLaps.ts")
         );
         const allowed = new Set<string>(
             leafletCompatibilityGlobalDefinitionAllowedFiles
@@ -3668,55 +7689,67 @@ describe("architecture boundaries", () => {
         const setLeafletRuntimeIndex = vendorMapEntry.indexOf(
             "setLeafletRuntime(Leaflet)"
         );
-        const setLegacyLeafletRuntimeIndex = vendorMapEntry.indexOf(
-            "setLegacyLeafletPluginRuntime(Leaflet)"
-        );
         const leafletDrawImportIndex = vendorMapEntry.indexOf(
-            'import("leaflet-draw")'
+            'import("fitfileviewer:leaflet-draw-runtime")'
         );
 
+        expect(vendorMapEntry).toContain('import LeafletMiniMap from "leaflet-minimap"');
+        expect(vendorMapEntry).toContain("rendererVendorMapRuntime.js");
         expect(vendorMapEntry).toContain("setLeafletRuntime(Leaflet)");
         expect(vendorMapEntry).toContain("leafletRuntime: Leaflet");
+        expect(vendorMapEntry).toContain(
+            'import("fitfileviewer:leaflet-draw-runtime")'
+        );
         expect(setLeafletRuntimeIndex).toBeGreaterThanOrEqual(0);
-        expect(setLegacyLeafletRuntimeIndex).toBeGreaterThan(
-            setLeafletRuntimeIndex
-        );
         expect(leafletDrawImportIndex).toBeGreaterThan(setLeafletRuntimeIndex);
-        expect(leafletDrawImportIndex).toBeGreaterThan(
-            setLegacyLeafletRuntimeIndex
-        );
+        expect(vendorMapEntry).not.toContain('import("leaflet-draw")');
+        expect(vendorMapEntry).not.toContain("leaflet.markercluster");
+        expect(vendorMapEntry).not.toContain("globalThis.document");
         expect(leafletRuntimeSource).not.toContain("Symbol.for");
         expect(leafletRuntimeSource).not.toContain("globalThis");
-        expect(legacyLeafletPluginRuntimeSource).toContain(
-            "getLegacyLeafletPluginRuntime"
-        );
-        expect(legacyLeafletPluginRuntimeSource).not.toContain("Symbol.for");
-        expect(legacyLeafletPluginRuntimeSource).not.toContain("globalThis");
+        expect(vendorMapEntry).not.toContain("setLegacyLeafletPluginRuntime");
         expect(vendorMapEntry).not.toContain(
             "installLeafletPluginCompatibilityGlobal"
         );
         expect(vendorMapEntry).not.toContain('defineMissingGlobal("L"');
+        expect(vendorMapEntry).toContain(
+            'Reflect.deleteProperty(globalThis, "L")'
+        );
+        expect(vendorMapEntry).toContain(
+            'Reflect.deleteProperty(globalThis, "Leaflet")'
+        );
         expect(globalDefinitionViolations).toStrictEqual([]);
         expect(viteRendererConfig).toContain(
+            'const leafletDrawRuntimeModuleId = "fitfileviewer:leaflet-draw-runtime"'
+        );
+        expect(viteRendererConfig).toContain(
+            'import.meta.resolve("leaflet-draw")'
+        );
+        expect(viteRendererConfig).toContain('"const L = Leaflet;"');
+        expect(viteRendererConfig).not.toContain(
             "fitfileviewer-legacy-leaflet-plugin-runtime"
         );
-        expect(viteRendererConfig).toContain(
-            'import { getLegacyLeafletPluginRuntime } from "/electron-app/renderer/legacyLeafletPluginRuntime.ts";'
-        );
-        expect(viteRendererConfig).toContain(
-            "const L = getLegacyLeafletPluginRuntime();"
-        );
+        expect(viteRendererConfig).not.toContain("transform(code");
+        expect(viteRendererConfig).not.toContain("resolveLeafletRuntime");
+        expect(viteRendererConfig).not.toContain("legacyLeafletPluginRuntime");
         expect(viteRendererConfig).not.toContain("Symbol.for");
         expect(viteRendererConfig).not.toContain("globalThis");
-        expect(viteRendererConfig).toContain(
+        expect(viteRendererConfig).not.toContain(
             "/node_modules/leaflet-draw/dist/leaflet.draw.js"
         );
-        expect(viteRendererConfig).toContain(
-            "/node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js"
-        );
-        expect(viteRendererConfig).toContain(
+        expect(viteRendererConfig).not.toContain("leaflet.markercluster");
+        expect(renderMapSource).not.toContain("markerClusterGroup");
+        expect(mapDrawLapsSource).not.toContain("markerClusterGroup");
+        expect(viteRendererConfig).not.toContain(
             "/node_modules/leaflet-minimap/dist/Control.MiniMap.min.js"
         );
+        expect(vendorMapEntry).not.toContain('import("leaflet-minimap")');
+        expect(vitestSetupSource).not.toContain("markerClusterGroup");
+        expect(vitestSetupSource).not.toContain("setLeafletRuntime");
+        expect(vitestSetupSource).not.toContain("leafletRuntime.js");
+        expect(vitestSetupSource).not.toContain("leafletMock");
+        expect(vitestSetupSource).not.toContain('vi.mock("leaflet"');
+        expect(vitestSetupSource).not.toContain("maplibreGL");
     });
 
     it("keeps direct MapLibre bridge calls quarantined to the vector-layer adapter", () => {
@@ -4443,9 +8476,11 @@ describe("architecture boundaries", () => {
             )
             .sort();
         const deletedCompatibilityFiles = [
+            "docs/MOCK_COMMONJS_IN_ESM.md",
+            "electron-app/main/security/externalUrlPolicy.ts",
             "electron-app/renderer/globalApiExposure.ts",
             "electron-app/renderer/leafletPluginCompatibilityGlobal.ts",
-            "electron-app/renderer/vendorGlobals.ts",
+            "electron-app/renderer/rendererVendor.ts",
             "electron-app/utils.ts",
             "electron-app/utils/app/initialization/rendererUtils.ts",
             "electron-app/utils/ui/mainUiGlobals.ts",
@@ -4578,6 +8613,1266 @@ describe("architecture boundaries", () => {
         expect(directShowFitDataTestGlobals).toStrictEqual([]);
     });
 
+    it("keeps debug sensor tests from mutating retired globalData", () => {
+        expect.assertions(1);
+
+        expect(
+            debugSensorInfoTestGlobalDataMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/debug/debugSensorInfo.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps unified state manager globalData tests from mutating retired globals", () => {
+        expect.assertions(1);
+
+        expect(
+            unifiedStateManagerGlobalDataTestMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/state/core/unifiedStateManager.globalDataStore.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps computed state manager tests off retired globalData fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            computedStateManagerTestRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/state/core/computedStateManager.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps loaded FIT file state tests from mutating retired globals", () => {
+        expect.assertions(1);
+
+        expect(
+            loadedFitFilesTestGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/state/domain/loadedFitFilesState.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps main UI startup tests from mutating retired renderer globals", () => {
+        expect.assertions(1);
+
+        const violations = [
+            "tests/unit/main-ui.startup.test.ts",
+            "tests/unit/strictTests/ui/main-ui.test.ts",
+        ]
+            .filter((relativeFile) =>
+                mainUiTestRetiredGlobalMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps strict main UI tests off retired FIT data fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            strictMainUiTestRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile("tests/unit/strictTests/ui/main-ui.test.ts")
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps zone-color picker tests from mutating retired renderer globals", () => {
+        expect.assertions(1);
+
+        expect(
+            zoneColorPickerTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/modals/openZoneColorPicker.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps keyboard-shortcuts modal tests from mutating retired renderer globals", () => {
+        expect.assertions(2);
+
+        const keyboardShortcutsModalTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/utils/ui/modals/keyboardShortcutsModal.test.ts"
+            )
+        );
+
+        expect(
+            keyboardShortcutsModalTestRetiredGlobalMutationPattern.test(
+                keyboardShortcutsModalTestSource
+            )
+        ).toBe(false);
+        expect(
+            keyboardShortcutsModalTestDirectAnimationFrameStubPattern.test(
+                keyboardShortcutsModalTestSource
+            )
+        ).toBe(false);
+    });
+
+    it("keeps settings modal tests from mutating retired renderer globals", () => {
+        expect.assertions(1);
+
+        expect(
+            settingsModalTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/settingsModal.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps render-summary tests from mutating retired active FIT filename globals", () => {
+        expect.assertions(1);
+
+        const violations = [
+            "tests/unit/utils/rendering/helpers/renderSummaryHelpers.test.ts",
+            "tests/unit/strictTests/rendering/core/renderSummary_and_helpers.test.ts",
+        ]
+            .filter((relativeFile) =>
+                renderSummaryTestActiveFitFileNameMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps main-process tests from mutating retired dev helper globals", () => {
+        expect.assertions(1);
+
+        expect(
+            mainProcessDevHelpersTestRetiredGlobalMutationPattern.test(
+                stripComments(readRepositoryFile("tests/unit/main.test.ts"))
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab-state manager tests from mutating retired renderer globals", () => {
+        expect.assertions(1);
+
+        expect(
+            tabStateManagerTestRetiredRendererGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/tabs/tabStateManager.behavior.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab-state manager tests on scoped console spies", () => {
+        expect.assertions(1);
+
+        expect(
+            tabStateManagerTestDirectConsoleMethodAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/tabs/tabStateManager.behavior.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab-button behavior tests on scoped console spies", () => {
+        expect.assertions(1);
+
+        expect(
+            enableTabButtonsTestDirectConsoleMethodAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/enableTabButtons.behavior.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps renderChartJS comprehensive tests from mutating retired Chart.js globals", () => {
+        expect.assertions(1);
+
+        expect(
+            renderChartJSComprehensiveTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/charts/core/renderChartJS.comprehensive.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps renderChartJS comprehensive tests on scoped browser fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderChartJSComprehensiveTestDirectBrowserFixtureAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/charts/core/renderChartJS.comprehensive.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps chart zoom reset plugin tests on scoped canvas constructor fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            chartZoomResetPluginTestDirectCanvasConstructorFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/charts/plugins/chartZoomResetPlugin.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps renderChartJS state API tests from mutating retired Chart.js globals", () => {
+        expect.assertions(1);
+
+        expect(
+            renderChartJSStateApiTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/renderChartJS.stateApi.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps strict about modal tests on descriptor-scoped animation fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            aboutModalTestDirectRequestAnimationFrameAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/ui/modals/aboutModal.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps strict notification tests off direct animation fixture assignment", () => {
+        expect.assertions(1);
+
+        expect(
+            showNotificationStrictTestDirectRequestAnimationFrameAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/utils/ui/notifications/showNotification.branches.strict.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps settings state manager tests off direct console global assignment", () => {
+        expect.assertions(1);
+
+        expect(
+            settingsStateManagerTestDirectConsoleAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/state/domain/settingsStateManager.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps settings state storage listener abort-controller creation behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const settingsStateCoreSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/settingsStateCore.ts"
+            )
+        );
+
+        expect(
+            directSettingsStateCoreRuntimeGlobalPattern.test(
+                settingsStateCoreSource
+            )
+        ).toBe(false);
+        expect(settingsStateCoreSource).toContain(
+            "settingsStateCoreRuntime.js"
+        );
+        expect(settingsStateCoreSource).toContain("createAbortController");
+    });
+
+    it("keeps handle-open-file tests on scoped console spies", () => {
+        expect.assertions(1);
+
+        expect(
+            handleOpenFileTestDirectConsoleMethodAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "electron-app/utils/files/import/handleOpenFile.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps data-point filter state helper tests on scoped console spies", () => {
+        expect.assertions(1);
+
+        expect(
+            dataPointFilterStateHelpersTestDirectConsoleAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/controls/dataPointFilterControl/stateHelpers.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps chart status indicator tests on scoped console spies", () => {
+        expect.assertions(1);
+
+        expect(
+            chartStatusIndicatorTestDirectConsoleMethodAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/charts/components/chartStatusIndicator.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps single HR zone bar tests on scoped browser and console fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderSingleHrZoneBarTestDirectGlobalFixtureAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/data/zones/renderSingleHRZoneBar.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps event messages chart tests off direct window global assignment", () => {
+        expect.assertions(1);
+
+        expect(
+            renderEventMessagesChartTestDirectWindowAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/renderEventMessagesChart.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps altitude profile chart tests on scoped browser and console fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderAltitudeProfileChartTestDirectGlobalFixtureAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/renderAltitudeProfileChart.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps speed-vs-distance chart tests on scoped browser and console fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderSpeedVsDistanceChartTestDirectGlobalFixtureAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/renderSpeedVsDistanceChart.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps power-vs-heart-rate chart tests on scoped browser and console fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderPowerVsHeartRateChartTestDirectGlobalFixtureAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/renderPowerVsHeartRateChart.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps strict chart tests on descriptor-scoped global fixtures", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            "tests/unit/strictTests/createEnhancedChart.test.ts",
+            "tests/unit/strictTests/renderZoneChart.test.ts",
+        ];
+        const directStrictChartGlobalFixtureMutations = scannedFiles
+            .filter((relativeFile) =>
+                strictChartTestDirectGlobalFixtureMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directStrictChartGlobalFixtureMutations).toStrictEqual([]);
+    });
+
+    it("keeps chart zone color tests on descriptor-scoped localStorage fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            chartZoneColorUtilsTestDirectLocalStorageAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/data/zones/chartZoneColorUtils.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps state middleware branch tests on scoped storage spies", () => {
+        expect.assertions(1);
+
+        expect(
+            stateMiddlewareBranchesTestDirectLocalStorageMethodAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile("tests/unit/stateMiddleware.branches.test.ts")
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps chart status indicator tests on descriptor-scoped browser fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            chartStatusIndicatorTestDirectBrowserFixtureAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/charts/components/chartStatusIndicator.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps renderChartJS state API tests on active raw FIT data fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderChartJSStateApiTestRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/renderChartJS.stateApi.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps lap-zone chart tests on active FIT data fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderLapZoneChartsTestRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/renderLapZoneCharts.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps lifecycle listener tests from mutating retired renderer globals", () => {
+        expect.assertions(2);
+
+        const lifecycleListenerTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/strictTests/utils/app/lifecycle/listeners.test.ts"
+            )
+        );
+
+        expect(
+            lifecycleListenersTestRetiredGlobalMutationPattern.test(
+                lifecycleListenerTestSource
+            )
+        ).toBe(false);
+        expect(
+            lifecycleListenersTestDirectPrintAssignmentPattern.test(
+                lifecycleListenerTestSource
+            )
+        ).toBe(false);
+    });
+
+    it("keeps app event tests from mutating retired FIT-data globals", () => {
+        expect.assertions(1);
+
+        expect(
+            appEventsTestRetiredFitDataGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile("tests/unit/utils/app/events.test.ts")
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps typed FIT-data tests from cleaning retired globals", () => {
+        expect.assertions(1);
+
+        const violations = [
+            "tests/unit/utils/charts/theming/chartThemeListener.test.ts",
+            "tests/unit/utils/files/export/createExportGPXButton.test.ts",
+            "tests/unit/utils/rendering/components/createUserDeviceInfoBox.test.ts",
+        ]
+            .filter((relativeFile) =>
+                typedFitDataTestRetiredGlobalCleanupPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps chart settings dropdown tests on typed FIT raw-data fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            chartSettingsDropdownsTestRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/ensureChartSettingsDropdowns.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps strict render-map tests on typed FIT state fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            renderMapStrictTestRetiredFitGlobalFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/strictTests/maps/core/renderMap.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps map draw laps tests on descriptor-scoped window fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            mapDrawLapsTestDirectWindowFixtureMutationPattern.test(
+                stripComments(
+                    readRepositoryFile("tests/unit/maps/layers/mapDrawLaps.test.ts")
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab visibility raw-data tests off retired globalData fixtures", () => {
+        expect.assertions(3);
+
+        const tabVisibilityRawDataTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/utils/updateTabVisibility.fitRawDataState.test.ts"
+            )
+        );
+
+        expect(
+            existsSync(
+                path.join(
+                    process.cwd(),
+                    "tests/unit/utils/updateTabVisibility.globalDataState.test.ts"
+                )
+            )
+        ).toBe(false);
+        expect(
+            updateTabVisibilityRawDataTestRetiredGlobalDataPattern.test(
+                tabVisibilityRawDataTestSource
+            )
+        ).toBe(false);
+        expect(
+            updateTabVisibilityTestDirectBrowserGlobalAssignmentPattern.test(
+                tabVisibilityRawDataTestSource
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab-state manager regressions on raw FIT data fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            tabStateManagerRegressionTestRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/tabStateManager.regressions.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab-button integration tests on raw FIT data state", () => {
+        expect.assertions(1);
+
+        expect(
+            tabButtonStateIntegrationRetiredGlobalDataFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/integration/tabs/tabButtonState.integration.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps tab-button tests from mutating retired renderer globals", () => {
+        expect.assertions(2);
+
+        const tabButtonBehaviorTestSource = stripComments(
+            readRepositoryFile(
+                "tests/unit/utils/enableTabButtons.behavior.test.ts"
+            )
+        );
+
+        expect(
+            tabButtonsTestRetiredGlobalMutationPattern.test(
+                tabButtonBehaviorTestSource
+            )
+        ).toBe(false);
+        expect(
+            tabButtonsTestDirectBrowserGlobalFixtureAssignmentPattern.test(
+                tabButtonBehaviorTestSource
+            )
+        ).toBe(false);
+    });
+
+    it("keeps chart-tab integration tests from mutating retired renderer globals", () => {
+        expect.assertions(1);
+
+        expect(
+            chartTabIntegrationTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/charts/core/chartTabIntegration.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps render chart runtime helper tests from mutating retired renderer globals", () => {
+        expect.assertions(1);
+
+        expect(
+            renderChartRuntimeHelpersTestRetiredGlobalMutationPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/charts/core/renderChartRuntimeHelpers.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps render chart runtime helper process and window fixtures descriptor-scoped", () => {
+        expect.assertions(1);
+
+        expect(
+            renderChartRuntimeHelpersTestDirectProcessWindowDeletePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/charts/core/renderChartRuntimeHelpers.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps retired renderer compatibility globals out of ordinary tests", () => {
+        expect.assertions(1);
+
+        const scannedFiles = testSourceRoots
+            .flatMap(collectSourceFiles)
+            .filter(
+                (relativeFile) =>
+                    relativeFile !==
+                    "tests/unit/packaging/architectureBoundaries.test.ts"
+            );
+        const directRetiredRendererTestGlobals = scannedFiles
+            .filter((relativeFile) => {
+                const source = stripComments(readRepositoryFile(relativeFile));
+                return (
+                    directAppMenuExportsGlobalPattern.test(source) ||
+                    directChartNotificationSuppressionGlobalPattern.test(
+                        source
+                    ) ||
+                    directChartLoadingSuppressionGlobalPattern.test(source)
+                );
+            })
+            .sort();
+
+        expect(directRetiredRendererTestGlobals).toStrictEqual([]);
+    });
+
+    it("keeps Leaflet-focused tests from mutating retired global adapters", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            "tests/unit/utils/maps/core/leafletRuntime.test.ts",
+            "tests/unit/strictTests/maps/controls/mapActionButtons.test.ts",
+        ];
+        const leafletRuntimeGlobalMutationTests = scannedFiles
+            .filter((relativeFile) =>
+                leafletRuntimeTestGlobalMutationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(leafletRuntimeGlobalMutationTests).toStrictEqual([]);
+    });
+
+    it("keeps shown-files list tests on explicit Leaflet runtime fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            createShownFilesListTestRetiredLeafletGlobalPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/rendering/components/createShownFilesList.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("does not recreate the retired Object.keys throw-through test global", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directObjectKeysThrowGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestObjectKeysThrowGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directObjectKeysThrowGlobalLookups).toStrictEqual([]);
+    });
+
+    it("does not recreate the retired Object.keys wrapper marker in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directObjectKeysWrapperMarkerLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestObjectKeysWrapperMarkerPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directObjectKeysWrapperMarkerLookups).toStrictEqual([]);
+    });
+
+    it("does not recreate the retired document-native-methods test global", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directDocumentNativeMethodsGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestDocumentNativeMethodsGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directDocumentNativeMethodsGlobalLookups).toStrictEqual([]);
+    });
+
+    it("keeps setup document realignment behind the descriptor helper", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directDocumentRealignmentAssignments = scannedFiles
+            .filter((relativeFile) =>
+                directVitestDocumentRealignmentAssignmentPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directDocumentRealignmentAssignments).toStrictEqual([]);
+    });
+
+    it("does not recreate the unused Electron mock factory test global", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directCreateElectronMocksGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestCreateElectronMocksGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directCreateElectronMocksGlobalLookups).toStrictEqual([]);
+    });
+
+    it("keeps Web Storage setup behind the dedicated Vitest shim", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const inlineWebStorageMocks = scannedFiles
+            .filter((relativeFile) =>
+                directVitestInlineWebStorageMockPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(inlineWebStorageMocks).toStrictEqual([]);
+    });
+
+    it("does not recreate timer and listener tracking globals in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directTimerTrackingGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestTimerTrackingGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directTimerTrackingGlobalLookups).toStrictEqual([]);
+    });
+
+    it("keeps setup timer wrappers behind the descriptor helper", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directTimerWrapperAssignments = scannedFiles
+            .filter((relativeFile) =>
+                directVitestTimerWrapperAssignmentPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directTimerWrapperAssignments).toStrictEqual([]);
+    });
+
+    it("does not recreate the dist resolver install global in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directDistResolverGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestDistResolverGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directDistResolverGlobalLookups).toStrictEqual([]);
+    });
+
+    it("does not recreate the effective document test globals", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directEffectiveDocumentGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directTabVitestEnvironmentGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directEffectiveDocumentGlobalLookups).toStrictEqual([]);
+    });
+
+    it("does not mark event listener wrappers with expando properties", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directWrappedEventListenerMarkerLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestWrappedEventListenerMarkerPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directWrappedEventListenerMarkerLookups).toStrictEqual([]);
+    });
+
+    it("does not store navigation history on Location expandos", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            ...testSourceRoots.flatMap(collectSourceFiles),
+            "tests/vitest/setupVitest.mjs",
+        ].filter(
+            (relativeFile) =>
+                relativeFile !==
+                "tests/unit/packaging/architectureBoundaries.test.ts"
+        );
+        const directNavigationHistoryExpandoLookups = scannedFiles
+            .filter((relativeFile) =>
+                directVitestNavigationHistoryExpandoPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directNavigationHistoryExpandoLookups).toStrictEqual([]);
+    });
+
+    it("does not recreate broad window event-target fallbacks in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directWindowEventTargetFallbacks = scannedFiles
+            .filter((relativeFile) =>
+                directVitestWindowEventTargetFallbackPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directWindowEventTargetFallbacks).toStrictEqual([]);
+    });
+
+    it("does not bridge jsdom HTMLElement onto the Node global in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directHTMLElementGlobalBridge = scannedFiles
+            .filter((relativeFile) =>
+                directVitestHTMLElementGlobalBridgePattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directHTMLElementGlobalBridge).toStrictEqual([]);
+    });
+
+    it("does not patch window console group helpers separately in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directWindowConsoleGroupPatches = scannedFiles
+            .filter((relativeFile) =>
+                directVitestWindowConsoleGroupPatchPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directWindowConsoleGroupPatches).toStrictEqual([]);
+    });
+
+    it("keeps Vitest setup window console alignment descriptor-scoped", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directWindowConsoleAssignments = scannedFiles
+            .filter((relativeFile) =>
+                directVitestWindowConsoleAssignmentPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directWindowConsoleAssignments).toStrictEqual([]);
+    });
+
+    it("keeps Vitest env setup console filters descriptor-scoped", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/env-setup.mjs"];
+        const directConsoleMethodAssignments = scannedFiles
+            .filter((relativeFile) =>
+                directVitestEnvConsoleMethodAssignmentPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directConsoleMethodAssignments).toStrictEqual([]);
+    });
+
+    it("keeps preload runtime tests from direct console global assignment", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            "tests/unit/preload.sourceExecution.test.ts",
+            "tests/unit/preload.preloadRuntimeEnvironment.test.ts",
+            "tests/unit/renderer/mainUiRuntimeEnvironment.test.ts",
+        ];
+        const directConsoleGlobalAssignments = scannedFiles
+            .filter((relativeFile) =>
+                directRuntimeEnvironmentTestConsoleAssignmentPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directConsoleGlobalAssignments).toStrictEqual([]);
+    });
+
+    it("keeps preload source execution console fixture restores descriptor-only", () => {
+        expect.assertions(1);
+
+        expect(
+            directPreloadSourceExecutionGlobalDeletePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/preload.sourceExecution.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps preload source tests on module-local Electron API exposure maps", () => {
+        expect.assertions(1);
+
+        const scannedFiles = [
+            "tests/unit/preload.development-mode.test.ts",
+            "tests/unit/preload.edgeCases.test.ts",
+        ];
+        const directGlobalFixtures = scannedFiles
+            .filter((relativeFile) =>
+                preloadTestDirectElectronApiGlobalFixturePattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directGlobalFixtures).toStrictEqual([]);
+    });
+
+    it("keeps handle-open-file complete tests on descriptor-scoped process fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            handleOpenFileCompleteTestDirectProcessAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/files/import/handleOpenFile.complete.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps process environment tests on descriptor-scoped process restores", () => {
+        expect.assertions(1);
+
+        expect(
+            processEnvironmentTestDirectProcessDeletePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/runtime/processEnvironment.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps OAuth state tests on descriptor-scoped crypto restores", () => {
+        expect.assertions(1);
+
+        expect(
+            exportUtilsOauthStateTestDirectCryptoDeletePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/files/export/exportUtils.oauthState.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps shared configuration tests on descriptor-scoped URLSearchParams fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            loadSharedConfigurationTestDirectUrlSearchParamsAssignmentPattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/app/initialization/loadSharedConfiguration.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("does not clean retired tab-button observer globals in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directTabButtonObserverCleanup = scannedFiles
+            .filter((relativeFile) =>
+                directVitestTabButtonObserverCleanupPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directTabButtonObserverCleanup).toStrictEqual([]);
+    });
+
+    it("does not clean retired Chart.js devtools globals in setup", () => {
+        expect.assertions(1);
+
+        const scannedFiles = ["tests/vitest/setupVitest.mjs"];
+        const directChartDevToolsGlobalCleanup = scannedFiles
+            .filter((relativeFile) =>
+                directVitestChartDevToolsGlobalCleanupPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(directChartDevToolsGlobalCleanup).toStrictEqual([]);
+    });
+
+    it("keeps process nextTick setup behind descriptor-scoped setup helpers", () => {
+        expect.assertions(4);
+
+        const vitestSetupSource = stripComments(
+            readRepositoryFile("tests/vitest/setupVitest.mjs")
+        );
+
+        expect(vitestSetupSource).toContain("function ensureProcessNextTick()");
+        expect(vitestSetupSource).toContain("function setRuntimeProcessObject(");
+        expect(vitestSetupSource).toContain("function setProcessNextTick(");
+        expect(
+            directVitestProcessNextTickSetupAssignmentPattern.test(
+                vitestSetupSource
+            )
+        ).toBe(false);
+    });
+
     it("keeps raw globalThis any casts out of source and tests", () => {
         expect.assertions(1);
 
@@ -4673,5 +9968,66 @@ describe("architecture boundaries", () => {
 
         expect(directElectronApiGlobals).toStrictEqual([]);
         expect(missingRuntimeLookup).toStrictEqual([]);
+    });
+
+    it("keeps Electron API runtime ambient tests on scoped global fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            electronApiRuntimeTestDirectGlobalFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/runtime/electronApiRuntime.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps main UI DOM utility tests on scoped Electron API fixtures", () => {
+        expect.assertions(1);
+
+        expect(
+            mainUiDomUtilsTestDirectElectronApiGlobalFixturePattern.test(
+                stripComments(
+                    readRepositoryFile(
+                        "tests/unit/utils/ui/mainUiDomUtils.test.ts"
+                    )
+                )
+            )
+        ).toBe(false);
+    });
+
+    it("keeps main UI DOM utility listener cleanup behind the runtime facade", () => {
+        expect.assertions(2);
+
+        const mainUiDomUtilsSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/mainUiDomUtils.ts")
+        );
+
+        expect(
+            directMainUiDomUtilsRuntimeGlobalPattern.test(mainUiDomUtilsSource)
+        ).toBe(false);
+        expect(mainUiDomUtilsSource).toContain("mainUiDomUtilsRuntime.js");
+    });
+
+    it("keeps event listener manager cleanup behind the runtime facade", () => {
+        expect.assertions(3);
+
+        const eventListenerManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/events/eventListenerManager.ts"
+            )
+        );
+
+        expect(
+            directEventListenerManagerRuntimeGlobalPattern.test(
+                eventListenerManagerSource
+            )
+        ).toBe(false);
+        expect(eventListenerManagerSource).toContain(
+            "eventListenerManagerRuntime.js"
+        );
+        expect(eventListenerManagerSource).toContain("getDefaultEventTarget");
     });
 });

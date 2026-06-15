@@ -88,11 +88,50 @@ type GetUnitSymbol = (field: string) => string;
 type HexToRgba = (hex: string, alpha: number) => string;
 type GetFieldColor = (field: string) => string;
 type UpdateChartAnimations = (...args: unknown[]) => void;
+type TestGlobalProperty =
+    | "console"
+    | "document"
+    | "HTMLCanvasElement"
+    | "HTMLElement"
+    | "localStorage"
+    | "window";
 
 let chartMock: ChartConstructorMock;
 let chartInstanceMock: ChartInstanceMock;
 let createEnhancedChart: CreateEnhancedChart;
 let mockLocalStorage: LocalStorageMock;
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor
+>();
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [
+        name,
+        descriptor,
+    ] of [...originalGlobalDescriptors.entries()].reverse()) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
+}
 
 async function clearChartRuntime(): Promise<void> {
     const { clearChartRuntimeForTests } =
@@ -111,11 +150,11 @@ async function registerChartRuntime(runtime: unknown): Promise<void> {
 describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
     beforeEach(async () => {
         // Setup console first
-        globalThis.console = {
+        setTestGlobal("console", {
             error: vi.fn<ConsoleMethod>(),
             log: vi.fn<ConsoleMethod>(),
             warn: vi.fn<ConsoleMethod>(),
-        } as unknown as Console;
+        } as unknown as Console);
 
         // Setup JSDOM environment
         const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`, {
@@ -124,10 +163,13 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             resources: "usable",
         });
 
-        globalThis.window = dom.window as unknown as Window & typeof globalThis;
-        globalThis.document = dom.window.document;
-        globalThis.HTMLCanvasElement = dom.window.HTMLCanvasElement;
-        globalThis.HTMLElement = dom.window.HTMLElement;
+        setTestGlobal(
+            "window",
+            dom.window as unknown as Window & typeof globalThis
+        );
+        setTestGlobal("document", dom.window.document);
+        setTestGlobal("HTMLCanvasElement", dom.window.HTMLCanvasElement);
+        setTestGlobal("HTMLElement", dom.window.HTMLElement);
 
         // Mock localStorage
         mockLocalStorage = {
@@ -136,7 +178,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
             removeItem: vi.fn<(key: string) => void>(),
             setItem: vi.fn<(key: string, value: string) => void>(),
         };
-        globalThis.localStorage = mockLocalStorage as unknown as Storage;
+        setTestGlobal("localStorage", mockLocalStorage as unknown as Storage);
 
         // Mock Chart.js
         chartInstanceMock = {
@@ -274,12 +316,7 @@ describe("createEnhancedChart.js - Enhanced Chart Creation Utility", () => {
         vi.resetAllMocks();
         await clearChartRuntime();
         vi.resetModules(); // Clear module cache
-        delete globalThis.window;
-        delete globalThis.document;
-        delete globalThis.HTMLCanvasElement;
-        delete globalThis.HTMLElement;
-        delete globalThis.console;
-        delete globalThis.localStorage;
+        restoreTestGlobals();
     });
 
     describe("basic chart creation", () => {

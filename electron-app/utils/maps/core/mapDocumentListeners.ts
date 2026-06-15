@@ -7,6 +7,8 @@
  * render.
  */
 
+import { getMapDocumentListenersRuntime } from "./mapDocumentListenersRuntime.js";
+
 type MapZoomDraggingRef = { current: boolean };
 
 type MapDocumentControlRefs = {
@@ -24,6 +26,7 @@ let mapDocumentControlRefs: MapDocumentControlRefs = {
     mapTypeButton: null,
     zoomDraggingRef: null,
 };
+const mapDocumentListenersRuntime = getMapDocumentListenersRuntime();
 
 function isMapZoomDraggingRef(value: unknown): value is MapZoomDraggingRef {
     if (typeof value !== "object" || value === null) {
@@ -137,27 +140,35 @@ export function ensureMapDocumentListenersInstalled(): void {
         return;
     }
     mapDocumentListenersInstalled = true;
-    const listenerController = new AbortController();
+    const listenerController =
+        mapDocumentListenersRuntime.createAbortController();
     mapDocumentListenerController = listenerController;
     const { signal } = listenerController;
 
     // Collapse the Leaflet layers panel when clicking outside.
-    document.addEventListener("mousedown", collapseLayersPanelIfClickOutside, {
-        signal,
-    });
+    mapDocumentListenersRuntime.addDocumentMousedownListener(
+        collapseLayersPanelIfClickOutside,
+        { signal }
+    );
 
     // Keep the expanded layers panel within the viewport/minimap bounds on resize.
-    const w = globalThis.window;
-    if (w && typeof w.addEventListener === "function") {
-        w.addEventListener("resize", layoutLayersPanelOnResize, { signal });
-    }
+    mapDocumentListenersRuntime.addWindowResizeListener(
+        layoutLayersPanelOnResize,
+        { signal }
+    );
 
     // Reset the zoom-slider dragging flag when the interaction ends.
-    document.addEventListener("mouseup", resetMapZoomDraggingRef, { signal });
-    document.addEventListener("touchend", resetMapZoomDraggingRef, {
-        passive: true,
-        signal,
-    });
+    mapDocumentListenersRuntime.addDocumentMouseupListener(
+        resetMapZoomDraggingRef,
+        { signal }
+    );
+    mapDocumentListenersRuntime.addDocumentTouchendListener(
+        resetMapZoomDraggingRef,
+        {
+            passive: true,
+            signal,
+        }
+    );
 }
 
 /**

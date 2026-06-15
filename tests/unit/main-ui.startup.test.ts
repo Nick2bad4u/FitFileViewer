@@ -13,11 +13,6 @@ type ExternalLinkOptions = {
     setCleanup: (cleanup: (() => void) | null) => void;
 };
 
-type MainUiTestGlobal = typeof globalThis & {
-    cleanupEventListeners?: () => void;
-    renderChartJS?: (target: HTMLElement) => void;
-};
-
 type MainUiElectronApi = Partial<
     Pick<
         ElectronAPIWithDevFlags,
@@ -51,7 +46,6 @@ const mocks = vi.hoisted(() => ({
     resourceAddShutdownHook: vi.fn<(callback: () => void) => void>(),
     setState:
         vi.fn<(path: string, value: unknown, options?: unknown) => void>(),
-    setupDOMContentLoaded: vi.fn<() => void>(),
     setupExternalLinkHandlers: vi.fn<(options: ExternalLinkOptions) => void>(),
     setupFullscreenListeners: vi.fn<() => void>(),
     setupWindow: vi.fn<() => void>(),
@@ -94,7 +88,6 @@ vi.mock(
 vi.mock(
     import("../../electron-app/utils/ui/controls/addFullScreenButton.js"),
     () => ({
-        setupDOMContentLoaded: mocks.setupDOMContentLoaded,
         setupFullscreenListeners: mocks.setupFullscreenListeners,
     })
 );
@@ -207,10 +200,6 @@ vi.mock(
     })
 );
 
-function getMainUiTestGlobal(): MainUiTestGlobal {
-    return globalThis as MainUiTestGlobal;
-}
-
 function createElement<K extends keyof HTMLElementTagNameMap>(
     tagName: K,
     {
@@ -307,11 +296,6 @@ describe("main-ui.js - UI Controller and State Management", () => {
         mocks.loadTheme.mockReturnValue("dark");
         vi.resetModules();
         await resetRegisteredElectronApiCandidate();
-        Reflect.deleteProperty(globalThis, "devCleanup");
-        Reflect.deleteProperty(globalThis, "injectMenu");
-        Reflect.deleteProperty(globalThis, "showFitData");
-        Reflect.deleteProperty(globalThis, "renderChartJS");
-        Reflect.deleteProperty(globalThis, "cleanupEventListeners");
     });
 
     afterEach(async () => {
@@ -322,15 +306,14 @@ describe("main-ui.js - UI Controller and State Management", () => {
         expect.assertions(7);
 
         await import("../../electron-app/main-ui.js");
-        const mainUiGlobal = getMainUiTestGlobal();
 
         expect(document.querySelectorAll(".tab-button")).toHaveLength(3);
-        expect("showFitData" in mainUiGlobal).toBe(false);
-        expect("renderChartJS" in mainUiGlobal).toBe(false);
-        expect("cleanupEventListeners" in mainUiGlobal).toBe(false);
-        expect("dragDropHandler" in mainUiGlobal).toBe(false);
-        expect("injectMenu" in mainUiGlobal).toBe(false);
-        expect("devCleanup" in mainUiGlobal).toBe(false);
+        expect("showFitData" in globalThis).toBe(false);
+        expect("renderChartJS" in globalThis).toBe(false);
+        expect("cleanupEventListeners" in globalThis).toBe(false);
+        expect("dragDropHandler" in globalThis).toBe(false);
+        expect("injectMenu" in globalThis).toBe(false);
+        expect("devCleanup" in globalThis).toBe(false);
     });
 
     it("initializes UI side effects when loaded", async () => {

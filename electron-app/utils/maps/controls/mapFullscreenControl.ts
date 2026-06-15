@@ -1,4 +1,10 @@
+import {
+    getMapFullscreenControlRuntime,
+    type MapFullscreenControlTimer,
+} from "./mapFullscreenControlRuntime.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
+const mapFullscreenControlRuntime = getMapFullscreenControlRuntime();
 
 interface LeafletMap {
     _container?: HTMLElement;
@@ -171,17 +177,18 @@ export function addFullscreenControl(map: LeafletMap): void {
     }
     mapDiv.append(fullscreenControl);
 
-    const listenerController = new AbortController();
-    let invalidateSizeTimer: ReturnType<typeof setTimeout> | null = null;
+    const listenerController =
+        mapFullscreenControlRuntime.createAbortController();
+    let invalidateSizeTimer: MapFullscreenControlTimer | null = null;
     const clearPendingInvalidateSize = (): void => {
         if (invalidateSizeTimer !== null) {
-            clearTimeout(invalidateSizeTimer);
+            mapFullscreenControlRuntime.clearTimeout(invalidateSizeTimer);
             invalidateSizeTimer = null;
         }
     };
     const scheduleInvalidateSize = (): void => {
         clearPendingInvalidateSize();
-        invalidateSizeTimer = setTimeout(() => {
+        invalidateSizeTimer = mapFullscreenControlRuntime.setTimeout(() => {
             invalidateSizeTimer = null;
             map.invalidateSize();
         }, 300);
@@ -206,8 +213,7 @@ export function addFullscreenControl(map: LeafletMap): void {
         { signal: listenerController.signal }
     );
 
-    document.addEventListener(
-        "fullscreenchange",
+    mapFullscreenControlRuntime.addDocumentFullscreenChangeListener(
         () => {
             const isNowFullscreen = document.fullscreenElement === mapDiv;
             if (!isNowFullscreen) {

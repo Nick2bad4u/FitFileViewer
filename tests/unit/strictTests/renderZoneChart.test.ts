@@ -76,9 +76,48 @@ type ContainerChildSnapshot = {
 };
 type ChartInstanceRegistryModule =
     typeof import("../../../electron-app/utils/charts/core/chartInstanceRegistry.js");
+type TestGlobalProperty =
+    | "console"
+    | "document"
+    | "HTMLCanvasElement"
+    | "HTMLElement"
+    | "window";
+
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor
+>();
 
 function getZoneChartGlobal(): typeof globalThis {
     return globalThis;
+}
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [
+        name,
+        descriptor,
+    ] of [...originalGlobalDescriptors.entries()].reverse()) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
 }
 
 function getLatestChartConfig(): ZoneChartConfig {
@@ -146,16 +185,19 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
             resources: "usable",
         });
 
-        globalThis.window = dom.window as unknown as Window & typeof globalThis;
-        globalThis.document = dom.window.document;
-        globalThis.HTMLCanvasElement = dom.window.HTMLCanvasElement;
-        globalThis.HTMLElement = dom.window.HTMLElement;
+        setTestGlobal(
+            "window",
+            dom.window as unknown as Window & typeof globalThis
+        );
+        setTestGlobal("document", dom.window.document);
+        setTestGlobal("HTMLCanvasElement", dom.window.HTMLCanvasElement);
+        setTestGlobal("HTMLElement", dom.window.HTMLElement);
 
-        globalThis.console = {
+        setTestGlobal("console", {
             log: vi.fn<ConsoleMethod>(),
             warn: vi.fn<ConsoleMethod>(),
             error: vi.fn<ConsoleMethod>(),
-        } as unknown as Console;
+        } as unknown as Console);
 
         chartInstanceMock = {
             update: vi.fn<() => void>(),
@@ -252,11 +294,7 @@ describe("renderZoneChart.js - Zone Chart Rendering Utility", () => {
         clearChartInstanceRegistryForTests();
         vi.resetModules();
         vi.clearAllMocks();
-        const zoneGlobal = getZoneChartGlobal();
-        delete zoneGlobal.window;
-        delete zoneGlobal.document;
-        delete zoneGlobal.HTMLCanvasElement;
-        delete zoneGlobal.HTMLElement;
+        restoreTestGlobals();
     });
 
     it("should warn and exit when container is invalid", () => {

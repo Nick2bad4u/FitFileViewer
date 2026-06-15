@@ -2,8 +2,16 @@
  * Performance utilities for optimizing rendering and operations.
  */
 
-type TimerHandle = ReturnType<typeof globalThis.setTimeout>;
-type IdleCallbackHandle = number | TimerHandle;
+import {
+    getPerformanceUtilsRuntime,
+    type PerformanceUtilsIdleCallbackHandle,
+    type PerformanceUtilsTimerHandle,
+} from "./performanceUtilsRuntime.js";
+
+type TimerHandle = PerformanceUtilsTimerHandle;
+type IdleCallbackHandle = PerformanceUtilsIdleCallbackHandle;
+
+const performanceUtilsRuntime = getPerformanceUtilsRuntime();
 
 type BatchOptions = {
     readonly maxItems?: number;
@@ -58,7 +66,7 @@ export function batchOperations<T>(
             batchCallback(toProcess);
         }
         if (timeoutId !== undefined) {
-            clearTimeout(timeoutId);
+            performanceUtilsRuntime.clearTimeout(timeoutId);
             timeoutId = undefined;
         }
     }
@@ -69,7 +77,7 @@ export function batchOperations<T>(
         if (items.length >= maxItems) {
             flush();
         } else if (timeoutId === undefined) {
-            timeoutId = setTimeout(flush, maxWait);
+            timeoutId = performanceUtilsRuntime.setTimeout(flush, maxWait);
         }
     };
 }
@@ -79,15 +87,7 @@ export function batchOperations<T>(
  * browser idle-callback API is unavailable.
  */
 export function cancelIdleCallback(id: IdleCallbackHandle): void {
-    if (
-        typeof id === "number" &&
-        typeof globalThis.cancelIdleCallback === "function"
-    ) {
-        globalThis.cancelIdleCallback(id);
-        return;
-    }
-
-    clearTimeout(id);
+    performanceUtilsRuntime.cancelIdleCallback(id);
 }
 
 /**
@@ -135,7 +135,7 @@ export function debounce<This, Args extends unknown[], Return>(
 
     function leadingEdge(time: number): Return | undefined {
         lastInvokeTime = time;
-        timeoutId = setTimeout(timerExpired, wait);
+        timeoutId = performanceUtilsRuntime.setTimeout(timerExpired, wait);
         return leading ? invokeFunc(time) : result;
     }
 
@@ -148,11 +148,14 @@ export function debounce<This, Args extends unknown[], Return>(
     }
 
     function timerExpired(): Return | undefined {
-        const time = Date.now();
+        const time = performanceUtilsRuntime.now();
         if (shouldInvoke(time)) {
             return trailingEdge(time);
         }
-        timeoutId = setTimeout(timerExpired, remainingWait(time));
+        timeoutId = performanceUtilsRuntime.setTimeout(
+            timerExpired,
+            remainingWait(time)
+        );
         return result;
     }
 
@@ -169,7 +172,7 @@ export function debounce<This, Args extends unknown[], Return>(
 
     function cancel(): void {
         if (timeoutId !== undefined) {
-            clearTimeout(timeoutId);
+            performanceUtilsRuntime.clearTimeout(timeoutId);
         }
         lastInvokeTime = 0;
         lastArgs = undefined;
@@ -179,7 +182,9 @@ export function debounce<This, Args extends unknown[], Return>(
     }
 
     function flush(): Return | undefined {
-        return timeoutId === undefined ? result : trailingEdge(Date.now());
+        return timeoutId === undefined
+            ? result
+            : trailingEdge(performanceUtilsRuntime.now());
     }
 
     function setLastThis(value: This): void {
@@ -187,7 +192,7 @@ export function debounce<This, Args extends unknown[], Return>(
     }
 
     function debounced(this: This, ...args: Args): Return | undefined {
-        const time = Date.now();
+        const time = performanceUtilsRuntime.now();
         const isInvoking = shouldInvoke(time);
 
         lastArgs = args;
@@ -198,7 +203,7 @@ export function debounce<This, Args extends unknown[], Return>(
             return leadingEdge(lastCallTime);
         }
         if (timeoutId === undefined) {
-            timeoutId = setTimeout(timerExpired, wait);
+            timeoutId = performanceUtilsRuntime.setTimeout(timerExpired, wait);
         }
         return result;
     }
@@ -272,11 +277,7 @@ export function requestIdleCallback(
     callback: () => void,
     options?: IdleRequestOptions
 ): IdleCallbackHandle {
-    if (typeof globalThis.requestIdleCallback === "function") {
-        return globalThis.requestIdleCallback(callback, options);
-    }
-
-    return setTimeout(callback, options?.timeout ?? 1);
+    return performanceUtilsRuntime.requestIdleCallback(callback, options);
 }
 
 /**

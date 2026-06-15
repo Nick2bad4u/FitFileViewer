@@ -1,0 +1,41 @@
+import { describe, expect, it } from "vitest";
+
+import { getDomHelpersRuntime } from "../../../electron-app/utils/dom/domHelpersRuntime.js";
+
+describe("getDomHelpersRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        let controllerCount = 0;
+        const signal = Symbol("dom-helpers-signal");
+        class TestAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public constructor() {
+                controllerCount += 1;
+            }
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const runtime = getDomHelpersRuntime({
+            AbortController: TestAbortController,
+        });
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+    });
+
+    it("fails clearly when the AbortController runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getDomHelpersRuntime({});
+
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow("dom helpers require an AbortController runtime");
+    });
+});

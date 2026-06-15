@@ -9,22 +9,10 @@ import {
 import * as stateIntegration from "../../../../../electron-app/utils/state/integration/stateIntegration.js";
 
 const persistedStateKey = "fitFileViewer_uiState";
-const originalLocalStorageDescriptor = Object.getOwnPropertyDescriptor(
-    globalThis,
-    "localStorage"
-);
-const originalPerformanceMemoryDescriptor = Object.getOwnPropertyDescriptor(
-    globalThis.performance,
-    "memory"
-);
-const hasOriginalPerformanceMemory = Object.hasOwn(
-    globalThis.performance,
-    "memory"
-);
-
-type ChartControlsState = {
-    isVisible?: unknown;
-};
+const originalLocalStorageDescriptor =
+    getGlobalRestoreDescriptor("localStorage");
+const originalPerformanceMemoryDescriptor =
+    getPerformanceMemoryRestoreDescriptor();
 
 type PerformanceMemory = {
     jsHeapSizeLimit: number;
@@ -32,15 +20,32 @@ type PerformanceMemory = {
     usedJSHeapSize: number;
 };
 
-type StateIntegrationTestGlobal = typeof globalThis & {
-    __DEVELOPMENT__?: boolean;
-    chartControlsState?: ChartControlsState;
-};
-
 type StorageFixture = {
     readonly storage: Storage;
     readonly store: Map<string, string>;
 };
+
+function getGlobalRestoreDescriptor(
+    propertyName: "localStorage"
+): PropertyDescriptor {
+    return (
+        Object.getOwnPropertyDescriptor(globalThis, propertyName) ?? {
+            configurable: true,
+            value: undefined,
+            writable: true,
+        }
+    );
+}
+
+function getPerformanceMemoryRestoreDescriptor(): PropertyDescriptor {
+    return (
+        Object.getOwnPropertyDescriptor(globalThis.performance, "memory") ?? {
+            configurable: true,
+            value: undefined,
+            writable: true,
+        }
+    );
+}
 
 function createStorageFixture(initialEntries = {}): StorageFixture {
     const store = new Map(Object.entries(initialEntries));
@@ -69,19 +74,6 @@ function createStorageFixture(initialEntries = {}): StorageFixture {
     return { storage: storage as Storage, store };
 }
 
-function deleteIntegrationGlobals(): void {
-    const testGlobal = globalThis as StateIntegrationTestGlobal;
-
-    Reflect.deleteProperty(testGlobal, "__DEVELOPMENT__");
-    Reflect.deleteProperty(testGlobal, "__performanceMonitoringInterval");
-    Reflect.deleteProperty(testGlobal, "__persistenceTimeout");
-    Reflect.deleteProperty(testGlobal, "__state_debug");
-    Reflect.deleteProperty(testGlobal, "AppState");
-    Reflect.deleteProperty(testGlobal, "chartControlsState");
-    Reflect.deleteProperty(testGlobal, "globalData");
-    Reflect.deleteProperty(testGlobal, "isChartRendered");
-}
-
 function installLocalStorage(storage: Storage): void {
     Object.defineProperty(globalThis, "localStorage", {
         configurable: true,
@@ -97,53 +89,37 @@ function installPerformanceMemory(memory: PerformanceMemory): void {
 }
 
 function resetTestEnvironment(): void {
-    const testGlobal = globalThis as StateIntegrationTestGlobal;
-
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.clearAllMocks();
     __resetStateManagerForTests();
-    deleteIntegrationGlobals();
     restoreGlobalProperty("localStorage", originalLocalStorageDescriptor);
     restorePerformanceMemory();
 }
 
 function restoreGlobalProperty(
     propertyName: "localStorage",
-    descriptor: PropertyDescriptor | undefined
+    descriptor: PropertyDescriptor
 ): void {
-    if (descriptor) {
-        Object.defineProperty(globalThis, propertyName, descriptor);
-        return;
-    }
-
-    Reflect.deleteProperty(globalThis, propertyName);
+    Object.defineProperty(globalThis, propertyName, descriptor);
 }
 
 function restorePerformanceMemory(): void {
-    if (hasOriginalPerformanceMemory && originalPerformanceMemoryDescriptor) {
-        Object.defineProperty(
-            globalThis.performance,
-            "memory",
-            originalPerformanceMemoryDescriptor
-        );
-        return;
-    }
-
-    Reflect.deleteProperty(globalThis.performance, "memory");
+    Object.defineProperty(
+        globalThis.performance,
+        "memory",
+        originalPerformanceMemoryDescriptor
+    );
 }
 
 describe("stateIntegration.js - Essential Coverage", () => {
     it("exports the state integration public API", () => {
-        expect.assertions(6);
+        expect.assertions(5);
         resetTestEnvironment();
 
         expect(stateIntegration.StateMigrationHelper).toBeTypeOf("function");
         expect(stateIntegration.initializeAppState).toBeTypeOf("function");
         expect(stateIntegration.initializeCompleteStateSystem).toBeTypeOf(
-            "function"
-        );
-        expect(stateIntegration.migrateChartControlsState).toBeTypeOf(
             "function"
         );
         expect(stateIntegration.setupStatePerformanceMonitoring).toBeTypeOf(
@@ -184,43 +160,6 @@ describe("stateIntegration.js - Essential Coverage", () => {
             expect.any(Error)
         );
         expect(firstMigration).toHaveBeenCalledBefore(finalMigration);
-
-        resetTestEnvironment();
-    });
-
-    it("leaves retired legacy chart controls globals untouched", () => {
-        expect.assertions(3);
-        resetTestEnvironment();
-
-        const testGlobal = globalThis as StateIntegrationTestGlobal;
-        setState("charts.controlsVisible", true);
-        testGlobal.chartControlsState = { isVisible: true };
-
-        stateIntegration.migrateChartControlsState();
-
-        expect({
-            legacyVisible: testGlobal.chartControlsState?.isVisible,
-            stateVisible: getState("charts.controlsVisible"),
-        }).toStrictEqual({
-            legacyVisible: true,
-            stateVisible: true,
-        });
-
-        testGlobal.chartControlsState = { isVisible: false };
-        expect({
-            legacyVisible: testGlobal.chartControlsState.isVisible,
-            stateVisible: getState("charts.controlsVisible"),
-        }).toStrictEqual({
-            legacyVisible: false,
-            stateVisible: true,
-        });
-        expect(
-            Object.getOwnPropertyDescriptor(testGlobal, "chartControlsState")
-        ).toMatchObject({
-            configurable: true,
-            value: { isVisible: false },
-            writable: true,
-        });
 
         resetTestEnvironment();
     });
@@ -311,12 +250,11 @@ describe("stateIntegration.js - Essential Coverage", () => {
         resetTestEnvironment();
     });
 
-    it("keeps legacy compatibility globals removed in development mode", () => {
+    it("keeps legacy compatibility globals removed during initialization", () => {
         expect.assertions(8);
         resetTestEnvironment();
 
-        const testGlobal = globalThis as StateIntegrationTestGlobal;
-        testGlobal.__DEVELOPMENT__ = true;
+        const testGlobal = globalThis;
 
         stateIntegration.initializeAppState();
 
@@ -343,17 +281,6 @@ describe("stateIntegration.js - Essential Coverage", () => {
         });
         expect(getState("charts.isRendered")).toBe(true);
         expect(Object.hasOwn(testGlobal, "__state_debug")).toBe(false);
-
-        resetTestEnvironment();
-    });
-
-    it("returns without side effects when optional integration globals are missing", () => {
-        expect.assertions(1);
-        resetTestEnvironment();
-
-        expect(() =>
-            stateIntegration.migrateChartControlsState()
-        ).not.toThrow();
 
         resetTestEnvironment();
     });

@@ -20,26 +20,28 @@ type TestElectronAPI = {
     stopGyazoServer: () => Promise<void>;
 };
 
+function getGlobalRestoreDescriptor(propertyName: string): PropertyDescriptor {
+    return (
+        Object.getOwnPropertyDescriptor(globalThis, propertyName) ?? {
+            configurable: true,
+            value: undefined,
+            writable: true,
+        }
+    );
+}
+
 function restoreGlobalProperty(
     propertyName: string,
-    descriptor: PropertyDescriptor | undefined
+    descriptor: PropertyDescriptor
 ) {
-    if (descriptor) {
-        Object.defineProperty(globalThis, propertyName, descriptor);
-        return;
-    }
-
-    Reflect.deleteProperty(globalThis, propertyName);
+    Object.defineProperty(globalThis, propertyName, descriptor);
 }
 
 describe("exportUtils OAuth state generation", () => {
     it("fails closed before starting the OAuth server when secure randomness is unavailable", async () => {
         expect.assertions(2);
 
-        const cryptoDescriptor = Object.getOwnPropertyDescriptor(
-                globalThis,
-                "crypto"
-            ),
+        const cryptoDescriptor = getGlobalRestoreDescriptor("crypto"),
             startGyazoServer = vi.fn<TestElectronAPI["startGyazoServer"]>(),
             testElectronAPI: TestElectronAPI = {
                 onGyazoOAuthCallback: vi.fn<

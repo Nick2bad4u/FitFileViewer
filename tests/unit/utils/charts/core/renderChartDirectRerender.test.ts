@@ -12,7 +12,7 @@ vi.mock(
     })
 );
 
-import { createDebouncedDirectRerender } from "../../../../../electron-app/utils/charts/core/renderChartDirectRerender.js";
+import { createDebouncedDirectRerender as createDebouncedDirectChartUpdate } from "../../../../../electron-app/utils/charts/core/renderChartDirectRerender.js";
 
 describe("createDebouncedDirectRerender", () => {
     afterEach(() => {
@@ -32,7 +32,7 @@ describe("createDebouncedDirectRerender", () => {
             container.dataset.rendered = "true";
             return Promise.resolve();
         });
-        const rerender = createDebouncedDirectRerender({
+        const directChartUpdate = createDebouncedDirectChartUpdate({
             getStateManager,
             isDevelopmentEnvironment: () => false,
             renderChart,
@@ -43,7 +43,7 @@ describe("createDebouncedDirectRerender", () => {
             waitMs: 25,
         });
 
-        rerender("state update");
+        directChartUpdate("state update");
         await vi.advanceTimersByTimeAsync(25);
 
         expect(container.dataset.rendered).toBe("true");
@@ -63,7 +63,7 @@ describe("createDebouncedDirectRerender", () => {
             Promise.resolve()
         );
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        const rerender = createDebouncedDirectRerender({
+        const directChartUpdate = createDebouncedDirectChartUpdate({
             getStateManager: () => ({}),
             isDevelopmentEnvironment: () => true,
             renderChart,
@@ -74,7 +74,7 @@ describe("createDebouncedDirectRerender", () => {
             waitMs: 25,
         });
 
-        rerender("state update");
+        directChartUpdate("state update");
         await vi.advanceTimersByTimeAsync(25);
 
         expect(container.dataset.rendered).toBeUndefined();

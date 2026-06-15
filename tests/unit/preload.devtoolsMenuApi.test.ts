@@ -1,5 +1,3 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it, vi } from "vitest";
 
 import type {
@@ -7,20 +5,8 @@ import type {
     DevtoolsInjectMenuTheme,
     DevtoolsInvokeChannel,
 } from "../../electron-app/shared/ipc";
-
-interface DevtoolsMenuApiModule {
-    createDevtoolsMenuApi: (options: Record<string, unknown>) => {
-        injectMenu: (
-            theme?: DevtoolsInjectMenuTheme,
-            fitFilePath?: DevtoolsInjectMenuFitFilePath
-        ) => Promise<boolean>;
-    };
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { createDevtoolsMenuApi } = requireFromTest(
-    "../../electron-app/preload/devtoolsMenuApi.js"
-) as DevtoolsMenuApiModule;
+import { createDevtoolsMenuApi } from "../../electron-app/preload/devtoolsMenuApi.js";
+import { validateDevtoolsInjectMenuPayload } from "../../electron-app/shared/devtoolsMenuPolicy.js";
 
 function createApi() {
     const invoke =
@@ -47,6 +33,7 @@ function createApi() {
             devtoolsInjectMenuChannel: "devtools-inject-menu",
             ipcRenderer: { invoke },
             preloadLog,
+            validateDevtoolsInjectMenuPayload,
             validateOptionalNonEmptyString: (
                 value: unknown
             ): value is null | string | undefined =>

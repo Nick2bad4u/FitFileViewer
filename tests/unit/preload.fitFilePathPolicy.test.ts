@@ -1,15 +1,5 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it } from "vitest";
-
-interface FitFilePathPolicyModule {
-    validateFitFilePathInput: (filePath: unknown) => string;
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const { validateFitFilePathInput } = requireFromTest(
-    "../../electron-app/shared/fitFilePathPolicy.js"
-) as FitFilePathPolicyModule;
+import { validateFitFilePathInput } from "../../electron-app/shared/fitFilePathPolicy.js";
 
 describe("FIT file path policy", () => {
     it("accepts absolute filesystem paths", () => {

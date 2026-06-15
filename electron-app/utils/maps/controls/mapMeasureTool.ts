@@ -4,8 +4,13 @@ import type * as Leaflet from "leaflet";
 import { getThemeColors } from "../../charts/theming/getThemeColors.js";
 import { sanitizeCssColorToken } from "../../dom/index.js";
 import { resolveLeafletRuntime } from "../core/leafletRuntime.js";
+import {
+    getMapMeasureToolRuntime,
+    type MapMeasureToolTimer,
+} from "./mapMeasureToolRuntime.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
+const mapMeasureToolRuntime = getMapMeasureToolRuntime();
 
 type LatLngPoint = Leaflet.LatLng;
 
@@ -57,7 +62,9 @@ function replaceMapMeasureEscapeHandler(
     handler: (event: KeyboardEvent) => void
 ): void {
     if (mapMeasureEscapeHandler) {
-        document.removeEventListener("keydown", mapMeasureEscapeHandler);
+        mapMeasureToolRuntime.removeDocumentKeydownListener(
+            mapMeasureEscapeHandler
+        );
     }
     mapMeasureEscapeHandler = handler;
 }
@@ -68,13 +75,15 @@ function clearMapMeasureEscapeHandler(
     if (mapMeasureEscapeHandler !== handler) {
         return;
     }
-    document.removeEventListener("keydown", handler);
+    mapMeasureToolRuntime.removeDocumentKeydownListener(handler);
     mapMeasureEscapeHandler = null;
 }
 
 export function resetMapMeasureToolStateForTests(): void {
     if (mapMeasureEscapeHandler) {
-        document.removeEventListener("keydown", mapMeasureEscapeHandler);
+        mapMeasureToolRuntime.removeDocumentKeydownListener(
+            mapMeasureEscapeHandler
+        );
     }
     mapMeasureEscapeHandler = null;
 }
@@ -260,9 +269,9 @@ export function addSimpleMeasureTool(
     // Button reference will be the created element below
 
     // Create the measure button up front so it's available to handlers
-    const eventController = new AbortController();
+    const eventController = mapMeasureToolRuntime.createAbortController();
     const { signal } = eventController;
-    let disableTimer: ReturnType<typeof setTimeout> | null = null;
+    let disableTimer: MapMeasureToolTimer | null = null;
     const measureBtn = document.createElement("button"),
         themeColors = getThemeColors();
     measureBtn.className = "map-action-btn";
@@ -323,12 +332,12 @@ export function addSimpleMeasureTool(
         }
     };
     replaceMapMeasureEscapeHandler(escapeHandler);
-    document.addEventListener("keydown", escapeHandler, { signal });
+    mapMeasureToolRuntime.addDocumentKeydownListener(escapeHandler, { signal });
     signal.addEventListener(
         "abort",
         () => {
             if (disableTimer) {
-                clearTimeout(disableTimer);
+                mapMeasureToolRuntime.clearTimeout(disableTimer);
                 disableTimer = null;
             }
             clearMapMeasureEscapeHandler(escapeHandler);
@@ -436,9 +445,9 @@ export function addSimpleMeasureTool(
                 enableSimpleMeasure(measureBtn);
                 measureBtn.disabled = true;
                 if (disableTimer) {
-                    clearTimeout(disableTimer);
+                    mapMeasureToolRuntime.clearTimeout(disableTimer);
                 }
-                disableTimer = setTimeout(() => {
+                disableTimer = mapMeasureToolRuntime.setTimeout(() => {
                     measureBtn.disabled = false;
                     disableTimer = null;
                 }, 2000);

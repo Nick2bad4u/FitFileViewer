@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createRendererRuntimeEnvironment } from "../../../electron-app/renderer/runtimeEnvironment.js";
+import { createRendererRuntimeEnvironment as createRuntimeEnvironment } from "../../../electron-app/renderer/runtimeEnvironment.js";
 
 describe("renderer runtime environment", () => {
     it("captures browser globals as bound renderer runtime dependencies", () => {
@@ -30,7 +30,7 @@ describe("renderer runtime environment", () => {
             }),
         } as unknown as Window & typeof globalThis;
 
-        const environment = createRendererRuntimeEnvironment(scope);
+        const environment = createRuntimeEnvironment(scope);
 
         expect(environment.console).toBe(console);
         expect(environment.documentTarget).toBe(document);

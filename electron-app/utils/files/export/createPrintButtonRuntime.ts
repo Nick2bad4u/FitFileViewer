@@ -1,9 +1,11 @@
 export interface CreatePrintButtonRuntimeScope {
+    readonly AbortController?: typeof AbortController | undefined;
     readonly document?: Document | undefined;
     readonly print?: (() => void) | undefined;
 }
 
 export interface CreatePrintButtonRuntime {
+    createAbortController: () => AbortController;
     createButton: () => HTMLButtonElement;
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
@@ -29,6 +31,16 @@ export function getCreatePrintButtonRuntime(
     scope: CreatePrintButtonRuntimeScope = globalThis
 ): CreatePrintButtonRuntime {
     return {
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.AbortController;
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "createPrintButton requires an AbortController runtime"
+                );
+            }
+
+            return new AbortControllerConstructor();
+        },
         createButton(): HTMLButtonElement {
             return getDocument(scope).createElement("button");
         },

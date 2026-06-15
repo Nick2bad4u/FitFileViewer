@@ -174,7 +174,6 @@
         "build:prod": "node scripts/build-package.mjs --node-env production",
         "build:renderer": "vite build --config vite.renderer.config.mjs",
         "build:runtime-ts": "node scripts/build-runtime.mjs",
-        "build:win7": "node scripts/build-win7.mjs",
         "changelog": "git-cliff --config cliff.toml --output CHANGELOG.md",
         "changelog:check-run": "node scripts/update-changelog-check-run.mjs",
         "changelog:commit": "node scripts/commit-changelog-workflow.mjs",
@@ -265,7 +264,8 @@
         "update-deps": "npx ncu -i --install never && npm update --force && npm install --force && npm run sync:node-version-files",
         "verify:fast": "npm run prettier && npm run lint && npm run lint:css && npm run docs:typecheck && npm test",
         "verify:full": "npm run verify:fast && npm run docs:build && npm run audit && npm run test:playwright && npm run release:check-signing && npm run package:unsigned && npm run test:packaged",
-        "verify:release": "npm run verify:full"
+        "verify:release": "npm run verify:full",
+        "update-actions": "npx actions-up --yes --style sha"
     },
     "overrides": {
         "remark-lint-frontmatter-schema": {
@@ -322,7 +322,6 @@
         "leaflet-minimap": "^3.6.1",
         "leaflet.fullscreen": "^5.3.1",
         "leaflet.locatecontrol": "^0.90.0",
-        "leaflet.markercluster": "^1.5.3",
         "makensis": "^3.0.5",
         "maplibre-gl": "^5.24.0",
         "markdownlint-cli2": "^0.22.1",

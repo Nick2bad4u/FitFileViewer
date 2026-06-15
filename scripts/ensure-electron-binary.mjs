@@ -1,13 +1,13 @@
 import { downloadArtifact } from "@electron/get";
 import { spawn } from "node:child_process";
 import * as fs from "node:fs/promises";
-import { createRequire } from "node:module";
 import * as os from "node:os";
 import * as path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const require = createRequire(import.meta.url);
-const electronPackagePath = require.resolve("electron/package.json");
+const electronPackagePath = fileURLToPath(
+    import.meta.resolve("electron/package.json")
+);
 const electronPackageDirectory = path.dirname(electronPackagePath);
 const electronPackage = await readElectronPackage(electronPackagePath);
 const platformPath = getElectronPlatformPath();

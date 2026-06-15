@@ -1,26 +1,10 @@
-import { createRequire } from "node:module";
-
 import { describe, expect, it } from "vitest";
-
-interface MainStatePathPolicyModule {
-    isSafeMainStateOperationId: (value: unknown) => value is string;
-    isSafeMainStatePath: (value: unknown) => value is string;
-    validateMainStateOperationIdInput: (value: unknown) => string;
-    validateMainStatePathInput: (
-        value: unknown,
-        options?: { allowUndefined?: boolean }
-    ) => string | undefined;
-}
-
-const requireFromTest = createRequire(import.meta.url);
-const {
+import {
     isSafeMainStateOperationId,
     isSafeMainStatePath,
     validateMainStateOperationIdInput,
     validateMainStatePathInput,
-} = requireFromTest(
-    "../../electron-app/shared/mainStatePathPolicy.js"
-) as MainStatePathPolicyModule;
+} from "../../electron-app/shared/mainStatePathPolicy.js";
 
 describe("main-state path policy", () => {
     it("accepts conservative dot paths and operation ids", () => {

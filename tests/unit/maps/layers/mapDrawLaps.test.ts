@@ -35,6 +35,7 @@ type MockFunction = (...args: any[]) => any;
 type MapDrawLapsTestGlobal = typeof globalThis & {
     window?: Window & typeof globalThis;
 };
+type WindowDescriptor = PropertyDescriptor | undefined;
 
 function mockFn<T extends MockFunction = MockFunction>(
     implementation?: T
@@ -51,23 +52,28 @@ function getMapDrawLapsTestGlobal(): MapDrawLapsTestGlobal {
     return globalThis as unknown as MapDrawLapsTestGlobal;
 }
 
-function setTestWindowGlobal(): MapDrawLapsTestGlobal["window"] {
+function setTestWindowGlobal(): WindowDescriptor {
     const testGlobal = getMapDrawLapsTestGlobal();
-    const previousWindow = testGlobal.window;
-    testGlobal.window = globalThis as Window & typeof globalThis;
-    return previousWindow;
+    const previousDescriptor = Object.getOwnPropertyDescriptor(
+        testGlobal,
+        "window"
+    );
+    Object.defineProperty(testGlobal, "window", {
+        configurable: true,
+        value: globalThis as Window & typeof globalThis,
+        writable: true,
+    });
+    return previousDescriptor;
 }
 
-function restoreTestWindowGlobal(
-    previousWindow: MapDrawLapsTestGlobal["window"]
-): void {
+function restoreTestWindowGlobal(previousDescriptor: WindowDescriptor): void {
     const testGlobal = getMapDrawLapsTestGlobal();
-    if (previousWindow) {
-        testGlobal.window = previousWindow;
+    if (previousDescriptor) {
+        Object.defineProperty(testGlobal, "window", previousDescriptor);
         return;
     }
 
-    delete testGlobal.window;
+    Reflect.deleteProperty(testGlobal, "window");
 }
 
 // Mock dependencies
@@ -111,15 +117,14 @@ describe("mapDrawLaps", () => {
     let mockMarker: any;
     let mockCircleMarker: any;
     let mockLatLngBounds: any;
-    let mockMarkerClusterGroup: any;
     let mockGetLapColor: any;
     let mockFormatTooltipData: any;
     let mockGetLapNumForIdx: any;
-    let previousWindow: MapDrawLapsTestGlobal["window"];
+    let previousWindowDescriptor: WindowDescriptor;
 
     beforeEach(() => {
         __resetStateManagerForTests();
-        previousWindow = setTestWindowGlobal();
+        previousWindowDescriptor = setTestWindowGlobal();
 
         // Mock console methods
         vi.spyOn(console, "log").mockImplementation(() => {});
@@ -154,11 +159,6 @@ describe("mapDrawLaps", () => {
             isValid: mockFn().mockReturnValue(true),
         };
         mockPolyline.getBounds.mockReturnValue(mockLatLngBounds);
-
-        mockMarkerClusterGroup = {
-            addLayer: mockFn(),
-            clearLayers: mockFn(),
-        };
 
         mockMap = {
             addLayer: mockFn(),
@@ -206,7 +206,7 @@ describe("mapDrawLaps", () => {
         resetMapActivityLayerStateForTests();
         resetActiveMainMapFileIndexForTests();
         resetMapDataPointFilterStateForTests();
-        restoreTestWindowGlobal(previousWindow);
+        restoreTestWindowGlobal(previousWindowDescriptor);
     });
 
     const getPolylineCall = (
@@ -264,7 +264,6 @@ describe("mapDrawLaps", () => {
                 map: mockMap,
                 fitData: mockFitData,
                 overlayIdx: 0,
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 fileName: "test.fit",
@@ -296,7 +295,6 @@ describe("mapDrawLaps", () => {
                 map: mockMap,
                 fitData: mockFitData,
                 overlayIdx: 0,
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 fileName: "test.fit",
@@ -326,7 +324,6 @@ describe("mapDrawLaps", () => {
                 map: mockMap,
                 fitData: mockFitData,
                 overlayIdx: 0,
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 fileName: "raw.fit",
@@ -349,7 +346,6 @@ describe("mapDrawLaps", () => {
                 map: mockMap,
                 fitData: { recordMesgs: [], lapMesgs: [] },
                 overlayIdx: 0,
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 fileName: "test.fit",
@@ -376,7 +372,6 @@ describe("mapDrawLaps", () => {
                 map: mockMap,
                 fitData: mockFitData,
                 overlayIdx: 2,
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 fileName: "test.fit",
@@ -416,7 +411,6 @@ describe("mapDrawLaps", () => {
                 map: mockMap,
                 fitData: mockFitData,
                 overlayIdx: 0,
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 fileName: "test.fit",
@@ -443,7 +437,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer: document.createElement("div"),
@@ -471,7 +464,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -495,7 +487,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -517,7 +508,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -546,7 +536,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -575,7 +564,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: {},
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -663,7 +651,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps("all", {
                 map: mockMap,
                 baseLayers: { base: mockMap },
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -742,7 +729,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps("all", {
                 map: mockMap,
                 baseLayers: { base: mockMap },
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -780,7 +766,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps("all", {
                 map: mockMap,
                 baseLayers: { base: mockMap },
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -853,7 +838,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps(0, {
                 map: mockMap,
                 baseLayers: { base: mockMap },
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -946,7 +930,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps([0, 1], {
                 map: mockMap,
                 baseLayers: { base: mockMap },
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -999,7 +982,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps(["all"], {
                 map: mockMap,
                 baseLayers: { base: mockMap },
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -1077,7 +1059,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps("all", {
                 map: mockMap,
                 baseLayers: { base: mockMap },
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -1127,7 +1108,6 @@ describe("mapDrawLaps", () => {
                 // Invalid lap index
                 map: mockMap,
                 baseLayers: { base: mockMap },
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,
@@ -1180,7 +1160,6 @@ describe("mapDrawLaps", () => {
             mapDrawLaps("all", {
                 map: mockMap,
                 baseLayers: { base: mockMap },
-                markerClusterGroup: mockMarkerClusterGroup,
                 startIcon: mockMarker,
                 endIcon: mockMarker,
                 mapContainer,

@@ -64,12 +64,10 @@ vi.mock(
     })
 );
 
-const setupDOMContentLoaded = vi.fn<() => void>();
 const setupFullscreenListeners = vi.fn<() => void>();
 vi.mock(
     import("../../../../electron-app/utils/ui/controls/addFullScreenButton.js"),
     () => ({
-        setupDOMContentLoaded,
         setupFullscreenListeners,
     })
 );
@@ -102,7 +100,6 @@ vi.mock(
 
 const DEFAULT_TITLE = "Fit File Viewer";
 const mockState: Record<string, unknown> = {
-    globalData: undefined,
     "ui.dragCounter": 0,
     "ui.dropOverlay.visible": false,
     "ui.fileInfo": { displayName: "", hasFile: false, title: DEFAULT_TITLE },
@@ -436,12 +433,9 @@ describe("main-ui.js core flows", () => {
         processEnvironmentMock.isDevelopmentEnvironment.mockReturnValue(false);
         processEnvironmentMock.isTestEnvironment.mockReturnValue(true);
         listenCb = null;
-        mockState["globalData"] = undefined;
         mockState["ui.dragCounter"] = 0;
         mockState["ui.dropOverlay.visible"] = false;
         installBaseDOM();
-        Reflect.deleteProperty(globalThis, "devCleanup");
-        Reflect.deleteProperty(globalThis, "injectMenu");
         resetElectronApiCandidate();
         installElectronAPI();
         // Simulate DOMContentLoaded so external link handlers attach

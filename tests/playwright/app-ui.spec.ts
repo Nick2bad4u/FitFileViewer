@@ -958,7 +958,7 @@ test.describe("FitFileViewer Electron UI", () => {
         await expect(page.locator("#tab_map")).toHaveClass(/active/u);
         await expect(page.locator(".tab-button")).toHaveCount(7);
 
-        const vendorGlobals = await page.evaluate(() => {
+        const rendererVendorState = await page.evaluate(() => {
             const globalWindow = window as Window &
                 Record<string, Record<string, unknown> | undefined>;
 
@@ -995,7 +995,7 @@ test.describe("FitFileViewer Electron UI", () => {
                         undefined,
                 hasCoreVendorScript: Boolean(
                     document.querySelector(
-                        'script[src*="vendor-globals-core.js"]'
+                        'script[src*="renderer-vendor-core.js"]'
                     )
                 ),
                 hasVendorBundleGlobal:
@@ -1003,7 +1003,7 @@ test.describe("FitFileViewer Electron UI", () => {
             };
         });
 
-        expect(vendorGlobals).toStrictEqual({
+        expect(rendererVendorState).toStrictEqual({
             hasArqueroTable: false,
             hasChart: false,
             hasChartZoom: false,
@@ -1170,6 +1170,7 @@ test.describe("FitFileViewer Electron UI", () => {
 
         const clearResult = await page.evaluate(async () => {
             type LeafletRuntime = {
+                Edit?: { Poly?: unknown };
                 latLng?: (lat: number, lng: number) => unknown;
             };
             type LayerGroupRuntime = {
@@ -1191,15 +1192,31 @@ test.describe("FitFileViewer Electron UI", () => {
                 "./utils/maps/state/mapMeasureControlState.js",
                 window.location.href
             ).href;
+            const leafletRuntimeModuleUrl = new URL(
+                "./utils/maps/core/leafletRuntime.js",
+                window.location.href
+            ).href;
             // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used to exercise explicit renderer map measurement state in Playwright smoke tests.
             const mapMeasurementStateModule = (await import(moduleUrl)) as {
                 clearRegisteredMapMeasurements: () => void;
                 getRegisteredMapMeasureControl: () => LeafletMeasureControlRuntime | null;
             };
-            const globalWindow = window as Window & { L?: LeafletRuntime };
+            // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used to exercise explicit renderer Leaflet runtime registration in Playwright smoke tests.
+            const leafletRuntimeModule = (await import(
+                leafletRuntimeModuleUrl
+            )) as {
+                resolveLeafletRuntime: <T>(
+                    isRuntime: (value: unknown) => value is T
+                ) => T | null;
+            };
+            const isLeafletRuntime = (
+                value: unknown
+            ): value is LeafletRuntime =>
+                typeof (value as LeafletRuntime | null)?.latLng === "function";
             const control =
                 mapMeasurementStateModule.getRegisteredMapMeasureControl();
-            const leafletRuntime = globalWindow.L;
+            const leafletRuntime =
+                leafletRuntimeModule.resolveLeafletRuntime(isLeafletRuntime);
 
             if (!control) {
                 throw new Error("Map measure control was not registered");
@@ -1208,7 +1225,7 @@ test.describe("FitFileViewer Electron UI", () => {
                 !leafletRuntime ||
                 typeof leafletRuntime.latLng !== "function"
             ) {
-                throw new Error("Leaflet runtime was not exposed");
+                throw new Error("Leaflet runtime was not registered");
             }
             if (
                 typeof control._startMeasure !== "function" ||
@@ -1434,24 +1451,46 @@ test.describe("FitFileViewer Electron UI", () => {
             page.getByRole("button", { name: /elevation/iu })
         ).toBeVisible();
 
-        const mapRuntime = await page.evaluate(() => {
+        const mapRuntime = await page.evaluate(async () => {
+            type LeafletDrawRuntime = {
+                Edit?: { Poly?: unknown };
+            };
             const globalWindow = window as Window &
                 Record<string, Record<string, unknown> | undefined>;
+            const leafletRuntimeModuleUrl = new URL(
+                "./utils/maps/core/leafletRuntime.js",
+                window.location.href
+            ).href;
+            // eslint-disable-next-line no-unsanitized/method -- Fixed same-origin app module path used to exercise explicit renderer Leaflet runtime registration in Playwright smoke tests.
+            const leafletRuntimeModule = (await import(
+                leafletRuntimeModuleUrl
+            )) as {
+                resolveLeafletRuntime: <T>(
+                    isRuntime: (value: unknown) => value is T
+                ) => T | null;
+            };
+            const isLeafletDrawRuntime = (
+                value: unknown
+            ): value is LeafletDrawRuntime =>
+                typeof (value as LeafletDrawRuntime | null)?.Edit?.Poly ===
+                "function";
             const layerLabels = Array.from(
                 document.querySelectorAll(".leaflet-control-layers label"),
                 (element) => element.textContent?.trim() ?? ""
             );
-            const leafletGlobal = globalWindow.L as
-                | { Edit?: { Poly?: unknown } }
-                | undefined;
+            const leafletRuntime =
+                leafletRuntimeModule.resolveLeafletRuntime(
+                    isLeafletDrawRuntime
+                );
 
             return {
                 exposesMapLibreGlobal:
                     typeof globalWindow.maplibregl === "object" ||
                     typeof globalWindow.maplibregl === "function",
                 exposesLeafletGlobal: "L" in globalWindow,
+                exposesLeafletAlias: "Leaflet" in globalWindow,
                 hasLeafletDrawEditRuntime:
-                    typeof leafletGlobal?.Edit?.Poly === "function",
+                    typeof leafletRuntime?.Edit?.Poly === "function",
                 layerLabels,
                 openFreeMapLabels: layerLabels.filter((label) =>
                     label.startsWith("Open Free Map ")
@@ -1462,7 +1501,8 @@ test.describe("FitFileViewer Electron UI", () => {
             };
         });
 
-        expect(mapRuntime.exposesLeafletGlobal).toBe(true);
+        expect(mapRuntime.exposesLeafletGlobal).toBe(false);
+        expect(mapRuntime.exposesLeafletAlias).toBe(false);
         expect(mapRuntime.hasLeafletDrawEditRuntime).toBe(true);
         expect(mapRuntime.exposesMapLibreGlobal).toBe(false);
         expect(mapRuntime.layerLabels).toHaveLength(33);
@@ -1613,7 +1653,24 @@ test.describe("FitFileViewer Electron UI", () => {
             );
             const popupDocument =
                 document.implementation.createHTMLDocument("");
-            const originalOpen = window.open;
+            const originalOpenDescriptor = Object.getOwnPropertyDescriptor(
+                window,
+                "open"
+            );
+            if (!originalOpenDescriptor) {
+                throw new Error("window.open descriptor was not available");
+            }
+            const setWindowOpenFixture = (open: typeof window.open) => {
+                Object.defineProperty(window, "open", {
+                    configurable: true,
+                    enumerable: originalOpenDescriptor.enumerable,
+                    value: open,
+                    writable: true,
+                });
+            };
+            const restoreWindowOpen = () => {
+                Object.defineProperty(window, "open", originalOpenDescriptor);
+            };
             const popupWindow = {
                 document: popupDocument,
             } as Window & { Chart?: unknown };
@@ -1628,7 +1685,7 @@ test.describe("FitFileViewer Electron UI", () => {
             });
 
             chartRuntimeModule.setChartRuntime(chartMock);
-            window.open = (() => popupWindow) as typeof window.open;
+            setWindowOpenFixture((() => popupWindow) as typeof window.open);
 
             try {
                 const elevationButton = Array.from(
@@ -1672,7 +1729,7 @@ test.describe("FitFileViewer Electron UI", () => {
                 } else {
                     chartRuntimeModule.clearChartRuntimeForTests();
                 }
-                window.open = originalOpen;
+                restoreWindowOpen();
             }
         });
 

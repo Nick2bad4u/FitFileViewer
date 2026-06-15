@@ -54,9 +54,9 @@ export function showColModal({
     let displayedKeys = [...displayKeys];
 
     let lastCheckedIndex: null | number = null;
-    const modalController = new AbortController();
-    const { signal } = modalController;
     const runtime = getSummaryColModalRuntime();
+    const modalController = runtime.createAbortController();
+    const { signal } = modalController;
     let focusTrapCleanup: (() => void) | undefined;
     const previouslyFocusedElement =
         document.activeElement instanceof HTMLElement

@@ -1,0 +1,37 @@
+export type NotificationTimerHandle = ReturnType<typeof globalThis.setTimeout>;
+
+export interface NotificationTimerRuntimeScope {
+    readonly clearTimeout?: typeof globalThis.clearTimeout;
+    readonly setTimeout?: typeof globalThis.setTimeout;
+}
+
+export interface NotificationTimerRuntime {
+    clearTimeout(handle: NotificationTimerHandle): void;
+    setTimeout(
+        callback: () => void,
+        delay: number
+    ): NotificationTimerHandle;
+}
+
+export function getNotificationTimerRuntime(
+    scope: NotificationTimerRuntimeScope = globalThis
+): NotificationTimerRuntime {
+    return {
+        clearTimeout(handle): void {
+            const clearTimer = scope.clearTimeout;
+            if (typeof clearTimer !== "function") {
+                throw new TypeError(
+                    "notification timers require clearTimeout"
+                );
+            }
+            clearTimer(handle);
+        },
+        setTimeout(callback, delay): NotificationTimerHandle {
+            const scheduleTimer = scope.setTimeout;
+            if (typeof scheduleTimer !== "function") {
+                throw new TypeError("notification timers require setTimeout");
+            }
+            return scheduleTimer(callback, delay);
+        },
+    };
+}

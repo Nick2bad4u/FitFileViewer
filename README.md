@@ -75,7 +75,7 @@
 <details><summary>CI Badges</summary>
 
 [![Build and Release Electron App](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/Build.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/Build.yml) 🏗️
-[![Windows 7 Compatibility Build](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/build-win7.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/build-win7.yml) 🪟
+[![Windows 7 Legacy Snapshot](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/build-win7.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/build-win7.yml) 🪟
 [![Build Flatpak](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/flatpak-build.yml) 📦
 [![Docusaurus](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/docusaurus.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/docusaurus.yml) 📚
 [![Clean Old Releases](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/cleanReleases.yml/badge.svg)](https://github.com/Nick2bad4u/FitFileViewer/actions/workflows/cleanReleases.yml) 🧹
@@ -226,7 +226,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 | Windows  | ia32 / win32  | MSI TAR.XZ    | Fit-File-Viewer-msi-ia32-X.X.X.tar.xz   |
 | Windows  | ia32 / win32  | MSI ZIP       | Fit-File-Viewer-msi-ia32-X.X.X.zip      |
 | Windows  | ia32 / win32  | Portable      | Fit-File-Viewer-portable-ia32-X.X.X.exe |
-| Windows  | Win7 (legacy) | Portable EXE  | Fit-File-Viewer-win7-X.X.X.exe\[.zip]   |
+| Windows  | Win7 (legacy) | Portable EXE  | Fit-File-Viewer-win7-\*.exe\[.zip]      |
 
 <details><summary>🗂️ Update Files (Nupkg &amp; Blockmap)</summary>
 
@@ -247,7 +247,7 @@ For a detailed list of changes, bug fixes, and new features, please refer to the
 - Most users should download the "Installer EXE", "MSI" or "Portable" for a standard installation experience.
 - "Portable" builds do not require installation--just extract and run.
 - "Squirrel Nupkg/RELEASES" and "Blockmap" files are used for automatic updates and are not intended for manual installation.
-- For Windows 7, use the **Win7 (legacy)** portable asset (`Fit-File-Viewer-win7-X.X.X.exe` or `.exe.zip`) from the latest GitHub release.
+- For Windows 7, use the **Win7 (legacy)** portable asset (`Fit-File-Viewer-win7-*.exe` or `.exe.zip`) from the latest GitHub release. This is a carried-forward legacy snapshot, not a freshly rebuilt current-version binary.
 
 ### 🍏 Mac Builds
 

@@ -63,6 +63,37 @@ type MockMediaQueryList = Pick<
     | "removeEventListener"
     | "removeListener"
 >;
+type TestGlobalProperty = "matchMedia";
+
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor
+>();
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
+}
 
 function createMockMediaQueryList(
     overrides: Partial<MockMediaQueryList> = {}
@@ -409,6 +440,7 @@ describe("uiStateManager - comprehensive coverage", () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
+        restoreTestGlobals();
     });
 
     describe("constructor and initialization", () => {
@@ -500,9 +532,7 @@ describe("uiStateManager - comprehensive coverage", () => {
             const mockMatchMedia = vi.fn<(query: string) => MockMediaQueryList>(
                 () => createMockMediaQueryList({ matches: true })
             );
-            Object.defineProperty(globalThis, "matchMedia", {
-                value: mockMatchMedia,
-            });
+            setTestGlobal("matchMedia", mockMatchMedia);
 
             manager.applyTheme("system");
 
@@ -518,7 +548,7 @@ describe("uiStateManager - comprehensive coverage", () => {
             expect.assertions(1);
 
             const manager = new UIStateManager();
-            Reflect.deleteProperty(globalThis, "matchMedia");
+            setTestGlobal("matchMedia", undefined);
 
             manager.applyTheme("system");
 
@@ -543,9 +573,7 @@ describe("uiStateManager - comprehensive coverage", () => {
                     addListener,
                 })
             );
-            Object.defineProperty(globalThis, "matchMedia", {
-                value: mockMatchMedia,
-            });
+            setTestGlobal("matchMedia", mockMatchMedia);
 
             manager.applyTheme("system");
 
@@ -595,9 +623,7 @@ describe("uiStateManager - comprehensive coverage", () => {
                     removeEventListener,
                 })
             );
-            Object.defineProperty(globalThis, "matchMedia", {
-                value: mockMatchMedia,
-            });
+            setTestGlobal("matchMedia", mockMatchMedia);
 
             // First apply system theme to set up listener
             manager.applyTheme("system");
@@ -630,9 +656,7 @@ describe("uiStateManager - comprehensive coverage", () => {
                     removeListener,
                 })
             );
-            Object.defineProperty(globalThis, "matchMedia", {
-                value: mockMatchMedia,
-            });
+            setTestGlobal("matchMedia", mockMatchMedia);
 
             // Apply system theme then switch to explicit theme
             manager.applyTheme("system");
@@ -1402,9 +1426,7 @@ describe("uiStateManager - comprehensive coverage", () => {
                     removeEventListener,
                 })
             );
-            Object.defineProperty(globalThis, "matchMedia", {
-                value: mockMatchMedia,
-            });
+            setTestGlobal("matchMedia", mockMatchMedia);
 
             // Set up system theme listener
             manager.applyTheme("system");

@@ -20,14 +20,14 @@ type GetChartCounts = () => {
 type SetTimeoutMock = typeof setTimeout;
 type StateSubscribe = (listener: (...args: unknown[]) => void) => () => void;
 type SubscribeToChartSettings = (listener: () => void) => () => void;
-type TestGlobal = typeof globalThis & {
-    addEventListener: AddEventListener;
-    customElements: CustomElementRegistry;
-    document: Document;
-    HTMLElement: typeof HTMLElement;
-    setTimeout: SetTimeoutMock;
-    window: Window & typeof globalThis;
-};
+type TestGlobalProperty =
+    | "addEventListener"
+    | "customElements"
+    | "document"
+    | "HTMLElement"
+    | "setTimeout"
+    | "window";
+type TestObjectProperty = "addEventListener";
 
 function createMockElement(id: string): HTMLElement {
     const element = document.createElement("div");
@@ -47,6 +47,94 @@ function getRequiredElementById(id: string): HTMLElement {
 
 function noop(): void {
     return;
+}
+
+const originalGlobalDescriptors = new Map<
+    TestGlobalProperty,
+    PropertyDescriptor
+>();
+const originalObjectDescriptors = new Map<
+    object,
+    Map<TestObjectProperty, PropertyDescriptor>
+>();
+
+function setTestGlobal(name: TestGlobalProperty, value: unknown): void {
+    if (!originalGlobalDescriptors.has(name)) {
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected globalThis.${name} to exist`);
+        }
+
+        originalGlobalDescriptors.set(name, descriptor);
+    }
+
+    Object.defineProperty(globalThis, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function getPropertyDescriptorFromChain(
+    target: object,
+    name: TestObjectProperty
+): PropertyDescriptor | undefined {
+    let current: object | null = target;
+
+    while (current) {
+        const descriptor = Object.getOwnPropertyDescriptor(current, name);
+        if (descriptor) {
+            return descriptor;
+        }
+        current = Object.getPrototypeOf(current);
+    }
+
+    return undefined;
+}
+
+function setTestObjectProperty(
+    target: object,
+    name: TestObjectProperty,
+    value: unknown
+): void {
+    let descriptors = originalObjectDescriptors.get(target);
+    if (!descriptors) {
+        descriptors = new Map();
+        originalObjectDescriptors.set(target, descriptors);
+    }
+    if (!descriptors.has(name)) {
+        const descriptor = Object.getOwnPropertyDescriptor(
+            target,
+            name
+        ) ?? getPropertyDescriptorFromChain(target, name);
+
+        if (!descriptor) {
+            throw new Error(`Expected test object property ${name} to exist`);
+        }
+
+        descriptors.set(name, descriptor);
+    }
+
+    Object.defineProperty(target, name, {
+        configurable: true,
+        value,
+        writable: true,
+    });
+}
+
+function restoreTestGlobals(): void {
+    for (const [target, descriptors] of originalObjectDescriptors) {
+        for (const [name, descriptor] of descriptors) {
+            Object.defineProperty(target, name, descriptor);
+        }
+    }
+    originalObjectDescriptors.clear();
+
+    for (const [name, descriptor] of originalGlobalDescriptors) {
+        Object.defineProperty(globalThis, name, descriptor);
+    }
+    originalGlobalDescriptors.clear();
 }
 
 const chartCounts: ReturnType<GetChartCounts> = {
@@ -165,10 +253,8 @@ function getRegisteredEventHandler(
 
 describe("chartStatusIndicator.js", () => {
     // Store original properties
-    let originalAddEventListener: typeof window.addEventListener;
-    let originalConsoleError: typeof console.error;
-    let originalTimeout: typeof setTimeout;
     let originalDefineProperty: typeof Object.defineProperty;
+    let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
         // Reset mocks
@@ -179,42 +265,45 @@ describe("chartStatusIndicator.js", () => {
             url: "http://localhost/",
         });
 
-        const testGlobal = globalThis as TestGlobal;
-        testGlobal.document = dom.window.document;
-        testGlobal.window = dom.window as Window & typeof globalThis;
-        testGlobal.HTMLElement = dom.window.HTMLElement;
-        testGlobal.customElements = dom.window.customElements;
+        setTestGlobal("document", dom.window.document);
+        setTestGlobal("window", dom.window as Window & typeof globalThis);
+        setTestGlobal("HTMLElement", dom.window.HTMLElement);
+        setTestGlobal("customElements", dom.window.customElements);
 
         // Save original functions
-        originalAddEventListener = window.addEventListener;
-        originalConsoleError = console.error;
-        originalTimeout = global.setTimeout;
         originalDefineProperty = Object.defineProperty;
 
         // Mock console.error
-        vi.spyOn(console, "error").mockImplementation(noop);
+        consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(noop);
 
         // Mock setTimeout to execute immediately
-        testGlobal.setTimeout = vi.fn<SetTimeoutMock>((handler) => {
-            if (typeof handler === "function") {
-                handler();
-            }
-            return 1 as ReturnType<SetTimeoutMock>;
-        }) as SetTimeoutMock;
+        setTestGlobal(
+            "setTimeout",
+            vi.fn<SetTimeoutMock>((handler) => {
+                if (typeof handler === "function") {
+                    handler();
+                }
+                return 1 as ReturnType<SetTimeoutMock>;
+            }) as SetTimeoutMock
+        );
 
         // Mock addEventListener for both window and document
         const mockWindowAddEventListener = vi.fn<AddEventListener>();
         const mockDocumentAddEventListener = vi.fn<AddEventListener>();
 
-        window.addEventListener = mockWindowAddEventListener;
-        document.addEventListener = mockDocumentAddEventListener;
+        setTestObjectProperty(
+            window,
+            "addEventListener",
+            mockWindowAddEventListener
+        );
+        setTestObjectProperty(
+            document,
+            "addEventListener",
+            mockDocumentAddEventListener
+        );
 
         // Synchronize addEventListener between window and globalThis scopes using property descriptor pattern
-        Object.defineProperty(globalThis, "addEventListener", {
-            configurable: true,
-            value: mockWindowAddEventListener,
-            writable: true,
-        });
+        setTestGlobal("addEventListener", mockWindowAddEventListener);
 
         Object.defineProperty = vi.fn<DefineProperty>((obj, prop, descriptor) =>
             originalDefineProperty.call(Object, obj, prop, descriptor)
@@ -223,12 +312,10 @@ describe("chartStatusIndicator.js", () => {
 
     afterEach(() => {
         // Restore original functions
-        if (originalAddEventListener)
-            window.addEventListener = originalAddEventListener;
-        if (originalConsoleError) console.error = originalConsoleError;
-        if (originalTimeout) global.setTimeout = originalTimeout;
+        consoleErrorSpy.mockRestore();
         if (originalDefineProperty)
             Object.defineProperty = originalDefineProperty;
+        restoreTestGlobals();
 
         // Clear mock calls
         vi.clearAllMocks();
@@ -527,8 +614,8 @@ describe("chartStatusIndicator.js", () => {
                 throw new Error("Test error");
             });
 
-            window.addEventListener = errorMock;
-            globalThis.addEventListener = errorMock;
+            setTestObjectProperty(window, "addEventListener", errorMock);
+            setTestGlobal("addEventListener", errorMock);
 
             // Import the module
             const { setupChartStatusUpdates } =

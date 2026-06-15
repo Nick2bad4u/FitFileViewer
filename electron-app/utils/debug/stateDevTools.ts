@@ -8,6 +8,10 @@ import {
     getDebugStateRoot,
     subscribeToDebugStateChanges,
 } from "../state/domain/debugStateAccess.js";
+import {
+    getStateDevToolsRuntime,
+    type StateDevToolsIntervalHandle,
+} from "./stateDevToolsRuntime.js";
 
 type StateRecord = Record<string, unknown>;
 type StateHistory = unknown[];
@@ -81,6 +85,7 @@ const PERFORMANCE_CONFIG = {
     memoryCheckInterval: 30_000, // 30 seconds
     slowOperationThreshold: 10, // Ms
 };
+const stateDevToolsRuntime = getStateDevToolsRuntime();
 
 /**
  * Checks whether a value is a plain state record.
@@ -330,7 +335,7 @@ class StateDebugUtilities {
  * State Performance Monitor Class
  */
 class StatePerformanceMonitor {
-    intervalId: ReturnType<typeof setInterval> | null = null;
+    intervalId: StateDevToolsIntervalHandle | null = null;
 
     isEnabled = false;
 
@@ -356,7 +361,7 @@ class StatePerformanceMonitor {
         console.log("[StateMonitor] Performance monitoring disabled");
 
         if (this.intervalId) {
-            clearInterval(this.intervalId);
+            stateDevToolsRuntime.clearInterval(this.intervalId);
             this.intervalId = null;
         }
     }
@@ -373,7 +378,7 @@ class StatePerformanceMonitor {
         console.log("[StateMonitor] Performance monitoring enabled");
 
         // Set up memory monitoring
-        this.intervalId = setInterval(() => {
+        this.intervalId = stateDevToolsRuntime.setInterval(() => {
             this.recordMemoryUsage();
         }, PERFORMANCE_CONFIG.memoryCheckInterval);
 
@@ -618,11 +623,7 @@ export function cleanupStateDevTools(): void {
  * @param enableInProduction - Whether to enable in production.
  */
 export function initializeStateDevTools(enableInProduction = false): void {
-    const isDevelopment =
-        globalThis.window !== undefined &&
-        (globalThis.location.hostname === "localhost" ||
-            globalThis.location.hostname === "127.0.0.1" ||
-            globalThis.location.protocol === "file:");
+    const isDevelopment = stateDevToolsRuntime.isDevelopmentScope();
 
     if (isDevelopment || enableInProduction) {
         debugUtilities.enableDebugMode();

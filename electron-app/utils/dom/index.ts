@@ -3,6 +3,7 @@
 export * from "./domHelpers.js";
 export { default as domHelpers } from "./domHelpers.js";
 export { default } from "./domHelpers.js";
+export * from "./domHelpersRuntime.js";
 export * from "./escapeHtml.js";
 export * from "./sanitizeCssColorToken.js";
 export * from "./sanitizeHtmlAllowlist.js";

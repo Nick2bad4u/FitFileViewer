@@ -2,6 +2,10 @@
 
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
+import {
+    getKeyboardShortcutsModalRuntime,
+    type KeyboardShortcutsModalTimerHandle,
+} from "./keyboardShortcutsModalRuntime.js";
 import { createModalFocusTrap } from "./modalFocusTrap.js";
 
 type ShortcutCategory = {
@@ -15,7 +19,9 @@ type ShortcutItem = {
     keys: string;
 };
 
-let closeTimer: ReturnType<typeof setTimeout> | null = null;
+const keyboardShortcutsModalRuntime = getKeyboardShortcutsModalRuntime();
+
+let closeTimer: KeyboardShortcutsModalTimerHandle | null = null;
 let focusTrapCleanup: (() => void) | undefined;
 let lastFocusedElement: HTMLElement | null = null;
 let showAnimationFrame: number | null = null;
@@ -98,7 +104,7 @@ export function closeKeyboardShortcutsModal(): void {
     // Start closing animation
     modal.classList.remove("show");
     if (showAnimationFrame !== null) {
-        cancelAnimationFrame(showAnimationFrame);
+        keyboardShortcutsModalRuntime.cancelAnimationFrame(showAnimationFrame);
         showAnimationFrame = null;
     }
     focusTrapCleanup?.();
@@ -106,9 +112,9 @@ export function closeKeyboardShortcutsModal(): void {
 
     // Wait for animation to complete before hiding
     if (closeTimer) {
-        clearTimeout(closeTimer);
+        keyboardShortcutsModalRuntime.clearTimeout(closeTimer);
     }
-    closeTimer = setTimeout(() => {
+    closeTimer = keyboardShortcutsModalRuntime.setTimeout(() => {
         closeTimer = null;
         modal.style.display = "none";
 
@@ -708,7 +714,7 @@ export function showKeyboardShortcutsModal(): void {
         return;
     }
     if (closeTimer) {
-        clearTimeout(closeTimer);
+        keyboardShortcutsModalRuntime.clearTimeout(closeTimer);
         closeTimer = null;
     }
 
@@ -728,16 +734,17 @@ export function showKeyboardShortcutsModal(): void {
         }
     };
 
-    if (typeof requestAnimationFrame === "function") {
-        if (showAnimationFrame !== null) {
-            cancelAnimationFrame(showAnimationFrame);
-        }
-        showAnimationFrame = requestAnimationFrame(() => {
+    if (showAnimationFrame !== null) {
+        keyboardShortcutsModalRuntime.cancelAnimationFrame(showAnimationFrame);
+    }
+    showAnimationFrame = keyboardShortcutsModalRuntime.requestAnimationFrame(
+        () => {
             showAnimationFrame = null;
             applyShowClass();
             console.log("Ensured show class via animation frame");
-        });
-    } else {
+        }
+    );
+    if (showAnimationFrame === null) {
         console.warn(
             "requestAnimationFrame not available; applying show class synchronously"
         );

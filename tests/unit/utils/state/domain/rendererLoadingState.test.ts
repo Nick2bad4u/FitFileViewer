@@ -6,7 +6,7 @@ import {
     isRendererLoading,
     normalizeRendererLoading,
     setRendererLoading,
-    subscribeToRendererLoading,
+    subscribeToRendererLoading as subscribeToLoading,
 } from "../../../../../electron-app/utils/state/domain/rendererLoadingState.js";
 
 describe("rendererLoadingState", () => {
@@ -46,7 +46,7 @@ describe("rendererLoadingState", () => {
         expect.assertions(1);
 
         const received: boolean[] = [];
-        const unsubscribe = subscribeToRendererLoading((loading) => {
+        const unsubscribe = subscribeToLoading((loading) => {
             received.push(loading);
         });
 

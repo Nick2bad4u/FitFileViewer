@@ -12,6 +12,12 @@ import {
     setChartSetting,
 } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../notifications/showNotification.js";
+import {
+    getCreateSettingsHeaderRuntime,
+    type CreateSettingsHeaderTimer,
+} from "./createSettingsHeaderRuntime.js";
+
+const createSettingsHeaderRuntime = getCreateSettingsHeaderRuntime();
 
 type ChartDataPoint = Record<string, unknown> & {
     x?: unknown;
@@ -481,7 +487,7 @@ export function createSettingsHeader(wrapper: HTMLElement): void {
                 const success = resetAllSettings();
 
                 // Re-enable button after reset completes
-                const resetTimer = setTimeout(() => {
+                const resetTimer = createSettingsHeaderRuntime.setTimeout(() => {
                     resetBtn.style.opacity = "1";
                     resetBtn.disabled = false;
                 }, 200);
@@ -532,7 +538,8 @@ export function showChartSelectionModal(
 
     // Create modal overlay
     const overlay = document.createElement("div");
-    const modalAbortController = new AbortController();
+    const modalAbortController =
+        createSettingsHeaderRuntime.createAbortController();
     const closeModal = () => {
         modalAbortController.abort();
         overlay.remove();
@@ -761,7 +768,8 @@ function createActionButton(
 		backdrop-filter: var(--backdrop-blur);
 	`;
 
-    const buttonController = new AbortController();
+    const buttonController =
+        createSettingsHeaderRuntime.createAbortController();
     const buttonSignal = buttonController.signal;
 
     button.addEventListener(
@@ -806,7 +814,8 @@ function createControlGroup(option: ChartOption): HTMLElement {
 		backdrop-filter: var(--backdrop-blur);
 	`;
 
-    const groupController = new AbortController();
+    const groupController =
+        createSettingsHeaderRuntime.createAbortController();
     const groupSignal = groupController.signal;
 
     // Add hover effect
@@ -873,7 +882,8 @@ function createControlGroup(option: ChartOption): HTMLElement {
  */
 function createRangeControl(option: ChartOption): HTMLDivElement {
     const container = document.createElement("div");
-    const rangeController = new AbortController();
+    const rangeController =
+        createSettingsHeaderRuntime.createAbortController();
     const rangeSignal = rangeController.signal;
     container.style.cssText = `
 		position: relative;
@@ -899,7 +909,7 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
     })();
 
     const slider = document.createElement("input") as HTMLInputElement & {
-        timeout?: ReturnType<typeof setTimeout>;
+        timeout?: CreateSettingsHeaderTimer;
     };
     slider.type = "range";
     slider.id = `chartjs-${option.id}-slider`;
@@ -983,8 +993,8 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
                 slider.style.background = `linear-gradient(to right, var(--color-accent) 0%, var(--color-accent) ${percentage}%, var(--color-border) ${percentage}%, var(--color-border) 100%)`;
 
                 // Debounced re-render using the same approach as the reset button
-                clearTimeout(slider.timeout);
-                slider.timeout = setTimeout(() => {
+                createSettingsHeaderRuntime.clearTimeout(slider.timeout);
+                slider.timeout = createSettingsHeaderRuntime.setTimeout(() => {
                     reRenderChartsAfterSettingChange(option.id, safeValue);
                 }, 300);
             }
@@ -1008,7 +1018,8 @@ function createRangeControl(option: ChartOption): HTMLDivElement {
  */
 function createSelectControl(option: ChartOption): HTMLSelectElement {
     const select = document.createElement("select");
-    const selectController = new AbortController();
+    const selectController =
+        createSettingsHeaderRuntime.createAbortController();
     const selectSignal = selectController.signal;
     select.id = `chartjs-${option.id}-dropdown`;
     select.style.cssText = `
@@ -1127,7 +1138,8 @@ function createSelectControl(option: ChartOption): HTMLSelectElement {
  */
 function createToggleControl(option: ChartOption): HTMLDivElementExtended {
     const container = document.createElement("div") as HTMLDivElementExtended;
-    const toggleController = new AbortController();
+    const toggleController =
+        createSettingsHeaderRuntime.createAbortController();
     const toggleSignal = toggleController.signal;
     container.style.cssText = `
 		display: flex;

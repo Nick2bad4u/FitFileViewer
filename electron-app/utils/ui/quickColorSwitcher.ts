@@ -3,6 +3,10 @@ import {
     setAccentColor,
 } from "../theming/core/accentColor.js";
 import { getEffectiveTheme, loadTheme } from "../theming/core/theme.js";
+import {
+    getQuickColorSwitcherRuntime,
+    type QuickColorSwitcherTimerHandle,
+} from "./quickColorSwitcherRuntime.js";
 
 interface ColorPreset {
     readonly color: string;
@@ -10,7 +14,7 @@ interface ColorPreset {
 }
 
 interface QuickColorSwitcherState {
-    closeTimer: ReturnType<typeof setTimeout> | null;
+    closeTimer: QuickColorSwitcherTimerHandle | null;
     listenerController: AbortController;
 }
 
@@ -32,6 +36,7 @@ const quickColorSwitcherStates = new WeakMap<
     HTMLDivElement,
     QuickColorSwitcherState
 >();
+const quickColorSwitcherRuntime = getQuickColorSwitcherRuntime();
 const trackedQuickColorSwitcherElements = new Set<HTMLDivElement>();
 
 function createPaletteIcon(): SVGSVGElement {
@@ -445,7 +450,7 @@ function cleanupSwitcherState(switcher: HTMLDivElement): void {
 
     existingState.listenerController.abort();
     if (existingState.closeTimer) {
-        clearTimeout(existingState.closeTimer);
+        quickColorSwitcherRuntime.clearTimeout(existingState.closeTimer);
     }
     quickColorSwitcherStates.delete(switcher);
     trackedQuickColorSwitcherElements.delete(switcher);
@@ -461,7 +466,8 @@ export function resetQuickColorSwitcherStateForTests(): void {
 function setupSwitcherListeners(switcher: HTMLDivElement): void {
     cleanupSwitcherState(switcher);
 
-    const listenerController = new AbortController();
+    const listenerController =
+        quickColorSwitcherRuntime.createAbortController();
     const state: QuickColorSwitcherState = {
         closeTimer: null,
         listenerController,
@@ -493,8 +499,7 @@ function setupSwitcherListeners(switcher: HTMLDivElement): void {
     }
 
     // Close dropdown when clicking outside
-    document.addEventListener(
-        "click",
+    quickColorSwitcherRuntime.addDocumentClickListener(
         (e) => {
             if (e.target instanceof Node && !switcher.contains(e.target)) {
                 dropdown?.classList.remove("open");
@@ -522,12 +527,17 @@ function setupSwitcherListeners(switcher: HTMLDivElement): void {
 
                     // Close dropdown after short delay
                     if (state.closeTimer) {
-                        clearTimeout(state.closeTimer);
+                        quickColorSwitcherRuntime.clearTimeout(
+                            state.closeTimer
+                        );
                     }
-                    state.closeTimer = setTimeout(() => {
-                        state.closeTimer = null;
-                        dropdown?.classList.remove("open");
-                    }, SWITCHER_CLOSE_DELAY_MS);
+                    state.closeTimer = quickColorSwitcherRuntime.setTimeout(
+                        () => {
+                            state.closeTimer = null;
+                            dropdown?.classList.remove("open");
+                        },
+                        SWITCHER_CLOSE_DELAY_MS
+                    );
                 }
             },
             { signal: listenerController.signal }

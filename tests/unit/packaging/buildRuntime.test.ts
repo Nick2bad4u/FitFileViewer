@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
     bundlePreloadScriptPath,
+    bundleMainScriptPath,
     cleanRuntimeDistScriptPath,
     formatRuntimeOutputScriptPath,
     prepareRuntimeDistScriptPath,
@@ -45,6 +46,7 @@ describe("build-runtime script", () => {
             "clean runtime dist",
             "validate runtime TypeScript file list",
             "compile runtime TypeScript",
+            "bundle main",
             "bundle preload",
             "build renderer bundle",
             "format runtime output",
@@ -58,6 +60,7 @@ describe("build-runtime script", () => {
                 "--project",
                 rootRuntimeTsconfigPath,
             ],
+            [bundleMainScriptPath],
             [bundlePreloadScriptPath],
             [
                 expect.stringMatching(/[\\/]vite[\\/]bin[\\/]vite\.js$/u),

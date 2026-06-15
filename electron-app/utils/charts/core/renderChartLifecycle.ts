@@ -11,26 +11,26 @@ interface ChartLifecycleActions {
 }
 
 interface StartChartRenderingDependencies {
-    getGlobalChartActions(): ChartLifecycleActions | null;
+    getChartLifecycleActions(): ChartLifecycleActions | null;
     isLoadingStateSuppressed(): boolean;
     setState(path: string, value: unknown, options: unknown): void;
 }
 
 interface ClearExistingChartsDependencies {
-    getGlobalChartActions(): ChartLifecycleActions | null;
+    getChartLifecycleActions(): ChartLifecycleActions | null;
     updateState(path: string, value: unknown, options: unknown): void;
 }
 
 interface CompleteChartRenderingDependencies {
-    getGlobalChartActions(): ChartLifecycleActions | null;
+    getChartLifecycleActions(): ChartLifecycleActions | null;
     safeCompleteRendering(success: boolean): void;
 }
 
-/** Starts chart rendering through global actions or the state fallback. */
+/** Starts chart rendering through registered actions or the state fallback. */
 export function startChartRendering(
     dependencies: StartChartRenderingDependencies
 ): void {
-    const actions = dependencies.getGlobalChartActions();
+    const actions = dependencies.getChartLifecycleActions();
     if (actions?.startRendering) {
         actions.startRendering();
         return;
@@ -49,11 +49,14 @@ export function startChartRendering(
     }
 }
 
-/** Clears existing chart instances through global actions or the local fallback. */
+/**
+ * Clears existing chart instances through registered actions or the local
+ * fallback.
+ */
 export function clearExistingCharts(
     dependencies: ClearExistingChartsDependencies
 ): void {
-    const actions = dependencies.getGlobalChartActions();
+    const actions = dependencies.getChartLifecycleActions();
     if (actions?.clearCharts) {
         actions.clearCharts();
         return;
@@ -70,7 +73,7 @@ export function clearExistingCharts(
     );
 }
 
-/** Completes chart rendering through global actions or the safe fallback. */
+/** Completes chart rendering through registered actions or the safe fallback. */
 export function completeChartRendering(
     dependencies: CompleteChartRenderingDependencies,
     success: boolean,
@@ -78,7 +81,7 @@ export function completeChartRendering(
     renderTime: number
 ): void {
     try {
-        const actions = dependencies.getGlobalChartActions();
+        const actions = dependencies.getChartLifecycleActions();
         if (actions?.completeRendering) {
             actions.completeRendering(success, chartCount, renderTime);
             return;

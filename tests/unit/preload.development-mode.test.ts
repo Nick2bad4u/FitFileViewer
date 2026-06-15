@@ -1,13 +1,6 @@
-import { createRequire } from "node:module";
-import path from "node:path";
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ElectronAPI } from "../../electron-app/shared/preloadApi";
-
-const preloadSourceRequire = createRequire(
-    path.join(process.cwd(), "electron-app", "preload.ts")
-);
 
 type ConsoleCall = unknown[];
 type ExposedElectronAPI = Pick<
@@ -40,13 +33,15 @@ interface ElectronHoistedMock {
 type ProcessOnceListener = (...args: unknown[]) => void;
 
 const developmentToolsGlobalName = ["dev", "Tools"].join("");
+const exposedGlobalValues = new Map<string, unknown>();
 
 async function startPreloadWithElectronBridge(
     electronBridge: ElectronHoistedMock
 ): Promise<void> {
     const { startPreloadEntrypoint } =
         await import("../../electron-app/preload/preloadEntrypoint.js");
-    startPreloadEntrypoint(preloadSourceRequire, {
+
+    startPreloadEntrypoint({
         consoleRef: console,
         electronBridgeOverride: electronBridge,
         globalScope: globalThis,
@@ -55,11 +50,11 @@ async function startPreloadWithElectronBridge(
 }
 
 function getGlobalValue(name: string): unknown {
-    return Reflect.get(globalThis, name);
+    return exposedGlobalValues.get(name);
 }
 
 function setGlobalValue(name: string, value: unknown): void {
-    Reflect.set(globalThis, name, value);
+    exposedGlobalValues.set(name, value);
 }
 
 function getExposedElectronAPI(): ExposedElectronAPI {
@@ -71,28 +66,19 @@ function getExposedDevTools(): ExposedDevTools {
 }
 
 describe("preload.js - Development mode coverage", () => {
-    let originalElectronAPI: unknown;
-    let originalDevTools: unknown;
     const originalNodeEnv = process.env.NODE_ENV;
 
     beforeEach(() => {
         vi.clearAllMocks();
         vi.resetModules();
-        originalElectronAPI = getGlobalValue("electronAPI");
-        originalDevTools = getGlobalValue(developmentToolsGlobalName);
-        Reflect.deleteProperty(globalThis, "electronAPI");
-        Reflect.deleteProperty(globalThis, developmentToolsGlobalName);
+        exposedGlobalValues.clear();
     });
 
     afterEach(() => {
         vi.restoreAllMocks();
         vi.resetModules();
         process.env.NODE_ENV = originalNodeEnv;
-        // restore globals if they existed
-        if (originalElectronAPI)
-            setGlobalValue("electronAPI", originalElectronAPI);
-        if (originalDevTools)
-            setGlobalValue(developmentToolsGlobalName, originalDevTools);
+        exposedGlobalValues.clear();
     });
 
     it("exposes api and dev tools, logs dev messages, and handles beforeExit in development", async () => {

@@ -7,7 +7,7 @@ import {
     normalizeRendererTheme,
     setRendererPreviousTheme,
     setRendererTheme,
-    subscribeToRendererTheme,
+    subscribeToRendererTheme as subscribeToTheme,
 } from "../../../../../electron-app/utils/state/domain/rendererThemeState.js";
 
 describe("rendererThemeState", () => {
@@ -37,7 +37,7 @@ describe("rendererThemeState", () => {
         expect.assertions(2);
 
         const changes: unknown[] = [];
-        const unsubscribe = subscribeToRendererTheme((newValue) => {
+        const unsubscribe = subscribeToTheme((newValue) => {
             changes.push(newValue);
         });
 

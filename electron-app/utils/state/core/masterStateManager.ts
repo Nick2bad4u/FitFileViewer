@@ -1,6 +1,3 @@
-import type * as NodeModule from "node:module";
-import type * as NodePath from "node:path";
-
 /**
  * Initializes and coordinates the renderer state management components.
  */
@@ -33,6 +30,7 @@ import {
     setState,
     subscribe,
 } from "./stateManager.js";
+import { getMasterStateRuntime } from "./masterStateRuntime.js";
 import {
     cleanupMiddleware,
     initializeDefaultMiddleware,
@@ -67,15 +65,6 @@ type ElectronRendererAPI = Partial<
     >
 >;
 
-type MasterStateGlobal = typeof globalThis & {
-    __DEVELOPMENT__?: boolean;
-};
-
-type ModuleCache = Record<string, { exports?: unknown } | undefined>;
-type CjsRequire = NodeJS.Require & {
-    cache?: ModuleCache;
-};
-
 type StateManagerApi = {
     getState: typeof getState;
     getStateHistory: typeof getStateHistory;
@@ -91,13 +80,7 @@ type PerformanceWithMemory = Performance & {
     };
 };
 
-type LocationLike = Partial<
-    Pick<Location, "hash" | "hostname" | "href" | "protocol" | "search">
->;
-
 type DynamicModule = Record<string, unknown>;
-type NodePathLike = Pick<typeof NodePath, "join">;
-
 type RuntimeSettingsStateManager = typeof settingsStateManager & {
     cleanup?: () => void;
     initialize?: () => unknown;
@@ -108,21 +91,10 @@ type ErrorDetails = {
     stack?: string;
 };
 
-// Avoid importing Node core modules in the renderer; acquire lazily only when available (tests/CJS).
-let __lazyNodePath: NodePathLike | null = null;
-let __lazyModule: typeof NodeModule | null = null;
 let masterStateManagerModuleMocksForTests: Record<string, unknown> | null =
     null;
 
-const STATE_MANAGER_CACHE_SUFFIXES = [
-    "/utils/state/core/statemanager.js",
-    "/utils/state/statemanager.js",
-    "state/core/statemanager.js",
-] as const;
-
-function getMasterGlobal(): MasterStateGlobal {
-    return globalThis;
-}
+const masterStateRuntime = getMasterStateRuntime();
 
 function hasOptionalMasterElectronFunction(
     record: Readonly<Record<string, unknown>>,
@@ -206,18 +178,6 @@ function handleFitFileDrop(event: DragEvent): void {
     }
 }
 
-function getCurrentLocationLike(): LocationLike {
-    return globalThis.window === undefined ? {} : globalThis.location;
-}
-
-function getLocationText(
-    location: LocationLike,
-    key: keyof LocationLike
-): string {
-    const value = location[key];
-    return typeof value === "string" ? value : "";
-}
-
 function hasDevelopmentModeAttribute(): boolean {
     return (
         typeof document !== "undefined" &&
@@ -226,11 +186,8 @@ function hasDevelopmentModeAttribute(): boolean {
     );
 }
 
-function hasElectronDevelopmentFlag(): boolean {
-    return (
-        globalThis.window !== undefined &&
-        getMasterElectronAPI()?.__devMode !== undefined
-    );
+function getElectronDevelopmentFlag(): boolean | undefined {
+    return getMasterElectronAPI()?.__devMode;
 }
 
 function isStateManagerApi(value: unknown): value is StateManagerApi {
@@ -252,7 +209,7 @@ export class MasterStateManager {
 
     isInitialized = false;
 
-    private eventController = new AbortController();
+    private eventController = masterStateRuntime.createAbortController();
 
     private performanceMonitorInterval: ReturnType<typeof setInterval> | null =
         null;
@@ -282,7 +239,7 @@ export class MasterStateManager {
         console.log("[MasterState] Cleaning up state management...");
 
         this.eventController.abort();
-        this.eventController = new AbortController();
+        this.eventController = masterStateRuntime.createAbortController();
 
         if (this.performanceMonitorInterval !== null) {
             clearInterval(this.performanceMonitorInterval);
@@ -580,8 +537,7 @@ export class MasterStateManager {
      * @throws Error when the FIT file state manager is unavailable.
      */
     initializeFitFileComponents() {
-        // Resolve fitFileStateManager dynamically to support test-time mocks via require.cache
-        const mocked = getModuleExportsFromCache(
+        const mocked = getModuleExportsFromOverride(
             "/utils/state/domain/fitfilestate.js"
         );
         if (mocked && !mocked["fitFileStateManager"]) {
@@ -680,26 +636,10 @@ export class MasterStateManager {
      */
     isDevelopmentMode() {
         try {
-            const loc = getCurrentLocationLike();
-            const masterGlobal = getMasterGlobal();
-            const hostname = getLocationText(loc, "hostname");
-            const search = getLocationText(loc, "search");
-            const hash = getLocationText(loc, "hash");
-            const protocol = getLocationText(loc, "protocol");
-            const href = getLocationText(loc, "href");
-
-            return (
-                hostname === "localhost" ||
-                hostname === "127.0.0.1" ||
-                hostname.includes("dev") ||
-                masterGlobal.__DEVELOPMENT__ === true ||
-                search.includes("debug=true") ||
-                hash.includes("debug") ||
-                hasDevelopmentModeAttribute() ||
-                protocol === "file:" ||
-                hasElectronDevelopmentFlag() ||
-                href.includes("electron")
-            );
+            return masterStateRuntime.isDevelopmentScope({
+                electronDevMode: getElectronDevelopmentFlag(),
+                hasDevelopmentModeAttribute: hasDevelopmentModeAttribute(),
+            });
         } catch {
             return false;
         }
@@ -763,7 +703,7 @@ export class MasterStateManager {
 
         // Resolve state API dynamically in handlers to respect test-time mocks
         // Global error handler
-        globalThis.addEventListener(
+        masterStateRuntime.addGlobalEventListener(
             "error",
             (event) => {
                 const stateAPI = getStateManagerAPI();
@@ -790,7 +730,7 @@ export class MasterStateManager {
         );
 
         // Unhandled promise rejection handler
-        globalThis.addEventListener(
+        masterStateRuntime.addGlobalEventListener(
             "unhandledrejection",
             (event) => {
                 const stateAPI = getStateManagerAPI();
@@ -848,7 +788,7 @@ export class MasterStateManager {
         // Integrate theme changes with maps and charts
         stateAPI.subscribe("ui.theme", (theme: unknown) => {
             // Notify other components about theme changes
-            globalThis.dispatchEvent(
+            masterStateRuntime.dispatchGlobalEvent(
                 new CustomEvent("themeChanged", { detail: { theme } })
             );
         });
@@ -979,7 +919,7 @@ export class MasterStateManager {
         const { signal } = this.eventController;
 
         // Window resize
-        window.addEventListener(
+        masterStateRuntime.addWindowEventListener(
             "resize",
             () => {
                 const { UIActions: dynUI } = getUIStateModule();
@@ -989,7 +929,7 @@ export class MasterStateManager {
         );
 
         // Window focus/blur
-        window.addEventListener(
+        masterStateRuntime.addWindowEventListener(
             "focus",
             () => {
                 const stateAPI = getStateManagerAPI();
@@ -1000,7 +940,7 @@ export class MasterStateManager {
             { signal }
         );
 
-        window.addEventListener(
+        masterStateRuntime.addWindowEventListener(
             "blur",
             () => {
                 const stateAPI = getStateManagerAPI();
@@ -1012,7 +952,7 @@ export class MasterStateManager {
         );
 
         // Before unload
-        window.addEventListener(
+        masterStateRuntime.addWindowEventListener(
             "beforeunload",
             () => {
                 const stateAPI = getStateManagerAPI();
@@ -1050,7 +990,7 @@ export function setMasterStateManagerModuleMocksForTests(
 }
 
 function getAppLifecycleModule() {
-    const mocked = getModuleExportsFromCache(
+    const mocked = getModuleExportsFromOverride(
         "/utils/app/lifecycle/appactions.js"
     );
     if (mocked && mocked["AppActions"] && mocked["AppSelectors"]) {
@@ -1062,42 +1002,11 @@ function getAppLifecycleModule() {
     return { AppActions, AppSelectors };
 }
 
-// Helper to dynamically resolve mocked state API in tests (require.cache injection)
-// Helper to obtain CommonJS require in both CJS and ESM contexts (used by Vitest cache-injection tests)
-function getCjsRequire(): CjsRequire | null {
-    // Fall back to native require when present (CommonJS context)
-    try {
-        if (typeof require !== "undefined" && (require as CjsRequire).cache) {
-            return require as CjsRequire;
-        }
-    } catch {
-        // ignore
-    }
-    // As a last resort, use Module.createRequire if available
-    try {
-        if (typeof require !== "undefined") {
-            const Module = require("node:module") as typeof NodeModule;
-            if (Module && typeof Module.createRequire === "function") {
-                const basePath =
-                    typeof __filename === "undefined"
-                        ? process.cwd()
-                        : __filename;
-                const req = Module.createRequire(basePath) as CjsRequire;
-                if (req && req.cache) return req;
-                return req;
-            }
-        }
-    } catch {
-        // ignore
-    }
-    return null;
-}
-
 function getComputedStateModule(): {
     computedStateManager: typeof computedStateManager;
     initializeCommonComputedValues: typeof initializeCommonComputedValues;
 } {
-    const mocked = getModuleExportsFromCache(
+    const mocked = getModuleExportsFromOverride(
         "/utils/state/core/computedstatemanager.js"
     );
     if (
@@ -1115,7 +1024,7 @@ function getComputedStateModule(): {
 function getControlsHelperModule(): {
     initializeControlsState: typeof initializeControlsState;
 } {
-    const mocked = getModuleExportsFromCache(
+    const mocked = getModuleExportsFromOverride(
         "/utils/rendering/helpers/updatecontrolsstate.js"
     );
     if (hasFunction(mocked, "initializeControlsState")) {
@@ -1127,7 +1036,7 @@ function getControlsHelperModule(): {
 function getEnableTabButtonsModule(): {
     initializeTabButtonState: typeof initializeTabButtonState;
 } {
-    const mocked = getModuleExportsFromCache(
+    const mocked = getModuleExportsFromOverride(
         "/utils/ui/controls/enabletabbuttons.js"
     );
     if (hasFunction(mocked, "initializeTabButtonState")) {
@@ -1136,9 +1045,8 @@ function getEnableTabButtonsModule(): {
     return { initializeTabButtonState };
 }
 
-// Generic helper to read a mocked module's exports by path suffix. Tests may
-// install module-local overrides; otherwise this falls back to the CJS cache.
-function getModuleExportsFromCache(
+// Generic helper to read explicit test module overrides by path suffix.
+function getModuleExportsFromOverride(
     pathSuffixLower: string
 ): DynamicModule | null {
     try {
@@ -1157,43 +1065,17 @@ function getModuleExportsFromCache(
                 return masterStateManagerModuleMocksForTests[key];
             }
         }
-        const req = getCjsRequire();
-        const cache = req?.cache || getNodeModuleCache();
-        if (!cache) return null;
-        const key = Object.keys(cache).find((p) =>
-            String(p)
-                .replaceAll("\\", "/")
-                .toLowerCase()
-                .endsWith(pathSuffixLower)
-        );
-        const exportsValue = key && cache[key] ? cache[key]?.exports : null;
-        return isDynamicModule(exportsValue) ? exportsValue : null;
     } catch {
-        return null;
+        // Ignore malformed test override maps.
     }
+    return null;
 }
 
-function getNodeModuleCache(): ModuleCache | null {
-    try {
-        if (typeof require === "undefined") return null;
-        if (!__lazyModule) {
-            // eslint-disable-next-line import-x/max-dependencies -- Test-only fallback for CJS module cache inspection.
-            __lazyModule = require("node:module") as typeof NodeModule;
-        }
-        const cache = (
-            __lazyModule as typeof NodeModule & { _cache?: ModuleCache }
-        )._cache;
-        return cache && typeof cache === "object" ? cache : null;
-    } catch {
-        return null;
-    }
-}
-
-// Dynamic module resolvers: prefer require.cache-injected mocks (used by tests), fallback to static imports
+// Dynamic module resolvers: prefer explicit test overrides, fallback to static imports.
 function getRendererStateBindingsModule(): {
     initializeRendererStateBindings: typeof initializeRendererStateBindings;
 } {
-    const mocked = getModuleExportsFromCache(
+    const mocked = getModuleExportsFromOverride(
         "/utils/ui/rendererstatebindings.js"
     );
     if (hasFunction(mocked, "initializeRendererStateBindings")) {
@@ -1205,7 +1087,7 @@ function getRendererStateBindingsModule(): {
 function getSettingsStateModule(): {
     settingsStateManager: RuntimeSettingsStateManager;
 } {
-    const mocked = getModuleExportsFromCache(
+    const mocked = getModuleExportsFromOverride(
         "/utils/state/domain/settingsstatemanager.js"
     );
     if (mocked && mocked["settingsStateManager"]) {
@@ -1218,7 +1100,9 @@ function getStateDevToolsModule(): {
     cleanupStateDevTools: typeof cleanupStateDevTools;
     initializeStateDevTools: typeof initializeStateDevTools;
 } {
-    const mocked = getModuleExportsFromCache("/utils/debug/statedevtools.js");
+    const mocked = getModuleExportsFromOverride(
+        "/utils/debug/statedevtools.js"
+    );
     if (
         mocked &&
         (mocked["initializeStateDevTools"] || mocked["cleanupStateDevTools"])
@@ -1233,7 +1117,7 @@ function getStateDevToolsModule(): {
 function getStateIntegrationModule(): {
     initializeCompleteStateSystem: typeof initializeCompleteStateSystem;
 } {
-    const mocked = getModuleExportsFromCache(
+    const mocked = getModuleExportsFromOverride(
         "/utils/state/integration/stateintegration.js"
     );
     if (hasFunction(mocked, "initializeCompleteStateSystem")) {
@@ -1242,125 +1126,29 @@ function getStateIntegrationModule(): {
     return { initializeCompleteStateSystem };
 }
 
-function getAnyCachedStateManagerApi(
-    cache: ModuleCache
-): StateManagerApi | null {
-    for (const moduleRecord of Object.values(cache)) {
-        const exportsValue = moduleRecord?.exports;
-        if (isStateManagerApi(exportsValue)) {
-            return exportsValue;
-        }
-    }
-    return null;
-}
-
-function getCachedStateManagerApi(cache: ModuleCache): StateManagerApi | null {
-    const match = Object.keys(cache).find((pathName) => {
-        const normalizedPath = pathName.replaceAll("\\", "/").toLowerCase();
-        return STATE_MANAGER_CACHE_SUFFIXES.some((suffix) =>
-            normalizedPath.endsWith(suffix)
-        );
-    });
-    const exportsValue = match ? cache[match]?.exports : null;
-    return isStateManagerApi(exportsValue) ? exportsValue : null;
-}
-
-function getCurrentWorkingDirectory(): string {
-    return typeof process !== "undefined" && typeof process.cwd === "function"
-        ? process.cwd()
-        : "";
-}
-
 function getDefaultStateManagerApi(): StateManagerApi {
     return { getState, getStateHistory, getSubscriptions, setState, subscribe };
 }
 
-function getLazyNodePath(req: CjsRequire): NodePathLike | null {
-    if (__lazyNodePath) {
-        return __lazyNodePath;
-    }
-
-    try {
-        const nodePathModule: unknown = req("node:path");
-        __lazyNodePath = isNodePathLike(nodePathModule) ? nodePathModule : null;
-    } catch {
-        __lazyNodePath = null;
-    }
-
-    return __lazyNodePath;
-}
-
-function getRequiredStateManagerApi(req: CjsRequire): StateManagerApi | null {
-    const nodePath = getLazyNodePath(req);
-    if (!nodePath) {
-        return null;
-    }
-
-    for (const candidate of getStateManagerRequireCandidates(nodePath)) {
-        const stateManagerApi = tryRequireStateManagerApi(req, candidate);
-        if (stateManagerApi) {
-            return stateManagerApi;
-        }
-    }
-
-    return null;
-}
-
-function getStateManagerRequireCandidates(nodePath: NodePathLike): string[] {
-    const cwd = getCurrentWorkingDirectory();
-    return [
-        "stateManager.js",
-        "stateManager.cjs",
-        "stateManager.mjs",
-    ].map((fileName) => nodePath.join(cwd, "utils", "state", "core", fileName));
-}
-
 function getStateManagerAPI(): StateManagerApi {
     try {
-        const mocked = getModuleExportsFromCache(
+        const mocked = getModuleExportsFromOverride(
             "/utils/state/core/statemanager.js"
         );
         if (isStateManagerApi(mocked)) {
             return mocked;
         }
-
-        const req = getCjsRequire();
-        const cache = (req && req.cache) || getNodeModuleCache();
-        if (cache) {
-            return (
-                getCachedStateManagerApi(cache) ??
-                (req ? getRequiredStateManagerApi(req) : null) ??
-                getAnyCachedStateManagerApi(cache) ??
-                getDefaultStateManagerApi()
-            );
-        }
     } catch {
-        // ignore
+        // Ignore malformed test overrides.
     }
     return getDefaultStateManagerApi();
-}
-
-function isNodePathLike(value: unknown): value is NodePathLike {
-    return isDynamicModule(value) && typeof value["join"] === "function";
-}
-
-function tryRequireStateManagerApi(
-    req: CjsRequire,
-    candidate: string
-): StateManagerApi | null {
-    try {
-        const requiredModule: unknown = req(candidate);
-        return isStateManagerApi(requiredModule) ? requiredModule : null;
-    } catch {
-        return null;
-    }
 }
 
 function getStateMiddlewareModule(): {
     cleanupMiddleware: typeof cleanupMiddleware;
     initializeDefaultMiddleware: typeof initializeDefaultMiddleware;
 } {
-    const mocked = getModuleExportsFromCache(
+    const mocked = getModuleExportsFromOverride(
         "/utils/state/core/statemiddleware.js"
     );
     if (
@@ -1377,7 +1165,7 @@ function getStateMiddlewareModule(): {
 function getUIStateModule(): {
     UIActions: typeof UIActions;
 } {
-    const mocked = getModuleExportsFromCache(
+    const mocked = getModuleExportsFromOverride(
         "/utils/state/domain/uistatemanager.js"
     );
     if (mocked && mocked["UIActions"]) {
@@ -1390,8 +1178,8 @@ function getUpdateActiveTabModule(): {
     initializeActiveTabState: typeof initializeActiveTabState;
 } {
     const mocked =
-        getModuleExportsFromCache("/utils/ui/tabs/activetab.js") ||
-        getModuleExportsFromCache("/utils/ui/tabs/updateactivetab.js");
+        getModuleExportsFromOverride("/utils/ui/tabs/activetab.js") ||
+        getModuleExportsFromOverride("/utils/ui/tabs/updateactivetab.js");
     if (hasFunction(mocked, "initializeActiveTabState")) {
         return mocked;
     }
@@ -1401,7 +1189,7 @@ function getUpdateActiveTabModule(): {
 function getUpdateTabVisibilityModule(): {
     initializeTabVisibilityState: typeof initializeTabVisibilityState;
 } {
-    const mocked = getModuleExportsFromCache(
+    const mocked = getModuleExportsFromOverride(
         "/utils/ui/tabs/updatetabvisibility.js"
     );
     if (hasFunction(mocked, "initializeTabVisibilityState")) {

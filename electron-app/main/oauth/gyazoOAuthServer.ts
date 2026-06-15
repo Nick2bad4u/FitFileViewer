@@ -1,110 +1,85 @@
-{
-    type HttpModule = typeof import("node:http");
-    type GyazoServerStartResult =
-        import("../../shared/ipc").GyazoServerStartResult;
-    type GyazoServerStopResult =
-        import("../../shared/ipc").GyazoServerStopResult;
-    type OAuthServer = import("node:http").Server;
-    type ServerResponse = import("node:http").ServerResponse;
-    type RendererIpcEventChannel =
-        import("../../shared/ipc").RendererIpcEventChannel;
+import { sendToRenderer } from "../ipc/sendToRenderer.js";
+import { logWithContext } from "../logging/logWithContext.js";
+import { httpRef } from "../runtime/nodeModules.js";
+import { getAppState, setAppState } from "../state/appState.js";
 
-    interface OAuthWindowLike {
+type GyazoServerStartResult = import("../../shared/ipc").GyazoServerStartResult;
+type GyazoServerStopResult = import("../../shared/ipc").GyazoServerStopResult;
+type OAuthServer = import("node:http").Server;
+type ServerResponse = import("node:http").ServerResponse;
+type RendererIpcEventChannel =
+    import("../../shared/ipc").RendererIpcEventChannel;
+
+interface OAuthWindowLike {
+    isDestroyed?: () => boolean;
+    webContents?: {
         isDestroyed?: () => boolean;
-        webContents?: {
-            isDestroyed?: () => boolean;
-            send?: (
-                channel: RendererIpcEventChannel,
-                ...args: unknown[]
-            ) => void;
-        };
-    }
-
-    const { logWithContext } = require("../logging/logWithContext") as {
-        logWithContext: (
-            level: string,
-            message: string,
-            context?: Record<string, unknown>
-        ) => void;
+        send?: (channel: RendererIpcEventChannel, ...args: unknown[]) => void;
     };
-    const { httpRef } = require("../runtime/nodeModules") as {
-        httpRef: () => HttpModule | null;
-    };
-    const { getAppState, setAppState } = require("../state/appState") as {
-        getAppState: (key: string) => unknown;
-        setAppState: (key: string, value: unknown) => void;
-    };
-    const { sendToRenderer } = require("../ipc/sendToRenderer") as {
-        sendToRenderer: (
-            win: OAuthWindowLike | null | undefined,
-            channel: RendererIpcEventChannel,
-            ...args: unknown[]
-        ) => void;
-    };
+}
 
-    function getErrorMessage(error: unknown): string {
-        return error instanceof Error ? error.message : String(error);
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
+function isAddressInUseError(error: unknown): boolean {
+    if (!error || typeof error !== "object") return false;
+    return Reflect.get(error, "code") === "EADDRINUSE";
+}
+
+function asOAuthServer(value: unknown): OAuthServer | null {
+    if (
+        value &&
+        typeof value === "object" &&
+        typeof Reflect.get(value, "close") === "function"
+    ) {
+        return value as OAuthServer;
     }
+    return null;
+}
 
-    function isAddressInUseError(error: unknown): boolean {
-        if (!error || typeof error !== "object") return false;
-        return Reflect.get(error, "code") === "EADDRINUSE";
+function asOAuthWindow(value: unknown): OAuthWindowLike | null {
+    return value && (typeof value === "object" || typeof value === "function")
+        ? value
+        : null;
+}
+
+function applyStandardHeaders(res: ServerResponse): void {
+    try {
+        res.setHeader("X-Content-Type-Options", "nosniff");
+        res.setHeader("Cache-Control", "no-store");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Referrer-Policy", "no-referrer");
+        res.setHeader("X-Frame-Options", "DENY");
+
+        // The callback serves only simple inline HTML. Disallow remote loads.
+        res.setHeader(
+            "Content-Security-Policy",
+            "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'"
+        );
+    } catch {
+        /* ignore */
     }
+}
 
-    function asOAuthServer(value: unknown): OAuthServer | null {
-        if (
-            value &&
-            typeof value === "object" &&
-            typeof Reflect.get(value, "close") === "function"
-        ) {
-            return value as OAuthServer;
-        }
-        return null;
-    }
+function escapeHtml(value: string): string {
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
 
-    function asOAuthWindow(value: unknown): OAuthWindowLike | null {
-        return value &&
-            (typeof value === "object" || typeof value === "function")
-            ? value
-            : null;
-    }
+function sendOAuthCallbackToRenderer(code: string, state: string): void {
+    const mainWindow = asOAuthWindow(getAppState("mainWindow"));
+    sendToRenderer(mainWindow, "gyazo-oauth-callback", { code, state });
+}
 
-    function applyStandardHeaders(res: ServerResponse): void {
-        try {
-            res.setHeader("X-Content-Type-Options", "nosniff");
-            res.setHeader("Cache-Control", "no-store");
-            res.setHeader("Pragma", "no-cache");
-            res.setHeader("Referrer-Policy", "no-referrer");
-            res.setHeader("X-Frame-Options", "DENY");
-
-            // The callback serves only simple inline HTML. Disallow remote loads.
-            res.setHeader(
-                "Content-Security-Policy",
-                "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'"
-            );
-        } catch {
-            /* ignore */
-        }
-    }
-
-    function escapeHtml(value: string): string {
-        return value
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#39;");
-    }
-
-    function sendOAuthCallbackToRenderer(code: string, state: string): void {
-        const mainWindow = asOAuthWindow(getAppState("mainWindow"));
-        sendToRenderer(mainWindow, "gyazo-oauth-callback", { code, state });
-    }
-
-    function writeOAuthErrorPage(res: ServerResponse, error: string): void {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        /* c8 ignore start */
-        res.end(`
+function writeOAuthErrorPage(res: ServerResponse, error: string): void {
+    res.writeHead(200, { "Content-Type": "text/html" });
+    /* c8 ignore start */
+    res.end(`
             <!DOCTYPE html>
             <html>
                 <head>
@@ -127,13 +102,13 @@
                 </body>
             </html>
         `);
-        /* c8 ignore stop */
-    }
+    /* c8 ignore stop */
+}
 
-    function writeOAuthSuccessPage(res: ServerResponse): void {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        /* c8 ignore start */
-        res.end(`
+function writeOAuthSuccessPage(res: ServerResponse): void {
+    res.writeHead(200, { "Content-Type": "text/html" });
+    /* c8 ignore start */
+    res.end(`
             <!DOCTYPE html>
             <html>
                 <head>
@@ -164,13 +139,13 @@
                 </body>
             </html>
         `);
-        /* c8 ignore stop */
-    }
+    /* c8 ignore stop */
+}
 
-    function writeInvalidOAuthRequestPage(res: ServerResponse): void {
-        res.writeHead(400, { "Content-Type": "text/html" });
-        /* c8 ignore start */
-        res.end(`
+function writeInvalidOAuthRequestPage(res: ServerResponse): void {
+    res.writeHead(400, { "Content-Type": "text/html" });
+    /* c8 ignore start */
+    res.end(`
             <!DOCTYPE html>
             <html>
                 <head>
@@ -190,164 +165,163 @@
                 </body>
             </html>
         `);
-        /* c8 ignore stop */
+    /* c8 ignore stop */
+}
+
+/**
+ * Starts the local OAuth callback server used for Gyazo integrations.
+ */
+export async function startGyazoOAuthServer(
+    port = 3000
+): Promise<GyazoServerStartResult> {
+    const existingServer = getAppState("gyazoServer");
+    if (existingServer) {
+        await stopGyazoOAuthServer();
     }
 
-    /**
-     * Starts the local OAuth callback server used for Gyazo integrations.
-     */
-    async function startGyazoOAuthServer(
-        port = 3000
-    ): Promise<GyazoServerStartResult> {
-        const existingServer = getAppState("gyazoServer");
-        if (existingServer) {
-            await stopGyazoOAuthServer();
-        }
+    return new Promise<GyazoServerStartResult>((resolve, reject) => {
+        try {
+            const http = httpRef();
+            if (!http || typeof http.createServer !== "function") {
+                throw new Error("HTTP module unavailable");
+            }
 
-        return new Promise<GyazoServerStartResult>((resolve, reject) => {
-            try {
-                const http = httpRef();
-                if (!http || typeof http.createServer !== "function") {
-                    throw new Error("HTTP module unavailable");
+            const server = http.createServer((req, res) => {
+                let parsedUrl: URL;
+                try {
+                    const raw = typeof req.url === "string" ? req.url : "";
+                    parsedUrl = new URL(raw, `http://localhost:${port}`);
+                } catch {
+                    applyStandardHeaders(res);
+                    res.writeHead(400, { "Content-Type": "text/plain" });
+                    res.end("Bad Request");
+                    return;
                 }
 
-                const server = http.createServer((req, res) => {
-                    let parsedUrl: URL;
-                    try {
-                        const raw = typeof req.url === "string" ? req.url : "";
-                        parsedUrl = new URL(raw, `http://localhost:${port}`);
-                    } catch {
-                        applyStandardHeaders(res);
-                        res.writeHead(400, { "Content-Type": "text/plain" });
-                        res.end("Bad Request");
-                        return;
-                    }
+                applyStandardHeaders(res);
 
-                    applyStandardHeaders(res);
+                const method =
+                    typeof req.method === "string"
+                        ? req.method.toUpperCase()
+                        : "";
+                if (method !== "GET" && method !== "HEAD") {
+                    res.writeHead(405, { "Content-Type": "text/plain" });
+                    res.end("Method Not Allowed");
+                    return;
+                }
 
-                    const method =
-                        typeof req.method === "string"
-                            ? req.method.toUpperCase()
-                            : "";
-                    if (method !== "GET" && method !== "HEAD") {
-                        res.writeHead(405, { "Content-Type": "text/plain" });
-                        res.end("Method Not Allowed");
-                        return;
-                    }
+                if (parsedUrl.pathname === "/gyazo/callback") {
+                    const code = parsedUrl.searchParams.get("code");
+                    const error = parsedUrl.searchParams.get("error");
+                    const state = parsedUrl.searchParams.get("state");
 
-                    if (parsedUrl.pathname === "/gyazo/callback") {
-                        const code = parsedUrl.searchParams.get("code");
-                        const error = parsedUrl.searchParams.get("error");
-                        const state = parsedUrl.searchParams.get("state");
-
-                        if (error) {
-                            writeOAuthErrorPage(res, String(error));
-                        } else if (code && state) {
-                            writeOAuthSuccessPage(res);
-                            sendOAuthCallbackToRenderer(code, state);
-                        } else {
-                            writeInvalidOAuthRequestPage(res);
-                        }
+                    if (error) {
+                        writeOAuthErrorPage(res, String(error));
+                    } else if (code && state) {
+                        writeOAuthSuccessPage(res);
+                        sendOAuthCallbackToRenderer(code, state);
                     } else {
-                        res.writeHead(404, { "Content-Type": "text/plain" });
-                        res.end("Not Found");
+                        writeInvalidOAuthRequestPage(res);
                     }
-                });
+                } else {
+                    res.writeHead(404, { "Content-Type": "text/plain" });
+                    res.end("Not Found");
+                }
+            });
 
-                server.on("error", (error) => {
-                    if (isAddressInUseError(error)) {
-                        logWithContext(
-                            "warn",
-                            `Port ${port} is in use, trying port ${port + 1}`
-                        );
-                        if (port < 3010) {
-                            void startGyazoOAuthServer(port + 1)
-                                .then(resolve)
-                                .catch(reject);
-                        } else {
-                            reject(
-                                new Error(
-                                    "Unable to find an available port for OAuth callback server"
-                                )
-                            );
-                        }
-                    } else {
-                        reject(error);
-                    }
-                });
-
-                server.listen(port, "localhost", () => {
-                    setAppState("gyazoServer", server);
-                    setAppState("gyazoServerPort", port);
-                    logWithContext(
-                        "info",
-                        `Gyazo OAuth callback server started on http://localhost:${port}`
-                    );
-                    resolve({
-                        message: `OAuth callback server started on port ${port}`,
-                        port,
-                        success: true,
-                    });
-                });
-            } catch (error) {
-                logWithContext("error", "Failed to start Gyazo OAuth server:", {
-                    error: getErrorMessage(error),
-                });
-                reject(
-                    error instanceof Error
-                        ? error
-                        : new Error(getErrorMessage(error))
-                );
-            }
-        });
-    }
-
-    /**
-     * Stops the Gyazo OAuth callback server if it is currently running.
-     */
-    async function stopGyazoOAuthServer(): Promise<GyazoServerStopResult> {
-        return new Promise<GyazoServerStopResult>((resolve) => {
-            const gyazoServer = asOAuthServer(getAppState("gyazoServer"));
-            if (gyazoServer) {
-                try {
-                    gyazoServer.close(() => {
-                        logWithContext(
-                            "info",
-                            "Gyazo OAuth callback server stopped"
-                        );
-                        setAppState("gyazoServer", null);
-                        setAppState("gyazoServerPort", null);
-                        resolve({
-                            message: "OAuth callback server stopped",
-                            success: true,
-                        });
-                    });
-                } catch (error) {
+            server.on("error", (error) => {
+                if (isAddressInUseError(error)) {
                     logWithContext(
                         "warn",
-                        "Failed to close Gyazo OAuth callback server",
-                        {
-                            error: getErrorMessage(error),
-                        }
+                        `Port ${port} is in use, trying port ${port + 1}`
+                    );
+                    if (port < 3010) {
+                        void startGyazoOAuthServer(port + 1)
+                            .then(resolve)
+                            .catch(reject);
+                    } else {
+                        reject(
+                            new Error(
+                                "Unable to find an available port for OAuth callback server"
+                            )
+                        );
+                    }
+                } else {
+                    reject(error);
+                }
+            });
+
+            server.listen(port, "localhost", () => {
+                setAppState("gyazoServer", server);
+                setAppState("gyazoServerPort", port);
+                logWithContext(
+                    "info",
+                    `Gyazo OAuth callback server started on http://localhost:${port}`
+                );
+                resolve({
+                    message: `OAuth callback server started on port ${port}`,
+                    port,
+                    success: true,
+                });
+            });
+        } catch (error) {
+            logWithContext("error", "Failed to start Gyazo OAuth server:", {
+                error: getErrorMessage(error),
+            });
+            reject(
+                error instanceof Error
+                    ? error
+                    : new Error(getErrorMessage(error))
+            );
+        }
+    });
+}
+
+/**
+ * Stops the Gyazo OAuth callback server if it is currently running.
+ */
+export async function stopGyazoOAuthServer(): Promise<GyazoServerStopResult> {
+    return new Promise<GyazoServerStopResult>((resolve) => {
+        const gyazoServer = asOAuthServer(getAppState("gyazoServer"));
+        if (gyazoServer) {
+            try {
+                gyazoServer.close(() => {
+                    logWithContext(
+                        "info",
+                        "Gyazo OAuth callback server stopped"
                     );
                     setAppState("gyazoServer", null);
                     setAppState("gyazoServerPort", null);
                     resolve({
-                        message: "Failed to stop OAuth callback server",
-                        success: false,
+                        message: "OAuth callback server stopped",
+                        success: true,
                     });
-                }
-            } else {
+                });
+            } catch (error) {
+                logWithContext(
+                    "warn",
+                    "Failed to close Gyazo OAuth callback server",
+                    {
+                        error: getErrorMessage(error),
+                    }
+                );
+                setAppState("gyazoServer", null);
+                setAppState("gyazoServerPort", null);
                 resolve({
-                    message: "No server was running",
-                    success: true,
+                    message: "Failed to stop OAuth callback server",
+                    success: false,
                 });
             }
-        });
-    }
-
-    module.exports = {
-        startGyazoOAuthServer,
-        stopGyazoOAuthServer,
-    };
+        } else {
+            resolve({
+                message: "No server was running",
+                success: true,
+            });
+        }
+    });
 }
+
+export default {
+    startGyazoOAuthServer,
+    stopGyazoOAuthServer,
+};

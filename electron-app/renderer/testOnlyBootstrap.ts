@@ -1,16 +1,21 @@
+import {
+    getRendererTestOnlyBootstrapRuntime,
+    type RendererTestOnlyBootstrapRuntime,
+} from "./testOnlyBootstrapRuntime.js";
+
 type RendererUnknownFunctionCaller = (
     candidate: unknown,
     args?: unknown[]
 ) => unknown;
 
-type ManualMockResolver = (specifier: string) => null | unknown;
+type RendererTestOverrideResolver = (specifier: string) => null | unknown;
 
 interface RendererTestOnlyBootstrapOptions {
     callUnknownFunction: RendererUnknownFunctionCaller;
     getOpenFileButton: () => HTMLElement | null;
     isOpeningFileRef: { value: boolean };
-    resolveExactManualMock: ManualMockResolver;
-    resolveManualMock: ManualMockResolver;
+    resolveExactRendererCoreTestOverride: RendererTestOverrideResolver;
+    resolveRendererCoreTestOverride: RendererTestOverrideResolver;
     scheduleImportTimeThemeSetup: () => void;
     setLoading: (loading: boolean) => void;
 }
@@ -21,10 +26,10 @@ export function createTestDOMContentLoadedSetupHandler(
     return () => {
         try {
             const moduleRecord = toModuleRecord(
-                options.resolveExactManualMock(
+                options.resolveExactRendererCoreTestOverride(
                     "../../utils/app/lifecycle/listeners.js"
                 ) ??
-                    options.resolveManualMock(
+                    options.resolveRendererCoreTestOverride(
                         "/utils/app/lifecycle/listeners.js"
                     )
             );
@@ -54,17 +59,20 @@ export function createTestWindowLoadThemeSetupHandler(
     return () => {
         try {
             const setupThemeModule = toModuleRecord(
-                options.resolveExactManualMock(
+                options.resolveExactRendererCoreTestOverride(
                     "../../utils/theming/core/setupTheme.js"
                 ) ??
-                    options.resolveManualMock(
+                    options.resolveRendererCoreTestOverride(
                         "/utils/theming/core/setupTheme.js"
                     )
             );
             const themeModule = toModuleRecord(
-                options.resolveExactManualMock(
+                options.resolveExactRendererCoreTestOverride(
                     "../../utils/theming/core/theme.js"
-                ) ?? options.resolveManualMock("/utils/theming/core/theme.js")
+                ) ??
+                    options.resolveRendererCoreTestOverride(
+                        "/utils/theming/core/theme.js"
+                    )
             );
             const setupThemeFn = setupThemeModule["setupTheme"];
             const applyThemeFn = themeModule["applyTheme"];
@@ -91,9 +99,11 @@ export function createTestWindowLoadThemeSetupHandler(
 export function registerTestDOMContentLoadedSetupListener(
     documentTarget: Document,
     unloadTarget: EventTarget,
-    onTestDOMContentLoadedSetupListeners: () => void
+    onTestDOMContentLoadedSetupListeners: () => void,
+    runtime: RendererTestOnlyBootstrapRuntime =
+        getRendererTestOnlyBootstrapRuntime()
 ): void {
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
     const { signal } = abortController;
     const removeTestDOMContentLoadedSetupListener = (): void => {
         abortController.abort();
@@ -114,9 +124,11 @@ export function registerTestDOMContentLoadedSetupListener(
 export function registerTestWindowLoadThemeSetupListener(
     windowTarget: EventTarget,
     unloadTarget: EventTarget,
-    onTestWindowLoadSetupTheme: () => void
+    onTestWindowLoadSetupTheme: () => void,
+    runtime: RendererTestOnlyBootstrapRuntime =
+        getRendererTestOnlyBootstrapRuntime()
 ): void {
-    const abortController = new AbortController();
+    const abortController = runtime.createAbortController();
     const { signal } = abortController;
     const removeTestWindowLoadThemeSetupListener = (): void => {
         abortController.abort();

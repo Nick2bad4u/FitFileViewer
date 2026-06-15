@@ -210,8 +210,8 @@ Notarization also requires one of these credential sets:
 - `APPLE_KEYCHAIN_PROFILE`
 
 Linux release builds do not require signing variables. Windows 7 compatibility
-artifacts are built through `build-win7.yml` and stay outside the primary signed
-release matrix.
+is limited to carried-forward legacy release assets from `build-win7.yml`; the
+current app is not rebuilt for Windows 7.
 
 After signed Windows or macOS packaging, run:
 

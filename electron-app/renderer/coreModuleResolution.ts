@@ -37,6 +37,8 @@ export interface RendererCoreModules {
     uiStateManager: unknown;
 }
 
+let rendererCoreModuleTestOverrides: Map<string, unknown> | null = null;
+
 export function callUnknownFunction(
     candidate: unknown,
     args: unknown[] = []
@@ -138,15 +140,18 @@ export async function ensureCoreModules(): Promise<RendererCoreModules> {
 }
 
 /**
- * Prefer an exact match in Vitest manual mock registry by test ID.
+ * Prefer an exact match in the module-local test override registry by test ID.
  *
- * @param testId - Exact id used in vi.doMock, such as `../../utils/...`.
+ * @param testId - Exact id used by the focused renderer startup tests, such as
+ *   `../../utils/...`.
  *
- * @returns Mocked module or null.
+ * @returns Override module or null.
  */
-export function resolveExactManualMock(testId: string): null | unknown {
+export function resolveExactRendererCoreTestOverride(
+    testId: string
+): null | unknown {
     try {
-        const registry = getVitestManualMockRegistry();
+        const registry = getRendererCoreModuleTestOverrides();
         if (registry?.has(testId) === true) {
             const module = registry.get(testId);
             const moduleRecord = toModuleRecord(module);
@@ -159,17 +164,19 @@ export function resolveExactManualMock(testId: string): null | unknown {
 }
 
 /**
- * Try to resolve a Vitest manual mock by matching the end of the module path.
- * This lets us honor vi.doMock specifiers used in tests even when the renderer
- * imports from a different relative path.
+ * Try to resolve a test module override by matching the end of the module path.
+ * This lets focused renderer startup tests supply modules by their historic
+ * relative specifiers while production code imports from typed local paths.
  *
  * @param pathSuffix - Suffix such as `/utils/theming/core/setupTheme.js`.
  *
- * @returns Mocked module or null.
+ * @returns Override module or null.
  */
-export function resolveManualMock(pathSuffix: string): null | unknown {
+export function resolveRendererCoreTestOverride(
+    pathSuffix: string
+): null | unknown {
     try {
-        const registry = getVitestManualMockRegistry();
+        const registry = getRendererCoreModuleTestOverrides();
         if (registry !== null) {
             for (const [id, module] of registry.entries()) {
                 if (id.endsWith(pathSuffix)) {
@@ -190,13 +197,18 @@ export function toModuleRecord(value: unknown): Record<string, unknown> {
     return isRecord(value) ? value : {};
 }
 
-function getVitestManualMockRegistry(): Map<string, unknown> | null {
-    const registry = /** @type {unknown} */ Reflect.get(
-        globalThis,
-        "__vitest_manual_mocks__"
-    );
+export function resetRendererCoreModuleTestOverrides(): void {
+    rendererCoreModuleTestOverrides = null;
+}
 
-    return registry instanceof Map ? registry : null;
+export function setRendererCoreModuleTestOverrides(
+    overrides: ReadonlyMap<string, unknown>
+): void {
+    rendererCoreModuleTestOverrides = new Map(overrides);
+}
+
+function getRendererCoreModuleTestOverrides(): Map<string, unknown> | null {
+    return rendererCoreModuleTestOverrides;
 }
 
 async function importRendererModule(realPath: string): Promise<unknown> {
@@ -272,8 +284,8 @@ async function resolveCoreModule(
     realPath: string
 ): Promise<Record<string, unknown>> {
     const resolved =
-        resolveExactManualMock(testPath) ??
-        resolveManualMock(toManualMockPathSuffix(realPath)) ??
+        resolveExactRendererCoreTestOverride(testPath) ??
+        resolveRendererCoreTestOverride(toTestOverridePathSuffix(realPath)) ??
         (await importRendererModule(realPath));
 
     return toModuleRecord(resolved);
@@ -303,7 +315,7 @@ function toListenForThemeChange(
         : undefined;
 }
 
-function toManualMockPathSuffix(realPath: string): string {
+function toTestOverridePathSuffix(realPath: string): string {
     return realPath.replace(/^(?:\.\.\/|\.\/)+/u, "/");
 }
 

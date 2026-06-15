@@ -4,6 +4,10 @@ import { createRendererLogger } from "../../logging/rendererLogger.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
+import {
+    getNotificationTimerRuntime,
+    type NotificationTimerHandle,
+} from "./notificationTimerRuntime.js";
 
 type UpdateNotificationAction = boolean | string;
 
@@ -25,11 +29,9 @@ const BUTTON_TEXTS = {
     } as const;
 
 const log = createRendererLogger(LOG_SCOPE);
+const notificationTimerRuntime = getNotificationTimerRuntime();
 
-const activeAutoHideTimers = new WeakMap<
-    HTMLElement,
-    ReturnType<typeof setTimeout>
->();
+const activeAutoHideTimers = new WeakMap<HTMLElement, NotificationTimerHandle>();
 
 /**
  * Shows update notifications with enhanced features and error handling.
@@ -247,7 +249,7 @@ function hideNotification(notification: HTMLElement): void {
 function setupAutoHide(notification: HTMLElement, duration: number): void {
     try {
         clearAutoHideTimer(notification);
-        const timeoutHandle = setTimeout(() => {
+        const timeoutHandle = notificationTimerRuntime.setTimeout(() => {
             activeAutoHideTimers.delete(notification);
             hideNotification(notification);
         }, duration);
@@ -297,7 +299,7 @@ function clearAutoHideTimer(notification: HTMLElement): void {
         return;
     }
 
-    clearTimeout(timeoutHandle);
+    notificationTimerRuntime.clearTimeout(timeoutHandle);
     activeAutoHideTimers.delete(notification);
 }
 

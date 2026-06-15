@@ -8,9 +8,9 @@ export type RendererVendorBundleEntry =
     (typeof rendererVendorBundleEntries)[number];
 
 export const rendererVendorBundleFileByEntry = {
-    "chart-data": "vendor-globals-chart-data.js",
-    core: "vendor-globals-core.js",
-    map: "vendor-globals-map.js",
+    "chart-data": "renderer-vendor-chart-data.js",
+    core: "renderer-vendor-core.js",
+    map: "renderer-vendor-map.js",
 } as const satisfies Record<RendererVendorBundleEntry, string>;
 
 const rendererVendorBundleEntryLookup: ReadonlySet<string> = new Set(

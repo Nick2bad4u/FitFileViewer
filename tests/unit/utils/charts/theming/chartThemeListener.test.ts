@@ -4,10 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 type ThemeChangeHandler = (theme?: string) => void;
 type UpdateChartsHandler = (reason: string) => Promise<boolean>;
 
-interface TestWindow extends Window {
-    globalData?: Record<string, never>;
-}
-
 const { mockedChartStateManager } = vi.hoisted(() => ({
     mockedChartStateManager: {
         handleThemeChange: vi.fn<ThemeChangeHandler>(),
@@ -58,19 +54,9 @@ async function setManagedGlobalData(data: unknown): Promise<void> {
     setActiveFitRawData(data);
 }
 
-function testWindow(): TestWindow {
-    return window as TestWindow;
-}
-
 function resetDocumentBody(): void {
     const freshBody = document.createElement("body");
     document.documentElement.replaceChild(freshBody, document.body);
-}
-
-function resetGlobals(): void {
-    const currentWindow = testWindow();
-
-    delete currentWindow.globalData;
 }
 
 function buildSettingsDOM(): HTMLElement {
@@ -147,7 +133,6 @@ async function runWithCleanEnvironment(
 ): Promise<void> {
     await resetManagedState();
     resetDocumentBody();
-    resetGlobals();
     mockedChartStateManager.handleThemeChange.mockReset();
     updateChartsMock.mockReset();
     updateChartsMock.mockResolvedValue(true);

@@ -1,4 +1,13 @@
 // Lazily resolve Electron at call-time so Vitest's vi.mock('electron') can hook properly
+import { validateExternalUrl } from "../../../shared/externalUrlPolicy.js";
+import { createElectronConf } from "../../../main/runtime/electronConfAccess.js";
+import { getElectron as getRuntimeElectron } from "../../../main/runtime/electronAccess.js";
+import { approveFilePath } from "../../../main/security/fileAccessPolicy.js";
+import {
+    getShortRecentName,
+    loadRecentFiles,
+} from "../../files/recent/recentFiles.js";
+
 type RendererIpcEventChannel =
     import("../../../shared/ipc").RendererIpcEventChannel;
 
@@ -6,7 +15,7 @@ type BrowserWindowLike = {
     close?: () => void;
     isDestroyed?: () => boolean;
     webContents?: {
-        send: (channel: RendererIpcEventChannel, ...args: unknown[]) => void;
+        send?: (channel: RendererIpcEventChannel, ...args: unknown[]) => void;
     };
 };
 
@@ -62,22 +71,7 @@ type MenuItemLike = {
     [key: string]: unknown;
 };
 
-type RecentFilesUtils = {
-    getShortRecentName: (path: string) => string;
-    loadRecentFiles: () => string[];
-};
-
-type FileAccessPolicy = {
-    approveFilePath: (path: unknown, options?: { source?: string }) => string;
-};
-
-type FitFileViewerGlobal = typeof globalThis & {
-    __lastBuiltMenuTemplate?: MenuItemLike[];
-};
-
-function getMenuGlobal(): FitFileViewerGlobal {
-    return globalThis;
-}
+let lastBuiltMenuTemplateForTests: MenuItemLike[] | undefined;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -103,17 +97,15 @@ function sendToWindow(
     channel: RendererIpcEventChannel,
     ...args: unknown[]
 ): boolean {
-    if (isUsableWindow(win) && win.webContents) {
+    if (isUsableWindow(win) && typeof win.webContents?.send === "function") {
         win.webContents.send(channel, ...args);
         return true;
     }
     return false;
 }
 
-const { getElectron: getRuntimeElectron } =
-    require("../../../main/runtime/electronAccess") as {
-        getElectron: () => ElectronLike;
-    };
+const getMenuRuntimeElectron =
+    getRuntimeElectron as unknown as () => ElectronLike;
 
 let __electronCached: ElectronLike | null = null;
 function hasUsableElectronReference(
@@ -128,7 +120,7 @@ function hasUsableElectronReference(
 
 function getElectron(): ElectronLike {
     try {
-        const e = getRuntimeElectron();
+        const e = getMenuRuntimeElectron();
         __electronCached = e;
         return e;
     } catch {
@@ -147,12 +139,16 @@ let __confInstance: ConfLike | null = null;
 function getConf(): ConfLike {
     if (__confInstance) return __confInstance;
     try {
-        const { Conf } = require("electron-conf") as {
-            Conf: new (options: { name: string }) => ConfLike;
-        };
-        __confInstance = new Conf({ name: "settings" });
-        return __confInstance;
+        const conf = createElectronConf<ConfLike>({ name: "settings" });
+        if (conf) {
+            __confInstance = conf;
+            return __confInstance;
+        }
     } catch {
+        /* Fall back below. */
+    }
+
+    try {
         // Fallback simple in-memory store for non-Electron/test environments
         const fallback: ConfLike & { _store: Record<string, unknown> } = {
             _store: {},
@@ -165,6 +161,18 @@ function getConf(): ConfLike {
         };
         __confInstance = fallback;
         return __confInstance;
+    } catch {
+        const fallback: ConfLike = {
+            get(_key: string, def?: unknown): unknown {
+                return def;
+            },
+            set(_key: string, _val: unknown): void {
+                void _key;
+                void _val;
+            },
+        };
+        __confInstance = fallback;
+        return __confInstance;
     }
 }
 
@@ -173,7 +181,7 @@ function getConf(): ConfLike {
 let mainMenu: unknown = null;
 let recentFilesOverrideForTests: null | string[] = null;
 
-function setCreateAppMenuRecentFilesOverrideForTests(
+export function setCreateAppMenuRecentFilesOverrideForTests(
     files: null | readonly string[]
 ): void {
     recentFilesOverrideForTests = files === null ? null : [...files];
@@ -214,10 +222,6 @@ function shouldLogMenuDebug() {
  */
 function safeOpenExternal(url: string): void {
     try {
-        // Local module, no Electron dependency.
-        const {
-            validateExternalUrl,
-        } = require("../../../shared/externalUrlPolicy");
         const validated = validateExternalUrl(url);
         const { shell: sh } = getElectron();
         if (sh && typeof sh.openExternal === "function") {
@@ -245,7 +249,7 @@ const decoderOptionDefaults = {
  * File, Edit, View, Window, and Settings menus, with support for opening files,
  * displaying a list of recent files, and standard menu roles.
  */
-function createAppMenu(
+export function createAppMenu(
     mainWindow: BrowserWindowLike | null | undefined,
     currentTheme: string | null = null,
     loadedFitFilePath: string | null = null
@@ -285,34 +289,7 @@ function createAppMenu(
     ): boolean => sendToWindow(resolveTargetWindow(), channel, ...args);
     const usingPassedTheme = typeof currentTheme === "string";
     const theme = usingPassedTheme ? currentTheme : getTheme();
-    // Lazy import recent files utils to ensure vi.mock hooks correctly
-    let recentUtils: RecentFilesUtils;
-    try {
-        recentUtils = require("../../../utils/files/recent/recentFiles");
-    } catch {
-        // Some builds may have a different relative path
-        try {
-            recentUtils = require("../../../utils/files/recent/recentFiles");
-        } catch {
-            recentUtils = {
-                getShortRecentName: (p: string) => p,
-                loadRecentFiles: () => [],
-            };
-        }
-    }
-    const recentFiles =
-        getRecentFilesOverrideForTests() ?? recentUtils.loadRecentFiles();
-
-    // Best-effort file access policy integration.
-    // This module is used in the main process; approving here ensures renderer readFile calls
-    // can be authorized after a user clicks a recent file menu item.
-    let fileAccessPolicy: FileAccessPolicy | null = null;
-    try {
-        fileAccessPolicy =
-            require("../../../main/security/fileAccessPolicy") as FileAccessPolicy;
-    } catch {
-        fileAccessPolicy = null;
-    }
+    const recentFiles = getRecentFilesOverrideForTests() ?? loadRecentFiles();
     // If (!app.isPackaged) {
     //     Console.log("[createAppMenu] Called with:", { theme, loadedFitFilePath, recentFiles });
     // }
@@ -332,7 +309,7 @@ function createAppMenu(
                 ? recentFiles.map((file: string) => ({
                       click: () => {
                           try {
-                              fileAccessPolicy?.approveFilePath(file, {
+                              approveFilePath(file, {
                                   source: "menu:openRecent",
                               });
                           } catch {
@@ -345,7 +322,7 @@ function createAppMenu(
                               );
                           }
                       },
-                      label: recentUtils.getShortRecentName(file),
+                      label: getShortRecentName(file),
                   }))
                 : [{ enabled: false, label: "No Recent Files" }];
     const clearRecentMenuItem = {
@@ -1039,19 +1016,9 @@ function createAppMenu(
             Menu.setApplicationMenu(mainMenu);
             return;
         }
-        // In test/SSR environment without Menu API, expose template via a well-known global hook
-        try {
-            const menuGlobal = getMenuGlobal();
-            if (!menuGlobal.__lastBuiltMenuTemplate) {
-                menuGlobal.__lastBuiltMenuTemplate = template;
-            } else if (globalThis) {
-                menuGlobal.__lastBuiltMenuTemplate = template;
-            }
-        } catch {
-            /* Ignore errors */
-        }
+        lastBuiltMenuTemplateForTests = template;
         console.warn(
-            "[createAppMenu] WARNING: Electron Menu API unavailable; template exposed for tests."
+            "[createAppMenu] WARNING: Electron Menu API unavailable; template captured for tests."
         );
     } catch (error) {
         console.error(
@@ -1126,9 +1093,21 @@ function setTheme(theme: string): void {
     getConf().set("theme", theme);
 }
 
-if (typeof module !== "undefined" && module && module.exports) {
-    module.exports = {
-        createAppMenu,
-        setCreateAppMenuRecentFilesOverrideForTests,
-    };
+export function getCreateAppMenuLastBuiltTemplateForTests():
+    | MenuItemLike[]
+    | undefined {
+    return lastBuiltMenuTemplateForTests;
 }
+
+export function setCreateAppMenuLastBuiltTemplateForTests(
+    template: MenuItemLike[] | undefined
+): void {
+    lastBuiltMenuTemplateForTests = template;
+}
+
+export default {
+    createAppMenu,
+    getCreateAppMenuLastBuiltTemplateForTests,
+    setCreateAppMenuRecentFilesOverrideForTests,
+    setCreateAppMenuLastBuiltTemplateForTests,
+};

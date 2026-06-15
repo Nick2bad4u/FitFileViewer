@@ -1,12 +1,7 @@
 // @vitest-environment node
-import { createRequire } from "node:module";
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type IpcHandler = (event: unknown, ...args: unknown[]) => unknown;
-type ElectronAccessModule = {
-    setElectronOverride?: (override: unknown) => void;
-};
 type MainProcessStateManagerModule = {
     mainProcessState: {
         set: (
@@ -16,18 +11,6 @@ type MainProcessStateManagerModule = {
         ) => void;
     };
 };
-
-const requireCjs = createRequire(import.meta.url);
-
-function clearMainProcessStateRequireCache(): void {
-    for (const modulePath of [
-        "../../../../electron-app/main/runtime/electronAccess",
-        "../../../../electron-app/main/ipc/ipcRegistry",
-        "../../../../electron-app/utils/state/integration/mainProcessStateManager",
-    ]) {
-        delete requireCjs.cache[requireCjs.resolve(modulePath)];
-    }
-}
 
 function getRequiredHandler(
     handlers: Map<string, IpcHandler>,
@@ -41,10 +24,10 @@ function getRequiredHandler(
     return handler;
 }
 
-function loadMainProcessStateWithIpc(): {
+async function loadMainProcessStateWithIpc(): Promise<{
     handlers: Map<string, IpcHandler>;
     mainProcessState: MainProcessStateManagerModule["mainProcessState"];
-} {
+}> {
     const handlers = new Map<string, IpcHandler>();
     const ipcMain = {
         handle: vi.fn((channel: string, handler: IpcHandler) => {
@@ -52,15 +35,14 @@ function loadMainProcessStateWithIpc(): {
         }),
         removeHandler: vi.fn(),
     };
-    const electronAccess = requireCjs(
-        "../../../../electron-app/main/runtime/electronAccess"
-    ) as ElectronAccessModule;
+    const { setElectronOverride } = await import(
+        "../../../../electron-app/main/runtime/electronAccess.js"
+    );
 
-    electronAccess.setElectronOverride?.({ ipcMain });
+    setElectronOverride({ ipcMain });
 
-    const { mainProcessState } = requireCjs(
-        "../../../../electron-app/utils/state/integration/mainProcessStateManager"
-    ) as MainProcessStateManagerModule;
+    const { mainProcessState } =
+        (await import("../../../../electron-app/utils/state/integration/mainProcessStateManager.js")) as unknown as MainProcessStateManagerModule;
 
     return { handlers, mainProcessState };
 }
@@ -71,27 +53,22 @@ describe("mainProcessStateManager IPC state reads", () => {
     beforeEach(() => {
         vi.resetModules();
         process.env.NODE_ENV = "test";
-        clearMainProcessStateRequireCache();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         process.env.NODE_ENV = originalNodeEnv;
-        try {
-            const electronAccess = requireCjs(
-                "../../../../electron-app/main/runtime/electronAccess"
-            ) as ElectronAccessModule;
-            electronAccess.setElectronOverride?.(null);
-        } catch {
-            /* ignore */
-        }
-        clearMainProcessStateRequireCache();
+        const { setElectronOverride } = await import(
+            "../../../../electron-app/main/runtime/electronAccess.js"
+        );
+        setElectronOverride(null);
         vi.restoreAllMocks();
     });
 
-    it("requires explicit renderer-readable state paths", () => {
+    it("requires explicit renderer-readable state paths", async () => {
         expect.assertions(7);
 
-        const { handlers, mainProcessState } = loadMainProcessStateWithIpc();
+        const { handlers, mainProcessState } =
+            await loadMainProcessStateWithIpc();
         const getMainState = getRequiredHandler(handlers, "main-state:get");
         const listenToMainState = getRequiredHandler(
             handlers,

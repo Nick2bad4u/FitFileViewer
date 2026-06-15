@@ -1,3 +1,8 @@
+import {
+    getRendererApplicationLifecycleWiringRuntime,
+    type RendererApplicationLifecycleWiringRuntime,
+} from "./applicationLifecycleWiringRuntime.js";
+
 type RendererApplicationLifecycleDocument = Pick<
     Document,
     "addEventListener" | "readyState"
@@ -9,6 +14,7 @@ type RendererApplicationLifecycleOptions = {
     readonly cleanup: () => void;
     readonly documentTarget: RendererApplicationLifecycleDocument;
     readonly initializeApplication: () => Promise<void>;
+    readonly runtime?: RendererApplicationLifecycleWiringRuntime | undefined;
     readonly setTimeout: typeof globalThis.setTimeout;
     readonly windowTarget: RendererApplicationLifecycleWindow;
 };
@@ -16,7 +22,9 @@ type RendererApplicationLifecycleOptions = {
 export function registerRendererApplicationLifecycle(
     options: RendererApplicationLifecycleOptions
 ): void {
-    const abortController = new AbortController();
+    const runtime =
+        options.runtime ?? getRendererApplicationLifecycleWiringRuntime();
+    const abortController = runtime.createAbortController();
     const { signal } = abortController;
     const onBeforeUnload = (): void => {
         options.cleanup();

@@ -127,6 +127,7 @@ describe("windowStateUtils persistence behavior", () => {
     let mockFs: MockFs;
     let mockApp: MockApp;
     let mockBrowserWindow: BrowserWindowMock;
+    let mockWinInstance: MockWindowInstance;
     let mockedFileContent: string;
     let mockedFileExists: boolean;
 
@@ -161,7 +162,7 @@ describe("windowStateUtils persistence behavior", () => {
             isPackaged: false,
         };
 
-        const mockWinInstance = {
+        mockWinInstance = {
             isDestroyed: vi.fn<() => boolean>(() => false),
             isMinimized: vi.fn<() => boolean>(() => false),
             isMaximized: vi.fn<() => boolean>(() => false),
@@ -254,10 +255,7 @@ describe("windowStateUtils persistence behavior", () => {
         mod.saveWindowState(win);
 
         expect({
-            fallbackSettingsFileExists: existsSync(fallbackSettingsPath),
-        }).toStrictEqual({ fallbackSettingsFileExists: true });
-        expect({
-            savedState: JSON.parse(readFileSync(fallbackSettingsPath, "utf8")),
+            savedState: JSON.parse(mockedFileContent),
             settingsPath: mod.settingsPath,
         }).toEqual({
             savedState: {
@@ -266,16 +264,37 @@ describe("windowStateUtils persistence behavior", () => {
                 x: 10,
                 y: 20,
             },
-            settingsPath: fallbackSettingsPath,
+            settingsPath: expect.stringMatching(/[\\/]window-state\.json$/),
         });
+        expect(mockFs.writeFileSync).toHaveBeenCalledWith(
+            mod.settingsPath,
+            JSON.stringify(
+                {
+                    height: 700,
+                    width: 1000,
+                    x: 10,
+                    y: 20,
+                },
+                null,
+                2
+            )
+        );
     });
 
-    it("createWindow attempts BrowserWindow construction (may throw in tests)", async () => {
-        expect.assertions(1);
+    it("createWindow constructs and initializes a BrowserWindow from mocked Electron imports", async () => {
+        expect.assertions(4);
 
         const mod = await importWindowStateUtils();
-        expect(() => mod.createWindow()).toThrow(
-            "BrowserWindow is not a constructor"
+        const createdWindow = mod.createWindow();
+
+        expect(createdWindow).toBe(mockWinInstance);
+        expect(mockWinInstance.setMenuBarVisibility).toHaveBeenCalledWith(true);
+        expect(mockWinInstance.once).toHaveBeenCalledWith(
+            "ready-to-show",
+            expect.any(Function)
+        );
+        expect(mockWinInstance.loadFile).toHaveBeenCalledWith(
+            expect.stringContaining("index.html")
         );
     });
 

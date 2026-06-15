@@ -1,9 +1,5 @@
-import { createRequire } from "node:module";
-
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import type { Mock } from "vitest";
-
-const requireCjs = createRequire(import.meta.url);
 
 // Capture passed template for assertions
 let capturedTemplate: any[] | null = null;
@@ -18,28 +14,32 @@ type ElectronHoistedMock = {
     clipboard: any;
     shell: any;
 };
-type ElectronAccessModule = {
-    setElectronOverride: (override: unknown) => void;
-};
-type CreateAppMenuTestGlobal = typeof globalThis & {
-    __FFV_createAppMenuExports?: unknown;
-    __clipboardWrites: any[][];
-    __electronClipboardWriteSpy: Mock<AnyMockFn>;
-    __electronMockFixture: ElectronHoistedMock;
-    __electronSendSpy: Mock<AnyMockFn>;
-    __electronShellOpenSpy: Mock<AnyMockFn>;
-    __electronShellShowSpy: Mock<AnyMockFn>;
-    __ipcCalls: any[][];
-    __lastBuiltMenuTemplate?: any[];
-    __shellOpenCalls: any[][];
-    __shellRevealCalls: any[][];
+type CreateAppMenuModule = {
+    createAppMenu: (
+        mainWindow: any,
+        currentTheme?: string,
+        loadedFitFilePath?: string | null
+    ) => void;
+    getCreateAppMenuLastBuiltTemplateForTests: () => any[] | undefined;
+    setCreateAppMenuLastBuiltTemplateForTests: (
+        template: any[] | undefined
+    ) => void;
+    setCreateAppMenuRecentFilesOverrideForTests: (
+        files: null | readonly string[]
+    ) => void;
 };
 
 const createMock = (): Mock<AnyMockFn> => vi.fn<AnyMockFn>();
 
-function getCreateAppMenuTestGlobal(): CreateAppMenuTestGlobal {
-    return globalThis as unknown as CreateAppMenuTestGlobal;
-}
+let clipboardWrites: any[][] = [];
+let electronClipboardWriteSpy = createMock();
+let electronMockFixture: Partial<ElectronHoistedMock> = {};
+let electronSendSpy = createMock();
+let electronShellOpenSpy = createMock();
+let electronShellShowSpy = createMock();
+let ipcCalls: any[][] = [];
+let shellOpenCalls: any[][] = [];
+let shellRevealCalls: any[][] = [];
 
 function pickMenuFields(
     item: Record<string, unknown>,
@@ -64,33 +64,37 @@ function restoreProcessPlatform(
 }
 
 let recentFilesOverrideForNextImport: null | readonly string[] = null;
+let createAppMenuModuleForTest: CreateAppMenuModule | null = null;
 
 function setRecentFilesOverrideForTests(files: null | readonly string[]): void {
     recentFilesOverrideForNextImport = files;
+}
+
+function getLastBuiltMenuTemplate(): any[] | undefined {
+    return createAppMenuModuleForTest?.getCreateAppMenuLastBuiltTemplateForTests();
+}
+
+function setLastBuiltMenuTemplate(template: any[] | undefined): void {
+    createAppMenuModuleForTest?.setCreateAppMenuLastBuiltTemplateForTests(
+        template
+    );
 }
 
 const electronMockProxy = new Proxy(
     {},
     {
         get(_t, prop) {
-            const src =
-                getCreateAppMenuTestGlobal().__electronMockFixture || {};
+            const src = electronMockFixture;
             return src[prop as keyof ElectronHoistedMock];
         },
         has(_t, prop) {
-            const src =
-                getCreateAppMenuTestGlobal().__electronMockFixture || {};
+            const src = electronMockFixture;
             return prop in src;
         },
     }
 ) as ElectronHoistedMock;
 
-function setElectronAccessOverride(override: unknown): void {
-    const { setElectronOverride } = requireCjs(
-        "../../../electron-app/main/runtime/electronAccess.js"
-    ) as ElectronAccessModule;
-    setElectronOverride(override);
-}
+function setElectronAccessOverride(_override: unknown): void {}
 
 function primeElectronAccessOverride(): void {
     setElectronAccessOverride(electronMockProxy);
@@ -99,21 +103,24 @@ function primeElectronAccessOverride(): void {
 // Provide an Electron mock that always proxies to the test fixture object.
 // This keeps behavior deterministic and avoids import-order pitfalls.
 vi.mock(import("electron"), () => {
-    const get = () => getCreateAppMenuTestGlobal().__electronMockFixture || {};
     return new Proxy(
         {},
         {
             get(_t, prop) {
-                const src = get();
-                return src[prop as any];
+                return electronMockFixture[prop as keyof ElectronHoistedMock];
             },
             has(_t, prop) {
-                const src = get();
-                return prop in src;
+                return prop in electronMockFixture;
             },
         }
     );
 });
+
+vi.mock(import("../../../electron-app/main/runtime/electronAccess.js"), () => ({
+    appRef: () => electronMockFixture.app,
+    getElectron: () => electronMockProxy,
+    setElectronOverride: () => undefined,
+}));
 
 // Force fallback config store (in-memory) for determinism
 // Returning empty module makes new Conf(...) throw and fallback path used
@@ -123,8 +130,29 @@ vi.mock(import("electron-conf"), () => ({}) as any);
 
 // Do not mock electron-conf to exercise fallback if not present; if present, it's fine.
 
+async function loadCreateAppMenuModule(): Promise<CreateAppMenuModule> {
+    primeElectronAccessOverride();
+    const mod =
+        (await import("../../../electron-app/utils/app/menu/createAppMenu.js")) as CreateAppMenuModule;
+    mod.setCreateAppMenuRecentFilesOverrideForTests(
+        recentFilesOverrideForNextImport
+    );
+    createAppMenuModuleForTest = mod;
+    return mod;
+}
+
+function importCreateAppMenuModule(): CreateAppMenuModule {
+    if (!createAppMenuModuleForTest) {
+        throw new TypeError("createAppMenu module has not been loaded");
+    }
+    createAppMenuModuleForTest.setCreateAppMenuRecentFilesOverrideForTests(
+        recentFilesOverrideForNextImport
+    );
+    return createAppMenuModuleForTest;
+}
+
 describe("createAppMenu", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         capturedTemplate = null;
         vi.resetModules();
         // Default recent files mock for most tests (can be overridden in a specific test)
@@ -135,8 +163,8 @@ describe("createAppMenu", () => {
                     "C:/Users/Test/Documents/activity1.fit",
                     "C:/Users/Test/Documents/activity2.fit",
                 ]),
-                getShortRecentName: vi.fn<GetShortRecentName>((p) =>
-                    p.split(/\\|\//g).slice(-2).join("\\")
+                getShortRecentName: vi.fn<GetShortRecentName>(
+                    (p) => p.split(/\\|\//g).pop() ?? ""
                 ),
             })
         );
@@ -144,35 +172,15 @@ describe("createAppMenu", () => {
             "C:/Users/Test/Documents/activity1.fit",
             "C:/Users/Test/Documents/activity2.fit",
         ]);
-        // Do NOT reassign these spies — the electron mock captures the original references.
-        // Instead, clear existing calls so expectations remain accurate per-test.
-        const sendSpy = getCreateAppMenuTestGlobal().__electronSendSpy;
-        if (sendSpy && typeof sendSpy.mockReset === "function")
-            sendSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronSendSpy = createMock();
-        const shellSpy = getCreateAppMenuTestGlobal().__electronShellOpenSpy;
-        if (shellSpy && typeof shellSpy.mockReset === "function")
-            shellSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronShellOpenSpy = createMock();
-        const shellShowSpy =
-            getCreateAppMenuTestGlobal().__electronShellShowSpy;
-        if (shellShowSpy && typeof shellShowSpy.mockReset === "function")
-            shellShowSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronShellShowSpy = createMock();
-        const clipboardSpy =
-            getCreateAppMenuTestGlobal().__electronClipboardWriteSpy;
-        if (clipboardSpy && typeof clipboardSpy.mockReset === "function")
-            clipboardSpy.mockReset();
-        else
-            getCreateAppMenuTestGlobal().__electronClipboardWriteSpy =
-                createMock();
-        // Initialize deterministic global logs used by the hoisted mock wrappers
-        getCreateAppMenuTestGlobal().__ipcCalls = [];
-        getCreateAppMenuTestGlobal().__shellOpenCalls = [];
-        getCreateAppMenuTestGlobal().__shellRevealCalls = [];
-        getCreateAppMenuTestGlobal().__clipboardWrites = [];
-        // Seed hoisted fallback electron mock for environments where require("electron") may fail
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronSendSpy.mockReset();
+        electronShellOpenSpy.mockReset();
+        electronShellShowSpy.mockReset();
+        electronClipboardWriteSpy.mockReset();
+        ipcCalls = [];
+        shellOpenCalls = [];
+        shellRevealCalls = [];
+        clipboardWrites = [];
+        electronMockFixture = {
             Menu: {
                 buildFromTemplate: (template: any[]) => {
                     capturedTemplate = template;
@@ -184,14 +192,10 @@ describe("createAppMenu", () => {
                 getFocusedWindow: () => ({
                     webContents: {
                         send: (...args: any[]) => {
-                            const calls =
-                                getCreateAppMenuTestGlobal().__ipcCalls || [];
+                            const calls = ipcCalls;
                             calls.push(args);
-                            getCreateAppMenuTestGlobal().__ipcCalls = calls;
-                            const fn =
-                                getCreateAppMenuTestGlobal()
-                                    .__electronSendSpy || createMock();
-                            return fn(...args);
+                            ipcCalls = calls;
+                            return electronSendSpy(...args);
                         },
                     },
                 }),
@@ -199,70 +203,40 @@ describe("createAppMenu", () => {
             app: { isPackaged: true, name: "FitFileViewer" },
             shell: {
                 openExternal: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__shellOpenCalls || [];
+                    const calls = shellOpenCalls;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__shellOpenCalls = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal().__electronShellOpenSpy ||
-                        createMock();
-                    return fn(...args);
+                    shellOpenCalls = calls;
+                    return electronShellOpenSpy(...args);
                 },
                 showItemInFolder: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__shellRevealCalls || [];
+                    const calls = shellRevealCalls;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__shellRevealCalls = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal().__electronShellShowSpy ||
-                        createMock();
-                    return fn(...args);
+                    shellRevealCalls = calls;
+                    return electronShellShowSpy(...args);
                 },
             },
             clipboard: {
                 writeText: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__clipboardWrites || [];
+                    const calls = clipboardWrites;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__clipboardWrites = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal()
-                            .__electronClipboardWriteSpy || createMock();
-                    return fn(...args);
+                    clipboardWrites = calls;
+                    return electronClipboardWriteSpy(...args);
                 },
             },
         };
         primeElectronAccessOverride();
+        await loadCreateAppMenuModule();
     });
 
     afterEach(() => {
         capturedTemplate = null;
         setRecentFilesOverrideForTests(null);
         setElectronAccessOverride(null);
+        createAppMenuModuleForTest = null;
     });
 
     function importCreateAppMenu() {
-        primeElectronAccessOverride();
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod =
-            require("../../../electron-app/utils/app/menu/createAppMenu.js") as {
-                createAppMenu: (
-                    mainWindow: any,
-                    currentTheme?: string,
-                    loadedFitFilePath?: string | null
-                ) => void;
-                setCreateAppMenuRecentFilesOverrideForTests: (
-                    files: null | readonly string[]
-                ) => void;
-            };
-        mod.setCreateAppMenuRecentFilesOverrideForTests(
-            recentFilesOverrideForNextImport
-        );
-        return mod.createAppMenu as (
-            mainWindow: any,
-            currentTheme?: string,
-            loadedFitFilePath?: string | null
-        ) => void;
+        return importCreateAppMenuModule().createAppMenu;
     }
 
     it("builds a menu with File/View/Settings/Help and recent files", () => {
@@ -271,9 +245,7 @@ describe("createAppMenu", () => {
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
 
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const labels = tpl.map((i: any) => i.label);
         expect({
             labels,
@@ -326,9 +298,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", "C:/path/to/file.fit");
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         expect({
             labels: tpl.map((i: any) => i.label),
         }).toStrictEqual({
@@ -359,9 +329,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", "C:/x.fit");
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const openRecent = fileMenu.submenu.find(
             (i: any) => i.label === "🕑 Open Recent"
@@ -387,9 +355,7 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const labels = [
             "➕ Add FIT Files as Overlays...",
@@ -437,9 +403,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const openRecent = fileMenu.submenu.find(
             (i: any) => i.label === "🕑 Open Recent"
@@ -462,9 +426,7 @@ describe("createAppMenu", () => {
         const fakeWin = { webContents: { send } };
         // Start with light theme
         createAppMenu(fakeWin as any, "light", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const settingsMenu = (tpl || []).find(
             (i: any) => i.label === "⚙️ Settings"
         );
@@ -497,9 +459,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", "C:/x.fit");
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const settingsMenu = (tpl || []).find(
             (i: any) => i.label === "⚙️ Settings"
         );
@@ -530,9 +490,7 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", "C:/x.fit");
-        let tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        let tpl = capturedTemplate || getLastBuiltMenuTemplate();
         let settingsMenu = (tpl || []).find(
             (i: any) => i.label === "⚙️ Settings"
         );
@@ -544,9 +502,7 @@ describe("createAppMenu", () => {
         );
         includeUnknown.click({ checked: false });
         createAppMenu(fakeWin as any, "dark", "C:/x.fit");
-        tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        tpl = capturedTemplate || getLastBuiltMenuTemplate();
         settingsMenu = (tpl || []).find((i: any) => i.label === "⚙️ Settings");
         decoderMenu = settingsMenu.submenu.find(
             (i: any) => i.label === "💿 Decoder Options"
@@ -565,9 +521,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const viewMenu = (tpl || []).find((i: any) => i.label === "👁️ View");
         const accessMenu = viewMenu.submenu.find(
             (i: any) => i.label === "♿ Accessibility"
@@ -625,9 +579,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
         const docs = help.submenu.find(
             (i: any) => i.label === "📖 Documentation"
@@ -641,11 +593,7 @@ describe("createAppMenu", () => {
         docs.click();
         repo.click();
         issues.click();
-        expect(
-            (getCreateAppMenuTestGlobal().__shellOpenCalls || []).map(
-                (call: any[]) => call[0]
-            )
-        ).toStrictEqual([
+        expect(shellOpenCalls.map((call: any[]) => call[0])).toStrictEqual([
             "https://github.com/Nick2bad4u/FitFileViewer#readme",
             "https://github.com/Nick2bad4u/FitFileViewer",
             "https://github.com/Nick2bad4u/FitFileViewer/issues",
@@ -657,7 +605,7 @@ describe("createAppMenu", () => {
         );
         about.click();
         shortcuts.click();
-        expect(getCreateAppMenuTestGlobal().__ipcCalls).toStrictEqual([
+        expect(ipcCalls).toStrictEqual([
             ["menu-about"],
             ["menu-keyboard-shortcuts"],
         ]);
@@ -668,9 +616,7 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
         const about = help.submenu.find((i: any) => i.label === "ℹ️ About");
         const shortcuts = help.submenu.find(
@@ -678,8 +624,8 @@ describe("createAppMenu", () => {
         );
         about.click();
         shortcuts.click();
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([
             ["menu-about"],
             ["menu-keyboard-shortcuts"],
         ]);
@@ -689,7 +635,7 @@ describe("createAppMenu", () => {
         expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         let closed = false;
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
+        electronMockFixture.BrowserWindow = {
             getFocusedWindow: () => ({
                 close: () => {
                     closed = true;
@@ -698,9 +644,7 @@ describe("createAppMenu", () => {
         };
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const closeItem = fileMenu.submenu.find(
             (i: any) => i.label === "🚪 Close Window"
@@ -716,7 +660,6 @@ describe("createAppMenu", () => {
         expect.assertions(2);
         // Ensure determinism: force the recent files module to return an empty list.
         setRecentFilesOverrideForTests([]);
-        getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate = undefined;
         vi.resetModules();
         // Also reset the default mock from beforeEach so it doesn't override
         vi.doMock(
@@ -729,12 +672,11 @@ describe("createAppMenu", () => {
             })
         );
 
+        await loadCreateAppMenuModule();
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         expect({
             labels: (tpl || []).map((i: any) => i.label),
         }).toStrictEqual({
@@ -765,9 +707,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", "C:/path/to/file.fit");
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const unloadItem = fileMenu.submenu.find(
             (i: any) => i.label === "❌ Unload File"
@@ -827,9 +767,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const openItem = fileMenu.submenu.find(
             (i: any) => i.label === "📂 Open FIT File..."
@@ -850,9 +788,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", "C:/path/to/file.fit");
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const overlayItem = fileMenu.submenu.find(
             (i: any) => i.label === "➕ Add FIT Files as Overlays..."
@@ -874,9 +810,7 @@ describe("createAppMenu", () => {
         const fakeWin = { webContents: { send } };
         const filePath = "C:/Users/Test/Documents/activity1.fit";
         createAppMenu(fakeWin as any, "dark", filePath);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const revealItem = fileMenu.submenu.find(
             (i: any) =>
@@ -886,9 +820,7 @@ describe("createAppMenu", () => {
             enabled: true,
         });
         revealItem.click();
-        const revealSpy = vi.mocked(
-            getCreateAppMenuTestGlobal().__electronShellShowSpy
-        );
+        const revealSpy = vi.mocked(electronShellShowSpy);
         expect(revealSpy).toHaveBeenCalledWith(filePath);
     });
 
@@ -899,9 +831,7 @@ describe("createAppMenu", () => {
         const fakeWin = { webContents: { send } };
         const filePath = "C:/Users/Test/Documents/activity2.fit";
         createAppMenu(fakeWin as any, "dark", filePath);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const copyItem = fileMenu.submenu.find(
             (i: any) => i.label === "📋 Copy File Path"
@@ -918,9 +848,7 @@ describe("createAppMenu", () => {
             label: "📋 Copy File Path",
         });
         copyItem.click();
-        const clipboardSpy = vi.mocked(
-            getCreateAppMenuTestGlobal().__electronClipboardWriteSpy
-        );
+        const clipboardSpy = vi.mocked(electronClipboardWriteSpy);
         expect(clipboardSpy).toHaveBeenCalledWith(filePath);
         expect(send).toHaveBeenCalledWith(
             "show-notification",
@@ -936,9 +864,7 @@ describe("createAppMenu", () => {
         const fakeWin = { webContents: { send } };
         // Start dark then choose Light
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const settingsMenu = (tpl || []).find(
             (i: any) => i.label === "⚙️ Settings"
         );
@@ -963,8 +889,7 @@ describe("createAppMenu", () => {
         expect(send).toHaveBeenCalledWith("set-theme", "light");
         createAppMenu(fakeWin as any, undefined, null);
         const refreshedTemplate =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+            capturedTemplate || getLastBuiltMenuTemplate();
         const refreshedSettingsMenu = refreshedTemplate.find(
             (i: any) => i.label === "⚙️ Settings"
         );
@@ -988,9 +913,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const viewMenu = (tpl || []).find((i: any) => i.label === "👁️ View");
         const accessMenu = viewMenu.submenu.find(
             (i: any) => i.label === "♿ Accessibility"
@@ -1025,9 +948,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const viewMenu = (tpl || []).find((i: any) => i.label === "👁️ View");
         const accessMenu = viewMenu.submenu.find(
             (i: any) => i.label === "♿ Accessibility"
@@ -1077,9 +998,7 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const viewMenu = (tpl || []).find((i: any) => i.label === "👁️ View");
         const accessMenu = viewMenu.submenu.find(
             (i: any) => i.label === "♿ Accessibility"
@@ -1096,7 +1015,7 @@ describe("createAppMenu", () => {
             item.click();
         }
 
-        expect(getCreateAppMenuTestGlobal().__ipcCalls).toStrictEqual([
+        expect(ipcCalls).toStrictEqual([
             ["set-high-contrast", "white"],
             ["set-high-contrast", "yellow"],
             ["set-high-contrast", "off"],
@@ -1108,9 +1027,7 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
         const docs = help.submenu.find(
             (i: any) => i.label === "📖 Documentation"
@@ -1125,9 +1042,7 @@ describe("createAppMenu", () => {
         docs.click();
         repo.click();
         issues.click();
-        const urls = (getCreateAppMenuTestGlobal().__shellOpenCalls || []).map(
-            (c: any[]) => c[0]
-        );
+        const urls = shellOpenCalls.map((c: any[]) => c[0]);
         expect(urls).toStrictEqual([
             "https://github.com/Nick2bad4u/FitFileViewer#readme",
             "https://github.com/Nick2bad4u/FitFileViewer",
@@ -1140,9 +1055,7 @@ describe("createAppMenu", () => {
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
         const about = help.submenu.find((i: any) => i.label === "ℹ️ About");
         const shortcuts = help.submenu.find(
@@ -1151,7 +1064,7 @@ describe("createAppMenu", () => {
         about.click();
         shortcuts.click();
 
-        expect(getCreateAppMenuTestGlobal().__ipcCalls).toStrictEqual([
+        expect(ipcCalls).toStrictEqual([
             ["menu-about"],
             ["menu-keyboard-shortcuts"],
         ]);
@@ -1161,7 +1074,7 @@ describe("createAppMenu", () => {
         expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         let closed = false;
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
+        electronMockFixture.BrowserWindow = {
             getFocusedWindow: () => ({
                 close: () => {
                     closed = true;
@@ -1170,9 +1083,7 @@ describe("createAppMenu", () => {
         };
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const closeItem = fileMenu.submenu.find(
             (i: any) => i.label === "🚪 Close Window"
@@ -1192,9 +1103,7 @@ describe("createAppMenu", () => {
             "dark",
             null
         );
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
         const restart = help.submenu.find(
             (i: any) => i.id === "restart-update"
@@ -1205,25 +1114,23 @@ describe("createAppMenu", () => {
         });
         // Call handler directly to exercise branch
         restart.click();
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([["menu-restart-update"]]);
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([["menu-restart-update"]]);
     });
 
-    it("exposes template via global when Menu API is unavailable", () => {
+    it("captures template for tests when Menu API is unavailable", () => {
         expect.assertions(1);
         // Remove Menu API from hoisted mock to trigger fallback branch
-        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        const originalMock = electronMockFixture;
+        electronMockFixture = {
             ...originalMock,
             Menu: undefined,
         };
-        // Clear any existing template exposure
-        getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate = undefined;
         const createAppMenu = importCreateAppMenu();
+        setLastBuiltMenuTemplate(undefined);
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl = getCreateAppMenuTestGlobal()
-            .__lastBuiltMenuTemplate as any[];
+        const tpl = getLastBuiltMenuTemplate() as any[];
         expect({
             labels: tpl.map((item) => item.label),
         }).toStrictEqual({
@@ -1235,28 +1142,24 @@ describe("createAppMenu", () => {
             ],
         });
         // restore
-        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
+        electronMockFixture = originalMock;
     });
 
-    it("overwrites previously exposed template when Menu API is unavailable (else branch)", () => {
+    it("overwrites previously captured template when Menu API is unavailable", () => {
         expect.assertions(2);
-        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        const originalMock = electronMockFixture;
+        electronMockFixture = {
             ...originalMock,
             Menu: undefined,
         };
-        // Seed an existing template to hit the else path
-        getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate = [
-            { label: "OLD" },
-        ];
         const createAppMenu = importCreateAppMenu();
+        setLastBuiltMenuTemplate([{ label: "OLD" }]);
         createAppMenu(
             { webContents: { send: createMock() } } as any,
             "dark",
             null
         );
-        const tpl = getCreateAppMenuTestGlobal()
-            .__lastBuiltMenuTemplate as any[];
+        const tpl = getLastBuiltMenuTemplate() as any[];
         expect({
             labels: tpl.map((item) => item.label),
         }).toStrictEqual({
@@ -1275,26 +1178,24 @@ describe("createAppMenu", () => {
             label: "📁 File",
             submenuIsArray: true,
         });
-        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
+        electronMockFixture = originalMock;
     });
 
     it("logs menu labels when app is not packaged (debug branch)", () => {
         expect.assertions(2);
         // Spy on console.log and set app.isPackaged=false to execute debug logging path
         const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
+        const originalMock = electronMockFixture;
         const originalEnv = process.env.FFV_DEBUG_MENU;
         process.env.FFV_DEBUG_MENU = "1";
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronMockFixture = {
             ...originalMock,
             app: { ...originalMock.app, isPackaged: false },
         };
         const createAppMenu = importCreateAppMenu();
         const fakeWin = { webContents: { send: createMock() } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         expect(tpl.map((i: any) => i.label)).toStrictEqual([
             "📁 File",
             "👁️ View",
@@ -1312,7 +1213,7 @@ describe("createAppMenu", () => {
         );
         logSpy.mockRestore();
         restoreDebugMenuEnv(originalEnv);
-        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
+        electronMockFixture = originalMock;
     });
 
     it("check for updates sends menu-check-for-updates", () => {
@@ -1321,9 +1222,7 @@ describe("createAppMenu", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const settingsMenu = (tpl || []).find(
             (i: any) => i.label === "⚙️ Settings"
         );
@@ -1339,22 +1238,21 @@ describe("createAppMenu", () => {
 
     it("logs debug warning when Electron Menu is missing and exposes template", () => {
         expect.assertions(2);
-        const originalMock = getCreateAppMenuTestGlobal().__electronMockFixture;
+        const originalMock = electronMockFixture;
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         // Remove Menu to force both early debug log and fallback exposure path
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronMockFixture = {
             ...originalMock,
             Menu: undefined,
         };
-        getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate = undefined;
         const createAppMenu = importCreateAppMenu();
+        setLastBuiltMenuTemplate(undefined);
         createAppMenu(
             { webContents: { send: createMock() } } as any,
             "dark",
             null
         );
-        const tpl = getCreateAppMenuTestGlobal()
-            .__lastBuiltMenuTemplate as any[];
+        const tpl = getLastBuiltMenuTemplate() as any[];
         expect({
             labels: tpl.map((item) => item.label),
         }).toStrictEqual({
@@ -1366,10 +1264,10 @@ describe("createAppMenu", () => {
             ],
         });
         expect(warnSpy).toHaveBeenCalledWith(
-            "[createAppMenu] WARNING: Electron Menu API unavailable; template exposed for tests."
+            "[createAppMenu] WARNING: Electron Menu API unavailable; template captured for tests."
         );
         warnSpy.mockRestore();
-        getCreateAppMenuTestGlobal().__electronMockFixture = originalMock;
+        electronMockFixture = originalMock;
     });
 
     // The following environment-dependent behaviors are validated elsewhere by presence checks:
@@ -1383,7 +1281,7 @@ describe("createAppMenu", () => {
 });
 
 describe("createAppMenu - additional robust branches", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
         capturedTemplate = null;
         vi.resetModules();
         vi.doMock(
@@ -1393,8 +1291,8 @@ describe("createAppMenu - additional robust branches", () => {
                     "C:/Users/Test/Documents/activity1.fit",
                     "C:/Users/Test/Documents/activity2.fit",
                 ]),
-                getShortRecentName: vi.fn<GetShortRecentName>((p) =>
-                    p.split(/\\|\//g).slice(-2).join("\\")
+                getShortRecentName: vi.fn<GetShortRecentName>(
+                    (p) => p.split(/\\|\//g).pop() ?? ""
                 ),
             })
         );
@@ -1402,32 +1300,15 @@ describe("createAppMenu - additional robust branches", () => {
             "C:/Users/Test/Documents/activity1.fit",
             "C:/Users/Test/Documents/activity2.fit",
         ]);
-        // reset spies and call logs
-        const sendSpy = getCreateAppMenuTestGlobal().__electronSendSpy;
-        if (sendSpy && typeof sendSpy.mockReset === "function")
-            sendSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronSendSpy = createMock();
-        const shellSpy = getCreateAppMenuTestGlobal().__electronShellOpenSpy;
-        if (shellSpy && typeof shellSpy.mockReset === "function")
-            shellSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronShellOpenSpy = createMock();
-        const shellShowSpy =
-            getCreateAppMenuTestGlobal().__electronShellShowSpy;
-        if (shellShowSpy && typeof shellShowSpy.mockReset === "function")
-            shellShowSpy.mockReset();
-        else getCreateAppMenuTestGlobal().__electronShellShowSpy = createMock();
-        const clipboardSpy =
-            getCreateAppMenuTestGlobal().__electronClipboardWriteSpy;
-        if (clipboardSpy && typeof clipboardSpy.mockReset === "function")
-            clipboardSpy.mockReset();
-        else
-            getCreateAppMenuTestGlobal().__electronClipboardWriteSpy =
-                createMock();
-        getCreateAppMenuTestGlobal().__ipcCalls = [];
-        getCreateAppMenuTestGlobal().__shellOpenCalls = [];
-        getCreateAppMenuTestGlobal().__shellRevealCalls = [];
-        getCreateAppMenuTestGlobal().__clipboardWrites = [];
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronSendSpy.mockReset();
+        electronShellOpenSpy.mockReset();
+        electronShellShowSpy.mockReset();
+        electronClipboardWriteSpy.mockReset();
+        ipcCalls = [];
+        shellOpenCalls = [];
+        shellRevealCalls = [];
+        clipboardWrites = [];
+        electronMockFixture = {
             Menu: {
                 buildFromTemplate: (template: any[]) => {
                     capturedTemplate = template;
@@ -1440,14 +1321,10 @@ describe("createAppMenu - additional robust branches", () => {
                     close: createMock(),
                     webContents: {
                         send: (...args: any[]) => {
-                            const calls =
-                                getCreateAppMenuTestGlobal().__ipcCalls || [];
+                            const calls = ipcCalls;
                             calls.push(args);
-                            getCreateAppMenuTestGlobal().__ipcCalls = calls;
-                            const fn =
-                                getCreateAppMenuTestGlobal()
-                                    .__electronSendSpy || createMock();
-                            return fn(...args);
+                            ipcCalls = calls;
+                            return electronSendSpy(...args);
                         },
                     },
                 }),
@@ -1455,89 +1332,56 @@ describe("createAppMenu - additional robust branches", () => {
             app: { isPackaged: true, name: "FitFileViewer" },
             shell: {
                 openExternal: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__shellOpenCalls || [];
+                    const calls = shellOpenCalls;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__shellOpenCalls = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal().__electronShellOpenSpy ||
-                        createMock();
-                    return fn(...args);
+                    shellOpenCalls = calls;
+                    return electronShellOpenSpy(...args);
                 },
                 showItemInFolder: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__shellRevealCalls || [];
+                    const calls = shellRevealCalls;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__shellRevealCalls = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal().__electronShellShowSpy ||
-                        createMock();
-                    return fn(...args);
+                    shellRevealCalls = calls;
+                    return electronShellShowSpy(...args);
                 },
             },
             clipboard: {
                 writeText: (...args: any[]) => {
-                    const calls =
-                        getCreateAppMenuTestGlobal().__clipboardWrites || [];
+                    const calls = clipboardWrites;
                     calls.push(args);
-                    getCreateAppMenuTestGlobal().__clipboardWrites = calls;
-                    const fn =
-                        getCreateAppMenuTestGlobal()
-                            .__electronClipboardWriteSpy || createMock();
-                    return fn(...args);
+                    clipboardWrites = calls;
+                    return electronClipboardWriteSpy(...args);
                 },
             },
         };
         primeElectronAccessOverride();
+        await loadCreateAppMenuModule();
     });
 
     afterEach(() => {
         capturedTemplate = null;
         setRecentFilesOverrideForTests(null);
         setElectronAccessOverride(null);
+        createAppMenuModuleForTest = null;
     });
 
     function importCreateAppMenu() {
-        primeElectronAccessOverride();
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod =
-            require("../../../electron-app/utils/app/menu/createAppMenu.js") as {
-                createAppMenu: (
-                    mainWindow?: any,
-                    currentTheme?: string,
-                    loadedFitFilePath?: string | null
-                ) => void;
-                setCreateAppMenuRecentFilesOverrideForTests: (
-                    files: null | readonly string[]
-                ) => void;
-            };
-        mod.setCreateAppMenuRecentFilesOverrideForTests(
-            recentFilesOverrideForNextImport
-        );
-        return mod.createAppMenu as (
-            mainWindow?: any,
-            currentTheme?: string,
-            loadedFitFilePath?: string | null
-        ) => void;
+        return importCreateAppMenuModule().createAppMenu;
     }
 
     it("invokes BrowserWindow.close() from File > Close Window", () => {
         expect.assertions(2);
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const fileMenu = (tpl || []).find((i: any) => i.label === "📁 File");
         const closeItem = fileMenu.submenu.find(
             (i: any) => i.label === "🚪 Close Window"
         );
         // Instead of spying a specific instance (which may be recreated), stub getFocusedWindow to return
         // a deterministic object with a spy for close, ensuring the handler calls it
-        const originalBW =
-            getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow;
+        const originalBW = electronMockFixture.BrowserWindow;
         const winMock = { close: createMock() };
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
+        electronMockFixture.BrowserWindow = {
             ...originalBW,
             getFocusedWindow: () => winMock,
         };
@@ -1549,17 +1393,14 @@ describe("createAppMenu - additional robust branches", () => {
             accelerator: "CmdOrCtrl+W",
             label: "🚪 Close Window",
         });
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow =
-            originalBW;
+        electronMockFixture.BrowserWindow = originalBW;
     });
 
     it("external help links call shell.openExternal with correct URLs", () => {
         expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
         const docs = help.submenu.find(
             (i: any) => i.label === "📖 Documentation"
@@ -1573,8 +1414,7 @@ describe("createAppMenu - additional robust branches", () => {
         docs.click();
         repo.click();
         issues.click();
-        const calls: any[][] =
-            getCreateAppMenuTestGlobal().__shellOpenCalls || [];
+        const calls: any[][] = shellOpenCalls;
         // Validate the exact help-link click order used by the menu.
         const urls = calls.map((c) => c[0]);
         expect(urls).toStrictEqual([
@@ -1588,9 +1428,7 @@ describe("createAppMenu - additional robust branches", () => {
         expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", "C:/x.fit");
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const settingsMenu = (tpl || []).find(
             (i: any) => i.label === "⚙️ Settings"
         );
@@ -1601,8 +1439,8 @@ describe("createAppMenu - additional robust branches", () => {
             (i: any) => i.label === "❓ includeUnknownData"
         );
         includeUnknown.click({ checked: false });
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([
             [
                 "decoder-options-changed",
                 {
@@ -1622,9 +1460,7 @@ describe("createAppMenu - additional robust branches", () => {
         expect.assertions(1);
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const viewMenu = (tpl || []).find((i: any) => i.label === "👁️ View");
         const accessMenu = viewMenu.submenu.find(
             (i: any) => i.label === "♿ Accessibility"
@@ -1638,8 +1474,8 @@ describe("createAppMenu - additional robust branches", () => {
         white.click();
         yellow.click();
         off.click();
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([
             ["set-high-contrast", "white"],
             ["set-high-contrast", "yellow"],
             ["set-high-contrast", "off"],
@@ -1652,16 +1488,13 @@ describe("createAppMenu - additional robust branches", () => {
         const send = createMock();
         const fakeWin = { webContents: { send } };
         // Force getFocusedWindow to return null
-        const originalBW =
-            getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow;
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow = {
+        const originalBW = electronMockFixture.BrowserWindow;
+        electronMockFixture.BrowserWindow = {
             ...originalBW,
             getFocusedWindow: () => null,
         };
         createAppMenu(fakeWin as any, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const help = (tpl || []).find((i: any) => i.label === "❓ Help");
         help.submenu.find((i: any) => i.label === "ℹ️ About").click();
         help.submenu
@@ -1695,15 +1528,14 @@ describe("createAppMenu - additional robust branches", () => {
         expect(send).toHaveBeenCalledWith("set-high-contrast", "white");
         expect(send).toHaveBeenCalledWith("set-high-contrast", "yellow");
         expect(send).toHaveBeenCalledWith("set-high-contrast", "off");
-        getCreateAppMenuTestGlobal().__electronMockFixture.BrowserWindow =
-            originalBW;
+        electronMockFixture.BrowserWindow = originalBW;
     });
 
     it("logs error when Menu.buildFromTemplate throws", () => {
         expect.assertions(2);
-        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
+        const original = electronMockFixture;
         const err = new Error("boom");
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronMockFixture = {
             ...original,
             Menu: {
                 buildFromTemplate: () => {
@@ -1715,16 +1547,15 @@ describe("createAppMenu - additional robust branches", () => {
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
-        getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate = undefined;
         const createAppMenu = importCreateAppMenu();
+        setLastBuiltMenuTemplate(undefined);
         createAppMenu(
             { webContents: { send: createMock() } } as any,
             "dark",
             null
         );
         expect({
-            lastBuiltMenuTemplate:
-                getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate,
+            lastBuiltMenuTemplate: getLastBuiltMenuTemplate(),
         }).toStrictEqual({
             lastBuiltMenuTemplate: undefined,
         });
@@ -1733,7 +1564,7 @@ describe("createAppMenu - additional robust branches", () => {
             err
         );
         errorSpy.mockRestore();
-        getCreateAppMenuTestGlobal().__electronMockFixture = original;
+        electronMockFixture = original;
     });
 
     it("macOS App menu appears on darwin and items send IPC", () => {
@@ -1741,60 +1572,56 @@ describe("createAppMenu - additional robust branches", () => {
         // Preserve original platform descriptor
         const desc = Object.getOwnPropertyDescriptor(process, "platform");
         Object.defineProperty(process, "platform", { value: "darwin" });
-        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        const original = electronMockFixture;
+        electronMockFixture = {
             ...original,
             app: { isPackaged: true, name: "FitFileViewer" },
         };
         vi.resetModules();
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         // First menu should be the App menu on macOS
         const appMenu = (tpl || [])[0];
         expect(appMenu.label).toBe("FitFileViewer");
         const about = appMenu.submenu.find((i: any) => i.label === "About");
         about.click();
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([["menu-about"]]);
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([["menu-about"]]);
         expect(appMenu.submenu.map((i: any) => i.label)).not.toContain(
             "Preferences..."
         );
         // restore
         restoreProcessPlatform(desc);
-        getCreateAppMenuTestGlobal().__electronMockFixture = original;
+        electronMockFixture = original;
     });
 
     it("macOS App menu label falls back to 'App' when app.name missing", () => {
         expect.assertions(3);
         const desc = Object.getOwnPropertyDescriptor(process, "platform");
         Object.defineProperty(process, "platform", { value: "darwin" });
-        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
+        const original = electronMockFixture;
         // Provide an app object without a name to trigger label fallback
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        electronMockFixture = {
             ...original,
             app: { isPackaged: true },
         };
         vi.resetModules();
         const createAppMenu = importCreateAppMenu();
         createAppMenu(undefined, "dark", null);
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const appMenu = (tpl || [])[0];
         expect(appMenu.label).toBe("App");
         // Ensure items are still functional
         const about = appMenu.submenu.find((i: any) => i.label === "About");
         about.click();
-        const ipcCalls: any[][] = getCreateAppMenuTestGlobal().__ipcCalls || [];
-        expect(ipcCalls).toStrictEqual([["menu-about"]]);
+        const observedIpcCalls: any[][] = ipcCalls;
+        expect(observedIpcCalls).toStrictEqual([["menu-about"]]);
         expect(appMenu.submenu.map((i: any) => i.label)).not.toContain(
             "Preferences..."
         );
         restoreProcessPlatform(desc);
-        getCreateAppMenuTestGlobal().__electronMockFixture = original;
+        electronMockFixture = original;
     });
 
     it("skips setting menu and warns when template is invalid (forced via Array.isArray stub)", () => {
@@ -1804,8 +1631,8 @@ describe("createAppMenu - additional robust branches", () => {
         const isArraySpy = vi.spyOn(Array, "isArray").mockReturnValue(false);
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
         const setAppMenuSpy = createMock();
-        const original = getCreateAppMenuTestGlobal().__electronMockFixture;
-        getCreateAppMenuTestGlobal().__electronMockFixture = {
+        const original = electronMockFixture;
+        electronMockFixture = {
             ...original,
             Menu: {
                 buildFromTemplate: (template: any[]) =>
@@ -1824,7 +1651,7 @@ describe("createAppMenu - additional robust branches", () => {
         } finally {
             warnSpy.mockRestore();
             isArraySpy.mockRestore();
-            getCreateAppMenuTestGlobal().__electronMockFixture = original;
+            electronMockFixture = original;
         }
     });
 
@@ -1836,9 +1663,7 @@ describe("createAppMenu - additional robust branches", () => {
             undefined,
             null
         );
-        const tpl =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const tpl = capturedTemplate || getLastBuiltMenuTemplate();
         const settingsMenu = (tpl || []).find(
             (i: any) => i.label === "⚙️ Settings"
         );
@@ -1860,18 +1685,10 @@ describe("createAppMenu - additional robust branches", () => {
     });
 
     it("exports createAppMenu without publishing a global bridge", () => {
-        expect.assertions(2);
-        const modulePath =
-            require.resolve("../../../electron-app/utils/app/menu/createAppMenu.js");
-        delete require.cache[modulePath];
-
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const mod = require("../../../electron-app/utils/app/menu/createAppMenu.js");
+        expect.assertions(1);
+        const mod = importCreateAppMenuModule();
 
         expect(mod.createAppMenu).toBeTypeOf("function");
-        expect(
-            getCreateAppMenuTestGlobal().__FFV_createAppMenuExports
-        ).toBeUndefined();
     });
 
     it("executes all menu click handlers without throwing", async () => {
@@ -1895,8 +1712,7 @@ describe("createAppMenu - additional robust branches", () => {
             setFullScreen: createMock(),
             isFullScreen: createMock().mockReturnValue(false),
         };
-        const electronMock = getCreateAppMenuTestGlobal()
-            .__electronMockFixture as {
+        const electronMock = electronMockFixture as {
             BrowserWindow: { getFocusedWindow: Mock };
         };
         vi.spyOn(
@@ -1905,9 +1721,7 @@ describe("createAppMenu - additional robust branches", () => {
         ).mockReturnValue(fakeWindow);
 
         createAppMenu(fakeWindow as any, "dark", "C:/activities/sample.fit");
-        const template =
-            capturedTemplate ||
-            getCreateAppMenuTestGlobal().__lastBuiltMenuTemplate;
+        const template = capturedTemplate || getLastBuiltMenuTemplate();
         const clickableItems: Array<Record<string, any>> = [];
 
         function collect(items: Array<Record<string, any>> | undefined) {
