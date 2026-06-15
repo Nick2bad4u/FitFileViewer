@@ -8545,7 +8545,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps network fetch and timeout APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(8);
 
         const violations = migratedNetworkUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -8569,8 +8569,17 @@ describe("architecture boundaries", () => {
         expect(networkUtilsRuntimeSource).toContain(
             "defaultNetworkUtilsRuntimeScope"
         );
+        expect(networkUtilsRuntimeSource).not.toContain(
+            "const defaultNetworkUtilsRuntimeScope: NetworkUtilsRuntimeScope = globalThis"
+        );
         expect(networkUtilsRuntimeSource).toContain(
-            "const fetchRef = scope.fetch;"
+            "getFetch: () => globalThis.fetch"
+        );
+        expect(networkUtilsRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(networkUtilsRuntimeSource).toContain(
+            "const fetchRef = getScopeFetch(scope);"
         );
     });
 
