@@ -1161,6 +1161,8 @@ const directLastAnimLogRuntimeGlobalPattern =
     /\bDate\.now\b|\bperformance\.now\b/u;
 const directRendererVendorBundleLoaderRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|createElement|head|querySelector|removeEventListener|setTimeout)\b|\bDate\.now\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directRendererVendorBundleLoaderRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|now|setTimeout)(?:\?\.\(\))?\s*\?\?\s*(?:globalThis\.(?:clearTimeout|setTimeout)|Date\.now\(\))/u;
 const directNetworkUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:fetch|clearTimeout|setTimeout|AbortController)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:fetch|clearTimeout|setTimeout)\(/u;
 const directNetworkUtilsRuntimeAmbientFallbackPattern =
@@ -7416,7 +7418,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedRendererVendorBundleLoaderRuntimeFiles
             .filter((relativeFile) =>
@@ -7428,10 +7430,21 @@ describe("architecture boundaries", () => {
         const vendorBundleLoaderSource = stripComments(
             readRepositoryFile("electron-app/renderer/vendorBundleLoader.ts")
         );
+        const vendorBundleLoaderRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/vendorBundleLoaderRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(vendorBundleLoaderSource).toContain(
             "vendorBundleLoaderRuntime.js"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toMatch(
+            directRendererVendorBundleLoaderRuntimeAmbientFallbackPattern
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "renderer vendor loader requires a setTimeout runtime"
         );
     });
 

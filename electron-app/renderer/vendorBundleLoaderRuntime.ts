@@ -39,6 +39,32 @@ export interface RendererVendorBundleLoaderRuntime {
     ): RendererVendorBundleLoaderTimerHandle;
 }
 
+const defaultRendererVendorBundleLoaderRuntimeScope: RendererVendorBundleLoaderRuntimeScope =
+    {
+        get AbortController() {
+            return globalThis.AbortController;
+        },
+        get addEventListener() {
+            return globalThis.addEventListener.bind(globalThis);
+        },
+        get clearTimeout() {
+            return globalThis.clearTimeout.bind(globalThis);
+        },
+        get document() {
+            return globalThis.document;
+        },
+        get HTMLScriptElement() {
+            return globalThis.HTMLScriptElement;
+        },
+        now: Date.now,
+        get removeEventListener() {
+            return globalThis.removeEventListener.bind(globalThis);
+        },
+        get setTimeout() {
+            return globalThis.setTimeout.bind(globalThis);
+        },
+    };
+
 function getDocument(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): Document {
@@ -70,8 +96,45 @@ function isScriptElement(
     );
 }
 
+function getRequiredClearTimeout(
+    scope: RendererVendorBundleLoaderRuntimeScope
+): typeof globalThis.clearTimeout {
+    const clearTimeoutRef = scope.clearTimeout;
+    if (typeof clearTimeoutRef !== "function") {
+        throw new TypeError(
+            "renderer vendor loader requires a clearTimeout runtime"
+        );
+    }
+
+    return clearTimeoutRef;
+}
+
+function getRequiredNow(
+    scope: RendererVendorBundleLoaderRuntimeScope
+): () => number {
+    const nowRef = scope.now;
+    if (typeof nowRef !== "function") {
+        throw new TypeError("renderer vendor loader requires a clock runtime");
+    }
+
+    return nowRef;
+}
+
+function getRequiredSetTimeout(
+    scope: RendererVendorBundleLoaderRuntimeScope
+): typeof globalThis.setTimeout {
+    const setTimeoutRef = scope.setTimeout;
+    if (typeof setTimeoutRef !== "function") {
+        throw new TypeError(
+            "renderer vendor loader requires a setTimeout runtime"
+        );
+    }
+
+    return setTimeoutRef;
+}
+
 export function getRendererVendorBundleLoaderRuntime(
-    scope: RendererVendorBundleLoaderRuntimeScope = globalThis
+    scope: RendererVendorBundleLoaderRuntimeScope = defaultRendererVendorBundleLoaderRuntimeScope
 ): RendererVendorBundleLoaderRuntime {
     return {
         addEventListener(
@@ -83,7 +146,7 @@ export function getRendererVendorBundleLoaderRuntime(
             scope.addEventListener?.(type, listener, options);
         },
         clearTimeout(handle: RendererVendorBundleLoaderTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = getRequiredClearTimeout(scope);
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
@@ -131,7 +194,8 @@ export function getRendererVendorBundleLoaderRuntime(
             script.addEventListener(type, listener, options);
         },
         now(): number {
-            return scope.now?.() ?? Date.now();
+            const nowRef = getRequiredNow(scope);
+            return nowRef();
         },
         removeEventListener(type: string, listener: EventListener): void {
             scope.removeEventListener?.(type, listener);
@@ -140,7 +204,7 @@ export function getRendererVendorBundleLoaderRuntime(
             callback: () => void,
             delay: number
         ): RendererVendorBundleLoaderTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = getRequiredSetTimeout(scope);
             return setTimeoutRef(callback, delay);
         },
     };

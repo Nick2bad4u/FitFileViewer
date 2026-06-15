@@ -35,6 +35,26 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         });
     });
 
+    it("uses bound default window listeners when no scope is injected", () => {
+        expect.assertions(1);
+
+        const eventType = "ffv-vendor-loader-default-scope";
+        let receivedEventType = "";
+        const listener: EventListener = (event) => {
+            receivedEventType = event.type;
+        };
+        const utils = getRendererVendorBundleLoaderRuntime();
+
+        try {
+            utils.addEventListener(eventType, listener);
+            globalThis.dispatchEvent(new Event(eventType));
+        } finally {
+            utils.removeEventListener(eventType, listener);
+        }
+
+        expect(receivedEventType).toBe(eventType);
+    });
+
     it("schedules and clears polling timers through the injected runtime scope", () => {
         expect.assertions(4);
 
@@ -54,6 +74,26 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
 
         expect(clearTimeout).toHaveBeenCalledWith(29);
         expect(clearTimeout.mock.contexts[0]).toBeUndefined();
+    });
+
+    it("throws when polling timer cleanup is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRendererVendorBundleLoaderRuntime({});
+
+        expect(() =>
+            utils.clearTimeout(29 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("renderer vendor loader requires a clearTimeout runtime");
+    });
+
+    it("throws when polling timer scheduling is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRendererVendorBundleLoaderRuntime({});
+
+        expect(() => utils.setTimeout(vi.fn(), 1)).toThrow(
+            "renderer vendor loader requires a setTimeout runtime"
+        );
     });
 
     it("creates and appends vendor scripts through the injected document", () => {
@@ -126,6 +166,16 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
             TestAbortController
         );
         expect(utils.now()).toBe(1234);
+    });
+
+    it("throws when clock access is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRendererVendorBundleLoaderRuntime({});
+
+        expect(() => utils.now()).toThrow(
+            "renderer vendor loader requires a clock runtime"
+        );
     });
 
     it("fails clearly when required document or AbortController runtimes are unavailable", () => {
