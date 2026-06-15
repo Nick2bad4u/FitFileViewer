@@ -34,6 +34,7 @@ import {
 } from "./lifecycleListenerCleanupRegistry.js";
 import {
     getLifecycleListenersRuntime,
+    type LifecycleListenersRuntime,
     type LifecycleListenersTimer,
 } from "./listenersRuntime.js";
 import { registerChartResizeListener } from "./listenersResize.js";
@@ -69,6 +70,7 @@ type ExportFileDependencies = {
 type NamedLifecycleIpcDependencies = {
     electronAPI: LifecycleElectronAPI;
     isTestEnvironment: boolean;
+    lifecycleRuntime: LifecycleListenersRuntime;
     registerCleanupTimer: RegisterCleanupTimer;
     setLoading: (loading: boolean) => void;
     showAboutModal: SetupListenersOptions["showAboutModal"];
@@ -145,8 +147,6 @@ export type SetupListenersOptions = {
         mode?: string
     ) => unknown;
 };
-
-const lifecycleGlobal = globalThis;
 
 function hasOptionalLifecycleElectronFunction(
     record: Readonly<Record<string, unknown>>,
@@ -464,6 +464,7 @@ function registerUpdateEventListeners(
 function registerNamedLifecycleIpcListeners({
     electronAPI,
     isTestEnvironment,
+    lifecycleRuntime,
     registerCleanupTimer,
     setLoading,
     showAboutModal,
@@ -517,7 +518,7 @@ function registerNamedLifecycleIpcListeners({
     );
     trackUnsubscribe(
         electronAPI.onMenuPrint?.(() => {
-            lifecycleGlobal.print();
+            lifecycleRuntime.print();
         })
     );
     trackUnsubscribe(
@@ -581,9 +582,7 @@ export function setupListeners({
         return timeout;
     };
 
-    const isTestEnvironment =
-        lifecycleGlobal.process !== undefined &&
-        lifecycleGlobal.process?.env?.["NODE_ENV"] === "test";
+    const isTestEnvironment = runtime.isTestEnvironment();
 
     // Open File button click
     const handleOpenFileClick = () => {
@@ -727,11 +726,12 @@ export function setupListeners({
     }
 
     if (electronAPI) {
-        registerNamedLifecycleIpcListeners({
-            electronAPI,
-            isTestEnvironment,
-            registerCleanupTimer,
-            setLoading,
+    registerNamedLifecycleIpcListeners({
+        electronAPI,
+        isTestEnvironment,
+        lifecycleRuntime: runtime,
+        registerCleanupTimer,
+        setLoading,
             showAboutModal,
             showNotification,
             trackUnsubscribe,

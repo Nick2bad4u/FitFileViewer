@@ -63,6 +63,35 @@ describe("getLifecycleListenersRuntime", () => {
         expect(clearedTimer).toBe(timer);
     });
 
+    it("routes print and test-environment checks through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const print = vi.fn<() => void>();
+        const runtime = getLifecycleListenersRuntime({
+            print,
+            process: {
+                env: {
+                    NODE_ENV: "test",
+                },
+            },
+        });
+
+        runtime.print();
+
+        expect(print).toHaveBeenCalledOnce();
+        expect(runtime.isTestEnvironment()).toBe(true);
+    });
+
+    it("throws when print is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getLifecycleListenersRuntime({});
+
+        expect(() => runtime.print()).toThrow(
+            "lifecycle listeners require a print runtime"
+        );
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
