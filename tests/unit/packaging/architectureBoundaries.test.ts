@@ -1119,7 +1119,7 @@ const directUiStateManagerBrowserRuntimePattern =
 const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directChartThemeListenerRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+    /\bscope\.(?:AbortController|CustomEvent|clearTimeout|setTimeout)[^;\n]*\?\?\s*globalThis\.(?:AbortController|CustomEvent|clearTimeout|setTimeout)\b/u;
 const directMapThemeToggleRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|dispatchEvent|setTimeout)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directMapThemeToggleRuntimeAmbientFallbackPattern =

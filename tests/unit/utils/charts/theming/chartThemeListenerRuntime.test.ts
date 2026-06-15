@@ -90,6 +90,25 @@ describe("getChartThemeListenerRuntime", () => {
         }).toThrow("chartThemeListener requires a clearTimeout runtime");
     });
 
+    it("does not borrow ambient constructors for explicit scopes", () => {
+        expect.assertions(2);
+
+        const body = {
+            addEventListener: vi.fn(),
+            ownerDocument: {},
+        } as unknown as HTMLElement;
+        const runtime = getChartThemeListenerRuntime({
+            document: { body },
+        });
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "chartThemeListener requires an AbortController"
+        );
+        expect(runtime.isCustomEvent(new CustomEvent("themechange"))).toBe(
+            false
+        );
+    });
+
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 

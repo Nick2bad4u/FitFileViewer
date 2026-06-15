@@ -22,6 +22,24 @@ export interface ChartThemeListenerRuntime {
     ) => ChartThemeListenerTimerHandle;
 }
 
+const defaultChartThemeListenerRuntimeScope: ChartThemeListenerRuntimeScope = {
+    get AbortController() {
+        return globalThis.AbortController;
+    },
+    get clearTimeout() {
+        return globalThis.clearTimeout;
+    },
+    get CustomEvent() {
+        return globalThis.CustomEvent;
+    },
+    get document() {
+        return globalThis.document;
+    },
+    get setTimeout() {
+        return globalThis.setTimeout;
+    },
+};
+
 function getBody(scope: ChartThemeListenerRuntimeScope): HTMLElement {
     const body = scope.document?.body;
     if (!body) {
@@ -36,8 +54,7 @@ function getAbortControllerConstructor(
 ): typeof AbortController {
     const AbortControllerConstructor =
         scope.AbortController ??
-        scope.document?.body.ownerDocument.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.document?.body.ownerDocument.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError("chartThemeListener requires an AbortController");
     }
@@ -50,13 +67,12 @@ function getCustomEventConstructor(
 ): typeof CustomEvent | undefined {
     return (
         scope.CustomEvent ??
-        scope.document?.body.ownerDocument.defaultView?.CustomEvent ??
-        globalThis.CustomEvent
+        scope.document?.body.ownerDocument.defaultView?.CustomEvent
     );
 }
 
 export function getChartThemeListenerRuntime(
-    scope: ChartThemeListenerRuntimeScope = globalThis
+    scope: ChartThemeListenerRuntimeScope = defaultChartThemeListenerRuntimeScope
 ): ChartThemeListenerRuntime {
     return {
         addThemeChangeListener(
