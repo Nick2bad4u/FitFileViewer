@@ -1124,6 +1124,8 @@ const directLazyRenderingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:innerHeight|innerWidth|requestAnimationFrame|requestIdleCallback|setTimeout)\b|\bdocument\.documentElement\b|\btypeof\s+IntersectionObserver\b|\bnew\s+IntersectionObserver\b|\belement\s+instanceof\s+HTMLElement\b|\breturn\s+setTimeout\(/u;
 const directLazyRenderingRuntimeAmbientFallbackPattern =
     /\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
+const directLazyRenderingRuntimeAmbientGetterPattern =
+    /\bget\s+(?:document|HTMLElement|innerHeight|innerWidth|IntersectionObserver|requestAnimationFrame|requestIdleCallback|setTimeout)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:document|HTMLElement|innerHeight|innerWidth|IntersectionObserver|requestAnimationFrame|requestIdleCallback|setTimeout)\b/u;
 const directListenersResizeRuntimeGlobalPattern =
     /\b(?:document|window|globalThis)\.|\bReflect\.get\(|\bnew\s+AbortController\b|\binstanceof\s+(?:Element|HTMLCanvasElement)\b|\bquerySelectorByIdFlexible\(\s*document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout|requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directListenersResizeRuntimeAmbientTimerFallbackPattern =
@@ -7488,7 +7490,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lazy rendering browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const violations = migratedLazyRenderingRuntimeFiles
             .filter((relativeFile) =>
@@ -7513,8 +7515,11 @@ describe("architecture boundaries", () => {
         expect(lazyRenderingRuntimeSource).not.toMatch(
             directLazyRenderingRuntimeAmbientFallbackPattern
         );
+        expect(lazyRenderingRuntimeSource).not.toMatch(
+            directLazyRenderingRuntimeAmbientGetterPattern
+        );
         expect(lazyRenderingRuntimeSource).toContain(
-            "const timeout = scope.setTimeout;"
+            "const timeout = getScopeSetTimeout(scope);"
         );
         expect(lazyRenderingRuntimeSource).toContain(
             "defaultLazyRenderingRuntimeScope"

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getLazyRenderingRuntime } from "../../../../../electron-app/utils/app/performance/lazyRenderingRuntime.js";
 
@@ -14,6 +14,10 @@ class FakeIntersectionObserver implements IntersectionObserver {
 }
 
 describe("getLazyRenderingRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("schedules animation frames when available", () => {
         expect.assertions(2);
 
@@ -135,6 +139,60 @@ describe("getLazyRenderingRuntime", () => {
         expect(utils.setTimeout(callback)).toBe(9);
         expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 0);
         expect(callback).toHaveBeenCalledOnce();
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(10);
+
+        const animationCallback = vi.fn<FrameRequestCallback>();
+        const idleCallback = vi.fn<IdleRequestCallback>();
+        const timeoutCallback = vi.fn<() => void>();
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => 12);
+        const requestIdleCallback = vi.fn<
+            (
+                callback: IdleRequestCallback,
+                options?: IdleRequestOptions
+            ) => number
+        >(() => 44);
+        const setTimeout = vi.fn<
+            (callback: () => void, timeout?: number) => number
+        >((scheduledCallback) => {
+            scheduledCallback();
+            return 9;
+        });
+        const element = document.createElement("div");
+        const utils = getLazyRenderingRuntime();
+
+        vi.stubGlobal("document", document);
+        vi.stubGlobal("HTMLElement", HTMLElement);
+        vi.stubGlobal("innerHeight", 800);
+        vi.stubGlobal("innerWidth", 1200);
+        vi.stubGlobal("IntersectionObserver", FakeIntersectionObserver);
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+        vi.stubGlobal("requestIdleCallback", requestIdleCallback);
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        expect(utils.createIntersectionObserver(() => {}, {})).toBeInstanceOf(
+            FakeIntersectionObserver
+        );
+        expect(utils.getViewport()).toStrictEqual({
+            height: 800,
+            width: 1200,
+        });
+        expect(utils.isHTMLElement(element)).toBe(true);
+        expect(utils.requestAnimationFrame(animationCallback)).toBe(12);
+        expect(utils.requestIdleCallback(idleCallback, { timeout: 50 })).toBe(
+            44
+        );
+        expect(utils.setTimeout(timeoutCallback)).toBe(9);
+        expect(requestAnimationFrame).toHaveBeenCalledWith(animationCallback);
+        expect(requestIdleCallback).toHaveBeenCalledWith(idleCallback, {
+            timeout: 50,
+        });
+        expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 0);
+        expect(timeoutCallback).toHaveBeenCalledOnce();
     });
 
     it("does not borrow the ambient timeout fallback for explicit scopes", () => {
