@@ -991,6 +991,8 @@ const rendererDevelopmentDebugGlobalPattern =
     /\b(?:window|globalThis|rendererGlobal)\.(?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)\b|["'](?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)["']/u;
 const directRendererDevelopmentDebugToolsRuntimeGlobalPattern =
     /\bReflect\.get\(\s*globalThis\s*,\s*["'](?:location|navigator|performance)["']\s*\)|\bglobalThis\.(?:location|navigator|performance)\b|\b(?:navigator|performance)\.(?:cookieEnabled|hardwareConcurrency|language|memory|onLine|platform|userAgent)\b/u;
+const directRendererDevelopmentDebugToolsRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.(?:location|navigator|performance)\b/u;
 const rendererDevelopmentDebugGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)["']\s*\)|\b(?:window|globalThis)\.(?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)\s*=/u;
 const rawGlobalThisAnyCastPattern = /\(\s*globalThis\s+as\s+any\s*\)/u;
@@ -5885,7 +5887,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer development debug runtime metadata behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedRendererDevelopmentDebugToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -5909,6 +5911,9 @@ describe("architecture boundaries", () => {
         );
         expect(developmentDebugToolsRuntimeSource).toContain(
             "defaultRendererDevelopmentDebugToolsRuntimeScope"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toMatch(
+            directRendererDevelopmentDebugToolsRuntimeAmbientGetterPattern
         );
     });
 
