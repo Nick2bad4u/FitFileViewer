@@ -38,9 +38,15 @@ type LeafletMapInstance = {
     invalidateSize: (options?: { pan?: boolean }) => void;
 };
 
+const ZWIFT_MAP_URL = "https://zwiftmap.com/";
+const ZWIFT_MAP_FALLBACK_DELAY_MS = 8000;
+
 let mapInvalidationFrameId: number | undefined;
 let mapInvalidationSecondFrameId: number | undefined;
 let mapInvalidationTimeoutId:
+    | TabStateManagerHandlersTimerHandle
+    | undefined;
+let zwiftMapFallbackTimeoutId:
     | TabStateManagerHandlersTimerHandle
     | undefined;
 
@@ -154,7 +160,45 @@ export function handleZwiftTab(): void {
         return;
     }
 
-    content.replaceChildren(createZwiftIframe());
+    clearPendingZwiftFallback();
+
+    const status = createZwiftStatus();
+    const iframe = createZwiftIframe();
+    const loadController = new AbortController();
+    const settleZwiftFrame = (didLoad: boolean): void => {
+        loadController.abort();
+        clearPendingZwiftFallback();
+        if (didLoad) {
+            markZwiftStatusLoaded(status);
+        } else {
+            markZwiftStatusFailed(status);
+        }
+    };
+
+    iframe.addEventListener(
+        "load",
+        () => {
+            settleZwiftFrame(true);
+        },
+        { once: true, signal: loadController.signal }
+    );
+    iframe.addEventListener(
+        "error",
+        () => {
+            settleZwiftFrame(false);
+        },
+        { once: true, signal: loadController.signal }
+    );
+
+    zwiftMapFallbackTimeoutId = tabStateManagerHandlersRuntime.setTimeout(
+        () => {
+            zwiftMapFallbackTimeoutId = undefined;
+            settleZwiftFrame(false);
+        },
+        ZWIFT_MAP_FALLBACK_DELAY_MS
+    );
+
+    content.replaceChildren(status, iframe);
 }
 
 /**
@@ -383,9 +427,56 @@ function createZwiftIframe(): HTMLIFrameElement {
         "sandbox",
         "allow-forms allow-popups allow-same-origin allow-scripts"
     );
-    iframe.src = "https://zwiftmap.com/";
+    iframe.src = ZWIFT_MAP_URL;
     iframe.title = "ZwiftMap";
     iframe.width = "1280";
 
     return iframe;
+}
+
+function clearPendingZwiftFallback(): void {
+    if (zwiftMapFallbackTimeoutId === undefined) {
+        return;
+    }
+
+    tabStateManagerHandlersRuntime.clearTimeout(zwiftMapFallbackTimeoutId);
+    zwiftMapFallbackTimeoutId = undefined;
+}
+
+function createZwiftStatus(): HTMLElement {
+    const status = document.createElement("div");
+    status.className = "zwift-map-status zwift-map-status--loading";
+    status.id = "zwift_map_status";
+    status.setAttribute("aria-live", "polite");
+    status.setAttribute("role", "status");
+    status.textContent = "Loading ZwiftMap...";
+
+    return status;
+}
+
+function markZwiftStatusLoaded(status: HTMLElement): void {
+    status.classList.remove("zwift-map-status--loading");
+    status.hidden = true;
+    status.textContent = "ZwiftMap loaded.";
+}
+
+function markZwiftStatusFailed(status: HTMLElement): void {
+    status.classList.remove("zwift-map-status--loading");
+    status.classList.add("zwift-map-status--error");
+    status.hidden = false;
+    status.replaceChildren(
+        document.createTextNode("ZwiftMap did not load. "),
+        createZwiftFallbackLink()
+    );
+}
+
+function createZwiftFallbackLink(): HTMLAnchorElement {
+    const link = document.createElement("a");
+    link.dataset["externalLink"] = "true";
+    link.href = ZWIFT_MAP_URL;
+    link.rel = "noopener noreferrer";
+    link.target = "_blank";
+    link.textContent = "Open ZwiftMap in your browser.";
+
+    return link;
 }

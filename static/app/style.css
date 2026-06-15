@@ -7948,6 +7948,40 @@ body.theme-dark .map-action-btn.disabled {
     border: 0;
 }
 
+.zwift-map-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-block-size: 34px;
+    margin-block: 0 10px;
+    padding: 7px 10px;
+    color: var(--color-fg-muted);
+    font-size: 0.82rem;
+}
+
+.zwift-map-status[hidden] {
+    display: none;
+}
+
+.zwift-map-status--loading::before {
+    content: "";
+    inline-size: 0.8rem;
+    block-size: 0.8rem;
+    border: 2px solid rgb(var(--color-accent-rgb) / 25%);
+    border-block-start-color: rgb(var(--color-accent-rgb));
+    border-radius: 50%;
+    animation: file-browser-status-spin 0.8s linear infinite;
+}
+
+.zwift-map-status--error {
+    color: var(--color-warning);
+}
+
+.zwift-map-status a {
+    color: var(--color-accent);
+    font-weight: 600;
+}
+
 /* =====================================================
    Form Controls & Input Styling
    ===================================================== */

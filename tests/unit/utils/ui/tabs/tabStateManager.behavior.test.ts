@@ -131,6 +131,7 @@ describe("tabStateManager.behavior", () => {
     });
 
     afterEach(() => {
+        vi.useRealTimers();
         root?.remove();
         consoleLogSpy.mockRestore();
         consoleWarnSpy.mockRestore();
@@ -384,14 +385,17 @@ describe("tabStateManager.behavior", () => {
     });
 
     it("handleZwiftTab restores the embedded ZwiftMap frame when content is blank", async () => {
-        expect.assertions(6);
+        expect.assertions(9);
         const panel = document.createElement("div");
         panel.id = "content_zwift";
         root.appendChild(panel);
 
         await tabStateManager.handleZwiftTab();
 
+        const status = panel.querySelector("#zwift_map_status");
         const iframe = panel.querySelector("iframe#zwift_iframe");
+        expect(status).toBeInstanceOf(HTMLElement);
+        expect(status?.textContent).toBe("Loading ZwiftMap...");
         expect(iframe).toBeInstanceOf(HTMLIFrameElement);
         expect(iframe?.getAttribute("src")).toBe("https://zwiftmap.com/");
         expect(iframe?.getAttribute("referrerpolicy")).toBe("no-referrer");
@@ -400,6 +404,35 @@ describe("tabStateManager.behavior", () => {
             "allow-forms allow-popups allow-same-origin allow-scripts"
         );
         expect(iframe?.className).toBe("fullsize-container no-border");
+
+        iframe?.dispatchEvent(new Event("load"));
+
+        expect((status as HTMLElement | null)?.hidden).toBe(true);
+    });
+
+    it("handleZwiftTab shows a fallback link when ZwiftMap does not finish loading", async () => {
+        expect.assertions(4);
+        vi.useFakeTimers();
+
+        const panel = document.createElement("div");
+        panel.id = "content_zwift";
+        root.appendChild(panel);
+
+        await tabStateManager.handleZwiftTab();
+
+        const status = panel.querySelector("#zwift_map_status");
+        const iframe = panel.querySelector("iframe#zwift_iframe");
+
+        expect(status).toBeInstanceOf(HTMLElement);
+        expect(iframe).toBeInstanceOf(HTMLIFrameElement);
+
+        vi.advanceTimersByTime(8000);
+
+        const fallbackLink = panel.querySelector<HTMLAnchorElement>(
+            "#zwift_map_status a[data-external-link='true']"
+        );
+        expect(status?.textContent).toContain("ZwiftMap did not load.");
+        expect(fallbackLink?.href).toBe("https://zwiftmap.com/");
     });
 
     it("handleSummaryTab renders when hash changes and stores lastDataHash", async () => {
