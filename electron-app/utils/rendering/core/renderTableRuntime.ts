@@ -45,12 +45,34 @@ function getDocument(scope: RenderTableRuntimeScope): Document {
     return runtimeDocument;
 }
 
+function getRequiredClearTimeout(
+    scope: RenderTableRuntimeScope
+): (handle: RenderTableTimerHandle) => void {
+    const clearTimeoutRef = scope.clearTimeout;
+    if (typeof clearTimeoutRef !== "function") {
+        throw new TypeError("renderTable requires a clearTimeout runtime");
+    }
+
+    return clearTimeoutRef;
+}
+
+function getRequiredSetTimeout(
+    scope: RenderTableRuntimeScope
+): (callback: () => void, timeout?: number) => RenderTableTimerHandle {
+    const setTimeoutRef = scope.setTimeout;
+    if (typeof setTimeoutRef !== "function") {
+        throw new TypeError("renderTable requires a setTimeout runtime");
+    }
+
+    return setTimeoutRef;
+}
+
 export function getRenderTableRuntime(
     scope: RenderTableRuntimeScope = globalThis
 ): RenderTableRuntime {
     return {
         clearTimeout(handle: RenderTableTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = getRequiredClearTimeout(scope);
             clearTimeoutRef(handle);
         },
         createElement<K extends keyof HTMLElementTagNameMap>(
@@ -98,7 +120,7 @@ export function getRenderTableRuntime(
             callback: () => void,
             timeout: number
         ): RenderTableTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = getRequiredSetTimeout(scope);
             return setTimeoutRef(callback, timeout);
         },
     };

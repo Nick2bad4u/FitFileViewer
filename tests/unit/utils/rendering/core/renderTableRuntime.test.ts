@@ -106,4 +106,24 @@ describe("getRenderTableRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(9);
         expect(callback).not.toHaveBeenCalled();
     });
+
+    it("throws when timer cleanup is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRenderTableRuntime({});
+
+        expect(() => utils.clearTimeout(9)).toThrow(
+            "renderTable requires a clearTimeout runtime"
+        );
+    });
+
+    it("throws when timer scheduling is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRenderTableRuntime({});
+
+        expect(() => utils.setTimeout(vi.fn(), 1)).toThrow(
+            "renderTable requires a setTimeout runtime"
+        );
+    });
 });

@@ -993,6 +993,8 @@ const directDataTableGlobalPattern =
     /\b(?:window|globalThis|tableGlobal|renderTableGlobal)\.(?:\$|jQuery|DataTable)\b|\.jQuery\b/u;
 const directRenderTableRuntimeGlobalPattern =
     /\b(?:document|globalThis)\.(?:createElement|getElementById|getComputedStyle|requestAnimationFrame)\b|(?:^|[^\w.])setTimeout\(|\binstanceof\s+(?:HTMLElement|HTMLTableCellElement)\b/u;
+const directRenderTableRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
 const directChartCanvasExpandoPattern = /\b__chartjs\b/u;
 const directDomPurifyGlobalPattern =
@@ -5443,7 +5445,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps table renderer browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedRenderTableRuntimeFiles
             .filter((relativeFile) =>
@@ -5457,9 +5459,20 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/core/renderTable.ts"
             )
         );
+        const renderTableRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/core/renderTableRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(renderTableSource).toContain("renderTableRuntime.js");
+        expect(renderTableRuntimeSource).not.toMatch(
+            directRenderTableRuntimeAmbientTimerFallbackPattern
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "renderTable requires a setTimeout runtime"
+        );
     });
 
     it("keeps direct DataTables global lookups out of runtime source", () => {
