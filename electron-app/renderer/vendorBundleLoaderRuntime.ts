@@ -1,11 +1,31 @@
-export type RendererVendorBundleLoaderTimerHandle =
-    ReturnType<typeof globalThis.setTimeout>;
+export type RendererVendorBundleLoaderTimerHandle = ReturnType<
+    typeof globalThis.setTimeout
+>;
 
 export interface RendererVendorBundleLoaderRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
     readonly addEventListener?: typeof globalThis.addEventListener | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly document?: Document | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getAddEventListener?:
+        | (() => typeof globalThis.addEventListener | undefined)
+        | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLScriptElement?:
+        | (() => typeof HTMLScriptElement | undefined)
+        | undefined;
+    readonly getRemoveEventListener?:
+        | (() => typeof globalThis.removeEventListener | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
     readonly HTMLScriptElement?: typeof HTMLScriptElement | undefined;
     readonly now?: (() => number) | undefined;
     readonly removeEventListener?:
@@ -41,34 +61,36 @@ export interface RendererVendorBundleLoaderRuntime {
 
 const defaultRendererVendorBundleLoaderRuntimeScope: RendererVendorBundleLoaderRuntimeScope =
     {
-        get AbortController() {
-            return globalThis.AbortController;
-        },
-        get addEventListener() {
-            return globalThis.addEventListener.bind(globalThis);
-        },
-        get clearTimeout() {
-            return globalThis.clearTimeout.bind(globalThis);
-        },
-        get document() {
-            return globalThis.document;
-        },
-        get HTMLScriptElement() {
-            return globalThis.HTMLScriptElement;
-        },
+        getAbortController: () => globalThis.AbortController,
+        getAddEventListener: () => globalThis.addEventListener.bind(globalThis),
+        getClearTimeout: () => globalThis.clearTimeout.bind(globalThis),
+        getDocument: () => globalThis.document,
+        getHTMLScriptElement: () => globalThis.HTMLScriptElement,
         now: Date.now,
-        get removeEventListener() {
-            return globalThis.removeEventListener.bind(globalThis);
-        },
-        get setTimeout() {
-            return globalThis.setTimeout.bind(globalThis);
-        },
+        getRemoveEventListener: () =>
+            globalThis.removeEventListener.bind(globalThis),
+        getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
     };
 
-function getDocument(
-    scope: RendererVendorBundleLoaderRuntimeScope
-): Document {
-    const documentTarget = scope.document;
+function addEventListenerForScope(
+    scope: RendererVendorBundleLoaderRuntimeScope,
+    type: string,
+    listener: EventListener,
+    options?: AddEventListenerOptions
+): void {
+    const addEventListener = scope.getAddEventListener?.();
+    if (typeof addEventListener === "function") {
+        // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Vendor loader callers pair readiness listeners with caller-owned AbortSignal and removeEventListener cleanup.
+        addEventListener(type, listener, options);
+        return;
+    }
+
+    // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Vendor loader callers pair readiness listeners with caller-owned AbortSignal and removeEventListener cleanup.
+    scope.addEventListener?.(type, listener, options);
+}
+
+function getDocument(scope: RendererVendorBundleLoaderRuntimeScope): Document {
+    const documentTarget = scope.getDocument?.() ?? scope.document;
     if (!documentTarget) {
         throw new TypeError("renderer vendor loader requires a document");
     }
@@ -80,9 +102,22 @@ function getScriptConstructor(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): typeof HTMLScriptElement | undefined {
     return (
+        scope.getHTMLScriptElement?.() ??
         scope.HTMLScriptElement ??
-        scope.document?.defaultView?.HTMLScriptElement
+        getScopeDocument(scope)?.defaultView?.HTMLScriptElement
     );
+}
+
+function getScopeAbortController(
+    scope: RendererVendorBundleLoaderRuntimeScope
+): typeof AbortController | undefined {
+    return scope.getAbortController?.() ?? scope.AbortController;
+}
+
+function getScopeDocument(
+    scope: RendererVendorBundleLoaderRuntimeScope
+): Document | undefined {
+    return scope.getDocument?.() ?? scope.document;
 }
 
 function isScriptElement(
@@ -99,7 +134,7 @@ function isScriptElement(
 function getRequiredClearTimeout(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): typeof globalThis.clearTimeout {
-    const clearTimeoutRef = scope.clearTimeout;
+    const clearTimeoutRef = scope.getClearTimeout?.() ?? scope.clearTimeout;
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError(
             "renderer vendor loader requires a clearTimeout runtime"
@@ -123,7 +158,7 @@ function getRequiredNow(
 function getRequiredSetTimeout(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): typeof globalThis.setTimeout {
-    const setTimeoutRef = scope.setTimeout;
+    const setTimeoutRef = scope.getSetTimeout?.() ?? scope.setTimeout;
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError(
             "renderer vendor loader requires a setTimeout runtime"
@@ -142,15 +177,14 @@ export function getRendererVendorBundleLoaderRuntime(
             listener: EventListener,
             options?: AddEventListenerOptions
         ): void {
-            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Vendor loader callers pair readiness listeners with caller-owned AbortSignal and removeEventListener cleanup.
-            scope.addEventListener?.(type, listener, options);
+            addEventListenerForScope(scope, type, listener, options);
         },
         clearTimeout(handle: RendererVendorBundleLoaderTimerHandle): void {
             const clearTimeoutRef = getRequiredClearTimeout(scope);
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = getScopeAbortController(scope);
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "renderer vendor loader requires an AbortController"
@@ -198,6 +232,12 @@ export function getRendererVendorBundleLoaderRuntime(
             return nowRef();
         },
         removeEventListener(type: string, listener: EventListener): void {
+            const removeEventListener = scope.getRemoveEventListener?.();
+            if (typeof removeEventListener === "function") {
+                removeEventListener(type, listener);
+                return;
+            }
+
             scope.removeEventListener?.(type, listener);
         },
         setTimeout(

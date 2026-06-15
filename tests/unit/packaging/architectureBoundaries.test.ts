@@ -1214,6 +1214,8 @@ const directRendererVendorBundleLoaderRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|createElement|head|querySelector|removeEventListener|setTimeout)\b|\bDate\.now\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererVendorBundleLoaderRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|now|setTimeout)(?:\?\.\(\))?\s*\?\?\s*(?:globalThis\.(?:clearTimeout|setTimeout)|Date\.now\(\))/u;
+const directRendererVendorBundleLoaderRuntimeAmbientGetterPattern =
+    /\bget\s+(?:AbortController|addEventListener|clearTimeout|document|HTMLScriptElement|removeEventListener|setTimeout)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|addEventListener|clearTimeout|document|HTMLScriptElement|removeEventListener|setTimeout)\b/u;
 const directNetworkUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:fetch|clearTimeout|setTimeout|AbortController)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:fetch|clearTimeout|setTimeout)\(/u;
 const directNetworkUtilsRuntimeAmbientFallbackPattern =
@@ -8507,7 +8509,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedRendererVendorBundleLoaderRuntimeFiles
             .filter((relativeFile) =>
@@ -8531,6 +8533,9 @@ describe("architecture boundaries", () => {
         );
         expect(vendorBundleLoaderRuntimeSource).not.toMatch(
             directRendererVendorBundleLoaderRuntimeAmbientFallbackPattern
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toMatch(
+            directRendererVendorBundleLoaderRuntimeAmbientGetterPattern
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
             "renderer vendor loader requires a setTimeout runtime"

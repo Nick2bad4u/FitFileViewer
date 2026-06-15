@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getRendererVendorBundleLoaderRuntime } from "../../../electron-app/renderer/vendorBundleLoaderRuntime.js";
 
 describe("getRendererVendorBundleLoaderRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("registers and removes event listeners through the injected runtime scope", () => {
         expect.assertions(4);
 
@@ -53,6 +57,62 @@ describe("getRendererVendorBundleLoaderRuntime", () => {
         }
 
         expect(receivedEventType).toBe(eventType);
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(13);
+
+        const addEventListener = vi.fn<typeof globalThis.addEventListener>();
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const listener = vi.fn<EventListener>();
+        const options: AddEventListenerOptions = { once: true };
+        const pollDelayMs = Number("20");
+        const removeEventListener =
+            vi.fn<typeof globalThis.removeEventListener>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 29);
+        const utils = getRendererVendorBundleLoaderRuntime();
+
+        vi.stubGlobal("AbortController", AbortController);
+        vi.stubGlobal("addEventListener", addEventListener);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        vi.stubGlobal("document", document);
+        vi.stubGlobal("HTMLScriptElement", HTMLScriptElement);
+        vi.stubGlobal("removeEventListener", removeEventListener);
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        const controller = utils.createAbortController();
+        const script = utils.createVendorScript(
+            "map",
+            "http://localhost/renderer-vendor-map.js"
+        );
+
+        utils.addEventListener("ready", listener, options);
+        utils.appendVendorScript(script);
+        utils.removeEventListener("ready", listener);
+        utils.clearTimeout(29 as ReturnType<typeof globalThis.setTimeout>);
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(script).toBeInstanceOf(HTMLScriptElement);
+        expect(script.dataset["ffvRendererVendorEntry"]).toBe("map");
+        expect(utils.getExistingVendorScript("map")).toBe(script);
+        expect(utils.setTimeout(vi.fn(), pollDelayMs)).toBe(29);
+        expect(addEventListener).toHaveBeenCalledWith(
+            "ready",
+            listener,
+            options
+        );
+        expect(removeEventListener).toHaveBeenCalledWith("ready", listener);
+        expect(clearTimeout).toHaveBeenCalledWith(29);
+        expect(setTimeout).toHaveBeenCalledWith(
+            expect.any(Function),
+            pollDelayMs
+        );
+        expect(addEventListener.mock.contexts[0]).toBe(globalThis);
+        expect(removeEventListener.mock.contexts[0]).toBe(globalThis);
+        expect(clearTimeout.mock.contexts[0]).toBe(globalThis);
+        expect(setTimeout.mock.contexts[0]).toBe(globalThis);
+
+        script.remove();
     });
 
     it("schedules and clears polling timers through the injected runtime scope", () => {
