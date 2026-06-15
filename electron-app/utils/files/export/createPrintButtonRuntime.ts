@@ -27,8 +27,11 @@ function getDocument(scope: CreatePrintButtonRuntimeScope): Document {
     return runtimeDocument;
 }
 
+const defaultCreatePrintButtonRuntimeScope: CreatePrintButtonRuntimeScope =
+    globalThis;
+
 export function getCreatePrintButtonRuntime(
-    scope: CreatePrintButtonRuntimeScope = globalThis
+    scope: CreatePrintButtonRuntimeScope = defaultCreatePrintButtonRuntimeScope
 ): CreatePrintButtonRuntime {
     return {
         createAbortController(): AbortController {

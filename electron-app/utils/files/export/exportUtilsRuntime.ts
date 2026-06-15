@@ -8,8 +8,10 @@ export interface ExportUtilsRuntime {
     createAbortController: () => AbortController;
 }
 
+const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = globalThis;
+
 export function getExportUtilsRuntime(
-    scope: ExportUtilsRuntimeScope = globalThis
+    scope: ExportUtilsRuntimeScope = defaultExportUtilsRuntimeScope
 ): ExportUtilsRuntime {
     return {
         confirmDangerousAction(message: string): boolean {

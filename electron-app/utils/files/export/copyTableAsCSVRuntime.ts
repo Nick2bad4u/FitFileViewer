@@ -28,8 +28,11 @@ function getDocument(scope: CopyTableAsCSVRuntimeScope): Document {
     return runtimeDocument;
 }
 
+const defaultCopyTableAsCSVRuntimeScope: CopyTableAsCSVRuntimeScope =
+    globalThis;
+
 export function getCopyTableAsCSVRuntime(
-    scope: CopyTableAsCSVRuntimeScope = globalThis
+    scope: CopyTableAsCSVRuntimeScope = defaultCopyTableAsCSVRuntimeScope
 ): CopyTableAsCSVRuntime {
     return {
         async copyTextUsingBrowserClipboard(text): Promise<boolean> {

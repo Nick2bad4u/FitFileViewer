@@ -19,8 +19,11 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
+const defaultLoadSingleOverlayFileRuntimeScope: LoadSingleOverlayFileRuntimeScope =
+    globalThis;
+
 export function getLoadSingleOverlayFileRuntime(
-    scope: LoadSingleOverlayFileRuntimeScope = globalThis
+    scope: LoadSingleOverlayFileRuntimeScope = defaultLoadSingleOverlayFileRuntimeScope
 ): LoadSingleOverlayFileRuntime {
     return {
         createAbortController(): AbortController {

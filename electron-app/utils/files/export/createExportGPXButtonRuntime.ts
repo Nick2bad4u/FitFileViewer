@@ -55,8 +55,11 @@ function getURLRuntime(
     return urlRuntime;
 }
 
+const defaultCreateExportGPXButtonRuntimeScope: CreateExportGPXButtonRuntimeScope =
+    globalThis;
+
 export function getCreateExportGPXButtonRuntime(
-    scope: CreateExportGPXButtonRuntimeScope = globalThis
+    scope: CreateExportGPXButtonRuntimeScope = defaultCreateExportGPXButtonRuntimeScope
 ): CreateExportGPXButtonRuntime {
     return {
         appendToBody(element): void {

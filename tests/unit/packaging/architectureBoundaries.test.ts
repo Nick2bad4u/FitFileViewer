@@ -3662,10 +3662,15 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
+        );
+        const exportUtilsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/export/exportUtilsRuntime.ts"
+            )
         );
 
         expect(exportUtilsSource).toContain("exportUtilsRuntime.js");
@@ -3674,6 +3679,12 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).not.toContain("globalThis.window");
         expect(exportUtilsSource).not.toContain("window?.confirm");
         expect(exportUtilsSource).not.toMatch(/\bnew\s+AbortController\b/u);
+        expect(exportUtilsRuntimeSource).toContain(
+            "defaultExportUtilsRuntimeScope"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope: ExportUtilsRuntimeScope = globalThis"
+        );
     });
 
     it("keeps renderChartJS comprehensive tests off module-cache require bridges", () => {
@@ -6010,7 +6021,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps print button browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedCreatePrintButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -6024,16 +6035,27 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/export/createPrintButton.ts"
             )
         );
+        const createPrintButtonRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/export/createPrintButtonRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(createPrintButtonSource).toContain(
             "createPrintButtonRuntime.js"
         );
         expect(createPrintButtonSource).toContain("createAbortController");
+        expect(createPrintButtonRuntimeSource).toContain(
+            "defaultCreatePrintButtonRuntimeScope"
+        );
+        expect(createPrintButtonRuntimeSource).not.toContain(
+            "scope: CreatePrintButtonRuntimeScope = globalThis"
+        );
     });
 
     it("keeps CSV clipboard browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedCopyTableAsCSVRuntimeFiles
             .filter((relativeFile) =>
@@ -6047,13 +6069,24 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/export/copyTableAsCSV.ts"
             )
         );
+        const copyTableAsCSVRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/export/copyTableAsCSVRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(copyTableAsCSVSource).toContain("copyTableAsCSVRuntime.js");
+        expect(copyTableAsCSVRuntimeSource).toContain(
+            "defaultCopyTableAsCSVRuntimeScope"
+        );
+        expect(copyTableAsCSVRuntimeSource).not.toContain(
+            "scope: CopyTableAsCSVRuntimeScope = globalThis"
+        );
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const violations = migratedCreateExportGPXButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -6080,6 +6113,12 @@ describe("architecture boundaries", () => {
         expect(createExportGPXButtonSource).toContain("createAbortController");
         expect(createExportGPXButtonRuntimeSource).not.toMatch(
             directCreateExportGPXButtonRuntimeAmbientFallbackPattern
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "defaultCreateExportGPXButtonRuntimeScope"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "scope: CreateExportGPXButtonRuntimeScope = globalThis"
         );
         expect(createExportGPXButtonRuntimeSource).toContain(
             "const setTimeoutRef = scope.setTimeout;"
@@ -6896,7 +6935,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const violations = migratedOpenFileSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -6923,12 +6962,18 @@ describe("architecture boundaries", () => {
             directOpenFileSelectorRuntimeAmbientFallbackPattern
         );
         expect(openFileSelectorRuntimeSource).toContain(
+            "defaultOpenFileSelectorRuntimeScope"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
+            "scope: OpenFileSelectorRuntimeScope = globalThis"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
             "openFileSelector requires a setTimeout runtime"
         );
     });
 
     it("keeps overlay file load concurrency metadata behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedLoadOverlayFilesRuntimeFiles
             .filter((relativeFile) =>
@@ -6942,13 +6987,24 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/import/loadOverlayFiles.ts"
             )
         );
+        const loadOverlayFilesRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/loadOverlayFilesRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(loadOverlayFilesSource).toContain("loadOverlayFilesRuntime.js");
+        expect(loadOverlayFilesRuntimeSource).toContain(
+            "defaultLoadOverlayFilesRuntimeScope"
+        );
+        expect(loadOverlayFilesRuntimeSource).not.toContain(
+            "scope: LoadOverlayFilesRuntimeScope = globalThis"
+        );
     });
 
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedLoadSingleOverlayFileRuntimeFiles
             .filter((relativeFile) =>
@@ -6962,12 +7018,23 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/import/loadSingleOverlayFile.ts"
             )
         );
+        const loadSingleOverlayFileRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/loadSingleOverlayFileRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(loadSingleOverlayFileSource).toContain(
             "loadSingleOverlayFileRuntime.js"
         );
         expect(loadSingleOverlayFileSource).toContain("createAbortController");
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "defaultLoadSingleOverlayFileRuntimeScope"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "scope: LoadSingleOverlayFileRuntimeScope = globalThis"
+        );
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {

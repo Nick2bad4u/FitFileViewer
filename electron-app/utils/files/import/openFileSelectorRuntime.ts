@@ -66,8 +66,11 @@ function getRequiredSetTimeout(
     return setTimeoutRef;
 }
 
+const defaultOpenFileSelectorRuntimeScope: OpenFileSelectorRuntimeScope =
+    globalThis;
+
 export function getOpenFileSelectorRuntime(
-    scope: OpenFileSelectorRuntimeScope = globalThis
+    scope: OpenFileSelectorRuntimeScope = defaultOpenFileSelectorRuntimeScope
 ): OpenFileSelectorRuntime {
     return {
         appendToBody(element): void {

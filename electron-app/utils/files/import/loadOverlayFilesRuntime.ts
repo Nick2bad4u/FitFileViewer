@@ -6,8 +6,11 @@ export interface LoadOverlayFilesRuntime {
     getHardwareConcurrency: () => number | undefined;
 }
 
+const defaultLoadOverlayFilesRuntimeScope: LoadOverlayFilesRuntimeScope =
+    globalThis;
+
 export function getLoadOverlayFilesRuntime(
-    scope: LoadOverlayFilesRuntimeScope = globalThis
+    scope: LoadOverlayFilesRuntimeScope = defaultLoadOverlayFilesRuntimeScope
 ): LoadOverlayFilesRuntime {
     return {
         getHardwareConcurrency(): number | undefined {
