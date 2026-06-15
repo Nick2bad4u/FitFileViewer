@@ -54,8 +54,11 @@ function getDocument(scope: MapThemeToggleRuntimeScope): Document {
     return runtimeDocument;
 }
 
+const defaultMapThemeToggleRuntimeScope: MapThemeToggleRuntimeScope =
+    globalThis;
+
 export function getMapThemeToggleRuntime(
-    scope: MapThemeToggleRuntimeScope = globalThis
+    scope: MapThemeToggleRuntimeScope = defaultMapThemeToggleRuntimeScope
 ): MapThemeToggleRuntime {
     return {
         addDocumentListener(

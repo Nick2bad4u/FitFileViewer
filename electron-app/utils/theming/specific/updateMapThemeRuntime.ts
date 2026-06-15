@@ -33,8 +33,11 @@ function isHTMLElement(
     );
 }
 
+const defaultUpdateMapThemeRuntimeScope: UpdateMapThemeRuntimeScope =
+    globalThis;
+
 export function getUpdateMapThemeRuntime(
-    scope: UpdateMapThemeRuntimeScope = globalThis
+    scope: UpdateMapThemeRuntimeScope = defaultUpdateMapThemeRuntimeScope
 ): UpdateMapThemeRuntime {
     return {
         addDocumentListener(

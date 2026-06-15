@@ -10,8 +10,10 @@ export interface SetupThemeRuntime {
     setTimeout(callback: () => void, delayMs: number): SetupThemeTimer;
 }
 
+const defaultSetupThemeRuntimeScope: SetupThemeRuntimeScope = globalThis;
+
 export function getSetupThemeRuntime(
-    scope: SetupThemeRuntimeScope = globalThis
+    scope: SetupThemeRuntimeScope = defaultSetupThemeRuntimeScope
 ): SetupThemeRuntime {
     return {
         clearTimeout(timer): void {

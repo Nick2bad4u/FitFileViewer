@@ -18,8 +18,10 @@ export interface ThemeRuntime {
     setTimeout(callback: () => void, delayMs: number): ThemeRuntimeTimer;
 }
 
+const defaultThemeRuntimeScope: ThemeRuntimeScope = globalThis;
+
 export function getThemeRuntime(
-    scope: ThemeRuntimeScope = globalThis
+    scope: ThemeRuntimeScope = defaultThemeRuntimeScope
 ): ThemeRuntime {
     return {
         clearTimeout(timer): void {

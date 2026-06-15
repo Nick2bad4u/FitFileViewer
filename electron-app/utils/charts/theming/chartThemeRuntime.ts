@@ -16,8 +16,10 @@ export interface ChartThemeRuntime {
 
 const DARK_SCHEME_QUERY = "(prefers-color-scheme: dark)";
 
+const defaultChartThemeRuntimeScope: ChartThemeRuntimeScope = globalThis;
+
 export function getChartThemeRuntime(
-    scope: ChartThemeRuntimeScope = globalThis
+    scope: ChartThemeRuntimeScope = defaultChartThemeRuntimeScope
 ): ChartThemeRuntime {
     return {
         getSavedTheme(): null | string {

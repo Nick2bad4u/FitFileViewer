@@ -7071,7 +7071,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme browser reads behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedChartThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -7085,13 +7085,24 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/theming/chartThemeUtils.ts"
             )
         );
+        const chartThemeRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/theming/chartThemeRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(chartThemeUtilsSource).toContain("chartThemeRuntime.js");
+        expect(chartThemeRuntimeSource).toContain(
+            "defaultChartThemeRuntimeScope"
+        );
+        expect(chartThemeRuntimeSource).not.toContain(
+            "scope: ChartThemeRuntimeScope = globalThis"
+        );
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -7114,6 +7125,10 @@ describe("architecture boundaries", () => {
         expect(themeCoreSource).toContain("createAbortController");
         expect(themeCoreSource).toContain("getSystemThemeMediaQuery");
         expect(themeCoreSource).toContain("getWindowEventTarget");
+        expect(themeRuntimeSource).toContain("defaultThemeRuntimeScope");
+        expect(themeRuntimeSource).not.toContain(
+            "scope: ThemeRuntimeScope = globalThis"
+        );
         expect(themeRuntimeSource).not.toMatch(
             directThemeCoreRuntimeAmbientTimerFallbackPattern
         );
@@ -7123,7 +7138,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps setup theme fetch timers behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedSetupThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -7143,6 +7158,12 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(setupThemeSource).toContain("setupThemeRuntime.js");
+        expect(setupThemeRuntimeSource).toContain(
+            "defaultSetupThemeRuntimeScope"
+        );
+        expect(setupThemeRuntimeSource).not.toContain(
+            "scope: SetupThemeRuntimeScope = globalThis"
+        );
         expect(setupThemeRuntimeSource).not.toMatch(
             directSetupThemeRuntimeAmbientFallbackPattern
         );
@@ -7185,7 +7206,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(13);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -7218,6 +7239,12 @@ describe("architecture boundaries", () => {
             "createMapThemeChangedEvent"
         );
         expect(mapThemeToggleRuntimeSource).toContain(
+            "defaultMapThemeToggleRuntimeScope"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "scope: MapThemeToggleRuntimeScope = globalThis"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
             "const runtimeDocument = scope.document;"
         );
         expect(mapThemeToggleRuntimeSource).not.toMatch(
@@ -7232,7 +7259,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedUpdateMapThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -7246,10 +7273,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/theming/specific/updateMapTheme.ts"
             )
         );
+        const updateMapThemeRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/theming/specific/updateMapThemeRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(updateMapThemeSource).toContain("updateMapThemeRuntime.js");
         expect(updateMapThemeSource).toContain("createAbortController");
+        expect(updateMapThemeRuntimeSource).toContain(
+            "defaultUpdateMapThemeRuntimeScope"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "scope: UpdateMapThemeRuntimeScope = globalThis"
+        );
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
