@@ -4,6 +4,7 @@ export type MapThemeToggleTimerHandle =
 
 export interface MapThemeToggleRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
+    readonly CustomEvent?: typeof CustomEvent | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly document?: Document | undefined;
     readonly setTimeout?:
@@ -22,10 +23,35 @@ export interface MapThemeToggleRuntime {
     ): void;
     clearTimeout(handle: MapThemeToggleTimerHandle): void;
     createAbortController(): AbortController;
+    createMapThemeChangedEvent(
+        eventName: string,
+        inverted: boolean
+    ): CustomEvent<{ inverted: boolean }>;
+    dispatchDocumentEvent(event: Event): boolean;
     setTimeout(
         callback: () => void,
         timeout: number
     ): MapThemeToggleTimerHandle;
+}
+
+function getCustomEventConstructor(
+    scope: MapThemeToggleRuntimeScope
+): typeof CustomEvent {
+    const CustomEventConstructor = scope.CustomEvent;
+    if (typeof CustomEventConstructor !== "function") {
+        throw new TypeError("mapThemeToggle requires a CustomEvent runtime");
+    }
+
+    return CustomEventConstructor;
+}
+
+function getDocument(scope: MapThemeToggleRuntimeScope): Document {
+    const runtimeDocument = scope.document;
+    if (!runtimeDocument) {
+        throw new TypeError("mapThemeToggle requires a document runtime");
+    }
+
+    return runtimeDocument;
 }
 
 export function getMapThemeToggleRuntime(
@@ -37,15 +63,8 @@ export function getMapThemeToggleRuntime(
             listener: EventListener,
             options: AddEventListenerOptions & { readonly signal: AbortSignal }
         ): void {
-            const runtimeDocument = scope.document;
-            if (!runtimeDocument) {
-                throw new TypeError(
-                    "mapThemeToggle requires a document runtime"
-                );
-            }
-
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
-            runtimeDocument.addEventListener(eventName, listener, {
+            getDocument(scope).addEventListener(eventName, listener, {
                 ...options,
                 signal: options.signal,
             });
@@ -69,6 +88,18 @@ export function getMapThemeToggleRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createMapThemeChangedEvent(
+            eventName: string,
+            inverted: boolean
+        ): CustomEvent<{ inverted: boolean }> {
+            return new (getCustomEventConstructor(scope))(eventName, {
+                bubbles: true,
+                detail: { inverted },
+            });
+        },
+        dispatchDocumentEvent(event: Event): boolean {
+            return getDocument(scope).dispatchEvent(event);
         },
         setTimeout(callback, timeout): MapThemeToggleTimerHandle {
             const setTimeoutRef = scope.setTimeout;

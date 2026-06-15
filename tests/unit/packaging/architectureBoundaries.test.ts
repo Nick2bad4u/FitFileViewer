@@ -1117,9 +1117,9 @@ const directChartThemeListenerRuntimeGlobalPattern =
 const directChartThemeListenerRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapThemeToggleRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|dispatchEvent|setTimeout)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directMapThemeToggleRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+    /\bscope\.(?:CustomEvent|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:CustomEvent|clearTimeout|setTimeout)\b/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusCountsRuntimeGlobalPattern =
@@ -6967,7 +6967,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(8);
+        expect.assertions(11);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -6981,6 +6981,11 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/theming/specific/mapThemeToggleState.ts"
             )
         );
+        const mapThemeToggleSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/theming/specific/createMapThemeToggle.ts"
+            )
+        );
         const mapThemeToggleRuntimeSource = stripComments(
             readRepositoryFile(mapThemeToggleRuntimeSourceFile)
         );
@@ -6989,6 +6994,11 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleStateSource).toContain("mapThemeToggleRuntime.js");
         expect(mapThemeToggleStateSource).toContain("createAbortController");
         expect(mapThemeToggleStateSource).toContain("addDocumentListener");
+        expect(mapThemeToggleSource).toContain("createMapThemeChangedEvent");
+        expect(mapThemeToggleSource).toContain("dispatchDocumentEvent");
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "createMapThemeChangedEvent"
+        );
         expect(mapThemeToggleRuntimeSource).toContain(
             "const runtimeDocument = scope.document;"
         );

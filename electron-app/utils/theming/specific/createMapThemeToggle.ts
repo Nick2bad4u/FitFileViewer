@@ -310,11 +310,11 @@ export function setMapThemeInverted(inverted: boolean): void {
         setMapThemeSetting(inverted);
 
         // Dispatch custom event for other components to listen to
-        const event = new CustomEvent(MAP_THEME_EVENTS.CHANGED, {
-            bubbles: true,
-            detail: { inverted },
-        });
-        document.dispatchEvent(event);
+        const event = mapThemeToggleRuntime.createMapThemeChangedEvent(
+            MAP_THEME_EVENTS.CHANGED,
+            inverted
+        );
+        mapThemeToggleRuntime.dispatchDocumentEvent(event);
 
         console.log(
             `[createMapThemeToggle] Map theme inversion set to: ${inverted}`

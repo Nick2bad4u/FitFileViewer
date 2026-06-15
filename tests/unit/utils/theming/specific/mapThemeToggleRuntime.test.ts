@@ -62,6 +62,54 @@ describe("getMapThemeToggleRuntime", () => {
         expect(changed).toBe(true);
     });
 
+    it("creates and dispatches map theme change events through scoped runtimes", () => {
+        expect.assertions(4);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("map theme toggle");
+        const runtime = getMapThemeToggleRuntime({
+            CustomEvent,
+            document: documentRef,
+        });
+        const listener = vi.fn<(event: Event) => void>();
+        const controller = new AbortController();
+
+        documentRef.addEventListener("mapThemeChanged", listener, {
+            signal: controller.signal,
+        });
+
+        const event = runtime.createMapThemeChangedEvent(
+            "mapThemeChanged",
+            false
+        );
+
+        expect(event).toBeInstanceOf(CustomEvent);
+        expect(event).toMatchObject({
+            bubbles: true,
+            detail: { inverted: false },
+            type: "mapThemeChanged",
+        });
+        expect(runtime.dispatchDocumentEvent(event)).toBe(true);
+        expect(listener).toHaveBeenCalledWith(event);
+        controller.abort();
+    });
+
+    it("fails clearly when event runtimes are unavailable", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getMapThemeToggleRuntime({ document }).createMapThemeChangedEvent(
+                "mapThemeChanged",
+                true
+            )
+        ).toThrow("mapThemeToggle requires a CustomEvent runtime");
+        expect(() =>
+            getMapThemeToggleRuntime({ CustomEvent }).dispatchDocumentEvent(
+                new Event("mapThemeChanged")
+            )
+        ).toThrow("mapThemeToggle requires a document runtime");
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 
