@@ -60,6 +60,26 @@ describe("getRenderMapRuntime", () => {
         expect(clearedTimer).toBe(timer);
     });
 
+    it("throws when timer cleanup is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRenderMapRuntime({});
+
+        expect(() =>
+            utils.clearTimeout(101 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("renderMap requires a clearTimeout runtime");
+    });
+
+    it("throws when timer scheduling is unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRenderMapRuntime({});
+
+        expect(() => utils.setTimeout(vi.fn(), 1)).toThrow(
+            "renderMap requires a setTimeout runtime"
+        );
+    });
+
     it("schedules animation frames through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -98,5 +118,15 @@ describe("getRenderMapRuntime", () => {
         expect(fallbackDelay).toBe(0);
         expect(callback).toHaveBeenCalledOnce();
         expect(callback).toHaveBeenCalledWith(0);
+    });
+
+    it("requires a timer runtime when animation frames are unavailable", () => {
+        expect.assertions(1);
+
+        const utils = getRenderMapRuntime({});
+
+        expect(() => utils.requestAnimationFrame(vi.fn())).toThrow(
+            "renderMap requires a setTimeout runtime"
+        );
     });
 });

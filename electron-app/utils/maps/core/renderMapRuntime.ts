@@ -16,13 +16,34 @@ export interface RenderMapRuntime {
     setTimeout(callback: () => void, delayMs: number): RenderMapTimer;
 }
 
+function getRequiredClearTimeout(
+    scope: RenderMapRuntimeScope
+): typeof globalThis.clearTimeout {
+    const clearTimeoutRef = scope.clearTimeout;
+    if (typeof clearTimeoutRef !== "function") {
+        throw new TypeError("renderMap requires a clearTimeout runtime");
+    }
+
+    return clearTimeoutRef;
+}
+
+function getRequiredSetTimeout(
+    scope: RenderMapRuntimeScope
+): typeof globalThis.setTimeout {
+    const setTimeoutRef = scope.setTimeout;
+    if (typeof setTimeoutRef !== "function") {
+        throw new TypeError("renderMap requires a setTimeout runtime");
+    }
+
+    return setTimeoutRef;
+}
+
 export function getRenderMapRuntime(
     scope: RenderMapRuntimeScope = globalThis
 ): RenderMapRuntime {
     return {
         clearTimeout(timer): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = getRequiredClearTimeout(scope);
             clearTimeoutRef(timer);
         },
         createAbortController(): AbortController {
@@ -42,11 +63,11 @@ export function getRenderMapRuntime(
                 return;
             }
 
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = getRequiredSetTimeout(scope);
             setTimeoutRef(() => frameCallback(0), 0);
         },
         setTimeout(callback, delayMs): RenderMapTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = getRequiredSetTimeout(scope);
             return setTimeoutRef(callback, delayMs);
         },
     };
