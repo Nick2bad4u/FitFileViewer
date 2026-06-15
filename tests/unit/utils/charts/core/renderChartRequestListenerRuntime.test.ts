@@ -94,6 +94,24 @@ describe("getRenderChartRequestListenerRuntime", () => {
         }
     });
 
+    it("does not borrow ambient constructors for explicit scopes", () => {
+        expect.assertions(2);
+
+        const minimalDocument = {
+            body: document.body,
+            querySelector: vi.fn<() => Element | null>(() => document.body),
+        } as unknown as Document;
+
+        const runtime = getChartRequestListenerRuntime({
+            document: minimalDocument,
+        });
+
+        expect(
+            runtime.isCustomEvent(new CustomEvent("ffv:request-render-charts"))
+        ).toBe(false);
+        expect(runtime.querySelector("body")).toBeNull();
+    });
+
     it("fails clearly when fallback container lookup has no document", () => {
         expect.assertions(2);
 

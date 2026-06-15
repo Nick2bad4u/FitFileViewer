@@ -1145,7 +1145,7 @@ const directChartListenerStateRuntimeAmbientControllerPattern =
 const directRenderChartDirectRerenderRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directRenderChartRequestListenerRuntimeGlobalPattern =
-    /\bdocument\.(?:body|querySelector)\b|\bglobalThis\.addEventListener\b|\binstanceof\s+CustomEvent\b/u;
+    /\bdocument\.(?:body|querySelector)\b|\bglobalThis\.(?:addEventListener|CustomEvent|HTMLElement)\b|\binstanceof\s+CustomEvent\b/u;
 const directRenderChartStartupRuntimeGlobalPattern =
     /\bglobalThis\.(?:addEventListener|window)\b/u;
 const directRenderChartJsTimerRuntimeGlobalPattern =

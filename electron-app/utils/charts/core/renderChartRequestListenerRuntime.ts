@@ -27,14 +27,26 @@ const fallbackContainerSelectors = [
     "#content_chart",
 ] as const;
 
+const defaultRenderChartRequestListenerRuntimeScope: RenderChartRequestListenerRuntimeScope =
+    {
+        get addEventListener() {
+            return globalThis.addEventListener.bind(globalThis);
+        },
+        get CustomEvent() {
+            return globalThis.CustomEvent;
+        },
+        get document() {
+            return globalThis.document;
+        },
+        get HTMLElement() {
+            return globalThis.HTMLElement;
+        },
+    };
+
 function getCustomEventConstructor(
     scope: RenderChartRequestListenerRuntimeScope
 ): typeof CustomEvent | undefined {
-    return (
-        scope.CustomEvent ??
-        scope.document?.defaultView?.CustomEvent ??
-        globalThis.CustomEvent
-    );
+    return scope.CustomEvent ?? scope.document?.defaultView?.CustomEvent;
 }
 
 function getDocument(scope: RenderChartRequestListenerRuntimeScope): Document {
@@ -49,11 +61,7 @@ function getDocument(scope: RenderChartRequestListenerRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: RenderChartRequestListenerRuntimeScope
 ): typeof HTMLElement | undefined {
-    return (
-        scope.HTMLElement ??
-        scope.document?.defaultView?.HTMLElement ??
-        globalThis.HTMLElement
-    );
+    return scope.HTMLElement ?? scope.document?.defaultView?.HTMLElement;
 }
 
 function isHTMLElement(
@@ -76,7 +84,7 @@ function queryHTMLElement(
 }
 
 export function getRenderChartRequestListenerRuntime(
-    scope: RenderChartRequestListenerRuntimeScope = globalThis
+    scope: RenderChartRequestListenerRuntimeScope = defaultRenderChartRequestListenerRuntimeScope
 ): RenderChartRequestListenerRuntime {
     return {
         addChartRequestListener(
