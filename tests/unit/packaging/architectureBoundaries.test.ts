@@ -1161,13 +1161,19 @@ const directMainUiSummarySelectorRuntimeGlobalPattern =
 const directRendererApplicationStartupRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererApplicationStartupRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:AbortController|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|clearTimeout|setTimeout)\b/u;
+    /\bscope\.(?:AbortController|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|clearTimeout|setTimeout)\b|\breturn\s+globalThis\.(?:AbortController|clearTimeout|setTimeout)\b/u;
 const directRendererApplicationLifecycleWiringRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
+const directRendererApplicationLifecycleWiringRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.AbortController\b/u;
 const directRendererFileInputStartupRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
+const directRendererFileInputStartupRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.AbortController\b/u;
 const directRendererTestOnlyBootstrapRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
+const directRendererTestOnlyBootstrapRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.AbortController\b/u;
 const directLastAnimLogRuntimeGlobalPattern =
     /\bDate\.now\b|\bperformance\.now\b/u;
 const directRuntimeAmbientClockFallbackPattern =
@@ -8272,7 +8278,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application lifecycle abort controllers behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations =
             migratedRendererApplicationLifecycleWiringRuntimeFiles
@@ -8300,10 +8306,13 @@ describe("architecture boundaries", () => {
         expect(lifecycleWiringRuntimeSource).toContain(
             "defaultRendererApplicationLifecycleWiringRuntimeScope"
         );
+        expect(lifecycleWiringRuntimeSource).not.toMatch(
+            directRendererApplicationLifecycleWiringRuntimeAmbientGetterPattern
+        );
     });
 
     it("keeps renderer file-input abort controllers behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedRendererFileInputStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -8326,10 +8335,13 @@ describe("architecture boundaries", () => {
         expect(fileInputStartupRuntimeSource).toContain(
             "defaultRendererFileInputStartupRuntimeScope"
         );
+        expect(fileInputStartupRuntimeSource).not.toMatch(
+            directRendererFileInputStartupRuntimeAmbientGetterPattern
+        );
     });
 
     it("keeps renderer test-only bootstrap abort controllers behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedRendererTestOnlyBootstrapRuntimeFiles
             .filter((relativeFile) =>
@@ -8353,6 +8365,9 @@ describe("architecture boundaries", () => {
         );
         expect(testOnlyBootstrapRuntimeSource).toContain(
             "defaultRendererTestOnlyBootstrapRuntimeScope"
+        );
+        expect(testOnlyBootstrapRuntimeSource).not.toMatch(
+            directRendererTestOnlyBootstrapRuntimeAmbientGetterPattern
         );
     });
 

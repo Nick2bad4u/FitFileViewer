@@ -17,17 +17,7 @@ export interface RendererApplicationStartupRuntime {
 }
 
 const defaultRendererApplicationStartupRuntimeScope: RendererApplicationStartupRuntimeScope =
-    {
-        get AbortController() {
-            return globalThis.AbortController;
-        },
-        get clearTimeout() {
-            return globalThis.clearTimeout;
-        },
-        get setTimeout() {
-            return globalThis.setTimeout;
-        },
-    };
+    globalThis;
 
 export function getRendererApplicationStartupRuntime(
     scope: RendererApplicationStartupRuntimeScope = defaultRendererApplicationStartupRuntimeScope

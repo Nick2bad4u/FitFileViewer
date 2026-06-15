@@ -7,11 +7,7 @@ export interface RendererFileInputStartupRuntime {
 }
 
 const defaultRendererFileInputStartupRuntimeScope: RendererFileInputStartupRuntimeScope =
-    {
-        get AbortController() {
-            return globalThis.AbortController;
-        },
-    };
+    globalThis;
 
 export function getRendererFileInputStartupRuntime(
     scope: RendererFileInputStartupRuntimeScope = defaultRendererFileInputStartupRuntimeScope

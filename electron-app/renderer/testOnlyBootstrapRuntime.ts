@@ -7,11 +7,7 @@ export interface RendererTestOnlyBootstrapRuntime {
 }
 
 const defaultRendererTestOnlyBootstrapRuntimeScope: RendererTestOnlyBootstrapRuntimeScope =
-    {
-        get AbortController() {
-            return globalThis.AbortController;
-        },
-    };
+    globalThis;
 
 export function getRendererTestOnlyBootstrapRuntime(
     scope: RendererTestOnlyBootstrapRuntimeScope = defaultRendererTestOnlyBootstrapRuntimeScope
