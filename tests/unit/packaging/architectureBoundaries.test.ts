@@ -4331,11 +4331,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const chartSettingsRenderSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/app/initialization/chartSettingsRender.ts"
+            )
+        );
+        const chartSettingsRenderRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/chartSettingsRenderRuntime.ts"
             )
         );
 
@@ -4349,6 +4354,9 @@ describe("architecture boundaries", () => {
         expect(chartSettingsRenderSource).not.toContain("globalThis");
         expect(chartSettingsRenderSource).not.toContain("new CustomEvent");
         expect(chartSettingsRenderSource).toContain("createRenderRequestEvent");
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "defaultChartSettingsRenderRuntimeScope"
+        );
     });
 
     it("keeps tab-button debug reads on renderer state facades", () => {
@@ -6843,7 +6851,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated AltFit handoff defaults behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedAltFitSenderRuntimeFiles
             .filter((relativeFile) =>
@@ -6858,10 +6866,18 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/import/sendFitFileToAltFitReader.ts"
             )
         );
+        const altFitSenderRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/altFitSenderRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(altFitSenderSource).toContain("altFitSenderRuntime.js");
         expect(altFitSenderSource).toContain("createAbortController");
+        expect(altFitSenderRuntimeSource).toContain(
+            "defaultAltFitSenderRuntimeScope"
+        );
     });
 
     it("keeps shared configuration URL reads behind the runtime facade", () => {

@@ -23,8 +23,11 @@ function getCustomEventConstructor(
     return CustomEventConstructor;
 }
 
+const defaultChartSettingsRenderRuntimeScope: ChartSettingsRenderRuntimeScope =
+    globalThis;
+
 export function getChartSettingsRenderRuntime(
-    scope: ChartSettingsRenderRuntimeScope = globalThis
+    scope: ChartSettingsRenderRuntimeScope = defaultChartSettingsRenderRuntimeScope
 ): ChartSettingsRenderRuntime {
     return {
         createRenderRequestEvent(reason: string): CustomEvent<{

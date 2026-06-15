@@ -14,8 +14,10 @@ interface AltFitSenderRuntimeScope {
     readonly location?: Pick<Location, "origin" | "protocol">;
 }
 
+const defaultAltFitSenderRuntimeScope: AltFitSenderRuntimeScope = globalThis;
+
 export function getAltFitSenderRuntimeEnvironment(
-    scope: AltFitSenderRuntimeScope = globalThis
+    scope: AltFitSenderRuntimeScope = defaultAltFitSenderRuntimeScope
 ): AltFitSenderRuntimeEnvironment {
     return {
         console: scope.console,
