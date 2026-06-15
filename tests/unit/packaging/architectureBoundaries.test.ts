@@ -722,7 +722,7 @@ const directChartLoadingSuppressionGlobalPattern =
 const directChartDebugGlobalPattern =
     /\b(?:window|globalThis|chartGlobal|runtimeGlobal|zoneGlobal|debugGlobal|chartHoverGlobal)\.(?:__FFV_debugCharts|__FFV_debugChartsVerbose|__FFV_traceFullscreen)\b/u;
 const directChartThemeConfigGlobalPattern =
-    /\b(?:window|globalThis|chartGlobal|runtimeGlobal)\.getThemeConfig\b/u;
+    /\b(?:window|globalThis|chartGlobal|runtimeGlobal|chartHoverGlobal)\.getThemeConfig\b/u;
 const directChartPluginRegistrationMarkerPattern =
     /\b__ffvPluginsRegistered\b/u;
 const directChartListenerStateGlobalPattern =

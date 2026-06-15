@@ -59,11 +59,6 @@ interface FullscreenHTMLElement extends HTMLElement {
     webkitRequestFullscreen?: () => Promise<void> | void;
 }
 
-interface ChartHoverGlobal {
-    getThemeConfig?: unknown;
-}
-
-const chartHoverGlobal = globalThis as typeof globalThis & ChartHoverGlobal;
 const chartHoverEffectsRuntime = getChartHoverEffectsRuntime();
 const wrapperCleanupControllers = new WeakMap<HTMLElement, AbortController>();
 
@@ -896,11 +891,7 @@ export function addHoverEffectsToExistingCharts(): void {
         return;
     }
 
-    const rawThemeConfig =
-        typeof chartHoverGlobal.getThemeConfig === "function"
-            ? chartHoverGlobal.getThemeConfig()
-            : getThemeConfig();
-    const themeConfig = resolveChartHoverThemeConfig(rawThemeConfig);
+    const themeConfig = resolveChartHoverThemeConfig(getThemeConfig());
 
     if (chartContainer instanceof HTMLElement) {
         addChartHoverEffects(chartContainer, themeConfig);

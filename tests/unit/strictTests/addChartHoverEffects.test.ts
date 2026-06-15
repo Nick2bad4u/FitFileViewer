@@ -941,7 +941,7 @@ describe(addHoverEffectsToExistingCharts, () => {
         logSpy.mockRestore();
     });
 
-    it("should use global getThemeConfig when available", () => {
+    it("should ignore legacy global getThemeConfig when available", () => {
         expect.assertions(4);
 
         const container = document.createElement("div");
@@ -972,7 +972,7 @@ describe(addHoverEffectsToExistingCharts, () => {
             canvasParentClass: "chart-wrapper",
             wrapperClass: "chart-wrapper",
         });
-        expect(getThemeConfigMock).toHaveBeenCalledWith();
+        expect(getThemeConfigMock).not.toHaveBeenCalled();
         expect(console.log).toHaveBeenCalledWith(
             "[DevHelper] Hover effects added to existing charts"
         );
