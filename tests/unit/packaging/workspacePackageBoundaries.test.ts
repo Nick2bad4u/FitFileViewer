@@ -552,7 +552,7 @@ describe("workspace package boundaries", () => {
     });
 
     it("keeps release readiness backed by app-level regression smoke coverage", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const rootPackage = readPackageJson(rootPackageRepositoryPath);
         const playwrightSmoke = readFileSync(
@@ -569,6 +569,7 @@ describe("workspace package boundaries", () => {
         expect(playwrightSmoke).toContain(
             'test("auto-renders the selected FIT file in the Raw Data tab"'
         );
+        expect(playwrightSmoke).toContain("expectAltFitIframeLoadedActivity");
         expect(playwrightSmoke).toContain(
             'test("loads the Zwift map iframe when the Zwift tab is selected"'
         );
@@ -577,6 +578,9 @@ describe("workspace package boundaries", () => {
         );
         expect(playwrightSmoke).toContain(
             'test("clears distance and area map measurements through the registered measure control"'
+        );
+        expect(playwrightSmoke).toContain(
+            'test("renders a real FIT file across map, charts, data, and summary tabs"'
         );
         expect(playwrightSmoke).toContain("expectTabReady");
     });
