@@ -5768,16 +5768,22 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps DOM helper listener cleanup behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const domHelpersSource = stripComments(
             readRepositoryFile("electron-app/utils/dom/domHelpers.ts")
+        );
+        const domHelpersRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/dom/domHelpersRuntime.ts")
         );
 
         expect(
             directDomHelpersRuntimeGlobalPattern.test(domHelpersSource)
         ).toBe(false);
         expect(domHelpersSource).toContain("domHelpersRuntime.js");
+        expect(domHelpersRuntimeSource).toContain(
+            "defaultDomHelpersRuntimeScope"
+        );
     });
 
     it("keeps DOMPurify wired through the runtime adapter instead of a renderer global", () => {
@@ -6861,7 +6867,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lazy rendering browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedLazyRenderingRuntimeFiles
             .filter((relativeFile) =>
@@ -6888,6 +6894,9 @@ describe("architecture boundaries", () => {
         );
         expect(lazyRenderingRuntimeSource).toContain(
             "const timeout = scope.setTimeout;"
+        );
+        expect(lazyRenderingRuntimeSource).toContain(
+            "defaultLazyRenderingRuntimeScope"
         );
     });
 

@@ -66,8 +66,35 @@ function resolveViewportDimension(
     return 0;
 }
 
+const defaultLazyRenderingRuntimeScope: LazyRenderingRuntimeScope = {
+    get document() {
+        return globalThis.document;
+    },
+    get HTMLElement() {
+        return globalThis.HTMLElement;
+    },
+    get innerHeight() {
+        return globalThis.innerHeight;
+    },
+    get innerWidth() {
+        return globalThis.innerWidth;
+    },
+    get IntersectionObserver() {
+        return globalThis.IntersectionObserver;
+    },
+    get requestAnimationFrame() {
+        return globalThis.requestAnimationFrame;
+    },
+    get requestIdleCallback() {
+        return globalThis.requestIdleCallback;
+    },
+    get setTimeout() {
+        return globalThis.setTimeout;
+    },
+};
+
 export function getLazyRenderingRuntime(
-    scope: LazyRenderingRuntimeScope = globalThis
+    scope: LazyRenderingRuntimeScope = defaultLazyRenderingRuntimeScope
 ): LazyRenderingRuntime {
     return {
         createIntersectionObserver(

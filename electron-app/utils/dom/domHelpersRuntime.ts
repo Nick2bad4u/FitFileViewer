@@ -6,8 +6,14 @@ export interface DomHelpersRuntime {
     createAbortController(): AbortController;
 }
 
+const defaultDomHelpersRuntimeScope: DomHelpersRuntimeScope = {
+    get AbortController() {
+        return globalThis.AbortController;
+    },
+};
+
 export function getDomHelpersRuntime(
-    scope: DomHelpersRuntimeScope = globalThis
+    scope: DomHelpersRuntimeScope = defaultDomHelpersRuntimeScope
 ): DomHelpersRuntime {
     return {
         createAbortController(): AbortController {
