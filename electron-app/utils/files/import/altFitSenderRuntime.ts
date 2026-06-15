@@ -9,20 +9,66 @@ export interface AltFitSenderRuntimeEnvironment {
 
 interface AltFitSenderRuntimeScope {
     readonly AbortController?: typeof globalThis.AbortController | undefined;
-    readonly console: AltFitSenderLogger;
+    readonly console?: AltFitSenderLogger | undefined;
     readonly document?: Pick<Document, "getElementById">;
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
+        | undefined;
+    readonly getConsole?: (() => AltFitSenderLogger | undefined) | undefined;
+    readonly getDocument?:
+        | (() => Pick<Document, "getElementById"> | undefined)
+        | undefined;
+    readonly getLocation?:
+        | (() => Pick<Location, "origin" | "protocol"> | undefined)
+        | undefined;
     readonly location?: Pick<Location, "origin" | "protocol">;
 }
 
-const defaultAltFitSenderRuntimeScope: AltFitSenderRuntimeScope = globalThis;
+const defaultAltFitSenderRuntimeScope: AltFitSenderRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getConsole: () => globalThis.console,
+    getDocument: () => globalThis.document,
+    getLocation: () => globalThis.location,
+};
+
+function getScopeAbortController(
+    scope: AltFitSenderRuntimeScope
+): typeof globalThis.AbortController | undefined {
+    return scope.getAbortController?.() ?? scope.AbortController;
+}
+
+function getScopeConsole(
+    scope: AltFitSenderRuntimeScope
+): AltFitSenderLogger {
+    const logger = scope.getConsole?.() ?? scope.console;
+    if (logger === undefined) {
+        throw new TypeError("Alt FIT sender requires a console runtime");
+    }
+
+    return logger;
+}
+
+function getScopeDocument(
+    scope: AltFitSenderRuntimeScope
+): Pick<Document, "getElementById"> | undefined {
+    return scope.getDocument?.() ?? scope.document;
+}
+
+function getScopeLocation(
+    scope: AltFitSenderRuntimeScope
+): Pick<Location, "origin" | "protocol"> | undefined {
+    return scope.getLocation?.() ?? scope.location;
+}
 
 export function getAltFitSenderRuntimeEnvironment(
     scope: AltFitSenderRuntimeScope = defaultAltFitSenderRuntimeScope
 ): AltFitSenderRuntimeEnvironment {
+    const location = getScopeLocation(scope);
+
     return {
-        console: scope.console,
+        console: getScopeConsole(scope),
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = getScopeAbortController(scope);
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "Alt FIT sender requires an AbortController runtime"
@@ -31,7 +77,8 @@ export function getAltFitSenderRuntimeEnvironment(
 
             return new AbortControllerConstructor();
         },
-        getElementById: (id) => scope.document?.getElementById(id) ?? null,
-        ...(scope.location === undefined ? {} : { location: scope.location }),
+        getElementById: (id) =>
+            getScopeDocument(scope)?.getElementById(id) ?? null,
+        ...(location === undefined ? {} : { location }),
     };
 }

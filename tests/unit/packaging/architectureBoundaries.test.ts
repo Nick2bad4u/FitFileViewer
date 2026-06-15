@@ -7410,7 +7410,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated AltFit handoff defaults behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(9);
 
         const violations = migratedAltFitSenderRuntimeFiles
             .filter((relativeFile) =>
@@ -7436,6 +7436,21 @@ describe("architecture boundaries", () => {
         expect(altFitSenderSource).toContain("createAbortController");
         expect(altFitSenderRuntimeSource).toContain(
             "defaultAltFitSenderRuntimeScope"
+        );
+        expect(altFitSenderRuntimeSource).not.toContain(
+            "const defaultAltFitSenderRuntimeScope: AltFitSenderRuntimeScope = globalThis"
+        );
+        expect(altFitSenderRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(altFitSenderRuntimeSource).toContain(
+            "getConsole: () => globalThis.console"
+        );
+        expect(altFitSenderRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(altFitSenderRuntimeSource).toContain(
+            "getLocation: () => globalThis.location"
         );
     });
 

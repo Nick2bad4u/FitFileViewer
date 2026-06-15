@@ -60,6 +60,55 @@ describe("altFitSenderRuntime", () => {
         expect(runtime.getElementById("altfit-iframe")).toBe(iframe);
     });
 
+    it("routes default dependencies through provider functions", () => {
+        expect.assertions(10);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const iframe = document.createElement("iframe");
+        iframe.id = "altfit-iframe";
+        const getElementById = vi.fn<(id: string) => HTMLElement | null>(
+            () => iframe
+        );
+        const logger = {
+            error: vi.fn<typeof console.error>(),
+            warn: vi.fn<typeof console.warn>(),
+        };
+        const location = {
+            origin: "app://fit-file-viewer",
+            protocol: "app:",
+        };
+        const getAbortController = vi.fn(
+            () =>
+                AbortControllerConstructor as unknown as typeof AbortController
+        );
+        const getConsole = vi.fn(() => logger);
+        const getDocument = vi.fn(() => ({ getElementById }));
+        const getLocation = vi.fn(() => location);
+
+        const runtime = getAltFitSenderRuntimeEnvironment({
+            getAbortController,
+            getConsole,
+            getDocument,
+            getLocation,
+        });
+
+        expect(runtime.console).toBe(logger);
+        expect(runtime.location).toBe(location);
+        expect(runtime.getElementById("altfit-iframe")).toBe(iframe);
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(getConsole).toHaveBeenCalledOnce();
+        expect(getLocation).toHaveBeenCalledOnce();
+        expect(getDocument).toHaveBeenCalledOnce();
+        expect(getAbortController).toHaveBeenCalledOnce();
+        expect(getElementById).toHaveBeenCalledWith("altfit-iframe");
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
     it("returns null for DOM lookups when the runtime document is unavailable", () => {
         expect.assertions(1);
 
