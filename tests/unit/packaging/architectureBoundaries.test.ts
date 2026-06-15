@@ -7593,7 +7593,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme browser reads behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(8);
 
         const violations = migratedChartThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -7620,6 +7620,18 @@ describe("architecture boundaries", () => {
         );
         expect(chartThemeRuntimeSource).not.toContain(
             "scope: ChartThemeRuntimeScope = globalThis"
+        );
+        expect(chartThemeRuntimeSource).not.toContain(
+            "const defaultChartThemeRuntimeScope: ChartThemeRuntimeScope = globalThis"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "getLocalStorage: () => globalThis.localStorage"
+        );
+        expect(chartThemeRuntimeSource).toContain(
+            "getMatchMedia: () => globalThis.matchMedia"
         );
     });
 

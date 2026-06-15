@@ -49,6 +49,44 @@ describe("getChartThemeRuntime", () => {
         expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
     });
 
+    it("routes browser reads through provider functions", () => {
+        expect.assertions(9);
+
+        const classList = {
+            contains: vi.fn<(themeClass: string) => boolean>(
+                (themeClass) => themeClass === "theme-light"
+            ),
+        } as unknown as DOMTokenList;
+        const getDocument = vi.fn(() => ({
+            body: {
+                classList,
+            } as HTMLElement,
+        }));
+        const getItem = vi.fn<(key: string) => null | string>(() => "dark");
+        const getLocalStorage = vi.fn(() => ({
+            getItem,
+        }));
+        const matchMedia = vi.fn<
+            (query: string) => Pick<MediaQueryList, "matches">
+        >(() => ({ matches: false }));
+        const getMatchMedia = vi.fn(() => matchMedia);
+        const utils = getChartThemeRuntime({
+            getDocument,
+            getLocalStorage,
+            getMatchMedia,
+        });
+
+        expect(utils.hasBodyThemeClass("theme-light")).toBe(true);
+        expect(utils.getSavedTheme()).toBe("dark");
+        expect(utils.getSystemPreferredTheme()).toBe("light");
+        expect(getDocument).toHaveBeenCalledOnce();
+        expect(getLocalStorage).toHaveBeenCalledOnce();
+        expect(getMatchMedia).toHaveBeenCalledOnce();
+        expect(classList.contains).toHaveBeenCalledWith("theme-light");
+        expect(getItem).toHaveBeenCalledWith("ffv-theme");
+        expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
+    });
+
     it("falls back to light when runtime browser APIs are unavailable", () => {
         expect.assertions(3);
 
