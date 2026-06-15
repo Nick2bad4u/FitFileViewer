@@ -1185,8 +1185,12 @@ const directUpdateControlsStateRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.getComputedStyle\b/u;
 const directEnableTabButtonsDebugRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directEnableTabButtonsDebugRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:AbortController|clearTimeout|setTimeout)\b/u;
 const directEnableTabButtonsRuntimeGlobalPattern =
     /\bglobalThis\.window\b|\btypeof\s+MutationObserver\b|\bReflect\.construct\b|\bgetTabButtonsGlobal\(\)|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directEnableTabButtonsRuntimeAmbientTimerFallbackPattern =
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directEnableTabButtonsHelpersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bReflect\.get\(\s*document\b|\btypeof\s+document\s*!==/u;
 const directUpdateTabVisibilityRuntimeGlobalPattern =
@@ -7175,7 +7179,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button debug runtime checks behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedEnableTabButtonsDebugRuntimeFiles
             .filter((relativeFile) =>
@@ -7189,15 +7193,26 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/enableTabButtonsDebug.ts"
             )
         );
+        const enableTabButtonsDebugRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/enableTabButtonsDebugRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(enableTabButtonsDebugSource).toContain(
             "enableTabButtonsDebugRuntime.js"
         );
+        expect(enableTabButtonsDebugRuntimeSource).not.toMatch(
+            directEnableTabButtonsDebugRuntimeAmbientFallbackPattern
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "enableTabButtonsDebug requires a setTimeout runtime"
+        );
     });
 
     it("keeps tab-button state browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedEnableTabButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -7211,9 +7226,20 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/enableTabButtons.ts"
             )
         );
+        const enableTabButtonsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/enableTabButtonsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(enableTabButtonsSource).toContain("enableTabButtonsRuntime.js");
+        expect(enableTabButtonsRuntimeSource).not.toMatch(
+            directEnableTabButtonsRuntimeAmbientTimerFallbackPattern
+        );
+        expect(enableTabButtonsRuntimeSource).toContain(
+            "enableTabButtons requires a setTimeout runtime"
+        );
     });
 
     it("keeps tab-button helper DOM reads behind the runtime facade", () => {

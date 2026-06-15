@@ -114,4 +114,26 @@ describe("getEnableTabButtonsRuntime", () => {
         expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
+
+    it("throws when timer cleanup is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getEnableTabButtonsRuntime({});
+
+        expect(() =>
+            runtime.clearTimeout(
+                Symbol("timer") as unknown as ReturnType<typeof setTimeout>
+            )
+        ).toThrow("enableTabButtons requires a clearTimeout runtime");
+    });
+
+    it("throws when timer scheduling is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getEnableTabButtonsRuntime({});
+
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "enableTabButtons requires a setTimeout runtime"
+        );
+    });
 });

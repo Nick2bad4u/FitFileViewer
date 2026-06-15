@@ -69,12 +69,34 @@ function isMutationObserverConstructorLike(
     return typeof candidate === "function";
 }
 
+function getRequiredClearTimeout(
+    scope: EnableTabButtonsRuntimeScope
+): typeof clearTimeout {
+    const clearTimer = scope.clearTimeout;
+    if (typeof clearTimer !== "function") {
+        throw new TypeError("enableTabButtons requires a clearTimeout runtime");
+    }
+
+    return clearTimer;
+}
+
+function getRequiredSetTimeout(
+    scope: EnableTabButtonsRuntimeScope
+): typeof setTimeout {
+    const scheduleTimer = scope.setTimeout;
+    if (typeof scheduleTimer !== "function") {
+        throw new TypeError("enableTabButtons requires a setTimeout runtime");
+    }
+
+    return scheduleTimer;
+}
+
 export function getEnableTabButtonsRuntime(
     scope: EnableTabButtonsRuntimeScope = globalThis
 ): EnableTabButtonsRuntime {
     return {
         clearTimeout(handle: ReturnType<typeof setTimeout>): void {
-            const clearTimer = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimer = getRequiredClearTimeout(scope);
             clearTimer(handle);
         },
         createCompatibilityMutationObserver(
@@ -116,7 +138,7 @@ export function getEnableTabButtonsRuntime(
             handler: () => void,
             timeout: number
         ): ReturnType<typeof setTimeout> {
-            const scheduleTimer = scope.setTimeout ?? globalThis.setTimeout;
+            const scheduleTimer = getRequiredSetTimeout(scope);
             return scheduleTimer(handler, timeout);
         },
     };

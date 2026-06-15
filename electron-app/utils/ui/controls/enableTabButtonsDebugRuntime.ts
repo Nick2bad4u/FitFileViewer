@@ -22,9 +22,7 @@ function getAbortControllerConstructor(
     scope: EnableTabButtonsDebugRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        getWindowAbortControllerConstructor(scope.window) ??
-        globalThis.AbortController;
+        scope.AbortController ?? getWindowAbortControllerConstructor(scope.window);
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "enableTabButtonsDebug requires an AbortController runtime"
@@ -57,12 +55,38 @@ function isAbortControllerConstructor(
     return typeof value === "function";
 }
 
+function getRequiredClearTimeout(
+    scope: EnableTabButtonsDebugRuntimeScope
+): typeof clearTimeout {
+    const clearTimer = scope.clearTimeout;
+    if (typeof clearTimer !== "function") {
+        throw new TypeError(
+            "enableTabButtonsDebug requires a clearTimeout runtime"
+        );
+    }
+
+    return clearTimer;
+}
+
+function getRequiredSetTimeout(
+    scope: EnableTabButtonsDebugRuntimeScope
+): typeof setTimeout {
+    const scheduleTimer = scope.setTimeout;
+    if (typeof scheduleTimer !== "function") {
+        throw new TypeError(
+            "enableTabButtonsDebug requires a setTimeout runtime"
+        );
+    }
+
+    return scheduleTimer;
+}
+
 export function getEnableTabButtonsDebugRuntime(
     scope: EnableTabButtonsDebugRuntimeScope = globalThis
 ): EnableTabButtonsDebugRuntime {
     return {
         clearTimeout(timer: ReturnType<typeof setTimeout>): void {
-            const clearTimer = scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimer = getRequiredClearTimeout(scope);
             clearTimer(timer);
         },
         createAbortController(): AbortController {
@@ -82,7 +106,7 @@ export function getEnableTabButtonsDebugRuntime(
             handler: () => void,
             timeout: number
         ): ReturnType<typeof setTimeout> {
-            const scheduleTimer = scope.setTimeout ?? globalThis.setTimeout;
+            const scheduleTimer = getRequiredSetTimeout(scope);
             return scheduleTimer(handler, timeout);
         },
     };

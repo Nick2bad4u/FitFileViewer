@@ -65,6 +65,28 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
+    it("throws when timer cleanup is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getEnableTabButtonsDebugRuntime({});
+
+        expect(() =>
+            runtime.clearTimeout(
+                Symbol("timer") as unknown as ReturnType<typeof setTimeout>
+            )
+        ).toThrow("enableTabButtonsDebug requires a clearTimeout runtime");
+    });
+
+    it("throws when timer scheduling is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getEnableTabButtonsDebugRuntime({});
+
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "enableTabButtonsDebug requires a setTimeout runtime"
+        );
+    });
+
     it("throws when no window runtime is available", () => {
         expect.assertions(1);
 
@@ -102,6 +124,16 @@ describe("getEnableTabButtonsDebugRuntime", () => {
                 "AbortController" as unknown as typeof AbortController,
             window: {},
         });
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "enableTabButtonsDebug requires an AbortController runtime"
+        );
+    });
+
+    it("throws when abort-controller creation is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getEnableTabButtonsDebugRuntime({});
 
         expect(() => runtime.createAbortController()).toThrow(
             "enableTabButtonsDebug requires an AbortController runtime"
