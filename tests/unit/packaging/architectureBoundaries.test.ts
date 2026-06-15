@@ -1186,6 +1186,8 @@ const directRendererTestOnlyBootstrapRuntimeAmbientGetterPattern =
     /\breturn\s+globalThis\.AbortController\b/u;
 const directLastAnimLogRuntimeGlobalPattern =
     /\bDate\.now\b|\bperformance\.now\b/u;
+const directLastAnimLogRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.performance\b/u;
 const directRuntimeAmbientClockFallbackPattern =
     /\?\?\s*(?:Date\.now\(\)|globalThis\.performance\.now\(\))/u;
 const directRendererVendorBundleLoaderRuntimeGlobalPattern =
@@ -5339,7 +5341,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps animation debug logging clocks behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const lastAnimLogSource = stripComments(
             readRepositoryFile("electron-app/utils/debug/lastAnimLog.ts")
@@ -5354,6 +5356,9 @@ describe("architecture boundaries", () => {
         expect(lastAnimLogSource).toContain("lastAnimLogRuntime.js");
         expect(lastAnimLogRuntimeSource).not.toMatch(
             directRuntimeAmbientClockFallbackPattern
+        );
+        expect(lastAnimLogRuntimeSource).not.toMatch(
+            directLastAnimLogRuntimeAmbientGetterPattern
         );
         expect(lastAnimLogRuntimeSource).toContain(
             "lastAnimLogRuntime requires dateNow"

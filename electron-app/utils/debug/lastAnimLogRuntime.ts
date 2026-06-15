@@ -14,9 +14,7 @@ export interface LastAnimLogRuntime {
 
 const defaultLastAnimLogRuntimeScope: LastAnimLogRuntimeScope = {
     dateNow: Date.now,
-    get performance() {
-        return globalThis.performance;
-    },
+    performance: globalThis.performance,
 };
 
 function getRequiredDateNow(scope: LastAnimLogRuntimeScope): () => number {
