@@ -5849,7 +5849,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state development tools interval APIs behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(11);
 
         const violations = migratedStateDevToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -5885,9 +5885,12 @@ describe("architecture boundaries", () => {
             "getClearInterval: () => globalThis.clearInterval"
         );
         expect(stateDevToolsRuntimeSource).toContain(
-            "getSetInterval: () => globalThis.setInterval"
+            "getIsRendererScope: () => globalThis.document !== undefined"
         );
         expect(stateDevToolsRuntimeSource).toContain(
+            "getSetInterval: () => globalThis.setInterval"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
             "getWindow: () => globalThis.window"
         );
         expect(stateDevToolsRuntimeSource).toContain(

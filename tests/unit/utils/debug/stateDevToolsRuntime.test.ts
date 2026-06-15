@@ -8,14 +8,14 @@ describe("stateDevToolsRuntime", () => {
 
         expect(
             getStateDevToolsRuntime({
+                isRendererScope: true,
                 location: { hostname: "localhost", protocol: "http:" },
-                window: {},
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
             getStateDevToolsRuntime({
+                isRendererScope: true,
                 location: { hostname: "127.0.0.1", protocol: "http:" },
-                window: {},
             }).isDevelopmentScope()
         ).toBe(true);
     });
@@ -25,8 +25,8 @@ describe("stateDevToolsRuntime", () => {
 
         expect(
             getStateDevToolsRuntime({
+                isRendererScope: true,
                 location: { hostname: "app", protocol: "file:" },
-                window: {},
             }).isDevelopmentScope()
         ).toBe(true);
     });
@@ -36,14 +36,14 @@ describe("stateDevToolsRuntime", () => {
 
         expect(
             getStateDevToolsRuntime({
+                isRendererScope: true,
                 location: { hostname: "example.com", protocol: "https:" },
-                window: {},
             }).isDevelopmentScope()
         ).toBe(false);
         expect(
             getStateDevToolsRuntime({
+                isRendererScope: false,
                 location: { hostname: "localhost", protocol: "http:" },
-                window: undefined,
             }).isDevelopmentScope()
         ).toBe(false);
     });
@@ -87,12 +87,12 @@ describe("stateDevToolsRuntime", () => {
             protocol: "http:",
         }));
         const getSetInterval = vi.fn(() => setIntervalMock);
-        const getWindow = vi.fn(() => ({}));
+        const getIsRendererScope = vi.fn(() => true);
         const utils = getStateDevToolsRuntime({
             getClearInterval,
+            getIsRendererScope,
             getLocation,
             getSetInterval,
-            getWindow,
         });
         const delay = 1000;
 
@@ -102,7 +102,7 @@ describe("stateDevToolsRuntime", () => {
         utils.clearInterval(handle);
 
         expect(getLocation).toHaveBeenCalledOnce();
-        expect(getWindow).toHaveBeenCalledOnce();
+        expect(getIsRendererScope).toHaveBeenCalledOnce();
         expect(getSetInterval).toHaveBeenCalledOnce();
         expect(getClearInterval).toHaveBeenCalledOnce();
         expect(setIntervalMock).toHaveBeenCalledWith(callback, delay);
