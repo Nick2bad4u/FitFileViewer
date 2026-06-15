@@ -3,8 +3,6 @@ import type { ElectronAPI } from "../../shared/preloadApi.js";
 export type RendererElectronApiScope = {
     readonly electronAPI?: unknown;
     readonly getElectronAPI?: (() => unknown) | undefined;
-    readonly getWindow?: (() => unknown) | undefined;
-    readonly window?: unknown;
 };
 
 export type RendererElectronApiCandidate = object;
@@ -14,7 +12,6 @@ let hasRegisteredRendererElectronApi = false;
 
 const defaultRendererElectronApiScope: RendererElectronApiScope = {
     getElectronAPI: () => Reflect.get(globalThis, "electronAPI"),
-    getWindow: () => globalThis.window,
 };
 
 export function registerRendererElectronApiCandidate(api: unknown): void {
@@ -44,7 +41,7 @@ export function getRendererElectronApi<
     const scopedElectronApi = getScopeElectronApi(scope);
     const api = hasRegisteredRendererElectronApi
         ? registeredRendererElectronApi
-        : (scopedElectronApi ?? getWindowElectronApi(getScopeWindow(scope)));
+        : scopedElectronApi;
 
     if (api === null || typeof api !== "object") {
         return null;
@@ -55,16 +52,4 @@ export function getRendererElectronApi<
 
 function getScopeElectronApi(scope: RendererElectronApiScope): unknown {
     return scope.getElectronAPI?.() ?? scope.electronAPI;
-}
-
-function getScopeWindow(scope: RendererElectronApiScope): unknown {
-    return scope.getWindow?.() ?? scope.window;
-}
-
-function getWindowElectronApi(windowValue: unknown): unknown {
-    if (windowValue === null || typeof windowValue !== "object") {
-        return undefined;
-    }
-
-    return (windowValue as { readonly electronAPI?: unknown }).electronAPI;
 }

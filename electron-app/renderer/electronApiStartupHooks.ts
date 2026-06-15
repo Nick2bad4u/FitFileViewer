@@ -27,7 +27,9 @@ export interface ElectronApiStartupHooksScope extends RendererElectronApiScope {
 }
 
 const defaultElectronApiStartupHooksScope: ElectronApiStartupHooksScope = {
-    getElectronApiScope: () => globalThis,
+    getElectronApiScope: () => ({
+        getElectronAPI: () => Reflect.get(globalThis, "electronAPI"),
+    }),
 };
 
 function toModuleRecord(value: unknown): Record<string, unknown> {

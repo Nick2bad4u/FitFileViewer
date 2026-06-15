@@ -37,50 +37,30 @@ describe("electronApiRuntime", () => {
         expect(getRendererElectronApi(isExternalOpenApi, scope)).toBe(api);
     });
 
-    it("falls back to a matching window API from an explicit scope", () => {
-        expect.assertions(1);
-
-        const api = {
-            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
-        };
-        const scope: RendererElectronApiScope = {
-            window: { electronAPI: api },
-        };
-
-        expect(getRendererElectronApi(isExternalOpenApi, scope)).toBe(api);
-    });
-
     it("resolves APIs from provider scopes", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const directApi = {
             openExternal: vi.fn<(url: string) => Promise<boolean>>(),
         };
-        const windowApi = {
-            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
-        };
         const getElectronAPI = vi.fn(() => directApi);
-        const getWindow = vi.fn(() => ({ electronAPI: windowApi }));
 
         expect(
             getRendererElectronApi(isExternalOpenApi, {
                 getElectronAPI,
-                getWindow,
             })
         ).toBe(directApi);
         expect(getElectronAPI).toHaveBeenCalledOnce();
-        expect(getWindow).not.toHaveBeenCalled();
 
         expect(
             getRendererElectronApi(isExternalOpenApi, {
                 getElectronAPI: () => undefined,
-                getWindow,
             })
-        ).toBe(windowApi);
+        ).toBeNull();
     });
 
     it("ignores missing or malformed APIs", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         expect(getRendererElectronApi(isExternalOpenApi, {})).toBeNull();
         expect(
@@ -88,11 +68,6 @@ describe("electronApiRuntime", () => {
         ).toBeNull();
         expect(
             getRendererElectronApi(isExternalOpenApi, { electronAPI: {} })
-        ).toBeNull();
-        expect(
-            getRendererElectronApi(isExternalOpenApi, {
-                window: { electronAPI: { openExternal: "nope" } },
-            })
         ).toBeNull();
     });
 

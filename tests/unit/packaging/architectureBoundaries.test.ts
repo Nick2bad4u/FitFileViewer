@@ -11611,7 +11611,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer source on the registered Electron API runtime", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const directElectronApiGlobals = rendererElectronApiRuntimeSourceFiles
             .filter((relativeFile) =>
@@ -11640,8 +11640,11 @@ describe("architecture boundaries", () => {
         expect(electronApiStartupHooksSource).toContain(
             "defaultElectronApiStartupHooksScope"
         );
-        expect(electronApiStartupHooksSource).toContain(
+        expect(electronApiStartupHooksSource).not.toContain(
             "getElectronApiScope: () => globalThis"
+        );
+        expect(electronApiStartupHooksSource).toContain(
+            'getElectronAPI: () => Reflect.get(globalThis, "electronAPI")'
         );
     });
 
@@ -11672,12 +11675,10 @@ describe("architecture boundaries", () => {
         expect(electronApiRuntimeSource).toContain(
             'getElectronAPI: () => Reflect.get(globalThis, "electronAPI")'
         );
-        expect(electronApiRuntimeSource).toContain(
+        expect(electronApiRuntimeSource).not.toContain(
             "getWindow: () => globalThis.window"
         );
-        expect(electronApiRuntimeSource).toContain(
-            "scopedElectronApi ?? getWindowElectronApi(getScopeWindow(scope))"
-        );
+        expect(electronApiRuntimeSource).not.toContain("getWindowElectronApi");
     });
 
     it("keeps main UI DOM utility tests on scoped Electron API fixtures", () => {
