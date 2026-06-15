@@ -6400,7 +6400,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter control browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedCreateDataPointFilterControlRuntimeFiles
             .filter((relativeFile) =>
@@ -6429,6 +6429,12 @@ describe("architecture boundaries", () => {
         );
         expect(dataPointFilterControlRuntimeSource).not.toContain(
             "globalThis.queueMicrotask"
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
+            "defaultCreateDataPointFilterControlRuntimeScope"
+        );
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
+            "scope: CreateDataPointFilterControlRuntimeScope = globalThis"
         );
     });
 
@@ -6537,7 +6543,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter element creation behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedDataPointFilterElementFactoryRuntimeFiles
             .filter((relativeFile) =>
@@ -6551,13 +6557,24 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/dataPointFilterControl/elementFactory.ts"
             )
         );
+        const elementFactoryRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/dataPointFilterControl/elementFactoryRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(elementFactorySource).toContain("elementFactoryRuntime.js");
+        expect(elementFactoryRuntimeSource).toContain(
+            "defaultDataPointFilterElementFactoryRuntimeScope"
+        );
+        expect(elementFactoryRuntimeSource).not.toContain(
+            "scope: DataPointFilterElementFactoryRuntimeScope = globalThis"
+        );
     });
 
     it("keeps data-point filter panel browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(7);
 
         const violations = migratedDataPointFilterPanelControllerRuntimeFiles
             .filter((relativeFile) =>
@@ -6571,9 +6588,29 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/dataPointFilterControl/panelController.ts"
             )
         );
+        const panelControllerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/dataPointFilterControl/panelControllerRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(panelControllerSource).toContain("panelControllerRuntime.js");
+        expect(panelControllerRuntimeSource).toContain(
+            "defaultDataPointFilterPanelControllerRuntimeScope"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "scope: DataPointFilterPanelControllerRuntimeScope = globalThis"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "globalThis.AbortController"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "globalThis.requestAnimationFrame"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "globalThis.cancelAnimationFrame"
+        );
     });
 
     it("keeps loading overlay browser APIs behind the runtime facade", () => {

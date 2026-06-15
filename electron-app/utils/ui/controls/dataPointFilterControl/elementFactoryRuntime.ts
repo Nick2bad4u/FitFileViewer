@@ -26,8 +26,11 @@ function getDocument(
     return runtimeDocument;
 }
 
+const defaultDataPointFilterElementFactoryRuntimeScope: DataPointFilterElementFactoryRuntimeScope =
+    globalThis;
+
 export function getDataPointFilterElementFactoryRuntime(
-    scope: DataPointFilterElementFactoryRuntimeScope = globalThis
+    scope: DataPointFilterElementFactoryRuntimeScope = defaultDataPointFilterElementFactoryRuntimeScope
 ): DataPointFilterElementFactoryRuntime {
     return {
         createElement<K extends keyof HTMLElementTagNameMap>(

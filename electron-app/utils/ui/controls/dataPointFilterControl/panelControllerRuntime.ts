@@ -55,9 +55,7 @@ function getAbortControllerConstructor(
     scope: DataPointFilterPanelControllerRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "data point filter panel controller requires an AbortController runtime"
@@ -113,8 +111,7 @@ function getAnimationFrameRequester(
 ) => DataPointFilterPanelAnimationFrameHandle {
     const requestFrame =
         scope.requestAnimationFrame ??
-        scope.document?.defaultView?.requestAnimationFrame ??
-        globalThis.requestAnimationFrame;
+        scope.document?.defaultView?.requestAnimationFrame;
     if (typeof requestFrame !== "function") {
         throw new TypeError(
             "data point filter panel controller requires a requestAnimationFrame runtime"
@@ -129,8 +126,7 @@ function getAnimationFrameCanceler(
 ): (handle: DataPointFilterPanelAnimationFrameHandle) => void {
     const cancelFrame =
         scope.cancelAnimationFrame ??
-        scope.document?.defaultView?.cancelAnimationFrame ??
-        globalThis.cancelAnimationFrame;
+        scope.document?.defaultView?.cancelAnimationFrame;
     if (typeof cancelFrame !== "function") {
         throw new TypeError(
             "data point filter panel controller requires a cancelAnimationFrame runtime"
@@ -140,8 +136,11 @@ function getAnimationFrameCanceler(
     return cancelFrame;
 }
 
+const defaultDataPointFilterPanelControllerRuntimeScope: DataPointFilterPanelControllerRuntimeScope =
+    globalThis;
+
 export function getDataPointFilterPanelControllerRuntime(
-    scope: DataPointFilterPanelControllerRuntimeScope = globalThis
+    scope: DataPointFilterPanelControllerRuntimeScope = defaultDataPointFilterPanelControllerRuntimeScope
 ): DataPointFilterPanelControllerRuntime {
     return {
         createAbortController(): AbortController {

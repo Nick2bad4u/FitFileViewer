@@ -10,6 +10,9 @@ export interface CreateDataPointFilterControlRuntime {
     scheduleMicrotask: (callback: VoidFunction) => void;
 }
 
+const defaultCreateDataPointFilterControlRuntimeScope: CreateDataPointFilterControlRuntimeScope =
+    globalThis;
+
 function getAbortControllerConstructor(
     scope: CreateDataPointFilterControlRuntimeScope
 ): typeof AbortController {
@@ -38,7 +41,7 @@ function getDocument(
 }
 
 export function getCreateDataPointFilterControlRuntime(
-    scope: CreateDataPointFilterControlRuntimeScope = globalThis
+    scope: CreateDataPointFilterControlRuntimeScope = defaultCreateDataPointFilterControlRuntimeScope
 ): CreateDataPointFilterControlRuntime {
     return {
         createAbortController(): AbortController {
