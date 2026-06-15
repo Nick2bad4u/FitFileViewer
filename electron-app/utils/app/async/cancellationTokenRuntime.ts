@@ -20,19 +20,8 @@ export interface CancellationTokenRuntime {
     ): CancellationTokenTimerHandle;
 }
 
-const defaultCancellationTokenRuntimeScope: CancellationTokenRuntimeScope = {
-    get clearTimeout(): typeof globalThis.clearTimeout | undefined {
-        return globalThis.clearTimeout;
-    },
-    get setTimeout():
-        | ((
-              callback: () => void,
-              timeout: number
-          ) => CancellationTokenTimerHandle)
-        | undefined {
-        return globalThis.setTimeout;
-    },
-};
+const defaultCancellationTokenRuntimeScope: CancellationTokenRuntimeScope =
+    globalThis;
 
 export function getCancellationTokenRuntime(
     scope: CancellationTokenRuntimeScope = defaultCancellationTokenRuntimeScope

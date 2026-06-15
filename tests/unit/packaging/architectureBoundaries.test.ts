@@ -1197,7 +1197,7 @@ const directPerformanceUtilsRuntimeAmbientFallbackPattern =
 const directCancellationTokenRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCancellationTokenRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\breturn\s+globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directChartHoverEffectsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:requestAnimationFrame|setTimeout)\b|(?<![\w.])(?:requestAnimationFrame|setTimeout)\(|\bnew\s+AbortController\b/u;
 const directChartHoverEffectsRuntimeAmbientFallbackPattern =
