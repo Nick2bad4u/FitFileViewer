@@ -10415,16 +10415,22 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main UI DOM utility listener cleanup behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const mainUiDomUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/mainUiDomUtils.ts")
+        );
+        const mainUiDomUtilsRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/mainUiDomUtilsRuntime.ts")
         );
 
         expect(
             directMainUiDomUtilsRuntimeGlobalPattern.test(mainUiDomUtilsSource)
         ).toBe(false);
         expect(mainUiDomUtilsSource).toContain("mainUiDomUtilsRuntime.js");
+        expect(mainUiDomUtilsRuntimeSource).toContain(
+            "defaultMainUiDomUtilsRuntimeScope"
+        );
     });
 
     it("keeps event listener manager cleanup behind the runtime facade", () => {

@@ -6,8 +6,14 @@ export interface MainUiDomUtilsRuntime {
     createAbortController(): AbortController;
 }
 
+const defaultMainUiDomUtilsRuntimeScope: MainUiDomUtilsRuntimeScope = {
+    get AbortController() {
+        return globalThis.AbortController;
+    },
+};
+
 export function getMainUiDomUtilsRuntime(
-    scope: MainUiDomUtilsRuntimeScope = globalThis
+    scope: MainUiDomUtilsRuntimeScope = defaultMainUiDomUtilsRuntimeScope
 ): MainUiDomUtilsRuntime {
     return {
         createAbortController(): AbortController {
