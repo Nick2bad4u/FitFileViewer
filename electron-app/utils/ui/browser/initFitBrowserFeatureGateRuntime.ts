@@ -16,14 +16,20 @@ export interface FitBrowserFeatureGateRuntime {
     setElementVisible: (element: HTMLElement | null, visible: boolean) => void;
 }
 
+const defaultFitBrowserFeatureGateRuntimeScope: FitBrowserFeatureGateRuntimeScope =
+    {
+        get document(): Document | undefined {
+            return globalThis.document;
+        },
+        get HTMLElement(): typeof HTMLElement | undefined {
+            return globalThis.HTMLElement;
+        },
+    };
+
 function getHTMLElementConstructor(
     scope: FitBrowserFeatureGateRuntimeScope
 ): typeof HTMLElement | undefined {
-    return (
-        scope.HTMLElement ??
-        scope.document?.defaultView?.HTMLElement ??
-        globalThis.HTMLElement
-    );
+    return scope.HTMLElement ?? scope.document?.defaultView?.HTMLElement;
 }
 
 function getElementById(
@@ -41,7 +47,7 @@ function getElementById(
 }
 
 export function getFitBrowserFeatureGateRuntime(
-    scope: FitBrowserFeatureGateRuntimeScope = globalThis
+    scope: FitBrowserFeatureGateRuntimeScope = defaultFitBrowserFeatureGateRuntimeScope
 ): FitBrowserFeatureGateRuntime {
     return {
         getBrowserTabElements(): BrowserTabFeatureGateElements {

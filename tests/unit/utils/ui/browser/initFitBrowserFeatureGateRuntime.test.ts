@@ -37,7 +37,7 @@ describe("getFitBrowserFeatureGateRuntime", () => {
     });
 
     it("ignores matching non-HTMLElement nodes and unavailable documents", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         resetBody();
         const svg = document.createElementNS(
@@ -58,6 +58,16 @@ describe("getFitBrowserFeatureGateRuntime", () => {
         });
         expect(
             getFitBrowserFeatureGateRuntime({}).getBrowserTabElements()
+        ).toStrictEqual({
+            content: null,
+            tabButton: null,
+        });
+        expect(
+            getFitBrowserFeatureGateRuntime({
+                document: {
+                    querySelector: () => document.createElement("button"),
+                } as unknown as Document,
+            }).getBrowserTabElements()
         ).toStrictEqual({
             content: null,
             tabButton: null,

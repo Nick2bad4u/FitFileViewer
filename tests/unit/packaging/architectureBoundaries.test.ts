@@ -3891,7 +3891,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser feature-gate DOM APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedFitBrowserFeatureGateRuntimeFiles
             .filter((relativeFile) =>
@@ -3905,15 +3905,23 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/browser/initFitBrowserFeatureGate.ts"
             )
         );
+        const featureGateRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/browser/initFitBrowserFeatureGateRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(featureGateSource).toContain(
             "initFitBrowserFeatureGateRuntime.js"
         );
+        expect(featureGateRuntimeSource).toContain(
+            "defaultFitBrowserFeatureGateRuntimeScope"
+        );
     });
 
     it("keeps Browser tab listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -3927,10 +3935,18 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/browser/fileBrowserTab.ts"
             )
         );
+        const browserTabRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/browser/fileBrowserTabRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(browserTabSource).toContain("fileBrowserTabRuntime.js");
         expect(browserTabSource).toContain("createAbortController");
+        expect(browserTabRuntimeSource).toContain(
+            "defaultFileBrowserTabRuntimeScope"
+        );
     });
 
     it("keeps add-FIT overlay button state on the active FIT raw-data facade", () => {
