@@ -11,9 +11,12 @@ export interface ResourceManagerRuntimeScope {
 
 export type ResourceManagerTimer = ReturnType<typeof globalThis.setTimeout>;
 
+const defaultResourceManagerRuntimeScope: ResourceManagerRuntimeScope =
+    globalThis;
+
 export function clearResourceManagerTimer(
     timerId: ResourceManagerTimer,
-    scope: ResourceManagerRuntimeScope = globalThis
+    scope: ResourceManagerRuntimeScope = defaultResourceManagerRuntimeScope
 ): void {
     const clearTimeoutRef = scope.clearTimeout;
     if (typeof clearTimeoutRef !== "function") {
@@ -25,7 +28,7 @@ export function clearResourceManagerTimer(
 
 export function registerResourceManagerUnloadCleanup(
     cleanup: () => void,
-    scope: ResourceManagerRuntimeScope = globalThis
+    scope: ResourceManagerRuntimeScope = defaultResourceManagerRuntimeScope
 ): (() => void) | null {
     if (typeof scope.window?.addEventListener !== "function") {
         return null;

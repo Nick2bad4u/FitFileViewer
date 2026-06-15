@@ -73,8 +73,11 @@ function getOptionalElementProperty(
         : null;
 }
 
+const defaultListenersResizeRuntimeScope: ListenersResizeRuntimeScope =
+    globalThis;
+
 export function getListenersResizeRuntime(
-    scope: ListenersResizeRuntimeScope = globalThis
+    scope: ListenersResizeRuntimeScope = defaultListenersResizeRuntimeScope
 ): ListenersResizeRuntime {
     return {
         addResizeListener(

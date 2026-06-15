@@ -15,8 +15,11 @@ export interface LifecycleListenersRuntime {
     ): LifecycleListenersTimer;
 }
 
+const defaultLifecycleListenersRuntimeScope: LifecycleListenersRuntimeScope =
+    globalThis;
+
 export function getLifecycleListenersRuntime(
-    scope: LifecycleListenersRuntimeScope = globalThis
+    scope: LifecycleListenersRuntimeScope = defaultLifecycleListenersRuntimeScope
 ): LifecycleListenersRuntime {
     return {
         clearTimeout(handle): void {

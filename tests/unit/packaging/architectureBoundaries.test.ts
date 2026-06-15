@@ -5587,7 +5587,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resource manager window cleanup and timer clearing behind the runtime adapter", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const resourceManagerSource = stripComments(
             readRepositoryFile(
@@ -5617,12 +5617,18 @@ describe("architecture boundaries", () => {
             directResourceManagerRuntimeAmbientTimerFallbackPattern
         );
         expect(resourceManagerRuntimeSource).toContain(
+            "defaultResourceManagerRuntimeScope"
+        );
+        expect(resourceManagerRuntimeSource).not.toContain(
+            "scope: ResourceManagerRuntimeScope = globalThis"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
             "resourceManager requires clearTimeout"
         );
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -5657,12 +5663,18 @@ describe("architecture boundaries", () => {
             directRecentFilesContextMenuAmbientTimerFallbackPattern
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
+            "defaultRecentFilesContextMenuRuntimeScope"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "scope: RecentFilesContextMenuRuntimeScope = globalThis"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
             "recent files context menu requires a setTimeout runtime"
         );
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
@@ -5686,6 +5698,12 @@ describe("architecture boundaries", () => {
         ).toBe(false);
         expect(lifecycleListenersRuntimeSource).not.toMatch(
             directLifecycleListenersAmbientTimerFallbackPattern
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "defaultLifecycleListenersRuntimeScope"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "scope: LifecycleListenersRuntimeScope = globalThis"
         );
         expect(lifecycleListenersRuntimeSource).toContain(
             "lifecycle listeners require a setTimeout runtime"
@@ -7220,7 +7238,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const violations = migratedListenersResizeRuntimeFiles
             .filter((relativeFile) =>
@@ -7245,6 +7263,12 @@ describe("architecture boundaries", () => {
         expect(listenersResizeSource).toContain("createAbortController");
         expect(listenersResizeRuntimeSource).not.toMatch(
             directListenersResizeRuntimeAmbientTimerFallbackPattern
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "defaultListenersResizeRuntimeScope"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "scope: ListenersResizeRuntimeScope = globalThis"
         );
         expect(listenersResizeRuntimeSource).toContain(
             "listenersResize requires a setTimeout runtime"

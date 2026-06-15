@@ -33,8 +33,11 @@ function normalizeDimension(value: unknown): number {
     return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
+const defaultRecentFilesContextMenuRuntimeScope: RecentFilesContextMenuRuntimeScope =
+    globalThis;
+
 export function getRecentFilesContextMenuRuntime(
-    scope: RecentFilesContextMenuRuntimeScope = globalThis
+    scope: RecentFilesContextMenuRuntimeScope = defaultRecentFilesContextMenuRuntimeScope
 ): RecentFilesContextMenuRuntime {
     return {
         clearTimeout(handle): void {
