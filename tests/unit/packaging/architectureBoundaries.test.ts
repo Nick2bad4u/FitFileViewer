@@ -4620,7 +4620,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps about modal timing APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(11);
 
         const violations = migratedAboutModalRuntimeFiles
             .filter((relativeFile) =>
@@ -4648,6 +4648,21 @@ describe("architecture boundaries", () => {
         );
         expect(aboutModalRuntimeSource).not.toContain(
             "scope: AboutModalRuntimeScope = globalThis"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "const defaultAboutModalRuntimeScope: AboutModalRuntimeScope = globalThis"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(aboutModalRuntimeSource).toContain(
             "aboutModalRuntime requires a setTimeout runtime"

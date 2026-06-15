@@ -5,6 +5,18 @@ export interface AboutModalRuntimeScope {
         | typeof globalThis.cancelAnimationFrame
         | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
+    readonly getCancelAnimationFrame?:
+        | (() => typeof globalThis.cancelAnimationFrame | undefined)
+        | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getRequestAnimationFrame?:
+        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
     readonly requestAnimationFrame?:
         | typeof globalThis.requestAnimationFrame
         | undefined;
@@ -18,41 +30,74 @@ export interface AboutModalRuntime {
     setTimeout(callback: () => void, delay: number): AboutModalTimerHandle;
 }
 
-const defaultAboutModalRuntimeScope: AboutModalRuntimeScope = globalThis;
+const defaultAboutModalRuntimeScope: AboutModalRuntimeScope = {
+    getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
+    getClearTimeout: () => globalThis.clearTimeout,
+    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+    getSetTimeout: () => globalThis.setTimeout,
+};
+
+function getScopeCancelAnimationFrame(
+    scope: AboutModalRuntimeScope
+): typeof globalThis.cancelAnimationFrame | undefined {
+    return scope.getCancelAnimationFrame?.() ?? scope.cancelAnimationFrame;
+}
+
+function getScopeClearTimeout(
+    scope: AboutModalRuntimeScope
+): typeof globalThis.clearTimeout | undefined {
+    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+}
+
+function getScopeRequestAnimationFrame(
+    scope: AboutModalRuntimeScope
+): typeof globalThis.requestAnimationFrame | undefined {
+    return scope.getRequestAnimationFrame?.() ?? scope.requestAnimationFrame;
+}
+
+function getScopeSetTimeout(
+    scope: AboutModalRuntimeScope
+): typeof globalThis.setTimeout | undefined {
+    return scope.getSetTimeout?.() ?? scope.setTimeout;
+}
 
 export function getAboutModalRuntime(
     scope: AboutModalRuntimeScope = defaultAboutModalRuntimeScope
 ): AboutModalRuntime {
     return {
         cancelAnimationFrame(handle: number): void {
-            scope.cancelAnimationFrame?.(handle);
+            getScopeCancelAnimationFrame(scope)?.call(scope, handle);
         },
         clearTimeout(handle: AboutModalTimerHandle): void {
-            if (typeof scope.clearTimeout !== "function") {
+            const clearTimeoutRef = getScopeClearTimeout(scope);
+            if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "aboutModalRuntime requires a clearTimeout runtime"
                 );
             }
-            scope.clearTimeout(handle);
+            clearTimeoutRef.call(scope, handle);
         },
         requestAnimationFrame(onFrame: FrameRequestCallback): null | number {
-            if (typeof scope.requestAnimationFrame !== "function") {
+            const requestAnimationFrameRef =
+                getScopeRequestAnimationFrame(scope);
+            if (typeof requestAnimationFrameRef !== "function") {
                 onFrame(0);
                 return null;
             }
 
-            return scope.requestAnimationFrame(onFrame);
+            return requestAnimationFrameRef.call(scope, onFrame);
         },
         setTimeout(
             callback: () => void,
             delay: number
         ): AboutModalTimerHandle {
-            if (typeof scope.setTimeout !== "function") {
+            const setTimeoutRef = getScopeSetTimeout(scope);
+            if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "aboutModalRuntime requires a setTimeout runtime"
                 );
             }
-            return scope.setTimeout(callback, delay);
+            return setTimeoutRef.call(scope, callback, delay);
         },
     };
 }

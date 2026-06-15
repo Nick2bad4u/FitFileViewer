@@ -27,6 +27,46 @@ describe("getAboutModalRuntime", () => {
         });
     });
 
+    it("routes timers and animation frames through provider functions", () => {
+        expect.assertions(12);
+
+        const callback = vi.fn<() => void>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const delayMs = Number("250");
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 42);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => 12);
+        const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+        const getSetTimeout = vi.fn(() => setTimeout);
+        const getClearTimeout = vi.fn(() => clearTimeout);
+        const getRequestAnimationFrame = vi.fn(() => requestAnimationFrame);
+        const getCancelAnimationFrame = vi.fn(() => cancelAnimationFrame);
+        const runtime = getAboutModalRuntime({
+            getCancelAnimationFrame,
+            getClearTimeout,
+            getRequestAnimationFrame,
+            getSetTimeout,
+        });
+
+        expect(runtime.setTimeout(callback, delayMs)).toBe(42);
+        runtime.clearTimeout(42);
+        expect(runtime.requestAnimationFrame(frameCallback)).toBe(12);
+        runtime.cancelAnimationFrame(12);
+
+        expect(getSetTimeout).toHaveBeenCalledOnce();
+        expect(getClearTimeout).toHaveBeenCalledOnce();
+        expect(getRequestAnimationFrame).toHaveBeenCalledOnce();
+        expect(getCancelAnimationFrame).toHaveBeenCalledOnce();
+        expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeout).toHaveBeenCalledWith(42);
+        expect(requestAnimationFrame).toHaveBeenCalledWith(frameCallback);
+        expect(cancelAnimationFrame).toHaveBeenCalledWith(12);
+        expect(callback).not.toHaveBeenCalled();
+        expect(frameCallback).not.toHaveBeenCalled();
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
