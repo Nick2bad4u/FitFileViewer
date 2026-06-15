@@ -10,9 +10,7 @@ export interface UpdateControlsStateRuntime {
 
 const defaultUpdateControlsStateRuntimeScope: UpdateControlsStateRuntimeScope =
     {
-        get getComputedStyle() {
-            return globalThis.getComputedStyle;
-        },
+        getComputedStyle: (element) => globalThis.getComputedStyle(element),
     };
 
 export function getUpdateControlsStateRuntime(

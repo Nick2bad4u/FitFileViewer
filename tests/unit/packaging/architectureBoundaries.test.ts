@@ -1222,6 +1222,8 @@ const directUserDeviceInfoBoxRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directUpdateControlsStateRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.getComputedStyle\b/u;
+const directUpdateControlsStateRuntimeAmbientGetterPattern =
+    /\bget\s+getComputedStyle\s*\(\)\s*\{|\breturn\s+globalThis\.getComputedStyle\b/u;
 const directEnableTabButtonsDebugRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directEnableTabButtonsDebugRuntimeAmbientFallbackPattern =
@@ -8105,7 +8107,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps controls-state computed style reads behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedUpdateControlsStateRuntimeFiles
             .filter((relativeFile) =>
@@ -8128,6 +8130,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(updateControlsStateSource).toContain(
             "updateControlsStateRuntime.js"
+        );
+        expect(updateControlsStateRuntimeSource).not.toMatch(
+            directUpdateControlsStateRuntimeAmbientGetterPattern
         );
         expect(updateControlsStateRuntimeSource).toContain(
             "defaultUpdateControlsStateRuntimeScope"
