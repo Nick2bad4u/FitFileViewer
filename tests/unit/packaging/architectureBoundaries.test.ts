@@ -1076,6 +1076,8 @@ const directFitBrowserFeatureGateRuntimeGlobalPattern =
 const directFileBrowserTabRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
     /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
+const directCreateElevationProfileButtonRuntimeAmbientFallbackPattern =
+    /\?\?\s*globalThis\.AbortController\b/u;
 const directAltFitSenderRuntimeGlobalPattern =
     /\bglobalThis\.(?:console|document|location)\b|\bnew\s+AbortController\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =
@@ -1258,6 +1260,8 @@ const directCreateExportGPXButtonRuntimeAmbientFallbackPattern =
     /\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
 const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+AbortController\b/u;
+const directCreateAddFitFileToMapButtonRuntimeAmbientFallbackPattern =
+    /\?\?\s*globalThis\.AbortController\b/u;
 const directAddExitFullscreenOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|exitFullscreen|fullscreenElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b/u;
 const directAddExitFullscreenOverlayRuntimeAmbientFallbackPattern =
@@ -5901,7 +5905,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedCreateAddFitFileToMapButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -5915,8 +5919,16 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createAddFitFileToMapButton.ts"
             )
         );
+        const createAddFitFileToMapButtonRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createAddFitFileToMapButtonRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toMatch(
+            directCreateAddFitFileToMapButtonRuntimeAmbientFallbackPattern
+        );
         expect(createAddFitFileToMapButtonSource).toContain(
             "createAddFitFileToMapButtonRuntime.js"
         );
@@ -6690,7 +6702,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -6704,8 +6716,16 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createElevationProfileButton.ts"
             )
         );
+        const createElevationProfileButtonRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createElevationProfileButtonRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(createElevationProfileButtonRuntimeSource).not.toMatch(
+            directCreateElevationProfileButtonRuntimeAmbientFallbackPattern
+        );
         expect(createElevationProfileButtonSource).toContain(
             "createElevationProfileButtonRuntime.js"
         );

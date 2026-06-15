@@ -16,13 +16,21 @@ export interface CreateAddFitFileToMapButtonRuntime {
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
+const defaultCreateAddFitFileToMapButtonRuntimeScope: CreateAddFitFileToMapButtonRuntimeScope =
+    {
+        get AbortController() {
+            return globalThis.AbortController;
+        },
+        get document() {
+            return globalThis.document;
+        },
+    };
+
 function getAbortControllerConstructor(
     scope: CreateAddFitFileToMapButtonRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createAddFitFileToMapButton requires an AbortController runtime"
@@ -46,7 +54,7 @@ function getDocument(
 }
 
 export function getCreateAddFitFileToMapButtonRuntime(
-    scope: CreateAddFitFileToMapButtonRuntimeScope = globalThis
+    scope: CreateAddFitFileToMapButtonRuntimeScope = defaultCreateAddFitFileToMapButtonRuntimeScope
 ): CreateAddFitFileToMapButtonRuntime {
     return {
         createAbortController(): AbortController {

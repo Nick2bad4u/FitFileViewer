@@ -27,9 +27,13 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const runtime = getCreateAddFitFileToMapButtonRuntime({});
+        const runtimeWithoutAbortController =
+            getCreateAddFitFileToMapButtonRuntime({
+                document: { defaultView: undefined } as Document,
+            });
         const runtimeWithInvalidAbortController =
             getCreateAddFitFileToMapButtonRuntime({
                 AbortController:
@@ -39,6 +43,11 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
 
         expect(() => runtime.createButton()).toThrow(
             "createAddFitFileToMapButton requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithoutAbortController.createAbortController()
+        ).toThrow(
+            "createAddFitFileToMapButton requires an AbortController runtime"
         );
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()

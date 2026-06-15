@@ -95,9 +95,13 @@ describe("getCreateElevationProfileButtonRuntime", () => {
     });
 
     it("fails clearly when document-backed operations lack a document", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const runtime = getCreateElevationProfileButtonRuntime({});
+        const runtimeWithoutAbortController =
+            getCreateElevationProfileButtonRuntime({
+                document: { defaultView: undefined } as Document,
+            });
         const runtimeWithInvalidAbortController =
             getCreateElevationProfileButtonRuntime({
                 AbortController:
@@ -107,6 +111,11 @@ describe("getCreateElevationProfileButtonRuntime", () => {
 
         expect(() => runtime.createButton()).toThrow(
             "createElevationProfileButton requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithoutAbortController.createAbortController()
+        ).toThrow(
+            "createElevationProfileButton requires an AbortController runtime"
         );
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()

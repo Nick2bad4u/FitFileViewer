@@ -1,5 +1,10 @@
 type ElevationProfilePopupWindow = Window | null;
 
+interface ElevationProfileButtonGlobalScope {
+    readonly chartOverlayColorPalette?: unknown;
+    readonly open?: CreateElevationProfileButtonRuntimeScope["open"];
+}
+
 export interface CreateElevationProfileButtonRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
     readonly chartOverlayColorPalette?: unknown;
@@ -33,13 +38,32 @@ export interface CreateElevationProfileButtonRuntime {
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
+const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileButtonRuntimeScope =
+    {
+        get AbortController() {
+            return globalThis.AbortController;
+        },
+        get chartOverlayColorPalette() {
+            return (globalThis as ElevationProfileButtonGlobalScope)
+                .chartOverlayColorPalette;
+        },
+        get document() {
+            return globalThis.document;
+        },
+        get open() {
+            const openRef = (globalThis as ElevationProfileButtonGlobalScope)
+                .open;
+            return typeof openRef === "function"
+                ? openRef.bind(globalThis)
+                : undefined;
+        },
+    };
+
 function getAbortControllerConstructor(
     scope: CreateElevationProfileButtonRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createElevationProfileButton requires an AbortController runtime"
@@ -63,7 +87,7 @@ function getDocument(
 }
 
 export function getCreateElevationProfileButtonRuntime(
-    scope: CreateElevationProfileButtonRuntimeScope = globalThis
+    scope: CreateElevationProfileButtonRuntimeScope = defaultCreateElevationProfileButtonRuntimeScope
 ): CreateElevationProfileButtonRuntime {
     return {
         createAbortController(): AbortController {
