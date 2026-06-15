@@ -5595,7 +5595,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer development debug runtime metadata behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedRendererDevelopmentDebugToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -5607,10 +5607,18 @@ describe("architecture boundaries", () => {
         const developmentDebugToolsSource = stripComments(
             readRepositoryFile("electron-app/renderer/developmentDebugTools.ts")
         );
+        const developmentDebugToolsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/developmentDebugToolsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(developmentDebugToolsSource).toContain(
             "developmentDebugToolsRuntime.js"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "defaultRendererDevelopmentDebugToolsRuntimeScope"
         );
     });
 
@@ -10470,11 +10478,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps event listener manager cleanup behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const eventListenerManagerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/ui/events/eventListenerManager.ts"
+            )
+        );
+        const eventListenerManagerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/events/eventListenerManagerRuntime.ts"
             )
         );
 
@@ -10487,5 +10500,8 @@ describe("architecture boundaries", () => {
             "eventListenerManagerRuntime.js"
         );
         expect(eventListenerManagerSource).toContain("getDefaultEventTarget");
+        expect(eventListenerManagerRuntimeSource).toContain(
+            "defaultEventListenerManagerRuntimeScope"
+        );
     });
 });

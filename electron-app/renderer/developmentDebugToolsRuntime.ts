@@ -27,8 +27,21 @@ function toRuntimeRecord(value: unknown): Record<string, unknown> {
         : {};
 }
 
+const defaultRendererDevelopmentDebugToolsRuntimeScope: RendererDevelopmentDebugToolsRuntimeScope =
+    {
+        get location() {
+            return globalThis.location;
+        },
+        get navigator() {
+            return globalThis.navigator;
+        },
+        get performance() {
+            return globalThis.performance;
+        },
+    };
+
 export function getRendererDevelopmentDebugToolsRuntime(
-    scope: RendererDevelopmentDebugToolsRuntimeScope = globalThis
+    scope: RendererDevelopmentDebugToolsRuntimeScope = defaultRendererDevelopmentDebugToolsRuntimeScope
 ): RendererDevelopmentDebugToolsRuntime {
     return {
         getLocationRecord(): Record<string, unknown> {
