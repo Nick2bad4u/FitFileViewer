@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getRenderChartJSRuntime } from "../../../../../electron-app/utils/charts/core/renderChartJSRuntime.js";
 
 describe("renderChartJSRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("reads custom events through the scoped constructor runtime", () => {
         expect.assertions(1);
 
@@ -51,6 +55,23 @@ describe("renderChartJSRuntime", () => {
         });
 
         expect(utils.now()).toBe(5678);
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(5);
+
+        const now = vi.fn(() => 42.5);
+        const utils = getRenderChartJSRuntime();
+
+        vi.stubGlobal("CustomEvent", CustomEvent);
+        vi.stubGlobal("performance", { now });
+        vi.stubGlobal("window", window);
+
+        expect(utils.getCustomEventConstructor()).toBe(CustomEvent);
+        expect(utils.isWindowAvailable()).toBe(true);
+        expect(utils.nowPerformance()).toBe(42.5);
+        expect(now).toHaveBeenCalledOnce();
+        expect(now).toHaveBeenCalledWith();
     });
 
     it("does not borrow ambient date clocks for explicit scopes", () => {

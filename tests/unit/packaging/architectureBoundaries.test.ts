@@ -1206,6 +1206,8 @@ const directLastAnimLogRuntimeAmbientGetterPattern =
     /\breturn\s+globalThis\.performance\b/u;
 const directRuntimeAmbientClockFallbackPattern =
     /\?\?\s*(?:Date\.now\(\)|globalThis\.performance\.now\(\))/u;
+const directRenderChartJSRuntimeAmbientGetterPattern =
+    /\bget\s+(?:CustomEventConstructor|performance|window)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:performance|window)\b/u;
 const directRendererVendorBundleLoaderRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|createElement|head|querySelector|removeEventListener|setTimeout)\b|\bDate\.now\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererVendorBundleLoaderRuntimeAmbientFallbackPattern =
@@ -4433,7 +4435,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {
-        expect.assertions(14);
+        expect.assertions(15);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
@@ -4460,6 +4462,9 @@ describe("architecture boundaries", () => {
         expect(renderChartSource).not.toContain("Date.now");
         expect(renderChartRuntimeSource).not.toMatch(
             directRuntimeAmbientClockFallbackPattern
+        );
+        expect(renderChartRuntimeSource).not.toMatch(
+            directRenderChartJSRuntimeAmbientGetterPattern
         );
         expect(renderChartRuntimeSource).toContain(
             "renderChartJSRuntime requires dateNow"

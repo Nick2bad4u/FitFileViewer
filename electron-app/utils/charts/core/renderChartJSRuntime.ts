@@ -1,6 +1,13 @@
 export interface RenderChartJSRuntimeScope {
     readonly CustomEventConstructor?: typeof CustomEvent | undefined;
     readonly dateNow?: (() => number) | undefined;
+    readonly getCustomEventConstructor?:
+        | (() => typeof CustomEvent | undefined)
+        | undefined;
+    readonly getPerformance?:
+        | (() => Pick<Performance, "now"> | undefined)
+        | undefined;
+    readonly getWindow?: (() => unknown) | undefined;
     readonly performance?: Pick<Performance, "now"> | undefined;
     readonly window?: unknown;
 }
@@ -13,16 +20,11 @@ export interface RenderChartJSRuntime {
 }
 
 const defaultRenderChartJSRuntimeScope: RenderChartJSRuntimeScope = {
-    get CustomEventConstructor() {
-        return typeof CustomEvent === "function" ? CustomEvent : undefined;
-    },
     dateNow: Date.now,
-    get performance() {
-        return globalThis.performance;
-    },
-    get window() {
-        return globalThis.window;
-    },
+    getCustomEventConstructor: () =>
+        typeof CustomEvent === "function" ? CustomEvent : undefined,
+    getPerformance: () => globalThis.performance,
+    getWindow: () => globalThis.window,
 };
 
 function getRequiredDateNow(scope: RenderChartJSRuntimeScope): () => number {
@@ -37,12 +39,29 @@ function getRequiredDateNow(scope: RenderChartJSRuntimeScope): () => number {
 function getRequiredPerformanceNow(
     scope: RenderChartJSRuntimeScope
 ): () => number {
-    const performanceNow = scope.performance?.now;
+    const performance = getScopePerformance(scope);
+    const performanceNow = performance?.now;
     if (typeof performanceNow !== "function") {
         return getRequiredDateNow(scope);
     }
 
-    return performanceNow.bind(scope.performance);
+    return performanceNow.bind(performance);
+}
+
+function getScopeCustomEventConstructor(
+    scope: RenderChartJSRuntimeScope
+): typeof CustomEvent | undefined {
+    return scope.getCustomEventConstructor?.() ?? scope.CustomEventConstructor;
+}
+
+function getScopePerformance(
+    scope: RenderChartJSRuntimeScope
+): Pick<Performance, "now"> | undefined {
+    return scope.getPerformance?.() ?? scope.performance;
+}
+
+function getScopeWindow(scope: RenderChartJSRuntimeScope): unknown {
+    return scope.getWindow?.() ?? scope.window;
 }
 
 export function getRenderChartJSRuntime(
@@ -50,11 +69,11 @@ export function getRenderChartJSRuntime(
 ): RenderChartJSRuntime {
     return {
         getCustomEventConstructor(): typeof CustomEvent | undefined {
-            return scope.CustomEventConstructor;
+            return getScopeCustomEventConstructor(scope);
         },
 
         isWindowAvailable(): boolean {
-            return scope.window !== undefined;
+            return getScopeWindow(scope) !== undefined;
         },
 
         now(): number {
