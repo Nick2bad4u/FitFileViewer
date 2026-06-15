@@ -721,6 +721,8 @@ const directChartLoadingSuppressionGlobalPattern =
     /\b(?:window|globalThis|chartGlobal|runtimeGlobal)\.__FFV_suppressLoadingState\b|["']__FFV_suppressLoadingState["']/u;
 const directChartDebugGlobalPattern =
     /\b(?:window|globalThis|chartGlobal|runtimeGlobal|zoneGlobal|debugGlobal|chartHoverGlobal)\.(?:__FFV_debugCharts|__FFV_debugChartsVerbose|__FFV_traceFullscreen)\b/u;
+const directChartThemeConfigGlobalPattern =
+    /\b(?:window|globalThis|chartGlobal|runtimeGlobal)\.getThemeConfig\b/u;
 const directChartPluginRegistrationMarkerPattern =
     /\b__ffvPluginsRegistered\b/u;
 const directChartListenerStateGlobalPattern =
@@ -8198,7 +8200,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps legacy renderer globals behind named compatibility modules", () => {
-        expect.assertions(92);
+        expect.assertions(93);
 
         const scannedFiles = sourceRoots.flatMap(collectSourceFiles);
         const directRuntimeGlobalDataMentions = scannedFiles
@@ -8619,6 +8621,13 @@ describe("architecture boundaries", () => {
                 )
             )
             .sort();
+        const directChartThemeConfigGlobalLookups = scannedFiles
+            .filter((relativeFile) =>
+                directChartThemeConfigGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
         const directChartPluginRegistrationMarkerLookups = scannedFiles
             .filter((relativeFile) =>
                 directChartPluginRegistrationMarkerPattern.test(
@@ -8925,6 +8934,7 @@ describe("architecture boundaries", () => {
         );
         expect(directChartLoadingSuppressionGlobalLookups).toStrictEqual([]);
         expect(directChartDebugGlobalLookups).toStrictEqual([]);
+        expect(directChartThemeConfigGlobalLookups).toStrictEqual([]);
         expect(directChartPluginRegistrationMarkerLookups).toStrictEqual([]);
         expect(directChartListenerStateGlobalLookups).toStrictEqual([]);
         expect(directChartDevToolsGlobalLookups).toStrictEqual([]);

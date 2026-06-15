@@ -6,10 +6,6 @@ type CompletionDependencies = Parameters<
 >[0];
 type CompletionInput = Parameters<typeof completeSuccessfulChartRender>[1];
 
-interface ChartCompletionGlobal {
-    readonly getThemeConfig?: unknown;
-}
-
 interface ChartControlsStateManager {
     updateChartControlsUI?(enabled: boolean): unknown;
 }
@@ -18,7 +14,6 @@ interface CompleteChartDataRenderDependencies extends Omit<
     CompletionDependencies,
     "chartInstances" | "getThemeConfig" | "updateChartControlsUI"
 > {
-    readonly chartGlobal: ChartCompletionGlobal;
     readonly getThemeConfig: CompletionDependencies["getThemeConfig"];
     readonly getUIStateManager: () =>
         | ChartControlsStateManager
@@ -47,13 +42,7 @@ export async function completeChartDataRender(
         doc: dependencies.doc,
         getComputedStateManager: dependencies.getComputedStateManager,
         getState: dependencies.getState,
-        getThemeConfig: () => {
-            const globalGetThemeConfig =
-                dependencies.chartGlobal.getThemeConfig;
-            return isGetThemeConfigFunction(globalGetThemeConfig)
-                ? globalGetThemeConfig()
-                : dependencies.getThemeConfig();
-        },
+        getThemeConfig: dependencies.getThemeConfig,
         isTestRuntime: dependencies.isTestRuntime,
         notify: dependencies.notify,
         now: dependencies.now,
@@ -70,10 +59,4 @@ export async function completeChartDataRender(
     }
 
     return completeSuccessfulChartRender(completionDependencies, input);
-}
-
-function isGetThemeConfigFunction(
-    value: unknown
-): value is CompletionDependencies["getThemeConfig"] {
-    return typeof value === "function";
 }

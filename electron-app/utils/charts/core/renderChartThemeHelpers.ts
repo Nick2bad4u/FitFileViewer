@@ -41,10 +41,6 @@ interface NormalizedThemeConfig extends ThemeConfig {
     colors: NormalizedThemeColors;
 }
 
-interface RenderChartThemeGlobal {
-    getThemeConfig?: unknown;
-}
-
 const FALLBACK_ZONE_COLORS = [
     "#808080",
     "#3b82f665",
@@ -195,14 +191,6 @@ export async function getThemeConfigSafe(): Promise<NormalizedThemeConfig> {
         const importedProvider = resolveThemeConfigProvider(mod);
         if (importedProvider) {
             themeConfig = importedProvider();
-        }
-
-        const chartGlobal = globalThis as RenderChartThemeGlobal;
-        const globalProvider = resolveThemeConfigProvider(
-            chartGlobal.getThemeConfig
-        );
-        if (!themeConfig && globalProvider) {
-            themeConfig = globalProvider();
         }
     } catch (error) {
         console.warn("[ChartJS] getThemeConfigSafe() fallback:", error);

@@ -241,7 +241,7 @@ export function updatePreviousChartState(
     return updatePreviousChartStateCompat(chartCount, visibleFields, timestamp);
 }
 
-const chartGlobal = initializeChartRuntimeBootstrap({
+initializeChartRuntimeBootstrap({
     getChartStateManager: getDebouncedChartStateManager,
     renderChart: renderChartJS,
 });
@@ -623,7 +623,6 @@ async function renderChartsWithData(
             addHoverEffectsToExistingCharts:
                 addHoverEffectsToExistingChartsSafe,
             chartContainer,
-            chartGlobal,
             CustomEventConstructor: globalThis.CustomEvent,
             doc: document,
             getComputedStateManager: getComputedStateManagerSafe,
