@@ -7,8 +7,11 @@ export interface RendererVendorMapRuntime {
     setDocumentElementStyleProperty: (property: string, value: string) => void;
 }
 
+const defaultRendererVendorMapRuntimeScope: RendererVendorMapRuntimeScope =
+    globalThis;
+
 export function getRendererVendorMapRuntime(
-    scope: RendererVendorMapRuntimeScope = globalThis
+    scope: RendererVendorMapRuntimeScope = defaultRendererVendorMapRuntimeScope
 ): RendererVendorMapRuntime {
     return {
         hasDocumentElement(): boolean {

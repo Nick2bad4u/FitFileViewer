@@ -3868,7 +3868,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-ui summary selector DOM timers behind its runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedMainUiSummarySelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -3885,9 +3885,20 @@ describe("architecture boundaries", () => {
                     )
             )
             .sort();
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/mainUiSummaryColumnSelectorRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(runtimeSource).toContain(
+            "defaultMainUiSummaryColumnSelectorRuntimeScope"
+        );
+        expect(runtimeSource).not.toContain(
+            "scope: MainUiSummaryColumnSelectorRuntimeScope = globalThis"
+        );
     });
 
     it("keeps Browser feature gating on the active-tab state facade", () => {
@@ -8751,10 +8762,15 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(39);
+        expect.assertions(41);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
+        );
+        const vendorMapRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/rendererVendorMapRuntime.ts"
+            )
         );
         const leafletRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/leafletRuntime.ts")
@@ -8805,6 +8821,12 @@ describe("architecture boundaries", () => {
         expect(vendorMapEntry).not.toContain('import("leaflet-draw")');
         expect(vendorMapEntry).not.toContain("leaflet.markercluster");
         expect(vendorMapEntry).not.toContain("globalThis.document");
+        expect(vendorMapRuntimeSource).toContain(
+            "defaultRendererVendorMapRuntimeScope"
+        );
+        expect(vendorMapRuntimeSource).not.toContain(
+            "scope: RendererVendorMapRuntimeScope = globalThis"
+        );
         expect(leafletRuntimeSource).not.toContain("Symbol.for");
         expect(leafletRuntimeSource).not.toContain("globalThis");
         expect(vendorMapEntry).not.toContain("setLegacyLeafletPluginRuntime");

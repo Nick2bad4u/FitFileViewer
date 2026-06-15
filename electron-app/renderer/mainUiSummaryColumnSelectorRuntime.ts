@@ -19,6 +19,9 @@ export interface MainUiSummaryColumnSelectorRuntime {
     ) => MainUiSummaryColumnSelectorTimer;
 }
 
+const defaultMainUiSummaryColumnSelectorRuntimeScope: MainUiSummaryColumnSelectorRuntimeScope =
+    globalThis;
+
 function isHTMLElement(
     value: unknown,
     HTMLElementConstructor: typeof HTMLElement | undefined
@@ -30,7 +33,7 @@ function isHTMLElement(
 }
 
 export function getMainUiSummaryColumnSelectorRuntime(
-    scope: MainUiSummaryColumnSelectorRuntimeScope = globalThis
+    scope: MainUiSummaryColumnSelectorRuntimeScope = defaultMainUiSummaryColumnSelectorRuntimeScope
 ): MainUiSummaryColumnSelectorRuntime {
     return {
         getSummaryGearButton(selector): HTMLElement | null {
