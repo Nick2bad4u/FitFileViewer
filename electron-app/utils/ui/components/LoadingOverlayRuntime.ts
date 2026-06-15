@@ -15,11 +15,8 @@ export interface LoadingOverlayRuntime {
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
-const defaultLoadingOverlayRuntimeScope: LoadingOverlayRuntimeScope = {
-    get document(): Document | undefined {
-        return globalThis.document;
-    },
-};
+const defaultLoadingOverlayRuntimeScope: LoadingOverlayRuntimeScope =
+    globalThis;
 
 function getDocument(scope: LoadingOverlayRuntimeScope): Document {
     const runtimeDocument = scope.document;

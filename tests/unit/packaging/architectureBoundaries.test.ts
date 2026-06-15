@@ -1009,6 +1009,8 @@ const directChartCanvasExpandoPattern = /\b__chartjs\b/u;
 const directDomPurifyGlobalPattern =
     /\b(?:window|globalThis|globalRef|testGlobal)\.DOMPurify\b|\bReflect\.get\(\s*globalThis\s*,\s*["']DOMPurify["']\s*\)|\{\s*DOMPurify\?:\s*unknown\s*\}\)\.DOMPurify/u;
 const directDomHelpersRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
+const directDomHelpersRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.AbortController\b/u;
 const directArqueroGlobalPattern =
     /\b(?:window|globalThis|summaryGlobal|testGlobal)\.(?:aq|arquero)\b|\{\s*(?:aq|arquero)\?:\s*unknown\s*\}\)\.(?:aq|arquero)/u;
 const directJSZipGlobalPattern =
@@ -1043,6 +1045,8 @@ const electronApiRuntimeTestDirectGlobalFixturePattern =
 const mainUiDomUtilsTestDirectElectronApiGlobalFixturePattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*(?:ELECTRON_API_PROPERTY|["']electronAPI["'])\s*\)/u;
 const directMainUiDomUtilsRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
+const directMainUiDomUtilsRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.AbortController\b/u;
 const directEventListenerManagerRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\bglobalThis\.window\b/u;
 const directEventListenerManagerRuntimeAmbientGetterPattern =
@@ -1084,6 +1088,8 @@ const directFitBrowserFeatureGateRuntimeGlobalPattern =
 const directFitBrowserFeatureGateRuntimeAmbientGetterPattern =
     /\breturn\s+globalThis\.(?:document|HTMLElement)\b/u;
 const directFileBrowserTabRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
+const directFileBrowserTabRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.AbortController\b/u;
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
     /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
 const directCreateElevationProfileButtonRuntimeAmbientFallbackPattern =
@@ -1314,6 +1320,8 @@ const directDataPointFilterPanelControllerRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|innerHeight|innerWidth)\b|\bnew\s+AbortController\b|\binstanceof\s+Node\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directLoadingOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|querySelector)\b/u;
+const directLoadingOverlayRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.document\b/u;
 const directSyncRendererLoadingRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|querySelector|querySelectorAll)\b|\binstanceof\s+(?:HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b/u;
 const directSyncRendererLoadingRuntimeAmbientFallbackPattern =
@@ -3962,7 +3970,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -3987,6 +3995,9 @@ describe("architecture boundaries", () => {
         expect(browserTabSource).toContain("createAbortController");
         expect(browserTabRuntimeSource).toContain(
             "defaultFileBrowserTabRuntimeScope"
+        );
+        expect(browserTabRuntimeSource).not.toMatch(
+            directFileBrowserTabRuntimeAmbientGetterPattern
         );
     });
 
@@ -6082,7 +6093,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps DOM helper listener cleanup behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const domHelpersSource = stripComments(
             readRepositoryFile("electron-app/utils/dom/domHelpers.ts")
@@ -6097,6 +6108,9 @@ describe("architecture boundaries", () => {
         expect(domHelpersSource).toContain("domHelpersRuntime.js");
         expect(domHelpersRuntimeSource).toContain(
             "defaultDomHelpersRuntimeScope"
+        );
+        expect(domHelpersRuntimeSource).not.toMatch(
+            directDomHelpersRuntimeAmbientGetterPattern
         );
     });
 
@@ -6679,7 +6693,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps loading overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedLoadingOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -6703,6 +6717,9 @@ describe("architecture boundaries", () => {
         expect(loadingOverlaySource).toContain("LoadingOverlayRuntime.js");
         expect(loadingOverlayRuntimeSource).toContain(
             "defaultLoadingOverlayRuntimeScope"
+        );
+        expect(loadingOverlayRuntimeSource).not.toMatch(
+            directLoadingOverlayRuntimeAmbientGetterPattern
         );
     });
 
@@ -11195,7 +11212,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main UI DOM utility listener cleanup behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const mainUiDomUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/mainUiDomUtils.ts")
@@ -11210,6 +11227,9 @@ describe("architecture boundaries", () => {
         expect(mainUiDomUtilsSource).toContain("mainUiDomUtilsRuntime.js");
         expect(mainUiDomUtilsRuntimeSource).toContain(
             "defaultMainUiDomUtilsRuntimeScope"
+        );
+        expect(mainUiDomUtilsRuntimeSource).not.toMatch(
+            directMainUiDomUtilsRuntimeAmbientGetterPattern
         );
     });
 

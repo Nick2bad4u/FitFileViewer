@@ -6,11 +6,8 @@ export interface FileBrowserTabRuntime {
     createAbortController: () => AbortController;
 }
 
-const defaultFileBrowserTabRuntimeScope: FileBrowserTabRuntimeScope = {
-    get AbortController(): typeof AbortController | undefined {
-        return globalThis.AbortController;
-    },
-};
+const defaultFileBrowserTabRuntimeScope: FileBrowserTabRuntimeScope =
+    globalThis;
 
 function getAbortControllerConstructor(
     scope: FileBrowserTabRuntimeScope
