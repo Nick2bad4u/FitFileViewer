@@ -569,6 +569,9 @@ const migratedCreateFieldTogglesSectionRuntimeFiles = [
 const migratedCreateInlineZoneColorSelectorRuntimeFiles = [
     "electron-app/utils/ui/controls/createInlineZoneColorSelector.ts",
 ] as const;
+const migratedOpenZoneColorPickerRuntimeFiles = [
+    "electron-app/utils/ui/modals/openZoneColorPicker.ts",
+] as const;
 const migratedMapLeafletRuntimeFiles = [
     "electron-app/utils/maps/controls/mapActionButtons.ts",
     "electron-app/utils/maps/controls/leafletPluginControls.ts",
@@ -1241,6 +1244,10 @@ const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|dispatchEvent)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\b|\bglobalThis\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\b/u;
+const directOpenZoneColorPickerRuntimeGlobalPattern =
+    /\b(?:globalThis|window)\.dispatchEvent\b|\bnew\s+CustomEvent\b/u;
+const directOpenZoneColorPickerRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:CustomEvent|dispatchEvent)\s*\?\?\s*globalThis\.(?:CustomEvent|dispatchEvent)\b|\bglobalThis\.(?:CustomEvent|dispatchEvent)\b/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b|\bnew\s+AbortController\b/u;
 const directCopyTableAsCSVRuntimeGlobalPattern =
@@ -4066,6 +4073,39 @@ describe("architecture boundaries", () => {
         );
         expect(inlineZoneSelectorRuntimeSource).toContain(
             "createInlineZoneColorSelector requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps zone color picker event APIs behind the runtime facade", () => {
+        expect.assertions(4);
+
+        const violations = migratedOpenZoneColorPickerRuntimeFiles
+            .filter((relativeFile) =>
+                directOpenZoneColorPickerRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const zoneColorPickerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/openZoneColorPicker.ts"
+            )
+        );
+        const zoneColorPickerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/openZoneColorPickerRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(zoneColorPickerSource).toContain(
+            "openZoneColorPickerRuntime.js"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toMatch(
+            directOpenZoneColorPickerRuntimeAmbientFallbackPattern
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "openZoneColorPicker requires a dispatchEvent runtime"
         );
     });
 

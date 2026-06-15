@@ -24,6 +24,10 @@ import {
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { showNotification } from "../notifications/showNotification.js";
 import { createModalFocusTrap } from "./modalFocusTrap.js";
+import {
+    getOpenZoneColorPickerRuntime,
+    type OpenZoneColorPickerRuntime,
+} from "./openZoneColorPickerRuntime.js";
 
 type ChartDataset = {
     backgroundColor?: unknown;
@@ -57,15 +61,21 @@ function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
 }
 
-function dispatchChartRenderRequest(reason: string): void {
-    globalThis.dispatchEvent(
-        new CustomEvent("ffv:request-render-charts", {
+function dispatchChartRenderRequest(
+    reason: string,
+    runtime: OpenZoneColorPickerRuntime = getOpenZoneColorPickerRuntime()
+): void {
+    runtime.dispatchEvent(
+        runtime.createCustomEvent("ffv:request-render-charts", {
             detail: { reason },
         })
     );
 }
 
-function requestDirectChartRender(reason: string): void {
+function requestDirectChartRender(
+    reason: string,
+    runtime: OpenZoneColorPickerRuntime = getOpenZoneColorPickerRuntime()
+): void {
     void import("../../charts/core/renderChartJS.js")
         .then(({ renderChartJS }) => {
             void renderChartJS();
@@ -75,7 +85,7 @@ function requestDirectChartRender(reason: string): void {
                 "[ZoneColorPicker] Direct chart render import failed; dispatching render request event",
                 error
             );
-            dispatchChartRenderRequest(reason);
+            dispatchChartRenderRequest(reason, runtime);
         });
 }
 
