@@ -9,8 +9,14 @@ export interface StateStorageRuntime {
     setItem: (key: string, value: string) => boolean;
 }
 
+const defaultStateStorageRuntimeScope: StateStorageRuntimeScope = {
+    get localStorage() {
+        return globalThis.localStorage;
+    },
+};
+
 export function getStateStorageRuntime(
-    scope: StateStorageRuntimeScope = globalThis
+    scope: StateStorageRuntimeScope = defaultStateStorageRuntimeScope
 ): StateStorageRuntime {
     return {
         getItem(key): null | string {

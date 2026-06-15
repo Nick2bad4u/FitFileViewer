@@ -3541,10 +3541,15 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the core state manager free of reactive global property bridges", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
+        );
+        const stateStorageRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateStorageRuntime.ts"
+            )
         );
 
         expect(stateManagerSource).not.toContain(
@@ -3556,6 +3561,9 @@ describe("architecture boundaries", () => {
         expect(stateManagerSource).not.toContain("Reflect.get(globalThis");
         expect(stateManagerSource).not.toContain("localStorage.");
         expect(stateManagerSource).toContain("stateStorageRuntime.js");
+        expect(stateStorageRuntimeSource).toContain(
+            "defaultStateStorageRuntimeScope"
+        );
     });
 
     it("keeps state persistence middleware storage access behind the runtime facade", () => {
@@ -5067,13 +5075,21 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer debug logging runtime checks behind the debug runtime adapter", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         for (const relativeFile of migratedRendererDebugLoggingStateFiles) {
             expect(stripComments(readRepositoryFile(relativeFile))).toContain(
                 "rendererDebugRuntime.js"
             );
         }
+
+        expect(
+            stripComments(
+                readRepositoryFile(
+                    "electron-app/utils/debug/rendererDebugRuntime.ts"
+                )
+            )
+        ).toContain("defaultRendererDebugRuntimeScope");
     });
 
     it("keeps animation debug logging clocks behind the runtime facade", () => {
@@ -7442,7 +7458,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps controls-state computed style reads behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedUpdateControlsStateRuntimeFiles
             .filter((relativeFile) =>
@@ -7456,10 +7472,18 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/helpers/updateControlsState.ts"
             )
         );
+        const updateControlsStateRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/helpers/updateControlsStateRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(updateControlsStateSource).toContain(
             "updateControlsStateRuntime.js"
+        );
+        expect(updateControlsStateRuntimeSource).toContain(
+            "defaultUpdateControlsStateRuntimeScope"
         );
     });
 

@@ -8,8 +8,15 @@ export interface UpdateControlsStateRuntime {
     getComputedDisplay(element: Element): string;
 }
 
+const defaultUpdateControlsStateRuntimeScope: UpdateControlsStateRuntimeScope =
+    {
+        get getComputedStyle() {
+            return globalThis.getComputedStyle;
+        },
+    };
+
 export function getUpdateControlsStateRuntime(
-    scope: UpdateControlsStateRuntimeScope = globalThis
+    scope: UpdateControlsStateRuntimeScope = defaultUpdateControlsStateRuntimeScope
 ): UpdateControlsStateRuntime {
     return {
         getComputedDisplay(element: Element): string {
