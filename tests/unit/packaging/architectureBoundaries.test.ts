@@ -7862,7 +7862,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps async cancellation timers behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedCancellationTokenRuntimeFiles
             .filter((relativeFile) =>
@@ -7888,6 +7888,9 @@ describe("architecture boundaries", () => {
         );
         expect(cancellationTokenRuntimeSource).not.toMatch(
             directCancellationTokenRuntimeAmbientFallbackPattern
+        );
+        expect(cancellationTokenRuntimeSource).toContain(
+            "defaultCancellationTokenRuntimeScope"
         );
         expect(cancellationTokenRuntimeSource).toContain(
             "const setTimeoutRef = scope.setTimeout;"
