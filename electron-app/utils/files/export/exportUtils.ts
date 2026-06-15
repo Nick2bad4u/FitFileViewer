@@ -2396,7 +2396,11 @@ export const exportUtils = {
             const backgroundColor = exportUtils.getExportThemeBackground(),
                 // Create canvas with theme background
                 canvas = document.createElement("canvas"),
-                printWindow = window.open("", "_blank", "noopener,noreferrer");
+                printWindow = exportUtilsRuntime.openPrintWindow(
+                    "",
+                    "_blank",
+                    "noopener,noreferrer"
+                );
             canvas.width = chart.canvas.width;
             canvas.height = chart.canvas.height;
             const ctx = canvas.getContext("2d");
@@ -2467,7 +2471,11 @@ img {
             }
 
             const backgroundColor = exportUtils.getExportThemeBackground(),
-                printWindow = window.open("", "_blank", "noopener,noreferrer");
+                printWindow = exportUtilsRuntime.openPrintWindow(
+                    "",
+                    "_blank",
+                    "noopener,noreferrer"
+                );
             const bgSafe = sanitizeCssColorToken(backgroundColor, "#ffffff");
             const bodyBg = bgSafe === "transparent" ? "#ffffff" : bgSafe;
             const bodyText =

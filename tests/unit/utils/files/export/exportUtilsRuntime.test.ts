@@ -27,6 +27,36 @@ describe("exportUtilsRuntime", () => {
         ).toBe(false);
     });
 
+    it("opens print windows through the scoped window runtime", () => {
+        expect.assertions(2);
+
+        const popup = {} as Window;
+        const open = vi.fn(() => popup);
+        const runtime = getExportUtilsRuntime({
+            window: {
+                confirm: vi.fn(),
+                open,
+            },
+        });
+
+        expect(
+            runtime.openPrintWindow("", "_blank", "noopener,noreferrer")
+        ).toBe(popup);
+        expect(open).toHaveBeenCalledWith("", "_blank", "noopener,noreferrer");
+    });
+
+    it("returns null when print-window opening is unavailable", () => {
+        expect.assertions(1);
+
+        expect(
+            getExportUtilsRuntime({}).openPrintWindow(
+                "",
+                "_blank",
+                "noopener,noreferrer"
+            )
+        ).toBeNull();
+    });
+
     it("creates abort controllers through the scoped runtime", () => {
         expect.assertions(2);
 
