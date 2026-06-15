@@ -18,6 +18,72 @@ describe("getRenderTableRuntime", () => {
         expect(element).toBeInstanceOf(HTMLDivElement);
     });
 
+    it("routes table browser dependencies through provider functions", () => {
+        expect.assertions(20);
+
+        try {
+            const target = document.createElement("section");
+            target.id = "target";
+            document.body.append(target);
+            const cell = document.createElement("td");
+            const style = { display: "table" } as CSSStyleDeclaration;
+            const callback = vi.fn<() => void>();
+            const frameCallback = vi.fn<FrameRequestCallback>();
+            const timeoutMs = Number.parseInt("25", 10);
+            const getComputedStyle = vi.fn<
+                (element: Element) => CSSStyleDeclaration
+            >(() => style);
+            const requestAnimationFrame = vi.fn<
+                (callback: FrameRequestCallback) => number
+            >(() => 14);
+            const setTimeout = vi.fn<
+                (callback: () => void, timeout?: number) => number
+            >(() => 11);
+            const clearTimeout = vi.fn<(handle: number) => void>();
+            const getDocument = vi.fn(() => document);
+            const getHTMLElement = vi.fn(() => HTMLElement);
+            const getHTMLTableCellElement = vi.fn(() => HTMLTableCellElement);
+            const getComputedStyleFunction = vi.fn(() => getComputedStyle);
+            const getRequestAnimationFrame = vi.fn(() => requestAnimationFrame);
+            const getSetTimeout = vi.fn(() => setTimeout);
+            const getClearTimeout = vi.fn(() => clearTimeout);
+            const utils = getRenderTableRuntime({
+                getClearTimeout,
+                getComputedStyleFunction,
+                getDocument,
+                getHTMLElement,
+                getHTMLTableCellElement,
+                getRequestAnimationFrame,
+                getSetTimeout,
+            });
+
+            expect(utils.createElement("span")).toBeInstanceOf(HTMLSpanElement);
+            expect(utils.getElementById("target")).toBe(target);
+            expect(utils.isHTMLElement(target)).toBe(true);
+            expect(utils.isTableCellElement(cell)).toBe(true);
+            expect(utils.getComputedStyle(target)).toBe(style);
+            expect(utils.requestAnimationFrame(frameCallback)).toBe(14);
+            expect(utils.setTimeout(callback, timeoutMs)).toBe(11);
+            utils.clearTimeout(11);
+
+            expect(getDocument).toHaveBeenCalled();
+            expect(getHTMLElement).toHaveBeenCalled();
+            expect(getHTMLTableCellElement).toHaveBeenCalled();
+            expect(getComputedStyleFunction).toHaveBeenCalledOnce();
+            expect(getRequestAnimationFrame).toHaveBeenCalledOnce();
+            expect(getSetTimeout).toHaveBeenCalledOnce();
+            expect(getClearTimeout).toHaveBeenCalledOnce();
+            expect(getComputedStyle).toHaveBeenCalledWith(target);
+            expect(requestAnimationFrame).toHaveBeenCalledWith(frameCallback);
+            expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
+            expect(clearTimeout).toHaveBeenCalledWith(11);
+            expect(callback).not.toHaveBeenCalled();
+            expect(frameCallback).not.toHaveBeenCalled();
+        } finally {
+            cleanupFixture();
+        }
+    });
+
     it("returns injected elements by id when they are HTMLElements", () => {
         expect.assertions(1);
 

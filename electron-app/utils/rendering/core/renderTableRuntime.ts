@@ -2,22 +2,48 @@ export type RenderTableTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
     | number;
 
+type RenderTableClearTimeout = (handle: RenderTableTimerHandle) => void;
+type RenderTableGetComputedStyle = (
+    element: Element,
+    pseudoElement?: null | string
+) => CSSStyleDeclaration;
+type RenderTableRequestAnimationFrame = (
+    callback: FrameRequestCallback
+) => number;
+type RenderTableSetTimeout = (
+    callback: () => void,
+    timeout?: number
+) => RenderTableTimerHandle;
+
 export interface RenderTableRuntimeScope {
-    readonly clearTimeout?:
-        | ((handle: RenderTableTimerHandle) => void)
-        | undefined;
+    readonly clearTimeout?: RenderTableClearTimeout | undefined;
     readonly document?: Document | undefined;
-    readonly getComputedStyle?:
-        | ((element: Element, pseudoElement?: null | string) => CSSStyleDeclaration)
+    readonly getClearTimeout?:
+        | (() => RenderTableClearTimeout | undefined)
         | undefined;
+    readonly getComputedStyleFunction?:
+        | (() => RenderTableGetComputedStyle | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof HTMLElement | undefined)
+        | undefined;
+    readonly getHTMLTableCellElement?:
+        | (() => typeof HTMLTableCellElement | undefined)
+        | undefined;
+    readonly getRequestAnimationFrame?:
+        | (() => RenderTableRequestAnimationFrame | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => RenderTableSetTimeout | undefined)
+        | undefined;
+    readonly getComputedStyle?: RenderTableGetComputedStyle | undefined;
     readonly HTMLElement?: typeof HTMLElement | undefined;
     readonly HTMLTableCellElement?: typeof HTMLTableCellElement | undefined;
     readonly requestAnimationFrame?:
-        | ((callback: FrameRequestCallback) => number)
+        | RenderTableRequestAnimationFrame
         | undefined;
-    readonly setTimeout?:
-        | ((callback: () => void, timeout?: number) => RenderTableTimerHandle)
-        | undefined;
+    readonly setTimeout?: RenderTableSetTimeout | undefined;
 }
 
 export interface RenderTableRuntime {
@@ -28,8 +54,12 @@ export interface RenderTableRuntime {
     getComputedStyle: (element: Element) => CSSStyleDeclaration | undefined;
     getElementById: (id: string) => HTMLElement | null;
     isHTMLElement: (element: Element | null) => element is HTMLElement;
-    isTableCellElement: (element: Element | null) => element is HTMLTableCellElement;
-    requestAnimationFrame: (callback: FrameRequestCallback) => number | undefined;
+    isTableCellElement: (
+        element: Element | null
+    ) => element is HTMLTableCellElement;
+    requestAnimationFrame: (
+        callback: FrameRequestCallback
+    ) => number | undefined;
     setTimeout: (
         callback: () => void,
         timeout: number
@@ -37,7 +67,7 @@ export interface RenderTableRuntime {
 }
 
 function getDocument(scope: RenderTableRuntimeScope): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.() ?? scope.document;
     if (!runtimeDocument) {
         throw new Error("renderTable requires a document-like runtime");
     }
@@ -47,8 +77,8 @@ function getDocument(scope: RenderTableRuntimeScope): Document {
 
 function getRequiredClearTimeout(
     scope: RenderTableRuntimeScope
-): (handle: RenderTableTimerHandle) => void {
-    const clearTimeoutRef = scope.clearTimeout;
+): RenderTableClearTimeout {
+    const clearTimeoutRef = scope.getClearTimeout?.() ?? scope.clearTimeout;
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError("renderTable requires a clearTimeout runtime");
     }
@@ -56,10 +86,34 @@ function getRequiredClearTimeout(
     return clearTimeoutRef;
 }
 
+function getScopeGetComputedStyle(
+    scope: RenderTableRuntimeScope
+): RenderTableGetComputedStyle | undefined {
+    return scope.getComputedStyleFunction?.() ?? scope.getComputedStyle;
+}
+
+function getScopeHTMLElement(
+    scope: RenderTableRuntimeScope
+): typeof HTMLElement | undefined {
+    return scope.getHTMLElement?.() ?? scope.HTMLElement;
+}
+
+function getScopeHTMLTableCellElement(
+    scope: RenderTableRuntimeScope
+): typeof HTMLTableCellElement | undefined {
+    return scope.getHTMLTableCellElement?.() ?? scope.HTMLTableCellElement;
+}
+
+function getScopeRequestAnimationFrame(
+    scope: RenderTableRuntimeScope
+): RenderTableRequestAnimationFrame | undefined {
+    return scope.getRequestAnimationFrame?.() ?? scope.requestAnimationFrame;
+}
+
 function getRequiredSetTimeout(
     scope: RenderTableRuntimeScope
-): (callback: () => void, timeout?: number) => RenderTableTimerHandle {
-    const setTimeoutRef = scope.setTimeout;
+): RenderTableSetTimeout {
+    const setTimeoutRef = scope.getSetTimeout?.() ?? scope.setTimeout;
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("renderTable requires a setTimeout runtime");
     }
@@ -67,7 +121,15 @@ function getRequiredSetTimeout(
     return setTimeoutRef;
 }
 
-const defaultRenderTableRuntimeScope: RenderTableRuntimeScope = globalThis;
+const defaultRenderTableRuntimeScope: RenderTableRuntimeScope = {
+    getClearTimeout: () => globalThis.clearTimeout,
+    getComputedStyleFunction: () => globalThis.getComputedStyle,
+    getDocument: () => globalThis.document,
+    getHTMLElement: () => globalThis.HTMLElement,
+    getHTMLTableCellElement: () => globalThis.HTMLTableCellElement,
+    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+    getSetTimeout: () => globalThis.setTimeout,
+};
 
 export function getRenderTableRuntime(
     scope: RenderTableRuntimeScope = defaultRenderTableRuntimeScope
@@ -75,7 +137,7 @@ export function getRenderTableRuntime(
     return {
         clearTimeout(handle: RenderTableTimerHandle): void {
             const clearTimeoutRef = getRequiredClearTimeout(scope);
-            clearTimeoutRef(handle);
+            clearTimeoutRef.call(scope, handle);
         },
         createElement<K extends keyof HTMLElementTagNameMap>(
             tagName: K
@@ -83,18 +145,19 @@ export function getRenderTableRuntime(
             return getDocument(scope).createElement(tagName);
         },
         getComputedStyle(element: Element): CSSStyleDeclaration | undefined {
-            if (typeof scope.getComputedStyle !== "function") {
+            const getComputedStyleRef = getScopeGetComputedStyle(scope);
+            if (typeof getComputedStyleRef !== "function") {
                 return undefined;
             }
 
-            return scope.getComputedStyle(element);
+            return getComputedStyleRef.call(scope, element);
         },
         getElementById(id: string): HTMLElement | null {
             const element = getDocument(scope).getElementById(id);
             return this.isHTMLElement(element) ? element : null;
         },
         isHTMLElement(element: Element | null): element is HTMLElement {
-            const HTMLElementConstructor = scope.HTMLElement;
+            const HTMLElementConstructor = getScopeHTMLElement(scope);
             return (
                 typeof HTMLElementConstructor === "function" &&
                 element instanceof HTMLElementConstructor
@@ -103,7 +166,7 @@ export function getRenderTableRuntime(
         isTableCellElement(
             element: Element | null
         ): element is HTMLTableCellElement {
-            const TableCellConstructor = scope.HTMLTableCellElement;
+            const TableCellConstructor = getScopeHTMLTableCellElement(scope);
             return (
                 typeof TableCellConstructor === "function" &&
                 element instanceof TableCellConstructor
@@ -112,18 +175,20 @@ export function getRenderTableRuntime(
         requestAnimationFrame(
             callback: FrameRequestCallback
         ): number | undefined {
-            if (typeof scope.requestAnimationFrame !== "function") {
+            const requestAnimationFrameRef =
+                getScopeRequestAnimationFrame(scope);
+            if (typeof requestAnimationFrameRef !== "function") {
                 return undefined;
             }
 
-            return scope.requestAnimationFrame(callback);
+            return requestAnimationFrameRef.call(scope, callback);
         },
         setTimeout(
             callback: () => void,
             timeout: number
         ): RenderTableTimerHandle {
             const setTimeoutRef = getRequiredSetTimeout(scope);
-            return setTimeoutRef(callback, timeout);
+            return setTimeoutRef.call(scope, callback, timeout);
         },
     };
 }

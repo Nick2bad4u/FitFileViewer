@@ -6103,7 +6103,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps table renderer browser APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(14);
 
         const violations = migratedRenderTableRuntimeFiles
             .filter((relativeFile) =>
@@ -6133,6 +6133,30 @@ describe("architecture boundaries", () => {
         );
         expect(renderTableRuntimeSource).not.toContain(
             "scope: RenderTableRuntimeScope = globalThis"
+        );
+        expect(renderTableRuntimeSource).not.toContain(
+            "const defaultRenderTableRuntimeScope: RenderTableRuntimeScope = globalThis"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "getComputedStyleFunction: () => globalThis.getComputedStyle"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "getHTMLTableCellElement: () => globalThis.HTMLTableCellElement"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
+        );
+        expect(renderTableRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(renderTableRuntimeSource).toContain(
             "renderTable requires a setTimeout runtime"
