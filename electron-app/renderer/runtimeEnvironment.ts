@@ -11,19 +11,49 @@ export type RendererRuntimeEnvironment = {
     readonly windowTarget: Window & typeof globalThis;
 };
 
+export type RendererRuntimeEnvironmentScope =
+    | (Window & typeof globalThis)
+    | {
+          readonly getWindow: () => (Window & typeof globalThis) | undefined;
+      };
+
+const defaultRendererRuntimeEnvironmentScope: RendererRuntimeEnvironmentScope = {
+    getWindow: () => globalThis.window,
+};
+
+function resolveRendererWindow(
+    scope: RendererRuntimeEnvironmentScope
+): Window & typeof globalThis {
+    if ("getWindow" in scope) {
+        const windowTarget = scope.getWindow();
+        if (windowTarget === undefined) {
+            throw new TypeError(
+                "renderer runtime environment requires a window runtime"
+            );
+        }
+
+        return windowTarget;
+    }
+
+    return scope;
+}
+
 export function createRendererRuntimeEnvironment(
-    scope: Window & typeof globalThis = globalThis.window
+    scope: RendererRuntimeEnvironmentScope = defaultRendererRuntimeEnvironmentScope
 ): RendererRuntimeEnvironment {
+    const windowTarget = resolveRendererWindow(scope);
+
     return {
-        addEventListener: scope.addEventListener.bind(scope),
-        clearInterval: scope.clearInterval.bind(scope),
-        console: scope.console,
-        documentTarget: scope.document,
-        electronApiCandidate: Reflect.get(scope, "electronAPI"),
-        removeEventListener: scope.removeEventListener.bind(scope),
-        scope,
-        setInterval: scope.setInterval.bind(scope),
-        setTimeout: scope.setTimeout.bind(scope),
-        windowTarget: scope,
+        addEventListener: windowTarget.addEventListener.bind(windowTarget),
+        clearInterval: windowTarget.clearInterval.bind(windowTarget),
+        console: windowTarget.console,
+        documentTarget: windowTarget.document,
+        electronApiCandidate: Reflect.get(windowTarget, "electronAPI"),
+        removeEventListener:
+            windowTarget.removeEventListener.bind(windowTarget),
+        scope: windowTarget,
+        setInterval: windowTarget.setInterval.bind(windowTarget),
+        setTimeout: windowTarget.setTimeout.bind(windowTarget),
+        windowTarget,
     };
 }
