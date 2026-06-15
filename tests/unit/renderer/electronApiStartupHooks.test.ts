@@ -69,6 +69,29 @@ describe("renderer Electron API startup hooks", () => {
         );
     });
 
+    it("reads startup hooks through provider scopes", () => {
+        expect.assertions(3);
+
+        const checkForUpdates = vi.fn<() => void>();
+        const recentFiles = vi.fn<() => Promise<string[]>>();
+        const electronApiScope = {
+            electronAPI: {
+                checkForUpdates,
+                recentFiles,
+            },
+        };
+        const getElectronApiScope = vi.fn(() => electronApiScope);
+
+        expect(getElectronApiStartupHooks({ getElectronApiScope })).toEqual(
+            expect.objectContaining({
+                checkForUpdates,
+                recentFiles,
+            })
+        );
+        expect(getElectronApiScope).toHaveBeenCalledOnce();
+        expect(checkForUpdates).not.toHaveBeenCalled();
+    });
+
     it("wires menu and theme callbacks while isolating callback failures", async () => {
         expect.assertions(5);
 

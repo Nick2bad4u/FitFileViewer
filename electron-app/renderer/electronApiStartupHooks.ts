@@ -1,4 +1,7 @@
-import { getRendererElectronApi } from "../utils/runtime/electronApiRuntime.js";
+import {
+    getRendererElectronApi,
+    type RendererElectronApiScope,
+} from "../utils/runtime/electronApiRuntime.js";
 
 export type RendererApplyTheme = (
     theme: string,
@@ -16,6 +19,16 @@ export interface ElectronApiStartupHooks {
         | undefined;
     recentFiles: (() => Promise<unknown>) | undefined;
 }
+
+export interface ElectronApiStartupHooksScope extends RendererElectronApiScope {
+    readonly getElectronApiScope?:
+        | (() => RendererElectronApiScope | undefined)
+        | undefined;
+}
+
+const defaultElectronApiStartupHooksScope: ElectronApiStartupHooksScope = {
+    getElectronApiScope: () => globalThis,
+};
 
 function toModuleRecord(value: unknown): Record<string, unknown> {
     return typeof value === "object" && value !== null
@@ -66,11 +79,12 @@ export function getElectronApiHooksFromValue(
 }
 
 export function getElectronApiStartupHooks(
-    scope: typeof globalThis = globalThis
+    scope: ElectronApiStartupHooksScope = defaultElectronApiStartupHooksScope
 ): ElectronApiStartupHooks | null {
+    const electronApiScope = scope.getElectronApiScope?.() ?? scope;
     const electronApi = getRendererElectronApi(
         isElectronApiStartupHookSource,
-        scope
+        electronApiScope
     );
 
     return getElectronApiHooksFromValue(electronApi);
