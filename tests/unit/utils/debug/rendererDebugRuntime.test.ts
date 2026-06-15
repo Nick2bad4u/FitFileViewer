@@ -20,4 +20,20 @@ describe("rendererDebugRuntime", () => {
             getRendererDebugRuntime({}).isRendererDebugLoggingAvailable(true)
         ).toBe(false);
     });
+
+    it("checks renderer availability through provider functions", () => {
+        expect.assertions(3);
+
+        let providerCount = 0;
+        const utils = getRendererDebugRuntime({
+            getWindow: () => {
+                providerCount += 1;
+                return {};
+            },
+        });
+
+        expect(utils.isRendererDebugLoggingAvailable(true)).toBe(true);
+        expect(utils.isRendererDebugLoggingAvailable(false)).toBe(false);
+        expect(providerCount).toBe(2);
+    });
 });
