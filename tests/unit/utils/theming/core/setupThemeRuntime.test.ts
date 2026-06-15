@@ -26,6 +26,33 @@ describe("getSetupThemeRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
 
+    it("schedules and clears timers through provider functions", () => {
+        expect.assertions(5);
+
+        const callback = vi.fn<() => void>();
+        const delayMs = Number("2500");
+        const timer = 53 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const getSetTimeout = vi.fn(() => setTimeout);
+        const getClearTimeout = vi.fn(() => clearTimeout);
+        const {
+            clearTimeout: clearScheduledTimeout,
+            setTimeout: scheduleTimeout,
+        } = getSetupThemeRuntime({
+            getClearTimeout,
+            getSetTimeout,
+        });
+
+        expect(scheduleTimeout(callback, delayMs)).toBe(timer);
+        clearScheduledTimeout(timer);
+
+        expect(getSetTimeout).toHaveBeenCalledOnce();
+        expect(getClearTimeout).toHaveBeenCalledOnce();
+        expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 

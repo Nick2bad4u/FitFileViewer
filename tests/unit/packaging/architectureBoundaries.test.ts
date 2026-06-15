@@ -7693,7 +7693,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps setup theme fetch timers behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(9);
 
         const violations = migratedSetupThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -7719,11 +7719,20 @@ describe("architecture boundaries", () => {
         expect(setupThemeRuntimeSource).not.toContain(
             "scope: SetupThemeRuntimeScope = globalThis"
         );
+        expect(setupThemeRuntimeSource).not.toContain(
+            "const defaultSetupThemeRuntimeScope: SetupThemeRuntimeScope = globalThis"
+        );
+        expect(setupThemeRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(setupThemeRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
         expect(setupThemeRuntimeSource).not.toMatch(
             directSetupThemeRuntimeAmbientFallbackPattern
         );
         expect(setupThemeRuntimeSource).toContain(
-            "const setTimeoutRef = scope.setTimeout;"
+            "const setTimeoutRef = getScopeSetTimeout(scope);"
         );
     });
 
