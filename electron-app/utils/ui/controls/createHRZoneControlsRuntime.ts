@@ -18,13 +18,26 @@ export interface HRZoneControlsRuntime {
     setStorageItem: (key: string, value: string) => void;
 }
 
+const defaultHRZoneControlsRuntimeScope: HRZoneControlsRuntimeScope = {
+    get AbortController() {
+        return globalThis.AbortController;
+    },
+    get document() {
+        return globalThis.document;
+    },
+    get HTMLElement() {
+        return globalThis.HTMLElement;
+    },
+    get localStorage() {
+        return globalThis.localStorage;
+    },
+};
+
 function getAbortControllerConstructor(
     scope: HRZoneControlsRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createHRZoneControls requires an AbortController runtime"
@@ -60,11 +73,9 @@ function getHTMLElementConstructor(
 function getLocalStorage(
     scope: HRZoneControlsRuntimeScope
 ): HRZoneControlsStorage {
-    const storage =
-        scope.localStorage ??
-        scope.document?.defaultView?.localStorage ??
-        globalThis.localStorage;
+    const storage = scope.localStorage ?? scope.document?.defaultView?.localStorage;
     if (
+        !storage ||
         typeof storage.getItem !== "function" ||
         typeof storage.setItem !== "function"
     ) {
@@ -77,7 +88,7 @@ function getLocalStorage(
 }
 
 export function getHRZoneControlsRuntime(
-    scope: HRZoneControlsRuntimeScope = globalThis
+    scope: HRZoneControlsRuntimeScope = defaultHRZoneControlsRuntimeScope
 ): HRZoneControlsRuntime {
     return {
         createAbortController(): AbortController {

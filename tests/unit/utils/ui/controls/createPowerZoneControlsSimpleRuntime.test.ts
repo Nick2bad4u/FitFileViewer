@@ -59,9 +59,17 @@ describe("getPowerZoneControlsSimpleRuntime", () => {
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const runtime = getPowerZoneControlsSimpleRuntime({});
+        const runtimeWithoutAbortController = getPowerZoneControlsSimpleRuntime(
+            {
+                document: { defaultView: undefined } as Document,
+            }
+        );
+        const runtimeWithoutStorage = getPowerZoneControlsSimpleRuntime({
+            document: { defaultView: undefined } as Document,
+        });
         const runtimeWithInvalidAbortController =
             getPowerZoneControlsSimpleRuntime({
                 AbortController:
@@ -83,6 +91,11 @@ describe("getPowerZoneControlsSimpleRuntime", () => {
             "createPowerZoneControlsSimple requires a document runtime"
         );
         expect(() =>
+            runtimeWithoutAbortController.createAbortController()
+        ).toThrow(
+            "createPowerZoneControlsSimple requires an AbortController runtime"
+        );
+        expect(() =>
             runtimeWithInvalidAbortController.createAbortController()
         ).toThrow(
             "createPowerZoneControlsSimple requires an AbortController runtime"
@@ -92,6 +105,13 @@ describe("getPowerZoneControlsSimpleRuntime", () => {
         );
         expect(() =>
             runtimeWithInvalidStorage.getStorageItem(
+                "power-zone-controls-collapsed"
+            )
+        ).toThrow(
+            "createPowerZoneControlsSimple requires a localStorage runtime"
+        );
+        expect(() =>
+            runtimeWithoutStorage.getStorageItem(
                 "power-zone-controls-collapsed"
             )
         ).toThrow(

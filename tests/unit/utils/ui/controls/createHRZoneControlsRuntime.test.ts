@@ -57,9 +57,15 @@ describe("getHRZoneControlsRuntime", () => {
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const runtime = getHRZoneControlsRuntime({});
+        const runtimeWithoutAbortController = getHRZoneControlsRuntime({
+            document: { defaultView: undefined } as Document,
+        });
+        const runtimeWithoutStorage = getHRZoneControlsRuntime({
+            document: { defaultView: undefined } as Document,
+        });
         const runtimeWithInvalidAbortController = getHRZoneControlsRuntime({
             AbortController:
                 "AbortController" as unknown as typeof AbortController,
@@ -78,6 +84,9 @@ describe("getHRZoneControlsRuntime", () => {
             "createHRZoneControls requires a document runtime"
         );
         expect(() =>
+            runtimeWithoutAbortController.createAbortController()
+        ).toThrow("createHRZoneControls requires an AbortController runtime");
+        expect(() =>
             runtimeWithInvalidAbortController.createAbortController()
         ).toThrow("createHRZoneControls requires an AbortController runtime");
         expect(() => runtimeWithInvalidHTMLElement.isHTMLElement({})).toThrow(
@@ -87,6 +96,9 @@ describe("getHRZoneControlsRuntime", () => {
             runtimeWithInvalidStorage.getStorageItem(
                 "hr-zone-controls-collapsed"
             )
+        ).toThrow("createHRZoneControls requires a localStorage runtime");
+        expect(() =>
+            runtimeWithoutStorage.getStorageItem("hr-zone-controls-collapsed")
         ).toThrow("createHRZoneControls requires a localStorage runtime");
     });
 });

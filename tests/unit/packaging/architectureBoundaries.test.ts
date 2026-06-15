@@ -1290,6 +1290,8 @@ const directCreatePowerZoneControlsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|querySelector)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|\blocalStorage\.(?:getItem|setItem)\b/u;
 const directCreatePowerZoneControlsSimpleRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|querySelector)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|\blocalStorage\.(?:getItem|setItem)\b/u;
+const directZoneControlsRuntimeAmbientFallbackPattern =
+    /\?\?\s*globalThis\.(?:AbortController|localStorage)\b/u;
 const directDataPointFilterElementFactoryRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
 const directDataPointFilterPanelControllerRuntimeGlobalPattern =
@@ -6136,7 +6138,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps HR zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedCreateHRZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -6150,15 +6152,23 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createHRZoneControls.ts"
             )
         );
+        const hrZoneControlsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createHRZoneControlsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(hrZoneControlsRuntimeSource).not.toMatch(
+            directZoneControlsRuntimeAmbientFallbackPattern
+        );
         expect(hrZoneControlsSource).toContain(
             "createHRZoneControlsRuntime.js"
         );
     });
 
     it("keeps power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedCreatePowerZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -6172,15 +6182,23 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createPowerZoneControls.ts"
             )
         );
+        const powerZoneControlsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createPowerZoneControlsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(powerZoneControlsRuntimeSource).not.toMatch(
+            directZoneControlsRuntimeAmbientFallbackPattern
+        );
         expect(powerZoneControlsSource).toContain(
             "createPowerZoneControlsRuntime.js"
         );
     });
 
     it("keeps simple power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedCreatePowerZoneControlsSimpleRuntimeFiles
             .filter((relativeFile) =>
@@ -6194,8 +6212,16 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createPowerZoneControlsSimple.ts"
             )
         );
+        const powerZoneControlsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createPowerZoneControlsSimpleRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(powerZoneControlsRuntimeSource).not.toMatch(
+            directZoneControlsRuntimeAmbientFallbackPattern
+        );
         expect(powerZoneControlsSource).toContain(
             "createPowerZoneControlsSimpleRuntime.js"
         );

@@ -18,13 +18,26 @@ export interface PowerZoneControlsRuntime {
     setStorageItem: (key: string, value: string) => void;
 }
 
+const defaultPowerZoneControlsRuntimeScope: PowerZoneControlsRuntimeScope = {
+    get AbortController() {
+        return globalThis.AbortController;
+    },
+    get document() {
+        return globalThis.document;
+    },
+    get HTMLElement() {
+        return globalThis.HTMLElement;
+    },
+    get localStorage() {
+        return globalThis.localStorage;
+    },
+};
+
 function getAbortControllerConstructor(
     scope: PowerZoneControlsRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createPowerZoneControls requires an AbortController runtime"
@@ -63,10 +76,9 @@ function getLocalStorage(
     scope: PowerZoneControlsRuntimeScope
 ): PowerZoneControlsStorage {
     const storage =
-        scope.localStorage ??
-        scope.document?.defaultView?.localStorage ??
-        globalThis.localStorage;
+        scope.localStorage ?? scope.document?.defaultView?.localStorage;
     if (
+        !storage ||
         typeof storage.getItem !== "function" ||
         typeof storage.setItem !== "function"
     ) {
@@ -79,7 +91,7 @@ function getLocalStorage(
 }
 
 export function getPowerZoneControlsRuntime(
-    scope: PowerZoneControlsRuntimeScope = globalThis
+    scope: PowerZoneControlsRuntimeScope = defaultPowerZoneControlsRuntimeScope
 ): PowerZoneControlsRuntime {
     return {
         createAbortController(): AbortController {
