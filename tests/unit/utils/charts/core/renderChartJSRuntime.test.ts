@@ -64,8 +64,8 @@ describe("renderChartJSRuntime", () => {
         const utils = getRenderChartJSRuntime();
 
         vi.stubGlobal("CustomEvent", CustomEvent);
+        vi.stubGlobal("document", document);
         vi.stubGlobal("performance", { now });
-        vi.stubGlobal("window", window);
 
         expect(utils.getCustomEventConstructor()).toBe(CustomEvent);
         expect(utils.isWindowAvailable()).toBe(true);
@@ -87,11 +87,13 @@ describe("renderChartJSRuntime", () => {
         );
     });
 
-    it("reports window availability through the scoped runtime", () => {
+    it("reports renderer availability through the scoped runtime", () => {
         expect.assertions(2);
 
         expect(
-            getRenderChartJSRuntime({ window: {} }).isWindowAvailable()
+            getRenderChartJSRuntime({
+                isRendererScope: true,
+            }).isWindowAvailable()
         ).toBe(true);
         expect(getRenderChartJSRuntime({}).isWindowAvailable()).toBe(false);
     });
