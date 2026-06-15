@@ -54,6 +54,63 @@ describe("getThemeRuntime", () => {
         expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
 
+    it("routes runtime dependencies through provider functions", () => {
+        expect.assertions(15);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const callback = vi.fn<() => void>();
+        const delayMs = Number("300");
+        const timer = 91 as ReturnType<typeof globalThis.setTimeout>;
+        const mediaQuery = { matches: true } as MediaQueryList;
+        const windowTarget = {
+            addEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+            matchMedia: vi.fn(),
+            removeEventListener: vi.fn(),
+        } as unknown as Window & typeof globalThis;
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const matchMedia = vi.fn(() => mediaQuery);
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const getAbortController = vi.fn(
+            () =>
+                AbortControllerConstructor as unknown as typeof AbortController
+        );
+        const getClearTimeout = vi.fn(() => clearTimeout);
+        const getMatchMedia = vi.fn(() => matchMedia);
+        const getSetTimeout = vi.fn(() => setTimeout);
+        const getWindow = vi.fn(() => windowTarget);
+        const runtime = getThemeRuntime({
+            getAbortController,
+            getClearTimeout,
+            getMatchMedia,
+            getSetTimeout,
+            getWindow,
+        });
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+        expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
+        expect(runtime.getWindowEventTarget()).toBe(windowTarget);
+
+        expect(getAbortController).toHaveBeenCalledOnce();
+        expect(getSetTimeout).toHaveBeenCalledOnce();
+        expect(getClearTimeout).toHaveBeenCalledOnce();
+        expect(getMatchMedia).toHaveBeenCalledOnce();
+        expect(getWindow).toHaveBeenCalledOnce();
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+        expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
+        expect(windowTarget.matchMedia).not.toHaveBeenCalled();
+        expect(callback).not.toHaveBeenCalled();
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
