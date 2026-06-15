@@ -72,6 +72,44 @@ describe("stateDevToolsRuntime", () => {
         expect(callback).not.toHaveBeenCalled();
     });
 
+    it("delegates development checks and intervals through provider functions", () => {
+        expect.assertions(9);
+
+        const intervalHandle = 321 as ReturnType<typeof globalThis.setInterval>;
+        const callback = vi.fn();
+        const clearIntervalMock = vi.fn<typeof globalThis.clearInterval>();
+        const setIntervalMock = vi.fn<typeof globalThis.setInterval>(
+            () => intervalHandle
+        );
+        const getClearInterval = vi.fn(() => clearIntervalMock);
+        const getLocation = vi.fn(() => ({
+            hostname: "localhost",
+            protocol: "http:",
+        }));
+        const getSetInterval = vi.fn(() => setIntervalMock);
+        const getWindow = vi.fn(() => ({}));
+        const utils = getStateDevToolsRuntime({
+            getClearInterval,
+            getLocation,
+            getSetInterval,
+            getWindow,
+        });
+        const delay = 1000;
+
+        expect(utils.isDevelopmentScope()).toBe(true);
+        const handle = utils.setInterval(callback, delay);
+        expect(handle).toBe(intervalHandle);
+        utils.clearInterval(handle);
+
+        expect(getLocation).toHaveBeenCalledOnce();
+        expect(getWindow).toHaveBeenCalledOnce();
+        expect(getSetInterval).toHaveBeenCalledOnce();
+        expect(getClearInterval).toHaveBeenCalledOnce();
+        expect(setIntervalMock).toHaveBeenCalledWith(callback, delay);
+        expect(clearIntervalMock).toHaveBeenCalledWith(intervalHandle);
+        expect(callback).not.toHaveBeenCalled();
+    });
+
     it("does not borrow ambient intervals for explicit scopes", () => {
         expect.assertions(2);
 
