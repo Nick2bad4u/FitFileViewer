@@ -25,6 +25,22 @@ export interface ChartHoverEffectsRuntime {
     waitForAnimationFrame(): Promise<void>;
 }
 
+function getRequiredSetTimeout(
+    scope: ChartHoverEffectsRuntimeScope
+): (
+    callback: () => void,
+    timeout: number
+) => ChartHoverEffectsTimerHandle {
+    const setTimeoutRef = scope.setTimeout;
+    if (typeof setTimeoutRef !== "function") {
+        throw new TypeError(
+            "chart hover effects require a setTimeout runtime"
+        );
+    }
+
+    return setTimeoutRef;
+}
+
 export function getChartHoverEffectsRuntime(
     scope: ChartHoverEffectsRuntimeScope = globalThis
 ): ChartHoverEffectsRuntime {
@@ -49,11 +65,8 @@ export function getChartHoverEffectsRuntime(
             return scope.requestAnimationFrame(callback);
         },
         setTimeout(callback, timeout): ChartHoverEffectsTimerHandle {
-            if (typeof scope.setTimeout === "function") {
-                return scope.setTimeout(callback, timeout);
-            }
-
-            return globalThis.setTimeout(callback, timeout);
+            const setTimeoutRef = getRequiredSetTimeout(scope);
+            return setTimeoutRef(callback, timeout);
         },
         async waitForAnimationFrame(): Promise<void> {
             await new Promise<void>((resolve) => {
@@ -64,13 +77,8 @@ export function getChartHoverEffectsRuntime(
                     return;
                 }
 
-                if (typeof scope.setTimeout === "function") {
-                    const timeoutHandle = scope.setTimeout(resolve, 0);
-                    void timeoutHandle;
-                    return;
-                }
-
-                const timeoutHandle = globalThis.setTimeout(resolve, 0);
+                const setTimeoutRef = getRequiredSetTimeout(scope);
+                const timeoutHandle = setTimeoutRef(resolve, 0);
                 void timeoutHandle;
             });
         },

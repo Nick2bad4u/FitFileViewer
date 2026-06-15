@@ -69,6 +69,14 @@ describe("getChartStatusIndicatorRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
+    it("creates abort controllers through the injected document window", () => {
+        expect.assertions(1);
+
+        const runtime = getChartStatusIndicatorRuntime({ document });
+
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
+    });
+
     it("queries html elements through the injected document and constructor", () => {
         expect.assertions(4);
 
@@ -110,6 +118,30 @@ describe("getChartStatusIndicatorRuntime", () => {
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });
 
+    it("throws when timer cleanup is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getChartStatusIndicatorRuntime({});
+
+        expect(() =>
+            runtime.clearTimeout(
+                Symbol("chart-status-timer") as unknown as ReturnType<
+                    typeof setTimeout
+                >
+            )
+        ).toThrow("chartStatusIndicator requires a clearTimeout runtime");
+    });
+
+    it("throws when timer scheduling is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getChartStatusIndicatorRuntime({});
+
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "chartStatusIndicator requires a setTimeout runtime"
+        );
+    });
+
     it("reads viewport dimensions from an injected runtime scope", () => {
         expect.assertions(1);
 
@@ -134,7 +166,7 @@ describe("getChartStatusIndicatorRuntime", () => {
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const runtime = getChartStatusIndicatorRuntime({});
         const runtimeWithInvalidAbortController =
@@ -152,5 +184,8 @@ describe("getChartStatusIndicatorRuntime", () => {
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()
         ).toThrow("chartStatusIndicator requires an AbortController");
+        expect(() => runtime.createAbortController()).toThrow(
+            "chartStatusIndicator requires an AbortController"
+        );
     });
 });

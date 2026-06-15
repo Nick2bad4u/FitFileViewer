@@ -47,9 +47,7 @@ function getAbortControllerConstructor(
     scope: ChartStatusIndicatorRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "chartStatusIndicator requires an AbortController"
@@ -71,11 +69,7 @@ function getDocument(scope: ChartStatusIndicatorRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: ChartStatusIndicatorRuntimeScope
 ): typeof HTMLElement | undefined {
-    return (
-        scope.HTMLElement ??
-        scope.document?.defaultView?.HTMLElement ??
-        globalThis.HTMLElement
-    );
+    return scope.HTMLElement ?? scope.document?.defaultView?.HTMLElement;
 }
 
 function isHTMLElement(
@@ -87,6 +81,32 @@ function isHTMLElement(
         typeof HTMLElementConstructor === "function" &&
         value instanceof HTMLElementConstructor
     );
+}
+
+function getRequiredClearTimeout(
+    scope: ChartStatusIndicatorRuntimeScope
+): typeof clearTimeout {
+    const clearTimeoutRef = scope.clearTimeout;
+    if (typeof clearTimeoutRef !== "function") {
+        throw new TypeError(
+            "chartStatusIndicator requires a clearTimeout runtime"
+        );
+    }
+
+    return clearTimeoutRef;
+}
+
+function getRequiredSetTimeout(
+    scope: ChartStatusIndicatorRuntimeScope
+): typeof setTimeout {
+    const setTimeoutRef = scope.setTimeout;
+    if (typeof setTimeoutRef !== "function") {
+        throw new TypeError(
+            "chartStatusIndicator requires a setTimeout runtime"
+        );
+    }
+
+    return setTimeoutRef;
 }
 
 export function getChartStatusIndicatorRuntime(
@@ -112,8 +132,7 @@ export function getChartStatusIndicatorRuntime(
             });
         },
         clearTimeout(handle: ChartStatusIndicatorTimerHandle): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = getRequiredClearTimeout(scope);
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
@@ -139,7 +158,7 @@ export function getChartStatusIndicatorRuntime(
             handler: () => void,
             timeout: number
         ): ChartStatusIndicatorTimerHandle {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = getRequiredSetTimeout(scope);
             return setTimeoutRef(handler, timeout);
         },
     };

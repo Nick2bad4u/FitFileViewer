@@ -69,7 +69,17 @@ describe("getChartHoverEffectsRuntime", () => {
 
         expect(runtime.setTimeout(callback, timeoutMs)).toBe(23);
         expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
-        expect(setTimeout.mock.contexts[0]).toStrictEqual({ setTimeout });
+        expect(setTimeout).toHaveBeenCalledOnce();
+    });
+
+    it("throws when timer scheduling is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getChartHoverEffectsRuntime({});
+
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "chart hover effects require a setTimeout runtime"
+        );
     });
 
     it("waits for the next animation frame when frames are available", async () => {
@@ -110,5 +120,15 @@ describe("getChartHoverEffectsRuntime", () => {
         expect(setTimeout).toHaveBeenCalledOnce();
         expect(typeof setTimeout.mock.calls[0]?.[0]).toBe("function");
         expect(setTimeout.mock.calls[0]?.[1]).toBe(0);
+    });
+
+    it("throws when waiting without animation frames or a timer runtime", async () => {
+        expect.assertions(1);
+
+        const runtime = getChartHoverEffectsRuntime({});
+
+        await expect(runtime.waitForAnimationFrame()).rejects.toThrow(
+            "chart hover effects require a setTimeout runtime"
+        );
     });
 });

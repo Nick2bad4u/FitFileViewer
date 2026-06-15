@@ -1121,6 +1121,8 @@ const directUpdateMapThemeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directChartStatusCountsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bdocument\.querySelector\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directChartStatusIndicatorRuntimeAmbientFallbackPattern =
+    /\bglobalThis\.(?:AbortController|HTMLElement|clearTimeout|setTimeout)\b|\bscope\.(?:AbortController|HTMLElement|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|HTMLElement|clearTimeout|setTimeout)\b/u;
 const directGlobalChartStatusRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b/u;
 const directGlobalChartStatusUpdaterRuntimeGlobalPattern =
@@ -1173,6 +1175,8 @@ const directCancellationTokenRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directChartHoverEffectsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:requestAnimationFrame|setTimeout)\b|(?<![\w.])(?:requestAnimationFrame|setTimeout)\(|\bnew\s+AbortController\b/u;
+const directChartHoverEffectsRuntimeAmbientFallbackPattern =
+    /\bglobalThis\.setTimeout\s*\(|\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
 const directChartStateManagerRuntimeGlobalPattern =
     /\bdocument\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directSummaryColModalViewportGlobalPattern =
@@ -6849,7 +6853,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedChartStatusCountsRuntimeFiles
             .filter((relativeFile) =>
@@ -6866,9 +6870,20 @@ describe("architecture boundaries", () => {
                     )
             )
             .sort();
+        const chartStatusIndicatorRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/components/chartStatusIndicatorRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(chartStatusIndicatorRuntimeSource).not.toMatch(
+            directChartStatusIndicatorRuntimeAmbientFallbackPattern
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "chartStatusIndicator requires a setTimeout runtime"
+        );
     });
 
     it("keeps global chart status DOM lookups behind the runtime facade", () => {
@@ -7497,7 +7512,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
@@ -7511,12 +7526,23 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/plugins/addChartHoverEffects.ts"
             )
         );
+        const chartHoverEffectsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/plugins/addChartHoverEffectsRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(chartHoverEffectsSource).toContain(
             "addChartHoverEffectsRuntime.js"
         );
         expect(chartHoverEffectsSource).toContain("createAbortController");
+        expect(chartHoverEffectsRuntimeSource).not.toMatch(
+            directChartHoverEffectsRuntimeAmbientFallbackPattern
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "chart hover effects require a setTimeout runtime"
+        );
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
