@@ -1,4 +1,5 @@
 export interface StateStorageRuntimeScope {
+    readonly getLocalStorage?: (() => Storage | undefined) | undefined;
     readonly localStorage?: Storage | undefined;
 }
 
@@ -10,25 +11,29 @@ export interface StateStorageRuntime {
 }
 
 const defaultStateStorageRuntimeScope: StateStorageRuntimeScope = {
-    get localStorage() {
-        return globalThis.localStorage;
-    },
+    getLocalStorage: () => globalThis.localStorage,
 };
+
+function getScopeLocalStorage(
+    scope: StateStorageRuntimeScope
+): Storage | undefined {
+    return scope.getLocalStorage?.() ?? scope.localStorage;
+}
 
 export function getStateStorageRuntime(
     scope: StateStorageRuntimeScope = defaultStateStorageRuntimeScope
 ): StateStorageRuntime {
     return {
         getItem(key): null | string {
-            return scope.localStorage?.getItem(key) ?? null;
+            return getScopeLocalStorage(scope)?.getItem(key) ?? null;
         },
 
         getLocalStorage(): Storage | undefined {
-            return scope.localStorage;
+            return getScopeLocalStorage(scope);
         },
 
         removeItem(key): boolean {
-            const storage = scope.localStorage;
+            const storage = getScopeLocalStorage(scope);
             if (storage === undefined) {
                 return false;
             }
@@ -38,7 +43,7 @@ export function getStateStorageRuntime(
         },
 
         setItem(key, value): boolean {
-            const storage = scope.localStorage;
+            const storage = getScopeLocalStorage(scope);
             if (storage === undefined) {
                 return false;
             }

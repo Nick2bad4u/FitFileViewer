@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getStateStorageRuntime } from "../../../../../electron-app/utils/state/core/stateStorageRuntime.js";
 
@@ -20,6 +20,10 @@ function createStorage(): Storage {
 }
 
 describe("stateStorageRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("reads and writes through the injected localStorage reference", () => {
         expect.assertions(8);
 
@@ -50,5 +54,19 @@ describe("stateStorageRuntime", () => {
         expect(runtime.getItem("fitFileViewer_state")).toBeNull();
         expect(runtime.removeItem("fitFileViewer_state")).toBe(false);
         expect(runtime.setItem("fitFileViewer_state", "{}")).toBe(false);
+    });
+
+    it("resolves default localStorage when storage operations run", () => {
+        expect.assertions(2);
+
+        const storage = createStorage();
+        const runtime = getStateStorageRuntime();
+
+        vi.stubGlobal("localStorage", storage);
+
+        expect(runtime.getLocalStorage()).toBe(storage);
+        expect(runtime.setItem("fitFileViewer_state", '{"ui":true}')).toBe(
+            true
+        );
     });
 });

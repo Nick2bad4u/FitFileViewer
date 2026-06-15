@@ -755,6 +755,8 @@ const directStateIntegrationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|clearTimeout|localStorage|performance|setInterval|setTimeout)\b|(?:^|[^\w.])(?:clearInterval|clearTimeout|setInterval|setTimeout)\(|\b(?:Date|performance)\.(?:now|memory)\b|\btypeof\s+(?:localStorage|performance)\b/u;
 const directStateIntegrationRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearInterval|clearTimeout|dateNow|setInterval|setTimeout)[^;\n]*\?\?\s*(?:globalThis\.(?:clearInterval|clearTimeout|setInterval|setTimeout)|Date\.now)/u;
+const directStateStorageRuntimeAmbientGetterPattern =
+    /\bget\s+localStorage\s*\(\)\s*\{|\breturn\s+globalThis\.localStorage\b/u;
 const directStateDevToolsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|setInterval)\b|(?:^|[^\w.])(?:clearInterval|setInterval)\(/u;
 const directStateDevToolsRuntimeAmbientIntervalFallbackPattern =
@@ -3567,7 +3569,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the core state manager free of reactive global property bridges", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -3587,6 +3589,9 @@ describe("architecture boundaries", () => {
         expect(stateManagerSource).not.toContain("Reflect.get(globalThis");
         expect(stateManagerSource).not.toContain("localStorage.");
         expect(stateManagerSource).toContain("stateStorageRuntime.js");
+        expect(stateStorageRuntimeSource).not.toMatch(
+            directStateStorageRuntimeAmbientGetterPattern
+        );
         expect(stateStorageRuntimeSource).toContain(
             "defaultStateStorageRuntimeScope"
         );
