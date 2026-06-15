@@ -17,13 +17,24 @@ export interface CreateMarkerCountSelectorRuntime {
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
+const defaultCreateMarkerCountSelectorRuntimeScope: CreateMarkerCountSelectorRuntimeScope =
+    {
+        get AbortController() {
+            return globalThis.AbortController;
+        },
+        get document() {
+            return globalThis.document;
+        },
+        get Event() {
+            return globalThis.Event;
+        },
+    };
+
 function getAbortControllerConstructor(
     scope: CreateMarkerCountSelectorRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createMarkerCountSelector requires an AbortController runtime"
@@ -49,8 +60,7 @@ function getDocument(
 function getEventConstructor(
     scope: CreateMarkerCountSelectorRuntimeScope
 ): typeof Event {
-    const EventConstructor =
-        scope.Event ?? scope.document?.defaultView?.Event ?? globalThis.Event;
+    const EventConstructor = scope.Event ?? scope.document?.defaultView?.Event;
     if (typeof EventConstructor !== "function") {
         throw new TypeError(
             "createMarkerCountSelector requires an Event runtime"
@@ -61,7 +71,7 @@ function getEventConstructor(
 }
 
 export function getCreateMarkerCountSelectorRuntime(
-    scope: CreateMarkerCountSelectorRuntimeScope = globalThis
+    scope: CreateMarkerCountSelectorRuntimeScope = defaultCreateMarkerCountSelectorRuntimeScope
 ): CreateMarkerCountSelectorRuntime {
     return {
         createAbortController(): AbortController {

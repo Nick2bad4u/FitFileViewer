@@ -19,13 +19,21 @@ export interface AddExitFullscreenOverlayRuntime {
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
+const defaultAddExitFullscreenOverlayRuntimeScope: AddExitFullscreenOverlayRuntimeScope =
+    {
+        get AbortController() {
+            return globalThis.AbortController;
+        },
+        get document() {
+            return globalThis.document;
+        },
+    };
+
 function getAbortControllerConstructor(
     scope: AddExitFullscreenOverlayRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "addExitFullscreenOverlay requires an AbortController runtime"
@@ -49,11 +57,11 @@ function getDocument(scope: AddExitFullscreenOverlayRuntimeScope): Document {
 function getHTMLElementConstructor(
     runtimeDocument: Document
 ): typeof HTMLElement | undefined {
-    return runtimeDocument.defaultView?.HTMLElement ?? globalThis.HTMLElement;
+    return runtimeDocument.defaultView?.HTMLElement;
 }
 
 export function getAddExitFullscreenOverlayRuntime(
-    scope: AddExitFullscreenOverlayRuntimeScope = globalThis
+    scope: AddExitFullscreenOverlayRuntimeScope = defaultAddExitFullscreenOverlayRuntimeScope
 ): AddExitFullscreenOverlayRuntime {
     return {
         createAbortController(): AbortController {

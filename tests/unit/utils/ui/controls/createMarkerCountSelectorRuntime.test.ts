@@ -45,6 +45,22 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         expect(controller.signal.aborted).toBe(false);
     });
 
+    it("does not borrow ambient constructors for explicit documents", () => {
+        expect.assertions(2);
+
+        const scopedDocument = { defaultView: undefined } as Document;
+        const runtime = getCreateMarkerCountSelectorRuntime({
+            document: scopedDocument,
+        });
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "createMarkerCountSelector requires an AbortController runtime"
+        );
+        expect(() => runtime.createChangeEvent()).toThrow(
+            "createMarkerCountSelector requires an Event runtime"
+        );
+    });
+
     it("fails clearly when required runtimes are unavailable", () => {
         expect.assertions(3);
 

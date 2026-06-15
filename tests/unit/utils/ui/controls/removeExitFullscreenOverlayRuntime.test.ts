@@ -12,6 +12,19 @@ describe("getRemoveExitFullscreenOverlayRuntime", () => {
         expect(runtime.isHTMLElement({})).toBe(false);
     });
 
+    it("does not borrow ambient element constructors for explicit documents", () => {
+        expect.assertions(1);
+
+        const scopedDocument = { defaultView: undefined } as Document;
+        const runtime = getRemoveExitFullscreenOverlayRuntime({
+            document: scopedDocument,
+        });
+
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
+            false
+        );
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 

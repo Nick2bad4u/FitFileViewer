@@ -1253,14 +1253,20 @@ const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+AbortController\b/u;
 const directAddExitFullscreenOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|exitFullscreen|fullscreenElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b/u;
+const directAddExitFullscreenOverlayRuntimeAmbientFallbackPattern =
+    /\?\?\s*globalThis\.(?:AbortController|HTMLElement)\b/u;
 const directRemoveExitFullscreenOverlayRuntimeGlobalPattern =
     /\binstanceof\s+HTMLElement\b/u;
+const directRemoveExitFullscreenOverlayRuntimeAmbientFallbackPattern =
+    /\?\?\s*globalThis\.HTMLElement\b/u;
 const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b/u;
 const directOpenPowerEstimationSettingsModalRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+(?:AbortController|Event)\(/u;
+const directCreateMarkerCountSelectorRuntimeAmbientFallbackPattern =
+    /\?\?\s*globalThis\.(?:AbortController|Event)\b/u;
 const directCreateDataPointFilterControlRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b|\btypeof\s+queueMicrotask\b|\bPromise\.resolve\(\)\.then\(/u;
 const createDataPointFilterControlTestDirectAsyncGlobalAssignmentPattern =
@@ -5845,7 +5851,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exit-fullscreen overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedAddExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -5859,15 +5865,26 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/addExitFullscreenOverlay.ts"
             )
         );
+        const addExitFullscreenOverlayRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/addExitFullscreenOverlayRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(addExitFullscreenOverlaySource).toContain(
             "addExitFullscreenOverlayRuntime.js"
         );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toMatch(
+            directAddExitFullscreenOverlayRuntimeAmbientFallbackPattern
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).toContain(
+            "defaultAddExitFullscreenOverlayRuntimeScope"
+        );
     });
 
     it("keeps exit-fullscreen overlay removal browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedRemoveExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -5881,10 +5898,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/removeExitFullscreenOverlay.ts"
             )
         );
+        const removeExitFullscreenOverlayRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/removeExitFullscreenOverlayRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(removeExitFullscreenOverlaySource).toContain(
             "removeExitFullscreenOverlayRuntime.js"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).not.toMatch(
+            directRemoveExitFullscreenOverlayRuntimeAmbientFallbackPattern
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).toContain(
+            "defaultRemoveExitFullscreenOverlayRuntimeScope"
         );
     });
 
@@ -5936,7 +5964,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps marker-count selector browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedCreateMarkerCountSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -5950,10 +5978,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createMarkerCountSelector.ts"
             )
         );
+        const createMarkerCountSelectorRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createMarkerCountSelectorRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(createMarkerCountSelectorSource).toContain(
             "createMarkerCountSelectorRuntime.js"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toMatch(
+            directCreateMarkerCountSelectorRuntimeAmbientFallbackPattern
+        );
+        expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "defaultCreateMarkerCountSelectorRuntimeScope"
         );
     });
 

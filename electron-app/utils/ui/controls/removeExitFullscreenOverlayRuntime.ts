@@ -6,6 +6,13 @@ export interface RemoveExitFullscreenOverlayRuntime {
     isHTMLElement: (value: unknown) => value is HTMLElement;
 }
 
+const defaultRemoveExitFullscreenOverlayRuntimeScope: RemoveExitFullscreenOverlayRuntimeScope =
+    {
+        get document() {
+            return globalThis.document;
+        },
+    };
+
 function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
     const runtimeDocument = scope.document;
     if (!runtimeDocument) {
@@ -20,11 +27,11 @@ function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
 function getHTMLElementConstructor(
     runtimeDocument: Document
 ): typeof HTMLElement | undefined {
-    return runtimeDocument.defaultView?.HTMLElement ?? globalThis.HTMLElement;
+    return runtimeDocument.defaultView?.HTMLElement;
 }
 
 export function getRemoveExitFullscreenOverlayRuntime(
-    scope: RemoveExitFullscreenOverlayRuntimeScope = globalThis
+    scope: RemoveExitFullscreenOverlayRuntimeScope = defaultRemoveExitFullscreenOverlayRuntimeScope
 ): RemoveExitFullscreenOverlayRuntime {
     return {
         isHTMLElement(value: unknown): value is HTMLElement {
