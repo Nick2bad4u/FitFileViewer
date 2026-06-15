@@ -8295,7 +8295,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(10);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -8323,6 +8323,21 @@ describe("architecture boundaries", () => {
         );
         expect(renderSummaryRuntimeSource).not.toContain(
             "scope: RenderSummaryRuntimeScope = globalThis"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = globalThis"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "getAddEventListener: () => globalThis.addEventListener"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
     });
 
