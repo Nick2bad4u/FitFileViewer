@@ -30,8 +30,11 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
+const defaultCreateSettingsHeaderRuntimeScope: CreateSettingsHeaderRuntimeScope =
+    globalThis;
+
 export function getCreateSettingsHeaderRuntime(
-    scope: CreateSettingsHeaderRuntimeScope = globalThis
+    scope: CreateSettingsHeaderRuntimeScope = defaultCreateSettingsHeaderRuntimeScope
 ): CreateSettingsHeaderRuntime {
     return {
         clearTimeout(timer): void {

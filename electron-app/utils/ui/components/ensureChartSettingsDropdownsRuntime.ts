@@ -87,8 +87,11 @@ function getTimeoutScheduler(
     return timeoutScheduler;
 }
 
+const defaultEnsureChartSettingsDropdownsRuntimeScope: EnsureChartSettingsDropdownsRuntimeScope =
+    globalThis;
+
 export function getEnsureChartSettingsDropdownsRuntime(
-    scope: EnsureChartSettingsDropdownsRuntimeScope = globalThis
+    scope: EnsureChartSettingsDropdownsRuntimeScope = defaultEnsureChartSettingsDropdownsRuntimeScope
 ): EnsureChartSettingsDropdownsRuntime {
     const runtimeDocument = getDocument(scope);
 

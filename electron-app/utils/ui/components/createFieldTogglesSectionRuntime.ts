@@ -98,8 +98,11 @@ function getHTMLInputElementConstructor(
     return HTMLInputElementConstructor;
 }
 
+const defaultCreateFieldTogglesSectionRuntimeScope: CreateFieldTogglesSectionRuntimeScope =
+    globalThis;
+
 export function getCreateFieldTogglesSectionRuntime(
-    scope: CreateFieldTogglesSectionRuntimeScope = globalThis
+    scope: CreateFieldTogglesSectionRuntimeScope = defaultCreateFieldTogglesSectionRuntimeScope
 ): CreateFieldTogglesSectionRuntime {
     return {
         createAbortController(): AbortController {

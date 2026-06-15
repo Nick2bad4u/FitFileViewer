@@ -3989,7 +3989,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings dropdown browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedEnsureChartSettingsDropdownsRuntimeFiles
             .filter((relativeFile) =>
@@ -4017,12 +4017,18 @@ describe("architecture boundaries", () => {
             directEnsureChartSettingsDropdownsRuntimeAmbientFallbackPattern
         );
         expect(chartSettingsRuntimeSource).toContain(
+            "defaultEnsureChartSettingsDropdownsRuntimeScope"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "scope: EnsureChartSettingsDropdownsRuntimeScope = globalThis"
+        );
+        expect(chartSettingsRuntimeSource).toContain(
             "const timeoutScheduler = scope.setTimeout;"
         );
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -4051,12 +4057,18 @@ describe("architecture boundaries", () => {
             directCreateSettingsHeaderRuntimeAmbientFallbackPattern
         );
         expect(settingsHeaderRuntimeSource).toContain(
+            "defaultCreateSettingsHeaderRuntimeScope"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "scope: CreateSettingsHeaderRuntimeScope = globalThis"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
             "const setTimeoutRef = scope.setTimeout;"
         );
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedCreateFieldTogglesSectionRuntimeFiles
             .filter((relativeFile) =>
@@ -4082,6 +4094,12 @@ describe("architecture boundaries", () => {
         );
         expect(fieldTogglesRuntimeSource).not.toMatch(
             directCreateFieldTogglesSectionRuntimeAmbientFallbackPattern
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "defaultCreateFieldTogglesSectionRuntimeScope"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "scope: CreateFieldTogglesSectionRuntimeScope = globalThis"
         );
         expect(fieldTogglesRuntimeSource).toContain(
             "createFieldTogglesSection requires a setTimeout runtime"
