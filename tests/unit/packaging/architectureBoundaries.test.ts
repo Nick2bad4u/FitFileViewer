@@ -4509,7 +4509,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -4523,13 +4523,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/notifications/showNotification.ts"
             )
         );
+        const notificationRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/showNotificationRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(notificationSource).toContain("showNotificationRuntime.js");
+        expect(notificationRuntimeSource).toContain(
+            "defaultShowNotificationRuntimeScope"
+        );
     });
 
     it("keeps update and state-synced notification timers behind the runtime facade", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const violations = migratedNotificationTimerRuntimeFiles
             .filter((relativeFile) => {
@@ -4540,8 +4548,16 @@ describe("architecture boundaries", () => {
                 );
             })
             .sort();
+        const notificationTimerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/notificationTimerRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(notificationTimerRuntimeSource).toContain(
+            "defaultNotificationTimerRuntimeScope"
+        );
     });
 
     it("keeps theme setup state access on the renderer theme state facade", () => {

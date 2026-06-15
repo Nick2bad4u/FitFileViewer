@@ -39,8 +39,30 @@ function getFrameRuntime(
     return scope.window ?? scope;
 }
 
+const defaultShowNotificationRuntimeScope: ShowNotificationRuntimeScope = {
+    get cancelAnimationFrame():
+        | typeof globalThis.cancelAnimationFrame
+        | undefined {
+        return globalThis.cancelAnimationFrame;
+    },
+    get clearTimeout(): typeof globalThis.clearTimeout | undefined {
+        return globalThis.clearTimeout;
+    },
+    get requestAnimationFrame():
+        | typeof globalThis.requestAnimationFrame
+        | undefined {
+        return globalThis.requestAnimationFrame;
+    },
+    get setTimeout(): typeof globalThis.setTimeout | undefined {
+        return globalThis.setTimeout;
+    },
+    get window(): ShowNotificationWindowRuntime | undefined {
+        return globalThis.window;
+    },
+};
+
 export function getShowNotificationRuntime(
-    scope: ShowNotificationRuntimeScope = globalThis
+    scope: ShowNotificationRuntimeScope = defaultShowNotificationRuntimeScope
 ): ShowNotificationRuntime {
     return {
         cancelAnimationFrame(frame) {
