@@ -4649,7 +4649,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -4666,6 +4666,10 @@ describe("architecture boundaries", () => {
         expect(showFitDataSource).not.toMatch(
             /\bglobalThis\.(?:matchMedia|scrollTo)\b|(?:^|[^\w.])queueMicrotask\(/u
         );
+        expect(showFitDataSource).not.toMatch(
+            /\bglobalThis\.dispatchEvent\b|\bnew\s+CustomEvent\b/u
+        );
+        expect(showFitDataSource).toContain("showFitDataRuntime.dispatchEvent");
     });
 
     it("keeps map base-layer persistence on the map base-layer state facade", () => {

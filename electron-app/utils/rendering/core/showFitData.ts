@@ -297,13 +297,13 @@ function enableTabsAndNotify(filePath: string): void {
         getShowFitDataElectronApi()?.notifyFitFileLoaded?.(filePath);
 
         // Dispatch custom event for other components
-        const event = new CustomEvent(
+        const event = showFitDataRuntime.createCustomEvent(
             DISPLAY_CONSTANTS.EVENTS.FIT_FILE_LOADED,
             {
                 detail: { filePath },
             }
         );
-        globalThis.dispatchEvent(event);
+        showFitDataRuntime.dispatchEvent(event);
 
         log("info", "Tabs enabled and notifications sent", { filePath });
     } catch (error) {

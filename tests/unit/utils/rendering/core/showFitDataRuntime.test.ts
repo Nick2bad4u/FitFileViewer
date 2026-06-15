@@ -32,6 +32,40 @@ describe("showFitDataRuntime", () => {
         expect(runtime.prefersReducedMotion()).toBe(false);
     });
 
+    it("creates and dispatches custom events through scoped browser APIs", () => {
+        expect.assertions(4);
+
+        const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
+        const runtime = getShowFitDataRuntime({
+            CustomEvent,
+            dispatchEvent,
+        });
+
+        const event = runtime.createCustomEvent("fitfile-loaded", {
+            detail: { filePath: "activity.fit" },
+        });
+
+        expect(event).toBeInstanceOf(CustomEvent);
+        expect(event.detail).toStrictEqual({ filePath: "activity.fit" });
+        expect(runtime.dispatchEvent(event)).toBe(true);
+        expect(dispatchEvent).toHaveBeenCalledWith(event);
+    });
+
+    it("fails clearly when required event APIs are unavailable", () => {
+        expect.assertions(2);
+
+        expect(() =>
+            getShowFitDataRuntime({
+                dispatchEvent: () => true,
+            }).createCustomEvent("fitfile-loaded")
+        ).toThrow("showFitData requires a CustomEvent runtime");
+        expect(() =>
+            getShowFitDataRuntime({ CustomEvent }).dispatchEvent(
+                new Event("fitfile-loaded")
+            )
+        ).toThrow("showFitData requires a dispatchEvent runtime");
+    });
+
     it("queues microtasks through the scoped runtime", () => {
         expect.assertions(3);
 
