@@ -6661,7 +6661,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map measure-tool timers behind the runtime facade", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const violations = migratedMapMeasureToolRuntimeFiles
             .filter((relativeFile) =>
@@ -6682,6 +6682,12 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(mapMeasureToolSource).toContain("mapMeasureToolRuntime.js");
         expect(mapMeasureToolSource).toContain("createAbortController");
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "defaultMapMeasureToolRuntimeScope"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "scope: MapMeasureToolRuntimeScope = globalThis"
+        );
         expect(mapMeasureToolRuntimeSource).toContain(
             "const runtimeDocument = scope.document;"
         );

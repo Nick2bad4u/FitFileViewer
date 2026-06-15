@@ -23,8 +23,11 @@ export interface MapMeasureToolRuntime {
     setTimeout(callback: () => void, delayMs: number): MapMeasureToolTimer;
 }
 
+const defaultMapMeasureToolRuntimeScope: MapMeasureToolRuntimeScope =
+    globalThis;
+
 export function getMapMeasureToolRuntime(
-    scope: MapMeasureToolRuntimeScope = globalThis
+    scope: MapMeasureToolRuntimeScope = defaultMapMeasureToolRuntimeScope
 ): MapMeasureToolRuntime {
     return {
         addDocumentKeydownListener(listener, options): void {
