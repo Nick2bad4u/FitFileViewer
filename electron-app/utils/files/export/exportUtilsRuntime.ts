@@ -1,12 +1,26 @@
+type ConfirmDangerousActionFunction = (message?: string) => boolean;
+
+type OpenPrintWindowFunction = (
+    url?: string | URL,
+    target?: string,
+    features?: string
+) => Window | null;
+
 export interface ExportUtilsRuntimeScope {
     readonly AbortController?: typeof globalThis.AbortController | undefined;
+    readonly confirmDangerousAction?:
+        | ConfirmDangerousActionFunction
+        | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
-    readonly getWindow?:
-        | (() => Pick<Window, "confirm" | "open"> | undefined)
+    readonly getConfirmDangerousAction?:
+        | (() => ConfirmDangerousActionFunction | undefined)
         | undefined;
-    readonly window?: Pick<Window, "confirm" | "open"> | undefined;
+    readonly getOpenPrintWindow?:
+        | (() => OpenPrintWindowFunction | undefined)
+        | undefined;
+    readonly openPrintWindow?: OpenPrintWindowFunction | undefined;
 }
 
 export interface ExportUtilsRuntime {
@@ -19,9 +33,17 @@ export interface ExportUtilsRuntime {
     ) => Window | null;
 }
 
+const browserGlobal = globalThis as typeof globalThis & {
+    confirm?: ConfirmDangerousActionFunction | undefined;
+    open?: OpenPrintWindowFunction | undefined;
+};
+
 const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
+    getConfirmDangerousAction: () => (message) =>
+        browserGlobal.confirm?.(message) ?? false,
     getAbortController: () => globalThis.AbortController,
-    getWindow: () => globalThis.window,
+    getOpenPrintWindow: () => (url, target, features) =>
+        browserGlobal.open?.(url, target, features) ?? null,
 };
 
 function getScopeAbortController(
@@ -30,10 +52,16 @@ function getScopeAbortController(
     return scope.getAbortController?.() ?? scope.AbortController;
 }
 
-function getScopeWindow(
+function getScopeConfirmDangerousAction(
     scope: ExportUtilsRuntimeScope
-): Pick<Window, "confirm" | "open"> | undefined {
-    return scope.getWindow?.() ?? scope.window;
+): ConfirmDangerousActionFunction | undefined {
+    return scope.getConfirmDangerousAction?.() ?? scope.confirmDangerousAction;
+}
+
+function getScopeOpenPrintWindow(
+    scope: ExportUtilsRuntimeScope
+): OpenPrintWindowFunction | undefined {
+    return scope.getOpenPrintWindow?.() ?? scope.openPrintWindow;
 }
 
 export function getExportUtilsRuntime(
@@ -41,8 +69,9 @@ export function getExportUtilsRuntime(
 ): ExportUtilsRuntime {
     return {
         confirmDangerousAction(message: string): boolean {
-            const runtimeWindow = getScopeWindow(scope);
-            return runtimeWindow?.confirm(message) ?? false;
+            const confirmDangerousAction =
+                getScopeConfirmDangerousAction(scope);
+            return confirmDangerousAction?.(message) ?? false;
         },
 
         createAbortController(): AbortController {
@@ -57,8 +86,8 @@ export function getExportUtilsRuntime(
         },
 
         openPrintWindow(url, target, features): Window | null {
-            const runtimeWindow = getScopeWindow(scope);
-            return runtimeWindow?.open(url, target, features) ?? null;
+            const openPrintWindow = getScopeOpenPrintWindow(scope);
+            return openPrintWindow?.(url, target, features) ?? null;
         },
     };
 }

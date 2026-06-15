@@ -3781,7 +3781,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(19);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -3808,6 +3808,13 @@ describe("architecture boundaries", () => {
         expect(exportUtilsSource).not.toMatch(/\bnew\s+AbortController\b/u);
         expect(exportUtilsRuntimeSource).toContain(
             "defaultExportUtilsRuntimeScope"
+        );
+        expect(exportUtilsRuntimeSource).toContain("getConfirmDangerousAction");
+        expect(exportUtilsRuntimeSource).toContain("getOpenPrintWindow");
+        expect(exportUtilsRuntimeSource).not.toContain("globalThis.window");
+        expect(exportUtilsRuntimeSource).not.toContain("getWindow");
+        expect(exportUtilsRuntimeSource).not.toContain(
+            'Pick<Window, "confirm" | "open">'
         );
         expect(exportUtilsRuntimeSource).not.toContain(
             "scope: ExportUtilsRuntimeScope = globalThis"
