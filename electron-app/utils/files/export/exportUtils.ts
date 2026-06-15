@@ -31,7 +31,7 @@ type ExportStorageLike = {
     setItem?: (key: string, value: string) => void;
 };
 type ExportStorageProvider = () => ExportStorageLike | null;
-type SecureRandomGlobal = typeof globalThis & {
+type SecureRandomScope = {
     crypto?: Pick<Crypto, "getRandomValues">;
 };
 type ElectronApiLike = Partial<
@@ -56,6 +56,28 @@ type ChartDataset = {
 };
 
 const exportUtilsRuntime = getExportUtilsRuntime();
+
+function getDefaultExportStorage(): ExportStorageLike | null {
+    const storage = Reflect.get(globalThis, "localStorage");
+
+    return storage &&
+        typeof storage === "object" &&
+        (typeof Reflect.get(storage, "getItem") === "function" ||
+            typeof Reflect.get(storage, "setItem") === "function" ||
+            typeof Reflect.get(storage, "removeItem") === "function")
+        ? storage
+        : null;
+}
+
+function getSecureRandomScope(): SecureRandomScope {
+    const cryptoObject = Reflect.get(globalThis, "crypto");
+
+    return cryptoObject &&
+        typeof cryptoObject === "object" &&
+        typeof Reflect.get(cryptoObject, "getRandomValues") === "function"
+        ? { crypto: cryptoObject }
+        : {};
+}
 
 /**
  * Minimal Chart.js-like shape accepted by export helpers.
@@ -301,7 +323,7 @@ function dataUrlToBlob(dataUrl: string): Blob {
  * @returns {string}
  */
 function generateOAuthState(): string {
-    const { crypto: cryptoObject } = getSecureRandomGlobal();
+    const { crypto: cryptoObject } = getSecureRandomScope();
 
     if (!cryptoObject || typeof cryptoObject.getRandomValues !== "function") {
         throw new Error("Secure random number generation is unavailable");
@@ -312,13 +334,6 @@ function generateOAuthState(): string {
 
     // Hex encoding keeps this simple and deterministic across environments.
     return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-/*
- * @returns {SecureRandomGlobal}
- */
-function getSecureRandomGlobal(): SecureRandomGlobal {
-    return globalThis;
 }
 
 function stringifyChartValue(value: unknown): string {
@@ -741,7 +756,7 @@ let __deps: {
     showNotification: ExportNotification;
 } = {
     detectCurrentTheme,
-    getStorage: () => globalThis.localStorage ?? null,
+    getStorage: getDefaultExportStorage,
     showNotification,
 };
 
