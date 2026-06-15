@@ -122,6 +122,82 @@ describe("masterStateRuntime", () => {
         expect(dispatchGlobalEvent).toHaveBeenCalledWith(event);
     });
 
+    it("routes browser state dependencies through provider functions", () => {
+        expect.assertions(18);
+
+        let created = false;
+        class TestAbortController extends AbortController {
+            constructor() {
+                super();
+                created = true;
+            }
+        }
+        const addGlobalEventListener = vi.fn();
+        const addWindowEventListener = vi.fn();
+        const dispatchGlobalEvent = vi.fn(() => true);
+        const listener = vi.fn();
+        const options = { once: true };
+        const event = new Event("stateChanged");
+        const location = {
+            hostname: "example.com",
+            protocol: "https:",
+            search: "?debug=true",
+        };
+        const windowTarget = { addEventListener: addWindowEventListener };
+        const getAbortController = vi.fn(
+            () => TestAbortController as unknown as typeof AbortController
+        );
+        const getAddEventListener = vi.fn(() => addGlobalEventListener);
+        const getDevelopmentFlag = vi.fn(() => false);
+        const getDispatchEvent = vi.fn(() => dispatchGlobalEvent);
+        const getLocation = vi.fn(() => location);
+        const getWindow = vi.fn(() => windowTarget);
+        const utils = getMasterStateRuntime({
+            getAbortController,
+            getAddEventListener,
+            getDevelopmentFlag,
+            getDispatchEvent,
+            getLocation,
+            getWindow,
+        });
+
+        expect(utils.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(utils.location).toBe(location);
+        expect(utils.isDevelopmentScope()).toBe(true);
+        utils.addGlobalEventListener("error", listener, options);
+        utils.addWindowEventListener("resize", listener, options);
+        expect(utils.dispatchGlobalEvent(event)).toBe(true);
+
+        expect(getAbortController).toHaveBeenCalledOnce();
+        expect(getAddEventListener).toHaveBeenCalledOnce();
+        expect(getDevelopmentFlag).toHaveBeenCalledOnce();
+        expect(getDispatchEvent).toHaveBeenCalledOnce();
+        expect(getLocation).toHaveBeenCalledTimes(2);
+        expect(getWindow).toHaveBeenCalledTimes(4);
+        expect(addGlobalEventListener).toHaveBeenCalledWith(
+            "error",
+            listener,
+            options
+        );
+        expect(addWindowEventListener).toHaveBeenCalledWith(
+            "resize",
+            listener,
+            options
+        );
+        expect(dispatchGlobalEvent).toHaveBeenCalledWith(event);
+        expect(addGlobalEventListener.mock.contexts[0]).toMatchObject({
+            getAddEventListener,
+        });
+        expect(addWindowEventListener.mock.contexts[0]).toBe(windowTarget);
+        expect(dispatchGlobalEvent.mock.contexts[0]).toMatchObject({
+            getDispatchEvent,
+        });
+        expect(created).toBe(true);
+        expect(listener).not.toHaveBeenCalled();
+    });
+
     it("creates abort controllers through the scoped runtime", () => {
         expect.assertions(2);
 

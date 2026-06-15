@@ -13,6 +13,18 @@ export interface MasterStateRuntimeScope {
     readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly addEventListener?: typeof globalThis.addEventListener | undefined;
     readonly dispatchEvent?: typeof globalThis.dispatchEvent | undefined;
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
+        | undefined;
+    readonly getAddEventListener?:
+        | (() => typeof globalThis.addEventListener | undefined)
+        | undefined;
+    readonly getDevelopmentFlag?: (() => boolean | undefined) | undefined;
+    readonly getDispatchEvent?:
+        | (() => typeof globalThis.dispatchEvent | undefined)
+        | undefined;
+    readonly getLocation?: (() => LocationLike | undefined) | undefined;
+    readonly getWindow?: (() => WindowEventTarget | undefined) | undefined;
     readonly location?: LocationLike | undefined;
     readonly window?: WindowEventTarget | undefined;
 }
@@ -47,29 +59,80 @@ function getLocationText(
     return typeof value === "string" ? value : "";
 }
 
-const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = globalThis;
+const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getAddEventListener: () => globalThis.addEventListener,
+    getDevelopmentFlag: () =>
+        Reflect.get(globalThis, "__DEVELOPMENT__") === true,
+    getDispatchEvent: () => globalThis.dispatchEvent,
+    getLocation: () => globalThis.location,
+    getWindow: () => globalThis.window,
+};
+
+function getScopeAbortController(
+    scope: MasterStateRuntimeScope
+): typeof globalThis.AbortController | undefined {
+    return scope.getAbortController?.() ?? scope.AbortController;
+}
+
+function getScopeAddEventListener(
+    scope: MasterStateRuntimeScope
+): typeof globalThis.addEventListener | undefined {
+    return scope.getAddEventListener?.() ?? scope.addEventListener;
+}
+
+function getScopeDevelopmentFlag(
+    scope: MasterStateRuntimeScope
+): boolean | undefined {
+    return scope.getDevelopmentFlag?.() ?? scope.__DEVELOPMENT__;
+}
+
+function getScopeDispatchEvent(
+    scope: MasterStateRuntimeScope
+): typeof globalThis.dispatchEvent | undefined {
+    return scope.getDispatchEvent?.() ?? scope.dispatchEvent;
+}
+
+function getScopeLocation(
+    scope: MasterStateRuntimeScope
+): LocationLike | undefined {
+    return scope.getLocation?.() ?? scope.location;
+}
+
+function getScopeWindow(
+    scope: MasterStateRuntimeScope
+): WindowEventTarget | undefined {
+    return scope.getWindow?.() ?? scope.window;
+}
 
 export function getMasterStateRuntime(
     scope: MasterStateRuntimeScope = defaultMasterStateRuntimeScope
 ): MasterStateRuntime {
     const getLocation = (): LocationLike =>
-        scope.window === undefined ? {} : (scope.location ?? {});
+        getScopeWindow(scope) === undefined ? {} : (getScopeLocation(scope) ?? {});
 
     return {
         addGlobalEventListener(type, listener, options): void {
+            const addEventListenerRef = getScopeAddEventListener(scope);
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned listener options, including AbortSignal cleanup.
-            scope.addEventListener?.(type, listener as EventListener, options);
+            addEventListenerRef?.call(
+                scope,
+                type,
+                listener as EventListener,
+                options
+            );
         },
         addWindowEventListener(type, listener, options): void {
+            const windowTarget = getScopeWindow(scope);
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned listener options, including AbortSignal cleanup.
-            scope.window?.addEventListener(
+            windowTarget?.addEventListener(
                 type,
                 listener as EventListener,
                 options
             );
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = getScopeAbortController(scope);
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "master state manager requires an AbortController runtime"
@@ -79,10 +142,11 @@ export function getMasterStateRuntime(
             return new AbortControllerConstructor();
         },
         dispatchGlobalEvent(event): boolean {
-            return scope.dispatchEvent?.(event) ?? false;
+            return getScopeDispatchEvent(scope)?.call(scope, event) ?? false;
         },
         isDevelopmentScope(options = {}): boolean {
             const location = getLocation();
+            const windowTarget = getScopeWindow(scope);
             const hostname = getLocationText(location, "hostname");
             const search = getLocationText(location, "search");
             const hash = getLocationText(location, "hash");
@@ -93,12 +157,12 @@ export function getMasterStateRuntime(
                 hostname === "localhost" ||
                 hostname === "127.0.0.1" ||
                 hostname.includes("dev") ||
-                scope.__DEVELOPMENT__ === true ||
+                getScopeDevelopmentFlag(scope) === true ||
                 search.includes("debug=true") ||
                 hash.includes("debug") ||
                 options.hasDevelopmentModeAttribute === true ||
                 protocol === "file:" ||
-                (scope.window !== undefined &&
+                (windowTarget !== undefined &&
                     options.electronDevMode !== undefined) ||
                 href.includes("electron")
             );

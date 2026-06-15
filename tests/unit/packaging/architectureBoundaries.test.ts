@@ -5609,7 +5609,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(12);
+        expect.assertions(20);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -5645,6 +5645,30 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateRuntimeSource).not.toContain(
             "scope: MasterStateRuntimeScope = globalThis"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = globalThis"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getAddEventListener: () => globalThis.addEventListener"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'Reflect.get(globalThis, "__DEVELOPMENT__") === true'
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getDispatchEvent: () => globalThis.dispatchEvent"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getLocation: () => globalThis.location"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getWindow: () => globalThis.window"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getScopeDevelopmentFlag(scope) === true"
         );
     });
 
