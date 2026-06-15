@@ -38,8 +38,10 @@ function getRequiredSetTimeout(
     return setTimeoutRef;
 }
 
+const defaultRenderMapRuntimeScope: RenderMapRuntimeScope = globalThis;
+
 export function getRenderMapRuntime(
-    scope: RenderMapRuntimeScope = globalThis
+    scope: RenderMapRuntimeScope = defaultRenderMapRuntimeScope
 ): RenderMapRuntime {
     return {
         clearTimeout(timer): void {

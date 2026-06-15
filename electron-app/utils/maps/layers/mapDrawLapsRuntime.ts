@@ -10,8 +10,10 @@ export interface MapDrawLapsRuntime {
     setTimeout(callback: () => void, delayMs: number): MapDrawLapsTimer;
 }
 
+const defaultMapDrawLapsRuntimeScope: MapDrawLapsRuntimeScope = globalThis;
+
 export function getMapDrawLapsRuntime(
-    scope: MapDrawLapsRuntimeScope = globalThis
+    scope: MapDrawLapsRuntimeScope = defaultMapDrawLapsRuntimeScope
 ): MapDrawLapsRuntime {
     return {
         clearTimeout(timer): void {

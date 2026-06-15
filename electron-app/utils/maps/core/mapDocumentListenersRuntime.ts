@@ -49,8 +49,11 @@ function getRuntimeWindow(
     return runtimeWindow;
 }
 
+const defaultMapDocumentListenersRuntimeScope: MapDocumentListenersRuntimeScope =
+    globalThis;
+
 export function getMapDocumentListenersRuntime(
-    scope: MapDocumentListenersRuntimeScope = globalThis
+    scope: MapDocumentListenersRuntimeScope = defaultMapDocumentListenersRuntimeScope
 ): MapDocumentListenersRuntime {
     return {
         addDocumentMousedownListener(listener, options): void {

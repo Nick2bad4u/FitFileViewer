@@ -4754,7 +4754,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-map timing and abort controllers behind the runtime adapter", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const renderMapSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
@@ -4773,6 +4773,12 @@ describe("architecture boundaries", () => {
         expect(renderMapSource).toContain("createAbortController");
         expect(directRenderMapTimingGlobalPattern.test(renderMapSource)).toBe(
             false
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "defaultRenderMapRuntimeScope"
+        );
+        expect(renderMapRuntimeSource).not.toContain(
+            "scope: RenderMapRuntimeScope = globalThis"
         );
         expect(renderMapRuntimeSource).not.toMatch(
             directRenderMapRuntimeAmbientTimerFallbackPattern
@@ -6591,7 +6597,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map document listeners behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const violations = migratedMapDocumentListenersRuntimeFiles
             .filter((relativeFile) =>
@@ -6614,6 +6620,12 @@ describe("architecture boundaries", () => {
             "mapDocumentListenersRuntime.js"
         );
         expect(mapDocumentListenersSource).toContain("createAbortController");
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "defaultMapDocumentListenersRuntimeScope"
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
+            "scope: MapDocumentListenersRuntimeScope = globalThis"
+        );
         expect(mapDocumentListenersRuntimeSource).toContain(
             "const runtimeDocument = scope.document;"
         );
@@ -6757,7 +6769,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map draw-laps timers behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedMapDrawLapsRuntimeFiles
             .filter((relativeFile) =>
@@ -6777,6 +6789,12 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapDrawLapsSource).toContain("mapDrawLapsRuntime.js");
+        expect(mapDrawLapsRuntimeSource).toContain(
+            "defaultMapDrawLapsRuntimeScope"
+        );
+        expect(mapDrawLapsRuntimeSource).not.toContain(
+            "scope: MapDrawLapsRuntimeScope = globalThis"
+        );
         expect(mapDrawLapsRuntimeSource).not.toMatch(
             directMapDrawLapsRuntimeAmbientFallbackPattern
         );
