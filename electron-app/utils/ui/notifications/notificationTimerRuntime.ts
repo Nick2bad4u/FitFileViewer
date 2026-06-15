@@ -13,14 +13,8 @@ export interface NotificationTimerRuntime {
     ): NotificationTimerHandle;
 }
 
-const defaultNotificationTimerRuntimeScope: NotificationTimerRuntimeScope = {
-    get clearTimeout(): typeof globalThis.clearTimeout {
-        return globalThis.clearTimeout;
-    },
-    get setTimeout(): typeof globalThis.setTimeout {
-        return globalThis.setTimeout;
-    },
-};
+const defaultNotificationTimerRuntimeScope: NotificationTimerRuntimeScope =
+    globalThis;
 
 export function getNotificationTimerRuntime(
     scope: NotificationTimerRuntimeScope = defaultNotificationTimerRuntimeScope

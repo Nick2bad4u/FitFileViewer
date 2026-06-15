@@ -918,6 +918,8 @@ const directShowNotificationTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directNotificationTimerRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directNotificationTimerRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
 const aboutModalTestDirectRequestAnimationFrameAssignmentPattern =
@@ -4677,7 +4679,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update and state-synced notification timers behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedNotificationTimerRuntimeFiles
             .filter((relativeFile) => {
@@ -4697,6 +4699,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(notificationTimerRuntimeSource).toContain(
             "defaultNotificationTimerRuntimeScope"
+        );
+        expect(notificationTimerRuntimeSource).not.toMatch(
+            directNotificationTimerRuntimeAmbientGetterPattern
         );
     });
 
