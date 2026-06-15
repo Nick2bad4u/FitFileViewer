@@ -1235,6 +1235,8 @@ const directCreateFieldTogglesSectionRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\b|\bglobalThis\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\b/u;
 const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|dispatchEvent)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+const directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\b|\bglobalThis\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\b/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b|\bnew\s+AbortController\b/u;
 const directCopyTableAsCSVRuntimeGlobalPattern =
@@ -4004,7 +4006,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -4018,10 +4020,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createInlineZoneColorSelector.ts"
             )
         );
+        const inlineZoneSelectorRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createInlineZoneColorSelectorRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(inlineZoneSelectorSource).toContain(
             "createInlineZoneColorSelectorRuntime.js"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toMatch(
+            directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "createInlineZoneColorSelector requires a setTimeout runtime"
         );
     });
 

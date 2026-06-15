@@ -33,6 +33,21 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         expect(event.detail).toStrictEqual({ field: "hr_zone" });
     });
 
+    it("creates custom events and dispatches through the injected document window", () => {
+        expect.assertions(2);
+
+        const dispatchEvent = vi.spyOn(window, "dispatchEvent");
+        const runtime = getCreateInlineZoneColorSelectorRuntime({ document });
+        const event = runtime.createCustomEvent("fieldToggleChanged", {
+            detail: { field: "power_zone" },
+        });
+
+        expect(runtime.dispatchEvent(event)).toBe(true);
+        expect(dispatchEvent).toHaveBeenCalledWith(event);
+
+        dispatchEvent.mockRestore();
+    });
+
     it("creates abort controllers and checks element types through injected runtimes", () => {
         expect.assertions(4);
 
@@ -71,8 +86,18 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
     });
 
+    it("throws when timer scheduling is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getCreateInlineZoneColorSelectorRuntime({});
+
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "createInlineZoneColorSelector requires a setTimeout runtime"
+        );
+    });
+
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(4);
+        expect.assertions(7);
 
         const runtime = getCreateInlineZoneColorSelectorRuntime({});
         const runtimeWithInvalidAbortController =
@@ -111,6 +136,17 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
             )
         ).toThrow(
             "createInlineZoneColorSelector requires an HTMLElement runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createInlineZoneColorSelector requires an AbortController runtime"
+        );
+        expect(() => runtime.createCustomEvent("event")).toThrow(
+            "createInlineZoneColorSelector requires a CustomEvent runtime"
+        );
+        expect(() =>
+            runtime.dispatchEvent(new Event("fieldToggleChanged"))
+        ).toThrow(
+            "createInlineZoneColorSelector requires a dispatchEvent runtime"
         );
     });
 });

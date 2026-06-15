@@ -33,9 +33,7 @@ function getAbortControllerConstructor(
     scope: CreateInlineZoneColorSelectorRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createInlineZoneColorSelector requires an AbortController runtime"
@@ -49,9 +47,7 @@ function getCustomEventConstructor(
     scope: CreateInlineZoneColorSelectorRuntimeScope
 ): typeof CustomEvent {
     const CustomEventConstructor =
-        scope.CustomEvent ??
-        scope.document?.defaultView?.CustomEvent ??
-        globalThis.CustomEvent;
+        scope.CustomEvent ?? scope.document?.defaultView?.CustomEvent;
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(
             "createInlineZoneColorSelector requires a CustomEvent runtime"
@@ -68,8 +64,7 @@ function getDispatchEvent(
         scope.dispatchEvent ??
         scope.document?.defaultView?.dispatchEvent?.bind(
             scope.document.defaultView
-        ) ??
-        globalThis.dispatchEvent?.bind(globalThis);
+        );
     if (typeof dispatchEvent !== "function") {
         throw new TypeError(
             "createInlineZoneColorSelector requires a dispatchEvent runtime"
@@ -99,8 +94,7 @@ function getElementConstructor<K extends keyof Pick<
     scope: CreateInlineZoneColorSelectorRuntimeScope,
     name: K
 ): NonNullable<CreateInlineZoneColorSelectorRuntimeScope[K]> {
-    const Constructor =
-        scope[name] ?? scope.document?.defaultView?.[name] ?? globalThis[name];
+    const Constructor = scope[name] ?? scope.document?.defaultView?.[name];
     if (typeof Constructor !== "function") {
         throw new TypeError(
             `createInlineZoneColorSelector requires an ${name} runtime`
@@ -108,6 +102,19 @@ function getElementConstructor<K extends keyof Pick<
     }
 
     return Constructor;
+}
+
+function getRequiredSetTimeout(
+    scope: CreateInlineZoneColorSelectorRuntimeScope
+): typeof setTimeout {
+    const scheduleTimer = scope.setTimeout;
+    if (typeof scheduleTimer !== "function") {
+        throw new TypeError(
+            "createInlineZoneColorSelector requires a setTimeout runtime"
+        );
+    }
+
+    return scheduleTimer;
 }
 
 export function getCreateInlineZoneColorSelectorRuntime(
@@ -156,7 +163,7 @@ export function getCreateInlineZoneColorSelectorRuntime(
             handler: () => void,
             timeout: number
         ): ReturnType<typeof setTimeout> {
-            const scheduleTimer = scope.setTimeout ?? globalThis.setTimeout;
+            const scheduleTimer = getRequiredSetTimeout(scope);
             return scheduleTimer(handler, timeout);
         },
     };
