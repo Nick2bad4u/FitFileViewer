@@ -1,5 +1,6 @@
 export interface TabDocumentRuntimeScope {
     readonly document?: unknown;
+    readonly getDocument?: (() => unknown) | undefined;
 }
 
 export interface TabDocumentRuntime {
@@ -21,13 +22,16 @@ function getScopeDocument(
     scope: TabDocumentRuntimeScope
 ): Document | undefined {
     try {
-        return isDocumentLike(scope.document) ? scope.document : undefined;
+        const candidate = scope.getDocument?.() ?? scope.document;
+        return isDocumentLike(candidate) ? candidate : undefined;
     } catch {
         return undefined;
     }
 }
 
-const defaultTabDocumentRuntimeScope: TabDocumentRuntimeScope = globalThis;
+const defaultTabDocumentRuntimeScope: TabDocumentRuntimeScope = {
+    getDocument: () => globalThis.document,
+};
 
 export function getTabDocumentRuntime(
     scope: TabDocumentRuntimeScope = defaultTabDocumentRuntimeScope

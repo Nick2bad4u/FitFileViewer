@@ -30,6 +30,22 @@ describe("tabDocumentRuntime", () => {
         expect(runtime.getDocument()).toBe(scopeDocument);
     });
 
+    it("uses provider functions for runtime document access", () => {
+        expect.assertions(2);
+
+        const scopeDocument = createDocument();
+        let providerCount = 0;
+        const runtime = getTabDocumentRuntime({
+            getDocument: () => {
+                providerCount += 1;
+                return scopeDocument;
+            },
+        });
+
+        expect(runtime.getDocument()).toBe(scopeDocument);
+        expect(providerCount).toBe(1);
+    });
+
     it("ignores invalid document candidates", () => {
         expect.assertions(1);
 

@@ -4787,7 +4787,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab state-manager support on typed state and document access", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const tabStateManagerSupportSource = stripComments(
             readRepositoryFile(
@@ -4822,6 +4822,12 @@ describe("architecture boundaries", () => {
         );
         expect(tabDocumentRuntimeSource).not.toContain(
             "scope: TabDocumentRuntimeScope = globalThis"
+        );
+        expect(tabDocumentRuntimeSource).not.toContain(
+            "const defaultTabDocumentRuntimeScope: TabDocumentRuntimeScope = globalThis"
+        );
+        expect(tabDocumentRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
         );
     });
 
