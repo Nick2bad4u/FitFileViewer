@@ -3,17 +3,17 @@ import { describe, expect, it } from "vitest";
 import { getRendererDebugRuntime } from "../../../../electron-app/utils/debug/rendererDebugRuntime.js";
 
 describe("rendererDebugRuntime", () => {
-    it("allows renderer debug logging only when a window scope and debug state are present", () => {
+    it("allows renderer debug logging only when renderer scope and debug state are present", () => {
         expect.assertions(3);
 
         expect(
             getRendererDebugRuntime({
-                window: {},
+                isRendererScope: true,
             }).isRendererDebugLoggingAvailable(true)
         ).toBe(true);
         expect(
             getRendererDebugRuntime({
-                window: {},
+                isRendererScope: true,
             }).isRendererDebugLoggingAvailable(false)
         ).toBe(false);
         expect(
@@ -26,9 +26,9 @@ describe("rendererDebugRuntime", () => {
 
         let providerCount = 0;
         const utils = getRendererDebugRuntime({
-            getWindow: () => {
+            getIsRendererScope: () => {
                 providerCount += 1;
-                return {};
+                return true;
             },
         });
 

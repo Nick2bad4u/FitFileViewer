@@ -1,6 +1,6 @@
 export interface RendererDebugRuntimeScope {
-    readonly getWindow?: (() => unknown) | undefined;
-    readonly window?: unknown;
+    readonly getIsRendererScope?: (() => boolean) | undefined;
+    readonly isRendererScope?: boolean | undefined;
 }
 
 export interface RendererDebugRuntime {
@@ -8,11 +8,11 @@ export interface RendererDebugRuntime {
 }
 
 const defaultRendererDebugRuntimeScope: RendererDebugRuntimeScope = {
-    getWindow: () => globalThis.window,
+    getIsRendererScope: () => globalThis.document !== undefined,
 };
 
-function getScopeWindow(scope: RendererDebugRuntimeScope): unknown {
-    return scope.getWindow?.() ?? scope.window;
+function getIsRendererScope(scope: RendererDebugRuntimeScope): boolean {
+    return scope.getIsRendererScope?.() ?? scope.isRendererScope ?? false;
 }
 
 export function getRendererDebugRuntime(
@@ -20,7 +20,7 @@ export function getRendererDebugRuntime(
 ): RendererDebugRuntime {
     return {
         isRendererDebugLoggingAvailable(enabled): boolean {
-            return getScopeWindow(scope) !== undefined && enabled;
+            return getIsRendererScope(scope) && enabled;
         },
     };
 }

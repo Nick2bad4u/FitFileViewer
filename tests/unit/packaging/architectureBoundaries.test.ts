@@ -5570,10 +5570,10 @@ describe("architecture boundaries", () => {
             "const defaultRendererDebugRuntimeScope: RendererDebugRuntimeScope = globalThis"
         );
         expect(rendererDebugRuntimeSource).toContain(
-            "getWindow: () => globalThis.window"
+            "getIsRendererScope: () => globalThis.document !== undefined"
         );
         expect(rendererDebugRuntimeSource).not.toContain(
-            "return globalThis.window"
+            "getWindow: () => globalThis.window"
         );
     });
 
