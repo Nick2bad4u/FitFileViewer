@@ -4178,11 +4178,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart tab integration on renderer state facades", () => {
-        expect.assertions(8);
+        expect.assertions(11);
 
         const chartTabIntegrationSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/chartTabIntegration.ts"
+            )
+        );
+        const chartTabIntegrationRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartTabIntegrationRuntime.ts"
             )
         );
 
@@ -4204,6 +4209,15 @@ describe("architecture boundaries", () => {
             "instanceof HTMLElement"
         );
         expect(chartTabIntegrationSource).not.toContain("cleanup()");
+        expect(chartTabIntegrationRuntimeSource).toContain(
+            "defaultChartTabIntegrationRuntimeScope"
+        );
+        expect(chartTabIntegrationRuntimeSource).not.toContain(
+            "scope: ChartTabIntegrationRuntimeScope = globalThis"
+        );
+        expect(chartTabIntegrationRuntimeSource).not.toContain(
+            "globalThis.HTMLElement"
+        );
     });
 
     it("keeps chart notification state on the chart render-state facade", () => {
@@ -4260,7 +4274,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart state manager browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const violations = migratedChartStateManagerRuntimeFiles
             .filter((relativeFile) =>
@@ -4277,13 +4291,25 @@ describe("architecture boundaries", () => {
                     )
             )
             .sort();
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartStateManagerRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(runtimeSource).toContain("defaultChartStateManagerRuntimeScope");
+        expect(runtimeSource).not.toContain(
+            "scope: ChartStateManagerRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).toContain(
+            "ChartStateManager requires setTimeout"
+        );
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {
-        expect.assertions(13);
+        expect.assertions(14);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
@@ -4316,6 +4342,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartRuntimeSource).toContain(
             "defaultRenderChartJSRuntimeScope"
+        );
+        expect(renderChartRuntimeSource).not.toContain(
+            "globalThis.CustomEvent"
         );
         expect(renderChartRuntimeSource).toContain("getCustomEventConstructor");
         expect(renderChartRenderSettingsSource).not.toContain("Date.now");
@@ -7173,7 +7202,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme listener browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedChartThemeListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -7199,6 +7228,9 @@ describe("architecture boundaries", () => {
         );
         expect(chartThemeListenerRuntimeSource).not.toMatch(
             directChartThemeListenerRuntimeAmbientFallbackPattern
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "globalThis.CustomEvent"
         );
         expect(chartThemeListenerRuntimeSource).toContain(
             "const setTimeoutRef = scope.setTimeout;"
@@ -7291,7 +7323,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedChartStatusCountsRuntimeFiles
             .filter((relativeFile) =>
@@ -7318,6 +7350,12 @@ describe("architecture boundaries", () => {
         expect(sourcesMissingRuntime).toStrictEqual([]);
         expect(chartStatusIndicatorRuntimeSource).not.toMatch(
             directChartStatusIndicatorRuntimeAmbientFallbackPattern
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "defaultChartStatusIndicatorRuntimeScope"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "scope: ChartStatusIndicatorRuntimeScope = globalThis"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
             "chartStatusIndicator requires a setTimeout runtime"
@@ -7394,7 +7432,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart listener AbortController creation behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedChartListenerStateRuntimeFiles
             .filter((relativeFile) =>
@@ -7423,12 +7461,18 @@ describe("architecture boundaries", () => {
             directChartListenerStateRuntimeAmbientControllerPattern
         );
         expect(runtimeSource).toContain(
+            "defaultChartListenerStateRuntimeScope"
+        );
+        expect(runtimeSource).not.toContain(
+            "scope: ChartListenerStateRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).toContain(
             "const AbortControllerConstructor = scope.AbortController;"
         );
     });
 
     it("keeps direct chart rerender DOM lookups behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const violations = migratedRenderChartDirectRerenderRuntimeFiles
             .filter((relativeFile) =>
@@ -7446,13 +7490,25 @@ describe("architecture boundaries", () => {
                         ).includes("renderChartDirectRerenderRuntime.js")
                 )
                 .sort();
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartDirectRerenderRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(runtimeSource).toContain(
+            "defaultRenderChartDirectRerenderRuntimeScope"
+        );
+        expect(runtimeSource).not.toContain(
+            "scope: RenderChartDirectRerenderRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).not.toContain("globalThis.HTMLElement");
     });
 
     it("keeps chart request listener browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const violations = migratedRenderChartRequestListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -7470,13 +7526,23 @@ describe("architecture boundaries", () => {
                         ).includes("renderChartRequestListenerRuntime.js")
                 )
                 .sort();
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartRequestListenerRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(runtimeSource).toContain(
+            "defaultRenderChartRequestListenerRuntimeScope"
+        );
+        expect(runtimeSource).not.toContain("globalThis.HTMLElement");
+        expect(runtimeSource).not.toContain("globalThis.CustomEvent");
     });
 
     it("keeps chart startup browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const violations = migratedRenderChartStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -7493,9 +7559,23 @@ describe("architecture boundaries", () => {
                     )
             )
             .sort();
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartStartupRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(runtimeSource).toContain(
+            "defaultRenderChartStartupRuntimeScope"
+        );
+        expect(runtimeSource).not.toContain(
+            "scope: RenderChartStartupRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).toContain(
+            "renderChartStartup requires addEventListener"
+        );
     });
 
     it("keeps renderChartJS timer APIs behind chart timer helpers", () => {
@@ -7522,7 +7602,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart helper timer APIs behind the timer runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const violations = migratedRenderChartTimerRuntimeFiles
             .filter((relativeFile) =>
@@ -7539,9 +7619,21 @@ describe("architecture boundaries", () => {
                     )
             )
             .sort();
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartTimerRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(runtimeSource).toContain("defaultRenderChartTimerRuntimeScope");
+        expect(runtimeSource).not.toContain(
+            "scope: RenderChartTimerRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).toContain(
+            "render chart timers require setTimeout"
+        );
     });
 
     it("keeps summary column modal viewport reads behind the runtime facade", () => {
@@ -8010,7 +8102,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
@@ -8037,6 +8129,12 @@ describe("architecture boundaries", () => {
         expect(chartHoverEffectsSource).toContain("createAbortController");
         expect(chartHoverEffectsRuntimeSource).not.toMatch(
             directChartHoverEffectsRuntimeAmbientFallbackPattern
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "defaultChartHoverEffectsRuntimeScope"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "scope: ChartHoverEffectsRuntimeScope = globalThis"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "chart hover effects require a setTimeout runtime"

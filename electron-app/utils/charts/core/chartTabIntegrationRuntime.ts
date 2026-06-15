@@ -15,14 +15,13 @@ const chartTabButtonSelectors = [
     '[data-tab="chart"]',
 ] as const;
 
+const defaultChartTabIntegrationRuntimeScope: ChartTabIntegrationRuntimeScope =
+    globalThis;
+
 function getHTMLElementConstructor(
     scope: ChartTabIntegrationRuntimeScope
 ): typeof HTMLElement | undefined {
-    return (
-        scope.HTMLElement ??
-        scope.document?.defaultView?.HTMLElement ??
-        globalThis.HTMLElement
-    );
+    return scope.HTMLElement ?? scope.document?.defaultView?.HTMLElement;
 }
 
 function isHTMLElement(
@@ -50,7 +49,7 @@ function queryHTMLElement(
 }
 
 export function getChartTabIntegrationRuntime(
-    scope: ChartTabIntegrationRuntimeScope = globalThis
+    scope: ChartTabIntegrationRuntimeScope = defaultChartTabIntegrationRuntimeScope
 ): ChartTabIntegrationRuntime {
     return {
         isHTMLElement(value: unknown): value is HTMLElement {

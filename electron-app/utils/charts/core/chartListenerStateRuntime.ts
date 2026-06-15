@@ -6,6 +6,9 @@ export interface ChartListenerStateRuntime {
     createAbortController: () => AbortController;
 }
 
+const defaultChartListenerStateRuntimeScope: ChartListenerStateRuntimeScope =
+    globalThis;
+
 function getAbortControllerConstructor(
     scope: ChartListenerStateRuntimeScope
 ): typeof AbortController {
@@ -18,7 +21,7 @@ function getAbortControllerConstructor(
 }
 
 export function getChartListenerStateRuntime(
-    scope: ChartListenerStateRuntimeScope = globalThis
+    scope: ChartListenerStateRuntimeScope = defaultChartListenerStateRuntimeScope
 ): ChartListenerStateRuntime {
     return {
         createAbortController(): AbortController {

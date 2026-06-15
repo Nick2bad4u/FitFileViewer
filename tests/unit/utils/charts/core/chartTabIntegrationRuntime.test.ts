@@ -39,7 +39,7 @@ describe("getChartTabIntegrationRuntime", () => {
     });
 
     it("filters selector results through the injected HTMLElement constructor", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         try {
             const tab = document.createElement("button");
@@ -52,6 +52,11 @@ describe("getChartTabIntegrationRuntime", () => {
 
             expect(runtime.querySelector('[data-tab="chart"]')).toBe(tab);
             expect(runtime.isHTMLElement(tab)).toBe(true);
+            expect(
+                getChartTabIntegrationRuntime({
+                    document,
+                }).querySelector('[data-tab="chart"]')
+            ).toBe(tab);
             expect(
                 getChartTabIntegrationRuntime({
                     document: {

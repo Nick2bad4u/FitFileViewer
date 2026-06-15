@@ -25,6 +25,9 @@ export interface ChartHoverEffectsRuntime {
     waitForAnimationFrame(): Promise<void>;
 }
 
+const defaultChartHoverEffectsRuntimeScope: ChartHoverEffectsRuntimeScope =
+    globalThis;
+
 function getRequiredSetTimeout(
     scope: ChartHoverEffectsRuntimeScope
 ): (
@@ -42,7 +45,7 @@ function getRequiredSetTimeout(
 }
 
 export function getChartHoverEffectsRuntime(
-    scope: ChartHoverEffectsRuntimeScope = globalThis
+    scope: ChartHoverEffectsRuntimeScope = defaultChartHoverEffectsRuntimeScope
 ): ChartHoverEffectsRuntime {
     return {
         createAbortController(): AbortController {

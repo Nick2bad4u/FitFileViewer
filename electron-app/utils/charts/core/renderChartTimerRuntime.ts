@@ -15,8 +15,11 @@ export interface RenderChartTimerRuntime {
     waitForNextTask: () => Promise<void>;
 }
 
+const defaultRenderChartTimerRuntimeScope: RenderChartTimerRuntimeScope =
+    globalThis;
+
 export function getRenderChartTimerRuntime(
-    scope: RenderChartTimerRuntimeScope = globalThis
+    scope: RenderChartTimerRuntimeScope = defaultRenderChartTimerRuntimeScope
 ): RenderChartTimerRuntime {
     const clearScheduledTimeout = (timeout: RenderChartTimeout): void => {
         const clearTimeout = scope.clearTimeout;

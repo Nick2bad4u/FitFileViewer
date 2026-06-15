@@ -14,14 +14,13 @@ const chartContainerSelectors = [
     "#content_chart",
 ] as const;
 
+const defaultRenderChartDirectRerenderRuntimeScope: RenderChartDirectRerenderRuntimeScope =
+    globalThis;
+
 function getHTMLElementConstructor(
     scope: RenderChartDirectRerenderRuntimeScope
 ): typeof HTMLElement | undefined {
-    return (
-        scope.HTMLElement ??
-        scope.document?.defaultView?.HTMLElement ??
-        globalThis.HTMLElement
-    );
+    return scope.HTMLElement ?? scope.document?.defaultView?.HTMLElement;
 }
 
 function isHTMLElement(
@@ -49,7 +48,7 @@ function queryHTMLElement(
 }
 
 export function getRenderChartDirectRerenderRuntime(
-    scope: RenderChartDirectRerenderRuntimeScope = globalThis
+    scope: RenderChartDirectRerenderRuntimeScope = defaultRenderChartDirectRerenderRuntimeScope
 ): RenderChartDirectRerenderRuntime {
     return {
         queryChartContainer(): HTMLElement | null {

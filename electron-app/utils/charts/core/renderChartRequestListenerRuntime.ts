@@ -28,20 +28,7 @@ const fallbackContainerSelectors = [
 ] as const;
 
 const defaultRenderChartRequestListenerRuntimeScope: RenderChartRequestListenerRuntimeScope =
-    {
-        get addEventListener() {
-            return globalThis.addEventListener.bind(globalThis);
-        },
-        get CustomEvent() {
-            return globalThis.CustomEvent;
-        },
-        get document() {
-            return globalThis.document;
-        },
-        get HTMLElement() {
-            return globalThis.HTMLElement;
-        },
-    };
+    globalThis;
 
 function getCustomEventConstructor(
     scope: RenderChartRequestListenerRuntimeScope
@@ -91,14 +78,13 @@ export function getRenderChartRequestListenerRuntime(
             listener: EventListenerOrEventListenerObject,
             options: AddEventListenerOptions & { readonly signal: AbortSignal }
         ): void {
-            const addEventListener = scope.addEventListener;
-            if (typeof addEventListener !== "function") {
+            if (typeof scope.addEventListener !== "function") {
                 throw new TypeError(
                     "renderChartRequestListener requires addEventListener"
                 );
             }
 
-            addEventListener("ffv:request-render-charts", listener, {
+            scope.addEventListener("ffv:request-render-charts", listener, {
                 ...options,
                 signal: options.signal,
             });

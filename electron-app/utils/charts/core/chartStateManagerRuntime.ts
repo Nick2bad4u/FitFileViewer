@@ -19,8 +19,11 @@ export interface ChartStateManagerRuntime {
     ) => ChartStateManagerTimeout;
 }
 
+const defaultChartStateManagerRuntimeScope: ChartStateManagerRuntimeScope =
+    globalThis;
+
 export function getChartStateManagerRuntime(
-    scope: ChartStateManagerRuntimeScope = globalThis
+    scope: ChartStateManagerRuntimeScope = defaultChartStateManagerRuntimeScope
 ): ChartStateManagerRuntime {
     return {
         clearRenderTimeout(timeout): void {

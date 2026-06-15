@@ -17,8 +17,11 @@ export interface RenderChartStartupRuntime {
     canRegisterDOMContentLoadedListener: () => boolean;
 }
 
+const defaultRenderChartStartupRuntimeScope: RenderChartStartupRuntimeScope =
+    globalThis;
+
 export function getRenderChartStartupRuntime(
-    scope: RenderChartStartupRuntimeScope = globalThis
+    scope: RenderChartStartupRuntimeScope = defaultRenderChartStartupRuntimeScope
 ): RenderChartStartupRuntime {
     return {
         addDOMContentLoadedListener(

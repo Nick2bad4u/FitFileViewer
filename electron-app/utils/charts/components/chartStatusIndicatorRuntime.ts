@@ -43,6 +43,9 @@ export interface ChartStatusIndicatorRuntime {
     ) => ChartStatusIndicatorTimerHandle;
 }
 
+const defaultChartStatusIndicatorRuntimeScope: ChartStatusIndicatorRuntimeScope =
+    globalThis;
+
 function getAbortControllerConstructor(
     scope: ChartStatusIndicatorRuntimeScope
 ): typeof AbortController {
@@ -110,7 +113,7 @@ function getRequiredSetTimeout(
 }
 
 export function getChartStatusIndicatorRuntime(
-    scope: ChartStatusIndicatorRuntimeScope = globalThis
+    scope: ChartStatusIndicatorRuntimeScope = defaultChartStatusIndicatorRuntimeScope
 ): ChartStatusIndicatorRuntime {
     return {
         addChartsRenderedListener(

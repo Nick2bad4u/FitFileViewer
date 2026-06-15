@@ -39,7 +39,7 @@ describe("getRenderChartDirectRerenderRuntime", () => {
     });
 
     it("filters selector results through the injected HTMLElement constructor", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         try {
             const chartContainer = document.createElement("section");
@@ -50,6 +50,11 @@ describe("getRenderChartDirectRerenderRuntime", () => {
                 getRenderChartDirectRerenderRuntime({
                     document,
                     HTMLElement,
+                }).querySelector("#content_chart")
+            ).toBe(chartContainer);
+            expect(
+                getRenderChartDirectRerenderRuntime({
+                    document,
                 }).querySelector("#content_chart")
             ).toBe(chartContainer);
             expect(

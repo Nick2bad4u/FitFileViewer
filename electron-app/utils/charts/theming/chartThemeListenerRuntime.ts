@@ -22,23 +22,8 @@ export interface ChartThemeListenerRuntime {
     ) => ChartThemeListenerTimerHandle;
 }
 
-const defaultChartThemeListenerRuntimeScope: ChartThemeListenerRuntimeScope = {
-    get AbortController() {
-        return globalThis.AbortController;
-    },
-    get clearTimeout() {
-        return globalThis.clearTimeout;
-    },
-    get CustomEvent() {
-        return globalThis.CustomEvent;
-    },
-    get document() {
-        return globalThis.document;
-    },
-    get setTimeout() {
-        return globalThis.setTimeout;
-    },
-};
+const defaultChartThemeListenerRuntimeScope: ChartThemeListenerRuntimeScope =
+    globalThis;
 
 function getBody(scope: ChartThemeListenerRuntimeScope): HTMLElement {
     const body = scope.document?.body;

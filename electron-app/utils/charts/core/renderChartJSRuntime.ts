@@ -14,7 +14,7 @@ export interface RenderChartJSRuntime {
 
 const defaultRenderChartJSRuntimeScope: RenderChartJSRuntimeScope = {
     get CustomEventConstructor() {
-        return globalThis.CustomEvent;
+        return typeof CustomEvent === "function" ? CustomEvent : undefined;
     },
     dateNow: Date.now,
     get performance() {
