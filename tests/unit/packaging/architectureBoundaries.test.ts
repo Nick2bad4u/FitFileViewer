@@ -11544,7 +11544,13 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Electron API runtime ambient tests on scoped global fixtures", () => {
-        expect.assertions(1);
+        expect.assertions(6);
+
+        const electronApiRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/runtime/electronApiRuntime.ts"
+            )
+        );
 
         expect(
             electronApiRuntimeTestDirectGlobalFixturePattern.test(
@@ -11555,6 +11561,21 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(false);
+        expect(electronApiRuntimeSource).not.toContain(
+            "scope: RendererElectronApiScope = globalThis"
+        );
+        expect(electronApiRuntimeSource).toContain(
+            "defaultRendererElectronApiScope"
+        );
+        expect(electronApiRuntimeSource).toContain(
+            'getElectronAPI: () => Reflect.get(globalThis, "electronAPI")'
+        );
+        expect(electronApiRuntimeSource).toContain(
+            "getWindow: () => globalThis.window"
+        );
+        expect(electronApiRuntimeSource).toContain(
+            "scopedElectronApi ?? getWindowElectronApi(getScopeWindow(scope))"
+        );
     });
 
     it("keeps main UI DOM utility tests on scoped Electron API fixtures", () => {

@@ -50,6 +50,35 @@ describe("electronApiRuntime", () => {
         expect(getRendererElectronApi(isExternalOpenApi, scope)).toBe(api);
     });
 
+    it("resolves APIs from provider scopes", () => {
+        expect.assertions(4);
+
+        const directApi = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+        const windowApi = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+        const getElectronAPI = vi.fn(() => directApi);
+        const getWindow = vi.fn(() => ({ electronAPI: windowApi }));
+
+        expect(
+            getRendererElectronApi(isExternalOpenApi, {
+                getElectronAPI,
+                getWindow,
+            })
+        ).toBe(directApi);
+        expect(getElectronAPI).toHaveBeenCalledOnce();
+        expect(getWindow).not.toHaveBeenCalled();
+
+        expect(
+            getRendererElectronApi(isExternalOpenApi, {
+                getElectronAPI: () => undefined,
+                getWindow,
+            })
+        ).toBe(windowApi);
+    });
+
     it("ignores missing or malformed APIs", () => {
         expect.assertions(4);
 
