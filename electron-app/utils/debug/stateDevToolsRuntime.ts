@@ -23,6 +23,8 @@ export interface StateDevToolsRuntime {
     ) => StateDevToolsIntervalHandle;
 }
 
+const defaultStateDevToolsRuntimeScope: StateDevToolsRuntimeScope = globalThis;
+
 function isLocalHost(hostname: unknown): boolean {
     return hostname === "localhost" || hostname === "127.0.0.1";
 }
@@ -32,7 +34,7 @@ function isFileProtocol(protocol: unknown): boolean {
 }
 
 export function getStateDevToolsRuntime(
-    scope: StateDevToolsRuntimeScope = globalThis
+    scope: StateDevToolsRuntimeScope = defaultStateDevToolsRuntimeScope
 ): StateDevToolsRuntime {
     return {
         clearInterval(handle): void {

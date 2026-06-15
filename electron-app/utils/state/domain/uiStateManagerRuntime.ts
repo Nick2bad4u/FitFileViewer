@@ -39,8 +39,11 @@ export interface UIStateManagerRuntime {
     hasWindow: () => boolean;
 }
 
+const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope =
+    globalThis;
+
 export function getUIStateManagerRuntime(
-    scope: UIStateManagerRuntimeScope = globalThis
+    scope: UIStateManagerRuntimeScope = defaultUIStateManagerRuntimeScope
 ): UIStateManagerRuntime {
     return {
         addWindowEventListener(type, listener, options): void {

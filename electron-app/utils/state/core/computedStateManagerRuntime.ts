@@ -6,8 +6,11 @@ export interface ComputedStateManagerRuntime {
     isDarkSchemePreferred: () => boolean;
 }
 
+const defaultComputedStateManagerRuntimeScope: ComputedStateManagerRuntimeScope =
+    globalThis;
+
 export function getComputedStateManagerRuntime(
-    scope: ComputedStateManagerRuntimeScope = globalThis
+    scope: ComputedStateManagerRuntimeScope = defaultComputedStateManagerRuntimeScope
 ): ComputedStateManagerRuntime {
     return {
         isDarkSchemePreferred(): boolean {

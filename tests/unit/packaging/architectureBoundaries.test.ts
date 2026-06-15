@@ -4770,11 +4770,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/domain/uiStateManager.ts"
+            )
+        );
+        const uiStateManagerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/uiStateManagerRuntime.ts"
             )
         );
 
@@ -4785,6 +4790,12 @@ describe("architecture boundaries", () => {
         expect(
             directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
         ).toBe(false);
+        expect(uiStateManagerRuntimeSource).toContain(
+            "defaultUIStateManagerRuntimeScope"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope: UIStateManagerRuntimeScope = globalThis"
+        );
     });
 
     it("keeps tab visibility updates on the renderer state access facade", () => {
@@ -5413,11 +5424,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/core/masterStateManager.ts"
+            )
+        );
+        const masterStateRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/masterStateRuntime.ts"
             )
         );
 
@@ -5439,14 +5455,25 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateManagerSource).toContain("stateStorageRuntime.js");
         expect(masterStateManagerSource).not.toContain("localStorage.");
+        expect(masterStateRuntimeSource).toContain(
+            "defaultMasterStateRuntimeScope"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope: MasterStateRuntimeScope = globalThis"
+        );
     });
 
     it("keeps computed state manager theme media reads behind the runtime adapter", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const computedStateManagerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/core/computedStateManager.ts"
+            )
+        );
+        const computedStateManagerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/computedStateManagerRuntime.ts"
             )
         );
 
@@ -5459,6 +5486,12 @@ describe("architecture boundaries", () => {
         );
         expect(computedStateManagerSource).not.toContain(
             "prefers-color-scheme: dark"
+        );
+        expect(computedStateManagerRuntimeSource).toContain(
+            "defaultComputedStateManagerRuntimeScope"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "scope: ComputedStateManagerRuntimeScope = globalThis"
         );
     });
 
@@ -5477,7 +5510,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state development tools interval APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedStateDevToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -5499,6 +5532,12 @@ describe("architecture boundaries", () => {
         expect(stateDevToolsSource).toContain("stateDevToolsRuntime.js");
         expect(stateDevToolsRuntimeSource).not.toMatch(
             directStateDevToolsRuntimeAmbientIntervalFallbackPattern
+        );
+        expect(stateDevToolsRuntimeSource).toContain(
+            "defaultStateDevToolsRuntimeScope"
+        );
+        expect(stateDevToolsRuntimeSource).not.toContain(
+            "scope: StateDevToolsRuntimeScope = globalThis"
         );
         expect(stateDevToolsRuntimeSource).toContain(
             "stateDevToolsRuntime requires setInterval"
@@ -9886,11 +9925,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings state storage runtime globals behind the runtime facade", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const settingsStateCoreSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/state/domain/settingsStateCore.ts"
+            )
+        );
+        const settingsStateCoreRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/domain/settingsStateCoreRuntime.ts"
             )
         );
         const settingsStateHelpersSource = stripComments(
@@ -9913,6 +9957,12 @@ describe("architecture boundaries", () => {
         expect(settingsStateHelpersSource).toContain("stateStorageRuntime.js");
         expect(settingsStateHelpersSource).toContain("stateStorageRuntime");
         expect(settingsStateHelpersSource).not.toContain("localStorage.");
+        expect(settingsStateCoreRuntimeSource).toContain(
+            "defaultSettingsStateCoreRuntimeScope"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
+            "scope: SettingsStateCoreRuntimeScope = globalThis"
+        );
     });
 
     it("keeps handle-open-file tests on scoped console spies", () => {

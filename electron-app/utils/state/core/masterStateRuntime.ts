@@ -47,8 +47,10 @@ function getLocationText(
     return typeof value === "string" ? value : "";
 }
 
+const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = globalThis;
+
 export function getMasterStateRuntime(
-    scope: MasterStateRuntimeScope = globalThis
+    scope: MasterStateRuntimeScope = defaultMasterStateRuntimeScope
 ): MasterStateRuntime {
     const getLocation = (): LocationLike =>
         scope.window === undefined ? {} : (scope.location ?? {});

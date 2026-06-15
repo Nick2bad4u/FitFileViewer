@@ -26,8 +26,11 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
+const defaultSettingsStateCoreRuntimeScope: SettingsStateCoreRuntimeScope =
+    globalThis;
+
 export function getSettingsStateCoreRuntime(
-    scope: SettingsStateCoreRuntimeScope = globalThis
+    scope: SettingsStateCoreRuntimeScope = defaultSettingsStateCoreRuntimeScope
 ): SettingsStateCoreRuntime {
     return {
         addStorageEventListener(
