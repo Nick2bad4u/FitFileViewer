@@ -14,8 +14,24 @@ export interface DragDropHandlerRuntime {
     requestAnimationFrame(onFrame: FrameRequestCallback): null | number;
 }
 
+const defaultDragDropHandlerRuntimeScope: DragDropHandlerRuntimeScope = {
+    get AbortController(): typeof globalThis.AbortController | undefined {
+        return globalThis.AbortController;
+    },
+    get cancelAnimationFrame():
+        | typeof globalThis.cancelAnimationFrame
+        | undefined {
+        return globalThis.cancelAnimationFrame;
+    },
+    get requestAnimationFrame():
+        | typeof globalThis.requestAnimationFrame
+        | undefined {
+        return globalThis.requestAnimationFrame;
+    },
+};
+
 export function getDragDropHandlerRuntime(
-    scope: DragDropHandlerRuntimeScope = globalThis
+    scope: DragDropHandlerRuntimeScope = defaultDragDropHandlerRuntimeScope
 ): DragDropHandlerRuntime {
     return {
         cancelAnimationFrame(handle: number): void {

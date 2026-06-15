@@ -4482,7 +4482,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -4494,10 +4494,18 @@ describe("architecture boundaries", () => {
         const dragDropHandlerSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/dragDropHandler.ts")
         );
+        const dragDropHandlerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/dragDropHandlerRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(dragDropHandlerSource).toContain("dragDropHandlerRuntime.js");
         expect(dragDropHandlerSource).toContain("createAbortController");
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "defaultDragDropHandlerRuntimeScope"
+        );
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
@@ -7430,7 +7438,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps user/device info box listener cleanup behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedUserDeviceInfoBoxRuntimeFiles
             .filter((relativeFile) =>
@@ -7444,12 +7452,20 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/components/createUserDeviceInfoBox.ts"
             )
         );
+        const userDeviceInfoBoxRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/components/createUserDeviceInfoBoxRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(userDeviceInfoBoxSource).toContain(
             "createUserDeviceInfoBoxRuntime.js"
         );
         expect(userDeviceInfoBoxSource).toContain("createAbortController");
+        expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "defaultUserDeviceInfoBoxRuntimeScope"
+        );
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
