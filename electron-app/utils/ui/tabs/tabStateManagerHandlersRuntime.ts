@@ -22,8 +22,11 @@ export interface TabStateManagerHandlersRuntime {
     ): TabStateManagerHandlersTimerHandle;
 }
 
+const defaultTabStateManagerHandlersRuntimeScope: TabStateManagerHandlersRuntimeScope =
+    globalThis;
+
 export function getTabStateManagerHandlersRuntime(
-    scope: TabStateManagerHandlersRuntimeScope = globalThis
+    scope: TabStateManagerHandlersRuntimeScope = defaultTabStateManagerHandlersRuntimeScope
 ): TabStateManagerHandlersRuntime {
     return {
         cancelAnimationFrame(handle: number): void {

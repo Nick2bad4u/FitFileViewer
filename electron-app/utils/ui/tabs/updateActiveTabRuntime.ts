@@ -42,8 +42,11 @@ function getScopeWindowDocument(
     }
 }
 
+const defaultUpdateActiveTabRuntimeScope: UpdateActiveTabRuntimeScope =
+    globalThis;
+
 export function getUpdateActiveTabRuntime(
-    scope: UpdateActiveTabRuntimeScope = globalThis
+    scope: UpdateActiveTabRuntimeScope = defaultUpdateActiveTabRuntimeScope
 ): UpdateActiveTabRuntime {
     return {
         getDocument(testDocument?: Document): Document | undefined {

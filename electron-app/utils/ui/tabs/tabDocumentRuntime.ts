@@ -27,8 +27,10 @@ function getScopeDocument(
     }
 }
 
+const defaultTabDocumentRuntimeScope: TabDocumentRuntimeScope = globalThis;
+
 export function getTabDocumentRuntime(
-    scope: TabDocumentRuntimeScope = globalThis
+    scope: TabDocumentRuntimeScope = defaultTabDocumentRuntimeScope
 ): TabDocumentRuntime {
     return {
         getDocument(testDocument?: Document): Document | undefined {

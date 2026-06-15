@@ -28,8 +28,11 @@ export interface UpdateTabVisibilityRuntime {
     ) => UpdateTabVisibilityTimerHandle;
 }
 
+const defaultUpdateTabVisibilityRuntimeScope: UpdateTabVisibilityRuntimeScope =
+    globalThis;
+
 export function getUpdateTabVisibilityRuntime(
-    scope: UpdateTabVisibilityRuntimeScope = globalThis
+    scope: UpdateTabVisibilityRuntimeScope = defaultUpdateTabVisibilityRuntimeScope
 ): UpdateTabVisibilityRuntime {
     return {
         clearTimeout(handle: UpdateTabVisibilityTimerHandle): void {

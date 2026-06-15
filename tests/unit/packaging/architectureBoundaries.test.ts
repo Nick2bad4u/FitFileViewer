@@ -4660,7 +4660,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab state-manager support on typed state and document access", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const tabStateManagerSupportSource = stripComments(
             readRepositoryFile(
@@ -4670,6 +4670,11 @@ describe("architecture boundaries", () => {
         const tabStateManagerDocSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/ui/tabs/tabStateManagerDoc.ts"
+            )
+        );
+        const tabDocumentRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/tabDocumentRuntime.ts"
             )
         );
 
@@ -4685,13 +4690,24 @@ describe("architecture boundaries", () => {
             "globalThis.document"
         );
         expect(tabStateManagerDocSource).not.toContain("globalThis.document");
+        expect(tabDocumentRuntimeSource).toContain(
+            "defaultTabDocumentRuntimeScope"
+        );
+        expect(tabDocumentRuntimeSource).not.toContain(
+            "scope: TabDocumentRuntimeScope = globalThis"
+        );
     });
 
     it("keeps active-tab updates on typed state access and runtime document resolution", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const updateActiveTabSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/updateActiveTab.ts")
+        );
+        const updateActiveTabRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/tabs/updateActiveTabRuntime.ts"
+            )
         );
 
         expect(updateActiveTabSource).toContain(
@@ -4703,6 +4719,12 @@ describe("architecture boundaries", () => {
         );
         expect(updateActiveTabSource).not.toContain("globalThis.document");
         expect(updateActiveTabSource).not.toContain("globalThis.window");
+        expect(updateActiveTabRuntimeSource).toContain(
+            "defaultUpdateActiveTabRuntimeScope"
+        );
+        expect(updateActiveTabRuntimeSource).not.toContain(
+            "scope: UpdateActiveTabRuntimeScope = globalThis"
+        );
     });
 
     it("keeps active-tab fallback tests on descriptor-scoped browser fixtures", () => {
@@ -7981,7 +8003,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab visibility browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedUpdateTabVisibilityRuntimeFiles
             .filter((relativeFile) =>
@@ -8007,6 +8029,12 @@ describe("architecture boundaries", () => {
         );
         expect(updateTabVisibilityRuntimeSource).not.toMatch(
             directUpdateTabVisibilityRuntimeAmbientTimerFallbackPattern
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "defaultUpdateTabVisibilityRuntimeScope"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "scope: UpdateTabVisibilityRuntimeScope = globalThis"
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
             "updateTabVisibility requires a setTimeout runtime"
@@ -8297,7 +8325,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedTabStateManagerHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -8323,6 +8351,12 @@ describe("architecture boundaries", () => {
         );
         expect(tabStateManagerHandlersRuntimeSource).not.toMatch(
             directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "defaultTabStateManagerHandlersRuntimeScope"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope: TabStateManagerHandlersRuntimeScope = globalThis"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "tabStateManagerHandlers requires a setTimeout runtime"
