@@ -3,7 +3,7 @@
 # It defines update settings for GitHub Actions and npm package ecosystems.
 # Each ecosystem has its own update configuration, including:
 # - The directory to scan for dependencies (root directory in this case).
-# - The schedule for checking updates (daily).
+# - The schedule for checking updates (monthly).
 # - Allowing both direct and indirect updates for all packages.
 # - Grouping updates by ecosystem with specific patterns for version updates.
 

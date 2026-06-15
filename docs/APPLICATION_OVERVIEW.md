@@ -158,7 +158,7 @@ set of channels and event names.
 - **Coverage:** `npm run test:coverage` generates coverage data.
 - **Strict regression suites:** Under `tests/unit/strictTests/` to guard tricky DOM/Electron edge cases.
 - **Type checking & linting:** `typecheck`, `lint`, `lint:fix`, `prettier`, and associated `format:*` scripts.
-- **Release readiness:** `npm run release:verify` is the canonical full gate for formatting, linting, CSS linting, docs checks, audits, Vitest, Electron Playwright smoke tests, signing preflight, and an unpacked package build. The manual **Release Rehearsal** workflow runs that gate across Linux, Windows, and macOS, checks signing availability without publishing, and uploads unsigned artifacts for inspection.
+- **Release readiness:** `npm run release:verify` is the canonical full gate for formatting, linting, CSS linting, docs checks, audits, Vitest, Electron Playwright smoke tests, signing preflight, and an unpacked package build. The manual **Release Rehearsal** workflow runs that gate across Linux, Windows, and macOS, checks signing availability without publishing, and uploads unsigned artifacts for inspection. The scheduled **Dependency Validation** workflow runs the same gate weekly and on dependency-file pull requests so dependency updates prove the app-level smoke and package checks before they can be merged.
 
 ## Build & Distribution
 
