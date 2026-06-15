@@ -23,8 +23,11 @@ export interface LoadSharedConfigurationRuntimeScope {
         | undefined;
 }
 
+const defaultLoadSharedConfigurationRuntimeScope: LoadSharedConfigurationRuntimeScope =
+    globalThis;
+
 export function getLoadSharedConfigurationRuntime(
-    scope: LoadSharedConfigurationRuntimeScope = globalThis
+    scope: LoadSharedConfigurationRuntimeScope = defaultLoadSharedConfigurationRuntimeScope
 ): LoadSharedConfigurationRuntime {
     return {
         clearTimeout(handle): void {

@@ -10,8 +10,11 @@ export interface GetCurrentSettingsRuntime {
     setTimeout(callback: () => void, delayMs: number): GetCurrentSettingsTimer;
 }
 
+const defaultGetCurrentSettingsRuntimeScope: GetCurrentSettingsRuntimeScope =
+    globalThis;
+
 export function getGetCurrentSettingsRuntime(
-    scope: GetCurrentSettingsRuntimeScope = globalThis
+    scope: GetCurrentSettingsRuntimeScope = defaultGetCurrentSettingsRuntimeScope
 ): GetCurrentSettingsRuntime {
     return {
         clearTimeout(timer): void {

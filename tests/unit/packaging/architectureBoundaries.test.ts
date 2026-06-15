@@ -7177,7 +7177,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared configuration URL reads behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedLoadSharedConfigurationRuntimeFiles
             .filter((relativeFile) =>
@@ -7205,12 +7205,18 @@ describe("architecture boundaries", () => {
             directLoadSharedConfigurationRuntimeAmbientFallbackPattern
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
+            "defaultLoadSharedConfigurationRuntimeScope"
+        );
+        expect(loadSharedConfigurationRuntimeSource).not.toContain(
+            "scope: LoadSharedConfigurationRuntimeScope = globalThis"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
             "const setTimeoutRef = scope.setTimeout;"
         );
     });
 
     it("keeps current settings reset timers behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedGetCurrentSettingsRuntimeFiles
             .filter((relativeFile) =>
@@ -7236,6 +7242,12 @@ describe("architecture boundaries", () => {
         );
         expect(getCurrentSettingsRuntimeSource).not.toMatch(
             directGetCurrentSettingsRuntimeAmbientFallbackPattern
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "defaultGetCurrentSettingsRuntimeScope"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain(
+            "scope: GetCurrentSettingsRuntimeScope = globalThis"
         );
         expect(getCurrentSettingsRuntimeSource).toContain(
             "const setTimeoutRef = scope.setTimeout;"
