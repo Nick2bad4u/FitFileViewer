@@ -15,8 +15,7 @@ import {
     type ErrorContext,
     type NotificationType,
 } from "../../../electron-app/utils/errors/index.js";
-
-const globalRef = globalThis;
+import type { ErrorHandlingRuntime } from "../../../electron-app/utils/errors/errorHandlingRuntime.js";
 
 describe("error handling utilities", () => {
     // eslint-disable-next-line vitest/no-hooks -- Shared global cleanup keeps integration mocks isolated.
@@ -233,14 +232,21 @@ describe("error handling utilities", () => {
 
     describe("global error integration", () => {
         it("registers browser-level error listeners when available", () => {
-            expect.assertions(3);
+            expect.assertions(4);
 
-            const listenerSpy = vi
-                .spyOn(globalRef, "addEventListener")
-                .mockReturnValue(undefined);
+            const listenerSpy = vi.fn<Window["addEventListener"]>();
             const logSpy = vi.spyOn(console, "log").mockReturnValue(undefined);
+            const controller = new AbortController();
+            const createAbortController = vi.fn(() => controller);
+            const runtime: ErrorHandlingRuntime = {
+                createAbortController,
+                getGlobalEventTarget: () => ({
+                    addEventListener: listenerSpy,
+                }),
+            };
 
-            expect(initializeErrorHandling()).toBeUndefined();
+            expect(initializeErrorHandling({ runtime })).toBeUndefined();
+            expect(createAbortController).toHaveBeenCalledOnce();
             expect(
                 listenerSpy.mock.calls.map(
                     ([
@@ -252,7 +258,7 @@ describe("error handling utilities", () => {
                         listenerType: typeof listener,
                         signalIsAbortSignal:
                             (options as AddEventListenerOptions | undefined)
-                                ?.signal instanceof AbortSignal,
+                                ?.signal === controller.signal,
                     })
                 )
             ).toStrictEqual([

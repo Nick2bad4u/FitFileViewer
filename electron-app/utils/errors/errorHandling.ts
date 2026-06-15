@@ -3,7 +3,10 @@
  * application.
  */
 
-import { getErrorHandlingRuntime } from "./errorHandlingRuntime.js";
+import {
+    getErrorHandlingRuntime,
+    type ErrorHandlingRuntime,
+} from "./errorHandlingRuntime.js";
 
 /**
  * Stable error code strings used across application error boundaries.
@@ -63,6 +66,10 @@ export type ErrorHandlingOptions<Fallback = null> = {
     notifyUser?: ErrorNotificationSink;
 };
 
+export type InitializeErrorHandlingOptions = {
+    runtime?: ErrorHandlingRuntime;
+};
+
 /**
  * Result returned by validation helpers after all validators have run.
  */
@@ -94,7 +101,6 @@ export type Validator<T = unknown> = (
 
 type MaybePromise<T> = Promise<T> | T;
 
-const globalRef = globalThis;
 const errorHandlingRuntime = getErrorHandlingRuntime();
 let globalErrorListenerAbortController: AbortController | undefined;
 
@@ -406,17 +412,19 @@ export const validators = {
  * Initialize browser-level global error logging hooks.
  */
 export function initializeErrorHandling(
-    _options: Record<string, never> = {}
+    options: InitializeErrorHandlingOptions = {}
 ): void {
-    if (typeof globalRef.addEventListener === "function") {
+    const runtime = options.runtime ?? errorHandlingRuntime;
+    const eventTarget = runtime.getGlobalEventTarget();
+
+    if (eventTarget) {
         globalErrorListenerAbortController?.abort();
-        globalErrorListenerAbortController =
-            errorHandlingRuntime.createAbortController();
+        globalErrorListenerAbortController = runtime.createAbortController();
         const listenerOptions = {
             signal: globalErrorListenerAbortController.signal,
         };
 
-        globalRef.addEventListener(
+        eventTarget.addEventListener(
             "error",
             (event: ErrorEvent) => {
                 logError(event.error ?? new Error(event.message), {
@@ -427,7 +435,7 @@ export function initializeErrorHandling(
             listenerOptions
         );
 
-        globalRef.addEventListener(
+        eventTarget.addEventListener(
             "unhandledrejection",
             (event: PromiseRejectionEvent) => {
                 logError(

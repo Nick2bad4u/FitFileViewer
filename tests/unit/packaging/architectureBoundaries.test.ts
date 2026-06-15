@@ -997,6 +997,8 @@ const errorHandlingPerformanceMonitorGlobalLookupPattern =
 const directErrorHandlingRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
 const directErrorHandlingRuntimeAmbientGetterPattern =
     /\bget\s+AbortController\s*\(\)\s*\{|\breturn\s+globalThis\.AbortController\b/u;
+const directErrorHandlingEventTargetGlobalPattern =
+    /\bconst\s+globalRef\s*=\s*globalThis\b|\bglobalRef\.addEventListener\b/u;
 const errorHandlingTestDirectPerformanceMonitorFixturePattern =
     /\bglobalRef\.performanceMonitor\s*=|\bReflect\.deleteProperty\(\s*globalRef\s*,\s*["']performanceMonitor["']\s*\)/u;
 const directRendererDevGlobalPattern =
@@ -5389,7 +5391,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -5411,8 +5413,14 @@ describe("architecture boundaries", () => {
         expect(
             directErrorHandlingRuntimeGlobalPattern.test(errorHandlingSource)
         ).toBe(false);
+        expect(
+            directErrorHandlingEventTargetGlobalPattern.test(
+                errorHandlingSource
+            )
+        ).toBe(false);
         expect(errorHandlingSource).toContain("notifyUser");
         expect(errorHandlingSource).toContain("errorHandlingRuntime.js");
+        expect(errorHandlingRuntimeSource).toContain("getGlobalEventTarget");
         expect(errorHandlingRuntimeSource).not.toMatch(
             directErrorHandlingRuntimeAmbientGetterPattern
         );

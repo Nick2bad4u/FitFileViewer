@@ -51,4 +51,27 @@ describe("getErrorHandlingRuntime", () => {
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
+
+    it("resolves the default event target when listeners are registered", () => {
+        expect.assertions(2);
+
+        const addEventListener = vi.fn();
+        const listener = vi.fn();
+        const controller = new AbortController();
+        const options = { signal: controller.signal };
+
+        vi.stubGlobal("addEventListener", addEventListener);
+
+        const target = getErrorHandlingRuntime().getGlobalEventTarget();
+        target?.addEventListener("error", listener, options);
+
+        expect(target).toBeDefined();
+        expect(addEventListener).toHaveBeenCalledWith(
+            "error",
+            listener,
+            options
+        );
+
+        controller.abort();
+    });
 });

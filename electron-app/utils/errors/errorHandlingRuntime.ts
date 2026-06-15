@@ -1,17 +1,51 @@
 export interface ErrorHandlingRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
+    readonly eventTarget?: ErrorHandlingEventTarget | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
+    readonly getEventTarget?:
+        | (() => ErrorHandlingEventTarget | undefined)
+        | undefined;
+}
+
+export interface ErrorHandlingEventTarget {
+    readonly addEventListener: Window["addEventListener"];
 }
 
 export interface ErrorHandlingRuntime {
     createAbortController: () => AbortController;
+    getGlobalEventTarget: () => ErrorHandlingEventTarget | undefined;
 }
 
 const defaultErrorHandlingRuntimeScope: ErrorHandlingRuntimeScope = {
-    getAbortController: () => globalThis.AbortController,
+    getAbortController: getDefaultAbortController,
+    getEventTarget: getDefaultEventTarget,
 };
+
+function getDefaultAbortController(): typeof AbortController | undefined {
+    const AbortControllerConstructor = Reflect.get(
+        globalThis,
+        "AbortController"
+    );
+
+    return typeof AbortControllerConstructor === "function"
+        ? AbortControllerConstructor
+        : undefined;
+}
+
+function getDefaultEventTarget(): ErrorHandlingEventTarget | undefined {
+    const addEventListener = Reflect.get(globalThis, "addEventListener");
+    if (typeof addEventListener !== "function") {
+        return undefined;
+    }
+
+    return {
+        addEventListener: addEventListener.bind(
+            globalThis
+        ) as ErrorHandlingEventTarget["addEventListener"],
+    };
+}
 
 function getAbortControllerConstructor(
     scope: ErrorHandlingRuntimeScope
@@ -27,12 +61,21 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
+function getEventTarget(
+    scope: ErrorHandlingRuntimeScope
+): ErrorHandlingEventTarget | undefined {
+    return scope.getEventTarget?.() ?? scope.eventTarget;
+}
+
 export function getErrorHandlingRuntime(
     scope: ErrorHandlingRuntimeScope = defaultErrorHandlingRuntimeScope
 ): ErrorHandlingRuntime {
     return {
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
+        },
+        getGlobalEventTarget(): ErrorHandlingEventTarget | undefined {
+            return getEventTarget(scope);
         },
     };
 }
