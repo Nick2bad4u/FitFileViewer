@@ -78,14 +78,10 @@ type MiddlewareInfo = {
     priority: number;
 };
 
-type StatePerformanceEntry = {
+export type StatePerformanceEntry = {
     duration: number;
     path: string;
     timestamp: number;
-};
-
-type StatePerformanceGlobal = typeof globalThis & {
-    _statePerformance?: StatePerformanceEntry[];
 };
 
 const HANDLER_PHASES = [
@@ -97,6 +93,7 @@ const HANDLER_PHASES = [
     MIDDLEWARE_PHASES.ON_UNSUBSCRIBE,
 ] as const;
 const stateStorageRuntime = getStateStorageRuntime();
+const statePerformanceHistory: StatePerformanceEntry[] = [];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return value !== null && typeof value === "object";
@@ -112,6 +109,19 @@ function getMessage(value: unknown): string {
     }
 
     return String(value);
+}
+
+/** Returns the rolling performance history recorded by performance middleware. */
+export function getStatePerformanceHistory(): readonly StatePerformanceEntry[] {
+    return statePerformanceHistory;
+}
+
+/** Replaces performance history for focused tests and diagnostic resets. */
+export function resetStatePerformanceHistory(
+    entries: readonly StatePerformanceEntry[] = []
+): void {
+    statePerformanceHistory.length = 0;
+    statePerformanceHistory.push(...entries.slice(-100));
 }
 
 /**
@@ -464,17 +474,14 @@ export const performanceMiddleware: MiddlewareDefinition = {
                 );
             }
 
-            const stateGlobal = globalThis as StatePerformanceGlobal;
-            stateGlobal._statePerformance ??= [];
-
-            stateGlobal._statePerformance.push({
+            statePerformanceHistory.push({
                 duration,
                 path: context.path,
                 timestamp: Date.now(),
             });
 
-            if (stateGlobal._statePerformance.length > 100) {
-                stateGlobal._statePerformance.shift();
+            if (statePerformanceHistory.length > 100) {
+                statePerformanceHistory.shift();
             }
         }
 

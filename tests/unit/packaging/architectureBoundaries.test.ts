@@ -759,6 +759,8 @@ const directStateIntegrationRuntimeAmbientGetterPattern =
     /\bget\s+(?:clearInterval|clearTimeout|localStorage|performance|setInterval|setTimeout)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:clearInterval|clearTimeout|localStorage|performance|setInterval|setTimeout)\b/u;
 const directStateStorageRuntimeAmbientGetterPattern =
     /\bget\s+localStorage\s*\(\)\s*\{|\breturn\s+globalThis\.localStorage\b/u;
+const directStatePerformanceHistoryGlobalPattern =
+    /\b_statePerformance\b|\bStatePerformanceGlobal\b|\bstateGlobal\s*=\s*globalThis/u;
 const directStateDevToolsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearInterval|setInterval)\b|(?:^|[^\w.])(?:clearInterval|setInterval)\(/u;
 const directStateDevToolsRuntimeAmbientIntervalFallbackPattern =
@@ -3652,6 +3654,32 @@ describe("architecture boundaries", () => {
         expect(stateMiddlewareSource).not.toContain("localStorage.");
         expect(stateMiddlewareSource).toContain("stateStorageRuntime.js");
         expect(stateMiddlewareSource).toContain("stateStorageRuntime.setItem");
+    });
+
+    it("keeps state middleware performance history off global object storage", () => {
+        expect.assertions(3);
+
+        const scannedFiles = [
+            "electron-app/utils/state/core/stateMiddleware.ts",
+            "tests/unit/stateMiddleware.branches.test.ts",
+            "tests/unit/utils/state/core/stateMiddleware.comprehensive.test.ts",
+        ];
+        const violations = scannedFiles
+            .filter((relativeFile) =>
+                directStatePerformanceHistoryGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const stateMiddlewareSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/stateMiddleware.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(stateMiddlewareSource).toContain("getStatePerformanceHistory");
+        expect(stateMiddlewareSource).toContain("resetStatePerformanceHistory");
     });
 
     it("keeps generic storage utilities on provider-based ambient storage lookup", () => {

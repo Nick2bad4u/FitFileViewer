@@ -7,9 +7,11 @@ import {
     enableMiddleware,
     executeMiddleware,
     getMiddlewareInfo,
+    getStatePerformanceHistory,
     initializeDefaultMiddleware,
     middlewareManager,
     registerMiddleware,
+    resetStatePerformanceHistory,
     unregisterMiddleware,
 } from "../../../../../electron-app/utils/state/core/stateMiddleware.js";
 import {
@@ -24,6 +26,7 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
     beforeEach(() => {
         // Reset manager state before each test
         cleanupMiddleware();
+        resetStatePerformanceHistory();
         // Ensure global flags are reset
         middlewareManager.setGlobalEnabled(true);
     });
@@ -332,9 +335,8 @@ describe("stateMiddlewareManager - comprehensive coverage", () => {
             });
             await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, ctx);
         }
-        const perf = Reflect.get(globalThis, "_statePerformance");
-        expect(perf).toBeInstanceOf(Array);
-        expect(perf).toHaveLength(100);
+        expect(getStatePerformanceHistory()).toBeInstanceOf(Array);
+        expect(getStatePerformanceHistory()).toHaveLength(100);
     });
 
     it("validation middleware blocks disallowed values and notifies onError", async () => {

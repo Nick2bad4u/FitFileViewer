@@ -10,10 +10,6 @@ type StatePerformanceEntry = {
     timestamp: number;
 };
 
-type StatePerformanceGlobal = typeof globalThis & {
-    _statePerformance?: StatePerformanceEntry[];
-};
-
 function firstArguments(calls: unknown[][]): string[] {
     return calls.map((call) => String(call[0]));
 }
@@ -206,18 +202,19 @@ describe("stateMiddleware additional branches", () => {
             cleanupMiddleware,
             MIDDLEWARE_PHASES,
             performanceMiddleware,
+            getStatePerformanceHistory,
+            resetStatePerformanceHistory,
         } =
             await import("../../electron-app/utils/state/core/stateMiddleware.js");
 
-        // Pre-seed global performance array with 100 entries
-        const stateGlobal = globalThis as StatePerformanceGlobal;
-        stateGlobal._statePerformance = new Array(100)
-            .fill(null)
-            .map((_, i) => ({
+        // Pre-seed performance history with 100 entries
+        resetStatePerformanceHistory(
+            Array.from({ length: 100 }, (_, i) => ({
                 duration: 1,
                 path: `p${i}`,
                 timestamp: i,
-            }));
+            }))
+        );
 
         registerMiddleware("performance", performanceMiddleware, 10);
 
@@ -226,8 +223,8 @@ describe("stateMiddleware additional branches", () => {
         await executeMiddleware(MIDDLEWARE_PHASES.AFTER_SET, ctx2);
 
         expect({
-            latestPath: stateGlobal._statePerformance?.[99]?.path,
-            performanceHistoryLength: stateGlobal._statePerformance?.length,
+            latestPath: getStatePerformanceHistory()[99]?.path,
+            performanceHistoryLength: getStatePerformanceHistory().length,
         }).toEqual({
             latestPath: "pNew",
             performanceHistoryLength: 100,
