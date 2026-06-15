@@ -9,14 +9,7 @@ export interface EventListenerManagerRuntime {
 }
 
 const defaultEventListenerManagerRuntimeScope: EventListenerManagerRuntimeScope =
-    {
-        get AbortController() {
-            return globalThis.AbortController;
-        },
-        get window() {
-            return globalThis.window;
-        },
-    };
+    globalThis;
 
 export function getEventListenerManagerRuntime(
     scope: EventListenerManagerRuntimeScope = defaultEventListenerManagerRuntimeScope

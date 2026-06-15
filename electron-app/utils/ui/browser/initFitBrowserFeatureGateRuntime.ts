@@ -17,14 +17,7 @@ export interface FitBrowserFeatureGateRuntime {
 }
 
 const defaultFitBrowserFeatureGateRuntimeScope: FitBrowserFeatureGateRuntimeScope =
-    {
-        get document(): Document | undefined {
-            return globalThis.document;
-        },
-        get HTMLElement(): typeof HTMLElement | undefined {
-            return globalThis.HTMLElement;
-        },
-    };
+    globalThis;
 
 function getHTMLElementConstructor(
     scope: FitBrowserFeatureGateRuntimeScope

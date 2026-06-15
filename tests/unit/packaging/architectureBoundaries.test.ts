@@ -1041,6 +1041,8 @@ const mainUiDomUtilsTestDirectElectronApiGlobalFixturePattern =
 const directMainUiDomUtilsRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
 const directEventListenerManagerRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\bglobalThis\.window\b/u;
+const directEventListenerManagerRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.(?:AbortController|window)\b/u;
 const preloadTestDirectElectronApiGlobalFixturePattern =
     /\b(?:Object\.defineProperty|Reflect\.deleteProperty)\(\s*globalThis\s*,/u;
 const directExternalLinkHandlersRuntimeGlobalPattern =
@@ -1075,6 +1077,8 @@ const directLoadOverlayFilesRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.navigator\b|\bnavigator\.hardwareConcurrency\b/u;
 const directFitBrowserFeatureGateRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:querySelector|getElementById)\b|\binstanceof\s+HTMLElement\b/u;
+const directFitBrowserFeatureGateRuntimeAmbientGetterPattern =
+    /\breturn\s+globalThis\.(?:document|HTMLElement)\b/u;
 const directFileBrowserTabRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
 const directCreateElevationProfileButtonRuntimeGlobalPattern =
     /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
@@ -3915,7 +3919,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser feature-gate DOM APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedFitBrowserFeatureGateRuntimeFiles
             .filter((relativeFile) =>
@@ -3941,6 +3945,9 @@ describe("architecture boundaries", () => {
         );
         expect(featureGateRuntimeSource).toContain(
             "defaultFitBrowserFeatureGateRuntimeScope"
+        );
+        expect(featureGateRuntimeSource).not.toMatch(
+            directFitBrowserFeatureGateRuntimeAmbientGetterPattern
         );
     });
 
@@ -5285,7 +5292,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer debug logging runtime checks behind the debug runtime adapter", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         for (const relativeFile of migratedRendererDebugLoggingStateFiles) {
             expect(stripComments(readRepositoryFile(relativeFile))).toContain(
@@ -5293,13 +5300,18 @@ describe("architecture boundaries", () => {
             );
         }
 
-        expect(
-            stripComments(
-                readRepositoryFile(
-                    "electron-app/utils/debug/rendererDebugRuntime.ts"
-                )
+        const rendererDebugRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/debug/rendererDebugRuntime.ts"
             )
-        ).toContain("defaultRendererDebugRuntimeScope");
+        );
+
+        expect(rendererDebugRuntimeSource).toContain(
+            "defaultRendererDebugRuntimeScope"
+        );
+        expect(rendererDebugRuntimeSource).not.toContain(
+            "return globalThis.window"
+        );
     });
 
     it("keeps animation debug logging clocks behind the runtime facade", () => {
@@ -11177,7 +11189,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps event listener manager cleanup behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const eventListenerManagerSource = stripComments(
             readRepositoryFile(
@@ -11201,6 +11213,9 @@ describe("architecture boundaries", () => {
         expect(eventListenerManagerSource).toContain("getDefaultEventTarget");
         expect(eventListenerManagerRuntimeSource).toContain(
             "defaultEventListenerManagerRuntimeScope"
+        );
+        expect(eventListenerManagerRuntimeSource).not.toMatch(
+            directEventListenerManagerRuntimeAmbientGetterPattern
         );
     });
 });

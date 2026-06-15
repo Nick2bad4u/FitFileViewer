@@ -6,11 +6,7 @@ export interface RendererDebugRuntime {
     isRendererDebugLoggingAvailable: (enabled: boolean) => boolean;
 }
 
-const defaultRendererDebugRuntimeScope: RendererDebugRuntimeScope = {
-    get window() {
-        return globalThis.window;
-    },
-};
+const defaultRendererDebugRuntimeScope: RendererDebugRuntimeScope = globalThis;
 
 export function getRendererDebugRuntime(
     scope: RendererDebugRuntimeScope = defaultRendererDebugRuntimeScope
