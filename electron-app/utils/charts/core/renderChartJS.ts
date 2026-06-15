@@ -533,7 +533,10 @@ async function renderChartsWithData(
             resolvePerformanceSettings,
             setChartOptionsState: ss_rcwd,
         },
-        { recordCount: recordMesgs.length }
+        {
+            processedAt: renderChartRuntime.now(),
+            recordCount: recordMesgs.length,
+        }
     );
 
     const { zoomPluginConfig } = resolveChartThemeRenderPlan({

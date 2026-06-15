@@ -28,8 +28,8 @@ interface ResolveChartRenderSettingsDependencies {
 }
 
 interface ResolveChartRenderSettingsParams {
+    processedAt: number;
     recordCount: number;
-    processedAt?: number;
 }
 
 /** Boolean chart display settings normalized from persisted string values. */
@@ -126,7 +126,7 @@ export function resolveChartRenderSettings(
             ...settings,
             boolSettings,
             performanceTuning,
-            processedAt: params.processedAt ?? Date.now(),
+            processedAt: params.processedAt,
         },
         { silent: false, source: "renderChartsWithData" }
     );

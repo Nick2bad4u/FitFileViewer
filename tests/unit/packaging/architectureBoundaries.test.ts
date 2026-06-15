@@ -4194,7 +4194,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderChartJS on chart state access and runtime boundaries", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const renderChartSource = stripComments(
             readRepositoryFile(
@@ -4204,6 +4204,11 @@ describe("architecture boundaries", () => {
         const renderChartRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/renderChartJSRuntime.ts"
+            )
+        );
+        const renderChartRenderSettingsSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartRenderSettings.ts"
             )
         );
 
@@ -4221,6 +4226,10 @@ describe("architecture boundaries", () => {
         );
         expect(renderChartRuntimeSource).toContain(
             "defaultRenderChartJSRuntimeScope"
+        );
+        expect(renderChartRenderSettingsSource).not.toContain("Date.now");
+        expect(renderChartRenderSettingsSource).toContain(
+            "processedAt: number"
         );
     });
 
