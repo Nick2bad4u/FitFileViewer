@@ -8,13 +8,14 @@ import { queryAll } from "../../dom/index.js";
 import { hasActiveFitChartData } from "../../state/domain/fitChartDataState.js";
 import { clearCachedChartSettings } from "../../state/domain/settingsStateManager.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
-import { getChartSettingsRenderRuntime } from "./chartSettingsRenderRuntime.js";
+import {
+    getChartSettingsRenderRuntime,
+    type ChartSettingsRenderRuntime,
+} from "./chartSettingsRenderRuntime.js";
 
 type ChartRenderManagerLike = {
     debouncedRender: (reason: string) => unknown;
 };
-
-type ChartSettingsRenderEventTarget = Pick<EventTarget, "dispatchEvent">;
 
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
@@ -118,18 +119,14 @@ function removeExistingChartCanvases(): void {
 }
 
 function dispatchChartRenderRequest(
-    eventTarget: ChartSettingsRenderEventTarget,
+    runtime: ChartSettingsRenderRuntime,
     reason: string
 ): void {
-    eventTarget.dispatchEvent(
-        new CustomEvent("ffv:request-render-charts", {
-            detail: { reason },
-        })
-    );
+    runtime.eventTarget.dispatchEvent(runtime.createRenderRequestEvent(reason));
 }
 
 function runDirectRenderFallback(
-    eventTarget: ChartSettingsRenderEventTarget,
+    runtime: ChartSettingsRenderRuntime,
     reason: string,
     target?: Element | null
 ): void {
@@ -152,7 +149,7 @@ function runDirectRenderFallback(
                 `${LOG_PREFIX} Direct chart render import failed; dispatching render request event`,
                 error
             );
-            dispatchChartRenderRequest(eventTarget, reason);
+            dispatchChartRenderRequest(runtime, reason);
         });
 }
 
@@ -167,7 +164,7 @@ export function reRenderChartsAfterSettingChange(
     newValue: unknown
 ): void {
     try {
-        const { eventTarget } = getChartSettingsRenderRuntime();
+        const runtime = getChartSettingsRenderRuntime();
         // Check if chart data is available
         if (!hasChartData()) {
             console.log(
@@ -192,10 +189,7 @@ export function reRenderChartsAfterSettingChange(
 
         clearLegacyChartRenderState();
         removeExistingChartCanvases();
-        runDirectRenderFallback(
-            eventTarget,
-            `setting-change:${settingName}`
-        );
+        runDirectRenderFallback(runtime, `setting-change:${settingName}`);
 
         console.log(
             `${LOG_PREFIX} Chart re-render completed for ${settingName} change (fallback path)`
@@ -220,7 +214,7 @@ export function reRenderChartsAfterSettingChange(
  */
 export function reRenderChartsAfterReset(): void {
     try {
-        const { eventTarget } = getChartSettingsRenderRuntime();
+        const runtime = getChartSettingsRenderRuntime();
         // Check if chart data is available
         if (!hasChartData()) {
             console.log(
@@ -251,7 +245,7 @@ export function reRenderChartsAfterReset(): void {
             chartStateManager.debouncedRender("Settings reset");
         } else {
             runDirectRenderFallback(
-                eventTarget,
+                runtime,
                 "settings-reset",
                 chartsContainer || getChartRenderContainer(document)
             );

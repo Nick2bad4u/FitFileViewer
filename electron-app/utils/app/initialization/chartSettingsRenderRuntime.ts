@@ -1,9 +1,42 @@
 export interface ChartSettingsRenderRuntime {
+    readonly createRenderRequestEvent: (
+        reason: string
+    ) => CustomEvent<{ reason: string }>;
     readonly eventTarget: Pick<EventTarget, "dispatchEvent">;
 }
 
+interface ChartSettingsRenderRuntimeScope {
+    readonly CustomEvent?: typeof CustomEvent | undefined;
+    readonly dispatchEvent: EventTarget["dispatchEvent"];
+}
+
+function getCustomEventConstructor(
+    scope: ChartSettingsRenderRuntimeScope
+): typeof CustomEvent {
+    const CustomEventConstructor = scope.CustomEvent;
+    if (typeof CustomEventConstructor !== "function") {
+        throw new TypeError(
+            "chartSettingsRender requires a CustomEvent runtime"
+        );
+    }
+
+    return CustomEventConstructor;
+}
+
 export function getChartSettingsRenderRuntime(
-    eventTarget: Pick<EventTarget, "dispatchEvent"> = globalThis
+    scope: ChartSettingsRenderRuntimeScope = globalThis
 ): ChartSettingsRenderRuntime {
-    return { eventTarget };
+    return {
+        createRenderRequestEvent(reason: string): CustomEvent<{
+            reason: string;
+        }> {
+            return new (getCustomEventConstructor(scope))(
+                "ffv:request-render-charts",
+                {
+                    detail: { reason },
+                }
+            );
+        },
+        eventTarget: scope,
+    };
 }
