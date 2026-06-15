@@ -24,8 +24,11 @@ export interface MapFullscreenControlRuntime {
     ): MapFullscreenControlTimer;
 }
 
+const defaultMapFullscreenControlRuntimeScope: MapFullscreenControlRuntimeScope =
+    globalThis;
+
 export function getMapFullscreenControlRuntime(
-    scope: MapFullscreenControlRuntimeScope = globalThis
+    scope: MapFullscreenControlRuntimeScope = defaultMapFullscreenControlRuntimeScope
 ): MapFullscreenControlRuntime {
     return {
         addDocumentFullscreenChangeListener(listener, options): void {

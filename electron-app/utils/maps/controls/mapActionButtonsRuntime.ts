@@ -13,8 +13,11 @@ export interface MapActionButtonsRuntime {
     ) => MapActionButtonTimer;
 }
 
+const defaultMapActionButtonsRuntimeScope: MapActionButtonsRuntimeScope =
+    globalThis;
+
 export function getMapActionButtonsRuntime(
-    scope: MapActionButtonsRuntimeScope = globalThis
+    scope: MapActionButtonsRuntimeScope = defaultMapActionButtonsRuntimeScope
 ): MapActionButtonsRuntime {
     return {
         clearTimeout(timer): void {

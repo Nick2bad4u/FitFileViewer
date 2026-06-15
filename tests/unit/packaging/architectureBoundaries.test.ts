@@ -6554,7 +6554,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map action timers behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedMapActionButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -6576,6 +6576,12 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapActionButtonsSource).toContain("mapActionButtonsRuntime.js");
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "defaultMapActionButtonsRuntimeScope"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
+            "scope: MapActionButtonsRuntimeScope = globalThis"
+        );
         expect(mapActionButtonsRuntimeSource).not.toMatch(
             directMapActionButtonsRuntimeAmbientFallbackPattern
         );
@@ -6623,7 +6629,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const violations = migratedMapFullscreenControlRuntimeFiles
             .filter((relativeFile) =>
@@ -6646,6 +6652,12 @@ describe("architecture boundaries", () => {
             "mapFullscreenControlRuntime.js"
         );
         expect(mapFullscreenControlSource).toContain("createAbortController");
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "defaultMapFullscreenControlRuntimeScope"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
+            "scope: MapFullscreenControlRuntimeScope = globalThis"
+        );
         expect(mapFullscreenControlRuntimeSource).toContain(
             "const runtimeDocument = scope.document;"
         );
@@ -6706,7 +6718,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map lap-selector document listeners behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const violations = migratedMapLapSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -6727,6 +6739,12 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(mapLapSelectorSource).toContain("mapLapSelectorRuntime.js");
         expect(mapLapSelectorSource).toContain("createAbortController");
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "defaultMapLapSelectorRuntimeScope"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
+            "scope: MapLapSelectorRuntimeScope = globalThis"
+        );
         expect(mapLapSelectorRuntimeSource).toContain(
             "const runtimeDocument = scope.document;"
         );

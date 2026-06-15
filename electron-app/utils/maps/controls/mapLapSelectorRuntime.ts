@@ -40,8 +40,11 @@ function getRuntimeDocument(
     return runtimeDocument;
 }
 
+const defaultMapLapSelectorRuntimeScope: MapLapSelectorRuntimeScope =
+    globalThis;
+
 export function getMapLapSelectorRuntime(
-    scope: MapLapSelectorRuntimeScope = globalThis
+    scope: MapLapSelectorRuntimeScope = defaultMapLapSelectorRuntimeScope
 ): MapLapSelectorRuntime {
     return {
         addDocumentKeydownListener(listener, options): void {
