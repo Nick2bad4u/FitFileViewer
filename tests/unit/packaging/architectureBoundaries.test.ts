@@ -1060,6 +1060,8 @@ const directMapDrawLapsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnew\s+AbortController\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
+const directOpenFileSelectorRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:clearTimeout|queueMicrotask|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|queueMicrotask|setTimeout)\b|\bglobalThis\.(?:clearTimeout|queueMicrotask|setTimeout)\s*\(/u;
 const directLoadSingleOverlayFileRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directLoadOverlayFilesRuntimeGlobalPattern =
@@ -6410,7 +6412,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedOpenFileSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -6424,10 +6426,21 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/import/openFileSelector.ts"
             )
         );
+        const openFileSelectorRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/openFileSelectorRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(openFileSelectorSource).toContain("openFileSelectorRuntime.js");
         expect(openFileSelectorSource).toContain("createAbortController");
+        expect(openFileSelectorRuntimeSource).not.toMatch(
+            directOpenFileSelectorRuntimeAmbientFallbackPattern
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "openFileSelector requires a setTimeout runtime"
+        );
     });
 
     it("keeps overlay file load concurrency metadata behind the runtime facade", () => {

@@ -78,6 +78,16 @@ describe("getOpenFileSelectorRuntime", () => {
         expect(microtaskRan).toBe(true);
     });
 
+    it("throws when microtask scheduling is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getOpenFileSelectorRuntime({});
+
+        expect(() => runtime.queueMicrotask(vi.fn())).toThrow(
+            "openFileSelector requires a queueMicrotask runtime"
+        );
+    });
+
     it("uses the injected timeout scheduler and clearer", () => {
         expect.assertions(4);
 
@@ -105,6 +115,26 @@ describe("getOpenFileSelectorRuntime", () => {
         expect(callbackRan).toBe(true);
         expect(scheduledDelayMs).toBe(cleanupDelayMs);
         expect(clearedTimer).toBe(timer);
+    });
+
+    it("throws when timeout cleanup is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getOpenFileSelectorRuntime({});
+
+        expect(() =>
+            runtime.clearTimeout(11 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("openFileSelector requires a clearTimeout runtime");
+    });
+
+    it("throws when timeout scheduling is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getOpenFileSelectorRuntime({});
+
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "openFileSelector requires a setTimeout runtime"
+        );
     });
 
     it("fails clearly when document-backed operations lack a document", () => {

@@ -31,6 +31,41 @@ function getDocument(scope: OpenFileSelectorRuntimeScope): Document {
     return runtimeDocument;
 }
 
+function getRequiredClearTimeout(
+    scope: OpenFileSelectorRuntimeScope
+): typeof globalThis.clearTimeout {
+    const clearTimeoutRef = scope.clearTimeout;
+    if (typeof clearTimeoutRef !== "function") {
+        throw new TypeError("openFileSelector requires a clearTimeout runtime");
+    }
+
+    return clearTimeoutRef;
+}
+
+function getRequiredQueueMicrotask(
+    scope: OpenFileSelectorRuntimeScope
+): typeof globalThis.queueMicrotask {
+    const queueMicrotaskRef = scope.queueMicrotask;
+    if (typeof queueMicrotaskRef !== "function") {
+        throw new TypeError(
+            "openFileSelector requires a queueMicrotask runtime"
+        );
+    }
+
+    return queueMicrotaskRef;
+}
+
+function getRequiredSetTimeout(
+    scope: OpenFileSelectorRuntimeScope
+): typeof globalThis.setTimeout {
+    const setTimeoutRef = scope.setTimeout;
+    if (typeof setTimeoutRef !== "function") {
+        throw new TypeError("openFileSelector requires a setTimeout runtime");
+    }
+
+    return setTimeoutRef;
+}
+
 export function getOpenFileSelectorRuntime(
     scope: OpenFileSelectorRuntimeScope = globalThis
 ): OpenFileSelectorRuntime {
@@ -39,8 +74,7 @@ export function getOpenFileSelectorRuntime(
             getDocument(scope).body.append(element);
         },
         clearTimeout(timer): void {
-            const clearTimeoutRef =
-                scope.clearTimeout ?? globalThis.clearTimeout;
+            const clearTimeoutRef = getRequiredClearTimeout(scope);
             clearTimeoutRef(timer);
         },
         createAbortController(): AbortController {
@@ -60,12 +94,11 @@ export function getOpenFileSelectorRuntime(
             return /jsdom/iu.test(scope.navigator?.userAgent ?? "");
         },
         queueMicrotask(callback): void {
-            const queueMicrotaskRef =
-                scope.queueMicrotask ?? globalThis.queueMicrotask;
+            const queueMicrotaskRef = getRequiredQueueMicrotask(scope);
             queueMicrotaskRef(callback);
         },
         setTimeout(callback, delayMs): OpenFileSelectorTimer {
-            const setTimeoutRef = scope.setTimeout ?? globalThis.setTimeout;
+            const setTimeoutRef = getRequiredSetTimeout(scope);
             return setTimeoutRef(callback, delayMs);
         },
     };
