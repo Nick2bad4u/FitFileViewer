@@ -3,6 +3,18 @@ export type RenderMapTimer = ReturnType<typeof globalThis.setTimeout>;
 export interface RenderMapRuntimeScope {
     readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
+        | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getRequestAnimationFrame?:
+        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
     readonly requestAnimationFrame?:
         | typeof globalThis.requestAnimationFrame
         | undefined;
@@ -16,10 +28,16 @@ export interface RenderMapRuntime {
     setTimeout(callback: () => void, delayMs: number): RenderMapTimer;
 }
 
+function getScopeAbortController(
+    scope: RenderMapRuntimeScope
+): typeof globalThis.AbortController | undefined {
+    return scope.getAbortController?.() ?? scope.AbortController;
+}
+
 function getRequiredClearTimeout(
     scope: RenderMapRuntimeScope
 ): typeof globalThis.clearTimeout {
-    const clearTimeoutRef = scope.clearTimeout;
+    const clearTimeoutRef = scope.getClearTimeout?.() ?? scope.clearTimeout;
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError("renderMap requires a clearTimeout runtime");
     }
@@ -27,10 +45,16 @@ function getRequiredClearTimeout(
     return clearTimeoutRef;
 }
 
+function getScopeRequestAnimationFrame(
+    scope: RenderMapRuntimeScope
+): typeof globalThis.requestAnimationFrame | undefined {
+    return scope.getRequestAnimationFrame?.() ?? scope.requestAnimationFrame;
+}
+
 function getRequiredSetTimeout(
     scope: RenderMapRuntimeScope
 ): typeof globalThis.setTimeout {
-    const setTimeoutRef = scope.setTimeout;
+    const setTimeoutRef = scope.getSetTimeout?.() ?? scope.setTimeout;
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("renderMap requires a setTimeout runtime");
     }
@@ -38,7 +62,12 @@ function getRequiredSetTimeout(
     return setTimeoutRef;
 }
 
-const defaultRenderMapRuntimeScope: RenderMapRuntimeScope = globalThis;
+const defaultRenderMapRuntimeScope: RenderMapRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getClearTimeout: () => globalThis.clearTimeout,
+    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+    getSetTimeout: () => globalThis.setTimeout,
+};
 
 export function getRenderMapRuntime(
     scope: RenderMapRuntimeScope = defaultRenderMapRuntimeScope
@@ -46,10 +75,10 @@ export function getRenderMapRuntime(
     return {
         clearTimeout(timer): void {
             const clearTimeoutRef = getRequiredClearTimeout(scope);
-            clearTimeoutRef(timer);
+            clearTimeoutRef.call(scope, timer);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = getScopeAbortController(scope);
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "renderMap requires an AbortController runtime"
@@ -59,18 +88,18 @@ export function getRenderMapRuntime(
             return new AbortControllerConstructor();
         },
         requestAnimationFrame(frameCallback): void {
-            const requestAnimationFrameRef = scope.requestAnimationFrame;
+            const requestAnimationFrameRef = getScopeRequestAnimationFrame(scope);
             if (typeof requestAnimationFrameRef === "function") {
-                requestAnimationFrameRef(frameCallback);
+                requestAnimationFrameRef.call(scope, frameCallback);
                 return;
             }
 
             const setTimeoutRef = getRequiredSetTimeout(scope);
-            setTimeoutRef(() => frameCallback(0), 0);
+            setTimeoutRef.call(scope, () => frameCallback(0), 0);
         },
         setTimeout(callback, delayMs): RenderMapTimer {
             const setTimeoutRef = getRequiredSetTimeout(scope);
-            return setTimeoutRef(callback, delayMs);
+            return setTimeoutRef.call(scope, callback, delayMs);
         },
     };
 }

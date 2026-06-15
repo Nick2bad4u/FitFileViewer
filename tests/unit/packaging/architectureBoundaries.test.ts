@@ -5025,7 +5025,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-map timing and abort controllers behind the runtime adapter", () => {
-        expect.assertions(7);
+        expect.assertions(12);
 
         const renderMapSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
@@ -5050,6 +5050,21 @@ describe("architecture boundaries", () => {
         );
         expect(renderMapRuntimeSource).not.toContain(
             "scope: RenderMapRuntimeScope = globalThis"
+        );
+        expect(renderMapRuntimeSource).not.toContain(
+            "const defaultRenderMapRuntimeScope: RenderMapRuntimeScope = globalThis"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(renderMapRuntimeSource).not.toMatch(
             directRenderMapRuntimeAmbientTimerFallbackPattern

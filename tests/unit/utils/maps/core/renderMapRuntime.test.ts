@@ -21,6 +21,55 @@ describe("getRenderMapRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
+    it("routes map scheduling dependencies through provider functions", () => {
+        expect.assertions(12);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const callback = vi.fn<() => void>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const delayMs = Number("160");
+        const timer = 123 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => 17);
+        const getAbortController = vi.fn(
+            () =>
+                AbortControllerConstructor as unknown as typeof AbortController
+        );
+        const getClearTimeout = vi.fn(() => clearTimeout);
+        const getRequestAnimationFrame = vi.fn(() => requestAnimationFrame);
+        const getSetTimeout = vi.fn(() => setTimeout);
+        const utils = getRenderMapRuntime({
+            getAbortController,
+            getClearTimeout,
+            getRequestAnimationFrame,
+            getSetTimeout,
+        });
+
+        expect(utils.createAbortController()).toBe(controller);
+        expect(utils.setTimeout(callback, delayMs)).toBe(timer);
+        utils.clearTimeout(timer);
+        utils.requestAnimationFrame(frameCallback);
+
+        expect(getAbortController).toHaveBeenCalledOnce();
+        expect(getSetTimeout).toHaveBeenCalledOnce();
+        expect(getClearTimeout).toHaveBeenCalledOnce();
+        expect(getRequestAnimationFrame).toHaveBeenCalledOnce();
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+        expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(requestAnimationFrame).toHaveBeenCalledWith(frameCallback);
+        expect(callback).not.toHaveBeenCalled();
+        expect(frameCallback).not.toHaveBeenCalled();
+    });
+
     it("throws when abort controller creation is unavailable", () => {
         expect.assertions(1);
 
