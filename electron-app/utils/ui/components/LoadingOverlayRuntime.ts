@@ -15,6 +15,12 @@ export interface LoadingOverlayRuntime {
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
+const defaultLoadingOverlayRuntimeScope: LoadingOverlayRuntimeScope = {
+    get document(): Document | undefined {
+        return globalThis.document;
+    },
+};
+
 function getDocument(scope: LoadingOverlayRuntimeScope): Document {
     const runtimeDocument = scope.document;
     if (!runtimeDocument) {
@@ -25,7 +31,7 @@ function getDocument(scope: LoadingOverlayRuntimeScope): Document {
 }
 
 export function getLoadingOverlayRuntime(
-    scope: LoadingOverlayRuntimeScope = globalThis
+    scope: LoadingOverlayRuntimeScope = defaultLoadingOverlayRuntimeScope
 ): LoadingOverlayRuntime {
     return {
         appendToBody(element: HTMLElement): void {

@@ -6313,7 +6313,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps loading overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedLoadingOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -6327,9 +6327,17 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/components/LoadingOverlay.ts"
             )
         );
+        const loadingOverlayRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/components/LoadingOverlayRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(loadingOverlaySource).toContain("LoadingOverlayRuntime.js");
+        expect(loadingOverlayRuntimeSource).toContain(
+            "defaultLoadingOverlayRuntimeScope"
+        );
     });
 
     it("keeps renderer loading sync DOM APIs behind the runtime facade", () => {
@@ -6468,7 +6476,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedExternalLinkHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -6482,10 +6490,18 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/links/externalLinkHandlers.ts"
             )
         );
+        const externalLinkHandlersRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/links/externalLinkHandlersRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(externalLinkHandlersSource).toContain(
             "externalLinkHandlersRuntime.js"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "defaultExternalLinkHandlersRuntimeScope"
         );
     });
 
@@ -7971,8 +7987,8 @@ describe("architecture boundaries", () => {
         expect(quickColorSwitcherRuntimeSource).toContain(
             "const runtimeDocument = scope.document;"
         );
-        expect(quickColorSwitcherRuntimeSource).not.toContain(
-            "globalThis.document"
+        expect(quickColorSwitcherRuntimeSource).toContain(
+            "defaultQuickColorSwitcherRuntimeScope"
         );
         expect(quickColorSwitcherRuntimeSource).not.toMatch(
             directQuickColorSwitcherRuntimeAmbientTimerFallbackPattern

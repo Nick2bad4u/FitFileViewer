@@ -27,8 +27,28 @@ export interface QuickColorSwitcherRuntime {
     ): QuickColorSwitcherTimerHandle;
 }
 
+const defaultQuickColorSwitcherRuntimeScope: QuickColorSwitcherRuntimeScope = {
+    get AbortController(): typeof AbortController | undefined {
+        return globalThis.AbortController;
+    },
+    get clearTimeout(): typeof globalThis.clearTimeout | undefined {
+        return globalThis.clearTimeout;
+    },
+    get document(): Document | undefined {
+        return globalThis.document;
+    },
+    get setTimeout():
+        | ((
+              callback: () => void,
+              timeout: number
+          ) => QuickColorSwitcherTimerHandle)
+        | undefined {
+        return globalThis.setTimeout;
+    },
+};
+
 export function getQuickColorSwitcherRuntime(
-    scope: QuickColorSwitcherRuntimeScope = globalThis
+    scope: QuickColorSwitcherRuntimeScope = defaultQuickColorSwitcherRuntimeScope
 ): QuickColorSwitcherRuntime {
     return {
         addDocumentClickListener(

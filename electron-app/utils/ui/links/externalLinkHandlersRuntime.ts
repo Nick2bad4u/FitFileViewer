@@ -16,8 +16,15 @@ export interface ExternalLinkHandlersRuntime {
     ) => WindowProxy | null;
 }
 
+const defaultExternalLinkHandlersRuntimeScope: ExternalLinkHandlersRuntimeScope =
+    {
+        get open(): BrowserWindowOpen | undefined {
+            return globalThis.open;
+        },
+    };
+
 export function getExternalLinkHandlersRuntime(
-    scope: ExternalLinkHandlersRuntimeScope = globalThis
+    scope: ExternalLinkHandlersRuntimeScope = defaultExternalLinkHandlersRuntimeScope
 ): ExternalLinkHandlersRuntime {
     return {
         openBrowserWindow(url, target, features): WindowProxy | null {
