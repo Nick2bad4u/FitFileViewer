@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getCreateElevationProfileButtonRuntime } from "../../../../../electron-app/utils/ui/controls/createElevationProfileButtonRuntime.js";
 
 describe("getCreateElevationProfileButtonRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
@@ -92,6 +96,38 @@ describe("getCreateElevationProfileButtonRuntime", () => {
                 chartOverlayColorPalette: palette,
             }).getChartOverlayColorPalette()
         ).toBe(palette);
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(6);
+
+        const utils = getCreateElevationProfileButtonRuntime();
+        const palette = ["#ff0000", "#00ff00"];
+        const popup = {} as Window;
+        const open = vi.fn(() => popup);
+
+        vi.stubGlobal("AbortController", AbortController);
+        vi.stubGlobal("chartOverlayColorPalette", palette);
+        vi.stubGlobal("document", document);
+        vi.stubGlobal("open", open);
+
+        const controller = utils.createAbortController();
+        const openedWindow = utils.openPopupWindow(
+            "",
+            "Elevation Profile",
+            "width=900,height=600"
+        );
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(utils.createButton()).toBeInstanceOf(HTMLButtonElement);
+        expect(utils.getChartOverlayColorPalette()).toBe(palette);
+        expect(openedWindow).toBe(popup);
+        expect(open).toHaveBeenCalledOnce();
+        expect(open).toHaveBeenCalledWith(
+            "",
+            "Elevation Profile",
+            "width=900,height=600"
+        );
     });
 
     it("fails clearly when document-backed operations lack a document", () => {

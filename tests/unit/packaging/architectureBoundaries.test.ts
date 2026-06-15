@@ -1108,6 +1108,8 @@ const directCreateElevationProfileButtonRuntimeGlobalPattern =
     /(?<!\.)\b(?:document|globalThis|window)\.(?:body|chartOverlayColorPalette|createElement|createElementNS|open)\b|\bnew\s+AbortController\b/u;
 const directCreateElevationProfileButtonRuntimeAmbientFallbackPattern =
     /\?\?\s*globalThis\.AbortController\b/u;
+const directCreateElevationProfileButtonRuntimeAmbientGetterPattern =
+    /\bget\s+(?:AbortController|chartOverlayColorPalette|document|open)\s*\(\)\s*\{|\breturn\s+(?:\(globalThis\s+as\s+ElevationProfileButtonGlobalScope\)|globalThis)\.(?:AbortController|chartOverlayColorPalette|document|open)\b/u;
 const directAltFitSenderRuntimeGlobalPattern =
     /\bglobalThis\.(?:console|document|location)\b|\bnew\s+AbortController\b/u;
 const directLoadSharedConfigurationRuntimeGlobalPattern =
@@ -1304,14 +1306,20 @@ const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+AbortController\b/u;
 const directCreateAddFitFileToMapButtonRuntimeAmbientFallbackPattern =
     /\?\?\s*globalThis\.AbortController\b/u;
+const directCreateAddFitFileToMapButtonRuntimeAmbientGetterPattern =
+    /\bget\s+(?:AbortController|document)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|document)\b/u;
 const directAddExitFullscreenOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|exitFullscreen|fullscreenElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b/u;
 const directAddExitFullscreenOverlayRuntimeAmbientFallbackPattern =
     /\?\?\s*globalThis\.(?:AbortController|HTMLElement)\b/u;
+const directAddExitFullscreenOverlayRuntimeAmbientGetterPattern =
+    /\bget\s+(?:AbortController|document)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|document)\b/u;
 const directRemoveExitFullscreenOverlayRuntimeGlobalPattern =
     /\binstanceof\s+HTMLElement\b/u;
 const directRemoveExitFullscreenOverlayRuntimeAmbientFallbackPattern =
     /\?\?\s*globalThis\.HTMLElement\b/u;
+const directRemoveExitFullscreenOverlayRuntimeAmbientGetterPattern =
+    /\bget\s+document\s*\(\)\s*\{|\breturn\s+globalThis\.document\b/u;
 const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b/u;
 const directCreatePowerEstimationButtonRuntimeAmbientFallbackPattern =
@@ -6341,7 +6349,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedCreateAddFitFileToMapButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -6365,13 +6373,16 @@ describe("architecture boundaries", () => {
         expect(createAddFitFileToMapButtonRuntimeSource).not.toMatch(
             directCreateAddFitFileToMapButtonRuntimeAmbientFallbackPattern
         );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toMatch(
+            directCreateAddFitFileToMapButtonRuntimeAmbientGetterPattern
+        );
         expect(createAddFitFileToMapButtonSource).toContain(
             "createAddFitFileToMapButtonRuntime.js"
         );
     });
 
     it("keeps exit-fullscreen overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedAddExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -6398,13 +6409,16 @@ describe("architecture boundaries", () => {
         expect(addExitFullscreenOverlayRuntimeSource).not.toMatch(
             directAddExitFullscreenOverlayRuntimeAmbientFallbackPattern
         );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toMatch(
+            directAddExitFullscreenOverlayRuntimeAmbientGetterPattern
+        );
         expect(addExitFullscreenOverlayRuntimeSource).toContain(
             "defaultAddExitFullscreenOverlayRuntimeScope"
         );
     });
 
     it("keeps exit-fullscreen overlay removal browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedRemoveExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -6430,6 +6444,9 @@ describe("architecture boundaries", () => {
         );
         expect(removeExitFullscreenOverlayRuntimeSource).not.toMatch(
             directRemoveExitFullscreenOverlayRuntimeAmbientFallbackPattern
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).not.toMatch(
+            directRemoveExitFullscreenOverlayRuntimeAmbientGetterPattern
         );
         expect(removeExitFullscreenOverlayRuntimeSource).toContain(
             "defaultRemoveExitFullscreenOverlayRuntimeScope"
@@ -7325,7 +7342,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -7348,6 +7365,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(createElevationProfileButtonRuntimeSource).not.toMatch(
             directCreateElevationProfileButtonRuntimeAmbientFallbackPattern
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toMatch(
+            directCreateElevationProfileButtonRuntimeAmbientGetterPattern
         );
         expect(createElevationProfileButtonSource).toContain(
             "createElevationProfileButtonRuntime.js"

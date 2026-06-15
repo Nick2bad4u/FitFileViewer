@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getRemoveExitFullscreenOverlayRuntime } from "../../../../../electron-app/utils/ui/controls/removeExitFullscreenOverlayRuntime.js";
 
 describe("getRemoveExitFullscreenOverlayRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("identifies elements through the injected document", () => {
         expect.assertions(2);
 
@@ -23,6 +27,17 @@ describe("getRemoveExitFullscreenOverlayRuntime", () => {
         expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
             false
         );
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(2);
+
+        const utils = getRemoveExitFullscreenOverlayRuntime();
+
+        vi.stubGlobal("document", document);
+
+        expect(utils.isHTMLElement(document.createElement("div"))).toBe(true);
+        expect(utils.isHTMLElement({})).toBe(false);
     });
 
     it("fails clearly when the document runtime is unavailable", () => {

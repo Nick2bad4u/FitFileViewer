@@ -9,6 +9,14 @@ export interface CreateElevationProfileButtonRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
     readonly chartOverlayColorPalette?: unknown;
     readonly document?: Document | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getChartOverlayColorPalette?: (() => unknown) | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getOpen?:
+        | (() => CreateElevationProfileButtonRuntimeScope["open"])
+        | undefined;
     readonly open?:
         | ((
               url?: string | URL,
@@ -40,17 +48,12 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileButtonRuntimeScope =
     {
-        get AbortController() {
-            return globalThis.AbortController;
-        },
-        get chartOverlayColorPalette() {
-            return (globalThis as ElevationProfileButtonGlobalScope)
-                .chartOverlayColorPalette;
-        },
-        get document() {
-            return globalThis.document;
-        },
-        get open() {
+        getAbortController: () => globalThis.AbortController,
+        getChartOverlayColorPalette: () =>
+            (globalThis as ElevationProfileButtonGlobalScope)
+                .chartOverlayColorPalette,
+        getDocument: () => globalThis.document,
+        getOpen: () => {
             const openRef = (globalThis as ElevationProfileButtonGlobalScope)
                 .open;
             return typeof openRef === "function"
@@ -63,7 +66,9 @@ function getAbortControllerConstructor(
     scope: CreateElevationProfileButtonRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ?? scope.document?.defaultView?.AbortController;
+        scope.getAbortController?.() ??
+        scope.AbortController ??
+        getScopeDocument(scope)?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createElevationProfileButton requires an AbortController runtime"
@@ -76,7 +81,7 @@ function getAbortControllerConstructor(
 function getDocument(
     scope: CreateElevationProfileButtonRuntimeScope
 ): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = getScopeDocument(scope);
     if (!runtimeDocument) {
         throw new TypeError(
             "createElevationProfileButton requires a document runtime"
@@ -84,6 +89,18 @@ function getDocument(
     }
 
     return runtimeDocument;
+}
+
+function getScopeDocument(
+    scope: CreateElevationProfileButtonRuntimeScope
+): Document | undefined {
+    return scope.getDocument?.() ?? scope.document;
+}
+
+function getScopeOpen(
+    scope: CreateElevationProfileButtonRuntimeScope
+): CreateElevationProfileButtonRuntimeScope["open"] {
+    return scope.getOpen?.() ?? scope.open;
 }
 
 export function getCreateElevationProfileButtonRuntime(
@@ -107,17 +124,21 @@ export function getCreateElevationProfileButtonRuntime(
             return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
         },
         getChartOverlayColorPalette(): unknown {
-            return scope.chartOverlayColorPalette;
+            return (
+                scope.getChartOverlayColorPalette?.() ??
+                scope.chartOverlayColorPalette
+            );
         },
         isDarkTheme(): boolean {
             return getDocument(scope).body.classList.contains("theme-dark");
         },
         openPopupWindow(url, target, features): ElevationProfilePopupWindow {
-            if (typeof scope.open !== "function") {
+            const open = getScopeOpen(scope);
+            if (typeof open !== "function") {
                 return null;
             }
 
-            return scope.open(url, target, features);
+            return open(url, target, features);
         },
     };
 }

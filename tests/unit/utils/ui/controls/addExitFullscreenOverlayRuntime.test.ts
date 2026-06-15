@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getAddExitFullscreenOverlayRuntime } from "../../../../../electron-app/utils/ui/controls/addExitFullscreenOverlayRuntime.js";
 
@@ -22,6 +22,10 @@ function setExitFullscreen(
 }
 
 describe("getAddExitFullscreenOverlayRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
@@ -58,6 +62,22 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
 
         expect(controller).toBeInstanceOf(AbortController);
         expect(controller.signal.aborted).toBe(false);
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(4);
+
+        const utils = getAddExitFullscreenOverlayRuntime();
+
+        vi.stubGlobal("AbortController", AbortController);
+        vi.stubGlobal("document", document);
+
+        const controller = utils.createAbortController();
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(utils.createButton()).toBeInstanceOf(HTMLButtonElement);
+        expect(utils.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
+        expect(utils.isHTMLElement(document.createElement("div"))).toBe(true);
     });
 
     it("does not borrow ambient element constructors for explicit documents", () => {

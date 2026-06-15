@@ -1,6 +1,10 @@
 export interface AddExitFullscreenOverlayRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
     readonly document?: Document | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
 }
 
 export interface AddExitFullscreenOverlayRuntime {
@@ -21,19 +25,23 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 const defaultAddExitFullscreenOverlayRuntimeScope: AddExitFullscreenOverlayRuntimeScope =
     {
-        get AbortController() {
-            return globalThis.AbortController;
-        },
-        get document() {
-            return globalThis.document;
-        },
+        getAbortController: () => globalThis.AbortController,
+        getDocument: () => globalThis.document,
     };
+
+function getScopeDocument(
+    scope: AddExitFullscreenOverlayRuntimeScope
+): Document | undefined {
+    return scope.getDocument?.() ?? scope.document;
+}
 
 function getAbortControllerConstructor(
     scope: AddExitFullscreenOverlayRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ?? scope.document?.defaultView?.AbortController;
+        scope.getAbortController?.() ??
+        scope.AbortController ??
+        getScopeDocument(scope)?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "addExitFullscreenOverlay requires an AbortController runtime"
@@ -44,7 +52,7 @@ function getAbortControllerConstructor(
 }
 
 function getDocument(scope: AddExitFullscreenOverlayRuntimeScope): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = getScopeDocument(scope);
     if (!runtimeDocument) {
         throw new TypeError(
             "addExitFullscreenOverlay requires a document runtime"
@@ -78,10 +86,7 @@ export function getAddExitFullscreenOverlayRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(
-                SVG_NAMESPACE,
-                tagName
-            );
+            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
         },
         async exitFullscreen(): Promise<void> {
             await getDocument(scope).exitFullscreen();

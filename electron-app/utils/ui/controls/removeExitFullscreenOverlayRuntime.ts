@@ -1,5 +1,6 @@
 export interface RemoveExitFullscreenOverlayRuntimeScope {
     readonly document?: Document | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
 }
 
 export interface RemoveExitFullscreenOverlayRuntime {
@@ -8,13 +9,11 @@ export interface RemoveExitFullscreenOverlayRuntime {
 
 const defaultRemoveExitFullscreenOverlayRuntimeScope: RemoveExitFullscreenOverlayRuntimeScope =
     {
-        get document() {
-            return globalThis.document;
-        },
+        getDocument: () => globalThis.document,
     };
 
 function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.() ?? scope.document;
     if (!runtimeDocument) {
         throw new TypeError(
             "removeExitFullscreenOverlay requires a document runtime"

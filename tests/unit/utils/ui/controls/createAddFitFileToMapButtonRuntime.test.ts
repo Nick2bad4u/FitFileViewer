@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getCreateAddFitFileToMapButtonRuntime } from "../../../../../electron-app/utils/ui/controls/createAddFitFileToMapButtonRuntime.js";
 
 describe("getCreateAddFitFileToMapButtonRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
@@ -24,6 +28,21 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
 
         expect(controller).toBeInstanceOf(AbortController);
         expect(controller.signal.aborted).toBe(false);
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(3);
+
+        const utils = getCreateAddFitFileToMapButtonRuntime();
+
+        vi.stubGlobal("AbortController", AbortController);
+        vi.stubGlobal("document", document);
+
+        const controller = utils.createAbortController();
+
+        expect(controller).toBeInstanceOf(AbortController);
+        expect(utils.createButton()).toBeInstanceOf(HTMLButtonElement);
+        expect(utils.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
