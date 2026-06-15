@@ -4986,10 +4986,15 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
+        );
+        const errorHandlingRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/errors/errorHandlingRuntime.ts"
+            )
         );
 
         expect(
@@ -5005,6 +5010,9 @@ describe("architecture boundaries", () => {
         ).toBe(false);
         expect(errorHandlingSource).toContain("notifyUser");
         expect(errorHandlingSource).toContain("errorHandlingRuntime.js");
+        expect(errorHandlingRuntimeSource).toContain(
+            "defaultErrorHandlingRuntimeScope"
+        );
     });
 
     it("keeps accent color picker listener abort-controller creation behind the runtime facade", () => {

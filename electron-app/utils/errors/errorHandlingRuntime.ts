@@ -6,6 +6,12 @@ export interface ErrorHandlingRuntime {
     createAbortController: () => AbortController;
 }
 
+const defaultErrorHandlingRuntimeScope: ErrorHandlingRuntimeScope = {
+    get AbortController() {
+        return globalThis.AbortController;
+    },
+};
+
 function getAbortControllerConstructor(
     scope: ErrorHandlingRuntimeScope
 ): typeof AbortController {
@@ -20,7 +26,7 @@ function getAbortControllerConstructor(
 }
 
 export function getErrorHandlingRuntime(
-    scope: ErrorHandlingRuntimeScope = globalThis
+    scope: ErrorHandlingRuntimeScope = defaultErrorHandlingRuntimeScope
 ): ErrorHandlingRuntime {
     return {
         createAbortController(): AbortController {
