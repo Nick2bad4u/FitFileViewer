@@ -18,8 +18,10 @@ export interface AboutModalRuntime {
     setTimeout(callback: () => void, delay: number): AboutModalTimerHandle;
 }
 
+const defaultAboutModalRuntimeScope: AboutModalRuntimeScope = globalThis;
+
 export function getAboutModalRuntime(
-    scope: AboutModalRuntimeScope = globalThis
+    scope: AboutModalRuntimeScope = defaultAboutModalRuntimeScope
 ): AboutModalRuntime {
     return {
         cancelAnimationFrame(handle: number): void {

@@ -4111,7 +4111,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps zone color picker event APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedOpenZoneColorPickerRuntimeFiles
             .filter((relativeFile) =>
@@ -4137,6 +4137,12 @@ describe("architecture boundaries", () => {
         );
         expect(zoneColorPickerRuntimeSource).not.toMatch(
             directOpenZoneColorPickerRuntimeAmbientFallbackPattern
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "defaultOpenZoneColorPickerRuntimeScope"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "scope: OpenZoneColorPickerRuntimeScope = globalThis"
         );
         expect(zoneColorPickerRuntimeSource).toContain(
             "openZoneColorPicker requires a dispatchEvent runtime"
@@ -4446,7 +4452,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -4474,12 +4480,18 @@ describe("architecture boundaries", () => {
             directModalRuntimeAmbientTimerFallbackPattern
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "defaultKeyboardShortcutsModalRuntimeScope"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "scope: KeyboardShortcutsModalRuntimeScope = globalThis"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
             "keyboardShortcutsModalRuntime requires a setTimeout runtime"
         );
     });
 
     it("keeps about modal timing APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedAboutModalRuntimeFiles
             .filter((relativeFile) =>
@@ -4503,12 +4515,18 @@ describe("architecture boundaries", () => {
             directModalRuntimeAmbientTimerFallbackPattern
         );
         expect(aboutModalRuntimeSource).toContain(
+            "defaultAboutModalRuntimeScope"
+        );
+        expect(aboutModalRuntimeSource).not.toContain(
+            "scope: AboutModalRuntimeScope = globalThis"
+        );
+        expect(aboutModalRuntimeSource).toContain(
             "aboutModalRuntime requires a setTimeout runtime"
         );
     });
 
     it("keeps settings modal timing APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const violations = migratedSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -4528,6 +4546,12 @@ describe("architecture boundaries", () => {
         expect(settingsModalSource).toContain("settingsModalRuntime.js");
         expect(settingsModalRuntimeSource).not.toMatch(
             directModalRuntimeAmbientTimerFallbackPattern
+        );
+        expect(settingsModalRuntimeSource).toContain(
+            "defaultSettingsModalRuntimeScope"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "scope: SettingsModalRuntimeScope = globalThis"
         );
         expect(settingsModalRuntimeSource).toContain(
             "settingsModalRuntime requires a setTimeout runtime"
@@ -5118,10 +5142,15 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps accent color picker listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const accentColorPickerSource = stripComments(
             readRepositoryFile("electron-app/ui/modals/accentColorPicker.ts")
+        );
+        const accentColorPickerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/ui/modals/accentColorPickerRuntime.ts"
+            )
         );
 
         expect(
@@ -5133,6 +5162,12 @@ describe("architecture boundaries", () => {
             "accentColorPickerRuntime.js"
         );
         expect(accentColorPickerSource).toContain("createAbortController");
+        expect(accentColorPickerRuntimeSource).toContain(
+            "defaultAccentColorPickerRuntimeScope"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope: AccentColorPickerRuntimeScope = globalThis"
+        );
     });
 
     it("keeps error handling tests off ambient performance monitor fixtures", () => {
@@ -6178,7 +6213,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation settings modal listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const violations = migratedOpenPowerEstimationSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -6192,6 +6227,11 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/modals/openPowerEstimationSettingsModal.ts"
             )
         );
+        const powerEstimationSettingsModalRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/openPowerEstimationSettingsModalRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(powerEstimationSettingsModalSource).toContain(
@@ -6199,6 +6239,12 @@ describe("architecture boundaries", () => {
         );
         expect(powerEstimationSettingsModalSource).toContain(
             "createAbortController"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "defaultOpenPowerEstimationSettingsModalRuntimeScope"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
+            "scope: OpenPowerEstimationSettingsModalRuntimeScope = globalThis"
         );
     });
 

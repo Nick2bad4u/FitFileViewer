@@ -19,8 +19,11 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
+const defaultAccentColorPickerRuntimeScope: AccentColorPickerRuntimeScope =
+    globalThis;
+
 export function getAccentColorPickerRuntime(
-    scope: AccentColorPickerRuntimeScope = globalThis
+    scope: AccentColorPickerRuntimeScope = defaultAccentColorPickerRuntimeScope
 ): AccentColorPickerRuntime {
     return {
         createAbortController(): AbortController {

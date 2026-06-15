@@ -43,8 +43,11 @@ function getDispatchEvent(
     return dispatchEvent;
 }
 
+const defaultOpenZoneColorPickerRuntimeScope: OpenZoneColorPickerRuntimeScope =
+    globalThis;
+
 export function getOpenZoneColorPickerRuntime(
-    scope: OpenZoneColorPickerRuntimeScope = globalThis
+    scope: OpenZoneColorPickerRuntimeScope = defaultOpenZoneColorPickerRuntimeScope
 ): OpenZoneColorPickerRuntime {
     return {
         createCustomEvent<T>(

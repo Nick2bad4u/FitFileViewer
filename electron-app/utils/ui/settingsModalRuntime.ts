@@ -21,8 +21,10 @@ export interface SettingsModalRuntime {
     ): SettingsModalTimerHandle;
 }
 
+const defaultSettingsModalRuntimeScope: SettingsModalRuntimeScope = globalThis;
+
 export function getSettingsModalRuntime(
-    scope: SettingsModalRuntimeScope = globalThis
+    scope: SettingsModalRuntimeScope = defaultSettingsModalRuntimeScope
 ): SettingsModalRuntime {
     return {
         cancelAnimationFrame(handle: number): void {

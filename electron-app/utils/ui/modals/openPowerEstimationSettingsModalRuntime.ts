@@ -19,8 +19,11 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
+const defaultOpenPowerEstimationSettingsModalRuntimeScope: OpenPowerEstimationSettingsModalRuntimeScope =
+    globalThis;
+
 export function getOpenPowerEstimationSettingsModalRuntime(
-    scope: OpenPowerEstimationSettingsModalRuntimeScope = globalThis
+    scope: OpenPowerEstimationSettingsModalRuntimeScope = defaultOpenPowerEstimationSettingsModalRuntimeScope
 ): OpenPowerEstimationSettingsModalRuntime {
     return {
         createAbortController(): AbortController {

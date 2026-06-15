@@ -23,8 +23,11 @@ export interface KeyboardShortcutsModalRuntime {
     ): KeyboardShortcutsModalTimerHandle;
 }
 
+const defaultKeyboardShortcutsModalRuntimeScope: KeyboardShortcutsModalRuntimeScope =
+    globalThis;
+
 export function getKeyboardShortcutsModalRuntime(
-    scope: KeyboardShortcutsModalRuntimeScope = globalThis
+    scope: KeyboardShortcutsModalRuntimeScope = defaultKeyboardShortcutsModalRuntimeScope
 ): KeyboardShortcutsModalRuntime {
     return {
         cancelAnimationFrame(handle: number): void {
