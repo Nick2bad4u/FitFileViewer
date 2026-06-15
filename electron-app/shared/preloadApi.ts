@@ -232,6 +232,8 @@ export type ElectronClipboardApi = Pick<
 
 export type ElectronDevtoolsMenuApi = Pick<ElectronAPI, "injectMenu">;
 
+export type ElectronDialogApi = Pick<ElectronAPI, "openFolderDialog">;
+
 export type ElectronGyazoExternalApi = Pick<
     ElectronAPI,
     "onGyazoOAuthCallback" | "startGyazoServer" | "stopGyazoServer"

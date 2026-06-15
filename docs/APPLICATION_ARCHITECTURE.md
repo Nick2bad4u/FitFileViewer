@@ -321,22 +321,25 @@ const securityModel = {
 
 ### IPC Security Pattern
 
-```javascript
+```typescript
 // Secure IPC implementation
-contextBridge.exposeInMainWorld("electronAPI", {
- // Validated, safe operations only
- openFile: () => ipcRenderer.invoke("dialog:open-fit-file"),
- saveData: (data) => ipcRenderer.invoke("file:save-data", sanitizeData(data)),
-
- // Event listeners with validation
- onFileOpened: (callback) => {
-  ipcRenderer.on("file:opened", (event, data) => {
-   if (validateFileData(data)) {
-    callback(data);
-   }
-  });
- },
+const electronApi = createElectronApi({
+ apiDiagnostics,
+ appInfoApi,
+ clipboardBridge,
+ devtoolsMenuApi,
+ fileApi,
+ fitBrowserApi,
+ gyazoExternalApi,
+ mainStateApi,
+ menuEventApi,
+ openFolderDialog,
+ preloadEventApi,
+ shellExternalApi,
+ themeApi,
 });
+
+exposeElectronApi(contextBridge, electronApi);
 ```
 
 ## State Management

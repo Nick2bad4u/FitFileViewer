@@ -1694,7 +1694,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload API domain contracts in the shared preload API module", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const localDomainContracts = preloadDomainContractFiles
             .filter((relativeFile) =>
@@ -1721,10 +1721,13 @@ describe("architecture boundaries", () => {
         expect(sharedPreloadApiSource).toContain(
             "export type ElectronShellExternalApi"
         );
+        expect(sharedPreloadApiSource).toContain(
+            "export type ElectronDialogApi"
+        );
     });
 
     it("keeps preload shell and Gyazo external APIs split in external assembly", () => {
-        expect.assertions(12);
+        expect.assertions(16);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -1753,6 +1756,18 @@ describe("architecture boundaries", () => {
         expect(externalApiDomainSource).not.toContain("createExternalApi");
         expect(electronApiFactorySource).toContain("gyazoExternalApi");
         expect(electronApiFactorySource).toContain("shellExternalApi");
+        expect(electronApiFactorySource).toContain(
+            "createElectronApiExternalDomain"
+        );
+        expect(electronApiFactorySource).toContain(
+            "createElectronApiFileDomain"
+        );
+        expect(electronApiFactorySource).toContain(
+            "createElectronApiMenuDomain"
+        );
+        expect(electronApiFactorySource).toContain(
+            "createElectronApiStateDomain"
+        );
         expect(moduleTypesSource).toContain("ElectronShellExternalApi");
         expect(moduleTypesSource).toContain("createPreloadApiAssemblyContext");
     });
