@@ -623,7 +623,8 @@ async function renderChartsWithData(
             addHoverEffectsToExistingCharts:
                 addHoverEffectsToExistingChartsSafe,
             chartContainer,
-            CustomEventConstructor: globalThis.CustomEvent,
+            CustomEventConstructor:
+                renderChartRuntime.getCustomEventConstructor(),
             doc: document,
             getComputedStateManager: getComputedStateManagerSafe,
             getState: gs_rcwd,

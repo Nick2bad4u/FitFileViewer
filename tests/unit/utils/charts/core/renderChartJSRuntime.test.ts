@@ -3,6 +3,24 @@ import { describe, expect, it, vi } from "vitest";
 import { getRenderChartJSRuntime } from "../../../../../electron-app/utils/charts/core/renderChartJSRuntime.js";
 
 describe("renderChartJSRuntime", () => {
+    it("reads custom events through the scoped constructor runtime", () => {
+        expect.assertions(1);
+
+        const utils = getRenderChartJSRuntime({
+            CustomEventConstructor: CustomEvent,
+        });
+
+        expect(utils.getCustomEventConstructor()).toBe(CustomEvent);
+    });
+
+    it("does not borrow ambient custom events for explicit scopes", () => {
+        expect.assertions(1);
+
+        const utils = getRenderChartJSRuntime({});
+
+        expect(utils.getCustomEventConstructor()).toBeUndefined();
+    });
+
     it("reads high-resolution timing through the scoped performance runtime", () => {
         expect.assertions(2);
 
