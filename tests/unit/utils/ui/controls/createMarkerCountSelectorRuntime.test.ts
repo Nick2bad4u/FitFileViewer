@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getCreateMarkerCountSelectorRuntime } from "../../../../../electron-app/utils/ui/controls/createMarkerCountSelectorRuntime.js";
 
 describe("getCreateMarkerCountSelectorRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
@@ -87,5 +91,25 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         expect(() => runtimeWithInvalidEvent.createChangeEvent()).toThrow(
             "createMarkerCountSelector requires an Event runtime"
         );
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(4);
+
+        const runtime = getCreateMarkerCountSelectorRuntime();
+        const documentRef = document;
+
+        vi.stubGlobal("AbortController", AbortController);
+        vi.stubGlobal("document", documentRef);
+        vi.stubGlobal("Event", Event);
+
+        const event = runtime.createChangeEvent();
+
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
+        expect(runtime.createElement("select")).toBeInstanceOf(
+            HTMLSelectElement
+        );
+        expect(runtime.createSvgElement("svg")).toBeInstanceOf(SVGSVGElement);
+        expect(event).toBeInstanceOf(Event);
     });
 });

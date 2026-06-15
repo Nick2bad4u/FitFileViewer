@@ -1316,12 +1316,16 @@ const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b/u;
 const directCreatePowerEstimationButtonRuntimeAmbientFallbackPattern =
     /\?\?\s*globalThis\.AbortController\b/u;
+const directCreatePowerEstimationButtonRuntimeAmbientGetterPattern =
+    /\bget\s+(?:AbortController|document)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|document)\b/u;
 const directOpenPowerEstimationSettingsModalRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+(?:AbortController|Event)\(/u;
 const directCreateMarkerCountSelectorRuntimeAmbientFallbackPattern =
     /\?\?\s*globalThis\.(?:AbortController|Event)\b/u;
+const directCreateMarkerCountSelectorRuntimeAmbientGetterPattern =
+    /\bget\s+(?:AbortController|document|Event)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|document|Event)\b/u;
 const directCreateDataPointFilterControlRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b|\btypeof\s+queueMicrotask\b|\bPromise\.resolve\(\)\.then\(/u;
 const createDataPointFilterControlTestDirectAsyncGlobalAssignmentPattern =
@@ -1334,6 +1338,8 @@ const directCreatePowerZoneControlsSimpleRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|querySelector)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|\blocalStorage\.(?:getItem|setItem)\b/u;
 const directZoneControlsRuntimeAmbientFallbackPattern =
     /\?\?\s*globalThis\.(?:AbortController|localStorage)\b/u;
+const directZoneControlsRuntimeAmbientGetterPattern =
+    /\bget\s+(?:AbortController|document|HTMLElement|localStorage)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|document|HTMLElement|localStorage)\b/u;
 const directDataPointFilterElementFactoryRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
 const directDataPointFilterPanelControllerRuntimeGlobalPattern =
@@ -6431,7 +6437,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation button browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedCreatePowerEstimationButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -6454,6 +6460,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(createPowerEstimationButtonRuntimeSource).not.toMatch(
             directCreatePowerEstimationButtonRuntimeAmbientFallbackPattern
+        );
+        expect(createPowerEstimationButtonRuntimeSource).not.toMatch(
+            directCreatePowerEstimationButtonRuntimeAmbientGetterPattern
         );
         expect(createPowerEstimationButtonSource).toContain(
             "createPowerEstimationButtonRuntime.js"
@@ -6497,7 +6506,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps marker-count selector browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedCreateMarkerCountSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -6523,6 +6532,9 @@ describe("architecture boundaries", () => {
         );
         expect(createMarkerCountSelectorRuntimeSource).not.toMatch(
             directCreateMarkerCountSelectorRuntimeAmbientFallbackPattern
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toMatch(
+            directCreateMarkerCountSelectorRuntimeAmbientGetterPattern
         );
         expect(createMarkerCountSelectorRuntimeSource).toContain(
             "defaultCreateMarkerCountSelectorRuntimeScope"
@@ -6583,7 +6595,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps HR zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedCreateHRZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -6607,13 +6619,16 @@ describe("architecture boundaries", () => {
         expect(hrZoneControlsRuntimeSource).not.toMatch(
             directZoneControlsRuntimeAmbientFallbackPattern
         );
+        expect(hrZoneControlsRuntimeSource).not.toMatch(
+            directZoneControlsRuntimeAmbientGetterPattern
+        );
         expect(hrZoneControlsSource).toContain(
             "createHRZoneControlsRuntime.js"
         );
     });
 
     it("keeps power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedCreatePowerZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -6637,13 +6652,16 @@ describe("architecture boundaries", () => {
         expect(powerZoneControlsRuntimeSource).not.toMatch(
             directZoneControlsRuntimeAmbientFallbackPattern
         );
+        expect(powerZoneControlsRuntimeSource).not.toMatch(
+            directZoneControlsRuntimeAmbientGetterPattern
+        );
         expect(powerZoneControlsSource).toContain(
             "createPowerZoneControlsRuntime.js"
         );
     });
 
     it("keeps simple power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedCreatePowerZoneControlsSimpleRuntimeFiles
             .filter((relativeFile) =>
@@ -6666,6 +6684,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(powerZoneControlsRuntimeSource).not.toMatch(
             directZoneControlsRuntimeAmbientFallbackPattern
+        );
+        expect(powerZoneControlsRuntimeSource).not.toMatch(
+            directZoneControlsRuntimeAmbientGetterPattern
         );
         expect(powerZoneControlsSource).toContain(
             "createPowerZoneControlsSimpleRuntime.js"

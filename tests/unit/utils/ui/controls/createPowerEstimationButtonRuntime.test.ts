@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getCreatePowerEstimationButtonRuntime } from "../../../../../electron-app/utils/ui/controls/createPowerEstimationButtonRuntime.js";
 
 describe("getCreatePowerEstimationButtonRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates buttons through the injected document", () => {
         expect.assertions(1);
 
@@ -52,5 +56,18 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
         ).toThrow(
             "createPowerEstimationButton requires an AbortController runtime"
         );
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(2);
+
+        const runtime = getCreatePowerEstimationButtonRuntime();
+        const documentRef = document;
+
+        vi.stubGlobal("AbortController", AbortController);
+        vi.stubGlobal("document", documentRef);
+
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
+        expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
     });
 });

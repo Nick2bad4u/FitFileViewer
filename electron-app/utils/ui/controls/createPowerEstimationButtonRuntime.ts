@@ -1,6 +1,10 @@
 export interface CreatePowerEstimationButtonRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
     readonly document?: Document | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
 }
 
 export interface CreatePowerEstimationButtonRuntime {
@@ -10,19 +14,23 @@ export interface CreatePowerEstimationButtonRuntime {
 
 const defaultCreatePowerEstimationButtonRuntimeScope: CreatePowerEstimationButtonRuntimeScope =
     {
-        get AbortController() {
-            return globalThis.AbortController;
-        },
-        get document() {
-            return globalThis.document;
-        },
+        getAbortController: () => globalThis.AbortController,
+        getDocument: () => globalThis.document,
     };
+
+function getScopeDocument(
+    scope: CreatePowerEstimationButtonRuntimeScope
+): Document | undefined {
+    return scope.getDocument?.() ?? scope.document;
+}
 
 function getAbortControllerConstructor(
     scope: CreatePowerEstimationButtonRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ?? scope.document?.defaultView?.AbortController;
+        scope.getAbortController?.() ??
+        scope.AbortController ??
+        getScopeDocument(scope)?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createPowerEstimationButton requires an AbortController runtime"
@@ -32,10 +40,8 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
-function getDocument(
-    scope: CreatePowerEstimationButtonRuntimeScope
-): Document {
-    const runtimeDocument = scope.document;
+function getDocument(scope: CreatePowerEstimationButtonRuntimeScope): Document {
+    const runtimeDocument = getScopeDocument(scope);
     if (!runtimeDocument) {
         throw new TypeError(
             "createPowerEstimationButton requires a document runtime"

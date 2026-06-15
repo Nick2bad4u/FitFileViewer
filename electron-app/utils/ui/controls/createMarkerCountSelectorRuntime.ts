@@ -2,6 +2,11 @@ export interface CreateMarkerCountSelectorRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
     readonly document?: Document | undefined;
     readonly Event?: typeof Event | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getEvent?: (() => typeof Event | undefined) | undefined;
 }
 
 export interface CreateMarkerCountSelectorRuntime {
@@ -19,22 +24,24 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 const defaultCreateMarkerCountSelectorRuntimeScope: CreateMarkerCountSelectorRuntimeScope =
     {
-        get AbortController() {
-            return globalThis.AbortController;
-        },
-        get document() {
-            return globalThis.document;
-        },
-        get Event() {
-            return globalThis.Event;
-        },
+        getAbortController: () => globalThis.AbortController,
+        getDocument: () => globalThis.document,
+        getEvent: () => globalThis.Event,
     };
+
+function getScopeDocument(
+    scope: CreateMarkerCountSelectorRuntimeScope
+): Document | undefined {
+    return scope.getDocument?.() ?? scope.document;
+}
 
 function getAbortControllerConstructor(
     scope: CreateMarkerCountSelectorRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ?? scope.document?.defaultView?.AbortController;
+        scope.getAbortController?.() ??
+        scope.AbortController ??
+        getScopeDocument(scope)?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createMarkerCountSelector requires an AbortController runtime"
@@ -44,10 +51,8 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
-function getDocument(
-    scope: CreateMarkerCountSelectorRuntimeScope
-): Document {
-    const runtimeDocument = scope.document;
+function getDocument(scope: CreateMarkerCountSelectorRuntimeScope): Document {
+    const runtimeDocument = getScopeDocument(scope);
     if (!runtimeDocument) {
         throw new TypeError(
             "createMarkerCountSelector requires a document runtime"
@@ -60,7 +65,10 @@ function getDocument(
 function getEventConstructor(
     scope: CreateMarkerCountSelectorRuntimeScope
 ): typeof Event {
-    const EventConstructor = scope.Event ?? scope.document?.defaultView?.Event;
+    const EventConstructor =
+        scope.getEvent?.() ??
+        scope.Event ??
+        getScopeDocument(scope)?.defaultView?.Event;
     if (typeof EventConstructor !== "function") {
         throw new TypeError(
             "createMarkerCountSelector requires an Event runtime"
@@ -93,10 +101,7 @@ export function getCreateMarkerCountSelectorRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(
-                SVG_NAMESPACE,
-                tagName
-            );
+            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
         },
     };
 }

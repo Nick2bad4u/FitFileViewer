@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getPowerZoneControlsSimpleRuntime } from "../../../../../electron-app/utils/ui/controls/createPowerZoneControlsSimpleRuntime.js";
 
 describe("getPowerZoneControlsSimpleRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates DOM elements and queries through the injected document", () => {
         expect.assertions(4);
 
@@ -116,6 +120,44 @@ describe("getPowerZoneControlsSimpleRuntime", () => {
             )
         ).toThrow(
             "createPowerZoneControlsSimple requires a localStorage runtime"
+        );
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(6);
+
+        const runtime = getPowerZoneControlsSimpleRuntime();
+        const documentRef = document;
+        const storage = new Map<string, string>();
+        const localStorage = {
+            getItem: vi.fn((key: string) => storage.get(key) ?? null),
+            setItem: vi.fn((key: string, value: string) => {
+                storage.set(key, value);
+            }),
+        };
+
+        vi.stubGlobal("AbortController", AbortController);
+        vi.stubGlobal("document", documentRef);
+        vi.stubGlobal("HTMLElement", HTMLElement);
+        vi.stubGlobal("localStorage", localStorage);
+
+        const section = runtime.createElement("div");
+        section.id = "power-simple-defaults";
+        documentRef.body.append(section);
+
+        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
+        expect(runtime.querySelector("#power-simple-defaults")).toBe(section);
+        expect(runtime.isHTMLElement(section)).toBe(true);
+        runtime.setStorageItem("power-zone-controls-collapsed", "true");
+        expect(runtime.getStorageItem("power-zone-controls-collapsed")).toBe(
+            "true"
+        );
+        expect(localStorage.setItem).toHaveBeenCalledWith(
+            "power-zone-controls-collapsed",
+            "true"
+        );
+        expect(localStorage.getItem).toHaveBeenCalledWith(
+            "power-zone-controls-collapsed"
         );
     });
 });

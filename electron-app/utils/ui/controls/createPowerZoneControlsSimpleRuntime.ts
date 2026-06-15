@@ -3,6 +3,16 @@ type PowerZoneControlsSimpleStorage = Pick<Storage, "getItem" | "setItem">;
 export interface PowerZoneControlsSimpleRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
     readonly document?: Document | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof HTMLElement | undefined)
+        | undefined;
+    readonly getLocalStorage?:
+        | (() => PowerZoneControlsSimpleStorage | undefined)
+        | undefined;
     readonly HTMLElement?: typeof HTMLElement | undefined;
     readonly localStorage?: PowerZoneControlsSimpleStorage | undefined;
 }
@@ -20,25 +30,25 @@ export interface PowerZoneControlsSimpleRuntime {
 
 const defaultPowerZoneControlsSimpleRuntimeScope: PowerZoneControlsSimpleRuntimeScope =
     {
-        get AbortController() {
-            return globalThis.AbortController;
-        },
-        get document() {
-            return globalThis.document;
-        },
-        get HTMLElement() {
-            return globalThis.HTMLElement;
-        },
-        get localStorage() {
-            return globalThis.localStorage;
-        },
+        getAbortController: () => globalThis.AbortController,
+        getDocument: () => globalThis.document,
+        getHTMLElement: () => globalThis.HTMLElement,
+        getLocalStorage: () => globalThis.localStorage,
     };
+
+function getScopeDocument(
+    scope: PowerZoneControlsSimpleRuntimeScope
+): Document | undefined {
+    return scope.getDocument?.() ?? scope.document;
+}
 
 function getAbortControllerConstructor(
     scope: PowerZoneControlsSimpleRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ?? scope.document?.defaultView?.AbortController;
+        scope.getAbortController?.() ??
+        scope.AbortController ??
+        getScopeDocument(scope)?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createPowerZoneControlsSimple requires an AbortController runtime"
@@ -49,7 +59,7 @@ function getAbortControllerConstructor(
 }
 
 function getDocument(scope: PowerZoneControlsSimpleRuntimeScope): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = getScopeDocument(scope);
     if (!runtimeDocument) {
         throw new TypeError(
             "createPowerZoneControlsSimple requires a document runtime"
@@ -63,7 +73,9 @@ function getHTMLElementConstructor(
     scope: PowerZoneControlsSimpleRuntimeScope
 ): typeof HTMLElement {
     const HTMLElementConstructor =
-        scope.HTMLElement ?? scope.document?.defaultView?.HTMLElement;
+        scope.getHTMLElement?.() ??
+        scope.HTMLElement ??
+        getScopeDocument(scope)?.defaultView?.HTMLElement;
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "createPowerZoneControlsSimple requires an HTMLElement runtime"
@@ -77,7 +89,9 @@ function getLocalStorage(
     scope: PowerZoneControlsSimpleRuntimeScope
 ): PowerZoneControlsSimpleStorage {
     const storage =
-        scope.localStorage ?? scope.document?.defaultView?.localStorage;
+        scope.getLocalStorage?.() ??
+        scope.localStorage ??
+        getScopeDocument(scope)?.defaultView?.localStorage;
     if (
         !storage ||
         typeof storage.getItem !== "function" ||
@@ -109,9 +123,7 @@ export function getPowerZoneControlsSimpleRuntime(
         isHTMLElement(value: unknown): value is HTMLElement {
             return value instanceof getHTMLElementConstructor(scope);
         },
-        querySelector<E extends Element = Element>(
-            selector: string
-        ): E | null {
+        querySelector<E extends Element = Element>(selector: string): E | null {
             return getDocument(scope).querySelector<E>(selector);
         },
         setStorageItem(key: string, value: string): void {
