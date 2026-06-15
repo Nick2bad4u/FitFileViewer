@@ -3978,6 +3978,29 @@ describe("architecture boundaries", () => {
         ).toBe(true);
     });
 
+    it("keeps renderer environment default scope behind a provider", () => {
+        expect.assertions(4);
+
+        const rendererEnvironmentSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/rendererEnvironment.ts"
+            )
+        );
+
+        expect(rendererEnvironmentSource).toContain(
+            "getDefaultRendererEnvironmentScope"
+        );
+        expect(rendererEnvironmentSource).toContain(
+            "getDefaultRendererEnvironmentScope()"
+        );
+        expect(rendererEnvironmentSource).not.toContain(
+            "globalScope: object = globalThis"
+        );
+        expect(rendererEnvironmentSource).not.toContain(
+            "isDevelopmentMode(globalScope: object = globalThis)"
+        );
+    });
+
     it("keeps main-ui as an entrypoint-only startup bridge", () => {
         expect.assertions(5);
 

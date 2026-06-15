@@ -17,6 +17,10 @@ function getGlobalBooleanFlag(globalScope: object, flagName: string): unknown {
     return Reflect.get(globalScope, flagName);
 }
 
+function getDefaultRendererEnvironmentScope(): object {
+    return globalThis;
+}
+
 function getRendererLocationParts(globalScope: object): RendererLocationParts {
     const locationRecord = toRecord(Reflect.get(globalScope, "location"));
 
@@ -85,11 +89,11 @@ function isElectronDevModeApi(value: unknown): value is {
 /**
  * Gets the renderer environment name from the current global runtime markers.
  *
- * @param globalScope - Global-like object to inspect. Defaults to `globalThis`.
+ * @param globalScope - Global-like object to inspect. Defaults to the current renderer global scope.
  * @returns The detected renderer environment name.
  */
 export function getEnvironment(
-    globalScope: object = globalThis
+    globalScope: object = getDefaultRendererEnvironmentScope()
 ): RendererEnvironmentName {
     return isDevelopmentMode(globalScope) ? "development" : "production";
 }
@@ -97,10 +101,12 @@ export function getEnvironment(
 /**
  * Detects whether the renderer is running with development-mode markers.
  *
- * @param globalScope - Global-like object to inspect. Defaults to `globalThis`.
+ * @param globalScope - Global-like object to inspect. Defaults to the current renderer global scope.
  * @returns Whether the renderer should use development-mode behavior.
  */
-export function isDevelopmentMode(globalScope: object = globalThis): boolean {
+export function isDevelopmentMode(
+    globalScope: object = getDefaultRendererEnvironmentScope()
+): boolean {
     try {
         const locationParts = getRendererLocationParts(globalScope);
 
