@@ -6,8 +6,15 @@ export interface RendererApplicationLifecycleWiringRuntime {
     createAbortController(): AbortController;
 }
 
+const defaultRendererApplicationLifecycleWiringRuntimeScope: RendererApplicationLifecycleWiringRuntimeScope =
+    {
+        get AbortController() {
+            return globalThis.AbortController;
+        },
+    };
+
 export function getRendererApplicationLifecycleWiringRuntime(
-    scope: RendererApplicationLifecycleWiringRuntimeScope = globalThis
+    scope: RendererApplicationLifecycleWiringRuntimeScope = defaultRendererApplicationLifecycleWiringRuntimeScope
 ): RendererApplicationLifecycleWiringRuntime {
     return {
         createAbortController(): AbortController {

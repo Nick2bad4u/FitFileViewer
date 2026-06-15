@@ -6,8 +6,15 @@ export interface RendererFileInputStartupRuntime {
     createAbortController(): AbortController;
 }
 
+const defaultRendererFileInputStartupRuntimeScope: RendererFileInputStartupRuntimeScope =
+    {
+        get AbortController() {
+            return globalThis.AbortController;
+        },
+    };
+
 export function getRendererFileInputStartupRuntime(
-    scope: RendererFileInputStartupRuntimeScope = globalThis
+    scope: RendererFileInputStartupRuntimeScope = defaultRendererFileInputStartupRuntimeScope
 ): RendererFileInputStartupRuntime {
     return {
         createAbortController(): AbortController {

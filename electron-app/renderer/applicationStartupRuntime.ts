@@ -16,8 +16,21 @@ export interface RendererApplicationStartupRuntime {
     ): RendererApplicationStartupTimerHandle;
 }
 
+const defaultRendererApplicationStartupRuntimeScope: RendererApplicationStartupRuntimeScope =
+    {
+        get AbortController() {
+            return globalThis.AbortController;
+        },
+        get clearTimeout() {
+            return globalThis.clearTimeout;
+        },
+        get setTimeout() {
+            return globalThis.setTimeout;
+        },
+    };
+
 export function getRendererApplicationStartupRuntime(
-    scope: RendererApplicationStartupRuntimeScope = globalThis
+    scope: RendererApplicationStartupRuntimeScope = defaultRendererApplicationStartupRuntimeScope
 ): RendererApplicationStartupRuntime {
     return {
         clearTimeout(handle: RendererApplicationStartupTimerHandle): void {

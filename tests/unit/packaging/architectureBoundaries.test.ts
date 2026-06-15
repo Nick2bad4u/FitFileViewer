@@ -7566,7 +7566,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup browser primitives behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedRendererApplicationStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -7592,10 +7592,13 @@ describe("architecture boundaries", () => {
             directRendererApplicationStartupRuntimeAmbientFallbackPattern
         );
         expect(runtimeSource).toContain("scope.AbortController");
+        expect(runtimeSource).toContain(
+            "defaultRendererApplicationStartupRuntimeScope"
+        );
     });
 
     it("keeps renderer application lifecycle abort controllers behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations =
             migratedRendererApplicationLifecycleWiringRuntimeFiles
@@ -7610,15 +7613,23 @@ describe("architecture boundaries", () => {
                 "electron-app/renderer/applicationLifecycleWiring.ts"
             )
         );
+        const lifecycleWiringRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/applicationLifecycleWiringRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(lifecycleWiringSource).toContain(
             "applicationLifecycleWiringRuntime.js"
         );
+        expect(lifecycleWiringRuntimeSource).toContain(
+            "defaultRendererApplicationLifecycleWiringRuntimeScope"
+        );
     });
 
     it("keeps renderer file-input abort controllers behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedRendererFileInputStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -7630,9 +7641,17 @@ describe("architecture boundaries", () => {
         const fileInputStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/fileInputStartup.ts")
         );
+        const fileInputStartupRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/fileInputStartupRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(fileInputStartupSource).toContain("fileInputStartupRuntime.js");
+        expect(fileInputStartupRuntimeSource).toContain(
+            "defaultRendererFileInputStartupRuntimeScope"
+        );
     });
 
     it("keeps renderer test-only bootstrap abort controllers behind the runtime facade", () => {
