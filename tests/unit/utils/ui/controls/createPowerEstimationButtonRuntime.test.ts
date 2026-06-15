@@ -25,9 +25,13 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
     });
 
     it("fails clearly when required runtimes are unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const runtime = getCreatePowerEstimationButtonRuntime({});
+        const runtimeWithoutAbortController =
+            getCreatePowerEstimationButtonRuntime({
+                document: { defaultView: undefined } as Document,
+            });
         const runtimeWithInvalidAbortController =
             getCreatePowerEstimationButtonRuntime({
                 AbortController:
@@ -37,6 +41,11 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
 
         expect(() => runtime.createButton()).toThrow(
             "createPowerEstimationButton requires a document runtime"
+        );
+        expect(() =>
+            runtimeWithoutAbortController.createAbortController()
+        ).toThrow(
+            "createPowerEstimationButton requires an AbortController runtime"
         );
         expect(() =>
             runtimeWithInvalidAbortController.createAbortController()

@@ -1268,6 +1268,8 @@ const directRemoveExitFullscreenOverlayRuntimeAmbientFallbackPattern =
     /\?\?\s*globalThis\.HTMLElement\b/u;
 const directCreatePowerEstimationButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.createElement\b|\bnew\s+AbortController\b/u;
+const directCreatePowerEstimationButtonRuntimeAmbientFallbackPattern =
+    /\?\?\s*globalThis\.AbortController\b/u;
 const directOpenPowerEstimationSettingsModalRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directCreateMarkerCountSelectorRuntimeGlobalPattern =
@@ -5987,7 +5989,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation button browser APIs behind the runtime facade", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const violations = migratedCreatePowerEstimationButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -6001,8 +6003,16 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createPowerEstimationButton.ts"
             )
         );
+        const createPowerEstimationButtonRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/createPowerEstimationButtonRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
+        expect(createPowerEstimationButtonRuntimeSource).not.toMatch(
+            directCreatePowerEstimationButtonRuntimeAmbientFallbackPattern
+        );
         expect(createPowerEstimationButtonSource).toContain(
             "createPowerEstimationButtonRuntime.js"
         );

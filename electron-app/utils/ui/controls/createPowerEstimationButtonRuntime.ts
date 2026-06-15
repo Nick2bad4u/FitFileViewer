@@ -8,13 +8,21 @@ export interface CreatePowerEstimationButtonRuntime {
     createButton: () => HTMLButtonElement;
 }
 
+const defaultCreatePowerEstimationButtonRuntimeScope: CreatePowerEstimationButtonRuntimeScope =
+    {
+        get AbortController() {
+            return globalThis.AbortController;
+        },
+        get document() {
+            return globalThis.document;
+        },
+    };
+
 function getAbortControllerConstructor(
     scope: CreatePowerEstimationButtonRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.defaultView?.AbortController ??
-        globalThis.AbortController;
+        scope.AbortController ?? scope.document?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createPowerEstimationButton requires an AbortController runtime"
@@ -38,7 +46,7 @@ function getDocument(
 }
 
 export function getCreatePowerEstimationButtonRuntime(
-    scope: CreatePowerEstimationButtonRuntimeScope = globalThis
+    scope: CreatePowerEstimationButtonRuntimeScope = defaultCreatePowerEstimationButtonRuntimeScope
 ): CreatePowerEstimationButtonRuntime {
     return {
         createAbortController(): AbortController {
