@@ -912,12 +912,16 @@ const directModalRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\(/u;
 const directDragDropHandlerTimingRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|requestAnimationFrame)\b|(?:^|[^\w.])(?:cancelAnimationFrame|requestAnimationFrame)\(/u;
+const directDragDropHandlerRuntimeAmbientGetterPattern =
+    /\bget\s+(?:AbortController|cancelAnimationFrame|requestAnimationFrame)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|cancelAnimationFrame|requestAnimationFrame)\b/u;
 const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directAboutModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directShowNotificationTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directShowNotificationRuntimeAmbientGetterPattern =
+    /\bget\s+(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout|window)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout|window)\b/u;
 const directNotificationTimerRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directNotificationTimerRuntimeAmbientGetterPattern =
@@ -987,6 +991,8 @@ const directAccentColorPickerRuntimeGlobalPattern =
 const errorHandlingPerformanceMonitorGlobalLookupPattern =
     /\bglobalRef\.performanceMonitor\b|\bperformanceMonitor\?:\s*\{/u;
 const directErrorHandlingRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
+const directErrorHandlingRuntimeAmbientGetterPattern =
+    /\bget\s+AbortController\s*\(\)\s*\{|\breturn\s+globalThis\.AbortController\b/u;
 const errorHandlingTestDirectPerformanceMonitorFixturePattern =
     /\bglobalRef\.performanceMonitor\s*=|\bReflect\.deleteProperty\(\s*globalRef\s*,\s*["']performanceMonitor["']\s*\)/u;
 const directRendererDevGlobalPattern =
@@ -1057,6 +1063,8 @@ const preloadTestDirectElectronApiGlobalFixturePattern =
     /\b(?:Object\.defineProperty|Reflect\.deleteProperty)\(\s*globalThis\s*,/u;
 const directExternalLinkHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.open\b/u;
+const directExternalLinkHandlersRuntimeAmbientGetterPattern =
+    /\bget\s+open\s*\(\)\s*\{|\breturn\s+globalThis\.open\b/u;
 const directMapActionButtonsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapActionButtonsRuntimeAmbientFallbackPattern =
@@ -1248,6 +1256,8 @@ const directUnifiedControlBarRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|eventTarget|setTimeout)\s*\?\?\s*globalThis(?:\.(?:clearTimeout|setTimeout))?\b/u;
 const directQuickColorSwitcherRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+const directQuickColorSwitcherRuntimeAmbientGetterPattern =
+    /\bget\s+(?:AbortController|clearTimeout|document|setTimeout)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|clearTimeout|document|setTimeout)\b/u;
 const directQuickColorSwitcherRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directShownFilesListRuntimeGlobalPattern =
@@ -4644,7 +4654,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(5);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -4665,13 +4675,16 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(dragDropHandlerSource).toContain("dragDropHandlerRuntime.js");
         expect(dragDropHandlerSource).toContain("createAbortController");
+        expect(dragDropHandlerRuntimeSource).not.toMatch(
+            directDragDropHandlerRuntimeAmbientGetterPattern
+        );
         expect(dragDropHandlerRuntimeSource).toContain(
             "defaultDragDropHandlerRuntimeScope"
         );
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -4693,6 +4706,9 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(notificationSource).toContain("showNotificationRuntime.js");
+        expect(notificationRuntimeSource).not.toMatch(
+            directShowNotificationRuntimeAmbientGetterPattern
+        );
         expect(notificationRuntimeSource).toContain(
             "defaultShowNotificationRuntimeScope"
         );
@@ -5233,7 +5249,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -5257,6 +5273,9 @@ describe("architecture boundaries", () => {
         ).toBe(false);
         expect(errorHandlingSource).toContain("notifyUser");
         expect(errorHandlingSource).toContain("errorHandlingRuntime.js");
+        expect(errorHandlingRuntimeSource).not.toMatch(
+            directErrorHandlingRuntimeAmbientGetterPattern
+        );
         expect(errorHandlingRuntimeSource).toContain(
             "defaultErrorHandlingRuntimeScope"
         );
@@ -6885,7 +6904,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const violations = migratedExternalLinkHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -6908,6 +6927,9 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(externalLinkHandlersSource).toContain(
             "externalLinkHandlersRuntime.js"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toMatch(
+            directExternalLinkHandlersRuntimeAmbientGetterPattern
         );
         expect(externalLinkHandlersRuntimeSource).toContain(
             "defaultExternalLinkHandlersRuntimeScope"
@@ -8651,7 +8673,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps quick color switcher timers behind the runtime facade", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const violations = migratedQuickColorSwitcherRuntimeFiles
             .filter((relativeFile) =>
@@ -8674,10 +8696,13 @@ describe("architecture boundaries", () => {
         expect(quickColorSwitcherSource).toContain("createAbortController");
         expect(quickColorSwitcherSource).toContain("addDocumentClickListener");
         expect(quickColorSwitcherRuntimeSource).toContain(
-            "const runtimeDocument = scope.document;"
+            "const runtimeDocument = getDocument(scope);"
         );
         expect(quickColorSwitcherRuntimeSource).toContain(
             "defaultQuickColorSwitcherRuntimeScope"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toMatch(
+            directQuickColorSwitcherRuntimeAmbientGetterPattern
         );
         expect(quickColorSwitcherRuntimeSource).not.toMatch(
             directQuickColorSwitcherRuntimeAmbientTimerFallbackPattern

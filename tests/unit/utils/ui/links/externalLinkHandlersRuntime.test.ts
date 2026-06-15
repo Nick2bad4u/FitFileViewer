@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getExternalLinkHandlersRuntime } from "../../../../../electron-app/utils/ui/links/externalLinkHandlersRuntime.js";
 
 describe("getExternalLinkHandlersRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("opens browser windows through the injected opener", () => {
         expect.assertions(4);
 
@@ -41,5 +45,28 @@ describe("getExternalLinkHandlersRuntime", () => {
                 "noopener,noreferrer"
             )
         ).toBeNull();
+    });
+
+    it("resolves the default browser opener when links are opened", () => {
+        expect.assertions(2);
+
+        const openedWindow = {} as WindowProxy;
+        const open = vi.fn(() => openedWindow);
+        const runtime = getExternalLinkHandlersRuntime();
+
+        vi.stubGlobal("open", open);
+
+        expect(
+            runtime.openBrowserWindow(
+                "https://example.com",
+                "_blank",
+                "noopener,noreferrer"
+            )
+        ).toBe(openedWindow);
+        expect(open).toHaveBeenCalledWith(
+            "https://example.com",
+            "_blank",
+            "noopener,noreferrer"
+        );
     });
 });

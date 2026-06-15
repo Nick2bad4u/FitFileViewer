@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getShowNotificationRuntime } from "../../../electron-app/utils/ui/notifications/showNotificationRuntime.js";
 
 describe("showNotificationRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("schedules animation frames through the scoped window when available", () => {
         expect.assertions(3);
 
@@ -100,6 +104,28 @@ describe("showNotificationRuntime", () => {
             duration
         );
         expect(scopeRuntime.clearTimeout).toHaveBeenCalledWith(timer);
+        expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("resolves default browser timers when notification operations run", () => {
+        expect.assertions(4);
+
+        const callback = vi.fn();
+        const duration = Number("500");
+        const timer = Number("37");
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const runtime = getShowNotificationRuntime();
+
+        vi.stubGlobal("setTimeout", setTimeout);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+
+        const scheduledTimer = runtime.setTimeout(callback, duration);
+        runtime.clearTimeout(scheduledTimer);
+
+        expect(scheduledTimer).toBe(timer);
+        expect(setTimeout).toHaveBeenCalledWith(callback, duration);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
         expect(callback).not.toHaveBeenCalled();
     });
 });

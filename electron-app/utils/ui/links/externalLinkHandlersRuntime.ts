@@ -5,6 +5,7 @@ type BrowserWindowOpen = (
 ) => WindowProxy | null;
 
 export interface ExternalLinkHandlersRuntimeScope {
+    readonly getOpen?: (() => BrowserWindowOpen | undefined) | undefined;
     readonly open?: BrowserWindowOpen | undefined;
 }
 
@@ -18,21 +19,26 @@ export interface ExternalLinkHandlersRuntime {
 
 const defaultExternalLinkHandlersRuntimeScope: ExternalLinkHandlersRuntimeScope =
     {
-        get open(): BrowserWindowOpen | undefined {
-            return globalThis.open;
-        },
+        getOpen: () => globalThis.open,
     };
+
+function getBrowserWindowOpen(
+    scope: ExternalLinkHandlersRuntimeScope
+): BrowserWindowOpen | undefined {
+    return scope.getOpen?.() ?? scope.open;
+}
 
 export function getExternalLinkHandlersRuntime(
     scope: ExternalLinkHandlersRuntimeScope = defaultExternalLinkHandlersRuntimeScope
 ): ExternalLinkHandlersRuntime {
     return {
         openBrowserWindow(url, target, features): WindowProxy | null {
-            if (typeof scope.open !== "function") {
+            const open = getBrowserWindowOpen(scope);
+            if (typeof open !== "function") {
                 return null;
             }
 
-            return scope.open(url, target, features);
+            return open(url, target, features);
         },
     };
 }

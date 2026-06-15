@@ -16,6 +16,21 @@ export type ShowNotificationRuntimeScope = {
         | typeof globalThis.cancelAnimationFrame
         | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
+    readonly getCancelAnimationFrame?:
+        | (() => typeof globalThis.cancelAnimationFrame | undefined)
+        | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getRequestAnimationFrame?:
+        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
+    readonly getWindow?:
+        | (() => ShowNotificationWindowRuntime | undefined)
+        | undefined;
     readonly requestAnimationFrame?:
         | typeof globalThis.requestAnimationFrame
         | undefined;
@@ -36,46 +51,64 @@ export type ShowNotificationRuntime = {
 function getFrameRuntime(
     scope: ShowNotificationRuntimeScope
 ): ShowNotificationRuntimeScope | ShowNotificationWindowRuntime {
-    return scope.window ?? scope;
+    return scope.getWindow?.() ?? scope.window ?? scope;
 }
 
 const defaultShowNotificationRuntimeScope: ShowNotificationRuntimeScope = {
-    get cancelAnimationFrame():
-        | typeof globalThis.cancelAnimationFrame
-        | undefined {
-        return globalThis.cancelAnimationFrame;
-    },
-    get clearTimeout(): typeof globalThis.clearTimeout | undefined {
-        return globalThis.clearTimeout;
-    },
-    get requestAnimationFrame():
-        | typeof globalThis.requestAnimationFrame
-        | undefined {
-        return globalThis.requestAnimationFrame;
-    },
-    get setTimeout(): typeof globalThis.setTimeout | undefined {
-        return globalThis.setTimeout;
-    },
-    get window(): ShowNotificationWindowRuntime | undefined {
-        return globalThis.window;
-    },
+    getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
+    getClearTimeout: () => globalThis.clearTimeout,
+    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+    getSetTimeout: () => globalThis.setTimeout,
+    getWindow: () => globalThis.window,
 };
+
+function getCancelAnimationFrame(
+    scope: ShowNotificationRuntimeScope
+): typeof globalThis.cancelAnimationFrame | undefined {
+    const runtimeWindow = scope.getWindow?.() ?? scope.window;
+    return (
+        runtimeWindow?.cancelAnimationFrame ??
+        scope.getCancelAnimationFrame?.() ??
+        scope.cancelAnimationFrame
+    );
+}
+
+function getClearTimeout(
+    scope: ShowNotificationRuntimeScope
+): typeof globalThis.clearTimeout | undefined {
+    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+}
+
+function getRequestAnimationFrame(
+    scope: ShowNotificationRuntimeScope
+): typeof globalThis.requestAnimationFrame | undefined {
+    const runtimeWindow = scope.getWindow?.() ?? scope.window;
+    return (
+        runtimeWindow?.requestAnimationFrame ??
+        scope.getRequestAnimationFrame?.() ??
+        scope.requestAnimationFrame
+    );
+}
+
+function getSetTimeout(
+    scope: ShowNotificationRuntimeScope
+): typeof globalThis.setTimeout | undefined {
+    return scope.getSetTimeout?.() ?? scope.setTimeout;
+}
 
 export function getShowNotificationRuntime(
     scope: ShowNotificationRuntimeScope = defaultShowNotificationRuntimeScope
 ): ShowNotificationRuntime {
     return {
         cancelAnimationFrame(frame) {
-            const cancelFrame =
-                scope.window?.cancelAnimationFrame ??
-                scope.cancelAnimationFrame;
+            const cancelFrame = getCancelAnimationFrame(scope);
             if (typeof cancelFrame !== "function") {
                 return;
             }
             cancelFrame.call(getFrameRuntime(scope), frame);
         },
         clearTimeout(timer) {
-            const clearTimer = scope.clearTimeout;
+            const clearTimer = getClearTimeout(scope);
             if (typeof clearTimer !== "function") {
                 throw new TypeError(
                     "show notification runtime requires clearTimeout"
@@ -84,9 +117,7 @@ export function getShowNotificationRuntime(
             clearTimer(timer);
         },
         requestAnimationFrame(onFrame) {
-            const requestFrame =
-                scope.window?.requestAnimationFrame ??
-                scope.requestAnimationFrame;
+            const requestFrame = getRequestAnimationFrame(scope);
             if (typeof requestFrame !== "function") {
                 onFrame(0);
                 return null;
@@ -94,7 +125,7 @@ export function getShowNotificationRuntime(
             return requestFrame.call(getFrameRuntime(scope), onFrame);
         },
         setTimeout(callback, duration) {
-            const setTimer = scope.setTimeout;
+            const setTimer = getSetTimeout(scope);
             if (typeof setTimer !== "function") {
                 throw new TypeError(
                     "show notification runtime requires setTimeout"

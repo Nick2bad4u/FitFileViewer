@@ -1,5 +1,8 @@
 export interface ErrorHandlingRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
 }
 
 export interface ErrorHandlingRuntime {
@@ -7,15 +10,14 @@ export interface ErrorHandlingRuntime {
 }
 
 const defaultErrorHandlingRuntimeScope: ErrorHandlingRuntimeScope = {
-    get AbortController() {
-        return globalThis.AbortController;
-    },
+    getAbortController: () => globalThis.AbortController,
 };
 
 function getAbortControllerConstructor(
     scope: ErrorHandlingRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor = scope.AbortController;
+    const AbortControllerConstructor =
+        scope.getAbortController?.() ?? scope.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "errorHandling requires an AbortController runtime"

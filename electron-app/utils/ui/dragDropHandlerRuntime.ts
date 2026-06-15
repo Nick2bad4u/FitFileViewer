@@ -3,6 +3,15 @@ export interface DragDropHandlerRuntimeScope {
     readonly cancelAnimationFrame?:
         | typeof globalThis.cancelAnimationFrame
         | undefined;
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
+        | undefined;
+    readonly getCancelAnimationFrame?:
+        | (() => typeof globalThis.cancelAnimationFrame | undefined)
+        | undefined;
+    readonly getRequestAnimationFrame?:
+        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | undefined;
     readonly requestAnimationFrame?:
         | typeof globalThis.requestAnimationFrame
         | undefined;
@@ -15,30 +24,39 @@ export interface DragDropHandlerRuntime {
 }
 
 const defaultDragDropHandlerRuntimeScope: DragDropHandlerRuntimeScope = {
-    get AbortController(): typeof globalThis.AbortController | undefined {
-        return globalThis.AbortController;
-    },
-    get cancelAnimationFrame():
-        | typeof globalThis.cancelAnimationFrame
-        | undefined {
-        return globalThis.cancelAnimationFrame;
-    },
-    get requestAnimationFrame():
-        | typeof globalThis.requestAnimationFrame
-        | undefined {
-        return globalThis.requestAnimationFrame;
-    },
+    getAbortController: () => globalThis.AbortController,
+    getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
+    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
 };
+
+function getAbortControllerConstructor(
+    scope: DragDropHandlerRuntimeScope
+): typeof globalThis.AbortController | undefined {
+    return scope.getAbortController?.() ?? scope.AbortController;
+}
+
+function getCancelAnimationFrame(
+    scope: DragDropHandlerRuntimeScope
+): typeof globalThis.cancelAnimationFrame | undefined {
+    return scope.getCancelAnimationFrame?.() ?? scope.cancelAnimationFrame;
+}
+
+function getRequestAnimationFrame(
+    scope: DragDropHandlerRuntimeScope
+): typeof globalThis.requestAnimationFrame | undefined {
+    return scope.getRequestAnimationFrame?.() ?? scope.requestAnimationFrame;
+}
 
 export function getDragDropHandlerRuntime(
     scope: DragDropHandlerRuntimeScope = defaultDragDropHandlerRuntimeScope
 ): DragDropHandlerRuntime {
     return {
         cancelAnimationFrame(handle: number): void {
-            scope.cancelAnimationFrame?.(handle);
+            getCancelAnimationFrame(scope)?.call(scope, handle);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor =
+                getAbortControllerConstructor(scope);
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "dragDropHandler requires an AbortController runtime"
@@ -48,12 +66,13 @@ export function getDragDropHandlerRuntime(
             return new AbortControllerConstructor();
         },
         requestAnimationFrame(onFrame: FrameRequestCallback): null | number {
-            if (typeof scope.requestAnimationFrame !== "function") {
+            const requestAnimationFrame = getRequestAnimationFrame(scope);
+            if (typeof requestAnimationFrame !== "function") {
                 onFrame(0);
                 return null;
             }
 
-            return scope.requestAnimationFrame(onFrame);
+            return requestAnimationFrame.call(scope, onFrame);
         },
     };
 }

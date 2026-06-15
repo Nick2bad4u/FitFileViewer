@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getQuickColorSwitcherRuntime } from "../../../../electron-app/utils/ui/quickColorSwitcherRuntime.js";
 
 describe("getQuickColorSwitcherRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("creates abort controllers through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -108,5 +112,49 @@ describe("getQuickColorSwitcherRuntime", () => {
         expect(() => runtime.clearTimeout(0)).toThrow(
             "quickColorSwitcher requires a clearTimeout runtime"
         );
+    });
+
+    it("resolves default browser primitives when runtime operations run", () => {
+        expect.assertions(6);
+
+        const controller = new AbortController();
+        const timeoutMs = Number("250");
+        const timer = Number("12");
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const documentRef = document.implementation.createHTMLDocument(
+            "quick color default"
+        );
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const runtime = getQuickColorSwitcherRuntime();
+
+        vi.stubGlobal("AbortController", AbortControllerConstructor);
+        vi.stubGlobal("clearTimeout", clearTimeout);
+        vi.stubGlobal("document", documentRef);
+        vi.stubGlobal("setTimeout", setTimeout);
+
+        expect(runtime.createAbortController()).toBe(controller);
+        let clicked = false;
+        runtime.addDocumentClickListener(
+            () => {
+                clicked = true;
+            },
+            { signal: controller.signal }
+        );
+        documentRef.dispatchEvent(new Event("click"));
+        expect(runtime.setTimeout(() => {}, timeoutMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+
+        expect(clicked).toBe(true);
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+        expect(setTimeout).toHaveBeenCalledWith(
+            expect.any(Function),
+            timeoutMs
+        );
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
     });
 });
