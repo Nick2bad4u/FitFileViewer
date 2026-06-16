@@ -1,6 +1,4 @@
 export interface CreatePowerEstimationButtonRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly document?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -21,7 +19,7 @@ const defaultCreatePowerEstimationButtonRuntimeScope: CreatePowerEstimationButto
 function getScopeDocument(
     scope: CreatePowerEstimationButtonRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getAbortControllerConstructor(
@@ -29,7 +27,6 @@ function getAbortControllerConstructor(
 ): typeof AbortController {
     const AbortControllerConstructor =
         scope.getAbortController?.() ??
-        scope.AbortController ??
         getScopeDocument(scope)?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(

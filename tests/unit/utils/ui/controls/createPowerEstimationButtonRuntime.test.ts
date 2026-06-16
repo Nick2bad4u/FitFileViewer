@@ -10,7 +10,9 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
     it("creates buttons through the injected document", () => {
         expect.assertions(1);
 
-        const runtime = getCreatePowerEstimationButtonRuntime({ document });
+        const runtime = getCreatePowerEstimationButtonRuntime({
+            getDocument: () => document,
+        });
 
         expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
     });
@@ -19,8 +21,8 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
         expect.assertions(2);
 
         const runtime = getCreatePowerEstimationButtonRuntime({
-            AbortController,
-            document,
+            getAbortController: () => AbortController,
+            getDocument: () => document,
         });
         const controller = runtime.createAbortController();
 
@@ -34,13 +36,13 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
         const runtime = getCreatePowerEstimationButtonRuntime({});
         const runtimeWithoutAbortController =
             getCreatePowerEstimationButtonRuntime({
-                document: { defaultView: undefined } as Document,
+                getDocument: () => ({ defaultView: undefined }) as Document,
             });
         const runtimeWithInvalidAbortController =
             getCreatePowerEstimationButtonRuntime({
-                AbortController:
+                getAbortController: () =>
                     "AbortController" as unknown as typeof AbortController,
-                document,
+                getDocument: () => document,
             });
 
         expect(() => runtime.createButton()).toThrow(
@@ -56,6 +58,34 @@ describe("getCreatePowerEstimationButtonRuntime", () => {
         ).toThrow(
             "createPowerEstimationButton requires an AbortController runtime"
         );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(4);
+
+        const legacyAbortController = vi.fn();
+        const legacyDocument = {
+            createElement: vi.fn(),
+            defaultView: {
+                AbortController: legacyAbortController,
+            },
+        };
+        const runtime = getCreatePowerEstimationButtonRuntime({
+            AbortController:
+                legacyAbortController as unknown as typeof AbortController,
+            document: legacyDocument as unknown as Document,
+        } as unknown as Parameters<
+            typeof getCreatePowerEstimationButtonRuntime
+        >[0]);
+
+        expect(() => runtime.createButton()).toThrow(
+            "createPowerEstimationButton requires a document runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createPowerEstimationButton requires an AbortController runtime"
+        );
+        expect(legacyDocument.createElement).not.toHaveBeenCalled();
+        expect(legacyAbortController).not.toHaveBeenCalled();
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
