@@ -7239,7 +7239,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps HR zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(12);
 
         const violations = migratedCreateHRZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -7269,10 +7269,28 @@ describe("architecture boundaries", () => {
         expect(hrZoneControlsSource).toContain(
             "createHRZoneControlsRuntime.js"
         );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "readonly localStorage?:"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(hrZoneControlsRuntimeSource).not.toContain("scope.document");
+        expect(hrZoneControlsRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(hrZoneControlsRuntimeSource).not.toContain("scope.localStorage");
     });
 
     it("keeps power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(12);
 
         const violations = migratedCreatePowerZoneControlsRuntimeFiles
             .filter((relativeFile) =>
@@ -7302,10 +7320,32 @@ describe("architecture boundaries", () => {
         expect(powerZoneControlsSource).toContain(
             "createPowerZoneControlsRuntime.js"
         );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "readonly localStorage?:"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain("scope.document");
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "scope.HTMLElement"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "scope.localStorage"
+        );
     });
 
     it("keeps simple power zone controls browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(12);
 
         const violations = migratedCreatePowerZoneControlsSimpleRuntimeFiles
             .filter((relativeFile) =>
@@ -7334,6 +7374,28 @@ describe("architecture boundaries", () => {
         );
         expect(powerZoneControlsSource).toContain(
             "createPowerZoneControlsSimpleRuntime.js"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "readonly localStorage?:"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain("scope.document");
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "scope.HTMLElement"
+        );
+        expect(powerZoneControlsRuntimeSource).not.toContain(
+            "scope.localStorage"
         );
     });
 

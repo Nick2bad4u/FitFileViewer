@@ -10,7 +10,10 @@ describe("getHRZoneControlsRuntime", () => {
     it("creates DOM elements and queries through the injected document", () => {
         expect.assertions(4);
 
-        const runtime = getHRZoneControlsRuntime({ document });
+        const runtime = getHRZoneControlsRuntime({
+            getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
+        });
         const section = runtime.createElement("div");
         section.id = "hr-zone-controls";
         document.body.append(section);
@@ -29,8 +32,7 @@ describe("getHRZoneControlsRuntime", () => {
         expect.assertions(2);
 
         const runtime = getHRZoneControlsRuntime({
-            AbortController,
-            document,
+            getAbortController: () => AbortController,
         });
         const controller = runtime.createAbortController();
 
@@ -43,13 +45,12 @@ describe("getHRZoneControlsRuntime", () => {
 
         const storage = new Map<string, string>();
         const runtime = getHRZoneControlsRuntime({
-            document,
-            localStorage: {
+            getLocalStorage: () => ({
                 getItem: vi.fn((key: string) => storage.get(key) ?? null),
                 setItem: vi.fn((key: string, value: string) => {
                     storage.set(key, value);
                 }),
-            },
+            }),
         });
 
         expect(runtime.getStorageItem("hr-zone-controls-collapsed")).toBeNull();
@@ -65,23 +66,24 @@ describe("getHRZoneControlsRuntime", () => {
 
         const runtime = getHRZoneControlsRuntime({});
         const runtimeWithoutAbortController = getHRZoneControlsRuntime({
-            document: { defaultView: undefined } as Document,
+            getDocument: () => document,
         });
         const runtimeWithoutStorage = getHRZoneControlsRuntime({
-            document: { defaultView: undefined } as Document,
+            getDocument: () => document,
         });
         const runtimeWithInvalidAbortController = getHRZoneControlsRuntime({
-            AbortController:
+            getAbortController: () =>
                 "AbortController" as unknown as typeof AbortController,
-            document,
+            getDocument: () => document,
         });
         const runtimeWithInvalidHTMLElement = getHRZoneControlsRuntime({
-            document,
-            HTMLElement: "HTMLElement" as unknown as typeof HTMLElement,
+            getDocument: () => document,
+            getHTMLElement: () =>
+                "HTMLElement" as unknown as typeof HTMLElement,
         });
         const runtimeWithInvalidStorage = getHRZoneControlsRuntime({
-            document,
-            localStorage: "localStorage" as unknown as Storage,
+            getDocument: () => document,
+            getLocalStorage: () => "localStorage" as unknown as Storage,
         });
 
         expect(() => runtime.createElement("div")).toThrow(
@@ -103,6 +105,36 @@ describe("getHRZoneControlsRuntime", () => {
         ).toThrow("createHRZoneControls requires a localStorage runtime");
         expect(() =>
             runtimeWithoutStorage.getStorageItem("hr-zone-controls-collapsed")
+        ).toThrow("createHRZoneControls requires a localStorage runtime");
+    });
+
+    it("ignores legacy direct scope properties", () => {
+        expect.assertions(4);
+
+        const storage = new Map<string, string>();
+        const runtime = getHRZoneControlsRuntime({
+            AbortController,
+            document,
+            HTMLElement,
+            localStorage: {
+                getItem: vi.fn((key: string) => storage.get(key) ?? null),
+                setItem: vi.fn((key: string, value: string) => {
+                    storage.set(key, value);
+                }),
+            },
+        } as unknown as Parameters<typeof getHRZoneControlsRuntime>[0]);
+
+        expect(() => runtime.createElement("div")).toThrow(
+            "createHRZoneControls requires a document runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createHRZoneControls requires an AbortController runtime"
+        );
+        expect(() => runtime.isHTMLElement(document.body)).toThrow(
+            "createHRZoneControls requires an HTMLElement runtime"
+        );
+        expect(() =>
+            runtime.getStorageItem("hr-zone-controls-collapsed")
         ).toThrow("createHRZoneControls requires a localStorage runtime");
     });
 

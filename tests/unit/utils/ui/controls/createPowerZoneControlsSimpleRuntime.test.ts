@@ -10,7 +10,10 @@ describe("getPowerZoneControlsSimpleRuntime", () => {
     it("creates DOM elements and queries through the injected document", () => {
         expect.assertions(4);
 
-        const runtime = getPowerZoneControlsSimpleRuntime({ document });
+        const runtime = getPowerZoneControlsSimpleRuntime({
+            getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
+        });
         const section = runtime.createElement("div");
         section.id = "power-zone-controls";
         document.body.append(section);
@@ -29,8 +32,7 @@ describe("getPowerZoneControlsSimpleRuntime", () => {
         expect.assertions(2);
 
         const runtime = getPowerZoneControlsSimpleRuntime({
-            AbortController,
-            document,
+            getAbortController: () => AbortController,
         });
         const controller = runtime.createAbortController();
 
@@ -43,13 +45,12 @@ describe("getPowerZoneControlsSimpleRuntime", () => {
 
         const storage = new Map<string, string>();
         const runtime = getPowerZoneControlsSimpleRuntime({
-            document,
-            localStorage: {
+            getLocalStorage: () => ({
                 getItem: vi.fn((key: string) => storage.get(key) ?? null),
                 setItem: vi.fn((key: string, value: string) => {
                     storage.set(key, value);
                 }),
-            },
+            }),
         });
 
         expect(
@@ -68,27 +69,28 @@ describe("getPowerZoneControlsSimpleRuntime", () => {
         const runtime = getPowerZoneControlsSimpleRuntime({});
         const runtimeWithoutAbortController = getPowerZoneControlsSimpleRuntime(
             {
-                document: { defaultView: undefined } as Document,
+                getDocument: () => document,
             }
         );
         const runtimeWithoutStorage = getPowerZoneControlsSimpleRuntime({
-            document: { defaultView: undefined } as Document,
+            getDocument: () => document,
         });
         const runtimeWithInvalidAbortController =
             getPowerZoneControlsSimpleRuntime({
-                AbortController:
+                getAbortController: () =>
                     "AbortController" as unknown as typeof AbortController,
-                document,
+                getDocument: () => document,
             });
         const runtimeWithInvalidHTMLElement = getPowerZoneControlsSimpleRuntime(
             {
-                document,
-                HTMLElement: "HTMLElement" as unknown as typeof HTMLElement,
+                getDocument: () => document,
+                getHTMLElement: () =>
+                    "HTMLElement" as unknown as typeof HTMLElement,
             }
         );
         const runtimeWithInvalidStorage = getPowerZoneControlsSimpleRuntime({
-            document,
-            localStorage: "localStorage" as unknown as Storage,
+            getDocument: () => document,
+            getLocalStorage: () => "localStorage" as unknown as Storage,
         });
 
         expect(() => runtime.createElement("div")).toThrow(
@@ -118,6 +120,40 @@ describe("getPowerZoneControlsSimpleRuntime", () => {
             runtimeWithoutStorage.getStorageItem(
                 "power-zone-controls-collapsed"
             )
+        ).toThrow(
+            "createPowerZoneControlsSimple requires a localStorage runtime"
+        );
+    });
+
+    it("ignores legacy direct scope properties", () => {
+        expect.assertions(4);
+
+        const storage = new Map<string, string>();
+        const runtime = getPowerZoneControlsSimpleRuntime({
+            AbortController,
+            document,
+            HTMLElement,
+            localStorage: {
+                getItem: vi.fn((key: string) => storage.get(key) ?? null),
+                setItem: vi.fn((key: string, value: string) => {
+                    storage.set(key, value);
+                }),
+            },
+        } as unknown as Parameters<
+            typeof getPowerZoneControlsSimpleRuntime
+        >[0]);
+
+        expect(() => runtime.createElement("div")).toThrow(
+            "createPowerZoneControlsSimple requires a document runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createPowerZoneControlsSimple requires an AbortController runtime"
+        );
+        expect(() => runtime.isHTMLElement(document.body)).toThrow(
+            "createPowerZoneControlsSimple requires an HTMLElement runtime"
+        );
+        expect(() =>
+            runtime.getStorageItem("power-zone-controls-collapsed")
         ).toThrow(
             "createPowerZoneControlsSimple requires a localStorage runtime"
         );

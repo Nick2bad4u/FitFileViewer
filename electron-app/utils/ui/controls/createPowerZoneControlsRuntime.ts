@@ -1,8 +1,6 @@
 type PowerZoneControlsStorage = Pick<Storage, "getItem" | "setItem">;
 
 export interface PowerZoneControlsRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly document?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -13,8 +11,6 @@ export interface PowerZoneControlsRuntimeScope {
     readonly getLocalStorage?:
         | (() => PowerZoneControlsStorage | undefined)
         | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
-    readonly localStorage?: PowerZoneControlsStorage | undefined;
 }
 
 export interface PowerZoneControlsRuntime {
@@ -38,16 +34,13 @@ const defaultPowerZoneControlsRuntimeScope: PowerZoneControlsRuntimeScope = {
 function getScopeDocument(
     scope: PowerZoneControlsRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getAbortControllerConstructor(
     scope: PowerZoneControlsRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ??
-        scope.AbortController ??
-        getScopeDocument(scope)?.defaultView?.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createPowerZoneControls requires an AbortController runtime"
@@ -71,10 +64,7 @@ function getDocument(scope: PowerZoneControlsRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: PowerZoneControlsRuntimeScope
 ): typeof HTMLElement {
-    const HTMLElementConstructor =
-        scope.getHTMLElement?.() ??
-        scope.HTMLElement ??
-        getScopeDocument(scope)?.defaultView?.HTMLElement;
+    const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "createPowerZoneControls requires an HTMLElement runtime"
@@ -87,10 +77,7 @@ function getHTMLElementConstructor(
 function getLocalStorage(
     scope: PowerZoneControlsRuntimeScope
 ): PowerZoneControlsStorage {
-    const storage =
-        scope.getLocalStorage?.() ??
-        scope.localStorage ??
-        getScopeDocument(scope)?.defaultView?.localStorage;
+    const storage = scope.getLocalStorage?.();
     if (
         !storage ||
         typeof storage.getItem !== "function" ||

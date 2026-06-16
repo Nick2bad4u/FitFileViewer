@@ -1,8 +1,6 @@
 type HRZoneControlsStorage = Pick<Storage, "getItem" | "setItem">;
 
 export interface HRZoneControlsRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly document?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -13,8 +11,6 @@ export interface HRZoneControlsRuntimeScope {
     readonly getLocalStorage?:
         | (() => HRZoneControlsStorage | undefined)
         | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
-    readonly localStorage?: HRZoneControlsStorage | undefined;
 }
 
 export interface HRZoneControlsRuntime {
@@ -38,16 +34,13 @@ const defaultHRZoneControlsRuntimeScope: HRZoneControlsRuntimeScope = {
 function getScopeDocument(
     scope: HRZoneControlsRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getAbortControllerConstructor(
     scope: HRZoneControlsRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ??
-        scope.AbortController ??
-        getScopeDocument(scope)?.defaultView?.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createHRZoneControls requires an AbortController runtime"
@@ -69,10 +62,7 @@ function getDocument(scope: HRZoneControlsRuntimeScope): Document {
 function getHTMLElementConstructor(
     scope: HRZoneControlsRuntimeScope
 ): typeof HTMLElement {
-    const HTMLElementConstructor =
-        scope.getHTMLElement?.() ??
-        scope.HTMLElement ??
-        getScopeDocument(scope)?.defaultView?.HTMLElement;
+    const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "createHRZoneControls requires an HTMLElement runtime"
@@ -85,10 +75,7 @@ function getHTMLElementConstructor(
 function getLocalStorage(
     scope: HRZoneControlsRuntimeScope
 ): HRZoneControlsStorage {
-    const storage =
-        scope.getLocalStorage?.() ??
-        scope.localStorage ??
-        getScopeDocument(scope)?.defaultView?.localStorage;
+    const storage = scope.getLocalStorage?.();
     if (
         !storage ||
         typeof storage.getItem !== "function" ||
