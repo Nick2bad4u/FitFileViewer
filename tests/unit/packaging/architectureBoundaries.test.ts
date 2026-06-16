@@ -4928,7 +4928,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(19);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -4960,6 +4960,45 @@ describe("architecture boundaries", () => {
         );
         expect(keyboardShortcutsModalRuntimeSource).not.toContain(
             "scope: KeyboardShortcutsModalRuntimeScope = globalThis"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "const defaultKeyboardShortcutsModalRuntimeScope: KeyboardShortcutsModalRuntimeScope =\n    globalThis"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly cancelAnimationFrame?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "scope.cancelAnimationFrame"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
             "keyboardShortcutsModalRuntime requires a setTimeout runtime"

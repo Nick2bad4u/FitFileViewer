@@ -3,61 +3,100 @@ export type KeyboardShortcutsModalTimerHandle = ReturnType<
 >;
 
 export interface KeyboardShortcutsModalRuntimeScope {
-    readonly cancelAnimationFrame?:
-        | typeof globalThis.cancelAnimationFrame
+    readonly getCancelAnimationFrame?:
+        | (() => typeof globalThis.cancelAnimationFrame | undefined)
         | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly requestAnimationFrame?:
-        | typeof globalThis.requestAnimationFrame
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
+    readonly getRequestAnimationFrame?:
+        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
 }
 
 export interface KeyboardShortcutsModalRuntime {
-    cancelAnimationFrame(handle: number): void;
-    clearTimeout(handle: KeyboardShortcutsModalTimerHandle): void;
-    requestAnimationFrame(callback: FrameRequestCallback): null | number;
-    setTimeout(
+    readonly cancelAnimationFrame: (handle: number) => void;
+    readonly clearTimeout: (handle: KeyboardShortcutsModalTimerHandle) => void;
+    readonly requestAnimationFrame: (
+        callback: FrameRequestCallback
+    ) => null | number;
+    readonly setTimeout: (
         callback: () => void,
         delay: number
-    ): KeyboardShortcutsModalTimerHandle;
+    ) => KeyboardShortcutsModalTimerHandle;
 }
 
 const defaultKeyboardShortcutsModalRuntimeScope: KeyboardShortcutsModalRuntimeScope =
-    globalThis;
+    {
+        getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
+        getClearTimeout: () => globalThis.clearTimeout,
+        getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+        getSetTimeout: () => globalThis.setTimeout,
+    };
+
+function getScopeCancelAnimationFrame(
+    scope: KeyboardShortcutsModalRuntimeScope
+): typeof globalThis.cancelAnimationFrame | undefined {
+    return scope.getCancelAnimationFrame?.();
+}
+
+function getScopeClearTimeout(
+    scope: KeyboardShortcutsModalRuntimeScope
+): typeof globalThis.clearTimeout | undefined {
+    return scope.getClearTimeout?.();
+}
+
+function getScopeRequestAnimationFrame(
+    scope: KeyboardShortcutsModalRuntimeScope
+): typeof globalThis.requestAnimationFrame | undefined {
+    return scope.getRequestAnimationFrame?.();
+}
+
+function getScopeSetTimeout(
+    scope: KeyboardShortcutsModalRuntimeScope
+): typeof globalThis.setTimeout | undefined {
+    return scope.getSetTimeout?.();
+}
 
 export function getKeyboardShortcutsModalRuntime(
     scope: KeyboardShortcutsModalRuntimeScope = defaultKeyboardShortcutsModalRuntimeScope
 ): KeyboardShortcutsModalRuntime {
     return {
         cancelAnimationFrame(handle: number): void {
-            scope.cancelAnimationFrame?.(handle);
+            getScopeCancelAnimationFrame(scope)?.call(scope, handle);
         },
         clearTimeout(handle: KeyboardShortcutsModalTimerHandle): void {
-            if (typeof scope.clearTimeout !== "function") {
+            const clearTimeoutRef = getScopeClearTimeout(scope);
+            if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "keyboardShortcutsModalRuntime requires a clearTimeout runtime"
                 );
             }
-            scope.clearTimeout(handle);
+            clearTimeoutRef.call(scope, handle);
         },
         requestAnimationFrame(callback: FrameRequestCallback): null | number {
-            if (typeof scope.requestAnimationFrame !== "function") {
+            const requestAnimationFrameRef =
+                getScopeRequestAnimationFrame(scope);
+            if (typeof requestAnimationFrameRef !== "function") {
                 return null;
             }
 
-            return scope.requestAnimationFrame(callback);
+            return requestAnimationFrameRef.call(scope, callback);
         },
         setTimeout(
             callback: () => void,
             delay: number
         ): KeyboardShortcutsModalTimerHandle {
-            if (typeof scope.setTimeout !== "function") {
+            const setTimeoutRef = getScopeSetTimeout(scope);
+            if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "keyboardShortcutsModalRuntime requires a setTimeout runtime"
                 );
             }
-            return scope.setTimeout(callback, delay);
+            return setTimeoutRef.call(scope, callback, delay);
         },
     };
 }
