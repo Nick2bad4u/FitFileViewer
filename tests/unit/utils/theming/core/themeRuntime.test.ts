@@ -67,7 +67,7 @@ describe("getThemeRuntime", () => {
         const delayMs = Number("300");
         const timer = 91 as ReturnType<typeof globalThis.setTimeout>;
         const mediaQuery = { matches: true } as MediaQueryList;
-        const eventTarget = {
+        const globalEventTarget = {
             addEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
             removeEventListener: vi.fn(),
@@ -80,13 +80,13 @@ describe("getThemeRuntime", () => {
                 AbortControllerConstructor as unknown as typeof AbortController
         );
         const getClearTimeout = vi.fn(() => clearTimeout);
-        const getEventTarget = vi.fn(() => eventTarget);
+        const getGlobalEventTarget = vi.fn(() => globalEventTarget);
         const getMatchMedia = vi.fn(() => matchMedia);
         const getSetTimeout = vi.fn(() => setTimeout);
         const runtime = getThemeRuntime({
             getAbortController,
             getClearTimeout,
-            getEventTarget,
+            getGlobalEventTarget,
             getMatchMedia,
             getSetTimeout,
         });
@@ -95,13 +95,13 @@ describe("getThemeRuntime", () => {
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
         runtime.clearTimeout(timer);
         expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
-        expect(runtime.getWindowEventTarget()).toBe(eventTarget);
+        expect(runtime.getGlobalEventTarget()).toBe(globalEventTarget);
 
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getSetTimeout).toHaveBeenCalledOnce();
         expect(getClearTimeout).toHaveBeenCalledOnce();
         expect(getMatchMedia).toHaveBeenCalledOnce();
-        expect(getEventTarget).toHaveBeenCalledOnce();
+        expect(getGlobalEventTarget).toHaveBeenCalledOnce();
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
@@ -139,16 +139,16 @@ describe("getThemeRuntime", () => {
         expect(getThemeRuntime({}).getSystemThemeMediaQuery()).toBeNull();
     });
 
-    it("exposes the scoped theme event target", () => {
+    it("exposes the scoped theme global event target", () => {
         expect.assertions(1);
 
-        const eventTarget = {
+        const globalEventTarget = {
             addEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
             removeEventListener: vi.fn(),
         } as unknown as EventTarget;
-        const runtime = getThemeRuntime({ eventTarget });
+        const runtime = getThemeRuntime({ globalEventTarget });
 
-        expect(runtime.getWindowEventTarget()).toBe(eventTarget);
+        expect(runtime.getGlobalEventTarget()).toBe(globalEventTarget);
     });
 });

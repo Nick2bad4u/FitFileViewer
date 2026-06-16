@@ -3,20 +3,20 @@ export type ThemeRuntimeTimer = ReturnType<typeof globalThis.setTimeout>;
 export interface ThemeRuntimeScope {
     readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly eventTarget?: EventTarget | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
-    readonly getEventTarget?: (() => EventTarget | undefined) | undefined;
+    readonly getGlobalEventTarget?: (() => EventTarget | undefined) | undefined;
     readonly getMatchMedia?:
         | (() => typeof globalThis.matchMedia | undefined)
         | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
+    readonly globalEventTarget?: EventTarget | undefined;
     readonly matchMedia?: typeof globalThis.matchMedia | undefined;
     readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
@@ -24,8 +24,8 @@ export interface ThemeRuntimeScope {
 export interface ThemeRuntime {
     clearTimeout(timer: ThemeRuntimeTimer): void;
     createAbortController(): AbortController;
+    getGlobalEventTarget(): EventTarget | null;
     getSystemThemeMediaQuery(): MediaQueryList | null;
-    getWindowEventTarget(): EventTarget | null;
     setTimeout(callback: () => void, delayMs: number): ThemeRuntimeTimer;
 }
 
@@ -53,7 +53,7 @@ function getDefaultMatchMedia(): typeof globalThis.matchMedia | undefined {
 const defaultThemeRuntimeScope: ThemeRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getClearTimeout: () => globalThis.clearTimeout,
-    getEventTarget: getDefaultEventTarget,
+    getGlobalEventTarget: getDefaultEventTarget,
     getMatchMedia: getDefaultMatchMedia,
     getSetTimeout: () => globalThis.setTimeout,
 };
@@ -70,10 +70,10 @@ function getScopeClearTimeout(
     return scope.getClearTimeout?.() ?? scope.clearTimeout;
 }
 
-function getScopeEventTarget(
+function getScopeGlobalEventTarget(
     scope: ThemeRuntimeScope
 ): EventTarget | undefined {
-    return scope.getEventTarget?.() ?? scope.eventTarget;
+    return scope.getGlobalEventTarget?.() ?? scope.globalEventTarget;
 }
 
 function getScopeMatchMedia(
@@ -112,6 +112,9 @@ export function getThemeRuntime(
 
             return new AbortControllerConstructor();
         },
+        getGlobalEventTarget(): EventTarget | null {
+            return getScopeGlobalEventTarget(scope) ?? null;
+        },
         getSystemThemeMediaQuery(): MediaQueryList | null {
             const matchMedia = getScopeMatchMedia(scope);
             if (typeof matchMedia === "function") {
@@ -119,9 +122,6 @@ export function getThemeRuntime(
             }
 
             return null;
-        },
-        getWindowEventTarget(): EventTarget | null {
-            return getScopeEventTarget(scope) ?? null;
         },
         setTimeout(callback, delayMs): ThemeRuntimeTimer {
             const setTimeoutRef = getScopeSetTimeout(scope);
