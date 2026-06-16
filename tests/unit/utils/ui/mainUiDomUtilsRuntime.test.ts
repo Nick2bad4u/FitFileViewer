@@ -20,7 +20,7 @@ describe("getMainUiDomUtilsRuntime", () => {
             }
         }
         const utils = getMainUiDomUtilsRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(utils.createAbortController()).toBeInstanceOf(
@@ -37,5 +37,25 @@ describe("getMainUiDomUtilsRuntime", () => {
         expect(() => {
             utils.createAbortController();
         }).toThrow("main UI DOM utilities require an AbortController runtime");
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(2);
+
+        class TestAbortController implements AbortController {
+            public readonly signal = {} as AbortSignal;
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const utils = getMainUiDomUtilsRuntime({
+            AbortController: TestAbortController,
+        } as unknown as Parameters<typeof getMainUiDomUtilsRuntime>[0]);
+
+        expect(() => {
+            utils.createAbortController();
+        }).toThrow("main UI DOM utilities require an AbortController runtime");
+        expect(utils).toHaveProperty("createAbortController");
     });
 });

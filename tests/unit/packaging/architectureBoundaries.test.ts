@@ -13117,7 +13117,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main UI DOM utility listener cleanup behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(9);
 
         const mainUiDomUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/mainUiDomUtils.ts")
@@ -13135,6 +13135,21 @@ describe("architecture boundaries", () => {
         );
         expect(mainUiDomUtilsRuntimeSource).not.toMatch(
             directMainUiDomUtilsRuntimeAmbientGetterPattern
+        );
+        expect(mainUiDomUtilsRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(mainUiDomUtilsRuntimeSource).not.toContain(
+            "MainUiDomUtilsRuntimeScope = globalThis"
+        );
+        expect(mainUiDomUtilsRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(mainUiDomUtilsRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(mainUiDomUtilsRuntimeSource).toContain(
+            "scope.getAbortController?.()"
         );
     });
 

@@ -1,20 +1,23 @@
 export interface MainUiDomUtilsRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
 }
 
 export interface MainUiDomUtilsRuntime {
-    createAbortController(): AbortController;
+    createAbortController: () => AbortController;
 }
 
-const defaultMainUiDomUtilsRuntimeScope: MainUiDomUtilsRuntimeScope =
-    globalThis;
+const defaultMainUiDomUtilsRuntimeScope: MainUiDomUtilsRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+};
 
 export function getMainUiDomUtilsRuntime(
     scope: MainUiDomUtilsRuntimeScope = defaultMainUiDomUtilsRuntimeScope
 ): MainUiDomUtilsRuntime {
     return {
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "main UI DOM utilities require an AbortController runtime"
