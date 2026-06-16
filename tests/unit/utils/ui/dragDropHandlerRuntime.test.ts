@@ -75,6 +75,30 @@ describe("getDragDropHandlerRuntime", () => {
         });
     });
 
+    it("resolves document and event target through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const documentTarget = document.implementation.createHTMLDocument();
+        const eventTarget = new EventTarget();
+        const runtime = getDragDropHandlerRuntime({
+            document: documentTarget,
+            eventTarget,
+        });
+
+        expect(runtime.getDocument()).toBe(documentTarget);
+        expect(runtime.getEventTarget()).toBe(eventTarget);
+    });
+
+    it("throws when event target resolution is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getDragDropHandlerRuntime({});
+
+        expect(() => runtime.getEventTarget()).toThrow(
+            "dragDropHandler requires an event target runtime"
+        );
+    });
+
     it("ignores frame cancellation when the runtime scope cannot cancel", () => {
         expect.assertions(1);
 
@@ -84,7 +108,7 @@ describe("getDragDropHandlerRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -104,6 +128,8 @@ describe("getDragDropHandlerRuntime", () => {
         vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
 
         expect(runtime.createAbortController()).toBe(controller);
+        expect(runtime.getDocument()).toBe(document);
+        expect(runtime.getEventTarget()).toBe(globalThis);
         expect(runtime.requestAnimationFrame(callback)).toBe(41);
         runtime.cancelAnimationFrame(41);
 

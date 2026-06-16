@@ -261,8 +261,12 @@ export class DragDropHandler {
 
     setupEventListeners(): void {
         // Show overlay on dragenter, hide on dragleave/drop
-        addEventListenerWithCleanup(globalThis, "dragenter", (e) => {
-            if (e.target === document || e.target === document.body) {
+        const documentTarget = dragDropHandlerRuntime.getDocument();
+        const documentBody = documentTarget?.body ?? null;
+        const eventTarget = dragDropHandlerRuntime.getEventTarget();
+
+        addEventListenerWithCleanup(eventTarget, "dragenter", (e) => {
+            if (e.target === documentTarget || e.target === documentBody) {
                 const nextCounter = this.dragCounter + 1;
                 if (nextCounter !== this.dragCounter) {
                     this.dragCounter = nextCounter;
@@ -275,8 +279,8 @@ export class DragDropHandler {
             }
         });
 
-        addEventListenerWithCleanup(globalThis, "dragleave", (e) => {
-            if (e.target === document || e.target === document.body) {
+        addEventListenerWithCleanup(eventTarget, "dragleave", (e) => {
+            if (e.target === documentTarget || e.target === documentBody) {
                 const nextCounter = Math.max(this.dragCounter - 1, 0);
                 if (nextCounter !== this.dragCounter) {
                     this.dragCounter = nextCounter;
@@ -293,7 +297,7 @@ export class DragDropHandler {
             }
         });
 
-        addEventListenerWithCleanup(globalThis, "dragover", (event) => {
+        addEventListenerWithCleanup(eventTarget, "dragover", (event) => {
             const e = event as DragEvent;
             e.preventDefault();
             if (e.dataTransfer) {
@@ -302,7 +306,7 @@ export class DragDropHandler {
             this.scheduleDropOverlay();
         });
 
-        addEventListenerWithCleanup(globalThis, "drop", async (event) => {
+        addEventListenerWithCleanup(eventTarget, "drop", async (event) => {
             const e = event as DragEvent;
             this.dragCounter = 0;
             this.syncDragCounter(0, "DragDropHandler.drop");

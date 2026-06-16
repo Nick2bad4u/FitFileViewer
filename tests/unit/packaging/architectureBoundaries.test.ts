@@ -4837,7 +4837,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(9);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -4858,11 +4858,17 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(dragDropHandlerSource).toContain("dragDropHandlerRuntime.js");
         expect(dragDropHandlerSource).toContain("createAbortController");
+        expect(dragDropHandlerSource).toContain("getDocument");
+        expect(dragDropHandlerSource).toContain("getEventTarget");
+        expect(dragDropHandlerSource).not.toContain("globalThis");
         expect(dragDropHandlerRuntimeSource).not.toMatch(
             directDragDropHandlerRuntimeAmbientGetterPattern
         );
         expect(dragDropHandlerRuntimeSource).toContain(
             "defaultDragDropHandlerRuntimeScope"
+        );
+        expect(dragDropHandlerRuntimeSource).toContain(
+            "getEventTarget: () => globalThis"
         );
     });
 
