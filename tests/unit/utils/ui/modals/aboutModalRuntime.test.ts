@@ -3,17 +3,21 @@ import { describe, expect, it, vi } from "vitest";
 import { getAboutModalRuntime } from "../../../../../electron-app/utils/ui/modals/aboutModalRuntime.js";
 
 describe("getAboutModalRuntime", () => {
-    it("schedules and clears timers through the injected runtime scope", () => {
+    it("schedules and clears timers through the injected runtime providers", () => {
         expect.assertions(4);
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 41);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const scope = {
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
+        };
         const {
             clearTimeout: clearModalTimer,
             setTimeout: scheduleModalTimer,
-        } = getAboutModalRuntime({ clearTimeout, setTimeout });
+        } = getAboutModalRuntime(scope);
 
         expect(scheduleModalTimer(callback, delayMs)).toBe(41);
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
@@ -21,10 +25,7 @@ describe("getAboutModalRuntime", () => {
         clearModalTimer(41);
 
         expect(clearTimeout).toHaveBeenCalledWith(41);
-        expect(clearTimeout.mock.contexts[0]).toStrictEqual({
-            clearTimeout,
-            setTimeout,
-        });
+        expect(clearTimeout.mock.contexts[0]).toBe(scope);
     });
 
     it("routes timers and animation frames through provider functions", () => {
@@ -86,22 +87,22 @@ describe("getAboutModalRuntime", () => {
         );
     });
 
-    it("schedules animation frames through the injected runtime scope", () => {
+    it("schedules animation frames through the injected runtime provider", () => {
         expect.assertions(3);
 
         const callback = vi.fn<FrameRequestCallback>();
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 23);
-        const { requestAnimationFrame: requestFrame } = getAboutModalRuntime({
-            requestAnimationFrame,
-        });
+        const scope = {
+            getRequestAnimationFrame: () => requestAnimationFrame,
+        };
+        const { requestAnimationFrame: requestFrame } =
+            getAboutModalRuntime(scope);
 
         expect(requestFrame(callback)).toBe(23);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
-        expect(requestAnimationFrame.mock.contexts[0]).toStrictEqual({
-            requestAnimationFrame,
-        });
+        expect(requestAnimationFrame.mock.contexts[0]).toBe(scope);
     });
 
     it("runs animation frame callbacks immediately when scheduling is unavailable", () => {
@@ -115,20 +116,20 @@ describe("getAboutModalRuntime", () => {
         expect(callback).toHaveBeenCalledWith(0);
     });
 
-    it("cancels animation frames through the injected runtime scope", () => {
+    it("cancels animation frames through the injected runtime provider", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const { cancelAnimationFrame: cancelFrame } = getAboutModalRuntime({
-            cancelAnimationFrame,
-        });
+        const scope = {
+            getCancelAnimationFrame: () => cancelAnimationFrame,
+        };
+        const { cancelAnimationFrame: cancelFrame } =
+            getAboutModalRuntime(scope);
 
         cancelFrame(29);
 
         expect(cancelAnimationFrame).toHaveBeenCalledWith(29);
-        expect(cancelAnimationFrame.mock.contexts[0]).toStrictEqual({
-            cancelAnimationFrame,
-        });
+        expect(cancelAnimationFrame.mock.contexts[0]).toBe(scope);
     });
 
     it("ignores frame cancellation when the runtime scope cannot cancel", () => {
@@ -139,13 +140,53 @@ describe("getAboutModalRuntime", () => {
         ).not.toThrow();
     });
 
-    it("returns document values from direct runtime scopes", () => {
+    it("returns document values from runtime scope providers", () => {
         expect.assertions(1);
 
         const documentTarget = document.implementation.createHTMLDocument();
 
         expect(
-            getAboutModalRuntime({ document: documentTarget }).getDocument()
+            getAboutModalRuntime({
+                getDocument: () => documentTarget,
+            }).getDocument()
         ).toBe(documentTarget);
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(10);
+
+        const callback = vi.fn<() => void>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const documentTarget = document.implementation.createHTMLDocument();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 47);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => 31);
+        const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+        const runtime = getAboutModalRuntime({
+            cancelAnimationFrame,
+            clearTimeout,
+            document: documentTarget,
+            requestAnimationFrame,
+            setTimeout,
+        } as unknown as Parameters<typeof getAboutModalRuntime>[0]);
+
+        expect(runtime.getDocument()).toBeUndefined();
+        expect(() => runtime.setTimeout(callback, 0)).toThrow(
+            "aboutModalRuntime requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(47)).toThrow(
+            "aboutModalRuntime requires a clearTimeout runtime"
+        );
+        expect(runtime.requestAnimationFrame(frameCallback)).toBe(null);
+        runtime.cancelAnimationFrame(31);
+
+        expect(frameCallback).toHaveBeenCalledWith(0);
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
+        expect(requestAnimationFrame).not.toHaveBeenCalled();
+        expect(cancelAnimationFrame).not.toHaveBeenCalled();
+        expect(callback).not.toHaveBeenCalled();
     });
 });

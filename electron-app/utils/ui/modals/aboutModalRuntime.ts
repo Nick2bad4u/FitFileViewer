@@ -1,10 +1,6 @@
 export type AboutModalTimerHandle = ReturnType<typeof globalThis.setTimeout>;
 
 export interface AboutModalRuntimeScope {
-    readonly cancelAnimationFrame?:
-        | typeof globalThis.cancelAnimationFrame
-        | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly getCancelAnimationFrame?:
         | (() => typeof globalThis.cancelAnimationFrame | undefined)
         | undefined;
@@ -18,19 +14,19 @@ export interface AboutModalRuntimeScope {
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
-    readonly requestAnimationFrame?:
-        | typeof globalThis.requestAnimationFrame
-        | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
-    readonly document?: Document | undefined;
 }
 
 export interface AboutModalRuntime {
-    cancelAnimationFrame(handle: number): void;
-    clearTimeout(handle: AboutModalTimerHandle): void;
-    getDocument(): Document | undefined;
-    requestAnimationFrame(onFrame: FrameRequestCallback): null | number;
-    setTimeout(callback: () => void, delay: number): AboutModalTimerHandle;
+    readonly cancelAnimationFrame: (handle: number) => void;
+    readonly clearTimeout: (handle: AboutModalTimerHandle) => void;
+    readonly getDocument: () => Document | undefined;
+    readonly requestAnimationFrame: (
+        onFrame: FrameRequestCallback
+    ) => null | number;
+    readonly setTimeout: (
+        callback: () => void,
+        delay: number
+    ) => AboutModalTimerHandle;
 }
 
 const defaultAboutModalRuntimeScope: AboutModalRuntimeScope = {
@@ -44,29 +40,29 @@ const defaultAboutModalRuntimeScope: AboutModalRuntimeScope = {
 function getScopeCancelAnimationFrame(
     scope: AboutModalRuntimeScope
 ): typeof globalThis.cancelAnimationFrame | undefined {
-    return scope.getCancelAnimationFrame?.() ?? scope.cancelAnimationFrame;
+    return scope.getCancelAnimationFrame?.();
 }
 
 function getScopeClearTimeout(
     scope: AboutModalRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
-    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+    return scope.getClearTimeout?.();
 }
 
 function getScopeDocument(scope: AboutModalRuntimeScope): Document | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getScopeRequestAnimationFrame(
     scope: AboutModalRuntimeScope
 ): typeof globalThis.requestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.() ?? scope.requestAnimationFrame;
+    return scope.getRequestAnimationFrame?.();
 }
 
 function getScopeSetTimeout(
     scope: AboutModalRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
-    return scope.getSetTimeout?.() ?? scope.setTimeout;
+    return scope.getSetTimeout?.();
 }
 
 export function getAboutModalRuntime(
