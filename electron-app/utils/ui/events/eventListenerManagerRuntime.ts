@@ -1,6 +1,4 @@
 export interface EventListenerManagerRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly eventTarget?: EventTarget | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -8,8 +6,8 @@ export interface EventListenerManagerRuntimeScope {
 }
 
 export interface EventListenerManagerRuntime {
-    createAbortController(): AbortController;
-    getDefaultEventTarget(): EventTarget | undefined;
+    createAbortController: () => AbortController;
+    getDefaultEventTarget: () => EventTarget | undefined;
 }
 
 const defaultEventListenerManagerRuntimeScope: EventListenerManagerRuntimeScope =
@@ -21,13 +19,13 @@ const defaultEventListenerManagerRuntimeScope: EventListenerManagerRuntimeScope 
 function getAbortController(
     scope: EventListenerManagerRuntimeScope
 ): typeof AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getEventTarget(
     scope: EventListenerManagerRuntimeScope
 ): EventTarget | undefined {
-    return scope.getEventTarget?.() ?? scope.eventTarget;
+    return scope.getEventTarget?.();
 }
 
 export function getEventListenerManagerRuntime(

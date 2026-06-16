@@ -8,7 +8,7 @@ describe("getEventListenerManagerRuntime", () => {
 
         const target = new EventTarget(),
             runtime = getEventListenerManagerRuntime({
-                eventTarget: target,
+                getEventTarget: () => target,
             });
 
         expect(runtime.getDefaultEventTarget()).toBe(target);
@@ -39,7 +39,7 @@ describe("getEventListenerManagerRuntime", () => {
             }
         }
         const runtime = getEventListenerManagerRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -83,6 +83,31 @@ describe("getEventListenerManagerRuntime", () => {
 
         const runtime = getEventListenerManagerRuntime({});
 
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow(
+            "event listener manager requires an AbortController runtime"
+        );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(2);
+
+        const signal = Symbol("legacy-event-listener-manager-signal");
+        class LegacyAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const target = new EventTarget();
+        const runtime = getEventListenerManagerRuntime({
+            AbortController: LegacyAbortController,
+            eventTarget: target,
+        } as unknown as Parameters<typeof getEventListenerManagerRuntime>[0]);
+
+        expect(runtime.getDefaultEventTarget()).toBeUndefined();
         expect(() => {
             runtime.createAbortController();
         }).toThrow(

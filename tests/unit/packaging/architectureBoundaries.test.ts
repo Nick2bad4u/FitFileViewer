@@ -12411,7 +12411,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps event listener manager cleanup behind the runtime facade", () => {
-        expect.assertions(9);
+        expect.assertions(13);
 
         const eventListenerManagerSource = stripComments(
             readRepositoryFile(
@@ -12448,6 +12448,18 @@ describe("architecture boundaries", () => {
         expect(eventListenerManagerRuntimeSource).not.toContain("scope.window");
         expect(eventListenerManagerRuntimeSource).not.toMatch(
             directEventListenerManagerRuntimeAmbientGetterPattern
+        );
+        expect(eventListenerManagerRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(eventListenerManagerRuntimeSource).not.toContain(
+            "readonly eventTarget?:"
+        );
+        expect(eventListenerManagerRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(eventListenerManagerRuntimeSource).not.toContain(
+            "scope.eventTarget"
         );
     });
 });
