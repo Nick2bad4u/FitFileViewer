@@ -10,7 +10,9 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getCreateAddFitFileToMapButtonRuntime({ document });
+        const runtime = getCreateAddFitFileToMapButtonRuntime({
+            getDocument: () => document,
+        });
 
         expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
         expect(runtime.createElement("span")).toBeInstanceOf(HTMLSpanElement);
@@ -21,8 +23,8 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         expect.assertions(2);
 
         const runtime = getCreateAddFitFileToMapButtonRuntime({
-            AbortController,
-            document,
+            getAbortController: () => AbortController,
+            getDocument: () => document,
         });
         const controller = runtime.createAbortController();
 
@@ -51,13 +53,13 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         const runtime = getCreateAddFitFileToMapButtonRuntime({});
         const runtimeWithoutAbortController =
             getCreateAddFitFileToMapButtonRuntime({
-                document: { defaultView: undefined } as Document,
+                getDocument: () => ({ defaultView: undefined }) as Document,
             });
         const runtimeWithInvalidAbortController =
             getCreateAddFitFileToMapButtonRuntime({
-                AbortController:
+                getAbortController: () =>
                     "AbortController" as unknown as typeof AbortController,
-                document,
+                getDocument: () => document,
             });
 
         expect(() => runtime.createButton()).toThrow(
@@ -73,5 +75,36 @@ describe("getCreateAddFitFileToMapButtonRuntime", () => {
         ).toThrow(
             "createAddFitFileToMapButton requires an AbortController runtime"
         );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(5);
+
+        const legacyAbortController = vi.fn();
+        const legacyDocument = {
+            createElement: vi.fn(),
+            defaultView: {
+                AbortController: legacyAbortController,
+            },
+        };
+        const runtime = getCreateAddFitFileToMapButtonRuntime({
+            AbortController:
+                legacyAbortController as unknown as typeof AbortController,
+            document: legacyDocument as unknown as Document,
+        } as unknown as Parameters<
+            typeof getCreateAddFitFileToMapButtonRuntime
+        >[0]);
+
+        expect(() => runtime.createButton()).toThrow(
+            "createAddFitFileToMapButton requires a document runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createAddFitFileToMapButton requires an AbortController runtime"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "createAddFitFileToMapButton requires a document runtime"
+        );
+        expect(legacyDocument.createElement).not.toHaveBeenCalled();
+        expect(legacyAbortController).not.toHaveBeenCalled();
     });
 });
