@@ -4435,7 +4435,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(22);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -4471,8 +4471,34 @@ describe("architecture boundaries", () => {
         expect(settingsHeaderRuntimeSource).not.toContain(
             "scope: CreateSettingsHeaderRuntimeScope = globalThis"
         );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "const defaultCreateSettingsHeaderRuntimeScope: CreateSettingsHeaderRuntimeScope = globalThis"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "readonly documentEventTarget?:"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(settingsHeaderRuntimeSource).not.toContain(
+            "scope.documentEventTarget"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain("scope.setTimeout");
         expect(settingsHeaderRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(settingsHeaderRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"

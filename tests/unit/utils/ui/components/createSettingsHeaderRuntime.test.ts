@@ -12,8 +12,8 @@ describe("getCreateSettingsHeaderRuntime", () => {
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getCreateSettingsHeaderRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
@@ -27,7 +27,9 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect.assertions(2);
 
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const runtime = getCreateSettingsHeaderRuntime({ clearTimeout });
+        const runtime = getCreateSettingsHeaderRuntime({
+            getClearTimeout: () => clearTimeout,
+        });
 
         expect(() => runtime.clearTimeout(undefined)).not.toThrow();
 
@@ -52,7 +54,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
         );
     });
 
-    it("creates abort controllers through the injected runtime", () => {
+    it("creates abort controllers through the injected runtime provider", () => {
         expect.assertions(2);
 
         const controller = new AbortController();
@@ -62,7 +64,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
             }
         );
         const runtime = getCreateSettingsHeaderRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -80,7 +82,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
         );
     });
 
-    it("registers document keydown listeners through the injected event target", () => {
+    it("registers document keydown listeners through the injected event target provider", () => {
         expect.assertions(3);
 
         let keydownCount = 0;
@@ -95,7 +97,7 @@ describe("getCreateSettingsHeaderRuntime", () => {
         };
         const controller = new AbortController();
         const runtime = getCreateSettingsHeaderRuntime({
-            documentEventTarget,
+            getDocumentEventTarget: () => documentEventTarget,
         });
 
         runtime.addDocumentKeydownListener(listener, {
@@ -162,5 +164,50 @@ describe("getCreateSettingsHeaderRuntime", () => {
         expect(scheduleTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearScheduledTimeout).toHaveBeenCalledWith(timer);
         expect(keydownCount).toBe(1);
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(10);
+
+        const callback = vi.fn<() => void>();
+        const timer = 71 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const listener = vi.fn<(event: KeyboardEvent) => void>();
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const runtime = getCreateSettingsHeaderRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            clearTimeout,
+            documentEventTarget,
+            setTimeout,
+        } as unknown as Parameters<typeof getCreateSettingsHeaderRuntime>[0]);
+
+        expect(() => runtime.setTimeout(callback, 1)).toThrow(
+            "createSettingsHeader requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(timer)).toThrow(
+            "createSettingsHeader requires a clearTimeout runtime"
+        );
+        expect(() => runtime.addDocumentKeydownListener(listener, {})).toThrow(
+            "createSettingsHeader requires a document event-target runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createSettingsHeader requires an AbortController runtime"
+        );
+
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
+        expect(listener).not.toHaveBeenCalled();
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(callback).not.toHaveBeenCalled();
+        expect(documentEventTarget.body.childElementCount).toBe(0);
     });
 });

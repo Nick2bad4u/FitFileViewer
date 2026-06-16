@@ -3,13 +3,9 @@ export type CreateSettingsHeaderTimer = ReturnType<
 >;
 
 export interface CreateSettingsHeaderRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly documentEventTarget?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
@@ -21,8 +17,8 @@ export interface CreateSettingsHeaderRuntimeScope {
 
 export interface CreateSettingsHeaderRuntime {
     readonly addDocumentKeydownListener: (
-        listener: (event: KeyboardEvent) => void,
-        options: AddEventListenerOptions
+        listener: (event: Readonly<KeyboardEvent>) => void,
+        options: Readonly<AddEventListenerOptions>
     ) => void;
     readonly clearTimeout: (
         timer: CreateSettingsHeaderTimer | undefined
@@ -37,25 +33,25 @@ export interface CreateSettingsHeaderRuntime {
 function getAbortControllerConstructor(
     scope: CreateSettingsHeaderRuntimeScope
 ): typeof AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getClearTimeout(
     scope: CreateSettingsHeaderRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
-    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+    return scope.getClearTimeout?.();
 }
 
 function getDocumentEventTarget(
     scope: CreateSettingsHeaderRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+    return scope.getDocumentEventTarget?.();
 }
 
 function getSetTimeout(
     scope: CreateSettingsHeaderRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
-    return scope.getSetTimeout?.() ?? scope.setTimeout;
+    return scope.getSetTimeout?.();
 }
 
 const defaultCreateSettingsHeaderRuntimeScope: CreateSettingsHeaderRuntimeScope =
