@@ -3,6 +3,7 @@ import {
     getRendererElectronApi,
     type RendererElectronApiScope,
 } from "../../runtime/electronApiRuntime.js";
+import { getRendererEnvironmentRuntime } from "./rendererEnvironmentRuntime.js";
 
 export type RendererEnvironmentName = "development" | "production";
 
@@ -17,9 +18,7 @@ function getGlobalBooleanFlag(globalScope: object, flagName: string): unknown {
     return Reflect.get(globalScope, flagName);
 }
 
-function getDefaultRendererEnvironmentScope(): object {
-    return globalThis;
-}
+const rendererEnvironmentRuntime = getRendererEnvironmentRuntime();
 
 function getRendererLocationParts(globalScope: object): RendererLocationParts {
     const locationRecord = toRecord(Reflect.get(globalScope, "location"));
@@ -58,7 +57,9 @@ function hasElectronDevModeFlag(globalScope: object): boolean {
     );
 }
 
-function isDebugRendererLocation(locationParts: RendererLocationParts): boolean {
+function isDebugRendererLocation(
+    locationParts: RendererLocationParts
+): boolean {
     return (
         locationParts.search.includes("debug=true") ||
         locationParts.protocol === "file:" ||
@@ -89,11 +90,13 @@ function isElectronDevModeApi(value: unknown): value is {
 /**
  * Gets the renderer environment name from the current global runtime markers.
  *
- * @param globalScope - Global-like object to inspect. Defaults to the current renderer global scope.
+ * @param globalScope - Global-like object to inspect. Defaults to the current
+ *   renderer global scope.
+ *
  * @returns The detected renderer environment name.
  */
 export function getEnvironment(
-    globalScope: object = getDefaultRendererEnvironmentScope()
+    globalScope: object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentScope()
 ): RendererEnvironmentName {
     return isDevelopmentMode(globalScope) ? "development" : "production";
 }
@@ -101,11 +104,13 @@ export function getEnvironment(
 /**
  * Detects whether the renderer is running with development-mode markers.
  *
- * @param globalScope - Global-like object to inspect. Defaults to the current renderer global scope.
+ * @param globalScope - Global-like object to inspect. Defaults to the current
+ *   renderer global scope.
+ *
  * @returns Whether the renderer should use development-mode behavior.
  */
 export function isDevelopmentMode(
-    globalScope: object = getDefaultRendererEnvironmentScope()
+    globalScope: object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentScope()
 ): boolean {
     try {
         const locationParts = getRendererLocationParts(globalScope);

@@ -4012,25 +4012,40 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer environment default scope behind a provider", () => {
-        expect.assertions(4);
+        expect.assertions(8);
 
         const rendererEnvironmentSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/app/initialization/rendererEnvironment.ts"
             )
         );
+        const rendererEnvironmentRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/rendererEnvironmentRuntime.ts"
+            )
+        );
 
         expect(rendererEnvironmentSource).toContain(
-            "getDefaultRendererEnvironmentScope"
+            "rendererEnvironmentRuntime.js"
         );
         expect(rendererEnvironmentSource).toContain(
             "getDefaultRendererEnvironmentScope()"
         );
+        expect(rendererEnvironmentSource).not.toContain("return globalThis");
         expect(rendererEnvironmentSource).not.toContain(
             "globalScope: object = globalThis"
         );
         expect(rendererEnvironmentSource).not.toContain(
             "isDevelopmentMode(globalScope: object = globalThis)"
+        );
+        expect(rendererEnvironmentRuntimeSource).toContain(
+            "defaultRendererEnvironmentRuntimeScope"
+        );
+        expect(rendererEnvironmentRuntimeSource).toContain(
+            "getGlobalScope: () => globalThis"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            "scope: RendererEnvironmentRuntimeScope = globalThis"
         );
     });
 
