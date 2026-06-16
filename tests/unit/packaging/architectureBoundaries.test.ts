@@ -9617,12 +9617,8 @@ describe("architecture boundaries", () => {
             "installLeafletPluginCompatibilityGlobal"
         );
         expect(vendorMapEntry).not.toContain('defineMissingGlobal("L"');
-        expect(vendorMapEntry).toContain(
-            'Reflect.deleteProperty(globalThis, "L")'
-        );
-        expect(vendorMapEntry).toContain(
-            'Reflect.deleteProperty(globalThis, "Leaflet")'
-        );
+        expect(vendorMapEntry).toContain("deleteCompatibilityGlobal");
+        expect(vendorMapEntry).not.toContain("Reflect.deleteProperty");
         expect(globalDefinitionViolations).toStrictEqual([]);
         expect(viteRendererConfig).toContain(
             'const leafletDrawRuntimeModuleId = "fitfileviewer:leaflet-draw-runtime"'

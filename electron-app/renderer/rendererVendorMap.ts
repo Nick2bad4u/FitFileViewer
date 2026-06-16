@@ -66,8 +66,8 @@ function installMinimapToggleIcon(): void {
 }
 
 function removeLeafletCompatibilityGlobals(): void {
-    Reflect.deleteProperty(globalThis, "L");
-    Reflect.deleteProperty(globalThis, "Leaflet");
+    rendererVendorMapRuntime.deleteCompatibilityGlobal("L");
+    rendererVendorMapRuntime.deleteCompatibilityGlobal("Leaflet");
 }
 
 /** Installs the Leaflet runtime and map plugins used by the Map tab. */
