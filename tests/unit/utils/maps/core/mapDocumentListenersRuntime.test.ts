@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getMapDocumentListenersRuntime } from "../../../../../electron-app/utils/maps/core/mapDocumentListenersRuntime.js";
+import {
+    getMapDocumentListenersRuntime,
+    type MapDocumentListenersRuntimeScope,
+} from "../../../../../electron-app/utils/maps/core/mapDocumentListenersRuntime.js";
 
 describe("getMapDocumentListenersRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -20,7 +23,7 @@ describe("getMapDocumentListenersRuntime", () => {
             }
         }
         const runtime = getMapDocumentListenersRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -49,7 +52,7 @@ describe("getMapDocumentListenersRuntime", () => {
         let mouseUpCount = 0;
         let touchEndCount = 0;
         const runtime = getMapDocumentListenersRuntime({
-            document: documentRef,
+            getDocument: () => documentRef,
         });
 
         runtime.addDocumentMousedownListener(
@@ -113,7 +116,7 @@ describe("getMapDocumentListenersRuntime", () => {
         const controller = new AbortController();
         let resizeCount = 0;
         const runtime = getMapDocumentListenersRuntime({
-            resizeTarget,
+            getResizeTarget: () => resizeTarget,
         });
 
         runtime.addWindowResizeListener(
@@ -187,10 +190,40 @@ describe("getMapDocumentListenersRuntime", () => {
             getMapDocumentListenersRuntime({}).createAbortController
         ).toThrow("mapDocumentListeners requires an AbortController runtime");
     });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(5);
+
+        class TestAbortController extends AbortController {}
+        const documentAddEventListener = vi.fn();
+        const resizeAddEventListener = vi.fn();
+        const runtime = getMapDocumentListenersRuntime({
+            AbortController: TestAbortController,
+            document: { addEventListener: documentAddEventListener },
+            resizeTarget: { addEventListener: resizeAddEventListener },
+        } as unknown as MapDocumentListenersRuntimeScope);
+        const controller = new AbortController();
+
+        expect(runtime.createAbortController).toThrow(
+            "mapDocumentListeners requires an AbortController runtime"
+        );
+        expect(() => {
+            runtime.addDocumentMousedownListener(() => undefined, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapDocumentListeners requires a document runtime");
+        expect(() => {
+            runtime.addWindowResizeListener(() => undefined, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapDocumentListeners requires a resize target runtime");
+        expect(documentAddEventListener).not.toHaveBeenCalled();
+        expect(resizeAddEventListener).not.toHaveBeenCalled();
+    });
 });
 
 function createDocumentListenerTarget(
-    eventTarget: EventTarget
+    eventTarget: Readonly<EventTarget>
 ): Pick<Document, "addEventListener"> {
     return {
         addEventListener: eventTarget.addEventListener.bind(eventTarget),
@@ -198,7 +231,7 @@ function createDocumentListenerTarget(
 }
 
 function createResizeListenerTarget(
-    eventTarget: EventTarget
+    eventTarget: Readonly<EventTarget>
 ): Pick<Window, "addEventListener"> {
     return {
         addEventListener: eventTarget.addEventListener.bind(eventTarget),

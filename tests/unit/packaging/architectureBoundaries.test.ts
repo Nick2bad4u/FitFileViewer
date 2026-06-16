@@ -8421,7 +8421,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map document listeners behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(21);
 
         const violations = migratedMapDocumentListenersRuntimeFiles
             .filter((relativeFile) =>
@@ -8438,6 +8438,15 @@ describe("architecture boundaries", () => {
         const mapDocumentListenersRuntimeSource = stripComments(
             readRepositoryFile(mapDocumentListenersRuntimeSourceFile)
         );
+        const mapDocumentListenersRuntimeScopeSource =
+            mapDocumentListenersRuntimeSource.slice(
+                mapDocumentListenersRuntimeSource.indexOf(
+                    "export interface MapDocumentListenersRuntimeScope"
+                ),
+                mapDocumentListenersRuntimeSource.indexOf(
+                    "export interface MapDocumentListenersRuntime {"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(mapDocumentListenersSource).toContain(
@@ -8462,11 +8471,32 @@ describe("architecture boundaries", () => {
         expect(mapDocumentListenersRuntimeSource).not.toContain(
             "MapDocumentListenersRuntimeScope = globalThis"
         );
-        expect(mapDocumentListenersRuntimeSource).toContain(
-            "const runtimeDocument = scope.getDocument?.() ?? scope.document;"
+        expect(mapDocumentListenersRuntimeScopeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(mapDocumentListenersRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(mapDocumentListenersRuntimeScopeSource).not.toContain(
+            "readonly resizeTarget?:"
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
+            "scope.resizeTarget"
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
-            "const runtimeResizeTarget ="
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "const runtimeResizeTarget = scope.getResizeTarget?.();"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "return scope.getAbortController?.();"
         );
         expect(mapDocumentListenersRuntimeSource).not.toContain("scope.window");
         expect(mapDocumentListenersRuntimeSource).not.toContain(

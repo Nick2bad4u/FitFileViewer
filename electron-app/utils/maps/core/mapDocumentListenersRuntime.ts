@@ -2,8 +2,6 @@ type MapDocumentListenersDocument = Pick<Document, "addEventListener">;
 type MapDocumentListenersResizeTarget = Pick<Window, "addEventListener">;
 
 export interface MapDocumentListenersRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly document?: MapDocumentListenersDocument | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -13,33 +11,32 @@ export interface MapDocumentListenersRuntimeScope {
     readonly getResizeTarget?:
         | (() => MapDocumentListenersResizeTarget | undefined)
         | undefined;
-    readonly resizeTarget?: MapDocumentListenersResizeTarget | undefined;
 }
 
 export interface MapDocumentListenersRuntime {
-    addDocumentMousedownListener(
-        listener: (event: MouseEvent) => void,
-        options: AddEventListenerOptions
-    ): void;
-    addDocumentMouseupListener(
-        listener: (event: MouseEvent) => void,
-        options: AddEventListenerOptions
-    ): void;
-    addDocumentTouchendListener(
+    readonly addDocumentMousedownListener: (
+        listener: (event: Readonly<MouseEvent>) => void,
+        options: Readonly<AddEventListenerOptions>
+    ) => void;
+    readonly addDocumentMouseupListener: (
+        listener: (event: Readonly<MouseEvent>) => void,
+        options: Readonly<AddEventListenerOptions>
+    ) => void;
+    readonly addDocumentTouchendListener: (
         listener: () => void,
-        options: AddEventListenerOptions
-    ): void;
-    addWindowResizeListener(
+        options: Readonly<AddEventListenerOptions>
+    ) => void;
+    readonly addWindowResizeListener: (
         listener: () => void,
-        options: AddEventListenerOptions
-    ): void;
-    createAbortController(): AbortController;
+        options: Readonly<AddEventListenerOptions>
+    ) => void;
+    readonly createAbortController: () => AbortController;
 }
 
 function getRuntimeDocument(
     scope: MapDocumentListenersRuntimeScope
 ): MapDocumentListenersDocument {
-    const runtimeDocument = scope.getDocument?.() ?? scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError("mapDocumentListeners requires a document runtime");
     }
@@ -50,7 +47,7 @@ function getRuntimeDocument(
 function getRuntimeResizeTarget(
     scope: MapDocumentListenersRuntimeScope
 ): MapDocumentListenersResizeTarget {
-    const runtimeResizeTarget = scope.getResizeTarget?.() ?? scope.resizeTarget;
+    const runtimeResizeTarget = scope.getResizeTarget?.();
     if (!runtimeResizeTarget) {
         throw new TypeError(
             "mapDocumentListeners requires a resize target runtime"
@@ -70,7 +67,7 @@ const defaultMapDocumentListenersRuntimeScope: MapDocumentListenersRuntimeScope 
 function getAbortController(
     scope: MapDocumentListenersRuntimeScope
 ): typeof AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 export function getMapDocumentListenersRuntime(
