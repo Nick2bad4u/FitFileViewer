@@ -570,7 +570,7 @@ export function attachRecentFilesContextMenu({
                     );
                 }
             };
-            document.addEventListener("mousedown", removeMenu, {
+            runtime.addDocumentMousedownListener(removeMenu, {
                 signal: menuSignal,
             });
 

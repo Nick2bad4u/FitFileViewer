@@ -1,12 +1,14 @@
 export interface RecentFilesContextMenuRuntimeScope {
     readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
+    readonly documentEventTarget?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
@@ -32,6 +34,10 @@ export interface RecentFilesContextMenuViewportSource {
 }
 
 export interface RecentFilesContextMenuRuntime {
+    addDocumentMousedownListener: (
+        listener: (event: MouseEvent) => void,
+        options: AddEventListenerOptions
+    ) => void;
     clearTimeout: (handle: RecentFilesContextMenuTimer) => void;
     createAbortController: () => AbortController;
     getViewport: () => RecentFilesContextMenuViewport;
@@ -49,6 +55,7 @@ const defaultRecentFilesContextMenuRuntimeScope: RecentFilesContextMenuRuntimeSc
     {
         getAbortController: () => globalThis.AbortController,
         getClearTimeout: () => globalThis.clearTimeout,
+        getDocumentEventTarget: () => globalThis.document,
         getSetTimeout: () => globalThis.setTimeout,
         getViewport: () => ({
             height: globalThis.innerHeight,
@@ -68,6 +75,12 @@ function getClearTimeout(
     return scope.getClearTimeout?.() ?? scope.clearTimeout;
 }
 
+function getDocumentEventTarget(
+    scope: RecentFilesContextMenuRuntimeScope
+): Document | undefined {
+    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+}
+
 function getSetTimeout(
     scope: RecentFilesContextMenuRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
@@ -84,6 +97,21 @@ export function getRecentFilesContextMenuRuntime(
     scope: RecentFilesContextMenuRuntimeScope = defaultRecentFilesContextMenuRuntimeScope
 ): RecentFilesContextMenuRuntime {
     return {
+        addDocumentMousedownListener(listener, options): void {
+            const documentEventTarget = getDocumentEventTarget(scope);
+            if (!documentEventTarget) {
+                throw new TypeError(
+                    "recent files context menu requires a document event-target runtime"
+                );
+            }
+
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
+            documentEventTarget.addEventListener(
+                "mousedown",
+                listener,
+                options
+            );
+        },
         clearTimeout(handle): void {
             const clearTimeoutRef = getClearTimeout(scope);
             if (typeof clearTimeoutRef !== "function") {
