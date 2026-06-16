@@ -1,5 +1,8 @@
 export type TabButtonObserver = {
-    observe?: (target: Element, options?: MutationObserverInit) => void;
+    observe?: (
+        target: Readonly<Element>,
+        options?: Readonly<MutationObserverInit>
+    ) => void;
 };
 
 export type MutationObserverConstructorLike = new (
@@ -7,9 +10,6 @@ export type MutationObserverConstructorLike = new (
 ) => TabButtonObserver;
 
 export interface EnableTabButtonsRuntimeScope {
-    readonly compatibilityMutationObserver?:
-        | MutationObserverConstructorLike
-        | undefined;
     readonly getClearTimeout?:
         | (() => typeof clearTimeout | undefined)
         | undefined;
@@ -21,21 +21,18 @@ export interface EnableTabButtonsRuntimeScope {
         | undefined;
     readonly getSetTimeout?: (() => typeof setTimeout | undefined) | undefined;
     readonly isRendererScope?: (() => boolean) | undefined;
-    readonly MutationObserver?: MutationObserverConstructorLike | undefined;
-    readonly clearTimeout?: typeof clearTimeout | undefined;
-    readonly setTimeout?: typeof setTimeout | undefined;
 }
 
 export interface EnableTabButtonsRuntime {
-    clearTimeout: (handle: ReturnType<typeof setTimeout>) => void;
-    createCompatibilityMutationObserver: (
+    readonly clearTimeout: (handle: ReturnType<typeof setTimeout>) => void;
+    readonly createCompatibilityMutationObserver: (
         callback: MutationCallback
     ) => TabButtonObserver | undefined;
-    createMutationObserver: (
+    readonly createMutationObserver: (
         callback: MutationCallback
     ) => TabButtonObserver | undefined;
-    isWindowAvailable: () => boolean;
-    setTimeout: (
+    readonly isWindowAvailable: () => boolean;
+    readonly setTimeout: (
         handler: () => void,
         timeout: number
     ) => ReturnType<typeof setTimeout>;
@@ -45,13 +42,13 @@ const defaultEnableTabButtonsRuntimeScope: EnableTabButtonsRuntimeScope = {
     getClearTimeout: () => globalThis.clearTimeout,
     getMutationObserver: () => globalThis.MutationObserver,
     getSetTimeout: () => globalThis.setTimeout,
-    isRendererScope: () => globalThis.document !== undefined,
+    isRendererScope: () => Reflect.has(globalThis, "document"),
 };
 
 function getMutationObserverConstructor(
     scope: EnableTabButtonsRuntimeScope
 ): MutationObserverConstructorLike | undefined {
-    const candidate = scope.getMutationObserver?.() ?? scope.MutationObserver;
+    const candidate = scope.getMutationObserver?.();
 
     return isMutationObserverConstructorLike(candidate) ? candidate : undefined;
 }
@@ -59,9 +56,7 @@ function getMutationObserverConstructor(
 function getCompatibilityMutationObserverConstructor(
     scope: EnableTabButtonsRuntimeScope
 ): MutationObserverConstructorLike | undefined {
-    const candidate =
-        scope.getCompatibilityMutationObserver?.() ??
-        scope.compatibilityMutationObserver;
+    const candidate = scope.getCompatibilityMutationObserver?.();
 
     return isMutationObserverConstructorLike(candidate) ? candidate : undefined;
 }
@@ -91,7 +86,7 @@ function isMutationObserverConstructorLike(
 function getRequiredClearTimeout(
     scope: EnableTabButtonsRuntimeScope
 ): typeof clearTimeout {
-    const clearTimer = scope.getClearTimeout?.() ?? scope.clearTimeout;
+    const clearTimer = scope.getClearTimeout?.();
     if (typeof clearTimer !== "function") {
         throw new TypeError("enableTabButtons requires a clearTimeout runtime");
     }
@@ -102,7 +97,7 @@ function getRequiredClearTimeout(
 function getRequiredSetTimeout(
     scope: EnableTabButtonsRuntimeScope
 ): typeof setTimeout {
-    const scheduleTimer = scope.getSetTimeout?.() ?? scope.setTimeout;
+    const scheduleTimer = scope.getSetTimeout?.();
     if (typeof scheduleTimer !== "function") {
         throw new TypeError("enableTabButtons requires a setTimeout runtime");
     }

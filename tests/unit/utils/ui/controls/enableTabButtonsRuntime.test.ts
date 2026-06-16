@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
     getEnableTabButtonsRuntime,
+    type EnableTabButtonsRuntimeScope,
     type MutationObserverConstructorLike,
 } from "../../../../../electron-app/utils/ui/controls/enableTabButtonsRuntime.js";
 
@@ -33,8 +34,8 @@ describe("getEnableTabButtonsRuntime", () => {
         }) as unknown as MutationObserverConstructorLike;
         const callback = vi.fn<MutationCallback>();
         const runtime = getEnableTabButtonsRuntime({
-            MutationObserver: globalConstructor,
-            compatibilityMutationObserver: windowConstructor,
+            getCompatibilityMutationObserver: () => windowConstructor,
+            getMutationObserver: () => globalConstructor,
         });
 
         const observer = runtime.createMutationObserver(callback);
@@ -57,7 +58,7 @@ describe("getEnableTabButtonsRuntime", () => {
         }) as unknown as MutationObserverConstructorLike;
         const callback = vi.fn<MutationCallback>();
         const runtime = getEnableTabButtonsRuntime({
-            compatibilityMutationObserver: windowConstructor,
+            getCompatibilityMutationObserver: () => windowConstructor,
         });
 
         expect(runtime.createMutationObserver(callback)).toBeDefined();
@@ -73,8 +74,8 @@ describe("getEnableTabButtonsRuntime", () => {
             return { callback, observe: vi.fn() };
         }) as unknown as MutationObserverConstructorLike;
         const runtime = getEnableTabButtonsRuntime({
-            MutationObserver: constructor,
-            compatibilityMutationObserver: constructor,
+            getCompatibilityMutationObserver: () => constructor,
+            getMutationObserver: () => constructor,
         });
 
         expect(
@@ -159,5 +160,48 @@ describe("getEnableTabButtonsRuntime", () => {
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
             "enableTabButtons requires a setTimeout runtime"
         );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(8);
+
+        const timer = Symbol("timer") as unknown as ReturnType<
+            typeof setTimeout
+        >;
+        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const observe = vi.fn();
+        const primaryConstructor = vi.fn(function MutationObserverMock(
+            callback: MutationCallback
+        ) {
+            return { callback, observe };
+        }) as unknown as MutationObserverConstructorLike;
+        const compatibilityConstructor = vi.fn(
+            function WindowMutationObserverMock(callback: MutationCallback) {
+                return { callback, observe: vi.fn() };
+            }
+        ) as unknown as MutationObserverConstructorLike;
+        const callback = vi.fn<MutationCallback>();
+        const runtime = getEnableTabButtonsRuntime({
+            MutationObserver: primaryConstructor,
+            clearTimeout: clearTimeoutMock,
+            compatibilityMutationObserver: compatibilityConstructor,
+            setTimeout: setTimeoutMock,
+        } as unknown as EnableTabButtonsRuntimeScope);
+
+        expect(runtime.createMutationObserver(callback)).toBeUndefined();
+        expect(
+            runtime.createCompatibilityMutationObserver(callback)
+        ).toBeUndefined();
+        expect(() => runtime.clearTimeout(timer)).toThrow(
+            "enableTabButtons requires a clearTimeout runtime"
+        );
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "enableTabButtons requires a setTimeout runtime"
+        );
+        expect(primaryConstructor).not.toHaveBeenCalled();
+        expect(compatibilityConstructor).not.toHaveBeenCalled();
+        expect(setTimeoutMock).not.toHaveBeenCalled();
+        expect(clearTimeoutMock).not.toHaveBeenCalled();
     });
 });
