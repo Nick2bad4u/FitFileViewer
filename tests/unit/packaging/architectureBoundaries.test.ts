@@ -10168,7 +10168,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button helper DOM reads behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(16);
 
         const violations = migratedEnableTabButtonsHelpersRuntimeFiles
             .filter((relativeFile) =>
@@ -10187,6 +10187,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/enableTabButtonsHelpersRuntime.ts"
             )
         );
+        const enableTabButtonsHelpersRuntimeScopeSource =
+            enableTabButtonsHelpersRuntimeSource.slice(
+                enableTabButtonsHelpersRuntimeSource.indexOf(
+                    "export interface EnableTabButtonsHelpersRuntimeScope"
+                ),
+                enableTabButtonsHelpersRuntimeSource.indexOf(
+                    "export interface EnableTabButtonsHelpersRuntime {"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(enableTabButtonsHelpersSource).toContain(
@@ -10202,7 +10211,7 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(enableTabButtonsHelpersRuntimeSource).toContain(
-            "isRendererScope: () => globalThis.document !== undefined"
+            'isRendererScope: () => Reflect.has(globalThis, "document")'
         );
         expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
             "scope: EnableTabButtonsHelpersRuntimeScope = globalThis"
@@ -10214,6 +10223,24 @@ describe("architecture boundaries", () => {
             "scope.window"
         );
         expect(enableTabButtonsHelpersRuntimeSource).not.toContain("window?:");
+        expect(enableTabButtonsHelpersRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(enableTabButtonsHelpersRuntimeScopeSource).not.toContain(
+            "readonly getComputedStyle?:"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
+            "scope.getComputedStyle;"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            "return scope.getDocument?.();"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            "return scope.getComputedStyleFunction?.();"
+        );
     });
 
     it("keeps tab visibility browser APIs behind the runtime facade", () => {
