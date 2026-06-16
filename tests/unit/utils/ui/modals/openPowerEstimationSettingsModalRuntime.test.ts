@@ -13,7 +13,7 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
             }
         );
         const runtime = getOpenPowerEstimationSettingsModalRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -51,7 +51,7 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         };
         const controller = new AbortController();
         const runtime = getOpenPowerEstimationSettingsModalRuntime({
-            documentEventTarget,
+            getDocumentEventTarget: () => documentEventTarget,
         });
 
         runtime.addDocumentKeydownListener(listener, {
@@ -101,5 +101,35 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
         expect(keydownCount).toBe(1);
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(4);
+
+        const AbortControllerConstructor = vi.fn();
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(
+            documentEventTarget,
+            "addEventListener"
+        );
+        const runtime = getOpenPowerEstimationSettingsModalRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            documentEventTarget,
+        } as unknown as Parameters<
+            typeof getOpenPowerEstimationSettingsModalRuntime
+        >[0]);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "openPowerEstimationSettingsModal requires an AbortController runtime"
+        );
+        expect(() =>
+            runtime.addDocumentKeydownListener(() => undefined, {})
+        ).toThrow(
+            "openPowerEstimationSettingsModal requires a document event-target runtime"
+        );
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(addEventListener).not.toHaveBeenCalled();
     });
 });

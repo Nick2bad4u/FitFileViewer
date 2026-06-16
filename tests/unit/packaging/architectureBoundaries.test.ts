@@ -7581,7 +7581,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation settings modal listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(16);
 
         const violations = migratedOpenPowerEstimationSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -7600,6 +7600,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/modals/openPowerEstimationSettingsModalRuntime.ts"
             )
         );
+        const runtimeScopeSource =
+            powerEstimationSettingsModalRuntimeSource.slice(
+                powerEstimationSettingsModalRuntimeSource.indexOf(
+                    "export interface OpenPowerEstimationSettingsModalRuntimeScope"
+                ),
+                powerEstimationSettingsModalRuntimeSource.indexOf(
+                    "export interface OpenPowerEstimationSettingsModalRuntime"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(powerEstimationSettingsModalSource).toContain(
@@ -7628,6 +7637,22 @@ describe("architecture boundaries", () => {
         );
         expect(powerEstimationSettingsModalRuntimeSource).toContain(
             "openPowerEstimationSettingsModal requires a document event-target runtime"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly documentEventTarget?:"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
+            "scope.documentEventTarget"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "return scope.getAbortController?.();"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "return scope.getDocumentEventTarget?.();"
         );
     });
 

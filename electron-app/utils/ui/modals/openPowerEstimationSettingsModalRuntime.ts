@@ -1,6 +1,8 @@
+type PowerEstimationSettingsModalKeydownListener = (
+    event: Readonly<KeyboardEvent>
+) => void;
+
 export interface OpenPowerEstimationSettingsModalRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly documentEventTarget?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -9,8 +11,8 @@ export interface OpenPowerEstimationSettingsModalRuntimeScope {
 
 export interface OpenPowerEstimationSettingsModalRuntime {
     readonly addDocumentKeydownListener: (
-        listener: (event: KeyboardEvent) => void,
-        options: AddEventListenerOptions
+        listener: PowerEstimationSettingsModalKeydownListener,
+        options: Readonly<AddEventListenerOptions>
     ) => void;
     readonly createAbortController: () => AbortController;
 }
@@ -18,13 +20,13 @@ export interface OpenPowerEstimationSettingsModalRuntime {
 function getAbortControllerConstructor(
     scope: OpenPowerEstimationSettingsModalRuntimeScope
 ): typeof AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getDocumentEventTarget(
     scope: OpenPowerEstimationSettingsModalRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+    return scope.getDocumentEventTarget?.();
 }
 
 const defaultOpenPowerEstimationSettingsModalRuntimeScope: OpenPowerEstimationSettingsModalRuntimeScope =
