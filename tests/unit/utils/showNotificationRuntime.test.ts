@@ -7,31 +7,26 @@ describe("showNotificationRuntime", () => {
         vi.unstubAllGlobals();
     });
 
-    it("schedules animation frames through the scoped window when available", () => {
-        expect.assertions(3);
+    it("resolves default browser animation frame wrappers when notification operations run", () => {
+        expect.assertions(4);
 
         const callback = vi.fn();
-        const windowRuntime = {
-            requestAnimationFrame: vi.fn(() => 13),
-        };
-        const scopeRuntime = {
-            requestAnimationFrame: vi.fn(() => 17),
-            window: windowRuntime,
-        };
+        const requestAnimationFrame = vi.fn(() => 13);
+        const cancelAnimationFrame = vi.fn();
+        vi.stubGlobal("requestAnimationFrame", requestAnimationFrame);
+        vi.stubGlobal("cancelAnimationFrame", cancelAnimationFrame);
 
-        const frame =
-            getShowNotificationRuntime(scopeRuntime).requestAnimationFrame(
-                callback
-            );
+        const runtime = getShowNotificationRuntime();
+        const frame = runtime.requestAnimationFrame(callback);
+        runtime.cancelAnimationFrame(frame ?? 0);
 
         expect(frame).toBe(13);
-        expect(windowRuntime.requestAnimationFrame).toHaveBeenCalledWith(
-            callback
-        );
-        expect(scopeRuntime.requestAnimationFrame).not.toHaveBeenCalled();
+        expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
+        expect(cancelAnimationFrame).toHaveBeenCalledWith(13);
+        expect(callback).not.toHaveBeenCalled();
     });
 
-    it("falls back to the scoped animation frame scheduler", () => {
+    it("schedules animation frames through the scoped scheduler", () => {
         expect.assertions(2);
 
         const callback = vi.fn();
@@ -63,15 +58,11 @@ describe("showNotificationRuntime", () => {
         expect(callback).toHaveBeenCalledWith(0);
     });
 
-    it("cancels animation frames through the scoped window when available", () => {
-        expect.assertions(3);
+    it("cancels animation frames through the scoped frame canceler", () => {
+        expect.assertions(2);
 
-        const windowRuntime = {
-            cancelAnimationFrame: vi.fn(),
-        };
         const scopeRuntime = {
             cancelAnimationFrame: vi.fn(),
-            window: windowRuntime,
         };
 
         getShowNotificationRuntime(scopeRuntime).cancelAnimationFrame(29);
@@ -79,8 +70,7 @@ describe("showNotificationRuntime", () => {
         expect(() =>
             getShowNotificationRuntime({}).cancelAnimationFrame(31)
         ).not.toThrow();
-        expect(windowRuntime.cancelAnimationFrame).toHaveBeenCalledWith(29);
-        expect(scopeRuntime.cancelAnimationFrame).not.toHaveBeenCalled();
+        expect(scopeRuntime.cancelAnimationFrame).toHaveBeenCalledWith(29);
     });
 
     it("delegates notification timers through the scoped runtime", () => {

@@ -4852,7 +4852,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(7);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -4879,6 +4879,11 @@ describe("architecture boundaries", () => {
         );
         expect(notificationRuntimeSource).toContain(
             "defaultShowNotificationRuntimeScope"
+        );
+        expect(notificationRuntimeSource).not.toContain("globalThis.window");
+        expect(notificationRuntimeSource).not.toContain("getWindow");
+        expect(notificationRuntimeSource).not.toContain(
+            "ShowNotificationWindowRuntime"
         );
     });
 
