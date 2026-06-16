@@ -3937,7 +3937,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(14);
+        expect.assertions(16);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -3967,10 +3967,14 @@ describe("architecture boundaries", () => {
             "defaultRendererRuntimeEnvironmentScope"
         );
         expect(rendererRuntimeEnvironmentSource).toContain(
-            "getWindow: () => globalThis.window"
+            "getRendererScope: () => globalThis as RendererRuntimeScope"
         );
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
+            "globalThis.window"
+        );
+        expect(rendererRuntimeEnvironmentSource).not.toContain("getWindow: ()");
         expect(rendererRuntimeEnvironmentSource).toContain(
-            "renderer runtime environment requires a window runtime"
+            "renderer runtime environment requires a renderer scope"
         );
         expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);

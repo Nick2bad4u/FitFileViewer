@@ -63,12 +63,12 @@ describe("renderer runtime environment", () => {
                 return this;
             }),
         } as unknown as Window & typeof globalThis;
-        const getWindow = vi.fn(() => windowTarget);
+        const getRendererScope = vi.fn(() => windowTarget);
         const listenerController = new AbortController();
 
-        const environment = createRuntimeEnvironment({ getWindow });
+        const environment = createRuntimeEnvironment({ getRendererScope });
 
-        expect(getWindow).toHaveBeenCalledOnce();
+        expect(getRendererScope).toHaveBeenCalledOnce();
         expect(environment.windowTarget).toBe(windowTarget);
         expect(environment.electronApiCandidate).toBe(electronApiCandidate);
         expect(

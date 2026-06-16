@@ -11,28 +11,31 @@ export type RendererRuntimeEnvironment = {
     readonly windowTarget: Window & typeof globalThis;
 };
 
+type RendererRuntimeScope = Window & typeof globalThis;
+
 export type RendererRuntimeEnvironmentScope =
-    | (Window & typeof globalThis)
+    | RendererRuntimeScope
     | {
-          readonly getWindow: () => (Window & typeof globalThis) | undefined;
+          readonly getRendererScope: () => RendererRuntimeScope | undefined;
       };
 
-const defaultRendererRuntimeEnvironmentScope: RendererRuntimeEnvironmentScope = {
-    getWindow: () => globalThis.window,
-};
+const defaultRendererRuntimeEnvironmentScope: RendererRuntimeEnvironmentScope =
+    {
+        getRendererScope: () => globalThis as RendererRuntimeScope,
+    };
 
-function resolveRendererWindow(
+function resolveRendererScope(
     scope: RendererRuntimeEnvironmentScope
-): Window & typeof globalThis {
-    if ("getWindow" in scope) {
-        const windowTarget = scope.getWindow();
-        if (windowTarget === undefined) {
+): RendererRuntimeScope {
+    if ("getRendererScope" in scope) {
+        const rendererScope = scope.getRendererScope();
+        if (rendererScope === undefined) {
             throw new TypeError(
-                "renderer runtime environment requires a window runtime"
+                "renderer runtime environment requires a renderer scope"
             );
         }
 
-        return windowTarget;
+        return rendererScope;
     }
 
     return scope;
@@ -41,7 +44,7 @@ function resolveRendererWindow(
 export function createRendererRuntimeEnvironment(
     scope: RendererRuntimeEnvironmentScope = defaultRendererRuntimeEnvironmentScope
 ): RendererRuntimeEnvironment {
-    const windowTarget = resolveRendererWindow(scope);
+    const windowTarget = resolveRendererScope(scope);
 
     return {
         addEventListener: windowTarget.addEventListener.bind(windowTarget),
