@@ -9826,7 +9826,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps quick color switcher timers behind the runtime facade", () => {
-        expect.assertions(9);
+        expect.assertions(17);
 
         const violations = migratedQuickColorSwitcherRuntimeFiles
             .filter((relativeFile) =>
@@ -9859,6 +9859,28 @@ describe("architecture boundaries", () => {
         );
         expect(quickColorSwitcherRuntimeSource).not.toMatch(
             directQuickColorSwitcherRuntimeAmbientTimerFallbackPattern
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain("scope.document");
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "scope.setTimeout"
         );
         expect(quickColorSwitcherRuntimeSource).toContain(
             "quickColorSwitcher requires a setTimeout runtime"

@@ -7,10 +7,13 @@ type QuickColorSwitcherSetTimeout = (
     timeout: number
 ) => QuickColorSwitcherTimerHandle;
 
+type QuickColorSwitcherClickListener = (event: Readonly<MouseEvent>) => void;
+
+type QuickColorSwitcherListenerOptions = Readonly<
+    AddEventListenerOptions & { readonly signal: AbortSignal }
+>;
+
 export interface QuickColorSwitcherRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly document?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -21,20 +24,19 @@ export interface QuickColorSwitcherRuntimeScope {
     readonly getSetTimeout?:
         | (() => QuickColorSwitcherSetTimeout | undefined)
         | undefined;
-    readonly setTimeout?: QuickColorSwitcherSetTimeout | undefined;
 }
 
 export interface QuickColorSwitcherRuntime {
-    addDocumentClickListener(
-        listener: EventListener,
-        options: AddEventListenerOptions & { readonly signal: AbortSignal }
-    ): void;
-    clearTimeout(handle: QuickColorSwitcherTimerHandle): void;
-    createAbortController(): AbortController;
-    setTimeout(
+    addDocumentClickListener: (
+        listener: QuickColorSwitcherClickListener,
+        options: QuickColorSwitcherListenerOptions
+    ) => void;
+    clearTimeout: (handle: QuickColorSwitcherTimerHandle) => void;
+    createAbortController: () => AbortController;
+    setTimeout: (
         callback: () => void,
         timeout: number
-    ): QuickColorSwitcherTimerHandle;
+    ) => QuickColorSwitcherTimerHandle;
 }
 
 const defaultQuickColorSwitcherRuntimeScope: QuickColorSwitcherRuntimeScope = {
@@ -47,25 +49,25 @@ const defaultQuickColorSwitcherRuntimeScope: QuickColorSwitcherRuntimeScope = {
 function getAbortControllerConstructor(
     scope: QuickColorSwitcherRuntimeScope
 ): typeof AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getClearTimeout(
     scope: QuickColorSwitcherRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
-    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+    return scope.getClearTimeout?.();
 }
 
 function getDocument(
     scope: QuickColorSwitcherRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getSetTimeout(
     scope: QuickColorSwitcherRuntimeScope
 ): QuickColorSwitcherSetTimeout | undefined {
-    return scope.getSetTimeout?.() ?? scope.setTimeout;
+    return scope.getSetTimeout?.();
 }
 
 export function getQuickColorSwitcherRuntime(
@@ -73,8 +75,8 @@ export function getQuickColorSwitcherRuntime(
 ): QuickColorSwitcherRuntime {
     return {
         addDocumentClickListener(
-            listener: EventListener,
-            options: AddEventListenerOptions & { readonly signal: AbortSignal }
+            listener: QuickColorSwitcherClickListener,
+            options: QuickColorSwitcherListenerOptions
         ): void {
             const runtimeDocument = getDocument(scope);
             if (!runtimeDocument) {
@@ -83,7 +85,6 @@ export function getQuickColorSwitcherRuntime(
                 );
             }
 
-            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
             runtimeDocument.addEventListener("click", listener, {
                 ...options,
                 signal: options.signal,
