@@ -8,19 +8,13 @@ import {
     isNodeEnvironment,
     isTestEnvironment as isTestRuntimeEnvironment,
 } from "../../runtime/processEnvironment.js";
+import {
+    getRenderChartRuntimeHelpersRuntime,
+    type RenderChartRuntimeEnvironment,
+} from "./renderChartRuntimeHelpersRuntime.js";
 
 type UnknownFunction = (...args: unknown[]) => unknown;
 type ChartRenderCompleteNotifier = (chartCount: number) => unknown;
-
-interface ProcessShim {
-    env?: NodeJS.ProcessEnv;
-    nextTick?: unknown;
-}
-
-interface RenderChartRuntimeEnvironment {
-    getThemeConfig?: unknown;
-    process?: ProcessShim;
-}
 
 interface DebouncedChartStateManager {
     debouncedRender(reason: string): void;
@@ -37,6 +31,7 @@ interface ChartActionsBridge {
 }
 
 let loadingStateSuppressed = false;
+const renderChartRuntimeHelpersRuntime = getRenderChartRuntimeHelpersRuntime();
 
 function hasDebouncedRender(
     value: unknown
@@ -65,7 +60,7 @@ function isChartRenderCompleteNotifier(
  * Returns the mutable environment object used for chart dependency shims.
  */
 export function getMutableChartRuntimeEnvironment(): RenderChartRuntimeEnvironment {
-    return globalThis;
+    return renderChartRuntimeHelpersRuntime.getMutableChartRuntimeEnvironment();
 }
 
 /**

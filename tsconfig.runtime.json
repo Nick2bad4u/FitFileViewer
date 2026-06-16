@@ -346,6 +346,7 @@
         "electron-app/utils/charts/core/renderChartRuntimeBootstrap.ts",
         "electron-app/utils/charts/core/renderChartRuntimeDependencies.ts",
         "electron-app/utils/charts/core/renderChartRuntimeHelpers.ts",
+        "electron-app/utils/charts/core/renderChartRuntimeHelpersRuntime.ts",
         "electron-app/utils/charts/core/renderChartSessionStart.ts",
         "electron-app/utils/charts/core/renderChartSupplementalCharts.ts",
         "electron-app/utils/charts/core/renderChartSuccessfulCompletion.ts",

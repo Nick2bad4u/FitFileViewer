@@ -6261,7 +6261,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated chart lifecycle paths on the chart instance registry", () => {
-        expect.assertions(2);
+        expect.assertions(7);
 
         const violations = migratedChartInstanceRegistryFiles
             .filter((relativeFile) =>
@@ -6275,10 +6275,30 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/renderChartRuntimeHelpers.ts"
             )
         );
+        const renderChartRuntimeHelpersRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartRuntimeHelpersRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(renderChartRuntimeHelpersSource).not.toContain(
             "getGlobalChartActions"
+        );
+        expect(renderChartRuntimeHelpersSource).toContain(
+            "renderChartRuntimeHelpersRuntime.js"
+        );
+        expect(renderChartRuntimeHelpersSource).not.toContain(
+            "return globalThis"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "defaultRenderChartRuntimeHelpersRuntimeScope"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).toContain(
+            "getChartRuntimeEnvironment: () => globalThis"
+        );
+        expect(renderChartRuntimeHelpersRuntimeSource).not.toContain(
+            "scope: RenderChartRuntimeHelpersRuntimeScope = globalThis"
         );
     });
 
