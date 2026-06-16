@@ -3,6 +3,8 @@
  * easier debugging. The implementation mirrors the behaviour that previously
  * lived in main.js so existing log expectations in tests remain unchanged.
  */
+import { getProcessEnvironmentValue } from "../../utils/runtime/processEnvironment.js";
+
 type ConsoleMethod = (
     message?: unknown,
     ...optionalParameters: readonly unknown[]
@@ -11,7 +13,7 @@ type ConsoleMethod = (
 type LogContext = Record<string, unknown>;
 
 const getNodeEnvironment = (): string | undefined =>
-    globalThis.process?.env?.["NODE_ENV"];
+    getProcessEnvironmentValue("NODE_ENV");
 
 const isConsoleMethod = (value: unknown): value is ConsoleMethod =>
     typeof value === "function";

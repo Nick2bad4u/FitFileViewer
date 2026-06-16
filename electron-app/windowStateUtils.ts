@@ -4,6 +4,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 
 import { logWithContext } from "./main/logging/logWithContext.js";
+import { getProcessEnvironmentValue } from "./utils/runtime/processEnvironment.js";
 
 type BrowserWindowConstructorOptions =
     import("electron").BrowserWindowConstructorOptions;
@@ -96,22 +97,7 @@ function safeErrorMessage(error: unknown): string {
 }
 
 function getEnvironmentValue(key: string): string | undefined {
-    const processValue: unknown = Reflect.get(globalThis, "process");
-    if (
-        processValue === null ||
-        typeof processValue !== "object" ||
-        !("env" in processValue)
-    ) {
-        return undefined;
-    }
-
-    const { env } = processValue;
-    if (env === null || typeof env !== "object" || !(key in env)) {
-        return undefined;
-    }
-
-    const value: unknown = Reflect.get(env, key);
-    return typeof value === "string" ? value : undefined;
+    return getProcessEnvironmentValue(key);
 }
 
 function isBooleanCallback(value: unknown): value is () => boolean {

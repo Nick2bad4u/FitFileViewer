@@ -1,5 +1,6 @@
 import { logWithContext } from "../logging/logWithContext.js";
 import { createAppMenu } from "../../utils/app/menu/createAppMenu.js";
+import { getProcessEnvironmentValue } from "../../utils/runtime/processEnvironment.js";
 
 type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
@@ -20,7 +21,7 @@ const getErrorMessage = (error: unknown): string =>
     error instanceof Error ? error.message : String(error);
 
 const getNodeEnvironment = (): string | undefined =>
-    globalThis.process?.env?.["NODE_ENV"];
+    getProcessEnvironmentValue("NODE_ENV");
 
 /**
  * Lazily creates the application menu. The helper is intentionally defensive so
