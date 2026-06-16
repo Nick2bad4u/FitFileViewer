@@ -11759,7 +11759,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps event listener manager cleanup behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(9);
 
         const eventListenerManagerSource = stripComments(
             readRepositoryFile(
@@ -11784,6 +11784,16 @@ describe("architecture boundaries", () => {
         expect(eventListenerManagerRuntimeSource).toContain(
             "defaultEventListenerManagerRuntimeScope"
         );
+        expect(eventListenerManagerRuntimeSource).toContain(
+            "getEventTarget: () => globalThis"
+        );
+        expect(eventListenerManagerRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(eventListenerManagerRuntimeSource).not.toContain(
+            "EventListenerManagerRuntimeScope = globalThis"
+        );
+        expect(eventListenerManagerRuntimeSource).not.toContain("scope.window");
         expect(eventListenerManagerRuntimeSource).not.toMatch(
             directEventListenerManagerRuntimeAmbientGetterPattern
         );

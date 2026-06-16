@@ -1,6 +1,10 @@
 export interface EventListenerManagerRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
-    readonly window?: EventTarget | undefined;
+    readonly eventTarget?: EventTarget | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getEventTarget?: (() => EventTarget | undefined) | undefined;
 }
 
 export interface EventListenerManagerRuntime {
@@ -9,14 +13,29 @@ export interface EventListenerManagerRuntime {
 }
 
 const defaultEventListenerManagerRuntimeScope: EventListenerManagerRuntimeScope =
-    globalThis;
+    {
+        getAbortController: () => globalThis.AbortController,
+        getEventTarget: () => globalThis,
+    };
+
+function getAbortController(
+    scope: EventListenerManagerRuntimeScope
+): typeof AbortController | undefined {
+    return scope.getAbortController?.() ?? scope.AbortController;
+}
+
+function getEventTarget(
+    scope: EventListenerManagerRuntimeScope
+): EventTarget | undefined {
+    return scope.getEventTarget?.() ?? scope.eventTarget;
+}
 
 export function getEventListenerManagerRuntime(
     scope: EventListenerManagerRuntimeScope = defaultEventListenerManagerRuntimeScope
 ): EventListenerManagerRuntime {
     return {
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = getAbortController(scope);
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "event listener manager requires an AbortController runtime"
@@ -26,7 +45,7 @@ export function getEventListenerManagerRuntime(
             return new AbortControllerConstructor();
         },
         getDefaultEventTarget(): EventTarget | undefined {
-            return scope.window;
+            return getEventTarget(scope);
         },
     };
 }

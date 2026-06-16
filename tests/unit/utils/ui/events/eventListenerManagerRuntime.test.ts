@@ -3,12 +3,12 @@ import { describe, expect, it } from "vitest";
 import { getEventListenerManagerRuntime } from "../../../../../electron-app/utils/ui/events/eventListenerManagerRuntime.js";
 
 describe("getEventListenerManagerRuntime", () => {
-    it("resolves the default event target through the injected window scope", () => {
+    it("resolves the default event target through the injected event-target scope", () => {
         expect.assertions(1);
 
         const target = new EventTarget(),
             runtime = getEventListenerManagerRuntime({
-                window: target,
+                eventTarget: target,
             });
 
         expect(runtime.getDefaultEventTarget()).toBe(target);
@@ -46,6 +46,36 @@ describe("getEventListenerManagerRuntime", () => {
             TestAbortController
         );
         expect(controllerCount).toBe(1);
+    });
+
+    it("routes runtime dependencies through provider functions", () => {
+        expect.assertions(4);
+
+        let controllerCount = 0;
+        class TestAbortController extends AbortController {
+            public constructor() {
+                super();
+                controllerCount += 1;
+            }
+        }
+        const target = new EventTarget();
+        const getAbortController = () =>
+            TestAbortController as unknown as typeof AbortController;
+        const getEventTarget = () => target;
+
+        const runtime = getEventListenerManagerRuntime({
+            getAbortController,
+            getEventTarget,
+        });
+
+        expect(runtime.getDefaultEventTarget()).toBe(target);
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+        expect(
+            getEventListenerManagerRuntime({}).getDefaultEventTarget()
+        ).toBeUndefined();
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {
