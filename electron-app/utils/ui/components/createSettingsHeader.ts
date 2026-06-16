@@ -487,10 +487,13 @@ export function createSettingsHeader(wrapper: HTMLElement): void {
                 const success = resetAllSettings();
 
                 // Re-enable button after reset completes
-                const resetTimer = createSettingsHeaderRuntime.setTimeout(() => {
-                    resetBtn.style.opacity = "1";
-                    resetBtn.disabled = false;
-                }, 200);
+                const resetTimer = createSettingsHeaderRuntime.setTimeout(
+                    () => {
+                        resetBtn.style.opacity = "1";
+                        resetBtn.disabled = false;
+                    },
+                    200
+                );
                 void resetTimer;
 
                 if (!success) {
@@ -709,7 +712,7 @@ export function showChartSelectionModal(
             closeModal();
         }
     };
-    document.addEventListener("keydown", handleEscape, {
+    createSettingsHeaderRuntime.addDocumentKeydownListener(handleEscape, {
         signal: modalAbortController.signal,
     });
 
@@ -814,8 +817,7 @@ function createControlGroup(option: ChartOption): HTMLElement {
 		backdrop-filter: var(--backdrop-blur);
 	`;
 
-    const groupController =
-        createSettingsHeaderRuntime.createAbortController();
+    const groupController = createSettingsHeaderRuntime.createAbortController();
     const groupSignal = groupController.signal;
 
     // Add hover effect
@@ -882,8 +884,7 @@ function createControlGroup(option: ChartOption): HTMLElement {
  */
 function createRangeControl(option: ChartOption): HTMLDivElement {
     const container = document.createElement("div");
-    const rangeController =
-        createSettingsHeaderRuntime.createAbortController();
+    const rangeController = createSettingsHeaderRuntime.createAbortController();
     const rangeSignal = rangeController.signal;
     container.style.cssText = `
 		position: relative;

@@ -4397,7 +4397,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(12);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -4422,6 +4422,8 @@ describe("architecture boundaries", () => {
             "createSettingsHeaderRuntime.js"
         );
         expect(settingsHeaderSource).toContain("createAbortController");
+        expect(settingsHeaderSource).toContain("addDocumentKeydownListener");
+        expect(settingsHeaderSource).not.toContain("document.addEventListener");
         expect(settingsHeaderRuntimeSource).not.toMatch(
             directCreateSettingsHeaderRuntimeAmbientFallbackPattern
         );
@@ -4432,7 +4434,16 @@ describe("architecture boundaries", () => {
             "scope: CreateSettingsHeaderRuntimeScope = globalThis"
         );
         expect(settingsHeaderRuntimeSource).toContain(
-            "const setTimeoutRef = scope.setTimeout;"
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "getDocumentEventTarget: () => globalThis.document"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "createSettingsHeader requires a document event-target runtime"
         );
     });
 
