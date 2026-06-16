@@ -1,12 +1,11 @@
 type BrowserWindowOpen = (
-    url?: string | URL,
+    url?: string,
     target?: string,
     features?: string
 ) => WindowProxy | null;
 
 export interface ExternalLinkHandlersRuntimeScope {
     readonly getOpen?: (() => BrowserWindowOpen | undefined) | undefined;
-    readonly open?: BrowserWindowOpen | undefined;
 }
 
 export interface ExternalLinkHandlersRuntime {
@@ -25,7 +24,7 @@ const defaultExternalLinkHandlersRuntimeScope: ExternalLinkHandlersRuntimeScope 
 function getBrowserWindowOpen(
     scope: ExternalLinkHandlersRuntimeScope
 ): BrowserWindowOpen | undefined {
-    return scope.getOpen?.() ?? scope.open;
+    return scope.getOpen?.();
 }
 
 export function getExternalLinkHandlersRuntime(

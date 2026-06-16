@@ -15,12 +15,13 @@ describe("getExternalLinkHandlersRuntime", () => {
         let openedFeatures = "";
         const openedWindow = {} as WindowProxy;
         const runtime = getExternalLinkHandlersRuntime({
-            open(url, target, features): WindowProxy {
-                openedUrl = String(url);
-                openedTarget = target ?? "";
-                openedFeatures = features ?? "";
-                return openedWindow;
-            },
+            getOpen: () =>
+                function open(url, target, features): WindowProxy {
+                    openedUrl = String(url);
+                    openedTarget = target ?? "";
+                    openedFeatures = features ?? "";
+                    return openedWindow;
+                },
         });
 
         const result = runtime.openBrowserWindow(
@@ -33,6 +34,24 @@ describe("getExternalLinkHandlersRuntime", () => {
         expect(openedUrl).toBe("https://example.com");
         expect(openedTarget).toBe("_blank");
         expect(openedFeatures).toBe("noopener,noreferrer");
+    });
+
+    it("ignores legacy direct opener properties", () => {
+        expect.assertions(2);
+
+        const open = vi.fn(() => ({}) as WindowProxy);
+        const runtime = getExternalLinkHandlersRuntime({
+            open,
+        } as unknown as Parameters<typeof getExternalLinkHandlersRuntime>[0]);
+
+        expect(
+            runtime.openBrowserWindow(
+                "https://example.com",
+                "_blank",
+                "noopener,noreferrer"
+            )
+        ).toBeNull();
+        expect(open).not.toHaveBeenCalled();
     });
 
     it("returns null when a browser opener is unavailable", () => {

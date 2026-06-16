@@ -8255,7 +8255,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(8);
 
         const violations = migratedExternalLinkHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -8274,6 +8274,14 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/links/externalLinkHandlersRuntime.ts"
             )
         );
+        const runtimeScopeSource = externalLinkHandlersRuntimeSource.slice(
+            externalLinkHandlersRuntimeSource.indexOf(
+                "export interface ExternalLinkHandlersRuntimeScope"
+            ),
+            externalLinkHandlersRuntimeSource.indexOf(
+                "export interface ExternalLinkHandlersRuntime"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(externalLinkHandlersSource).toContain(
@@ -8284,6 +8292,14 @@ describe("architecture boundaries", () => {
         );
         expect(externalLinkHandlersRuntimeSource).toContain(
             "defaultExternalLinkHandlersRuntimeScope"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly open?:");
+        expect(externalLinkHandlersRuntimeSource).not.toContain("scope.open");
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "return scope.getOpen?.();"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "getOpen: () => globalThis.open"
         );
     });
 
