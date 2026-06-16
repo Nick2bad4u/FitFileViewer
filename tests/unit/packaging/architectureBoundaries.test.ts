@@ -8608,7 +8608,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(15);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -8627,6 +8627,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createElevationProfileButtonRuntime.ts"
             )
         );
+        const runtimeScopeSource =
+            createElevationProfileButtonRuntimeSource.slice(
+                createElevationProfileButtonRuntimeSource.indexOf(
+                    "export interface CreateElevationProfileButtonRuntimeScope"
+                ),
+                createElevationProfileButtonRuntimeSource.indexOf(
+                    "export interface CreateElevationProfileButtonRuntime"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(createElevationProfileButtonRuntimeSource).not.toMatch(
@@ -8634,6 +8643,33 @@ describe("architecture boundaries", () => {
         );
         expect(createElevationProfileButtonRuntimeSource).not.toMatch(
             directCreateElevationProfileButtonRuntimeAmbientGetterPattern
+        );
+        expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly chartOverlayColorPalette?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly document?:");
+        expect(runtimeScopeSource).not.toContain("readonly open?:");
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "scope.chartOverlayColorPalette"
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "scope.open"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "return scope.getDocument?.();"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "return scope.getOpen?.();"
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "return scope.getChartOverlayColorPalette?.();"
         );
         expect(createElevationProfileButtonSource).toContain(
             "createElevationProfileButtonRuntime.js"

@@ -2,28 +2,24 @@ type ElevationProfilePopupWindow = Window | null;
 
 interface ElevationProfileButtonGlobalScope {
     readonly chartOverlayColorPalette?: unknown;
-    readonly open?: CreateElevationProfileButtonRuntimeScope["open"];
+    readonly open?: CreateElevationProfileOpen | undefined;
 }
 
+type CreateElevationProfileOpen =
+    | ((
+          url?: string,
+          target?: string,
+          features?: string
+      ) => ElevationProfilePopupWindow)
+    | undefined;
+
 export interface CreateElevationProfileButtonRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly chartOverlayColorPalette?: unknown;
-    readonly document?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
     readonly getChartOverlayColorPalette?: (() => unknown) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
-    readonly getOpen?:
-        | (() => CreateElevationProfileButtonRuntimeScope["open"])
-        | undefined;
-    readonly open?:
-        | ((
-              url?: string | URL,
-              target?: string,
-              features?: string
-          ) => ElevationProfilePopupWindow)
-        | undefined;
+    readonly getOpen?: (() => CreateElevationProfileOpen) | undefined;
 }
 
 export interface CreateElevationProfileButtonRuntime {
@@ -67,7 +63,6 @@ function getAbortControllerConstructor(
 ): typeof AbortController {
     const AbortControllerConstructor =
         scope.getAbortController?.() ??
-        scope.AbortController ??
         getScopeDocument(scope)?.defaultView?.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
@@ -94,13 +89,13 @@ function getDocument(
 function getScopeDocument(
     scope: CreateElevationProfileButtonRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getScopeOpen(
     scope: CreateElevationProfileButtonRuntimeScope
-): CreateElevationProfileButtonRuntimeScope["open"] {
-    return scope.getOpen?.() ?? scope.open;
+): CreateElevationProfileOpen {
+    return scope.getOpen?.();
 }
 
 export function getCreateElevationProfileButtonRuntime(
@@ -124,10 +119,7 @@ export function getCreateElevationProfileButtonRuntime(
             return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
         },
         getChartOverlayColorPalette(): unknown {
-            return (
-                scope.getChartOverlayColorPalette?.() ??
-                scope.chartOverlayColorPalette
-            );
+            return scope.getChartOverlayColorPalette?.();
         },
         isDarkTheme(): boolean {
             return getDocument(scope).body.classList.contains("theme-dark");

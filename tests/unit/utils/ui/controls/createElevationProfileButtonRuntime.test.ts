@@ -10,7 +10,9 @@ describe("getCreateElevationProfileButtonRuntime", () => {
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getCreateElevationProfileButtonRuntime({ document });
+        const runtime = getCreateElevationProfileButtonRuntime({
+            getDocument: () => document,
+        });
 
         expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
         expect(runtime.createElement("span")).toBeInstanceOf(HTMLSpanElement);
@@ -21,8 +23,8 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         expect.assertions(2);
 
         const runtime = getCreateElevationProfileButtonRuntime({
-            AbortController,
-            document,
+            getAbortController: () => AbortController,
+            getDocument: () => document,
         });
         const controller = runtime.createAbortController();
 
@@ -35,7 +37,9 @@ describe("getCreateElevationProfileButtonRuntime", () => {
 
         document.body.classList.remove("theme-dark");
 
-        const runtime = getCreateElevationProfileButtonRuntime({ document });
+        const runtime = getCreateElevationProfileButtonRuntime({
+            getDocument: () => document,
+        });
 
         expect(runtime.isDarkTheme()).toBe(false);
 
@@ -54,12 +58,13 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         let openedFeatures = "";
         const popup = {} as Window;
         const runtime = getCreateElevationProfileButtonRuntime({
-            open(url, target, features): Window {
-                openedUrl = String(url);
-                openedTarget = target ?? "";
-                openedFeatures = features ?? "";
-                return popup;
-            },
+            getOpen: () =>
+                function open(url, target, features): Window {
+                    openedUrl = String(url);
+                    openedTarget = target ?? "";
+                    openedFeatures = features ?? "";
+                    return popup;
+                },
         });
 
         const result = runtime.openPopupWindow(
@@ -93,7 +98,7 @@ describe("getCreateElevationProfileButtonRuntime", () => {
 
         expect(
             getCreateElevationProfileButtonRuntime({
-                chartOverlayColorPalette: palette,
+                getChartOverlayColorPalette: () => palette,
             }).getChartOverlayColorPalette()
         ).toBe(palette);
     });
@@ -136,13 +141,13 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         const runtime = getCreateElevationProfileButtonRuntime({});
         const runtimeWithoutAbortController =
             getCreateElevationProfileButtonRuntime({
-                document: { defaultView: undefined } as Document,
+                getDocument: () => ({ defaultView: undefined }) as Document,
             });
         const runtimeWithInvalidAbortController =
             getCreateElevationProfileButtonRuntime({
-                AbortController:
+                getAbortController: () =>
                     "AbortController" as unknown as typeof AbortController,
-                document,
+                getDocument: () => document,
             });
 
         expect(() => runtime.createButton()).toThrow(
@@ -161,5 +166,47 @@ describe("getCreateElevationProfileButtonRuntime", () => {
         expect(() => runtime.isDarkTheme()).toThrow(
             "createElevationProfileButton requires a document runtime"
         );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(8);
+
+        const legacyAbortController = vi.fn();
+        const legacyDocument = {
+            body: { classList: { contains: vi.fn() } },
+            createElement: vi.fn(),
+            createElementNS: vi.fn(),
+            defaultView: {
+                AbortController: legacyAbortController,
+            },
+        };
+        const legacyOpen = vi.fn();
+        const legacyPalette = ["#ff0000"];
+        const runtime = getCreateElevationProfileButtonRuntime({
+            AbortController:
+                legacyAbortController as unknown as typeof AbortController,
+            chartOverlayColorPalette: legacyPalette,
+            document: legacyDocument as unknown as Document,
+            open: legacyOpen,
+        } as unknown as Parameters<
+            typeof getCreateElevationProfileButtonRuntime
+        >[0]);
+
+        expect(() => runtime.createButton()).toThrow(
+            "createElevationProfileButton requires a document runtime"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "createElevationProfileButton requires a document runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createElevationProfileButton requires an AbortController runtime"
+        );
+        expect(runtime.getChartOverlayColorPalette()).toBeUndefined();
+        expect(
+            runtime.openPopupWindow("", "Elevation Profile", "width=900")
+        ).toBeNull();
+        expect(legacyDocument.createElement).not.toHaveBeenCalled();
+        expect(legacyDocument.createElementNS).not.toHaveBeenCalled();
+        expect(legacyOpen).not.toHaveBeenCalled();
     });
 });
