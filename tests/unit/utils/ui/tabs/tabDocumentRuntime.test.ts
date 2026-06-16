@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getTabDocumentRuntime } from "../../../../../electron-app/utils/ui/tabs/tabDocumentRuntime.js";
+import {
+    getTabDocumentRuntime,
+    type TabDocumentRuntimeScope,
+} from "../../../../../electron-app/utils/ui/tabs/tabDocumentRuntime.js";
 
 function createDocument(): Document {
     return document.implementation.createHTMLDocument("tab document runtime");
@@ -13,7 +16,7 @@ describe("tabDocumentRuntime", () => {
         const testDocument = createDocument();
         const scopeDocument = createDocument();
         const runtime = getTabDocumentRuntime({
-            document: scopeDocument,
+            getDocument: () => scopeDocument,
         });
 
         expect(runtime.getDocument(testDocument)).toBe(testDocument);
@@ -24,7 +27,7 @@ describe("tabDocumentRuntime", () => {
 
         const scopeDocument = createDocument();
         const runtime = getTabDocumentRuntime({
-            document: scopeDocument,
+            getDocument: () => scopeDocument,
         });
 
         expect(runtime.getDocument()).toBe(scopeDocument);
@@ -50,8 +53,19 @@ describe("tabDocumentRuntime", () => {
         expect.assertions(1);
 
         const runtime = getTabDocumentRuntime({
-            document: { querySelectorAll: "not a function" },
+            getDocument: () => ({ querySelectorAll: "not a function" }),
         });
+
+        expect(runtime.getDocument()).toBeUndefined();
+    });
+
+    it("ignores legacy direct document runtime properties", () => {
+        expect.assertions(1);
+
+        const scopeDocument = createDocument();
+        const runtime = getTabDocumentRuntime({
+            document: scopeDocument,
+        } as unknown as TabDocumentRuntimeScope);
 
         expect(runtime.getDocument()).toBeUndefined();
     });

@@ -1,10 +1,9 @@
 export interface TabDocumentRuntimeScope {
-    readonly document?: unknown;
     readonly getDocument?: (() => unknown) | undefined;
 }
 
 export interface TabDocumentRuntime {
-    getDocument: (testDocument?: Document) => Document | undefined;
+    getDocument: (testDocument?: Readonly<Document>) => Document | undefined;
 }
 
 function isDocumentLike(candidate: unknown): candidate is Document {
@@ -22,7 +21,7 @@ function getScopeDocument(
     scope: TabDocumentRuntimeScope
 ): Document | undefined {
     try {
-        const candidate = scope.getDocument?.() ?? scope.document;
+        const candidate = scope.getDocument?.();
         return isDocumentLike(candidate) ? candidate : undefined;
     } catch {
         return undefined;
@@ -37,7 +36,7 @@ export function getTabDocumentRuntime(
     scope: TabDocumentRuntimeScope = defaultTabDocumentRuntimeScope
 ): TabDocumentRuntime {
     return {
-        getDocument(testDocument?: Document): Document | undefined {
+        getDocument(testDocument?: Readonly<Document>): Document | undefined {
             const candidates = [testDocument, getScopeDocument(scope)];
 
             return candidates.find(isDocumentLike);

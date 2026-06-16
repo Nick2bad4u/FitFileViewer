@@ -5367,7 +5367,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab state-manager support on typed state and document access", () => {
-        expect.assertions(10);
+        expect.assertions(13);
 
         const tabStateManagerSupportSource = stripComments(
             readRepositoryFile(
@@ -5382,6 +5382,14 @@ describe("architecture boundaries", () => {
         const tabDocumentRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/ui/tabs/tabDocumentRuntime.ts"
+            )
+        );
+        const tabDocumentRuntimeScopeSource = tabDocumentRuntimeSource.slice(
+            tabDocumentRuntimeSource.indexOf(
+                "export interface TabDocumentRuntimeScope"
+            ),
+            tabDocumentRuntimeSource.indexOf(
+                "export interface TabDocumentRuntime"
             )
         );
 
@@ -5408,6 +5416,13 @@ describe("architecture boundaries", () => {
         );
         expect(tabDocumentRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(tabDocumentRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(tabDocumentRuntimeSource).not.toContain("scope.document");
+        expect(tabDocumentRuntimeSource).toContain(
+            "const candidate = scope.getDocument?.();"
         );
     });
 
