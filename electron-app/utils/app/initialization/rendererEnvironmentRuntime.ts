@@ -1,6 +1,5 @@
 export interface RendererEnvironmentRuntimeScope {
     readonly getGlobalScope?: (() => object | undefined) | undefined;
-    readonly globalScope?: object | undefined;
 }
 
 export interface RendererEnvironmentRuntime {
@@ -15,7 +14,7 @@ const defaultRendererEnvironmentRuntimeScope: RendererEnvironmentRuntimeScope =
 function getScopeGlobal(
     scope: RendererEnvironmentRuntimeScope
 ): object | undefined {
-    return scope.getGlobalScope?.() ?? scope.globalScope;
+    return scope.getGlobalScope?.();
 }
 
 export function getRendererEnvironmentRuntime(

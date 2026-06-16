@@ -4169,7 +4169,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer environment default scope behind a provider", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const rendererEnvironmentSource = stripComments(
             readRepositoryFile(
@@ -4200,6 +4200,12 @@ describe("architecture boundaries", () => {
         );
         expect(rendererEnvironmentRuntimeSource).toContain(
             "getGlobalScope: () => globalThis"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            "readonly globalScope?:"
+        );
+        expect(rendererEnvironmentRuntimeSource).not.toContain(
+            "scope.globalScope"
         );
         expect(rendererEnvironmentRuntimeSource).not.toContain(
             "scope: RendererEnvironmentRuntimeScope = globalThis"
