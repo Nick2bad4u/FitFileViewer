@@ -8107,7 +8107,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(11);
 
         const violations = migratedUpdateMapThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -8133,9 +8133,25 @@ describe("architecture boundaries", () => {
         expect(updateMapThemeRuntimeSource).toContain(
             "defaultUpdateMapThemeRuntimeScope"
         );
+        expect(updateMapThemeRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(updateMapThemeRuntimeSource).toContain(
+            "getBeforeUnloadTarget: () => globalThis"
+        );
+        expect(updateMapThemeRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(updateMapThemeRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
         expect(updateMapThemeRuntimeSource).not.toContain(
             "scope: UpdateMapThemeRuntimeScope = globalThis"
         );
+        expect(updateMapThemeRuntimeSource).not.toContain(
+            "UpdateMapThemeRuntimeScope = globalThis"
+        );
+        expect(updateMapThemeRuntimeSource).not.toContain("scope.window");
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {

@@ -86,7 +86,7 @@ describe("getUpdateMapThemeRuntime", () => {
             eventCount += 1;
         };
         const runtime = getUpdateMapThemeRuntime({
-            window: {
+            beforeUnloadTarget: {
                 addEventListener:
                     eventTarget.addEventListener.bind(eventTarget),
             },
@@ -98,6 +98,46 @@ describe("getUpdateMapThemeRuntime", () => {
         eventTarget.dispatchEvent(new Event("beforeunload"));
 
         expect(eventCount).toBe(1);
+    });
+
+    it("routes runtime dependencies through provider functions", () => {
+        expect.assertions(6);
+
+        let controllerCount = 0;
+        const map = document.createElement("div");
+        map.id = "leaflet-map";
+        const documentLike = {
+            addEventListener: vi.fn<Document["addEventListener"]>(),
+            querySelector: vi.fn<Document["querySelector"]>(() => map),
+        } as unknown as Document;
+        const beforeUnloadTarget = new EventTarget();
+        class TestAbortController extends AbortController {
+            public constructor() {
+                super();
+                controllerCount += 1;
+            }
+        }
+        const runtime = getUpdateMapThemeRuntime({
+            getAbortController: () => TestAbortController,
+            getBeforeUnloadTarget: () => beforeUnloadTarget,
+            getDocument: () => documentLike,
+            getHTMLElement: () => HTMLElement,
+        });
+
+        let unloadCount = 0;
+        runtime.addWindowBeforeUnloadListener(() => {
+            unloadCount += 1;
+        }, {});
+        beforeUnloadTarget.dispatchEvent(new Event("beforeunload"));
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+        expect(runtime.queryLeafletMap()).toBe(map);
+        expect(runtime.isHTMLElement(map)).toBe(true);
+        expect(unloadCount).toBe(1);
+        expect(getUpdateMapThemeRuntime({}).queryLeafletMap()).toBeNull();
     });
 
     it("checks HTMLElement instances through the injected constructor", () => {
