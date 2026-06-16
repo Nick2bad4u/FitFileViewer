@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getRenderChartStartupRuntime as getChartStartupRuntime } from "../../../../../electron-app/utils/charts/core/renderChartStartupRuntime.js";
+import {
+    getRenderChartStartupRuntime as getChartStartupRuntime,
+    type RenderChartStartupRuntimeScope,
+} from "../../../../../electron-app/utils/charts/core/renderChartStartupRuntime.js";
 
 describe("getRenderChartStartupRuntime", () => {
     it("registers DOMContentLoaded listeners through the injected event target", () => {
@@ -16,7 +19,7 @@ describe("getRenderChartStartupRuntime", () => {
                 ) => void
             >();
         const startupRuntime = getChartStartupRuntime({
-            addEventListener,
+            getAddEventListener: () => addEventListener,
             isRendererScope: () => true,
         });
 
@@ -45,7 +48,7 @@ describe("getRenderChartStartupRuntime", () => {
 
         expect(
             getChartStartupRuntime({
-                addEventListener: () => undefined,
+                getAddEventListener: () => () => undefined,
             }).canRegisterDOMContentLoadedListener()
         ).toBe(false);
         expect(
@@ -105,5 +108,27 @@ describe("getRenderChartStartupRuntime", () => {
                 signal: abortController.signal,
             })
         ).toThrow("renderChartStartup requires addEventListener");
+    });
+
+    it("ignores legacy direct addEventListener runtime properties", () => {
+        expect.assertions(2);
+
+        const addEventListener =
+            vi.fn<
+                (
+                    type: string,
+                    listener: EventListenerOrEventListenerObject,
+                    options?: AddEventListenerOptions | boolean
+                ) => void
+            >();
+        const startupRuntime = getChartStartupRuntime({
+            addEventListener,
+            isRendererScope: () => true,
+        } as unknown as RenderChartStartupRuntimeScope);
+
+        expect(startupRuntime.canRegisterDOMContentLoadedListener()).toBe(
+            false
+        );
+        expect(addEventListener).not.toHaveBeenCalled();
     });
 });

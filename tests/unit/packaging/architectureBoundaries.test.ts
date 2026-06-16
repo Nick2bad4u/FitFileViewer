@@ -9763,7 +9763,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart startup browser APIs behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(13);
 
         const violations = migratedRenderChartStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -9785,6 +9785,12 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/renderChartStartupRuntime.ts"
             )
         );
+        const runtimeScopeSource = runtimeSource.slice(
+            runtimeSource.indexOf(
+                "export interface RenderChartStartupRuntimeScope"
+            ),
+            runtimeSource.indexOf("export interface RenderChartStartupRuntime")
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
@@ -9795,7 +9801,7 @@ describe("architecture boundaries", () => {
             "getAddEventListener: () => globalThis.addEventListener"
         );
         expect(runtimeSource).toContain(
-            "isRendererScope: () => globalThis.document !== undefined"
+            'isRendererScope: () => Reflect.has(globalThis, "document")'
         );
         expect(runtimeSource).not.toContain(
             "scope: RenderChartStartupRuntimeScope = globalThis"
@@ -9807,6 +9813,11 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toContain("window?:");
         expect(runtimeSource).toContain(
             "renderChartStartup requires addEventListener"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly addEventListener?:");
+        expect(runtimeSource).not.toContain("scope.addEventListener");
+        expect(runtimeSource).toContain(
+            "return scope.getAddEventListener?.();"
         );
     });
 

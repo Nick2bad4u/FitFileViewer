@@ -1,46 +1,39 @@
+type RenderChartStartupAddEventListener = (
+    type: string,
+    listener: RenderChartStartupListener,
+    options?: Readonly<AddEventListenerOptions> | boolean
+) => void;
+
+type RenderChartStartupListener = EventListener | Readonly<EventListenerObject>;
+
+type RenderChartStartupListenerOptions = Readonly<
+    AddEventListenerOptions & { readonly signal: AbortSignal }
+>;
+
 export interface RenderChartStartupRuntimeScope {
-    readonly addEventListener?:
-        | ((
-              type: string,
-              listener: EventListenerOrEventListenerObject,
-              options?: AddEventListenerOptions | boolean
-          ) => void)
-        | undefined;
     readonly getAddEventListener?:
-        | (() =>
-              | ((
-                    type: string,
-                    listener: EventListenerOrEventListenerObject,
-                    options?: AddEventListenerOptions | boolean
-                ) => void)
-              | undefined)
+        | (() => RenderChartStartupAddEventListener | undefined)
         | undefined;
     readonly isRendererScope?: (() => boolean) | undefined;
 }
 
 export interface RenderChartStartupRuntime {
     addDOMContentLoadedListener: (
-        listener: EventListenerOrEventListenerObject,
-        options: AddEventListenerOptions & { readonly signal: AbortSignal }
+        listener: RenderChartStartupListener,
+        options: RenderChartStartupListenerOptions
     ) => void;
     canRegisterDOMContentLoadedListener: () => boolean;
 }
 
 const defaultRenderChartStartupRuntimeScope: RenderChartStartupRuntimeScope = {
     getAddEventListener: () => globalThis.addEventListener,
-    isRendererScope: () => globalThis.document !== undefined,
+    isRendererScope: () => Reflect.has(globalThis, "document"),
 };
 
 function getAddEventListener(
     scope: RenderChartStartupRuntimeScope
-):
-    | ((
-          type: string,
-          listener: EventListenerOrEventListenerObject,
-          options?: AddEventListenerOptions | boolean
-      ) => void)
-    | undefined {
-    return scope.getAddEventListener?.() ?? scope.addEventListener;
+): RenderChartStartupAddEventListener | undefined {
+    return scope.getAddEventListener?.();
 }
 
 function isRendererScope(scope: RenderChartStartupRuntimeScope): boolean {
@@ -52,8 +45,8 @@ export function getRenderChartStartupRuntime(
 ): RenderChartStartupRuntime {
     return {
         addDOMContentLoadedListener(
-            listener: EventListenerOrEventListenerObject,
-            options: AddEventListenerOptions & { readonly signal: AbortSignal }
+            listener: RenderChartStartupListener,
+            options: RenderChartStartupListenerOptions
         ): void {
             const addEventListener = getAddEventListener(scope);
             if (typeof addEventListener !== "function") {
