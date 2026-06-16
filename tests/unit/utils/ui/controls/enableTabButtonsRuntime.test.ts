@@ -6,12 +6,14 @@ import {
 } from "../../../../../electron-app/utils/ui/controls/enableTabButtonsRuntime.js";
 
 describe("getEnableTabButtonsRuntime", () => {
-    it("reports browser window availability through the injected scope", () => {
+    it("reports renderer availability through the injected scope", () => {
         expect.assertions(2);
 
         expect(getEnableTabButtonsRuntime({}).isWindowAvailable()).toBe(false);
         expect(
-            getEnableTabButtonsRuntime({ window: {} }).isWindowAvailable()
+            getEnableTabButtonsRuntime({
+                isRendererScope: () => true,
+            }).isWindowAvailable()
         ).toBe(true);
     });
 
@@ -32,7 +34,7 @@ describe("getEnableTabButtonsRuntime", () => {
         const callback = vi.fn<MutationCallback>();
         const runtime = getEnableTabButtonsRuntime({
             MutationObserver: globalConstructor,
-            window: { MutationObserver: windowConstructor },
+            compatibilityMutationObserver: windowConstructor,
         });
 
         const observer = runtime.createMutationObserver(callback);
@@ -45,7 +47,7 @@ describe("getEnableTabButtonsRuntime", () => {
         ).toBeDefined();
     });
 
-    it("uses the window mutation observer when no global constructor is available", () => {
+    it("uses the compatibility mutation observer when no primary constructor is available", () => {
         expect.assertions(2);
 
         const windowConstructor = vi.fn(function WindowMutationObserverMock(
@@ -55,7 +57,7 @@ describe("getEnableTabButtonsRuntime", () => {
         }) as unknown as MutationObserverConstructorLike;
         const callback = vi.fn<MutationCallback>();
         const runtime = getEnableTabButtonsRuntime({
-            window: { MutationObserver: windowConstructor },
+            compatibilityMutationObserver: windowConstructor,
         });
 
         expect(runtime.createMutationObserver(callback)).toBeDefined();
@@ -72,7 +74,7 @@ describe("getEnableTabButtonsRuntime", () => {
         }) as unknown as MutationObserverConstructorLike;
         const runtime = getEnableTabButtonsRuntime({
             MutationObserver: constructor,
-            window: { MutationObserver: constructor },
+            compatibilityMutationObserver: constructor,
         });
 
         expect(
@@ -86,14 +88,14 @@ describe("getEnableTabButtonsRuntime", () => {
         expect.assertions(1);
 
         expect(
-            getEnableTabButtonsRuntime({ window: {} }).createMutationObserver(
+            getEnableTabButtonsRuntime({}).createMutationObserver(
                 vi.fn<MutationCallback>()
             )
         ).toBeUndefined();
     });
 
-    it("schedules and clears timers through injected timer functions", () => {
-        expect.assertions(3);
+    it("resolves runtime dependencies through injected provider functions", () => {
+        expect.assertions(8);
 
         const timer = Symbol("timer") as unknown as ReturnType<
             typeof setTimeout
@@ -102,15 +104,37 @@ describe("getEnableTabButtonsRuntime", () => {
         const handler = vi.fn<() => void>();
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
         const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const observe = vi.fn();
+        const primaryConstructor = vi.fn(function MutationObserverMock(
+            callback: MutationCallback
+        ) {
+            return { callback, observe };
+        }) as unknown as MutationObserverConstructorLike;
+        const compatibilityConstructor = vi.fn(
+            function WindowMutationObserverMock(callback: MutationCallback) {
+                return { callback, observe: vi.fn() };
+            }
+        ) as unknown as MutationObserverConstructorLike;
+        const callback = vi.fn<MutationCallback>();
         const runtime = getEnableTabButtonsRuntime({
-            clearTimeout: clearTimeoutMock,
-            setTimeout: setTimeoutMock,
-            window: {},
+            getClearTimeout: () => clearTimeoutMock,
+            getCompatibilityMutationObserver: () => compatibilityConstructor,
+            getMutationObserver: () => primaryConstructor,
+            getSetTimeout: () => setTimeoutMock,
+            isRendererScope: () => true,
         });
 
         expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
         runtime.clearTimeout(timer);
+        const observer = runtime.createMutationObserver(callback);
+        const compatibilityObserver =
+            runtime.createCompatibilityMutationObserver(callback);
 
+        expect(runtime.isWindowAvailable()).toBe(true);
+        expect(observer?.observe).toBe(observe);
+        expect(compatibilityObserver).toBeDefined();
+        expect(primaryConstructor).toHaveBeenCalledWith(callback);
+        expect(compatibilityConstructor).toHaveBeenCalledWith(callback);
         expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
     });

@@ -6,15 +6,24 @@ export type MutationObserverConstructorLike = new (
     callback: MutationCallback
 ) => TabButtonObserver;
 
-export interface EnableTabButtonsRuntimeWindow {
-    readonly MutationObserver?: MutationObserverConstructorLike | undefined;
-}
-
 export interface EnableTabButtonsRuntimeScope {
+    readonly compatibilityMutationObserver?:
+        | MutationObserverConstructorLike
+        | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof clearTimeout | undefined)
+        | undefined;
+    readonly getCompatibilityMutationObserver?:
+        | (() => MutationObserverConstructorLike | undefined)
+        | undefined;
+    readonly getMutationObserver?:
+        | (() => MutationObserverConstructorLike | undefined)
+        | undefined;
+    readonly getSetTimeout?: (() => typeof setTimeout | undefined) | undefined;
+    readonly isRendererScope?: (() => boolean) | undefined;
     readonly MutationObserver?: MutationObserverConstructorLike | undefined;
     readonly clearTimeout?: typeof clearTimeout | undefined;
     readonly setTimeout?: typeof setTimeout | undefined;
-    readonly window?: EnableTabButtonsRuntimeWindow | undefined;
 }
 
 export interface EnableTabButtonsRuntime {
@@ -32,18 +41,27 @@ export interface EnableTabButtonsRuntime {
     ) => ReturnType<typeof setTimeout>;
 }
 
-function getGlobalMutationObserverConstructor(
+const defaultEnableTabButtonsRuntimeScope: EnableTabButtonsRuntimeScope = {
+    getClearTimeout: () => globalThis.clearTimeout,
+    getMutationObserver: () => globalThis.MutationObserver,
+    getSetTimeout: () => globalThis.setTimeout,
+    isRendererScope: () => globalThis.document !== undefined,
+};
+
+function getMutationObserverConstructor(
     scope: EnableTabButtonsRuntimeScope
 ): MutationObserverConstructorLike | undefined {
-    const candidate = scope.MutationObserver;
+    const candidate = scope.getMutationObserver?.() ?? scope.MutationObserver;
 
     return isMutationObserverConstructorLike(candidate) ? candidate : undefined;
 }
 
-function getWindowMutationObserverConstructor(
+function getCompatibilityMutationObserverConstructor(
     scope: EnableTabButtonsRuntimeScope
 ): MutationObserverConstructorLike | undefined {
-    const candidate = scope.window?.MutationObserver;
+    const candidate =
+        scope.getCompatibilityMutationObserver?.() ??
+        scope.compatibilityMutationObserver;
 
     return isMutationObserverConstructorLike(candidate) ? candidate : undefined;
 }
@@ -51,16 +69,17 @@ function getWindowMutationObserverConstructor(
 function resolveMutationObserverConstructor(
     scope: EnableTabButtonsRuntimeScope
 ): MutationObserverConstructorLike | undefined {
-    const globalConstructor = getGlobalMutationObserverConstructor(scope);
-    const windowConstructor = getWindowMutationObserverConstructor(scope);
+    const constructor = getMutationObserverConstructor(scope);
+    const compatibilityConstructor =
+        getCompatibilityMutationObserverConstructor(scope);
 
-    if (globalConstructor && windowConstructor) {
-        return globalConstructor === windowConstructor
-            ? windowConstructor
-            : globalConstructor;
+    if (constructor && compatibilityConstructor) {
+        return constructor === compatibilityConstructor
+            ? compatibilityConstructor
+            : constructor;
     }
 
-    return windowConstructor ?? globalConstructor;
+    return constructor ?? compatibilityConstructor;
 }
 
 function isMutationObserverConstructorLike(
@@ -72,7 +91,7 @@ function isMutationObserverConstructorLike(
 function getRequiredClearTimeout(
     scope: EnableTabButtonsRuntimeScope
 ): typeof clearTimeout {
-    const clearTimer = scope.clearTimeout;
+    const clearTimer = scope.getClearTimeout?.() ?? scope.clearTimeout;
     if (typeof clearTimer !== "function") {
         throw new TypeError("enableTabButtons requires a clearTimeout runtime");
     }
@@ -83,7 +102,7 @@ function getRequiredClearTimeout(
 function getRequiredSetTimeout(
     scope: EnableTabButtonsRuntimeScope
 ): typeof setTimeout {
-    const scheduleTimer = scope.setTimeout;
+    const scheduleTimer = scope.getSetTimeout?.() ?? scope.setTimeout;
     if (typeof scheduleTimer !== "function") {
         throw new TypeError("enableTabButtons requires a setTimeout runtime");
     }
@@ -91,8 +110,9 @@ function getRequiredSetTimeout(
     return scheduleTimer;
 }
 
-const defaultEnableTabButtonsRuntimeScope: EnableTabButtonsRuntimeScope =
-    globalThis;
+function isRendererScope(scope: EnableTabButtonsRuntimeScope): boolean {
+    return scope.isRendererScope?.() === true;
+}
 
 export function getEnableTabButtonsRuntime(
     scope: EnableTabButtonsRuntimeScope = defaultEnableTabButtonsRuntimeScope
@@ -105,21 +125,20 @@ export function getEnableTabButtonsRuntime(
         createCompatibilityMutationObserver(
             callback: MutationCallback
         ): TabButtonObserver | undefined {
-            const globalConstructor =
-                getGlobalMutationObserverConstructor(scope);
-            const windowConstructor =
-                getWindowMutationObserverConstructor(scope);
+            const constructor = getMutationObserverConstructor(scope);
+            const compatibilityConstructor =
+                getCompatibilityMutationObserverConstructor(scope);
 
             if (
-                !globalConstructor ||
-                !windowConstructor ||
-                globalConstructor === windowConstructor
+                !constructor ||
+                !compatibilityConstructor ||
+                constructor === compatibilityConstructor
             ) {
                 return undefined;
             }
 
             try {
-                return new windowConstructor(callback);
+                return new compatibilityConstructor(callback);
             } catch {
                 return undefined;
             }
@@ -135,7 +154,7 @@ export function getEnableTabButtonsRuntime(
                 : undefined;
         },
         isWindowAvailable(): boolean {
-            return scope.window !== undefined;
+            return isRendererScope(scope);
         },
         setTimeout(
             handler: () => void,

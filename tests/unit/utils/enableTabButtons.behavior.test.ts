@@ -1016,8 +1016,8 @@ describe("enableTabButtons behavior", () => {
             );
         });
 
-        it("should handle undefined window object", () => {
-            expect.assertions(3);
+        it("preserves tab state when only the legacy window fixture is absent", () => {
+            expect.assertions(4);
             setTestGlobal("window", undefined);
 
             appendTabButtons([{ id: "tab-test", text: "Test" }]);
@@ -1027,13 +1027,18 @@ describe("enableTabButtons behavior", () => {
 
             expect(
                 getRequiredButton("tab-test").hasAttribute("disabled")
-            ).toStrictEqual(true);
+            ).toStrictEqual(false);
             expect(mockSetState).toHaveBeenCalledWith(
                 "ui.tabButtonsEnabled",
                 true,
                 { source: "setTabButtonsEnabled" }
             );
             expect(mockSetState).toHaveBeenCalledWith(
+                "ui.tabButtonsEnabled",
+                true,
+                { source: "initializeTabButtonState" }
+            );
+            expect(mockSetState).not.toHaveBeenCalledWith(
                 "ui.tabButtonsEnabled",
                 false,
                 { source: "setTabButtonsEnabled" }
