@@ -1,10 +1,4 @@
 export interface DragDropHandlerRuntimeScope {
-    readonly AbortController?: typeof globalThis.AbortController | undefined;
-    readonly cancelAnimationFrame?:
-        | typeof globalThis.cancelAnimationFrame
-        | undefined;
-    readonly document?: Document | undefined;
-    readonly eventTarget?: EventTarget | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
@@ -16,17 +10,16 @@ export interface DragDropHandlerRuntimeScope {
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
-    readonly requestAnimationFrame?:
-        | typeof globalThis.requestAnimationFrame
-        | undefined;
 }
 
 export interface DragDropHandlerRuntime {
-    cancelAnimationFrame(handle: number): void;
-    createAbortController(): AbortController;
-    getDocument(): Document | null;
-    getEventTarget(): EventTarget;
-    requestAnimationFrame(onFrame: FrameRequestCallback): null | number;
+    readonly cancelAnimationFrame: (handle: number) => void;
+    readonly createAbortController: () => AbortController;
+    readonly getDocument: () => Document | null;
+    readonly getEventTarget: () => EventTarget;
+    readonly requestAnimationFrame: (
+        onFrame: FrameRequestCallback
+    ) => null | number;
 }
 
 const defaultDragDropHandlerRuntimeScope: DragDropHandlerRuntimeScope = {
@@ -40,29 +33,29 @@ const defaultDragDropHandlerRuntimeScope: DragDropHandlerRuntimeScope = {
 function getAbortControllerConstructor(
     scope: DragDropHandlerRuntimeScope
 ): typeof globalThis.AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getCancelAnimationFrame(
     scope: DragDropHandlerRuntimeScope
 ): typeof globalThis.cancelAnimationFrame | undefined {
-    return scope.getCancelAnimationFrame?.() ?? scope.cancelAnimationFrame;
+    return scope.getCancelAnimationFrame?.();
 }
 
 function getDocument(scope: DragDropHandlerRuntimeScope): Document | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getEventTarget(
     scope: DragDropHandlerRuntimeScope
 ): EventTarget | undefined {
-    return scope.getEventTarget?.() ?? scope.eventTarget;
+    return scope.getEventTarget?.();
 }
 
 function getRequestAnimationFrame(
     scope: DragDropHandlerRuntimeScope
 ): typeof globalThis.requestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.() ?? scope.requestAnimationFrame;
+    return scope.getRequestAnimationFrame?.();
 }
 
 export function getDragDropHandlerRuntime(

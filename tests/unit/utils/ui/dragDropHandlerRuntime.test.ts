@@ -7,7 +7,7 @@ describe("getDragDropHandlerRuntime", () => {
         vi.unstubAllGlobals();
     });
 
-    it("creates abort controllers through the injected runtime scope", () => {
+    it("creates abort controllers through the injected runtime provider", () => {
         expect.assertions(2);
 
         const controller = new AbortController();
@@ -17,7 +17,7 @@ describe("getDragDropHandlerRuntime", () => {
             }
         );
         const runtime = getDragDropHandlerRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -35,20 +35,21 @@ describe("getDragDropHandlerRuntime", () => {
         );
     });
 
-    it("schedules animation frames through the injected runtime scope", () => {
+    it("schedules animation frames through the injected runtime provider", () => {
         expect.assertions(3);
 
         const callback = vi.fn<FrameRequestCallback>();
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 42);
-        const runtime = getDragDropHandlerRuntime({ requestAnimationFrame });
+        const scope = {
+            getRequestAnimationFrame: () => requestAnimationFrame,
+        };
+        const runtime = getDragDropHandlerRuntime(scope);
 
         expect(runtime.requestAnimationFrame(callback)).toBe(42);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
-        expect(requestAnimationFrame.mock.contexts[0]).toStrictEqual({
-            requestAnimationFrame,
-        });
+        expect(requestAnimationFrame.mock.contexts[0]).toBe(scope);
     });
 
     it("runs animation frame callbacks immediately when scheduling is unavailable", () => {
@@ -61,28 +62,29 @@ describe("getDragDropHandlerRuntime", () => {
         expect(callback).toHaveBeenCalledWith(0);
     });
 
-    it("cancels animation frames through the injected runtime scope", () => {
+    it("cancels animation frames through the injected runtime provider", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const runtime = getDragDropHandlerRuntime({ cancelAnimationFrame });
+        const scope = {
+            getCancelAnimationFrame: () => cancelAnimationFrame,
+        };
+        const runtime = getDragDropHandlerRuntime(scope);
 
         runtime.cancelAnimationFrame(17);
 
         expect(cancelAnimationFrame).toHaveBeenCalledWith(17);
-        expect(cancelAnimationFrame.mock.contexts[0]).toStrictEqual({
-            cancelAnimationFrame,
-        });
+        expect(cancelAnimationFrame.mock.contexts[0]).toBe(scope);
     });
 
-    it("resolves document and event target through the injected runtime scope", () => {
+    it("resolves document and event target through injected runtime providers", () => {
         expect.assertions(2);
 
         const documentTarget = document.implementation.createHTMLDocument();
         const eventTarget = new EventTarget();
         const runtime = getDragDropHandlerRuntime({
-            document: documentTarget,
-            eventTarget,
+            getDocument: () => documentTarget,
+            getEventTarget: () => eventTarget,
         });
 
         expect(runtime.getDocument()).toBe(documentTarget);
@@ -105,6 +107,51 @@ describe("getDragDropHandlerRuntime", () => {
         expect(() =>
             getDragDropHandlerRuntime({}).cancelAnimationFrame(17)
         ).not.toThrow();
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(10);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const callback = vi.fn<FrameRequestCallback>();
+        const documentTarget = document.implementation.createHTMLDocument();
+        const eventTarget = new EventTarget();
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => 53);
+        const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+        const runtime = getDragDropHandlerRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            cancelAnimationFrame,
+            document: documentTarget,
+            eventTarget,
+            requestAnimationFrame,
+        } as unknown as Parameters<typeof getDragDropHandlerRuntime>[0]);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "dragDropHandler requires an AbortController runtime"
+        );
+        expect(runtime.getDocument()).toBeNull();
+        expect(() => runtime.getEventTarget()).toThrow(
+            "dragDropHandler requires an event target runtime"
+        );
+        expect(runtime.requestAnimationFrame(callback)).toBe(null);
+        runtime.cancelAnimationFrame(53);
+
+        expect(callback).toHaveBeenCalledWith(0);
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(requestAnimationFrame).not.toHaveBeenCalled();
+        expect(cancelAnimationFrame).not.toHaveBeenCalled();
+        expect(runtime.getDocument()).not.toBe(documentTarget);
+        expect(() => runtime.getEventTarget()).toThrow(
+            "dragDropHandler requires an event target runtime"
+        );
     });
 
     it("resolves default browser primitives when runtime operations run", () => {

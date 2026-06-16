@@ -5154,7 +5154,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps drag-drop animation-frame APIs and listener cleanup behind the runtime facade", () => {
-        expect.assertions(9);
+        expect.assertions(19);
 
         const violations = migratedDragDropHandlerRuntimeFiles
             .filter((relativeFile) =>
@@ -5183,6 +5183,32 @@ describe("architecture boundaries", () => {
         );
         expect(dragDropHandlerRuntimeSource).toContain(
             "defaultDragDropHandlerRuntimeScope"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly cancelAnimationFrame?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly eventTarget?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "scope.cancelAnimationFrame"
+        );
+        expect(dragDropHandlerRuntimeSource).not.toContain("scope.document");
+        expect(dragDropHandlerRuntimeSource).not.toContain("scope.eventTarget");
+        expect(dragDropHandlerRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
         );
         expect(dragDropHandlerRuntimeSource).toContain(
             "getEventTarget: () => globalThis"
