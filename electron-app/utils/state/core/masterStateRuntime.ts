@@ -12,6 +12,7 @@ export interface MasterStateRuntimeScope {
     readonly __DEVELOPMENT__?: boolean;
     readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly addEventListener?: typeof globalThis.addEventListener | undefined;
+    readonly documentEventTarget?: MasterStateEventTarget | undefined;
     readonly dispatchEvent?: typeof globalThis.dispatchEvent | undefined;
     readonly eventTarget?: MasterStateEventTarget | undefined;
     readonly getAbortController?:
@@ -21,6 +22,9 @@ export interface MasterStateRuntimeScope {
         | (() => typeof globalThis.addEventListener | undefined)
         | undefined;
     readonly getDevelopmentFlag?: (() => boolean | undefined) | undefined;
+    readonly getDocumentEventTarget?:
+        | (() => MasterStateEventTarget | undefined)
+        | undefined;
     readonly getDispatchEvent?:
         | (() => typeof globalThis.dispatchEvent | undefined)
         | undefined;
@@ -37,6 +41,11 @@ export interface MasterStateDevelopmentOptions {
 }
 
 export interface MasterStateRuntime {
+    addDocumentEventListener: <K extends keyof DocumentEventMap>(
+        type: K,
+        listener: (event: DocumentEventMap[K]) => void,
+        options?: AddEventListenerOptions
+    ) => void;
     addGlobalEventListener: <K extends keyof MasterStateGlobalEventMap>(
         type: K,
         listener: (event: MasterStateGlobalEventMap[K]) => void,
@@ -66,6 +75,7 @@ const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getAddEventListener: () => globalThis.addEventListener,
     getDevelopmentFlag: () =>
         Reflect.get(globalThis, "__DEVELOPMENT__") === true,
+    getDocumentEventTarget: () => globalThis.document,
     getDispatchEvent: () => globalThis.dispatchEvent,
     getEventTarget: () => globalThis,
     getLocation: () => globalThis.location,
@@ -87,6 +97,25 @@ function getScopeDevelopmentFlag(
     scope: MasterStateRuntimeScope
 ): boolean | undefined {
     return scope.getDevelopmentFlag?.() ?? scope.__DEVELOPMENT__;
+}
+
+function getScopeDocumentEventTarget(
+    scope: MasterStateRuntimeScope
+): MasterStateEventTarget | undefined {
+    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+}
+
+function getRequiredDocumentEventTarget(
+    scope: MasterStateRuntimeScope
+): MasterStateEventTarget {
+    const documentEventTarget = getScopeDocumentEventTarget(scope);
+    if (documentEventTarget === undefined) {
+        throw new TypeError(
+            "master state manager requires a document event-target runtime"
+        );
+    }
+
+    return documentEventTarget;
 }
 
 function getScopeDispatchEvent(
@@ -116,6 +145,15 @@ export function getMasterStateRuntime(
             : (getScopeLocation(scope) ?? {});
 
     return {
+        addDocumentEventListener(type, listener, options): void {
+            const eventTarget = getRequiredDocumentEventTarget(scope);
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned listener options, including AbortSignal cleanup.
+            eventTarget.addEventListener(
+                type,
+                listener as EventListener,
+                options
+            );
+        },
         addGlobalEventListener(type, listener, options): void {
             const addEventListenerRef = getScopeAddEventListener(scope);
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned listener options, including AbortSignal cleanup.

@@ -90,14 +90,16 @@ describe("masterStateRuntime", () => {
         ).toStrictEqual({});
     });
 
-    it("routes global and window events through scoped targets", () => {
-        expect.assertions(4);
+    it("routes document, global, and window events through scoped targets", () => {
+        expect.assertions(5);
 
+        const addDocumentEventListener = vi.fn();
         const addGlobalEventListener = vi.fn();
         const addWindowEventListener = vi.fn();
         const dispatchGlobalEvent = vi.fn(() => true);
         const runtime = getMasterStateRuntime({
             addEventListener: addGlobalEventListener,
+            documentEventTarget: { addEventListener: addDocumentEventListener },
             dispatchEvent: dispatchGlobalEvent,
             eventTarget: { addEventListener: addWindowEventListener },
         });
@@ -105,10 +107,16 @@ describe("masterStateRuntime", () => {
         const options = { once: true };
         const event = new Event("themeChanged");
 
+        runtime.addDocumentEventListener("keydown", listener, options);
         runtime.addGlobalEventListener("error", listener, options);
         runtime.addWindowEventListener("resize", listener, options);
 
         expect(runtime.dispatchGlobalEvent(event)).toBe(true);
+        expect(addDocumentEventListener).toHaveBeenCalledWith(
+            "keydown",
+            listener,
+            options
+        );
         expect(addGlobalEventListener).toHaveBeenCalledWith(
             "error",
             listener,
@@ -123,7 +131,7 @@ describe("masterStateRuntime", () => {
     });
 
     it("routes browser state dependencies through provider functions", () => {
-        expect.assertions(18);
+        expect.assertions(21);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -132,6 +140,7 @@ describe("masterStateRuntime", () => {
                 created = true;
             }
         }
+        const addDocumentEventListener = vi.fn();
         const addGlobalEventListener = vi.fn();
         const addWindowEventListener = vi.fn();
         const dispatchGlobalEvent = vi.fn(() => true);
@@ -143,12 +152,16 @@ describe("masterStateRuntime", () => {
             protocol: "https:",
             search: "?debug=true",
         };
+        const documentEventTarget = {
+            addEventListener: addDocumentEventListener,
+        };
         const eventTarget = { addEventListener: addWindowEventListener };
         const getAbortController = vi.fn(
             () => TestAbortController as unknown as typeof AbortController
         );
         const getAddEventListener = vi.fn(() => addGlobalEventListener);
         const getDevelopmentFlag = vi.fn(() => false);
+        const getDocumentEventTarget = vi.fn(() => documentEventTarget);
         const getDispatchEvent = vi.fn(() => dispatchGlobalEvent);
         const getLocation = vi.fn(() => location);
         const getEventTarget = vi.fn(() => eventTarget);
@@ -156,6 +169,7 @@ describe("masterStateRuntime", () => {
             getAbortController,
             getAddEventListener,
             getDevelopmentFlag,
+            getDocumentEventTarget,
             getDispatchEvent,
             getEventTarget,
             getLocation,
@@ -166,6 +180,7 @@ describe("masterStateRuntime", () => {
         );
         expect(utils.location).toBe(location);
         expect(utils.isDevelopmentScope()).toBe(true);
+        utils.addDocumentEventListener("keydown", listener, options);
         utils.addGlobalEventListener("error", listener, options);
         utils.addWindowEventListener("resize", listener, options);
         expect(utils.dispatchGlobalEvent(event)).toBe(true);
@@ -173,9 +188,15 @@ describe("masterStateRuntime", () => {
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getAddEventListener).toHaveBeenCalledOnce();
         expect(getDevelopmentFlag).toHaveBeenCalledOnce();
+        expect(getDocumentEventTarget).toHaveBeenCalledOnce();
         expect(getDispatchEvent).toHaveBeenCalledOnce();
         expect(getLocation).toHaveBeenCalledTimes(2);
         expect(getEventTarget).toHaveBeenCalledTimes(4);
+        expect(addDocumentEventListener).toHaveBeenCalledWith(
+            "keydown",
+            listener,
+            options
+        );
         expect(addGlobalEventListener).toHaveBeenCalledWith(
             "error",
             listener,
@@ -187,6 +208,9 @@ describe("masterStateRuntime", () => {
             options
         );
         expect(dispatchGlobalEvent).toHaveBeenCalledWith(event);
+        expect(addDocumentEventListener.mock.contexts[0]).toBe(
+            documentEventTarget
+        );
         expect(addGlobalEventListener.mock.contexts[0]).toMatchObject({
             getAddEventListener,
         });
@@ -196,6 +220,19 @@ describe("masterStateRuntime", () => {
         });
         expect(created).toBe(true);
         expect(listener).not.toHaveBeenCalled();
+    });
+
+    it("fails clearly when document event target runtime is unavailable", () => {
+        expect.assertions(1);
+
+        expect(() =>
+            getMasterStateRuntime({}).addDocumentEventListener(
+                "keydown",
+                vi.fn()
+            )
+        ).toThrow(
+            "master state manager requires a document event-target runtime"
+        );
     });
 
     it("creates abort controllers through the scoped runtime", () => {

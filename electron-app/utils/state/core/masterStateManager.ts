@@ -673,26 +673,34 @@ export class MasterStateManager {
             "dragleave",
             "drop",
         ] as const) {
-            document.addEventListener(eventName, preventDragDefaults, {
-                signal,
-            });
+            masterStateRuntime.addDocumentEventListener(
+                eventName,
+                preventDragDefaults,
+                { signal }
+            );
         }
 
         // Highlight drop area
         for (const eventName of ["dragenter", "dragover"] as const) {
-            document.addEventListener(eventName, highlightDropTarget, {
-                signal,
-            });
+            masterStateRuntime.addDocumentEventListener(
+                eventName,
+                highlightDropTarget,
+                { signal }
+            );
         }
 
         for (const eventName of ["dragleave", "drop"] as const) {
-            document.addEventListener(eventName, unhighlightDropTarget, {
-                signal,
-            });
+            masterStateRuntime.addDocumentEventListener(
+                eventName,
+                unhighlightDropTarget,
+                { signal }
+            );
         }
 
         // Handle dropped files
-        document.addEventListener("drop", handleFitFileDrop, { signal });
+        masterStateRuntime.addDocumentEventListener("drop", handleFitFileDrop, {
+            signal,
+        });
 
         console.log("[MasterState] Drag and drop set up");
     }
@@ -804,7 +812,7 @@ export class MasterStateManager {
     setupKeyboardShortcuts() {
         const { signal } = this.eventController;
 
-        document.addEventListener(
+        masterStateRuntime.addDocumentEventListener(
             "keydown",
             (event) => {
                 const stateAPI = getStateManagerAPI();

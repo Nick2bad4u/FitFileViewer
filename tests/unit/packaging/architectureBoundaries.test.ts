@@ -6013,7 +6013,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(22);
+        expect.assertions(25);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6028,6 +6028,7 @@ describe("architecture boundaries", () => {
 
         expect(masterStateManagerSource).toContain("masterStateRuntime.js");
         expect(masterStateManagerSource).toContain("createAbortController");
+        expect(masterStateManagerSource).toContain("addDocumentEventListener");
         expect(masterStateManagerSource).not.toMatch(
             /\bnew\s+AbortController\b/u
         );
@@ -6041,6 +6042,9 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateManagerSource).not.toContain(
             "window.addEventListener"
+        );
+        expect(masterStateManagerSource).not.toContain(
+            "document.addEventListener"
         );
         expect(masterStateManagerSource).toContain("stateStorageRuntime.js");
         expect(masterStateManagerSource).not.toContain("localStorage.");
@@ -6058,6 +6062,9 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateRuntimeSource).toContain(
             "getAddEventListener: () => globalThis.addEventListener"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getDocumentEventTarget: () => globalThis.document"
         );
         expect(masterStateRuntimeSource).toContain(
             'Reflect.get(globalThis, "__DEVELOPMENT__") === true'
