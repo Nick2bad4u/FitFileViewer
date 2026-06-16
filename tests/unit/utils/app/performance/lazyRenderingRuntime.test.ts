@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getLazyRenderingRuntime } from "../../../../../electron-app/utils/app/performance/lazyRenderingRuntime.js";
+import {
+    getLazyRenderingRuntime,
+    type LazyRenderingRuntimeScope,
+} from "../../../../../electron-app/utils/app/performance/lazyRenderingRuntime.js";
 
 class FakeIntersectionObserver implements IntersectionObserver {
     readonly root: Element | Document | null = null;
@@ -25,7 +28,9 @@ describe("getLazyRenderingRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 12);
-        const utils = getLazyRenderingRuntime({ requestAnimationFrame });
+        const utils = getLazyRenderingRuntime({
+            getRequestAnimationFrame: () => requestAnimationFrame,
+        });
 
         expect(utils.requestAnimationFrame(callback)).toBe(12);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
@@ -43,7 +48,7 @@ describe("getLazyRenderingRuntime", () => {
         expect.assertions(1);
 
         const utils = getLazyRenderingRuntime({
-            IntersectionObserver:
+            getIntersectionObserver: () =>
                 FakeIntersectionObserver as unknown as typeof IntersectionObserver,
         });
 
@@ -68,14 +73,14 @@ describe("getLazyRenderingRuntime", () => {
 
         expect(
             getLazyRenderingRuntime({
-                document: {
+                getDocument: () => ({
                     documentElement: {
                         clientHeight: 720,
                         clientWidth: 960,
                     },
-                },
-                innerHeight: 800,
-                innerWidth: 1200,
+                }),
+                getInnerHeight: () => 800,
+                getInnerWidth: () => 1200,
             }).getViewport()
         ).toStrictEqual({ height: 800, width: 1200 });
     });
@@ -85,12 +90,12 @@ describe("getLazyRenderingRuntime", () => {
 
         expect(
             getLazyRenderingRuntime({
-                document: {
+                getDocument: () => ({
                     documentElement: {
                         clientHeight: 720,
                         clientWidth: 960,
                     },
-                },
+                }),
             }).getViewport()
         ).toStrictEqual({ height: 720, width: 960 });
     });
@@ -101,7 +106,9 @@ describe("getLazyRenderingRuntime", () => {
         const element = document.createElement("div");
 
         expect(
-            getLazyRenderingRuntime({ HTMLElement }).isHTMLElement(element)
+            getLazyRenderingRuntime({
+                getHTMLElement: () => HTMLElement,
+            }).isHTMLElement(element)
         ).toBe(true);
         expect(getLazyRenderingRuntime({}).isHTMLElement(element)).toBe(false);
     });
@@ -116,7 +123,9 @@ describe("getLazyRenderingRuntime", () => {
                 options?: IdleRequestOptions
             ) => number
         >(() => 44);
-        const utils = getLazyRenderingRuntime({ requestIdleCallback });
+        const utils = getLazyRenderingRuntime({
+            getRequestIdleCallback: () => requestIdleCallback,
+        });
 
         expect(utils.requestIdleCallback(callback, { timeout: 50 })).toBe(44);
         expect(requestIdleCallback).toHaveBeenCalledWith(callback, {
@@ -134,7 +143,9 @@ describe("getLazyRenderingRuntime", () => {
             scheduledCallback();
             return 9;
         });
-        const utils = getLazyRenderingRuntime({ setTimeout });
+        const utils = getLazyRenderingRuntime({
+            getSetTimeout: () => setTimeout,
+        });
 
         expect(utils.setTimeout(callback)).toBe(9);
         expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 0);
@@ -201,5 +212,56 @@ describe("getLazyRenderingRuntime", () => {
         expect(() => getLazyRenderingRuntime({}).setTimeout(() => {})).toThrow(
             "lazyRenderingRuntime requires setTimeout"
         );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(9);
+
+        const animationCallback = vi.fn<FrameRequestCallback>();
+        const idleCallback = vi.fn<IdleRequestCallback>();
+        const timeoutCallback = vi.fn<() => void>();
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => 12);
+        const requestIdleCallback = vi.fn<
+            (
+                callback: IdleRequestCallback,
+                options?: IdleRequestOptions
+            ) => number
+        >(() => 44);
+        const setTimeout = vi.fn<
+            (callback: () => void, timeout?: number) => number
+        >(() => 9);
+        const legacyScope = {
+            HTMLElement,
+            IntersectionObserver:
+                FakeIntersectionObserver as unknown as typeof IntersectionObserver,
+            document: {
+                documentElement: {
+                    clientHeight: 720,
+                    clientWidth: 960,
+                },
+            },
+            innerHeight: 800,
+            innerWidth: 1200,
+            requestAnimationFrame,
+            requestIdleCallback,
+            setTimeout,
+        } as unknown as LazyRenderingRuntimeScope;
+        const utils = getLazyRenderingRuntime(legacyScope);
+
+        expect(utils.createIntersectionObserver(() => {}, {})).toBeUndefined();
+        expect(utils.getViewport()).toStrictEqual({ height: 0, width: 0 });
+        expect(utils.isHTMLElement(document.createElement("div"))).toBe(false);
+        expect(utils.requestAnimationFrame(animationCallback)).toBeUndefined();
+        expect(
+            utils.requestIdleCallback(idleCallback, { timeout: 50 })
+        ).toBeUndefined();
+        expect(() => utils.setTimeout(timeoutCallback)).toThrow(
+            "lazyRenderingRuntime requires setTimeout"
+        );
+        expect(requestAnimationFrame).not.toHaveBeenCalled();
+        expect(requestIdleCallback).not.toHaveBeenCalled();
+        expect(setTimeout).not.toHaveBeenCalled();
     });
 });

@@ -8919,7 +8919,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lazy rendering browser APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(22);
 
         const violations = migratedLazyRenderingRuntimeFiles
             .filter((relativeFile) =>
@@ -8938,6 +8938,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/performance/lazyRenderingRuntime.ts"
             )
         );
+        const lazyRenderingRuntimeScopeSource =
+            lazyRenderingRuntimeSource.slice(
+                lazyRenderingRuntimeSource.indexOf(
+                    "export interface LazyRenderingRuntimeScope"
+                ),
+                lazyRenderingRuntimeSource.indexOf(
+                    "export interface LazyRenderingViewport"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(lazyRenderingUtilsSource).toContain("lazyRenderingRuntime.js");
@@ -8953,6 +8962,44 @@ describe("architecture boundaries", () => {
         expect(lazyRenderingRuntimeSource).toContain(
             "defaultLazyRenderingRuntimeScope"
         );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly innerHeight?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly innerWidth?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly IntersectionObserver?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly requestIdleCallback?:"
+        );
+        expect(lazyRenderingRuntimeScopeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(lazyRenderingRuntimeSource).not.toContain("scope.document");
+        expect(lazyRenderingRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(lazyRenderingRuntimeSource).not.toContain("scope.innerHeight");
+        expect(lazyRenderingRuntimeSource).not.toContain("scope.innerWidth");
+        expect(lazyRenderingRuntimeSource).not.toContain(
+            "scope.IntersectionObserver"
+        );
+        expect(lazyRenderingRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
+        );
+        expect(lazyRenderingRuntimeSource).not.toContain(
+            "scope.requestIdleCallback"
+        );
+        expect(lazyRenderingRuntimeSource).not.toContain("scope.setTimeout");
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {

@@ -8,7 +8,7 @@ type LazyRenderingRequestAnimationFrame = (
 
 type LazyRenderingRequestIdleCallback = (
     callback: IdleRequestCallback,
-    options?: IdleRequestOptions
+    options?: Readonly<IdleRequestOptions>
 ) => number;
 
 type LazyRenderingSetTimeout = (
@@ -26,7 +26,6 @@ export interface LazyRenderingRuntimeDocument {
 }
 
 export interface LazyRenderingRuntimeScope {
-    readonly document?: LazyRenderingRuntimeDocument | undefined;
     readonly getDocument?:
         | (() => LazyRenderingRuntimeDocument | undefined)
         | undefined;
@@ -47,15 +46,6 @@ export interface LazyRenderingRuntimeScope {
     readonly getSetTimeout?:
         | (() => LazyRenderingSetTimeout | undefined)
         | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
-    readonly innerHeight?: number | undefined;
-    readonly innerWidth?: number | undefined;
-    readonly IntersectionObserver?: typeof IntersectionObserver | undefined;
-    readonly requestAnimationFrame?:
-        | LazyRenderingRequestAnimationFrame
-        | undefined;
-    readonly requestIdleCallback?: LazyRenderingRequestIdleCallback | undefined;
-    readonly setTimeout?: LazyRenderingSetTimeout | undefined;
 }
 
 export interface LazyRenderingViewport {
@@ -66,16 +56,16 @@ export interface LazyRenderingViewport {
 export interface LazyRenderingRuntime {
     createIntersectionObserver: (
         callback: IntersectionObserverCallback,
-        options: IntersectionObserverInit
+        options: Readonly<IntersectionObserverInit>
     ) => IntersectionObserver | undefined;
     getViewport: () => LazyRenderingViewport;
-    isHTMLElement: (element: Element) => element is HTMLElement;
+    isHTMLElement: (element: Readonly<Element>) => element is HTMLElement;
     requestAnimationFrame: (
         callback: FrameRequestCallback
     ) => number | undefined;
     requestIdleCallback: (
         callback: IdleRequestCallback,
-        options: IdleRequestOptions
+        options: Readonly<IdleRequestOptions>
     ) => number | undefined;
     setTimeout: (callback: () => void) => LazyRenderingTimeoutHandle;
 }
@@ -109,49 +99,49 @@ const defaultLazyRenderingRuntimeScope: LazyRenderingRuntimeScope = {
 function getScopeDocument(
     scope: LazyRenderingRuntimeScope
 ): LazyRenderingRuntimeDocument | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getScopeHTMLElement(
     scope: LazyRenderingRuntimeScope
 ): typeof HTMLElement | undefined {
-    return scope.getHTMLElement?.() ?? scope.HTMLElement;
+    return scope.getHTMLElement?.();
 }
 
 function getScopeInnerHeight(
     scope: LazyRenderingRuntimeScope
 ): number | undefined {
-    return scope.getInnerHeight?.() ?? scope.innerHeight;
+    return scope.getInnerHeight?.();
 }
 
 function getScopeInnerWidth(
     scope: LazyRenderingRuntimeScope
 ): number | undefined {
-    return scope.getInnerWidth?.() ?? scope.innerWidth;
+    return scope.getInnerWidth?.();
 }
 
 function getScopeIntersectionObserver(
     scope: LazyRenderingRuntimeScope
 ): typeof IntersectionObserver | undefined {
-    return scope.getIntersectionObserver?.() ?? scope.IntersectionObserver;
+    return scope.getIntersectionObserver?.();
 }
 
 function getScopeRequestAnimationFrame(
     scope: LazyRenderingRuntimeScope
 ): LazyRenderingRequestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.() ?? scope.requestAnimationFrame;
+    return scope.getRequestAnimationFrame?.();
 }
 
 function getScopeRequestIdleCallback(
     scope: LazyRenderingRuntimeScope
 ): LazyRenderingRequestIdleCallback | undefined {
-    return scope.getRequestIdleCallback?.() ?? scope.requestIdleCallback;
+    return scope.getRequestIdleCallback?.();
 }
 
 function getScopeSetTimeout(
     scope: LazyRenderingRuntimeScope
 ): LazyRenderingSetTimeout | undefined {
-    return scope.getSetTimeout?.() ?? scope.setTimeout;
+    return scope.getSetTimeout?.();
 }
 
 export function getLazyRenderingRuntime(
@@ -160,7 +150,7 @@ export function getLazyRenderingRuntime(
     return {
         createIntersectionObserver(
             callback: IntersectionObserverCallback,
-            options: IntersectionObserverInit
+            options: Readonly<IntersectionObserverInit>
         ): IntersectionObserver | undefined {
             const Observer = getScopeIntersectionObserver(scope);
             if (typeof Observer !== "function") {
@@ -182,7 +172,7 @@ export function getLazyRenderingRuntime(
                 ),
             };
         },
-        isHTMLElement(element: Element): element is HTMLElement {
+        isHTMLElement(element: Readonly<Element>): element is HTMLElement {
             const HTMLElementConstructor = getScopeHTMLElement(scope);
             return (
                 typeof HTMLElementConstructor === "function" &&
@@ -201,7 +191,7 @@ export function getLazyRenderingRuntime(
         },
         requestIdleCallback(
             callback: IdleRequestCallback,
-            options: IdleRequestOptions
+            options: Readonly<IdleRequestOptions>
         ): number | undefined {
             const requestIdleCallback = getScopeRequestIdleCallback(scope);
             if (typeof requestIdleCallback !== "function") {
