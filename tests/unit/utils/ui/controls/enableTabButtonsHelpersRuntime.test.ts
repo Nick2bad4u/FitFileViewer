@@ -13,11 +13,36 @@ describe("getEnableTabButtonsHelpersRuntime", () => {
         >(() => style);
         const runtime = getEnableTabButtonsHelpersRuntime({
             getComputedStyle,
-            window: {},
+            isRendererScope: () => true,
         });
 
         expect(runtime.getComputedStyle(element)).toBe(style);
         expect(getComputedStyle).toHaveBeenCalledWith(element);
+    });
+
+    it("routes runtime dependencies through provider functions", () => {
+        expect.assertions(4);
+
+        const element = document.createElement("button");
+        const style = { display: "inline-flex" } as CSSStyleDeclaration;
+        const first = document.createElement("button");
+        const second = document.createElement("button");
+        const getComputedStyle = vi.fn<
+            (element: Element) => CSSStyleDeclaration
+        >(() => style);
+        const querySelectorAll = vi.fn(
+            () => [first, second] as unknown as NodeListOf<Element>
+        );
+        const runtime = getEnableTabButtonsHelpersRuntime({
+            getComputedStyleFunction: () => getComputedStyle,
+            getDocument: () => ({ querySelectorAll }),
+            isRendererScope: () => true,
+        });
+
+        expect(runtime.getComputedStyle(element)).toBe(style);
+        expect(getComputedStyle).toHaveBeenCalledWith(element);
+        expect(runtime.queryTabButtons()).toStrictEqual([first, second]);
+        expect(querySelectorAll).toHaveBeenCalledWith(".tab-button");
     });
 
     it("returns undefined computed style when browser APIs are unavailable", () => {

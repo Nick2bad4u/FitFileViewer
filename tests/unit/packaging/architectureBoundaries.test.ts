@@ -8772,7 +8772,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button helper DOM reads behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(10);
 
         const violations = migratedEnableTabButtonsHelpersRuntimeFiles
             .filter((relativeFile) =>
@@ -8799,9 +8799,25 @@ describe("architecture boundaries", () => {
         expect(enableTabButtonsHelpersRuntimeSource).toContain(
             "defaultEnableTabButtonsHelpersRuntimeScope"
         );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            "getComputedStyleFunction: () => globalThis.getComputedStyle"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).toContain(
+            "isRendererScope: () => globalThis.document !== undefined"
+        );
         expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
             "scope: EnableTabButtonsHelpersRuntimeScope = globalThis"
         );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
+            "EnableTabButtonsHelpersRuntimeScope = globalThis"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain(
+            "scope.window"
+        );
+        expect(enableTabButtonsHelpersRuntimeSource).not.toContain("window?:");
     });
 
     it("keeps tab visibility browser APIs behind the runtime facade", () => {
