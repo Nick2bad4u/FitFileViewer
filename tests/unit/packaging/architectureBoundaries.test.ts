@@ -6010,7 +6010,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resource manager window cleanup and timer clearing behind the runtime adapter", () => {
-        expect.assertions(9);
+        expect.assertions(13);
 
         const resourceManagerSource = stripComments(
             readRepositoryFile(
@@ -6042,8 +6042,18 @@ describe("architecture boundaries", () => {
         expect(resourceManagerRuntimeSource).toContain(
             "defaultResourceManagerRuntimeScope"
         );
+        expect(resourceManagerRuntimeSource).toContain(
+            "getEventTarget: () => globalThis"
+        );
+        expect(resourceManagerRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
         expect(resourceManagerRuntimeSource).not.toContain(
             "scope: ResourceManagerRuntimeScope = globalThis"
+        );
+        expect(resourceManagerRuntimeSource).not.toContain("scope.window");
+        expect(resourceManagerRuntimeSource).not.toContain(
+            "WindowListenerTarget"
         );
         expect(resourceManagerRuntimeSource).toContain(
             "resourceManager requires clearTimeout"

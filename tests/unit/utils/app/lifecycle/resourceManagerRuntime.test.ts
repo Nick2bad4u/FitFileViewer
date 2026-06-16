@@ -31,14 +31,15 @@ describe("resourceManagerRuntime", () => {
         }).toThrow("resourceManager requires clearTimeout");
     });
 
-    it("registers beforeunload cleanup through the scoped window target", () => {
-        expect.assertions(5);
+    it("registers beforeunload cleanup through the scoped event target", () => {
+        expect.assertions(6);
 
         const cleanup = vi.fn();
         const abort = vi.fn();
         const constructorSpy = vi.fn();
         const signal = { aborted: false };
         const addEventListener = vi.fn();
+        const removeEventListener = vi.fn();
         class AbortControllerFixture {
             public readonly signal = signal;
 
@@ -54,7 +55,7 @@ describe("resourceManagerRuntime", () => {
         const unregister = registerResourceManagerUnloadCleanup(cleanup, {
             AbortController:
                 AbortControllerFixture as unknown as typeof AbortController,
-            window: { addEventListener },
+            eventTarget: { addEventListener, removeEventListener },
         });
         const [
             ,
@@ -73,13 +74,17 @@ describe("resourceManagerRuntime", () => {
 
         expect(cleanup).toHaveBeenCalledOnce();
         expect(abort).toHaveBeenCalledOnce();
+        expect(removeEventListener).toHaveBeenCalledWith(
+            "beforeunload",
+            listener
+        );
 
         unregister?.();
 
         expect(options).toStrictEqual({ signal });
     });
 
-    it("skips registration outside window event-target scopes", () => {
+    it("skips registration outside event-target scopes", () => {
         expect.assertions(2);
 
         const cleanup = vi.fn();
@@ -95,7 +100,7 @@ describe("resourceManagerRuntime", () => {
         const addEventListener = vi.fn();
 
         const unregister = registerResourceManagerUnloadCleanup(cleanup, {
-            window: { addEventListener },
+            eventTarget: { addEventListener, removeEventListener: vi.fn() },
         });
         const [
             ,
@@ -115,5 +120,41 @@ describe("resourceManagerRuntime", () => {
             options: undefined,
             unregister: expect.any(Function),
         });
+    });
+
+    it("routes runtime dependencies through provider functions", () => {
+        expect.assertions(7);
+
+        const cleanup = vi.fn();
+        const timer = 19 as ReturnType<typeof globalThis.setTimeout>;
+        const clearTimeout = vi.fn();
+        const addEventListener = vi.fn();
+        const removeEventListener = vi.fn();
+        const getClearTimeout = vi.fn(() => clearTimeout);
+        const getEventTarget = vi.fn(() => ({
+            addEventListener,
+            removeEventListener,
+        }));
+
+        clearResourceManagerTimer(timer, { getClearTimeout });
+        const unregister = registerResourceManagerUnloadCleanup(cleanup, {
+            getEventTarget,
+        });
+        expect(typeof unregister).toBe("function");
+        unregister?.();
+
+        expect(getClearTimeout).toHaveBeenCalledOnce();
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(getEventTarget).toHaveBeenCalledOnce();
+        expect(addEventListener).toHaveBeenCalledWith(
+            "beforeunload",
+            expect.any(Function),
+            undefined
+        );
+        expect(removeEventListener).toHaveBeenCalledWith(
+            "beforeunload",
+            expect.any(Function)
+        );
+        expect(cleanup).not.toHaveBeenCalled();
     });
 });
