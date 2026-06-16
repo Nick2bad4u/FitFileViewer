@@ -29,7 +29,9 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getAddExitFullscreenOverlayRuntime({ document });
+        const runtime = getAddExitFullscreenOverlayRuntime({
+            getDocument: () => document,
+        });
 
         expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
         expect(runtime.createElement("span")).toBeInstanceOf(HTMLSpanElement);
@@ -42,7 +44,9 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         const fullscreenElement = document.createElement("div");
         const exitFullscreen = setExitFullscreen(() => Promise.resolve());
         setFullscreenElement(fullscreenElement);
-        const runtime = getAddExitFullscreenOverlayRuntime({ document });
+        const runtime = getAddExitFullscreenOverlayRuntime({
+            getDocument: () => document,
+        });
 
         await runtime.exitFullscreen();
 
@@ -55,8 +59,8 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         expect.assertions(2);
 
         const runtime = getAddExitFullscreenOverlayRuntime({
-            AbortController,
-            document,
+            getAbortController: () => AbortController,
+            getDocument: () => document,
         });
         const controller = runtime.createAbortController();
 
@@ -85,7 +89,7 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
 
         const scopedDocument = { defaultView: undefined } as Document;
         const runtime = getAddExitFullscreenOverlayRuntime({
-            document: scopedDocument,
+            getDocument: () => scopedDocument,
         });
 
         expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
@@ -99,9 +103,9 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         const runtime = getAddExitFullscreenOverlayRuntime({});
         const runtimeWithInvalidAbortController =
             getAddExitFullscreenOverlayRuntime({
-                AbortController:
+                getAbortController: () =>
                     "AbortController" as unknown as typeof AbortController,
-                document,
+                getDocument: () => document,
             });
 
         expect(() => runtime.createButton()).toThrow(
@@ -115,5 +119,36 @@ describe("getAddExitFullscreenOverlayRuntime", () => {
         expect(() => runtime.isHTMLElement({})).toThrow(
             "addExitFullscreenOverlay requires a document runtime"
         );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(5);
+
+        const legacyAbortController = vi.fn();
+        const legacyDocument = {
+            createElement: vi.fn(),
+            defaultView: {
+                AbortController: legacyAbortController,
+            },
+        };
+        const runtime = getAddExitFullscreenOverlayRuntime({
+            AbortController:
+                legacyAbortController as unknown as typeof AbortController,
+            document: legacyDocument as unknown as Document,
+        } as unknown as Parameters<
+            typeof getAddExitFullscreenOverlayRuntime
+        >[0]);
+
+        expect(() => runtime.createButton()).toThrow(
+            "addExitFullscreenOverlay requires a document runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "addExitFullscreenOverlay requires an AbortController runtime"
+        );
+        expect(() => runtime.isHTMLElement({})).toThrow(
+            "addExitFullscreenOverlay requires a document runtime"
+        );
+        expect(legacyDocument.createElement).not.toHaveBeenCalled();
+        expect(legacyAbortController).not.toHaveBeenCalled();
     });
 });
