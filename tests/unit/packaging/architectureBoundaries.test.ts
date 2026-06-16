@@ -9349,7 +9349,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application lifecycle abort controllers behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(10);
 
         const violations =
             migratedRendererApplicationLifecycleWiringRuntimeFiles
@@ -9384,13 +9384,22 @@ describe("architecture boundaries", () => {
         expect(lifecycleWiringRuntimeSource).toContain(
             "defaultRendererApplicationLifecycleWiringRuntimeScope"
         );
+        expect(lifecycleWiringRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
         expect(lifecycleWiringRuntimeSource).not.toMatch(
             directRendererApplicationLifecycleWiringRuntimeAmbientGetterPattern
+        );
+        expect(lifecycleWiringRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(lifecycleWiringRuntimeSource).not.toContain(
+            "scope.AbortController"
         );
     });
 
     it("keeps renderer file-input abort controllers behind the runtime facade", () => {
-        expect.assertions(8);
+        expect.assertions(11);
 
         const violations = migratedRendererFileInputStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -9422,13 +9431,22 @@ describe("architecture boundaries", () => {
         expect(fileInputStartupRuntimeSource).toContain(
             "defaultRendererFileInputStartupRuntimeScope"
         );
+        expect(fileInputStartupRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
         expect(fileInputStartupRuntimeSource).not.toMatch(
             directRendererFileInputStartupRuntimeAmbientGetterPattern
+        );
+        expect(fileInputStartupRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(fileInputStartupRuntimeSource).not.toContain(
+            "scope.AbortController"
         );
     });
 
     it("keeps renderer test-only bootstrap abort controllers behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(9);
 
         const violations = migratedRendererTestOnlyBootstrapRuntimeFiles
             .filter((relativeFile) =>
@@ -9455,8 +9473,17 @@ describe("architecture boundaries", () => {
         expect(testOnlyBootstrapRuntimeSource).toContain(
             "defaultRendererTestOnlyBootstrapRuntimeScope"
         );
+        expect(testOnlyBootstrapRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
         expect(testOnlyBootstrapRuntimeSource).not.toMatch(
             directRendererTestOnlyBootstrapRuntimeAmbientGetterPattern
+        );
+        expect(testOnlyBootstrapRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(testOnlyBootstrapRuntimeSource).not.toContain(
+            "scope.AbortController"
         );
     });
 

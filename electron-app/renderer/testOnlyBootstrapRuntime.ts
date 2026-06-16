@@ -1,20 +1,24 @@
 export interface RendererTestOnlyBootstrapRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
 }
 
 export interface RendererTestOnlyBootstrapRuntime {
-    createAbortController(): AbortController;
+    createAbortController: () => AbortController;
 }
 
 const defaultRendererTestOnlyBootstrapRuntimeScope: RendererTestOnlyBootstrapRuntimeScope =
-    globalThis;
+    {
+        getAbortController: () => globalThis.AbortController,
+    };
 
 export function getRendererTestOnlyBootstrapRuntime(
     scope: RendererTestOnlyBootstrapRuntimeScope = defaultRendererTestOnlyBootstrapRuntimeScope
 ): RendererTestOnlyBootstrapRuntime {
     return {
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "renderer test-only bootstrap requires an AbortController runtime"

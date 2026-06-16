@@ -1,20 +1,24 @@
 export interface RendererApplicationLifecycleWiringRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
 }
 
 export interface RendererApplicationLifecycleWiringRuntime {
-    createAbortController(): AbortController;
+    createAbortController: () => AbortController;
 }
 
 const defaultRendererApplicationLifecycleWiringRuntimeScope: RendererApplicationLifecycleWiringRuntimeScope =
-    globalThis;
+    {
+        getAbortController: () => globalThis.AbortController,
+    };
 
 export function getRendererApplicationLifecycleWiringRuntime(
     scope: RendererApplicationLifecycleWiringRuntimeScope = defaultRendererApplicationLifecycleWiringRuntimeScope
 ): RendererApplicationLifecycleWiringRuntime {
     return {
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "renderer application lifecycle wiring requires an AbortController runtime"

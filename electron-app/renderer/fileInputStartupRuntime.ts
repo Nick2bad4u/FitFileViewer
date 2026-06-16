@@ -1,20 +1,24 @@
 export interface RendererFileInputStartupRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
 }
 
 export interface RendererFileInputStartupRuntime {
-    createAbortController(): AbortController;
+    createAbortController: () => AbortController;
 }
 
 const defaultRendererFileInputStartupRuntimeScope: RendererFileInputStartupRuntimeScope =
-    globalThis;
+    {
+        getAbortController: () => globalThis.AbortController,
+    };
 
 export function getRendererFileInputStartupRuntime(
     scope: RendererFileInputStartupRuntimeScope = defaultRendererFileInputStartupRuntimeScope
 ): RendererFileInputStartupRuntime {
     return {
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "renderer file input startup requires an AbortController runtime"

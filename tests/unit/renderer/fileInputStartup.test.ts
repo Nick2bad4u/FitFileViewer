@@ -37,6 +37,57 @@ describe("renderer file input startup wiring", () => {
         vi.restoreAllMocks();
     });
 
+    it("creates abort controllers through the injected runtime provider", () => {
+        expect.assertions(2);
+
+        let controllerCount = 0;
+        const signal = Symbol("file-input-startup-signal");
+        class TestAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public constructor() {
+                controllerCount += 1;
+            }
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const utils = getRendererFileInputStartupRuntime({
+            getAbortController: () => TestAbortController,
+        });
+
+        expect(utils.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+    });
+
+    it("ignores legacy direct AbortController scope properties", () => {
+        expect.assertions(1);
+
+        class LegacyAbortController implements AbortController {
+            public readonly signal = Symbol(
+                "legacy-file-input-startup-signal"
+            ) as unknown as AbortSignal;
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const utils = getRendererFileInputStartupRuntime({
+            AbortController: LegacyAbortController,
+        } as unknown as Parameters<
+            typeof getRendererFileInputStartupRuntime
+        >[0]);
+
+        expect(() => {
+            utils.createAbortController();
+        }).toThrow(
+            "renderer file input startup requires an AbortController runtime"
+        );
+    });
+
     it("forwards immediate selected files to handleOpenFile", () => {
         expect.assertions(1);
 

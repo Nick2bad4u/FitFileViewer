@@ -17,6 +17,57 @@ function createGlobalEventTarget(): EventTarget {
 }
 
 describe("renderer application lifecycle wiring", () => {
+    it("creates abort controllers through the injected runtime provider", () => {
+        expect.assertions(2);
+
+        let controllerCount = 0;
+        const signal = Symbol("application-lifecycle-signal");
+        class TestAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public constructor() {
+                controllerCount += 1;
+            }
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const utils = getRendererApplicationLifecycleWiringRuntime({
+            getAbortController: () => TestAbortController,
+        });
+
+        expect(utils.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+    });
+
+    it("ignores legacy direct AbortController scope properties", () => {
+        expect.assertions(1);
+
+        class LegacyAbortController implements AbortController {
+            public readonly signal = Symbol(
+                "legacy-application-lifecycle-signal"
+            ) as unknown as AbortSignal;
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const utils = getRendererApplicationLifecycleWiringRuntime({
+            AbortController: LegacyAbortController,
+        } as unknown as Parameters<
+            typeof getRendererApplicationLifecycleWiringRuntime
+        >[0]);
+
+        expect(() => {
+            utils.createAbortController();
+        }).toThrow(
+            "renderer application lifecycle wiring requires an AbortController runtime"
+        );
+    });
+
     it("registers beforeunload cleanup and waits for DOMContentLoaded while loading", () => {
         expect.assertions(8);
 
