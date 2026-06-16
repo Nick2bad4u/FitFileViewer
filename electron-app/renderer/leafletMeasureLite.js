@@ -17,7 +17,10 @@
  *
  * @returns {void}
  */
+import { getLeafletMeasureLiteRuntime } from "./leafletMeasureLiteRuntime.js";
+
 let activeLeafletMeasureLiteEscapeHandler = null;
+const leafletMeasureLiteRuntime = getLeafletMeasureLiteRuntime();
 
 export function installLeafletMeasureLite(L) {
     if (!L) {
@@ -502,8 +505,7 @@ export function installLeafletMeasureLite(L) {
                 if (
                     typeof activeLeafletMeasureLiteEscapeHandler === "function"
                 ) {
-                    document.removeEventListener(
-                        "keydown",
+                    leafletMeasureLiteRuntime.removeDocumentKeydownListener(
                         activeLeafletMeasureLiteEscapeHandler
                     );
                 }
@@ -527,14 +529,13 @@ export function installLeafletMeasureLite(L) {
 
             activeLeafletMeasureLiteEscapeHandler = handler;
             this._escapeHandler = handler;
-            document.addEventListener("keydown", handler);
+            leafletMeasureLiteRuntime.addDocumentKeydownListener(handler);
         },
 
         _removeEscapeKeyHandler: function _removeEscapeKeyHandler() {
             try {
                 if (this._escapeHandler) {
-                    document.removeEventListener(
-                        "keydown",
+                    leafletMeasureLiteRuntime.removeDocumentKeydownListener(
                         this._escapeHandler
                     );
                 }

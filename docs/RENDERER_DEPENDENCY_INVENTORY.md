@@ -86,8 +86,10 @@ compatibility bundles:
   load browser code directly from `node_modules` or repository vendor trees.
 
 The CSP-safe measurement control now lives in
-`electron-app/renderer/leafletMeasureLite.js` as first-party renderer source and
-is bundled into renderer output; it is not loaded directly by `index.html`.
+`electron-app/renderer/leafletMeasureLite.js` with
+`electron-app/renderer/leafletMeasureLiteRuntime.js` as first-party renderer
+source and is bundled into renderer output; it is not loaded directly by
+`index.html`.
 
 ## Production Dependencies
 
@@ -108,26 +110,26 @@ These packages are application libraries, not lint/test-only tooling. They live
 in the root workspace `devDependencies` because the packaged app ships their
 Vite-bundled renderer output, not the npm packages themselves.
 
-| Package                         | Current shipped asset path                                                                                                                   | Migration note                                                                 |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `arquero`                       | `dist/renderer/renderer-vendor-core.js`; `arqueroRuntime.ts` adapter for migrated summary statistics                                          | Migrated from `vendor/`; registered through the runtime adapter, not a global. |
-| `chart.js`                      | `dist/renderer/renderer-vendor-chart-data.js`; `chartRuntime.ts` adapter for migrated helpers                                                 | Migrated from `vendor/`; registered through the runtime adapter, not a global. |
-| `chartjs-adapter-date-fns`      | `dist/renderer/renderer-vendor-chart-data.js`                                                                                                 | Migrated from `vendor/` to the renderer compatibility bundle.                  |
-| `chartjs-plugin-zoom`           | `dist/renderer/renderer-vendor-chart-data.js`                                                                                                 | Migrated from `vendor/` to the renderer compatibility bundle.                  |
-| `datatables.net-dt`             | `dist/renderer/renderer-vendor-chart-data.js`, `dist/renderer/renderer-vendor.css`; `dataTableRuntime.ts` adapter for migrated table rendering | Migrated from `vendor/`; registered through the runtime adapter, not a global. |
-| `date-fns`                      | bundled inside adapter asset today                                                                                                           | Keep as explicit renderer input when chart adapter is bundled.                 |
-| `dompurify`                     | `dist/renderer/renderer-vendor-core.js`; `domPurifyRuntime.ts` adapter for migrated sanitizers                                                | Migrated from `vendor/`; registered through the runtime adapter, not a global. |
-| `hammerjs`                      | bundled with the Chart.js zoom plugin stack                                                                                                  | Companion dependency for chart zoom; not exposed as a renderer global.         |
-| `jszip`                         | `dist/renderer/renderer-vendor-core.js`; `exportZipRuntime.ts` adapter for export ZIP creation                                                | Migrated from `vendor/`; registered through the runtime adapter, not a global. |
-| `leaflet`                       | `dist/renderer/renderer-vendor-map.js`, `dist/renderer/renderer-vendor.css`; `leafletRuntime.ts` adapter for migrated helpers                  | Registered through the runtime adapter; legacy plugin chunks close over it.    |
+| Package                         | Current shipped asset path                                                                                                                     | Migration note                                                                                                                                                                                                                                                                                  |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `arquero`                       | `dist/renderer/renderer-vendor-core.js`; `arqueroRuntime.ts` adapter for migrated summary statistics                                           | Migrated from `vendor/`; registered through the runtime adapter, not a global.                                                                                                                                                                                                                  |
+| `chart.js`                      | `dist/renderer/renderer-vendor-chart-data.js`; `chartRuntime.ts` adapter for migrated helpers                                                  | Migrated from `vendor/`; registered through the runtime adapter, not a global.                                                                                                                                                                                                                  |
+| `chartjs-adapter-date-fns`      | `dist/renderer/renderer-vendor-chart-data.js`                                                                                                  | Migrated from `vendor/` to the renderer compatibility bundle.                                                                                                                                                                                                                                   |
+| `chartjs-plugin-zoom`           | `dist/renderer/renderer-vendor-chart-data.js`                                                                                                  | Migrated from `vendor/` to the renderer compatibility bundle.                                                                                                                                                                                                                                   |
+| `datatables.net-dt`             | `dist/renderer/renderer-vendor-chart-data.js`, `dist/renderer/renderer-vendor.css`; `dataTableRuntime.ts` adapter for migrated table rendering | Migrated from `vendor/`; registered through the runtime adapter, not a global.                                                                                                                                                                                                                  |
+| `date-fns`                      | bundled inside adapter asset today                                                                                                             | Keep as explicit renderer input when chart adapter is bundled.                                                                                                                                                                                                                                  |
+| `dompurify`                     | `dist/renderer/renderer-vendor-core.js`; `domPurifyRuntime.ts` adapter for migrated sanitizers                                                 | Migrated from `vendor/`; registered through the runtime adapter, not a global.                                                                                                                                                                                                                  |
+| `hammerjs`                      | bundled with the Chart.js zoom plugin stack                                                                                                    | Companion dependency for chart zoom; not exposed as a renderer global.                                                                                                                                                                                                                          |
+| `jszip`                         | `dist/renderer/renderer-vendor-core.js`; `exportZipRuntime.ts` adapter for export ZIP creation                                                 | Migrated from `vendor/`; registered through the runtime adapter, not a global.                                                                                                                                                                                                                  |
+| `leaflet`                       | `dist/renderer/renderer-vendor-map.js`, `dist/renderer/renderer-vendor.css`; `leafletRuntime.ts` adapter for migrated helpers                  | Registered through the runtime adapter; legacy plugin chunks close over it.                                                                                                                                                                                                                     |
 | `leaflet-draw`                  | `dist/renderer/renderer-vendor-map.js`, `dist/renderer/renderer-vendor.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle; `leaflet-draw` currently exposes only `dist/leaflet.draw.js` through its package `main` field and has no `module` or `exports` entry, so the `fitfileviewer:leaflet-draw-runtime` wrapper remains the tracked replacement target. |
-| `leaflet-measure`               | `dist/renderer/renderer-vendor.css`                                                                                                           | CSS/assets are bundled; CSP-safe JavaScript remains curated source.            |
-| `leaflet-minimap`               | `dist/renderer/renderer-vendor-map.js`, `dist/renderer/renderer-vendor.css`                                                                    | Constructor imported and registered explicitly on the typed Leaflet runtime.   |
-| `leaflet.fullscreen`            | `dist/renderer/renderer-vendor-map.js`, `dist/renderer/renderer-vendor.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle.                  |
-| `leaflet.locatecontrol`         | `dist/renderer/renderer-vendor-map.js`, `dist/renderer/renderer-vendor.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle.                  |
-| `maplibre-gl`                   | `dist/renderer/renderer-vendor-map.js`, `dist/renderer/renderer-vendor.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle.                  |
-| `@maplibre/maplibre-gl-leaflet` | `dist/renderer/renderer-vendor-map.js`                                                                                                        | Migrated from `vendor/` to the renderer compatibility bundle.                  |
-| `screenfull`                    | `dist/renderer/renderer-vendor-core.js`; `screenfullRuntime.ts` adapter for migrated fullscreen controls                                      | Migrated from `vendor/`; registered through the runtime adapter, not a global. |
+| `leaflet-measure`               | `dist/renderer/renderer-vendor.css`                                                                                                            | CSS/assets are bundled; CSP-safe JavaScript remains curated source.                                                                                                                                                                                                                             |
+| `leaflet-minimap`               | `dist/renderer/renderer-vendor-map.js`, `dist/renderer/renderer-vendor.css`                                                                    | Constructor imported and registered explicitly on the typed Leaflet runtime.                                                                                                                                                                                                                    |
+| `leaflet.fullscreen`            | `dist/renderer/renderer-vendor-map.js`, `dist/renderer/renderer-vendor.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle.                                                                                                                                                                                                                                   |
+| `leaflet.locatecontrol`         | `dist/renderer/renderer-vendor-map.js`, `dist/renderer/renderer-vendor.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle.                                                                                                                                                                                                                                   |
+| `maplibre-gl`                   | `dist/renderer/renderer-vendor-map.js`, `dist/renderer/renderer-vendor.css`                                                                    | Migrated from `vendor/` to the renderer compatibility bundle.                                                                                                                                                                                                                                   |
+| `@maplibre/maplibre-gl-leaflet` | `dist/renderer/renderer-vendor-map.js`                                                                                                         | Migrated from `vendor/` to the renderer compatibility bundle.                                                                                                                                                                                                                                   |
+| `screenfull`                    | `dist/renderer/renderer-vendor-core.js`; `screenfullRuntime.ts` adapter for migrated fullscreen controls                                       | Migrated from `vendor/`; registered through the runtime adapter, not a global.                                                                                                                                                                                                                  |
 
 ## Tooling And Test Dependencies
 
@@ -160,11 +162,12 @@ no longer needs those directories.
 These files should not be removed just because a package dependency exists.
 They need a specific replacement and runtime verification.
 
-- `electron-app/renderer/leafletMeasureLite.js`: CSP-safe measurement control
-  replacement imported by `electron-app/renderer/rendererVendorMap.ts` and
-  bundled into `dist/renderer/renderer-vendor-map.js`. The upstream `leaflet-measure`
-  JavaScript should not be restored unless it works without weakening the app
-  CSP.
+- `electron-app/renderer/leafletMeasureLite.js` and
+  `electron-app/renderer/leafletMeasureLiteRuntime.js`: CSP-safe measurement
+  control replacement imported by `electron-app/renderer/rendererVendorMap.ts`
+  and bundled into `dist/renderer/renderer-vendor-map.js`. The upstream
+  `leaflet-measure` JavaScript should not be restored unless it works without
+  weakening the app CSP.
 
 ## Generated Runtime Output
 
@@ -220,5 +223,6 @@ directly from a `vendor/` path.
   a native import surface replaces it; do not reintroduce public `window.*`
   vendor globals, app-side browser-library runtime symbols, or persistent
   split-vendor payload registries.
-- Keep `electron-app/renderer/leafletMeasureLite.js` unless a CSP-safe package
+- Keep `electron-app/renderer/leafletMeasureLite.js` and
+  `electron-app/renderer/leafletMeasureLiteRuntime.js` unless a CSP-safe package
   replacement is proven.

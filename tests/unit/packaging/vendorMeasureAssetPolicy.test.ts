@@ -43,6 +43,10 @@ const rendererDependencyInventoryPath = path.posix.join(
     rootDocsPath,
     "RENDERER_DEPENDENCY_INVENTORY.md"
 );
+const appLeafletMeasureLiteRuntimePath = appSourceRepositoryPath(
+    "renderer",
+    "leafletMeasureLiteRuntime.js"
+);
 
 const fromImportSpecifierPattern =
     /^\s*import\s+[^"\n].*?\s+from\s+"([^"]+)";/gmu;
@@ -207,7 +211,7 @@ describe("renderer vendor asset policy", () => {
     });
 
     it("keeps upstream CSS npm-managed and JS as a CSP-safe local control", () => {
-        expect.assertions(6);
+        expect.assertions(10);
 
         const rootPackage = JSON.parse(
             readWorkspaceFile(rootPackageRepositoryPath)
@@ -218,6 +222,9 @@ describe("renderer vendor asset policy", () => {
             appRendererVendorMapEntryPath
         );
         const measureLite = readWorkspaceFile(appLeafletMeasureLitePath);
+        const measureLiteRuntime = readWorkspaceFile(
+            appLeafletMeasureLiteRuntimePath
+        );
 
         expect(
             getRequiredPackageEntries(
@@ -230,6 +237,14 @@ describe("renderer vendor asset policy", () => {
         );
         expect(rendererVendorMap).toContain(
             'import { installLeafletMeasureLite } from "./leafletMeasureLite.js";'
+        );
+        expect(measureLite).toContain(
+            'import { getLeafletMeasureLiteRuntime } from "./leafletMeasureLiteRuntime.js";'
+        );
+        expect(measureLite).not.toContain("document.addEventListener");
+        expect(measureLite).not.toContain("document.removeEventListener");
+        expect(measureLiteRuntime).toContain(
+            "getDocumentEventTarget: () => globalThis.document"
         );
         expect(rendererVendorMap).toContain(
             "installLeafletMeasureLite(Leaflet);"
