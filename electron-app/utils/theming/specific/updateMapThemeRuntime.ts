@@ -1,9 +1,6 @@
 type UpdateMapThemeEventTarget = Pick<EventTarget, "addEventListener">;
 
 export interface UpdateMapThemeRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly beforeUnloadTarget?: UpdateMapThemeEventTarget | undefined;
-    readonly document?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -14,7 +11,6 @@ export interface UpdateMapThemeRuntimeScope {
     readonly getHTMLElement?:
         | (() => typeof HTMLElement | undefined)
         | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
 }
 
 export interface UpdateMapThemeRuntime {
@@ -53,23 +49,23 @@ const defaultUpdateMapThemeRuntimeScope: UpdateMapThemeRuntimeScope = {
 function getAbortController(
     scope: UpdateMapThemeRuntimeScope
 ): typeof AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getBeforeUnloadTarget(
     scope: UpdateMapThemeRuntimeScope
 ): UpdateMapThemeEventTarget | undefined {
-    return scope.getBeforeUnloadTarget?.() ?? scope.beforeUnloadTarget;
+    return scope.getBeforeUnloadTarget?.();
 }
 
 function getDocument(scope: UpdateMapThemeRuntimeScope): Document | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getHTMLElement(
     scope: UpdateMapThemeRuntimeScope
 ): typeof HTMLElement | undefined {
-    return scope.getHTMLElement?.() ?? scope.HTMLElement;
+    return scope.getHTMLElement?.();
 }
 
 export function getUpdateMapThemeRuntime(

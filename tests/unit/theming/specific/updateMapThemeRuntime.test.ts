@@ -20,7 +20,7 @@ describe("getUpdateMapThemeRuntime", () => {
             }
         }
         const runtime = getUpdateMapThemeRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -48,7 +48,9 @@ describe("getUpdateMapThemeRuntime", () => {
             document.body.append(map);
 
             expect(
-                getUpdateMapThemeRuntime({ document }).queryLeafletMap()
+                getUpdateMapThemeRuntime({
+                    getDocument: () => document,
+                }).queryLeafletMap()
             ).toBe(map);
         } finally {
             document.body.replaceChildren();
@@ -67,7 +69,9 @@ describe("getUpdateMapThemeRuntime", () => {
             addEventListener: eventTarget.addEventListener.bind(eventTarget),
             querySelector: vi.fn<Document["querySelector"]>(),
         } as unknown as Document;
-        const runtime = getUpdateMapThemeRuntime({ document: documentLike });
+        const runtime = getUpdateMapThemeRuntime({
+            getDocument: () => documentLike,
+        });
 
         runtime.addDocumentListener("themechange", listener, {
             passive: true,
@@ -86,10 +90,10 @@ describe("getUpdateMapThemeRuntime", () => {
             eventCount += 1;
         };
         const runtime = getUpdateMapThemeRuntime({
-            beforeUnloadTarget: {
+            getBeforeUnloadTarget: () => ({
                 addEventListener:
                     eventTarget.addEventListener.bind(eventTarget),
-            },
+            }),
         });
 
         runtime.addWindowBeforeUnloadListener(listener, {
@@ -146,8 +150,51 @@ describe("getUpdateMapThemeRuntime", () => {
         const element = document.createElement("div");
 
         expect(
-            getUpdateMapThemeRuntime({ HTMLElement }).isHTMLElement(element)
+            getUpdateMapThemeRuntime({
+                getHTMLElement: () => HTMLElement,
+            }).isHTMLElement(element)
         ).toBe(true);
         expect(getUpdateMapThemeRuntime({}).isHTMLElement(element)).toBe(false);
+    });
+
+    it("ignores legacy direct runtime primitive properties", () => {
+        expect.assertions(8);
+
+        let controllerCount = 0;
+        class TestAbortController extends AbortController {
+            public constructor() {
+                super();
+                controllerCount += 1;
+            }
+        }
+        const map = document.createElement("div");
+        map.id = "leaflet-map";
+        const documentLike = {
+            addEventListener: vi.fn<Document["addEventListener"]>(),
+            querySelector: vi.fn<Document["querySelector"]>(() => map),
+        } as unknown as Document;
+        const beforeUnloadTarget = {
+            addEventListener: vi.fn<EventTarget["addEventListener"]>(),
+        };
+        const runtime = getUpdateMapThemeRuntime({
+            AbortController: TestAbortController,
+            beforeUnloadTarget,
+            document: documentLike,
+            HTMLElement,
+        } as unknown as Parameters<typeof getUpdateMapThemeRuntime>[0]);
+
+        runtime.addDocumentListener("themechange", vi.fn(), {});
+        runtime.addWindowBeforeUnloadListener(vi.fn(), {});
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "updateMapTheme requires an AbortController runtime"
+        );
+        expect(runtime.queryLeafletMap()).toBeNull();
+        expect(runtime.isHTMLElement(map)).toBe(false);
+        expect(documentLike.addEventListener).not.toHaveBeenCalled();
+        expect(documentLike.querySelector).not.toHaveBeenCalled();
+        expect(beforeUnloadTarget.addEventListener).not.toHaveBeenCalled();
+        expect(controllerCount).toBe(0);
+        expect(getUpdateMapThemeRuntime({}).queryLeafletMap()).toBeNull();
     });
 });
