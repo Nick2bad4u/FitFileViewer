@@ -185,7 +185,7 @@ registerRendererApplicationLifecycle({
     documentTarget: runtimeEnvironment.documentTarget,
     initializeApplication,
     setTimeout: runtimeEnvironment.setTimeout,
-    windowTarget: runtimeEnvironment.windowTarget,
+    windowTarget: runtimeEnvironment.rendererGlobal,
 });
 
 initializeRendererDiagnostics({
@@ -204,7 +204,7 @@ initializeRendererDiagnostics({
 
 runRendererImportTimeBootstrap(importTimeBootstrap);
 fileInputWiring.registerImportTimeFileInputChangeHandler(
-    runtimeEnvironment.windowTarget
+    runtimeEnvironment.rendererGlobal
 );
 
 installRendererElectronApiWiring({
@@ -218,11 +218,11 @@ installRendererElectronApiWiring({
 
 registerRendererTestOnlyBootstrap(testOnlyBootstrapOptions, {
     documentTarget: runtimeEnvironment.documentTarget,
-    unloadTarget: runtimeEnvironment.windowTarget,
-    windowTarget: runtimeEnvironment.windowTarget,
+    unloadTarget: runtimeEnvironment.rendererGlobal,
+    windowTarget: runtimeEnvironment.rendererGlobal,
 });
 
 fileInputWiring.registerDelegatedFileInputChangeListener(
     runtimeEnvironment.documentTarget,
-    runtimeEnvironment.windowTarget
+    runtimeEnvironment.rendererGlobal
 );

@@ -4,7 +4,7 @@ import { createRendererRuntimeEnvironment as createRuntimeEnvironment } from "..
 
 describe("renderer runtime environment", () => {
     it("captures browser globals as bound renderer runtime dependencies", () => {
-        expect.assertions(9);
+        expect.assertions(8);
 
         const electronApiCandidate = {};
         const scope = {
@@ -35,8 +35,7 @@ describe("renderer runtime environment", () => {
         expect(environment.console).toBe(console);
         expect(environment.documentTarget).toBe(document);
         expect(environment.electronApiCandidate).toBe(electronApiCandidate);
-        expect(environment.scope).toBe(scope);
-        expect(environment.windowTarget).toBe(scope);
+        expect(environment.rendererGlobal).toBe(scope);
         expect(environment.addEventListener("load", vi.fn())).toBe(scope);
         expect(environment.removeEventListener("load", vi.fn())).toBe(scope);
         expect(environment.setTimeout(vi.fn(), 0)).toBe(scope);
@@ -47,7 +46,7 @@ describe("renderer runtime environment", () => {
         expect.assertions(5);
 
         const electronApiCandidate = {};
-        const windowTarget = {
+        const rendererGlobal = {
             addEventListener: vi.fn(function addEventListener(this: unknown) {
                 return this;
             }),
@@ -63,20 +62,20 @@ describe("renderer runtime environment", () => {
                 return this;
             }),
         } as unknown as Window & typeof globalThis;
-        const getRendererScope = vi.fn(() => windowTarget);
+        const getRendererScope = vi.fn(() => rendererGlobal);
         const listenerController = new AbortController();
 
         const environment = createRuntimeEnvironment({ getRendererScope });
 
         expect(getRendererScope).toHaveBeenCalledOnce();
-        expect(environment.windowTarget).toBe(windowTarget);
+        expect(environment.rendererGlobal).toBe(rendererGlobal);
         expect(environment.electronApiCandidate).toBe(electronApiCandidate);
         expect(
             environment.addEventListener("load", vi.fn(), {
                 signal: listenerController.signal,
             })
-        ).toBe(windowTarget);
-        expect(environment.setTimeout(vi.fn(), 0)).toBe(windowTarget);
+        ).toBe(rendererGlobal);
+        expect(environment.setTimeout(vi.fn(), 0)).toBe(rendererGlobal);
         listenerController.abort();
     });
 });

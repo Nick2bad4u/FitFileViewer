@@ -5,10 +5,9 @@ export type RendererRuntimeEnvironment = {
     readonly documentTarget: Document;
     readonly electronApiCandidate: unknown;
     readonly removeEventListener: typeof globalThis.removeEventListener;
-    readonly scope: typeof globalThis;
+    readonly rendererGlobal: Window & typeof globalThis;
     readonly setInterval: typeof globalThis.setInterval;
     readonly setTimeout: typeof globalThis.setTimeout;
-    readonly windowTarget: Window & typeof globalThis;
 };
 
 type RendererRuntimeScope = Window & typeof globalThis;
@@ -44,19 +43,18 @@ function resolveRendererScope(
 export function createRendererRuntimeEnvironment(
     scope: RendererRuntimeEnvironmentScope = defaultRendererRuntimeEnvironmentScope
 ): RendererRuntimeEnvironment {
-    const windowTarget = resolveRendererScope(scope);
+    const rendererGlobal = resolveRendererScope(scope);
 
     return {
-        addEventListener: windowTarget.addEventListener.bind(windowTarget),
-        clearInterval: windowTarget.clearInterval.bind(windowTarget),
-        console: windowTarget.console,
-        documentTarget: windowTarget.document,
-        electronApiCandidate: Reflect.get(windowTarget, "electronAPI"),
+        addEventListener: rendererGlobal.addEventListener.bind(rendererGlobal),
+        clearInterval: rendererGlobal.clearInterval.bind(rendererGlobal),
+        console: rendererGlobal.console,
+        documentTarget: rendererGlobal.document,
+        electronApiCandidate: Reflect.get(rendererGlobal, "electronAPI"),
         removeEventListener:
-            windowTarget.removeEventListener.bind(windowTarget),
-        scope: windowTarget,
-        setInterval: windowTarget.setInterval.bind(windowTarget),
-        setTimeout: windowTarget.setTimeout.bind(windowTarget),
-        windowTarget,
+            rendererGlobal.removeEventListener.bind(rendererGlobal),
+        rendererGlobal,
+        setInterval: rendererGlobal.setInterval.bind(rendererGlobal),
+        setTimeout: rendererGlobal.setTimeout.bind(rendererGlobal),
     };
 }
