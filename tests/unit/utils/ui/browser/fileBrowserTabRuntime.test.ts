@@ -13,7 +13,7 @@ describe("getFileBrowserTabRuntime", () => {
             }
         );
         const runtime = getFileBrowserTabRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -29,5 +29,20 @@ describe("getFileBrowserTabRuntime", () => {
         expect(() => runtime.createAbortController()).toThrow(
             "fileBrowserTab requires an AbortController runtime"
         );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(2);
+
+        const AbortControllerConstructor = vi.fn();
+        const runtime = getFileBrowserTabRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+        } as unknown as Parameters<typeof getFileBrowserTabRuntime>[0]);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "fileBrowserTab requires an AbortController runtime"
+        );
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
     });
 });

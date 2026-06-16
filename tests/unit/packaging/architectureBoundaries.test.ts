@@ -4336,7 +4336,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser tab listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(10);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -4364,6 +4364,19 @@ describe("architecture boundaries", () => {
         );
         expect(browserTabRuntimeSource).not.toMatch(
             directFileBrowserTabRuntimeAmbientGetterPattern
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(browserTabRuntimeSource).not.toContain(
+            "FileBrowserTabRuntimeScope = globalThis"
+        );
+        expect(browserTabRuntimeSource).not.toContain("scope.AbortController");
+        expect(browserTabRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "scope.getAbortController?.()"
         );
     });
 

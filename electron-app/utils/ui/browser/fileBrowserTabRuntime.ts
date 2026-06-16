@@ -1,18 +1,21 @@
 export interface FileBrowserTabRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
 }
 
 export interface FileBrowserTabRuntime {
     createAbortController: () => AbortController;
 }
 
-const defaultFileBrowserTabRuntimeScope: FileBrowserTabRuntimeScope =
-    globalThis;
+const defaultFileBrowserTabRuntimeScope: FileBrowserTabRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+};
 
 function getAbortControllerConstructor(
     scope: FileBrowserTabRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor = scope.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "fileBrowserTab requires an AbortController runtime"
