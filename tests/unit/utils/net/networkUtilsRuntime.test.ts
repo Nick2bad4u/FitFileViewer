@@ -8,7 +8,7 @@ describe("getNetworkUtilsRuntime", () => {
 
         const response = new Response("ok");
         const fetch = vi.fn<typeof globalThis.fetch>(async () => response);
-        const runtime = getNetworkUtilsRuntime({ fetch });
+        const runtime = getNetworkUtilsRuntime({ getFetch: () => fetch });
         const init = { method: "POST" };
 
         await expect(runtime.fetch("https://example.test", init)).resolves.toBe(
@@ -74,8 +74,8 @@ describe("getNetworkUtilsRuntime", () => {
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const runtime = getNetworkUtilsRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(runtime.setTimeout(callback, delay)).toBe(timer);
@@ -96,7 +96,7 @@ describe("getNetworkUtilsRuntime", () => {
             }
         );
         const runtime = getNetworkUtilsRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -104,13 +104,41 @@ describe("getNetworkUtilsRuntime", () => {
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
     });
 
-    it("does not borrow ambient runtimes for explicit scopes", () => {
+    it("does not borrow ambient runtimes for explicit scopes", async () => {
         expect.assertions(4);
 
         const runtime = getNetworkUtilsRuntime({});
 
         expect(runtime.createAbortController()).toBeUndefined();
-        expect(() => runtime.fetch("https://example.test")).toThrow(
+        await expect(runtime.fetch("https://example.test")).rejects.toThrow(
+            "networkUtils requires fetch"
+        );
+        expect(() => runtime.setTimeout(() => undefined, 1)).toThrow(
+            "networkUtils requires setTimeout"
+        );
+        expect(() =>
+            runtime.clearTimeout(23 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("networkUtils requires clearTimeout");
+    });
+
+    it("ignores legacy direct runtime scope properties", async () => {
+        expect.assertions(4);
+
+        const response = new Response("ok");
+        const fetch = vi.fn<typeof globalThis.fetch>(async () => response);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(
+            () => 23 as ReturnType<typeof globalThis.setTimeout>
+        );
+        const runtime = getNetworkUtilsRuntime({
+            AbortController,
+            clearTimeout,
+            fetch,
+            setTimeout,
+        } as unknown as Parameters<typeof getNetworkUtilsRuntime>[0]);
+
+        expect(runtime.createAbortController()).toBeUndefined();
+        await expect(runtime.fetch("https://example.test")).rejects.toThrow(
             "networkUtils requires fetch"
         );
         expect(() => runtime.setTimeout(() => undefined, 1)).toThrow(

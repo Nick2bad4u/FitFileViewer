@@ -1,11 +1,12 @@
-export type NetworkUtilsFetchInput = Parameters<typeof globalThis.fetch>[0];
-export type NetworkUtilsFetchInit = Parameters<typeof globalThis.fetch>[1];
+export type NetworkUtilsFetchInput = Readonly<
+    Parameters<typeof globalThis.fetch>[0]
+>;
+export type NetworkUtilsFetchInit =
+    | Readonly<NonNullable<Parameters<typeof globalThis.fetch>[1]>>
+    | undefined;
 export type NetworkUtilsTimerHandle = ReturnType<typeof globalThis.setTimeout>;
 
 export interface NetworkUtilsRuntimeScope {
-    readonly AbortController?: typeof globalThis.AbortController | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly fetch?: typeof globalThis.fetch | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
@@ -16,17 +17,19 @@ export interface NetworkUtilsRuntimeScope {
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
 
 export interface NetworkUtilsRuntime {
-    clearTimeout(handle: NetworkUtilsTimerHandle): void;
-    createAbortController(): AbortController | undefined;
-    fetch(
+    clearTimeout: (handle: NetworkUtilsTimerHandle) => void;
+    createAbortController: () => AbortController | undefined;
+    fetch: (
         input: NetworkUtilsFetchInput,
         init?: NetworkUtilsFetchInit
-    ): Promise<Response>;
-    setTimeout(callback: () => void, delay: number): NetworkUtilsTimerHandle;
+    ) => Promise<Response>;
+    setTimeout: (
+        callback: () => void,
+        delay: number
+    ) => NetworkUtilsTimerHandle;
 }
 
 const defaultNetworkUtilsRuntimeScope: NetworkUtilsRuntimeScope = {
@@ -39,25 +42,25 @@ const defaultNetworkUtilsRuntimeScope: NetworkUtilsRuntimeScope = {
 function getScopeAbortController(
     scope: NetworkUtilsRuntimeScope
 ): typeof globalThis.AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getScopeClearTimeout(
     scope: NetworkUtilsRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
-    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+    return scope.getClearTimeout?.();
 }
 
 function getScopeFetch(
     scope: NetworkUtilsRuntimeScope
 ): typeof globalThis.fetch | undefined {
-    return scope.getFetch?.() ?? scope.fetch;
+    return scope.getFetch?.();
 }
 
 function getScopeSetTimeout(
     scope: NetworkUtilsRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
-    return scope.getSetTimeout?.() ?? scope.setTimeout;
+    return scope.getSetTimeout?.();
 }
 
 export function getNetworkUtilsRuntime(
@@ -80,7 +83,7 @@ export function getNetworkUtilsRuntime(
 
             return new AbortControllerRef();
         },
-        fetch(
+        async fetch(
             input: NetworkUtilsFetchInput,
             init?: NetworkUtilsFetchInit
         ): Promise<Response> {
@@ -89,9 +92,12 @@ export function getNetworkUtilsRuntime(
                 throw new TypeError("networkUtils requires fetch");
             }
 
-            return fetchRef(input, init);
+            return await fetchRef(input, init);
         },
-        setTimeout(callback: () => void, delay: number): NetworkUtilsTimerHandle {
+        setTimeout(
+            callback: () => void,
+            delay: number
+        ): NetworkUtilsTimerHandle {
             const setTimeoutRef = getScopeSetTimeout(scope);
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError("networkUtils requires setTimeout");

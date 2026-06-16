@@ -6,7 +6,9 @@ describe("getNetworkUtilsRuntime", () => {
     it("creates AbortController instances through the injected runtime scope", () => {
         expect.assertions(2);
 
-        const utils = getNetworkUtilsRuntime({ AbortController });
+        const utils = getNetworkUtilsRuntime({
+            getAbortController: () => AbortController,
+        });
         const controller = utils.createAbortController();
 
         expect(controller).toBeInstanceOf(AbortController);
@@ -18,7 +20,7 @@ describe("getNetworkUtilsRuntime", () => {
 
         expect(
             getNetworkUtilsRuntime({
-                AbortController: undefined,
+                getAbortController: () => undefined,
             }).createAbortController()
         ).toBeUndefined();
     });
@@ -30,7 +32,7 @@ describe("getNetworkUtilsRuntime", () => {
         const fetch = vi
             .fn<typeof globalThis.fetch>()
             .mockResolvedValue(response);
-        const utils = getNetworkUtilsRuntime({ fetch });
+        const utils = getNetworkUtilsRuntime({ getFetch: () => fetch });
         const init: RequestInit = { method: "POST" };
 
         await expect(utils.fetch("https://example.test", init)).resolves.toBe(
@@ -47,7 +49,10 @@ describe("getNetworkUtilsRuntime", () => {
         const timeoutMs = Number("250");
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 37);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
-        const utils = getNetworkUtilsRuntime({ clearTimeout, setTimeout });
+        const utils = getNetworkUtilsRuntime({
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
+        });
 
         expect(utils.setTimeout(callback, timeoutMs)).toBe(37);
         expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
@@ -58,12 +63,37 @@ describe("getNetworkUtilsRuntime", () => {
         expect(clearTimeout.mock.contexts[0]).toBeUndefined();
     });
 
-    it("does not borrow ambient fetch or timer primitives for explicit scopes", () => {
+    it("does not borrow ambient fetch or timer primitives for explicit scopes", async () => {
         expect.assertions(3);
 
         const utils = getNetworkUtilsRuntime({});
 
-        expect(() => utils.fetch("https://example.test")).toThrow(
+        await expect(utils.fetch("https://example.test")).rejects.toThrow(
+            "networkUtils requires fetch"
+        );
+        expect(() => utils.setTimeout(() => {}, 1)).toThrow(
+            "networkUtils requires setTimeout"
+        );
+        expect(() => utils.clearTimeout(1)).toThrow(
+            "networkUtils requires clearTimeout"
+        );
+    });
+
+    it("ignores legacy direct runtime scope properties", async () => {
+        expect.assertions(4);
+
+        const fetch = vi.fn<typeof globalThis.fetch>();
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 37);
+        const utils = getNetworkUtilsRuntime({
+            AbortController,
+            clearTimeout,
+            fetch,
+            setTimeout,
+        } as unknown as Parameters<typeof getNetworkUtilsRuntime>[0]);
+
+        expect(utils.createAbortController()).toBeUndefined();
+        await expect(utils.fetch("https://example.test")).rejects.toThrow(
             "networkUtils requires fetch"
         );
         expect(() => utils.setTimeout(() => {}, 1)).toThrow(

@@ -9552,7 +9552,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps network fetch and timeout APIs behind the runtime facade", () => {
-        expect.assertions(8);
+        expect.assertions(18);
 
         const violations = migratedNetworkUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -9583,11 +9583,33 @@ describe("architecture boundaries", () => {
             "getFetch: () => globalThis.fetch"
         );
         expect(networkUtilsRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(networkUtilsRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(networkUtilsRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(networkUtilsRuntimeSource).toContain(
             "const fetchRef = getScopeFetch(scope);"
         );
+        expect(networkUtilsRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(networkUtilsRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(networkUtilsRuntimeSource).not.toContain("readonly fetch?:");
+        expect(networkUtilsRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(networkUtilsRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(networkUtilsRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(networkUtilsRuntimeSource).not.toContain("scope.fetch");
+        expect(networkUtilsRuntimeSource).not.toContain("scope.setTimeout");
     });
 
     it("keeps app performance scheduling APIs behind the runtime facade", () => {
