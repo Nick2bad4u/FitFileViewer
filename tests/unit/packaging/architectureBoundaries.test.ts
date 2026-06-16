@@ -5054,7 +5054,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(7);
+        expect.assertions(15);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -5077,8 +5077,28 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerRuntimeSource).toContain(
             "defaultUIStateManagerRuntimeScope"
         );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'typeof globalThis.addEventListener === "function"'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getMatchMedia: () => globalThis.matchMedia"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getViewportState: () => globalThis"
+        );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope: UIStateManagerRuntimeScope = globalThis"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "UIStateManagerRuntimeScope = globalThis"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain("scope.window");
+        expect(uiStateManagerRuntimeSource).not.toContain("readonly window?:");
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.matchMedia ??"
         );
     });
 

@@ -15,7 +15,7 @@ describe("uiStateManagerRuntime", () => {
         }
 
         const runtime = getUIStateManagerRuntime({
-            AbortController:
+            getAbortController: () =>
                 TestAbortController as unknown as typeof AbortController,
         });
 
@@ -38,56 +38,51 @@ describe("uiStateManagerRuntime", () => {
 
         const mediaQuery = { matches: true } as MediaQueryList;
         const scopedMatchMedia = vi.fn(() => mediaQuery);
-        const windowMatchMedia = vi.fn(
+        const directMatchMedia = vi.fn(
             () => ({ matches: false }) as MediaQueryList
         );
 
         expect(
             getUIStateManagerRuntime({
-                matchMedia: scopedMatchMedia,
-                window: {
-                    addEventListener: vi.fn(),
-                    matchMedia: windowMatchMedia,
-                },
+                getMatchMedia: () => scopedMatchMedia,
+                matchMedia: directMatchMedia,
             }).getSystemThemeMediaQuery()
         ).toBe(mediaQuery);
         expect(scopedMatchMedia).toHaveBeenCalledWith(
             "(prefers-color-scheme: dark)"
         );
-        expect(windowMatchMedia).not.toHaveBeenCalled();
+        expect(directMatchMedia).not.toHaveBeenCalled();
         expect(
             getUIStateManagerRuntime({}).getSystemThemeMediaQuery()
         ).toBeNull();
     });
 
-    it("falls back to window matchMedia when no direct matcher is scoped", () => {
+    it("uses direct scoped matchMedia when no provider is scoped", () => {
         expect.assertions(2);
 
         const mediaQuery = { matches: false } as MediaQueryList;
-        const windowMatchMedia = vi.fn(() => mediaQuery);
+        const directMatchMedia = vi.fn(() => mediaQuery);
 
         expect(
             getUIStateManagerRuntime({
-                window: {
-                    addEventListener: vi.fn(),
-                    matchMedia: windowMatchMedia,
-                },
+                matchMedia: directMatchMedia,
             }).getSystemThemeMediaQuery()
         ).toBe(mediaQuery);
-        expect(windowMatchMedia).toHaveBeenCalledWith(
+        expect(directMatchMedia).toHaveBeenCalledWith(
             "(prefers-color-scheme: dark)"
         );
     });
 
-    it("routes window listeners through the scoped target", () => {
-        expect.assertions(3);
+    it("routes window listeners through the scoped event target provider", () => {
+        expect.assertions(4);
 
         const addEventListener = vi.fn();
+        const directAddEventListener = vi.fn();
         const runtime = getUIStateManagerRuntime({
-            window: {
-                addEventListener,
-                matchMedia: vi.fn(),
+            eventTarget: {
+                addEventListener: directAddEventListener,
             },
+            getEventTarget: () => ({ addEventListener }),
         });
         const listener = vi.fn();
         const options = { once: true };
@@ -100,18 +95,17 @@ describe("uiStateManagerRuntime", () => {
             listener,
             options
         );
+        expect(directAddEventListener).not.toHaveBeenCalled();
         expect(getUIStateManagerRuntime({}).hasWindow()).toBe(false);
     });
 
-    it("reads window state from the scoped runtime", () => {
+    it("reads window state from the scoped viewport provider", () => {
         expect.assertions(2);
 
         const runtime = getUIStateManagerRuntime({
-            window: {
-                addEventListener: vi.fn(),
+            getViewportState: () => ({
                 innerHeight: 800,
                 innerWidth: 1200,
-                matchMedia: vi.fn(),
                 outerHeight: 850,
                 outerWidth: 1250,
                 screen: {
@@ -120,7 +114,7 @@ describe("uiStateManagerRuntime", () => {
                 },
                 screenX: 100,
                 screenY: 200,
-            },
+            }),
         });
 
         expect(runtime.getWindowState()).toStrictEqual({
@@ -132,11 +126,9 @@ describe("uiStateManagerRuntime", () => {
         });
         expect(
             getUIStateManagerRuntime({
-                window: {
-                    addEventListener: vi.fn(),
+                viewportState: {
                     innerHeight: 800,
                     innerWidth: 1200,
-                    matchMedia: vi.fn(),
                     outerHeight: 1080,
                     outerWidth: 1920,
                     screen: {
@@ -156,9 +148,9 @@ describe("uiStateManagerRuntime", () => {
         expect(getUIStateManagerRuntime({}).getWindowState()).toBeNull();
         expect(
             getUIStateManagerRuntime({
-                window: {
-                    addEventListener: vi.fn(),
-                    matchMedia: vi.fn(),
+                viewportState: {
+                    innerHeight: 800,
+                    innerWidth: 1200,
                 },
             }).getWindowState()
         ).toBeNull();
