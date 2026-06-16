@@ -15,7 +15,9 @@ describe("resourceManagerRuntime", () => {
             clearedTimer = handle;
         };
 
-        clearResourceManagerTimer(timer, { clearTimeout });
+        clearResourceManagerTimer(timer, {
+            getClearTimeout: () => clearTimeout,
+        });
 
         expect(clearedTimer).toBe(timer);
     });
@@ -53,9 +55,9 @@ describe("resourceManagerRuntime", () => {
         }
 
         const unregister = registerResourceManagerUnloadCleanup(cleanup, {
-            AbortController:
+            getAbortController: () =>
                 AbortControllerFixture as unknown as typeof AbortController,
-            eventTarget: { addEventListener, removeEventListener },
+            getEventTarget: () => ({ addEventListener, removeEventListener }),
         });
         const [
             ,
@@ -100,7 +102,10 @@ describe("resourceManagerRuntime", () => {
         const addEventListener = vi.fn();
 
         const unregister = registerResourceManagerUnloadCleanup(cleanup, {
-            eventTarget: { addEventListener, removeEventListener: vi.fn() },
+            getEventTarget: () => ({
+                addEventListener,
+                removeEventListener: vi.fn(),
+            }),
         });
         const [
             ,
@@ -156,5 +161,37 @@ describe("resourceManagerRuntime", () => {
             expect.any(Function)
         );
         expect(cleanup).not.toHaveBeenCalled();
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(3);
+
+        const cleanup = vi.fn();
+        const timer = 23 as ReturnType<typeof globalThis.setTimeout>;
+        const clearTimeout = vi.fn();
+        const addEventListener = vi.fn();
+        const removeEventListener = vi.fn();
+        class AbortControllerFixture {
+            public readonly signal = Symbol("legacy-signal") as AbortSignal;
+
+            public abort(): void {
+                // Test fixture intentionally empty.
+            }
+        }
+
+        const legacyScope = {
+            AbortController:
+                AbortControllerFixture as unknown as typeof AbortController,
+            clearTimeout,
+            eventTarget: { addEventListener, removeEventListener },
+        } as unknown as Parameters<typeof clearResourceManagerTimer>[1];
+
+        expect(() => clearResourceManagerTimer(timer, legacyScope)).toThrow(
+            "resourceManager requires clearTimeout"
+        );
+        expect(
+            registerResourceManagerUnloadCleanup(cleanup, legacyScope)
+        ).toBeNull();
+        expect(addEventListener).not.toHaveBeenCalled();
     });
 });

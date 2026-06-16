@@ -4,9 +4,6 @@ type ResourceManagerEventTarget = Pick<
 >;
 
 export interface ResourceManagerRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly eventTarget?: ResourceManagerEventTarget | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -29,19 +26,19 @@ const defaultResourceManagerRuntimeScope: ResourceManagerRuntimeScope = {
 function getAbortController(
     scope: ResourceManagerRuntimeScope
 ): typeof AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getClearTimeout(
     scope: ResourceManagerRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
-    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+    return scope.getClearTimeout?.();
 }
 
 function getEventTarget(
     scope: ResourceManagerRuntimeScope
 ): ResourceManagerEventTarget | undefined {
-    return scope.getEventTarget?.() ?? scope.eventTarget;
+    return scope.getEventTarget?.();
 }
 
 export function clearResourceManagerTimer(
@@ -71,7 +68,7 @@ export function registerResourceManagerUnloadCleanup(
     const listener = (): void => {
         cleanup();
         abortController?.abort();
-        eventTarget.removeEventListener?.("beforeunload", listener);
+        eventTarget.removeEventListener("beforeunload", listener);
     };
 
     // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Cleanup is exposed through AbortSignal when available and the returned unregister callback.
@@ -84,7 +81,7 @@ export function registerResourceManagerUnloadCleanup(
     );
 
     return (): void => {
-        eventTarget.removeEventListener?.("beforeunload", listener);
+        eventTarget.removeEventListener("beforeunload", listener);
         abortController?.abort();
     };
 }
