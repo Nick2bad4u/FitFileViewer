@@ -3,17 +3,21 @@ import { describe, expect, it, vi } from "vitest";
 import { getSettingsModalRuntime } from "../../../../electron-app/utils/ui/settingsModalRuntime.js";
 
 describe("getSettingsModalRuntime", () => {
-    it("schedules and clears timers through the injected runtime scope", () => {
+    it("schedules and clears timers through the injected runtime providers", () => {
         expect.assertions(4);
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("300");
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 17);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const scope = {
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
+        };
         const {
             clearTimeout: clearCloseTimer,
             setTimeout: scheduleCloseTimer,
-        } = getSettingsModalRuntime({ clearTimeout, setTimeout });
+        } = getSettingsModalRuntime(scope);
 
         expect(scheduleCloseTimer(callback, delayMs)).toBe(17);
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
@@ -21,10 +25,7 @@ describe("getSettingsModalRuntime", () => {
         clearCloseTimer(17);
 
         expect(clearTimeout).toHaveBeenCalledWith(17);
-        expect(clearTimeout.mock.contexts[0]).toStrictEqual({
-            clearTimeout,
-            setTimeout,
-        });
+        expect(clearTimeout.mock.contexts[0]).toBe(scope);
     });
 
     it("routes timers and animation frames through provider functions", () => {
@@ -80,20 +81,21 @@ describe("getSettingsModalRuntime", () => {
         );
     });
 
-    it("schedules animation frames through the injected runtime scope", () => {
+    it("schedules animation frames through the injected runtime provider", () => {
         expect.assertions(3);
 
         const callback = vi.fn<FrameRequestCallback>();
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 9);
-        const utils = getSettingsModalRuntime({ requestAnimationFrame });
+        const scope = {
+            getRequestAnimationFrame: () => requestAnimationFrame,
+        };
+        const utils = getSettingsModalRuntime(scope);
 
         expect(utils.requestAnimationFrame(callback)).toBe(9);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
-        expect(requestAnimationFrame.mock.contexts[0]).toStrictEqual({
-            requestAnimationFrame,
-        });
+        expect(requestAnimationFrame.mock.contexts[0]).toBe(scope);
     });
 
     it("runs animation frame callbacks immediately when scheduling is unavailable", () => {
@@ -107,18 +109,53 @@ describe("getSettingsModalRuntime", () => {
         expect(callback).toHaveBeenCalledWith(0);
     });
 
-    it("cancels animation frames through the injected runtime scope", () => {
+    it("cancels animation frames through the injected runtime provider", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const utils = getSettingsModalRuntime({ cancelAnimationFrame });
+        const scope = {
+            getCancelAnimationFrame: () => cancelAnimationFrame,
+        };
+        const utils = getSettingsModalRuntime(scope);
 
         utils.cancelAnimationFrame(24);
 
         expect(cancelAnimationFrame).toHaveBeenCalledWith(24);
-        expect(cancelAnimationFrame.mock.contexts[0]).toStrictEqual({
+        expect(cancelAnimationFrame.mock.contexts[0]).toBe(scope);
+    });
+
+    it("ignores legacy direct timing runtime properties", () => {
+        expect.assertions(8);
+
+        const callback = vi.fn<() => void>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 21);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => 34);
+        const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+        const runtime = getSettingsModalRuntime({
             cancelAnimationFrame,
-        });
+            clearTimeout,
+            requestAnimationFrame,
+            setTimeout,
+        } as unknown as Parameters<typeof getSettingsModalRuntime>[0]);
+
+        expect(() => runtime.setTimeout(callback, 0)).toThrow(
+            "settingsModalRuntime requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(21)).toThrow(
+            "settingsModalRuntime requires a clearTimeout runtime"
+        );
+        expect(runtime.requestAnimationFrame(frameCallback)).toBe(null);
+        runtime.cancelAnimationFrame(34);
+
+        expect(frameCallback).toHaveBeenCalledWith(0);
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
+        expect(requestAnimationFrame).not.toHaveBeenCalled();
+        expect(cancelAnimationFrame).not.toHaveBeenCalled();
     });
 
     it("ignores frame cancellation when the runtime scope cannot cancel", () => {

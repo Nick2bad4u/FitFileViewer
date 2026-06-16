@@ -1,10 +1,6 @@
 export type SettingsModalTimerHandle = ReturnType<typeof globalThis.setTimeout>;
 
 export interface SettingsModalRuntimeScope {
-    readonly cancelAnimationFrame?:
-        | typeof globalThis.cancelAnimationFrame
-        | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly getCancelAnimationFrame?:
         | (() => typeof globalThis.cancelAnimationFrame | undefined)
         | undefined;
@@ -17,20 +13,18 @@ export interface SettingsModalRuntimeScope {
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
-    readonly requestAnimationFrame?:
-        | typeof globalThis.requestAnimationFrame
-        | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
 
 export interface SettingsModalRuntime {
-    cancelAnimationFrame(handle: number): void;
-    clearTimeout(handle: SettingsModalTimerHandle): void;
-    requestAnimationFrame(onFrame: FrameRequestCallback): null | number;
-    setTimeout(
+    readonly cancelAnimationFrame: (handle: number) => void;
+    readonly clearTimeout: (handle: SettingsModalTimerHandle) => void;
+    readonly requestAnimationFrame: (
+        onFrame: FrameRequestCallback
+    ) => null | number;
+    readonly setTimeout: (
         callback: () => void,
         delay: number
-    ): SettingsModalTimerHandle;
+    ) => SettingsModalTimerHandle;
 }
 
 const defaultSettingsModalRuntimeScope: SettingsModalRuntimeScope = {
@@ -43,25 +37,25 @@ const defaultSettingsModalRuntimeScope: SettingsModalRuntimeScope = {
 function getScopeCancelAnimationFrame(
     scope: SettingsModalRuntimeScope
 ): typeof globalThis.cancelAnimationFrame | undefined {
-    return scope.getCancelAnimationFrame?.() ?? scope.cancelAnimationFrame;
+    return scope.getCancelAnimationFrame?.();
 }
 
 function getScopeClearTimeout(
     scope: SettingsModalRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
-    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+    return scope.getClearTimeout?.();
 }
 
 function getScopeRequestAnimationFrame(
     scope: SettingsModalRuntimeScope
 ): typeof globalThis.requestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.() ?? scope.requestAnimationFrame;
+    return scope.getRequestAnimationFrame?.();
 }
 
 function getScopeSetTimeout(
     scope: SettingsModalRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
-    return scope.getSetTimeout?.() ?? scope.setTimeout;
+    return scope.getSetTimeout?.();
 }
 
 export function getSettingsModalRuntime(
