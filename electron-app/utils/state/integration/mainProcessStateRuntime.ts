@@ -3,7 +3,6 @@ type MainProcessPerformanceRuntime = {
 };
 
 export interface MainProcessStateRuntimeScope {
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly dateNow?: (() => number) | undefined;
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
@@ -14,8 +13,6 @@ export interface MainProcessStateRuntimeScope {
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
-    readonly performance?: MainProcessPerformanceRuntime | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
 
 export type MainProcessStateTimer = ReturnType<typeof globalThis.setTimeout>;
@@ -39,7 +36,7 @@ const defaultMainProcessStateRuntimeScope: MainProcessStateRuntimeScope = {
 function getRequiredMonotonicNow(
     scope: MainProcessStateRuntimeScope
 ): () => number {
-    const performance = scope.getPerformance?.() ?? scope.performance;
+    const performance = scope.getPerformance?.();
     const performanceNow = performance?.now;
     if (typeof performanceNow === "function") {
         return performanceNow.bind(performance);
@@ -58,8 +55,7 @@ export function getMainProcessStateRuntime(
 ): MainProcessStateRuntime {
     return {
         clearTimeout(handle): void {
-            const clearTimeoutRef =
-                scope.getClearTimeout?.() ?? scope.clearTimeout;
+            const clearTimeoutRef = scope.getClearTimeout?.();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "mainProcessStateRuntime requires clearTimeout"
@@ -72,7 +68,7 @@ export function getMainProcessStateRuntime(
             return getRequiredMonotonicNow(scope)();
         },
         setTimeout(callback, delayMs): MainProcessStateTimer {
-            const setTimeoutRef = scope.getSetTimeout?.() ?? scope.setTimeout;
+            const setTimeoutRef = scope.getSetTimeout?.();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "mainProcessStateRuntime requires setTimeout"

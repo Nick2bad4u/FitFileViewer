@@ -2457,7 +2457,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-process state-manager timing behind the runtime adapter", () => {
-        expect.assertions(11);
+        expect.assertions(17);
 
         const mainProcessStateManagerSource = stripComments(
             readRepositoryFile(
@@ -2505,6 +2505,22 @@ describe("architecture boundaries", () => {
         expect(mainProcessStateRuntimeSource).toContain(
             "mainProcessStateRuntime requires a clock"
         );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "readonly performance?:"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain(
+            "scope.performance"
+        );
+        expect(mainProcessStateRuntimeSource).not.toContain("scope.setTimeout");
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {

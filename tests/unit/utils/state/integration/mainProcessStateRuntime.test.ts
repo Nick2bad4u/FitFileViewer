@@ -13,7 +13,7 @@ describe("mainProcessStateRuntime", () => {
         expect(
             getMainProcessStateRuntime({
                 dateNow: () => 123,
-                performance: { now: () => 45.5 },
+                getPerformance: () => ({ now: () => 45.5 }),
             }).monotonicNowMs()
         ).toBe(45.5);
     });
@@ -54,8 +54,8 @@ describe("mainProcessStateRuntime", () => {
             clearedTimer = handle;
         };
         const runtime = getMainProcessStateRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
@@ -66,6 +66,33 @@ describe("mainProcessStateRuntime", () => {
             scheduledDelay: delayMs,
         });
         expect(clearedTimer).toBe(timer);
+    });
+
+    it("ignores legacy direct timer and performance runtime properties", () => {
+        expect.assertions(6);
+
+        const callback = vi.fn<() => void>();
+        const timer = 67 as ReturnType<typeof globalThis.setTimeout>;
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const performanceNow = vi.fn<() => number>(() => 45.5);
+        const runtime = getMainProcessStateRuntime({
+            clearTimeout,
+            dateNow: () => 123,
+            performance: { now: performanceNow },
+            setTimeout,
+        } as unknown as Parameters<typeof getMainProcessStateRuntime>[0]);
+
+        expect(runtime.monotonicNowMs()).toBe(123);
+        expect(() => runtime.setTimeout(callback, 50)).toThrow(
+            "mainProcessStateRuntime requires setTimeout"
+        );
+        expect(() => runtime.clearTimeout(timer)).toThrow(
+            "mainProcessStateRuntime requires clearTimeout"
+        );
+        expect(performanceNow).not.toHaveBeenCalled();
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
