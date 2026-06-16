@@ -6273,7 +6273,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps state integration runtime APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(17);
 
         const violations = migratedStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -6304,6 +6304,40 @@ describe("architecture boundaries", () => {
         expect(stateIntegrationRuntimeSource).toContain(
             "stateIntegrationRuntime requires setTimeout"
         );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "readonly clearInterval?:"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "readonly localStorage?:"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "readonly performance?:"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "readonly setInterval?:"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "scope.clearInterval"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "scope.localStorage"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "scope.performance"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain(
+            "scope.setInterval"
+        );
+        expect(stateIntegrationRuntimeSource).not.toContain("scope.setTimeout");
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
