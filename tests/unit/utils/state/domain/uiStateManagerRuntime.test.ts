@@ -34,30 +34,25 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("resolves system theme media queries from the scoped runtime", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const mediaQuery = { matches: true } as MediaQueryList;
         const scopedMatchMedia = vi.fn(() => mediaQuery);
-        const directMatchMedia = vi.fn(
-            () => ({ matches: false }) as MediaQueryList
-        );
 
         expect(
             getUIStateManagerRuntime({
                 getMatchMedia: () => scopedMatchMedia,
-                matchMedia: directMatchMedia,
             }).getSystemThemeMediaQuery()
         ).toBe(mediaQuery);
         expect(scopedMatchMedia).toHaveBeenCalledWith(
             "(prefers-color-scheme: dark)"
         );
-        expect(directMatchMedia).not.toHaveBeenCalled();
         expect(
             getUIStateManagerRuntime({}).getSystemThemeMediaQuery()
         ).toBeNull();
     });
 
-    it("uses direct scoped matchMedia when no provider is scoped", () => {
+    it("ignores direct scoped matchMedia when no provider is scoped", () => {
         expect.assertions(2);
 
         const mediaQuery = { matches: false } as MediaQueryList;
@@ -66,11 +61,11 @@ describe("uiStateManagerRuntime", () => {
         expect(
             getUIStateManagerRuntime({
                 matchMedia: directMatchMedia,
-            }).getSystemThemeMediaQuery()
-        ).toBe(mediaQuery);
-        expect(directMatchMedia).toHaveBeenCalledWith(
-            "(prefers-color-scheme: dark)"
-        );
+            } as unknown as Parameters<
+                typeof getUIStateManagerRuntime
+            >[0]).getSystemThemeMediaQuery()
+        ).toBeNull();
+        expect(directMatchMedia).not.toHaveBeenCalled();
     });
 
     it("routes window listeners through the scoped event target provider", () => {
@@ -79,11 +74,11 @@ describe("uiStateManagerRuntime", () => {
         const addEventListener = vi.fn();
         const directAddEventListener = vi.fn();
         const runtime = getUIStateManagerRuntime({
+            getEventTarget: () => ({ addEventListener }),
             eventTarget: {
                 addEventListener: directAddEventListener,
             },
-            getEventTarget: () => ({ addEventListener }),
-        });
+        } as unknown as Parameters<typeof getUIStateManagerRuntime>[0]);
         const listener = vi.fn();
         const options = { once: true };
 
@@ -126,7 +121,7 @@ describe("uiStateManagerRuntime", () => {
         });
         expect(
             getUIStateManagerRuntime({
-                viewportState: {
+                getViewportState: () => ({
                     innerHeight: 800,
                     innerWidth: 1200,
                     outerHeight: 1080,
@@ -137,7 +132,7 @@ describe("uiStateManagerRuntime", () => {
                     },
                     screenX: 100,
                     screenY: 200,
-                },
+                }),
             }).getWindowState()
         ).toMatchObject({ maximized: true });
     });
@@ -148,11 +143,58 @@ describe("uiStateManagerRuntime", () => {
         expect(getUIStateManagerRuntime({}).getWindowState()).toBeNull();
         expect(
             getUIStateManagerRuntime({
-                viewportState: {
+                getViewportState: () => ({
                     innerHeight: 800,
                     innerWidth: 1200,
-                },
+                }),
             }).getWindowState()
         ).toBeNull();
+    });
+
+    it("ignores legacy direct runtime primitive properties", () => {
+        expect.assertions(10);
+
+        let created = false;
+        class TestAbortController extends AbortController {
+            constructor() {
+                super();
+                created = true;
+            }
+        }
+        const addEventListener = vi.fn();
+        const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
+        const runtime = getUIStateManagerRuntime({
+            AbortController:
+                TestAbortController as unknown as typeof AbortController,
+            eventTarget: { addEventListener },
+            matchMedia,
+            viewportState: {
+                innerHeight: 800,
+                innerWidth: 1200,
+                outerHeight: 1080,
+                outerWidth: 1920,
+                screen: {
+                    availHeight: 1080,
+                    availWidth: 1920,
+                },
+                screenX: 100,
+                screenY: 200,
+            },
+        } as unknown as Parameters<typeof getUIStateManagerRuntime>[0]);
+        const listener = vi.fn();
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "UI state manager requires an AbortController runtime"
+        );
+        expect(runtime.getSystemThemeMediaQuery()).toBeNull();
+        expect(runtime.getWindowState()).toBeNull();
+        expect(runtime.hasWindow()).toBe(false);
+        runtime.addWindowEventListener("resize", listener);
+        expect(created).toBe(false);
+        expect(matchMedia).not.toHaveBeenCalled();
+        expect(addEventListener).not.toHaveBeenCalled();
+        expect(listener).not.toHaveBeenCalled();
+        expect(getUIStateManagerRuntime({}).hasWindow()).toBe(false);
+        expect(getUIStateManagerRuntime({}).getWindowState()).toBeNull();
     });
 });

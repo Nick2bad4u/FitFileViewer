@@ -23,8 +23,6 @@ type UIStateManagerViewportState = Partial<
 };
 
 export interface UIStateManagerRuntimeScope {
-    readonly AbortController?: typeof globalThis.AbortController | undefined;
-    readonly eventTarget?: UIStateManagerEventTarget | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
@@ -37,8 +35,6 @@ export interface UIStateManagerRuntimeScope {
     readonly getViewportState?:
         | (() => UIStateManagerViewportState | undefined)
         | undefined;
-    readonly matchMedia?: typeof globalThis.matchMedia | undefined;
-    readonly viewportState?: UIStateManagerViewportState | undefined;
 }
 
 export interface UIStateManagerRuntime {
@@ -66,8 +62,7 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
 function getAbortControllerConstructor(
     scope: UIStateManagerRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ?? scope.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "UI state manager requires an AbortController runtime"
@@ -80,13 +75,13 @@ function getAbortControllerConstructor(
 function getEventTarget(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerEventTarget | undefined {
-    return scope.getEventTarget?.() ?? scope.eventTarget;
+    return scope.getEventTarget?.();
 }
 
 function getMatchMedia(
     scope: UIStateManagerRuntimeScope
 ): typeof matchMedia | undefined {
-    const candidate = scope.getMatchMedia?.() ?? scope.matchMedia;
+    const candidate = scope.getMatchMedia?.();
 
     return typeof candidate === "function" ? candidate : undefined;
 }
@@ -94,7 +89,7 @@ function getMatchMedia(
 function getViewportState(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerViewportState | undefined {
-    return scope.getViewportState?.() ?? scope.viewportState;
+    return scope.getViewportState?.();
 }
 
 export function getUIStateManagerRuntime(
