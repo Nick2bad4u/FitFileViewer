@@ -3985,7 +3985,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(19);
+        expect.assertions(23);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4045,8 +4045,36 @@ describe("architecture boundaries", () => {
         ]);
         expect(
             rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "defaultMainUiRuntimeEnvironmentScope"
+                )
+            )
+        ).toBe(true);
+        expect(
+            rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "getConsole: () => globalThis.console"
+                )
+            )
+        ).toBe(true);
+        expect(
+            rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "dateNow: () => Date.now()"
+                )
+            )
+        ).toBe(true);
+        expect(
+            rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
                 mainUiRuntimeGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+        ).toBe(true);
+        expect(
+            rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "main UI runtime environment requires a console reference"
                 )
             )
         ).toBe(true);
