@@ -3,10 +3,6 @@ export type RendererVendorBundleLoaderTimerHandle = ReturnType<
 >;
 
 export interface RendererVendorBundleLoaderRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly addEventListener?: typeof globalThis.addEventListener | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly document?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -20,18 +16,13 @@ export interface RendererVendorBundleLoaderRuntimeScope {
     readonly getHTMLScriptElement?:
         | (() => typeof HTMLScriptElement | undefined)
         | undefined;
+    readonly getNow?: (() => (() => number) | undefined) | undefined;
     readonly getRemoveEventListener?:
         | (() => typeof globalThis.removeEventListener | undefined)
         | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
-    readonly HTMLScriptElement?: typeof HTMLScriptElement | undefined;
-    readonly now?: (() => number) | undefined;
-    readonly removeEventListener?:
-        | typeof globalThis.removeEventListener
-        | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
 
 export interface RendererVendorBundleLoaderRuntime {
@@ -66,7 +57,7 @@ const defaultRendererVendorBundleLoaderRuntimeScope: RendererVendorBundleLoaderR
         getClearTimeout: () => globalThis.clearTimeout.bind(globalThis),
         getDocument: () => globalThis.document,
         getHTMLScriptElement: () => globalThis.HTMLScriptElement,
-        now: Date.now,
+        getNow: () => Date.now,
         getRemoveEventListener: () =>
             globalThis.removeEventListener.bind(globalThis),
         getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
@@ -80,17 +71,12 @@ function addEventListenerForScope(
 ): void {
     const addEventListener = scope.getAddEventListener?.();
     if (typeof addEventListener === "function") {
-        // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Vendor loader callers pair readiness listeners with caller-owned AbortSignal and removeEventListener cleanup.
         addEventListener(type, listener, options);
-        return;
     }
-
-    // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Vendor loader callers pair readiness listeners with caller-owned AbortSignal and removeEventListener cleanup.
-    scope.addEventListener?.(type, listener, options);
 }
 
 function getDocument(scope: RendererVendorBundleLoaderRuntimeScope): Document {
-    const documentTarget = scope.getDocument?.() ?? scope.document;
+    const documentTarget = scope.getDocument?.();
     if (!documentTarget) {
         throw new TypeError("renderer vendor loader requires a document");
     }
@@ -103,7 +89,6 @@ function getScriptConstructor(
 ): typeof HTMLScriptElement | undefined {
     return (
         scope.getHTMLScriptElement?.() ??
-        scope.HTMLScriptElement ??
         getScopeDocument(scope)?.defaultView?.HTMLScriptElement
     );
 }
@@ -111,13 +96,13 @@ function getScriptConstructor(
 function getScopeAbortController(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): typeof AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getScopeDocument(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): Document | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function isScriptElement(
@@ -134,7 +119,7 @@ function isScriptElement(
 function getRequiredClearTimeout(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): typeof globalThis.clearTimeout {
-    const clearTimeoutRef = scope.getClearTimeout?.() ?? scope.clearTimeout;
+    const clearTimeoutRef = scope.getClearTimeout?.();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError(
             "renderer vendor loader requires a clearTimeout runtime"
@@ -147,7 +132,7 @@ function getRequiredClearTimeout(
 function getRequiredNow(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): () => number {
-    const nowRef = scope.now;
+    const nowRef = scope.getNow?.();
     if (typeof nowRef !== "function") {
         throw new TypeError("renderer vendor loader requires a clock runtime");
     }
@@ -158,7 +143,7 @@ function getRequiredNow(
 function getRequiredSetTimeout(
     scope: RendererVendorBundleLoaderRuntimeScope
 ): typeof globalThis.setTimeout {
-    const setTimeoutRef = scope.getSetTimeout?.() ?? scope.setTimeout;
+    const setTimeoutRef = scope.getSetTimeout?.();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError(
             "renderer vendor loader requires a setTimeout runtime"
@@ -235,10 +220,7 @@ export function getRendererVendorBundleLoaderRuntime(
             const removeEventListener = scope.getRemoveEventListener?.();
             if (typeof removeEventListener === "function") {
                 removeEventListener(type, listener);
-                return;
             }
-
-            scope.removeEventListener?.(type, listener);
         },
         setTimeout(
             callback: () => void,

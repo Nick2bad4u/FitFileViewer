@@ -9602,7 +9602,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer vendor loader browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(22);
 
         const violations = migratedRendererVendorBundleLoaderRuntimeFiles
             .filter((relativeFile) =>
@@ -9632,6 +9632,51 @@ describe("architecture boundaries", () => {
         );
         expect(vendorBundleLoaderRuntimeSource).toContain(
             "renderer vendor loader requires a setTimeout runtime"
+        );
+        expect(vendorBundleLoaderRuntimeSource).toContain(
+            "getNow: () => Date.now"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "readonly addEventListener?:"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "readonly HTMLScriptElement?:"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain("readonly now?:");
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "readonly removeEventListener?:"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.addEventListener"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain("scope.document");
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.HTMLScriptElement"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain("scope.now");
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.removeEventListener"
+        );
+        expect(vendorBundleLoaderRuntimeSource).not.toContain(
+            "scope.setTimeout"
         );
     });
 
