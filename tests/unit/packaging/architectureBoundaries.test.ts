@@ -6116,7 +6116,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(25);
+        expect.assertions(39);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6186,6 +6186,36 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).toContain(
             "getScopeDevelopmentFlag(scope) === true"
         );
+        expect(masterStateRuntimeSource).not.toContain(
+            "readonly __DEVELOPMENT__?:"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "readonly addEventListener?:"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "readonly documentEventTarget?:"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "readonly dispatchEvent?:"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "readonly eventTarget?:"
+        );
+        expect(masterStateRuntimeSource).not.toContain("readonly location?:");
+        expect(masterStateRuntimeSource).not.toContain("scope.__DEVELOPMENT__");
+        expect(masterStateRuntimeSource).not.toContain("scope.AbortController");
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.addEventListener"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.documentEventTarget"
+        );
+        expect(masterStateRuntimeSource).not.toContain("scope.dispatchEvent");
+        expect(masterStateRuntimeSource).not.toContain("scope.eventTarget");
+        expect(masterStateRuntimeSource).not.toContain("scope.location");
     });
 
     it("keeps computed state manager theme media reads behind the runtime adapter", () => {

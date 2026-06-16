@@ -9,12 +9,6 @@ type MasterStateGlobalEventMap = WindowEventMap & {
 type MasterStateEventTarget = Pick<EventTarget, "addEventListener">;
 
 export interface MasterStateRuntimeScope {
-    readonly __DEVELOPMENT__?: boolean;
-    readonly AbortController?: typeof globalThis.AbortController | undefined;
-    readonly addEventListener?: typeof globalThis.addEventListener | undefined;
-    readonly documentEventTarget?: MasterStateEventTarget | undefined;
-    readonly dispatchEvent?: typeof globalThis.dispatchEvent | undefined;
-    readonly eventTarget?: MasterStateEventTarget | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
@@ -32,7 +26,6 @@ export interface MasterStateRuntimeScope {
         | (() => MasterStateEventTarget | undefined)
         | undefined;
     readonly getLocation?: (() => LocationLike | undefined) | undefined;
-    readonly location?: LocationLike | undefined;
 }
 
 export interface MasterStateDevelopmentOptions {
@@ -43,27 +36,29 @@ export interface MasterStateDevelopmentOptions {
 export interface MasterStateRuntime {
     addDocumentEventListener: <K extends keyof DocumentEventMap>(
         type: K,
-        listener: (event: DocumentEventMap[K]) => void,
-        options?: AddEventListenerOptions
+        listener: (event: Readonly<DocumentEventMap[K]>) => void,
+        options?: Readonly<AddEventListenerOptions>
     ) => void;
     addGlobalEventListener: <K extends keyof MasterStateGlobalEventMap>(
         type: K,
-        listener: (event: MasterStateGlobalEventMap[K]) => void,
-        options?: AddEventListenerOptions
+        listener: (event: Readonly<MasterStateGlobalEventMap[K]>) => void,
+        options?: Readonly<AddEventListenerOptions>
     ) => void;
     addWindowEventListener: <K extends keyof WindowEventMap>(
         type: K,
-        listener: (event: WindowEventMap[K]) => void,
-        options?: AddEventListenerOptions
+        listener: (event: Readonly<WindowEventMap[K]>) => void,
+        options?: Readonly<AddEventListenerOptions>
     ) => void;
     createAbortController: () => AbortController;
-    dispatchGlobalEvent: (event: Event) => boolean;
-    isDevelopmentScope: (options?: MasterStateDevelopmentOptions) => boolean;
+    dispatchGlobalEvent: (event: Readonly<Event>) => boolean;
+    isDevelopmentScope: (
+        options?: Readonly<MasterStateDevelopmentOptions>
+    ) => boolean;
     readonly location: LocationLike;
 }
 
 function getLocationText(
-    location: LocationLike,
+    location: Readonly<LocationLike>,
     key: keyof LocationLike
 ): string {
     const value = location[key];
@@ -84,25 +79,25 @@ const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
 function getScopeAbortController(
     scope: MasterStateRuntimeScope
 ): typeof globalThis.AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getScopeAddEventListener(
     scope: MasterStateRuntimeScope
 ): typeof globalThis.addEventListener | undefined {
-    return scope.getAddEventListener?.() ?? scope.addEventListener;
+    return scope.getAddEventListener?.();
 }
 
 function getScopeDevelopmentFlag(
     scope: MasterStateRuntimeScope
 ): boolean | undefined {
-    return scope.getDevelopmentFlag?.() ?? scope.__DEVELOPMENT__;
+    return scope.getDevelopmentFlag?.();
 }
 
 function getScopeDocumentEventTarget(
     scope: MasterStateRuntimeScope
 ): MasterStateEventTarget | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+    return scope.getDocumentEventTarget?.();
 }
 
 function getRequiredDocumentEventTarget(
@@ -121,19 +116,19 @@ function getRequiredDocumentEventTarget(
 function getScopeDispatchEvent(
     scope: MasterStateRuntimeScope
 ): typeof globalThis.dispatchEvent | undefined {
-    return scope.getDispatchEvent?.() ?? scope.dispatchEvent;
+    return scope.getDispatchEvent?.();
 }
 
 function getScopeEventTarget(
     scope: MasterStateRuntimeScope
 ): MasterStateEventTarget | undefined {
-    return scope.getEventTarget?.() ?? scope.eventTarget;
+    return scope.getEventTarget?.();
 }
 
 function getScopeLocation(
     scope: MasterStateRuntimeScope
 ): LocationLike | undefined {
-    return scope.getLocation?.() ?? scope.location;
+    return scope.getLocation?.();
 }
 
 export function getMasterStateRuntime(
@@ -147,28 +142,30 @@ export function getMasterStateRuntime(
     return {
         addDocumentEventListener(type, listener, options): void {
             const eventTarget = getRequiredDocumentEventTarget(scope);
-            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned listener options, including AbortSignal cleanup.
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned cleanup options.
             eventTarget.addEventListener(
                 type,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- DOM EventTarget cannot preserve typed event-map listener generics at this adapter boundary.
                 listener as EventListener,
                 options
             );
         },
         addGlobalEventListener(type, listener, options): void {
             const addEventListenerRef = getScopeAddEventListener(scope);
-            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned listener options, including AbortSignal cleanup.
             addEventListenerRef?.call(
                 scope,
                 type,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- DOM EventTarget cannot preserve typed event-map listener generics at this adapter boundary.
                 listener as EventListener,
                 options
             );
         },
         addWindowEventListener(type, listener, options): void {
             const eventTarget = getScopeEventTarget(scope);
-            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned listener options, including AbortSignal cleanup.
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned cleanup options.
             eventTarget?.addEventListener(
                 type,
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- DOM EventTarget cannot preserve typed event-map listener generics at this adapter boundary.
                 listener as EventListener,
                 options
             );

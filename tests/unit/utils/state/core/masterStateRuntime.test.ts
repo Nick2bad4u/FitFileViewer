@@ -8,26 +8,35 @@ describe("masterStateRuntime", () => {
 
         expect(
             getMasterStateRuntime({
-                location: { hostname: "localhost", protocol: "http:" },
-                eventTarget: { addEventListener: vi.fn() },
+                getLocation: () => ({
+                    hostname: "localhost",
+                    protocol: "http:",
+                }),
+                getEventTarget: () => ({ addEventListener: vi.fn() }),
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
             getMasterStateRuntime({
-                location: { hostname: "127.0.0.1", protocol: "http:" },
-                eventTarget: { addEventListener: vi.fn() },
+                getLocation: () => ({
+                    hostname: "127.0.0.1",
+                    protocol: "http:",
+                }),
+                getEventTarget: () => ({ addEventListener: vi.fn() }),
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
             getMasterStateRuntime({
-                location: { hostname: "app-dev.local", protocol: "https:" },
-                eventTarget: { addEventListener: vi.fn() },
+                getLocation: () => ({
+                    hostname: "app-dev.local",
+                    protocol: "https:",
+                }),
+                getEventTarget: () => ({ addEventListener: vi.fn() }),
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
             getMasterStateRuntime({
-                location: { hostname: "app", protocol: "file:" },
-                eventTarget: { addEventListener: vi.fn() },
+                getLocation: () => ({ hostname: "app", protocol: "file:" }),
+                getEventTarget: () => ({ addEventListener: vi.fn() }),
             }).isDevelopmentScope()
         ).toBe(true);
     });
@@ -36,26 +45,37 @@ describe("masterStateRuntime", () => {
         expect.assertions(5);
 
         const rendererScope = {
-            eventTarget: { addEventListener: vi.fn() },
-            location: { hostname: "example.com", protocol: "https:" },
+            getEventTarget: () => ({ addEventListener: vi.fn() }),
+            getLocation: () => ({
+                hostname: "example.com",
+                protocol: "https:",
+            }),
         };
 
         expect(
             getMasterStateRuntime({
                 ...rendererScope,
-                location: { ...rendererScope.location, search: "?debug=true" },
+                getLocation: () => ({
+                    hostname: "example.com",
+                    protocol: "https:",
+                    search: "?debug=true",
+                }),
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
             getMasterStateRuntime({
                 ...rendererScope,
-                location: { ...rendererScope.location, hash: "#debug" },
+                getLocation: () => ({
+                    hash: "#debug",
+                    hostname: "example.com",
+                    protocol: "https:",
+                }),
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
             getMasterStateRuntime({
                 ...rendererScope,
-                __DEVELOPMENT__: true,
+                getDevelopmentFlag: () => true,
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
@@ -75,18 +95,24 @@ describe("masterStateRuntime", () => {
 
         expect(
             getMasterStateRuntime({
-                location: { hostname: "example.com", protocol: "https:" },
-                eventTarget: { addEventListener: vi.fn() },
+                getLocation: () => ({
+                    hostname: "example.com",
+                    protocol: "https:",
+                }),
+                getEventTarget: () => ({ addEventListener: vi.fn() }),
             }).isDevelopmentScope()
         ).toBe(false);
         expect(
             getMasterStateRuntime({
-                eventTarget: undefined,
-                location: { hostname: "localhost", protocol: "http:" },
+                getEventTarget: () => undefined,
+                getLocation: () => ({
+                    hostname: "localhost",
+                    protocol: "http:",
+                }),
             }).isDevelopmentScope()
         ).toBe(false);
         expect(
-            getMasterStateRuntime({ __DEVELOPMENT__: false }).location
+            getMasterStateRuntime({ getDevelopmentFlag: () => false }).location
         ).toStrictEqual({});
     });
 
@@ -98,10 +124,14 @@ describe("masterStateRuntime", () => {
         const addWindowEventListener = vi.fn();
         const dispatchGlobalEvent = vi.fn(() => true);
         const runtime = getMasterStateRuntime({
-            addEventListener: addGlobalEventListener,
-            documentEventTarget: { addEventListener: addDocumentEventListener },
-            dispatchEvent: dispatchGlobalEvent,
-            eventTarget: { addEventListener: addWindowEventListener },
+            getAddEventListener: () => addGlobalEventListener,
+            getDocumentEventTarget: () => ({
+                addEventListener: addDocumentEventListener,
+            }),
+            getDispatchEvent: () => dispatchGlobalEvent,
+            getEventTarget: () => ({
+                addEventListener: addWindowEventListener,
+            }),
         });
         const listener = vi.fn();
         const options = { once: true };
@@ -246,7 +276,7 @@ describe("masterStateRuntime", () => {
             }
         }
         const runtime = getMasterStateRuntime({
-            AbortController:
+            getAbortController: () =>
                 TestAbortController as unknown as typeof AbortController,
         });
 
@@ -254,6 +284,53 @@ describe("masterStateRuntime", () => {
             TestAbortController
         );
         expect(created).toBe(true);
+    });
+
+    it("ignores legacy direct browser and development runtime properties", () => {
+        expect.assertions(10);
+
+        let created = false;
+        class TestAbortController extends AbortController {
+            constructor() {
+                super();
+                created = true;
+            }
+        }
+        const addDocumentEventListener = vi.fn();
+        const addGlobalEventListener = vi.fn();
+        const addWindowEventListener = vi.fn();
+        const dispatchGlobalEvent = vi.fn(() => true);
+        const runtime = getMasterStateRuntime({
+            __DEVELOPMENT__: true,
+            AbortController:
+                TestAbortController as unknown as typeof AbortController,
+            addEventListener: addGlobalEventListener,
+            documentEventTarget: { addEventListener: addDocumentEventListener },
+            dispatchEvent: dispatchGlobalEvent,
+            eventTarget: { addEventListener: addWindowEventListener },
+            location: { hostname: "localhost", protocol: "file:" },
+        } as unknown as Parameters<typeof getMasterStateRuntime>[0]);
+        const listener = vi.fn();
+        const event = new Event("stateChanged");
+
+        expect(runtime.isDevelopmentScope()).toBe(false);
+        expect(runtime.location).toStrictEqual({});
+        expect(runtime.dispatchGlobalEvent(event)).toBe(false);
+        runtime.addGlobalEventListener("error", listener);
+        runtime.addWindowEventListener("resize", listener);
+        expect(() =>
+            runtime.addDocumentEventListener("keydown", listener)
+        ).toThrow(
+            "master state manager requires a document event-target runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "master state manager requires an AbortController runtime"
+        );
+        expect(created).toBe(false);
+        expect(addGlobalEventListener).not.toHaveBeenCalled();
+        expect(addWindowEventListener).not.toHaveBeenCalled();
+        expect(addDocumentEventListener).not.toHaveBeenCalled();
+        expect(dispatchGlobalEvent).not.toHaveBeenCalled();
     });
 
     it("throws when abort controllers are unavailable", () => {
