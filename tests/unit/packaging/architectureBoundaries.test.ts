@@ -8702,7 +8702,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated AltFit handoff defaults behind the runtime facade", () => {
-        expect.assertions(9);
+        expect.assertions(19);
 
         const violations = migratedAltFitSenderRuntimeFiles
             .filter((relativeFile) =>
@@ -8720,6 +8720,14 @@ describe("architecture boundaries", () => {
         const altFitSenderRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/files/import/altFitSenderRuntime.ts"
+            )
+        );
+        const runtimeScopeSource = altFitSenderRuntimeSource.slice(
+            altFitSenderRuntimeSource.indexOf(
+                "interface AltFitSenderRuntimeScope"
+            ),
+            altFitSenderRuntimeSource.indexOf(
+                "const defaultAltFitSenderRuntimeScope"
             )
         );
 
@@ -8743,6 +8751,22 @@ describe("architecture boundaries", () => {
         );
         expect(altFitSenderRuntimeSource).toContain(
             "getLocation: () => globalThis.location"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
+        expect(runtimeScopeSource).not.toContain("readonly console?:");
+        expect(runtimeScopeSource).not.toContain("readonly document?:");
+        expect(runtimeScopeSource).not.toContain("readonly location?:");
+        expect(altFitSenderRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(altFitSenderRuntimeSource).not.toContain("scope.console");
+        expect(altFitSenderRuntimeSource).not.toContain("scope.document");
+        expect(altFitSenderRuntimeSource).not.toContain("scope.location");
+        expect(altFitSenderRuntimeSource).toContain(
+            "return scope.getAbortController?.();"
+        );
+        expect(altFitSenderRuntimeSource).toContain(
+            "return scope.getLocation?.();"
         );
     });
 

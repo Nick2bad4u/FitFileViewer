@@ -13,9 +13,9 @@ describe("altFitSenderRuntime", () => {
             }
         );
         const runtime = getAltFitSenderRuntimeEnvironment({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
-            console,
+            getConsole: () => console,
         });
 
         expect(runtime.createAbortController()).toBe(controller);
@@ -25,7 +25,9 @@ describe("altFitSenderRuntime", () => {
     it("throws when abort controller creation is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getAltFitSenderRuntimeEnvironment({ console });
+        const runtime = getAltFitSenderRuntimeEnvironment({
+            getConsole: () => console,
+        });
 
         expect(() => runtime.createAbortController()).toThrow(
             "Alt FIT sender requires an AbortController runtime"
@@ -50,9 +52,9 @@ describe("altFitSenderRuntime", () => {
         };
 
         const runtime = getAltFitSenderRuntimeEnvironment({
-            console: logger,
-            document: { getElementById },
-            location,
+            getConsole: () => logger,
+            getDocument: () => ({ getElementById }),
+            getLocation: () => location,
         });
 
         expect(runtime.console).toBe(logger);
@@ -113,9 +115,57 @@ describe("altFitSenderRuntime", () => {
         expect.assertions(1);
 
         const runtime = getAltFitSenderRuntimeEnvironment({
-            console,
+            getConsole: () => console,
         });
 
         expect(runtime.getElementById("altfit-iframe")).toBeNull();
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(9);
+
+        const AbortControllerConstructor = vi.fn();
+        const getElementById = vi.fn();
+        const legacyLogger = {
+            error: vi.fn<typeof console.error>(),
+            warn: vi.fn<typeof console.warn>(),
+        };
+        const logger = {
+            error: vi.fn<typeof console.error>(),
+            warn: vi.fn<typeof console.warn>(),
+        };
+        const location = {
+            origin: "app://fit-file-viewer",
+            protocol: "app:",
+        };
+
+        expect(() =>
+            getAltFitSenderRuntimeEnvironment({
+                console: legacyLogger,
+            } as unknown as Parameters<
+                typeof getAltFitSenderRuntimeEnvironment
+            >[0])
+        ).toThrow("Alt FIT sender requires a console runtime");
+
+        const runtime = getAltFitSenderRuntimeEnvironment({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            document: { getElementById },
+            getConsole: () => logger,
+            location,
+        } as unknown as Parameters<
+            typeof getAltFitSenderRuntimeEnvironment
+        >[0]);
+
+        expect(runtime.console).toBe(logger);
+        expect(runtime.location).toBeUndefined();
+        expect(runtime.getElementById("altfit-iframe")).toBeNull();
+        expect(() => runtime.createAbortController()).toThrow(
+            "Alt FIT sender requires an AbortController runtime"
+        );
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(getElementById).not.toHaveBeenCalled();
+        expect(legacyLogger.warn).not.toHaveBeenCalled();
+        expect(logger.warn).not.toHaveBeenCalled();
     });
 });
