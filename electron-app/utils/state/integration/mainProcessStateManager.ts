@@ -20,6 +20,7 @@ import {
 } from "../../../shared/mainStatePathPolicy.js";
 import { registerIpcHandle as registerGenericIpcHandle } from "../../../main/ipc/ipcRegistry.js";
 import { getElectron as getStateRuntimeElectron } from "../../../main/runtime/electronAccess.js";
+import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 import {
     getMainProcessStateRuntime,
     type MainProcessStateTimer,
@@ -31,15 +32,7 @@ const RENDERER_READABLE_MAIN_STATE_PATHS: ReadonlySet<string> = new Set([
 const mainProcessStateRuntime = getMainProcessStateRuntime();
 
 function getMainStateProcessEnvironmentValue(name: string): string | undefined {
-    try {
-        const processValue = Reflect.get(globalThis, "process") as
-            | { env?: Record<string, unknown> }
-            | undefined;
-        const value = processValue?.env?.[name];
-        return typeof value === "string" ? value : undefined;
-    } catch {
-        return undefined;
-    }
+    return getProcessEnvironmentValue(name);
 }
 
 function isMainProcessDevelopmentEnvironment(): boolean {

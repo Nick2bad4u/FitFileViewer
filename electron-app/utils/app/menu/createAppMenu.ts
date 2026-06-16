@@ -7,6 +7,7 @@ import {
     getShortRecentName,
     loadRecentFiles,
 } from "../../files/recent/recentFiles.js";
+import { getProcessEnvironmentValue } from "../../runtime/processEnvironment.js";
 
 type RendererIpcEventChannel =
     import("../../../shared/ipc").RendererIpcEventChannel;
@@ -195,15 +196,7 @@ function getRecentFilesOverrideForTests(): null | string[] {
 
 // Determine if verbose createAppMenu debug logging should be enabled.
 function getMenuProcessEnvironmentValue(name: string): string | undefined {
-    try {
-        const processValue = Reflect.get(globalThis, "process") as
-            | { env?: Record<string, unknown> }
-            | undefined;
-        const value = processValue?.env?.[name];
-        return typeof value === "string" ? value : undefined;
-    } catch {
-        return undefined;
-    }
+    return getProcessEnvironmentValue(name);
 }
 
 function shouldLogMenuDebug() {
