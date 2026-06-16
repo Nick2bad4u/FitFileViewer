@@ -18,8 +18,7 @@ export interface StateDevToolsRuntimeScope {
     readonly getSetInterval?:
         | (() => typeof globalThis.setInterval | undefined)
         | undefined;
-    readonly getIsRendererScope?: (() => boolean) | undefined;
-    readonly isRendererScope?: boolean | undefined;
+    readonly getIsRendererScope?: (() => boolean | undefined) | undefined;
     readonly location?:
         | {
               readonly hostname?: string;
@@ -40,7 +39,7 @@ export interface StateDevToolsRuntime {
 
 const defaultStateDevToolsRuntimeScope: StateDevToolsRuntimeScope = {
     getClearInterval: () => globalThis.clearInterval,
-    getIsRendererScope: () => globalThis.document !== undefined,
+    getIsRendererScope: () => Reflect.has(globalThis, "document"),
     getLocation: () => globalThis.location,
     getSetInterval: () => globalThis.setInterval,
 };
@@ -51,9 +50,7 @@ function getScopeClearInterval(
     return scope.getClearInterval?.() ?? scope.clearInterval;
 }
 
-function getScopeLocation(
-    scope: StateDevToolsRuntimeScope
-):
+function getScopeLocation(scope: StateDevToolsRuntimeScope):
     | {
           readonly hostname?: string;
           readonly protocol?: string;
@@ -69,7 +66,7 @@ function getScopeSetInterval(
 }
 
 function getIsRendererScope(scope: StateDevToolsRuntimeScope): boolean {
-    return scope.getIsRendererScope?.() ?? scope.isRendererScope ?? false;
+    return scope.getIsRendererScope?.() ?? false;
 }
 
 function isLocalHost(hostname: unknown): boolean {

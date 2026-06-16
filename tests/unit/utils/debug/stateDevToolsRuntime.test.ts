@@ -8,13 +8,13 @@ describe("stateDevToolsRuntime", () => {
 
         expect(
             getStateDevToolsRuntime({
-                isRendererScope: true,
+                getIsRendererScope: () => true,
                 location: { hostname: "localhost", protocol: "http:" },
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
             getStateDevToolsRuntime({
-                isRendererScope: true,
+                getIsRendererScope: () => true,
                 location: { hostname: "127.0.0.1", protocol: "http:" },
             }).isDevelopmentScope()
         ).toBe(true);
@@ -25,7 +25,7 @@ describe("stateDevToolsRuntime", () => {
 
         expect(
             getStateDevToolsRuntime({
-                isRendererScope: true,
+                getIsRendererScope: () => true,
                 location: { hostname: "app", protocol: "file:" },
             }).isDevelopmentScope()
         ).toBe(true);
@@ -36,13 +36,13 @@ describe("stateDevToolsRuntime", () => {
 
         expect(
             getStateDevToolsRuntime({
-                isRendererScope: true,
+                getIsRendererScope: () => true,
                 location: { hostname: "example.com", protocol: "https:" },
             }).isDevelopmentScope()
         ).toBe(false);
         expect(
             getStateDevToolsRuntime({
-                isRendererScope: false,
+                getIsRendererScope: () => false,
                 location: { hostname: "localhost", protocol: "http:" },
             }).isDevelopmentScope()
         ).toBe(false);
@@ -123,5 +123,16 @@ describe("stateDevToolsRuntime", () => {
                 123 as ReturnType<typeof globalThis.setInterval>
             );
         }).toThrow("stateDevToolsRuntime requires clearInterval");
+    });
+
+    it("ignores legacy direct renderer-scope properties", () => {
+        expect.assertions(1);
+
+        const utils = getStateDevToolsRuntime({
+            isRendererScope: true,
+            location: { hostname: "localhost", protocol: "http:" },
+        } as unknown as Parameters<typeof getStateDevToolsRuntime>[0]);
+
+        expect(utils.isDevelopmentScope()).toBe(false);
     });
 });
