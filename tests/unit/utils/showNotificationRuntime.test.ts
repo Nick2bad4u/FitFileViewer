@@ -26,12 +26,13 @@ describe("showNotificationRuntime", () => {
         expect(callback).not.toHaveBeenCalled();
     });
 
-    it("schedules animation frames through the scoped scheduler", () => {
+    it("schedules animation frames through the scoped scheduler provider", () => {
         expect.assertions(2);
 
         const callback = vi.fn();
+        const requestAnimationFrame = vi.fn(() => 23);
         const scopeRuntime = {
-            requestAnimationFrame: vi.fn(() => 23),
+            getRequestAnimationFrame: () => requestAnimationFrame,
         };
 
         const frame =
@@ -40,9 +41,7 @@ describe("showNotificationRuntime", () => {
             );
 
         expect(frame).toBe(23);
-        expect(scopeRuntime.requestAnimationFrame).toHaveBeenCalledWith(
-            callback
-        );
+        expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
     });
 
     it("runs animation frame callbacks immediately when no scheduler exists", () => {
@@ -58,11 +57,12 @@ describe("showNotificationRuntime", () => {
         expect(callback).toHaveBeenCalledWith(0);
     });
 
-    it("cancels animation frames through the scoped frame canceler", () => {
+    it("cancels animation frames through the scoped frame canceler provider", () => {
         expect.assertions(2);
 
+        const cancelAnimationFrame = vi.fn();
         const scopeRuntime = {
-            cancelAnimationFrame: vi.fn(),
+            getCancelAnimationFrame: () => cancelAnimationFrame,
         };
 
         getShowNotificationRuntime(scopeRuntime).cancelAnimationFrame(29);
@@ -70,18 +70,20 @@ describe("showNotificationRuntime", () => {
         expect(() =>
             getShowNotificationRuntime({}).cancelAnimationFrame(31)
         ).not.toThrow();
-        expect(scopeRuntime.cancelAnimationFrame).toHaveBeenCalledWith(29);
+        expect(cancelAnimationFrame).toHaveBeenCalledWith(29);
     });
 
-    it("delegates notification timers through the scoped runtime", () => {
+    it("delegates notification timers through the scoped runtime providers", () => {
         expect.assertions(4);
 
         const callback = vi.fn();
         const timer = Number("31");
         const duration = Number("300");
+        const clearTimeout = vi.fn();
+        const setTimeout = vi.fn(() => timer);
         const scopeRuntime = {
-            clearTimeout: vi.fn(),
-            setTimeout: vi.fn(() => timer),
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         };
         const runtime = getShowNotificationRuntime(scopeRuntime);
 
@@ -89,11 +91,41 @@ describe("showNotificationRuntime", () => {
         runtime.clearTimeout(scheduledTimer);
 
         expect(scheduledTimer).toBe(timer);
-        expect(scopeRuntime.setTimeout).toHaveBeenCalledWith(
-            callback,
-            duration
+        expect(setTimeout).toHaveBeenCalledWith(callback, duration);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("ignores legacy direct timing runtime properties", () => {
+        expect.assertions(9);
+
+        const callback = vi.fn();
+        const frameCallback = vi.fn();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 41);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const requestAnimationFrame = vi.fn(() => 43);
+        const cancelAnimationFrame = vi.fn();
+        const runtime = getShowNotificationRuntime({
+            cancelAnimationFrame,
+            clearTimeout,
+            requestAnimationFrame,
+            setTimeout,
+        } as unknown as Parameters<typeof getShowNotificationRuntime>[0]);
+
+        expect(() => runtime.setTimeout(callback, 0)).toThrow(
+            "show notification runtime requires setTimeout"
         );
-        expect(scopeRuntime.clearTimeout).toHaveBeenCalledWith(timer);
+        expect(() => runtime.clearTimeout(41)).toThrow(
+            "show notification runtime requires clearTimeout"
+        );
+        expect(runtime.requestAnimationFrame(frameCallback)).toBeNull();
+        runtime.cancelAnimationFrame(43);
+
+        expect(frameCallback).toHaveBeenCalledWith(0);
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
+        expect(requestAnimationFrame).not.toHaveBeenCalled();
+        expect(cancelAnimationFrame).not.toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
     });
 

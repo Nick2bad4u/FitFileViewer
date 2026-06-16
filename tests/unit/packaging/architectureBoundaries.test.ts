@@ -5131,7 +5131,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(15);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -5150,6 +5150,14 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/notifications/showNotificationRuntime.ts"
             )
         );
+        const notificationRuntimeScopeSource = notificationRuntimeSource.slice(
+            notificationRuntimeSource.indexOf(
+                "export type ShowNotificationRuntimeScope = {"
+            ),
+            notificationRuntimeSource.indexOf(
+                "export type ShowNotificationRuntime = {"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(notificationSource).toContain("showNotificationRuntime.js");
@@ -5159,6 +5167,26 @@ describe("architecture boundaries", () => {
         expect(notificationRuntimeSource).toContain(
             "defaultShowNotificationRuntimeScope"
         );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly cancelAnimationFrame?:"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "scope.cancelAnimationFrame"
+        );
+        expect(notificationRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(notificationRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
+        );
+        expect(notificationRuntimeSource).not.toContain("scope.setTimeout");
         expect(notificationRuntimeSource).not.toContain("globalThis.window");
         expect(notificationRuntimeSource).not.toContain("getWindow");
         expect(notificationRuntimeSource).not.toContain(
