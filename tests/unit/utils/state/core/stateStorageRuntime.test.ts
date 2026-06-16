@@ -28,7 +28,9 @@ describe("stateStorageRuntime", () => {
         expect.assertions(8);
 
         const storage = createStorage();
-        const runtime = getStateStorageRuntime({ localStorage: storage });
+        const runtime = getStateStorageRuntime({
+            getLocalStorage: () => storage,
+        });
 
         expect(runtime.setItem("fitFileViewer_state", '{"ui":true}')).toBe(
             true
@@ -44,6 +46,22 @@ describe("stateStorageRuntime", () => {
         expect(storage.removeItem).toHaveBeenCalledWith("fitFileViewer_state");
         expect(runtime.getItem("fitFileViewer_state")).toBeNull();
         expect(runtime.getLocalStorage()).toBe(storage);
+    });
+
+    it("ignores legacy direct localStorage runtime properties", () => {
+        expect.assertions(6);
+
+        const storage = createStorage();
+        const runtime = getStateStorageRuntime({
+            localStorage: storage,
+        } as unknown as Parameters<typeof getStateStorageRuntime>[0]);
+
+        expect(runtime.getLocalStorage()).toBeUndefined();
+        expect(runtime.getItem("fitFileViewer_state")).toBeNull();
+        expect(runtime.setItem("fitFileViewer_state", "{}")).toBe(false);
+        expect(runtime.removeItem("fitFileViewer_state")).toBe(false);
+        expect(storage.getItem).not.toHaveBeenCalled();
+        expect(storage.setItem).not.toHaveBeenCalled();
     });
 
     it("no-ops cleanly when localStorage is unavailable", () => {

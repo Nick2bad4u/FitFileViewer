@@ -1,6 +1,5 @@
 export interface StateStorageRuntimeScope {
     readonly getLocalStorage?: (() => Storage | undefined) | undefined;
-    readonly localStorage?: Storage | undefined;
 }
 
 export interface StateStorageRuntime {
@@ -17,7 +16,7 @@ const defaultStateStorageRuntimeScope: StateStorageRuntimeScope = {
 function getScopeLocalStorage(
     scope: StateStorageRuntimeScope
 ): Storage | undefined {
-    return scope.getLocalStorage?.() ?? scope.localStorage;
+    return scope.getLocalStorage?.();
 }
 
 export function getStateStorageRuntime(

@@ -3694,7 +3694,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the core state manager free of reactive global property bridges", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         const stateManagerSource = stripComments(
             readRepositoryFile("electron-app/utils/state/core/stateManager.ts")
@@ -3720,6 +3720,10 @@ describe("architecture boundaries", () => {
         expect(stateStorageRuntimeSource).toContain(
             "defaultStateStorageRuntimeScope"
         );
+        expect(stateStorageRuntimeSource).not.toContain(
+            "readonly localStorage?:"
+        );
+        expect(stateStorageRuntimeSource).not.toContain("scope.localStorage");
     });
 
     it("keeps state persistence middleware storage access behind the runtime facade", () => {
