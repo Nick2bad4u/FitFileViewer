@@ -319,6 +319,41 @@ function getInventoryPackageNames(markdown: string): Set<string> {
     );
 }
 
+function expandNpmRunScriptGraph(
+    scripts: Record<string, string>,
+    entryScriptName: string
+): string {
+    const visitedScriptNames = new Set<string>();
+    const scriptQueue = [entryScriptName];
+    const expandedCommands: string[] = [];
+
+    while (scriptQueue.length > 0) {
+        const scriptName = scriptQueue.shift();
+        if (!scriptName || visitedScriptNames.has(scriptName)) {
+            continue;
+        }
+
+        visitedScriptNames.add(scriptName);
+        const command = scripts[scriptName];
+        if (!command) {
+            continue;
+        }
+
+        expandedCommands.push(`${scriptName}: ${command}`);
+        for (const match of command.matchAll(/\bnpm run ([\w:-]+)/gu)) {
+            const referencedScriptName = match[1];
+            if (
+                referencedScriptName &&
+                !visitedScriptNames.has(referencedScriptName)
+            ) {
+                scriptQueue.push(referencedScriptName);
+            }
+        }
+    }
+
+    return expandedCommands.join("\n");
+}
+
 describe("workspace package boundaries", () => {
     it("keeps shared tooling and local Vitest UI support in the root package", () => {
         expect.assertions(11);
@@ -548,6 +583,37 @@ describe("workspace package boundaries", () => {
         );
         expect(buildReleaseGuide).toContain(
             "release-dist/signing-verification-report.json"
+        );
+    });
+
+    it("keeps verify release as the full pre-release readiness gate", () => {
+        expect.assertions(17);
+
+        const rootPackage = readPackageJson(rootPackageRepositoryPath);
+        const scripts = rootPackage.scripts ?? {};
+        const expandedReleaseGate = expandNpmRunScriptGraph(
+            scripts,
+            "verify:release"
+        );
+
+        expect(scripts["release:verify"]).toBe("npm run verify:release");
+        expect(scripts["verify:release"]).toBe("npm run verify:full");
+        expect(expandedReleaseGate).toContain("verify:release:");
+        expect(expandedReleaseGate).toContain("verify:full:");
+        expect(expandedReleaseGate).toContain("verify:fast:");
+        expect(expandedReleaseGate).toContain("npm run prettier");
+        expect(expandedReleaseGate).toContain("npm run lint");
+        expect(expandedReleaseGate).toContain("npm run lint:css");
+        expect(expandedReleaseGate).toContain("npm run docs:typecheck");
+        expect(expandedReleaseGate).toContain("npm test");
+        expect(expandedReleaseGate).toContain("npm run docs:build");
+        expect(expandedReleaseGate).toContain("npm run audit");
+        expect(expandedReleaseGate).toContain("npm run test:playwright");
+        expect(expandedReleaseGate).toContain("npm run release:check-signing");
+        expect(expandedReleaseGate).toContain("npm run package:unsigned");
+        expect(expandedReleaseGate).toContain("npm run test:packaged");
+        expect(scripts["package:unsigned"]).toContain(
+            "REQUIRE_CODE_SIGNING=false"
         );
     });
 
