@@ -1,19 +1,17 @@
 export type MapDrawLapsTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface MapDrawLapsRuntimeScope {
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
 
 export interface MapDrawLapsRuntime {
-    clearTimeout(timer: MapDrawLapsTimer): void;
-    setTimeout(callback: () => void, delayMs: number): MapDrawLapsTimer;
+    clearTimeout: (timer: MapDrawLapsTimer) => void;
+    setTimeout: (callback: () => void, delayMs: number) => MapDrawLapsTimer;
 }
 
 const defaultMapDrawLapsRuntimeScope: MapDrawLapsRuntimeScope = {
@@ -24,13 +22,13 @@ const defaultMapDrawLapsRuntimeScope: MapDrawLapsRuntimeScope = {
 function getScopeClearTimeout(
     scope: MapDrawLapsRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
-    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+    return scope.getClearTimeout?.();
 }
 
 function getScopeSetTimeout(
     scope: MapDrawLapsRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
-    return scope.getSetTimeout?.() ?? scope.setTimeout;
+    return scope.getSetTimeout?.();
 }
 
 export function getMapDrawLapsRuntime(
@@ -43,7 +41,7 @@ export function getMapDrawLapsRuntime(
                 throw new TypeError("mapDrawLapsRuntime requires clearTimeout");
             }
 
-            clearTimeoutRef.call(scope, timer);
+            clearTimeoutRef(timer);
         },
         setTimeout(callback, delayMs): MapDrawLapsTimer {
             const setTimeoutRef = getScopeSetTimeout(scope);
@@ -51,7 +49,7 @@ export function getMapDrawLapsRuntime(
                 throw new TypeError("mapDrawLapsRuntime requires setTimeout");
             }
 
-            return setTimeoutRef.call(scope, callback, delayMs);
+            return setTimeoutRef(callback, delayMs);
         },
     };
 }

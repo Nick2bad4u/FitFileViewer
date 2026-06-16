@@ -7988,7 +7988,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map draw-laps timers behind the runtime facade", () => {
-        expect.assertions(9);
+        expect.assertions(13);
 
         const violations = migratedMapDrawLapsRuntimeFiles
             .filter((relativeFile) =>
@@ -8026,6 +8026,12 @@ describe("architecture boundaries", () => {
         expect(mapDrawLapsRuntimeSource).not.toMatch(
             directMapDrawLapsRuntimeAmbientFallbackPattern
         );
+        expect(mapDrawLapsRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(mapDrawLapsRuntimeSource).not.toContain("readonly setTimeout?:");
+        expect(mapDrawLapsRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(mapDrawLapsRuntimeSource).not.toContain("scope.setTimeout");
         expect(mapDrawLapsRuntimeSource).toContain(
             "const setTimeoutRef = getScopeSetTimeout(scope);"
         );

@@ -12,8 +12,8 @@ describe("getMapDrawLapsRuntime", () => {
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getMapDrawLapsRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
@@ -59,5 +59,27 @@ describe("getMapDrawLapsRuntime", () => {
         expect(() =>
             runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("mapDrawLapsRuntime requires clearTimeout");
+    });
+
+    it("ignores legacy direct runtime scope timer properties", () => {
+        expect.assertions(4);
+
+        const callback = vi.fn<() => void>();
+        const timer = 83 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const runtime = getMapDrawLapsRuntime({
+            clearTimeout,
+            setTimeout,
+        } as unknown as Parameters<typeof getMapDrawLapsRuntime>[0]);
+
+        expect(() => runtime.setTimeout(callback, 1)).toThrow(
+            "mapDrawLapsRuntime requires setTimeout"
+        );
+        expect(() => runtime.clearTimeout(timer)).toThrow(
+            "mapDrawLapsRuntime requires clearTimeout"
+        );
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
     });
 });
