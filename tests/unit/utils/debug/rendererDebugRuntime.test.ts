@@ -8,12 +8,12 @@ describe("rendererDebugRuntime", () => {
 
         expect(
             getRendererDebugRuntime({
-                isRendererScope: true,
+                getIsRendererScope: () => true,
             }).isRendererDebugLoggingAvailable(true)
         ).toBe(true);
         expect(
             getRendererDebugRuntime({
-                isRendererScope: true,
+                getIsRendererScope: () => true,
             }).isRendererDebugLoggingAvailable(false)
         ).toBe(false);
         expect(
@@ -35,5 +35,15 @@ describe("rendererDebugRuntime", () => {
         expect(utils.isRendererDebugLoggingAvailable(true)).toBe(true);
         expect(utils.isRendererDebugLoggingAvailable(false)).toBe(false);
         expect(providerCount).toBe(2);
+    });
+
+    it("ignores legacy direct renderer-scope properties", () => {
+        expect.assertions(1);
+
+        const utils = getRendererDebugRuntime({
+            isRendererScope: true,
+        } as unknown as Parameters<typeof getRendererDebugRuntime>[0]);
+
+        expect(utils.isRendererDebugLoggingAvailable(true)).toBe(false);
     });
 });

@@ -1,6 +1,5 @@
 export interface RendererDebugRuntimeScope {
-    readonly getIsRendererScope?: (() => boolean) | undefined;
-    readonly isRendererScope?: boolean | undefined;
+    readonly getIsRendererScope?: (() => boolean | undefined) | undefined;
 }
 
 export interface RendererDebugRuntime {
@@ -8,11 +7,11 @@ export interface RendererDebugRuntime {
 }
 
 const defaultRendererDebugRuntimeScope: RendererDebugRuntimeScope = {
-    getIsRendererScope: () => globalThis.document !== undefined,
+    getIsRendererScope: () => Reflect.has(globalThis, "document"),
 };
 
 function getIsRendererScope(scope: RendererDebugRuntimeScope): boolean {
-    return scope.getIsRendererScope?.() ?? scope.isRendererScope ?? false;
+    return scope.getIsRendererScope?.() ?? false;
 }
 
 export function getRendererDebugRuntime(

@@ -5855,7 +5855,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer debug logging runtime checks behind the debug runtime adapter", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         for (const relativeFile of migratedRendererDebugLoggingStateFiles) {
             expect(stripComments(readRepositoryFile(relativeFile))).toContain(
@@ -5876,7 +5876,13 @@ describe("architecture boundaries", () => {
             "const defaultRendererDebugRuntimeScope: RendererDebugRuntimeScope = globalThis"
         );
         expect(rendererDebugRuntimeSource).toContain(
-            "getIsRendererScope: () => globalThis.document !== undefined"
+            'Reflect.has(globalThis, "document")'
+        );
+        expect(rendererDebugRuntimeSource).not.toContain(
+            "readonly isRendererScope?:"
+        );
+        expect(rendererDebugRuntimeSource).not.toContain(
+            "scope.isRendererScope"
         );
         expect(rendererDebugRuntimeSource).not.toContain(
             "getWindow: () => globalThis.window"
