@@ -1,7 +1,4 @@
 export interface RecentFilesContextMenuRuntimeScope {
-    readonly AbortController?: typeof globalThis.AbortController | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly documentEventTarget?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
@@ -15,8 +12,6 @@ export interface RecentFilesContextMenuRuntimeScope {
     readonly getViewport?:
         | (() => RecentFilesContextMenuViewportSource | undefined)
         | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
-    readonly viewport?: RecentFilesContextMenuViewportSource | undefined;
 }
 
 export type RecentFilesContextMenuTimer = ReturnType<
@@ -33,10 +28,14 @@ export interface RecentFilesContextMenuViewportSource {
     readonly width?: number | undefined;
 }
 
+type RecentFilesContextMenuMousedownListener = (
+    event: Readonly<MouseEvent>
+) => void;
+
 export interface RecentFilesContextMenuRuntime {
     addDocumentMousedownListener: (
-        listener: (event: MouseEvent) => void,
-        options: AddEventListenerOptions
+        listener: RecentFilesContextMenuMousedownListener,
+        options: Readonly<AddEventListenerOptions>
     ) => void;
     clearTimeout: (handle: RecentFilesContextMenuTimer) => void;
     createAbortController: () => AbortController;
@@ -66,31 +65,31 @@ const defaultRecentFilesContextMenuRuntimeScope: RecentFilesContextMenuRuntimeSc
 function getAbortController(
     scope: RecentFilesContextMenuRuntimeScope
 ): typeof globalThis.AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getClearTimeout(
     scope: RecentFilesContextMenuRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
-    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+    return scope.getClearTimeout?.();
 }
 
 function getDocumentEventTarget(
     scope: RecentFilesContextMenuRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+    return scope.getDocumentEventTarget?.();
 }
 
 function getSetTimeout(
     scope: RecentFilesContextMenuRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
-    return scope.getSetTimeout?.() ?? scope.setTimeout;
+    return scope.getSetTimeout?.();
 }
 
 function getViewport(
     scope: RecentFilesContextMenuRuntimeScope
 ): RecentFilesContextMenuViewportSource | undefined {
-    return scope.getViewport?.() ?? scope.viewport;
+    return scope.getViewport?.();
 }
 
 export function getRecentFilesContextMenuRuntime(

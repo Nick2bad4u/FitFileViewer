@@ -6744,7 +6744,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(20);
+        expect.assertions(30);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -6754,6 +6754,14 @@ describe("architecture boundaries", () => {
         const recentFilesContextMenuRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/app/lifecycle/recentFilesContextMenuRuntime.ts"
+            )
+        );
+        const runtimeScopeSource = recentFilesContextMenuRuntimeSource.slice(
+            recentFilesContextMenuRuntimeSource.indexOf(
+                "export interface RecentFilesContextMenuRuntimeScope"
+            ),
+            recentFilesContextMenuRuntimeSource.indexOf(
+                "export type RecentFilesContextMenuTimer"
             )
         );
         const directRecentFilesContextMenuRuntimeGlobalPattern =
@@ -6816,6 +6824,28 @@ describe("architecture boundaries", () => {
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "recent files context menu requires a setTimeout runtime"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
+        expect(runtimeScopeSource).not.toContain("readonly clearTimeout?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly documentEventTarget?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly setTimeout?:");
+        expect(runtimeScopeSource).not.toContain("readonly viewport?:");
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "scope.documentEventTarget"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "scope.viewport"
         );
     });
 

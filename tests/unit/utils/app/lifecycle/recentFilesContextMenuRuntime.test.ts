@@ -13,7 +13,7 @@ describe("recentFilesContextMenuRuntime", () => {
             }
         );
         const runtime = getRecentFilesContextMenuRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -36,10 +36,10 @@ describe("recentFilesContextMenuRuntime", () => {
 
         expect(
             getRecentFilesContextMenuRuntime({
-                viewport: {
+                getViewport: () => ({
                     height: 720,
                     width: 1280,
-                },
+                }),
             }).getViewport()
         ).toStrictEqual({
             height: 720,
@@ -63,10 +63,10 @@ describe("recentFilesContextMenuRuntime", () => {
 
         expect(
             getRecentFilesContextMenuRuntime({
-                viewport: {
+                getViewport: () => ({
                     height: Number.NaN,
                     width: Number.POSITIVE_INFINITY,
-                },
+                }),
             }).getViewport()
         ).toStrictEqual({
             height: 0,
@@ -83,8 +83,8 @@ describe("recentFilesContextMenuRuntime", () => {
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getRecentFilesContextMenuRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
@@ -176,7 +176,7 @@ describe("recentFilesContextMenuRuntime", () => {
         };
         const controller = new AbortController();
         const runtime = getRecentFilesContextMenuRuntime({
-            documentEventTarget,
+            getDocumentEventTarget: () => documentEventTarget,
         });
 
         runtime.addDocumentMousedownListener(listener, {
@@ -188,6 +188,54 @@ describe("recentFilesContextMenuRuntime", () => {
             signal: controller.signal,
         });
         expect(mousedownCount).toBe(1);
+        expect(documentEventTarget.body.childElementCount).toBe(0);
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(11);
+
+        const AbortControllerConstructor = vi.fn();
+        const callback = vi.fn<() => void>();
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>();
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(
+            documentEventTarget,
+            "addEventListener"
+        );
+        const runtime = getRecentFilesContextMenuRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            clearTimeout,
+            documentEventTarget,
+            setTimeout,
+            viewport: {
+                height: 720,
+                width: 1280,
+            },
+        } as unknown as Parameters<typeof getRecentFilesContextMenuRuntime>[0]);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "recent files context menu requires an AbortController runtime"
+        );
+        expect(() =>
+            runtime.addDocumentMousedownListener(() => undefined, {})
+        ).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.setTimeout(callback, 0)).toThrow(
+            "recent files context menu requires a setTimeout runtime"
+        );
+        expect(() =>
+            runtime.clearTimeout(31 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("recent files context menu requires a clearTimeout runtime");
+        expect(runtime.getViewport()).toStrictEqual({ height: 0, width: 0 });
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(addEventListener).not.toHaveBeenCalled();
+        expect(callback).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
+        expect(setTimeout).not.toHaveBeenCalled();
         expect(documentEventTarget.body.childElementCount).toBe(0);
     });
 });
