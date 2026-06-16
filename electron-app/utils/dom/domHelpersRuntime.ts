@@ -1,12 +1,11 @@
 export interface DomHelpersRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
 }
 
 export interface DomHelpersRuntime {
-    createAbortController(): AbortController;
+    createAbortController: () => AbortController;
 }
 
 const defaultDomHelpersRuntimeScope: DomHelpersRuntimeScope = {
@@ -16,7 +15,7 @@ const defaultDomHelpersRuntimeScope: DomHelpersRuntimeScope = {
 function getScopeAbortController(
     scope: DomHelpersRuntimeScope
 ): typeof AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 export function getDomHelpersRuntime(

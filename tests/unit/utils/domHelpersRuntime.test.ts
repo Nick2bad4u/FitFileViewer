@@ -20,7 +20,7 @@ describe("getDomHelpersRuntime", () => {
             }
         }
         const runtime = getDomHelpersRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -64,6 +64,26 @@ describe("getDomHelpersRuntime", () => {
         expect.assertions(1);
 
         const runtime = getDomHelpersRuntime({});
+
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow("dom helpers require an AbortController runtime");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(1);
+
+        const signal = Symbol("legacy-dom-helpers-signal");
+        class LegacyAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const runtime = getDomHelpersRuntime({
+            AbortController: LegacyAbortController,
+        } as unknown as Parameters<typeof getDomHelpersRuntime>[0]);
 
         expect(() => {
             runtime.createAbortController();
