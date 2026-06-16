@@ -543,8 +543,7 @@ function setupEventListeners(modal: HTMLElement): void {
         { signal }
     );
 
-    document.addEventListener(
-        "keydown",
+    accentColorPickerRuntime.addDocumentKeydownListener(
         (event) => {
             handleDialogKeydown(event, modal);
         },
