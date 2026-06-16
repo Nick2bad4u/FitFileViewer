@@ -6,7 +6,16 @@ export interface RenderChartStartupRuntimeScope {
               options?: AddEventListenerOptions | boolean
           ) => void)
         | undefined;
-    readonly window?: unknown;
+    readonly getAddEventListener?:
+        | (() =>
+              | ((
+                    type: string,
+                    listener: EventListenerOrEventListenerObject,
+                    options?: AddEventListenerOptions | boolean
+                ) => void)
+              | undefined)
+        | undefined;
+    readonly isRendererScope?: (() => boolean) | undefined;
 }
 
 export interface RenderChartStartupRuntime {
@@ -17,8 +26,26 @@ export interface RenderChartStartupRuntime {
     canRegisterDOMContentLoadedListener: () => boolean;
 }
 
-const defaultRenderChartStartupRuntimeScope: RenderChartStartupRuntimeScope =
-    globalThis;
+const defaultRenderChartStartupRuntimeScope: RenderChartStartupRuntimeScope = {
+    getAddEventListener: () => globalThis.addEventListener,
+    isRendererScope: () => globalThis.document !== undefined,
+};
+
+function getAddEventListener(
+    scope: RenderChartStartupRuntimeScope
+):
+    | ((
+          type: string,
+          listener: EventListenerOrEventListenerObject,
+          options?: AddEventListenerOptions | boolean
+      ) => void)
+    | undefined {
+    return scope.getAddEventListener?.() ?? scope.addEventListener;
+}
+
+function isRendererScope(scope: RenderChartStartupRuntimeScope): boolean {
+    return scope.isRendererScope?.() === true;
+}
 
 export function getRenderChartStartupRuntime(
     scope: RenderChartStartupRuntimeScope = defaultRenderChartStartupRuntimeScope
@@ -28,7 +55,7 @@ export function getRenderChartStartupRuntime(
             listener: EventListenerOrEventListenerObject,
             options: AddEventListenerOptions & { readonly signal: AbortSignal }
         ): void {
-            const addEventListener = scope.addEventListener;
+            const addEventListener = getAddEventListener(scope);
             if (typeof addEventListener !== "function") {
                 throw new TypeError(
                     "renderChartStartup requires addEventListener"
@@ -42,8 +69,8 @@ export function getRenderChartStartupRuntime(
         },
         canRegisterDOMContentLoadedListener(): boolean {
             return (
-                scope.window !== undefined &&
-                typeof scope.addEventListener === "function"
+                isRendererScope(scope) &&
+                typeof getAddEventListener(scope) === "function"
             );
         },
     };

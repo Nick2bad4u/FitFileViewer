@@ -17,7 +17,7 @@ describe("getRenderChartStartupRuntime", () => {
             >();
         const startupRuntime = getChartStartupRuntime({
             addEventListener,
-            window: {},
+            isRendererScope: () => true,
         });
 
         try {
@@ -50,9 +50,47 @@ describe("getRenderChartStartupRuntime", () => {
         ).toBe(false);
         expect(
             getChartStartupRuntime({
-                window: {},
+                isRendererScope: () => true,
             }).canRegisterDOMContentLoadedListener()
         ).toBe(false);
+    });
+
+    it("routes runtime dependencies through provider functions", () => {
+        expect.assertions(3);
+
+        const abortController = new AbortController();
+        const addEventListener =
+            vi.fn<
+                (
+                    type: string,
+                    listener: EventListenerOrEventListenerObject,
+                    options?: AddEventListenerOptions | boolean
+                ) => void
+            >();
+        const startupRuntime = getChartStartupRuntime({
+            getAddEventListener: () => addEventListener,
+            isRendererScope: () => true,
+        });
+
+        try {
+            expect(startupRuntime.canRegisterDOMContentLoadedListener()).toBe(
+                true
+            );
+            startupRuntime.addDOMContentLoadedListener(() => undefined, {
+                signal: abortController.signal,
+            });
+
+            expect(addEventListener).toHaveBeenCalledWith(
+                "DOMContentLoaded",
+                expect.any(Function),
+                { signal: abortController.signal }
+            );
+            expect(
+                getChartStartupRuntime({}).canRegisterDOMContentLoadedListener()
+            ).toBe(false);
+        } finally {
+            abortController.abort();
+        }
     });
 
     it("fails clearly when listener registration is unavailable", () => {
@@ -62,7 +100,7 @@ describe("getRenderChartStartupRuntime", () => {
 
         expect(() =>
             getChartStartupRuntime({
-                window: {},
+                isRendererScope: () => true,
             }).addDOMContentLoadedListener(() => undefined, {
                 signal: abortController.signal,
             })
