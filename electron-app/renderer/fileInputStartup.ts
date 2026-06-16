@@ -124,7 +124,7 @@ export function createDelegatedFileInputChangeHandler(
 
 export function registerDelegatedFileInputChangeListener(
     documentTarget: RendererFileInputEventTarget,
-    windowTarget: RendererFileInputEventTarget,
+    globalEventTarget: RendererFileInputEventTarget,
     onDelegatedFileInputChange: (event: Event) => void,
     runtime: RendererFileInputStartupRuntime = getRendererFileInputStartupRuntime()
 ): void {
@@ -138,7 +138,7 @@ export function registerDelegatedFileInputChangeListener(
         capture: true,
         signal,
     });
-    windowTarget.addEventListener(
+    globalEventTarget.addEventListener(
         "beforeunload",
         removeDelegatedFileInputChangeListener,
         { signal }
@@ -147,7 +147,7 @@ export function registerDelegatedFileInputChangeListener(
 
 export function registerImportTimeFileInputChangeHandler(
     fileInput: HTMLInputElement,
-    windowTarget: RendererFileInputEventTarget,
+    globalEventTarget: RendererFileInputEventTarget,
     options: RendererFileInputStartupOptions,
     runtime: RendererFileInputStartupRuntime = getRendererFileInputStartupRuntime()
 ): void {
@@ -164,7 +164,7 @@ export function registerImportTimeFileInputChangeHandler(
     fileInput.addEventListener("change", onImportTimeFileInputChange, {
         signal,
     });
-    windowTarget.addEventListener(
+    globalEventTarget.addEventListener(
         "beforeunload",
         removeImportTimeFileInputChangeHandler,
         { signal }

@@ -63,7 +63,9 @@ describe("renderer file input startup wiring", () => {
         const handleOpenFile = vi.fn<() => void>();
         const callUnknownFunction = vi.fn<RendererUnknownFunctionCaller>();
 
-        registerImportTimeFileInputChangeHandler(input, window, {
+        const globalEventTarget = window;
+
+        registerImportTimeFileInputChangeHandler(input, globalEventTarget, {
             callUnknownFunction,
             getHandleOpenFile: async () => handleOpenFile,
         });

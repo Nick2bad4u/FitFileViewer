@@ -50,6 +50,7 @@ const migratedRendererApplicationLifecycleWiringRuntimeFiles = [
     "electron-app/renderer/applicationLifecycleWiring.ts",
 ] as const;
 const migratedRendererFileInputStartupRuntimeFiles = [
+    "electron-app/renderer/fileInputWiring.ts",
     "electron-app/renderer/fileInputStartup.ts",
 ] as const;
 const migratedRendererTestOnlyBootstrapRuntimeFiles = [
@@ -9030,7 +9031,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer file-input abort controllers behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(8);
 
         const violations = migratedRendererFileInputStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -9042,6 +9043,9 @@ describe("architecture boundaries", () => {
         const fileInputStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/fileInputStartup.ts")
         );
+        const fileInputWiringSource = stripComments(
+            readRepositoryFile("electron-app/renderer/fileInputWiring.ts")
+        );
         const fileInputStartupRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/renderer/fileInputStartupRuntime.ts"
@@ -9050,6 +9054,12 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(fileInputStartupSource).toContain("fileInputStartupRuntime.js");
+        expect(fileInputStartupSource).toContain(
+            "globalEventTarget: RendererFileInputEventTarget"
+        );
+        expect(fileInputStartupSource).not.toContain("windowTarget");
+        expect(fileInputWiringSource).toContain("globalEventTarget");
+        expect(fileInputWiringSource).not.toContain("windowTarget");
         expect(fileInputStartupRuntimeSource).toContain(
             "defaultRendererFileInputStartupRuntimeScope"
         );

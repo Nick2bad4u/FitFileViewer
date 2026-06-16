@@ -38,13 +38,13 @@ type RendererFileInputWiring = {
             EventTarget,
             "addEventListener" | "removeEventListener"
         >,
-        windowTarget: Pick<
+        globalEventTarget: Pick<
             EventTarget,
             "addEventListener" | "removeEventListener"
         >
     ) => void;
     readonly registerImportTimeFileInputChangeHandler: (
-        windowTarget: Pick<
+        globalEventTarget: Pick<
             EventTarget,
             "addEventListener" | "removeEventListener"
         >
@@ -67,19 +67,19 @@ export function createRendererFileInputWiring(
         getFileInput: options.getFileInput,
         registerDelegatedFileInputChangeListener: (
             documentTarget,
-            windowTarget
+            globalEventTarget
         ) => {
             try {
                 registerDelegatedFileInputChangeListener(
                     documentTarget,
-                    windowTarget,
+                    globalEventTarget,
                     onDelegatedFileInputChange
                 );
             } catch {
                 /* Ignore errors */
             }
         },
-        registerImportTimeFileInputChangeHandler: (windowTarget) => {
+        registerImportTimeFileInputChangeHandler: (globalEventTarget) => {
             try {
                 const fileInput = options.getFileInput();
                 if (
@@ -88,7 +88,7 @@ export function createRendererFileInputWiring(
                 ) {
                     registerImportTimeFileInputChangeHandler(
                         fileInput,
-                        windowTarget,
+                        globalEventTarget,
                         startupOptions
                     );
                 }
