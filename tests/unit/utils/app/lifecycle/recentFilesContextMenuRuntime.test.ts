@@ -31,14 +31,14 @@ describe("recentFilesContextMenuRuntime", () => {
         );
     });
 
-    it("reads finite viewport dimensions from a scoped window", () => {
+    it("reads finite viewport dimensions from a scoped viewport", () => {
         expect.assertions(1);
 
         expect(
             getRecentFilesContextMenuRuntime({
-                window: {
-                    innerHeight: 720,
-                    innerWidth: 1280,
+                viewport: {
+                    height: 720,
+                    width: 1280,
                 },
             }).getViewport()
         ).toStrictEqual({
@@ -63,9 +63,9 @@ describe("recentFilesContextMenuRuntime", () => {
 
         expect(
             getRecentFilesContextMenuRuntime({
-                window: {
-                    innerHeight: Number.NaN,
-                    innerWidth: Number.POSITIVE_INFINITY,
+                viewport: {
+                    height: Number.NaN,
+                    width: Number.POSITIVE_INFINITY,
                 },
             }).getViewport()
         ).toStrictEqual({
@@ -92,6 +92,41 @@ describe("recentFilesContextMenuRuntime", () => {
 
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
+    });
+
+    it("routes runtime dependencies through provider functions", () => {
+        expect.assertions(5);
+
+        const callback = vi.fn<() => void>();
+        const delayMs = Number("25");
+        const timer = 47 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        let controllerCount = 0;
+        class TestAbortController extends AbortController {
+            public constructor() {
+                super();
+                controllerCount += 1;
+            }
+        }
+        const runtime = getRecentFilesContextMenuRuntime({
+            getAbortController: () => TestAbortController,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
+            getViewport: () => ({ height: 900, width: 1440 }),
+        });
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+        expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
+        runtime.clearTimeout(timer);
+        expect(clearTimeout).toHaveBeenCalledWith(timer);
+        expect(runtime.getViewport()).toStrictEqual({
+            height: 900,
+            width: 1440,
+        });
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {

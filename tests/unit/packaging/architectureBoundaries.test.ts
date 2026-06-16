@@ -6061,7 +6061,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(10);
+        expect.assertions(16);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -6098,8 +6098,26 @@ describe("architecture boundaries", () => {
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "defaultRecentFilesContextMenuRuntimeScope"
         );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getViewport: () => ({"
+        );
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "scope: RecentFilesContextMenuRuntimeScope = globalThis"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "RecentFilesContextMenuRuntimeScope = globalThis"
+        );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain(
+            "scope.window"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "recent files context menu requires a setTimeout runtime"
