@@ -7,7 +7,9 @@ describe("computedStateManagerRuntime", () => {
         expect.assertions(2);
 
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList),
-            runtime = getComputedStateManagerRuntime({ matchMedia });
+            runtime = getComputedStateManagerRuntime({
+                getMatchMedia: () => matchMedia,
+            });
 
         expect(runtime.isDarkSchemePreferred()).toBe(true);
         expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
@@ -17,10 +19,24 @@ describe("computedStateManagerRuntime", () => {
         expect.assertions(1);
 
         const runtime = getComputedStateManagerRuntime({
-            matchMedia: () => ({ matches: false }) as MediaQueryList,
+            getMatchMedia: () => () => ({ matches: false }) as MediaQueryList,
         });
 
         expect(runtime.isDarkSchemePreferred()).toBe(false);
+    });
+
+    it("ignores legacy direct matchMedia runtime properties", () => {
+        expect.assertions(2);
+
+        const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList),
+            runtime = getComputedStateManagerRuntime({
+                matchMedia,
+            } as unknown as Parameters<
+                typeof getComputedStateManagerRuntime
+            >[0]);
+
+        expect(runtime.isDarkSchemePreferred()).toBe(false);
+        expect(matchMedia).not.toHaveBeenCalled();
     });
 
     it("returns false when media queries are unavailable", () => {

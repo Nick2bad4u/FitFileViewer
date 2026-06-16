@@ -1,5 +1,7 @@
 export interface ComputedStateManagerRuntimeScope {
-    readonly matchMedia?: typeof globalThis.matchMedia | undefined;
+    readonly getMatchMedia?:
+        | (() => typeof globalThis.matchMedia | undefined)
+        | undefined;
 }
 
 export interface ComputedStateManagerRuntime {
@@ -7,15 +9,18 @@ export interface ComputedStateManagerRuntime {
 }
 
 const defaultComputedStateManagerRuntimeScope: ComputedStateManagerRuntimeScope =
-    globalThis;
+    {
+        getMatchMedia: () => globalThis.matchMedia,
+    };
 
 export function getComputedStateManagerRuntime(
     scope: ComputedStateManagerRuntimeScope = defaultComputedStateManagerRuntimeScope
 ): ComputedStateManagerRuntime {
     return {
         isDarkSchemePreferred(): boolean {
+            const matchMedia = scope.getMatchMedia?.();
             return Boolean(
-                scope.matchMedia?.("(prefers-color-scheme: dark)").matches
+                matchMedia?.("(prefers-color-scheme: dark)").matches
             );
         },
     };

@@ -6189,7 +6189,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps computed state manager theme media reads behind the runtime adapter", () => {
-        expect.assertions(6);
+        expect.assertions(9);
 
         const computedStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6217,6 +6217,13 @@ describe("architecture boundaries", () => {
         );
         expect(computedStateManagerRuntimeSource).not.toContain(
             "scope: ComputedStateManagerRuntimeScope = globalThis"
+        );
+        expect(computedStateManagerRuntimeSource).toContain("getMatchMedia");
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "readonly matchMedia?:"
+        );
+        expect(computedStateManagerRuntimeSource).not.toContain(
+            "scope.matchMedia"
         );
     });
 
