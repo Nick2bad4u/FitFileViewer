@@ -4,6 +4,9 @@ export type ChartHoverEffectsTimerHandle =
 
 export interface ChartHoverEffectsRuntimeScope {
     readonly AbortController?: typeof globalThis.AbortController | undefined;
+    readonly document?: Document | undefined;
+    readonly documentEventTarget?: Document | undefined;
+    readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly requestAnimationFrame?:
         | typeof globalThis.requestAnimationFrame
         | undefined;
@@ -16,7 +19,19 @@ export interface ChartHoverEffectsRuntimeScope {
 }
 
 export interface ChartHoverEffectsRuntime {
+    addDocumentEventListener(
+        eventName: string,
+        listener: EventListenerOrEventListenerObject,
+        options: AddEventListenerOptions
+    ): void;
+    addDocumentKeydownListener(
+        listener: (event: KeyboardEvent) => void,
+        options: AddEventListenerOptions
+    ): void;
     createAbortController(): AbortController;
+    removeDocumentKeydownListener(
+        listener: (event: KeyboardEvent) => void
+    ): void;
     requestAnimationFrame(callback: FrameRequestCallback): null | number;
     setTimeout(
         callback: () => void,
@@ -30,24 +45,58 @@ const defaultChartHoverEffectsRuntimeScope: ChartHoverEffectsRuntimeScope =
 
 function getRequiredSetTimeout(
     scope: ChartHoverEffectsRuntimeScope
-): (
-    callback: () => void,
-    timeout: number
-) => ChartHoverEffectsTimerHandle {
+): (callback: () => void, timeout: number) => ChartHoverEffectsTimerHandle {
     const setTimeoutRef = scope.setTimeout;
     if (typeof setTimeoutRef !== "function") {
-        throw new TypeError(
-            "chart hover effects require a setTimeout runtime"
-        );
+        throw new TypeError("chart hover effects require a setTimeout runtime");
     }
 
     return setTimeoutRef;
+}
+
+function getDocumentEventTarget(
+    scope: ChartHoverEffectsRuntimeScope
+): Document | undefined {
+    return (
+        scope.getDocumentEventTarget?.() ??
+        scope.documentEventTarget ??
+        scope.document
+    );
+}
+
+function getRequiredDocumentEventTarget(
+    scope: ChartHoverEffectsRuntimeScope
+): Document {
+    const documentEventTarget = getDocumentEventTarget(scope);
+    if (!documentEventTarget) {
+        throw new TypeError(
+            "chart hover effects require a document event-target runtime"
+        );
+    }
+
+    return documentEventTarget;
 }
 
 export function getChartHoverEffectsRuntime(
     scope: ChartHoverEffectsRuntimeScope = defaultChartHoverEffectsRuntimeScope
 ): ChartHoverEffectsRuntime {
     return {
+        addDocumentEventListener(eventName, listener, options): void {
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
+            getRequiredDocumentEventTarget(scope).addEventListener(
+                eventName,
+                listener,
+                options
+            );
+        },
+        addDocumentKeydownListener(listener, options): void {
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
+            getRequiredDocumentEventTarget(scope).addEventListener(
+                "keydown",
+                listener,
+                options
+            );
+        },
         createAbortController(): AbortController {
             const AbortControllerConstructor = scope.AbortController;
             if (typeof AbortControllerConstructor !== "function") {
@@ -57,6 +106,12 @@ export function getChartHoverEffectsRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        removeDocumentKeydownListener(listener): void {
+            getRequiredDocumentEventTarget(scope).removeEventListener(
+                "keydown",
+                listener
+            );
         },
         requestAnimationFrame(callback): null | number {
             if (typeof scope.requestAnimationFrame !== "function") {

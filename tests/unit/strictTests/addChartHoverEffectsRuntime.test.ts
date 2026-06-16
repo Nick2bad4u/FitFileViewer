@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
 import { getChartHoverEffectsRuntime } from "../../../electron-app/utils/charts/plugins/addChartHoverEffectsRuntime.js";
@@ -79,6 +80,102 @@ describe("getChartHoverEffectsRuntime", () => {
 
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
             "chart hover effects require a setTimeout runtime"
+        );
+    });
+
+    it("registers document keydown listeners through the injected document", () => {
+        expect.assertions(4);
+
+        const controller = new AbortController();
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(
+            documentEventTarget,
+            "addEventListener"
+        );
+        const removeEventListener = vi.spyOn(
+            documentEventTarget,
+            "removeEventListener"
+        );
+        let keydownCount = 0;
+        const listener = () => {
+            keydownCount += 1;
+        };
+        const runtime = getChartHoverEffectsRuntime({
+            documentEventTarget,
+        });
+
+        runtime.addDocumentKeydownListener(listener, {
+            signal: controller.signal,
+        });
+        documentEventTarget.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Escape" })
+        );
+        runtime.removeDocumentKeydownListener(listener);
+
+        expect(addEventListener).toHaveBeenCalledWith("keydown", listener, {
+            signal: controller.signal,
+        });
+        expect(removeEventListener).toHaveBeenCalledWith("keydown", listener);
+        expect(keydownCount).toBe(1);
+        expect(documentEventTarget.body.childElementCount).toBe(0);
+    });
+
+    it("registers document fullscreen listeners through provider functions", () => {
+        expect.assertions(3);
+
+        const controller = new AbortController();
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(
+            documentEventTarget,
+            "addEventListener"
+        );
+        let fullscreenChangeCount = 0;
+        const listener = () => {
+            fullscreenChangeCount += 1;
+        };
+        const runtime = getChartHoverEffectsRuntime({
+            getDocumentEventTarget: () => documentEventTarget,
+        });
+
+        runtime.addDocumentEventListener("fullscreenchange", listener, {
+            signal: controller.signal,
+        });
+        documentEventTarget.dispatchEvent(new Event("fullscreenchange"));
+
+        expect(addEventListener).toHaveBeenCalledWith(
+            "fullscreenchange",
+            listener,
+            { signal: controller.signal }
+        );
+        expect(fullscreenChangeCount).toBe(1);
+        expect(documentEventTarget.body.childElementCount).toBe(0);
+    });
+
+    it("throws when document listener registration is unavailable", () => {
+        expect.assertions(3);
+
+        const runtime = getChartHoverEffectsRuntime({});
+
+        expect(() =>
+            runtime.addDocumentKeydownListener(() => undefined, {})
+        ).toThrow(
+            "chart hover effects require a document event-target runtime"
+        );
+        expect(() =>
+            runtime.addDocumentEventListener(
+                "fullscreenchange",
+                () => undefined,
+                {}
+            )
+        ).toThrow(
+            "chart hover effects require a document event-target runtime"
+        );
+        expect(() =>
+            runtime.removeDocumentKeydownListener(() => undefined)
+        ).toThrow(
+            "chart hover effects require a document event-target runtime"
         );
     });
 

@@ -9512,7 +9512,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(12);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
@@ -9537,6 +9537,14 @@ describe("architecture boundaries", () => {
             "addChartHoverEffectsRuntime.js"
         );
         expect(chartHoverEffectsSource).toContain("createAbortController");
+        expect(chartHoverEffectsSource).toContain("addDocumentKeydownListener");
+        expect(chartHoverEffectsSource).toContain("addDocumentEventListener");
+        expect(chartHoverEffectsSource).not.toContain(
+            "document.addEventListener"
+        );
+        expect(chartHoverEffectsSource).not.toContain(
+            "document.removeEventListener"
+        );
         expect(chartHoverEffectsRuntimeSource).not.toMatch(
             directChartHoverEffectsRuntimeAmbientFallbackPattern
         );
@@ -9548,6 +9556,9 @@ describe("architecture boundaries", () => {
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "chart hover effects require a setTimeout runtime"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "chart hover effects require a document event-target runtime"
         );
     });
 

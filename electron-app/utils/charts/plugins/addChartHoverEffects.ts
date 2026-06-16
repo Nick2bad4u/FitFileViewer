@@ -160,12 +160,14 @@ function scheduleAnimationFrame(
     callback: () => void,
     signal?: AbortSignal
 ): void {
-    const animationFrameId = chartHoverEffectsRuntime.requestAnimationFrame(() => {
-        if (signal?.aborted === true) {
-            return;
+    const animationFrameId = chartHoverEffectsRuntime.requestAnimationFrame(
+        () => {
+            if (signal?.aborted === true) {
+                return;
+            }
+            callback();
         }
-        callback();
-    });
+    );
 
     void animationFrameId;
 }
@@ -557,9 +559,12 @@ export function addChartHoverEffects(
 
             applyCanvasSize(chartCanvas, true);
             requestChartResize(chartCanvas);
-            document.addEventListener("keydown", overlayEscHandler, {
-                signal,
-            });
+            chartHoverEffectsRuntime.addDocumentKeydownListener(
+                overlayEscHandler,
+                {
+                    signal,
+                }
+            );
 
             traceChartFullscreen(traceId, "overlay-enter", {
                 wrapper: describeElement(wrapper),
@@ -580,7 +585,9 @@ export function addChartHoverEffects(
             document.body.classList.remove("chart-overlay-fullscreen-active");
             applyCanvasSize(chartCanvas, false);
             requestChartResize(chartCanvas);
-            document.removeEventListener("keydown", overlayEscHandler);
+            chartHoverEffectsRuntime.removeDocumentKeydownListener(
+                overlayEscHandler
+            );
 
             traceChartFullscreen(traceId, "overlay-exit", {
                 wrapper: describeElement(wrapper),
@@ -633,7 +640,11 @@ export function addChartHoverEffects(
         };
 
         for (const evt of FULLSCREEN_EVENTS) {
-            document.addEventListener(evt, handleFullscreenChange, { signal });
+            chartHoverEffectsRuntime.addDocumentEventListener(
+                evt,
+                handleFullscreenChange,
+                { signal }
+            );
         }
 
         fullscreenButton.addEventListener(
