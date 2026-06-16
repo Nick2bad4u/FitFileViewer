@@ -6,13 +6,14 @@ type MasterStateGlobalEventMap = WindowEventMap & {
     unhandledrejection: PromiseRejectionEvent;
 };
 
-type WindowEventTarget = Pick<Window, "addEventListener">;
+type MasterStateEventTarget = Pick<EventTarget, "addEventListener">;
 
 export interface MasterStateRuntimeScope {
     readonly __DEVELOPMENT__?: boolean;
     readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly addEventListener?: typeof globalThis.addEventListener | undefined;
     readonly dispatchEvent?: typeof globalThis.dispatchEvent | undefined;
+    readonly eventTarget?: MasterStateEventTarget | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
@@ -23,10 +24,11 @@ export interface MasterStateRuntimeScope {
     readonly getDispatchEvent?:
         | (() => typeof globalThis.dispatchEvent | undefined)
         | undefined;
+    readonly getEventTarget?:
+        | (() => MasterStateEventTarget | undefined)
+        | undefined;
     readonly getLocation?: (() => LocationLike | undefined) | undefined;
-    readonly getWindow?: (() => WindowEventTarget | undefined) | undefined;
     readonly location?: LocationLike | undefined;
-    readonly window?: WindowEventTarget | undefined;
 }
 
 export interface MasterStateDevelopmentOptions {
@@ -65,8 +67,8 @@ const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getDevelopmentFlag: () =>
         Reflect.get(globalThis, "__DEVELOPMENT__") === true,
     getDispatchEvent: () => globalThis.dispatchEvent,
+    getEventTarget: () => globalThis,
     getLocation: () => globalThis.location,
-    getWindow: () => globalThis.window,
 };
 
 function getScopeAbortController(
@@ -93,23 +95,25 @@ function getScopeDispatchEvent(
     return scope.getDispatchEvent?.() ?? scope.dispatchEvent;
 }
 
+function getScopeEventTarget(
+    scope: MasterStateRuntimeScope
+): MasterStateEventTarget | undefined {
+    return scope.getEventTarget?.() ?? scope.eventTarget;
+}
+
 function getScopeLocation(
     scope: MasterStateRuntimeScope
 ): LocationLike | undefined {
     return scope.getLocation?.() ?? scope.location;
 }
 
-function getScopeWindow(
-    scope: MasterStateRuntimeScope
-): WindowEventTarget | undefined {
-    return scope.getWindow?.() ?? scope.window;
-}
-
 export function getMasterStateRuntime(
     scope: MasterStateRuntimeScope = defaultMasterStateRuntimeScope
 ): MasterStateRuntime {
     const getLocation = (): LocationLike =>
-        getScopeWindow(scope) === undefined ? {} : (getScopeLocation(scope) ?? {});
+        getScopeEventTarget(scope) === undefined
+            ? {}
+            : (getScopeLocation(scope) ?? {});
 
     return {
         addGlobalEventListener(type, listener, options): void {
@@ -123,9 +127,9 @@ export function getMasterStateRuntime(
             );
         },
         addWindowEventListener(type, listener, options): void {
-            const windowTarget = getScopeWindow(scope);
+            const eventTarget = getScopeEventTarget(scope);
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned listener options, including AbortSignal cleanup.
-            windowTarget?.addEventListener(
+            eventTarget?.addEventListener(
                 type,
                 listener as EventListener,
                 options
@@ -146,7 +150,7 @@ export function getMasterStateRuntime(
         },
         isDevelopmentScope(options = {}): boolean {
             const location = getLocation();
-            const windowTarget = getScopeWindow(scope);
+            const eventTarget = getScopeEventTarget(scope);
             const hostname = getLocationText(location, "hostname");
             const search = getLocationText(location, "search");
             const hash = getLocationText(location, "hash");
@@ -162,7 +166,7 @@ export function getMasterStateRuntime(
                 hash.includes("debug") ||
                 options.hasDevelopmentModeAttribute === true ||
                 protocol === "file:" ||
-                (windowTarget !== undefined &&
+                (eventTarget !== undefined &&
                     options.electronDevMode !== undefined) ||
                 href.includes("electron")
             );

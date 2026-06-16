@@ -1044,6 +1044,7 @@ async function withMasterStateHarness(
         listener: EventListenerOrEventListenerObject
     ): void {
         registerListener(globalListeners, eventName, listener);
+        registerListener(windowListeners, eventName, listener);
     }
 }
 

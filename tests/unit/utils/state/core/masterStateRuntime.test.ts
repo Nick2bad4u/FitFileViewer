@@ -9,25 +9,25 @@ describe("masterStateRuntime", () => {
         expect(
             getMasterStateRuntime({
                 location: { hostname: "localhost", protocol: "http:" },
-                window: { addEventListener: vi.fn() },
+                eventTarget: { addEventListener: vi.fn() },
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
             getMasterStateRuntime({
                 location: { hostname: "127.0.0.1", protocol: "http:" },
-                window: { addEventListener: vi.fn() },
+                eventTarget: { addEventListener: vi.fn() },
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
             getMasterStateRuntime({
                 location: { hostname: "app-dev.local", protocol: "https:" },
-                window: { addEventListener: vi.fn() },
+                eventTarget: { addEventListener: vi.fn() },
             }).isDevelopmentScope()
         ).toBe(true);
         expect(
             getMasterStateRuntime({
                 location: { hostname: "app", protocol: "file:" },
-                window: { addEventListener: vi.fn() },
+                eventTarget: { addEventListener: vi.fn() },
             }).isDevelopmentScope()
         ).toBe(true);
     });
@@ -36,8 +36,8 @@ describe("masterStateRuntime", () => {
         expect.assertions(5);
 
         const rendererScope = {
+            eventTarget: { addEventListener: vi.fn() },
             location: { hostname: "example.com", protocol: "https:" },
-            window: { addEventListener: vi.fn() },
         };
 
         expect(
@@ -76,13 +76,13 @@ describe("masterStateRuntime", () => {
         expect(
             getMasterStateRuntime({
                 location: { hostname: "example.com", protocol: "https:" },
-                window: { addEventListener: vi.fn() },
+                eventTarget: { addEventListener: vi.fn() },
             }).isDevelopmentScope()
         ).toBe(false);
         expect(
             getMasterStateRuntime({
+                eventTarget: undefined,
                 location: { hostname: "localhost", protocol: "http:" },
-                window: undefined,
             }).isDevelopmentScope()
         ).toBe(false);
         expect(
@@ -99,7 +99,7 @@ describe("masterStateRuntime", () => {
         const runtime = getMasterStateRuntime({
             addEventListener: addGlobalEventListener,
             dispatchEvent: dispatchGlobalEvent,
-            window: { addEventListener: addWindowEventListener },
+            eventTarget: { addEventListener: addWindowEventListener },
         });
         const listener = vi.fn();
         const options = { once: true };
@@ -143,7 +143,7 @@ describe("masterStateRuntime", () => {
             protocol: "https:",
             search: "?debug=true",
         };
-        const windowTarget = { addEventListener: addWindowEventListener };
+        const eventTarget = { addEventListener: addWindowEventListener };
         const getAbortController = vi.fn(
             () => TestAbortController as unknown as typeof AbortController
         );
@@ -151,14 +151,14 @@ describe("masterStateRuntime", () => {
         const getDevelopmentFlag = vi.fn(() => false);
         const getDispatchEvent = vi.fn(() => dispatchGlobalEvent);
         const getLocation = vi.fn(() => location);
-        const getWindow = vi.fn(() => windowTarget);
+        const getEventTarget = vi.fn(() => eventTarget);
         const utils = getMasterStateRuntime({
             getAbortController,
             getAddEventListener,
             getDevelopmentFlag,
             getDispatchEvent,
+            getEventTarget,
             getLocation,
-            getWindow,
         });
 
         expect(utils.createAbortController()).toBeInstanceOf(
@@ -175,7 +175,7 @@ describe("masterStateRuntime", () => {
         expect(getDevelopmentFlag).toHaveBeenCalledOnce();
         expect(getDispatchEvent).toHaveBeenCalledOnce();
         expect(getLocation).toHaveBeenCalledTimes(2);
-        expect(getWindow).toHaveBeenCalledTimes(4);
+        expect(getEventTarget).toHaveBeenCalledTimes(4);
         expect(addGlobalEventListener).toHaveBeenCalledWith(
             "error",
             listener,
@@ -190,7 +190,7 @@ describe("masterStateRuntime", () => {
         expect(addGlobalEventListener.mock.contexts[0]).toMatchObject({
             getAddEventListener,
         });
-        expect(addWindowEventListener.mock.contexts[0]).toBe(windowTarget);
+        expect(addWindowEventListener.mock.contexts[0]).toBe(eventTarget);
         expect(dispatchGlobalEvent.mock.contexts[0]).toMatchObject({
             getDispatchEvent,
         });
