@@ -1,11 +1,4 @@
 export interface RenderSummaryRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly addEventListener?:
-        | typeof globalThis.addEventListener
-        | undefined;
-    readonly cancelAnimationFrame?:
-        | typeof globalThis.cancelAnimationFrame
-        | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -18,19 +11,18 @@ export interface RenderSummaryRuntimeScope {
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
-    readonly requestAnimationFrame?:
-        | typeof globalThis.requestAnimationFrame
-        | undefined;
 }
 
 export interface RenderSummaryRuntime {
-    addResizeListener(
-        listener: EventListener,
-        options?: AddEventListenerOptions
-    ): void;
-    cancelAnimationFrame(handle: number): void;
-    createAbortController(): AbortController;
-    requestAnimationFrame(callback: FrameRequestCallback): null | number;
+    readonly addResizeListener: (
+        listener: Readonly<EventListener>,
+        options?: Readonly<AddEventListenerOptions>
+    ) => void;
+    readonly cancelAnimationFrame: (handle: number) => void;
+    readonly createAbortController: () => AbortController;
+    readonly requestAnimationFrame: (
+        callback: FrameRequestCallback
+    ) => null | number;
 }
 
 const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = {
@@ -43,25 +35,25 @@ const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = {
 function getScopeAbortController(
     scope: RenderSummaryRuntimeScope
 ): typeof AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getScopeAddEventListener(
     scope: RenderSummaryRuntimeScope
 ): typeof globalThis.addEventListener | undefined {
-    return scope.getAddEventListener?.() ?? scope.addEventListener;
+    return scope.getAddEventListener?.();
 }
 
 function getScopeCancelAnimationFrame(
     scope: RenderSummaryRuntimeScope
 ): typeof globalThis.cancelAnimationFrame | undefined {
-    return scope.getCancelAnimationFrame?.() ?? scope.cancelAnimationFrame;
+    return scope.getCancelAnimationFrame?.();
 }
 
 function getScopeRequestAnimationFrame(
     scope: RenderSummaryRuntimeScope
 ): typeof globalThis.requestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.() ?? scope.requestAnimationFrame;
+    return scope.getRequestAnimationFrame?.();
 }
 
 export function getRenderSummaryRuntime(
@@ -69,12 +61,17 @@ export function getRenderSummaryRuntime(
 ): RenderSummaryRuntime {
     return {
         addResizeListener(
-            listener: EventListener,
-            options?: AddEventListenerOptions
+            listener: Readonly<EventListener>,
+            options?: Readonly<AddEventListenerOptions>
         ): void {
             const addEventListenerRef = getScopeAddEventListener(scope);
-            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Callers pass an AbortSignal option owned by the virtualized summary lifecycle.
-            addEventListenerRef?.call(scope, "resize", listener, options);
+            addEventListenerRef?.call(
+                scope,
+                "resize",
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- DOM listener registration requires the mutable EventListener shape at this adapter boundary.
+                listener as EventListener,
+                options
+            );
         },
         cancelAnimationFrame(handle: number): void {
             getScopeCancelAnimationFrame(scope)?.call(scope, handle);

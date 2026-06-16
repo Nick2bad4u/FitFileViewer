@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { getRenderSummaryRuntime } from "../../../../../electron-app/utils/rendering/helpers/renderSummaryRuntime.js";
 
 describe("getRenderSummaryRuntime", () => {
-    it("creates abort controllers through the injected runtime scope", () => {
+    it("creates abort controllers through the injected runtime provider", () => {
         expect.assertions(2);
 
         let controllerCount = 0;
@@ -20,7 +20,7 @@ describe("getRenderSummaryRuntime", () => {
             }
         }
         const { createAbortController } = getRenderSummaryRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(createAbortController()).toBeInstanceOf(TestAbortController);
@@ -63,12 +63,13 @@ describe("getRenderSummaryRuntime", () => {
         const getAddEventListener = vi.fn(() => addEventListener);
         const getCancelAnimationFrame = vi.fn(() => cancelAnimationFrame);
         const getRequestAnimationFrame = vi.fn(() => requestAnimationFrame);
-        const utils = getRenderSummaryRuntime({
+        const scope = {
             getAbortController,
             getAddEventListener,
             getCancelAnimationFrame,
             getRequestAnimationFrame,
-        });
+        };
+        const utils = getRenderSummaryRuntime(scope);
 
         expect(utils.createAbortController()).toBeInstanceOf(
             TestAbortController
@@ -89,15 +90,9 @@ describe("getRenderSummaryRuntime", () => {
         );
         expect(requestAnimationFrame).toHaveBeenCalledWith(frameCallback);
         expect(cancelAnimationFrame).toHaveBeenCalledWith(44);
-        expect(addEventListener.mock.contexts[0]).toMatchObject({
-            getAddEventListener,
-        });
-        expect(requestAnimationFrame.mock.contexts[0]).toMatchObject({
-            getRequestAnimationFrame,
-        });
-        expect(cancelAnimationFrame.mock.contexts[0]).toMatchObject({
-            getCancelAnimationFrame,
-        });
+        expect(addEventListener.mock.contexts[0]).toBe(scope);
+        expect(requestAnimationFrame.mock.contexts[0]).toBe(scope);
+        expect(cancelAnimationFrame.mock.contexts[0]).toBe(scope);
         expect(listener).not.toHaveBeenCalled();
         expect(frameCallback).not.toHaveBeenCalled();
     });
@@ -112,24 +107,22 @@ describe("getRenderSummaryRuntime", () => {
         }).toThrow("renderSummary requires an AbortController runtime");
     });
 
-    it("schedules animation frames through the injected runtime scope", () => {
+    it("schedules animation frames through the injected runtime provider", () => {
         expect.assertions(3);
 
         const callback = vi.fn<FrameRequestCallback>();
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 42);
-        const { requestAnimationFrame: requestFrame } = getRenderSummaryRuntime(
-            {
-                requestAnimationFrame,
-            }
-        );
+        const scope = {
+            getRequestAnimationFrame: () => requestAnimationFrame,
+        };
+        const { requestAnimationFrame: requestFrame } =
+            getRenderSummaryRuntime(scope);
 
         expect(requestFrame(callback)).toBe(42);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
-        expect(requestAnimationFrame.mock.contexts[0]).toStrictEqual({
-            requestAnimationFrame,
-        });
+        expect(requestAnimationFrame.mock.contexts[0]).toBe(scope);
     });
 
     it("returns null when animation-frame scheduling is unavailable", () => {
@@ -140,20 +133,20 @@ describe("getRenderSummaryRuntime", () => {
         );
     });
 
-    it("cancels animation frames through the injected runtime scope", () => {
+    it("cancels animation frames through the injected runtime provider", () => {
         expect.assertions(2);
 
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
-        const { cancelAnimationFrame: cancelFrame } = getRenderSummaryRuntime({
-            cancelAnimationFrame,
-        });
+        const scope = {
+            getCancelAnimationFrame: () => cancelAnimationFrame,
+        };
+        const { cancelAnimationFrame: cancelFrame } =
+            getRenderSummaryRuntime(scope);
 
         cancelFrame(21);
 
         expect(cancelAnimationFrame).toHaveBeenCalledWith(21);
-        expect(cancelAnimationFrame.mock.contexts[0]).toStrictEqual({
-            cancelAnimationFrame,
-        });
+        expect(cancelAnimationFrame.mock.contexts[0]).toBe(scope);
     });
 
     it("ignores frame cancellation when the runtime scope cannot cancel", () => {
@@ -164,7 +157,7 @@ describe("getRenderSummaryRuntime", () => {
         ).not.toThrow();
     });
 
-    it("registers resize listeners through the injected runtime scope", () => {
+    it("registers resize listeners through the injected runtime provider", () => {
         expect.assertions(2);
 
         const addEventListener =
@@ -177,9 +170,10 @@ describe("getRenderSummaryRuntime", () => {
             >();
         const listener = vi.fn<EventListener>();
         const options: AddEventListenerOptions = { once: true };
-        const { addResizeListener } = getRenderSummaryRuntime({
-            addEventListener,
-        });
+        const scope = {
+            getAddEventListener: () => addEventListener,
+        };
+        const { addResizeListener } = getRenderSummaryRuntime(scope);
 
         addResizeListener(listener, options);
 
@@ -188,9 +182,7 @@ describe("getRenderSummaryRuntime", () => {
             listener,
             options
         );
-        expect(addEventListener.mock.contexts[0]).toStrictEqual({
-            addEventListener,
-        });
+        expect(addEventListener.mock.contexts[0]).toBe(scope);
     });
 
     it("ignores resize listeners when the runtime scope cannot listen", () => {
@@ -199,5 +191,54 @@ describe("getRenderSummaryRuntime", () => {
         expect(() =>
             getRenderSummaryRuntime({}).addResizeListener(vi.fn())
         ).not.toThrow();
+    });
+
+    it("ignores legacy direct scheduling runtime properties", () => {
+        expect.assertions(11);
+
+        let controllerCount = 0;
+        class TestAbortController implements AbortController {
+            public readonly signal = Symbol(
+                "render-summary-legacy-signal"
+            ) as unknown as AbortSignal;
+
+            public constructor() {
+                controllerCount += 1;
+            }
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const listener = vi.fn<EventListener>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const addEventListener = vi.fn<typeof globalThis.addEventListener>();
+        const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => 51);
+        const utils = getRenderSummaryRuntime({
+            AbortController: TestAbortController,
+            addEventListener,
+            cancelAnimationFrame,
+            requestAnimationFrame,
+        } as unknown as Parameters<typeof getRenderSummaryRuntime>[0]);
+
+        expect(() => utils.createAbortController()).toThrow(
+            "renderSummary requires an AbortController runtime"
+        );
+        utils.addResizeListener(listener);
+        expect(utils.requestAnimationFrame(frameCallback)).toBe(null);
+        utils.cancelAnimationFrame(51);
+
+        expect(controllerCount).toBe(0);
+        expect(addEventListener).not.toHaveBeenCalled();
+        expect(requestAnimationFrame).not.toHaveBeenCalled();
+        expect(cancelAnimationFrame).not.toHaveBeenCalled();
+        expect(listener).not.toHaveBeenCalled();
+        expect(frameCallback).not.toHaveBeenCalled();
+        expect(() => utils.addResizeListener(listener)).not.toThrow();
+        expect(utils.requestAnimationFrame(frameCallback)).toBe(null);
+        expect(frameCallback).not.toHaveBeenCalled();
     });
 });

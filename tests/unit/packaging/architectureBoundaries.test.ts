@@ -9535,7 +9535,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(18);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -9566,6 +9566,30 @@ describe("architecture boundaries", () => {
         );
         expect(renderSummaryRuntimeSource).not.toContain(
             "const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = globalThis"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "readonly addEventListener?:"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "readonly cancelAnimationFrame?:"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "scope.addEventListener"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "scope.cancelAnimationFrame"
+        );
+        expect(renderSummaryRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
         );
         expect(renderSummaryRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
