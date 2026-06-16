@@ -10,10 +10,10 @@ function createDocumentTarget(readyState: DocumentReadyState): Document {
     } as unknown as Document;
 }
 
-function createWindowTarget(): Window {
+function createGlobalEventTarget(): EventTarget {
     return {
         addEventListener: vi.fn(),
-    } as unknown as Window;
+    } as unknown as EventTarget;
 }
 
 describe("renderer application lifecycle wiring", () => {
@@ -32,17 +32,17 @@ describe("renderer application lifecycle wiring", () => {
             lifecycleState.initialized = true;
         });
         const setTimeoutSpy = vi.fn<typeof globalThis.setTimeout>();
-        const windowTarget = createWindowTarget();
+        const globalEventTarget = createGlobalEventTarget();
 
         registerRendererApplicationLifecycle({
             cleanup,
             documentTarget,
+            globalEventTarget,
             initializeApplication,
             setTimeout: setTimeoutSpy,
-            windowTarget,
         });
 
-        expect(windowTarget.addEventListener).toHaveBeenCalledWith(
+        expect(globalEventTarget.addEventListener).toHaveBeenCalledWith(
             "beforeunload",
             expect.any(Function),
             expect.objectContaining({ signal: expect.any(AbortSignal) })
@@ -62,8 +62,8 @@ describe("renderer application lifecycle wiring", () => {
         expect(lifecycleState.initialized).toBe(true);
         expect(cleanup).not.toHaveBeenCalled();
 
-        const onBeforeUnload = vi.mocked(windowTarget.addEventListener).mock
-            .calls[0]?.[1] as () => void;
+        const onBeforeUnload = vi.mocked(globalEventTarget.addEventListener)
+            .mock.calls[0]?.[1] as () => void;
         onBeforeUnload();
 
         expect(cleanup).toHaveBeenCalledOnce();
@@ -91,9 +91,9 @@ describe("renderer application lifecycle wiring", () => {
         registerRendererApplicationLifecycle({
             cleanup: vi.fn(),
             documentTarget,
+            globalEventTarget: createGlobalEventTarget(),
             initializeApplication,
             setTimeout: setTimeoutSpy,
-            windowTarget: createWindowTarget(),
         });
 
         expect(setTimeoutSpy).toHaveBeenCalledExactlyOnceWith(
@@ -123,18 +123,18 @@ describe("renderer application lifecycle wiring", () => {
         };
         const cleanup = vi.fn();
         const documentTarget = createDocumentTarget("loading");
-        const windowTarget = createWindowTarget();
+        const globalEventTarget = createGlobalEventTarget();
 
         registerRendererApplicationLifecycle({
             cleanup,
             documentTarget,
+            globalEventTarget,
             initializeApplication: async () => {},
             runtime: lifecycleWiringAdapter,
             setTimeout: vi.fn<typeof globalThis.setTimeout>(),
-            windowTarget,
         });
-        const onBeforeUnload = vi.mocked(windowTarget.addEventListener).mock
-            .calls[0]?.[1] as () => void;
+        const onBeforeUnload = vi.mocked(globalEventTarget.addEventListener)
+            .mock.calls[0]?.[1] as () => void;
         onBeforeUnload();
 
         expect(

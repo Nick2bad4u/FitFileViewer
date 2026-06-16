@@ -8,15 +8,18 @@ type RendererApplicationLifecycleDocument = Pick<
     "addEventListener" | "readyState"
 >;
 
-type RendererApplicationLifecycleWindow = Pick<EventTarget, "addEventListener">;
+type RendererApplicationLifecycleGlobalEventTarget = Pick<
+    EventTarget,
+    "addEventListener"
+>;
 
 type RendererApplicationLifecycleOptions = {
     readonly cleanup: () => void;
     readonly documentTarget: RendererApplicationLifecycleDocument;
+    readonly globalEventTarget: RendererApplicationLifecycleGlobalEventTarget;
     readonly initializeApplication: () => Promise<void>;
     readonly runtime?: RendererApplicationLifecycleWiringRuntime | undefined;
     readonly setTimeout: typeof globalThis.setTimeout;
-    readonly windowTarget: RendererApplicationLifecycleWindow;
 };
 
 export function registerRendererApplicationLifecycle(
@@ -35,7 +38,7 @@ export function registerRendererApplicationLifecycle(
         void options.initializeApplication();
     };
 
-    options.windowTarget.addEventListener("beforeunload", onBeforeUnload, {
+    options.globalEventTarget.addEventListener("beforeunload", onBeforeUnload, {
         signal,
     });
     options.documentTarget.addEventListener(
