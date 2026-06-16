@@ -18,22 +18,18 @@ import {
     type ExportZipConstructor,
     type ExportZipLike,
 } from "./exportZipRuntime.js";
-import { getExportUtilsRuntime } from "./exportUtilsRuntime.js";
+import {
+    getExportUtilsRuntime,
+    type ExportStorageLike,
+    type ExportStorageProvider,
+    type SecureRandomScope,
+} from "./exportUtilsRuntime.js";
 import { showChartSelectionModal } from "../../ui/components/createSettingsHeader.js";
 import { createModalFocusTrap } from "../../ui/modals/modalFocusTrap.js";
 import { showNotification as __realShowNotification } from "../../ui/notifications/showNotification.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
 type LooseRecord = unknown;
-type ExportStorageLike = {
-    getItem?: (key: string) => null | string;
-    removeItem?: (key: string) => void;
-    setItem?: (key: string, value: string) => void;
-};
-type ExportStorageProvider = () => ExportStorageLike | null;
-type SecureRandomScope = {
-    crypto?: Pick<Crypto, "getRandomValues">;
-};
 type ElectronApiLike = Partial<
     Pick<
         ElectronAPI,
@@ -58,25 +54,11 @@ type ChartDataset = {
 const exportUtilsRuntime = getExportUtilsRuntime();
 
 function getDefaultExportStorage(): ExportStorageLike | null {
-    const storage = Reflect.get(globalThis, "localStorage");
-
-    return storage &&
-        typeof storage === "object" &&
-        (typeof Reflect.get(storage, "getItem") === "function" ||
-            typeof Reflect.get(storage, "setItem") === "function" ||
-            typeof Reflect.get(storage, "removeItem") === "function")
-        ? storage
-        : null;
+    return exportUtilsRuntime.getStorage();
 }
 
 function getSecureRandomScope(): SecureRandomScope {
-    const cryptoObject = Reflect.get(globalThis, "crypto");
-
-    return cryptoObject &&
-        typeof cryptoObject === "object" &&
-        typeof Reflect.get(cryptoObject, "getRandomValues") === "function"
-        ? { crypto: cryptoObject }
-        : {};
+    return exportUtilsRuntime.getSecureRandomScope();
 }
 
 /**

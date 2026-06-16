@@ -79,6 +79,54 @@ describe("exportUtilsRuntime", () => {
         );
     });
 
+    it("resolves storage through the scoped storage runtime", () => {
+        expect.assertions(1);
+
+        const storage = {
+            getItem: vi.fn<Storage["getItem"]>(),
+            removeItem: vi.fn<Storage["removeItem"]>(),
+            setItem: vi.fn<Storage["setItem"]>(),
+        };
+        const runtime = getExportUtilsRuntime({
+            localStorage: storage,
+        });
+
+        expect(runtime.getStorage()).toBe(storage);
+    });
+
+    it("ignores invalid scoped storage runtimes", () => {
+        expect.assertions(1);
+
+        const runtime = getExportUtilsRuntime({
+            localStorage: {} as Storage,
+        });
+
+        expect(runtime.getStorage()).toBeNull();
+    });
+
+    it("resolves secure randomness through the scoped crypto runtime", () => {
+        expect.assertions(1);
+
+        const crypto = {
+            getRandomValues: vi.fn<Crypto["getRandomValues"]>(),
+        };
+        const runtime = getExportUtilsRuntime({
+            crypto,
+        });
+
+        expect(runtime.getSecureRandomScope()).toStrictEqual({ crypto });
+    });
+
+    it("ignores invalid scoped secure-random runtimes", () => {
+        expect.assertions(1);
+
+        const runtime = getExportUtilsRuntime({
+            crypto: {} as Crypto,
+        });
+
+        expect(runtime.getSecureRandomScope()).toStrictEqual({});
+    });
+
     it("returns null when print-window opening is unavailable", () => {
         expect.assertions(1);
 
@@ -119,5 +167,25 @@ describe("exportUtilsRuntime", () => {
         expect(() => getExportUtilsRuntime({}).createAbortController()).toThrow(
             "exportUtils requires an AbortController runtime"
         );
+    });
+
+    it("resolves default storage and crypto providers when runtime operations run", () => {
+        expect.assertions(2);
+
+        const storage = {
+            getItem: vi.fn<Storage["getItem"]>(),
+            removeItem: vi.fn<Storage["removeItem"]>(),
+            setItem: vi.fn<Storage["setItem"]>(),
+        };
+        const crypto = {
+            getRandomValues: vi.fn<Crypto["getRandomValues"]>(),
+        };
+        vi.stubGlobal("localStorage", storage);
+        vi.stubGlobal("crypto", crypto);
+
+        const runtime = getExportUtilsRuntime();
+
+        expect(runtime.getStorage()).toBe(storage);
+        expect(runtime.getSecureRandomScope()).toStrictEqual({ crypto });
     });
 });
