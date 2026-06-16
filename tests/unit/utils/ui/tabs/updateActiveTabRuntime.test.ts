@@ -12,10 +12,10 @@ describe("updateActiveTabRuntime", () => {
 
         const testDocument = createDocument();
         const scopeDocument = createDocument();
-        const windowDocument = createDocument();
+        const providerDocument = createDocument();
         const runtime = getUpdateActiveTabRuntime({
             document: scopeDocument,
-            window: { document: windowDocument },
+            getDocument: () => providerDocument,
         });
 
         expect(runtime.getDocument(testDocument)).toBe(testDocument);
@@ -32,16 +32,16 @@ describe("updateActiveTabRuntime", () => {
         expect(runtime.getDocument()).toBe(scopeDocument);
     });
 
-    it("falls back to the runtime window document", () => {
+    it("uses the runtime document provider", () => {
         expect.assertions(1);
 
-        const windowDocument = createDocument();
+        const providerDocument = createDocument();
         const runtime = getUpdateActiveTabRuntime({
             document: undefined,
-            window: { document: windowDocument },
+            getDocument: () => providerDocument,
         });
 
-        expect(runtime.getDocument()).toBe(windowDocument);
+        expect(runtime.getDocument()).toBe(providerDocument);
     });
 
     it("ignores invalid document candidates", () => {
@@ -49,9 +49,15 @@ describe("updateActiveTabRuntime", () => {
 
         const runtime = getUpdateActiveTabRuntime({
             document: { getElementById: "not a function" },
-            window: { document: null },
+            getDocument: () => null,
         });
 
         expect(runtime.getDocument()).toBeUndefined();
+    });
+
+    it("does not borrow ambient documents for explicit empty scopes", () => {
+        expect.assertions(1);
+
+        expect(getUpdateActiveTabRuntime({}).getDocument()).toBeUndefined();
     });
 });

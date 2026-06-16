@@ -243,7 +243,7 @@ describe("updateActiveTab.js - environment fallbacks", () => {
         });
     });
 
-    it("uses window.document when document is undefined (window fallback)", async () => {
+    it("does not use window.document when document is undefined", async () => {
         expect.assertions(3);
 
         // Prepare a fresh JSDOM to simulate window.document while document is undefined
@@ -269,19 +269,21 @@ describe("updateActiveTab.js - environment fallbacks", () => {
 
         const { updateActiveTab } =
             await import("../../../electron-app/utils/ui/tabs/updateActiveTab.js");
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation(() => {});
         const ok = updateActiveTab("tab-win");
 
-        expect(ok).toStrictEqual(true);
-        expect(setState).toHaveBeenCalledWith("ui.activeTab", "win", {
-            source: "updateActiveTab",
-        });
+        expect(ok).toStrictEqual(false);
+        expect(setState).not.toHaveBeenCalled();
         const el = getRequiredElement(getFallbackWindowDocument(), "tab-win");
         expect(getTabButtonState(el.ownerDocument, "tab-win")).toEqual({
             ariaDisabled: null,
             ariaSelected: null,
-            classes: ["tab-button", "active"],
+            classes: ["tab-button"],
             id: "tab-win",
         });
+        errorSpy.mockRestore();
     });
 
     it("subscribes and updates aria-selected via state callback (valid path)", async () => {

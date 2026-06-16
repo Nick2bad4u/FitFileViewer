@@ -1,8 +1,6 @@
 export interface UpdateActiveTabRuntimeScope {
     readonly document?: unknown;
-    readonly window?: {
-        readonly document?: unknown;
-    };
+    readonly getDocument?: (() => unknown) | undefined;
 }
 
 export interface UpdateActiveTabRuntime {
@@ -30,20 +28,21 @@ function getScopeDocument(
     }
 }
 
-function getScopeWindowDocument(
+const defaultUpdateActiveTabRuntimeScope: UpdateActiveTabRuntimeScope = {
+    getDocument: () => globalThis.document,
+};
+
+function getProviderDocument(
     scope: UpdateActiveTabRuntimeScope
 ): Document | undefined {
     try {
-        return isDocumentLike(scope.window?.document)
-            ? scope.window.document
-            : undefined;
+        const candidate = scope.getDocument?.();
+
+        return isDocumentLike(candidate) ? candidate : undefined;
     } catch {
         return undefined;
     }
 }
-
-const defaultUpdateActiveTabRuntimeScope: UpdateActiveTabRuntimeScope =
-    globalThis;
 
 export function getUpdateActiveTabRuntime(
     scope: UpdateActiveTabRuntimeScope = defaultUpdateActiveTabRuntimeScope
@@ -52,8 +51,8 @@ export function getUpdateActiveTabRuntime(
         getDocument(testDocument?: Document): Document | undefined {
             const candidates = [
                 testDocument,
+                getProviderDocument(scope),
                 getScopeDocument(scope),
-                getScopeWindowDocument(scope),
             ];
 
             return candidates.find(isDocumentLike);

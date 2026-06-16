@@ -27,8 +27,8 @@ type TabButtonLike = EventTarget & {
 let activeTabUnsubscribe: (() => void) | null = null;
 const activeTabRuntime = getUpdateActiveTabRuntime();
 
-function getDoc(): Document {
-    return activeTabRuntime.getDocument(getTabTestDocumentForTests()) ?? document;
+function getDoc(): Document | undefined {
+    return activeTabRuntime.getDocument(getTabTestDocumentForTests());
 }
 
 function getStateMgr(): RendererStateManagerAccess {
@@ -55,8 +55,8 @@ function getStateMgr(): RendererStateManagerAccess {
     return getRequiredRendererCoreStateManager();
 }
 
-function getButtonCollection(selector: string): NodeListOf<Element> {
-    return getDoc().querySelectorAll(selector);
+function getButtonCollection(selector: string): Element[] {
+    return [...(getDoc()?.querySelectorAll(selector) ?? [])];
 }
 
 function isButtonLike(candidate: unknown): candidate is TabButtonLike {
@@ -90,7 +90,7 @@ function removeActiveClass(element: unknown): void {
 }
 
 function getEnabledTabButtons(): TabButtonLike[] {
-    return [...getButtonCollection(".tab-button")]
+    return getButtonCollection(".tab-button")
         .filter(isButtonLike)
         .filter((button) => !isDisabledButton(button));
 }
@@ -316,7 +316,7 @@ export function updateActiveTab(tabId: unknown): boolean {
     }
 
     try {
-        const currentActive = getDoc().querySelector(".tab-button.active");
+        const currentActive = getDoc()?.querySelector(".tab-button.active");
         if (currentActive && currentActive.id === tabId) {
             const tabNameFast = extractTabNameFromButtonId(tabId);
             getStateMgr().setState("ui.activeTab", tabNameFast, {
@@ -340,7 +340,13 @@ export function updateActiveTab(tabId: unknown): boolean {
         }
     }
 
-    const target = getElementByIdFlexible(getDoc(), tabId);
+    const runtimeDocument = getDoc();
+    if (!runtimeDocument) {
+        console.error("[updateActiveTab] No document runtime is available.");
+        return false;
+    }
+
+    const target = getElementByIdFlexible(runtimeDocument, tabId);
     if (isButtonLike(target)) {
         target.classList.add("active");
         const tabName = extractTabNameFromButtonId(tabId);
