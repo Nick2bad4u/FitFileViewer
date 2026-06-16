@@ -8653,7 +8653,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(28);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -8688,20 +8688,57 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleRuntimeSource).toContain(
             "defaultMapThemeToggleRuntimeScope"
         );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
         expect(mapThemeToggleRuntimeSource).not.toContain(
             "scope: MapThemeToggleRuntimeScope = globalThis"
         );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "const defaultMapThemeToggleRuntimeScope: MapThemeToggleRuntimeScope = globalThis"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "readonly CustomEvent?:"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(mapThemeToggleRuntimeSource).not.toContain("scope.CustomEvent");
+        expect(mapThemeToggleRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(mapThemeToggleRuntimeSource).not.toContain("scope.document");
+        expect(mapThemeToggleRuntimeSource).not.toContain("scope.setTimeout");
         expect(mapThemeToggleRuntimeSource).toContain(
-            "const runtimeDocument = scope.document;"
+            "const runtimeDocument = scope.getDocument?.();"
         );
         expect(mapThemeToggleRuntimeSource).not.toMatch(
             directMapThemeToggleRuntimeAmbientFallbackPattern
         );
         expect(mapThemeToggleRuntimeSource).toContain(
-            "const setTimeoutRef = scope.setTimeout;"
-        );
-        expect(mapThemeToggleRuntimeSource).not.toContain(
-            "globalThis.document"
+            "const setTimeoutRef = scope.getSetTimeout?.();"
         );
     });
 
