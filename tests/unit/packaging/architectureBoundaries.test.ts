@@ -5576,7 +5576,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(17);
+        expect.assertions(29);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -5586,6 +5586,14 @@ describe("architecture boundaries", () => {
         const showFitDataRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/rendering/core/showFitDataRuntime.ts"
+            )
+        );
+        const runtimeScopeSource = showFitDataRuntimeSource.slice(
+            showFitDataRuntimeSource.indexOf(
+                "export interface ShowFitDataRuntimeScope"
+            ),
+            showFitDataRuntimeSource.indexOf(
+                "export interface ShowFitDataRuntime"
             )
         );
 
@@ -5625,6 +5633,22 @@ describe("architecture boundaries", () => {
         );
         expect(showFitDataRuntimeSource).toContain(
             "getScrollTo: () => globalThis.scrollTo"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly CustomEvent?:");
+        expect(runtimeScopeSource).not.toContain("readonly dispatchEvent?:");
+        expect(runtimeScopeSource).not.toContain("readonly matchMedia?:");
+        expect(runtimeScopeSource).not.toContain("readonly queueMicrotask?:");
+        expect(runtimeScopeSource).not.toContain("readonly scrollTo?:");
+        expect(showFitDataRuntimeSource).not.toContain("scope.CustomEvent");
+        expect(showFitDataRuntimeSource).not.toContain("scope.dispatchEvent");
+        expect(showFitDataRuntimeSource).not.toContain("scope.matchMedia");
+        expect(showFitDataRuntimeSource).not.toContain("scope.queueMicrotask");
+        expect(showFitDataRuntimeSource).not.toContain("scope.scrollTo");
+        expect(showFitDataRuntimeSource).toContain(
+            "return scope.getMatchMedia?.();"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "return scope.getScrollTo?.();"
         );
     });
 

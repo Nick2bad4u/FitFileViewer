@@ -1,8 +1,6 @@
-type ShowFitDataScrollTo = (options: ScrollToOptions) => void;
+type ShowFitDataScrollTo = (options: Readonly<ScrollToOptions>) => void;
 
 export interface ShowFitDataRuntimeScope {
-    readonly CustomEvent?: typeof globalThis.CustomEvent | undefined;
-    readonly dispatchEvent?: typeof globalThis.dispatchEvent | undefined;
     readonly getCustomEvent?:
         | (() => typeof globalThis.CustomEvent | undefined)
         | undefined;
@@ -16,27 +14,29 @@ export interface ShowFitDataRuntimeScope {
         | (() => typeof globalThis.queueMicrotask | undefined)
         | undefined;
     readonly getScrollTo?: (() => ShowFitDataScrollTo | undefined) | undefined;
-    readonly matchMedia?: typeof globalThis.matchMedia | undefined;
-    readonly queueMicrotask?: typeof globalThis.queueMicrotask | undefined;
-    readonly scrollTo?: ShowFitDataScrollTo | undefined;
 }
 
 export interface ShowFitDataRuntime {
     canScrollTo: () => boolean;
     createCustomEvent: <T>(
         type: string,
-        eventInitDict?: CustomEventInit<T>
+        eventInitDict?: Readonly<CustomEventInit<T>>
     ) => CustomEvent<T>;
-    dispatchEvent: (event: Event) => boolean;
+    dispatchEvent: (event: Readonly<Event>) => boolean;
     prefersReducedMotion: () => boolean;
     queueMicrotask: (callback: () => void) => void;
-    scrollTo: (options: ScrollToOptions) => void;
+    scrollTo: (options: Readonly<ScrollToOptions>) => void;
+}
+
+async function runAfterPromiseMicrotask(callback: () => void): Promise<void> {
+    await Promise.resolve();
+    callback();
 }
 
 function getCustomEventConstructor(
     scope: ShowFitDataRuntimeScope
 ): typeof CustomEvent {
-    const CustomEventConstructor = scope.getCustomEvent?.() ?? scope.CustomEvent;
+    const CustomEventConstructor = scope.getCustomEvent?.();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError("showFitData requires a CustomEvent runtime");
     }
@@ -47,7 +47,7 @@ function getCustomEventConstructor(
 function getDispatchEvent(
     scope: ShowFitDataRuntimeScope
 ): typeof globalThis.dispatchEvent {
-    const dispatchEvent = scope.getDispatchEvent?.() ?? scope.dispatchEvent;
+    const dispatchEvent = scope.getDispatchEvent?.();
     if (typeof dispatchEvent !== "function") {
         throw new TypeError("showFitData requires a dispatchEvent runtime");
     }
@@ -58,19 +58,19 @@ function getDispatchEvent(
 function getScopeMatchMedia(
     scope: ShowFitDataRuntimeScope
 ): typeof globalThis.matchMedia | undefined {
-    return scope.getMatchMedia?.() ?? scope.matchMedia;
+    return scope.getMatchMedia?.();
 }
 
 function getScopeQueueMicrotask(
     scope: ShowFitDataRuntimeScope
 ): typeof globalThis.queueMicrotask | undefined {
-    return scope.getQueueMicrotask?.() ?? scope.queueMicrotask;
+    return scope.getQueueMicrotask?.();
 }
 
 function getScopeScrollTo(
     scope: ShowFitDataRuntimeScope
 ): ShowFitDataScrollTo | undefined {
-    return scope.getScrollTo?.() ?? scope.scrollTo;
+    return scope.getScrollTo?.();
 }
 
 const defaultShowFitDataRuntimeScope: ShowFitDataRuntimeScope = {
@@ -91,7 +91,7 @@ export function getShowFitDataRuntime(
 
         createCustomEvent<T>(
             type: string,
-            eventInitDict?: CustomEventInit<T>
+            eventInitDict?: Readonly<CustomEventInit<T>>
         ): CustomEvent<T> {
             return new (getCustomEventConstructor(scope))<T>(
                 type,
@@ -99,7 +99,7 @@ export function getShowFitDataRuntime(
             );
         },
 
-        dispatchEvent(event: Event): boolean {
+        dispatchEvent(event: Readonly<Event>): boolean {
             return getDispatchEvent(scope).call(scope, event);
         },
 
@@ -107,10 +107,8 @@ export function getShowFitDataRuntime(
             const matchMedia = getScopeMatchMedia(scope);
             return (
                 typeof matchMedia === "function" &&
-                matchMedia.call(
-                    scope,
-                    "(prefers-reduced-motion: reduce)"
-                ).matches
+                matchMedia.call(scope, "(prefers-reduced-motion: reduce)")
+                    .matches
             );
         },
 
@@ -121,12 +119,10 @@ export function getShowFitDataRuntime(
                 return;
             }
 
-            void Promise.resolve().then(() => {
-                callback();
-            });
+            void runAfterPromiseMicrotask(callback);
         },
 
-        scrollTo(options: ScrollToOptions): void {
+        scrollTo(options: Readonly<ScrollToOptions>): void {
             getScopeScrollTo(scope)?.call(scope, options);
         },
     };

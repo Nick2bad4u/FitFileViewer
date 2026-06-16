@@ -9,8 +9,8 @@ describe("showFitDataRuntime", () => {
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList),
             scrollTo = vi.fn(),
             runtime = getShowFitDataRuntime({
-                matchMedia,
-                scrollTo,
+                getMatchMedia: () => matchMedia,
+                getScrollTo: () => scrollTo,
             });
 
         expect(runtime.canScrollTo()).toBe(true);
@@ -87,8 +87,8 @@ describe("showFitDataRuntime", () => {
 
         const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
         const runtime = getShowFitDataRuntime({
-            CustomEvent,
-            dispatchEvent,
+            getCustomEvent: () => CustomEvent,
+            getDispatchEvent: () => dispatchEvent,
         });
 
         const event = runtime.createCustomEvent("fitfile-loaded", {
@@ -106,13 +106,13 @@ describe("showFitDataRuntime", () => {
 
         expect(() =>
             getShowFitDataRuntime({
-                dispatchEvent: () => true,
+                getDispatchEvent: () => () => true,
             }).createCustomEvent("fitfile-loaded")
         ).toThrow("showFitData requires a CustomEvent runtime");
         expect(() =>
-            getShowFitDataRuntime({ CustomEvent }).dispatchEvent(
-                new Event("fitfile-loaded")
-            )
+            getShowFitDataRuntime({
+                getCustomEvent: () => CustomEvent,
+            }).dispatchEvent(new Event("fitfile-loaded"))
         ).toThrow("showFitData requires a dispatchEvent runtime");
     });
 
@@ -127,7 +127,9 @@ describe("showFitDataRuntime", () => {
             queueMicrotask = vi.fn((callback: () => void) => {
                 queuedCallback = callback;
             }),
-            runtime = getShowFitDataRuntime({ queueMicrotask });
+            runtime = getShowFitDataRuntime({
+                getQueueMicrotask: () => queueMicrotask,
+            });
 
         runtime.queueMicrotask(callback);
         queuedCallback?.();
@@ -135,6 +137,40 @@ describe("showFitDataRuntime", () => {
         expect(queueMicrotask).toHaveBeenCalledWith(callback);
         expect(callback).toHaveBeenCalledWith();
         expect(ran).toBe(true);
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(9);
+
+        const callback = vi.fn<() => void>();
+        const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
+        const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
+        const queueMicrotask = vi.fn<(callback: () => void) => void>();
+        const scrollTo = vi.fn<(options: ScrollToOptions) => void>();
+        const runtime = getShowFitDataRuntime({
+            CustomEvent,
+            dispatchEvent,
+            matchMedia,
+            queueMicrotask,
+            scrollTo,
+        } as unknown as Parameters<typeof getShowFitDataRuntime>[0]);
+
+        expect(runtime.canScrollTo()).toBe(false);
+        expect(runtime.prefersReducedMotion()).toBe(false);
+        expect(() => runtime.createCustomEvent("fitfile-loaded")).toThrow(
+            "showFitData requires a CustomEvent runtime"
+        );
+        expect(() =>
+            runtime.dispatchEvent(new Event("fitfile-loaded"))
+        ).toThrow("showFitData requires a dispatchEvent runtime");
+        runtime.queueMicrotask(callback);
+        runtime.scrollTo({ behavior: "auto", top: 0 });
+
+        expect(dispatchEvent).not.toHaveBeenCalled();
+        expect(matchMedia).not.toHaveBeenCalled();
+        expect(queueMicrotask).not.toHaveBeenCalled();
+        expect(scrollTo).not.toHaveBeenCalled();
+        expect(callback).not.toHaveBeenCalled();
     });
 
     it("uses a promise microtask fallback when queueMicrotask is unavailable", async () => {
