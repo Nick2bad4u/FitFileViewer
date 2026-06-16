@@ -7349,7 +7349,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map document listeners behind the runtime facade", () => {
-        expect.assertions(9);
+        expect.assertions(14);
 
         const violations = migratedMapDocumentListenersRuntimeFiles
             .filter((relativeFile) =>
@@ -7375,17 +7375,30 @@ describe("architecture boundaries", () => {
         expect(mapDocumentListenersRuntimeSource).toContain(
             "defaultMapDocumentListenersRuntimeScope"
         );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "getResizeTarget: () => globalThis"
+        );
         expect(mapDocumentListenersRuntimeSource).not.toContain(
             "scope: MapDocumentListenersRuntimeScope = globalThis"
         );
-        expect(mapDocumentListenersRuntimeSource).toContain(
-            "const runtimeDocument = scope.document;"
-        );
-        expect(mapDocumentListenersRuntimeSource).toContain(
-            "const runtimeWindow = scope.window;"
-        );
         expect(mapDocumentListenersRuntimeSource).not.toContain(
-            "globalThis.document"
+            "MapDocumentListenersRuntimeScope = globalThis"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.() ?? scope.document;"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "const runtimeResizeTarget ="
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain("scope.window");
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
+            "globalThis.document.addEventListener"
         );
         expect(mapDocumentListenersRuntimeSource).not.toContain(
             "globalThis.window"

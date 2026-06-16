@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { getMapDocumentListenersRuntime } from "../../../../../electron-app/utils/maps/core/mapDocumentListenersRuntime.js";
 
@@ -105,15 +105,15 @@ describe("getMapDocumentListenersRuntime", () => {
         controller.abort();
     });
 
-    it("registers window resize listeners through the injected window", () => {
+    it("registers resize listeners through the injected resize target", () => {
         expect.assertions(1);
 
         const eventTarget = new EventTarget();
-        const windowRef = createWindowListenerTarget(eventTarget);
+        const resizeTarget = createResizeListenerTarget(eventTarget);
         const controller = new AbortController();
         let resizeCount = 0;
         const runtime = getMapDocumentListenersRuntime({
-            window: windowRef,
+            resizeTarget,
         });
 
         runtime.addWindowResizeListener(
@@ -127,7 +127,7 @@ describe("getMapDocumentListenersRuntime", () => {
         expect(resizeCount).toBe(1);
     });
 
-    it("fails clearly when the window runtime is unavailable", () => {
+    it("fails clearly when the resize target runtime is unavailable", () => {
         expect.assertions(1);
 
         const runtime = getMapDocumentListenersRuntime({});
@@ -137,8 +137,55 @@ describe("getMapDocumentListenersRuntime", () => {
             runtime.addWindowResizeListener(() => undefined, {
                 signal: controller.signal,
             });
-        }).toThrow("mapDocumentListeners requires a window runtime");
+        }).toThrow("mapDocumentListeners requires a resize target runtime");
         controller.abort();
+    });
+
+    it("routes runtime dependencies through provider functions", () => {
+        expect.assertions(5);
+
+        let controllerCount = 0;
+        class TestAbortController extends AbortController {
+            public constructor() {
+                super();
+                controllerCount += 1;
+            }
+        }
+        const documentAddEventListener = vi.fn();
+        const resizeAddEventListener = vi.fn();
+        const runtime = getMapDocumentListenersRuntime({
+            getAbortController: () => TestAbortController,
+            getDocument: () => ({
+                addEventListener: documentAddEventListener,
+            }),
+            getResizeTarget: () => ({
+                addEventListener: resizeAddEventListener,
+            }),
+        });
+        const controller = runtime.createAbortController();
+
+        runtime.addDocumentMousedownListener(() => undefined, {
+            signal: controller.signal,
+        });
+        runtime.addWindowResizeListener(() => undefined, {
+            signal: controller.signal,
+        });
+
+        expect(controller).toBeInstanceOf(TestAbortController);
+        expect(controllerCount).toBe(1);
+        expect(documentAddEventListener).toHaveBeenCalledWith(
+            "mousedown",
+            expect.any(Function),
+            { signal: controller.signal }
+        );
+        expect(resizeAddEventListener).toHaveBeenCalledWith(
+            "resize",
+            expect.any(Function),
+            { signal: controller.signal }
+        );
+        expect(
+            getMapDocumentListenersRuntime({}).createAbortController
+        ).toThrow("mapDocumentListeners requires an AbortController runtime");
     });
 });
 
@@ -150,7 +197,7 @@ function createDocumentListenerTarget(
     } as Pick<Document, "addEventListener">;
 }
 
-function createWindowListenerTarget(
+function createResizeListenerTarget(
     eventTarget: EventTarget
 ): Pick<Window, "addEventListener"> {
     return {
