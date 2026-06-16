@@ -1,6 +1,4 @@
 export interface AccentColorPickerRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly documentEventTarget?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -9,8 +7,8 @@ export interface AccentColorPickerRuntimeScope {
 
 export interface AccentColorPickerRuntime {
     addDocumentKeydownListener: (
-        listener: (event: KeyboardEvent) => void,
-        options: AddEventListenerOptions
+        listener: (event: Readonly<KeyboardEvent>) => void,
+        options: Readonly<AddEventListenerOptions>
     ) => void;
     createAbortController: () => AbortController;
 }
@@ -18,8 +16,7 @@ export interface AccentColorPickerRuntime {
 function getAbortControllerConstructor(
     scope: AccentColorPickerRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ?? scope.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "accentColorPicker requires an AbortController runtime"
@@ -32,7 +29,7 @@ function getAbortControllerConstructor(
 function getDocumentEventTarget(
     scope: AccentColorPickerRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+    return scope.getDocumentEventTarget?.();
 }
 
 const defaultAccentColorPickerRuntimeScope: AccentColorPickerRuntimeScope =

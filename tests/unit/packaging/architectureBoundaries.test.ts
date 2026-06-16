@@ -5748,7 +5748,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps accent color picker listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(14);
 
         const accentColorPickerSource = stripComments(
             readRepositoryFile("electron-app/ui/modals/accentColorPicker.ts")
@@ -5786,6 +5786,18 @@ describe("architecture boundaries", () => {
         );
         expect(accentColorPickerRuntimeSource).not.toContain(
             "scope: AccentColorPickerRuntimeScope = globalThis"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "readonly documentEventTarget?:"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope.documentEventTarget"
         );
     });
 

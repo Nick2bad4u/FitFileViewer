@@ -14,7 +14,7 @@ describe("getAccentColorPickerRuntime", () => {
             }
         );
         const runtime = getAccentColorPickerRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -85,7 +85,7 @@ describe("getAccentColorPickerRuntime", () => {
             keydownCount += 1;
         };
         const runtime = getAccentColorPickerRuntime({
-            documentEventTarget,
+            getDocumentEventTarget: () => documentEventTarget,
         });
 
         runtime.addDocumentKeydownListener(listener, {
@@ -100,5 +100,32 @@ describe("getAccentColorPickerRuntime", () => {
         });
         expect(keydownCount).toBe(1);
         expect(documentEventTarget.body.childElementCount).toBe(0);
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(2);
+
+        class LegacyAbortController implements AbortController {
+            public readonly signal = Symbol(
+                "legacy-accent-color-picker-signal"
+            ) as unknown as AbortSignal;
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const runtime = getAccentColorPickerRuntime({
+            AbortController: LegacyAbortController,
+            documentEventTarget,
+        } as unknown as Parameters<typeof getAccentColorPickerRuntime>[0]);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "accentColorPicker requires an AbortController runtime"
+        );
+        expect(() =>
+            runtime.addDocumentKeydownListener(() => undefined, {})
+        ).toThrow("accentColorPicker requires a document event-target runtime");
     });
 });
