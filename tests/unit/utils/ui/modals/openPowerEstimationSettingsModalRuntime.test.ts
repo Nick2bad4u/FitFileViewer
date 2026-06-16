@@ -22,12 +22,84 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
         const runtime = getOpenPowerEstimationSettingsModalRuntime({});
 
         expect(() => runtime.createAbortController()).toThrow(
             "openPowerEstimationSettingsModal requires an AbortController runtime"
         );
+        expect(() =>
+            runtime.addDocumentKeydownListener(() => undefined, {})
+        ).toThrow(
+            "openPowerEstimationSettingsModal requires a document event-target runtime"
+        );
+    });
+
+    it("registers document keydown listeners through the injected event target", () => {
+        expect.assertions(3);
+
+        let keydownCount = 0;
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(
+            documentEventTarget,
+            "addEventListener"
+        );
+        const listener = () => {
+            keydownCount += 1;
+        };
+        const controller = new AbortController();
+        const runtime = getOpenPowerEstimationSettingsModalRuntime({
+            documentEventTarget,
+        });
+
+        runtime.addDocumentKeydownListener(listener, {
+            signal: controller.signal,
+        });
+        documentEventTarget.dispatchEvent(new KeyboardEvent("keydown"));
+
+        expect(addEventListener).toHaveBeenCalledWith("keydown", listener, {
+            signal: controller.signal,
+        });
+        expect(keydownCount).toBe(1);
+        expect(documentEventTarget.body.childElementCount).toBe(0);
+    });
+
+    it("routes all defaults through provider functions", () => {
+        expect.assertions(5);
+
+        let keydownCount = 0;
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const listener = () => {
+            keydownCount += 1;
+        };
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const getAbortController = vi.fn(
+            () =>
+                AbortControllerConstructor as unknown as typeof AbortController
+        );
+        const getDocumentEventTarget = vi.fn(() => documentEventTarget);
+        const runtime = getOpenPowerEstimationSettingsModalRuntime({
+            getAbortController,
+            getDocumentEventTarget,
+        });
+
+        runtime.addDocumentKeydownListener(listener, {
+            signal: controller.signal,
+        });
+        documentEventTarget.dispatchEvent(new KeyboardEvent("keydown"));
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(getDocumentEventTarget).toHaveBeenCalledOnce();
+        expect(getAbortController).toHaveBeenCalledOnce();
+        expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+        expect(keydownCount).toBe(1);
     });
 });

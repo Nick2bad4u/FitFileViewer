@@ -7047,7 +7047,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation settings modal listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(10);
 
         const violations = migratedOpenPowerEstimationSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -7074,11 +7074,26 @@ describe("architecture boundaries", () => {
         expect(powerEstimationSettingsModalSource).toContain(
             "createAbortController"
         );
+        expect(powerEstimationSettingsModalSource).toContain(
+            "addDocumentKeydownListener"
+        );
+        expect(powerEstimationSettingsModalSource).not.toContain(
+            "document.addEventListener"
+        );
         expect(powerEstimationSettingsModalRuntimeSource).toContain(
             "defaultOpenPowerEstimationSettingsModalRuntimeScope"
         );
         expect(powerEstimationSettingsModalRuntimeSource).not.toContain(
             "scope: OpenPowerEstimationSettingsModalRuntimeScope = globalThis"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "getDocumentEventTarget: () => globalThis.document"
+        );
+        expect(powerEstimationSettingsModalRuntimeSource).toContain(
+            "openPowerEstimationSettingsModal requires a document event-target runtime"
         );
     });
 

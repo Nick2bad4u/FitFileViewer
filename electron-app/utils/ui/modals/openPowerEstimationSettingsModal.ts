@@ -71,9 +71,12 @@ export function openPowerEstimationSettingsModal({
         }
     }
 
-    document.addEventListener("keydown", handleEscape, {
-        signal: eventListeners.signal,
-    });
+    openPowerEstimationSettingsModalRuntime.addDocumentKeydownListener(
+        handleEscape,
+        {
+            signal: eventListeners.signal,
+        }
+    );
 
     const modal = document.createElement("div");
     modal.className = "power-estimation-settings-modal";
