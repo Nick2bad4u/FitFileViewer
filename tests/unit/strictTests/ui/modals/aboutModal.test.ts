@@ -18,6 +18,7 @@ const aboutModalRuntimeMocks = vi.hoisted(() => ({
     clearTimeout: vi.fn<typeof globalThis.clearTimeout>((handle) =>
         globalThis.clearTimeout(handle)
     ),
+    getDocument: vi.fn<() => Document | undefined>(() => globalThis.document),
     requestAnimationFrame: vi.fn<(callback: FrameRequestCallback) => number>(
         (callback) => {
             callback(0);
@@ -118,6 +119,7 @@ describe("about modal UI behaviors", () => {
 
         aboutModalRuntimeMocks.cancelAnimationFrame.mockClear();
         aboutModalRuntimeMocks.clearTimeout.mockClear();
+        aboutModalRuntimeMocks.getDocument.mockClear();
         aboutModalRuntimeMocks.requestAnimationFrame.mockClear();
         aboutModalRuntimeMocks.setTimeout.mockClear();
     });

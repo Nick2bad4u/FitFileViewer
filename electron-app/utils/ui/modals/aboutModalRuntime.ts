@@ -11,6 +11,7 @@ export interface AboutModalRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
@@ -21,11 +22,13 @@ export interface AboutModalRuntimeScope {
         | typeof globalThis.requestAnimationFrame
         | undefined;
     readonly setTimeout?: typeof globalThis.setTimeout | undefined;
+    readonly document?: Document | undefined;
 }
 
 export interface AboutModalRuntime {
     cancelAnimationFrame(handle: number): void;
     clearTimeout(handle: AboutModalTimerHandle): void;
+    getDocument(): Document | undefined;
     requestAnimationFrame(onFrame: FrameRequestCallback): null | number;
     setTimeout(callback: () => void, delay: number): AboutModalTimerHandle;
 }
@@ -33,6 +36,7 @@ export interface AboutModalRuntime {
 const defaultAboutModalRuntimeScope: AboutModalRuntimeScope = {
     getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
     getClearTimeout: () => globalThis.clearTimeout,
+    getDocument: () => globalThis.document,
     getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
     getSetTimeout: () => globalThis.setTimeout,
 };
@@ -47,6 +51,10 @@ function getScopeClearTimeout(
     scope: AboutModalRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
     return scope.getClearTimeout?.() ?? scope.clearTimeout;
+}
+
+function getScopeDocument(scope: AboutModalRuntimeScope): Document | undefined {
+    return scope.getDocument?.() ?? scope.document;
 }
 
 function getScopeRequestAnimationFrame(
@@ -77,6 +85,9 @@ export function getAboutModalRuntime(
             }
             clearTimeoutRef.call(scope, handle);
         },
+        getDocument(): Document | undefined {
+            return getScopeDocument(scope);
+        },
         requestAnimationFrame(onFrame: FrameRequestCallback): null | number {
             const requestAnimationFrameRef =
                 getScopeRequestAnimationFrame(scope);
@@ -87,10 +98,7 @@ export function getAboutModalRuntime(
 
             return requestAnimationFrameRef.call(scope, onFrame);
         },
-        setTimeout(
-            callback: () => void,
-            delay: number
-        ): AboutModalTimerHandle {
+        setTimeout(callback: () => void, delay: number): AboutModalTimerHandle {
             const setTimeoutRef = getScopeSetTimeout(scope);
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(

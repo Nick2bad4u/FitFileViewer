@@ -28,10 +28,11 @@ describe("getAboutModalRuntime", () => {
     });
 
     it("routes timers and animation frames through provider functions", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
+        const documentTarget = document.implementation.createHTMLDocument();
         const delayMs = Number("250");
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 42);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
@@ -41,22 +42,26 @@ describe("getAboutModalRuntime", () => {
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
         const getSetTimeout = vi.fn(() => setTimeout);
         const getClearTimeout = vi.fn(() => clearTimeout);
+        const getDocument = vi.fn(() => documentTarget);
         const getRequestAnimationFrame = vi.fn(() => requestAnimationFrame);
         const getCancelAnimationFrame = vi.fn(() => cancelAnimationFrame);
         const runtime = getAboutModalRuntime({
             getCancelAnimationFrame,
             getClearTimeout,
+            getDocument,
             getRequestAnimationFrame,
             getSetTimeout,
         });
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(42);
         runtime.clearTimeout(42);
+        expect(runtime.getDocument()).toBe(documentTarget);
         expect(runtime.requestAnimationFrame(frameCallback)).toBe(12);
         runtime.cancelAnimationFrame(12);
 
         expect(getSetTimeout).toHaveBeenCalledOnce();
         expect(getClearTimeout).toHaveBeenCalledOnce();
+        expect(getDocument).toHaveBeenCalledOnce();
         expect(getRequestAnimationFrame).toHaveBeenCalledOnce();
         expect(getCancelAnimationFrame).toHaveBeenCalledOnce();
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
@@ -68,10 +73,11 @@ describe("getAboutModalRuntime", () => {
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const runtime = getAboutModalRuntime({});
 
+        expect(runtime.getDocument()).toBeUndefined();
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "aboutModalRuntime requires a setTimeout runtime"
         );
@@ -131,5 +137,15 @@ describe("getAboutModalRuntime", () => {
         expect(() =>
             getAboutModalRuntime({}).cancelAnimationFrame(11)
         ).not.toThrow();
+    });
+
+    it("returns document values from direct runtime scopes", () => {
+        expect.assertions(1);
+
+        const documentTarget = document.implementation.createHTMLDocument();
+
+        expect(
+            getAboutModalRuntime({ document: documentTarget }).getDocument()
+        ).toBe(documentTarget);
     });
 });

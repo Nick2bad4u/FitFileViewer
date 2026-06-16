@@ -607,13 +607,9 @@ export function showAboutModal(html = ""): void {
             const modalContent = modal.querySelector(".modal-content");
             if (modalContent) {
                 modalEventCleanups.push(
-                    addEventListenerWithCleanup(
-                        modalContent,
-                        "click",
-                        (e) => {
-                            e.stopPropagation();
-                        }
-                    )
+                    addEventListenerWithCleanup(modalContent, "click", (e) => {
+                        e.stopPropagation();
+                    })
                 );
             }
 
@@ -899,12 +895,13 @@ export const aboutModalDevHelpers = {
 };
 
 // Initialize modal styles when module loads
-if (typeof document !== "undefined" && document.readyState === "loading") {
-    addEventListenerWithCleanup(document, "DOMContentLoaded", () => {
+const aboutModalDocument = aboutModalRuntime.getDocument();
+if (aboutModalDocument?.readyState === "loading") {
+    addEventListenerWithCleanup(aboutModalDocument, "DOMContentLoaded", () => {
         // Pre-initialize styles for better performance
         injectModalStyles();
     });
-} else if (typeof document !== "undefined") {
+} else if (aboutModalDocument) {
     // Document already loaded, initialize immediately
     injectModalStyles();
 }

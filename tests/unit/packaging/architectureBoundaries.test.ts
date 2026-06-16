@@ -4904,7 +4904,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps about modal timing APIs behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(15);
 
         const violations = migratedAboutModalRuntimeFiles
             .filter((relativeFile) =>
@@ -4924,6 +4924,13 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(aboutModalSource).toContain("aboutModalRuntime.js");
+        expect(aboutModalSource).toContain("aboutModalRuntime.getDocument()");
+        expect(aboutModalSource).not.toMatch(
+            /\baddEventListenerWithCleanup\(\s*document\s*,\s*["']DOMContentLoaded["']/u
+        );
+        expect(aboutModalSource).not.toContain(
+            'typeof document !== "undefined"'
+        );
         expect(aboutModalRuntimeSource).not.toMatch(
             directModalRuntimeAmbientTimerFallbackPattern
         );
@@ -4941,6 +4948,9 @@ describe("architecture boundaries", () => {
         );
         expect(aboutModalRuntimeSource).toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(aboutModalRuntimeSource).toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
