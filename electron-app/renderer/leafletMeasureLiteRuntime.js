@@ -3,7 +3,7 @@ const defaultLeafletMeasureLiteRuntimeScope = {
 };
 
 function getDocumentEventTarget(scope) {
-    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+    return scope.getDocumentEventTarget?.();
 }
 
 function getRequiredDocumentEventTarget(scope) {

@@ -10973,7 +10973,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Leaflet plugins wired through the runtime adapter without a public compatibility global", () => {
-        expect.assertions(45);
+        expect.assertions(48);
 
         const vendorMapEntry = stripComments(
             readRepositoryFile("electron-app/renderer/rendererVendorMap.ts")
@@ -10985,6 +10985,11 @@ describe("architecture boundaries", () => {
         );
         const leafletRuntimeSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/leafletRuntime.ts")
+        );
+        const leafletMeasureLiteRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/leafletMeasureLiteRuntime.js"
+            )
         );
         const viteRendererConfig = stripComments(
             readRepositoryFile("vite.renderer.config.mjs")
@@ -11042,6 +11047,15 @@ describe("architecture boundaries", () => {
         expect(vendorMapRuntimeSource).not.toContain("readonly globalScope?:");
         expect(vendorMapRuntimeSource).not.toContain("scope.document");
         expect(vendorMapRuntimeSource).not.toContain("scope.globalScope");
+        expect(leafletMeasureLiteRuntimeSource).toContain(
+            "getDocumentEventTarget: () => globalThis.document"
+        );
+        expect(leafletMeasureLiteRuntimeSource).not.toContain(
+            "scope.documentEventTarget"
+        );
+        expect(leafletMeasureLiteRuntimeSource).toContain(
+            "return scope.getDocumentEventTarget?.();"
+        );
         expect(leafletRuntimeSource).not.toContain("Symbol.for");
         expect(leafletRuntimeSource).not.toContain("globalThis");
         expect(vendorMapEntry).not.toContain("setLegacyLeafletPluginRuntime");
