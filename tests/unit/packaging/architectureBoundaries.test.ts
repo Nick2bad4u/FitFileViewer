@@ -5709,7 +5709,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(9);
+        expect.assertions(13);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -5742,6 +5742,16 @@ describe("architecture boundaries", () => {
         expect(errorHandlingRuntimeSource).not.toMatch(
             directErrorHandlingRuntimeAmbientGetterPattern
         );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "readonly eventTarget?:"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain("scope.eventTarget");
         expect(errorHandlingRuntimeSource).toContain(
             "defaultErrorHandlingRuntimeScope"
         );

@@ -17,7 +17,7 @@ describe("getErrorHandlingRuntime", () => {
             }
         );
         const runtime = getErrorHandlingRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -73,5 +73,27 @@ describe("getErrorHandlingRuntime", () => {
         );
 
         controller.abort();
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const addEventListener = vi.fn();
+        const runtime = getErrorHandlingRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            eventTarget: { addEventListener },
+        } as unknown as Parameters<typeof getErrorHandlingRuntime>[0]);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "errorHandling requires an AbortController runtime"
+        );
+        expect(runtime.getGlobalEventTarget()).toBeUndefined();
     });
 });

@@ -1,6 +1,4 @@
 export interface ErrorHandlingRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly eventTarget?: ErrorHandlingEventTarget | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -50,8 +48,7 @@ function getDefaultEventTarget(): ErrorHandlingEventTarget | undefined {
 function getAbortControllerConstructor(
     scope: ErrorHandlingRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ?? scope.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "errorHandling requires an AbortController runtime"
@@ -64,7 +61,7 @@ function getAbortControllerConstructor(
 function getEventTarget(
     scope: ErrorHandlingRuntimeScope
 ): ErrorHandlingEventTarget | undefined {
-    return scope.getEventTarget?.() ?? scope.eventTarget;
+    return scope.getEventTarget?.();
 }
 
 export function getErrorHandlingRuntime(
