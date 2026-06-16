@@ -1,8 +1,6 @@
 export type ThemeRuntimeTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface ThemeRuntimeScope {
-    readonly AbortController?: typeof globalThis.AbortController | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
@@ -16,9 +14,6 @@ export interface ThemeRuntimeScope {
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
-    readonly globalEventTarget?: EventTarget | undefined;
-    readonly matchMedia?: typeof globalThis.matchMedia | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
 
 export interface ThemeRuntime {
@@ -61,31 +56,31 @@ const defaultThemeRuntimeScope: ThemeRuntimeScope = {
 function getScopeAbortController(
     scope: ThemeRuntimeScope
 ): typeof globalThis.AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getScopeClearTimeout(
     scope: ThemeRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
-    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+    return scope.getClearTimeout?.();
 }
 
 function getScopeGlobalEventTarget(
     scope: ThemeRuntimeScope
 ): EventTarget | undefined {
-    return scope.getGlobalEventTarget?.() ?? scope.globalEventTarget;
+    return scope.getGlobalEventTarget?.();
 }
 
 function getScopeMatchMedia(
     scope: ThemeRuntimeScope
 ): typeof globalThis.matchMedia | undefined {
-    return scope.getMatchMedia?.() ?? scope.matchMedia;
+    return scope.getMatchMedia?.();
 }
 
 function getScopeSetTimeout(
     scope: ThemeRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
-    return scope.getSetTimeout?.() ?? scope.setTimeout;
+    return scope.getSetTimeout?.();
 }
 
 export function getThemeRuntime(

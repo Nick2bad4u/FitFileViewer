@@ -13,7 +13,7 @@ describe("getThemeRuntime", () => {
             }
         );
         const runtime = getThemeRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -43,8 +43,8 @@ describe("getThemeRuntime", () => {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
         } = getThemeRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(scheduleTimeout(callback, delayMs)).toBe(timer);
@@ -130,7 +130,7 @@ describe("getThemeRuntime", () => {
 
         expect(
             getThemeRuntime({
-                matchMedia: scopedMatchMedia,
+                getMatchMedia: () => scopedMatchMedia,
             }).getSystemThemeMediaQuery()
         ).toBe(mediaQuery);
         expect(scopedMatchMedia).toHaveBeenCalledWith(
@@ -147,8 +147,57 @@ describe("getThemeRuntime", () => {
             dispatchEvent: vi.fn(),
             removeEventListener: vi.fn(),
         } as unknown as EventTarget;
-        const runtime = getThemeRuntime({ globalEventTarget });
+        const runtime = getThemeRuntime({
+            getGlobalEventTarget: () => globalEventTarget,
+        });
 
         expect(runtime.getGlobalEventTarget()).toBe(globalEventTarget);
+    });
+
+    it("ignores legacy direct runtime primitive properties", () => {
+        expect.assertions(10);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const callback = vi.fn<() => void>();
+        const timer = 89 as ReturnType<typeof globalThis.setTimeout>;
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const mediaQuery = { matches: true } as MediaQueryList;
+        const matchMedia = vi.fn(() => mediaQuery);
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const globalEventTarget = {
+            addEventListener: vi.fn(),
+            dispatchEvent: vi.fn(),
+            removeEventListener: vi.fn(),
+        } as unknown as EventTarget;
+        const runtime = getThemeRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            clearTimeout,
+            globalEventTarget,
+            matchMedia,
+            setTimeout,
+        } as unknown as Parameters<typeof getThemeRuntime>[0]);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "theme core requires an AbortController runtime"
+        );
+        expect(() => runtime.setTimeout(callback, 300)).toThrow(
+            "theme core requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(timer)).toThrow(
+            "theme core requires a clearTimeout runtime"
+        );
+        expect(runtime.getSystemThemeMediaQuery()).toBeNull();
+        expect(runtime.getGlobalEventTarget()).toBeNull();
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(matchMedia).not.toHaveBeenCalled();
+        expect(callback).not.toHaveBeenCalled();
     });
 });
