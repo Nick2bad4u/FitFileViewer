@@ -1,11 +1,26 @@
+type EnableTabButtonsDebugGetComputedStyle = (
+    element: Element,
+    pseudoElement?: null | string
+) => CSSStyleDeclaration;
+
 export interface EnableTabButtonsDebugRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
     readonly clearTimeout?: typeof clearTimeout | undefined;
-    readonly getComputedStyle?:
-        | ((element: Element, pseudoElement?: null | string) => CSSStyleDeclaration)
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
         | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof clearTimeout | undefined)
+        | undefined;
+    readonly getComputedStyle?:
+        | EnableTabButtonsDebugGetComputedStyle
+        | undefined;
+    readonly getComputedStyleFunction?:
+        | (() => EnableTabButtonsDebugGetComputedStyle | undefined)
+        | undefined;
+    readonly getSetTimeout?: (() => typeof setTimeout | undefined) | undefined;
+    readonly isRendererScope?: (() => boolean) | undefined;
     readonly setTimeout?: typeof setTimeout | undefined;
-    readonly window?: unknown;
 }
 
 export interface EnableTabButtonsDebugRuntime {
@@ -18,11 +33,20 @@ export interface EnableTabButtonsDebugRuntime {
     ) => ReturnType<typeof setTimeout>;
 }
 
+const defaultEnableTabButtonsDebugRuntimeScope: EnableTabButtonsDebugRuntimeScope =
+    {
+        getAbortController: () => globalThis.AbortController,
+        getClearTimeout: () => globalThis.clearTimeout,
+        getComputedStyleFunction: () => globalThis.getComputedStyle,
+        getSetTimeout: () => globalThis.setTimeout,
+        isRendererScope: () => globalThis.document !== undefined,
+    };
+
 function getAbortControllerConstructor(
     scope: EnableTabButtonsDebugRuntimeScope
 ): typeof AbortController {
     const AbortControllerConstructor =
-        scope.AbortController ?? getWindowAbortControllerConstructor(scope.window);
+        scope.getAbortController?.() ?? scope.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "enableTabButtonsDebug requires an AbortController runtime"
@@ -32,33 +56,20 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
-function getWindowAbortControllerConstructor(
-    runtimeWindow: unknown
-): typeof AbortController | undefined {
-    if (typeof runtimeWindow !== "object" || runtimeWindow === null) {
-        return undefined;
-    }
-
-    const AbortControllerConstructor: unknown = Reflect.get(
-        runtimeWindow,
-        "AbortController"
-    );
-
-    return isAbortControllerConstructor(AbortControllerConstructor)
-        ? AbortControllerConstructor
-        : undefined;
+function getComputedStyleFunction(
+    scope: EnableTabButtonsDebugRuntimeScope
+): EnableTabButtonsDebugGetComputedStyle | undefined {
+    return scope.getComputedStyleFunction?.() ?? scope.getComputedStyle;
 }
 
-function isAbortControllerConstructor(
-    value: unknown
-): value is typeof AbortController {
-    return typeof value === "function";
+function isRendererScope(scope: EnableTabButtonsDebugRuntimeScope): boolean {
+    return scope.isRendererScope?.() === true;
 }
 
 function getRequiredClearTimeout(
     scope: EnableTabButtonsDebugRuntimeScope
 ): typeof clearTimeout {
-    const clearTimer = scope.clearTimeout;
+    const clearTimer = scope.getClearTimeout?.() ?? scope.clearTimeout;
     if (typeof clearTimer !== "function") {
         throw new TypeError(
             "enableTabButtonsDebug requires a clearTimeout runtime"
@@ -71,7 +82,7 @@ function getRequiredClearTimeout(
 function getRequiredSetTimeout(
     scope: EnableTabButtonsDebugRuntimeScope
 ): typeof setTimeout {
-    const scheduleTimer = scope.setTimeout;
+    const scheduleTimer = scope.getSetTimeout?.() ?? scope.setTimeout;
     if (typeof scheduleTimer !== "function") {
         throw new TypeError(
             "enableTabButtonsDebug requires a setTimeout runtime"
@@ -80,9 +91,6 @@ function getRequiredSetTimeout(
 
     return scheduleTimer;
 }
-
-const defaultEnableTabButtonsDebugRuntimeScope: EnableTabButtonsDebugRuntimeScope =
-    globalThis;
 
 export function getEnableTabButtonsDebugRuntime(
     scope: EnableTabButtonsDebugRuntimeScope = defaultEnableTabButtonsDebugRuntimeScope
@@ -96,14 +104,15 @@ export function getEnableTabButtonsDebugRuntime(
             return new (getAbortControllerConstructor(scope))();
         },
         assertComputedStyleAvailable(element: Element): void {
+            const getComputedStyleRef = getComputedStyleFunction(scope);
             if (
-                scope.window === undefined ||
-                typeof scope.getComputedStyle !== "function"
+                !isRendererScope(scope) ||
+                typeof getComputedStyleRef !== "function"
             ) {
                 throw new TypeError("getComputedStyle not available");
             }
 
-            scope.getComputedStyle(element);
+            getComputedStyleRef(element);
         },
         setTimeout(
             handler: () => void,

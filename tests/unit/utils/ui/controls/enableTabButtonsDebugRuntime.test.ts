@@ -12,7 +12,7 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         >(() => ({ display: "block" }) as CSSStyleDeclaration);
         const runtime = getEnableTabButtonsDebugRuntime({
             getComputedStyle,
-            window: {},
+            isRendererScope: () => true,
         });
 
         expect(runtime.assertComputedStyleAvailable(element)).toBeUndefined();
@@ -24,7 +24,6 @@ describe("getEnableTabButtonsDebugRuntime", () => {
 
         const runtime = getEnableTabButtonsDebugRuntime({
             AbortController,
-            window: {},
         });
         const controller = runtime.createAbortController();
 
@@ -32,11 +31,11 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect(controller.signal.aborted).toBe(false);
     });
 
-    it("creates abort controllers through the injected window runtime", () => {
+    it("creates abort controllers through the injected runtime provider", () => {
         expect.assertions(1);
 
         const runtime = getEnableTabButtonsDebugRuntime({
-            window: { AbortController },
+            getAbortController: () => AbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
@@ -55,7 +54,6 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         const runtime = getEnableTabButtonsDebugRuntime({
             clearTimeout: clearTimeoutMock,
             setTimeout: setTimeoutMock,
-            window: {},
         });
 
         expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
@@ -63,6 +61,53 @@ describe("getEnableTabButtonsDebugRuntime", () => {
 
         expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
         expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+    });
+
+    it("routes debug runtime dependencies through provider functions", () => {
+        expect.assertions(8);
+
+        const element = document.createElement("button");
+        const style = { display: "grid" } as CSSStyleDeclaration;
+        const timer = Symbol("timer") as unknown as ReturnType<
+            typeof setTimeout
+        >;
+        const timeoutMs = Number("45");
+        const handler = vi.fn<() => void>();
+        const getComputedStyle = vi.fn<
+            (element: Element) => CSSStyleDeclaration
+        >(() => style);
+        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        let controllerCount = 0;
+        class TestAbortController extends AbortController {
+            public constructor() {
+                super();
+                controllerCount += 1;
+            }
+        }
+        const runtime = getEnableTabButtonsDebugRuntime({
+            getAbortController: () => TestAbortController,
+            getClearTimeout: () => clearTimeoutMock,
+            getComputedStyleFunction: () => getComputedStyle,
+            getSetTimeout: () => setTimeoutMock,
+            isRendererScope: () => true,
+        });
+
+        expect(runtime.createAbortController()).toBeInstanceOf(
+            TestAbortController
+        );
+        expect(controllerCount).toBe(1);
+        expect(runtime.assertComputedStyleAvailable(element)).toBeUndefined();
+        expect(getComputedStyle).toHaveBeenCalledWith(element);
+        expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
+
+        runtime.clearTimeout(timer);
+
+        expect(setTimeoutMock).toHaveBeenCalledWith(handler, timeoutMs);
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timer);
+        expect(
+            getEnableTabButtonsDebugRuntime({}).createAbortController
+        ).toThrow("enableTabButtonsDebug requires an AbortController runtime");
     });
 
     it("throws when timer cleanup is unavailable", () => {
@@ -87,7 +132,7 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         );
     });
 
-    it("throws when no window runtime is available", () => {
+    it("throws when no renderer scope is available", () => {
         expect.assertions(1);
 
         const runtime = getEnableTabButtonsDebugRuntime({
@@ -106,7 +151,7 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect.assertions(1);
 
         const runtime = getEnableTabButtonsDebugRuntime({
-            window: {},
+            isRendererScope: () => true,
         });
 
         expect(() =>
@@ -122,7 +167,6 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         const runtime = getEnableTabButtonsDebugRuntime({
             AbortController:
                 "AbortController" as unknown as typeof AbortController,
-            window: {},
         });
 
         expect(() => runtime.createAbortController()).toThrow(

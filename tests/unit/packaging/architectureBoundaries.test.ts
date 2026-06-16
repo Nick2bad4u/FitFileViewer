@@ -1251,7 +1251,7 @@ const directUpdateControlsStateRuntimeAmbientGetterPattern =
 const directEnableTabButtonsDebugRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:getComputedStyle|window)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directEnableTabButtonsDebugRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:AbortController|clearTimeout|setTimeout)\b/u;
+    /\bscope\.(?:AbortController|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directEnableTabButtonsRuntimeGlobalPattern =
     /\bglobalThis\.window\b|\btypeof\s+MutationObserver\b|\bReflect\.construct\b|\bgetTabButtonsGlobal\(\)|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directEnableTabButtonsRuntimeAmbientTimerFallbackPattern =
@@ -8696,7 +8696,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button debug runtime checks behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(14);
 
         const violations = migratedEnableTabButtonsDebugRuntimeFiles
             .filter((relativeFile) =>
@@ -8726,9 +8726,31 @@ describe("architecture boundaries", () => {
         expect(enableTabButtonsDebugRuntimeSource).toContain(
             "defaultEnableTabButtonsDebugRuntimeScope"
         );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "getComputedStyleFunction: () => globalThis.getComputedStyle"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "isRendererScope: () => globalThis.document !== undefined"
+        );
         expect(enableTabButtonsDebugRuntimeSource).not.toContain(
             "scope: EnableTabButtonsDebugRuntimeScope = globalThis"
         );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "EnableTabButtonsDebugRuntimeScope = globalThis"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "scope.window"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain("window?:");
         expect(enableTabButtonsDebugRuntimeSource).toContain(
             "enableTabButtonsDebug requires a setTimeout runtime"
         );
