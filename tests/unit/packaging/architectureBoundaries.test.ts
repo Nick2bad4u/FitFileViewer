@@ -9317,7 +9317,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer application startup browser primitives behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(13);
 
         const violations = migratedRendererApplicationStartupRuntimeFiles
             .filter((relativeFile) =>
@@ -9342,10 +9342,24 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toMatch(
             directRendererApplicationStartupRuntimeAmbientFallbackPattern
         );
-        expect(runtimeSource).toContain("scope.AbortController");
         expect(runtimeSource).toContain(
             "defaultRendererApplicationStartupRuntimeScope"
         );
+        expect(runtimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(runtimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(runtimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(runtimeSource).not.toContain("readonly AbortController?:");
+        expect(runtimeSource).not.toContain("readonly clearTimeout?:");
+        expect(runtimeSource).not.toContain("readonly setTimeout?:");
+        expect(runtimeSource).not.toContain("scope.AbortController");
+        expect(runtimeSource).not.toContain("scope.clearTimeout");
+        expect(runtimeSource).not.toContain("scope.setTimeout");
     });
 
     it("keeps renderer application lifecycle abort controllers behind the runtime facade", () => {
