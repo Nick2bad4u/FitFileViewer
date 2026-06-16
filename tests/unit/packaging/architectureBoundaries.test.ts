@@ -7459,7 +7459,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exit-fullscreen overlay removal browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(9);
 
         const violations = migratedRemoveExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -7491,6 +7491,18 @@ describe("architecture boundaries", () => {
         );
         expect(removeExitFullscreenOverlayRuntimeSource).toContain(
             "defaultRemoveExitFullscreenOverlayRuntimeScope"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(removeExitFullscreenOverlayRuntimeSource).toContain(
+            "runtimeDocument: Readonly<Document>"
         );
     });
 

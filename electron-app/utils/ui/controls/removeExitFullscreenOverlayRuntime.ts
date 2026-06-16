@@ -1,5 +1,4 @@
 export interface RemoveExitFullscreenOverlayRuntimeScope {
-    readonly document?: Document | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
 }
 
@@ -13,7 +12,7 @@ const defaultRemoveExitFullscreenOverlayRuntimeScope: RemoveExitFullscreenOverla
     };
 
 function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.() ?? scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError(
             "removeExitFullscreenOverlay requires a document runtime"
@@ -24,7 +23,7 @@ function getDocument(scope: RemoveExitFullscreenOverlayRuntimeScope): Document {
 }
 
 function getHTMLElementConstructor(
-    runtimeDocument: Document
+    runtimeDocument: Readonly<Document>
 ): typeof HTMLElement | undefined {
     return runtimeDocument.defaultView?.HTMLElement;
 }

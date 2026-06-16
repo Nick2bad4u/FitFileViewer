@@ -10,7 +10,9 @@ describe("getRemoveExitFullscreenOverlayRuntime", () => {
     it("identifies elements through the injected document", () => {
         expect.assertions(2);
 
-        const runtime = getRemoveExitFullscreenOverlayRuntime({ document });
+        const runtime = getRemoveExitFullscreenOverlayRuntime({
+            getDocument: () => document,
+        });
 
         expect(runtime.isHTMLElement(document.createElement("div"))).toBe(true);
         expect(runtime.isHTMLElement({})).toBe(false);
@@ -21,7 +23,7 @@ describe("getRemoveExitFullscreenOverlayRuntime", () => {
 
         const scopedDocument = { defaultView: undefined } as Document;
         const runtime = getRemoveExitFullscreenOverlayRuntime({
-            document: scopedDocument,
+            getDocument: () => scopedDocument,
         });
 
         expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
@@ -45,6 +47,23 @@ describe("getRemoveExitFullscreenOverlayRuntime", () => {
 
         const runtime = getRemoveExitFullscreenOverlayRuntime({});
 
+        expect(() => runtime.isHTMLElement({})).toThrow(
+            "removeExitFullscreenOverlay requires a document runtime"
+        );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(2);
+
+        const runtime = getRemoveExitFullscreenOverlayRuntime({
+            document,
+        } as unknown as Parameters<
+            typeof getRemoveExitFullscreenOverlayRuntime
+        >[0]);
+
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow("removeExitFullscreenOverlay requires a document runtime");
         expect(() => runtime.isHTMLElement({})).toThrow(
             "removeExitFullscreenOverlay requires a document runtime"
         );
