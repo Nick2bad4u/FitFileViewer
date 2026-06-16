@@ -213,8 +213,7 @@ function setupExportModalAccessibility({
         queueMicrotask(installFocusTrap);
     }
 
-    document.addEventListener(
-        "keydown",
+    exportUtilsRuntime.addDocumentKeydownListener(
         (event) => {
             if (event.key === "Escape") {
                 closeOverlay();

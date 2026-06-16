@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getExportUtilsRuntime } from "../../../../../electron-app/utils/files/export/exportUtilsRuntime.js";
@@ -161,12 +162,75 @@ describe("exportUtilsRuntime", () => {
         expect(created).toBe(true);
     });
 
-    it("throws when abort controllers are unavailable", () => {
-        expect.assertions(1);
+    it("registers document keydown listeners through the scoped event target", () => {
+        expect.assertions(3);
+
+        const controller = new AbortController();
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(
+            documentEventTarget,
+            "addEventListener"
+        );
+        let keydownCount = 0;
+        const listener = () => {
+            keydownCount += 1;
+        };
+        const runtime = getExportUtilsRuntime({
+            documentEventTarget,
+        });
+
+        runtime.addDocumentKeydownListener(listener, {
+            signal: controller.signal,
+        });
+        documentEventTarget.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Escape" })
+        );
+
+        expect(addEventListener).toHaveBeenCalledWith("keydown", listener, {
+            signal: controller.signal,
+        });
+        expect(keydownCount).toBe(1);
+        expect(documentEventTarget.body.childElementCount).toBe(0);
+    });
+
+    it("routes document keydown listeners through provider functions", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        let keydownCount = 0;
+        const runtime = getExportUtilsRuntime({
+            getDocumentEventTarget: () => documentEventTarget,
+        });
+
+        runtime.addDocumentKeydownListener(
+            () => {
+                keydownCount += 1;
+            },
+            { signal: controller.signal }
+        );
+        documentEventTarget.dispatchEvent(
+            new KeyboardEvent("keydown", { key: "Escape" })
+        );
+
+        expect(keydownCount).toBe(1);
+        expect(documentEventTarget.body.childElementCount).toBe(0);
+    });
+
+    it("throws when explicit runtime dependencies are unavailable", () => {
+        expect.assertions(2);
 
         expect(() => getExportUtilsRuntime({}).createAbortController()).toThrow(
             "exportUtils requires an AbortController runtime"
         );
+        expect(() =>
+            getExportUtilsRuntime({}).addDocumentKeydownListener(
+                () => undefined,
+                {}
+            )
+        ).toThrow("exportUtils requires a document event-target runtime");
     });
 
     it("resolves default storage and crypto providers when runtime operations run", () => {

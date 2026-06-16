@@ -24,12 +24,14 @@ export interface ExportUtilsRuntimeScope {
         | ConfirmDangerousActionFunction
         | undefined;
     readonly crypto?: Pick<Crypto, "getRandomValues"> | undefined;
+    readonly documentEventTarget?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
     readonly getConfirmDangerousAction?:
         | (() => ConfirmDangerousActionFunction | undefined)
         | undefined;
+    readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getOpenPrintWindow?:
         | (() => OpenPrintWindowFunction | undefined)
         | undefined;
@@ -42,6 +44,10 @@ export interface ExportUtilsRuntimeScope {
 }
 
 export interface ExportUtilsRuntime {
+    addDocumentKeydownListener: (
+        listener: (event: KeyboardEvent) => void,
+        options: AddEventListenerOptions
+    ) => void;
     confirmDangerousAction: (message: string) => boolean;
     createAbortController: () => AbortController;
     getSecureRandomScope: () => SecureRandomScope;
@@ -64,6 +70,7 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
     getConfirmDangerousAction: () => (message) =>
         browserGlobal.confirm?.(message) ?? false,
     getAbortController: () => globalThis.AbortController,
+    getDocumentEventTarget: () => globalThis.document,
     getOpenPrintWindow: () => (url, target, features) =>
         browserGlobal.open?.(url, target, features) ?? null,
     getSecureRandomCrypto: () => browserGlobal.crypto,
@@ -80,6 +87,12 @@ function getScopeConfirmDangerousAction(
     scope: ExportUtilsRuntimeScope
 ): ConfirmDangerousActionFunction | undefined {
     return scope.getConfirmDangerousAction?.() ?? scope.confirmDangerousAction;
+}
+
+function getScopeDocumentEventTarget(
+    scope: ExportUtilsRuntimeScope
+): Document | undefined {
+    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
 }
 
 function getScopeOpenPrintWindow(
@@ -117,6 +130,18 @@ export function getExportUtilsRuntime(
     scope: ExportUtilsRuntimeScope = defaultExportUtilsRuntimeScope
 ): ExportUtilsRuntime {
     return {
+        addDocumentKeydownListener(listener, options): void {
+            const documentEventTarget = getScopeDocumentEventTarget(scope);
+            if (!documentEventTarget) {
+                throw new TypeError(
+                    "exportUtils requires a document event-target runtime"
+                );
+            }
+
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
+            documentEventTarget.addEventListener("keydown", listener, options);
+        },
+
         confirmDangerousAction(message: string): boolean {
             const confirmDangerousAction =
                 getScopeConfirmDangerousAction(scope);
