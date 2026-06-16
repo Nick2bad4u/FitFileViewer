@@ -7498,7 +7498,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(16);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -7533,7 +7533,25 @@ describe("architecture boundaries", () => {
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(fullscreenButtonRuntimeSource).toContain(
-            'typeof globalThis.addEventListener === "function"'
+            "isAddFullScreenButtonEventTarget(globalThis)"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "readonly documentEventTarget?:"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "readonly globalEventTarget?:"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "scope.documentEventTarget"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "scope.globalEventTarget"
         );
         expect(fullscreenButtonRuntimeSource).not.toContain("windowTarget");
         expect(fullscreenButtonRuntimeSource).not.toContain("documentTarget");

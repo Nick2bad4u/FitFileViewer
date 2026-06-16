@@ -4,26 +4,13 @@ import { getAddFullScreenButtonRuntime } from "../../../../../electron-app/utils
 
 describe("getAddFullScreenButtonRuntime", () => {
     it("routes window and document listeners through injected providers", () => {
-        expect.assertions(6);
+        expect.assertions(2);
 
         const documentEventTarget = new EventTarget();
         const globalEventTarget = new EventTarget();
-        const unusedDocumentAddEventListener = vi.fn();
-        const unusedDocumentRemoveEventListener = vi.fn();
-        const unusedGlobalAddEventListener = vi.fn();
-        const unusedGlobalRemoveEventListener = vi.fn();
         const runtime = getAddFullScreenButtonRuntime({
-            AbortController,
-            documentEventTarget: {
-                addEventListener: unusedDocumentAddEventListener,
-                removeEventListener: unusedDocumentRemoveEventListener,
-            },
             getDocumentEventTarget: () => documentEventTarget,
             getGlobalEventTarget: () => globalEventTarget,
-            globalEventTarget: {
-                addEventListener: unusedGlobalAddEventListener,
-                removeEventListener: unusedGlobalRemoveEventListener,
-            },
         });
         const handledEventTypes: string[] = [];
         const listener = (event: Event): void => {
@@ -42,8 +29,6 @@ describe("getAddFullScreenButtonRuntime", () => {
             "keydown",
             "fullscreenchange",
         ]);
-        expect(unusedGlobalAddEventListener).not.toHaveBeenCalled();
-        expect(unusedDocumentAddEventListener).not.toHaveBeenCalled();
 
         runtime.removeWindowEventListener("keydown", listener);
         runtime.removeDocumentEventListener("fullscreenchange", listener);
@@ -55,8 +40,6 @@ describe("getAddFullScreenButtonRuntime", () => {
             "keydown",
             "fullscreenchange",
         ]);
-        expect(unusedGlobalRemoveEventListener).not.toHaveBeenCalled();
-        expect(unusedDocumentRemoveEventListener).not.toHaveBeenCalled();
     });
 
     it("ignores missing event targets", () => {
@@ -71,6 +54,50 @@ describe("getAddFullScreenButtonRuntime", () => {
             runtime.removeWindowEventListener("keydown", listener);
             runtime.removeDocumentEventListener("fullscreenchange", listener);
         }).not.toThrow();
+    });
+
+    it("ignores legacy direct scope properties", () => {
+        expect.assertions(3);
+
+        const staleDocumentEventTarget = new EventTarget();
+        const staleWindowEventTarget = new EventTarget();
+        const staleDocumentListenerController = new AbortController();
+        const staleWindowListenerController = new AbortController();
+        const staleDocumentAddEventListener = vi.fn();
+        const staleWindowAddEventListener = vi.fn();
+        const runtime = getAddFullScreenButtonRuntime({
+            documentEventTarget: {
+                addEventListener(type, listener, options) {
+                    staleDocumentAddEventListener(type, listener, options);
+                    staleDocumentEventTarget.addEventListener(type, listener, {
+                        signal: staleDocumentListenerController.signal,
+                    });
+                },
+                removeEventListener: vi.fn(),
+            },
+            globalEventTarget: {
+                addEventListener(type, listener, options) {
+                    staleWindowAddEventListener(type, listener, options);
+                    staleWindowEventTarget.addEventListener(type, listener, {
+                        signal: staleWindowListenerController.signal,
+                    });
+                },
+                removeEventListener: vi.fn(),
+            },
+        } as unknown as Parameters<typeof getAddFullScreenButtonRuntime>[0]);
+        const handledEventTypes: string[] = [];
+        const listener = (event: Event): void => {
+            handledEventTypes.push(event.type);
+        };
+
+        runtime.addDocumentEventListener("fullscreenchange", listener);
+        runtime.addWindowEventListener("keydown", listener);
+        staleDocumentEventTarget.dispatchEvent(new Event("fullscreenchange"));
+        staleWindowEventTarget.dispatchEvent(new Event("keydown"));
+
+        expect(handledEventTypes).toStrictEqual([]);
+        expect(staleDocumentAddEventListener).not.toHaveBeenCalled();
+        expect(staleWindowAddEventListener).not.toHaveBeenCalled();
     });
 
     it("creates abort controllers through the injected runtime", () => {
@@ -94,7 +121,9 @@ describe("getAddFullScreenButtonRuntime", () => {
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
-        const runtime = getAddFullScreenButtonRuntime({});
+        const runtime = getAddFullScreenButtonRuntime({
+            AbortController,
+        } as unknown as Parameters<typeof getAddFullScreenButtonRuntime>[0]);
 
         expect(() => runtime.createAbortController()).toThrow(
             "addFullScreenButton requires an AbortController runtime"

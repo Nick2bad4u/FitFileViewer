@@ -1,6 +1,4 @@
 export interface AddFullScreenButtonRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly documentEventTarget?: AddFullScreenButtonEventTarget | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -10,7 +8,6 @@ export interface AddFullScreenButtonRuntimeScope {
     readonly getGlobalEventTarget?:
         | (() => AddFullScreenButtonEventTarget | undefined)
         | undefined;
-    readonly globalEventTarget?: AddFullScreenButtonEventTarget | undefined;
 }
 
 type AddFullScreenButtonEventTarget = Pick<
@@ -22,12 +19,12 @@ export interface AddFullScreenButtonRuntime {
     addDocumentEventListener: (
         type: string,
         listener: EventListener,
-        options?: AddEventListenerOptions
+        options?: Readonly<AddEventListenerOptions>
     ) => void;
     addWindowEventListener: (
         type: string,
         listener: EventListener,
-        options?: AddEventListenerOptions
+        options?: Readonly<AddEventListenerOptions>
     ) => void;
     createAbortController: () => AbortController;
     removeDocumentEventListener: (
@@ -40,8 +37,7 @@ export interface AddFullScreenButtonRuntime {
 function getAbortControllerConstructor(
     scope: AddFullScreenButtonRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ?? scope.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "addFullScreenButton requires an AbortController runtime"
@@ -54,13 +50,27 @@ function getAbortControllerConstructor(
 function getDocumentEventTarget(
     scope: AddFullScreenButtonRuntimeScope
 ): AddFullScreenButtonEventTarget | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+    return scope.getDocumentEventTarget?.();
 }
 
 function getGlobalEventTarget(
     scope: AddFullScreenButtonRuntimeScope
 ): AddFullScreenButtonEventTarget | undefined {
-    return scope.getGlobalEventTarget?.() ?? scope.globalEventTarget;
+    return scope.getGlobalEventTarget?.();
+}
+
+function isAddFullScreenButtonEventTarget(
+    value: unknown
+): value is AddFullScreenButtonEventTarget {
+    if (value === null || typeof value !== "object") {
+        return false;
+    }
+
+    const candidate = value as Partial<AddFullScreenButtonEventTarget>;
+    return (
+        typeof candidate.addEventListener === "function" &&
+        typeof candidate.removeEventListener === "function"
+    );
 }
 
 const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
@@ -68,8 +78,7 @@ const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
         getAbortController: () => globalThis.AbortController,
         getDocumentEventTarget: () => globalThis.document,
         getGlobalEventTarget: () =>
-            typeof globalThis.addEventListener === "function" &&
-            typeof globalThis.removeEventListener === "function"
+            isAddFullScreenButtonEventTarget(globalThis)
                 ? globalThis
                 : undefined,
     };
