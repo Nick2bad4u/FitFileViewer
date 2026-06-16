@@ -26,12 +26,6 @@ export interface ElectronApiStartupHooksScope extends RendererElectronApiScope {
         | undefined;
 }
 
-const defaultElectronApiStartupHooksScope: ElectronApiStartupHooksScope = {
-    getElectronApiScope: () => ({
-        getElectronAPI: () => Reflect.get(globalThis, "electronAPI"),
-    }),
-};
-
 function toModuleRecord(value: unknown): Record<string, unknown> {
     return typeof value === "object" && value !== null
         ? (value as Record<string, unknown>)
@@ -81,13 +75,16 @@ export function getElectronApiHooksFromValue(
 }
 
 export function getElectronApiStartupHooks(
-    scope: ElectronApiStartupHooksScope = defaultElectronApiStartupHooksScope
+    scope?: ElectronApiStartupHooksScope
 ): ElectronApiStartupHooks | null {
-    const electronApiScope = scope.getElectronApiScope?.() ?? scope;
-    const electronApi = getRendererElectronApi(
-        isElectronApiStartupHookSource,
-        electronApiScope
-    );
+    const electronApiScope = scope?.getElectronApiScope?.() ?? scope;
+    const electronApi =
+        electronApiScope === undefined
+            ? getRendererElectronApi(isElectronApiStartupHookSource)
+            : getRendererElectronApi(
+                  isElectronApiStartupHookSource,
+                  electronApiScope
+              );
 
     return getElectronApiHooksFromValue(electronApi);
 }

@@ -14,6 +14,7 @@ import {
 describe("renderer Electron API startup hooks", () => {
     afterEach(() => {
         resetRendererElectronApiCandidate();
+        vi.unstubAllGlobals();
         vi.restoreAllMocks();
     });
 
@@ -62,6 +63,24 @@ describe("renderer Electron API startup hooks", () => {
         });
 
         expect(getElectronApiStartupHooks({} as typeof globalThis)).toEqual(
+            expect.objectContaining({
+                checkForUpdates,
+                recentFiles,
+            })
+        );
+    });
+
+    it("reads startup hooks through the shared ambient Electron API runtime", () => {
+        expect.assertions(1);
+
+        const checkForUpdates = vi.fn<() => void>();
+        const recentFiles = vi.fn<() => Promise<string[]>>();
+        vi.stubGlobal("electronAPI", {
+            checkForUpdates,
+            recentFiles,
+        });
+
+        expect(getElectronApiStartupHooks()).toEqual(
             expect.objectContaining({
                 checkForUpdates,
                 recentFiles,

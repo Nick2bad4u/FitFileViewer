@@ -11918,13 +11918,13 @@ describe("architecture boundaries", () => {
         expect(electronApiStartupHooksSource).not.toContain(
             "scope: typeof globalThis = globalThis"
         );
-        expect(electronApiStartupHooksSource).toContain(
+        expect(electronApiStartupHooksSource).not.toContain(
             "defaultElectronApiStartupHooksScope"
         );
         expect(electronApiStartupHooksSource).not.toContain(
             "getElectronApiScope: () => globalThis"
         );
-        expect(electronApiStartupHooksSource).toContain(
+        expect(electronApiStartupHooksSource).not.toContain(
             'getElectronAPI: () => Reflect.get(globalThis, "electronAPI")'
         );
     });
