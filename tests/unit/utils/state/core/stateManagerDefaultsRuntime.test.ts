@@ -13,7 +13,7 @@ describe("stateManagerDefaultsRuntime", () => {
         expect(
             getStateManagerDefaultsRuntime({
                 dateNow: () => 123,
-                performance: { now: () => 45.5 },
+                getPerformance: () => ({ now: () => 45.5 }),
             }).getStartTime()
         ).toBe(45.5);
     });
@@ -41,17 +41,32 @@ describe("stateManagerDefaultsRuntime", () => {
 
         expect(
             getStateManagerDefaultsRuntime({
-                document: { title: "Activity Viewer" },
+                getDocument: () => ({ title: "Activity Viewer" }),
             }).getDefaultDocumentTitle()
         ).toBe("Activity Viewer");
         expect(
             getStateManagerDefaultsRuntime({
-                document: { title: "" },
+                getDocument: () => ({ title: "" }),
             }).getDefaultDocumentTitle()
         ).toBe("Fit File Viewer");
         expect(
             getStateManagerDefaultsRuntime({}).getDefaultDocumentTitle()
         ).toBe("Fit File Viewer");
+    });
+
+    it("ignores legacy direct document and performance runtime properties", () => {
+        expect.assertions(3);
+
+        const performanceNow = vi.fn<() => number>(() => 45.5);
+        const runtime = getStateManagerDefaultsRuntime({
+            dateNow: () => 123,
+            document: { title: "Ignored Activity Viewer" },
+            performance: { now: performanceNow },
+        } as unknown as Parameters<typeof getStateManagerDefaultsRuntime>[0]);
+
+        expect(runtime.getDefaultDocumentTitle()).toBe("Fit File Viewer");
+        expect(runtime.getStartTime()).toBe(123);
+        expect(performanceNow).not.toHaveBeenCalled();
     });
 
     it("resolves default document and performance when runtime operations run", () => {

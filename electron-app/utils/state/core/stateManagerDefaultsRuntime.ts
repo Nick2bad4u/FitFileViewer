@@ -8,14 +8,12 @@ type StateManagerDefaultsPerformanceRuntime = {
 
 export interface StateManagerDefaultsRuntimeScope {
     readonly dateNow?: (() => number) | undefined;
-    readonly document?: StateManagerDefaultsDocumentRuntime | undefined;
     readonly getDocument?:
         | (() => StateManagerDefaultsDocumentRuntime | undefined)
         | undefined;
     readonly getPerformance?:
         | (() => StateManagerDefaultsPerformanceRuntime | undefined)
         | undefined;
-    readonly performance?: StateManagerDefaultsPerformanceRuntime | undefined;
 }
 
 export interface StateManagerDefaultsRuntime {
@@ -33,7 +31,7 @@ const defaultStateManagerDefaultsRuntimeScope: StateManagerDefaultsRuntimeScope 
 function getRequiredStartClock(
     scope: StateManagerDefaultsRuntimeScope
 ): () => number {
-    const performance = scope.getPerformance?.() ?? scope.performance;
+    const performance = scope.getPerformance?.();
     const performanceNow = performance?.now;
     if (typeof performanceNow === "function") {
         return performanceNow.bind(performance);
@@ -52,8 +50,11 @@ export function getStateManagerDefaultsRuntime(
 ): StateManagerDefaultsRuntime {
     return {
         getDefaultDocumentTitle(): string {
-            const document = scope.getDocument?.() ?? scope.document;
-            return document?.title || "Fit File Viewer";
+            const document = scope.getDocument?.();
+            const title = document?.title;
+            return typeof title === "string" && title.length > 0
+                ? title
+                : "Fit File Viewer";
         },
         getStartTime(): number {
             return getRequiredStartClock(scope)();
