@@ -1,19 +1,17 @@
 export type SetupThemeTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface SetupThemeRuntimeScope {
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
 
 export interface SetupThemeRuntime {
-    clearTimeout(timer: SetupThemeTimer): void;
-    setTimeout(callback: () => void, delayMs: number): SetupThemeTimer;
+    clearTimeout: (timer: SetupThemeTimer) => void;
+    setTimeout: (callback: () => void, delayMs: number) => SetupThemeTimer;
 }
 
 const defaultSetupThemeRuntimeScope: SetupThemeRuntimeScope = {
@@ -24,13 +22,13 @@ const defaultSetupThemeRuntimeScope: SetupThemeRuntimeScope = {
 function getScopeClearTimeout(
     scope: SetupThemeRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
-    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+    return scope.getClearTimeout?.();
 }
 
 function getScopeSetTimeout(
     scope: SetupThemeRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
-    return scope.getSetTimeout?.() ?? scope.setTimeout;
+    return scope.getSetTimeout?.();
 }
 
 export function getSetupThemeRuntime(

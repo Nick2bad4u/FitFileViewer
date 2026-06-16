@@ -15,8 +15,8 @@ describe("getSetupThemeRuntime", () => {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
         } = getSetupThemeRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(scheduleTimeout(callback, delayMs)).toBe(timer);
@@ -64,5 +64,27 @@ describe("getSetupThemeRuntime", () => {
         expect(() =>
             runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("setupThemeRuntime requires clearTimeout");
+    });
+
+    it("ignores legacy direct runtime scope timer properties", () => {
+        expect.assertions(4);
+
+        const callback = vi.fn<() => void>();
+        const timer = 101 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const runtime = getSetupThemeRuntime({
+            clearTimeout,
+            setTimeout,
+        } as unknown as Parameters<typeof getSetupThemeRuntime>[0]);
+
+        expect(() => runtime.setTimeout(callback, 1)).toThrow(
+            "setupThemeRuntime requires setTimeout"
+        );
+        expect(() => runtime.clearTimeout(timer)).toThrow(
+            "setupThemeRuntime requires clearTimeout"
+        );
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
     });
 });
