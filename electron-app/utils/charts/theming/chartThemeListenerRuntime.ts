@@ -1,11 +1,19 @@
 export type ChartThemeListenerTimerHandle = ReturnType<typeof setTimeout>;
 
 export interface ChartThemeListenerRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly CustomEvent?: typeof CustomEvent | undefined;
-    readonly clearTimeout?: typeof clearTimeout | undefined;
-    readonly document?: Pick<Document, "body"> | undefined;
-    readonly setTimeout?: typeof setTimeout | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof clearTimeout | undefined)
+        | undefined;
+    readonly getCustomEvent?:
+        | (() => typeof CustomEvent | undefined)
+        | undefined;
+    readonly getDocument?:
+        | (() => Pick<Document, "body"> | undefined)
+        | undefined;
+    readonly getSetTimeout?: (() => typeof setTimeout | undefined) | undefined;
 }
 
 export interface ChartThemeListenerRuntime {
@@ -22,11 +30,16 @@ export interface ChartThemeListenerRuntime {
     ) => ChartThemeListenerTimerHandle;
 }
 
-const defaultChartThemeListenerRuntimeScope: ChartThemeListenerRuntimeScope =
-    globalThis;
+const defaultChartThemeListenerRuntimeScope: ChartThemeListenerRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getClearTimeout: () => globalThis.clearTimeout,
+    getCustomEvent: () => globalThis.CustomEvent,
+    getDocument: () => globalThis.document,
+    getSetTimeout: () => globalThis.setTimeout,
+};
 
 function getBody(scope: ChartThemeListenerRuntimeScope): HTMLElement {
-    const body = scope.document?.body;
+    const body = scope.getDocument?.()?.body;
     if (!body) {
         throw new TypeError("chartThemeListener requires a document body");
     }
@@ -37,9 +50,7 @@ function getBody(scope: ChartThemeListenerRuntimeScope): HTMLElement {
 function getAbortControllerConstructor(
     scope: ChartThemeListenerRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.AbortController ??
-        scope.document?.body.ownerDocument.defaultView?.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError("chartThemeListener requires an AbortController");
     }
@@ -50,10 +61,7 @@ function getAbortControllerConstructor(
 function getCustomEventConstructor(
     scope: ChartThemeListenerRuntimeScope
 ): typeof CustomEvent | undefined {
-    return (
-        scope.CustomEvent ??
-        scope.document?.body.ownerDocument.defaultView?.CustomEvent
-    );
+    return scope.getCustomEvent?.();
 }
 
 export function getChartThemeListenerRuntime(
@@ -70,7 +78,7 @@ export function getChartThemeListenerRuntime(
             });
         },
         clearTimeout(handle: ChartThemeListenerTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout;
+            const clearTimeoutRef = scope.getClearTimeout?.();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "chartThemeListener requires a clearTimeout runtime"
@@ -93,7 +101,7 @@ export function getChartThemeListenerRuntime(
             handler: () => void,
             timeout: number
         ): ChartThemeListenerTimerHandle {
-            const setTimeoutRef = scope.setTimeout;
+            const setTimeoutRef = scope.getSetTimeout?.();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "chartThemeListener requires a setTimeout runtime"

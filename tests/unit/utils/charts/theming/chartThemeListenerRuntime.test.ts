@@ -11,8 +11,8 @@ describe("getChartThemeListenerRuntime", () => {
         expect.assertions(2);
 
         const runtime = getChartThemeListenerRuntime({
-            AbortController,
-            document,
+            getAbortController: () => AbortController,
+            getDocument: () => document,
         });
         const listenerController = runtime.createAbortController();
         let observedThemeEvents = 0;
@@ -35,8 +35,8 @@ describe("getChartThemeListenerRuntime", () => {
         expect.assertions(3);
 
         const runtime = getChartThemeListenerRuntime({
-            CustomEvent,
-            document,
+            getCustomEvent: () => CustomEvent,
+            getDocument: () => document,
         });
 
         expect(runtime.isCustomEvent(new CustomEvent("themechange"))).toBe(
@@ -45,8 +45,9 @@ describe("getChartThemeListenerRuntime", () => {
         expect(runtime.isCustomEvent(new Event("themechange"))).toBe(false);
         expect(
             getChartThemeListenerRuntime({
-                CustomEvent: "CustomEvent" as unknown as typeof CustomEvent,
-                document,
+                getCustomEvent: () =>
+                    "CustomEvent" as unknown as typeof CustomEvent,
+                getDocument: () => document,
             }).isCustomEvent(new CustomEvent("themechange"))
         ).toBe(false);
     });
@@ -62,9 +63,9 @@ describe("getChartThemeListenerRuntime", () => {
         const clearTimeoutMock = vi.fn<typeof clearTimeout>();
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
         const runtime = getChartThemeListenerRuntime({
-            clearTimeout: clearTimeoutMock,
-            document,
-            setTimeout: setTimeoutMock,
+            getClearTimeout: () => clearTimeoutMock,
+            getDocument: () => document,
+            getSetTimeout: () => setTimeoutMock,
         });
 
         expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
@@ -76,7 +77,9 @@ describe("getChartThemeListenerRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(2);
 
-        const runtime = getChartThemeListenerRuntime({ document });
+        const runtime = getChartThemeListenerRuntime({
+            getDocument: () => document,
+        });
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "chartThemeListener requires a setTimeout runtime"
@@ -98,7 +101,7 @@ describe("getChartThemeListenerRuntime", () => {
             ownerDocument: {},
         } as unknown as HTMLElement;
         const runtime = getChartThemeListenerRuntime({
-            document: { body },
+            getDocument: () => ({ body }),
         });
 
         expect(() => runtime.createAbortController()).toThrow(
@@ -114,9 +117,9 @@ describe("getChartThemeListenerRuntime", () => {
 
         const runtime = getChartThemeListenerRuntime({});
         const runtimeWithInvalidAbortController = getChartThemeListenerRuntime({
-            AbortController:
+            getAbortController: () =>
                 "AbortController" as unknown as typeof AbortController,
-            document,
+            getDocument: () => document,
         });
         const listenerController = new AbortController();
 
@@ -129,5 +132,62 @@ describe("getChartThemeListenerRuntime", () => {
             runtimeWithInvalidAbortController.createAbortController()
         ).toThrow("chartThemeListener requires an AbortController");
         expect(runtime.isCustomEvent(new Event("themechange"))).toBe(false);
+    });
+
+    it("ignores legacy direct runtime primitive properties", () => {
+        expect.assertions(10);
+
+        let controllerCount = 0;
+        class TestAbortController extends AbortController {
+            public constructor() {
+                super();
+                controllerCount += 1;
+            }
+        }
+        const timer = Symbol(
+            "theme-listener-timer"
+        ) as unknown as ChartThemeListenerTimerHandle;
+        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
+        const body = {
+            addEventListener: vi.fn(),
+            ownerDocument: {
+                defaultView: {
+                    AbortController: TestAbortController,
+                    CustomEvent,
+                },
+            },
+        } as unknown as HTMLElement;
+        const runtime = getChartThemeListenerRuntime({
+            AbortController: TestAbortController,
+            clearTimeout: clearTimeoutMock,
+            CustomEvent,
+            document: { body },
+            setTimeout: setTimeoutMock,
+        } as unknown as Parameters<typeof getChartThemeListenerRuntime>[0]);
+        const listenerController = new AbortController();
+
+        expect(() =>
+            runtime.addThemeChangeListener(vi.fn(), {
+                signal: listenerController.signal,
+            })
+        ).toThrow("chartThemeListener requires a document body");
+        expect(() => runtime.createAbortController()).toThrow(
+            "chartThemeListener requires an AbortController"
+        );
+        expect(runtime.isCustomEvent(new CustomEvent("themechange"))).toBe(
+            false
+        );
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "chartThemeListener requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(timer)).toThrow(
+            "chartThemeListener requires a clearTimeout runtime"
+        );
+        expect(body.addEventListener).not.toHaveBeenCalled();
+        expect(controllerCount).toBe(0);
+        expect(clearTimeoutMock).not.toHaveBeenCalled();
+        expect(setTimeoutMock).not.toHaveBeenCalled();
+        expect(listenerController.signal.aborted).toBe(false);
     });
 });

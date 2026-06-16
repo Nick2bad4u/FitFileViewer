@@ -8625,7 +8625,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme listener browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(21);
 
         const violations = migratedChartThemeListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -8652,11 +8652,57 @@ describe("architecture boundaries", () => {
         expect(chartThemeListenerRuntimeSource).not.toMatch(
             directChartThemeListenerRuntimeAmbientFallbackPattern
         );
-        expect(chartThemeListenerRuntimeSource).not.toContain(
-            "globalThis.CustomEvent"
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "defaultChartThemeListenerRuntimeScope"
         );
         expect(chartThemeListenerRuntimeSource).toContain(
-            "const setTimeoutRef = scope.setTimeout;"
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "ChartThemeListenerRuntimeScope = globalThis"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "readonly CustomEvent?:"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "scope.CustomEvent"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(chartThemeListenerRuntimeSource).not.toContain("scope.document");
+        expect(chartThemeListenerRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(chartThemeListenerRuntimeSource).toContain(
+            "const setTimeoutRef = scope.getSetTimeout?.();"
         );
     });
 
