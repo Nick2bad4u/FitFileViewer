@@ -7853,7 +7853,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(18);
 
         const violations = migratedListenersResizeRuntimeFiles
             .filter((relativeFile) =>
@@ -7882,9 +7882,40 @@ describe("architecture boundaries", () => {
         expect(listenersResizeRuntimeSource).toContain(
             "defaultListenersResizeRuntimeScope"
         );
+        expect(listenersResizeRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "getElement: () => globalThis.Element"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "getHTMLCanvasElement: () => globalThis.HTMLCanvasElement"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "getResizeTarget: () => globalThis"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
         expect(listenersResizeRuntimeSource).not.toContain(
             "scope: ListenersResizeRuntimeScope = globalThis"
         );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "ListenersResizeRuntimeScope = globalThis"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain("scope.window");
         expect(listenersResizeRuntimeSource).toContain(
             "listenersResize requires a setTimeout runtime"
         );

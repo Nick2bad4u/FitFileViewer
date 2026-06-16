@@ -44,7 +44,7 @@ describe("getListenersResizeRuntime", () => {
         }).toThrow("listenersResize requires an AbortController runtime");
     });
 
-    it("registers resize listeners on the injected window", () => {
+    it("registers resize listeners on the injected resize target", () => {
         expect.assertions(2);
 
         const abortController = new AbortController();
@@ -64,7 +64,7 @@ describe("getListenersResizeRuntime", () => {
                 resizeCount += 1;
             });
             const utils = getListenersResizeRuntime({
-                window: { addEventListener },
+                resizeTarget: { addEventListener },
             });
 
             utils.addResizeListener(listener, {
@@ -77,6 +77,78 @@ describe("getListenersResizeRuntime", () => {
             });
         } finally {
             abortController.abort();
+        }
+    });
+
+    it("routes runtime dependencies through provider functions", () => {
+        expect.assertions(11);
+
+        try {
+            const abortController = new AbortController();
+            let controllerCount = 0;
+            class TestAbortController extends AbortController {
+                public constructor() {
+                    super();
+                    controllerCount += 1;
+                }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.className = "chart-canvas";
+            document.body.append(canvas);
+            const addEventListener = vi.fn();
+            const resizeListener = vi.fn<EventListener>();
+            const animationCallback = vi.fn<FrameRequestCallback>();
+            const timeoutCallback = vi.fn<() => void>();
+            const requestAnimationFrame = vi.fn<
+                (callback: FrameRequestCallback) => number
+            >(() => 3);
+            const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+            const setTimeout = vi.fn<
+                (callback: () => void, timeout?: number) => number
+            >(() => 11);
+            const clearTimeout = vi.fn<(handle: number) => void>();
+            const timeoutMs = Number.parseInt("80", 10);
+            const runtime = getListenersResizeRuntime({
+                getAbortController: () => TestAbortController,
+                getCancelAnimationFrame: () => cancelAnimationFrame,
+                getClearTimeout: () => clearTimeout,
+                getDocument: () => document,
+                getElement: () => Element,
+                getHTMLCanvasElement: () => HTMLCanvasElement,
+                getRequestAnimationFrame: () => requestAnimationFrame,
+                getResizeTarget: () => ({ addEventListener }),
+                getSetTimeout: () => setTimeout,
+            });
+
+            runtime.addResizeListener(resizeListener, {
+                signal: abortController.signal,
+            });
+
+            expect(runtime.createAbortController()).toBeInstanceOf(
+                TestAbortController
+            );
+            expect(controllerCount).toBe(1);
+            expect(addEventListener).toHaveBeenCalledWith(
+                "resize",
+                resizeListener,
+                { signal: abortController.signal }
+            );
+            expect(runtime.queryChartCanvases()).toStrictEqual([canvas]);
+            expect(runtime.queryChartTab("#tab_chart")).toBeNull();
+            expect(runtime.requestAnimationFrame(animationCallback)).toBe(3);
+            expect(requestAnimationFrame).toHaveBeenCalledWith(
+                animationCallback
+            );
+            expect(runtime.setTimeout(timeoutCallback, timeoutMs)).toBe(11);
+
+            runtime.cancelAnimationFrame(3);
+            runtime.clearTimeout(11);
+
+            expect(setTimeout).toHaveBeenCalledWith(timeoutCallback, timeoutMs);
+            expect(cancelAnimationFrame).toHaveBeenCalledWith(3);
+            expect(clearTimeout).toHaveBeenCalledWith(11);
+        } finally {
+            cleanupFixture();
         }
     });
 
