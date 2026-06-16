@@ -1,7 +1,6 @@
 import type { ElectronAPI } from "../../shared/preloadApi.js";
 
 export type RendererElectronApiScope = {
-    readonly electronAPI?: unknown;
     readonly getElectronAPI?: (() => unknown) | undefined;
 };
 
@@ -51,5 +50,5 @@ export function getRendererElectronApi<
 }
 
 function getScopeElectronApi(scope: RendererElectronApiScope): unknown {
-    return scope.getElectronAPI?.() ?? scope.electronAPI;
+    return scope.getElectronAPI?.();
 }

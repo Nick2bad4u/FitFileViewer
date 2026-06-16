@@ -94,10 +94,10 @@ describe("renderer Electron API startup hooks", () => {
         const checkForUpdates = vi.fn<() => void>();
         const recentFiles = vi.fn<() => Promise<string[]>>();
         const electronApiScope = {
-            electronAPI: {
+            getElectronAPI: () => ({
                 checkForUpdates,
                 recentFiles,
-            },
+            }),
         };
         const getElectronApiScope = vi.fn(() => electronApiScope);
 

@@ -1,8 +1,5 @@
 /** Runtime environment names used by the renderer bootstrap. */
-import {
-    getRendererElectronApi,
-    type RendererElectronApiScope,
-} from "../../runtime/electronApiRuntime.js";
+import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
 import { getRendererEnvironmentRuntime } from "./rendererEnvironmentRuntime.js";
 
 export type RendererEnvironmentName = "development" | "production";
@@ -50,10 +47,9 @@ function hasDocumentDevModeFlag(globalScope: object): boolean {
 
 function hasElectronDevModeFlag(globalScope: object): boolean {
     return (
-        getRendererElectronApi(
-            isElectronDevModeApi,
-            globalScope as RendererElectronApiScope
-        ) !== null
+        getRendererElectronApi(isElectronDevModeApi, {
+            getElectronAPI: () => Reflect.get(globalScope, "electronAPI"),
+        }) !== null
     );
 }
 

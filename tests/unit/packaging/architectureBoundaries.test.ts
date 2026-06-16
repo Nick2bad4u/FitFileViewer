@@ -12470,7 +12470,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Electron API runtime ambient tests on scoped global fixtures", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const electronApiRuntimeSource = stripComments(
             readRepositoryFile(
@@ -12496,6 +12496,10 @@ describe("architecture boundaries", () => {
         expect(electronApiRuntimeSource).toContain(
             'getElectronAPI: () => Reflect.get(globalThis, "electronAPI")'
         );
+        expect(electronApiRuntimeSource).not.toContain(
+            "readonly electronAPI?:"
+        );
+        expect(electronApiRuntimeSource).not.toContain("scope.electronAPI");
         expect(electronApiRuntimeSource).not.toContain(
             "getWindow: () => globalThis.window"
         );

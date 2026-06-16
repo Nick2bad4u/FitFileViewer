@@ -26,13 +26,15 @@ describe("electronApiRuntime", () => {
         vi.unstubAllGlobals();
     });
 
-    it("resolves a matching API from an explicit scope", () => {
+    it("resolves a matching API from an explicit provider scope", () => {
         expect.assertions(1);
 
         const api = {
             openExternal: vi.fn<(url: string) => Promise<boolean>>(),
         };
-        const scope: RendererElectronApiScope = { electronAPI: api };
+        const scope: RendererElectronApiScope = {
+            getElectronAPI: () => api,
+        };
 
         expect(getRendererElectronApi(isExternalOpenApi, scope)).toBe(api);
     });
@@ -64,10 +66,28 @@ describe("electronApiRuntime", () => {
 
         expect(getRendererElectronApi(isExternalOpenApi, {})).toBeNull();
         expect(
-            getRendererElectronApi(isExternalOpenApi, { electronAPI: null })
+            getRendererElectronApi(isExternalOpenApi, {
+                getElectronAPI: () => null,
+            })
         ).toBeNull();
         expect(
-            getRendererElectronApi(isExternalOpenApi, { electronAPI: {} })
+            getRendererElectronApi(isExternalOpenApi, {
+                getElectronAPI: () => ({}),
+            })
+        ).toBeNull();
+    });
+
+    it("ignores legacy direct Electron API scope properties", () => {
+        expect.assertions(1);
+
+        const api = {
+            openExternal: vi.fn<(url: string) => Promise<boolean>>(),
+        };
+
+        expect(
+            getRendererElectronApi(isExternalOpenApi, {
+                electronAPI: api,
+            } as unknown as RendererElectronApiScope)
         ).toBeNull();
     });
 
