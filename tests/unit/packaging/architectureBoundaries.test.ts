@@ -8449,7 +8449,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart theme browser reads behind the runtime facade", () => {
-        expect.assertions(8);
+        expect.assertions(14);
 
         const violations = migratedChartThemeRuntimeFiles
             .filter((relativeFile) =>
@@ -8489,6 +8489,14 @@ describe("architecture boundaries", () => {
         expect(chartThemeRuntimeSource).toContain(
             "getMatchMedia: () => globalThis.matchMedia"
         );
+        expect(chartThemeRuntimeSource).not.toContain("readonly document?:");
+        expect(chartThemeRuntimeSource).not.toContain(
+            "readonly localStorage?:"
+        );
+        expect(chartThemeRuntimeSource).not.toContain("readonly matchMedia?:");
+        expect(chartThemeRuntimeSource).not.toContain("scope.document");
+        expect(chartThemeRuntimeSource).not.toContain("scope.localStorage");
+        expect(chartThemeRuntimeSource).not.toContain("scope.matchMedia");
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {

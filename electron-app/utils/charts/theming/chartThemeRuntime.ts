@@ -1,17 +1,16 @@
 export type ChartTheme = "dark" | "light";
 
 export interface ChartThemeRuntimeScope {
-    readonly document?: Pick<Document, "body"> | undefined;
-    readonly getDocument?: (() => Pick<Document, "body"> | undefined) | undefined;
+    readonly getDocument?:
+        | (() => Pick<Document, "body"> | undefined)
+        | undefined;
     readonly getLocalStorage?:
         | (() => Pick<Storage, "getItem"> | undefined)
         | undefined;
     readonly getMatchMedia?:
-        | (() => ((query: string) => Pick<MediaQueryList, "matches">) | undefined)
-        | undefined;
-    readonly localStorage?: Pick<Storage, "getItem"> | undefined;
-    readonly matchMedia?:
-        | ((query: string) => Pick<MediaQueryList, "matches">)
+        | (() =>
+              | ((query: string) => Pick<MediaQueryList, "matches">)
+              | undefined)
         | undefined;
 }
 
@@ -32,19 +31,19 @@ const defaultChartThemeRuntimeScope: ChartThemeRuntimeScope = {
 function getScopeDocument(
     scope: ChartThemeRuntimeScope
 ): Pick<Document, "body"> | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getScopeLocalStorage(
     scope: ChartThemeRuntimeScope
 ): Pick<Storage, "getItem"> | undefined {
-    return scope.getLocalStorage?.() ?? scope.localStorage;
+    return scope.getLocalStorage?.();
 }
 
 function getScopeMatchMedia(
     scope: ChartThemeRuntimeScope
 ): ((query: string) => Pick<MediaQueryList, "matches">) | undefined {
-    return scope.getMatchMedia?.() ?? scope.matchMedia;
+    return scope.getMatchMedia?.();
 }
 
 export function getChartThemeRuntime(

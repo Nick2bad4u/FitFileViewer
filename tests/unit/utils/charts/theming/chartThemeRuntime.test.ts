@@ -12,11 +12,11 @@ describe("getChartThemeRuntime", () => {
             ),
         } as unknown as DOMTokenList;
         const runtime = getChartThemeRuntime({
-            document: {
+            getDocument: () => ({
                 body: {
                     classList,
                 } as HTMLElement,
-            },
+            }),
         });
 
         expect(runtime.hasBodyThemeClass("theme-dark")).toBe(true);
@@ -28,9 +28,9 @@ describe("getChartThemeRuntime", () => {
 
         const getItem = vi.fn<(key: string) => null | string>(() => "auto");
         const runtime = getChartThemeRuntime({
-            localStorage: {
+            getLocalStorage: () => ({
                 getItem,
-            },
+            }),
         });
 
         expect(runtime.getSavedTheme()).toBe("auto");
@@ -43,7 +43,9 @@ describe("getChartThemeRuntime", () => {
         const matchMedia = vi.fn<
             (query: string) => Pick<MediaQueryList, "matches">
         >(() => ({ matches: true }));
-        const runtime = getChartThemeRuntime({ matchMedia });
+        const runtime = getChartThemeRuntime({
+            getMatchMedia: () => matchMedia,
+        });
 
         expect(runtime.getSystemPreferredTheme()).toBe("dark");
         expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
@@ -95,5 +97,40 @@ describe("getChartThemeRuntime", () => {
         expect(runtime.hasBodyThemeClass("theme-dark")).toBe(false);
         expect(runtime.getSavedTheme()).toBeNull();
         expect(runtime.getSystemPreferredTheme()).toBe("light");
+    });
+
+    it("ignores legacy direct runtime primitive properties", () => {
+        expect.assertions(7);
+
+        const classList = {
+            contains: vi.fn<(themeClass: string) => boolean>(
+                (themeClass) => themeClass === "theme-dark"
+            ),
+        } as unknown as DOMTokenList;
+        const getItem = vi.fn<(key: string) => null | string>(() => "auto");
+        const matchMedia = vi.fn<
+            (query: string) => Pick<MediaQueryList, "matches">
+        >(() => ({ matches: true }));
+        const runtime = getChartThemeRuntime({
+            document: {
+                body: {
+                    classList,
+                } as HTMLElement,
+            },
+            localStorage: {
+                getItem,
+            },
+            matchMedia,
+        } as unknown as Parameters<typeof getChartThemeRuntime>[0]);
+
+        expect(runtime.hasBodyThemeClass("theme-dark")).toBe(false);
+        expect(runtime.getSavedTheme()).toBeNull();
+        expect(runtime.getSystemPreferredTheme()).toBe("light");
+        expect(classList.contains).not.toHaveBeenCalled();
+        expect(getItem).not.toHaveBeenCalled();
+        expect(matchMedia).not.toHaveBeenCalled();
+        expect(getChartThemeRuntime({}).getSystemPreferredTheme()).toBe(
+            "light"
+        );
     });
 });
