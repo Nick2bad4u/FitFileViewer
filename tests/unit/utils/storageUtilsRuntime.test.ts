@@ -12,7 +12,9 @@ describe("storage utilities runtime", () => {
         const localStorage: StorageLike = {
                 getItem: () => "value",
             },
-            runtime = getStorageUtilsRuntime({ localStorage });
+            runtime = getStorageUtilsRuntime({
+                getLocalStorage: () => localStorage,
+            });
 
         expect(runtime.getDefaultStorage()).toBe(localStorage);
     });
@@ -27,20 +29,16 @@ describe("storage utilities runtime", () => {
         expect(runtime.getDefaultStorage()).toBeNull();
     });
 
-    it("prefers the scoped provider over the static storage reference", () => {
+    it("ignores legacy direct storage scope references", () => {
         expect.assertions(1);
 
-        const fallbackStorage: StorageLike = {
-                getItem: () => "fallback",
-            },
-            providedStorage: StorageLike = {
-                getItem: () => "provided",
+        const localStorage: StorageLike = {
+                getItem: () => "legacy",
             },
             runtime = getStorageUtilsRuntime({
-                getLocalStorage: () => providedStorage,
-                localStorage: fallbackStorage,
-            });
+                localStorage,
+            } as unknown as Parameters<typeof getStorageUtilsRuntime>[0]);
 
-        expect(runtime.getDefaultStorage()).toBe(providedStorage);
+        expect(runtime.getDefaultStorage()).toBeNull();
     });
 });

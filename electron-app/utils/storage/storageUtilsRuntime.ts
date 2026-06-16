@@ -14,21 +14,31 @@ export type StorageProvider = () => null | StorageLike;
 
 export interface StorageUtilsRuntimeScope {
     readonly getLocalStorage?: (() => null | StorageLike) | undefined;
-    readonly localStorage?: null | StorageLike | undefined;
 }
 
 export interface StorageUtilsRuntime {
-    getDefaultStorage(): null | StorageLike;
+    getDefaultStorage: () => null | StorageLike;
 }
 
 const defaultStorageUtilsRuntimeScope: StorageUtilsRuntimeScope = {
-    getLocalStorage: () => Reflect.get(globalThis, "localStorage") ?? null,
+    getLocalStorage: getDefaultLocalStorage,
 };
+
+function getDefaultLocalStorage(): null | StorageLike {
+    const localStorageValue = Reflect.get(globalThis, "localStorage") as
+        | null
+        | StorageLike
+        | undefined;
+
+    return localStorageValue === null || localStorageValue === undefined
+        ? null
+        : localStorageValue;
+}
 
 function getScopeLocalStorage(
     scope: StorageUtilsRuntimeScope
 ): null | StorageLike {
-    return scope.getLocalStorage?.() ?? scope.localStorage ?? null;
+    return scope.getLocalStorage?.() ?? null;
 }
 
 export function getStorageUtilsRuntime(
