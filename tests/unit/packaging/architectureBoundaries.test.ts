@@ -6357,7 +6357,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(19);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -6407,6 +6407,30 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "rendererStateIntegration requires a setTimeout runtime"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "readonly documentEventTarget?:"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "scope.documentEventTarget"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "scope.setTimeout"
         );
     });
 

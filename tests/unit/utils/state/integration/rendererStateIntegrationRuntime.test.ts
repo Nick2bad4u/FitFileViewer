@@ -20,8 +20,8 @@ describe("getRendererStateIntegrationRuntime", () => {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
         } = getRendererStateIntegrationRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(scheduleTimeout(callback, delayMs)).toBe(timer);
@@ -59,7 +59,7 @@ describe("getRendererStateIntegrationRuntime", () => {
             }
         );
         const utils = getRendererStateIntegrationRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -92,7 +92,7 @@ describe("getRendererStateIntegrationRuntime", () => {
             clickCount += 1;
         };
         const utils = getRendererStateIntegrationRuntime({
-            documentEventTarget,
+            getDocumentEventTarget: () => documentEventTarget,
         });
 
         utils.addDocumentClickListener(listener, {
@@ -105,6 +105,56 @@ describe("getRendererStateIntegrationRuntime", () => {
         });
         expect(clickCount).toBe(1);
         expect(documentEventTarget.body.childElementCount).toBe(0);
+    });
+
+    it("ignores legacy direct browser primitive runtime properties", () => {
+        expect.assertions(9);
+
+        const callback = vi.fn<() => void>();
+        const timer = 79 as ReturnType<typeof globalThis.setTimeout>;
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(
+            documentEventTarget,
+            "addEventListener"
+        );
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const utils = getRendererStateIntegrationRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            clearTimeout,
+            documentEventTarget,
+            setTimeout,
+        } as unknown as Parameters<
+            typeof getRendererStateIntegrationRuntime
+        >[0]);
+
+        expect(() => utils.createAbortController()).toThrow(
+            "rendererStateIntegration requires an AbortController runtime"
+        );
+        expect(() => utils.setTimeout(callback, 5000)).toThrow(
+            "rendererStateIntegration requires a setTimeout runtime"
+        );
+        expect(() => utils.clearTimeout(timer)).toThrow(
+            "rendererStateIntegration requires a clearTimeout runtime"
+        );
+        expect(() =>
+            utils.addDocumentClickListener(() => undefined, {})
+        ).toThrow(
+            "rendererStateIntegration requires a document event-target runtime"
+        );
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
+        expect(addEventListener).not.toHaveBeenCalled();
+        expect(callback).not.toHaveBeenCalled();
     });
 
     it("routes document click listeners through provider functions", () => {

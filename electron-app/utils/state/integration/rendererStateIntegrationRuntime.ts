@@ -2,10 +2,11 @@ export type RendererStateIntegrationTimer = ReturnType<
     typeof globalThis.setTimeout
 >;
 
+export type RendererStateIntegrationClickListener = (
+    event: Readonly<MouseEvent>
+) => void;
+
 export interface RendererStateIntegrationRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly documentEventTarget?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -16,20 +17,19 @@ export interface RendererStateIntegrationRuntimeScope {
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
 }
 
 export interface RendererStateIntegrationRuntime {
     addDocumentClickListener: (
-        listener: (event: MouseEvent) => void,
-        options: AddEventListenerOptions
+        listener: RendererStateIntegrationClickListener,
+        options: Readonly<AddEventListenerOptions>
     ) => void;
-    clearTimeout(timer: RendererStateIntegrationTimer): void;
+    clearTimeout: (timer: RendererStateIntegrationTimer) => void;
     createAbortController: () => AbortController;
-    setTimeout(
+    setTimeout: (
         callback: () => void,
         delayMs: number
-    ): RendererStateIntegrationTimer;
+    ) => RendererStateIntegrationTimer;
 }
 
 const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRuntimeScope =
@@ -43,8 +43,7 @@ const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRunti
 function getAbortControllerConstructor(
     scope: RendererStateIntegrationRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ?? scope.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "rendererStateIntegration requires an AbortController runtime"
@@ -57,7 +56,7 @@ function getAbortControllerConstructor(
 function getDocumentEventTarget(
     scope: RendererStateIntegrationRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+    return scope.getDocumentEventTarget?.();
 }
 
 export function getRendererStateIntegrationRuntime(
@@ -76,8 +75,7 @@ export function getRendererStateIntegrationRuntime(
             documentEventTarget.addEventListener("click", listener, options);
         },
         clearTimeout(timer): void {
-            const clearTimeoutRef =
-                scope.getClearTimeout?.() ?? scope.clearTimeout;
+            const clearTimeoutRef = scope.getClearTimeout?.();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "rendererStateIntegration requires a clearTimeout runtime"
@@ -90,7 +88,7 @@ export function getRendererStateIntegrationRuntime(
             return new (getAbortControllerConstructor(scope))();
         },
         setTimeout(callback, delayMs): RendererStateIntegrationTimer {
-            const setTimeoutRef = scope.getSetTimeout?.() ?? scope.setTimeout;
+            const setTimeoutRef = scope.getSetTimeout?.();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "rendererStateIntegration requires a setTimeout runtime"
