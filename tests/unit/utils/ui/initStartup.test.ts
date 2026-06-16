@@ -42,7 +42,7 @@ vi.mock(
     })
 );
 
-const { runStartupInitializers } =
+const { registerStartupInitializers, runStartupInitializers } =
     await import("../../../../electron-app/utils/ui/initStartup.js");
 
 describe("initStartup", () => {
@@ -71,5 +71,40 @@ describe("initStartup", () => {
         expect(
             initializerMocks.initFitBrowserFeatureGate
         ).toHaveBeenCalledOnce();
+    });
+
+    it("registers startup initializers through an injected document target", () => {
+        expect.assertions(3);
+
+        const documentTarget = new EventTarget();
+        const cleanup = registerStartupInitializers({
+            getDocumentTarget: () => documentTarget,
+        });
+
+        documentTarget.dispatchEvent(new Event("DOMContentLoaded"));
+        cleanup?.();
+        documentTarget.dispatchEvent(new Event("DOMContentLoaded"));
+
+        expect(typeof cleanup).toBe("function");
+        expect(initializerMocks.startupCalls).toEqual([
+            "quickColorSwitcher",
+            "unifiedControlBar",
+            "filenameAutoScroll",
+            "fitBrowserFeatureGate",
+        ]);
+        expect(
+            initializerMocks.initFitBrowserFeatureGate
+        ).toHaveBeenCalledOnce();
+    });
+
+    it("skips registration when no document target is available", () => {
+        expect.assertions(2);
+
+        const cleanup = registerStartupInitializers({
+            getDocumentTarget: () => undefined,
+        });
+
+        expect(cleanup).toBeUndefined();
+        expect(initializerMocks.startupCalls).toEqual([]);
     });
 });

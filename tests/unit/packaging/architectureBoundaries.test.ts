@@ -4130,6 +4130,32 @@ describe("architecture boundaries", () => {
         ).toBe(true);
     });
 
+    it("keeps startup initializer document access behind its runtime provider", () => {
+        expect.assertions(6);
+
+        const initStartupSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/initStartup.ts")
+        );
+        const initStartupRuntimeSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/initStartupRuntime.ts")
+        );
+
+        expect(initStartupSource).toContain("initStartupRuntime.js");
+        expect(initStartupSource).not.toMatch(
+            /\baddEventListenerWithCleanup\(\s*document\s*,/u
+        );
+        expect(initStartupSource).not.toContain("globalThis.document");
+        expect(initStartupRuntimeSource).toContain(
+            "defaultInitStartupRuntimeScope"
+        );
+        expect(initStartupRuntimeSource).toContain(
+            "getDocumentTarget: () => globalThis.document"
+        );
+        expect(initStartupRuntimeSource).not.toContain(
+            "scope: InitStartupRuntimeScope = globalThis"
+        );
+    });
+
     it("keeps renderer environment default scope behind a provider", () => {
         expect.assertions(8);
 

@@ -448,6 +448,7 @@
         "electron-app/utils/ui/components/LoadingOverlay.ts",
         "electron-app/utils/ui/components/createSettingsHeader.ts",
         "electron-app/utils/ui/components/index.ts",
+        "electron-app/utils/ui/initStartupRuntime.ts",
         "electron-app/utils/ui/initStartup.ts",
         "electron-app/utils/ui/quickColorSwitcher.ts",
         "electron-app/utils/ui/unifiedControlBarRuntime.ts",

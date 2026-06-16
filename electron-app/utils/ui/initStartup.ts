@@ -7,6 +7,10 @@
 
 import { initFitBrowserFeatureGate } from "./browser/initFitBrowserFeatureGate.js";
 import { addEventListenerWithCleanup } from "./events/eventListenerManager.js";
+import {
+    getInitStartupRuntime,
+    type InitStartupRuntime,
+} from "./initStartupRuntime.js";
 import { initQuickColorSwitcher } from "./quickColorSwitcher.js";
 import {
     initFilenameAutoScroll,
@@ -23,8 +27,19 @@ export function runStartupInitializers(): void {
     initFitBrowserFeatureGate();
 }
 
-addEventListenerWithCleanup(
-    document,
-    "DOMContentLoaded",
-    runStartupInitializers
-);
+export function registerStartupInitializers(
+    runtime: InitStartupRuntime = getInitStartupRuntime()
+): (() => void) | undefined {
+    const documentTarget = runtime.getDocumentTarget();
+    if (!documentTarget) {
+        return undefined;
+    }
+
+    return addEventListenerWithCleanup(
+        documentTarget,
+        "DOMContentLoaded",
+        runStartupInitializers
+    );
+}
+
+registerStartupInitializers();
