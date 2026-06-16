@@ -92,9 +92,19 @@ describe("renderChartJSRuntime", () => {
 
         expect(
             getRenderChartJSRuntime({
-                isRendererScope: true,
+                getIsRendererScope: () => true,
             }).isWindowAvailable()
         ).toBe(true);
         expect(getRenderChartJSRuntime({}).isWindowAvailable()).toBe(false);
+    });
+
+    it("ignores legacy direct renderer-scope properties", () => {
+        expect.assertions(1);
+
+        const utils = getRenderChartJSRuntime({
+            isRendererScope: true,
+        } as unknown as Parameters<typeof getRenderChartJSRuntime>[0]);
+
+        expect(utils.isWindowAvailable()).toBe(false);
     });
 });

@@ -4,11 +4,10 @@ export interface RenderChartJSRuntimeScope {
     readonly getCustomEventConstructor?:
         | (() => typeof CustomEvent | undefined)
         | undefined;
-    readonly getIsRendererScope?: (() => boolean) | undefined;
+    readonly getIsRendererScope?: (() => boolean | undefined) | undefined;
     readonly getPerformance?:
         | (() => Pick<Performance, "now"> | undefined)
         | undefined;
-    readonly isRendererScope?: boolean | undefined;
     readonly performance?: Pick<Performance, "now"> | undefined;
 }
 
@@ -23,7 +22,7 @@ const defaultRenderChartJSRuntimeScope: RenderChartJSRuntimeScope = {
     dateNow: Date.now,
     getCustomEventConstructor: () =>
         typeof CustomEvent === "function" ? CustomEvent : undefined,
-    getIsRendererScope: () => globalThis.document !== undefined,
+    getIsRendererScope: () => Reflect.has(globalThis, "document"),
     getPerformance: () => globalThis.performance,
 };
 
@@ -61,7 +60,7 @@ function getScopePerformance(
 }
 
 function getIsRendererScope(scope: RenderChartJSRuntimeScope): boolean {
-    return scope.getIsRendererScope?.() ?? scope.isRendererScope ?? false;
+    return scope.getIsRendererScope?.() ?? false;
 }
 
 export function getRenderChartJSRuntime(
