@@ -11,7 +11,7 @@ describe("renderChartJSRuntime", () => {
         expect.assertions(1);
 
         const utils = getRenderChartJSRuntime({
-            CustomEventConstructor: CustomEvent,
+            getCustomEventConstructor: () => CustomEvent,
         });
 
         expect(utils.getCustomEventConstructor()).toBe(CustomEvent);
@@ -30,7 +30,7 @@ describe("renderChartJSRuntime", () => {
 
         const now = vi.fn(() => 42.5),
             utils = getRenderChartJSRuntime({
-                performance: { now },
+                getPerformance: () => ({ now }),
             });
 
         expect(utils.nowPerformance()).toBe(42.5);
@@ -106,5 +106,20 @@ describe("renderChartJSRuntime", () => {
         } as unknown as Parameters<typeof getRenderChartJSRuntime>[0]);
 
         expect(utils.isWindowAvailable()).toBe(false);
+    });
+
+    it("ignores legacy direct custom event and performance properties", () => {
+        expect.assertions(3);
+
+        const now = vi.fn(() => 99);
+        const utils = getRenderChartJSRuntime({
+            CustomEventConstructor: CustomEvent,
+            dateNow: () => 123,
+            performance: { now },
+        } as unknown as Parameters<typeof getRenderChartJSRuntime>[0]);
+
+        expect(utils.getCustomEventConstructor()).toBeUndefined();
+        expect(utils.nowPerformance()).toBe(123);
+        expect(now).not.toHaveBeenCalled();
     });
 });

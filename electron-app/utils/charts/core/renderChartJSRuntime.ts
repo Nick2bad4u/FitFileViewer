@@ -1,5 +1,4 @@
 export interface RenderChartJSRuntimeScope {
-    readonly CustomEventConstructor?: typeof CustomEvent | undefined;
     readonly dateNow?: (() => number) | undefined;
     readonly getCustomEventConstructor?:
         | (() => typeof CustomEvent | undefined)
@@ -8,7 +7,6 @@ export interface RenderChartJSRuntimeScope {
     readonly getPerformance?:
         | (() => Pick<Performance, "now"> | undefined)
         | undefined;
-    readonly performance?: Pick<Performance, "now"> | undefined;
 }
 
 export interface RenderChartJSRuntime {
@@ -50,13 +48,13 @@ function getRequiredPerformanceNow(
 function getScopeCustomEventConstructor(
     scope: RenderChartJSRuntimeScope
 ): typeof CustomEvent | undefined {
-    return scope.getCustomEventConstructor?.() ?? scope.CustomEventConstructor;
+    return scope.getCustomEventConstructor?.();
 }
 
 function getScopePerformance(
     scope: RenderChartJSRuntimeScope
 ): Pick<Performance, "now"> | undefined {
-    return scope.getPerformance?.() ?? scope.performance;
+    return scope.getPerformance?.();
 }
 
 function getIsRendererScope(scope: RenderChartJSRuntimeScope): boolean {
