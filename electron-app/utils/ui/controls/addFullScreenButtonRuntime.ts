@@ -1,7 +1,16 @@
 export interface AddFullScreenButtonRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
-    readonly documentTarget?: AddFullScreenButtonEventTarget | undefined;
-    readonly windowTarget?: AddFullScreenButtonEventTarget | undefined;
+    readonly documentEventTarget?: AddFullScreenButtonEventTarget | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getDocumentEventTarget?:
+        | (() => AddFullScreenButtonEventTarget | undefined)
+        | undefined;
+    readonly getGlobalEventTarget?:
+        | (() => AddFullScreenButtonEventTarget | undefined)
+        | undefined;
+    readonly globalEventTarget?: AddFullScreenButtonEventTarget | undefined;
 }
 
 type AddFullScreenButtonEventTarget = Pick<
@@ -31,7 +40,8 @@ export interface AddFullScreenButtonRuntime {
 function getAbortControllerConstructor(
     scope: AddFullScreenButtonRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor = scope.AbortController;
+    const AbortControllerConstructor =
+        scope.getAbortController?.() ?? scope.AbortController;
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "addFullScreenButton requires an AbortController runtime"
@@ -41,30 +51,57 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
+function getDocumentEventTarget(
+    scope: AddFullScreenButtonRuntimeScope
+): AddFullScreenButtonEventTarget | undefined {
+    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+}
+
+function getGlobalEventTarget(
+    scope: AddFullScreenButtonRuntimeScope
+): AddFullScreenButtonEventTarget | undefined {
+    return scope.getGlobalEventTarget?.() ?? scope.globalEventTarget;
+}
+
+const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
+    {
+        getAbortController: () => globalThis.AbortController,
+        getDocumentEventTarget: () => globalThis.document,
+        getGlobalEventTarget: () =>
+            typeof globalThis.addEventListener === "function" &&
+            typeof globalThis.removeEventListener === "function"
+                ? globalThis
+                : undefined,
+    };
+
 export function getAddFullScreenButtonRuntime(
-    scope: AddFullScreenButtonRuntimeScope = {
-        AbortController: globalThis.AbortController,
-        documentTarget: globalThis.document,
-        windowTarget: globalThis,
-    }
+    scope: AddFullScreenButtonRuntimeScope = defaultAddFullScreenButtonRuntimeScope
 ): AddFullScreenButtonRuntime {
     return {
         addDocumentEventListener(type, listener, options): void {
+            const documentEventTarget = getDocumentEventTarget(scope);
+
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned AbortSignal cleanup and matching remove methods.
-            scope.documentTarget?.addEventListener(type, listener, options);
+            documentEventTarget?.addEventListener(type, listener, options);
         },
         addWindowEventListener(type, listener, options): void {
+            const globalEventTarget = getGlobalEventTarget(scope);
+
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- This scoped runtime forwards caller-owned AbortSignal cleanup and matching remove methods.
-            scope.windowTarget?.addEventListener(type, listener, options);
+            globalEventTarget?.addEventListener(type, listener, options);
         },
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
         },
         removeDocumentEventListener(type, listener): void {
-            scope.documentTarget?.removeEventListener(type, listener);
+            const documentEventTarget = getDocumentEventTarget(scope);
+
+            documentEventTarget?.removeEventListener(type, listener);
         },
         removeWindowEventListener(type, listener): void {
-            scope.windowTarget?.removeEventListener(type, listener);
+            const globalEventTarget = getGlobalEventTarget(scope);
+
+            globalEventTarget?.removeEventListener(type, listener);
         },
     };
 }

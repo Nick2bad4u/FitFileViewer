@@ -3,15 +3,27 @@ import { describe, expect, it, vi } from "vitest";
 import { getAddFullScreenButtonRuntime } from "../../../../../electron-app/utils/ui/controls/addFullScreenButtonRuntime.js";
 
 describe("getAddFullScreenButtonRuntime", () => {
-    it("routes window and document listeners through injected targets", () => {
-        expect.assertions(2);
+    it("routes window and document listeners through injected providers", () => {
+        expect.assertions(6);
 
-        const documentTarget = new EventTarget();
-        const windowTarget = new EventTarget();
+        const documentEventTarget = new EventTarget();
+        const globalEventTarget = new EventTarget();
+        const unusedDocumentAddEventListener = vi.fn();
+        const unusedDocumentRemoveEventListener = vi.fn();
+        const unusedGlobalAddEventListener = vi.fn();
+        const unusedGlobalRemoveEventListener = vi.fn();
         const runtime = getAddFullScreenButtonRuntime({
             AbortController,
-            documentTarget,
-            windowTarget,
+            documentEventTarget: {
+                addEventListener: unusedDocumentAddEventListener,
+                removeEventListener: unusedDocumentRemoveEventListener,
+            },
+            getDocumentEventTarget: () => documentEventTarget,
+            getGlobalEventTarget: () => globalEventTarget,
+            globalEventTarget: {
+                addEventListener: unusedGlobalAddEventListener,
+                removeEventListener: unusedGlobalRemoveEventListener,
+            },
         });
         const handledEventTypes: string[] = [];
         const listener = (event: Event): void => {
@@ -23,24 +35,28 @@ describe("getAddFullScreenButtonRuntime", () => {
         runtime.addWindowEventListener("keydown", listener, options);
         runtime.addDocumentEventListener("fullscreenchange", listener, options);
 
-        windowTarget.dispatchEvent(new Event("keydown"));
-        documentTarget.dispatchEvent(new Event("fullscreenchange"));
+        globalEventTarget.dispatchEvent(new Event("keydown"));
+        documentEventTarget.dispatchEvent(new Event("fullscreenchange"));
 
         expect(handledEventTypes).toStrictEqual([
             "keydown",
             "fullscreenchange",
         ]);
+        expect(unusedGlobalAddEventListener).not.toHaveBeenCalled();
+        expect(unusedDocumentAddEventListener).not.toHaveBeenCalled();
 
         runtime.removeWindowEventListener("keydown", listener);
         runtime.removeDocumentEventListener("fullscreenchange", listener);
-        windowTarget.dispatchEvent(new Event("keydown"));
-        documentTarget.dispatchEvent(new Event("fullscreenchange"));
+        globalEventTarget.dispatchEvent(new Event("keydown"));
+        documentEventTarget.dispatchEvent(new Event("fullscreenchange"));
         cleanupController.abort();
 
         expect(handledEventTypes).toStrictEqual([
             "keydown",
             "fullscreenchange",
         ]);
+        expect(unusedGlobalRemoveEventListener).not.toHaveBeenCalled();
+        expect(unusedDocumentRemoveEventListener).not.toHaveBeenCalled();
     });
 
     it("ignores missing event targets", () => {
@@ -67,7 +83,7 @@ describe("getAddFullScreenButtonRuntime", () => {
             }
         );
         const runtime = getAddFullScreenButtonRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 

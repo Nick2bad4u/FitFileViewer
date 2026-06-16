@@ -351,6 +351,7 @@ const migratedScreenfullRuntimeFiles = [
 ] as const;
 const migratedAddFullScreenButtonRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
+    "electron-app/utils/ui/controls/addFullScreenButtonRuntime.ts",
 ] as const;
 const migratedElectronApiAccessorFiles = [
     "electron-app/main-ui.ts",
@@ -7208,7 +7209,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(10);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -7222,12 +7223,34 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/addFullScreenButton.ts"
             )
         );
+        const fullscreenButtonRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/controls/addFullScreenButtonRuntime.ts"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(fullscreenButtonSource).toContain(
             "addFullScreenButtonRuntime.js"
         );
         expect(fullscreenButtonSource).toContain("createAbortController");
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "defaultAddFullScreenButtonRuntimeScope"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "getDocumentEventTarget: () => globalThis.document"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            'typeof globalThis.addEventListener === "function"'
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain("windowTarget");
+        expect(fullscreenButtonRuntimeSource).not.toContain("documentTarget");
+        expect(fullscreenButtonRuntimeSource).not.toContain(
+            "scope: AddFullScreenButtonRuntimeScope = {"
+        );
     });
 
     it("keeps screenfull wired through the runtime adapter instead of a renderer global", () => {
