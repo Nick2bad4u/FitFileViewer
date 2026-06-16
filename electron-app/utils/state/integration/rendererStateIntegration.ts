@@ -223,7 +223,7 @@ async function loadChartTab(): Promise<void> {
         setState("isLoading", true, { silent: false, source: "loadChartTab" });
 
         // Your existing chart rendering logic here
-// Const chartData = await processChartData(rawFitData);
+        // Const chartData = await processChartData(rawFitData);
         // Const chartOptions = getChartOptions();
 
         // AppActions.renderChart(chartData, chartOptions);
@@ -249,8 +249,8 @@ async function loadMapTab(): Promise<void> {
         setState("isLoading", true, { silent: false, source: "loadMapTab" });
 
         // Your existing map rendering logic here
-// Const mapCenter = calculateMapCenter(rawFitData);
-// Const mapZoom = getOptimalZoom(rawFitData);
+        // Const mapCenter = calculateMapCenter(rawFitData);
+        // Const mapZoom = getOptimalZoom(rawFitData);
 
         // AppActions.renderMap(mapCenter, mapZoom);
 
@@ -345,8 +345,7 @@ function setupStateAwareEventHandlers(): void {
     const { signal } = stateAwareEventHandlersAbortController;
 
     // Tab switching (if not handled by UIStateManager)
-    document.addEventListener(
-        "click",
+    rendererStateIntegrationRuntime.addDocumentClickListener(
         (event) => {
             const target =
                 event.target instanceof Element ? event.target : null;
@@ -365,8 +364,7 @@ function setupStateAwareEventHandlers(): void {
     );
 
     // Theme switching
-    document.addEventListener(
-        "click",
+    rendererStateIntegrationRuntime.addDocumentClickListener(
         (event) => {
             const target =
                 event.target instanceof Element ? event.target : null;

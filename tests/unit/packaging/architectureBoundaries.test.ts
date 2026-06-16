@@ -6209,7 +6209,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(11);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -6236,6 +6236,12 @@ describe("architecture boundaries", () => {
         expect(rendererStateIntegrationSource).toContain(
             "createAbortController"
         );
+        expect(rendererStateIntegrationSource).toContain(
+            "addDocumentClickListener"
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            "document.addEventListener"
+        );
         expect(rendererStateIntegrationRuntimeSource).not.toMatch(
             directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern
         );
@@ -6244,6 +6250,12 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "defaultRendererStateIntegrationRuntimeScope"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "getDocumentEventTarget: () => globalThis.document"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "rendererStateIntegration requires a document event-target runtime"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "rendererStateIntegration requires a setTimeout runtime"

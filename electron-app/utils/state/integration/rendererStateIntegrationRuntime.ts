@@ -5,12 +5,14 @@ export type RendererStateIntegrationTimer = ReturnType<
 export interface RendererStateIntegrationRuntimeScope {
     readonly AbortController?: typeof AbortController | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
+    readonly documentEventTarget?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
@@ -18,6 +20,10 @@ export interface RendererStateIntegrationRuntimeScope {
 }
 
 export interface RendererStateIntegrationRuntime {
+    addDocumentClickListener: (
+        listener: (event: MouseEvent) => void,
+        options: AddEventListenerOptions
+    ) => void;
     clearTimeout(timer: RendererStateIntegrationTimer): void;
     createAbortController: () => AbortController;
     setTimeout(
@@ -30,6 +36,7 @@ const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRunti
     {
         getAbortController: () => globalThis.AbortController,
         getClearTimeout: () => globalThis.clearTimeout,
+        getDocumentEventTarget: () => globalThis.document,
         getSetTimeout: () => globalThis.setTimeout,
     };
 
@@ -47,10 +54,27 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
+function getDocumentEventTarget(
+    scope: RendererStateIntegrationRuntimeScope
+): Document | undefined {
+    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+}
+
 export function getRendererStateIntegrationRuntime(
     scope: RendererStateIntegrationRuntimeScope = defaultRendererStateIntegrationRuntimeScope
 ): RendererStateIntegrationRuntime {
     return {
+        addDocumentClickListener(listener, options): void {
+            const documentEventTarget = getDocumentEventTarget(scope);
+            if (!documentEventTarget) {
+                throw new TypeError(
+                    "rendererStateIntegration requires a document event-target runtime"
+                );
+            }
+
+            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
+            documentEventTarget.addEventListener("click", listener, options);
+        },
         clearTimeout(timer): void {
             const clearTimeoutRef =
                 scope.getClearTimeout?.() ?? scope.clearTimeout;
