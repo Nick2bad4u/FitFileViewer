@@ -218,8 +218,8 @@ installRendererElectronApiWiring({
 
 registerRendererTestOnlyBootstrap(testOnlyBootstrapOptions, {
     documentTarget: runtimeEnvironment.documentTarget,
+    globalEventTarget: runtimeEnvironment.rendererGlobal,
     unloadTarget: runtimeEnvironment.rendererGlobal,
-    windowTarget: runtimeEnvironment.rendererGlobal,
 });
 
 fileInputWiring.registerDelegatedFileInputChangeListener(

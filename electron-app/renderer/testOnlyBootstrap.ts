@@ -100,8 +100,7 @@ export function registerTestDOMContentLoadedSetupListener(
     documentTarget: Document,
     unloadTarget: EventTarget,
     onTestDOMContentLoadedSetupListeners: () => void,
-    runtime: RendererTestOnlyBootstrapRuntime =
-        getRendererTestOnlyBootstrapRuntime()
+    runtime: RendererTestOnlyBootstrapRuntime = getRendererTestOnlyBootstrapRuntime()
 ): void {
     const abortController = runtime.createAbortController();
     const { signal } = abortController;
@@ -122,11 +121,10 @@ export function registerTestDOMContentLoadedSetupListener(
 }
 
 export function registerTestWindowLoadThemeSetupListener(
-    windowTarget: EventTarget,
+    globalEventTarget: EventTarget,
     unloadTarget: EventTarget,
     onTestWindowLoadSetupTheme: () => void,
-    runtime: RendererTestOnlyBootstrapRuntime =
-        getRendererTestOnlyBootstrapRuntime()
+    runtime: RendererTestOnlyBootstrapRuntime = getRendererTestOnlyBootstrapRuntime()
 ): void {
     const abortController = runtime.createAbortController();
     const { signal } = abortController;
@@ -134,7 +132,7 @@ export function registerTestWindowLoadThemeSetupListener(
         abortController.abort();
     };
 
-    windowTarget.addEventListener("load", onTestWindowLoadSetupTheme, {
+    globalEventTarget.addEventListener("load", onTestWindowLoadSetupTheme, {
         signal,
     });
     unloadTarget.addEventListener(
@@ -148,8 +146,8 @@ export function registerRendererTestOnlyBootstrap(
     options: RendererTestOnlyBootstrapOptions,
     targets: {
         readonly documentTarget: Document;
+        readonly globalEventTarget: EventTarget;
         readonly unloadTarget: EventTarget;
-        readonly windowTarget: EventTarget;
     }
 ): void {
     try {
@@ -164,7 +162,7 @@ export function registerRendererTestOnlyBootstrap(
             onTestDOMContentLoadedSetupListeners
         );
         registerTestWindowLoadThemeSetupListener(
-            targets.windowTarget,
+            targets.globalEventTarget,
             targets.unloadTarget,
             onTestWindowLoadSetupTheme
         );

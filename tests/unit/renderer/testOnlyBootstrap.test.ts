@@ -214,8 +214,8 @@ describe("renderer test-only bootstrap wiring", () => {
 
         registerRendererTestOnlyBootstrap(options, {
             documentTarget: document,
+            globalEventTarget: globalThis,
             unloadTarget: globalThis,
-            windowTarget: globalThis,
         });
 
         document.dispatchEvent(new Event("DOMContentLoaded"));
@@ -251,8 +251,8 @@ describe("renderer test-only bootstrap wiring", () => {
         expect(() => {
             registerRendererTestOnlyBootstrap(options, {
                 documentTarget: throwingDocumentTarget,
+                globalEventTarget: globalThis,
                 unloadTarget: globalThis,
-                windowTarget: globalThis,
             });
         }).not.toThrow();
     });
