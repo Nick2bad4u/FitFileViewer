@@ -5702,7 +5702,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-map timing and abort controllers behind the runtime adapter", () => {
-        expect.assertions(12);
+        expect.assertions(23);
 
         const renderMapSource = stripComments(
             readRepositoryFile("electron-app/utils/maps/core/renderMap.ts")
@@ -5710,6 +5710,14 @@ describe("architecture boundaries", () => {
         const renderMapRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/maps/core/renderMapRuntime.ts"
+            )
+        );
+        const renderMapRuntimeScopeSource = renderMapRuntimeSource.slice(
+            renderMapRuntimeSource.indexOf(
+                "export interface RenderMapRuntimeScope"
+            ),
+            renderMapRuntimeSource.indexOf(
+                "export interface RenderMapRuntime {"
             )
         );
         const directRenderMapTimingGlobalPattern =
@@ -5742,6 +5750,33 @@ describe("architecture boundaries", () => {
         );
         expect(renderMapRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(renderMapRuntimeScopeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(renderMapRuntimeScopeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(renderMapRuntimeScopeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(renderMapRuntimeScopeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(renderMapRuntimeSource).not.toContain("scope.AbortController");
+        expect(renderMapRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(renderMapRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
+        );
+        expect(renderMapRuntimeSource).not.toContain("scope.setTimeout");
+        expect(renderMapRuntimeSource).toContain(
+            "return scope.getAbortController?.();"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "const clearTimeoutRef = scope.getClearTimeout?.();"
+        );
+        expect(renderMapRuntimeSource).toContain(
+            "const setTimeoutRef = scope.getSetTimeout?.();"
         );
         expect(renderMapRuntimeSource).not.toMatch(
             directRenderMapRuntimeAmbientTimerFallbackPattern

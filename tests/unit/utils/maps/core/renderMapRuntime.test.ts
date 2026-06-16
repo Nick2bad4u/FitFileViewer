@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getRenderMapRuntime } from "../../../../../electron-app/utils/maps/core/renderMapRuntime.js";
+import {
+    getRenderMapRuntime,
+    type RenderMapRuntimeScope,
+} from "../../../../../electron-app/utils/maps/core/renderMapRuntime.js";
 
 describe("getRenderMapRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -13,7 +16,7 @@ describe("getRenderMapRuntime", () => {
             }
         );
         const utils = getRenderMapRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -97,7 +100,10 @@ describe("getRenderMapRuntime", () => {
         const clearTimeout: typeof globalThis.clearTimeout = (handle) => {
             clearedTimer = handle;
         };
-        const utils = getRenderMapRuntime({ clearTimeout, setTimeout });
+        const utils = getRenderMapRuntime({
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
+        });
 
         expect(utils.setTimeout(callback, delayMs)).toBe(timer);
         utils.clearTimeout(timer);
@@ -140,7 +146,9 @@ describe("getRenderMapRuntime", () => {
             scheduledFrameCallback = frameCallback;
             return 13;
         };
-        const utils = getRenderMapRuntime({ requestAnimationFrame });
+        const utils = getRenderMapRuntime({
+            getRequestAnimationFrame: () => requestAnimationFrame,
+        });
 
         utils.requestAnimationFrame(callback);
 
@@ -160,7 +168,9 @@ describe("getRenderMapRuntime", () => {
             }
             return 9 as ReturnType<typeof globalThis.setTimeout>;
         }) as typeof globalThis.setTimeout;
-        const utils = getRenderMapRuntime({ setTimeout });
+        const utils = getRenderMapRuntime({
+            getSetTimeout: () => setTimeout,
+        });
 
         utils.requestAnimationFrame(callback);
 
@@ -177,5 +187,46 @@ describe("getRenderMapRuntime", () => {
         expect(() => utils.requestAnimationFrame(vi.fn())).toThrow(
             "renderMap requires a setTimeout runtime"
         );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(6);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const callback = vi.fn<() => void>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const timer = 151 as ReturnType<typeof globalThis.setTimeout>;
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => 23);
+        const utils = getRenderMapRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            clearTimeout,
+            requestAnimationFrame,
+            setTimeout,
+        } as unknown as RenderMapRuntimeScope);
+
+        expect(utils.createAbortController).toThrow(
+            "renderMap requires an AbortController runtime"
+        );
+        expect(() => utils.clearTimeout(timer)).toThrow(
+            "renderMap requires a clearTimeout runtime"
+        );
+        expect(() => utils.setTimeout(callback, 1)).toThrow(
+            "renderMap requires a setTimeout runtime"
+        );
+        expect(() => utils.requestAnimationFrame(frameCallback)).toThrow(
+            "renderMap requires a setTimeout runtime"
+        );
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(requestAnimationFrame).not.toHaveBeenCalled();
     });
 });
