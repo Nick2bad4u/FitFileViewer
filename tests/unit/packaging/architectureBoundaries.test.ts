@@ -1814,7 +1814,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload shell and Gyazo external APIs split in external assembly", () => {
-        expect.assertions(16);
+        expect.assertions(19);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -1824,6 +1824,9 @@ describe("architecture boundaries", () => {
         );
         const electronApiFactorySource = stripComments(
             readRepositoryFile("electron-app/preload/electronApiFactory.ts")
+        );
+        const electronApiDomainsSource = stripComments(
+            readRepositoryFile("electron-app/preload/electronApiDomains.ts")
         );
         const moduleTypesSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
@@ -1843,17 +1846,24 @@ describe("architecture boundaries", () => {
         expect(externalApiDomainSource).not.toContain("createExternalApi");
         expect(electronApiFactorySource).toContain("gyazoExternalApi");
         expect(electronApiFactorySource).toContain("shellExternalApi");
-        expect(electronApiFactorySource).toContain(
+        expect(electronApiFactorySource).toContain("electronApiDomains.js");
+        expect(electronApiFactorySource).not.toContain(
+            "function createElectronApiExternalDomain"
+        );
+        expect(electronApiDomainsSource).toContain(
             "createElectronApiExternalDomain"
         );
-        expect(electronApiFactorySource).toContain(
+        expect(electronApiDomainsSource).toContain(
             "createElectronApiFileDomain"
         );
-        expect(electronApiFactorySource).toContain(
+        expect(electronApiDomainsSource).toContain(
             "createElectronApiMenuDomain"
         );
-        expect(electronApiFactorySource).toContain(
+        expect(electronApiDomainsSource).toContain(
             "createElectronApiStateDomain"
+        );
+        expect(electronApiDomainsSource).toContain(
+            "export interface ElectronApiFactoryOptions"
         );
         expect(moduleTypesSource).toContain("ElectronShellExternalApi");
         expect(moduleTypesSource).toContain("createPreloadApiAssemblyContext");
@@ -1996,6 +2006,46 @@ describe("architecture boundaries", () => {
             [
                 "electron-app/preload/apiAssemblyContext.ts",
                 "createPreloadApiAssemblyContext",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiDomains.ts",
+                "createElectronApiAppInfoDomain",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiDomains.ts",
+                "createElectronApiClipboardDomain",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiDomains.ts",
+                "createElectronApiDeveloperDomain",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiDomains.ts",
+                "createElectronApiDiagnosticsDomain",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiDomains.ts",
+                "createElectronApiExternalDomain",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiDomains.ts",
+                "createElectronApiFileDomain",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiDomains.ts",
+                "createElectronApiMenuDomain",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiDomains.ts",
+                "createElectronApiStateDomain",
                 "function",
             ],
             [
