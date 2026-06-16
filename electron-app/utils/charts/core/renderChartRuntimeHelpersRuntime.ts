@@ -9,16 +9,13 @@ export interface RenderChartRuntimeEnvironment {
 }
 
 export interface RenderChartRuntimeHelpersRuntimeScope {
-    readonly chartRuntimeEnvironment?:
-        | RenderChartRuntimeEnvironment
-        | undefined;
     readonly getChartRuntimeEnvironment?:
         | (() => RenderChartRuntimeEnvironment | undefined)
         | undefined;
 }
 
 export interface RenderChartRuntimeHelpersRuntime {
-    getMutableChartRuntimeEnvironment(): RenderChartRuntimeEnvironment;
+    readonly getMutableChartRuntimeEnvironment: () => RenderChartRuntimeEnvironment;
 }
 
 const defaultRenderChartRuntimeHelpersRuntimeScope: RenderChartRuntimeHelpersRuntimeScope =
@@ -29,9 +26,7 @@ const defaultRenderChartRuntimeHelpersRuntimeScope: RenderChartRuntimeHelpersRun
 function getScopeChartRuntimeEnvironment(
     scope: RenderChartRuntimeHelpersRuntimeScope
 ): RenderChartRuntimeEnvironment | undefined {
-    return (
-        scope.getChartRuntimeEnvironment?.() ?? scope.chartRuntimeEnvironment
-    );
+    return scope.getChartRuntimeEnvironment?.();
 }
 
 export function getRenderChartRuntimeHelpersRuntime(

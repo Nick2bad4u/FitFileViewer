@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
     getRenderChartRuntimeHelpersRuntime,
     type RenderChartRuntimeEnvironment,
+    type RenderChartRuntimeHelpersRuntimeScope,
 } from "../../../../electron-app/utils/charts/core/renderChartRuntimeHelpersRuntime.js";
 
 describe("render chart runtime helpers runtime", () => {
@@ -13,7 +14,7 @@ describe("render chart runtime helpers runtime", () => {
                 process: { env: { NODE_ENV: "test" } },
             },
             utils = getRenderChartRuntimeHelpersRuntime({
-                chartRuntimeEnvironment,
+                getChartRuntimeEnvironment: () => chartRuntimeEnvironment,
             });
 
         expect(utils.getMutableChartRuntimeEnvironment()).toBe(
@@ -31,22 +32,16 @@ describe("render chart runtime helpers runtime", () => {
         expect(utils.getMutableChartRuntimeEnvironment()).toStrictEqual({});
     });
 
-    it("prefers the scoped provider over the static runtime object", () => {
+    it("ignores legacy direct runtime environment properties", () => {
         expect.assertions(1);
 
-        const fallbackEnvironment: RenderChartRuntimeEnvironment = {
+        const legacyEnvironment: RenderChartRuntimeEnvironment = {
                 process: { env: { NODE_ENV: "development" } },
             },
-            providedEnvironment: RenderChartRuntimeEnvironment = {
-                process: { env: { NODE_ENV: "test" } },
-            },
             utils = getRenderChartRuntimeHelpersRuntime({
-                chartRuntimeEnvironment: fallbackEnvironment,
-                getChartRuntimeEnvironment: () => providedEnvironment,
-            });
+                chartRuntimeEnvironment: legacyEnvironment,
+            } as unknown as RenderChartRuntimeHelpersRuntimeScope);
 
-        expect(utils.getMutableChartRuntimeEnvironment()).toBe(
-            providedEnvironment
-        );
+        expect(utils.getMutableChartRuntimeEnvironment()).toStrictEqual({});
     });
 });
