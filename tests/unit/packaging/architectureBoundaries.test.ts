@@ -7597,7 +7597,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps marker-count selector browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(14);
 
         const violations = migratedCreateMarkerCountSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -7629,6 +7629,33 @@ describe("architecture boundaries", () => {
         );
         expect(createMarkerCountSelectorRuntimeSource).toContain(
             "defaultCreateMarkerCountSelectorRuntimeScope"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "readonly Event?:"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "scope.Event"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "getEvent: () => globalThis.Event"
         );
     });
 

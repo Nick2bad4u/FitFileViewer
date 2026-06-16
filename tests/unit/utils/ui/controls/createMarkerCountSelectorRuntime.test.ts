@@ -10,7 +10,9 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getCreateMarkerCountSelectorRuntime({ document });
+        const runtime = getCreateMarkerCountSelectorRuntime({
+            getDocument: () => document,
+        });
 
         expect(runtime.createElement("select")).toBeInstanceOf(
             HTMLSelectElement
@@ -25,8 +27,8 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         expect.assertions(4);
 
         const runtime = getCreateMarkerCountSelectorRuntime({
-            document,
-            Event,
+            getDocument: () => document,
+            getEvent: () => Event,
         });
         const event = runtime.createChangeEvent();
 
@@ -40,8 +42,8 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         expect.assertions(2);
 
         const runtime = getCreateMarkerCountSelectorRuntime({
-            AbortController,
-            document,
+            getAbortController: () => AbortController,
+            getDocument: () => document,
         });
         const controller = runtime.createAbortController();
 
@@ -54,7 +56,7 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
 
         const scopedDocument = { defaultView: undefined } as Document;
         const runtime = getCreateMarkerCountSelectorRuntime({
-            document: scopedDocument,
+            getDocument: () => scopedDocument,
         });
 
         expect(() => runtime.createAbortController()).toThrow(
@@ -71,13 +73,13 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         const runtime = getCreateMarkerCountSelectorRuntime({});
         const runtimeWithInvalidAbortController =
             getCreateMarkerCountSelectorRuntime({
-                AbortController:
+                getAbortController: () =>
                     "AbortController" as unknown as typeof AbortController,
-                document,
+                getDocument: () => document,
             });
         const runtimeWithInvalidEvent = getCreateMarkerCountSelectorRuntime({
-            document,
-            Event: "Event" as unknown as typeof Event,
+            getDocument: () => document,
+            getEvent: () => "Event" as unknown as typeof Event,
         });
 
         expect(() => runtime.createElement("div")).toThrow(
@@ -91,6 +93,43 @@ describe("getCreateMarkerCountSelectorRuntime", () => {
         expect(() => runtimeWithInvalidEvent.createChangeEvent()).toThrow(
             "createMarkerCountSelector requires an Event runtime"
         );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(6);
+
+        const legacyAbortController = vi.fn();
+        const legacyDocument = {
+            createElement: vi.fn(),
+            createElementNS: vi.fn(),
+            defaultView: {
+                AbortController: legacyAbortController,
+                Event,
+            },
+        };
+        const runtime = getCreateMarkerCountSelectorRuntime({
+            AbortController:
+                legacyAbortController as unknown as typeof AbortController,
+            document: legacyDocument as unknown as Document,
+            Event,
+        } as unknown as Parameters<
+            typeof getCreateMarkerCountSelectorRuntime
+        >[0]);
+
+        expect(() => runtime.createElement("select")).toThrow(
+            "createMarkerCountSelector requires a document runtime"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "createMarkerCountSelector requires a document runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createMarkerCountSelector requires an AbortController runtime"
+        );
+        expect(() => runtime.createChangeEvent()).toThrow(
+            "createMarkerCountSelector requires an Event runtime"
+        );
+        expect(legacyDocument.createElement).not.toHaveBeenCalled();
+        expect(legacyAbortController).not.toHaveBeenCalled();
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
