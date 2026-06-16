@@ -541,6 +541,7 @@
         "electron-app/utils/performance/index.ts",
         "electron-app/utils/performance/performanceMonitor.ts",
         "electron-app/utils/storage/storageUtils.ts",
+        "electron-app/utils/storage/storageUtilsRuntime.ts",
         "electron-app/utils/files/export/copyTableAsCSV.ts",
         "electron-app/utils/files/export/copyTableAsCSVRuntime.ts",
         "electron-app/utils/files/export/createExportGPXButton.ts",

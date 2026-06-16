@@ -5,23 +5,17 @@
  * contexts, and privacy settings can make storage unavailable or throw. These
  * helpers centralize storage access so callers fail closed.
  */
+import {
+    getStorageUtilsRuntime,
+    type StorageLike,
+    type StorageProvider,
+} from "./storageUtilsRuntime.js";
 
-/**
- * Minimal storage API used by renderer helpers.
- */
-export type StorageLike = {
-    getItem?: (key: string) => null | string;
-    removeItem?: (key: string) => void;
-    setItem?: (key: string, value: string) => void;
-};
+export type { StorageLike, StorageProvider } from "./storageUtilsRuntime.js";
 
-/**
- * Optional storage-provider callback for tests or alternate storage scopes.
- */
-export type StorageProvider = () => null | StorageLike;
-
+const storageUtilsRuntime = getStorageUtilsRuntime();
 const defaultStorageProvider: StorageProvider = () =>
-    Reflect.get(globalThis, "localStorage") ?? null;
+    storageUtilsRuntime.getDefaultStorage();
 
 /**
  * Resolve an injected storage provider or the current global localStorage.
