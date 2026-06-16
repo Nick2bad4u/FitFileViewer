@@ -1,10 +1,9 @@
 export interface InitStartupRuntimeScope {
-    readonly documentTarget?: EventTarget | undefined;
     readonly getDocumentTarget?: (() => EventTarget | undefined) | undefined;
 }
 
 export interface InitStartupRuntime {
-    getDocumentTarget(): EventTarget | undefined;
+    getDocumentTarget: () => EventTarget | undefined;
 }
 
 const defaultInitStartupRuntimeScope: InitStartupRuntimeScope = {
@@ -14,7 +13,7 @@ const defaultInitStartupRuntimeScope: InitStartupRuntimeScope = {
 function getDocumentTarget(
     scope: InitStartupRuntimeScope
 ): EventTarget | undefined {
-    return scope.getDocumentTarget?.() ?? scope.documentTarget;
+    return scope.getDocumentTarget?.();
 }
 
 export function getInitStartupRuntime(
