@@ -1,10 +1,9 @@
 export interface MainUiRuntimeEnvironment {
     readonly consoleRef: Console;
-    dateNow(): number;
+    readonly dateNow: () => number;
 }
 
 export interface MainUiRuntimeEnvironmentScope {
-    readonly consoleRef?: Console | undefined;
     readonly dateNow?: (() => number) | undefined;
     readonly getConsole?: (() => Console | undefined) | undefined;
 }
@@ -15,7 +14,7 @@ const defaultMainUiRuntimeEnvironmentScope: MainUiRuntimeEnvironmentScope = {
 };
 
 function getScopeConsole(scope: MainUiRuntimeEnvironmentScope): Console {
-    const consoleRef = scope.getConsole?.() ?? scope.consoleRef;
+    const consoleRef = scope.getConsole?.();
     if (consoleRef === undefined) {
         throw new TypeError(
             "main UI runtime environment requires a console reference"

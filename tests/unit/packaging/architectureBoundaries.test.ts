@@ -4067,7 +4067,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(23);
+        expect.assertions(26);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4086,6 +4086,20 @@ describe("architecture boundaries", () => {
         const mainUiUnloadFlowSource = stripComments(
             readRepositoryFile("electron-app/renderer/mainUiUnloadFlow.ts")
         );
+        const mainUiRuntimeEnvironmentSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/mainUiRuntimeEnvironment.ts"
+            )
+        );
+        const mainUiRuntimeEnvironmentScopeSource =
+            mainUiRuntimeEnvironmentSource.slice(
+                mainUiRuntimeEnvironmentSource.indexOf(
+                    "export interface MainUiRuntimeEnvironmentScope"
+                ),
+                mainUiRuntimeEnvironmentSource.indexOf(
+                    "const defaultMainUiRuntimeEnvironmentScope"
+                )
+            );
 
         expect(rendererEntrypointSource).toContain("runtimeEnvironment.js");
         expect(rendererEntrypointSource).not.toContain("globalThis.");
@@ -4160,6 +4174,15 @@ describe("architecture boundaries", () => {
                 )
             )
         ).toBe(true);
+        expect(mainUiRuntimeEnvironmentScopeSource).not.toContain(
+            "readonly consoleRef?:"
+        );
+        expect(mainUiRuntimeEnvironmentSource).not.toContain(
+            "scope.consoleRef"
+        );
+        expect(mainUiRuntimeEnvironmentSource).toContain(
+            "const consoleRef = scope.getConsole?.();"
+        );
     });
 
     it("keeps startup initializer document access behind its runtime provider", () => {

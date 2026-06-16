@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getMainUiRuntimeEnvironment } from "../../../electron-app/renderer/mainUiRuntimeEnvironment.js";
+import {
+    getMainUiRuntimeEnvironment,
+    type MainUiRuntimeEnvironmentScope,
+} from "../../../electron-app/renderer/mainUiRuntimeEnvironment.js";
 
 describe("main UI runtime environment", () => {
     it("uses injected runtime primitives for main-ui orchestration", () => {
@@ -30,5 +33,18 @@ describe("main UI runtime environment", () => {
         expect(() =>
             getMainUiRuntimeEnvironment({ getConsole: () => console })
         ).toThrow("main UI runtime environment requires a clock");
+    });
+
+    it("ignores legacy direct console runtime properties", () => {
+        expect.assertions(1);
+
+        const legacyScope = {
+            consoleRef: console,
+            dateNow: () => 1,
+        } as unknown as MainUiRuntimeEnvironmentScope;
+
+        expect(() => getMainUiRuntimeEnvironment(legacyScope)).toThrow(
+            "main UI runtime environment requires a console reference"
+        );
     });
 });
