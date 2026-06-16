@@ -8,11 +8,11 @@ describe("rendererVendorMapRuntime", () => {
 
         const setProperty = vi.fn(),
             utils = getRendererVendorMapRuntime({
-                document: {
+                getDocument: () => ({
                     documentElement: {
                         style: { setProperty },
                     } as unknown as HTMLElement,
-                },
+                }),
             });
 
         expect(utils.hasDocumentElement()).toBe(true);
@@ -29,7 +29,9 @@ describe("rendererVendorMapRuntime", () => {
                 L: {},
                 Leaflet: {},
             },
-            utils = getRendererVendorMapRuntime({ globalScope });
+            utils = getRendererVendorMapRuntime({
+                getGlobalScope: () => globalScope,
+            });
 
         utils.deleteCompatibilityGlobal("L");
         utils.deleteCompatibilityGlobal("Leaflet");
@@ -46,5 +48,31 @@ describe("rendererVendorMapRuntime", () => {
         expect(utils.hasDocumentElement()).toBe(false);
         utils.setDocumentElementStyleProperty("--ffv-test", "url(test.svg)");
         utils.deleteCompatibilityGlobal("L");
+    });
+
+    it("ignores legacy direct document and global scope properties", () => {
+        expect.assertions(4);
+
+        const setProperty = vi.fn();
+        const globalScope = {
+            L: {},
+            Leaflet: {},
+        };
+        const utils = getRendererVendorMapRuntime({
+            document: {
+                documentElement: {
+                    style: { setProperty },
+                } as unknown as HTMLElement,
+            },
+            globalScope,
+        } as unknown as Parameters<typeof getRendererVendorMapRuntime>[0]);
+
+        expect(utils.hasDocumentElement()).toBe(false);
+        utils.setDocumentElementStyleProperty("--ffv-test", "url(test.svg)");
+        utils.deleteCompatibilityGlobal("L");
+
+        expect(setProperty).not.toHaveBeenCalled();
+        expect(Reflect.has(globalScope, "L")).toBe(true);
+        expect(Reflect.has(globalScope, "Leaflet")).toBe(true);
     });
 });

@@ -1,9 +1,7 @@
 export interface RendererVendorMapRuntimeScope {
-    readonly document?: Pick<Document, "documentElement"> | undefined;
     readonly getDocument?:
         | (() => Pick<Document, "documentElement"> | undefined)
         | undefined;
-    readonly globalScope?: object | undefined;
     readonly getGlobalScope?: (() => object | undefined) | undefined;
 }
 
@@ -21,11 +19,11 @@ const defaultRendererVendorMapRuntimeScope: RendererVendorMapRuntimeScope = {
 function getDocument(
     scope: RendererVendorMapRuntimeScope
 ): Pick<Document, "documentElement"> | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getGlobalScope(scope: RendererVendorMapRuntimeScope): object | null {
-    return scope.getGlobalScope?.() ?? scope.globalScope ?? null;
+    return scope.getGlobalScope?.() ?? null;
 }
 
 export function getRendererVendorMapRuntime(
