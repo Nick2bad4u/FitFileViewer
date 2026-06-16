@@ -1,26 +1,24 @@
 export type ThemeRuntimeTimer = ReturnType<typeof globalThis.setTimeout>;
 
-type ThemeWindowTarget = EventTarget & Pick<Window, "matchMedia">;
-
 export interface ThemeRuntimeScope {
     readonly AbortController?: typeof globalThis.AbortController | undefined;
     readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
+    readonly eventTarget?: EventTarget | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getEventTarget?: (() => EventTarget | undefined) | undefined;
     readonly getMatchMedia?:
         | (() => typeof globalThis.matchMedia | undefined)
         | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
-    readonly getWindow?: (() => ThemeWindowTarget | undefined) | undefined;
     readonly matchMedia?: typeof globalThis.matchMedia | undefined;
     readonly setTimeout?: typeof globalThis.setTimeout | undefined;
-    readonly window?: ThemeWindowTarget | undefined;
 }
 
 export interface ThemeRuntime {
@@ -31,12 +29,33 @@ export interface ThemeRuntime {
     setTimeout(callback: () => void, delayMs: number): ThemeRuntimeTimer;
 }
 
+const browserGlobal = globalThis as typeof globalThis &
+    Partial<EventTarget> & {
+        readonly matchMedia?: typeof globalThis.matchMedia | undefined;
+    };
+
+function getDefaultEventTarget(): EventTarget | undefined {
+    return typeof browserGlobal.addEventListener === "function" &&
+        typeof browserGlobal.removeEventListener === "function"
+        ? browserGlobal
+        : undefined;
+}
+
+function getDefaultMatchMedia(): typeof globalThis.matchMedia | undefined {
+    const matchMedia = browserGlobal.matchMedia;
+    if (typeof matchMedia !== "function") {
+        return undefined;
+    }
+
+    return (query) => matchMedia.call(browserGlobal, query);
+}
+
 const defaultThemeRuntimeScope: ThemeRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getClearTimeout: () => globalThis.clearTimeout,
-    getMatchMedia: () => globalThis.matchMedia,
+    getEventTarget: getDefaultEventTarget,
+    getMatchMedia: getDefaultMatchMedia,
     getSetTimeout: () => globalThis.setTimeout,
-    getWindow: () => globalThis.window,
 };
 
 function getScopeAbortController(
@@ -51,6 +70,12 @@ function getScopeClearTimeout(
     return scope.getClearTimeout?.() ?? scope.clearTimeout;
 }
 
+function getScopeEventTarget(
+    scope: ThemeRuntimeScope
+): EventTarget | undefined {
+    return scope.getEventTarget?.() ?? scope.eventTarget;
+}
+
 function getScopeMatchMedia(
     scope: ThemeRuntimeScope
 ): typeof globalThis.matchMedia | undefined {
@@ -63,12 +88,6 @@ function getScopeSetTimeout(
     return scope.getSetTimeout?.() ?? scope.setTimeout;
 }
 
-function getScopeWindow(
-    scope: ThemeRuntimeScope
-): ThemeWindowTarget | undefined {
-    return scope.getWindow?.() ?? scope.window;
-}
-
 export function getThemeRuntime(
     scope: ThemeRuntimeScope = defaultThemeRuntimeScope
 ): ThemeRuntime {
@@ -76,7 +95,9 @@ export function getThemeRuntime(
         clearTimeout(timer): void {
             const clearTimeoutRef = getScopeClearTimeout(scope);
             if (typeof clearTimeoutRef !== "function") {
-                throw new TypeError("theme core requires a clearTimeout runtime");
+                throw new TypeError(
+                    "theme core requires a clearTimeout runtime"
+                );
             }
 
             clearTimeoutRef.call(scope, timer);
@@ -97,18 +118,10 @@ export function getThemeRuntime(
                 return matchMedia.call(scope, "(prefers-color-scheme: dark)");
             }
 
-            const windowTarget = getScopeWindow(scope);
-            const windowMatchMedia = windowTarget?.matchMedia;
-
-            return typeof windowMatchMedia === "function"
-                ? windowMatchMedia.call(
-                      windowTarget,
-                      "(prefers-color-scheme: dark)"
-                  )
-                : null;
+            return null;
         },
         getWindowEventTarget(): EventTarget | null {
-            return getScopeWindow(scope) ?? null;
+            return getScopeEventTarget(scope) ?? null;
         },
         setTimeout(callback, delayMs): ThemeRuntimeTimer {
             const setTimeoutRef = getScopeSetTimeout(scope);

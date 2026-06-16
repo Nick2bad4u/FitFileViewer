@@ -55,7 +55,7 @@ describe("getThemeRuntime", () => {
     });
 
     it("routes runtime dependencies through provider functions", () => {
-        expect.assertions(15);
+        expect.assertions(14);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -67,12 +67,11 @@ describe("getThemeRuntime", () => {
         const delayMs = Number("300");
         const timer = 91 as ReturnType<typeof globalThis.setTimeout>;
         const mediaQuery = { matches: true } as MediaQueryList;
-        const windowTarget = {
+        const eventTarget = {
             addEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
-            matchMedia: vi.fn(),
             removeEventListener: vi.fn(),
-        } as unknown as Window & typeof globalThis;
+        } as unknown as EventTarget;
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const matchMedia = vi.fn(() => mediaQuery);
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
@@ -81,33 +80,32 @@ describe("getThemeRuntime", () => {
                 AbortControllerConstructor as unknown as typeof AbortController
         );
         const getClearTimeout = vi.fn(() => clearTimeout);
+        const getEventTarget = vi.fn(() => eventTarget);
         const getMatchMedia = vi.fn(() => matchMedia);
         const getSetTimeout = vi.fn(() => setTimeout);
-        const getWindow = vi.fn(() => windowTarget);
         const runtime = getThemeRuntime({
             getAbortController,
             getClearTimeout,
+            getEventTarget,
             getMatchMedia,
             getSetTimeout,
-            getWindow,
         });
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
         runtime.clearTimeout(timer);
         expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
-        expect(runtime.getWindowEventTarget()).toBe(windowTarget);
+        expect(runtime.getWindowEventTarget()).toBe(eventTarget);
 
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getSetTimeout).toHaveBeenCalledOnce();
         expect(getClearTimeout).toHaveBeenCalledOnce();
         expect(getMatchMedia).toHaveBeenCalledOnce();
-        expect(getWindow).toHaveBeenCalledOnce();
+        expect(getEventTarget).toHaveBeenCalledOnce();
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
         expect(setTimeout).toHaveBeenCalledWith(callback, delayMs);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
         expect(matchMedia).toHaveBeenCalledWith("(prefers-color-scheme: dark)");
-        expect(windowTarget.matchMedia).not.toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
     });
 
@@ -125,48 +123,32 @@ describe("getThemeRuntime", () => {
     });
 
     it("resolves system theme media queries from the scoped runtime", () => {
-        expect.assertions(4);
+        expect.assertions(3);
 
         const mediaQuery = { matches: true } as MediaQueryList;
         const scopedMatchMedia = vi.fn(() => mediaQuery);
-        const windowMatchMedia = vi.fn(
-            () => ({ matches: false }) as MediaQueryList
-        );
 
         expect(
             getThemeRuntime({
                 matchMedia: scopedMatchMedia,
-                window: {
-                    addEventListener: vi.fn(),
-                    dispatchEvent: vi.fn(),
-                    matchMedia: windowMatchMedia,
-                    removeEventListener: vi.fn(),
-                } as unknown as Window & typeof globalThis,
             }).getSystemThemeMediaQuery()
         ).toBe(mediaQuery);
         expect(scopedMatchMedia).toHaveBeenCalledWith(
             "(prefers-color-scheme: dark)"
         );
-        expect(windowMatchMedia).not.toHaveBeenCalled();
         expect(getThemeRuntime({}).getSystemThemeMediaQuery()).toBeNull();
     });
 
-    it("falls back to window matchMedia and exposes the window event target", () => {
-        expect.assertions(3);
+    it("exposes the scoped theme event target", () => {
+        expect.assertions(1);
 
-        const mediaQuery = { matches: false } as MediaQueryList;
-        const windowTarget = {
+        const eventTarget = {
             addEventListener: vi.fn(),
             dispatchEvent: vi.fn(),
-            matchMedia: vi.fn(() => mediaQuery),
             removeEventListener: vi.fn(),
-        } as unknown as Window & typeof globalThis;
-        const runtime = getThemeRuntime({ window: windowTarget });
+        } as unknown as EventTarget;
+        const runtime = getThemeRuntime({ eventTarget });
 
-        expect(runtime.getSystemThemeMediaQuery()).toBe(mediaQuery);
-        expect(windowTarget.matchMedia).toHaveBeenCalledWith(
-            "(prefers-color-scheme: dark)"
-        );
-        expect(runtime.getWindowEventTarget()).toBe(windowTarget);
+        expect(runtime.getWindowEventTarget()).toBe(eventTarget);
     });
 });

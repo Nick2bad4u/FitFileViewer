@@ -7900,7 +7900,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(19);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -7937,14 +7937,18 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(themeRuntimeSource).toContain(
-            "getMatchMedia: () => globalThis.matchMedia"
+            "getMatchMedia: getDefaultMatchMedia"
         );
         expect(themeRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(themeRuntimeSource).toContain(
-            "getWindow: () => globalThis.window"
+            "getEventTarget: getDefaultEventTarget"
         );
+        expect(themeRuntimeSource).not.toContain("globalThis.window");
+        expect(themeRuntimeSource).not.toContain("getWindow?:");
+        expect(themeRuntimeSource).not.toContain("getWindow: ()");
+        expect(themeRuntimeSource).not.toContain("type ThemeWindowTarget");
         expect(themeRuntimeSource).not.toMatch(
             directThemeCoreRuntimeAmbientTimerFallbackPattern
         );
