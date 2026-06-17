@@ -11724,7 +11724,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(31);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
@@ -11763,8 +11763,63 @@ describe("architecture boundaries", () => {
         expect(chartHoverEffectsRuntimeSource).toContain(
             "defaultChartHoverEffectsRuntimeScope"
         );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "getDocumentEventTarget: () => globalThis.document"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
         expect(chartHoverEffectsRuntimeSource).not.toContain(
             "scope: ChartHoverEffectsRuntimeScope = globalThis"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "ChartHoverEffectsRuntimeScope = globalThis"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "readonly documentEventTarget?:"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain("scope.document");
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "scope.documentEventTarget"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
+        );
+        expect(chartHoverEffectsRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "const setTimeoutRef = scope.getSetTimeout?.();"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "scope.getDocumentEventTarget?.()"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "scope.getRequestAnimationFrame?.()"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "chart hover effects require a setTimeout runtime"

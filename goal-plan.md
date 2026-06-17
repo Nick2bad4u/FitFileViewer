@@ -321,6 +321,8 @@ returning.
 Chart listener lifecycle abort-controller creation now routes through `chartListenerStateRuntime.ts`, and explicit
 runtime scopes must provide their controller instead of falling back to `globalThis.AbortController`, with focused
 runtime coverage and architecture guardrails blocking the ambient controller fallback from returning.
+Chart hover effects scheduling, abort-controller creation, and document listener wiring now use named runtime provider
+functions instead of a broad `globalThis` default scope or legacy direct scope properties.
 Field-toggle DOM construction, custom event dispatch, listener abort-controller creation, input checks, and fallback
 timers now route through `createFieldTogglesSectionRuntime.ts`; explicit runtime scopes must provide timer
 primitives and either scoped or document-window constructors/dispatchers instead of falling back to `globalThis`,

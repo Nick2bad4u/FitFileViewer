@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
+import type { ChartHoverEffectsRuntimeScope } from "../../../electron-app/utils/charts/plugins/addChartHoverEffectsRuntime.js";
 import { getChartHoverEffectsRuntime } from "../../../electron-app/utils/charts/plugins/addChartHoverEffectsRuntime.js";
 
 describe("getChartHoverEffectsRuntime", () => {
@@ -14,7 +15,7 @@ describe("getChartHoverEffectsRuntime", () => {
             }
         );
         const runtime = getChartHoverEffectsRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -40,14 +41,12 @@ describe("getChartHoverEffectsRuntime", () => {
             (callback: FrameRequestCallback) => number
         >(() => 19);
         const runtime = getChartHoverEffectsRuntime({
-            requestAnimationFrame,
+            getRequestAnimationFrame: () => requestAnimationFrame,
         });
 
         expect(runtime.requestAnimationFrame(callback)).toBe(19);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
-        expect(requestAnimationFrame.mock.contexts[0]).toStrictEqual({
-            requestAnimationFrame,
-        });
+        expect(requestAnimationFrame.mock.contexts[0]).toBeUndefined();
     });
 
     it("runs animation frame callbacks immediately when frames are unavailable", () => {
@@ -66,7 +65,9 @@ describe("getChartHoverEffectsRuntime", () => {
         const callback = vi.fn<() => void>();
         const timeoutMs = Number("600");
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 23);
-        const runtime = getChartHoverEffectsRuntime({ setTimeout });
+        const runtime = getChartHoverEffectsRuntime({
+            getSetTimeout: () => setTimeout,
+        });
 
         expect(runtime.setTimeout(callback, timeoutMs)).toBe(23);
         expect(setTimeout).toHaveBeenCalledWith(callback, timeoutMs);
@@ -102,7 +103,7 @@ describe("getChartHoverEffectsRuntime", () => {
             keydownCount += 1;
         };
         const runtime = getChartHoverEffectsRuntime({
-            documentEventTarget,
+            getDocumentEventTarget: () => documentEventTarget,
         });
 
         runtime.addDocumentKeydownListener(listener, {
@@ -190,8 +191,8 @@ describe("getChartHoverEffectsRuntime", () => {
         });
         const setTimeout = vi.fn<typeof globalThis.setTimeout>();
         const runtime = getChartHoverEffectsRuntime({
-            requestAnimationFrame,
-            setTimeout,
+            getRequestAnimationFrame: () => requestAnimationFrame,
+            getSetTimeout: () => setTimeout,
         });
 
         await runtime.waitForAnimationFrame();
@@ -210,7 +211,9 @@ describe("getChartHoverEffectsRuntime", () => {
             callback();
             return 31;
         });
-        const runtime = getChartHoverEffectsRuntime({ setTimeout });
+        const runtime = getChartHoverEffectsRuntime({
+            getSetTimeout: () => setTimeout,
+        });
 
         await runtime.waitForAnimationFrame();
 
@@ -224,6 +227,39 @@ describe("getChartHoverEffectsRuntime", () => {
 
         const runtime = getChartHoverEffectsRuntime({});
 
+        await expect(runtime.waitForAnimationFrame()).rejects.toThrow(
+            "chart hover effects require a setTimeout runtime"
+        );
+    });
+
+    it("ignores legacy direct runtime scope properties", async () => {
+        expect.assertions(5);
+
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const legacyScope = {
+            AbortController,
+            document: documentEventTarget,
+            documentEventTarget,
+            requestAnimationFrame: vi.fn<
+                (callback: FrameRequestCallback) => number
+            >(() => 37),
+            setTimeout: vi.fn<typeof globalThis.setTimeout>(() => 41),
+        } as unknown as ChartHoverEffectsRuntimeScope;
+        const runtime = getChartHoverEffectsRuntime(legacyScope);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "chart hover effects require an AbortController runtime"
+        );
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "chart hover effects require a setTimeout runtime"
+        );
+        expect(() =>
+            runtime.addDocumentKeydownListener(() => undefined, {})
+        ).toThrow(
+            "chart hover effects require a document event-target runtime"
+        );
+        expect(runtime.requestAnimationFrame(vi.fn())).toBeNull();
         await expect(runtime.waitForAnimationFrame()).rejects.toThrow(
             "chart hover effects require a setTimeout runtime"
         );
