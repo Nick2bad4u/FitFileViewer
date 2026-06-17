@@ -4390,7 +4390,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps Browser feature-gate DOM APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(13);
 
         const violations = migratedFitBrowserFeatureGateRuntimeFiles
             .filter((relativeFile) =>
@@ -4409,6 +4409,14 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/browser/initFitBrowserFeatureGateRuntime.ts"
             )
         );
+        const featureGateRuntimeScopeSource = featureGateRuntimeSource.slice(
+            featureGateRuntimeSource.indexOf(
+                "export interface FitBrowserFeatureGateRuntimeScope"
+            ),
+            featureGateRuntimeSource.indexOf(
+                "export interface FitBrowserFeatureGateRuntime"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(featureGateSource).toContain(
@@ -4419,6 +4427,29 @@ describe("architecture boundaries", () => {
         );
         expect(featureGateRuntimeSource).not.toMatch(
             directFitBrowserFeatureGateRuntimeAmbientGetterPattern
+        );
+        expect(featureGateRuntimeSource).not.toContain(
+            "FitBrowserFeatureGateRuntimeScope =\n    globalThis"
+        );
+        expect(featureGateRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(featureGateRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(featureGateRuntimeSource).not.toContain("scope.document");
+        expect(featureGateRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(featureGateRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(featureGateRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(featureGateRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(featureGateRuntimeSource).toContain(
+            "scope.getHTMLElement?.() ?? runtimeDocument?.defaultView?.HTMLElement"
         );
     });
 

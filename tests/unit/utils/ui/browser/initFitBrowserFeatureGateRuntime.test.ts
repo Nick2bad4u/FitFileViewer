@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 
-import { getFitBrowserFeatureGateRuntime } from "../../../../../electron-app/utils/ui/browser/initFitBrowserFeatureGateRuntime.js";
+import {
+    getFitBrowserFeatureGateRuntime,
+    type FitBrowserFeatureGateRuntimeScope,
+} from "../../../../../electron-app/utils/ui/browser/initFitBrowserFeatureGateRuntime.js";
 
 function resetBody(): void {
     document.body.replaceChildren();
@@ -18,8 +21,8 @@ describe("getFitBrowserFeatureGateRuntime", () => {
         content.id = "content_browser";
         document.body.append(tabButton, content);
         const utils = getFitBrowserFeatureGateRuntime({
-            document,
-            HTMLElement,
+            getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
         });
 
         expect(utils.getBrowserTabElements()).toStrictEqual({
@@ -28,7 +31,7 @@ describe("getFitBrowserFeatureGateRuntime", () => {
         });
         expect(
             getFitBrowserFeatureGateRuntime({
-                document,
+                getDocument: () => document,
             }).getBrowserTabElements()
         ).toStrictEqual({
             content,
@@ -49,8 +52,8 @@ describe("getFitBrowserFeatureGateRuntime", () => {
 
         expect(
             getFitBrowserFeatureGateRuntime({
-                document,
-                HTMLElement,
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
             }).getBrowserTabElements()
         ).toStrictEqual({
             content: null,
@@ -64,9 +67,10 @@ describe("getFitBrowserFeatureGateRuntime", () => {
         });
         expect(
             getFitBrowserFeatureGateRuntime({
-                document: {
-                    querySelector: () => document.createElement("button"),
-                } as unknown as Document,
+                getDocument: () =>
+                    ({
+                        querySelector: () => document.createElement("button"),
+                    }) as unknown as Document,
             }).getBrowserTabElements()
         ).toStrictEqual({
             content: null,
@@ -79,7 +83,9 @@ describe("getFitBrowserFeatureGateRuntime", () => {
 
         resetBody();
         const tabButton = document.createElement("button");
-        const utils = getFitBrowserFeatureGateRuntime({ document });
+        const utils = getFitBrowserFeatureGateRuntime({
+            getDocument: () => document,
+        });
 
         utils.setElementVisible(tabButton, false);
 
@@ -90,5 +96,27 @@ describe("getFitBrowserFeatureGateRuntime", () => {
 
         expect(tabButton.style.display).toBe("");
         expect(document.body.childElementCount).toBe(0);
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(1);
+
+        resetBody();
+        const tabButton = document.createElement("button");
+        tabButton.id = "tab_browser";
+        const content = document.createElement("section");
+        content.id = "content_browser";
+        document.body.append(tabButton, content);
+        const legacyScope = {
+            document,
+            HTMLElement,
+        } as unknown as FitBrowserFeatureGateRuntimeScope;
+
+        expect(
+            getFitBrowserFeatureGateRuntime(legacyScope).getBrowserTabElements()
+        ).toStrictEqual({
+            content: null,
+            tabButton: null,
+        });
     });
 });

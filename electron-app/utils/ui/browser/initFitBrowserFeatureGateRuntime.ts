@@ -1,36 +1,57 @@
 const BROWSER_TAB_BUTTON_ID = "tab_browser";
 const BROWSER_TAB_CONTENT_ID = "content_browser";
 
+type BrowserTabFeatureGateDocument = Readonly<
+    Pick<Document, "defaultView" | "querySelector">
+>;
+type BrowserTabFeatureGateVisibleElement = Readonly<Pick<HTMLElement, "style">>;
+
 export interface BrowserTabFeatureGateElements {
-    readonly content: HTMLElement | null;
-    readonly tabButton: HTMLElement | null;
+    readonly content: BrowserTabFeatureGateVisibleElement | null;
+    readonly tabButton: BrowserTabFeatureGateVisibleElement | null;
 }
 
 export interface FitBrowserFeatureGateRuntimeScope {
-    readonly document?: Document | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
+    readonly getDocument?:
+        | (() => BrowserTabFeatureGateDocument | undefined)
+        | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof HTMLElement | undefined)
+        | undefined;
 }
 
 export interface FitBrowserFeatureGateRuntime {
     getBrowserTabElements: () => BrowserTabFeatureGateElements;
-    setElementVisible: (element: HTMLElement | null, visible: boolean) => void;
+    setElementVisible: (
+        element: BrowserTabFeatureGateVisibleElement | null,
+        visible: boolean
+    ) => void;
 }
 
 const defaultFitBrowserFeatureGateRuntimeScope: FitBrowserFeatureGateRuntimeScope =
-    globalThis;
+    {
+        getDocument: () => globalThis.document,
+        getHTMLElement: () => globalThis.HTMLElement,
+    };
 
 function getHTMLElementConstructor(
-    scope: FitBrowserFeatureGateRuntimeScope
+    scope: FitBrowserFeatureGateRuntimeScope,
+    runtimeDocument: BrowserTabFeatureGateDocument | undefined
 ): typeof HTMLElement | undefined {
-    return scope.HTMLElement ?? scope.document?.defaultView?.HTMLElement;
+    return (
+        scope.getHTMLElement?.() ?? runtimeDocument?.defaultView?.HTMLElement
+    );
 }
 
 function getElementById(
     scope: FitBrowserFeatureGateRuntimeScope,
     id: string
-): HTMLElement | null {
-    const runtimeDocument = scope.document;
-    const HTMLElementConstructor = getHTMLElementConstructor(scope);
+): BrowserTabFeatureGateVisibleElement | null {
+    const runtimeDocument = scope.getDocument?.();
+    const HTMLElementConstructor = getHTMLElementConstructor(
+        scope,
+        runtimeDocument
+    );
     if (!runtimeDocument || typeof HTMLElementConstructor !== "function") {
         return null;
     }
@@ -49,7 +70,10 @@ export function getFitBrowserFeatureGateRuntime(
                 tabButton: getElementById(scope, BROWSER_TAB_BUTTON_ID),
             };
         },
-        setElementVisible(element: HTMLElement | null, visible: boolean): void {
+        setElementVisible(
+            element: BrowserTabFeatureGateVisibleElement | null,
+            visible: boolean
+        ): void {
             if (element) {
                 element.style.display = visible ? "" : "none";
             }
