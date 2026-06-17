@@ -1,36 +1,40 @@
 export type NotificationTimerHandle = ReturnType<typeof globalThis.setTimeout>;
 
 export interface NotificationTimerRuntimeScope {
-    readonly clearTimeout?: typeof globalThis.clearTimeout;
-    readonly setTimeout?: typeof globalThis.setTimeout;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
 }
 
 export interface NotificationTimerRuntime {
-    clearTimeout(handle: NotificationTimerHandle): void;
-    setTimeout(
+    readonly clearTimeout: (handle: NotificationTimerHandle) => void;
+    readonly setTimeout: (
         callback: () => void,
         delay: number
-    ): NotificationTimerHandle;
+    ) => NotificationTimerHandle;
 }
 
-const defaultNotificationTimerRuntimeScope: NotificationTimerRuntimeScope =
-    globalThis;
+const defaultNotificationTimerRuntimeScope: NotificationTimerRuntimeScope = {
+    getClearTimeout: () => globalThis.clearTimeout,
+    getSetTimeout: () => globalThis.setTimeout,
+};
 
 export function getNotificationTimerRuntime(
     scope: NotificationTimerRuntimeScope = defaultNotificationTimerRuntimeScope
 ): NotificationTimerRuntime {
     return {
         clearTimeout(handle): void {
-            const clearTimer = scope.clearTimeout;
+            const clearTimer = scope.getClearTimeout?.();
             if (typeof clearTimer !== "function") {
-                throw new TypeError(
-                    "notification timers require clearTimeout"
-                );
+                throw new TypeError("notification timers require clearTimeout");
             }
             clearTimer(handle);
         },
         setTimeout(callback, delay): NotificationTimerHandle {
-            const scheduleTimer = scope.setTimeout;
+            const scheduleTimer = scope.getSetTimeout?.();
             if (typeof scheduleTimer !== "function") {
                 throw new TypeError("notification timers require setTimeout");
             }

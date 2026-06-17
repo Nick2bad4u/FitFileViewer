@@ -5406,7 +5406,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps update and state-synced notification timers behind the runtime facade", () => {
-        expect.assertions(3);
+        expect.assertions(11);
 
         const violations = migratedNotificationTimerRuntimeFiles
             .filter((relativeFile) => {
@@ -5422,13 +5422,46 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/notifications/notificationTimerRuntime.ts"
             )
         );
+        const notificationTimerRuntimeScopeSource =
+            notificationTimerRuntimeSource.slice(
+                notificationTimerRuntimeSource.indexOf(
+                    "export interface NotificationTimerRuntimeScope"
+                ),
+                notificationTimerRuntimeSource.indexOf(
+                    "export interface NotificationTimerRuntime {"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(notificationTimerRuntimeSource).toContain(
             "defaultNotificationTimerRuntimeScope"
         );
+        expect(notificationTimerRuntimeScopeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(notificationTimerRuntimeScopeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(notificationTimerRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(notificationTimerRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(notificationTimerRuntimeSource).not.toContain(
+            "NotificationTimerRuntimeScope =\n    globalThis"
+        );
         expect(notificationTimerRuntimeSource).not.toMatch(
             directNotificationTimerRuntimeAmbientGetterPattern
+        );
+        expect(notificationTimerRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(notificationTimerRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(notificationTimerRuntimeSource).toContain(
+            "const scheduleTimer = scope.getSetTimeout?.();"
         );
     });
 
