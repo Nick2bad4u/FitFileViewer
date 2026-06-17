@@ -1297,7 +1297,7 @@ const directCreateSettingsHeaderRuntimeAmbientFallbackPattern =
 const directCreateFieldTogglesSectionRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|dispatchEvent|querySelectorAll)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+HTMLInputElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreateFieldTogglesSectionRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\b|\bglobalThis\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|setTimeout)\b/u;
+    /\bscope\.(?:AbortController|CustomEvent|HTMLInputElement|clearTimeout|dispatchEvent|document|setTimeout)\b|\bscope:\s*CreateFieldTogglesSectionRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultCreateFieldTogglesSectionRuntimeScope:\s*CreateFieldTogglesSectionRuntimeScope\s*=\s*globalThis\b/u;
 const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|dispatchEvent)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern =
@@ -4643,7 +4643,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(20);
 
         const violations = migratedCreateFieldTogglesSectionRuntimeFiles
             .filter((relativeFile) =>
@@ -4675,6 +4675,40 @@ describe("architecture boundaries", () => {
         );
         expect(fieldTogglesRuntimeSource).not.toContain(
             "scope: CreateFieldTogglesSectionRuntimeScope = globalThis"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "const defaultCreateFieldTogglesSectionRuntimeScope: CreateFieldTogglesSectionRuntimeScope = globalThis"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly CustomEvent?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly dispatchEvent?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain("readonly document?:");
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly HTMLInputElement?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(fieldTogglesRuntimeSource).not.toContain("scope.document");
+        expect(fieldTogglesRuntimeSource).not.toContain("scope.dispatchEvent");
+        expect(fieldTogglesRuntimeSource).not.toContain("scope.setTimeout");
+        expect(fieldTogglesRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(fieldTogglesRuntimeSource).toContain(
+            "getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis)"
         );
         expect(fieldTogglesRuntimeSource).toContain(
             "createFieldTogglesSection requires a setTimeout runtime"

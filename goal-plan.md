@@ -324,9 +324,10 @@ runtime coverage and architecture guardrails blocking the ambient controller fal
 Chart hover effects scheduling, abort-controller creation, and document listener wiring now use named runtime provider
 functions instead of a broad `globalThis` default scope or legacy direct scope properties.
 Field-toggle DOM construction, custom event dispatch, listener abort-controller creation, input checks, and fallback
-timers now route through `createFieldTogglesSectionRuntime.ts`; explicit runtime scopes must provide timer
-primitives and either scoped or document-window constructors/dispatchers instead of falling back to `globalThis`,
-with focused runtime coverage and architecture guardrails blocking those ambient fallbacks from returning.
+timers now route through `createFieldTogglesSectionRuntime.ts`; production defaults and explicit runtime scopes now
+use named provider functions instead of a broad `globalThis` default scope, direct scope properties, or
+document-window fallbacks, with focused runtime coverage and architecture guardrails blocking those ambient
+fallbacks from returning.
 Quick color switcher delayed dropdown close scheduling and cleanup now route through
 `quickColorSwitcherRuntime.ts` instead of calling timer globals directly inside `quickColorSwitcher.ts`, with
 focused runtime coverage and architecture guardrails blocking those direct timer globals from returning. Quick
