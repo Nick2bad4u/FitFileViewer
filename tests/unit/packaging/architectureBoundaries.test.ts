@@ -4984,7 +4984,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
-        expect.assertions(7);
+        expect.assertions(16);
 
         const chartSettingsRenderSource = stripComments(
             readRepositoryFile(
@@ -4996,6 +4996,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/initialization/chartSettingsRenderRuntime.ts"
             )
         );
+        const chartSettingsRenderRuntimeScopeSource =
+            chartSettingsRenderRuntimeSource.slice(
+                chartSettingsRenderRuntimeSource.indexOf(
+                    "export interface ChartSettingsRenderRuntimeScope"
+                ),
+                chartSettingsRenderRuntimeSource.indexOf(
+                    "function getCustomEventConstructor"
+                )
+            );
 
         expect(chartSettingsRenderSource).toContain("settingsStateManager.js");
         expect(chartSettingsRenderSource).toContain(
@@ -5009,6 +5018,33 @@ describe("architecture boundaries", () => {
         expect(chartSettingsRenderSource).toContain("createRenderRequestEvent");
         expect(chartSettingsRenderRuntimeSource).toContain(
             "defaultChartSettingsRenderRuntimeScope"
+        );
+        expect(chartSettingsRenderRuntimeScopeSource).not.toContain(
+            "readonly CustomEvent?:"
+        );
+        expect(chartSettingsRenderRuntimeScopeSource).not.toContain(
+            "readonly dispatchEvent:"
+        );
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
+            "scope.CustomEvent"
+        );
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
+            "eventTarget: scope"
+        );
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
+            "ChartSettingsRenderRuntimeScope =\n    globalThis"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "getEventTarget: () => globalThis"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "const CustomEventConstructor = scope.getCustomEvent?.();"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "const eventTarget = scope.getEventTarget?.();"
         );
     });
 

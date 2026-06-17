@@ -5,15 +5,19 @@ export interface ChartSettingsRenderRuntime {
     readonly eventTarget: Pick<EventTarget, "dispatchEvent">;
 }
 
-interface ChartSettingsRenderRuntimeScope {
-    readonly CustomEvent?: typeof CustomEvent | undefined;
-    readonly dispatchEvent: EventTarget["dispatchEvent"];
+export interface ChartSettingsRenderRuntimeScope {
+    readonly getCustomEvent?:
+        | (() => typeof CustomEvent | undefined)
+        | undefined;
+    readonly getEventTarget?:
+        | (() => Pick<EventTarget, "dispatchEvent"> | undefined)
+        | undefined;
 }
 
 function getCustomEventConstructor(
     scope: ChartSettingsRenderRuntimeScope
 ): typeof CustomEvent {
-    const CustomEventConstructor = scope.CustomEvent;
+    const CustomEventConstructor = scope.getCustomEvent?.();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(
             "chartSettingsRender requires a CustomEvent runtime"
@@ -23,8 +27,24 @@ function getCustomEventConstructor(
     return CustomEventConstructor;
 }
 
+function getEventTarget(
+    scope: ChartSettingsRenderRuntimeScope
+): Pick<EventTarget, "dispatchEvent"> {
+    const eventTarget = scope.getEventTarget?.();
+    if (!eventTarget || typeof eventTarget.dispatchEvent !== "function") {
+        throw new TypeError(
+            "chartSettingsRender requires an event target runtime"
+        );
+    }
+
+    return eventTarget;
+}
+
 const defaultChartSettingsRenderRuntimeScope: ChartSettingsRenderRuntimeScope =
-    globalThis;
+    {
+        getCustomEvent: () => globalThis.CustomEvent,
+        getEventTarget: () => globalThis,
+    };
 
 export function getChartSettingsRenderRuntime(
     scope: ChartSettingsRenderRuntimeScope = defaultChartSettingsRenderRuntimeScope
@@ -40,6 +60,8 @@ export function getChartSettingsRenderRuntime(
                 }
             );
         },
-        eventTarget: scope,
+        get eventTarget(): Pick<EventTarget, "dispatchEvent"> {
+            return getEventTarget(scope);
+        },
     };
 }

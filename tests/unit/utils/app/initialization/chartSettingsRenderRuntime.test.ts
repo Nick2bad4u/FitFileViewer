@@ -1,7 +1,10 @@
 /* eslint-disable testing-library/render-result-naming-convention -- This suite tests a chart render runtime factory, not Testing Library render output. */
 import { describe, expect, it, vi } from "vitest";
 
-import { getChartSettingsRenderRuntime } from "../../../../../electron-app/utils/app/initialization/chartSettingsRenderRuntime.js";
+import {
+    getChartSettingsRenderRuntime,
+    type ChartSettingsRenderRuntimeScope,
+} from "../../../../../electron-app/utils/app/initialization/chartSettingsRenderRuntime.js";
 
 describe("chartSettingsRenderRuntime", () => {
     it("uses the global event target by default", () => {
@@ -18,7 +21,9 @@ describe("chartSettingsRenderRuntime", () => {
         };
 
         const { eventTarget: resolvedEventTarget } =
-            getChartSettingsRenderRuntime(eventTarget);
+            getChartSettingsRenderRuntime({
+                getEventTarget: () => eventTarget,
+            });
         const event = new Event("ffv:request-render-charts");
 
         expect(resolvedEventTarget).toBe(eventTarget);
@@ -29,8 +34,10 @@ describe("chartSettingsRenderRuntime", () => {
         expect.assertions(3);
 
         const chartSettingsApi = getChartSettingsRenderRuntime({
-            CustomEvent,
-            dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
+            getCustomEvent: () => CustomEvent,
+            getEventTarget: () => ({
+                dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
+            }),
         });
 
         const requestMessage =
@@ -48,9 +55,36 @@ describe("chartSettingsRenderRuntime", () => {
 
         expect(() =>
             getChartSettingsRenderRuntime({
-                dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
+                getEventTarget: () => ({
+                    dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
+                }),
             }).createRenderRequestEvent("settings-reset")
         ).toThrow("chartSettingsRender requires a CustomEvent runtime");
+    });
+
+    it("fails clearly when event target access is unavailable", () => {
+        expect.assertions(1);
+
+        expect(() => getChartSettingsRenderRuntime({}).eventTarget).toThrow(
+            "chartSettingsRender requires an event target runtime"
+        );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(2);
+
+        const legacyScope = {
+            CustomEvent,
+            dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
+        } as unknown as ChartSettingsRenderRuntimeScope;
+        const chartSettingsApi = getChartSettingsRenderRuntime(legacyScope);
+
+        expect(() =>
+            chartSettingsApi.createRenderRequestEvent("settings-reset")
+        ).toThrow("chartSettingsRender requires a CustomEvent runtime");
+        expect(() => chartSettingsApi.eventTarget).toThrow(
+            "chartSettingsRender requires an event target runtime"
+        );
     });
 });
 /* eslint-enable testing-library/render-result-naming-convention */
