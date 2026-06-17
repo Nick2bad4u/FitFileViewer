@@ -3,32 +3,38 @@ export type CancellationTokenTimerHandle =
     | number;
 
 export interface CancellationTokenRuntimeScope {
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly setTimeout?:
-        | ((
-              callback: () => void,
-              timeout: number
-          ) => CancellationTokenTimerHandle)
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() =>
+              | ((
+                    callback: () => void,
+                    timeout: number
+                ) => CancellationTokenTimerHandle)
+              | undefined)
         | undefined;
 }
 
 export interface CancellationTokenRuntime {
-    clearTimeout(handle: CancellationTokenTimerHandle): void;
-    setTimeout(
+    readonly clearTimeout: (handle: CancellationTokenTimerHandle) => void;
+    readonly setTimeout: (
         callback: () => void,
         timeout: number
-    ): CancellationTokenTimerHandle;
+    ) => CancellationTokenTimerHandle;
 }
 
-const defaultCancellationTokenRuntimeScope: CancellationTokenRuntimeScope =
-    globalThis;
+const defaultCancellationTokenRuntimeScope: CancellationTokenRuntimeScope = {
+    getClearTimeout: () => globalThis.clearTimeout,
+    getSetTimeout: () => globalThis.setTimeout,
+};
 
 export function getCancellationTokenRuntime(
     scope: CancellationTokenRuntimeScope = defaultCancellationTokenRuntimeScope
 ): CancellationTokenRuntime {
     return {
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.clearTimeout;
+            const clearTimeoutRef = scope.getClearTimeout?.();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "cancellationTokenRuntime requires clearTimeout"
@@ -38,7 +44,7 @@ export function getCancellationTokenRuntime(
             clearTimeoutRef(handle);
         },
         setTimeout(callback, timeout): CancellationTokenTimerHandle {
-            const setTimeoutRef = scope.setTimeout;
+            const setTimeoutRef = scope.getSetTimeout?.();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "cancellationTokenRuntime requires setTimeout"

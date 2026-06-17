@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getCancellationTokenRuntime } from "../../../../../electron-app/utils/app/async/cancellationTokenRuntime.js";
+import {
+    getCancellationTokenRuntime,
+    type CancellationTokenRuntimeScope,
+} from "../../../../../electron-app/utils/app/async/cancellationTokenRuntime.js";
 
 describe("getCancellationTokenRuntime", () => {
     it("schedules and clears timers through the injected runtime scope", () => {
@@ -11,10 +14,10 @@ describe("getCancellationTokenRuntime", () => {
         const scheduledCalls: { callback: () => void; timeout: number }[] = [];
         const clearedHandles: unknown[] = [];
         const runtime = getCancellationTokenRuntime({
-            clearTimeout: (handle) => {
+            getClearTimeout: () => (handle) => {
                 clearedHandles.push(handle);
             },
-            setTimeout: (scheduledCallback, timeout) => {
+            getSetTimeout: () => (scheduledCallback, timeout) => {
                 scheduledCalls.push({
                     callback: scheduledCallback,
                     timeout,
@@ -44,5 +47,25 @@ describe("getCancellationTokenRuntime", () => {
         expect(() => runtime.clearTimeout(1)).toThrow(
             "cancellationTokenRuntime requires clearTimeout"
         );
+    });
+
+    it("ignores legacy direct timer properties", () => {
+        expect.assertions(4);
+
+        const setTimeout = vi.fn(() => 43);
+        const clearTimeout = vi.fn();
+        const runtime = getCancellationTokenRuntime({
+            clearTimeout,
+            setTimeout,
+        } as unknown as CancellationTokenRuntimeScope);
+
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "cancellationTokenRuntime requires setTimeout"
+        );
+        expect(() => runtime.clearTimeout(43)).toThrow(
+            "cancellationTokenRuntime requires clearTimeout"
+        );
+        expect(setTimeout).not.toHaveBeenCalled();
+        expect(clearTimeout).not.toHaveBeenCalled();
     });
 });
