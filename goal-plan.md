@@ -717,6 +717,8 @@ Direct chart rerender container lookups now use named runtime provider functions
 access instead of a broad `globalThis` default scope or legacy direct scope properties.
 Chart request listener registration, fallback containers, HTMLElement checks, and CustomEvent checks now use named
 runtime provider functions instead of a broad `globalThis` default scope or legacy direct scope properties.
+Chart state-manager DOM and timer access now uses named runtime provider functions instead of a broad `globalThis`
+default scope or legacy direct scope properties.
 State devtools tests no longer delete the retired `__stateDebug` debug global around cleanup or initialization;
 they now assert typed debug utilities stay off `globalThis`, and architecture coverage blocks that mutation
 from returning.

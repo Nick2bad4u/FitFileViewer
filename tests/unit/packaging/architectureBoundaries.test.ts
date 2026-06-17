@@ -4926,7 +4926,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart state manager browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(23);
 
         const violations = migratedChartStateManagerRuntimeFiles
             .filter((relativeFile) =>
@@ -4952,8 +4952,44 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
         expect(runtimeSource).toContain("defaultChartStateManagerRuntimeScope");
+        expect(runtimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(runtimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(runtimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(runtimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
         expect(runtimeSource).not.toContain(
             "scope: ChartStateManagerRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).not.toContain(
+            "ChartStateManagerRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).not.toContain("readonly clearTimeout?:");
+        expect(runtimeSource).not.toContain("readonly document?:");
+        expect(runtimeSource).not.toContain("readonly HTMLElement?:");
+        expect(runtimeSource).not.toContain("readonly setTimeout?:");
+        expect(runtimeSource).not.toContain("scope.clearTimeout");
+        expect(runtimeSource).not.toContain("scope.document");
+        expect(runtimeSource).not.toContain("scope.HTMLElement");
+        expect(runtimeSource).not.toContain("scope.setTimeout");
+        expect(runtimeSource).toContain(
+            "const clearTimeout = scope.getClearTimeout?.();"
+        );
+        expect(runtimeSource).toContain(
+            "const document = scope.getDocument?.();"
+        );
+        expect(runtimeSource).toContain("scope.getDocument?.()?.querySelector");
+        expect(runtimeSource).toContain(
+            "const HTMLElementConstructor = scope.getHTMLElement?.();"
+        );
+        expect(runtimeSource).toContain(
+            "const setTimeout = scope.getSetTimeout?.();"
         );
         expect(runtimeSource).toContain(
             "ChartStateManager requires setTimeout"

@@ -3,47 +3,55 @@ import { getChartRenderContainer } from "../dom/chartDomUtils.js";
 export type ChartStateManagerTimeout = ReturnType<typeof globalThis.setTimeout>;
 
 export interface ChartStateManagerRuntimeScope {
-    readonly clearTimeout?: typeof globalThis.clearTimeout;
-    readonly document?: Document | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
 }
 
 export interface ChartStateManagerRuntime {
-    clearRenderTimeout: (timeout: ChartStateManagerTimeout) => void;
-    getChartRenderContainer: () => HTMLElement | null;
-    getControlsPanel: () => HTMLElement | null;
-    setRenderTimeout: (
+    readonly clearRenderTimeout: (timeout: ChartStateManagerTimeout) => void;
+    readonly getChartRenderContainer: () => HTMLElement | null;
+    readonly getControlsPanel: () => HTMLElement | null;
+    readonly setRenderTimeout: (
         callback: () => void,
         delay: number
     ) => ChartStateManagerTimeout;
 }
 
-const defaultChartStateManagerRuntimeScope: ChartStateManagerRuntimeScope =
-    globalThis;
+const defaultChartStateManagerRuntimeScope: ChartStateManagerRuntimeScope = {
+    getClearTimeout: () => globalThis.clearTimeout,
+    getDocument: () => globalThis.document,
+    getHTMLElement: () => globalThis.HTMLElement,
+    getSetTimeout: () => globalThis.setTimeout,
+};
 
 export function getChartStateManagerRuntime(
     scope: ChartStateManagerRuntimeScope = defaultChartStateManagerRuntimeScope
 ): ChartStateManagerRuntime {
     return {
         clearRenderTimeout(timeout): void {
-            const clearTimeout = scope.clearTimeout;
+            const clearTimeout = scope.getClearTimeout?.();
             if (typeof clearTimeout !== "function") {
-                throw new TypeError(
-                    "ChartStateManager requires clearTimeout"
-                );
+                throw new TypeError("ChartStateManager requires clearTimeout");
             }
 
             clearTimeout(timeout);
         },
         getChartRenderContainer(): HTMLElement | null {
-            const document = scope.document;
+            const document = scope.getDocument?.();
             return document ? getChartRenderContainer(document) : null;
         },
         getControlsPanel(): HTMLElement | null {
             const controlsPanel =
-                scope.document?.querySelector(".chart-controls") ?? null;
-            const HTMLElementConstructor = scope.HTMLElement;
+                scope.getDocument?.()?.querySelector(".chart-controls") ?? null;
+            const HTMLElementConstructor = scope.getHTMLElement?.();
 
             return typeof HTMLElementConstructor === "function" &&
                 controlsPanel instanceof HTMLElementConstructor
@@ -51,7 +59,7 @@ export function getChartStateManagerRuntime(
                 : null;
         },
         setRenderTimeout(callback, delay): ChartStateManagerTimeout {
-            const setTimeout = scope.setTimeout;
+            const setTimeout = scope.getSetTimeout?.();
             if (typeof setTimeout !== "function") {
                 throw new TypeError("ChartStateManager requires setTimeout");
             }

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { ChartStateManagerRuntimeScope } from "../../../../electron-app/utils/charts/core/chartStateManagerRuntime.js";
 import { getChartStateManagerRuntime } from "../../../../electron-app/utils/charts/core/chartStateManagerRuntime.js";
 
 describe("getChartStateManagerRuntime", () => {
@@ -19,8 +20,8 @@ describe("getChartStateManagerRuntime", () => {
             clearRenderTimeout: clearChartTimeout,
             setRenderTimeout: setChartTimeout,
         } = getChartStateManagerRuntime({
-            clearTimeout: clearTimeoutMock,
-            setTimeout: setTimeoutMock,
+            getClearTimeout: () => clearTimeoutMock,
+            getSetTimeout: () => setTimeoutMock,
         });
         const callback = () => undefined;
 
@@ -44,8 +45,8 @@ describe("getChartStateManagerRuntime", () => {
         document.body.appendChild(controlsPanel);
 
         const runtime = getChartStateManagerRuntime({
-            document,
-            HTMLElement,
+            getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
         });
 
         expect(runtime.getChartRenderContainer()).toBe(container);
@@ -67,5 +68,32 @@ describe("getChartStateManagerRuntime", () => {
         expect(() =>
             getChartStateManagerRuntime({}).clearRenderTimeout(timeout)
         ).toThrow("ChartStateManager requires clearTimeout");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(4);
+
+        const container = document.createElement("div");
+        container.id = "chartjs-chart-container";
+        document.body.appendChild(container);
+        const timeout = 1 as ReturnType<typeof setTimeout>;
+        const legacyScope = {
+            clearTimeout: vi.fn<typeof globalThis.clearTimeout>(),
+            document,
+            HTMLElement,
+            setTimeout: vi.fn<typeof globalThis.setTimeout>(() => timeout),
+        } as unknown as ChartStateManagerRuntimeScope;
+        const runtime = getChartStateManagerRuntime(legacyScope);
+
+        expect(runtime.getChartRenderContainer()).toBeNull();
+        expect(runtime.getControlsPanel()).toBeNull();
+        expect(() => runtime.setRenderTimeout(() => undefined, 0)).toThrow(
+            "ChartStateManager requires setTimeout"
+        );
+        expect(() => runtime.clearRenderTimeout(timeout)).toThrow(
+            "ChartStateManager requires clearTimeout"
+        );
+
+        document.body.innerHTML = "";
     });
 });
