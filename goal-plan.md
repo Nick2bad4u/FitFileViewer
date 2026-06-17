@@ -405,6 +405,8 @@ directly inside `mapLapSelector.ts`, with focused runtime coverage and architect
 direct browser APIs from returning. Explicit map lap selector runtime scopes must now provide their document
 instead of falling back to `globalThis.document`, with focused runtime coverage and architecture coverage blocking
 that fallback from returning.
+Map lap selector runtime scopes now provide document and abort-controller access through named provider functions
+instead of a broad `globalThis` default scope or legacy direct scope properties.
 Chart settings header reset-button feedback timing, range-slider re-render debounce, and listener
 abort-controller creation now route through `createSettingsHeaderRuntime.ts` instead of calling timer globals or
 constructing `AbortController` directly inside `createSettingsHeader.ts`, with focused runtime coverage and

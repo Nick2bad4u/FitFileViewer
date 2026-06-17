@@ -9109,7 +9109,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map lap-selector document listeners behind the runtime facade", () => {
-        expect.assertions(8);
+        expect.assertions(17);
 
         const violations = migratedMapLapSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -9137,13 +9137,38 @@ describe("architecture boundaries", () => {
             "scope: MapLapSelectorRuntimeScope = globalThis"
         );
         expect(mapLapSelectorRuntimeSource).toContain(
-            "const runtimeDocument = scope.document;"
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(mapLapSelectorRuntimeSource).not.toContain(
-            "globalThis.document"
+            "MapLapSelectorRuntimeScope = globalThis"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(mapLapSelectorRuntimeSource).not.toContain("scope.document");
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
         );
         expect(mapLapSelectorRuntimeSource).toContain(
             "runtimeDocument.removeEventListener"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "mapLapSelector requires a document runtime"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "mapLapSelector requires an AbortController runtime"
         );
     });
 

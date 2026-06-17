@@ -2,37 +2,47 @@ type MapLapSelectorDocument = Pick<
     Document,
     "addEventListener" | "removeEventListener"
 >;
+type MapLapSelectorKeydownListener = (event: Readonly<KeyboardEvent>) => void;
+type MapLapSelectorMouseListener = (event: Readonly<MouseEvent>) => void;
 
 export interface MapLapSelectorRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly document?: MapLapSelectorDocument | undefined;
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
+        | undefined;
+    readonly getDocument?:
+        | (() => MapLapSelectorDocument | undefined)
+        | undefined;
 }
 
 export interface MapLapSelectorRuntime {
-    addDocumentKeydownListener(
-        listener: (event: KeyboardEvent) => void,
-        options: AddEventListenerOptions
-    ): void;
-    addDocumentMousedownListener(
-        listener: (event: MouseEvent) => void,
-        options: AddEventListenerOptions
-    ): void;
-    addDocumentMouseupListener(
-        listener: (event: MouseEvent) => void,
-        options: AddEventListenerOptions
-    ): void;
-    createAbortController(): AbortController;
-    removeDocumentKeydownListener(listener: (event: KeyboardEvent) => void): void;
-    removeDocumentMousedownListener(
-        listener: (event: MouseEvent) => void
-    ): void;
-    removeDocumentMouseupListener(listener: (event: MouseEvent) => void): void;
+    readonly addDocumentKeydownListener: (
+        listener: MapLapSelectorKeydownListener,
+        options: Readonly<AddEventListenerOptions>
+    ) => void;
+    readonly addDocumentMousedownListener: (
+        listener: MapLapSelectorMouseListener,
+        options: Readonly<AddEventListenerOptions>
+    ) => void;
+    readonly addDocumentMouseupListener: (
+        listener: MapLapSelectorMouseListener,
+        options: Readonly<AddEventListenerOptions>
+    ) => void;
+    readonly createAbortController: () => AbortController;
+    readonly removeDocumentKeydownListener: (
+        listener: MapLapSelectorKeydownListener
+    ) => void;
+    readonly removeDocumentMousedownListener: (
+        listener: MapLapSelectorMouseListener
+    ) => void;
+    readonly removeDocumentMouseupListener: (
+        listener: MapLapSelectorMouseListener
+    ) => void;
 }
 
 function getRuntimeDocument(
     scope: MapLapSelectorRuntimeScope
 ): MapLapSelectorDocument {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError("mapLapSelector requires a document runtime");
     }
@@ -40,8 +50,10 @@ function getRuntimeDocument(
     return runtimeDocument;
 }
 
-const defaultMapLapSelectorRuntimeScope: MapLapSelectorRuntimeScope =
-    globalThis;
+const defaultMapLapSelectorRuntimeScope: MapLapSelectorRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getDocument: () => globalThis.document,
+};
 
 export function getMapLapSelectorRuntime(
     scope: MapLapSelectorRuntimeScope = defaultMapLapSelectorRuntimeScope
@@ -66,7 +78,7 @@ export function getMapLapSelectorRuntime(
             runtimeDocument.addEventListener("mouseup", listener, options);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "mapLapSelector requires an AbortController runtime"

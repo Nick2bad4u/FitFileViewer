@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { MapLapSelectorRuntimeScope } from "../../../../electron-app/utils/maps/controls/mapLapSelectorRuntime.js";
 import { getMapLapSelectorRuntime } from "../../../../electron-app/utils/maps/controls/mapLapSelectorRuntime.js";
 
 describe("getMapLapSelectorRuntime", () => {
@@ -20,7 +21,7 @@ describe("getMapLapSelectorRuntime", () => {
             }
         }
         const { createAbortController } = getMapLapSelectorRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(createAbortController()).toBeInstanceOf(TestAbortController);
@@ -47,7 +48,9 @@ describe("getMapLapSelectorRuntime", () => {
         const listener = (): void => {
             mouseupCount += 1;
         };
-        const runtime = getMapLapSelectorRuntime({ document: documentRef });
+        const runtime = getMapLapSelectorRuntime({
+            getDocument: () => documentRef,
+        });
 
         runtime.addDocumentMouseupListener(listener, {
             signal: controller.signal,
@@ -74,7 +77,9 @@ describe("getMapLapSelectorRuntime", () => {
         const keydownListener = (): void => {
             keydownCount += 1;
         };
-        const runtime = getMapLapSelectorRuntime({ document: documentRef });
+        const runtime = getMapLapSelectorRuntime({
+            getDocument: () => documentRef,
+        });
 
         runtime.addDocumentMousedownListener(mousedownListener, {
             capture: true,
@@ -127,6 +132,25 @@ describe("getMapLapSelectorRuntime", () => {
             runtime.removeDocumentMouseupListener(mouseListener);
         }).toThrow("mapLapSelector requires a document runtime");
         controller.abort();
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(2);
+
+        const eventTarget = new EventTarget();
+        const documentRef = createDocumentRuntime(eventTarget);
+        const legacyScope = {
+            AbortController,
+            document: documentRef,
+        } as unknown as MapLapSelectorRuntimeScope;
+        const runtime = getMapLapSelectorRuntime(legacyScope);
+
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow("mapLapSelector requires an AbortController runtime");
+        expect(() => {
+            runtime.addDocumentMouseupListener(() => undefined, {});
+        }).toThrow("mapLapSelector requires a document runtime");
     });
 });
 
