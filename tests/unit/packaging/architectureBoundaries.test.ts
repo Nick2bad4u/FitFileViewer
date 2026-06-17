@@ -1371,7 +1371,7 @@ const directLoadingOverlayRuntimeAmbientGetterPattern =
 const directSyncRendererLoadingRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|querySelector|querySelectorAll)\b|\binstanceof\s+(?:HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b/u;
 const directSyncRendererLoadingRuntimeAmbientFallbackPattern =
-    /\bscope:\s*SyncRendererLoadingRuntimeScope\s*=\s*globalThis\b|\bglobalThis\s*\[\s*name\s*\]/u;
+    /\bscope:\s*SyncRendererLoadingRuntimeScope\s*=\s*globalThis\b|\bglobalThis\s*\[\s*name\s*\]|\bscope\.(?:document|HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b|\bscope\.document\?\.defaultView\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -8591,7 +8591,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer loading sync DOM APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(26);
 
         const violations = migratedSyncRendererLoadingRuntimeFiles
             .filter((relativeFile) =>
@@ -8621,8 +8621,71 @@ describe("architecture boundaries", () => {
         expect(syncRendererLoadingRuntimeSource).toContain(
             "defaultSyncRendererLoadingRuntimeScope"
         );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "getHTMLButtonElement: () => globalThis.HTMLButtonElement"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "getHTMLInputElement: () => globalThis.HTMLInputElement"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "getHTMLSelectElement: () => globalThis.HTMLSelectElement"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "getHTMLTextAreaElement: () => globalThis.HTMLTextAreaElement"
+        );
         expect(syncRendererLoadingRuntimeSource).not.toContain(
             "scope: SyncRendererLoadingRuntimeScope = globalThis"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "SyncRendererLoadingRuntimeScope = globalThis"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "readonly HTMLButtonElement?:"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "readonly HTMLInputElement?:"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "readonly HTMLSelectElement?:"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "readonly HTMLTextAreaElement?:"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "scope.HTMLButtonElement"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "scope.HTMLInputElement"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "scope.HTMLSelectElement"
+        );
+        expect(syncRendererLoadingRuntimeSource).not.toContain(
+            "scope.HTMLTextAreaElement"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "return scope.getHTMLButtonElement?.();"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "return scope.getHTMLInputElement?.();"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "return scope.getHTMLSelectElement?.();"
+        );
+        expect(syncRendererLoadingRuntimeSource).toContain(
+            "return scope.getHTMLTextAreaElement?.();"
         );
     });
 

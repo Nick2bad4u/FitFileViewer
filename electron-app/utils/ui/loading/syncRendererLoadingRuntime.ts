@@ -7,27 +7,41 @@ type DisableableFormControl =
     | HTMLTextAreaElement;
 
 export interface SyncRendererLoadingRuntimeScope {
-    readonly document?: Document | undefined;
-    readonly HTMLButtonElement?: typeof HTMLButtonElement | undefined;
-    readonly HTMLInputElement?: typeof HTMLInputElement | undefined;
-    readonly HTMLSelectElement?: typeof HTMLSelectElement | undefined;
-    readonly HTMLTextAreaElement?: typeof HTMLTextAreaElement | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLButtonElement?:
+        | (() => typeof globalThis.HTMLButtonElement | undefined)
+        | undefined;
+    readonly getHTMLInputElement?:
+        | (() => typeof globalThis.HTMLInputElement | undefined)
+        | undefined;
+    readonly getHTMLSelectElement?:
+        | (() => typeof globalThis.HTMLSelectElement | undefined)
+        | undefined;
+    readonly getHTMLTextAreaElement?:
+        | (() => typeof globalThis.HTMLTextAreaElement | undefined)
+        | undefined;
 }
 
 export interface SyncRendererLoadingRuntime {
-    getLoadingOverlay: () => HTMLElement | null;
-    getInteractiveElements: () => Element[];
-    isDisableableFormControl: (
-        element: Element
+    readonly getLoadingOverlay: () => HTMLElement | null;
+    readonly getInteractiveElements: () => Element[];
+    readonly isDisableableFormControl: (
+        element: Readonly<Element>
     ) => element is DisableableFormControl;
-    setBodyLoading: (loading: boolean) => void;
+    readonly setBodyLoading: (loading: boolean) => void;
 }
 
 const defaultSyncRendererLoadingRuntimeScope: SyncRendererLoadingRuntimeScope =
-    globalThis;
+    {
+        getDocument: () => globalThis.document,
+        getHTMLButtonElement: () => globalThis.HTMLButtonElement,
+        getHTMLInputElement: () => globalThis.HTMLInputElement,
+        getHTMLSelectElement: () => globalThis.HTMLSelectElement,
+        getHTMLTextAreaElement: () => globalThis.HTMLTextAreaElement,
+    };
 
 function getDocument(scope: SyncRendererLoadingRuntimeScope): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError("syncRendererLoading requires a document runtime");
     }
@@ -35,29 +49,43 @@ function getDocument(scope: SyncRendererLoadingRuntimeScope): Document {
     return runtimeDocument;
 }
 
-function getConstructor<K extends keyof Pick<
-    SyncRendererLoadingRuntimeScope,
-    | "HTMLButtonElement"
-    | "HTMLInputElement"
-    | "HTMLSelectElement"
-    | "HTMLTextAreaElement"
->>(
+function getConstructor(
     scope: SyncRendererLoadingRuntimeScope,
-    name: K
-): NonNullable<SyncRendererLoadingRuntimeScope[K]> | undefined {
-    return scope[name] ?? scope.document?.defaultView?.[name];
+    name:
+        | "HTMLButtonElement"
+        | "HTMLInputElement"
+        | "HTMLSelectElement"
+        | "HTMLTextAreaElement"
+):
+    | typeof globalThis.HTMLButtonElement
+    | typeof globalThis.HTMLInputElement
+    | typeof globalThis.HTMLSelectElement
+    | typeof globalThis.HTMLTextAreaElement
+    | undefined {
+    switch (name) {
+        case "HTMLButtonElement": {
+            return scope.getHTMLButtonElement?.();
+        }
+        case "HTMLInputElement": {
+            return scope.getHTMLInputElement?.();
+        }
+        case "HTMLSelectElement": {
+            return scope.getHTMLSelectElement?.();
+        }
+        case "HTMLTextAreaElement": {
+            return scope.getHTMLTextAreaElement?.();
+        }
+    }
 }
 
-function isInstanceOfConstructor<K extends keyof Pick<
-    SyncRendererLoadingRuntimeScope,
-    | "HTMLButtonElement"
-    | "HTMLInputElement"
-    | "HTMLSelectElement"
-    | "HTMLTextAreaElement"
->>(
+function isInstanceOfConstructor(
     scope: SyncRendererLoadingRuntimeScope,
-    element: Element,
-    name: K
+    element: Readonly<Element>,
+    name:
+        | "HTMLButtonElement"
+        | "HTMLInputElement"
+        | "HTMLSelectElement"
+        | "HTMLTextAreaElement"
 ): boolean {
     const Constructor = getConstructor(scope, name);
     return typeof Constructor === "function" && element instanceof Constructor;
@@ -81,7 +109,7 @@ export function getSyncRendererLoadingRuntime(
             );
         },
         isDisableableFormControl(
-            element: Element
+            element: Readonly<Element>
         ): element is DisableableFormControl {
             return (
                 isInstanceOfConstructor(scope, element, "HTMLButtonElement") ||

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 
+import type { SyncRendererLoadingRuntimeScope } from "../../../../../electron-app/utils/ui/loading/syncRendererLoadingRuntime.js";
 import { getSyncRendererLoadingRuntime } from "../../../../../electron-app/utils/ui/loading/syncRendererLoadingRuntime.js";
 
 function resetBody(): void {
@@ -19,7 +20,9 @@ describe("getSyncRendererLoadingRuntime", () => {
         document.body.append(overlay);
 
         expect(
-            getSyncRendererLoadingRuntime({ document }).getLoadingOverlay()
+            getSyncRendererLoadingRuntime({
+                getDocument: () => document,
+            }).getLoadingOverlay()
         ).toBe(overlay);
     });
 
@@ -27,7 +30,9 @@ describe("getSyncRendererLoadingRuntime", () => {
         expect.assertions(4);
 
         resetBody();
-        const utils = getSyncRendererLoadingRuntime({ document });
+        const utils = getSyncRendererLoadingRuntime({
+            getDocument: () => document,
+        });
 
         utils.setBodyLoading(true);
 
@@ -51,11 +56,11 @@ describe("getSyncRendererLoadingRuntime", () => {
         const link = document.createElement("a");
         document.body.append(button, input, select, textArea, link);
         const utils = getSyncRendererLoadingRuntime({
-            document,
-            HTMLButtonElement,
-            HTMLInputElement,
-            HTMLSelectElement,
-            HTMLTextAreaElement,
+            getDocument: () => document,
+            getHTMLButtonElement: () => HTMLButtonElement,
+            getHTMLInputElement: () => HTMLInputElement,
+            getHTMLSelectElement: () => HTMLSelectElement,
+            getHTMLTextAreaElement: () => HTMLTextAreaElement,
         });
 
         expect(utils.getInteractiveElements()).toStrictEqual([
@@ -77,8 +82,8 @@ describe("getSyncRendererLoadingRuntime", () => {
         resetBody();
         const button = document.createElement("button");
         const utils = getSyncRendererLoadingRuntime({
-            document,
-            HTMLButtonElement:
+            getDocument: () => document,
+            getHTMLButtonElement: () =>
                 "HTMLButtonElement" as unknown as typeof HTMLButtonElement,
         });
 
@@ -99,5 +104,32 @@ describe("getSyncRendererLoadingRuntime", () => {
         expect(() => utils.setBodyLoading(true)).toThrow(
             "syncRendererLoading requires a document runtime"
         );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(4);
+
+        resetBody();
+        const button = document.createElement("button");
+        document.body.append(button);
+        const legacyScope = {
+            document,
+            HTMLButtonElement,
+            HTMLInputElement,
+            HTMLSelectElement,
+            HTMLTextAreaElement,
+        } as unknown as SyncRendererLoadingRuntimeScope;
+        const utils = getSyncRendererLoadingRuntime(legacyScope);
+
+        expect(() => utils.getLoadingOverlay()).toThrow(
+            "syncRendererLoading requires a document runtime"
+        );
+        expect(() => utils.getInteractiveElements()).toThrow(
+            "syncRendererLoading requires a document runtime"
+        );
+        expect(() => utils.setBodyLoading(true)).toThrow(
+            "syncRendererLoading requires a document runtime"
+        );
+        expect(utils.isDisableableFormControl(button)).toBe(false);
     });
 });

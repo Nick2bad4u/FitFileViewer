@@ -472,6 +472,8 @@ cleanup, with architecture coverage blocking that fixture mutation pattern.
 Chart notification/loading suppression tests and createAppMenu export tests no longer create or read retired
 `__FFV_suppressNotifications`, `__FFV_suppressLoadingState`, or `__FFV_createAppMenuExports` globals; architecture
 coverage now keeps those retired renderer compatibility names out of ordinary tests.
+Renderer loading sync DOM and disableable form-control access now uses named runtime provider functions instead of
+a broad `globalThis` default scope, legacy direct scope properties, or `document.defaultView` constructor fallbacks.
 The renderChartJS comprehensive test now uses ESM mocks without the old `utils.require` module-cache bridge,
 and architecture coverage keeps that require-hook pattern from returning.
 
