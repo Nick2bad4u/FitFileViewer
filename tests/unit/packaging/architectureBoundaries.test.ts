@@ -8909,7 +8909,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
-        expect.assertions(9);
+        expect.assertions(22);
 
         const violations = migratedMapFullscreenControlRuntimeFiles
             .filter((relativeFile) =>
@@ -8939,16 +8939,55 @@ describe("architecture boundaries", () => {
             "scope: MapFullscreenControlRuntimeScope = globalThis"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
-            "const runtimeDocument = scope.document;"
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
         );
         expect(mapFullscreenControlRuntimeSource).not.toMatch(
             directMapFullscreenControlRuntimeAmbientFallbackPattern
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
-            "const setTimeoutRef = scope.setTimeout;"
+            "const setTimeoutRef = scope.getSetTimeout?.();"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "const clearTimeoutRef = scope.getClearTimeout?.();"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
         );
         expect(mapFullscreenControlRuntimeSource).not.toContain(
-            "globalThis.document"
+            "readonly AbortController?:"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
+            "scope.setTimeout"
         );
     });
 

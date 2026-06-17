@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getMapFullscreenControlRuntime } from "../../../../electron-app/utils/maps/controls/mapFullscreenControlRuntime.js";
+import {
+    getMapFullscreenControlRuntime,
+    type MapFullscreenControlRuntimeScope,
+} from "../../../../electron-app/utils/maps/controls/mapFullscreenControlRuntime.js";
 
 describe("getMapFullscreenControlRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -20,7 +23,7 @@ describe("getMapFullscreenControlRuntime", () => {
             }
         }
         const runtime = getMapFullscreenControlRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -52,7 +55,7 @@ describe("getMapFullscreenControlRuntime", () => {
             eventCount += 1;
         };
         const runtime = getMapFullscreenControlRuntime({
-            document: documentRef,
+            getDocument: () => documentRef,
         });
 
         runtime.addDocumentFullscreenChangeListener(listener, {
@@ -89,8 +92,8 @@ describe("getMapFullscreenControlRuntime", () => {
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getMapFullscreenControlRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
@@ -111,5 +114,41 @@ describe("getMapFullscreenControlRuntime", () => {
         expect(() =>
             runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("mapFullscreenControl requires a clearTimeout runtime");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(4);
+
+        const runtime = getMapFullscreenControlRuntime({
+            AbortController: class LegacyAbortController {},
+            clearTimeout() {
+                throw new Error("legacy clearTimeout should not run");
+            },
+            document: {
+                addEventListener() {
+                    throw new Error("legacy document should not run");
+                },
+            },
+            setTimeout() {
+                throw new Error("legacy setTimeout should not run");
+            },
+        } as unknown as MapFullscreenControlRuntimeScope);
+        const controller = new AbortController();
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "mapFullscreenControl requires an AbortController runtime"
+        );
+        expect(() => {
+            runtime.addDocumentFullscreenChangeListener(() => undefined, {
+                signal: controller.signal,
+            });
+        }).toThrow("mapFullscreenControl requires a document runtime");
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "mapFullscreenControl requires a setTimeout runtime"
+        );
+        expect(() =>
+            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("mapFullscreenControl requires a clearTimeout runtime");
+        controller.abort();
     });
 });
