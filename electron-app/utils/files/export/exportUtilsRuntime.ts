@@ -1,7 +1,7 @@
 type ConfirmDangerousActionFunction = (message?: string) => boolean;
 
 type OpenPrintWindowFunction = (
-    url?: string | URL,
+    url?: Readonly<URL> | string,
     target?: string,
     features?: string
 ) => Window | null;
@@ -19,12 +19,6 @@ export type SecureRandomScope = {
 };
 
 export interface ExportUtilsRuntimeScope {
-    readonly AbortController?: typeof globalThis.AbortController | undefined;
-    readonly confirmDangerousAction?:
-        | ConfirmDangerousActionFunction
-        | undefined;
-    readonly crypto?: Pick<Crypto, "getRandomValues"> | undefined;
-    readonly documentEventTarget?: Document | undefined;
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
@@ -39,21 +33,19 @@ export interface ExportUtilsRuntimeScope {
         | (() => Pick<Crypto, "getRandomValues"> | undefined)
         | undefined;
     readonly getStorage?: ExportStorageProvider | undefined;
-    readonly localStorage?: ExportStorageLike | null | undefined;
-    readonly openPrintWindow?: OpenPrintWindowFunction | undefined;
 }
 
 export interface ExportUtilsRuntime {
-    addDocumentKeydownListener: (
-        listener: (event: KeyboardEvent) => void,
-        options: AddEventListenerOptions
+    readonly addDocumentKeydownListener: (
+        listener: (event: Readonly<KeyboardEvent>) => void,
+        options: Readonly<AddEventListenerOptions>
     ) => void;
-    confirmDangerousAction: (message: string) => boolean;
-    createAbortController: () => AbortController;
-    getSecureRandomScope: () => SecureRandomScope;
-    getStorage: () => ExportStorageLike | null;
-    openPrintWindow: (
-        url?: string | URL,
+    readonly confirmDangerousAction: (message: string) => boolean;
+    readonly createAbortController: () => AbortController;
+    readonly getSecureRandomScope: () => SecureRandomScope;
+    readonly getStorage: () => ExportStorageLike | null;
+    readonly openPrintWindow: (
+        url?: Readonly<URL> | string,
         target?: string,
         features?: string
     ) => Window | null;
@@ -67,12 +59,20 @@ const browserGlobal = globalThis as typeof globalThis & {
 };
 
 const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
-    getConfirmDangerousAction: () => (message) =>
-        browserGlobal.confirm?.(message) ?? false,
+    getConfirmDangerousAction: () => {
+        const confirmDangerousAction = Reflect.get(browserGlobal, "confirm");
+        return typeof confirmDangerousAction === "function"
+            ? (message) => confirmDangerousAction(message)
+            : undefined;
+    },
     getAbortController: () => globalThis.AbortController,
     getDocumentEventTarget: () => globalThis.document,
-    getOpenPrintWindow: () => (url, target, features) =>
-        browserGlobal.open?.(url, target, features) ?? null,
+    getOpenPrintWindow: () => {
+        const openPrintWindow = Reflect.get(browserGlobal, "open");
+        return typeof openPrintWindow === "function"
+            ? (url, target, features) => openPrintWindow(url, target, features)
+            : undefined;
+    },
     getSecureRandomCrypto: () => browserGlobal.crypto,
     getStorage: () => browserGlobal.localStorage ?? null,
 };
@@ -80,31 +80,31 @@ const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
 function getScopeAbortController(
     scope: ExportUtilsRuntimeScope
 ): typeof globalThis.AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getScopeConfirmDangerousAction(
     scope: ExportUtilsRuntimeScope
 ): ConfirmDangerousActionFunction | undefined {
-    return scope.getConfirmDangerousAction?.() ?? scope.confirmDangerousAction;
+    return scope.getConfirmDangerousAction?.();
 }
 
 function getScopeDocumentEventTarget(
     scope: ExportUtilsRuntimeScope
 ): Document | undefined {
-    return scope.getDocumentEventTarget?.() ?? scope.documentEventTarget;
+    return scope.getDocumentEventTarget?.();
 }
 
 function getScopeOpenPrintWindow(
     scope: ExportUtilsRuntimeScope
 ): OpenPrintWindowFunction | undefined {
-    return scope.getOpenPrintWindow?.() ?? scope.openPrintWindow;
+    return scope.getOpenPrintWindow?.();
 }
 
 function getScopeSecureRandomCrypto(
     scope: ExportUtilsRuntimeScope
 ): Pick<Crypto, "getRandomValues"> | undefined {
-    const cryptoObject = scope.getSecureRandomCrypto?.() ?? scope.crypto;
+    const cryptoObject = scope.getSecureRandomCrypto?.();
     return cryptoObject &&
         typeof cryptoObject === "object" &&
         typeof Reflect.get(cryptoObject, "getRandomValues") === "function"
@@ -115,7 +115,7 @@ function getScopeSecureRandomCrypto(
 function getScopeStorage(
     scope: ExportUtilsRuntimeScope
 ): ExportStorageLike | null {
-    const storage = scope.getStorage?.() ?? scope.localStorage;
+    const storage = scope.getStorage?.();
 
     return storage &&
         typeof storage === "object" &&

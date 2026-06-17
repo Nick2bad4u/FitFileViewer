@@ -3898,7 +3898,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(46);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -3906,6 +3906,14 @@ describe("architecture boundaries", () => {
         const exportUtilsRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/files/export/exportUtilsRuntime.ts"
+            )
+        );
+        const exportUtilsRuntimeScopeSource = exportUtilsRuntimeSource.slice(
+            exportUtilsRuntimeSource.indexOf(
+                "export interface ExportUtilsRuntimeScope"
+            ),
+            exportUtilsRuntimeSource.indexOf(
+                "export interface ExportUtilsRuntime {"
             )
         );
 
@@ -3948,6 +3956,52 @@ describe("architecture boundaries", () => {
         );
         expect(exportUtilsRuntimeSource).not.toContain(
             "scope: ExportUtilsRuntimeScope = globalThis"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly confirmDangerousAction?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly crypto?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly documentEventTarget?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly localStorage?:"
+        );
+        expect(exportUtilsRuntimeScopeSource).not.toContain(
+            "readonly openPrintWindow?:"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain("scope.AbortController");
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope.confirmDangerousAction"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain("scope.crypto");
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "scope.documentEventTarget"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain("scope.localStorage");
+        expect(exportUtilsRuntimeSource).not.toContain("scope.openPrintWindow");
+        expect(exportUtilsRuntimeSource).toContain(
+            "return scope.getAbortController?.();"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "return scope.getConfirmDangerousAction?.();"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "return scope.getDocumentEventTarget?.();"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "return scope.getOpenPrintWindow?.();"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "const cryptoObject = scope.getSecureRandomCrypto?.();"
+        );
+        expect(exportUtilsRuntimeSource).toContain(
+            "const storage = scope.getStorage?.();"
         );
     });
 

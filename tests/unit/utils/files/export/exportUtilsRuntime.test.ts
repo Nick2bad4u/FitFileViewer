@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getExportUtilsRuntime } from "../../../../../electron-app/utils/files/export/exportUtilsRuntime.js";
+import {
+    getExportUtilsRuntime,
+    type ExportUtilsRuntimeScope,
+} from "../../../../../electron-app/utils/files/export/exportUtilsRuntime.js";
 
 describe("exportUtilsRuntime", () => {
     afterEach(() => {
@@ -40,7 +43,7 @@ describe("exportUtilsRuntime", () => {
 
         const confirmDangerousAction = vi.fn(() => true),
             runtime = getExportUtilsRuntime({
-                confirmDangerousAction,
+                getConfirmDangerousAction: () => confirmDangerousAction,
             });
 
         expect(
@@ -67,7 +70,7 @@ describe("exportUtilsRuntime", () => {
         const popup = {} as Window;
         const openPrintWindow = vi.fn(() => popup);
         const runtime = getExportUtilsRuntime({
-            openPrintWindow,
+            getOpenPrintWindow: () => openPrintWindow,
         });
 
         expect(
@@ -89,7 +92,7 @@ describe("exportUtilsRuntime", () => {
             setItem: vi.fn<Storage["setItem"]>(),
         };
         const runtime = getExportUtilsRuntime({
-            localStorage: storage,
+            getStorage: () => storage,
         });
 
         expect(runtime.getStorage()).toBe(storage);
@@ -99,7 +102,7 @@ describe("exportUtilsRuntime", () => {
         expect.assertions(1);
 
         const runtime = getExportUtilsRuntime({
-            localStorage: {} as Storage,
+            getStorage: () => ({}) as Storage,
         });
 
         expect(runtime.getStorage()).toBeNull();
@@ -112,7 +115,7 @@ describe("exportUtilsRuntime", () => {
             getRandomValues: vi.fn<Crypto["getRandomValues"]>(),
         };
         const runtime = getExportUtilsRuntime({
-            crypto,
+            getSecureRandomCrypto: () => crypto,
         });
 
         expect(runtime.getSecureRandomScope()).toStrictEqual({ crypto });
@@ -122,7 +125,7 @@ describe("exportUtilsRuntime", () => {
         expect.assertions(1);
 
         const runtime = getExportUtilsRuntime({
-            crypto: {} as Crypto,
+            getSecureRandomCrypto: () => ({}) as Crypto,
         });
 
         expect(runtime.getSecureRandomScope()).toStrictEqual({});
@@ -152,7 +155,7 @@ describe("exportUtilsRuntime", () => {
         }
 
         const runtime = getExportUtilsRuntime({
-            AbortController:
+            getAbortController: () =>
                 TestAbortController as unknown as typeof AbortController,
         });
 
@@ -177,7 +180,7 @@ describe("exportUtilsRuntime", () => {
             keydownCount += 1;
         };
         const runtime = getExportUtilsRuntime({
-            documentEventTarget,
+            getDocumentEventTarget: () => documentEventTarget,
         });
 
         runtime.addDocumentKeydownListener(listener, {
@@ -217,6 +220,53 @@ describe("exportUtilsRuntime", () => {
 
         expect(keydownCount).toBe(1);
         expect(documentEventTarget.body.childElementCount).toBe(0);
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(11);
+
+        const storage = {
+            getItem: vi.fn<Storage["getItem"]>(),
+            removeItem: vi.fn<Storage["removeItem"]>(),
+            setItem: vi.fn<Storage["setItem"]>(),
+        };
+        const crypto = {
+            getRandomValues: vi.fn<Crypto["getRandomValues"]>(),
+        };
+        const documentEventTarget =
+            document.implementation.createHTMLDocument();
+        const addEventListener = vi.spyOn(
+            documentEventTarget,
+            "addEventListener"
+        );
+        const confirmDangerousAction = vi.fn(() => true);
+        const openPrintWindow = vi.fn(() => ({}) as Window);
+        const runtime = getExportUtilsRuntime({
+            AbortController,
+            confirmDangerousAction,
+            crypto,
+            documentEventTarget,
+            localStorage: storage,
+            openPrintWindow,
+        } as unknown as ExportUtilsRuntimeScope);
+
+        expect(
+            runtime.confirmDangerousAction("Clear saved export tokens?")
+        ).toBe(false);
+        expect(runtime.openPrintWindow("", "_blank", "noopener")).toBeNull();
+        expect(runtime.getStorage()).toBeNull();
+        expect(runtime.getSecureRandomScope()).toStrictEqual({});
+        expect(runtime.createAbortController).toThrow(
+            "exportUtils requires an AbortController runtime"
+        );
+        expect(() =>
+            runtime.addDocumentKeydownListener(() => undefined, {})
+        ).toThrow("exportUtils requires a document event-target runtime");
+        expect(confirmDangerousAction).not.toHaveBeenCalled();
+        expect(openPrintWindow).not.toHaveBeenCalled();
+        expect(storage.getItem).not.toHaveBeenCalled();
+        expect(crypto.getRandomValues).not.toHaveBeenCalled();
+        expect(addEventListener).not.toHaveBeenCalled();
     });
 
     it("throws when explicit runtime dependencies are unavailable", () => {
