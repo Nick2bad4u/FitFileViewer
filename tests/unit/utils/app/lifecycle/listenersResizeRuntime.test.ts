@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getListenersResizeRuntime } from "../../../../../electron-app/utils/app/lifecycle/listenersResizeRuntime.js";
+import {
+    getListenersResizeRuntime,
+    type ListenersResizeRuntimeScope,
+} from "../../../../../electron-app/utils/app/lifecycle/listenersResizeRuntime.js";
 
 function cleanupFixture(): void {
     document.body.replaceChildren();
@@ -25,7 +28,7 @@ describe("getListenersResizeRuntime", () => {
             }
         }
         const runtime = getListenersResizeRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -64,7 +67,7 @@ describe("getListenersResizeRuntime", () => {
                 resizeCount += 1;
             });
             const utils = getListenersResizeRuntime({
-                resizeTarget: { addEventListener },
+                getResizeTarget: () => ({ addEventListener }),
             });
 
             utils.addResizeListener(listener, {
@@ -164,8 +167,8 @@ describe("getListenersResizeRuntime", () => {
 
             expect(
                 getListenersResizeRuntime({
-                    document,
-                    Element,
+                    getDocument: () => document,
+                    getElement: () => Element,
                 }).getFullscreenElement()
             ).toBe(element);
         } finally {
@@ -190,8 +193,8 @@ describe("getListenersResizeRuntime", () => {
 
             expect(
                 getListenersResizeRuntime({
-                    document,
-                    Element,
+                    getDocument: () => document,
+                    getElement: () => Element,
                 }).getFullscreenElement()
             ).toBe(element);
         } finally {
@@ -211,8 +214,8 @@ describe("getListenersResizeRuntime", () => {
 
             expect(
                 getListenersResizeRuntime({
-                    document,
-                    HTMLCanvasElement,
+                    getDocument: () => document,
+                    getHTMLCanvasElement: () => HTMLCanvasElement,
                 }).queryChartCanvases()
             ).toStrictEqual([canvas]);
         } finally {
@@ -229,9 +232,9 @@ describe("getListenersResizeRuntime", () => {
             document.body.append(tab);
 
             expect(
-                getListenersResizeRuntime({ document }).queryChartTab(
-                    "#tab_chart"
-                )
+                getListenersResizeRuntime({
+                    getDocument: () => document,
+                }).queryChartTab("#tab_chart")
             ).toBe(tab);
         } finally {
             cleanupFixture();
@@ -252,10 +255,10 @@ describe("getListenersResizeRuntime", () => {
         >(() => 7);
         const clearTimeout = vi.fn<(handle: number) => void>();
         const utils = getListenersResizeRuntime({
-            cancelAnimationFrame,
-            clearTimeout,
-            requestAnimationFrame,
-            setTimeout,
+            getCancelAnimationFrame: () => cancelAnimationFrame,
+            getClearTimeout: () => clearTimeout,
+            getRequestAnimationFrame: () => requestAnimationFrame,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(utils.requestAnimationFrame(animationCallback)).toBe(2);
@@ -291,5 +294,84 @@ describe("getListenersResizeRuntime", () => {
         expect(
             getListenersResizeRuntime({}).requestAnimationFrame(() => {})
         ).toBeUndefined();
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(16);
+
+        let abortController: AbortController | undefined;
+        try {
+            const element = document.createElement("section");
+            Object.defineProperty(document, "fullscreenElement", {
+                configurable: true,
+                value: element,
+            });
+            const canvas = document.createElement("canvas");
+            canvas.className = "chart-canvas";
+            document.body.append(canvas);
+
+            let controllerCount = 0;
+            class TestAbortController extends AbortController {
+                public constructor() {
+                    super();
+                    controllerCount += 1;
+                }
+            }
+            const addEventListener = vi.fn();
+            const requestAnimationFrame = vi.fn<
+                (callback: FrameRequestCallback) => number
+            >(() => 5);
+            const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+            const setTimeout = vi.fn<
+                (callback: () => void, timeout?: number) => number
+            >(() => 13);
+            const clearTimeout = vi.fn<(handle: number) => void>();
+            abortController = new AbortController();
+            const runtime = getListenersResizeRuntime({
+                AbortController: TestAbortController,
+                cancelAnimationFrame,
+                clearTimeout,
+                document,
+                Element,
+                HTMLCanvasElement,
+                requestAnimationFrame,
+                resizeTarget: { addEventListener },
+                setTimeout,
+            } as unknown as ListenersResizeRuntimeScope);
+
+            runtime.addResizeListener(vi.fn(), {
+                signal: abortController.signal,
+            });
+            runtime.cancelAnimationFrame(5);
+
+            expect(() => runtime.createAbortController()).toThrow(
+                "listenersResize requires an AbortController runtime"
+            );
+            expect(runtime.getFullscreenElement()).toBeNull();
+            expect(runtime.queryChartCanvases()).toStrictEqual([]);
+            expect(runtime.queryChartTab("#tab_chart")).toBeNull();
+            expect(
+                runtime.requestAnimationFrame(vi.fn<FrameRequestCallback>())
+            ).toBeUndefined();
+            expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+                "listenersResize requires a setTimeout runtime"
+            );
+            expect(() => runtime.clearTimeout(13)).toThrow(
+                "listenersResize requires a clearTimeout runtime"
+            );
+            expect(controllerCount).toBe(0);
+            expect(addEventListener).not.toHaveBeenCalled();
+            expect(requestAnimationFrame).not.toHaveBeenCalled();
+            expect(cancelAnimationFrame).not.toHaveBeenCalled();
+            expect(setTimeout).not.toHaveBeenCalled();
+            expect(clearTimeout).not.toHaveBeenCalled();
+            expect(canvas.isConnected).toBe(true);
+            expect(document.fullscreenElement).toBe(element);
+            expect(element.isConnected).toBe(false);
+        } finally {
+            abortController?.abort();
+            Reflect.deleteProperty(document, "fullscreenElement");
+            cleanupFixture();
+        }
     });
 });

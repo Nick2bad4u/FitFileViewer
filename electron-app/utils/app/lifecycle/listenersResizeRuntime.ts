@@ -15,23 +15,16 @@ export interface ListenersResizeRuntimeWindow {
         | ((
               type: string,
               listener: EventListenerOrEventListenerObject,
-              options?: AddEventListenerOptions | boolean
+              options?: Readonly<AddEventListenerOptions> | boolean
           ) => void)
         | undefined;
 }
 
+type ListenersResizeElementConstructor = abstract new (
+    ...args: never[]
+) => Element;
+
 export interface ListenersResizeRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly cancelAnimationFrame?: ((handle: number) => void) | undefined;
-    readonly clearTimeout?:
-        | ((handle: ListenersResizeTimerHandle) => void)
-        | undefined;
-    readonly document?: ListenersResizeRuntimeDocument | undefined;
-    readonly Element?: typeof Element | undefined;
-    readonly HTMLCanvasElement?: typeof HTMLCanvasElement | undefined;
-    readonly requestAnimationFrame?:
-        | ((callback: FrameRequestCallback) => number)
-        | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
@@ -62,19 +55,14 @@ export interface ListenersResizeRuntimeScope {
                 ) => ListenersResizeTimerHandle)
               | undefined)
         | undefined;
-    readonly setTimeout?:
-        | ((
-              callback: () => void,
-              timeout?: number
-          ) => ListenersResizeTimerHandle)
-        | undefined;
-    readonly resizeTarget?: ListenersResizeRuntimeWindow | undefined;
 }
 
 export interface ListenersResizeRuntime {
     addResizeListener: (
         listener: EventListenerOrEventListenerObject,
-        options: AddEventListenerOptions & { readonly signal: AbortSignal }
+        options: Readonly<AddEventListenerOptions> & {
+            readonly signal: AbortSignal;
+        }
     ) => void;
     cancelAnimationFrame: (handle: number) => void;
     clearTimeout: (handle: ListenersResizeTimerHandle) => void;
@@ -94,7 +82,7 @@ export interface ListenersResizeRuntime {
 function getOptionalElementProperty(
     target: object,
     propertyKey: string,
-    ElementConstructor: typeof Element | undefined
+    ElementConstructor: ListenersResizeElementConstructor | undefined
 ): Element | null {
     const value: unknown = Reflect.get(target, propertyKey);
     return typeof ElementConstructor === "function" &&
@@ -118,49 +106,49 @@ const defaultListenersResizeRuntimeScope: ListenersResizeRuntimeScope = {
 function getAbortController(
     scope: ListenersResizeRuntimeScope
 ): typeof AbortController | undefined {
-    return scope.getAbortController?.() ?? scope.AbortController;
+    return scope.getAbortController?.();
 }
 
 function getCancelAnimationFrame(
     scope: ListenersResizeRuntimeScope
 ): ((handle: number) => void) | undefined {
-    return scope.getCancelAnimationFrame?.() ?? scope.cancelAnimationFrame;
+    return scope.getCancelAnimationFrame?.();
 }
 
 function getClearTimeout(
     scope: ListenersResizeRuntimeScope
 ): ((handle: ListenersResizeTimerHandle) => void) | undefined {
-    return scope.getClearTimeout?.() ?? scope.clearTimeout;
+    return scope.getClearTimeout?.();
 }
 
 function getDocument(
     scope: ListenersResizeRuntimeScope
 ): ListenersResizeRuntimeDocument | undefined {
-    return scope.getDocument?.() ?? scope.document;
+    return scope.getDocument?.();
 }
 
 function getElement(
     scope: ListenersResizeRuntimeScope
 ): typeof Element | undefined {
-    return scope.getElement?.() ?? scope.Element;
+    return scope.getElement?.();
 }
 
 function getHTMLCanvasElement(
     scope: ListenersResizeRuntimeScope
 ): typeof HTMLCanvasElement | undefined {
-    return scope.getHTMLCanvasElement?.() ?? scope.HTMLCanvasElement;
+    return scope.getHTMLCanvasElement?.();
 }
 
 function getRequestAnimationFrame(
     scope: ListenersResizeRuntimeScope
 ): ((callback: FrameRequestCallback) => number) | undefined {
-    return scope.getRequestAnimationFrame?.() ?? scope.requestAnimationFrame;
+    return scope.getRequestAnimationFrame?.();
 }
 
 function getResizeTarget(
     scope: ListenersResizeRuntimeScope
 ): ListenersResizeRuntimeWindow | undefined {
-    return scope.getResizeTarget?.() ?? scope.resizeTarget;
+    return scope.getResizeTarget?.();
 }
 
 function getSetTimeout(
@@ -168,7 +156,7 @@ function getSetTimeout(
 ):
     | ((callback: () => void, timeout?: number) => ListenersResizeTimerHandle)
     | undefined {
-    return scope.getSetTimeout?.() ?? scope.setTimeout;
+    return scope.getSetTimeout?.();
 }
 
 export function getListenersResizeRuntime(
@@ -177,7 +165,9 @@ export function getListenersResizeRuntime(
     return {
         addResizeListener(
             listener: EventListenerOrEventListenerObject,
-            options: AddEventListenerOptions & { readonly signal: AbortSignal }
+            options: Readonly<AddEventListenerOptions> & {
+                readonly signal: AbortSignal;
+            }
         ): void {
             getResizeTarget(scope)?.addEventListener?.("resize", listener, {
                 ...options,

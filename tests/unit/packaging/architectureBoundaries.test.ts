@@ -9238,7 +9238,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps resize listener browser APIs behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(45);
 
         const violations = migratedListenersResizeRuntimeFiles
             .filter((relativeFile) =>
@@ -9257,6 +9257,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/lifecycle/listenersResizeRuntime.ts"
             )
         );
+        const listenersResizeRuntimeScopeSource =
+            listenersResizeRuntimeSource.slice(
+                listenersResizeRuntimeSource.indexOf(
+                    "export interface ListenersResizeRuntimeScope"
+                ),
+                listenersResizeRuntimeSource.indexOf(
+                    "export interface ListenersResizeRuntime {"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(listenersResizeSource).toContain("listenersResizeRuntime.js");
@@ -9303,6 +9312,81 @@ describe("architecture boundaries", () => {
         expect(listenersResizeRuntimeSource).not.toContain("scope.window");
         expect(listenersResizeRuntimeSource).toContain(
             "listenersResize requires a setTimeout runtime"
+        );
+        expect(listenersResizeRuntimeScopeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(listenersResizeRuntimeScopeSource).not.toContain(
+            "readonly cancelAnimationFrame?:"
+        );
+        expect(listenersResizeRuntimeScopeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(listenersResizeRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(listenersResizeRuntimeScopeSource).not.toContain(
+            "readonly Element?:"
+        );
+        expect(listenersResizeRuntimeScopeSource).not.toContain(
+            "readonly HTMLCanvasElement?:"
+        );
+        expect(listenersResizeRuntimeScopeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(listenersResizeRuntimeScopeSource).not.toContain(
+            "readonly resizeTarget?:"
+        );
+        expect(listenersResizeRuntimeScopeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "scope.cancelAnimationFrame"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain("scope.document");
+        expect(listenersResizeRuntimeSource).not.toContain("scope.Element");
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "scope.HTMLCanvasElement"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain(
+            "scope.resizeTarget"
+        );
+        expect(listenersResizeRuntimeSource).not.toContain("scope.setTimeout");
+        expect(listenersResizeRuntimeSource).toContain(
+            "return scope.getAbortController?.();"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "return scope.getCancelAnimationFrame?.();"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "return scope.getClearTimeout?.();"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "return scope.getDocument?.();"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "return scope.getElement?.();"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "return scope.getHTMLCanvasElement?.();"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "return scope.getRequestAnimationFrame?.();"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "return scope.getResizeTarget?.();"
+        );
+        expect(listenersResizeRuntimeSource).toContain(
+            "return scope.getSetTimeout?.();"
         );
     });
 
