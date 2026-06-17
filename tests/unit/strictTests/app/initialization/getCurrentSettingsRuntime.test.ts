@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getGetCurrentSettingsRuntime } from "../../../../../electron-app/utils/app/initialization/getCurrentSettingsRuntime.js";
+import {
+    getGetCurrentSettingsRuntime,
+    type GetCurrentSettingsRuntimeScope,
+} from "../../../../../electron-app/utils/app/initialization/getCurrentSettingsRuntime.js";
 
 describe("getGetCurrentSettingsRuntime", () => {
     it("schedules and clears timers through the injected runtime scope", () => {
@@ -15,8 +18,8 @@ describe("getGetCurrentSettingsRuntime", () => {
             clearTimeout: clearScheduledTimeout,
             setTimeout: scheduleTimeout,
         } = getGetCurrentSettingsRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(scheduleTimeout(callback, delayMs)).toBe(timer);
@@ -30,6 +33,26 @@ describe("getGetCurrentSettingsRuntime", () => {
         expect.assertions(2);
 
         const runtime = getGetCurrentSettingsRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "getCurrentSettingsRuntime requires setTimeout"
+        );
+        expect(() =>
+            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("getCurrentSettingsRuntime requires clearTimeout");
+    });
+
+    it("ignores legacy direct timer scope properties", () => {
+        expect.assertions(2);
+
+        const runtime = getGetCurrentSettingsRuntime({
+            clearTimeout() {
+                throw new Error("legacy clearTimeout should not run");
+            },
+            setTimeout() {
+                throw new Error("legacy setTimeout should not run");
+            },
+        } as unknown as GetCurrentSettingsRuntimeScope);
 
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "getCurrentSettingsRuntime requires setTimeout"

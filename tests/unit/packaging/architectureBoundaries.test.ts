@@ -9222,7 +9222,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps current settings reset timers behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(13);
 
         const violations = migratedGetCurrentSettingsRuntimeFiles
             .filter((relativeFile) =>
@@ -9241,6 +9241,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/initialization/getCurrentSettingsRuntime.ts"
             )
         );
+        const getCurrentSettingsRuntimeScopeSource =
+            getCurrentSettingsRuntimeSource.slice(
+                getCurrentSettingsRuntimeSource.indexOf(
+                    "export interface GetCurrentSettingsRuntimeScope"
+                ),
+                getCurrentSettingsRuntimeSource.indexOf(
+                    "export interface GetCurrentSettingsRuntime {"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(getCurrentSettingsSource).toContain(
@@ -9252,11 +9261,32 @@ describe("architecture boundaries", () => {
         expect(getCurrentSettingsRuntimeSource).toContain(
             "defaultGetCurrentSettingsRuntimeScope"
         );
+        expect(getCurrentSettingsRuntimeScopeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(getCurrentSettingsRuntimeScopeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(getCurrentSettingsRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
         expect(getCurrentSettingsRuntimeSource).not.toContain(
             "scope: GetCurrentSettingsRuntimeScope = globalThis"
         );
+        expect(getCurrentSettingsRuntimeSource).not.toContain(
+            "GetCurrentSettingsRuntimeScope =\n    globalThis"
+        );
         expect(getCurrentSettingsRuntimeSource).toContain(
-            "const setTimeoutRef = scope.setTimeout;"
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(getCurrentSettingsRuntimeSource).toContain(
+            "const setTimeoutRef = scope.getSetTimeout?.();"
         );
     });
 
