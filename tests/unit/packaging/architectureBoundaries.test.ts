@@ -10541,7 +10541,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart request listener browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(21);
 
         const violations = migratedRenderChartRequestListenerRuntimeFiles
             .filter((relativeFile) =>
@@ -10564,14 +10564,54 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/renderChartRequestListenerRuntime.ts"
             )
         );
+        const runtimeScopeSource = runtimeSource.slice(
+            runtimeSource.indexOf(
+                "export interface RenderChartRequestListenerRuntimeScope"
+            ),
+            runtimeSource.indexOf(
+                "export interface RenderChartRequestListenerRuntime"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
         expect(runtimeSource).toContain(
             "defaultRenderChartRequestListenerRuntimeScope"
         );
-        expect(runtimeSource).not.toContain("globalThis.HTMLElement");
-        expect(runtimeSource).not.toContain("globalThis.CustomEvent");
+        expect(runtimeSource).toContain(
+            "getAddEventListener: () => globalThis.addEventListener"
+        );
+        expect(runtimeSource).toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(runtimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(runtimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(runtimeSource).not.toContain(
+            "scope: RenderChartRequestListenerRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).not.toContain(
+            "RenderChartRequestListenerRuntimeScope = globalThis"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly addEventListener?:");
+        expect(runtimeScopeSource).not.toContain("readonly CustomEvent?:");
+        expect(runtimeScopeSource).not.toContain("readonly document?:");
+        expect(runtimeScopeSource).not.toContain("readonly HTMLElement?:");
+        expect(runtimeSource).not.toContain("scope.addEventListener");
+        expect(runtimeSource).not.toContain("scope.CustomEvent");
+        expect(runtimeSource).not.toContain("scope.document");
+        expect(runtimeSource).not.toContain("scope.HTMLElement");
+        expect(runtimeSource).toContain(
+            "const addEventListener = scope.getAddEventListener?.();"
+        );
+        expect(runtimeSource).toContain("scope.getCustomEvent?.()");
+        expect(runtimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(runtimeSource).toContain("scope.getHTMLElement?.()");
     });
 
     it("keeps chart startup browser APIs behind the runtime facade", () => {

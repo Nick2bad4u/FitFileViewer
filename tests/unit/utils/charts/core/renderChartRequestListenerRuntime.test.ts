@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
-import { getRenderChartRequestListenerRuntime as getChartRequestListenerRuntime } from "../../../../../electron-app/utils/charts/core/renderChartRequestListenerRuntime.js";
+import {
+    getRenderChartRequestListenerRuntime as getChartRequestListenerRuntime,
+    type RenderChartRequestListenerRuntimeScope,
+} from "../../../../../electron-app/utils/charts/core/renderChartRequestListenerRuntime.js";
 
 function cleanupFixture(): void {
     document.body.replaceChildren();
@@ -24,7 +27,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
 
         try {
             getChartRequestListenerRuntime({
-                addEventListener,
+                getAddEventListener: () => addEventListener,
             }).addChartRequestListener(() => undefined, {
                 signal: abortController.signal,
             });
@@ -50,8 +53,8 @@ describe("getRenderChartRequestListenerRuntime", () => {
 
             expect(
                 getChartRequestListenerRuntime({
-                    document,
-                    HTMLElement,
+                    getDocument: () => document,
+                    getHTMLElement: () => HTMLElement,
                 }).getFallbackChartContainer()
             ).toBe(contentContainer);
 
@@ -61,8 +64,8 @@ describe("getRenderChartRequestListenerRuntime", () => {
 
             expect(
                 getChartRequestListenerRuntime({
-                    document,
-                    HTMLElement,
+                    getDocument: () => document,
+                    getHTMLElement: () => HTMLElement,
                 }).getFallbackChartContainer()
             ).toBe(chartJsContainer);
         } finally {
@@ -75,9 +78,9 @@ describe("getRenderChartRequestListenerRuntime", () => {
 
         try {
             const runtime = getChartRequestListenerRuntime({
-                CustomEvent,
-                document,
-                HTMLElement,
+                getCustomEvent: () => CustomEvent,
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
             });
 
             expect(runtime.getFallbackChartContainer()).toBe(document.body);
@@ -103,7 +106,7 @@ describe("getRenderChartRequestListenerRuntime", () => {
         } as unknown as Document;
 
         const runtime = getChartRequestListenerRuntime({
-            document: minimalDocument,
+            getDocument: () => minimalDocument,
         });
 
         expect(
@@ -126,5 +129,41 @@ describe("getRenderChartRequestListenerRuntime", () => {
                 { signal: abortController.signal }
             )
         ).toThrow("renderChartRequestListener requires addEventListener");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(4);
+
+        const addEventListener = vi.fn();
+        const abortController = new AbortController();
+
+        try {
+            const runtime = getChartRequestListenerRuntime({
+                addEventListener,
+                CustomEvent,
+                document,
+                HTMLElement,
+            } as unknown as RenderChartRequestListenerRuntimeScope);
+
+            expect(() =>
+                runtime.addChartRequestListener(() => undefined, {
+                    signal: abortController.signal,
+                })
+            ).toThrow("renderChartRequestListener requires addEventListener");
+            expect(() => runtime.getFallbackChartContainer()).toThrow(
+                "renderChartRequestListener requires a document"
+            );
+            expect(
+                runtime.isCustomEvent(
+                    new CustomEvent("ffv:request-render-charts")
+                )
+            ).toBe(false);
+            expect(() => runtime.querySelector("body")).toThrow(
+                "renderChartRequestListener requires a document"
+            );
+        } finally {
+            abortController.abort();
+            cleanupFixture();
+        }
     });
 });
