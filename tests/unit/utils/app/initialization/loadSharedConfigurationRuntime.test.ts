@@ -1,15 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getLoadSharedConfigurationRuntime } from "../../../../../electron-app/utils/app/initialization/loadSharedConfigurationRuntime.js";
+import {
+    getLoadSharedConfigurationRuntime,
+    type LoadSharedConfigurationRuntimeScope,
+} from "../../../../../electron-app/utils/app/initialization/loadSharedConfigurationRuntime.js";
 
 describe("getLoadSharedConfigurationRuntime", () => {
     it("reads the current location search from an injected runtime scope", () => {
         expect.assertions(1);
 
         const runtime = getLoadSharedConfigurationRuntime({
-            location: {
+            getLocation: () => ({
                 search: "?chartConfig=abc",
-            },
+            }),
         });
 
         expect(runtime.locationSearch).toBe("?chartConfig=abc");
@@ -30,8 +33,8 @@ describe("getLoadSharedConfigurationRuntime", () => {
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getLoadSharedConfigurationRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(runtime.setTimeout(callback, timeoutMs)).toBe(timer);
@@ -52,5 +55,32 @@ describe("getLoadSharedConfigurationRuntime", () => {
         expect(() =>
             runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("loadSharedConfigurationRuntime requires clearTimeout");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(3);
+
+        const callback = vi.fn<() => void>();
+        const timer = 23 as ReturnType<typeof globalThis.setTimeout>;
+        const legacySetTimeout = vi.fn<typeof globalThis.setTimeout>(
+            () => timer
+        );
+        const legacyClearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const legacyScope = {
+            clearTimeout: legacyClearTimeout,
+            location: {
+                search: "?chartConfig=abc",
+            },
+            setTimeout: legacySetTimeout,
+        } as unknown as LoadSharedConfigurationRuntimeScope;
+        const runtime = getLoadSharedConfigurationRuntime(legacyScope);
+
+        expect(runtime.locationSearch).toBe("");
+        expect(() => runtime.setTimeout(callback, 1)).toThrow(
+            "loadSharedConfigurationRuntime requires setTimeout"
+        );
+        expect(() => runtime.clearTimeout(timer)).toThrow(
+            "loadSharedConfigurationRuntime requires clearTimeout"
+        );
     });
 });

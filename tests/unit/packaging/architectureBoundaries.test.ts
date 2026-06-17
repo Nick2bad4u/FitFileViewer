@@ -9252,7 +9252,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared configuration URL reads behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(18);
 
         const violations = migratedLoadSharedConfigurationRuntimeFiles
             .filter((relativeFile) =>
@@ -9271,6 +9271,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/app/initialization/loadSharedConfigurationRuntime.ts"
             )
         );
+        const loadSharedConfigurationRuntimeScopeSource =
+            loadSharedConfigurationRuntimeSource.slice(
+                loadSharedConfigurationRuntimeSource.indexOf(
+                    "export interface LoadSharedConfigurationRuntimeScope"
+                ),
+                loadSharedConfigurationRuntimeSource.indexOf(
+                    "const defaultLoadSharedConfigurationRuntimeScope"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(loadSharedConfigurationSource).toContain(
@@ -9285,8 +9294,44 @@ describe("architecture boundaries", () => {
         expect(loadSharedConfigurationRuntimeSource).not.toContain(
             "scope: LoadSharedConfigurationRuntimeScope = globalThis"
         );
+        expect(loadSharedConfigurationRuntimeSource).not.toContain(
+            "LoadSharedConfigurationRuntimeScope =\n    globalThis"
+        );
+        expect(loadSharedConfigurationRuntimeScopeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(loadSharedConfigurationRuntimeScopeSource).not.toContain(
+            "readonly location?:"
+        );
+        expect(loadSharedConfigurationRuntimeScopeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(loadSharedConfigurationRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(loadSharedConfigurationRuntimeSource).not.toContain(
+            "scope.location"
+        );
+        expect(loadSharedConfigurationRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
         expect(loadSharedConfigurationRuntimeSource).toContain(
-            "const setTimeoutRef = scope.setTimeout;"
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "getLocation: () => globalThis.location"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "const clearTimeoutRef = scope.getClearTimeout?.();"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "scope.getLocation?.()?.search"
+        );
+        expect(loadSharedConfigurationRuntimeSource).toContain(
+            "const setTimeoutRef = scope.getSetTimeout?.();"
         );
     });
 
