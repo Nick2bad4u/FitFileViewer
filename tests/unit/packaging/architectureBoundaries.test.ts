@@ -7702,7 +7702,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps CSV clipboard browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(13);
 
         const violations = migratedCopyTableAsCSVRuntimeFiles
             .filter((relativeFile) =>
@@ -7721,6 +7721,14 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/export/copyTableAsCSVRuntime.ts"
             )
         );
+        const runtimeScopeSource = copyTableAsCSVRuntimeSource.slice(
+            copyTableAsCSVRuntimeSource.indexOf(
+                "export interface CopyTableAsCSVRuntimeScope"
+            ),
+            copyTableAsCSVRuntimeSource.indexOf(
+                "export interface CopyTableAsCSVRuntime"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(copyTableAsCSVSource).toContain("copyTableAsCSVRuntime.js");
@@ -7729,6 +7737,25 @@ describe("architecture boundaries", () => {
         );
         expect(copyTableAsCSVRuntimeSource).not.toContain(
             "scope: CopyTableAsCSVRuntimeScope = globalThis"
+        );
+        expect(copyTableAsCSVRuntimeSource).not.toContain(
+            "CopyTableAsCSVRuntimeScope =\n    globalThis"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly document?:");
+        expect(runtimeScopeSource).not.toContain("readonly navigator?:");
+        expect(copyTableAsCSVRuntimeSource).not.toContain("scope.document");
+        expect(copyTableAsCSVRuntimeSource).not.toContain("scope.navigator");
+        expect(copyTableAsCSVRuntimeSource).toContain(
+            "getClipboard: () => globalThis.navigator.clipboard"
+        );
+        expect(copyTableAsCSVRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(copyTableAsCSVRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(copyTableAsCSVRuntimeSource).toContain(
+            "const clipboard = scope.getClipboard?.();"
         );
     });
 

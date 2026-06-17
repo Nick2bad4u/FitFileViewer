@@ -3,24 +3,20 @@ type ClipboardTextWriter = {
 };
 
 export interface CopyTableAsCSVRuntimeScope {
-    readonly document?: Document | undefined;
-    readonly navigator?:
-        | {
-              readonly clipboard?: ClipboardTextWriter | undefined;
-          }
-        | undefined;
+    readonly getClipboard?: (() => ClipboardTextWriter | undefined) | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
 }
 
 export interface CopyTableAsCSVRuntime {
     copyTextUsingBrowserClipboard: (text: string) => Promise<boolean>;
     copyTextUsingLegacyExecCommand: (
         text: string,
-        styles: Partial<CSSStyleDeclaration>
+        styles: Readonly<Partial<CSSStyleDeclaration>>
     ) => void;
 }
 
 function getDocument(scope: CopyTableAsCSVRuntimeScope): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError("copyTableAsCSV requires a document runtime");
     }
@@ -28,8 +24,10 @@ function getDocument(scope: CopyTableAsCSVRuntimeScope): Document {
     return runtimeDocument;
 }
 
-const defaultCopyTableAsCSVRuntimeScope: CopyTableAsCSVRuntimeScope =
-    globalThis;
+const defaultCopyTableAsCSVRuntimeScope: CopyTableAsCSVRuntimeScope = {
+    getClipboard: () => globalThis.navigator.clipboard,
+    getDocument: () => globalThis.document,
+};
 
 export function getCopyTableAsCSVRuntime(
     scope: CopyTableAsCSVRuntimeScope = defaultCopyTableAsCSVRuntimeScope
@@ -37,7 +35,7 @@ export function getCopyTableAsCSVRuntime(
     return {
         async copyTextUsingBrowserClipboard(text): Promise<boolean> {
             try {
-                const clipboard = scope.navigator?.clipboard;
+                const clipboard = scope.getClipboard?.();
                 if (typeof clipboard?.writeText !== "function") {
                     return false;
                 }
@@ -50,7 +48,7 @@ export function getCopyTableAsCSVRuntime(
         },
         copyTextUsingLegacyExecCommand(
             text,
-            styles: Partial<CSSStyleDeclaration>
+            styles: Readonly<Partial<CSSStyleDeclaration>>
         ): void {
             const runtimeDocument = getDocument(scope);
             const textarea = runtimeDocument.createElement("textarea");

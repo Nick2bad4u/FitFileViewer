@@ -295,8 +295,9 @@ Power-estimation settings modal listener abort-controller creation now routes th
 direct modal controller construction from returning.
 CSV table clipboard fallback now routes browser clipboard writes and legacy textarea copy through
 `copyTableAsCSVRuntime.ts` instead of probing `navigator.clipboard` or calling document copy APIs directly inside
-`copyTableAsCSV.ts`, with focused runtime coverage and architecture guardrails blocking those direct browser
-clipboard paths from returning.
+`copyTableAsCSV.ts`; production defaults and explicit runtime scopes now use named provider functions instead of
+a broad `globalThis` default scope or direct document/navigator properties, with focused runtime coverage and
+architecture guardrails blocking those direct browser clipboard paths from returning.
 App performance debounce, throttle, batch, and idle-callback helpers now route timeout scheduling/clearing,
 idle-callback scheduling/cancellation, and clock reads through `performanceUtilsRuntime.ts` instead of calling
 timer, idle-callback, or `Date.now` globals directly inside `performanceUtils.ts`, with focused behavior/runtime
