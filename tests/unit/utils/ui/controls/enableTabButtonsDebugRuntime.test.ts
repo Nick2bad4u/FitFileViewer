@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getEnableTabButtonsDebugRuntime } from "../../../../../electron-app/utils/ui/controls/enableTabButtonsDebugRuntime.js";
+import {
+    getEnableTabButtonsDebugRuntime,
+    type EnableTabButtonsDebugRuntimeScope,
+} from "../../../../../electron-app/utils/ui/controls/enableTabButtonsDebugRuntime.js";
 
 describe("getEnableTabButtonsDebugRuntime", () => {
     it("calls the injected computed-style function when runtime APIs are available", () => {
@@ -11,7 +14,7 @@ describe("getEnableTabButtonsDebugRuntime", () => {
             (element: Element) => CSSStyleDeclaration
         >(() => ({ display: "block" }) as CSSStyleDeclaration);
         const runtime = getEnableTabButtonsDebugRuntime({
-            getComputedStyle,
+            getComputedStyleFunction: () => getComputedStyle,
             isRendererScope: () => true,
         });
 
@@ -23,7 +26,7 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect.assertions(2);
 
         const runtime = getEnableTabButtonsDebugRuntime({
-            AbortController,
+            getAbortController: () => AbortController,
         });
         const controller = runtime.createAbortController();
 
@@ -52,8 +55,8 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
         const clearTimeoutMock = vi.fn<typeof clearTimeout>();
         const runtime = getEnableTabButtonsDebugRuntime({
-            clearTimeout: clearTimeoutMock,
-            setTimeout: setTimeoutMock,
+            getClearTimeout: () => clearTimeoutMock,
+            getSetTimeout: () => setTimeoutMock,
         });
 
         expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
@@ -136,7 +139,7 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect.assertions(1);
 
         const runtime = getEnableTabButtonsDebugRuntime({
-            getComputedStyle: () =>
+            getComputedStyleFunction: () => () =>
                 ({ display: "block" }) as CSSStyleDeclaration,
         });
 
@@ -165,13 +168,52 @@ describe("getEnableTabButtonsDebugRuntime", () => {
         expect.assertions(1);
 
         const runtime = getEnableTabButtonsDebugRuntime({
-            AbortController:
+            getAbortController: () =>
                 "AbortController" as unknown as typeof AbortController,
         });
 
         expect(() => runtime.createAbortController()).toThrow(
             "enableTabButtonsDebug requires an AbortController runtime"
         );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(8);
+
+        const element = document.createElement("button");
+        const getComputedStyle = vi.fn<
+            (element: Element) => CSSStyleDeclaration
+        >(() => ({ display: "flex" }) as CSSStyleDeclaration);
+        const setTimeoutMock = vi.fn<typeof setTimeout>(
+            () => Symbol("timer") as unknown as ReturnType<typeof setTimeout>
+        );
+        const clearTimeoutMock = vi.fn<typeof clearTimeout>();
+        const runtime = getEnableTabButtonsDebugRuntime({
+            AbortController,
+            clearTimeout: clearTimeoutMock,
+            getComputedStyle,
+            isRendererScope: () => true,
+            setTimeout: setTimeoutMock,
+        } as unknown as EnableTabButtonsDebugRuntimeScope);
+
+        expect(runtime.createAbortController).toThrow(
+            "enableTabButtonsDebug requires an AbortController runtime"
+        );
+        expect(() =>
+            runtime.clearTimeout(
+                Symbol("timer") as unknown as ReturnType<typeof setTimeout>
+            )
+        ).toThrow("enableTabButtonsDebug requires a clearTimeout runtime");
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "enableTabButtonsDebug requires a setTimeout runtime"
+        );
+        expect(() => runtime.assertComputedStyleAvailable(element)).toThrow(
+            "getComputedStyle not available"
+        );
+        expect(getComputedStyle).not.toHaveBeenCalled();
+        expect(setTimeoutMock).not.toHaveBeenCalled();
+        expect(clearTimeoutMock).not.toHaveBeenCalled();
+        expect(runtime.assertComputedStyleAvailable).toBeTypeOf("function");
     });
 
     it("throws when abort-controller creation is unavailable", () => {

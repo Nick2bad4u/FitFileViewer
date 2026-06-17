@@ -1,33 +1,27 @@
 type EnableTabButtonsDebugGetComputedStyle = (
-    element: Element,
+    element: Readonly<Element>,
     pseudoElement?: null | string
 ) => CSSStyleDeclaration;
 
 export interface EnableTabButtonsDebugRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly clearTimeout?: typeof clearTimeout | undefined;
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
     readonly getClearTimeout?:
         | (() => typeof clearTimeout | undefined)
         | undefined;
-    readonly getComputedStyle?:
-        | EnableTabButtonsDebugGetComputedStyle
-        | undefined;
     readonly getComputedStyleFunction?:
         | (() => EnableTabButtonsDebugGetComputedStyle | undefined)
         | undefined;
     readonly getSetTimeout?: (() => typeof setTimeout | undefined) | undefined;
     readonly isRendererScope?: (() => boolean) | undefined;
-    readonly setTimeout?: typeof setTimeout | undefined;
 }
 
 export interface EnableTabButtonsDebugRuntime {
-    clearTimeout: (timer: ReturnType<typeof setTimeout>) => void;
-    createAbortController: () => AbortController;
-    assertComputedStyleAvailable: (element: Element) => void;
-    setTimeout: (
+    readonly clearTimeout: (timer: ReturnType<typeof setTimeout>) => void;
+    readonly createAbortController: () => AbortController;
+    readonly assertComputedStyleAvailable: (element: Readonly<Element>) => void;
+    readonly setTimeout: (
         handler: () => void,
         timeout: number
     ) => ReturnType<typeof setTimeout>;
@@ -39,14 +33,13 @@ const defaultEnableTabButtonsDebugRuntimeScope: EnableTabButtonsDebugRuntimeScop
         getClearTimeout: () => globalThis.clearTimeout,
         getComputedStyleFunction: () => globalThis.getComputedStyle,
         getSetTimeout: () => globalThis.setTimeout,
-        isRendererScope: () => globalThis.document !== undefined,
+        isRendererScope: () => Reflect.has(globalThis, "document"),
     };
 
 function getAbortControllerConstructor(
     scope: EnableTabButtonsDebugRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.getAbortController?.() ?? scope.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "enableTabButtonsDebug requires an AbortController runtime"
@@ -59,7 +52,7 @@ function getAbortControllerConstructor(
 function getComputedStyleFunction(
     scope: EnableTabButtonsDebugRuntimeScope
 ): EnableTabButtonsDebugGetComputedStyle | undefined {
-    return scope.getComputedStyleFunction?.() ?? scope.getComputedStyle;
+    return scope.getComputedStyleFunction?.();
 }
 
 function isRendererScope(scope: EnableTabButtonsDebugRuntimeScope): boolean {
@@ -69,7 +62,7 @@ function isRendererScope(scope: EnableTabButtonsDebugRuntimeScope): boolean {
 function getRequiredClearTimeout(
     scope: EnableTabButtonsDebugRuntimeScope
 ): typeof clearTimeout {
-    const clearTimer = scope.getClearTimeout?.() ?? scope.clearTimeout;
+    const clearTimer = scope.getClearTimeout?.();
     if (typeof clearTimer !== "function") {
         throw new TypeError(
             "enableTabButtonsDebug requires a clearTimeout runtime"
@@ -82,7 +75,7 @@ function getRequiredClearTimeout(
 function getRequiredSetTimeout(
     scope: EnableTabButtonsDebugRuntimeScope
 ): typeof setTimeout {
-    const scheduleTimer = scope.getSetTimeout?.() ?? scope.setTimeout;
+    const scheduleTimer = scope.getSetTimeout?.();
     if (typeof scheduleTimer !== "function") {
         throw new TypeError(
             "enableTabButtonsDebug requires a setTimeout runtime"
@@ -103,7 +96,7 @@ export function getEnableTabButtonsDebugRuntime(
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
         },
-        assertComputedStyleAvailable(element: Element): void {
+        assertComputedStyleAvailable(element: Readonly<Element>): void {
             const getComputedStyleRef = getComputedStyleFunction(scope);
             if (
                 !isRendererScope(scope) ||

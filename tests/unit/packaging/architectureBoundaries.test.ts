@@ -10115,7 +10115,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button debug runtime checks behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(26);
 
         const violations = migratedEnableTabButtonsDebugRuntimeFiles
             .filter((relativeFile) =>
@@ -10134,6 +10134,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/enableTabButtonsDebugRuntime.ts"
             )
         );
+        const enableTabButtonsDebugRuntimeScopeSource =
+            enableTabButtonsDebugRuntimeSource.slice(
+                enableTabButtonsDebugRuntimeSource.indexOf(
+                    "export interface EnableTabButtonsDebugRuntimeScope"
+                ),
+                enableTabButtonsDebugRuntimeSource.indexOf(
+                    "export interface EnableTabButtonsDebugRuntime {"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(enableTabButtonsDebugSource).toContain(
@@ -10158,7 +10167,7 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
-            "isRendererScope: () => globalThis.document !== undefined"
+            'isRendererScope: () => Reflect.has(globalThis, "document")'
         );
         expect(enableTabButtonsDebugRuntimeSource).not.toContain(
             "scope: EnableTabButtonsDebugRuntimeScope = globalThis"
@@ -10170,6 +10179,42 @@ describe("architecture boundaries", () => {
             "scope.window"
         );
         expect(enableTabButtonsDebugRuntimeSource).not.toContain("window?:");
+        expect(enableTabButtonsDebugRuntimeScopeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).not.toContain(
+            "readonly getComputedStyle?:"
+        );
+        expect(enableTabButtonsDebugRuntimeScopeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "scope.getComputedStyle;"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "return scope.getComputedStyleFunction?.();"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "const clearTimer = scope.getClearTimeout?.();"
+        );
+        expect(enableTabButtonsDebugRuntimeSource).toContain(
+            "const scheduleTimer = scope.getSetTimeout?.();"
+        );
         expect(enableTabButtonsDebugRuntimeSource).toContain(
             "enableTabButtonsDebug requires a setTimeout runtime"
         );
