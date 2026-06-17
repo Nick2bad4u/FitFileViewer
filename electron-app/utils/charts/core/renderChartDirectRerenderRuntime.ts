@@ -1,6 +1,15 @@
+type RenderChartDirectRerenderDocument = Pick<
+    Document,
+    "defaultView" | "querySelector"
+>;
+
 export interface RenderChartDirectRerenderRuntimeScope {
-    readonly document?: Document | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
+    readonly getDocument?:
+        | (() => RenderChartDirectRerenderDocument | undefined)
+        | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof HTMLElement | undefined)
+        | undefined;
 }
 
 export interface RenderChartDirectRerenderRuntime {
@@ -8,19 +17,27 @@ export interface RenderChartDirectRerenderRuntime {
     querySelector: (selector: string) => HTMLElement | null;
 }
 
+/* eslint-disable perfectionist/sort-arrays -- Prefer chartjs containers before legacy chart containers. */
 const chartContainerSelectors = [
     "#chartjs_chart_container",
     "#content_chartjs",
     "#content_chart",
 ] as const;
+/* eslint-enable perfectionist/sort-arrays -- Re-enable array sorting after the prioritized container list. */
 
 const defaultRenderChartDirectRerenderRuntimeScope: RenderChartDirectRerenderRuntimeScope =
-    globalThis;
+    {
+        getDocument: () => globalThis.document,
+        getHTMLElement: () => globalThis.HTMLElement,
+    };
 
 function getHTMLElementConstructor(
     scope: RenderChartDirectRerenderRuntimeScope
 ): typeof HTMLElement | undefined {
-    return scope.HTMLElement ?? scope.document?.defaultView?.HTMLElement;
+    return (
+        scope.getHTMLElement?.() ??
+        scope.getDocument?.()?.defaultView?.HTMLElement
+    );
 }
 
 function isHTMLElement(
@@ -38,7 +55,7 @@ function queryHTMLElement(
     scope: RenderChartDirectRerenderRuntimeScope,
     selector: string
 ): HTMLElement | null {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         return null;
     }

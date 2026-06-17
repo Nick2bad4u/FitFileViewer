@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 
-import { getRenderChartDirectRerenderRuntime } from "../../../../../electron-app/utils/charts/core/renderChartDirectRerenderRuntime.js";
+import {
+    getRenderChartDirectRerenderRuntime,
+    type RenderChartDirectRerenderRuntimeScope,
+} from "../../../../../electron-app/utils/charts/core/renderChartDirectRerenderRuntime.js";
 
 function cleanupFixture(): void {
     document.body.replaceChildren();
@@ -18,8 +21,8 @@ describe("getRenderChartDirectRerenderRuntime", () => {
 
             expect(
                 getRenderChartDirectRerenderRuntime({
-                    document,
-                    HTMLElement,
+                    getDocument: () => document,
+                    getHTMLElement: () => HTMLElement,
                 }).queryChartContainer()
             ).toBe(contentContainer);
 
@@ -29,8 +32,8 @@ describe("getRenderChartDirectRerenderRuntime", () => {
 
             expect(
                 getRenderChartDirectRerenderRuntime({
-                    document,
-                    HTMLElement,
+                    getDocument: () => document,
+                    getHTMLElement: () => HTMLElement,
                 }).queryChartContainer()
             ).toBe(chartJsContainer);
         } finally {
@@ -48,22 +51,49 @@ describe("getRenderChartDirectRerenderRuntime", () => {
 
             expect(
                 getRenderChartDirectRerenderRuntime({
-                    document,
-                    HTMLElement,
+                    getDocument: () => document,
+                    getHTMLElement: () => HTMLElement,
                 }).querySelector("#content_chart")
             ).toBe(chartContainer);
             expect(
                 getRenderChartDirectRerenderRuntime({
-                    document,
+                    getDocument: () => document,
                 }).querySelector("#content_chart")
             ).toBe(chartContainer);
             expect(
                 getRenderChartDirectRerenderRuntime({
-                    document: {
-                        querySelector: () => document,
-                    } as unknown as Document,
-                    HTMLElement,
+                    getDocument: () =>
+                        ({
+                            querySelector: () => document,
+                        }) as unknown as Document,
+                    getHTMLElement: () => HTMLElement,
                 }).querySelector("#content_chart")
+            ).toBeNull();
+        } finally {
+            cleanupFixture();
+        }
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(2);
+
+        try {
+            const chartContainer = document.createElement("section");
+            chartContainer.id = "content_chart";
+            document.body.append(chartContainer);
+            expect(
+                getRenderChartDirectRerenderRuntime({
+                    document,
+                    HTMLElement,
+                } as unknown as RenderChartDirectRerenderRuntimeScope).querySelector(
+                    "#content_chart"
+                )
+            ).toBeNull();
+            expect(
+                getRenderChartDirectRerenderRuntime({
+                    document,
+                    HTMLElement,
+                } as unknown as RenderChartDirectRerenderRuntimeScope).queryChartContainer()
             ).toBeNull();
         } finally {
             cleanupFixture();

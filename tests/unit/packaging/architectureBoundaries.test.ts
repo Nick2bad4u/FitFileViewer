@@ -10478,7 +10478,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps direct chart rerender DOM lookups behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(14);
 
         const violations = migratedRenderChartDirectRerenderRuntimeFiles
             .filter((relativeFile) =>
@@ -10501,16 +10501,43 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/renderChartDirectRerenderRuntime.ts"
             )
         );
+        const runtimeScopeSource = runtimeSource.slice(
+            runtimeSource.indexOf(
+                "export interface RenderChartDirectRerenderRuntimeScope"
+            ),
+            runtimeSource.indexOf(
+                "export interface RenderChartDirectRerenderRuntime"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
         expect(runtimeSource).toContain(
             "defaultRenderChartDirectRerenderRuntimeScope"
         );
+        expect(runtimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(runtimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
         expect(runtimeSource).not.toContain(
             "scope: RenderChartDirectRerenderRuntimeScope = globalThis"
         );
-        expect(runtimeSource).not.toContain("globalThis.HTMLElement");
+        expect(runtimeSource).not.toContain(
+            "RenderChartDirectRerenderRuntimeScope = globalThis"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly document?:");
+        expect(runtimeScopeSource).not.toContain("readonly HTMLElement?:");
+        expect(runtimeSource).not.toContain("scope.document");
+        expect(runtimeSource).not.toContain("scope.HTMLElement");
+        expect(runtimeSource).toContain("scope.getHTMLElement?.()");
+        expect(runtimeSource).toContain(
+            "scope.getDocument?.()?.defaultView?.HTMLElement"
+        );
+        expect(runtimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
     });
 
     it("keeps chart request listener browser APIs behind the runtime facade", () => {
