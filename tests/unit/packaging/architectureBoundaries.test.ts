@@ -8079,7 +8079,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter control browser APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(17);
 
         const violations = migratedCreateDataPointFilterControlRuntimeFiles
             .filter((relativeFile) =>
@@ -8098,22 +8098,57 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/controls/createDataPointFilterControlRuntime.ts"
             )
         );
+        const runtimeScopeSource = dataPointFilterControlRuntimeSource.slice(
+            dataPointFilterControlRuntimeSource.indexOf(
+                "export interface CreateDataPointFilterControlRuntimeScope"
+            ),
+            dataPointFilterControlRuntimeSource.indexOf(
+                "export interface CreateDataPointFilterControlRuntime"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(dataPointFilterControlSource).toContain(
             "createDataPointFilterControlRuntime.js"
-        );
-        expect(dataPointFilterControlRuntimeSource).not.toContain(
-            "globalThis.AbortController"
-        );
-        expect(dataPointFilterControlRuntimeSource).not.toContain(
-            "globalThis.queueMicrotask"
         );
         expect(dataPointFilterControlRuntimeSource).toContain(
             "defaultCreateDataPointFilterControlRuntimeScope"
         );
         expect(dataPointFilterControlRuntimeSource).not.toContain(
             "scope: CreateDataPointFilterControlRuntimeScope = globalThis"
+        );
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
+            "CreateDataPointFilterControlRuntimeScope =\n    globalThis"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
+        expect(runtimeScopeSource).not.toContain("readonly document?:");
+        expect(runtimeScopeSource).not.toContain("readonly queueMicrotask?:");
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(dataPointFilterControlRuntimeSource).not.toContain(
+            "scope.queueMicrotask"
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
+            "getQueueMicrotask: () => globalThis.queueMicrotask"
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(dataPointFilterControlRuntimeSource).toContain(
+            "const microtaskScheduler = scope.getQueueMicrotask?.();"
         );
     });
 

@@ -1,7 +1,11 @@
 export interface CreateDataPointFilterControlRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly document?: Document | undefined;
-    readonly queueMicrotask?: typeof queueMicrotask | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getQueueMicrotask?:
+        | (() => typeof queueMicrotask | undefined)
+        | undefined;
 }
 
 export interface CreateDataPointFilterControlRuntime {
@@ -11,13 +15,16 @@ export interface CreateDataPointFilterControlRuntime {
 }
 
 const defaultCreateDataPointFilterControlRuntimeScope: CreateDataPointFilterControlRuntimeScope =
-    globalThis;
+    {
+        getAbortController: () => globalThis.AbortController,
+        getDocument: () => globalThis.document,
+        getQueueMicrotask: () => globalThis.queueMicrotask,
+    };
 
 function getAbortControllerConstructor(
     scope: CreateDataPointFilterControlRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.AbortController ?? scope.document?.defaultView?.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "createDataPointFilterControl requires an AbortController runtime"
@@ -30,7 +37,7 @@ function getAbortControllerConstructor(
 function getDocument(
     scope: CreateDataPointFilterControlRuntimeScope
 ): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError(
             "createDataPointFilterControl requires a document runtime"
@@ -53,9 +60,7 @@ export function getCreateDataPointFilterControlRuntime(
             return getDocument(scope).createElement("option");
         },
         scheduleMicrotask(callback: VoidFunction): void {
-            const microtaskScheduler =
-                scope.queueMicrotask ??
-                scope.document?.defaultView?.queueMicrotask;
+            const microtaskScheduler = scope.getQueueMicrotask?.();
             if (typeof microtaskScheduler === "function") {
                 microtaskScheduler(callback);
                 return;

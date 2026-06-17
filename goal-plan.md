@@ -775,9 +775,9 @@ Data-point filter control tests now install and restore temporary animation-fram
 descriptor-scoped helpers instead of assigning or deleting `globalThis.requestAnimationFrame`,
 `globalThis.cancelAnimationFrame`, or `globalThis.queueMicrotask` directly, with architecture coverage blocking
 that fixture mutation pattern.
-The data-point filter control runtime facade now resolves AbortController and microtask scheduling from its
-explicit scope or document window instead of separately probing `globalThis.AbortController` or
-`globalThis.queueMicrotask` for custom scopes, with architecture coverage blocking those ambient fallbacks.
+The data-point filter control runtime facade now resolves AbortController, document access, and microtask
+scheduling through named provider functions instead of broad `globalThis` default scopes, direct scope
+properties, or document-window fallbacks, with architecture coverage blocking those ambient fallbacks.
 Render-summary virtualized lap-row scheduling now routes request/cancel animation-frame access and resize listener
 registration through `renderSummaryRuntime.ts` instead of direct `globalThis` probes in `renderSummaryHelpers.ts`,
 with adapter tests and architecture coverage blocking those direct scheduling globals from returning. Summary render
