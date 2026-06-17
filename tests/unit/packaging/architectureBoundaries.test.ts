@@ -10254,7 +10254,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps user/device info box listener cleanup behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(10);
 
         const violations = migratedUserDeviceInfoBoxRuntimeFiles
             .filter((relativeFile) =>
@@ -10273,6 +10273,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/components/createUserDeviceInfoBoxRuntime.ts"
             )
         );
+        const userDeviceInfoBoxRuntimeScopeSource =
+            userDeviceInfoBoxRuntimeSource.slice(
+                userDeviceInfoBoxRuntimeSource.indexOf(
+                    "export interface UserDeviceInfoBoxRuntimeScope"
+                ),
+                userDeviceInfoBoxRuntimeSource.indexOf(
+                    "export interface UserDeviceInfoBoxRuntime {"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(userDeviceInfoBoxSource).toContain(
@@ -10282,8 +10291,23 @@ describe("architecture boundaries", () => {
         expect(userDeviceInfoBoxRuntimeSource).toContain(
             "defaultUserDeviceInfoBoxRuntimeScope"
         );
+        expect(userDeviceInfoBoxRuntimeScopeSource).not.toContain(
+            "readonly AbortController?:"
+        );
         expect(userDeviceInfoBoxRuntimeSource).not.toContain(
-            "globalThis.AbortController"
+            "scope.AbortController"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).not.toContain(
+            "scope: UserDeviceInfoBoxRuntimeScope = globalThis"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).not.toContain(
+            "UserDeviceInfoBoxRuntimeScope =\n    globalThis"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
         );
     });
 

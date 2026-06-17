@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getUserDeviceInfoBoxRuntime } from "../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBoxRuntime.js";
+import {
+    getUserDeviceInfoBoxRuntime,
+    type UserDeviceInfoBoxRuntimeScope,
+} from "../../../../../electron-app/utils/rendering/components/createUserDeviceInfoBoxRuntime.js";
 
 describe("getUserDeviceInfoBoxRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -20,7 +23,7 @@ describe("getUserDeviceInfoBoxRuntime", () => {
             }
         }
         const runtime = getUserDeviceInfoBoxRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -33,6 +36,29 @@ describe("getUserDeviceInfoBoxRuntime", () => {
         expect.assertions(1);
 
         const runtime = getUserDeviceInfoBoxRuntime({});
+
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow(
+            "createUserDeviceInfoBox requires an AbortController runtime"
+        );
+    });
+
+    it("ignores legacy direct AbortController scope properties", () => {
+        expect.assertions(1);
+
+        class TestAbortController implements AbortController {
+            public readonly signal = Symbol(
+                "legacy-user-device-info-box-signal"
+            ) as unknown as AbortSignal;
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const runtime = getUserDeviceInfoBoxRuntime({
+            AbortController: TestAbortController,
+        } as unknown as UserDeviceInfoBoxRuntimeScope);
 
         expect(() => {
             runtime.createAbortController();
