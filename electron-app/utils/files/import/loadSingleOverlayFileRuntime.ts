@@ -1,5 +1,7 @@
 export interface LoadSingleOverlayFileRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
 }
 
 export interface LoadSingleOverlayFileRuntime {
@@ -9,7 +11,7 @@ export interface LoadSingleOverlayFileRuntime {
 function getAbortControllerConstructor(
     scope: LoadSingleOverlayFileRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor = scope.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "loadSingleOverlayFile requires an AbortController runtime"
@@ -20,7 +22,9 @@ function getAbortControllerConstructor(
 }
 
 const defaultLoadSingleOverlayFileRuntimeScope: LoadSingleOverlayFileRuntimeScope =
-    globalThis;
+    {
+        getAbortController: () => globalThis.AbortController,
+    };
 
 export function getLoadSingleOverlayFileRuntime(
     scope: LoadSingleOverlayFileRuntimeScope = defaultLoadSingleOverlayFileRuntimeScope

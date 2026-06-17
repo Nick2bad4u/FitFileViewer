@@ -280,8 +280,9 @@ Overlay file load concurrency now resolves navigator hardware-concurrency metada
 with focused runtime coverage and architecture guardrails blocking that direct metadata lookup from returning.
 Single overlay FileReader fallback listener abort-controller creation now routes through
 `loadSingleOverlayFileRuntime.ts` instead of constructing `AbortController` directly inside
-`loadSingleOverlayFile.ts`, with focused runtime coverage and architecture guardrails blocking direct
-single-overlay controller construction from returning.
+`loadSingleOverlayFile.ts`; production defaults and explicit runtime scopes now use a named provider function
+instead of a broad `globalThis` default scope or direct `AbortController` property, with focused runtime coverage
+and architecture guardrails blocking direct single-overlay controller construction from returning.
 Open-file selector hidden input creation, jsdom detection, microtask fallback, timeout cleanup, and
 abort-controller creation now route through `openFileSelectorRuntime.ts` instead of calling browser primitives or
 constructing controllers directly inside `openFileSelector.ts`, with focused runtime coverage and architecture

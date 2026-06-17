@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getLoadSingleOverlayFileRuntime } from "../../../../../electron-app/utils/files/import/loadSingleOverlayFileRuntime.js";
+import {
+    getLoadSingleOverlayFileRuntime,
+    type LoadSingleOverlayFileRuntimeScope,
+} from "../../../../../electron-app/utils/files/import/loadSingleOverlayFileRuntime.js";
 
 describe("getLoadSingleOverlayFileRuntime", () => {
     it("creates abort controllers through the injected runtime", () => {
@@ -13,7 +16,7 @@ describe("getLoadSingleOverlayFileRuntime", () => {
             }
         );
         const runtime = getLoadSingleOverlayFileRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -29,5 +32,17 @@ describe("getLoadSingleOverlayFileRuntime", () => {
         expect(() => runtime.createAbortController()).toThrow(
             "loadSingleOverlayFile requires an AbortController runtime"
         );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(1);
+
+        const legacyScope = {
+            AbortController,
+        } as unknown as LoadSingleOverlayFileRuntimeScope;
+
+        expect(() =>
+            getLoadSingleOverlayFileRuntime(legacyScope).createAbortController()
+        ).toThrow("loadSingleOverlayFile requires an AbortController runtime");
     });
 });

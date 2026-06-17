@@ -9235,7 +9235,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps single-overlay FileReader abort-controller creation behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(11);
 
         const violations = migratedLoadSingleOverlayFileRuntimeFiles
             .filter((relativeFile) =>
@@ -9254,6 +9254,14 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/import/loadSingleOverlayFileRuntime.ts"
             )
         );
+        const runtimeScopeSource = loadSingleOverlayFileRuntimeSource.slice(
+            loadSingleOverlayFileRuntimeSource.indexOf(
+                "export interface LoadSingleOverlayFileRuntimeScope"
+            ),
+            loadSingleOverlayFileRuntimeSource.indexOf(
+                "export interface LoadSingleOverlayFileRuntime"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(loadSingleOverlayFileSource).toContain(
@@ -9265,6 +9273,22 @@ describe("architecture boundaries", () => {
         );
         expect(loadSingleOverlayFileRuntimeSource).not.toContain(
             "scope: LoadSingleOverlayFileRuntimeScope = globalThis"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "LoadSingleOverlayFileRuntimeScope =\n    globalThis"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
+        expect(loadSingleOverlayFileRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
+        );
+        expect(loadSingleOverlayFileRuntimeSource).toContain(
+            "loadSingleOverlayFile requires an AbortController runtime"
         );
     });
 
