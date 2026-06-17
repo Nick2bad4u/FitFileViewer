@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { getLoadingOverlayRuntime } from "../../../../../electron-app/utils/ui/components/LoadingOverlayRuntime.js";
+import {
+    getLoadingOverlayRuntime,
+    type LoadingOverlayRuntimeScope,
+} from "../../../../../electron-app/utils/ui/components/LoadingOverlayRuntime.js";
 
 describe("getLoadingOverlayRuntime", () => {
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getLoadingOverlayRuntime({ document });
+        const runtime = getLoadingOverlayRuntime({
+            getDocument: () => document,
+        });
 
         expect(runtime.createElement("div")).toBeInstanceOf(HTMLDivElement);
         expect(runtime.createElement("style")).toBeInstanceOf(HTMLStyleElement);
@@ -16,7 +21,9 @@ describe("getLoadingOverlayRuntime", () => {
     it("queries and appends through the injected document", () => {
         expect.assertions(2);
 
-        const runtime = getLoadingOverlayRuntime({ document });
+        const runtime = getLoadingOverlayRuntime({
+            getDocument: () => document,
+        });
         const overlay = runtime.createElement("div");
         overlay.id = "fitfile-loading-overlay";
 
@@ -38,6 +45,19 @@ describe("getLoadingOverlayRuntime", () => {
             "LoadingOverlay requires a document runtime"
         );
         expect(() => runtime.querySelector("body")).toThrow(
+            "LoadingOverlay requires a document runtime"
+        );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(1);
+
+        const legacyScope = {
+            document,
+        } as unknown as LoadingOverlayRuntimeScope;
+        const runtime = getLoadingOverlayRuntime(legacyScope);
+
+        expect(() => runtime.createElement("div")).toThrow(
             "LoadingOverlay requires a document runtime"
         );
     });

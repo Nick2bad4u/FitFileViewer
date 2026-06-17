@@ -8364,7 +8364,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps loading overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(10);
 
         const violations = migratedLoadingOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -8383,6 +8383,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/components/LoadingOverlayRuntime.ts"
             )
         );
+        const loadingOverlayRuntimeScopeSource =
+            loadingOverlayRuntimeSource.slice(
+                loadingOverlayRuntimeSource.indexOf(
+                    "export interface LoadingOverlayRuntimeScope"
+                ),
+                loadingOverlayRuntimeSource.indexOf(
+                    "export interface LoadingOverlayRuntime"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(loadingOverlaySource).toContain("LoadingOverlayRuntime.js");
@@ -8391,6 +8400,22 @@ describe("architecture boundaries", () => {
         );
         expect(loadingOverlayRuntimeSource).not.toMatch(
             directLoadingOverlayRuntimeAmbientGetterPattern
+        );
+        expect(loadingOverlayRuntimeSource).not.toContain(
+            "LoadingOverlayRuntimeScope =\n    globalThis"
+        );
+        expect(loadingOverlayRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(loadingOverlayRuntimeSource).not.toContain("scope.document");
+        expect(loadingOverlayRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(loadingOverlayRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(loadingOverlayRuntimeSource).toContain(
+            "LoadingOverlay requires a document runtime"
         );
     });
 

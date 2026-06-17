@@ -1,9 +1,9 @@
 export interface LoadingOverlayRuntimeScope {
-    readonly document?: Document | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
 }
 
 export interface LoadingOverlayRuntime {
-    appendToBody: (element: HTMLElement) => void;
+    appendToBody: (element: Readonly<HTMLElement>) => void;
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
@@ -15,11 +15,12 @@ export interface LoadingOverlayRuntime {
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
-const defaultLoadingOverlayRuntimeScope: LoadingOverlayRuntimeScope =
-    globalThis;
+const defaultLoadingOverlayRuntimeScope: LoadingOverlayRuntimeScope = {
+    getDocument: () => globalThis.document,
+};
 
 function getDocument(scope: LoadingOverlayRuntimeScope): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError("LoadingOverlay requires a document runtime");
     }
@@ -31,7 +32,7 @@ export function getLoadingOverlayRuntime(
     scope: LoadingOverlayRuntimeScope = defaultLoadingOverlayRuntimeScope
 ): LoadingOverlayRuntime {
     return {
-        appendToBody(element: HTMLElement): void {
+        appendToBody(element: Readonly<HTMLElement>): void {
             getDocument(scope).body.append(element);
         },
         createElement<K extends keyof HTMLElementTagNameMap>(
@@ -42,14 +43,9 @@ export function getLoadingOverlayRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(
-                SVG_NAMESPACE,
-                tagName
-            );
+            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
         },
-        querySelector<E extends Element = Element>(
-            selector: string
-        ): E | null {
+        querySelector<E extends Element = Element>(selector: string): E | null {
             return getDocument(scope).querySelector<E>(selector);
         },
     };
