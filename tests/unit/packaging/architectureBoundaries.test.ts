@@ -1179,7 +1179,7 @@ const chartStatusIndicatorTestDirectBrowserFixtureAssignmentPattern =
 const directChartListenerStateAbortControllerPattern =
     /\bnew\s+AbortController\b/u;
 const directChartListenerStateRuntimeAmbientControllerPattern =
-    /\bglobalThis\.AbortController\b/u;
+    /\breturn\s+globalThis\.AbortController\b/u;
 const directRenderChartDirectRerenderRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
 const directRenderChartRequestListenerRuntimeGlobalPattern =
@@ -10223,7 +10223,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart listener AbortController creation behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(11);
 
         const violations = migratedChartListenerStateRuntimeFiles
             .filter((relativeFile) =>
@@ -10245,6 +10245,12 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/chartListenerStateRuntime.ts"
             )
         );
+        const runtimeScopeSource = runtimeSource.slice(
+            runtimeSource.indexOf(
+                "export interface ChartListenerStateRuntimeScope"
+            ),
+            runtimeSource.indexOf("export interface ChartListenerStateRuntime")
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
@@ -10257,8 +10263,19 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).not.toContain(
             "scope: ChartListenerStateRuntimeScope = globalThis"
         );
+        expect(runtimeSource).not.toContain(
+            "ChartListenerStateRuntimeScope =\n    globalThis"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
+        expect(runtimeSource).not.toContain("scope.AbortController");
         expect(runtimeSource).toContain(
-            "const AbortControllerConstructor = scope.AbortController;"
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(runtimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
+        );
+        expect(runtimeSource).toContain(
+            "chartListenerState requires an AbortController"
         );
     });
 

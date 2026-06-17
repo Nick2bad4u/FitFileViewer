@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { getChartListenerStateRuntime } from "../../../../../electron-app/utils/charts/core/chartListenerStateRuntime.js";
+import {
+    getChartListenerStateRuntime,
+    type ChartListenerStateRuntimeScope,
+} from "../../../../../electron-app/utils/charts/core/chartListenerStateRuntime.js";
 
 describe("getChartListenerStateRuntime", () => {
     it("creates abort controllers through the injected constructor", () => {
         expect.assertions(2);
 
         const controller = getChartListenerStateRuntime({
-            AbortController,
+            getAbortController: () => AbortController,
         }).createAbortController();
 
         expect(controller).toBeInstanceOf(AbortController);
@@ -19,7 +22,7 @@ describe("getChartListenerStateRuntime", () => {
 
         expect(() =>
             getChartListenerStateRuntime({
-                AbortController:
+                getAbortController: () =>
                     "AbortController" as unknown as typeof AbortController,
             }).createAbortController()
         ).toThrow("chartListenerState requires an AbortController");
@@ -30,6 +33,18 @@ describe("getChartListenerStateRuntime", () => {
 
         expect(() =>
             getChartListenerStateRuntime({}).createAbortController()
+        ).toThrow("chartListenerState requires an AbortController");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(1);
+
+        const legacyScope = {
+            AbortController,
+        } as unknown as ChartListenerStateRuntimeScope;
+
+        expect(() =>
+            getChartListenerStateRuntime(legacyScope).createAbortController()
         ).toThrow("chartListenerState requires an AbortController");
     });
 });

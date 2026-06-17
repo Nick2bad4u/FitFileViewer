@@ -1,18 +1,21 @@
 export interface ChartListenerStateRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
 }
 
 export interface ChartListenerStateRuntime {
     createAbortController: () => AbortController;
 }
 
-const defaultChartListenerStateRuntimeScope: ChartListenerStateRuntimeScope =
-    globalThis;
+const defaultChartListenerStateRuntimeScope: ChartListenerStateRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+};
 
 function getAbortControllerConstructor(
     scope: ChartListenerStateRuntimeScope
 ): typeof AbortController {
-    const AbortControllerConstructor = scope.AbortController;
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError("chartListenerState requires an AbortController");
     }
