@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { getLoadOverlayFilesRuntime } from "../../../../../electron-app/utils/files/import/loadOverlayFilesRuntime.js";
+import {
+    getLoadOverlayFilesRuntime,
+    type LoadOverlayFilesRuntimeScope,
+} from "../../../../../electron-app/utils/files/import/loadOverlayFilesRuntime.js";
 
 describe("getLoadOverlayFilesRuntime", () => {
     it("reads hardware concurrency from the injected navigator", () => {
         expect.assertions(1);
 
         const view = getLoadOverlayFilesRuntime({
-            navigator: { hardwareConcurrency: 8 },
+            getNavigator: () => ({ hardwareConcurrency: 8 }),
         });
 
         expect(view.getHardwareConcurrency()).toBe(8);
@@ -21,16 +24,24 @@ describe("getLoadOverlayFilesRuntime", () => {
         expect(view.getHardwareConcurrency()).toBeUndefined();
     });
 
-    it("isolates throwing navigator accessors", () => {
+    it("isolates throwing navigator providers", () => {
         expect.assertions(1);
 
-        const scope = {};
-        Object.defineProperty(scope, "navigator", {
-            get() {
+        const view = getLoadOverlayFilesRuntime({
+            getNavigator() {
                 throw new Error("navigator unavailable");
             },
         });
-        const view = getLoadOverlayFilesRuntime(scope);
+
+        expect(view.getHardwareConcurrency()).toBeUndefined();
+    });
+
+    it("ignores legacy direct navigator scope properties", () => {
+        expect.assertions(1);
+
+        const view = getLoadOverlayFilesRuntime({
+            navigator: { hardwareConcurrency: 16 },
+        } as unknown as LoadOverlayFilesRuntimeScope);
 
         expect(view.getHardwareConcurrency()).toBeUndefined();
     });

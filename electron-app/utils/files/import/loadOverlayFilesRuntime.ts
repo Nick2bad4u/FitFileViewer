@@ -1,13 +1,16 @@
 export interface LoadOverlayFilesRuntimeScope {
-    readonly navigator?: Pick<Navigator, "hardwareConcurrency"> | undefined;
+    readonly getNavigator?:
+        | (() => Pick<Navigator, "hardwareConcurrency"> | undefined)
+        | undefined;
 }
 
 export interface LoadOverlayFilesRuntime {
     getHardwareConcurrency: () => number | undefined;
 }
 
-const defaultLoadOverlayFilesRuntimeScope: LoadOverlayFilesRuntimeScope =
-    globalThis;
+const defaultLoadOverlayFilesRuntimeScope: LoadOverlayFilesRuntimeScope = {
+    getNavigator: () => globalThis.navigator,
+};
 
 export function getLoadOverlayFilesRuntime(
     scope: LoadOverlayFilesRuntimeScope = defaultLoadOverlayFilesRuntimeScope
@@ -15,7 +18,7 @@ export function getLoadOverlayFilesRuntime(
     return {
         getHardwareConcurrency(): number | undefined {
             try {
-                return scope.navigator?.hardwareConcurrency;
+                return scope.getNavigator?.()?.hardwareConcurrency;
             } catch {
                 return undefined;
             }

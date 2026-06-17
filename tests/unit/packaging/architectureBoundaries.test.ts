@@ -8930,7 +8930,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps overlay file load concurrency metadata behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(9);
 
         const violations = migratedLoadOverlayFilesRuntimeFiles
             .filter((relativeFile) =>
@@ -8949,14 +8949,36 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/import/loadOverlayFilesRuntime.ts"
             )
         );
+        const loadOverlayFilesRuntimeScopeSource =
+            loadOverlayFilesRuntimeSource.slice(
+                loadOverlayFilesRuntimeSource.indexOf(
+                    "export interface LoadOverlayFilesRuntimeScope"
+                ),
+                loadOverlayFilesRuntimeSource.indexOf(
+                    "export interface LoadOverlayFilesRuntime {"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(loadOverlayFilesSource).toContain("loadOverlayFilesRuntime.js");
         expect(loadOverlayFilesRuntimeSource).toContain(
             "defaultLoadOverlayFilesRuntimeScope"
         );
+        expect(loadOverlayFilesRuntimeScopeSource).not.toContain(
+            "readonly navigator?:"
+        );
+        expect(loadOverlayFilesRuntimeSource).not.toContain("scope.navigator");
         expect(loadOverlayFilesRuntimeSource).not.toContain(
             "scope: LoadOverlayFilesRuntimeScope = globalThis"
+        );
+        expect(loadOverlayFilesRuntimeSource).not.toContain(
+            "LoadOverlayFilesRuntimeScope =\n    globalThis"
+        );
+        expect(loadOverlayFilesRuntimeSource).toContain(
+            "getNavigator: () => globalThis.navigator"
+        );
+        expect(loadOverlayFilesRuntimeSource).toContain(
+            "return scope.getNavigator?.()?.hardwareConcurrency;"
         );
     });
 
