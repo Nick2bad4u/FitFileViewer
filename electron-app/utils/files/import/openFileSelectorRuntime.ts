@@ -1,16 +1,26 @@
 export type OpenFileSelectorTimer = ReturnType<typeof globalThis.setTimeout>;
 
 export interface OpenFileSelectorRuntimeScope {
-    readonly AbortController?: typeof globalThis.AbortController | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly document?: Document | undefined;
-    readonly navigator?: Pick<Navigator, "userAgent"> | undefined;
-    readonly queueMicrotask?: typeof globalThis.queueMicrotask | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
+        | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getNavigator?:
+        | (() => Pick<Navigator, "userAgent"> | undefined)
+        | undefined;
+    readonly getQueueMicrotask?:
+        | (() => typeof globalThis.queueMicrotask | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
 }
 
 export interface OpenFileSelectorRuntime {
-    appendToBody: (element: HTMLElement) => void;
+    appendToBody: (element: Readonly<HTMLElement>) => void;
     clearTimeout: (timer: OpenFileSelectorTimer) => void;
     createAbortController: () => AbortController;
     createInput: () => HTMLInputElement;
@@ -23,7 +33,7 @@ export interface OpenFileSelectorRuntime {
 }
 
 function getDocument(scope: OpenFileSelectorRuntimeScope): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError("openFileSelector requires a document runtime");
     }
@@ -31,10 +41,16 @@ function getDocument(scope: OpenFileSelectorRuntimeScope): Document {
     return runtimeDocument;
 }
 
+function getAbortController(
+    scope: OpenFileSelectorRuntimeScope
+): typeof globalThis.AbortController | undefined {
+    return scope.getAbortController?.();
+}
+
 function getRequiredClearTimeout(
     scope: OpenFileSelectorRuntimeScope
 ): typeof globalThis.clearTimeout {
-    const clearTimeoutRef = scope.clearTimeout;
+    const clearTimeoutRef = scope.getClearTimeout?.();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError("openFileSelector requires a clearTimeout runtime");
     }
@@ -42,10 +58,16 @@ function getRequiredClearTimeout(
     return clearTimeoutRef;
 }
 
+function getNavigator(
+    scope: OpenFileSelectorRuntimeScope
+): Pick<Navigator, "userAgent"> | undefined {
+    return scope.getNavigator?.();
+}
+
 function getRequiredQueueMicrotask(
     scope: OpenFileSelectorRuntimeScope
 ): typeof globalThis.queueMicrotask {
-    const queueMicrotaskRef = scope.queueMicrotask;
+    const queueMicrotaskRef = scope.getQueueMicrotask?.();
     if (typeof queueMicrotaskRef !== "function") {
         throw new TypeError(
             "openFileSelector requires a queueMicrotask runtime"
@@ -58,7 +80,7 @@ function getRequiredQueueMicrotask(
 function getRequiredSetTimeout(
     scope: OpenFileSelectorRuntimeScope
 ): typeof globalThis.setTimeout {
-    const setTimeoutRef = scope.setTimeout;
+    const setTimeoutRef = scope.getSetTimeout?.();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("openFileSelector requires a setTimeout runtime");
     }
@@ -66,8 +88,14 @@ function getRequiredSetTimeout(
     return setTimeoutRef;
 }
 
-const defaultOpenFileSelectorRuntimeScope: OpenFileSelectorRuntimeScope =
-    globalThis;
+const defaultOpenFileSelectorRuntimeScope: OpenFileSelectorRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getClearTimeout: () => globalThis.clearTimeout,
+    getDocument: () => globalThis.document,
+    getNavigator: () => globalThis.navigator,
+    getQueueMicrotask: () => globalThis.queueMicrotask,
+    getSetTimeout: () => globalThis.setTimeout,
+};
 
 export function getOpenFileSelectorRuntime(
     scope: OpenFileSelectorRuntimeScope = defaultOpenFileSelectorRuntimeScope
@@ -81,7 +109,7 @@ export function getOpenFileSelectorRuntime(
             clearTimeoutRef(timer);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = getAbortController(scope);
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "openFileSelector requires an AbortController runtime"
@@ -94,7 +122,7 @@ export function getOpenFileSelectorRuntime(
             return getDocument(scope).createElement("input");
         },
         isJsdom(): boolean {
-            return /jsdom/iu.test(scope.navigator?.userAgent ?? "");
+            return /jsdom/iu.test(getNavigator(scope)?.userAgent ?? "");
         },
         queueMicrotask(callback): void {
             const queueMicrotaskRef = getRequiredQueueMicrotask(scope);

@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getOpenFileSelectorRuntime } from "../../../../../electron-app/utils/files/import/openFileSelectorRuntime.js";
+import {
+    getOpenFileSelectorRuntime,
+    type OpenFileSelectorRuntimeScope,
+} from "../../../../../electron-app/utils/files/import/openFileSelectorRuntime.js";
 
 describe("getOpenFileSelectorRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -13,7 +16,7 @@ describe("getOpenFileSelectorRuntime", () => {
             }
         );
         const runtime = getOpenFileSelectorRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -34,7 +37,9 @@ describe("getOpenFileSelectorRuntime", () => {
     it("creates and appends input elements through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getOpenFileSelectorRuntime({ document });
+        const runtime = getOpenFileSelectorRuntime({
+            getDocument: () => document,
+        });
         const input = runtime.createInput();
 
         runtime.appendToBody(input);
@@ -51,12 +56,12 @@ describe("getOpenFileSelectorRuntime", () => {
 
         expect(
             getOpenFileSelectorRuntime({
-                navigator: { userAgent: "jsdom/26.0" },
+                getNavigator: () => ({ userAgent: "jsdom/26.0" }),
             }).isJsdom()
         ).toBe(true);
         expect(
             getOpenFileSelectorRuntime({
-                navigator: { userAgent: "Mozilla/5.0" },
+                getNavigator: () => ({ userAgent: "Mozilla/5.0" }),
             }).isJsdom()
         ).toBe(false);
     });
@@ -66,7 +71,7 @@ describe("getOpenFileSelectorRuntime", () => {
 
         let microtaskRan = false;
         const runtime = getOpenFileSelectorRuntime({
-            queueMicrotask(callback): void {
+            getQueueMicrotask: () => (callback) => {
                 callback();
             },
         });
@@ -95,14 +100,16 @@ describe("getOpenFileSelectorRuntime", () => {
         let clearedTimer: ReturnType<typeof setTimeout> | undefined;
         let scheduledDelayMs = -1;
         const runtime = getOpenFileSelectorRuntime({
-            clearTimeout(timer): void {
+            getClearTimeout: () => (timer) => {
                 clearedTimer = timer;
             },
-            setTimeout(callback, delayMs): ReturnType<typeof setTimeout> {
-                scheduledDelayMs = delayMs;
-                callback();
-                return 11 as ReturnType<typeof setTimeout>;
-            },
+            getSetTimeout:
+                () =>
+                (callback, delayMs): ReturnType<typeof setTimeout> => {
+                    scheduledDelayMs = delayMs;
+                    callback();
+                    return 11 as ReturnType<typeof setTimeout>;
+                },
         });
         const cleanupDelayMs = Number.parseInt("0", 10);
 
@@ -148,5 +155,65 @@ describe("getOpenFileSelectorRuntime", () => {
         expect(() =>
             runtime.appendToBody(document.createElement("input"))
         ).toThrow("openFileSelector requires a document runtime");
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(14);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        let microtaskRan = false;
+        let clearedTimer: ReturnType<typeof setTimeout> | undefined;
+        let scheduledDelayMs = -1;
+        const initialBodyChildCount = document.body.childElementCount;
+        const runtime = getOpenFileSelectorRuntime({
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            clearTimeout(timer): void {
+                clearedTimer = timer;
+            },
+            document,
+            navigator: { userAgent: "jsdom/26.0" },
+            queueMicrotask(callback): void {
+                microtaskRan = true;
+                callback();
+            },
+            setTimeout(callback, delayMs): ReturnType<typeof setTimeout> {
+                scheduledDelayMs = delayMs;
+                callback();
+                return 19 as ReturnType<typeof setTimeout>;
+            },
+        } as unknown as OpenFileSelectorRuntimeScope);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "openFileSelector requires an AbortController runtime"
+        );
+        expect(() => runtime.createInput()).toThrow(
+            "openFileSelector requires a document runtime"
+        );
+        expect(() =>
+            runtime.appendToBody(document.createElement("input"))
+        ).toThrow("openFileSelector requires a document runtime");
+        expect(runtime.isJsdom()).toBe(false);
+        expect(() => runtime.queueMicrotask(vi.fn())).toThrow(
+            "openFileSelector requires a queueMicrotask runtime"
+        );
+        expect(() =>
+            runtime.clearTimeout(19 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("openFileSelector requires a clearTimeout runtime");
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "openFileSelector requires a setTimeout runtime"
+        );
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
+        expect(microtaskRan).toBe(false);
+        expect(clearedTimer).toBeUndefined();
+        expect(scheduledDelayMs).toBe(-1);
+        expect(controller.signal.aborted).toBe(false);
+        expect(document.body.childElementCount).toBe(initialBodyChildCount);
+        expect(document.querySelector("input")).toBeNull();
     });
 });

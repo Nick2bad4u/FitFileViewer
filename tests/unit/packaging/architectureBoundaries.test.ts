@@ -8835,7 +8835,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps open-file selector browser APIs behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(25);
 
         const violations = migratedOpenFileSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -8854,6 +8854,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/import/openFileSelectorRuntime.ts"
             )
         );
+        const openFileSelectorRuntimeScopeSource =
+            openFileSelectorRuntimeSource.slice(
+                openFileSelectorRuntimeSource.indexOf(
+                    "export interface OpenFileSelectorRuntimeScope"
+                ),
+                openFileSelectorRuntimeSource.indexOf(
+                    "export interface OpenFileSelectorRuntime {"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(openFileSelectorSource).toContain("openFileSelectorRuntime.js");
@@ -8869,6 +8878,54 @@ describe("architecture boundaries", () => {
         );
         expect(openFileSelectorRuntimeSource).toContain(
             "openFileSelector requires a setTimeout runtime"
+        );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly navigator?:"
+        );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly queueMicrotask?:"
+        );
+        expect(openFileSelectorRuntimeScopeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain("scope.document");
+        expect(openFileSelectorRuntimeSource).not.toContain("scope.navigator");
+        expect(openFileSelectorRuntimeSource).not.toContain(
+            "scope.queueMicrotask"
+        );
+        expect(openFileSelectorRuntimeSource).not.toContain("scope.setTimeout");
+        expect(openFileSelectorRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "getNavigator: () => globalThis.navigator"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "getQueueMicrotask: () => globalThis.queueMicrotask"
+        );
+        expect(openFileSelectorRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
     });
 
