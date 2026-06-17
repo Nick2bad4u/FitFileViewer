@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getCreatePrintButtonRuntime } from "../../../../../electron-app/utils/files/export/createPrintButtonRuntime.js";
+import {
+    getCreatePrintButtonRuntime,
+    type CreatePrintButtonRuntimeScope,
+} from "../../../../../electron-app/utils/files/export/createPrintButtonRuntime.js";
 
 describe("getCreatePrintButtonRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -20,7 +23,7 @@ describe("getCreatePrintButtonRuntime", () => {
             }
         }
         const runtime = getCreatePrintButtonRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -42,7 +45,9 @@ describe("getCreatePrintButtonRuntime", () => {
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getCreatePrintButtonRuntime({ document });
+        const runtime = getCreatePrintButtonRuntime({
+            getDocument: () => document,
+        });
 
         expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
         expect(runtime.createElement("span")).toBeInstanceOf(HTMLSpanElement);
@@ -57,7 +62,7 @@ describe("getCreatePrintButtonRuntime", () => {
             printed = true;
         };
 
-        getCreatePrintButtonRuntime({ print }).print();
+        getCreatePrintButtonRuntime({ getPrint: () => print }).print();
 
         expect(printed).toBe(true);
     });
@@ -66,5 +71,28 @@ describe("getCreatePrintButtonRuntime", () => {
         expect.assertions(1);
 
         expect(() => getCreatePrintButtonRuntime({}).print()).not.toThrow();
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(4);
+
+        let printed = false;
+        const legacyScope = {
+            AbortController,
+            document,
+            print: () => {
+                printed = true;
+            },
+        } as unknown as CreatePrintButtonRuntimeScope;
+        const runtime = getCreatePrintButtonRuntime(legacyScope);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "createPrintButton requires an AbortController runtime"
+        );
+        expect(() => runtime.createButton()).toThrow(
+            "createPrintButton requires a document runtime"
+        );
+        expect(() => runtime.print()).not.toThrow();
+        expect(printed).toBe(false);
     });
 });

@@ -1,7 +1,9 @@
 export interface CreatePrintButtonRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly document?: Document | undefined;
-    readonly print?: (() => void) | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getPrint?: (() => (() => void) | undefined) | undefined;
 }
 
 export interface CreatePrintButtonRuntime {
@@ -19,7 +21,7 @@ export interface CreatePrintButtonRuntime {
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 function getDocument(scope: CreatePrintButtonRuntimeScope): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError("createPrintButton requires a document runtime");
     }
@@ -27,15 +29,18 @@ function getDocument(scope: CreatePrintButtonRuntimeScope): Document {
     return runtimeDocument;
 }
 
-const defaultCreatePrintButtonRuntimeScope: CreatePrintButtonRuntimeScope =
-    globalThis;
+const defaultCreatePrintButtonRuntimeScope: CreatePrintButtonRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getDocument: () => globalThis.document,
+    getPrint: () => globalThis.print,
+};
 
 export function getCreatePrintButtonRuntime(
     scope: CreatePrintButtonRuntimeScope = defaultCreatePrintButtonRuntimeScope
 ): CreatePrintButtonRuntime {
     return {
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "createPrintButton requires an AbortController runtime"
@@ -58,7 +63,7 @@ export function getCreatePrintButtonRuntime(
             return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
         },
         print(): void {
-            scope.print?.();
+            scope.getPrint?.()?.();
         },
     };
 }

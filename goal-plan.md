@@ -441,9 +441,12 @@ globals from returning.
 User/device info box listener cleanup now creates abort controllers through `createUserDeviceInfoBoxRuntime.ts`
 instead of constructing `AbortController` directly inside `createUserDeviceInfoBox.ts`, with focused runtime
 coverage and architecture guardrails blocking direct controller construction from returning.
-Map print button listener cleanup now creates abort controllers through `createPrintButtonRuntime.ts` instead
-of constructing `AbortController` directly inside `createPrintButton.ts`, with focused runtime coverage and
-architecture guardrails blocking direct controller construction from returning.
+Map print button listener cleanup, DOM creation, and print dispatch now route through
+`createPrintButtonRuntime.ts` instead of constructing `AbortController` directly inside `createPrintButton.ts`
+or reading document/print globals in the feature module. Production defaults and explicit runtime scopes now use
+named provider functions instead of a broad `globalThis` default scope or direct controller/document/print
+properties, with focused runtime coverage and architecture guardrails blocking those direct properties from
+returning.
 Map GPX export button listener cleanup now creates abort controllers through `createExportGPXButtonRuntime.ts`
 instead of constructing `AbortController` directly inside `createExportGPXButton.ts`, and object-URL cleanup
 scheduling now uses that same runtime instead of falling back to `globalThis`; explicit runtime scopes must now

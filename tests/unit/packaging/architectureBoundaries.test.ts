@@ -7631,7 +7631,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps print button browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(18);
 
         const violations = migratedCreatePrintButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -7650,6 +7650,14 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/files/export/createPrintButtonRuntime.ts"
             )
         );
+        const runtimeScopeSource = createPrintButtonRuntimeSource.slice(
+            createPrintButtonRuntimeSource.indexOf(
+                "export interface CreatePrintButtonRuntimeScope"
+            ),
+            createPrintButtonRuntimeSource.indexOf(
+                "export interface CreatePrintButtonRuntime"
+            )
+        );
 
         expect(violations).toStrictEqual([]);
         expect(createPrintButtonSource).toContain(
@@ -7661,6 +7669,35 @@ describe("architecture boundaries", () => {
         );
         expect(createPrintButtonRuntimeSource).not.toContain(
             "scope: CreatePrintButtonRuntimeScope = globalThis"
+        );
+        expect(createPrintButtonRuntimeSource).not.toContain(
+            "CreatePrintButtonRuntimeScope =\n    globalThis"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
+        expect(runtimeScopeSource).not.toContain("readonly document?:");
+        expect(runtimeScopeSource).not.toContain("readonly print?:");
+        expect(createPrintButtonRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(createPrintButtonRuntimeSource).not.toContain("scope.document");
+        expect(createPrintButtonRuntimeSource).not.toContain("scope.print");
+        expect(createPrintButtonRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(createPrintButtonRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(createPrintButtonRuntimeSource).toContain(
+            "getPrint: () => globalThis.print"
+        );
+        expect(createPrintButtonRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
+        );
+        expect(createPrintButtonRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(createPrintButtonRuntimeSource).toContain(
+            "scope.getPrint?.()?.();"
         );
     });
 
