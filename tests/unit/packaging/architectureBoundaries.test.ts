@@ -11126,7 +11126,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(23);
 
         const violations = migratedTabStateManagerHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -11145,6 +11145,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/ui/tabs/tabStateManagerHandlersRuntime.ts"
             )
         );
+        const tabStateManagerHandlersRuntimeScopeSource =
+            tabStateManagerHandlersRuntimeSource.slice(
+                tabStateManagerHandlersRuntimeSource.indexOf(
+                    "export interface TabStateManagerHandlersRuntimeScope"
+                ),
+                tabStateManagerHandlersRuntimeSource.indexOf(
+                    "export interface TabStateManagerHandlersRuntime {"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(tabStateManagerHandlersSource).toContain(
@@ -11159,8 +11168,59 @@ describe("architecture boundaries", () => {
         expect(tabStateManagerHandlersRuntimeSource).not.toContain(
             "scope: TabStateManagerHandlersRuntimeScope = globalThis"
         );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "TabStateManagerHandlersRuntimeScope =\nglobalThis"
+        );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "tabStateManagerHandlers requires a setTimeout runtime"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly cancelAnimationFrame?:"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.cancelAnimationFrame"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "scope.getCancelAnimationFrame?.()?.(handle);"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "const clearTimeoutRef = scope.getClearTimeout?.();"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "const requestAnimationFrameRef = scope.getRequestAnimationFrame?.();"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "const setTimeoutRef = scope.getSetTimeout?.();"
         );
     });
 

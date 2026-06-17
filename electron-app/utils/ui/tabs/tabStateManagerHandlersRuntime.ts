@@ -1,39 +1,51 @@
-export type TabStateManagerHandlersTimerHandle =
-    ReturnType<typeof globalThis.setTimeout>;
+export type TabStateManagerHandlersTimerHandle = ReturnType<
+    typeof globalThis.setTimeout
+>;
 
 export interface TabStateManagerHandlersRuntimeScope {
-    readonly cancelAnimationFrame?:
-        | typeof globalThis.cancelAnimationFrame
+    readonly getCancelAnimationFrame?:
+        | (() => typeof globalThis.cancelAnimationFrame | undefined)
         | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly requestAnimationFrame?:
-        | typeof globalThis.requestAnimationFrame
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
+    readonly getRequestAnimationFrame?:
+        | (() => typeof globalThis.requestAnimationFrame | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
 }
 
 export interface TabStateManagerHandlersRuntime {
-    cancelAnimationFrame(handle: number): void;
-    clearTimeout(handle: TabStateManagerHandlersTimerHandle): void;
-    requestAnimationFrame(callback: FrameRequestCallback): number | undefined;
-    setTimeout(
+    readonly cancelAnimationFrame: (handle: number) => void;
+    readonly clearTimeout: (handle: TabStateManagerHandlersTimerHandle) => void;
+    readonly requestAnimationFrame: (
+        callback: FrameRequestCallback
+    ) => number | undefined;
+    readonly setTimeout: (
         callback: () => void,
         delay: number
-    ): TabStateManagerHandlersTimerHandle;
+    ) => TabStateManagerHandlersTimerHandle;
 }
 
 const defaultTabStateManagerHandlersRuntimeScope: TabStateManagerHandlersRuntimeScope =
-    globalThis;
+    {
+        getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
+        getClearTimeout: () => globalThis.clearTimeout,
+        getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+        getSetTimeout: () => globalThis.setTimeout,
+    };
 
 export function getTabStateManagerHandlersRuntime(
     scope: TabStateManagerHandlersRuntimeScope = defaultTabStateManagerHandlersRuntimeScope
 ): TabStateManagerHandlersRuntime {
     return {
         cancelAnimationFrame(handle: number): void {
-            scope.cancelAnimationFrame?.(handle);
+            scope.getCancelAnimationFrame?.()?.(handle);
         },
         clearTimeout(handle: TabStateManagerHandlersTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout;
+            const clearTimeoutRef = scope.getClearTimeout?.();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "tabStateManagerHandlers requires a clearTimeout runtime"
@@ -44,17 +56,18 @@ export function getTabStateManagerHandlersRuntime(
         requestAnimationFrame(
             callback: FrameRequestCallback
         ): number | undefined {
-            if (typeof scope.requestAnimationFrame !== "function") {
+            const requestAnimationFrameRef = scope.getRequestAnimationFrame?.();
+            if (typeof requestAnimationFrameRef !== "function") {
                 return undefined;
             }
 
-            return scope.requestAnimationFrame(callback);
+            return requestAnimationFrameRef(callback);
         },
         setTimeout(
             callback: () => void,
             delay: number
         ): TabStateManagerHandlersTimerHandle {
-            const setTimeoutRef = scope.setTimeout;
+            const setTimeoutRef = scope.getSetTimeout?.();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "tabStateManagerHandlers requires a setTimeout runtime"
