@@ -10472,7 +10472,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps summary column modal viewport reads behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(16);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -10491,6 +10491,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/helpers/summaryColModalRuntime.ts"
             )
         );
+        const summaryColModalRuntimeScopeSource =
+            summaryColModalRuntimeSource.slice(
+                summaryColModalRuntimeSource.indexOf(
+                    "export interface SummaryColModalRuntimeScope"
+                ),
+                summaryColModalRuntimeSource.indexOf(
+                    "export interface SummaryColModalViewport"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(summaryColModalSource).toContain("summaryColModalRuntime.js");
@@ -10500,6 +10509,35 @@ describe("architecture boundaries", () => {
         );
         expect(summaryColModalRuntimeSource).not.toContain(
             "scope: SummaryColModalRuntimeScope = globalThis"
+        );
+        expect(summaryColModalRuntimeSource).not.toContain(
+            "SummaryColModalRuntimeScope =\n    globalThis"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly innerHeight?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly innerWidth?:"
+        );
+        expect(summaryColModalRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(summaryColModalRuntimeSource).not.toContain("scope.innerHeight");
+        expect(summaryColModalRuntimeSource).not.toContain("scope.innerWidth");
+        expect(summaryColModalRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "height: globalThis.innerHeight"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "width: globalThis.innerWidth"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
         );
     });
 

@@ -1,7 +1,10 @@
 export interface SummaryColModalRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly innerHeight?: number | undefined;
-    readonly innerWidth?: number | undefined;
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
+        | undefined;
+    readonly getViewport?:
+        | (() => SummaryColModalViewport | undefined)
+        | undefined;
 }
 
 export interface SummaryColModalViewport {
@@ -10,19 +13,24 @@ export interface SummaryColModalViewport {
 }
 
 export interface SummaryColModalRuntime {
-    createAbortController(): AbortController;
-    getViewport(): SummaryColModalViewport;
+    readonly createAbortController: () => AbortController;
+    readonly getViewport: () => SummaryColModalViewport;
 }
 
-const defaultSummaryColModalRuntimeScope: SummaryColModalRuntimeScope =
-    globalThis;
+const defaultSummaryColModalRuntimeScope: SummaryColModalRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getViewport: () => ({
+        height: globalThis.innerHeight,
+        width: globalThis.innerWidth,
+    }),
+};
 
 export function getSummaryColModalRuntime(
     scope: SummaryColModalRuntimeScope = defaultSummaryColModalRuntimeScope
 ): SummaryColModalRuntime {
     return {
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "summaryColModal requires an AbortController runtime"
@@ -32,10 +40,7 @@ export function getSummaryColModalRuntime(
             return new AbortControllerConstructor();
         },
         getViewport(): SummaryColModalViewport {
-            return {
-                height: scope.innerHeight ?? 0,
-                width: scope.innerWidth ?? 0,
-            };
+            return scope.getViewport?.() ?? { height: 0, width: 0 };
         },
     };
 }

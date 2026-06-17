@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getSummaryColModalRuntime } from "../../../../../electron-app/utils/rendering/helpers/summaryColModalRuntime.js";
+import {
+    getSummaryColModalRuntime,
+    type SummaryColModalRuntimeScope,
+} from "../../../../../electron-app/utils/rendering/helpers/summaryColModalRuntime.js";
 
 describe("getSummaryColModalRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -20,7 +23,7 @@ describe("getSummaryColModalRuntime", () => {
             }
         }
         const runtime = getSummaryColModalRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -44,8 +47,10 @@ describe("getSummaryColModalRuntime", () => {
 
         expect(
             getSummaryColModalRuntime({
-                innerHeight: 900,
-                innerWidth: 1440,
+                getViewport: () => ({
+                    height: 900,
+                    width: 1440,
+                }),
             }).getViewport()
         ).toStrictEqual({
             height: 900,
@@ -57,6 +62,25 @@ describe("getSummaryColModalRuntime", () => {
         expect.assertions(1);
 
         expect(getSummaryColModalRuntime({}).getViewport()).toStrictEqual({
+            height: 0,
+            width: 0,
+        });
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(2);
+
+        const legacyScope = {
+            AbortController,
+            innerHeight: 900,
+            innerWidth: 1440,
+        } as unknown as SummaryColModalRuntimeScope;
+        const runtime = getSummaryColModalRuntime(legacyScope);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "summaryColModal requires an AbortController runtime"
+        );
+        expect(runtime.getViewport()).toStrictEqual({
             height: 0,
             width: 0,
         });
