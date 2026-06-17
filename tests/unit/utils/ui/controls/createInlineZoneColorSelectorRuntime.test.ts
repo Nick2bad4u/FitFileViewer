@@ -1,12 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { CreateInlineZoneColorSelectorRuntimeScope } from "../../../../../electron-app/utils/ui/controls/createInlineZoneColorSelectorRuntime.js";
 import { getCreateInlineZoneColorSelectorRuntime } from "../../../../../electron-app/utils/ui/controls/createInlineZoneColorSelectorRuntime.js";
 
 describe("getCreateInlineZoneColorSelectorRuntime", () => {
     it("creates elements and exposes document body through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getCreateInlineZoneColorSelectorRuntime({ document });
+        const runtime = getCreateInlineZoneColorSelectorRuntime({
+            getDocument: () => document,
+        });
         const container = runtime.createElement("div");
         const select = runtime.createElement("select");
 
@@ -20,9 +23,8 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
 
         const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
         const runtime = getCreateInlineZoneColorSelectorRuntime({
-            CustomEvent,
-            dispatchEvent,
-            document,
+            getCustomEvent: () => CustomEvent,
+            getDispatchEvent: () => dispatchEvent,
         });
         const event = runtime.createCustomEvent("fieldToggleChanged", {
             detail: { field: "hr_zone" },
@@ -33,11 +35,11 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         expect(event.detail).toStrictEqual({ field: "hr_zone" });
     });
 
-    it("creates custom events and dispatches through the injected document window", () => {
+    it("creates custom events and dispatches through the default production scope", () => {
         expect.assertions(2);
 
         const dispatchEvent = vi.spyOn(window, "dispatchEvent");
-        const runtime = getCreateInlineZoneColorSelectorRuntime({ document });
+        const runtime = getCreateInlineZoneColorSelectorRuntime();
         const event = runtime.createCustomEvent("fieldToggleChanged", {
             detail: { field: "power_zone" },
         });
@@ -52,11 +54,11 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         expect.assertions(4);
 
         const runtime = getCreateInlineZoneColorSelectorRuntime({
-            AbortController,
-            HTMLElement,
-            HTMLInputElement,
-            HTMLSelectElement,
-            document,
+            getAbortController: () => AbortController,
+            getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
+            getHTMLInputElement: () => HTMLInputElement,
+            getHTMLSelectElement: () => HTMLSelectElement,
         });
         const controller = runtime.createAbortController();
         const input = document.createElement("input");
@@ -78,8 +80,7 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         const handler = vi.fn<() => void>();
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
         const runtime = getCreateInlineZoneColorSelectorRuntime({
-            document,
-            setTimeout: setTimeoutMock,
+            getSetTimeout: () => setTimeoutMock,
         });
 
         expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
@@ -102,19 +103,18 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
         const runtime = getCreateInlineZoneColorSelectorRuntime({});
         const runtimeWithInvalidAbortController =
             getCreateInlineZoneColorSelectorRuntime({
-                AbortController:
+                getAbortController: () =>
                     "AbortController" as unknown as typeof AbortController,
-                document,
             });
         const runtimeWithInvalidCustomEvent =
             getCreateInlineZoneColorSelectorRuntime({
-                CustomEvent: "CustomEvent" as unknown as typeof CustomEvent,
-                document,
+                getCustomEvent: () =>
+                    "CustomEvent" as unknown as typeof CustomEvent,
             });
         const runtimeWithInvalidElement =
             getCreateInlineZoneColorSelectorRuntime({
-                HTMLElement: "HTMLElement" as unknown as typeof HTMLElement,
-                document,
+                getHTMLElement: () =>
+                    "HTMLElement" as unknown as typeof HTMLElement,
             });
 
         expect(() => runtime.createElement("div")).toThrow(
@@ -147,6 +147,58 @@ describe("getCreateInlineZoneColorSelectorRuntime", () => {
             runtime.dispatchEvent(new Event("fieldToggleChanged"))
         ).toThrow(
             "createInlineZoneColorSelector requires a dispatchEvent runtime"
+        );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(8);
+
+        const timer = Symbol("inline-zone-timer") as unknown as ReturnType<
+            typeof setTimeout
+        >;
+        const legacyScope = {
+            AbortController,
+            CustomEvent,
+            dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
+            document,
+            HTMLElement,
+            HTMLInputElement,
+            HTMLSelectElement,
+            setTimeout: vi.fn<typeof setTimeout>(() => timer),
+        } as unknown as CreateInlineZoneColorSelectorRuntimeScope;
+        const runtime = getCreateInlineZoneColorSelectorRuntime(legacyScope);
+
+        expect(() => runtime.createElement("div")).toThrow(
+            "createInlineZoneColorSelector requires a document runtime"
+        );
+        expect(() => runtime.createAbortController()).toThrow(
+            "createInlineZoneColorSelector requires an AbortController runtime"
+        );
+        expect(() => runtime.createCustomEvent("event")).toThrow(
+            "createInlineZoneColorSelector requires a CustomEvent runtime"
+        );
+        expect(() =>
+            runtime.dispatchEvent(new Event("fieldToggleChanged"))
+        ).toThrow(
+            "createInlineZoneColorSelector requires a dispatchEvent runtime"
+        );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("div"))
+        ).toThrow(
+            "createInlineZoneColorSelector requires an HTMLElement runtime"
+        );
+        expect(() =>
+            runtime.isHTMLInputElement(document.createElement("input"))
+        ).toThrow(
+            "createInlineZoneColorSelector requires an HTMLInputElement runtime"
+        );
+        expect(() =>
+            runtime.isHTMLSelectElement(document.createElement("select"))
+        ).toThrow(
+            "createInlineZoneColorSelector requires an HTMLSelectElement runtime"
+        );
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "createInlineZoneColorSelector requires a setTimeout runtime"
         );
     });
 });

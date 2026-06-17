@@ -1301,7 +1301,7 @@ const directCreateFieldTogglesSectionRuntimeAmbientFallbackPattern =
 const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|dispatchEvent)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\b|\bglobalThis\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|setTimeout)\b|\bscope:\s*CreateInlineZoneColorSelectorRuntimeScope\s*=\s*globalThis\b/u;
+    /\bscope\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|document|setTimeout)\b|\bscope:\s*CreateInlineZoneColorSelectorRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultCreateInlineZoneColorSelectorRuntimeScope:\s*CreateInlineZoneColorSelectorRuntimeScope\s*=\s*globalThis\b/u;
 const directOpenZoneColorPickerRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.dispatchEvent\b|\bnew\s+CustomEvent\b/u;
 const directOpenZoneColorPickerRuntimeAmbientFallbackPattern =
@@ -4682,7 +4682,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(22);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -4714,6 +4714,52 @@ describe("architecture boundaries", () => {
         );
         expect(inlineZoneSelectorRuntimeSource).not.toContain(
             "scope: CreateInlineZoneColorSelectorRuntimeScope = globalThis"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "const defaultCreateInlineZoneColorSelectorRuntimeScope: CreateInlineZoneColorSelectorRuntimeScope = globalThis"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly CustomEvent?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly dispatchEvent?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly HTMLInputElement?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly HTMLSelectElement?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain("scope.document");
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "scope.dispatchEvent"
+        );
+        expect(inlineZoneSelectorRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis)"
+        );
+        expect(inlineZoneSelectorRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(inlineZoneSelectorRuntimeSource).toContain(
             "createInlineZoneColorSelector requires a setTimeout runtime"

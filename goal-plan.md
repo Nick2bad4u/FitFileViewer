@@ -802,6 +802,10 @@ that fixture mutation pattern.
 The data-point filter control runtime facade now resolves AbortController, document access, and microtask
 scheduling through named provider functions instead of broad `globalThis` default scopes, direct scope
 properties, or document-window fallbacks, with architecture coverage blocking those ambient fallbacks.
+The inline zone color selector runtime facade now resolves DOM access, event constructors/dispatch, element
+constructors, abort-controller creation, and delayed updates through named provider functions instead of a broad
+`globalThis` default scope, direct scope properties, or document-window fallbacks, with focused coverage and
+architecture coverage blocking those legacy runtime shapes from returning.
 Render-summary virtualized lap-row scheduling now routes request/cancel animation-frame access and resize listener
 registration through `renderSummaryRuntime.ts` instead of direct `globalThis` probes in `renderSummaryHelpers.ts`,
 with adapter tests and architecture coverage blocking those direct scheduling globals from returning. Summary render
