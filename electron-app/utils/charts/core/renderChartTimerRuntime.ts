@@ -1,28 +1,31 @@
 export type RenderChartTimeout = ReturnType<typeof globalThis.setTimeout>;
 
 export interface RenderChartTimerRuntimeScope {
-    readonly clearTimeout?: typeof globalThis.clearTimeout;
-    readonly setTimeout?: typeof globalThis.setTimeout;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
 }
 
 export interface RenderChartTimerRuntime {
     clearTimeout: (timeout: RenderChartTimeout) => void;
-    setTimeout: (
-        callback: () => void,
-        delay: number
-    ) => RenderChartTimeout;
+    setTimeout: (callback: () => void, delay: number) => RenderChartTimeout;
     wait: (delay: number) => Promise<void>;
     waitForNextTask: () => Promise<void>;
 }
 
-const defaultRenderChartTimerRuntimeScope: RenderChartTimerRuntimeScope =
-    globalThis;
+const defaultRenderChartTimerRuntimeScope: RenderChartTimerRuntimeScope = {
+    getClearTimeout: () => globalThis.clearTimeout,
+    getSetTimeout: () => globalThis.setTimeout,
+};
 
 export function getRenderChartTimerRuntime(
     scope: RenderChartTimerRuntimeScope = defaultRenderChartTimerRuntimeScope
 ): RenderChartTimerRuntime {
     const clearScheduledTimeout = (timeout: RenderChartTimeout): void => {
-        const clearTimeout = scope.clearTimeout;
+        const clearTimeout = scope.getClearTimeout?.();
         if (typeof clearTimeout !== "function") {
             throw new TypeError("render chart timers require clearTimeout");
         }
@@ -34,7 +37,7 @@ export function getRenderChartTimerRuntime(
         callback: () => void,
         delay: number
     ): RenderChartTimeout => {
-        const setTimeout = scope.setTimeout;
+        const setTimeout = scope.getSetTimeout?.();
         if (typeof setTimeout !== "function") {
             throw new TypeError("render chart timers require setTimeout");
         }
@@ -42,20 +45,22 @@ export function getRenderChartTimerRuntime(
         return setTimeout(callback, delay);
     };
 
-    const wait = (delay: number): Promise<void> => {
+    const wait = async (delay: number): Promise<void> => {
         let timeoutId: RenderChartTimeout | undefined;
 
-        return new Promise<void>((resolve) => {
-            timeoutId = scheduleTimeout(() => {
-                timeoutId = undefined;
-                resolve();
-            }, delay);
-        }).finally(() => {
+        try {
+            await new Promise<void>((resolve) => {
+                timeoutId = scheduleTimeout(() => {
+                    timeoutId = undefined;
+                    resolve();
+                }, delay);
+            });
+        } finally {
             if (timeoutId !== undefined) {
                 clearScheduledTimeout(timeoutId);
                 timeoutId = undefined;
             }
-        });
+        }
     };
 
     return {

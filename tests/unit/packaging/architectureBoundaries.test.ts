@@ -10278,7 +10278,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart helper timer APIs behind the timer runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(13);
 
         const violations = migratedRenderChartTimerRuntimeFiles
             .filter((relativeFile) =>
@@ -10300,15 +10300,37 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/renderChartTimerRuntime.ts"
             )
         );
+        const runtimeScopeSource = runtimeSource.slice(
+            runtimeSource.indexOf(
+                "export interface RenderChartTimerRuntimeScope"
+            ),
+            runtimeSource.indexOf("export interface RenderChartTimerRuntime {")
+        );
 
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
         expect(runtimeSource).toContain("defaultRenderChartTimerRuntimeScope");
+        expect(runtimeScopeSource).not.toContain("readonly clearTimeout?:");
+        expect(runtimeScopeSource).not.toContain("readonly setTimeout?:");
+        expect(runtimeSource).not.toContain("scope.clearTimeout");
+        expect(runtimeSource).not.toContain("scope.setTimeout");
         expect(runtimeSource).not.toContain(
             "scope: RenderChartTimerRuntimeScope = globalThis"
         );
+        expect(runtimeSource).not.toContain(
+            "RenderChartTimerRuntimeScope =\n    globalThis"
+        );
         expect(runtimeSource).toContain(
             "render chart timers require setTimeout"
+        );
+        expect(runtimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(runtimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(runtimeSource).toContain(
+            "const setTimeout = scope.getSetTimeout?.();"
         );
     });
 

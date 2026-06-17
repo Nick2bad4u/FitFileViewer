@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getRenderChartTimerRuntime as getChartTimerRuntime } from "../../../../electron-app/utils/charts/core/renderChartTimerRuntime.js";
+import {
+    getRenderChartTimerRuntime as getChartTimerRuntime,
+    type RenderChartTimerRuntimeScope,
+} from "../../../../electron-app/utils/charts/core/renderChartTimerRuntime.js";
 
 describe("getRenderChartTimerRuntime", () => {
     it("routes timer scheduling and clearing through the injected scope", () => {
@@ -16,8 +19,8 @@ describe("getRenderChartTimerRuntime", () => {
         const clearTimeoutMock =
             vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
         const timerRuntime = getChartTimerRuntime({
-            clearTimeout: clearTimeoutMock,
-            setTimeout: setTimeoutMock,
+            getClearTimeout: () => clearTimeoutMock,
+            getSetTimeout: () => setTimeoutMock,
         });
         const callback = () => undefined;
         const scheduleDelay = 125;
@@ -53,8 +56,8 @@ describe("getRenderChartTimerRuntime", () => {
         const clearTimeoutMock =
             vi.fn<(timeout: ReturnType<typeof setTimeout>) => void>();
         const timerRuntime = getChartTimerRuntime({
-            clearTimeout: clearTimeoutMock,
-            setTimeout: setTimeoutMock,
+            getClearTimeout: () => clearTimeoutMock,
+            getSetTimeout: () => setTimeoutMock,
         });
 
         const promise = timerRuntime.waitForNextTask().then(() => {
@@ -83,6 +86,27 @@ describe("getRenderChartTimerRuntime", () => {
             getChartTimerRuntime({}).setTimeout(() => undefined, 0)
         ).toThrow("render chart timers require setTimeout");
         expect(() => getChartTimerRuntime({}).clearTimeout(timeoutId)).toThrow(
+            "render chart timers require clearTimeout"
+        );
+    });
+
+    it("ignores legacy direct timer scope properties", () => {
+        expect.assertions(2);
+
+        const timeoutId = 11 as ReturnType<typeof setTimeout>;
+        const timerRuntime = getChartTimerRuntime({
+            clearTimeout() {
+                throw new Error("legacy clearTimeout should not run");
+            },
+            setTimeout() {
+                throw new Error("legacy setTimeout should not run");
+            },
+        } as unknown as RenderChartTimerRuntimeScope);
+
+        expect(() => timerRuntime.setTimeout(() => undefined, 0)).toThrow(
+            "render chart timers require setTimeout"
+        );
+        expect(() => timerRuntime.clearTimeout(timeoutId)).toThrow(
             "render chart timers require clearTimeout"
         );
     });
