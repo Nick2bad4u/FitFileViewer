@@ -4,7 +4,7 @@ export type RenderTableTimerHandle =
 
 type RenderTableClearTimeout = (handle: RenderTableTimerHandle) => void;
 type RenderTableGetComputedStyle = (
-    element: Element,
+    element: Readonly<Element>,
     pseudoElement?: null | string
 ) => CSSStyleDeclaration;
 type RenderTableRequestAnimationFrame = (
@@ -16,8 +16,6 @@ type RenderTableSetTimeout = (
 ) => RenderTableTimerHandle;
 
 export interface RenderTableRuntimeScope {
-    readonly clearTimeout?: RenderTableClearTimeout | undefined;
-    readonly document?: Document | undefined;
     readonly getClearTimeout?:
         | (() => RenderTableClearTimeout | undefined)
         | undefined;
@@ -37,37 +35,34 @@ export interface RenderTableRuntimeScope {
     readonly getSetTimeout?:
         | (() => RenderTableSetTimeout | undefined)
         | undefined;
-    readonly getComputedStyle?: RenderTableGetComputedStyle | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
-    readonly HTMLTableCellElement?: typeof HTMLTableCellElement | undefined;
-    readonly requestAnimationFrame?:
-        | RenderTableRequestAnimationFrame
-        | undefined;
-    readonly setTimeout?: RenderTableSetTimeout | undefined;
 }
 
 export interface RenderTableRuntime {
-    clearTimeout: (handle: RenderTableTimerHandle) => void;
-    createElement: <K extends keyof HTMLElementTagNameMap>(
+    readonly clearTimeout: (handle: RenderTableTimerHandle) => void;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
-    getComputedStyle: (element: Element) => CSSStyleDeclaration | undefined;
-    getElementById: (id: string) => HTMLElement | null;
-    isHTMLElement: (element: Element | null) => element is HTMLElement;
-    isTableCellElement: (
-        element: Element | null
+    readonly getComputedStyle: (
+        element: Readonly<Element>
+    ) => CSSStyleDeclaration | undefined;
+    readonly getElementById: (id: string) => HTMLElement | null;
+    readonly isHTMLElement: (
+        element: Readonly<Element> | null
+    ) => element is HTMLElement;
+    readonly isTableCellElement: (
+        element: Readonly<Element> | null
     ) => element is HTMLTableCellElement;
-    requestAnimationFrame: (
+    readonly requestAnimationFrame: (
         callback: FrameRequestCallback
     ) => number | undefined;
-    setTimeout: (
+    readonly setTimeout: (
         callback: () => void,
         timeout: number
     ) => RenderTableTimerHandle;
 }
 
 function getDocument(scope: RenderTableRuntimeScope): Document {
-    const runtimeDocument = scope.getDocument?.() ?? scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new Error("renderTable requires a document-like runtime");
     }
@@ -78,7 +73,7 @@ function getDocument(scope: RenderTableRuntimeScope): Document {
 function getRequiredClearTimeout(
     scope: RenderTableRuntimeScope
 ): RenderTableClearTimeout {
-    const clearTimeoutRef = scope.getClearTimeout?.() ?? scope.clearTimeout;
+    const clearTimeoutRef = scope.getClearTimeout?.();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError("renderTable requires a clearTimeout runtime");
     }
@@ -89,31 +84,31 @@ function getRequiredClearTimeout(
 function getScopeGetComputedStyle(
     scope: RenderTableRuntimeScope
 ): RenderTableGetComputedStyle | undefined {
-    return scope.getComputedStyleFunction?.() ?? scope.getComputedStyle;
+    return scope.getComputedStyleFunction?.();
 }
 
 function getScopeHTMLElement(
     scope: RenderTableRuntimeScope
 ): typeof HTMLElement | undefined {
-    return scope.getHTMLElement?.() ?? scope.HTMLElement;
+    return scope.getHTMLElement?.();
 }
 
 function getScopeHTMLTableCellElement(
     scope: RenderTableRuntimeScope
 ): typeof HTMLTableCellElement | undefined {
-    return scope.getHTMLTableCellElement?.() ?? scope.HTMLTableCellElement;
+    return scope.getHTMLTableCellElement?.();
 }
 
 function getScopeRequestAnimationFrame(
     scope: RenderTableRuntimeScope
 ): RenderTableRequestAnimationFrame | undefined {
-    return scope.getRequestAnimationFrame?.() ?? scope.requestAnimationFrame;
+    return scope.getRequestAnimationFrame?.();
 }
 
 function getRequiredSetTimeout(
     scope: RenderTableRuntimeScope
 ): RenderTableSetTimeout {
-    const setTimeoutRef = scope.getSetTimeout?.() ?? scope.setTimeout;
+    const setTimeoutRef = scope.getSetTimeout?.();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError("renderTable requires a setTimeout runtime");
     }
@@ -144,7 +139,9 @@ export function getRenderTableRuntime(
         ): HTMLElementTagNameMap[K] {
             return getDocument(scope).createElement(tagName);
         },
-        getComputedStyle(element: Element): CSSStyleDeclaration | undefined {
+        getComputedStyle(
+            element: Readonly<Element>
+        ): CSSStyleDeclaration | undefined {
             const getComputedStyleRef = getScopeGetComputedStyle(scope);
             if (typeof getComputedStyleRef !== "function") {
                 return undefined;
@@ -156,7 +153,9 @@ export function getRenderTableRuntime(
             const element = getDocument(scope).getElementById(id);
             return this.isHTMLElement(element) ? element : null;
         },
-        isHTMLElement(element: Element | null): element is HTMLElement {
+        isHTMLElement(
+            element: Readonly<Element> | null
+        ): element is HTMLElement {
             const HTMLElementConstructor = getScopeHTMLElement(scope);
             return (
                 typeof HTMLElementConstructor === "function" &&
@@ -164,7 +163,7 @@ export function getRenderTableRuntime(
             );
         },
         isTableCellElement(
-            element: Element | null
+            element: Readonly<Element> | null
         ): element is HTMLTableCellElement {
             const TableCellConstructor = getScopeHTMLTableCellElement(scope);
             return (

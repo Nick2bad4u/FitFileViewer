@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getRenderTableRuntime } from "../../../../../electron-app/utils/rendering/core/renderTableRuntime.js";
+import {
+    getRenderTableRuntime,
+    type RenderTableRuntimeScope,
+} from "../../../../../electron-app/utils/rendering/core/renderTableRuntime.js";
 
 function cleanupFixture(): void {
     document.body.replaceChildren();
@@ -11,9 +14,9 @@ describe("getRenderTableRuntime", () => {
     it("creates elements through the injected document", () => {
         expect.assertions(1);
 
-        const element = getRenderTableRuntime({ document }).createElement(
-            "div"
-        );
+        const element = getRenderTableRuntime({
+            getDocument: () => document,
+        }).createElement("div");
 
         expect(element).toBeInstanceOf(HTMLDivElement);
     });
@@ -94,8 +97,8 @@ describe("getRenderTableRuntime", () => {
 
             expect(
                 getRenderTableRuntime({
-                    document,
-                    HTMLElement,
+                    getDocument: () => document,
+                    getHTMLElement: () => HTMLElement,
                 }).getElementById("target")
             ).toBe(element);
         } finally {
@@ -109,8 +112,8 @@ describe("getRenderTableRuntime", () => {
         const cell = document.createElement("th");
         const element = document.createElement("div");
         const utils = getRenderTableRuntime({
-            HTMLElement,
-            HTMLTableCellElement,
+            getHTMLElement: () => HTMLElement,
+            getHTMLTableCellElement: () => HTMLTableCellElement,
         });
 
         expect(utils.isHTMLElement(element)).toBe(true);
@@ -126,7 +129,9 @@ describe("getRenderTableRuntime", () => {
         const getComputedStyle = vi.fn<
             (element: Element) => CSSStyleDeclaration
         >(() => style);
-        const utils = getRenderTableRuntime({ getComputedStyle });
+        const utils = getRenderTableRuntime({
+            getComputedStyleFunction: () => getComputedStyle,
+        });
 
         expect(utils.getComputedStyle(element)).toBe(style);
         expect(getComputedStyle).toHaveBeenCalledWith(element);
@@ -139,7 +144,9 @@ describe("getRenderTableRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 5);
-        const utils = getRenderTableRuntime({ requestAnimationFrame });
+        const utils = getRenderTableRuntime({
+            getRequestAnimationFrame: () => requestAnimationFrame,
+        });
 
         expect(utils.requestAnimationFrame(callback)).toBe(5);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
@@ -161,7 +168,10 @@ describe("getRenderTableRuntime", () => {
             (callback: () => void, timeout?: number) => number
         >(() => 9);
         const clearTimeout = vi.fn<(handle: number) => void>();
-        const utils = getRenderTableRuntime({ clearTimeout, setTimeout });
+        const utils = getRenderTableRuntime({
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
+        });
         const timeoutMs = Number.parseInt("50", 10);
 
         expect(utils.setTimeout(callback, timeoutMs)).toBe(9);
@@ -191,5 +201,60 @@ describe("getRenderTableRuntime", () => {
         expect(() => utils.setTimeout(vi.fn(), 1)).toThrow(
             "renderTable requires a setTimeout runtime"
         );
+    });
+
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(12);
+
+        const target = document.createElement("section");
+        target.id = "target";
+        document.body.append(target);
+        const style = { display: "table-row" } as CSSStyleDeclaration;
+        const getComputedStyle = vi.fn<
+            (element: Element) => CSSStyleDeclaration
+        >(() => style);
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => 14);
+        const setTimeout = vi.fn<
+            (callback: () => void, timeout?: number) => number
+        >(() => 11);
+        const clearTimeout = vi.fn<(handle: number) => void>();
+        const utils = getRenderTableRuntime({
+            HTMLElement,
+            HTMLTableCellElement,
+            clearTimeout,
+            document,
+            getComputedStyle,
+            requestAnimationFrame,
+            setTimeout,
+        } as unknown as RenderTableRuntimeScope);
+
+        try {
+            expect(() => utils.createElement("span")).toThrow(
+                "renderTable requires a document-like runtime"
+            );
+            expect(() => utils.getElementById("target")).toThrow(
+                "renderTable requires a document-like runtime"
+            );
+            expect(utils.isHTMLElement(target)).toBe(false);
+            expect(utils.isTableCellElement(document.createElement("td"))).toBe(
+                false
+            );
+            expect(utils.getComputedStyle(target)).toBeUndefined();
+            expect(utils.requestAnimationFrame(vi.fn())).toBeUndefined();
+            expect(() => utils.setTimeout(vi.fn(), 1)).toThrow(
+                "renderTable requires a setTimeout runtime"
+            );
+            expect(() => utils.clearTimeout(11)).toThrow(
+                "renderTable requires a clearTimeout runtime"
+            );
+            expect(getComputedStyle).not.toHaveBeenCalled();
+            expect(requestAnimationFrame).not.toHaveBeenCalled();
+            expect(setTimeout).not.toHaveBeenCalled();
+            expect(clearTimeout).not.toHaveBeenCalled();
+        } finally {
+            cleanupFixture();
+        }
     });
 });
