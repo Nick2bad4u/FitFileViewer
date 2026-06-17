@@ -1,6 +1,15 @@
+type ChartTabIntegrationDocument = Pick<
+    Document,
+    "defaultView" | "querySelector"
+>;
+
 export interface ChartTabIntegrationRuntimeScope {
-    readonly document?: Document | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
+    readonly getDocument?:
+        | (() => ChartTabIntegrationDocument | undefined)
+        | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof HTMLElement | undefined)
+        | undefined;
 }
 
 export interface ChartTabIntegrationRuntime {
@@ -9,19 +18,27 @@ export interface ChartTabIntegrationRuntime {
     querySelector: (selector: string) => HTMLElement | null;
 }
 
+/* eslint-disable perfectionist/sort-arrays -- Prefer the modern chartjs tab id before the legacy chart tab id. */
 const chartTabButtonSelectors = [
     "#tab_chartjs",
     "#tab_chart",
     '[data-tab="chart"]',
 ] as const;
+/* eslint-enable perfectionist/sort-arrays -- Re-enable array sorting after the prioritized selector list. */
 
 const defaultChartTabIntegrationRuntimeScope: ChartTabIntegrationRuntimeScope =
-    globalThis;
+    {
+        getDocument: () => globalThis.document,
+        getHTMLElement: () => globalThis.HTMLElement,
+    };
 
 function getHTMLElementConstructor(
     scope: ChartTabIntegrationRuntimeScope
 ): typeof HTMLElement | undefined {
-    return scope.HTMLElement ?? scope.document?.defaultView?.HTMLElement;
+    return (
+        scope.getHTMLElement?.() ??
+        scope.getDocument?.()?.defaultView?.HTMLElement
+    );
 }
 
 function isHTMLElement(
@@ -39,7 +56,7 @@ function queryHTMLElement(
     scope: ChartTabIntegrationRuntimeScope,
     selector: string
 ): HTMLElement | null {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         return null;
     }

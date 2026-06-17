@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 
-import { getChartTabIntegrationRuntime } from "../../../../../electron-app/utils/charts/core/chartTabIntegrationRuntime.js";
+import {
+    getChartTabIntegrationRuntime,
+    type ChartTabIntegrationRuntimeScope,
+} from "../../../../../electron-app/utils/charts/core/chartTabIntegrationRuntime.js";
 
 function cleanupFixture(): void {
     document.body.replaceChildren();
@@ -18,8 +21,8 @@ describe("getChartTabIntegrationRuntime", () => {
 
             expect(
                 getChartTabIntegrationRuntime({
-                    document,
-                    HTMLElement,
+                    getDocument: () => document,
+                    getHTMLElement: () => HTMLElement,
                 }).queryChartTabButton()
             ).toBe(legacyTab);
 
@@ -29,8 +32,8 @@ describe("getChartTabIntegrationRuntime", () => {
 
             expect(
                 getChartTabIntegrationRuntime({
-                    document,
-                    HTMLElement,
+                    getDocument: () => document,
+                    getHTMLElement: () => HTMLElement,
                 }).queryChartTabButton()
             ).toBe(chartJsTab);
         } finally {
@@ -46,25 +49,46 @@ describe("getChartTabIntegrationRuntime", () => {
             tab.dataset.tab = "chart";
             document.body.append(tab);
             const runtime = getChartTabIntegrationRuntime({
-                document,
-                HTMLElement,
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
             });
 
             expect(runtime.querySelector('[data-tab="chart"]')).toBe(tab);
             expect(runtime.isHTMLElement(tab)).toBe(true);
             expect(
                 getChartTabIntegrationRuntime({
-                    document,
+                    getDocument: () => document,
                 }).querySelector('[data-tab="chart"]')
             ).toBe(tab);
             expect(
                 getChartTabIntegrationRuntime({
-                    document: {
-                        querySelector: () => document,
-                    } as unknown as Document,
-                    HTMLElement,
+                    getDocument: () =>
+                        ({
+                            querySelector: () => document,
+                        }) as unknown as Document,
+                    getHTMLElement: () => HTMLElement,
                 }).querySelector('[data-tab="chart"]')
             ).toBeNull();
+        } finally {
+            cleanupFixture();
+        }
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(3);
+
+        try {
+            const tab = document.createElement("button");
+            tab.dataset.tab = "chart";
+            document.body.append(tab);
+            const runtime = getChartTabIntegrationRuntime({
+                document,
+                HTMLElement,
+            } as unknown as ChartTabIntegrationRuntimeScope);
+
+            expect(runtime.querySelector('[data-tab="chart"]')).toBeNull();
+            expect(runtime.queryChartTabButton()).toBeNull();
+            expect(runtime.isHTMLElement(tab)).toBe(false);
         } finally {
             cleanupFixture();
         }

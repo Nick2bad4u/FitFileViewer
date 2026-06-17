@@ -4794,7 +4794,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart tab integration on renderer state facades", () => {
-        expect.assertions(11);
+        expect.assertions(20);
 
         const chartTabIntegrationSource = stripComments(
             readRepositoryFile(
@@ -4806,6 +4806,15 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/charts/core/chartTabIntegrationRuntime.ts"
             )
         );
+        const chartTabIntegrationRuntimeScopeSource =
+            chartTabIntegrationRuntimeSource.slice(
+                chartTabIntegrationRuntimeSource.indexOf(
+                    "export interface ChartTabIntegrationRuntimeScope"
+                ),
+                chartTabIntegrationRuntimeSource.indexOf(
+                    "export interface ChartTabIntegrationRuntime"
+                )
+            );
 
         expect(chartTabIntegrationSource).toContain("activeFitRawDataState.js");
         expect(chartTabIntegrationSource).toContain("appDomainState.js");
@@ -4828,11 +4837,38 @@ describe("architecture boundaries", () => {
         expect(chartTabIntegrationRuntimeSource).toContain(
             "defaultChartTabIntegrationRuntimeScope"
         );
+        expect(chartTabIntegrationRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(chartTabIntegrationRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
         expect(chartTabIntegrationRuntimeSource).not.toContain(
             "scope: ChartTabIntegrationRuntimeScope = globalThis"
         );
         expect(chartTabIntegrationRuntimeSource).not.toContain(
-            "globalThis.HTMLElement"
+            "ChartTabIntegrationRuntimeScope = globalThis"
+        );
+        expect(chartTabIntegrationRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(chartTabIntegrationRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(chartTabIntegrationRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(chartTabIntegrationRuntimeSource).not.toContain(
+            "scope.HTMLElement"
+        );
+        expect(chartTabIntegrationRuntimeSource).toContain(
+            "scope.getHTMLElement?.()"
+        );
+        expect(chartTabIntegrationRuntimeSource).toContain(
+            "scope.getDocument?.()?.defaultView?.HTMLElement"
+        );
+        expect(chartTabIntegrationRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
         );
     });
 

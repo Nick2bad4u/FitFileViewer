@@ -705,7 +705,8 @@ Vitest setup no longer disconnects or deletes a retired `window.tabButtonObserve
 observer lifecycle stays in the typed tab-button module state.
 Chart tab integration tests no longer delete the retired `chartTabIntegration` global before each case; they
 now assert the typed singleton stays absent from `globalThis`, and architecture coverage blocks that mutation
-from returning.
+from returning. Chart tab integration DOM lookups now use named runtime provider functions for document and
+HTMLElement access instead of a broad `globalThis` default scope or legacy direct scope properties.
 State devtools tests no longer delete the retired `__stateDebug` debug global around cleanup or initialization;
 they now assert typed debug utilities stay off `globalThis`, and architecture coverage blocks that mutation
 from returning.
