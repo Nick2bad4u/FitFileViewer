@@ -1,20 +1,36 @@
-export type ChartStatusIndicatorTimerHandle = ReturnType<typeof setTimeout>;
+export type ChartStatusIndicatorTimerHandle = ReturnType<
+    typeof globalThis.setTimeout
+>;
+
+type ChartStatusIndicatorEventListener =
+    | EventListener
+    | Readonly<EventListenerObject>;
+type ChartStatusIndicatorAddEventListener = (
+    type: string,
+    listener: ChartStatusIndicatorEventListener,
+    options?: Readonly<AddEventListenerOptions> | boolean
+) => void;
 
 export interface ChartStatusIndicatorRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly addEventListener?:
-        | ((
-              type: string,
-              listener: EventListenerOrEventListenerObject,
-              options?: AddEventListenerOptions | boolean
-          ) => void)
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
         | undefined;
-    readonly clearTimeout?: typeof clearTimeout | undefined;
-    readonly document?: Document | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
-    readonly innerHeight?: number | undefined;
-    readonly innerWidth?: number | undefined;
-    readonly setTimeout?: typeof setTimeout | undefined;
+    readonly getAddEventListener?:
+        | (() => ChartStatusIndicatorAddEventListener | undefined)
+        | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
+    readonly getViewport?:
+        | (() => ChartStatusIndicatorViewport | undefined)
+        | undefined;
 }
 
 export interface ChartStatusIndicatorViewport {
@@ -23,45 +39,62 @@ export interface ChartStatusIndicatorViewport {
 }
 
 export interface ChartStatusIndicatorRuntime {
-    addChartsRenderedListener: (
-        listener: EventListenerOrEventListenerObject,
-        options: AddEventListenerOptions & { readonly signal: AbortSignal }
+    readonly addChartsRenderedListener: (
+        listener: ChartStatusIndicatorEventListener,
+        options: Readonly<AddEventListenerOptions> & {
+            readonly signal: AbortSignal;
+        }
     ) => void;
-    addFieldToggleChangedListener: (
-        listener: EventListenerOrEventListenerObject,
-        options: AddEventListenerOptions & { readonly signal: AbortSignal }
+    readonly addFieldToggleChangedListener: (
+        listener: ChartStatusIndicatorEventListener,
+        options: Readonly<AddEventListenerOptions> & {
+            readonly signal: AbortSignal;
+        }
     ) => void;
-    clearTimeout: (handle: ChartStatusIndicatorTimerHandle) => void;
-    createAbortController: () => AbortController;
-    getBody: () => HTMLElement;
-    getViewport: () => ChartStatusIndicatorViewport;
-    isHTMLElement: (value: unknown) => value is HTMLElement;
-    querySelector: (selector: string) => HTMLElement | null;
-    setTimeout: (
+    readonly clearTimeout: (handle: ChartStatusIndicatorTimerHandle) => void;
+    readonly createAbortController: () => AbortController;
+    readonly getBody: () => HTMLElement;
+    readonly getViewport: () => ChartStatusIndicatorViewport;
+    readonly isHTMLElement: (value: unknown) => value is HTMLElement;
+    readonly querySelector: (selector: string) => HTMLElement | null;
+    readonly setTimeout: (
         handler: () => void,
         timeout: number
     ) => ChartStatusIndicatorTimerHandle;
 }
 
 const defaultChartStatusIndicatorRuntimeScope: ChartStatusIndicatorRuntimeScope =
-    globalThis;
+    {
+        getAbortController: () => globalThis.AbortController,
+        getAddEventListener: () => globalThis.addEventListener,
+        getClearTimeout: () => globalThis.clearTimeout,
+        getDocument: () => globalThis.document,
+        getHTMLElement: () => globalThis.HTMLElement,
+        getSetTimeout: () => globalThis.setTimeout,
+        getViewport: () => ({
+            height: getGlobalViewportNumber("innerHeight"),
+            width: getGlobalViewportNumber("innerWidth"),
+        }),
+    };
+
+function getGlobalViewportNumber(key: "innerHeight" | "innerWidth"): number {
+    const value = Reflect.get(globalThis, key);
+    return typeof value === "number" ? value : 0;
+}
 
 function getAbortControllerConstructor(
     scope: ChartStatusIndicatorRuntimeScope
-): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.AbortController ?? scope.document?.defaultView?.AbortController;
+): typeof globalThis.AbortController {
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
-        throw new TypeError(
-            "chartStatusIndicator requires an AbortController"
-        );
+        throw new TypeError("chartStatusIndicator requires an AbortController");
     }
 
     return AbortControllerConstructor;
 }
 
 function getDocument(scope: ChartStatusIndicatorRuntimeScope): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError("chartStatusIndicator requires a document");
     }
@@ -71,8 +104,8 @@ function getDocument(scope: ChartStatusIndicatorRuntimeScope): Document {
 
 function getHTMLElementConstructor(
     scope: ChartStatusIndicatorRuntimeScope
-): typeof HTMLElement | undefined {
-    return scope.HTMLElement ?? scope.document?.defaultView?.HTMLElement;
+): typeof globalThis.HTMLElement | undefined {
+    return scope.getHTMLElement?.();
 }
 
 function isHTMLElement(
@@ -88,8 +121,8 @@ function isHTMLElement(
 
 function getRequiredClearTimeout(
     scope: ChartStatusIndicatorRuntimeScope
-): typeof clearTimeout {
-    const clearTimeoutRef = scope.clearTimeout;
+): typeof globalThis.clearTimeout {
+    const clearTimeoutRef = scope.getClearTimeout?.();
     if (typeof clearTimeoutRef !== "function") {
         throw new TypeError(
             "chartStatusIndicator requires a clearTimeout runtime"
@@ -101,8 +134,8 @@ function getRequiredClearTimeout(
 
 function getRequiredSetTimeout(
     scope: ChartStatusIndicatorRuntimeScope
-): typeof setTimeout {
-    const setTimeoutRef = scope.setTimeout;
+): typeof globalThis.setTimeout {
+    const setTimeoutRef = scope.getSetTimeout?.();
     if (typeof setTimeoutRef !== "function") {
         throw new TypeError(
             "chartStatusIndicator requires a setTimeout runtime"
@@ -117,8 +150,10 @@ export function getChartStatusIndicatorRuntime(
 ): ChartStatusIndicatorRuntime {
     return {
         addChartsRenderedListener(
-            listener: EventListenerOrEventListenerObject,
-            options: AddEventListenerOptions & { readonly signal: AbortSignal }
+            listener: ChartStatusIndicatorEventListener,
+            options: Readonly<AddEventListenerOptions> & {
+                readonly signal: AbortSignal;
+            }
         ): void {
             getDocument(scope).addEventListener("chartsRendered", listener, {
                 ...options,
@@ -126,10 +161,12 @@ export function getChartStatusIndicatorRuntime(
             });
         },
         addFieldToggleChangedListener(
-            listener: EventListenerOrEventListenerObject,
-            options: AddEventListenerOptions & { readonly signal: AbortSignal }
+            listener: ChartStatusIndicatorEventListener,
+            options: Readonly<AddEventListenerOptions> & {
+                readonly signal: AbortSignal;
+            }
         ): void {
-            scope.addEventListener?.("fieldToggleChanged", listener, {
+            scope.getAddEventListener?.()?.("fieldToggleChanged", listener, {
                 ...options,
                 signal: options.signal,
             });
@@ -145,10 +182,7 @@ export function getChartStatusIndicatorRuntime(
             return getDocument(scope).body;
         },
         getViewport(): ChartStatusIndicatorViewport {
-            return {
-                height: scope.innerHeight ?? 0,
-                width: scope.innerWidth ?? 0,
-            };
+            return scope.getViewport?.() ?? { height: 0, width: 0 };
         },
         isHTMLElement(value: unknown): value is HTMLElement {
             return isHTMLElement(scope, value);

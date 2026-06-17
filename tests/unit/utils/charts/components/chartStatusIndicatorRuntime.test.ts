@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
+import type { ChartStatusIndicatorRuntimeScope } from "../../../../../electron-app/utils/charts/components/chartStatusIndicatorRuntime.js";
 import { getChartStatusIndicatorRuntime } from "../../../../../electron-app/utils/charts/components/chartStatusIndicatorRuntime.js";
 
 describe("getChartStatusIndicatorRuntime", () => {
@@ -14,7 +15,7 @@ describe("getChartStatusIndicatorRuntime", () => {
             fieldToggleEvents += 1;
         };
         const runtime = getChartStatusIndicatorRuntime({
-            addEventListener: target.addEventListener.bind(target),
+            getAddEventListener: () => target.addEventListener.bind(target),
         });
 
         runtime.addFieldToggleChangedListener(listener, {
@@ -40,10 +41,11 @@ describe("getChartStatusIndicatorRuntime", () => {
             chartsRenderedEvents += 1;
         };
         const runtime = getChartStatusIndicatorRuntime({
-            document: {
-                addEventListener: target.addEventListener.bind(target),
-                querySelector: () => null,
-            } as unknown as Document,
+            getDocument: () =>
+                ({
+                    addEventListener: target.addEventListener.bind(target),
+                    querySelector: () => null,
+                }) as unknown as Document,
         });
 
         runtime.addChartsRenderedListener(listener, {
@@ -63,16 +65,8 @@ describe("getChartStatusIndicatorRuntime", () => {
         expect.assertions(1);
 
         const runtime = getChartStatusIndicatorRuntime({
-            AbortController,
+            getAbortController: () => AbortController,
         });
-
-        expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
-    });
-
-    it("creates abort controllers through the injected document window", () => {
-        expect.assertions(1);
-
-        const runtime = getChartStatusIndicatorRuntime({ document });
 
         expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
@@ -83,12 +77,13 @@ describe("getChartStatusIndicatorRuntime", () => {
         const body = document.createElement("body");
         const element = document.createElement("div");
         const runtime = getChartStatusIndicatorRuntime({
-            document: {
-                body,
-                querySelector: (selector: string) =>
-                    selector === ".status" ? element : document,
-            } as unknown as Document,
-            HTMLElement,
+            getDocument: () =>
+                ({
+                    body,
+                    querySelector: (selector: string) =>
+                        selector === ".status" ? element : document,
+                }) as unknown as Document,
+            getHTMLElement: () => HTMLElement,
         });
 
         expect(runtime.getBody()).toBe(body);
@@ -108,8 +103,8 @@ describe("getChartStatusIndicatorRuntime", () => {
         const setTimeoutMock = vi.fn<typeof setTimeout>(() => timer);
         const timeoutMs = Number("75");
         const runtime = getChartStatusIndicatorRuntime({
-            clearTimeout: clearTimeoutMock,
-            setTimeout: setTimeoutMock,
+            getClearTimeout: () => clearTimeoutMock,
+            getSetTimeout: () => setTimeoutMock,
         });
 
         expect(runtime.setTimeout(handler, timeoutMs)).toBe(timer);
@@ -147,8 +142,10 @@ describe("getChartStatusIndicatorRuntime", () => {
 
         expect(
             getChartStatusIndicatorRuntime({
-                innerHeight: 720,
-                innerWidth: 1280,
+                getViewport: () => ({
+                    height: 720,
+                    width: 1280,
+                }),
             }).getViewport()
         ).toStrictEqual({
             height: 720,
@@ -171,7 +168,7 @@ describe("getChartStatusIndicatorRuntime", () => {
         const runtime = getChartStatusIndicatorRuntime({});
         const runtimeWithInvalidAbortController =
             getChartStatusIndicatorRuntime({
-                AbortController:
+                getAbortController: () =>
                     "AbortController" as unknown as typeof AbortController,
             });
         const listenerController = new AbortController();
@@ -187,5 +184,51 @@ describe("getChartStatusIndicatorRuntime", () => {
         expect(() => runtime.createAbortController()).toThrow(
             "chartStatusIndicator requires an AbortController"
         );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(7);
+
+        const target = new EventTarget();
+        const element = document.createElement("div");
+        const listenerController = new AbortController();
+        const timer = Symbol("chart-status-timer") as unknown as ReturnType<
+            typeof setTimeout
+        >;
+        const legacyScope = {
+            AbortController,
+            addEventListener: target.addEventListener.bind(target),
+            clearTimeout: vi.fn<typeof clearTimeout>(),
+            document: {
+                body: element,
+                querySelector: () => element,
+            },
+            HTMLElement,
+            innerHeight: 720,
+            innerWidth: 1280,
+            setTimeout: vi.fn<typeof setTimeout>(() => timer),
+        } as unknown as ChartStatusIndicatorRuntimeScope;
+        const runtime = getChartStatusIndicatorRuntime(legacyScope);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "chartStatusIndicator requires an AbortController"
+        );
+        expect(() => runtime.getBody()).toThrow(
+            "chartStatusIndicator requires a document"
+        );
+        expect(runtime.getViewport()).toStrictEqual({ height: 0, width: 0 });
+        expect(runtime.isHTMLElement(element)).toBe(false);
+        expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
+            "chartStatusIndicator requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(timer)).toThrow(
+            "chartStatusIndicator requires a clearTimeout runtime"
+        );
+        expect(() =>
+            runtime.addChartsRenderedListener(() => undefined, {
+                signal: listenerController.signal,
+            })
+        ).toThrow("chartStatusIndicator requires a document");
+        listenerController.abort();
     });
 });
