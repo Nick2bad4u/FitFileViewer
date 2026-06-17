@@ -9028,7 +9028,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map measure-tool timers behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(24);
 
         const violations = migratedMapMeasureToolRuntimeFiles
             .filter((relativeFile) =>
@@ -9056,16 +9056,52 @@ describe("architecture boundaries", () => {
             "scope: MapMeasureToolRuntimeScope = globalThis"
         );
         expect(mapMeasureToolRuntimeSource).toContain(
-            "const runtimeDocument = scope.document;"
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(mapMeasureToolRuntimeSource).not.toContain(
-            "globalThis.document"
+            "MapMeasureToolRuntimeScope = globalThis"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(mapMeasureToolRuntimeSource).not.toContain("scope.document");
+        expect(mapMeasureToolRuntimeSource).not.toContain("scope.setTimeout");
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
         );
         expect(mapMeasureToolRuntimeSource).not.toMatch(
             directMapMeasureToolRuntimeAmbientFallbackPattern
         );
         expect(mapMeasureToolRuntimeSource).toContain(
-            "const setTimeoutRef = scope.setTimeout;"
+            "const setTimeoutRef = scope.getSetTimeout?.();"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "const clearTimeoutRef = scope.getClearTimeout?.();"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
         );
         expect(mapMeasureToolRuntimeSource).toContain(
             "runtimeDocument.removeEventListener"

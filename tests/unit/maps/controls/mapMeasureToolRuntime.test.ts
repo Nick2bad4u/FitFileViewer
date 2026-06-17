@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { MapMeasureToolRuntimeScope } from "../../../../electron-app/utils/maps/controls/mapMeasureToolRuntime.js";
 import { getMapMeasureToolRuntime } from "../../../../electron-app/utils/maps/controls/mapMeasureToolRuntime.js";
 
 describe("getMapMeasureToolRuntime", () => {
@@ -20,7 +21,7 @@ describe("getMapMeasureToolRuntime", () => {
             }
         }
         const runtime = getMapMeasureToolRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -55,7 +56,9 @@ describe("getMapMeasureToolRuntime", () => {
             keydownCount += 1;
             lastKey = event.key;
         };
-        const runtime = getMapMeasureToolRuntime({ document: documentRef });
+        const runtime = getMapMeasureToolRuntime({
+            getDocument: () => documentRef,
+        });
 
         runtime.addDocumentKeydownListener(listener, {
             signal: controller.signal,
@@ -97,8 +100,8 @@ describe("getMapMeasureToolRuntime", () => {
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getMapMeasureToolRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
@@ -119,5 +122,36 @@ describe("getMapMeasureToolRuntime", () => {
         expect(() =>
             runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("mapMeasureTool requires a clearTimeout runtime");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(4);
+
+        const eventTarget = new EventTarget();
+        const documentRef = {
+            addEventListener: eventTarget.addEventListener.bind(eventTarget),
+            removeEventListener:
+                eventTarget.removeEventListener.bind(eventTarget),
+        } as Pick<Document, "addEventListener" | "removeEventListener">;
+        const legacyScope = {
+            AbortController,
+            clearTimeout: vi.fn<typeof globalThis.clearTimeout>(),
+            document: documentRef,
+            setTimeout: vi.fn<typeof globalThis.setTimeout>(() => 41),
+        } as unknown as MapMeasureToolRuntimeScope;
+        const runtime = getMapMeasureToolRuntime(legacyScope);
+
+        expect(() => {
+            runtime.createAbortController();
+        }).toThrow("mapMeasureTool requires an AbortController runtime");
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "mapMeasureTool requires a setTimeout runtime"
+        );
+        expect(() =>
+            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("mapMeasureTool requires a clearTimeout runtime");
+        expect(() => {
+            runtime.addDocumentKeydownListener(() => undefined, {});
+        }).toThrow("mapMeasureTool requires a document runtime");
     });
 });
