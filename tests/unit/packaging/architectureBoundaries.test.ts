@@ -8533,7 +8533,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map action timers behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(13);
 
         const violations = migratedMapActionButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -8552,20 +8552,48 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/maps/controls/mapActionButtonsRuntime.ts"
             )
         );
+        const mapActionButtonsRuntimeScopeSource =
+            mapActionButtonsRuntimeSource.slice(
+                mapActionButtonsRuntimeSource.indexOf(
+                    "export interface MapActionButtonsRuntimeScope"
+                ),
+                mapActionButtonsRuntimeSource.indexOf(
+                    "export interface MapActionButtonsRuntime {"
+                )
+            );
 
         expect(violations).toStrictEqual([]);
         expect(mapActionButtonsSource).toContain("mapActionButtonsRuntime.js");
         expect(mapActionButtonsRuntimeSource).toContain(
             "defaultMapActionButtonsRuntimeScope"
         );
+        expect(mapActionButtonsRuntimeScopeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(mapActionButtonsRuntimeScopeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain("scope.setTimeout");
         expect(mapActionButtonsRuntimeSource).not.toContain(
             "scope: MapActionButtonsRuntimeScope = globalThis"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain(
+            "MapActionButtonsRuntimeScope =\n    globalThis"
         );
         expect(mapActionButtonsRuntimeSource).not.toMatch(
             directMapActionButtonsRuntimeAmbientFallbackPattern
         );
         expect(mapActionButtonsRuntimeSource).toContain(
-            "const setTimeoutRef = scope.setTimeout;"
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "const setTimeoutRef = scope.getSetTimeout?.();"
         );
     });
 

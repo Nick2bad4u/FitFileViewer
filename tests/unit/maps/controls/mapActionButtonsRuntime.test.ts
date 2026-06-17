@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getMapActionButtonsRuntime } from "../../../../electron-app/utils/maps/controls/mapActionButtonsRuntime.js";
+import {
+    getMapActionButtonsRuntime,
+    type MapActionButtonsRuntimeScope,
+} from "../../../../electron-app/utils/maps/controls/mapActionButtonsRuntime.js";
 
 describe("getMapActionButtonsRuntime", () => {
     it("uses the injected timer scheduler", () => {
@@ -9,11 +12,15 @@ describe("getMapActionButtonsRuntime", () => {
         let callbackRan = false;
         let scheduledDelayMs = 0;
         const runtime = getMapActionButtonsRuntime({
-            setTimeout(callback, delayMs): ReturnType<typeof setTimeout> {
-                scheduledDelayMs = delayMs;
-                callback();
-                return 7 as ReturnType<typeof setTimeout>;
-            },
+            getSetTimeout: () =>
+                function setTimeout(
+                    callback,
+                    delayMs
+                ): ReturnType<typeof globalThis.setTimeout> {
+                    scheduledDelayMs = delayMs;
+                    callback();
+                    return 7 as ReturnType<typeof globalThis.setTimeout>;
+                },
         });
         const retryDelayMs = Number.parseInt("150", 10);
 
@@ -31,9 +38,10 @@ describe("getMapActionButtonsRuntime", () => {
 
         let clearedTimer: ReturnType<typeof setTimeout> | undefined;
         const runtime = getMapActionButtonsRuntime({
-            clearTimeout(timer): void {
-                clearedTimer = timer;
-            },
+            getClearTimeout: () =>
+                function clearTimeout(timer): void {
+                    clearedTimer = timer;
+                },
         });
         const timer = 9 as ReturnType<typeof setTimeout>;
 
@@ -46,6 +54,26 @@ describe("getMapActionButtonsRuntime", () => {
         expect.assertions(2);
 
         const runtime = getMapActionButtonsRuntime({});
+
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "mapActionButtonsRuntime requires setTimeout"
+        );
+        expect(() =>
+            runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
+        ).toThrow("mapActionButtonsRuntime requires clearTimeout");
+    });
+
+    it("ignores legacy direct timer scope properties", () => {
+        expect.assertions(2);
+
+        const runtime = getMapActionButtonsRuntime({
+            clearTimeout() {
+                throw new Error("legacy clearTimeout should not run");
+            },
+            setTimeout() {
+                throw new Error("legacy setTimeout should not run");
+            },
+        } as unknown as MapActionButtonsRuntimeScope);
 
         expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
             "mapActionButtonsRuntime requires setTimeout"
