@@ -2,6 +2,11 @@
  * Utilities for managing custom accent colors with automatic shade generation.
  */
 
+import {
+    getAccentColorRuntime,
+    type AccentColorRuntime,
+} from "./accentColorRuntime.js";
+
 /** Theme names that influence accent color contrast calculations. */
 export type AccentTheme = "dark" | "light";
 
@@ -40,11 +45,11 @@ const ACCENT_COLOR_STORAGE_KEY = "ffv-accent-color";
  * @param color - Accent color hex value.
  * @param theme - Current theme.
  */
-export function applyAccentColor(color: string, theme: string): void {
-    if (typeof document === "undefined") {
-        return;
-    }
-
+export function applyAccentColor(
+    color: string,
+    theme: string,
+    runtime: AccentColorRuntime = getAccentColorRuntime()
+): void {
     const resolvedTheme = normalizeTheme(theme);
     let resolvedColor = color;
 
@@ -58,7 +63,7 @@ export function applyAccentColor(color: string, theme: string): void {
         resolvedTheme
     );
 
-    for (const target of getAccentColorTargets()) {
+    for (const target of runtime.getAccentColorTargets()) {
         target.style.setProperty("--color-accent", variations.accent);
         target.style.setProperty("--color-accent-rgb", variations.accentRgb);
         target.style.setProperty(
@@ -95,9 +100,16 @@ export function applyAccentColor(color: string, theme: string): void {
  *
  * @returns True when localStorage was updated.
  */
-export function clearAccentColor(): boolean {
+export function clearAccentColor(
+    runtime: AccentColorRuntime = getAccentColorRuntime()
+): boolean {
     try {
-        localStorage.removeItem(ACCENT_COLOR_STORAGE_KEY);
+        const storage = runtime.getStorage();
+        if (!storage) {
+            return false;
+        }
+
+        storage.removeItem(ACCENT_COLOR_STORAGE_KEY);
         return true;
     } catch (error) {
         console.error("[AccentColor] Failed to clear accent color:", error);
@@ -164,8 +176,11 @@ export function getDefaultAccentColor(theme: string): string {
  *
  * @returns Effective accent color hex value.
  */
-export function getEffectiveAccentColor(theme: string): string {
-    return loadAccentColor() || getDefaultAccentColor(theme);
+export function getEffectiveAccentColor(
+    theme: string,
+    runtime: AccentColorRuntime = getAccentColorRuntime()
+): string {
+    return loadAccentColor(runtime) || getDefaultAccentColor(theme);
 }
 
 /**
@@ -175,9 +190,12 @@ export function getEffectiveAccentColor(theme: string): string {
  *
  * @returns Applied accent color hex value.
  */
-export function initializeAccentColor(theme: string): string {
-    const effectiveColor = getEffectiveAccentColor(theme);
-    applyAccentColor(effectiveColor, theme);
+export function initializeAccentColor(
+    theme: string,
+    runtime: AccentColorRuntime = getAccentColorRuntime()
+): string {
+    const effectiveColor = getEffectiveAccentColor(theme, runtime);
+    applyAccentColor(effectiveColor, theme, runtime);
     return effectiveColor;
 }
 
@@ -197,9 +215,11 @@ export function isValidHexColor(color: unknown): color is string {
  *
  * @returns Stored accent color, or null when absent or invalid.
  */
-export function loadAccentColor(): null | string {
+export function loadAccentColor(
+    runtime: AccentColorRuntime = getAccentColorRuntime()
+): null | string {
     try {
-        const saved = localStorage.getItem(ACCENT_COLOR_STORAGE_KEY);
+        const saved = runtime.getStorage()?.getItem(ACCENT_COLOR_STORAGE_KEY);
         if (isValidHexColor(saved)) {
             return saved;
         }
@@ -216,10 +236,13 @@ export function loadAccentColor(): null | string {
  *
  * @returns Default accent color hex value.
  */
-export function resetAccentColor(theme: string): string {
-    clearAccentColor();
+export function resetAccentColor(
+    theme: string,
+    runtime: AccentColorRuntime = getAccentColorRuntime()
+): string {
+    clearAccentColor(runtime);
     const defaultColor = getDefaultAccentColor(theme);
-    applyAccentColor(defaultColor, theme);
+    applyAccentColor(defaultColor, theme, runtime);
     return defaultColor;
 }
 
@@ -230,14 +253,22 @@ export function resetAccentColor(theme: string): string {
  *
  * @returns True when saved successfully.
  */
-export function saveAccentColor(color: string): boolean {
+export function saveAccentColor(
+    color: string,
+    runtime: AccentColorRuntime = getAccentColorRuntime()
+): boolean {
     if (!isValidHexColor(color)) {
         console.warn("[AccentColor] Invalid color format:", color);
         return false;
     }
 
     try {
-        localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, color);
+        const storage = runtime.getStorage();
+        if (!storage) {
+            return false;
+        }
+
+        storage.setItem(ACCENT_COLOR_STORAGE_KEY, color);
         return true;
     } catch (error) {
         console.error("[AccentColor] Failed to save accent color:", error);
@@ -253,14 +284,18 @@ export function saveAccentColor(color: string): boolean {
  *
  * @returns True when the value was saved and applied.
  */
-export function setAccentColor(color: string, theme: string): boolean {
+export function setAccentColor(
+    color: string,
+    theme: string,
+    runtime: AccentColorRuntime = getAccentColorRuntime()
+): boolean {
     if (!isValidHexColor(color)) {
         console.warn("[AccentColor] Invalid color format");
         return false;
     }
 
-    if (saveAccentColor(color)) {
-        applyAccentColor(color, theme);
+    if (saveAccentColor(color, runtime)) {
+        applyAccentColor(color, theme, runtime);
         return true;
     }
 
@@ -275,20 +310,6 @@ function darkenColor(hex: string, percent: number): string {
         newB = b * (1 - amount);
 
     return rgbToHex(newR, newG, newB);
-}
-
-function getAccentColorTargets(): HTMLElement[] {
-    const targets: HTMLElement[] = [];
-
-    if (document.documentElement instanceof HTMLElement) {
-        targets.push(document.documentElement);
-    }
-
-    if (document.body instanceof HTMLElement) {
-        targets.push(document.body);
-    }
-
-    return targets;
 }
 
 function hexToRgb(hex: string): RgbColor {

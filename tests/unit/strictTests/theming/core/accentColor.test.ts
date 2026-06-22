@@ -110,6 +110,42 @@ describe("accentColor", () => {
             logSpy.mockRestore();
         }
     });
+
+    it("handles unavailable runtime storage and DOM targets without direct browser fallbacks", async () => {
+        expect.assertions(5);
+
+        resetTestState();
+        const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+        try {
+            const {
+                applyAccentColor,
+                clearAccentColor,
+                loadAccentColor,
+                saveAccentColor,
+            } = await importAccentColor();
+            const runtimeWithoutBrowserState = {
+                getAccentColorTargets: () => [],
+                getStorage: () => undefined,
+            };
+
+            applyAccentColor("#123456", "light", runtimeWithoutBrowserState);
+
+            expect(clearAccentColor(runtimeWithoutBrowserState)).toBe(false);
+            expect(loadAccentColor(runtimeWithoutBrowserState)).toBeNull();
+            expect(saveAccentColor("#abcdef", runtimeWithoutBrowserState)).toBe(
+                false
+            );
+            expect(document.body.style.getPropertyValue("--color-accent")).toBe(
+                ""
+            );
+            expect(logSpy).toHaveBeenCalledWith(
+                "[AccentColor] Applied accent color: #123456 for light theme"
+            );
+        } finally {
+            logSpy.mockRestore();
+        }
+    });
 });
 
 async function importAccentColor(): Promise<AccentColorModule> {

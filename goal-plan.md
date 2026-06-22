@@ -385,6 +385,9 @@ primitives instead of falling back to `globalThis`, with focused runtime coverag
 those fallbacks from returning. Default media-query helpers now use typed provider picks instead of direct optional
 browser-global shapes, and the default media-query provider now binds `matchMedia` to `globalThis` without a
 module-level `browserGlobal` alias.
+Accent color target lookup and persisted color storage access now route through `accentColorRuntime.ts` instead of
+probing `document`, `HTMLElement`, or `localStorage` directly inside `accentColor.ts`, with focused runtime/behavior
+coverage and architecture coverage blocking those direct browser/storage calls from returning.
 Show FIT data post-load scroll availability checks, reduced-motion media queries, microtask scheduling, and scroll
 calls now route through `showFitDataRuntime.ts` instead of probing `globalThis.scrollTo`,
 `globalThis.matchMedia`, or `queueMicrotask` directly inside `showFitData.ts`, with focused runtime coverage and

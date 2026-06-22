@@ -484,6 +484,9 @@ const migratedChartThemeRuntimeFiles = [
 const migratedThemeCoreRuntimeFiles = [
     "electron-app/utils/theming/core/theme.ts",
 ] as const;
+const migratedAccentColorRuntimeFiles = [
+    "electron-app/utils/theming/core/accentColor.ts",
+] as const;
 const migratedSetupThemeRuntimeFiles = [
     "electron-app/utils/theming/core/setupTheme.ts",
 ] as const;
@@ -1182,6 +1185,10 @@ const directChartThemeRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:document|localStorage|matchMedia)\b|\bdocument\.body\b|\blocalStorage\.getItem\b/u;
 const directThemeCoreRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|matchMedia|setTimeout|window)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+const directAccentColorRuntimeGlobalPattern =
+    /\bdocument\.(?:body|documentElement)\b|\blocalStorage\.(?:getItem|removeItem|setItem)\b|\binstanceof\s+HTMLElement\b|\btypeof\s+document\b/u;
+const directAccentColorRuntimeAmbientGetterPattern =
+    /\bget\s+(?:document|HTMLElement|localStorage|storage)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:document|HTMLElement|localStorage)\b/u;
 const directThemeCoreRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directSetupThemeRuntimeGlobalPattern =
@@ -11203,6 +11210,78 @@ describe("architecture boundaries", () => {
         );
         expect(themeRuntimeSource).toContain(
             "theme core requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps accent color browser APIs behind the runtime facade", () => {
+        expect.assertions(19);
+
+        const violations = migratedAccentColorRuntimeFiles
+            .filter((relativeFile) =>
+                directAccentColorRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const accentColorSource = stripComments(
+            readRepositoryFile("electron-app/utils/theming/core/accentColor.ts")
+        );
+        const accentColorRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/theming/core/accentColorRuntime.ts"
+            )
+        );
+        const accentColorRuntimeScopeSource = accentColorRuntimeSource.slice(
+            accentColorRuntimeSource.indexOf(
+                "export interface AccentColorRuntimeScope"
+            ),
+            accentColorRuntimeSource.indexOf(
+                "export interface AccentColorRuntime"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(accentColorSource).toContain("accentColorRuntime.js");
+        expect(accentColorSource).toContain("getAccentColorTargets");
+        expect(accentColorSource).toContain("getStorage");
+        expect(accentColorSource).not.toMatch(
+            directAccentColorRuntimeGlobalPattern
+        );
+        expect(accentColorRuntimeSource).toContain(
+            "defaultAccentColorRuntimeScope"
+        );
+        expect(accentColorRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(accentColorRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(accentColorRuntimeSource).toContain(
+            "getStorage: () => globalThis.localStorage"
+        );
+        expect(accentColorRuntimeSource).not.toMatch(
+            directAccentColorRuntimeAmbientGetterPattern
+        );
+        expect(accentColorRuntimeSource).not.toContain(
+            "AccentColorRuntimeScope = globalThis"
+        );
+        expect(accentColorRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(accentColorRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(accentColorRuntimeScopeSource).not.toContain(
+            "readonly localStorage?:"
+        );
+        expect(accentColorRuntimeSource).not.toContain("scope.document");
+        expect(accentColorRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(accentColorRuntimeSource).not.toContain("scope.localStorage");
+        expect(accentColorRuntimeSource).toContain(
+            "return scope.getDocument?.();"
+        );
+        expect(accentColorRuntimeSource).toContain(
+            "return scope.getStorage?.();"
         );
     });
 
