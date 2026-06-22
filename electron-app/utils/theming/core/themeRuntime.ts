@@ -17,23 +17,33 @@ export interface ThemeRuntimeScope {
 }
 
 export interface ThemeRuntime {
-    clearTimeout(timer: ThemeRuntimeTimer): void;
-    createAbortController(): AbortController;
-    getGlobalEventTarget(): EventTarget | null;
-    getSystemThemeMediaQuery(): MediaQueryList | null;
-    setTimeout(callback: () => void, delayMs: number): ThemeRuntimeTimer;
+    readonly clearTimeout: (timer: ThemeRuntimeTimer) => void;
+    readonly createAbortController: () => AbortController;
+    readonly getGlobalEventTarget: () => EventTarget | null;
+    readonly getSystemThemeMediaQuery: () => MediaQueryList | null;
+    readonly setTimeout: (
+        callback: () => void,
+        delayMs: number
+    ) => ThemeRuntimeTimer;
 }
 
-const browserGlobal = globalThis as typeof globalThis &
-    Partial<EventTarget> & {
-        readonly matchMedia?: typeof globalThis.matchMedia | undefined;
-    };
+const browserGlobal = globalThis as Partial<
+    Pick<typeof globalThis, "matchMedia">
+>;
+
+function isEventTarget(candidate: unknown): candidate is EventTarget {
+    return (
+        candidate !== null &&
+        typeof candidate === "object" &&
+        "addEventListener" in candidate &&
+        typeof candidate.addEventListener === "function" &&
+        "removeEventListener" in candidate &&
+        typeof candidate.removeEventListener === "function"
+    );
+}
 
 function getDefaultEventTarget(): EventTarget | undefined {
-    return typeof browserGlobal.addEventListener === "function" &&
-        typeof browserGlobal.removeEventListener === "function"
-        ? browserGlobal
-        : undefined;
+    return isEventTarget(globalThis) ? globalThis : undefined;
 }
 
 function getDefaultMatchMedia(): typeof globalThis.matchMedia | undefined {
