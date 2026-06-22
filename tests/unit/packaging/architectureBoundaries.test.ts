@@ -3926,7 +3926,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps export utility browser runtime access behind the runtime facade", () => {
-        expect.assertions(50);
+        expect.assertions(53);
 
         const exportUtilsSource = stripComments(
             readRepositoryFile("electron-app/utils/files/export/exportUtils.ts")
@@ -3980,6 +3980,11 @@ describe("architecture boundaries", () => {
         expect(exportUtilsRuntimeSource).not.toContain("globalThis.window");
         expect(exportUtilsRuntimeSource).not.toContain("getWindow");
         expect(exportUtilsRuntimeSource).not.toContain("typeof globalThis &");
+        expect(exportUtilsRuntimeSource).not.toContain("globalThis as Partial");
+        expect(exportUtilsRuntimeSource).not.toContain(
+            "Pick<typeof globalThis"
+        );
+        expect(exportUtilsRuntimeSource).not.toContain("browserGlobal");
         expect(exportUtilsRuntimeSource).not.toContain(
             "confirm?: ConfirmDangerousActionFunction"
         );

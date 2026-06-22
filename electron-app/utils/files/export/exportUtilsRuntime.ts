@@ -51,27 +51,24 @@ export interface ExportUtilsRuntime {
     ) => Window | null;
 }
 
-const browserGlobal = globalThis as Partial<
-    Pick<typeof globalThis, "confirm" | "crypto" | "localStorage" | "open">
->;
-
 const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
     getConfirmDangerousAction: () => {
-        const confirmDangerousAction = Reflect.get(browserGlobal, "confirm");
+        const confirmDangerousAction = globalThis.confirm;
         return typeof confirmDangerousAction === "function"
-            ? (message) => confirmDangerousAction(message)
+            ? (message) => confirmDangerousAction.call(globalThis, message)
             : undefined;
     },
     getAbortController: () => globalThis.AbortController,
     getDocumentEventTarget: () => globalThis.document,
     getOpenPrintWindow: () => {
-        const openPrintWindow = Reflect.get(browserGlobal, "open");
+        const openPrintWindow = globalThis.open;
         return typeof openPrintWindow === "function"
-            ? (url, target, features) => openPrintWindow(url, target, features)
+            ? (url, target, features) =>
+                  openPrintWindow.call(globalThis, url, target, features)
             : undefined;
     },
-    getSecureRandomCrypto: () => browserGlobal.crypto,
-    getStorage: () => browserGlobal.localStorage ?? null,
+    getSecureRandomCrypto: () => globalThis.crypto,
+    getStorage: () => globalThis.localStorage ?? null,
 };
 
 function getScopeAbortController(

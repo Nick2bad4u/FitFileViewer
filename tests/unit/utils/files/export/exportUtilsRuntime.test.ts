@@ -12,7 +12,7 @@ describe("exportUtilsRuntime", () => {
     });
 
     it("uses default browser function providers without exposing a window scope", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const confirmDangerousAction = vi.fn(() => true);
         const popup = {} as Window;
@@ -31,11 +31,13 @@ describe("exportUtilsRuntime", () => {
         expect(confirmDangerousAction).toHaveBeenCalledWith(
             "Clear saved export tokens?"
         );
+        expect(confirmDangerousAction.mock.contexts[0]).toBe(globalThis);
         expect(openPrintWindow).toHaveBeenCalledWith(
             "",
             "_blank",
             "noopener,noreferrer"
         );
+        expect(openPrintWindow.mock.contexts[0]).toBe(globalThis);
     });
 
     it("confirms dangerous actions through the scoped confirmation runtime", () => {
