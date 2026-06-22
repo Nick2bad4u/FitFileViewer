@@ -9,9 +9,7 @@ export interface LastAnimLogRuntime {
 }
 
 function getDefaultPerformanceNow(): (() => number) | undefined {
-    const performanceRef = (
-        globalThis as Partial<Pick<typeof globalThis, "performance">>
-    ).performance;
+    const performanceRef = globalThis.performance;
     const performanceNow = performanceRef?.now;
     if (typeof performanceNow !== "function") {
         return undefined;

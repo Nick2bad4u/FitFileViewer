@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
     getLastAnimLogRuntime,
@@ -6,6 +6,10 @@ import {
 } from "../../../../electron-app/utils/debug/lastAnimLogRuntime.js";
 
 describe("getLastAnimLogRuntime", () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
     it("resolves Date.now through the injected runtime scope", () => {
         expect.assertions(2);
 
@@ -26,6 +30,20 @@ describe("getLastAnimLogRuntime", () => {
 
         expect(utils.performanceNow()).toBe(56.78);
         expect(now).toHaveBeenCalledOnce();
+    });
+
+    it("binds default performance.now to globalThis.performance", () => {
+        expect.assertions(3);
+
+        const now = vi.fn(function defaultPerformanceNow(this: Performance) {
+            return 12.34;
+        });
+        vi.stubGlobal("performance", { now });
+        const utils = getLastAnimLogRuntime();
+
+        expect(utils.performanceNow()).toBe(12.34);
+        expect(now).toHaveBeenCalledOnce();
+        expect(now.mock.contexts[0]).toBe(globalThis.performance);
     });
 
     it("does not borrow ambient clocks for explicit scopes", () => {

@@ -6687,7 +6687,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps animation debug logging clocks behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const lastAnimLogSource = stripComments(
             readRepositoryFile("electron-app/utils/debug/lastAnimLog.ts")
@@ -6705,6 +6705,10 @@ describe("architecture boundaries", () => {
         );
         expect(lastAnimLogRuntimeSource).not.toMatch(
             directLastAnimLogRuntimeAmbientGetterPattern
+        );
+        expect(lastAnimLogRuntimeSource).not.toContain("globalThis as Partial");
+        expect(lastAnimLogRuntimeSource).not.toContain(
+            "Pick<typeof globalThis"
         );
         expect(lastAnimLogRuntimeSource).not.toContain("readonly dateNow?:");
         expect(lastAnimLogRuntimeSource).not.toContain(
