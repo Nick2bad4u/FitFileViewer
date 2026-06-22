@@ -533,7 +533,8 @@ instead of probing `globalThis.document` inside each helper module, with archite
 direct runtime lookup from returning.
 Active-tab updates now resolve tab documents through the scoped `updateActiveTabRuntime.ts` adapter instead of
 probing `globalThis.document` or `globalThis.window` inside the feature module, with architecture coverage
-blocking those direct runtime lookups from returning to `updateActiveTab.ts`.
+blocking those direct runtime lookups from returning to `updateActiveTab.ts`. Explicit active-tab runtime scopes
+now provide documents through named providers instead of direct `document` properties.
 Animation debug logging tests no longer seed the retired `__renderer_dev` global when proving typed renderer
 debug logging state controls animation logs, and architecture coverage keeps that test off the old global.
 Chart background, zoom-reset, and animation debug logging callers now check renderer availability through

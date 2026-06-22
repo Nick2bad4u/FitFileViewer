@@ -1,10 +1,9 @@
 export interface UpdateActiveTabRuntimeScope {
-    readonly document?: unknown;
     readonly getDocument?: (() => unknown) | undefined;
 }
 
 export interface UpdateActiveTabRuntime {
-    getDocument: (testDocument?: Document) => Document | undefined;
+    getDocument: (testDocument?: Readonly<Document>) => Document | undefined;
 }
 
 function isDocumentLike(candidate: unknown): candidate is Document {
@@ -16,16 +15,6 @@ function isDocumentLike(candidate: unknown): candidate is Document {
         "querySelectorAll" in candidate &&
         typeof candidate.querySelectorAll === "function"
     );
-}
-
-function getScopeDocument(
-    scope: UpdateActiveTabRuntimeScope
-): Document | undefined {
-    try {
-        return isDocumentLike(scope.document) ? scope.document : undefined;
-    } catch {
-        return undefined;
-    }
 }
 
 const defaultUpdateActiveTabRuntimeScope: UpdateActiveTabRuntimeScope = {
@@ -48,11 +37,10 @@ export function getUpdateActiveTabRuntime(
     scope: UpdateActiveTabRuntimeScope = defaultUpdateActiveTabRuntimeScope
 ): UpdateActiveTabRuntime {
     return {
-        getDocument(testDocument?: Document): Document | undefined {
-            const candidates = [
+        getDocument(testDocument?: Readonly<Document>): Document | undefined {
+            const candidates: readonly unknown[] = [
                 testDocument,
                 getProviderDocument(scope),
-                getScopeDocument(scope),
             ];
 
             return candidates.find(isDocumentLike);

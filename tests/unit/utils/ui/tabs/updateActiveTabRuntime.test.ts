@@ -1,43 +1,32 @@
 import { describe, expect, it } from "vitest";
 
-import { getUpdateActiveTabRuntime } from "../../../../../electron-app/utils/ui/tabs/updateActiveTabRuntime.js";
+import {
+    getUpdateActiveTabRuntime,
+    type UpdateActiveTabRuntimeScope,
+} from "../../../../../electron-app/utils/ui/tabs/updateActiveTabRuntime.js";
 
 function createDocument(): Document {
     return document.implementation.createHTMLDocument("active tab runtime");
 }
 
 describe("updateActiveTabRuntime", () => {
-    it("prefers an explicit test document over runtime scope documents", () => {
+    it("prefers an explicit test document over runtime provider documents", () => {
         expect.assertions(1);
 
         const testDocument = createDocument();
-        const scopeDocument = createDocument();
         const providerDocument = createDocument();
         const runtime = getUpdateActiveTabRuntime({
-            document: scopeDocument,
             getDocument: () => providerDocument,
         });
 
         expect(runtime.getDocument(testDocument)).toBe(testDocument);
     });
 
-    it("uses the runtime scope document when no test document is present", () => {
-        expect.assertions(1);
-
-        const scopeDocument = createDocument();
-        const runtime = getUpdateActiveTabRuntime({
-            document: scopeDocument,
-        });
-
-        expect(runtime.getDocument()).toBe(scopeDocument);
-    });
-
-    it("uses the runtime document provider", () => {
+    it("uses the runtime document provider when no test document is present", () => {
         expect.assertions(1);
 
         const providerDocument = createDocument();
         const runtime = getUpdateActiveTabRuntime({
-            document: undefined,
             getDocument: () => providerDocument,
         });
 
@@ -48,11 +37,22 @@ describe("updateActiveTabRuntime", () => {
         expect.assertions(1);
 
         const runtime = getUpdateActiveTabRuntime({
-            document: { getElementById: "not a function" },
-            getDocument: () => null,
+            getDocument: () => ({ getElementById: "not a function" }),
         });
 
         expect(runtime.getDocument()).toBeUndefined();
+    });
+
+    it("ignores legacy direct runtime scope documents", () => {
+        expect.assertions(1);
+
+        const legacyScope = {
+            document: createDocument(),
+        } as unknown as UpdateActiveTabRuntimeScope;
+
+        expect(
+            getUpdateActiveTabRuntime(legacyScope).getDocument()
+        ).toBeUndefined();
     });
 
     it("does not borrow ambient documents for explicit empty scopes", () => {

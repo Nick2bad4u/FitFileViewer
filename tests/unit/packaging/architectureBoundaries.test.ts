@@ -5837,7 +5837,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active-tab updates on typed state access and runtime document resolution", () => {
-        expect.assertions(11);
+        expect.assertions(14);
 
         const updateActiveTabSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/updateActiveTab.ts")
@@ -5869,6 +5869,11 @@ describe("architecture boundaries", () => {
         expect(updateActiveTabRuntimeSource).not.toContain(
             "UpdateActiveTabRuntimeScope = globalThis"
         );
+        expect(updateActiveTabRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(updateActiveTabRuntimeSource).not.toContain("scope.document");
+        expect(updateActiveTabRuntimeSource).not.toContain("getScopeDocument");
         expect(updateActiveTabRuntimeSource).not.toContain("scope.window");
         expect(updateActiveTabRuntimeSource).not.toContain("window?:");
     });
