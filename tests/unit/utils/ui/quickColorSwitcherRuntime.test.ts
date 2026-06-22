@@ -67,8 +67,45 @@ describe("getQuickColorSwitcherRuntime", () => {
         expect(clicked).toBe(true);
     });
 
+    it("creates, queries, appends, and type-checks nodes through injected document providers", () => {
+        expect.assertions(8);
+
+        const documentRef = document.implementation.createHTMLDocument(
+            "quick color switcher dom"
+        );
+        const runtime = getQuickColorSwitcherRuntime({
+            getDocument: () => documentRef,
+            getNode: () => Node,
+        });
+        const switcher = runtime.createElement("div");
+        const icon = runtime.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "svg"
+        );
+        const textNode = runtime.createTextNode("More Options");
+        const style = runtime.createElement("style");
+
+        switcher.id = "quick-color-switcher";
+        style.id = "quick-color-switcher-styles";
+        runtime.appendToBody(switcher);
+        runtime.appendToHead(style);
+
+        expect(switcher).toBeInstanceOf(HTMLDivElement);
+        expect(icon).toBeInstanceOf(SVGSVGElement);
+        expect(textNode.textContent).toBe("More Options");
+        expect(runtime.querySelector("#quick-color-switcher")).toBe(switcher);
+        expect(
+            runtime.querySelector<HTMLStyleElement>(
+                "#quick-color-switcher-styles"
+            )
+        ).toBe(style);
+        expect(documentRef.body.contains(switcher)).toBe(true);
+        expect(documentRef.head.contains(style)).toBe(true);
+        expect(runtime.isNode(switcher)).toBe(true);
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
-        expect.assertions(1);
+        expect.assertions(6);
 
         const utils = getQuickColorSwitcherRuntime({});
         const controller = new AbortController();
@@ -78,6 +115,21 @@ describe("getQuickColorSwitcherRuntime", () => {
                 signal: controller.signal,
             });
         }).toThrow("quickColorSwitcher requires a document runtime");
+        expect(() => utils.createElement("div")).toThrow(
+            "quickColorSwitcher requires a document runtime"
+        );
+        expect(() =>
+            utils.createElementNS("http://www.w3.org/2000/svg", "svg")
+        ).toThrow("quickColorSwitcher requires a document runtime");
+        expect(() => utils.createTextNode("More Options")).toThrow(
+            "quickColorSwitcher requires a document runtime"
+        );
+        expect(() => utils.querySelector("#quick-color-switcher")).toThrow(
+            "quickColorSwitcher requires a document runtime"
+        );
+        expect(() => utils.appendToBody(document.createElement("div"))).toThrow(
+            "quickColorSwitcher requires a document runtime"
+        );
         controller.abort();
     });
 
@@ -102,7 +154,7 @@ describe("getQuickColorSwitcherRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(4);
+        expect.assertions(11);
 
         class TestAbortController implements AbortController {
             public readonly signal = Symbol(
@@ -116,12 +168,14 @@ describe("getQuickColorSwitcherRuntime", () => {
         const documentRef = document.implementation.createHTMLDocument(
             "legacy quick color switcher"
         );
+        const nodeConstructor = Node;
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const setTimeout = vi.fn<typeof globalThis.setTimeout>();
         const runtime = getQuickColorSwitcherRuntime({
             AbortController: TestAbortController,
             clearTimeout,
             document: documentRef,
+            Node: nodeConstructor,
             setTimeout,
         } as unknown as Parameters<typeof getQuickColorSwitcherRuntime>[0]);
         const controller = new AbortController();
@@ -140,6 +194,23 @@ describe("getQuickColorSwitcherRuntime", () => {
         expect(() => runtime.clearTimeout(0)).toThrow(
             "quickColorSwitcher requires a clearTimeout runtime"
         );
+        expect(() => runtime.createElement("div")).toThrow(
+            "quickColorSwitcher requires a document runtime"
+        );
+        expect(() =>
+            runtime.createElementNS("http://www.w3.org/2000/svg", "svg")
+        ).toThrow("quickColorSwitcher requires a document runtime");
+        expect(() => runtime.createTextNode("More Options")).toThrow(
+            "quickColorSwitcher requires a document runtime"
+        );
+        expect(() => runtime.querySelector("#quick-color-switcher")).toThrow(
+            "quickColorSwitcher requires a document runtime"
+        );
+        expect(() =>
+            runtime.appendToHead(document.createElement("style"))
+        ).toThrow("quickColorSwitcher requires a document runtime");
+        expect(runtime.isNode(document.createElement("div"))).toBe(false);
+        expect(clearTimeout).not.toHaveBeenCalled();
 
         controller.abort();
     });
@@ -158,7 +229,7 @@ describe("getQuickColorSwitcherRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(6);
+        expect.assertions(10);
 
         const controller = new AbortController();
         const timeoutMs = Number("250");
@@ -172,12 +243,14 @@ describe("getQuickColorSwitcherRuntime", () => {
         const documentRef = document.implementation.createHTMLDocument(
             "quick color default"
         );
+        const nodeConstructor = Node;
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const runtime = getQuickColorSwitcherRuntime();
 
         vi.stubGlobal("AbortController", AbortControllerConstructor);
         vi.stubGlobal("clearTimeout", clearTimeout);
         vi.stubGlobal("document", documentRef);
+        vi.stubGlobal("Node", nodeConstructor);
         vi.stubGlobal("setTimeout", setTimeout);
 
         expect(runtime.createAbortController()).toBe(controller);
@@ -191,8 +264,20 @@ describe("getQuickColorSwitcherRuntime", () => {
         documentRef.dispatchEvent(new Event("click"));
         expect(runtime.setTimeout(() => {}, timeoutMs)).toBe(timer);
         runtime.clearTimeout(timer);
+        const switcher = runtime.createElement("div");
+        switcher.id = "quick-color-switcher";
+        const icon = runtime.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "svg"
+        );
+        const label = runtime.createTextNode("More Options");
+        runtime.appendToBody(switcher);
 
         expect(clicked).toBe(true);
+        expect(icon).toBeInstanceOf(SVGSVGElement);
+        expect(label.textContent).toBe("More Options");
+        expect(runtime.querySelector("#quick-color-switcher")).toBe(switcher);
+        expect(runtime.isNode(switcher)).toBe(true);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
         expect(setTimeout).toHaveBeenCalledWith(
             expect.any(Function),

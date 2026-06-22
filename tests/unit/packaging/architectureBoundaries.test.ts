@@ -1287,9 +1287,9 @@ const directUnifiedControlBarRuntimeGlobalPattern =
 const directUnifiedControlBarRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|clearTimeout|document|eventTarget|HTMLElement|MutationObserver|setTimeout)\b|\bscope:\s*UnifiedControlBarRuntimeScope\s*=\s*globalThis\b|\bUnifiedControlBarRuntimeScope\s*=\s*globalThis\b|\?\?\s*globalThis\b/u;
 const directQuickColorSwitcherRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|createElementNS|createTextNode|head|querySelector|setTimeout)\b|\bnew\s+AbortController\b|\binstanceof\s+Node\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directQuickColorSwitcherRuntimeAmbientGetterPattern =
-    /\bget\s+(?:AbortController|clearTimeout|document|setTimeout)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|clearTimeout|document|setTimeout)\b/u;
+    /\bget\s+(?:AbortController|Node|clearTimeout|document|setTimeout)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|Node|clearTimeout|document|setTimeout)\b/u;
 const directQuickColorSwitcherRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directShownFilesListRuntimeGlobalPattern =
@@ -12988,8 +12988,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps quick color switcher timers behind the runtime facade", () => {
-        expect.assertions(17);
+    it("keeps quick color switcher browser APIs behind the runtime facade", () => {
+        expect.assertions(27);
 
         const violations = migratedQuickColorSwitcherRuntimeFiles
             .filter((relativeFile) =>
@@ -13011,6 +13011,13 @@ describe("architecture boundaries", () => {
         );
         expect(quickColorSwitcherSource).toContain("createAbortController");
         expect(quickColorSwitcherSource).toContain("addDocumentClickListener");
+        expect(quickColorSwitcherSource).toContain("createElement");
+        expect(quickColorSwitcherSource).toContain("createElementNS");
+        expect(quickColorSwitcherSource).toContain("createTextNode");
+        expect(quickColorSwitcherSource).toContain("appendToBody");
+        expect(quickColorSwitcherSource).toContain("appendToHead");
+        expect(quickColorSwitcherSource).toContain("querySelector");
+        expect(quickColorSwitcherSource).toContain("isNode");
         expect(quickColorSwitcherRuntimeSource).toContain(
             "const runtimeDocument = getDocument(scope);"
         );
@@ -13033,6 +13040,9 @@ describe("architecture boundaries", () => {
             "readonly document?:"
         );
         expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "readonly Node?:"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
             "readonly setTimeout?:"
         );
         expect(quickColorSwitcherRuntimeSource).not.toContain(
@@ -13042,8 +13052,12 @@ describe("architecture boundaries", () => {
             "scope.clearTimeout"
         );
         expect(quickColorSwitcherRuntimeSource).not.toContain("scope.document");
+        expect(quickColorSwitcherRuntimeSource).not.toContain("scope.Node");
         expect(quickColorSwitcherRuntimeSource).not.toContain(
             "scope.setTimeout"
+        );
+        expect(quickColorSwitcherRuntimeSource).toContain(
+            "getNode: () => globalThis.Node"
         );
         expect(quickColorSwitcherRuntimeSource).toContain(
             "quickColorSwitcher requires a setTimeout runtime"
