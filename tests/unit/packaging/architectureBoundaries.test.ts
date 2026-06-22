@@ -768,7 +768,7 @@ const directStateDevToolsRuntimeGlobalPattern =
 const directStateDevToolsRuntimeAmbientIntervalFallbackPattern =
     /\bscope\.(?:clearInterval|setInterval)\s*\?\?\s*globalThis\.(?:clearInterval|setInterval)\b|\bglobalThis\.(?:clearInterval|setInterval)\s*\(/u;
 const directRendererStateIntegrationRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\bdocument\.(?:documentElement|querySelectorAll)\b|\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directRendererStateIntegrationRuntimeAmbientGetterPattern =
@@ -7159,7 +7159,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(26);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -7189,8 +7189,15 @@ describe("architecture boundaries", () => {
         expect(rendererStateIntegrationSource).toContain(
             "addDocumentClickListener"
         );
+        expect(rendererStateIntegrationSource).toContain("getDocument()");
         expect(rendererStateIntegrationSource).not.toContain(
             "document.addEventListener"
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            "document.querySelectorAll"
+        );
+        expect(rendererStateIntegrationSource).not.toContain(
+            "document.documentElement"
         );
         expect(rendererStateIntegrationRuntimeSource).not.toMatch(
             directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern
@@ -7202,7 +7209,13 @@ describe("architecture boundaries", () => {
             "defaultRendererStateIntegrationRuntimeScope"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
             "getDocumentEventTarget: () => globalThis.document"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "rendererStateIntegration requires a document runtime"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "rendererStateIntegration requires a document event-target runtime"
@@ -7217,6 +7230,9 @@ describe("architecture boundaries", () => {
             "readonly clearTimeout?:"
         );
         expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
             "readonly documentEventTarget?:"
         );
         expect(rendererStateIntegrationRuntimeSource).not.toContain(
@@ -7227,6 +7243,9 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationRuntimeSource).not.toContain(
             "scope.clearTimeout"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "scope.document"
         );
         expect(rendererStateIntegrationRuntimeSource).not.toContain(
             "scope.documentEventTarget"

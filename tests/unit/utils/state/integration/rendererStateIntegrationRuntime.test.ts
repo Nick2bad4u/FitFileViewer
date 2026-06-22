@@ -32,7 +32,7 @@ describe("getRendererStateIntegrationRuntime", () => {
     });
 
     it("does not borrow ambient browser primitives for explicit scopes", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const utils = getRendererStateIntegrationRuntime({});
 
@@ -46,6 +46,9 @@ describe("getRendererStateIntegrationRuntime", () => {
             utils.addDocumentClickListener(() => undefined, {})
         ).toThrow(
             "rendererStateIntegration requires a document event-target runtime"
+        );
+        expect(() => utils.getDocument()).toThrow(
+            "rendererStateIntegration requires a document runtime"
         );
     });
 
@@ -107,8 +110,19 @@ describe("getRendererStateIntegrationRuntime", () => {
         expect(documentEventTarget.body.childElementCount).toBe(0);
     });
 
+    it("resolves DOM documents through the injected runtime scope", () => {
+        expect.assertions(1);
+
+        const documentRef = document.implementation.createHTMLDocument();
+        const utils = getRendererStateIntegrationRuntime({
+            getDocument: () => documentRef,
+        });
+
+        expect(utils.getDocument()).toBe(documentRef);
+    });
+
     it("ignores legacy direct browser primitive runtime properties", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const callback = vi.fn<() => void>();
         const timer = 79 as ReturnType<typeof globalThis.setTimeout>;
@@ -130,6 +144,7 @@ describe("getRendererStateIntegrationRuntime", () => {
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
             clearTimeout,
+            document: documentEventTarget,
             documentEventTarget,
             setTimeout,
         } as unknown as Parameters<
@@ -150,11 +165,15 @@ describe("getRendererStateIntegrationRuntime", () => {
         ).toThrow(
             "rendererStateIntegration requires a document event-target runtime"
         );
+        expect(() => utils.getDocument()).toThrow(
+            "rendererStateIntegration requires a document runtime"
+        );
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
+        expect(documentEventTarget.body.childElementCount).toBe(0);
     });
 
     it("routes document click listeners through provider functions", () => {
@@ -181,7 +200,7 @@ describe("getRendererStateIntegrationRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(8);
+        expect.assertions(9);
 
         const callback = vi.fn<() => void>();
         let clickCount = 0;
@@ -202,6 +221,7 @@ describe("getRendererStateIntegrationRuntime", () => {
         vi.stubGlobal("setTimeout", setTimeout);
 
         expect(utils.createAbortController()).toBe(controller);
+        expect(utils.getDocument()).toBe(document);
         utils.addDocumentClickListener(
             () => {
                 clickCount += 1;

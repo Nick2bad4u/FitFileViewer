@@ -13,6 +13,7 @@ export interface RendererStateIntegrationRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
@@ -26,6 +27,7 @@ export interface RendererStateIntegrationRuntime {
     ) => void;
     clearTimeout: (timer: RendererStateIntegrationTimer) => void;
     createAbortController: () => AbortController;
+    getDocument: () => Document;
     setTimeout: (
         callback: () => void,
         delayMs: number
@@ -36,6 +38,7 @@ const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRunti
     {
         getAbortController: () => globalThis.AbortController,
         getClearTimeout: () => globalThis.clearTimeout,
+        getDocument: () => globalThis.document,
         getDocumentEventTarget: () => globalThis.document,
         getSetTimeout: () => globalThis.setTimeout,
     };
@@ -57,6 +60,17 @@ function getDocumentEventTarget(
     scope: RendererStateIntegrationRuntimeScope
 ): Document | undefined {
     return scope.getDocumentEventTarget?.();
+}
+
+function requireDocument(scope: RendererStateIntegrationRuntimeScope): Document {
+    const documentRef = scope.getDocument?.();
+    if (!documentRef) {
+        throw new TypeError(
+            "rendererStateIntegration requires a document runtime"
+        );
+    }
+
+    return documentRef;
 }
 
 export function getRendererStateIntegrationRuntime(
@@ -86,6 +100,9 @@ export function getRendererStateIntegrationRuntime(
         },
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
+        },
+        getDocument(): Document {
+            return requireDocument(scope);
         },
         setTimeout(callback, delayMs): RendererStateIntegrationTimer {
             const setTimeoutRef = scope.getSetTimeout?.();

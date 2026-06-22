@@ -294,13 +294,15 @@ async function loadTableTab(): Promise<void> {
  * Set up reactive UI that responds to state changes
  */
 function setupReactiveUI(): void {
+    const documentRef = rendererStateIntegrationRuntime.getDocument();
+
     // Update tab visibility when active tab changes
     subscribe("ui.activeTab", (activeTab) => {
         if (typeof activeTab !== "string") {
             return;
         }
 
-        const tabContents = document.querySelectorAll(".tab-content");
+        const tabContents = documentRef.querySelectorAll(".tab-content");
         for (const content of tabContents) {
             if (content instanceof HTMLElement) {
                 const tabName = content.dataset["tabContent"];
@@ -313,13 +315,13 @@ function setupReactiveUI(): void {
     // Update theme when it changes
     subscribe("ui.theme", (theme) => {
         if (typeof theme === "string" && theme) {
-            document.documentElement.dataset["theme"] = theme;
+            documentRef.documentElement.dataset["theme"] = theme;
         }
     });
 
     // Update chart controls visibility
     subscribe("charts.controlsVisible", (isVisible) => {
-        const wrapper = getChartSettingsWrapper(document);
+        const wrapper = getChartSettingsWrapper(documentRef);
         if (wrapper) {
             wrapper.style.display = isVisible ? "block" : "none";
         }
