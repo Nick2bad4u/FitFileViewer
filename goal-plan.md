@@ -542,7 +542,9 @@ state from `rendererDebugLoggingState.ts`; focused runtime coverage and architec
 renderer-window checks from returning.
 Animation debug logging clock reads now route through `lastAnimLogRuntime.ts` instead of calling `Date.now` or
 `performance.now` directly in `lastAnimLog.ts`, with focused runtime coverage and architecture coverage blocking
-direct animation debug logging clock globals from returning.
+direct animation debug logging clock globals from returning. Production defaults now live behind named provider
+functions, and explicit runtime scopes must provide clock providers instead of direct properties or falling back to
+ambient clocks.
 Strict renderer startup tests also no longer delete the retired `__renderer_dev` global during fresh imports,
 with architecture coverage keeping that startup test on the typed renderer development helpers.
 Renderer development debug tests no longer clean up retired debug globals such as `__renderer_debug`,
