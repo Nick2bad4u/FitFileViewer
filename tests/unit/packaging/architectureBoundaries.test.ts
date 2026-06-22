@@ -1362,6 +1362,8 @@ const directZoneControlsRuntimeAmbientGetterPattern =
     /\bget\s+(?:AbortController|document|HTMLElement|localStorage)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|document|HTMLElement|localStorage)\b/u;
 const directDataPointFilterElementFactoryRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b/u;
+const directDataPointFilterElementFactoryRuntimeAmbientFallbackPattern =
+    /\bscope\.document\b|\bscope:\s*DataPointFilterElementFactoryRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultDataPointFilterElementFactoryRuntimeScope:\s*DataPointFilterElementFactoryRuntimeScope\s*=\s*globalThis\b/u;
 const directDataPointFilterPanelControllerRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|innerHeight|innerWidth)\b|\bnew\s+AbortController\b|\binstanceof\s+Node\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directLoadingOverlayRuntimeGlobalPattern =
@@ -8567,7 +8569,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter element creation behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(10);
 
         const violations = migratedDataPointFilterElementFactoryRuntimeFiles
             .filter((relativeFile) =>
@@ -8592,9 +8594,23 @@ describe("architecture boundaries", () => {
         expect(elementFactoryRuntimeSource).toContain(
             "defaultDataPointFilterElementFactoryRuntimeScope"
         );
+        expect(elementFactoryRuntimeSource).not.toMatch(
+            directDataPointFilterElementFactoryRuntimeAmbientFallbackPattern
+        );
         expect(elementFactoryRuntimeSource).not.toContain(
             "scope: DataPointFilterElementFactoryRuntimeScope = globalThis"
         );
+        expect(elementFactoryRuntimeSource).not.toContain(
+            "const defaultDataPointFilterElementFactoryRuntimeScope: DataPointFilterElementFactoryRuntimeScope = globalThis"
+        );
+        expect(elementFactoryRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(elementFactoryRuntimeSource).not.toContain("scope.document");
+        expect(elementFactoryRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(elementFactoryRuntimeSource).toContain("scope.getDocument?.()");
     });
 
     it("keeps data-point filter panel browser APIs behind the runtime facade", () => {

@@ -1,5 +1,5 @@
 export interface DataPointFilterElementFactoryRuntimeScope {
-    readonly document?: Document | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
 }
 
 export interface DataPointFilterElementFactoryRuntime {
@@ -16,7 +16,7 @@ const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 function getDocument(
     scope: DataPointFilterElementFactoryRuntimeScope
 ): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError(
             "data point filter element factory requires a document runtime"
@@ -27,7 +27,9 @@ function getDocument(
 }
 
 const defaultDataPointFilterElementFactoryRuntimeScope: DataPointFilterElementFactoryRuntimeScope =
-    globalThis;
+    {
+        getDocument: () => globalThis.document,
+    };
 
 export function getDataPointFilterElementFactoryRuntime(
     scope: DataPointFilterElementFactoryRuntimeScope = defaultDataPointFilterElementFactoryRuntimeScope
@@ -41,10 +43,7 @@ export function getDataPointFilterElementFactoryRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(
-                SVG_NAMESPACE,
-                tagName
-            );
+            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
         },
     };
 }
