@@ -1,20 +1,26 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getChartSetting } from "../../../electron-app/utils/state/domain/settingsStateManager.js";
 
+const mockedGetChartSetting = vi.hoisted(() =>
+    vi.fn<(key: string) => unknown>()
+);
 vi.mock(
     import("../../../electron-app/utils/state/domain/settingsStateManager.js"),
     () => ({
-        getChartSetting: vi.fn<(key: string) => unknown>(),
+        getChartSetting: mockedGetChartSetting,
     })
 );
 
-import { formatTime } from "../../../electron-app/utils/formatting/formatters/formatTime.js";
+async function fresh(): Promise<
+    typeof import("../../../electron-app/utils/formatting/formatters/formatTime.js")
+> {
+    vi.resetModules();
+    return await import("../../../electron-app/utils/formatting/formatters/formatTime.js");
+}
 
-const mockedGetChartSetting = vi.mocked(getChartSetting);
-
-describe(formatTime, () => {
+describe("formatTime", () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        vi.resetModules();
+        mockedGetChartSetting.mockReset();
         mockedGetChartSetting.mockReturnValue(undefined);
     });
 
@@ -22,8 +28,10 @@ describe(formatTime, () => {
         vi.restoreAllMocks();
     });
 
-    it("formats seconds as clock strings by default", () => {
+    it("formats seconds as clock strings by default", async () => {
         expect.assertions(7);
+
+        const { formatTime } = await fresh();
 
         expect(formatTime(0)).toBe("0:00");
         expect(formatTime(5)).toBe("0:05");
@@ -34,8 +42,10 @@ describe(formatTime, () => {
         expect(formatTime(90.9)).toBe("1:30");
     });
 
-    it("formats user-unit settings for seconds, minutes, and hours", () => {
+    it("formats user-unit settings for seconds, minutes, and hours", async () => {
         expect.assertions(5);
+
+        const { formatTime } = await fresh();
 
         mockedGetChartSetting.mockReturnValue("seconds");
         expect(formatTime(90, true)).toBe("1:30");
@@ -51,16 +61,19 @@ describe(formatTime, () => {
         expect(mockedGetChartSetting).toHaveBeenCalledWith("timeUnits");
     });
 
-    it("does not read user settings when user units are disabled", () => {
+    it("does not read user settings when user units are disabled", async () => {
         expect.assertions(2);
+
+        const { formatTime } = await fresh();
 
         expect(formatTime(90, false)).toBe("1:30");
         expect(mockedGetChartSetting).not.toHaveBeenCalled();
     });
 
-    it("handles invalid-input values with warnings and the fallback time", () => {
+    it("handles invalid-input values with warnings and the fallback time", async () => {
         expect.assertions(13);
 
+        const { formatTime } = await fresh();
         const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
 
         for (const value of [
@@ -92,9 +105,10 @@ describe(formatTime, () => {
         );
     });
 
-    it("logs and returns the fallback time when formatting fails", () => {
+    it("logs and returns the fallback time when formatting fails", async () => {
         expect.assertions(2);
 
+        const { formatTime } = await fresh();
         const errorSpy = vi
             .spyOn(console, "error")
             .mockImplementation(() => {});
