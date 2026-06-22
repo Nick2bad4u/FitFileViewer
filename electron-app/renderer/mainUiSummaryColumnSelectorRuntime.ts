@@ -5,9 +5,13 @@ export type MainUiSummaryColumnSelectorTimer = ReturnType<
 >;
 
 export interface MainUiSummaryColumnSelectorRuntimeScope {
-    readonly document?: Document | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
 }
 
 export interface MainUiSummaryColumnSelectorRuntime {
@@ -20,12 +24,17 @@ export interface MainUiSummaryColumnSelectorRuntime {
 }
 
 const defaultMainUiSummaryColumnSelectorRuntimeScope: MainUiSummaryColumnSelectorRuntimeScope =
-    globalThis;
+    {
+        getDocument: () => globalThis.document,
+        getHTMLElement: () => globalThis.HTMLElement,
+        getSetTimeout: () => globalThis.setTimeout,
+    };
 
 function isHTMLElement(
-    value: unknown,
-    HTMLElementConstructor: typeof HTMLElement | undefined
+    scope: MainUiSummaryColumnSelectorRuntimeScope,
+    value: unknown
 ): value is HTMLElement {
+    const HTMLElementConstructor = scope.getHTMLElement?.();
     return (
         typeof HTMLElementConstructor === "function" &&
         value instanceof HTMLElementConstructor
@@ -37,20 +46,21 @@ export function getMainUiSummaryColumnSelectorRuntime(
 ): MainUiSummaryColumnSelectorRuntime {
     return {
         getSummaryGearButton(selector): HTMLElement | null {
-            const element = scope.document?.querySelector(selector) ?? null;
-            return isHTMLElement(element, scope.HTMLElement) ? element : null;
+            const element =
+                scope.getDocument?.()?.querySelector(selector) ?? null;
+            return isHTMLElement(scope, element) ? element : null;
         },
         getSummaryTab(id): HTMLElement | null {
-            const documentTarget = scope.document;
+            const documentTarget = scope.getDocument?.();
             if (!documentTarget) {
                 return null;
             }
 
             const element = getElementByIdFlexible(documentTarget, id);
-            return isHTMLElement(element, scope.HTMLElement) ? element : null;
+            return isHTMLElement(scope, element) ? element : null;
         },
         setTimeout(callback, delay): MainUiSummaryColumnSelectorTimer {
-            const setTimeout = scope.setTimeout;
+            const setTimeout = scope.getSetTimeout?.();
             if (typeof setTimeout !== "function") {
                 throw new TypeError(
                     "main UI summary selector requires setTimeout"

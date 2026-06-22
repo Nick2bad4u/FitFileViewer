@@ -4,6 +4,7 @@ import { createMainUiSummaryColumnSelectorHandler } from "../../../electron-app/
 import {
     getMainUiSummaryColumnSelectorRuntime,
     type MainUiSummaryColumnSelectorRuntime,
+    type MainUiSummaryColumnSelectorRuntimeScope,
     type MainUiSummaryColumnSelectorTimer,
 } from "../../../electron-app/renderer/mainUiSummaryColumnSelectorRuntime.js";
 
@@ -147,9 +148,9 @@ describe("main UI summary column selector", () => {
         document.body.append(gearButton);
 
         const runtime = getMainUiSummaryColumnSelectorRuntime({
-            document,
-            HTMLElement,
-            setTimeout,
+            getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(runtime.getSummaryTab("tab-summary")).toBe(summaryTab);
@@ -168,9 +169,9 @@ describe("main UI summary column selector", () => {
         const timer = 42 as MainUiSummaryColumnSelectorTimer;
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const runtime = getMainUiSummaryColumnSelectorRuntime({
-            document,
-            HTMLElement,
-            setTimeout,
+            getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
+            getSetTimeout: () => setTimeout,
         });
         const scheduleTimeout = runtime.setTimeout.bind(runtime);
 
@@ -183,12 +184,38 @@ describe("main UI summary column selector", () => {
         expect.assertions(1);
 
         const runtime = getMainUiSummaryColumnSelectorRuntime({
-            document,
-            HTMLElement,
+            getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
         });
 
         expect(() => {
             runtime.setTimeout(() => {}, 250);
         }).toThrow("main UI summary selector requires setTimeout");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(4);
+
+        const summaryTab = document.createElement("button");
+        summaryTab.id = "tab-summary";
+        document.body.append(summaryTab);
+        const gearButton = document.createElement("button");
+        gearButton.className = "summary-gear-btn";
+        document.body.append(gearButton);
+        const legacyScope = {
+            document,
+            HTMLElement,
+            setTimeout,
+        } as unknown as MainUiSummaryColumnSelectorRuntimeScope;
+        const runtime = getMainUiSummaryColumnSelectorRuntime(legacyScope);
+
+        expect(runtime.getSummaryTab("tab-summary")).toBeNull();
+        expect(runtime.getSummaryGearButton(".summary-gear-btn")).toBeNull();
+        expect(() => runtime.setTimeout(() => {}, 250)).toThrow(
+            "main UI summary selector requires setTimeout"
+        );
+        expect(document.getElementById("tab-summary")).toBe(summaryTab);
+
+        document.body.replaceChildren();
     });
 });

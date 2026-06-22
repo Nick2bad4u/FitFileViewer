@@ -1194,6 +1194,8 @@ const directRenderChartTimerRuntimeGlobalPattern =
     /(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMainUiSummarySelectorRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
+const directMainUiSummarySelectorRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:document|HTMLElement|setTimeout)\b|\bscope:\s*MainUiSummaryColumnSelectorRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultMainUiSummaryColumnSelectorRuntimeScope:\s*MainUiSummaryColumnSelectorRuntimeScope\s*=\s*globalThis\b/u;
 const directRendererApplicationStartupRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererApplicationStartupRuntimeAmbientFallbackPattern =
@@ -4347,7 +4349,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps main-ui summary selector DOM timers behind its runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(14);
 
         const violations = migratedMainUiSummarySelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -4375,8 +4377,26 @@ describe("architecture boundaries", () => {
         expect(runtimeSource).toContain(
             "defaultMainUiSummaryColumnSelectorRuntimeScope"
         );
+        expect(runtimeSource).not.toMatch(
+            directMainUiSummarySelectorRuntimeAmbientFallbackPattern
+        );
         expect(runtimeSource).not.toContain(
             "scope: MainUiSummaryColumnSelectorRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).not.toContain(
+            "const defaultMainUiSummaryColumnSelectorRuntimeScope: MainUiSummaryColumnSelectorRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).not.toContain("readonly document?:");
+        expect(runtimeSource).not.toContain("readonly HTMLElement?:");
+        expect(runtimeSource).not.toContain("readonly setTimeout?:");
+        expect(runtimeSource).not.toContain("scope.document");
+        expect(runtimeSource).not.toContain("scope.HTMLElement");
+        expect(runtimeSource).not.toContain("scope.setTimeout");
+        expect(runtimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(runtimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
         );
     });
 
