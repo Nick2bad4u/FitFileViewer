@@ -6,6 +6,25 @@ import {
 } from "../../../../../electron-app/utils/ui/tabs/tabStateManagerHandlersRuntime.js";
 
 describe("getTabStateManagerHandlersRuntime", () => {
+    it("creates abort controllers through the injected runtime scope", () => {
+        expect.assertions(2);
+
+        const controller = new AbortController();
+        const AbortControllerConstructorMock = vi.fn(
+            function AbortControllerDouble() {
+                return controller;
+            }
+        );
+        const AbortControllerConstructor =
+            AbortControllerConstructorMock as unknown as typeof globalThis.AbortController;
+        const runtime = getTabStateManagerHandlersRuntime({
+            getAbortController: () => AbortControllerConstructor,
+        });
+
+        expect(runtime.createAbortController()).toBe(controller);
+        expect(AbortControllerConstructorMock).toHaveBeenCalledTimes(1);
+    });
+
     it("schedules animation frames through the injected runtime scope", () => {
         expect.assertions(3);
 
@@ -74,10 +93,13 @@ describe("getTabStateManagerHandlersRuntime", () => {
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const runtime = getTabStateManagerHandlersRuntime({});
 
+        expect(() => runtime.createAbortController()).toThrow(
+            "tabStateManagerHandlers requires an AbortController runtime"
+        );
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "tabStateManagerHandlers requires a setTimeout runtime"
         );
@@ -87,9 +109,14 @@ describe("getTabStateManagerHandlersRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const callback = vi.fn<FrameRequestCallback>();
+        const AbortControllerConstructor = vi.fn(
+            function AbortControllerDouble() {
+                return new AbortController();
+            }
+        );
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 41);
@@ -97,6 +124,7 @@ describe("getTabStateManagerHandlersRuntime", () => {
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 53);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getTabStateManagerHandlersRuntime({
+            AbortController: AbortControllerConstructor,
             cancelAnimationFrame,
             clearTimeout,
             requestAnimationFrame,
@@ -105,12 +133,16 @@ describe("getTabStateManagerHandlersRuntime", () => {
 
         expect(runtime.requestAnimationFrame(callback)).toBeUndefined();
         expect(() => runtime.cancelAnimationFrame(41)).not.toThrow();
+        expect(() => runtime.createAbortController()).toThrow(
+            "tabStateManagerHandlers requires an AbortController runtime"
+        );
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
             "tabStateManagerHandlers requires a setTimeout runtime"
         );
         expect(() => runtime.clearTimeout(53)).toThrow(
             "tabStateManagerHandlers requires a clearTimeout runtime"
         );
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(cancelAnimationFrame).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();

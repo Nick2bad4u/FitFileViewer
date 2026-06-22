@@ -1271,7 +1271,7 @@ const directUpdateTabVisibilityRuntimeGlobalPattern =
 const directUpdateTabVisibilityRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|document|requestAnimationFrame|setTimeout)\b|\bscope:\s*UpdateTabVisibilityRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultUpdateTabVisibilityRuntimeScope:\s*UpdateTabVisibilityRuntimeScope\s*=\s*globalThis\b/u;
 const directTabStateManagerHandlersRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+    /\bnew\s+AbortController\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directUnifiedControlBarRuntimeGlobalPattern =
@@ -12586,7 +12586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
-        expect.assertions(23);
+        expect.assertions(29);
 
         const violations = migratedTabStateManagerHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -12632,7 +12632,13 @@ describe("architecture boundaries", () => {
             "TabStateManagerHandlersRuntimeScope =\nglobalThis"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "tabStateManagerHandlers requires an AbortController runtime"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
             "tabStateManagerHandlers requires a setTimeout runtime"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly AbortController?:"
         );
         expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
             "readonly cancelAnimationFrame?:"
@@ -12647,6 +12653,9 @@ describe("architecture boundaries", () => {
             "readonly setTimeout?:"
         );
         expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
             "scope.cancelAnimationFrame"
         );
         expect(tabStateManagerHandlersRuntimeSource).not.toContain(
@@ -12659,6 +12668,9 @@ describe("architecture boundaries", () => {
             "scope.setTimeout"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
             "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
@@ -12669,6 +12681,12 @@ describe("architecture boundaries", () => {
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "const AbortControllerConstructor = scope.getAbortController?.();"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "return new AbortControllerConstructor();"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "scope.getCancelAnimationFrame?.()?.(handle);"

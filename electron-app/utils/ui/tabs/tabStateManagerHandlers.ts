@@ -164,7 +164,8 @@ export function handleZwiftTab(): void {
 
     const status = createZwiftStatus();
     const iframe = createZwiftIframe();
-    const loadController = new AbortController();
+    const loadController =
+        tabStateManagerHandlersRuntime.createAbortController();
     const settleZwiftFrame = (didLoad: boolean): void => {
         loadController.abort();
         clearPendingZwiftFallback();

@@ -3,6 +3,9 @@ export type TabStateManagerHandlersTimerHandle = ReturnType<
 >;
 
 export interface TabStateManagerHandlersRuntimeScope {
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
+        | undefined;
     readonly getCancelAnimationFrame?:
         | (() => typeof globalThis.cancelAnimationFrame | undefined)
         | undefined;
@@ -20,6 +23,7 @@ export interface TabStateManagerHandlersRuntimeScope {
 export interface TabStateManagerHandlersRuntime {
     readonly cancelAnimationFrame: (handle: number) => void;
     readonly clearTimeout: (handle: TabStateManagerHandlersTimerHandle) => void;
+    readonly createAbortController: () => AbortController;
     readonly requestAnimationFrame: (
         callback: FrameRequestCallback
     ) => number | undefined;
@@ -31,6 +35,7 @@ export interface TabStateManagerHandlersRuntime {
 
 const defaultTabStateManagerHandlersRuntimeScope: TabStateManagerHandlersRuntimeScope =
     {
+        getAbortController: () => globalThis.AbortController,
         getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
         getClearTimeout: () => globalThis.clearTimeout,
         getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
@@ -52,6 +57,15 @@ export function getTabStateManagerHandlersRuntime(
                 );
             }
             clearTimeoutRef(handle);
+        },
+        createAbortController(): AbortController {
+            const AbortControllerConstructor = scope.getAbortController?.();
+            if (typeof AbortControllerConstructor !== "function") {
+                throw new TypeError(
+                    "tabStateManagerHandlers requires an AbortController runtime"
+                );
+            }
+            return new AbortControllerConstructor();
         },
         requestAnimationFrame(
             callback: FrameRequestCallback
