@@ -5642,7 +5642,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(18);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -5689,6 +5689,15 @@ describe("architecture boundaries", () => {
         );
         expect(notificationRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "readonly cancelAnimationFrame?:"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(notificationRuntimeSource).not.toContain(
+            "typeof globalThis & {"
         );
         expect(notificationRuntimeSource).not.toContain(
             "scope.cancelAnimationFrame"

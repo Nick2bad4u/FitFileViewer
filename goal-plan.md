@@ -926,7 +926,8 @@ to `globalThis`, and strict about-modal tests mock that runtime instead of stubb
 architecture coverage blocking direct source globals, ambient timer fallbacks, and direct test stubs from returning.
 Renderer notification queue timing now routes animation-frame scheduling/cancellation, auto-hide timers, and serialized
 display timers through `showNotificationRuntime.ts` instead of calling timing globals directly in `showNotification.ts`,
-with adapter tests and architecture coverage blocking direct notification timing globals from returning.
+with adapter tests and architecture coverage blocking direct notification timing globals from returning. Default browser
+frame helpers now use typed provider picks instead of direct optional browser-global shapes.
 Update notification auto-hide timers and renderer-state synced notification hide timers now route through
 `notificationTimerRuntime.ts` instead of calling timer globals directly in their notification modules, with adapter tests
 and architecture coverage blocking direct timer globals from returning.

@@ -29,14 +29,9 @@ export type ShowNotificationRuntime = {
     ) => ShowNotificationTimerHandle;
 };
 
-const browserGlobal = globalThis as typeof globalThis & {
-    readonly cancelAnimationFrame?:
-        | typeof globalThis.cancelAnimationFrame
-        | undefined;
-    readonly requestAnimationFrame?:
-        | typeof globalThis.requestAnimationFrame
-        | undefined;
-};
+const browserGlobal = globalThis as Partial<
+    Pick<typeof globalThis, "cancelAnimationFrame" | "requestAnimationFrame">
+>;
 
 function getDefaultCancelAnimationFrame():
     | typeof globalThis.cancelAnimationFrame
