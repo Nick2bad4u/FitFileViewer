@@ -170,7 +170,7 @@ export function addFullscreenControl(map: LeafletMap): void {
     bar.append(button);
     fullscreenControl.append(bar);
 
-    const mapDiv = document.querySelector<HTMLElement>("#leaflet-map");
+    const mapDiv = mapFullscreenControlRuntime.getMapContainer();
     if (!mapDiv) {
         console.warn("[mapFullscreenControl] Map container not found");
         return;
@@ -205,9 +205,9 @@ export function addFullscreenControl(map: LeafletMap): void {
                 if (mapDiv.requestFullscreen) {
                     void mapDiv.requestFullscreen();
                 }
-            } else if (document.exitFullscreen) {
-                    void document.exitFullscreen();
-                }
+            } else {
+                void mapFullscreenControlRuntime.exitFullscreen();
+            }
             scheduleInvalidateSize();
         },
         { signal: listenerController.signal }
@@ -215,7 +215,8 @@ export function addFullscreenControl(map: LeafletMap): void {
 
     mapFullscreenControlRuntime.addDocumentFullscreenChangeListener(
         () => {
-            const isNowFullscreen = document.fullscreenElement === mapDiv;
+            const isNowFullscreen =
+                mapFullscreenControlRuntime.isFullscreenElement(mapDiv);
             if (!isNowFullscreen) {
                 mapDiv.classList.remove("fullscreen");
                 button.title = "Enter Fullscreen";
@@ -224,7 +225,9 @@ export function addFullscreenControl(map: LeafletMap): void {
                 if (
                     map &&
                     map._container &&
-                    document.body.contains(map._container)
+                    mapFullscreenControlRuntime.documentBodyContains(
+                        map._container
+                    )
                 ) {
                     scheduleInvalidateSize();
                 }
@@ -234,9 +237,8 @@ export function addFullscreenControl(map: LeafletMap): void {
     );
 
     // Remove old fullscreen button from map-controls if present
-    const oldFullscreenBtn = document.querySelector(
-        "#map-controls #fullscreen-btn"
-    );
+    const oldFullscreenBtn =
+        mapFullscreenControlRuntime.getLegacyFullscreenButton();
     if (oldFullscreenBtn) {
         oldFullscreenBtn.remove();
     }

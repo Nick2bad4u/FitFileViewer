@@ -1086,7 +1086,7 @@ const directMapActionButtonsRuntimeAmbientFallbackPattern =
 const directMapDocumentListenersRuntimeGlobalPattern =
     /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.window\b|\bnew\s+AbortController\b/u;
 const directMapFullscreenControlRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|body|exitFullscreen|fullscreenElement|querySelector)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapFullscreenControlRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapMeasureToolRuntimeGlobalPattern =
@@ -9485,7 +9485,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(28);
 
         const violations = migratedMapFullscreenControlRuntimeFiles
             .filter((relativeFile) =>
@@ -9508,6 +9508,16 @@ describe("architecture boundaries", () => {
             "mapFullscreenControlRuntime.js"
         );
         expect(mapFullscreenControlSource).toContain("createAbortController");
+        expect(mapFullscreenControlSource).toContain("getMapContainer()");
+        expect(mapFullscreenControlSource).toContain("exitFullscreen()");
+        expect(mapFullscreenControlSource).toContain("isFullscreenElement");
+        expect(mapFullscreenControlSource).toContain("documentBodyContains");
+        expect(mapFullscreenControlSource).toContain(
+            "getLegacyFullscreenButton()"
+        );
+        expect(mapFullscreenControlSource).not.toContain(
+            "document.querySelector"
+        );
         expect(mapFullscreenControlRuntimeSource).toContain(
             "defaultMapFullscreenControlRuntimeScope"
         );

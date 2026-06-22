@@ -2,7 +2,14 @@ export type MapFullscreenControlTimer = ReturnType<
     typeof globalThis.setTimeout
 >;
 
-type MapFullscreenControlDocument = Pick<Document, "addEventListener">;
+type MapFullscreenControlDocument = Pick<
+    Document,
+    | "addEventListener"
+    | "body"
+    | "exitFullscreen"
+    | "fullscreenElement"
+    | "querySelector"
+>;
 
 export interface MapFullscreenControlRuntimeScope {
     readonly getAbortController?:
@@ -26,6 +33,11 @@ export interface MapFullscreenControlRuntime {
     ) => void;
     readonly clearTimeout: (timer: MapFullscreenControlTimer) => void;
     readonly createAbortController: () => AbortController;
+    readonly documentBodyContains: (element: Element) => boolean;
+    readonly exitFullscreen: () => Promise<void> | void;
+    readonly getLegacyFullscreenButton: () => Element | null;
+    readonly getMapContainer: () => HTMLElement | null;
+    readonly isFullscreenElement: (element: Element) => boolean;
     readonly setTimeout: (
         callback: () => void,
         delayMs: number
@@ -40,17 +52,23 @@ const defaultMapFullscreenControlRuntimeScope: MapFullscreenControlRuntimeScope 
         getSetTimeout: () => globalThis.setTimeout,
     };
 
+function getRuntimeDocument(
+    scope: MapFullscreenControlRuntimeScope
+): MapFullscreenControlDocument {
+    const runtimeDocument = scope.getDocument?.();
+    if (!runtimeDocument) {
+        throw new TypeError("mapFullscreenControl requires a document runtime");
+    }
+
+    return runtimeDocument;
+}
+
 export function getMapFullscreenControlRuntime(
     scope: MapFullscreenControlRuntimeScope = defaultMapFullscreenControlRuntimeScope
 ): MapFullscreenControlRuntime {
     return {
         addDocumentFullscreenChangeListener(listener, options): void {
-            const runtimeDocument = scope.getDocument?.();
-            if (!runtimeDocument) {
-                throw new TypeError(
-                    "mapFullscreenControl requires a document runtime"
-                );
-            }
+            const runtimeDocument = getRuntimeDocument(scope);
 
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-owned AbortSignal.
             runtimeDocument.addEventListener(
@@ -78,6 +96,26 @@ export function getMapFullscreenControlRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        documentBodyContains(element): boolean {
+            return getRuntimeDocument(scope).body.contains(element);
+        },
+        exitFullscreen(): Promise<void> | void {
+            const runtimeDocument = getRuntimeDocument(scope);
+            return runtimeDocument.exitFullscreen();
+        },
+        getLegacyFullscreenButton(): Element | null {
+            return getRuntimeDocument(scope).querySelector(
+                "#map-controls #fullscreen-btn"
+            );
+        },
+        getMapContainer(): HTMLElement | null {
+            return getRuntimeDocument(scope).querySelector<HTMLElement>(
+                "#leaflet-map"
+            );
+        },
+        isFullscreenElement(element): boolean {
+            return getRuntimeDocument(scope).fullscreenElement === element;
         },
         setTimeout(callback, delayMs): MapFullscreenControlTimer {
             const setTimeoutRef = scope.getSetTimeout?.();

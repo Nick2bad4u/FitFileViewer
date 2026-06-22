@@ -45,10 +45,8 @@ describe("getMapFullscreenControlRuntime", () => {
     it("registers document fullscreenchange listeners through the injected document", () => {
         expect.assertions(2);
 
-        const eventTarget = new EventTarget();
-        const documentRef = {
-            addEventListener: eventTarget.addEventListener.bind(eventTarget),
-        } as Pick<Document, "addEventListener">;
+        const documentRef =
+            document.implementation.createHTMLDocument("fullscreen control");
         const controller = new AbortController();
         let eventCount = 0;
         const listener = (): void => {
@@ -61,16 +59,49 @@ describe("getMapFullscreenControlRuntime", () => {
         runtime.addDocumentFullscreenChangeListener(listener, {
             signal: controller.signal,
         });
-        eventTarget.dispatchEvent(new Event("fullscreenchange"));
+        documentRef.dispatchEvent(new Event("fullscreenchange"));
         controller.abort();
-        eventTarget.dispatchEvent(new Event("fullscreenchange"));
+        documentRef.dispatchEvent(new Event("fullscreenchange"));
 
         expect(eventCount).toBe(1);
         expect(controller.signal.aborted).toBe(true);
     });
 
+    it("resolves fullscreen document state through the injected document", async () => {
+        expect.assertions(5);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("fullscreen control");
+        const mapContainer = documentRef.createElement("div");
+        mapContainer.id = "leaflet-map";
+        const mapControls = documentRef.createElement("div");
+        mapControls.id = "map-controls";
+        const legacyButton = documentRef.createElement("button");
+        legacyButton.id = "fullscreen-btn";
+        mapControls.append(legacyButton);
+        documentRef.body.append(mapContainer, mapControls);
+        const exitFullscreen = vi.fn<() => Promise<void>>().mockResolvedValue();
+        Object.defineProperty(documentRef, "exitFullscreen", {
+            configurable: true,
+            value: exitFullscreen,
+        });
+        Object.defineProperty(documentRef, "fullscreenElement", {
+            configurable: true,
+            get: () => mapContainer,
+        });
+        const runtime = getMapFullscreenControlRuntime({
+            getDocument: () => documentRef,
+        });
+
+        expect(runtime.getMapContainer()).toBe(mapContainer);
+        expect(runtime.getLegacyFullscreenButton()).toBe(legacyButton);
+        expect(runtime.isFullscreenElement(mapContainer)).toBe(true);
+        expect(runtime.documentBodyContains(mapContainer)).toBe(true);
+        await expect(runtime.exitFullscreen()).resolves.toBeUndefined();
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
-        expect.assertions(1);
+        expect.assertions(6);
 
         const runtime = getMapFullscreenControlRuntime({});
         const controller = new AbortController();
@@ -80,6 +111,21 @@ describe("getMapFullscreenControlRuntime", () => {
                 signal: controller.signal,
             });
         }).toThrow("mapFullscreenControl requires a document runtime");
+        expect(() => runtime.getMapContainer()).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.getLegacyFullscreenButton()).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.isFullscreenElement(document.body)).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.documentBodyContains(document.body)).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.exitFullscreen()).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
         controller.abort();
     });
 
@@ -117,17 +163,22 @@ describe("getMapFullscreenControlRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(4);
+        expect.assertions(12);
 
+        const addEventListener = vi.fn();
+        const querySelector = vi.fn();
+        const exitFullscreen = vi.fn();
         const runtime = getMapFullscreenControlRuntime({
             AbortController: class LegacyAbortController {},
             clearTimeout() {
                 throw new Error("legacy clearTimeout should not run");
             },
             document: {
-                addEventListener() {
-                    throw new Error("legacy document should not run");
-                },
+                addEventListener,
+                body: document.body,
+                exitFullscreen,
+                fullscreenElement: document.body,
+                querySelector,
             },
             setTimeout() {
                 throw new Error("legacy setTimeout should not run");
@@ -149,6 +200,24 @@ describe("getMapFullscreenControlRuntime", () => {
         expect(() =>
             runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("mapFullscreenControl requires a clearTimeout runtime");
+        expect(() => runtime.getMapContainer()).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.getLegacyFullscreenButton()).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.isFullscreenElement(document.body)).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.documentBodyContains(document.body)).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.exitFullscreen()).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(addEventListener).not.toHaveBeenCalled();
+        expect(querySelector).not.toHaveBeenCalled();
+        expect(exitFullscreen).not.toHaveBeenCalled();
         controller.abort();
     });
 });
