@@ -483,6 +483,9 @@ const mapThemeToggleRuntimeSourceFile =
 const migratedUpdateMapThemeRuntimeFiles = [
     "electron-app/utils/theming/specific/updateMapTheme.ts",
 ] as const;
+const migratedCreateChartCanvasRuntimeFiles = [
+    "electron-app/utils/charts/components/createChartCanvas.ts",
+] as const;
 const migratedChartStatusCountsRuntimeFiles = [
     "electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.ts",
     "electron-app/utils/charts/components/createGlobalChartStatusIndicatorFromCounts.ts",
@@ -1168,6 +1171,10 @@ const directMapThemeToggleRuntimeAmbientFallbackPattern =
     /\bscope\.(?:CustomEvent|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:CustomEvent|clearTimeout|setTimeout)\b/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelector)\b|\bnew\s+AbortController\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
+const directCreateChartCanvasRuntimeGlobalPattern =
+    /\bdocument\.createElement\b/u;
+const directCreateChartCanvasRuntimeAmbientFallbackPattern =
+    /\bscope\.document\b|\bscope:\s*CreateChartCanvasRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultCreateChartCanvasRuntimeScope:\s*CreateChartCanvasRuntimeScope\s*=\s*globalThis\b/u;
 const directChartStatusCountsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bdocument\.querySelector\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directChartStatusIndicatorRuntimeAmbientFallbackPattern =
@@ -10999,6 +11006,58 @@ describe("architecture boundaries", () => {
         expect(updateMapThemeRuntimeSource).not.toContain("scope.document");
         expect(updateMapThemeRuntimeSource).not.toContain("scope.HTMLElement");
         expect(updateMapThemeRuntimeSource).not.toContain("scope.window");
+    });
+
+    it("keeps chart canvas creation behind the runtime facade", () => {
+        expect.assertions(14);
+
+        const violations = migratedCreateChartCanvasRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateChartCanvasRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedCreateChartCanvasRuntimeFiles
+            .filter(
+                (relativeFile) =>
+                    !stripComments(readRepositoryFile(relativeFile)).includes(
+                        "createChartCanvasRuntime.js"
+                    )
+            )
+            .sort();
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/components/createChartCanvasRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(runtimeSource).not.toMatch(
+            directCreateChartCanvasRuntimeAmbientFallbackPattern
+        );
+        expect(runtimeSource).toContain("defaultCreateChartCanvasRuntimeScope");
+        expect(runtimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(runtimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(runtimeSource).toContain(
+            "createChartCanvas requires a document runtime"
+        );
+        expect(runtimeSource).toContain('.createElement("canvas")');
+        expect(runtimeSource).not.toContain(
+            "scope: CreateChartCanvasRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).not.toContain(
+            "CreateChartCanvasRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).not.toContain("readonly document?:");
+        expect(runtimeSource).not.toContain("scope.document");
+        expect(runtimeSource).not.toContain("globalThis as");
+        expect(runtimeSource).not.toContain("Pick<typeof globalThis");
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
