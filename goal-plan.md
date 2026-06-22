@@ -264,7 +264,8 @@ or a map-style manual-mock override API. Export utility print image-load cleanup
 modal cleanup now create abort controllers through `exportUtilsRuntime.ts`, and destructive-action confirmation
 prompts now route through the same runtime instead of probing `globalThis.window` directly inside
 `exportUtils.ts`, with focused runtime coverage and architecture guardrails blocking direct export utility
-browser-runtime access from returning. The
+browser-runtime access from returning. Default export browser helpers now use typed provider picks instead of ad hoc
+optional browser-global fields. The
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
 use `setupFullscreenListeners`, and fullscreen button listener abort-controller creation now routes through
 `addFullScreenButtonRuntime.ts` instead of constructing `AbortController` directly inside

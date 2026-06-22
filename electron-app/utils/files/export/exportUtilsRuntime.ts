@@ -51,12 +51,9 @@ export interface ExportUtilsRuntime {
     ) => Window | null;
 }
 
-const browserGlobal = globalThis as typeof globalThis & {
-    confirm?: ConfirmDangerousActionFunction | undefined;
-    crypto?: Pick<Crypto, "getRandomValues"> | undefined;
-    localStorage?: ExportStorageLike | null | undefined;
-    open?: OpenPrintWindowFunction | undefined;
-};
+const browserGlobal = globalThis as Partial<
+    Pick<typeof globalThis, "confirm" | "crypto" | "localStorage" | "open">
+>;
 
 const defaultExportUtilsRuntimeScope: ExportUtilsRuntimeScope = {
     getConfirmDangerousAction: () => {
