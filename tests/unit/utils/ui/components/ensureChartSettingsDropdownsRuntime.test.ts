@@ -1,12 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getEnsureChartSettingsDropdownsRuntime } from "../../../../../electron-app/utils/ui/components/ensureChartSettingsDropdownsRuntime.js";
+import {
+    getEnsureChartSettingsDropdownsRuntime,
+    type EnsureChartSettingsDropdownsRuntimeScope,
+} from "../../../../../electron-app/utils/ui/components/ensureChartSettingsDropdownsRuntime.js";
 
 describe("getEnsureChartSettingsDropdownsRuntime", () => {
     it("creates elements and exposes the injected document body", () => {
         expect.assertions(3);
 
-        const runtime = getEnsureChartSettingsDropdownsRuntime({ document });
+        const runtime = getEnsureChartSettingsDropdownsRuntime({
+            getDocument: () => document,
+        });
 
         expect(runtime.document).toBe(document);
         expect(runtime.createElement("button")).toBeInstanceOf(
@@ -19,8 +24,8 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
         expect.assertions(2);
 
         const runtime = getEnsureChartSettingsDropdownsRuntime({
-            document,
-            HTMLElement,
+            getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
         });
 
         expect(runtime.isHTMLElement(document.createElement("div"))).toBe(true);
@@ -37,8 +42,8 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
             return 7 as ReturnType<typeof setTimeout>;
         });
         const runtime = getEnsureChartSettingsDropdownsRuntime({
-            document,
-            setTimeout: setTimeoutMock,
+            getDocument: () => document,
+            getSetTimeout: () => setTimeoutMock,
         });
         const callback = vi.fn();
 
@@ -52,7 +57,9 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
     it("does not borrow ambient timers for explicit scopes", () => {
         expect.assertions(1);
 
-        const runtime = getEnsureChartSettingsDropdownsRuntime({ document });
+        const runtime = getEnsureChartSettingsDropdownsRuntime({
+            getDocument: () => document,
+        });
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "ensureChartSettingsDropdowns requires a setTimeout runtime"
@@ -63,8 +70,8 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
         expect.assertions(2);
 
         const runtime = getEnsureChartSettingsDropdownsRuntime({
-            AbortController,
-            document,
+            getAbortController: () => AbortController,
+            getDocument: () => document,
         });
         const controller = runtime.createAbortController();
 
@@ -76,24 +83,27 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
         expect.assertions(5);
 
         const runtime = getEnsureChartSettingsDropdownsRuntime({
-            document: {
-                createElement: document.createElement.bind(document),
-                body: document.body,
-            } as Document,
-            HTMLElement: "HTMLElement" as unknown as typeof HTMLElement,
+            getDocument: () =>
+                ({
+                    createElement: document.createElement.bind(document),
+                    body: document.body,
+                }) as Document,
+            getHTMLElement: () =>
+                "HTMLElement" as unknown as typeof HTMLElement,
         });
         const runtimeWithoutAbortController =
             getEnsureChartSettingsDropdownsRuntime({
-                document: {
-                    body: document.body,
-                    createElement: document.createElement.bind(document),
-                } as Document,
+                getDocument: () =>
+                    ({
+                        body: document.body,
+                        createElement: document.createElement.bind(document),
+                    }) as Document,
             });
         const runtimeWithInvalidAbortController =
             getEnsureChartSettingsDropdownsRuntime({
-                AbortController:
+                getAbortController: () =>
                     "AbortController" as unknown as typeof AbortController,
-                document,
+                getDocument: () => document,
             });
 
         expect(() => getEnsureChartSettingsDropdownsRuntime({})).toThrow(
@@ -114,9 +124,42 @@ describe("getEnsureChartSettingsDropdownsRuntime", () => {
         );
         expect(() =>
             getEnsureChartSettingsDropdownsRuntime({
-                document,
-                setTimeout: "setTimeout" as unknown as typeof setTimeout,
+                getDocument: () => document,
+                getSetTimeout: () =>
+                    "setTimeout" as unknown as typeof setTimeout,
             }).setTimeout(() => {}, 0)
         ).toThrow("ensureChartSettingsDropdowns requires a setTimeout runtime");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(4);
+
+        const legacyDirectScope = {
+            AbortController,
+            document,
+            HTMLElement,
+            setTimeout,
+        } as unknown as EnsureChartSettingsDropdownsRuntimeScope;
+        const mixedLegacyScope = {
+            AbortController,
+            getDocument: () => document,
+            HTMLElement,
+            setTimeout,
+        } as unknown as EnsureChartSettingsDropdownsRuntimeScope;
+        const runtime =
+            getEnsureChartSettingsDropdownsRuntime(mixedLegacyScope);
+
+        expect(() =>
+            getEnsureChartSettingsDropdownsRuntime(legacyDirectScope)
+        ).toThrow("ensureChartSettingsDropdowns requires a document runtime");
+        expect(() => runtime.createAbortController()).toThrow(
+            "ensureChartSettingsDropdowns requires an AbortController runtime"
+        );
+        expect(() => runtime.isHTMLElement(document.body)).toThrow(
+            "ensureChartSettingsDropdowns requires an HTMLElement runtime"
+        );
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "ensureChartSettingsDropdowns requires a setTimeout runtime"
+        );
     });
 });

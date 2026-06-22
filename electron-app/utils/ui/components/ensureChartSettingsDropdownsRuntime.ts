@@ -1,18 +1,23 @@
 export type EnsureChartSettingsDropdownsTimerHandle = ReturnType<
-    typeof setTimeout
+    typeof globalThis.setTimeout
 >;
 
 type DeferredCallback = () => void;
+type EnsureChartSettingsDropdownsTimeoutScheduler = (
+    callback: DeferredCallback,
+    delay: number
+) => EnsureChartSettingsDropdownsTimerHandle;
 
 export interface EnsureChartSettingsDropdownsRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly document?: Document | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
-    readonly setTimeout?:
-        | ((
-              callback: DeferredCallback,
-              delay: number
-          ) => EnsureChartSettingsDropdownsTimerHandle)
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => EnsureChartSettingsDropdownsTimeoutScheduler | undefined)
         | undefined;
 }
 
@@ -32,9 +37,8 @@ export interface EnsureChartSettingsDropdownsRuntime {
 
 function getAbortControllerConstructor(
     scope: EnsureChartSettingsDropdownsRuntimeScope
-): typeof AbortController {
-    const AbortControllerConstructor =
-        scope.AbortController ?? scope.document?.defaultView?.AbortController;
+): typeof globalThis.AbortController {
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "ensureChartSettingsDropdowns requires an AbortController runtime"
@@ -47,7 +51,7 @@ function getAbortControllerConstructor(
 function getDocument(
     scope: EnsureChartSettingsDropdownsRuntimeScope
 ): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError(
             "ensureChartSettingsDropdowns requires a document runtime"
@@ -59,9 +63,8 @@ function getDocument(
 
 function getHTMLElementConstructor(
     scope: EnsureChartSettingsDropdownsRuntimeScope
-): typeof HTMLElement {
-    const HTMLElementConstructor =
-        scope.HTMLElement ?? scope.document?.defaultView?.HTMLElement;
+): typeof globalThis.HTMLElement {
+    const HTMLElementConstructor = scope.getHTMLElement?.();
     if (typeof HTMLElementConstructor !== "function") {
         throw new TypeError(
             "ensureChartSettingsDropdowns requires an HTMLElement runtime"
@@ -73,11 +76,8 @@ function getHTMLElementConstructor(
 
 function getTimeoutScheduler(
     scope: EnsureChartSettingsDropdownsRuntimeScope
-): (
-    callback: DeferredCallback,
-    delay: number
-) => EnsureChartSettingsDropdownsTimerHandle {
-    const timeoutScheduler = scope.setTimeout;
+): EnsureChartSettingsDropdownsTimeoutScheduler {
+    const timeoutScheduler = scope.getSetTimeout?.();
     if (typeof timeoutScheduler !== "function") {
         throw new TypeError(
             "ensureChartSettingsDropdowns requires a setTimeout runtime"
@@ -88,7 +88,12 @@ function getTimeoutScheduler(
 }
 
 const defaultEnsureChartSettingsDropdownsRuntimeScope: EnsureChartSettingsDropdownsRuntimeScope =
-    globalThis;
+    {
+        getAbortController: () => globalThis.AbortController,
+        getDocument: () => globalThis.document,
+        getHTMLElement: () => globalThis.HTMLElement,
+        getSetTimeout: () => globalThis.setTimeout,
+    };
 
 export function getEnsureChartSettingsDropdownsRuntime(
     scope: EnsureChartSettingsDropdownsRuntimeScope = defaultEnsureChartSettingsDropdownsRuntimeScope

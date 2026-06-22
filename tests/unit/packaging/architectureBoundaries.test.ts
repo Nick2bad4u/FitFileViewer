@@ -1295,7 +1295,7 @@ const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
 const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])setTimeout\(/u;
 const directEnsureChartSettingsDropdownsRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:AbortController|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|setTimeout)\b|\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
+    /\bscope\.(?:AbortController|document|HTMLElement|setTimeout)\b|\bscope:\s*EnsureChartSettingsDropdownsRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultEnsureChartSettingsDropdownsRuntimeScope:\s*EnsureChartSettingsDropdownsRuntimeScope\s*=\s*globalThis\b/u;
 const directCreateSettingsHeaderRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreateSettingsHeaderRuntimeAmbientFallbackPattern =
@@ -4553,7 +4553,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings dropdown browser APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(18);
 
         const violations = migratedEnsureChartSettingsDropdownsRuntimeFiles
             .filter((relativeFile) =>
@@ -4586,8 +4586,36 @@ describe("architecture boundaries", () => {
         expect(chartSettingsRuntimeSource).not.toContain(
             "scope: EnsureChartSettingsDropdownsRuntimeScope = globalThis"
         );
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "const defaultEnsureChartSettingsDropdownsRuntimeScope: EnsureChartSettingsDropdownsRuntimeScope = globalThis"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain("readonly document?:");
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(chartSettingsRuntimeSource).not.toContain("scope.document");
+        expect(chartSettingsRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(chartSettingsRuntimeSource).not.toContain("scope.setTimeout");
         expect(chartSettingsRuntimeSource).toContain(
-            "const timeoutScheduler = scope.setTimeout;"
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(chartSettingsRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(chartSettingsRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(chartSettingsRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
     });
 
