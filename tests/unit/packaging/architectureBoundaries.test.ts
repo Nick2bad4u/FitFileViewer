@@ -1265,7 +1265,7 @@ const directEnableTabButtonsHelpersRuntimeGlobalPattern =
 const directUpdateTabVisibilityRuntimeGlobalPattern =
     /\bglobalThis\.(?:document|requestAnimationFrame)\b|\breturn\s+document\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directUpdateTabVisibilityRuntimeAmbientTimerFallbackPattern =
-    /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+    /\bscope\.(?:clearTimeout|document|requestAnimationFrame|setTimeout)\b|\bscope:\s*UpdateTabVisibilityRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultUpdateTabVisibilityRuntimeScope:\s*UpdateTabVisibilityRuntimeScope\s*=\s*globalThis\b/u;
 const directTabStateManagerHandlersRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern =
@@ -11633,7 +11633,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab visibility browser APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(19);
 
         const violations = migratedUpdateTabVisibilityRuntimeFiles
             .filter((relativeFile) =>
@@ -11665,6 +11665,45 @@ describe("architecture boundaries", () => {
         );
         expect(updateTabVisibilityRuntimeSource).not.toContain(
             "scope: UpdateTabVisibilityRuntimeScope = globalThis"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "const defaultUpdateTabVisibilityRuntimeScope: UpdateTabVisibilityRuntimeScope = globalThis"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
+        );
+        expect(updateTabVisibilityRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
+        );
+        expect(updateTabVisibilityRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(updateTabVisibilityRuntimeSource).toContain(
             "updateTabVisibility requires a setTimeout runtime"

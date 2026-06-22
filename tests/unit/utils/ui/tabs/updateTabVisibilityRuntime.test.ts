@@ -1,14 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { UpdateTabVisibilityRuntimeScope } from "../../../../../electron-app/utils/ui/tabs/updateTabVisibilityRuntime.js";
 import { getUpdateTabVisibilityRuntime } from "../../../../../electron-app/utils/ui/tabs/updateTabVisibilityRuntime.js";
 
 describe("getUpdateTabVisibilityRuntime", () => {
     it("returns the injected document", () => {
         expect.assertions(1);
 
-        expect(getUpdateTabVisibilityRuntime({ document }).getDocument()).toBe(
-            document
-        );
+        expect(
+            getUpdateTabVisibilityRuntime({
+                getDocument: () => document,
+            }).getDocument()
+        ).toBe(document);
     });
 
     it("returns undefined when no document is available", () => {
@@ -24,7 +27,9 @@ describe("getUpdateTabVisibilityRuntime", () => {
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 4);
-        const utils = getUpdateTabVisibilityRuntime({ requestAnimationFrame });
+        const utils = getUpdateTabVisibilityRuntime({
+            getRequestAnimationFrame: () => requestAnimationFrame,
+        });
 
         expect(utils.requestAnimationFrame(callback)).toBe(4);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
@@ -47,8 +52,8 @@ describe("getUpdateTabVisibilityRuntime", () => {
         >(() => 8);
         const clearTimeout = vi.fn<(handle: number) => void>();
         const utils = getUpdateTabVisibilityRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
         const timeoutMs = Number.parseInt("180", 10);
 
@@ -72,5 +77,33 @@ describe("getUpdateTabVisibilityRuntime", () => {
         expect(() => runtime.clearTimeout(0)).toThrow(
             "updateTabVisibility requires a clearTimeout runtime"
         );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(5);
+
+        const callback = vi.fn<() => void>();
+        const frameCallback = vi.fn<FrameRequestCallback>();
+        const legacyScope = {
+            clearTimeout: vi.fn<(handle: number) => void>(),
+            document,
+            requestAnimationFrame: vi.fn<
+                (callback: FrameRequestCallback) => number
+            >(() => 4),
+            setTimeout: vi.fn<
+                (callback: () => void, timeout?: number) => number
+            >(() => 8),
+        } as unknown as UpdateTabVisibilityRuntimeScope;
+        const runtime = getUpdateTabVisibilityRuntime(legacyScope);
+
+        expect(runtime.getDocument()).toBeUndefined();
+        expect(runtime.requestAnimationFrame(frameCallback)).toBeUndefined();
+        expect(() => runtime.setTimeout(callback, 1)).toThrow(
+            "updateTabVisibility requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(1)).toThrow(
+            "updateTabVisibility requires a clearTimeout runtime"
+        );
+        expect(callback).not.toHaveBeenCalled();
     });
 });

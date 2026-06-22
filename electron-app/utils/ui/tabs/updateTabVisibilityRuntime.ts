@@ -1,27 +1,36 @@
 export type UpdateTabVisibilityTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
     | number;
+type UpdateTabVisibilityClearTimeout = (
+    handle: UpdateTabVisibilityTimerHandle
+) => void;
+type UpdateTabVisibilityRequestAnimationFrame = (
+    callback: FrameRequestCallback
+) => number;
+type UpdateTabVisibilitySetTimeout = (
+    callback: () => void,
+    timeout?: number
+) => UpdateTabVisibilityTimerHandle;
 
 export interface UpdateTabVisibilityRuntimeScope {
-    readonly clearTimeout?:
-        | ((handle: UpdateTabVisibilityTimerHandle) => void)
+    readonly getClearTimeout?:
+        | (() => UpdateTabVisibilityClearTimeout | undefined)
         | undefined;
-    readonly document?: Document | undefined;
-    readonly requestAnimationFrame?:
-        | ((callback: FrameRequestCallback) => number)
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getRequestAnimationFrame?:
+        | (() => UpdateTabVisibilityRequestAnimationFrame | undefined)
         | undefined;
-    readonly setTimeout?:
-        | ((
-              callback: () => void,
-              timeout?: number
-          ) => UpdateTabVisibilityTimerHandle)
+    readonly getSetTimeout?:
+        | (() => UpdateTabVisibilitySetTimeout | undefined)
         | undefined;
 }
 
 export interface UpdateTabVisibilityRuntime {
     clearTimeout: (handle: UpdateTabVisibilityTimerHandle) => void;
     getDocument: () => Document | undefined;
-    requestAnimationFrame: (callback: FrameRequestCallback) => number | undefined;
+    requestAnimationFrame: (
+        callback: FrameRequestCallback
+    ) => number | undefined;
     setTimeout: (
         callback: () => void,
         timeout: number
@@ -29,14 +38,19 @@ export interface UpdateTabVisibilityRuntime {
 }
 
 const defaultUpdateTabVisibilityRuntimeScope: UpdateTabVisibilityRuntimeScope =
-    globalThis;
+    {
+        getClearTimeout: () => globalThis.clearTimeout,
+        getDocument: () => globalThis.document,
+        getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+        getSetTimeout: () => globalThis.setTimeout,
+    };
 
 export function getUpdateTabVisibilityRuntime(
     scope: UpdateTabVisibilityRuntimeScope = defaultUpdateTabVisibilityRuntimeScope
 ): UpdateTabVisibilityRuntime {
     return {
         clearTimeout(handle: UpdateTabVisibilityTimerHandle): void {
-            const clearTimeoutRef = scope.clearTimeout;
+            const clearTimeoutRef = scope.getClearTimeout?.();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "updateTabVisibility requires a clearTimeout runtime"
@@ -45,22 +59,23 @@ export function getUpdateTabVisibilityRuntime(
             clearTimeoutRef(handle);
         },
         getDocument(): Document | undefined {
-            return scope.document;
+            return scope.getDocument?.();
         },
         requestAnimationFrame(
             callback: FrameRequestCallback
         ): number | undefined {
-            if (typeof scope.requestAnimationFrame !== "function") {
+            const requestAnimationFrame = scope.getRequestAnimationFrame?.();
+            if (typeof requestAnimationFrame !== "function") {
                 return undefined;
             }
 
-            return scope.requestAnimationFrame(callback);
+            return requestAnimationFrame(callback);
         },
         setTimeout(
             callback: () => void,
             timeout: number
         ): UpdateTabVisibilityTimerHandle {
-            const setTimeoutRef = scope.setTimeout;
+            const setTimeoutRef = scope.getSetTimeout?.();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "updateTabVisibility requires a setTimeout runtime"
