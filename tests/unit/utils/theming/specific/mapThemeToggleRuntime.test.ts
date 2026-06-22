@@ -62,6 +62,21 @@ describe("getMapThemeToggleRuntime", () => {
         expect(changed).toBe(true);
     });
 
+    it("finds existing map theme toggles through the injected document runtime", () => {
+        expect.assertions(1);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("map theme toggle");
+        const button = documentRef.createElement("button");
+        button.className = "map-theme-toggle";
+        documentRef.body.append(button);
+        const runtime = getMapThemeToggleRuntime({
+            getDocument: () => documentRef,
+        });
+
+        expect(runtime.findExistingToggle()).toBe(button);
+    });
+
     it("creates and dispatches map theme change events through scoped runtimes", () => {
         expect.assertions(4);
 
@@ -157,7 +172,7 @@ describe("getMapThemeToggleRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         let controllerCount = 0;
         class TestAbortController extends AbortController {
@@ -168,6 +183,9 @@ describe("getMapThemeToggleRuntime", () => {
         }
         const documentRef =
             document.implementation.createHTMLDocument("map theme toggle");
+        const button = documentRef.createElement("button");
+        button.className = "map-theme-toggle";
+        documentRef.body.append(button);
         const setTimeout = vi.fn<typeof globalThis.setTimeout>();
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getMapThemeToggleRuntime({
@@ -193,6 +211,9 @@ describe("getMapThemeToggleRuntime", () => {
         expect(() =>
             runtime.dispatchDocumentEvent(new Event("mapThemeChanged"))
         ).toThrow("mapThemeToggle requires a document runtime");
+        expect(() => runtime.findExistingToggle()).toThrow(
+            "mapThemeToggle requires a document runtime"
+        );
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(
             "mapThemeToggle requires a setTimeout runtime"
         );
@@ -202,7 +223,7 @@ describe("getMapThemeToggleRuntime", () => {
         expect(controllerCount).toBe(0);
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
-        expect(documentRef.body.childElementCount).toBe(0);
+        expect(documentRef.body.childElementCount).toBe(1);
         expect(controller.signal.aborted).toBe(false);
     });
 });

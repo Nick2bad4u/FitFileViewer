@@ -1163,7 +1163,7 @@ const directChartThemeListenerRuntimeGlobalPattern =
 const directChartThemeListenerRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|CustomEvent|clearTimeout|setTimeout)[^;\n]*\?\?\s*globalThis\.(?:AbortController|CustomEvent|clearTimeout|setTimeout)\b/u;
 const directMapThemeToggleRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|dispatchEvent|setTimeout)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|dispatchEvent|querySelector|setTimeout)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directMapThemeToggleRuntimeAmbientFallbackPattern =
     /\bscope\.(?:CustomEvent|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:CustomEvent|clearTimeout|setTimeout)\b/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
@@ -10765,7 +10765,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(31);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -10794,9 +10794,12 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleStateSource).toContain("addDocumentListener");
         expect(mapThemeToggleSource).toContain("createMapThemeChangedEvent");
         expect(mapThemeToggleSource).toContain("dispatchDocumentEvent");
+        expect(mapThemeToggleSource).toContain("findExistingToggle()");
+        expect(mapThemeToggleSource).not.toContain("document.querySelector");
         expect(mapThemeToggleRuntimeSource).toContain(
             "createMapThemeChangedEvent"
         );
+        expect(mapThemeToggleRuntimeSource).toContain("findExistingToggle");
         expect(mapThemeToggleRuntimeSource).toContain(
             "defaultMapThemeToggleRuntimeScope"
         );

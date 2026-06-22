@@ -53,8 +53,8 @@ export const MAP_THEME_STORAGE_KEY = "ffv-map-theme-inverted";
 export function createMapThemeToggle(): HTMLElement {
     try {
         // Prevent duplicate toggle creation when renderMap is invoked multiple times.
-        const existing = document.querySelector(".map-theme-toggle");
-        if (existing && existing instanceof HTMLElement) {
+        const existing = mapThemeToggleRuntime.findExistingToggle();
+        if (existing) {
             return existing;
         }
 

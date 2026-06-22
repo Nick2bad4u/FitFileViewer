@@ -36,6 +36,7 @@ export interface MapThemeToggleRuntime {
         inverted: boolean
     ): CustomEvent<{ inverted: boolean }>;
     dispatchDocumentEvent(event: Event): boolean;
+    findExistingToggle(): HTMLElement | null;
     setTimeout(
         callback: () => void,
         timeout: number
@@ -115,6 +116,11 @@ export function getMapThemeToggleRuntime(
         },
         dispatchDocumentEvent(event: Event): boolean {
             return getDocument(scope).dispatchEvent(event);
+        },
+        findExistingToggle(): HTMLElement | null {
+            return getDocument(scope).querySelector<HTMLElement>(
+                ".map-theme-toggle"
+            );
         },
         setTimeout(callback, timeout): MapThemeToggleTimerHandle {
             const setTimeoutRef = scope.getSetTimeout?.();
