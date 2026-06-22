@@ -409,6 +409,9 @@ directly inside `loadSharedConfiguration.ts`, with focused runtime coverage and 
 those direct location/timer globals from returning. Explicit shared-configuration runtime scopes must now provide
 timer primitives instead of falling back to `globalThis`, with focused coverage blocking those ambient fallbacks
 from returning.
+System-info DOM lookup now routes through `updateSystemInfoRuntime.ts` instead of querying `document` directly inside
+`updateSystemInfo.ts`, with focused runtime coverage and architecture coverage blocking that direct document lookup
+from returning.
 Shown-files list tooltip cleanup, delayed tooltip display, polyline highlight fade timing, stored tooltip
 timeout cleanup, listener abort-controller creation, body theme-listener registration, tooltip mousemove
 registration, and viewport reads now route through `shownFilesListRuntime.ts` instead of calling timer,

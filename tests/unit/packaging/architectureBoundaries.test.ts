@@ -406,6 +406,9 @@ const migratedAltFitSenderRuntimeFiles = [
 const migratedLoadSharedConfigurationRuntimeFiles = [
     "electron-app/utils/app/initialization/loadSharedConfiguration.ts",
 ] as const;
+const migratedUpdateSystemInfoRuntimeFiles = [
+    "electron-app/utils/app/initialization/updateSystemInfo.ts",
+] as const;
 const migratedGetCurrentSettingsRuntimeFiles = [
     "electron-app/utils/app/initialization/getCurrentSettings.ts",
 ] as const;
@@ -1132,6 +1135,8 @@ const directLoadSharedConfigurationRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|location|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directLoadSharedConfigurationRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+const directUpdateSystemInfoRuntimeGlobalPattern =
+    /\bdocument\.querySelectorAll\b/u;
 const directGetCurrentSettingsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directGetCurrentSettingsRuntimeAmbientFallbackPattern =
@@ -10370,6 +10375,69 @@ describe("architecture boundaries", () => {
         );
         expect(loadSharedConfigurationRuntimeSource).toContain(
             "const setTimeoutRef = scope.getSetTimeout?.();"
+        );
+    });
+
+    it("keeps system info DOM lookup behind the runtime facade", () => {
+        expect.assertions(13);
+
+        const violations = migratedUpdateSystemInfoRuntimeFiles
+            .filter((relativeFile) =>
+                directUpdateSystemInfoRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const updateSystemInfoSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/updateSystemInfo.ts"
+            )
+        );
+        const updateSystemInfoRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/updateSystemInfoRuntime.ts"
+            )
+        );
+        const updateSystemInfoRuntimeScopeSource =
+            updateSystemInfoRuntimeSource.slice(
+                updateSystemInfoRuntimeSource.indexOf(
+                    "export interface UpdateSystemInfoRuntimeScope"
+                ),
+                updateSystemInfoRuntimeSource.indexOf(
+                    "export interface UpdateSystemInfoRuntime {"
+                )
+            );
+
+        expect(violations).toStrictEqual([]);
+        expect(updateSystemInfoSource).toContain("updateSystemInfoRuntime.js");
+        expect(updateSystemInfoSource).toContain("querySystemInfoItems");
+        expect(updateSystemInfoSource).not.toContain(
+            "document.querySelectorAll"
+        );
+        expect(updateSystemInfoRuntimeSource).toContain(
+            "defaultUpdateSystemInfoRuntimeScope"
+        );
+        expect(updateSystemInfoRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(updateSystemInfoRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(updateSystemInfoRuntimeSource).not.toContain("scope.document");
+        expect(updateSystemInfoRuntimeSource).not.toContain(
+            "scope: UpdateSystemInfoRuntimeScope = globalThis"
+        );
+        expect(updateSystemInfoRuntimeSource).not.toContain(
+            "UpdateSystemInfoRuntimeScope = globalThis"
+        );
+        expect(updateSystemInfoRuntimeSource).not.toMatch(
+            /\bscope\.document\s*\?\?\s*globalThis\.document\b/u
+        );
+        expect(updateSystemInfoRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(updateSystemInfoRuntimeSource).toContain(
+            "updateSystemInfo requires a document runtime"
         );
     });
 
