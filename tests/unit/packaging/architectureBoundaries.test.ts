@@ -1034,6 +1034,8 @@ const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
 const directChartCanvasExpandoPattern = /\b__chartjs\b/u;
 const directDomPurifyGlobalPattern =
     /\b(?:window|globalThis|globalRef|testGlobal)\.DOMPurify\b|\bReflect\.get\(\s*globalThis\s*,\s*["']DOMPurify["']\s*\)|\{\s*DOMPurify\?:\s*unknown\s*\}\)\.DOMPurify/u;
+const directSanitizeHtmlAllowlistRuntimeGlobalPattern =
+    /\bdocument\.(?:createDocumentFragment|createTextNode|createTreeWalker)\b|\bnew\s+DOMParser\b|\bNodeFilter\.SHOW_ELEMENT\b|\binstanceof\s+Element\b/u;
 const directDomHelpersRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
 const directDomHelpersRuntimeAmbientGetterPattern =
     /\breturn\s+globalThis\.AbortController\b/u;
@@ -7988,6 +7990,76 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps sanitize HTML allowlist fallback DOM APIs behind the runtime facade", () => {
+        expect.assertions(22);
+
+        const sanitizerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/dom/sanitizeHtmlAllowlist.ts"
+            )
+        );
+        const sanitizerRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/dom/sanitizeHtmlAllowlistRuntime.ts"
+            )
+        );
+        const sanitizerRuntimeScopeSource = sanitizerRuntimeSource.slice(
+            sanitizerRuntimeSource.indexOf(
+                "export interface SanitizeHtmlAllowlistRuntimeScope"
+            ),
+            sanitizerRuntimeSource.indexOf(
+                "export interface SanitizeHtmlAllowlistRuntime {"
+            )
+        );
+
+        expect(
+            directSanitizeHtmlAllowlistRuntimeGlobalPattern.test(
+                sanitizerSource
+            )
+        ).toBe(false);
+        expect(sanitizerSource).toContain("sanitizeHtmlAllowlistRuntime.js");
+        expect(sanitizerSource).toContain("createDomParser");
+        expect(sanitizerSource).toContain("createDocumentFragment");
+        expect(sanitizerSource).toContain("createElementTreeWalker");
+        expect(sanitizerSource).toContain("createTextNode");
+        expect(sanitizerSource).toContain("isElement");
+        expect(sanitizerRuntimeSource).toContain(
+            "defaultSanitizeHtmlAllowlistRuntimeScope"
+        );
+        expect(sanitizerRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(sanitizerRuntimeSource).toContain(
+            "getDOMParser: () => globalThis.DOMParser"
+        );
+        expect(sanitizerRuntimeSource).toContain(
+            "getElement: () => globalThis.Element"
+        );
+        expect(sanitizerRuntimeSource).toContain(
+            "getNodeFilter: () => globalThis.NodeFilter"
+        );
+        expect(sanitizerRuntimeSource).not.toContain(
+            "scope: SanitizeHtmlAllowlistRuntimeScope = globalThis"
+        );
+        expect(sanitizerRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(sanitizerRuntimeScopeSource).not.toContain(
+            "readonly DOMParser?:"
+        );
+        expect(sanitizerRuntimeScopeSource).not.toContain("readonly Element?:");
+        expect(sanitizerRuntimeScopeSource).not.toContain(
+            "readonly NodeFilter?:"
+        );
+        expect(sanitizerRuntimeSource).not.toContain("scope.document");
+        expect(sanitizerRuntimeSource).not.toContain("scope.DOMParser");
+        expect(sanitizerRuntimeSource).not.toContain("scope.Element");
+        expect(sanitizerRuntimeSource).not.toContain("scope.NodeFilter");
+        expect(sanitizerRuntimeSource).not.toMatch(
+            /\bscope\.(?:document|DOMParser|Element|NodeFilter)\s*\?\?\s*globalThis\./u
+        );
     });
 
     it("keeps DOM helper listener cleanup behind the runtime facade", () => {

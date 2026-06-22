@@ -6,6 +6,7 @@
  * treated as a full HTML sanitizer replacement for arbitrary documents.
  */
 import { resolveDomPurifyRuntime } from "./domPurifyRuntime.js";
+import { getSanitizeHtmlAllowlistRuntime } from "./sanitizeHtmlAllowlistRuntime.js";
 
 /**
  * Small presentation-only HTML allowlist.
@@ -59,6 +60,7 @@ const ALWAYS_FORBID_TAGS = new Set([
     "style",
     "svg",
 ]);
+const sanitizeHtmlAllowlistRuntime = getSanitizeHtmlAllowlistRuntime();
 
 /**
  * Sanitise an HTML string into a safe DocumentFragment.
@@ -121,8 +123,10 @@ export function sanitizeHtmlAllowlist(
 
 function parseHtmlFragment(html: string): DocumentFragment {
     // eslint-disable-next-line sdl/no-domparser-html-without-sanitization -- This is the sanitizer boundary; sanitizeFragment strips the parsed tree before callers receive it.
-    const parsed = new DOMParser().parseFromString(html, "text/html");
-    const fragment = document.createDocumentFragment();
+    const parsed = sanitizeHtmlAllowlistRuntime
+        .createDomParser()
+        .parseFromString(html, "text/html");
+    const fragment = sanitizeHtmlAllowlistRuntime.createDocumentFragment();
     for (const node of Array.from(parsed.body.childNodes)) {
         fragment.append(node);
     }
@@ -147,13 +151,14 @@ function sanitizeFragment(
         allowedAttributesInput.map((a) => String(a).toLowerCase())
     );
 
-    const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
+    const walker =
+        sanitizeHtmlAllowlistRuntime.createElementTreeWalker(fragment);
     const nodesToReplace: Element[] = [];
     const nodesToRemove: Element[] = [];
 
     while (walker.nextNode()) {
         const el = walker.currentNode;
-        if (!(el instanceof Element)) {
+        if (!sanitizeHtmlAllowlistRuntime.isElement(el)) {
             continue;
         }
 
@@ -220,7 +225,7 @@ function replaceElementsWithText(elements: readonly Element[]): void {
     for (const el of elements) {
         try {
             const text = el.textContent ?? "";
-            el.replaceWith(document.createTextNode(text));
+            el.replaceWith(sanitizeHtmlAllowlistRuntime.createTextNode(text));
         } catch {
             try {
                 el.remove();
@@ -232,10 +237,11 @@ function replaceElementsWithText(elements: readonly Element[]): void {
 }
 
 function stripUnsafeStyleAttributes(fragment: DocumentFragment): void {
-    const walker = document.createTreeWalker(fragment, NodeFilter.SHOW_ELEMENT);
+    const walker =
+        sanitizeHtmlAllowlistRuntime.createElementTreeWalker(fragment);
     while (walker.nextNode()) {
         const el = walker.currentNode;
-        if (!(el instanceof Element)) {
+        if (!sanitizeHtmlAllowlistRuntime.isElement(el)) {
             continue;
         }
         const styleValue = el.getAttribute("style");
