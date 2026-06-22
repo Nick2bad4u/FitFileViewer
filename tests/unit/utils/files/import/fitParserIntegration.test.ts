@@ -22,6 +22,8 @@ type FitParserIntegrationModule = {
         };
     };
     ensureFitParserStateIntegration: () => Promise<void>;
+    resetFitParserStateIntegrationForTests: () => void;
+    setFitParserStateAdaptersOverrideForTests: (override: unknown) => void;
 };
 
 async function importIntegrationModule(): Promise<FitParserIntegrationModule> {
@@ -30,13 +32,34 @@ async function importIntegrationModule(): Promise<FitParserIntegrationModule> {
 
 describe("fitParserIntegration runtime state adapters", () => {
     it("exports the current main-process integration contract", async () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const module = await importIntegrationModule();
 
         expect(module.FIT_PARSER_OPERATION_ID).toBe("fitFile:decode");
         expect(module.createFitParserStateAdapters).toBeTypeOf("function");
         expect(module.ensureFitParserStateIntegration).toBeTypeOf("function");
+        expect(module.resetFitParserStateIntegrationForTests).toBeTypeOf(
+            "function"
+        );
+        expect(module.setFitParserStateAdaptersOverrideForTests).toBeTypeOf(
+            "function"
+        );
+    });
+
+    it("keeps parser integration test hooks off globalThis", async () => {
+        expect.assertions(2);
+
+        const module = await importIntegrationModule();
+        module.setFitParserStateAdaptersOverrideForTests({});
+        module.resetFitParserStateIntegrationForTests();
+
+        expect(
+            Reflect.has(globalThis, "__fitParserStateAdaptersOverride")
+        ).toBe(false);
+        expect(
+            Reflect.has(globalThis, "__resetFitParserStateIntegrationForTests")
+        ).toBe(false);
     });
 
     it("counts records from known FIT message container shapes", async () => {

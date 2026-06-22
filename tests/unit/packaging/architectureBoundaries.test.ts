@@ -2536,7 +2536,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated main runtime helpers off source-level CommonJS exports", () => {
-        expect.assertions(183);
+        expect.assertions(189);
 
         const mainSource = stripComments(
             readRepositoryFile("electron-app/main.ts")
@@ -3066,6 +3066,22 @@ describe("architecture boundaries", () => {
         );
         expect(fitParserIntegrationSource).toContain(
             "export async function ensureFitParserStateIntegration"
+        );
+        expect(fitParserIntegrationSource).toContain(
+            "export function resetFitParserStateIntegrationForTests"
+        );
+        expect(fitParserIntegrationSource).toContain(
+            "export function setFitParserStateAdaptersOverrideForTests"
+        );
+        expect(fitParserIntegrationSource).not.toContain("FitParserTestGlobal");
+        expect(fitParserIntegrationSource).not.toContain(
+            "__fitParserStateAdaptersOverride"
+        );
+        expect(fitParserIntegrationSource).not.toContain(
+            "__resetFitParserStateIntegrationForTests"
+        );
+        expect(fitParserIntegrationSource).not.toContain(
+            "Object.defineProperty"
         );
         expect(setupIpcHandlersSource).toContain(
             "export function setupIPCHandlers"

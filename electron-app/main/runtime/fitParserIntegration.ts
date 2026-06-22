@@ -54,34 +54,12 @@ type TimerState = {
     start: number;
 };
 
-type FitParserTestGlobal = typeof globalThis & {
-    __fitParserStateAdaptersOverride?: unknown;
-    __resetFitParserStateIntegrationForTests?: () => void;
-};
-
 const mainProcessState = runtimeMainProcessState as MainProcessStateLike;
 
 export const FIT_PARSER_OPERATION_ID = "fitFile:decode" as const;
 let fitParserSettingsConf: FitParserSettingsConf | null | undefined;
+let fitParserStateAdaptersOverride: FitParserStateManagers | null = null;
 let fitParserStateIntegrationPromise: Promise<void> | null = null;
-
-if (
-    typeof process !== "undefined" &&
-    process.env &&
-    process.env["NODE_ENV"] === "test" &&
-    typeof globalThis !== "undefined"
-) {
-    Object.defineProperty(
-        globalThis,
-        "__resetFitParserStateIntegrationForTests",
-        {
-            configurable: true,
-            value: () => {
-                fitParserStateIntegrationPromise = null;
-            },
-        }
-    );
-}
 
 const getErrorMessage = (error: unknown): string =>
     error instanceof Error ? error.message : "Unknown error";
@@ -93,13 +71,9 @@ function isFitParserStateManagers(
 }
 
 function getFitParserStateAdaptersOverride(): FitParserStateManagers | null {
-    if (typeof globalThis === "undefined") {
-        return null;
-    }
-
-    const candidate = (globalThis as FitParserTestGlobal)
-        .__fitParserStateAdaptersOverride;
-    return isFitParserStateManagers(candidate) ? candidate : null;
+    return isFitParserStateManagers(fitParserStateAdaptersOverride)
+        ? fitParserStateAdaptersOverride
+        : null;
 }
 
 function now(): number {
@@ -124,6 +98,18 @@ function resolveFitParserSettingsConf(): FitParserSettingsConf | null {
     }
 
     return fitParserSettingsConf;
+}
+
+export function resetFitParserStateIntegrationForTests(): void {
+    fitParserStateAdaptersOverride = null;
+    fitParserStateIntegrationPromise = null;
+}
+
+export function setFitParserStateAdaptersOverrideForTests(
+    override: FitParserStateManagers | null | undefined
+): void {
+    fitParserStateAdaptersOverride = override ?? null;
+    fitParserStateIntegrationPromise = null;
 }
 
 function ensureOperationStarted(): void {

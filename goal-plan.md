@@ -76,7 +76,8 @@ policy module directly.
 The FIT parser source now exposes named exports plus a default module object instead of assigning
 `module.exports`, while the compiled CommonJS runtime still presents the same named API. The parser facade and
 FIT parser state integration now import the parser/state-manager source through typed ESM imports instead of
-requiring the source files directly.
+requiring the source files directly. FIT parser state-integration test reset and adapter overrides now stay in
+module-local state behind named test helper exports instead of custom `globalThis` properties.
 Main-process constants, the main app-state facade, the state-integration barrel, and application event handler
 source now use named source exports/imports instead of source-level `module.exports` or direct source requires
 for constants/app-state/state-manager dependencies; app-event OAuth/theme/window-validation dependencies are
