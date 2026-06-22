@@ -1374,6 +1374,8 @@ const directDataPointFilterElementFactoryRuntimeAmbientFallbackPattern =
     /\bscope\.document\b|\bscope:\s*DataPointFilterElementFactoryRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultDataPointFilterElementFactoryRuntimeScope:\s*DataPointFilterElementFactoryRuntimeScope\s*=\s*globalThis\b/u;
 const directDataPointFilterPanelControllerRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|innerHeight|innerWidth)\b|\bnew\s+AbortController\b|\binstanceof\s+Node\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
+const directDataPointFilterPanelControllerRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:AbortController|cancelAnimationFrame|document|Node|requestAnimationFrame|viewport)\b|\bscope:\s*DataPointFilterPanelControllerRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultDataPointFilterPanelControllerRuntimeScope:\s*DataPointFilterPanelControllerRuntimeScope\s*=\s*globalThis\b|\bdocument\?\.defaultView\b|\?\?\s*globalThis\b/u;
 const directLoadingOverlayRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|querySelector)\b/u;
 const directLoadingOverlayRuntimeAmbientGetterPattern =
@@ -8778,7 +8780,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter panel browser APIs behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(24);
 
         const violations = migratedDataPointFilterPanelControllerRuntimeFiles
             .filter((relativeFile) =>
@@ -8807,13 +8809,54 @@ describe("architecture boundaries", () => {
             "scope: DataPointFilterPanelControllerRuntimeScope = globalThis"
         );
         expect(panelControllerRuntimeSource).not.toContain(
-            "globalThis.AbortController"
+            "const defaultDataPointFilterPanelControllerRuntimeScope: DataPointFilterPanelControllerRuntimeScope =\n    globalThis"
         );
         expect(panelControllerRuntimeSource).not.toContain(
-            "globalThis.requestAnimationFrame"
+            "readonly AbortController?:"
         );
         expect(panelControllerRuntimeSource).not.toContain(
-            "globalThis.cancelAnimationFrame"
+            "readonly cancelAnimationFrame?:"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(panelControllerRuntimeSource).not.toContain("readonly Node?:");
+        expect(panelControllerRuntimeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "readonly viewport?:"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(panelControllerRuntimeSource).not.toContain(
+            "scope.cancelAnimationFrame"
+        );
+        expect(panelControllerRuntimeSource).not.toContain("scope.document");
+        expect(panelControllerRuntimeSource).not.toContain("scope.Node");
+        expect(panelControllerRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
+        );
+        expect(panelControllerRuntimeSource).not.toContain("scope.viewport");
+        expect(panelControllerRuntimeSource).not.toContain("defaultView");
+        expect(panelControllerRuntimeSource).not.toMatch(
+            directDataPointFilterPanelControllerRuntimeAmbientFallbackPattern
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
+        );
+        expect(panelControllerRuntimeSource).toContain(
+            "getViewport: () => globalThis"
         );
     });
 

@@ -830,6 +830,9 @@ properties, or document-window fallbacks, with architecture coverage blocking th
 The data-point filter element factory runtime now resolves document access through a named provider function
 instead of a broad `globalThis` default scope or direct `document` scope property, with focused coverage and
 architecture coverage blocking the legacy shape from returning.
+The data-point filter panel-controller runtime now resolves document access, viewport reads/listeners, Node
+checks, abort-controller creation, and animation-frame scheduling/cleanup through named provider functions instead
+of a broad `globalThis` default scope, direct scope properties, or document-window fallbacks.
 The inline zone color selector runtime facade now resolves DOM access, event constructors/dispatch, element
 constructors, abort-controller creation, and delayed updates through named provider functions instead of a broad
 `globalThis` default scope, direct scope properties, or document-window fallbacks, with focused coverage and

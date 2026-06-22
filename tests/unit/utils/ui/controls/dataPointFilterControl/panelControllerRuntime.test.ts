@@ -1,19 +1,22 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getDataPointFilterPanelControllerRuntime } from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/panelControllerRuntime.js";
+import {
+    getDataPointFilterPanelControllerRuntime,
+    type DataPointFilterPanelControllerRuntimeScope,
+} from "../../../../../../electron-app/utils/ui/controls/dataPointFilterControl/panelControllerRuntime.js";
 
 describe("getDataPointFilterPanelControllerRuntime", () => {
     it("reads body, viewport size, and Node checks from injected runtimes", () => {
         expect.assertions(4);
 
         const runtime = getDataPointFilterPanelControllerRuntime({
-            document,
-            Node,
-            viewport: {
+            getDocument: () => document,
+            getNode: () => Node,
+            getViewport: () => ({
                 addEventListener: vi.fn(),
                 innerHeight: 600,
                 innerWidth: 800,
-            },
+            }),
         });
 
         expect(runtime.getBody()).toBe(document.body);
@@ -34,9 +37,9 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
             innerWidth: 800,
         });
         const runtime = getDataPointFilterPanelControllerRuntime({
-            document,
-            Node,
-            viewport,
+            getDocument: () => document,
+            getNode: () => Node,
+            getViewport: () => viewport,
         });
         let documentMouseDownCount = 0;
         let documentKeydownCount = 0;
@@ -82,9 +85,9 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
         );
         const cancelAnimationFrame = vi.fn();
         const runtime = getDataPointFilterPanelControllerRuntime({
-            cancelAnimationFrame,
-            document,
-            requestAnimationFrame,
+            getCancelAnimationFrame: () => cancelAnimationFrame,
+            getDocument: () => document,
+            getRequestAnimationFrame: () => requestAnimationFrame,
         });
         const callback = vi.fn();
 
@@ -101,8 +104,8 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
         expect.assertions(2);
 
         const runtime = getDataPointFilterPanelControllerRuntime({
-            AbortController,
-            document,
+            getAbortController: () => AbortController,
+            getDocument: () => document,
         });
         const controller = runtime.createAbortController();
 
@@ -116,15 +119,16 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
         const runtime = getDataPointFilterPanelControllerRuntime({});
         const runtimeWithInvalidAbortController =
             getDataPointFilterPanelControllerRuntime({
-                AbortController:
+                getAbortController: () =>
                     "AbortController" as unknown as typeof AbortController,
-                document,
+                getDocument: () => document,
             });
         const runtimeWithoutNode = getDataPointFilterPanelControllerRuntime({
-            document: {
-                addEventListener: vi.fn(),
-                body: document.body,
-            } as unknown as Document,
+            getDocument: () =>
+                ({
+                    addEventListener: vi.fn(),
+                    body: document.body,
+                }) as unknown as Document,
         });
 
         expect(() => runtime.getBody()).toThrow(
@@ -140,8 +144,8 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
         );
         expect(() =>
             getDataPointFilterPanelControllerRuntime({
-                document,
-                requestAnimationFrame:
+                getDocument: () => document,
+                getRequestAnimationFrame: () =>
                     "requestAnimationFrame" as unknown as typeof requestAnimationFrame,
             }).requestAnimationFrame(() => {})
         ).toThrow(
@@ -149,11 +153,50 @@ describe("getDataPointFilterPanelControllerRuntime", () => {
         );
         expect(() =>
             getDataPointFilterPanelControllerRuntime({
-                cancelAnimationFrame:
+                getCancelAnimationFrame: () =>
                     "cancelAnimationFrame" as unknown as typeof cancelAnimationFrame,
-                document,
+                getDocument: () => document,
             }).cancelAnimationFrame(1)
         ).toThrow(
+            "data point filter panel controller requires a cancelAnimationFrame runtime"
+        );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(6);
+
+        const requestAnimationFrame = vi.fn(() => 13);
+        const cancelAnimationFrame = vi.fn();
+        const viewport = Object.assign(new EventTarget(), {
+            innerHeight: 600,
+            innerWidth: 800,
+        });
+        const legacyScope = {
+            AbortController,
+            cancelAnimationFrame,
+            document,
+            Node,
+            requestAnimationFrame,
+            viewport,
+        } as unknown as DataPointFilterPanelControllerRuntimeScope;
+        const runtime = getDataPointFilterPanelControllerRuntime(legacyScope);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "data point filter panel controller requires an AbortController runtime"
+        );
+        expect(() => runtime.getBody()).toThrow(
+            "data point filter panel controller requires a document runtime"
+        );
+        expect(() => runtime.isNode(document.body)).toThrow(
+            "data point filter panel controller requires a Node runtime"
+        );
+        expect(() => runtime.getViewportSize()).toThrow(
+            "data point filter panel controller requires a viewport runtime"
+        );
+        expect(() => runtime.requestAnimationFrame(() => {})).toThrow(
+            "data point filter panel controller requires a requestAnimationFrame runtime"
+        );
+        expect(() => runtime.cancelAnimationFrame(1)).toThrow(
             "data point filter panel controller requires a cancelAnimationFrame runtime"
         );
     });
