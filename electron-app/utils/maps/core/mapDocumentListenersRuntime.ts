@@ -1,4 +1,7 @@
-type MapDocumentListenersDocument = Pick<Document, "addEventListener">;
+type MapDocumentListenersDocument = Pick<
+    Document,
+    "addEventListener" | "querySelector"
+>;
 type MapDocumentListenersResizeTarget = Pick<Window, "addEventListener">;
 
 export interface MapDocumentListenersRuntimeScope {
@@ -31,6 +34,7 @@ export interface MapDocumentListenersRuntime {
         options: Readonly<AddEventListenerOptions>
     ) => void;
     readonly createAbortController: () => AbortController;
+    readonly getLayersControlElement: () => HTMLElement | null;
 }
 
 function getRuntimeDocument(
@@ -107,6 +111,11 @@ export function getMapDocumentListenersRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        getLayersControlElement(): HTMLElement | null {
+            return getRuntimeDocument(scope).querySelector<HTMLElement>(
+                ".leaflet-control-layers"
+            );
         },
     };
 }

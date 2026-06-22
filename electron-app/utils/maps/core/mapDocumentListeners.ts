@@ -43,9 +43,8 @@ function collapseLayersPanelIfClickOutside(event: MouseEvent): void {
             return;
         }
 
-        const layersControlEl = document.querySelector(
-            ".leaflet-control-layers"
-        );
+        const layersControlEl =
+            mapDocumentListenersRuntime.getLayersControlElement();
         if (
             !layersControlEl ||
             !layersControlEl.classList.contains(
@@ -62,16 +61,15 @@ function collapseLayersPanelIfClickOutside(event: MouseEvent): void {
 
         if (!layersControlEl.contains(node) && !mapTypeBtn.contains(node)) {
             layersControlEl.classList.remove("leaflet-control-layers-expanded");
-            const layersControlElStyled = layersControlEl as HTMLElement;
             const layersListEl =
-                layersControlElStyled.querySelector<HTMLElement>(
+                layersControlEl.querySelector<HTMLElement>(
                     ".leaflet-control-layers-list"
                 );
-            layersControlElStyled.style.zIndex = "";
-            layersControlElStyled.style.maxHeight = "";
-            layersControlElStyled.style.marginTop = "";
-            layersControlElStyled.style.overflowY = "";
-            layersControlElStyled.style.overflowX = "";
+            layersControlEl.style.zIndex = "";
+            layersControlEl.style.maxHeight = "";
+            layersControlEl.style.marginTop = "";
+            layersControlEl.style.overflowY = "";
+            layersControlEl.style.overflowX = "";
             if (layersListEl) {
                 layersListEl.style.maxHeight = "";
                 layersListEl.style.overflowY = "";
@@ -84,9 +82,8 @@ function collapseLayersPanelIfClickOutside(event: MouseEvent): void {
 
 function layoutLayersPanelOnResize(): void {
     try {
-        const layersControlEl = document.querySelector(
-            ".leaflet-control-layers"
-        );
+        const layersControlEl =
+            mapDocumentListenersRuntime.getLayersControlElement();
         if (
             !layersControlEl ||
             !layersControlEl.classList.contains(

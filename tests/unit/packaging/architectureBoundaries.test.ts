@@ -1084,7 +1084,7 @@ const directMapActionButtonsRuntimeGlobalPattern =
 const directMapActionButtonsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapDocumentListenersRuntimeGlobalPattern =
-    /\bdocument\.addEventListener\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.window\b|\bnew\s+AbortController\b/u;
+    /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.window\b|\bnew\s+AbortController\b/u;
 const directMapFullscreenControlRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapFullscreenControlRuntimeAmbientFallbackPattern =
@@ -9389,7 +9389,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map document listeners behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(24);
 
         const violations = migratedMapDocumentListenersRuntimeFiles
             .filter((relativeFile) =>
@@ -9421,6 +9421,12 @@ describe("architecture boundaries", () => {
             "mapDocumentListenersRuntime.js"
         );
         expect(mapDocumentListenersSource).toContain("createAbortController");
+        expect(mapDocumentListenersSource).toContain(
+            "getLayersControlElement()"
+        );
+        expect(mapDocumentListenersSource).not.toContain(
+            "document.querySelector"
+        );
         expect(mapDocumentListenersRuntimeSource).toContain(
             "defaultMapDocumentListenersRuntimeScope"
         );
@@ -9465,6 +9471,9 @@ describe("architecture boundaries", () => {
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
             "return scope.getAbortController?.();"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "getLayersControlElement(): HTMLElement | null"
         );
         expect(mapDocumentListenersRuntimeSource).not.toContain("scope.window");
         expect(mapDocumentListenersRuntimeSource).not.toContain(

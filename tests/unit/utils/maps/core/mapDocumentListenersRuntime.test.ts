@@ -82,8 +82,22 @@ describe("getMapDocumentListenersRuntime", () => {
         expect(touchEndCount).toBe(1);
     });
 
+    it("finds the Leaflet layers control through the injected document", () => {
+        expect.assertions(1);
+
+        const documentRef = document.implementation.createHTMLDocument();
+        const layersControl = documentRef.createElement("div");
+        layersControl.className = "leaflet-control-layers";
+        documentRef.body.append(layersControl);
+        const runtime = getMapDocumentListenersRuntime({
+            getDocument: () => documentRef,
+        });
+
+        expect(runtime.getLayersControlElement()).toBe(layersControl);
+    });
+
     it("fails clearly when the document runtime is unavailable", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const runtime = getMapDocumentListenersRuntime({});
         const controller = new AbortController();
@@ -104,6 +118,9 @@ describe("getMapDocumentListenersRuntime", () => {
             runtime.addDocumentTouchendListener(touchListener, {
                 signal: controller.signal,
             });
+        }).toThrow("mapDocumentListeners requires a document runtime");
+        expect(() => {
+            runtime.getLayersControlElement();
         }).toThrow("mapDocumentListeners requires a document runtime");
         controller.abort();
     });
@@ -145,7 +162,7 @@ describe("getMapDocumentListenersRuntime", () => {
     });
 
     it("routes runtime dependencies through provider functions", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         let controllerCount = 0;
         class TestAbortController extends AbortController {
@@ -155,11 +172,13 @@ describe("getMapDocumentListenersRuntime", () => {
             }
         }
         const documentAddEventListener = vi.fn();
+        const layersControl = document.createElement("div");
         const resizeAddEventListener = vi.fn();
         const runtime = getMapDocumentListenersRuntime({
             getAbortController: () => TestAbortController,
             getDocument: () => ({
                 addEventListener: documentAddEventListener,
+                querySelector: vi.fn(() => layersControl),
             }),
             getResizeTarget: () => ({
                 addEventListener: resizeAddEventListener,
@@ -186,20 +205,25 @@ describe("getMapDocumentListenersRuntime", () => {
             expect.any(Function),
             { signal: controller.signal }
         );
+        expect(runtime.getLayersControlElement()).toBe(layersControl);
         expect(
             getMapDocumentListenersRuntime({}).createAbortController
         ).toThrow("mapDocumentListeners requires an AbortController runtime");
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         class TestAbortController extends AbortController {}
         const documentAddEventListener = vi.fn();
+        const documentQuerySelector = vi.fn();
         const resizeAddEventListener = vi.fn();
         const runtime = getMapDocumentListenersRuntime({
             AbortController: TestAbortController,
-            document: { addEventListener: documentAddEventListener },
+            document: {
+                addEventListener: documentAddEventListener,
+                querySelector: documentQuerySelector,
+            },
             resizeTarget: { addEventListener: resizeAddEventListener },
         } as unknown as MapDocumentListenersRuntimeScope);
         const controller = new AbortController();
@@ -217,17 +241,22 @@ describe("getMapDocumentListenersRuntime", () => {
                 signal: controller.signal,
             });
         }).toThrow("mapDocumentListeners requires a resize target runtime");
+        expect(() => {
+            runtime.getLayersControlElement();
+        }).toThrow("mapDocumentListeners requires a document runtime");
         expect(documentAddEventListener).not.toHaveBeenCalled();
+        expect(documentQuerySelector).not.toHaveBeenCalled();
         expect(resizeAddEventListener).not.toHaveBeenCalled();
     });
 });
 
 function createDocumentListenerTarget(
     eventTarget: Readonly<EventTarget>
-): Pick<Document, "addEventListener"> {
+): Pick<Document, "addEventListener" | "querySelector"> {
     return {
         addEventListener: eventTarget.addEventListener.bind(eventTarget),
-    } as Pick<Document, "addEventListener">;
+        querySelector: vi.fn(),
+    } as Pick<Document, "addEventListener" | "querySelector">;
 }
 
 function createResizeListenerTarget(

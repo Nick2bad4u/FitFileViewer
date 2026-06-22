@@ -383,12 +383,12 @@ of calling timer globals directly inside `setupTheme.ts`, with focused runtime c
 guardrails blocking those direct timer globals from returning. Explicit setup-theme runtime scopes must now
 provide timer primitives instead of falling back to `globalThis`, with focused coverage and architecture coverage
 blocking those ambient fallbacks from returning.
-Map document listener abort-controller creation plus document/window listener registration now route through
-`mapDocumentListenersRuntime.ts` instead of constructing `AbortController` or registering document/window
-listeners directly inside `mapDocumentListeners.ts`, with focused runtime coverage and architecture guardrails
-blocking those direct browser APIs from returning. Explicit map document listener runtime scopes must now provide
-their document/window targets instead of falling back to `globalThis.document` or `globalThis.window`, with focused
-runtime coverage and architecture coverage blocking those fallbacks from returning.
+Map document listener abort-controller creation, Leaflet layers-control lookup, and document/window listener registration
+now route through `mapDocumentListenersRuntime.ts` instead of constructing `AbortController`, querying `document`, or
+registering document/window listeners directly inside `mapDocumentListeners.ts`, with focused runtime coverage and
+architecture guardrails blocking those direct browser APIs from returning. Explicit map document listener runtime scopes
+must now provide their document/window targets instead of falling back to `globalThis.document` or `globalThis.window`,
+with focused runtime coverage and architecture coverage blocking those fallbacks from returning.
 Shared configuration loading now routes URL search reads, chart-refresh timer scheduling, and chart-refresh
 timer cleanup through `loadSharedConfigurationRuntime.ts` instead of probing location or calling timer globals
 directly inside `loadSharedConfiguration.ts`, with focused runtime coverage and architecture guardrails blocking
