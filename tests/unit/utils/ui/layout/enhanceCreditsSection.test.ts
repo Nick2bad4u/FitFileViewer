@@ -35,12 +35,12 @@ function createTestRuntime(
             : (MockResizeObserver as unknown as ResizeObserverConstructor);
 
     return getCreditsMarqueeRuntime({
-        AbortController,
-        document,
-        eventTarget: window,
-        HTMLElement,
-        MutationObserver,
-        ResizeObserver: ResizeObserverConstructor,
+        getAbortController: () => AbortController,
+        getDocument: () => document,
+        getEventTarget: () => window,
+        getHTMLElement: () => HTMLElement,
+        getMutationObserver: () => MutationObserver,
+        getResizeObserver: () => ResizeObserverConstructor,
     });
 }
 

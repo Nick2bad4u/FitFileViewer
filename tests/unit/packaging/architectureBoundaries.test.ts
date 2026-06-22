@@ -1290,6 +1290,8 @@ const directShownFilesListRuntimeAmbientFallbackPattern =
     /\bscope\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\s*\?\?\s*globalThis(?:\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout))?\b|\bglobalThis\.(?:addEventListener|clearTimeout|setTimeout)\s*\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:AbortController|MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
+const directCreditsMarqueeRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:AbortController|cancelAnimationFrame|document|eventTarget|HTMLElement|MutationObserver|requestAnimationFrame|ResizeObserver)\b|\bscope:\s*CreditsMarqueeRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultCreditsMarqueeRuntimeScope:\s*CreditsMarqueeRuntimeScope\s*=\s*globalThis\b|\?\?\s*globalThis\b/u;
 const creditsMarqueeTestDirectGlobalFixtureMutationPattern =
     /\bglobalThis\.ResizeObserver\s*=|\bObject\.defineProperty\(\s*globalThis\s*,\s*["']ResizeObserver["']\s*,|\bReflect\.deleteProperty\([\s\S]{0,120}["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']\s*\)|\bvi\.stubGlobal\(\s*["'](?:ResizeObserver|requestAnimationFrame|cancelAnimationFrame)["']/u;
 const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
@@ -12651,7 +12653,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps credits marquee browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(25);
 
         const violations = migratedCreditsMarqueeRuntimeFiles
             .filter((relativeFile) =>
@@ -12679,8 +12681,62 @@ describe("architecture boundaries", () => {
         expect(creditsMarqueeRuntimeSource).toContain(
             "defaultCreditsMarqueeRuntimeScope"
         );
+        expect(creditsMarqueeRuntimeSource).not.toMatch(
+            directCreditsMarqueeRuntimeAmbientFallbackPattern
+        );
         expect(creditsMarqueeRuntimeSource).not.toContain(
             "scope: CreditsMarqueeRuntimeScope = globalThis"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "const defaultCreditsMarqueeRuntimeScope: CreditsMarqueeRuntimeScope = globalThis"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly cancelAnimationFrame?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly eventTarget?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly MutationObserver?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly requestAnimationFrame?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "readonly ResizeObserver?:"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "scope.cancelAnimationFrame"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain("scope.document");
+        expect(creditsMarqueeRuntimeSource).not.toContain("scope.eventTarget");
+        expect(creditsMarqueeRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "scope.MutationObserver"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "scope.requestAnimationFrame"
+        );
+        expect(creditsMarqueeRuntimeSource).not.toContain(
+            "scope.ResizeObserver"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(creditsMarqueeRuntimeSource).toContain(
+            "getEventTarget: () => globalThis"
         );
     });
 

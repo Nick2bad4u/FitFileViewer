@@ -12,36 +12,52 @@ type CreditsResizeObserverConstructor = new (
 type CreditsMutationObserverConstructor = new (
     callback: MutationCallback
 ) => MutationObserver;
+type CreditsCancelAnimationFrame = (
+    handle: CreditsMarqueeAnimationFrameHandle
+) => void;
+type CreditsRequestAnimationFrame = (
+    callback: FrameRequestCallback
+) => CreditsMarqueeAnimationFrameHandle;
 
 export interface CreditsMarqueeRuntimeScope {
-    readonly AbortController?: typeof globalThis.AbortController | undefined;
-    readonly cancelAnimationFrame?:
-        | ((handle: CreditsMarqueeAnimationFrameHandle) => void)
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
         | undefined;
-    readonly document?: Document | undefined;
-    readonly eventTarget?: CreditsMarqueeEventTarget | undefined;
-    readonly HTMLElement?: typeof HTMLElement | undefined;
-    readonly MutationObserver?: CreditsMutationObserverConstructor | undefined;
-    readonly requestAnimationFrame?:
-        | ((callback: FrameRequestCallback) => CreditsMarqueeAnimationFrameHandle)
+    readonly getCancelAnimationFrame?:
+        | (() => CreditsCancelAnimationFrame | undefined)
         | undefined;
-    readonly ResizeObserver?: CreditsResizeObserverConstructor | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getEventTarget?:
+        | (() => CreditsMarqueeEventTarget | undefined)
+        | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
+    readonly getMutationObserver?:
+        | (() => CreditsMutationObserverConstructor | undefined)
+        | undefined;
+    readonly getRequestAnimationFrame?:
+        | (() => CreditsRequestAnimationFrame | undefined)
+        | undefined;
+    readonly getResizeObserver?:
+        | (() => CreditsResizeObserverConstructor | undefined)
+        | undefined;
 }
 
 export interface CreditsMarqueeRuntime {
     addResizeListener: (
         listener: EventListener,
-        options: AddEventListenerOptions
+        options: Readonly<AddEventListenerOptions>
     ) => void;
-    cancelAnimationFrame: (
-        handle: CreditsMarqueeAnimationFrameHandle
-    ) => void;
+    cancelAnimationFrame: (handle: CreditsMarqueeAnimationFrameHandle) => void;
     createAbortController: () => AbortController;
     createMutationObserver: (callback: MutationCallback) => MutationObserver;
     createResizeObserver: (
         callback: ResizeObserverCallback
     ) => ResizeObserver | undefined;
-    isHTMLElement: (element: Element | null) => element is HTMLElement;
+    isHTMLElement: (
+        element: Readonly<Element> | null
+    ) => element is HTMLElement;
     queryCreditsSections: (selector: string) => Element[];
     removeResizeListener: (listener: EventListener) => void;
     requestAnimationFrame: (
@@ -49,11 +65,19 @@ export interface CreditsMarqueeRuntime {
     ) => CreditsMarqueeAnimationFrameHandle | undefined;
 }
 
-const defaultCreditsMarqueeRuntimeScope: CreditsMarqueeRuntimeScope =
-    globalThis;
+const defaultCreditsMarqueeRuntimeScope: CreditsMarqueeRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
+    getDocument: () => globalThis.document,
+    getEventTarget: () => globalThis,
+    getHTMLElement: () => globalThis.HTMLElement,
+    getMutationObserver: () => globalThis.MutationObserver,
+    getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
+    getResizeObserver: () => globalThis.ResizeObserver,
+};
 
 function getDocument(scope: CreditsMarqueeRuntimeScope): Document {
-    const runtimeDocument = scope.document;
+    const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError("credits marquee requires a document-like runtime");
     }
@@ -64,14 +88,19 @@ function getDocument(scope: CreditsMarqueeRuntimeScope): Document {
 function getEventTarget(
     scope: CreditsMarqueeRuntimeScope
 ): CreditsMarqueeEventTarget {
-    return scope.eventTarget ?? globalThis;
+    const eventTarget = scope.getEventTarget?.();
+    if (!eventTarget) {
+        throw new TypeError("credits marquee requires an event target runtime");
+    }
+
+    return eventTarget;
 }
 
 function isHTMLElement(
     scope: CreditsMarqueeRuntimeScope,
-    element: Element | null
+    element: Readonly<Element> | null
 ): element is HTMLElement {
-    const HTMLElementConstructor = scope.HTMLElement;
+    const HTMLElementConstructor = scope.getHTMLElement?.();
     return (
         typeof HTMLElementConstructor === "function" &&
         element instanceof HTMLElementConstructor
@@ -84,18 +113,19 @@ export function getCreditsMarqueeRuntime(
     return {
         addResizeListener(
             listener: EventListener,
-            options: AddEventListenerOptions
+            options: Readonly<AddEventListenerOptions>
         ): void {
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- Matching removal is exposed through removeResizeListener; callers also pass an AbortSignal.
             getEventTarget(scope).addEventListener("resize", listener, options);
         },
         cancelAnimationFrame(handle: CreditsMarqueeAnimationFrameHandle): void {
-            if (typeof scope.cancelAnimationFrame === "function") {
-                scope.cancelAnimationFrame(handle);
+            const cancelAnimationFrame = scope.getCancelAnimationFrame?.();
+            if (typeof cancelAnimationFrame === "function") {
+                cancelAnimationFrame(handle);
             }
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "credits marquee requires an AbortController runtime"
@@ -105,7 +135,7 @@ export function getCreditsMarqueeRuntime(
             return new AbortControllerConstructor();
         },
         createMutationObserver(callback: MutationCallback): MutationObserver {
-            const Observer = scope.MutationObserver;
+            const Observer = scope.getMutationObserver?.();
             if (typeof Observer !== "function") {
                 throw new TypeError(
                     "credits marquee requires a MutationObserver runtime"
@@ -117,14 +147,16 @@ export function getCreditsMarqueeRuntime(
         createResizeObserver(
             callback: ResizeObserverCallback
         ): ResizeObserver | undefined {
-            const Observer = scope.ResizeObserver;
+            const Observer = scope.getResizeObserver?.();
             if (typeof Observer !== "function") {
                 return undefined;
             }
 
             return new Observer(callback);
         },
-        isHTMLElement(element: Element | null): element is HTMLElement {
+        isHTMLElement(
+            element: Readonly<Element> | null
+        ): element is HTMLElement {
             return isHTMLElement(scope, element);
         },
         queryCreditsSections(selector: string): Element[] {
@@ -136,11 +168,12 @@ export function getCreditsMarqueeRuntime(
         requestAnimationFrame(
             callback: FrameRequestCallback
         ): CreditsMarqueeAnimationFrameHandle | undefined {
-            if (typeof scope.requestAnimationFrame !== "function") {
+            const requestAnimationFrame = scope.getRequestAnimationFrame?.();
+            if (typeof requestAnimationFrame !== "function") {
                 return undefined;
             }
 
-            return scope.requestAnimationFrame(callback);
+            return requestAnimationFrame(callback);
         },
     };
 }

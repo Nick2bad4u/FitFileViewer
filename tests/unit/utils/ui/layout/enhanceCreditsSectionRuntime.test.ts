@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getCreditsMarqueeRuntime } from "../../../../../electron-app/utils/ui/layout/enhanceCreditsSectionRuntime.js";
+import {
+    getCreditsMarqueeRuntime,
+    type CreditsMarqueeRuntimeScope,
+} from "../../../../../electron-app/utils/ui/layout/enhanceCreditsSectionRuntime.js";
 
 describe("getCreditsMarqueeRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -13,7 +16,7 @@ describe("getCreditsMarqueeRuntime", () => {
             }
         );
         const runtime = getCreditsMarqueeRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -40,8 +43,8 @@ describe("getCreditsMarqueeRuntime", () => {
             document.body.append(section);
 
             const runtime = getCreditsMarqueeRuntime({
-                document,
-                HTMLElement,
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
             });
 
             expect(
@@ -61,7 +64,9 @@ describe("getCreditsMarqueeRuntime", () => {
         const listener = (): void => {
             resizeCount += 1;
         };
-        const runtime = getCreditsMarqueeRuntime({ eventTarget });
+        const runtime = getCreditsMarqueeRuntime({
+            getEventTarget: () => eventTarget,
+        });
 
         runtime.addResizeListener(listener, { passive: true });
         eventTarget.dispatchEvent(new Event("resize"));
@@ -104,8 +109,8 @@ describe("getCreditsMarqueeRuntime", () => {
         const resizeCallback = vi.fn<ResizeObserverCallback>();
         const mutationCallback = vi.fn<MutationCallback>();
         const runtime = getCreditsMarqueeRuntime({
-            MutationObserver: MutationObserverMock,
-            ResizeObserver: ResizeObserverMock,
+            getMutationObserver: () => MutationObserverMock,
+            getResizeObserver: () => ResizeObserverMock,
         });
 
         expect(runtime.createResizeObserver(resizeCallback)).toBeInstanceOf(
@@ -137,8 +142,8 @@ describe("getCreditsMarqueeRuntime", () => {
         >(() => 21);
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
         const runtime = getCreditsMarqueeRuntime({
-            cancelAnimationFrame,
-            requestAnimationFrame,
+            getCancelAnimationFrame: () => cancelAnimationFrame,
+            getRequestAnimationFrame: () => requestAnimationFrame,
         });
 
         expect(runtime.requestAnimationFrame(callback)).toBe(21);
@@ -148,5 +153,49 @@ describe("getCreditsMarqueeRuntime", () => {
 
         expect(cancelAnimationFrame).toHaveBeenCalledWith(21);
         expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(7);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const eventTarget = new EventTarget();
+        const requestAnimationFrame = vi.fn<
+            (callback: FrameRequestCallback) => number
+        >(() => 21);
+        const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+        const legacyScope = {
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            cancelAnimationFrame,
+            document,
+            eventTarget,
+            HTMLElement,
+            MutationObserver: "MutationObserver",
+            requestAnimationFrame,
+            ResizeObserver: "ResizeObserver",
+        } as unknown as CreditsMarqueeRuntimeScope;
+        const runtime = getCreditsMarqueeRuntime(legacyScope);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "credits marquee requires an AbortController runtime"
+        );
+        expect(() => runtime.queryCreditsSections(".credits-section")).toThrow(
+            "credits marquee requires a document-like runtime"
+        );
+        expect(() => runtime.addResizeListener(() => {}, {})).toThrow(
+            "credits marquee requires an event target runtime"
+        );
+        expect(() => runtime.createMutationObserver(() => {})).toThrow(
+            "credits marquee requires a MutationObserver runtime"
+        );
+        expect(runtime.isHTMLElement(document.body)).toBe(false);
+        expect(runtime.requestAnimationFrame(() => {})).toBeUndefined();
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
     });
 });

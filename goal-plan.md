@@ -784,7 +784,9 @@ stubbing, defining, assigning, or deleting `ResizeObserver`, `requestAnimationFr
 Credits marquee resize-listener fallback cleanup now creates abort controllers through
 `enhanceCreditsSectionRuntime.ts` instead of constructing `AbortController` directly in
 `enhanceCreditsSection.ts`, with focused runtime coverage and architecture coverage blocking direct credits
-marquee abort-controller construction from returning.
+marquee abort-controller construction from returning. Credits marquee runtime defaults now live in an explicit
+provider object instead of a broad `globalThis` default scope, and explicit scopes use named providers instead of
+direct controller/document/event-target/constructor/frame properties.
 Filename auto-scroll resize-listener registration, cleanup timers, and cleanup abort-controller creation now route
 through `unifiedControlBarRuntime.ts`; explicit runtime scopes must provide resize event-target and timer
 primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture coverage

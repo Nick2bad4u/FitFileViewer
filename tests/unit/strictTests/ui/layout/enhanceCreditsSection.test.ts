@@ -28,27 +28,30 @@ describe("enhanceCreditsSection", () => {
     beforeEach(() => {
         document.body.replaceChildren();
         runtime = getCreditsMarqueeRuntime({
-            cancelAnimationFrame: vi.fn(),
-            document,
-            HTMLElement,
-            MutationObserver,
-            requestAnimationFrame: (callback: FrameRequestCallback) => {
-                callback(performance.now());
-                return 1;
-            },
-            ResizeObserver: vi
-                .fn<(callback: ResizeObserverCallback) => ResizeObserver>()
-                .mockImplementation(function ResizeObserverMock(callback) {
-                    const observer = {
-                        disconnect: vi.fn<() => void>(),
-                        observe: () => {
-                            callback([], observer);
-                        },
-                        unobserve: vi.fn<() => void>(),
-                    } as ResizeObserver;
+            getCancelAnimationFrame: () => vi.fn(),
+            getDocument: () => document,
+            getEventTarget: () => window,
+            getHTMLElement: () => HTMLElement,
+            getMutationObserver: () => MutationObserver,
+            getRequestAnimationFrame:
+                () => (callback: FrameRequestCallback) => {
+                    callback(performance.now());
+                    return 1;
+                },
+            getResizeObserver: () =>
+                vi
+                    .fn<(callback: ResizeObserverCallback) => ResizeObserver>()
+                    .mockImplementation(function ResizeObserverMock(callback) {
+                        const observer = {
+                            disconnect: vi.fn<() => void>(),
+                            observe: () => {
+                                callback([], observer);
+                            },
+                            unobserve: vi.fn<() => void>(),
+                        } as ResizeObserver;
 
-                    return observer;
-                }),
+                        return observer;
+                    }),
         });
     });
 
