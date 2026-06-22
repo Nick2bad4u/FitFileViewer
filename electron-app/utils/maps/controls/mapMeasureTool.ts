@@ -9,7 +9,6 @@ import {
     type MapMeasureToolTimer,
 } from "./mapMeasureToolRuntime.js";
 
-const SVG_NS = "http://www.w3.org/2000/svg";
 const mapMeasureToolRuntime = getMapMeasureToolRuntime();
 
 type LatLngPoint = Leaflet.LatLng;
@@ -93,7 +92,7 @@ function getLeaflet(): MeasureLeaflet | null {
 }
 
 function createMeasureIcon(primary: string, surface: string): SVGSVGElement {
-    const icon = document.createElementNS(SVG_NS, "svg");
+    const icon = mapMeasureToolRuntime.createSvgElement("svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("width", "18");
@@ -101,7 +100,7 @@ function createMeasureIcon(primary: string, surface: string): SVGSVGElement {
     icon.setAttribute("aria-hidden", "true");
     icon.setAttribute("focusable", "false");
 
-    const line = document.createElementNS(SVG_NS, "line");
+    const line = mapMeasureToolRuntime.createSvgElement("line");
     line.setAttribute("x1", "5");
     line.setAttribute("y1", "19");
     line.setAttribute("x2", "19");
@@ -114,7 +113,7 @@ function createMeasureIcon(primary: string, surface: string): SVGSVGElement {
         ["5", "19"],
         ["19", "5"],
     ] as const) {
-        const circle = document.createElementNS(SVG_NS, "circle");
+        const circle = mapMeasureToolRuntime.createSvgElement("circle");
         circle.setAttribute("cx", cx);
         circle.setAttribute("cy", cy);
         circle.setAttribute("r", "2.5");
@@ -124,7 +123,7 @@ function createMeasureIcon(primary: string, surface: string): SVGSVGElement {
         icon.append(circle);
     }
 
-    const text = document.createElementNS(SVG_NS, "text");
+    const text = mapMeasureToolRuntime.createSvgElement("text");
     text.setAttribute("x", "12");
     text.setAttribute("y", "15");
     text.setAttribute("text-anchor", "middle");
@@ -137,13 +136,13 @@ function createMeasureIcon(primary: string, surface: string): SVGSVGElement {
 }
 
 function createCancelIcon(): SVGSVGElement {
-    const icon = document.createElementNS(SVG_NS, "svg");
+    const icon = mapMeasureToolRuntime.createSvgElement("svg");
     icon.classList.add("icon");
     icon.setAttribute("viewBox", "0 0 20 20");
     icon.setAttribute("width", "18");
     icon.setAttribute("height", "18");
 
-    const circle = document.createElementNS(SVG_NS, "circle");
+    const circle = mapMeasureToolRuntime.createSvgElement("circle");
     circle.setAttribute("cx", "10");
     circle.setAttribute("cy", "10");
     circle.setAttribute("r", "8");
@@ -171,7 +170,7 @@ function createCancelIcon(): SVGSVGElement {
             "14",
         ],
     ] as const) {
-        const line = document.createElementNS(SVG_NS, "line");
+        const line = mapMeasureToolRuntime.createSvgElement("line");
         line.setAttribute("x1", x1);
         line.setAttribute("y1", y1);
         line.setAttribute("x2", x2);
@@ -189,7 +188,7 @@ function setMeasureButtonContent(
     state: "cancel" | "measure",
     colors: { primary: string; surface: string }
 ): void {
-    const label = document.createElement("span");
+    const label = mapMeasureToolRuntime.createElement("span");
     label.textContent = state === "cancel" ? "Cancel" : "Measure";
     button.replaceChildren(
         state === "cancel"
@@ -199,8 +198,8 @@ function setMeasureButtonContent(
     );
 }
 
-function createExitButton(doc: Document): HTMLButtonElement {
-    const button = doc.createElement("button");
+function createExitButton(): HTMLButtonElement {
+    const button = mapMeasureToolRuntime.createElement("button");
     button.className = "measure-exit-btn";
     button.type = "button";
     button.title = "Remove measurement";
@@ -209,40 +208,35 @@ function createExitButton(doc: Document): HTMLButtonElement {
     return button;
 }
 
-function createMeasureLabelLine(
-    doc: Document,
-    value: string,
-    unit: string
-): HTMLDivElement {
-    const line = doc.createElement("div");
+function createMeasureLabelLine(value: string, unit: string): HTMLDivElement {
+    const line = mapMeasureToolRuntime.createElement("div");
     line.className = "measure-label-line";
 
-    const valueEl = doc.createElement("span");
+    const valueEl = mapMeasureToolRuntime.createElement("span");
     valueEl.className = "measure-label-value";
     valueEl.textContent = value;
 
-    const unitEl = doc.createElement("span");
+    const unitEl = mapMeasureToolRuntime.createElement("span");
     unitEl.className = "measure-label-unit";
     unitEl.textContent = unit;
 
-    line.append(valueEl, doc.createTextNode(" "), unitEl);
+    line.append(valueEl, mapMeasureToolRuntime.createTextNode(" "), unitEl);
 
     return line;
 }
 
 function createMeasureLabelContent(
-    doc: Document,
     primaryValue: string,
     primaryUnit: string,
     secondaryValue: string,
     secondaryUnit: string
 ): HTMLDivElement {
-    const content = doc.createElement("div");
+    const content = mapMeasureToolRuntime.createElement("div");
     content.className = "measure-label-content";
     content.append(
-        createExitButton(doc),
-        createMeasureLabelLine(doc, primaryValue, primaryUnit),
-        createMeasureLabelLine(doc, secondaryValue, secondaryUnit)
+        createExitButton(),
+        createMeasureLabelLine(primaryValue, primaryUnit),
+        createMeasureLabelLine(secondaryValue, secondaryUnit)
     );
 
     return content;
@@ -272,7 +266,7 @@ export function addSimpleMeasureTool(
     const eventController = mapMeasureToolRuntime.createAbortController();
     const { signal } = eventController;
     let disableTimer: MapMeasureToolTimer | null = null;
-    const measureBtn = document.createElement("button"),
+    const measureBtn = mapMeasureToolRuntime.createElement("button"),
         themeColors = getThemeColors();
     measureBtn.className = "map-action-btn";
 
@@ -348,7 +342,7 @@ export function addSimpleMeasureTool(
     function onLabelExitClick(event: MouseEvent): void {
         const { target } = event;
         if (
-            target instanceof HTMLElement &&
+            mapMeasureToolRuntime.isHTMLElement(target) &&
             target.classList.contains("measure-exit-btn")
         ) {
             clearMeasure();
@@ -398,7 +392,6 @@ export function addSimpleMeasureTool(
                     icon: leaflet.divIcon({
                         className: "measure-label",
                         html: createMeasureLabelContent(
-                            document,
                             primaryValue,
                             primaryUnit,
                             secondaryValue,

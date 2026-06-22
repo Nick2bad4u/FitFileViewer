@@ -1090,7 +1090,7 @@ const directMapFullscreenControlRuntimeGlobalPattern =
 const directMapFullscreenControlRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapMeasureToolRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|createElement|createElementNS|createTextNode|removeEventListener)\b|\binstanceof\s+HTMLElement\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapMeasureToolRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapLapSelectorRuntimeGlobalPattern =
@@ -9620,7 +9620,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map measure-tool timers behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(35);
 
         const violations = migratedMapMeasureToolRuntimeFiles
             .filter((relativeFile) =>
@@ -9641,6 +9641,14 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(mapMeasureToolSource).toContain("mapMeasureToolRuntime.js");
         expect(mapMeasureToolSource).toContain("createAbortController");
+        expect(mapMeasureToolSource).toContain("createElement");
+        expect(mapMeasureToolSource).toContain("createSvgElement");
+        expect(mapMeasureToolSource).toContain("createTextNode");
+        expect(mapMeasureToolSource).toContain("isHTMLElement");
+        expect(mapMeasureToolSource).not.toContain("document.createElement");
+        expect(mapMeasureToolSource).not.toContain("document.createElementNS");
+        expect(mapMeasureToolSource).not.toContain("document.createTextNode");
+        expect(mapMeasureToolSource).not.toContain("instanceof HTMLElement");
         expect(mapMeasureToolRuntimeSource).toContain(
             "defaultMapMeasureToolRuntimeScope"
         );
@@ -9655,6 +9663,9 @@ describe("architecture boundaries", () => {
         );
         expect(mapMeasureToolRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(mapMeasureToolRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
@@ -9672,6 +9683,9 @@ describe("architecture boundaries", () => {
             "readonly document?:"
         );
         expect(mapMeasureToolRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain(
             "readonly setTimeout?:"
         );
         expect(mapMeasureToolRuntimeSource).not.toContain(
@@ -9679,6 +9693,7 @@ describe("architecture boundaries", () => {
         );
         expect(mapMeasureToolRuntimeSource).not.toContain("scope.clearTimeout");
         expect(mapMeasureToolRuntimeSource).not.toContain("scope.document");
+        expect(mapMeasureToolRuntimeSource).not.toContain("scope.HTMLElement");
         expect(mapMeasureToolRuntimeSource).not.toContain("scope.setTimeout");
         expect(mapMeasureToolRuntimeSource).toContain(
             "const runtimeDocument = scope.getDocument?.();"

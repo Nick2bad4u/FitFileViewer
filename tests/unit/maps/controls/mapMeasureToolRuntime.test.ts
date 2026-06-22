@@ -43,12 +43,8 @@ describe("getMapMeasureToolRuntime", () => {
     it("registers and removes document keydown listeners through the injected document", () => {
         expect.assertions(2);
 
-        const eventTarget = new EventTarget();
-        const documentRef = {
-            addEventListener: eventTarget.addEventListener.bind(eventTarget),
-            removeEventListener:
-                eventTarget.removeEventListener.bind(eventTarget),
-        } as Pick<Document, "addEventListener" | "removeEventListener">;
+        const documentRef =
+            document.implementation.createHTMLDocument("map measure tool");
         const controller = new AbortController();
         let keydownCount = 0;
         let lastKey = "";
@@ -63,9 +59,9 @@ describe("getMapMeasureToolRuntime", () => {
         runtime.addDocumentKeydownListener(listener, {
             signal: controller.signal,
         });
-        eventTarget.dispatchEvent(new KeyboardEvent("keydown", { key: "m" }));
+        documentRef.dispatchEvent(new KeyboardEvent("keydown", { key: "m" }));
         runtime.removeDocumentKeydownListener(listener);
-        eventTarget.dispatchEvent(
+        documentRef.dispatchEvent(
             new KeyboardEvent("keydown", { key: "Escape" })
         );
 
@@ -73,22 +69,81 @@ describe("getMapMeasureToolRuntime", () => {
         expect(lastKey).toBe("m");
     });
 
-    it("fails clearly when the document runtime is unavailable", () => {
+    it("creates document elements through the injected document", () => {
+        expect.assertions(6);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("map measure nodes");
+        const runtime = getMapMeasureToolRuntime({
+            getDocument: () => documentRef,
+        });
+        const button = runtime.createElement("button");
+        const svg = runtime.createSvgElement("svg");
+        const line = runtime.createSvgElement("line");
+        const text = runtime.createTextNode("distance");
+
+        svg.append(line);
+        button.append(text);
+
+        expect(button).toBeInstanceOf(HTMLButtonElement);
+        expect(button.ownerDocument).toBe(documentRef);
+        expect(button.textContent).toBe("distance");
+        expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
+        expect(line.namespaceURI).toBe("http://www.w3.org/2000/svg");
+        expect(svg.firstElementChild).toBe(line);
+    });
+
+    it("checks HTMLElements through the injected constructor", () => {
         expect.assertions(2);
+
+        const runtime = getMapMeasureToolRuntime({
+            getHTMLElement: () => HTMLElement,
+        });
+        const button = document.createElement("button");
+
+        expect(runtime.isHTMLElement(button)).toBe(true);
+        expect(runtime.isHTMLElement({ classList: button.classList })).toBe(
+            false
+        );
+    });
+
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(5);
 
         const runtime = getMapMeasureToolRuntime({});
         const controller = new AbortController();
         const listener = (): void => undefined;
+        const missingDocumentMessage =
+            "mapMeasureTool requires a document runtime";
 
         expect(() => {
             runtime.addDocumentKeydownListener(listener, {
                 signal: controller.signal,
             });
-        }).toThrow("mapMeasureTool requires a document runtime");
+        }).toThrow(missingDocumentMessage);
         expect(() => {
             runtime.removeDocumentKeydownListener(listener);
-        }).toThrow("mapMeasureTool requires a document runtime");
+        }).toThrow(missingDocumentMessage);
+        expect(() => runtime.createElement("button")).toThrow(
+            missingDocumentMessage
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            missingDocumentMessage
+        );
+        expect(() => runtime.createTextNode("distance")).toThrow(
+            missingDocumentMessage
+        );
         controller.abort();
+    });
+
+    it("fails clearly when the HTMLElement runtime is unavailable", () => {
+        expect.assertions(1);
+
+        const runtime = getMapMeasureToolRuntime({});
+
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("button"))
+        ).toThrow("mapMeasureTool requires an HTMLElement runtime");
     });
 
     it("schedules and clears timers through the injected runtime scope", () => {
@@ -125,21 +180,24 @@ describe("getMapMeasureToolRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(4);
+        expect.assertions(12);
 
-        const eventTarget = new EventTarget();
-        const documentRef = {
-            addEventListener: eventTarget.addEventListener.bind(eventTarget),
-            removeEventListener:
-                eventTarget.removeEventListener.bind(eventTarget),
-        } as Pick<Document, "addEventListener" | "removeEventListener">;
+        const documentRef =
+            document.implementation.createHTMLDocument("legacy scope");
+        const addEventListener = vi.spyOn(documentRef, "addEventListener");
+        const createElement = vi.spyOn(documentRef, "createElement");
+        const createElementNS = vi.spyOn(documentRef, "createElementNS");
+        const createTextNode = vi.spyOn(documentRef, "createTextNode");
         const legacyScope = {
             AbortController,
             clearTimeout: vi.fn<typeof globalThis.clearTimeout>(),
             document: documentRef,
+            HTMLElement: documentRef.defaultView?.HTMLElement,
             setTimeout: vi.fn<typeof globalThis.setTimeout>(() => 41),
         } as unknown as MapMeasureToolRuntimeScope;
         const runtime = getMapMeasureToolRuntime(legacyScope);
+        const missingDocumentMessage =
+            "mapMeasureTool requires a document runtime";
 
         expect(() => {
             runtime.createAbortController();
@@ -152,6 +210,22 @@ describe("getMapMeasureToolRuntime", () => {
         ).toThrow("mapMeasureTool requires a clearTimeout runtime");
         expect(() => {
             runtime.addDocumentKeydownListener(() => undefined, {});
-        }).toThrow("mapMeasureTool requires a document runtime");
+        }).toThrow(missingDocumentMessage);
+        expect(() => runtime.createElement("button")).toThrow(
+            missingDocumentMessage
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            missingDocumentMessage
+        );
+        expect(() => runtime.createTextNode("distance")).toThrow(
+            missingDocumentMessage
+        );
+        expect(() =>
+            runtime.isHTMLElement(document.createElement("button"))
+        ).toThrow("mapMeasureTool requires an HTMLElement runtime");
+        expect(addEventListener).not.toHaveBeenCalled();
+        expect(createElement).not.toHaveBeenCalled();
+        expect(createElementNS).not.toHaveBeenCalled();
+        expect(createTextNode).not.toHaveBeenCalled();
     });
 });

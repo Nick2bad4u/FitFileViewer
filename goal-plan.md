@@ -417,8 +417,12 @@ directly inside `mapMeasureTool.ts`, with focused runtime coverage and architect
 direct browser APIs from returning. Explicit map measurement runtime scopes must now provide their document and
 timer primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture coverage
 blocking those fallbacks from returning.
-Map measurement runtime scopes now provide document, timer, and abort-controller access through named provider
-functions instead of a broad `globalThis` default scope or legacy direct scope properties.
+Map measurement button/label/SVG element creation, text-node creation, and HTMLElement target checks now also
+route through `mapMeasureToolRuntime.ts` instead of calling document element factories or relying on the
+ambient `HTMLElement` constructor directly inside `mapMeasureTool.ts`, with focused runtime coverage and
+architecture guardrails blocking those direct browser APIs from returning. Map measurement runtime scopes now
+provide document, element-constructor, timer, and abort-controller access through named provider functions
+instead of a broad `globalThis` default scope or legacy direct scope properties.
 Map lap selector listener abort-controller creation and document mouse/key listener registration/removal now route
 through `mapLapSelectorRuntime.ts` instead of constructing `AbortController` or touching document listeners
 directly inside `mapLapSelector.ts`, with focused runtime coverage and architecture guardrails blocking those

@@ -2,7 +2,11 @@ export type MapMeasureToolTimer = ReturnType<typeof globalThis.setTimeout>;
 
 type MapMeasureToolDocument = Pick<
     Document,
-    "addEventListener" | "removeEventListener"
+    | "addEventListener"
+    | "createElement"
+    | "createElementNS"
+    | "createTextNode"
+    | "removeEventListener"
 >;
 type MapMeasureToolKeydownListener = (event: Readonly<KeyboardEvent>) => void;
 
@@ -16,6 +20,9 @@ export interface MapMeasureToolRuntimeScope {
     readonly getDocument?:
         | (() => MapMeasureToolDocument | undefined)
         | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
@@ -28,6 +35,14 @@ export interface MapMeasureToolRuntime {
     ) => void;
     readonly clearTimeout: (timer: MapMeasureToolTimer) => void;
     readonly createAbortController: () => AbortController;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
+    readonly createSvgElement: <K extends keyof SVGElementTagNameMap>(
+        tagName: K
+    ) => SVGElementTagNameMap[K];
+    readonly createTextNode: (data: string) => Text;
+    readonly isHTMLElement: (value: unknown) => value is HTMLElement;
     readonly removeDocumentKeydownListener: (
         listener: MapMeasureToolKeydownListener
     ) => void;
@@ -41,6 +56,7 @@ const defaultMapMeasureToolRuntimeScope: MapMeasureToolRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
+    getHTMLElement: () => globalThis.HTMLElement,
     getSetTimeout: () => globalThis.setTimeout,
 };
 
@@ -53,6 +69,17 @@ function getRequiredDocument(
     }
 
     return runtimeDocument;
+}
+
+function getRequiredHTMLElement(
+    scope: MapMeasureToolRuntimeScope
+): typeof globalThis.HTMLElement {
+    const HTMLElementConstructor = scope.getHTMLElement?.();
+    if (typeof HTMLElementConstructor !== "function") {
+        throw new TypeError("mapMeasureTool requires an HTMLElement runtime");
+    }
+
+    return HTMLElementConstructor;
 }
 
 export function getMapMeasureToolRuntime(
@@ -84,6 +111,21 @@ export function getMapMeasureToolRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createElement(tagName) {
+            return getRequiredDocument(scope).createElement(tagName);
+        },
+        createSvgElement(tagName) {
+            return getRequiredDocument(scope).createElementNS(
+                "http://www.w3.org/2000/svg",
+                tagName
+            );
+        },
+        createTextNode(data): Text {
+            return getRequiredDocument(scope).createTextNode(data);
+        },
+        isHTMLElement(value): value is HTMLElement {
+            return value instanceof getRequiredHTMLElement(scope);
         },
         removeDocumentKeydownListener(listener): void {
             const runtimeDocument = getRequiredDocument(scope);
