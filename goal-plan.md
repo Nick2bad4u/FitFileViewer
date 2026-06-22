@@ -559,7 +559,10 @@ blocking those runtime-global lookups from returning.
 Settings state-core storage synchronization listener abort-controller creation now routes through
 `settingsStateCoreRuntime.ts` instead of constructing `AbortController` directly inside `settingsStateCore.ts`,
 with focused runtime coverage and architecture guardrails blocking direct settings state-core controller
-construction from returning.
+construction from returning. Settings state-core runtime scopes now also resolve storage listener registration,
+abort-controller creation, and localStorage access through named provider functions instead of a broad `globalThis`
+default scope or direct scope properties, with focused coverage and architecture coverage blocking those legacy
+runtime shapes from returning.
 State development tools also route performance-monitor interval scheduling and clearing through that runtime
 adapter instead of calling interval globals directly, with focused runtime coverage and architecture guardrails
 blocking those direct timer calls from returning. Explicit state devtools runtime scopes must now provide interval

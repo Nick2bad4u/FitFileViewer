@@ -1,7 +1,11 @@
 export interface SettingsStateCoreRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly addEventListener?: typeof globalThis.addEventListener | undefined;
-    readonly localStorage?: Storage | undefined;
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
+        | undefined;
+    readonly getAddEventListener?:
+        | (() => typeof globalThis.addEventListener | undefined)
+        | undefined;
+    readonly getLocalStorage?: (() => Storage | undefined) | undefined;
 }
 
 export interface SettingsStateCoreRuntime {
@@ -15,8 +19,8 @@ export interface SettingsStateCoreRuntime {
 
 function getAbortControllerConstructor(
     scope: SettingsStateCoreRuntimeScope
-): typeof AbortController {
-    const AbortControllerConstructor = scope.AbortController;
+): typeof globalThis.AbortController {
+    const AbortControllerConstructor = scope.getAbortController?.();
     if (typeof AbortControllerConstructor !== "function") {
         throw new TypeError(
             "settingsStateCore requires an AbortController runtime"
@@ -26,8 +30,11 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
-const defaultSettingsStateCoreRuntimeScope: SettingsStateCoreRuntimeScope =
-    globalThis;
+const defaultSettingsStateCoreRuntimeScope: SettingsStateCoreRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getAddEventListener: () => globalThis.addEventListener,
+    getLocalStorage: () => globalThis.localStorage,
+};
 
 export function getSettingsStateCoreRuntime(
     scope: SettingsStateCoreRuntimeScope = defaultSettingsStateCoreRuntimeScope
@@ -37,7 +44,7 @@ export function getSettingsStateCoreRuntime(
             listener: (event: StorageEvent) => void,
             signal: AbortSignal
         ): boolean {
-            const addEventListener = scope.addEventListener;
+            const addEventListener = scope.getAddEventListener?.();
             if (typeof addEventListener !== "function") {
                 return false;
             }
@@ -51,7 +58,7 @@ export function getSettingsStateCoreRuntime(
         },
 
         getLocalStorage(): Storage | undefined {
-            return scope.localStorage;
+            return scope.getLocalStorage?.();
         },
     };
 }

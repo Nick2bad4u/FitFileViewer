@@ -944,6 +944,8 @@ const settingsStateManagerTestDirectConsoleAssignmentPattern =
     /\bglobal\.console\s*=/u;
 const directSettingsStateCoreRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\??\.localStorage\b|(?:^|[^\w.])localStorage\./u;
+const directSettingsStateCoreRuntimeAmbientFallbackPattern =
+    /\bscope\.(?:AbortController|addEventListener|localStorage)\b|\bscope:\s*SettingsStateCoreRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultSettingsStateCoreRuntimeScope:\s*SettingsStateCoreRuntimeScope\s*=\s*globalThis\b/u;
 const handleOpenFileTestDirectConsoleMethodAssignmentPattern =
     /\bconsole\.(?:error|info|log|warn)\s*=/u;
 const dataPointFilterStateHelpersTestDirectConsoleAssignmentPattern =
@@ -13834,7 +13836,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings state storage runtime globals behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(20);
 
         const settingsStateCoreSource = stripComments(
             readRepositoryFile(
@@ -13869,8 +13871,38 @@ describe("architecture boundaries", () => {
         expect(settingsStateCoreRuntimeSource).toContain(
             "defaultSettingsStateCoreRuntimeScope"
         );
+        expect(settingsStateCoreRuntimeSource).not.toMatch(
+            directSettingsStateCoreRuntimeAmbientFallbackPattern
+        );
         expect(settingsStateCoreRuntimeSource).not.toContain(
             "scope: SettingsStateCoreRuntimeScope = globalThis"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
+            "const defaultSettingsStateCoreRuntimeScope: SettingsStateCoreRuntimeScope = globalThis"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
+            "readonly addEventListener?:"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
+            "readonly localStorage?:"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
+            "scope.addEventListener"
+        );
+        expect(settingsStateCoreRuntimeSource).not.toContain(
+            "scope.localStorage"
+        );
+        expect(settingsStateCoreRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(settingsStateCoreRuntimeSource).toContain(
+            "getLocalStorage: () => globalThis.localStorage"
         );
     });
 

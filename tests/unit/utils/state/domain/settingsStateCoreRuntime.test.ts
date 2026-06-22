@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { SettingsStateCoreRuntimeScope } from "../../../../../electron-app/utils/state/domain/settingsStateCoreRuntime.js";
 import { getSettingsStateCoreRuntime } from "../../../../../electron-app/utils/state/domain/settingsStateCoreRuntime.js";
 
 describe("getSettingsStateCoreRuntime", () => {
@@ -17,7 +18,7 @@ describe("getSettingsStateCoreRuntime", () => {
 
         expect(
             getSettingsStateCoreRuntime({
-                localStorage: storage,
+                getLocalStorage: () => storage,
             }).getLocalStorage()
         ).toBe(storage);
     });
@@ -32,7 +33,7 @@ describe("getSettingsStateCoreRuntime", () => {
 
         expect(
             getSettingsStateCoreRuntime({
-                addEventListener,
+                getAddEventListener: () => addEventListener,
             }).addStorageEventListener(listener, signal)
         ).toBe(true);
         expect(addEventListener).toHaveBeenCalledOnce();
@@ -66,7 +67,7 @@ describe("getSettingsStateCoreRuntime", () => {
             }
         );
         const runtime = getSettingsStateCoreRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -82,5 +83,35 @@ describe("getSettingsStateCoreRuntime", () => {
         expect(() => runtime.createAbortController()).toThrow(
             "settingsStateCore requires an AbortController runtime"
         );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(3);
+
+        const storage = {
+            clear: vi.fn(),
+            getItem: vi.fn(),
+            key: vi.fn(),
+            length: 0,
+            removeItem: vi.fn(),
+            setItem: vi.fn(),
+        } satisfies Storage;
+        const controller = new AbortController();
+        const legacyScope = {
+            AbortController,
+            addEventListener: vi.fn(),
+            localStorage: storage,
+        } as unknown as SettingsStateCoreRuntimeScope;
+        const runtime = getSettingsStateCoreRuntime(legacyScope);
+
+        expect(runtime.getLocalStorage()).toBeUndefined();
+        expect(
+            runtime.addStorageEventListener(vi.fn(), controller.signal)
+        ).toBe(false);
+        expect(() => runtime.createAbortController()).toThrow(
+            "settingsStateCore requires an AbortController runtime"
+        );
+
+        controller.abort();
     });
 });
