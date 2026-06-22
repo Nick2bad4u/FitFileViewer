@@ -412,6 +412,9 @@ from returning.
 System-info DOM lookup now routes through `updateSystemInfoRuntime.ts` instead of querying `document` directly inside
 `updateSystemInfo.ts`, with focused runtime coverage and architecture coverage blocking that direct document lookup
 from returning.
+Version-info DOM lookup now routes through `loadVersionInfoRuntime.ts` instead of querying `document` directly inside
+`loadVersionInfo.ts`, with focused runtime coverage and architecture coverage blocking that direct document lookup
+from returning.
 Shown-files list tooltip cleanup, delayed tooltip display, polyline highlight fade timing, stored tooltip
 timeout cleanup, listener abort-controller creation, body theme-listener registration, tooltip mousemove
 registration, and viewport reads now route through `shownFilesListRuntime.ts` instead of calling timer,

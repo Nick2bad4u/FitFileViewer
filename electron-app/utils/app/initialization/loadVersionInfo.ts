@@ -1,5 +1,6 @@
 import { getErrorInfo, logWithLevel } from "../../logging/index.js";
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
+import { getLoadVersionInfoRuntime } from "./loadVersionInfoRuntime.js";
 import { type SystemInfoField, updateSystemInfo } from "./updateSystemInfo.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 
@@ -30,6 +31,7 @@ const DEFAULT_VALUES = {
 } as const satisfies VersionSystemInfo;
 
 const LOG_PREFIX = "[LoadVersionInfo]";
+const loadVersionInfoRuntime = getLoadVersionInfoRuntime();
 
 /**
  * Loads version information dynamically from electronAPI or fallback sources.
@@ -179,7 +181,8 @@ function logWithContext(
 
 function updateVersionDisplay(version: string): void {
     try {
-        const versionNumber = document.querySelector("#version-number");
+        const versionNumber =
+            loadVersionInfoRuntime.queryVersionNumber("#version-number");
 
         if (versionNumber && version !== DEFAULT_VALUES.version) {
             versionNumber.textContent = version;

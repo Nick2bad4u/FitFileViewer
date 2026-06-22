@@ -412,6 +412,9 @@ const migratedLoadSharedConfigurationRuntimeFiles = [
 const migratedUpdateSystemInfoRuntimeFiles = [
     "electron-app/utils/app/initialization/updateSystemInfo.ts",
 ] as const;
+const migratedLoadVersionInfoRuntimeFiles = [
+    "electron-app/utils/app/initialization/loadVersionInfo.ts",
+] as const;
 const migratedGetCurrentSettingsRuntimeFiles = [
     "electron-app/utils/app/initialization/getCurrentSettings.ts",
 ] as const;
@@ -1142,6 +1145,8 @@ const directLoadSharedConfigurationRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directUpdateSystemInfoRuntimeGlobalPattern =
     /\bdocument\.querySelectorAll\b/u;
+const directLoadVersionInfoRuntimeGlobalPattern =
+    /\bdocument\.querySelector\b/u;
 const directGetCurrentSettingsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directGetCurrentSettingsRuntimeAmbientFallbackPattern =
@@ -10507,6 +10512,67 @@ describe("architecture boundaries", () => {
         );
         expect(updateSystemInfoRuntimeSource).toContain(
             "updateSystemInfo requires a document runtime"
+        );
+    });
+
+    it("keeps version info DOM lookup behind the runtime facade", () => {
+        expect.assertions(13);
+
+        const violations = migratedLoadVersionInfoRuntimeFiles
+            .filter((relativeFile) =>
+                directLoadVersionInfoRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const loadVersionInfoSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/loadVersionInfo.ts"
+            )
+        );
+        const loadVersionInfoRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/loadVersionInfoRuntime.ts"
+            )
+        );
+        const loadVersionInfoRuntimeScopeSource =
+            loadVersionInfoRuntimeSource.slice(
+                loadVersionInfoRuntimeSource.indexOf(
+                    "export interface LoadVersionInfoRuntimeScope"
+                ),
+                loadVersionInfoRuntimeSource.indexOf(
+                    "export interface LoadVersionInfoRuntime {"
+                )
+            );
+
+        expect(violations).toStrictEqual([]);
+        expect(loadVersionInfoSource).toContain("loadVersionInfoRuntime.js");
+        expect(loadVersionInfoSource).toContain("queryVersionNumber");
+        expect(loadVersionInfoSource).not.toContain("document.querySelector");
+        expect(loadVersionInfoRuntimeSource).toContain(
+            "defaultLoadVersionInfoRuntimeScope"
+        );
+        expect(loadVersionInfoRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(loadVersionInfoRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(loadVersionInfoRuntimeSource).not.toContain("scope.document");
+        expect(loadVersionInfoRuntimeSource).not.toContain(
+            "scope: LoadVersionInfoRuntimeScope = globalThis"
+        );
+        expect(loadVersionInfoRuntimeSource).not.toContain(
+            "LoadVersionInfoRuntimeScope = globalThis"
+        );
+        expect(loadVersionInfoRuntimeSource).not.toMatch(
+            /\bscope\.document\s*\?\?\s*globalThis\.document\b/u
+        );
+        expect(loadVersionInfoRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(loadVersionInfoRuntimeSource).toContain(
+            "loadVersionInfo requires a document runtime"
         );
     });
 
