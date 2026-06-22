@@ -3,7 +3,7 @@
  * element in the tabbed interface.
  */
 
-import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
+import { getGetActiveTabContentRuntime } from "./getActiveTabContentRuntime.js";
 
 // CSS display states
 const DISPLAY_STATES = {
@@ -16,6 +16,7 @@ const LOG_PREFIX = "[ActiveTabContent]";
 const SELECTORS = {
     TAB_CONTENT: ".tab-content",
 } as const;
+const getActiveTabContentRuntime = getGetActiveTabContentRuntime();
 
 /**
  * Gets the currently active (visible) tab content element
@@ -26,7 +27,7 @@ const SELECTORS = {
  */
 export function getActiveTabContent(): Element | null {
     try {
-        const tabContents = document.querySelectorAll<HTMLElement>(
+        const tabContents = getActiveTabContentRuntime.queryTabContents(
             SELECTORS.TAB_CONTENT
         );
 
@@ -47,7 +48,7 @@ export function getActiveTabContent(): Element | null {
         // rather than an inline style. These fallbacks intentionally do not use getComputedStyle
         // because JSDOM defaults can cause false positives in unit tests.
         try {
-            const activeByClass = document.querySelector(
+            const activeByClass = getActiveTabContentRuntime.querySelector(
                 `${SELECTORS.TAB_CONTENT}.active`
             );
             if (activeByClass) {
@@ -58,7 +59,7 @@ export function getActiveTabContent(): Element | null {
         }
 
         try {
-            const activeByAria = document.querySelector(
+            const activeByAria = getActiveTabContentRuntime.querySelector(
                 `${SELECTORS.TAB_CONTENT}[aria-hidden="false"]`
             );
             if (activeByAria) {
@@ -72,7 +73,9 @@ export function getActiveTabContent(): Element | null {
         // and map to content-* using flexible ID lookup.
         try {
             const activeBtn =
-                document.querySelector<HTMLElement>(".tab-button.active");
+                getActiveTabContentRuntime.querySelector<HTMLElement>(
+                    ".tab-button.active"
+                );
             const activeId =
                 activeBtn && typeof activeBtn.id === "string"
                     ? activeBtn.id
@@ -83,10 +86,10 @@ export function getActiveTabContent(): Element | null {
                 const normalized = rawName
                     .replaceAll(/(?<=[a-z0-9])(?=[A-Z])/gu, "_")
                     .toLowerCase();
-                const contentEl = getElementByIdFlexible(
-                    document,
-                    `content_${normalized}`
-                );
+                const contentEl =
+                    getActiveTabContentRuntime.getElementByIdFlexible(
+                        `content_${normalized}`
+                    );
                 if (contentEl) {
                     return contentEl;
                 }

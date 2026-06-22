@@ -62,6 +62,9 @@ const migratedRendererVendorBundleLoaderRuntimeFiles = [
 const migratedRenderSummaryRuntimeFiles = [
     "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
 ] as const;
+const migratedGetActiveTabContentRuntimeFiles = [
+    "electron-app/utils/rendering/helpers/getActiveTabContent.ts",
+] as const;
 const playwrightSmokeFiles = ["tests/playwright/app-ui.spec.ts"] as const;
 const rendererElectronApiRuntimeSourceFiles = [
     "electron-app/renderer/electronApiStartupHooks.ts",
@@ -1033,6 +1036,8 @@ const directRenderTableRuntimeGlobalPattern =
     /\b(?:document|globalThis)\.(?:createElement|getElementById|getComputedStyle|requestAnimationFrame)\b|(?:^|[^\w.])setTimeout\(|\binstanceof\s+(?:HTMLElement|HTMLTableCellElement)\b/u;
 const directRenderTableRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+const directGetActiveTabContentRuntimeGlobalPattern =
+    /\bdocument\.querySelector(?:All)?\b|\bgetElementByIdFlexible\(\s*document\b/u;
 const directChartInstanceGlobalPattern = /\b_chartjsInstances\b/u;
 const directChartCanvasExpandoPattern = /\b__chartjs\b/u;
 const directDomPurifyGlobalPattern =
@@ -7872,6 +7877,70 @@ describe("architecture boundaries", () => {
         );
         expect(renderTableRuntimeSource).toContain(
             "renderTable requires a setTimeout runtime"
+        );
+    });
+
+    it("keeps active-tab content DOM lookups behind the runtime facade", () => {
+        expect.assertions(14);
+
+        const violations = migratedGetActiveTabContentRuntimeFiles
+            .filter((relativeFile) =>
+                directGetActiveTabContentRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const activeTabContentSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/helpers/getActiveTabContent.ts"
+            )
+        );
+        const activeTabContentRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/helpers/getActiveTabContentRuntime.ts"
+            )
+        );
+        const activeTabContentRuntimeScopeSource =
+            activeTabContentRuntimeSource.slice(
+                activeTabContentRuntimeSource.indexOf(
+                    "export interface GetActiveTabContentRuntimeScope"
+                ),
+                activeTabContentRuntimeSource.indexOf(
+                    "export interface GetActiveTabContentRuntime {"
+                )
+            );
+
+        expect(violations).toStrictEqual([]);
+        expect(activeTabContentSource).toContain(
+            "getActiveTabContentRuntime.js"
+        );
+        expect(activeTabContentSource).toContain("queryTabContents");
+        expect(activeTabContentSource).toContain("querySelector");
+        expect(activeTabContentSource).toContain("getElementByIdFlexible");
+        expect(activeTabContentRuntimeSource).toContain(
+            "defaultGetActiveTabContentRuntimeScope"
+        );
+        expect(activeTabContentRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(activeTabContentRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(activeTabContentRuntimeSource).not.toContain("scope.document");
+        expect(activeTabContentRuntimeSource).not.toContain(
+            "scope: GetActiveTabContentRuntimeScope = globalThis"
+        );
+        expect(activeTabContentRuntimeSource).not.toContain(
+            "GetActiveTabContentRuntimeScope = globalThis"
+        );
+        expect(activeTabContentRuntimeSource).not.toMatch(
+            /\bscope\.document\s*\?\?\s*globalThis\.document\b/u
+        );
+        expect(activeTabContentRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(activeTabContentRuntimeSource).toContain(
+            "getActiveTabContent requires a document runtime"
         );
     });
 
