@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
             ) => () => void
         >(),
     contentElement: document.createElement("section"),
+    getAboutModalDocument: vi.fn<() => Document | undefined>(() => document),
     handleEscapeKey: vi.fn<(event: KeyboardEvent) => void>(),
     injectModalStyles: vi.fn<() => void>(),
     loadVersionInfo: vi.fn<() => Promise<void>>(),
@@ -27,6 +28,15 @@ vi.mock(
     import("../../../../../electron-app/utils/ui/events/eventListenerManager.js"),
     () => ({
         addEventListenerWithCleanup: mocks.addEventListenerWithCleanup,
+    })
+);
+
+vi.mock(
+    import("../../../../../electron-app/utils/ui/modals/aboutModalRuntime.js"),
+    () => ({
+        getAboutModalRuntime: () => ({
+            getDocument: mocks.getAboutModalDocument,
+        }),
     })
 );
 
@@ -55,6 +65,7 @@ describe(ensureAboutModal, () => {
         document.body.replaceChildren();
         mocks.addEventListenerWithCleanup.mockClear();
         mocks.contentElement.dataset.testid = "about-content";
+        mocks.getAboutModalDocument.mockReturnValue(document);
         mocks.handleEscapeKey.mockClear();
         mocks.injectModalStyles.mockClear();
         mocks.loadVersionInfo.mockResolvedValue(undefined);
@@ -85,6 +96,7 @@ describe(ensureAboutModal, () => {
 
         document.body.replaceChildren();
         mocks.addEventListenerWithCleanup.mockClear();
+        mocks.getAboutModalDocument.mockReturnValue(document);
         mocks.handleEscapeKey.mockClear();
         mocks.injectModalStyles.mockClear();
         mocks.loadVersionInfo.mockReset();
@@ -97,6 +109,21 @@ describe(ensureAboutModal, () => {
         expect(document.querySelectorAll("#about-modal")).toHaveLength(1);
         expect(document.querySelector("#about-modal")).toBe(existingModal);
         expect(mocks.addEventListenerWithCleanup).not.toHaveBeenCalled();
+        expect(mocks.injectModalStyles).not.toHaveBeenCalled();
+        expect(mocks.loadVersionInfo).not.toHaveBeenCalled();
+    });
+
+    it("fails clearly when the About modal document runtime is unavailable", () => {
+        expect.assertions(3);
+
+        document.body.replaceChildren();
+        mocks.getAboutModalDocument.mockReturnValue(undefined);
+        mocks.injectModalStyles.mockClear();
+        mocks.loadVersionInfo.mockReset();
+
+        expect(() => ensureAboutModal()).toThrow(
+            "ensureAboutModal requires a document runtime"
+        );
         expect(mocks.injectModalStyles).not.toHaveBeenCalled();
         expect(mocks.loadVersionInfo).not.toHaveBeenCalled();
     });

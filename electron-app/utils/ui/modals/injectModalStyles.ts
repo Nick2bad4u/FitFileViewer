@@ -1,15 +1,20 @@
 import { modalAnimationDuration } from "./aboutModal.js";
+import { getAboutModalRuntime } from "./aboutModalRuntime.js";
+
+const aboutModalRuntime = getAboutModalRuntime();
 
 /**
  * Injects comprehensive modern styles for the modal
  */
-export function injectModalStyles() {
+export function injectModalStyles(): void {
+    const aboutModalDocument = getRequiredAboutModalDocument();
+
     // Prevent duplicate style injection
-    if (document.querySelector("#about-modal-styles")) {
+    if (aboutModalDocument.querySelector("#about-modal-styles")) {
         return;
     }
 
-    const style = document.createElement("style");
+    const style = aboutModalDocument.createElement("style");
     style.id = "about-modal-styles";
     style.textContent = `
 		/* Modal Base Styles */
@@ -788,5 +793,14 @@ export function injectModalStyles() {
 			to { opacity: 1; }
 		}
 	`;
-    document.head.append(style);
+    aboutModalDocument.head.append(style);
+}
+
+function getRequiredAboutModalDocument(): Document {
+    const aboutModalDocument = aboutModalRuntime.getDocument();
+    if (!aboutModalDocument) {
+        throw new TypeError("injectModalStyles requires a document runtime");
+    }
+
+    return aboutModalDocument;
 }

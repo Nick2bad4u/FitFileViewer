@@ -973,6 +973,9 @@ and frame cancellation through `aboutModalRuntime.ts` instead of calling those g
 explicit runtime scopes now required to provide hide/focus/copy-feedback timer primitives instead of falling back
 to `globalThis`, and strict about-modal tests mock that runtime instead of stubbing animation-frame globals, with
 architecture coverage blocking direct source globals, ambient timer fallbacks, and direct test stubs from returning.
+About modal creation and stylesheet injection now resolve document access through `aboutModalRuntime.ts` instead of
+querying or creating through `document` directly inside `ensureAboutModal.ts` or `injectModalStyles.ts`, with focused
+helper coverage and architecture coverage blocking those direct document calls from returning.
 Renderer notification queue timing now routes animation-frame scheduling/cancellation, auto-hide timers, and serialized
 display timers through `showNotificationRuntime.ts` instead of calling timing globals directly in `showNotification.ts`,
 with adapter tests and architecture coverage blocking direct notification timing globals from returning. Default browser

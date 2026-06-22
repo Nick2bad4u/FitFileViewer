@@ -396,6 +396,10 @@ const migratedKeyboardShortcutsModalRuntimeFiles = [
 const migratedAboutModalRuntimeFiles = [
     "electron-app/utils/ui/modals/aboutModal.ts",
 ] as const;
+const migratedAboutModalHelperDocumentRuntimeFiles = [
+    "electron-app/utils/ui/modals/ensureAboutModal.ts",
+    "electron-app/utils/ui/modals/injectModalStyles.ts",
+] as const;
 const migratedShowNotificationRuntimeFiles = [
     "electron-app/utils/ui/notifications/showNotification.ts",
 ] as const;
@@ -939,6 +943,8 @@ const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directAboutModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directAboutModalHelperDocumentRuntimeGlobalPattern =
+    /\bdocument\.(?:body|createElement|head|querySelector)\b/u;
 const directShowNotificationTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directShowNotificationRuntimeAmbientGetterPattern =
@@ -5581,6 +5587,52 @@ describe("architecture boundaries", () => {
         expect(aboutModalRuntimeSource).toContain(
             "aboutModalRuntime requires a setTimeout runtime"
         );
+    });
+
+    it("keeps about modal helper document access behind the runtime facade", () => {
+        expect.assertions(11);
+
+        const violations = migratedAboutModalHelperDocumentRuntimeFiles
+            .filter((relativeFile) =>
+                directAboutModalHelperDocumentRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const ensureAboutModalSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/ensureAboutModal.ts"
+            )
+        );
+        const injectModalStylesSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/injectModalStyles.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(ensureAboutModalSource).toContain("aboutModalRuntime.js");
+        expect(ensureAboutModalSource).toContain(
+            "aboutModalRuntime.getDocument()"
+        );
+        expect(ensureAboutModalSource).not.toMatch(
+            directAboutModalHelperDocumentRuntimeGlobalPattern
+        );
+        expect(ensureAboutModalSource).toContain(
+            "ensureAboutModal requires a document runtime"
+        );
+        expect(injectModalStylesSource).toContain("aboutModalRuntime.js");
+        expect(injectModalStylesSource).toContain(
+            "aboutModalRuntime.getDocument()"
+        );
+        expect(injectModalStylesSource).not.toMatch(
+            directAboutModalHelperDocumentRuntimeGlobalPattern
+        );
+        expect(injectModalStylesSource).toContain(
+            "injectModalStyles requires a document runtime"
+        );
+        expect(ensureAboutModalSource).not.toContain("scope.document");
+        expect(injectModalStylesSource).not.toContain("scope.document");
     });
 
     it("keeps settings modal timing APIs behind the runtime facade", () => {
