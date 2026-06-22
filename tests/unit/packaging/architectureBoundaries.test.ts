@@ -1088,7 +1088,7 @@ const directMapActionButtonsRuntimeGlobalPattern =
 const directMapActionButtonsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapDocumentListenersRuntimeGlobalPattern =
-    /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.window\b|\bnew\s+AbortController\b/u;
+    /\bdocument\.(?:addEventListener|querySelector)\b|\b(?:globalThis|window)\.addEventListener\b|\bglobalThis\.window\b|\bnew\s+AbortController\b|\binstanceof\s+(?:HTMLElement|Node)\b/u;
 const directMapFullscreenControlRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:addEventListener|body|exitFullscreen|fullscreenElement|querySelector)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapFullscreenControlRuntimeAmbientFallbackPattern =
@@ -9439,7 +9439,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map document listeners behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(34);
 
         const violations = migratedMapDocumentListenersRuntimeFiles
             .filter((relativeFile) =>
@@ -9474,9 +9474,15 @@ describe("architecture boundaries", () => {
         expect(mapDocumentListenersSource).toContain(
             "getLayersControlElement()"
         );
+        expect(mapDocumentListenersSource).toContain("isHTMLElement");
+        expect(mapDocumentListenersSource).toContain("isNode");
         expect(mapDocumentListenersSource).not.toContain(
             "document.querySelector"
         );
+        expect(mapDocumentListenersSource).not.toContain(
+            "instanceof HTMLElement"
+        );
+        expect(mapDocumentListenersSource).not.toContain("instanceof Node");
         expect(mapDocumentListenersRuntimeSource).toContain(
             "defaultMapDocumentListenersRuntimeScope"
         );
@@ -9485,6 +9491,12 @@ describe("architecture boundaries", () => {
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(mapDocumentListenersRuntimeSource).toContain(
+            "getNode: () => globalThis.Node"
         );
         expect(mapDocumentListenersRuntimeSource).toContain(
             "getResizeTarget: () => globalThis"
@@ -9502,6 +9514,12 @@ describe("architecture boundaries", () => {
             "readonly document?:"
         );
         expect(mapDocumentListenersRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(mapDocumentListenersRuntimeScopeSource).not.toContain(
+            "readonly Node?:"
+        );
+        expect(mapDocumentListenersRuntimeScopeSource).not.toContain(
             "readonly resizeTarget?:"
         );
         expect(mapDocumentListenersRuntimeSource).not.toContain(
@@ -9510,6 +9528,10 @@ describe("architecture boundaries", () => {
         expect(mapDocumentListenersRuntimeSource).not.toContain(
             "scope.document"
         );
+        expect(mapDocumentListenersRuntimeSource).not.toContain(
+            "scope.HTMLElement"
+        );
+        expect(mapDocumentListenersRuntimeSource).not.toContain("scope.Node");
         expect(mapDocumentListenersRuntimeSource).not.toContain(
             "scope.resizeTarget"
         );

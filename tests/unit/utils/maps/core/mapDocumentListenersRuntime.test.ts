@@ -82,8 +82,8 @@ describe("getMapDocumentListenersRuntime", () => {
         expect(touchEndCount).toBe(1);
     });
 
-    it("finds the Leaflet layers control through the injected document", () => {
-        expect.assertions(1);
+    it("finds and type-checks map document elements through injected providers", () => {
+        expect.assertions(4);
 
         const documentRef = document.implementation.createHTMLDocument();
         const layersControl = documentRef.createElement("div");
@@ -91,9 +91,14 @@ describe("getMapDocumentListenersRuntime", () => {
         documentRef.body.append(layersControl);
         const runtime = getMapDocumentListenersRuntime({
             getDocument: () => documentRef,
+            getHTMLElement: () => HTMLElement,
+            getNode: () => Node,
         });
 
         expect(runtime.getLayersControlElement()).toBe(layersControl);
+        expect(runtime.isHTMLElement(layersControl)).toBe(true);
+        expect(runtime.isNode(layersControl)).toBe(true);
+        expect(runtime.isNode({})).toBe(false);
     });
 
     it("fails clearly when the document runtime is unavailable", () => {
@@ -162,7 +167,7 @@ describe("getMapDocumentListenersRuntime", () => {
     });
 
     it("routes runtime dependencies through provider functions", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         let controllerCount = 0;
         class TestAbortController extends AbortController {
@@ -174,12 +179,16 @@ describe("getMapDocumentListenersRuntime", () => {
         const documentAddEventListener = vi.fn();
         const layersControl = document.createElement("div");
         const resizeAddEventListener = vi.fn();
+        const getHTMLElement = vi.fn(() => HTMLElement);
+        const getNode = vi.fn(() => Node);
         const runtime = getMapDocumentListenersRuntime({
             getAbortController: () => TestAbortController,
             getDocument: () => ({
                 addEventListener: documentAddEventListener,
                 querySelector: vi.fn(() => layersControl),
             }),
+            getHTMLElement,
+            getNode,
             getResizeTarget: () => ({
                 addEventListener: resizeAddEventListener,
             }),
@@ -206,13 +215,15 @@ describe("getMapDocumentListenersRuntime", () => {
             { signal: controller.signal }
         );
         expect(runtime.getLayersControlElement()).toBe(layersControl);
+        expect(runtime.isHTMLElement(layersControl)).toBe(true);
+        expect(runtime.isNode(layersControl)).toBe(true);
         expect(
             getMapDocumentListenersRuntime({}).createAbortController
         ).toThrow("mapDocumentListeners requires an AbortController runtime");
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(7);
+        expect.assertions(9);
 
         class TestAbortController extends AbortController {}
         const documentAddEventListener = vi.fn();
@@ -224,6 +235,8 @@ describe("getMapDocumentListenersRuntime", () => {
                 addEventListener: documentAddEventListener,
                 querySelector: documentQuerySelector,
             },
+            HTMLElement,
+            Node,
             resizeTarget: { addEventListener: resizeAddEventListener },
         } as unknown as MapDocumentListenersRuntimeScope);
         const controller = new AbortController();
@@ -244,6 +257,10 @@ describe("getMapDocumentListenersRuntime", () => {
         expect(() => {
             runtime.getLayersControlElement();
         }).toThrow("mapDocumentListeners requires a document runtime");
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
+            false
+        );
+        expect(runtime.isNode(document.createElement("div"))).toBe(false);
         expect(documentAddEventListener).not.toHaveBeenCalled();
         expect(documentQuerySelector).not.toHaveBeenCalled();
         expect(resizeAddEventListener).not.toHaveBeenCalled();

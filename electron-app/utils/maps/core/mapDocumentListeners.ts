@@ -39,7 +39,7 @@ function isMapZoomDraggingRef(value: unknown): value is MapZoomDraggingRef {
 function collapseLayersPanelIfClickOutside(event: MouseEvent): void {
     try {
         const mapTypeBtn = mapDocumentControlRefs.mapTypeButton;
-        if (!(mapTypeBtn instanceof HTMLElement)) {
+        if (!mapDocumentListenersRuntime.isHTMLElement(mapTypeBtn)) {
             return;
         }
 
@@ -54,17 +54,18 @@ function collapseLayersPanelIfClickOutside(event: MouseEvent): void {
             return;
         }
 
-        const node = event.target instanceof Node ? event.target : null;
+        const node = mapDocumentListenersRuntime.isNode(event.target)
+            ? event.target
+            : null;
         if (!node) {
             return;
         }
 
         if (!layersControlEl.contains(node) && !mapTypeBtn.contains(node)) {
             layersControlEl.classList.remove("leaflet-control-layers-expanded");
-            const layersListEl =
-                layersControlEl.querySelector<HTMLElement>(
-                    ".leaflet-control-layers-list"
-                );
+            const layersListEl = layersControlEl.querySelector<HTMLElement>(
+                ".leaflet-control-layers-list"
+            );
             layersControlEl.style.zIndex = "";
             layersControlEl.style.maxHeight = "";
             layersControlEl.style.marginTop = "";

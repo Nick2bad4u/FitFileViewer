@@ -11,6 +11,10 @@ export interface MapDocumentListenersRuntimeScope {
     readonly getDocument?:
         | (() => MapDocumentListenersDocument | undefined)
         | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
+    readonly getNode?: (() => typeof globalThis.Node | undefined) | undefined;
     readonly getResizeTarget?:
         | (() => MapDocumentListenersResizeTarget | undefined)
         | undefined;
@@ -35,6 +39,8 @@ export interface MapDocumentListenersRuntime {
     ) => void;
     readonly createAbortController: () => AbortController;
     readonly getLayersControlElement: () => HTMLElement | null;
+    readonly isHTMLElement: (value: unknown) => value is HTMLElement;
+    readonly isNode: (value: unknown) => value is Node;
 }
 
 function getRuntimeDocument(
@@ -65,6 +71,8 @@ const defaultMapDocumentListenersRuntimeScope: MapDocumentListenersRuntimeScope 
     {
         getAbortController: () => globalThis.AbortController,
         getDocument: () => globalThis.document,
+        getHTMLElement: () => globalThis.HTMLElement,
+        getNode: () => globalThis.Node,
         getResizeTarget: () => globalThis,
     };
 
@@ -72,6 +80,18 @@ function getAbortController(
     scope: MapDocumentListenersRuntimeScope
 ): typeof AbortController | undefined {
     return scope.getAbortController?.();
+}
+
+function getHTMLElementConstructor(
+    scope: MapDocumentListenersRuntimeScope
+): typeof globalThis.HTMLElement | undefined {
+    return scope.getHTMLElement?.();
+}
+
+function getNodeConstructor(
+    scope: MapDocumentListenersRuntimeScope
+): typeof globalThis.Node | undefined {
+    return scope.getNode?.();
 }
 
 export function getMapDocumentListenersRuntime(
@@ -115,6 +135,20 @@ export function getMapDocumentListenersRuntime(
         getLayersControlElement(): HTMLElement | null {
             return getRuntimeDocument(scope).querySelector<HTMLElement>(
                 ".leaflet-control-layers"
+            );
+        },
+        isHTMLElement(value: unknown): value is HTMLElement {
+            const HTMLElementConstructor = getHTMLElementConstructor(scope);
+            return (
+                typeof HTMLElementConstructor === "function" &&
+                value instanceof HTMLElementConstructor
+            );
+        },
+        isNode(value: unknown): value is Node {
+            const NodeConstructor = getNodeConstructor(scope);
+            return (
+                typeof NodeConstructor === "function" &&
+                value instanceof NodeConstructor
             );
         },
     };

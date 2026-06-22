@@ -400,6 +400,9 @@ registering document/window listeners directly inside `mapDocumentListeners.ts`,
 architecture guardrails blocking those direct browser APIs from returning. Explicit map document listener runtime scopes
 must now provide their document/window targets instead of falling back to `globalThis.document` or `globalThis.window`,
 with focused runtime coverage and architecture coverage blocking those fallbacks from returning.
+Map document listener HTMLElement and Node checks now also route through `mapDocumentListenersRuntime.ts` instead of
+using direct `instanceof HTMLElement` or `instanceof Node` checks inside `mapDocumentListeners.ts`, with focused runtime
+coverage and architecture coverage blocking those direct browser constructor checks from returning.
 Shared configuration loading now routes URL search reads, chart-refresh timer scheduling, and chart-refresh
 timer cleanup through `loadSharedConfigurationRuntime.ts` instead of probing location or calling timer globals
 directly inside `loadSharedConfiguration.ts`, with focused runtime coverage and architecture guardrails blocking
