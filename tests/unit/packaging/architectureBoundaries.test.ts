@@ -7300,7 +7300,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(10);
+        expect.assertions(26);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
@@ -7314,6 +7314,8 @@ describe("architecture boundaries", () => {
             /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
         const directLifecycleListenersAmbientTimerFallbackPattern =
             /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
+        const directLifecycleListenersAmbientScopePattern =
+            /\bscope\.(?:AbortController|clearTimeout|print|process|setTimeout)\b|\bscope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultLifecycleListenersRuntimeScope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b/u;
 
         expect(lifecycleListenersSource).toContain("listenersRuntime.js");
         expect(lifecycleListenersSource).toContain("createAbortController");
@@ -7330,6 +7332,9 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersRuntimeSource).not.toMatch(
             directLifecycleListenersAmbientTimerFallbackPattern
         );
+        expect(lifecycleListenersRuntimeSource).not.toMatch(
+            directLifecycleListenersAmbientScopePattern
+        );
         expect(lifecycleListenersRuntimeSource).toContain(
             "defaultLifecycleListenersRuntimeScope"
         );
@@ -7338,6 +7343,47 @@ describe("architecture boundaries", () => {
         );
         expect(lifecycleListenersRuntimeSource).toContain(
             "lifecycle listeners require a setTimeout runtime"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "readonly print?:"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "readonly process?:"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain("scope.print");
+        expect(lifecycleListenersRuntimeSource).not.toContain("scope.process");
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getPrint: getGlobalPrint"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getProcess: getGlobalProcess"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
     });
 

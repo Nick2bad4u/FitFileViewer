@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getLifecycleListenersRuntime } from "../../../../../electron-app/utils/app/lifecycle/listenersRuntime.js";
+import {
+    getLifecycleListenersRuntime,
+    type LifecycleListenersRuntimeScope,
+} from "../../../../../electron-app/utils/app/lifecycle/listenersRuntime.js";
 
 describe("getLifecycleListenersRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -13,7 +16,7 @@ describe("getLifecycleListenersRuntime", () => {
             }
         );
         const runtime = getLifecycleListenersRuntime({
-            AbortController:
+            getAbortController: () =>
                 AbortControllerConstructor as unknown as typeof AbortController,
         });
 
@@ -49,8 +52,8 @@ describe("getLifecycleListenersRuntime", () => {
             clearedTimer = handle;
         };
         const runtime = getLifecycleListenersRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(runtime.setTimeout(callback, delayMs)).toBe(timer);
@@ -68,12 +71,12 @@ describe("getLifecycleListenersRuntime", () => {
 
         const print = vi.fn<() => void>();
         const runtime = getLifecycleListenersRuntime({
-            print,
-            process: {
+            getPrint: () => print,
+            getProcess: () => ({
                 env: {
                     NODE_ENV: "test",
                 },
-            },
+            }),
         });
 
         runtime.print();
@@ -105,5 +108,43 @@ describe("getLifecycleListenersRuntime", () => {
                 23 as ReturnType<typeof globalThis.setTimeout>
             );
         }).toThrow("lifecycle listeners require a clearTimeout runtime");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(5);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const print = vi.fn<() => void>();
+        const timer = 23 as ReturnType<typeof globalThis.setTimeout>;
+        const legacyScope = {
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            clearTimeout: vi.fn<typeof globalThis.clearTimeout>(),
+            print,
+            process: {
+                env: {
+                    NODE_ENV: "test",
+                },
+            },
+            setTimeout: vi.fn<typeof globalThis.setTimeout>(() => timer),
+        } as unknown as LifecycleListenersRuntimeScope;
+        const runtime = getLifecycleListenersRuntime(legacyScope);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "lifecycle listeners require an AbortController runtime"
+        );
+        expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "lifecycle listeners require a setTimeout runtime"
+        );
+        expect(() => runtime.print()).toThrow(
+            "lifecycle listeners require a print runtime"
+        );
+        expect(runtime.isTestEnvironment()).toBe(false);
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
     });
 });

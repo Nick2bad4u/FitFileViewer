@@ -1,37 +1,68 @@
 export type LifecycleListenersTimer = ReturnType<typeof globalThis.setTimeout>;
 
+type LifecycleListenersPrint = () => void;
+
+interface LifecycleListenersProcess {
+    readonly env?: Readonly<Record<string, string | undefined>>;
+}
+
 export interface LifecycleListenersRuntimeScope {
-    readonly AbortController?: typeof globalThis.AbortController | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly print?: (() => void) | undefined;
-    readonly process?:
-        | {
-              readonly env?: Readonly<Record<string, string | undefined>>;
-          }
+    readonly getAbortController?:
+        | (() => typeof globalThis.AbortController | undefined)
         | undefined;
-    readonly setTimeout?: typeof globalThis.setTimeout | undefined;
+    readonly getClearTimeout?:
+        | (() => typeof globalThis.clearTimeout | undefined)
+        | undefined;
+    readonly getPrint?: (() => LifecycleListenersPrint | undefined) | undefined;
+    readonly getProcess?:
+        | (() => LifecycleListenersProcess | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => typeof globalThis.setTimeout | undefined)
+        | undefined;
 }
 
 export interface LifecycleListenersRuntime {
-    clearTimeout(handle: LifecycleListenersTimer): void;
-    createAbortController(): AbortController;
-    isTestEnvironment(): boolean;
-    print(): void;
-    setTimeout(
+    readonly clearTimeout: (handle: LifecycleListenersTimer) => void;
+    readonly createAbortController: () => AbortController;
+    readonly isTestEnvironment: () => boolean;
+    readonly print: () => void;
+    readonly setTimeout: (
         callback: () => void,
         delayMs: number
-    ): LifecycleListenersTimer;
+    ) => LifecycleListenersTimer;
 }
 
-const defaultLifecycleListenersRuntimeScope: LifecycleListenersRuntimeScope =
-    globalThis;
+function getGlobalProcess(): LifecycleListenersProcess | undefined {
+    const processRef: unknown = Reflect.get(globalThis, "process");
+    return typeof processRef === "object" && processRef !== null
+        ? processRef
+        : undefined;
+}
+
+function getGlobalPrint(): LifecycleListenersPrint | undefined {
+    const printRef = Reflect.get(globalThis, "print");
+    return typeof printRef === "function"
+        ? () => {
+              printRef.call(globalThis);
+          }
+        : undefined;
+}
+
+const defaultLifecycleListenersRuntimeScope: LifecycleListenersRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getClearTimeout: () => globalThis.clearTimeout,
+    getPrint: getGlobalPrint,
+    getProcess: getGlobalProcess,
+    getSetTimeout: () => globalThis.setTimeout,
+};
 
 export function getLifecycleListenersRuntime(
     scope: LifecycleListenersRuntimeScope = defaultLifecycleListenersRuntimeScope
 ): LifecycleListenersRuntime {
     return {
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.clearTimeout;
+            const clearTimeoutRef = scope.getClearTimeout?.();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "lifecycle listeners require a clearTimeout runtime"
@@ -41,7 +72,7 @@ export function getLifecycleListenersRuntime(
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "lifecycle listeners require an AbortController runtime"
@@ -51,20 +82,20 @@ export function getLifecycleListenersRuntime(
             return new AbortControllerConstructor();
         },
         isTestEnvironment(): boolean {
-            return scope.process?.env?.["NODE_ENV"] === "test";
+            return scope.getProcess?.()?.env?.["NODE_ENV"] === "test";
         },
         print(): void {
-            const printRef = scope.print;
+            const printRef = scope.getPrint?.();
             if (typeof printRef !== "function") {
                 throw new TypeError(
                     "lifecycle listeners require a print runtime"
                 );
             }
 
-            printRef.call(scope);
+            printRef();
         },
         setTimeout(callback, delayMs): LifecycleListenersTimer {
-            const setTimeoutRef = scope.setTimeout;
+            const setTimeoutRef = scope.getSetTimeout?.();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "lifecycle listeners require a setTimeout runtime"

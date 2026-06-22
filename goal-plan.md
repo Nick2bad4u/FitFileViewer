@@ -622,7 +622,9 @@ route through `listenersRuntime.ts` instead of calling timer globals or construc
 `listeners.ts`, with focused runtime coverage and architecture guardrails blocking those direct timer/controller
 globals from returning. Explicit lifecycle listener runtime scopes must now provide timer primitives instead of
 falling back to `globalThis`, with focused runtime coverage and architecture coverage blocking those fallbacks from
-returning.
+returning. Lifecycle listener production defaults now live in an explicit provider object instead of a broad
+`globalThis` default scope, and explicit scopes use named providers instead of direct scope properties for
+AbortController, timer, print, and process access.
 GPX export button, chart theme listener, and user/device info tests no longer type or clean retired
 `globalData`/`loadedFitFiles` globals; they rely on typed state resets and active FIT data fixtures, and
 architecture coverage blocks those cleanup patterns from returning.
