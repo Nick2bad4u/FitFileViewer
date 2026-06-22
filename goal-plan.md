@@ -278,9 +278,11 @@ Chart render lifecycle helpers now use `getChartLifecycleActions` instead of the
 wording. `createAppMenu` Electron menu tests now use module-local fixture state instead of `__electron*` and
 call-log globals on `globalThis`. `masterStateManager.ts` now uses module-local test override maps plus typed
 imports instead of probing CJS module caches through `node:module`.
-Overlay file load concurrency now resolves navigator hardware-concurrency metadata through
-`loadOverlayFilesRuntime.ts` instead of probing `globalThis.navigator` directly inside `loadOverlayFiles.ts`,
-with focused runtime coverage and architecture guardrails blocking that direct metadata lookup from returning.
+Overlay file load concurrency and active-tab preservation now resolve browser metadata and active-tab DOM state
+through `loadOverlayFilesRuntime.ts` instead of probing `globalThis.navigator` or querying `document` directly
+inside `loadOverlayFiles.ts`; production defaults and explicit runtime scopes stay behind named provider functions
+instead of a broad `globalThis` default scope or direct `document`/`navigator` properties, with focused runtime
+coverage and architecture coverage blocking direct navigator and active-tab document access from returning.
 Single overlay FileReader fallback listener abort-controller creation now routes through
 `loadSingleOverlayFileRuntime.ts` instead of constructing `AbortController` directly inside
 `loadSingleOverlayFile.ts`; production defaults and explicit runtime scopes now use a named provider function

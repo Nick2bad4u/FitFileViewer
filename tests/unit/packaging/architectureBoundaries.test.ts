@@ -1106,7 +1106,7 @@ const directOpenFileSelectorRuntimeAmbientFallbackPattern =
 const directLoadSingleOverlayFileRuntimeGlobalPattern =
     /\bnew\s+AbortController\b/u;
 const directLoadOverlayFilesRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.navigator\b|\bnavigator\.hardwareConcurrency\b/u;
+    /\bdocument\.querySelector\b|\b(?:globalThis|window)\.navigator\b|\bnavigator\.hardwareConcurrency\b/u;
 const directFitBrowserFeatureGateRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:querySelector|getElementById)\b|\binstanceof\s+HTMLElement\b/u;
 const directFitBrowserFeatureGateRuntimeAmbientGetterPattern =
@@ -9849,7 +9849,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps overlay file load concurrency metadata behind the runtime facade", () => {
-        expect.assertions(9);
+        expect.assertions(15);
 
         const violations = migratedLoadOverlayFilesRuntimeFiles
             .filter((relativeFile) =>
@@ -9880,12 +9880,17 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(loadOverlayFilesSource).toContain("loadOverlayFilesRuntime.js");
+        expect(loadOverlayFilesSource).toContain("getActiveTabButton()");
         expect(loadOverlayFilesRuntimeSource).toContain(
             "defaultLoadOverlayFilesRuntimeScope"
         );
         expect(loadOverlayFilesRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(loadOverlayFilesRuntimeScopeSource).not.toContain(
             "readonly navigator?:"
         );
+        expect(loadOverlayFilesRuntimeSource).not.toContain("scope.document");
         expect(loadOverlayFilesRuntimeSource).not.toContain("scope.navigator");
         expect(loadOverlayFilesRuntimeSource).not.toContain(
             "scope: LoadOverlayFilesRuntimeScope = globalThis"
@@ -9894,7 +9899,16 @@ describe("architecture boundaries", () => {
             "LoadOverlayFilesRuntimeScope =\n    globalThis"
         );
         expect(loadOverlayFilesRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(loadOverlayFilesRuntimeSource).toContain(
             "getNavigator: () => globalThis.navigator"
+        );
+        expect(loadOverlayFilesRuntimeSource).toContain(
+            "getActiveTabButton(): HTMLElement | null"
+        );
+        expect(loadOverlayFilesRuntimeSource).toContain(
+            "documentRef.querySelector<HTMLElement>"
         );
         expect(loadOverlayFilesRuntimeSource).toContain(
             "return scope.getNavigator?.()?.hardwareConcurrency;"

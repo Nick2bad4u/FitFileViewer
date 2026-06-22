@@ -34,6 +34,7 @@ const mocks = vi.hoisted(() => ({
     loadingShow: vi.fn<(message: string, detail?: string) => void>(),
     loadSingleOverlayFile:
         vi.fn<(file: OverlayInputFile) => Promise<LoadSingleOverlayResult>>(),
+    getActiveTabButton: vi.fn<() => HTMLElement | null>(() => null),
     getHardwareConcurrency: vi.fn<() => number | undefined>(() => 6),
     pLimitCompat: vi.fn<LimitFactory>((_concurrency) => async (task) => task()),
     renderMap: vi.fn<() => void>(),
@@ -125,6 +126,7 @@ vi.mock(
     import("../../../../../electron-app/utils/files/import/loadOverlayFilesRuntime.js"),
     () => ({
         getLoadOverlayFilesRuntime: () => ({
+            getActiveTabButton: mocks.getActiveTabButton,
             getHardwareConcurrency: mocks.getHardwareConcurrency,
         }),
     })

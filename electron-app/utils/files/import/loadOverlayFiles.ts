@@ -154,8 +154,7 @@ export async function loadOverlayFiles(
 
     if (stateDirty) {
         // Save current tab before syncing state (which might trigger tab switches)
-        const currentTabButton =
-            document.querySelector<HTMLElement>(".tab-button.active");
+        const currentTabButton = loadOverlayFilesRuntime.getActiveTabButton();
         const currentTabId = currentTabButton?.id ?? "";
 
         syncLoadedFitFilesState();
@@ -164,8 +163,7 @@ export async function loadOverlayFiles(
 
         // Restore the original tab if it was changed
         if (currentTabButton && currentTabId) {
-            const newActiveTab =
-                document.querySelector<HTMLElement>(".tab-button.active");
+            const newActiveTab = loadOverlayFilesRuntime.getActiveTabButton();
             if (newActiveTab?.id !== currentTabId) {
                 console.log(
                     "[loadOverlayFiles] Restoring tab to:",
