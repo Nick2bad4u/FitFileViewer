@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getShownFilesListRuntime } from "../../../../electron-app/utils/rendering/components/shownFilesListRuntime.js";
+import {
+    getShownFilesListRuntime,
+    type ShownFilesListRuntimeScope,
+} from "../../../../electron-app/utils/rendering/components/shownFilesListRuntime.js";
 
 describe("getShownFilesListRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -20,7 +23,7 @@ describe("getShownFilesListRuntime", () => {
             }
         }
         const runtime = getShownFilesListRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -50,7 +53,7 @@ describe("getShownFilesListRuntime", () => {
         };
         const controller = new AbortController();
         const runtime = getShownFilesListRuntime({
-            document: documentRef,
+            getDocument: () => documentRef,
         });
 
         runtime.addBodyThemeChangeListener(listener, {
@@ -80,18 +83,27 @@ describe("getShownFilesListRuntime", () => {
         expect.assertions(3);
 
         let registeredListener: ((event: MouseEvent) => void) | null = null;
-        let registeredOptions: AddEventListenerOptions | boolean | undefined;
+        let registeredOptions:
+            | Readonly<AddEventListenerOptions>
+            | boolean
+            | undefined;
         let registeredType: string | null = null;
         const listener = vi.fn<(event: MouseEvent) => void>();
         const controller = new AbortController();
-        const addEventListener: NonNullable<
-            Parameters<typeof getShownFilesListRuntime>[0]
-        >["addEventListener"] = (type, eventListener, options): void => {
-            registeredType = type;
-            registeredListener = eventListener;
-            registeredOptions = options;
+        const eventTarget = {
+            addEventListener(
+                type: "mousemove",
+                eventListener: (event: Readonly<MouseEvent>) => void,
+                options?: Readonly<AddEventListenerOptions> | boolean
+            ): void {
+                registeredType = type;
+                registeredListener = eventListener;
+                registeredOptions = options;
+            },
         };
-        const runtime = getShownFilesListRuntime({ addEventListener });
+        const runtime = getShownFilesListRuntime({
+            getEventTarget: () => eventTarget,
+        });
 
         runtime.addMouseMoveListener(listener, { signal: controller.signal });
         const event = new MouseEvent("mousemove", {
@@ -126,8 +138,10 @@ describe("getShownFilesListRuntime", () => {
         expect.assertions(1);
 
         const runtime = getShownFilesListRuntime({
-            innerHeight: 600,
-            innerWidth: 800,
+            getViewport: () => ({
+                height: 600,
+                width: 800,
+            }),
         });
 
         expect(runtime.getViewport()).toStrictEqual({
@@ -155,8 +169,8 @@ describe("getShownFilesListRuntime", () => {
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => timer);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getShownFilesListRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
 
         expect(runtime.setTimeout(callback, timeoutMs)).toBe(timer);
@@ -172,6 +186,52 @@ describe("getShownFilesListRuntime", () => {
         const runtime = getShownFilesListRuntime({});
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
+            "shownFilesList requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "shownFilesList requires a clearTimeout runtime"
+        );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(6);
+
+        const TestAbortController = vi.fn(function TestAbortController() {
+            return new AbortController();
+        });
+        const addEventListener = vi.fn();
+        const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const setTimeout = vi.fn<typeof globalThis.setTimeout>();
+        const legacyScope = {
+            AbortController:
+                TestAbortController as unknown as typeof AbortController,
+            addEventListener,
+            clearTimeout,
+            document,
+            innerHeight: 600,
+            innerWidth: 800,
+            setTimeout,
+        } as unknown as ShownFilesListRuntimeScope;
+        const runtime = getShownFilesListRuntime(legacyScope);
+        const controller = new AbortController();
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "shownFilesList requires an AbortController runtime"
+        );
+        expect(() =>
+            runtime.addBodyThemeChangeListener(() => undefined, {
+                signal: controller.signal,
+            })
+        ).toThrow("shownFilesList requires a document body runtime");
+        expect(() =>
+            runtime.addMouseMoveListener(() => undefined, {
+                signal: controller.signal,
+            })
+        ).toThrow("shownFilesList requires an event target runtime");
+        expect(() => runtime.getViewport()).toThrow(
+            "shownFilesList requires a viewport runtime"
+        );
+        expect(() => runtime.setTimeout(() => undefined, 0)).toThrow(
             "shownFilesList requires a setTimeout runtime"
         );
         expect(() => runtime.clearTimeout(0)).toThrow(

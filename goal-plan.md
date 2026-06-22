@@ -391,7 +391,8 @@ registration, and viewport reads now route through `shownFilesListRuntime.ts` in
 listener, controller, or viewport globals directly inside the shown-files list modules, with focused runtime
 coverage and architecture guardrails blocking those direct browser globals from returning. Explicit shown-files
 list runtime scopes must now provide document body, mousemove event-target, viewport, and timer primitives instead
-of falling back to `globalThis`, with focused runtime coverage and architecture coverage blocking those fallbacks
+of falling back to `globalThis`; production defaults now live in an explicit provider object instead of a broad
+`globalThis` default scope, with focused runtime coverage and architecture coverage blocking those fallbacks
 from returning.
 Fallback map measurement button re-enable scheduling and cleanup now route through `mapMeasureToolRuntime.ts`
 instead of calling timer globals directly inside `mapMeasureTool.ts`, with focused runtime coverage and

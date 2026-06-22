@@ -7,49 +7,75 @@ export interface ShownFilesListViewport {
     readonly width: number;
 }
 
-export type ShownFilesListMouseMoveListener = (event: MouseEvent) => void;
+export type ShownFilesListMouseMoveListener = (
+    event: Readonly<MouseEvent>
+) => void;
+
+type ShownFilesListClearTimeout = typeof globalThis.clearTimeout;
+type ShownFilesListListenerOptions = Readonly<
+    AddEventListenerOptions & { readonly signal: AbortSignal }
+>;
+type ShownFilesListSetTimeout = (
+    callback: () => void,
+    timeout: number
+) => ShownFilesListTimerHandle;
+
+interface ShownFilesListMouseMoveEventTarget {
+    readonly addEventListener: (
+        type: "mousemove",
+        listener: ShownFilesListMouseMoveListener,
+        options?: Readonly<AddEventListenerOptions> | boolean
+    ) => void;
+}
 
 export interface ShownFilesListRuntimeScope {
-    readonly AbortController?: typeof AbortController | undefined;
-    readonly addEventListener?:
-        | ((
-              type: "mousemove",
-              listener: ShownFilesListMouseMoveListener,
-              options?: AddEventListenerOptions | boolean
-          ) => void)
+    readonly getAbortController?:
+        | (() => typeof AbortController | undefined)
         | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly document?: Document | undefined;
-    readonly innerHeight?: number | undefined;
-    readonly innerWidth?: number | undefined;
-    readonly setTimeout?:
-        | ((
-              callback: () => void,
-              timeout: number
-          ) => ShownFilesListTimerHandle)
+    readonly getClearTimeout?:
+        | (() => ShownFilesListClearTimeout | undefined)
+        | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getEventTarget?:
+        | (() => ShownFilesListMouseMoveEventTarget | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => ShownFilesListSetTimeout | undefined)
+        | undefined;
+    readonly getViewport?:
+        | (() => ShownFilesListViewport | undefined)
         | undefined;
 }
 
 export interface ShownFilesListRuntime {
-    addBodyThemeChangeListener(
+    readonly addBodyThemeChangeListener: (
         listener: EventListener,
-        options: AddEventListenerOptions & { readonly signal: AbortSignal }
-    ): void;
-    addMouseMoveListener(
+        options: ShownFilesListListenerOptions
+    ) => void;
+    readonly addMouseMoveListener: (
         listener: ShownFilesListMouseMoveListener,
-        options: AddEventListenerOptions & { readonly signal: AbortSignal }
-    ): void;
-    clearTimeout(handle: ShownFilesListTimerHandle): void;
-    createAbortController(): AbortController;
-    getViewport(): ShownFilesListViewport;
-    setTimeout(
+        options: ShownFilesListListenerOptions
+    ) => void;
+    readonly clearTimeout: (handle: ShownFilesListTimerHandle) => void;
+    readonly createAbortController: () => AbortController;
+    readonly getViewport: () => ShownFilesListViewport;
+    readonly setTimeout: (
         callback: () => void,
         timeout: number
-    ): ShownFilesListTimerHandle;
+    ) => ShownFilesListTimerHandle;
 }
 
-const defaultShownFilesListRuntimeScope: ShownFilesListRuntimeScope =
-    globalThis;
+const defaultShownFilesListRuntimeScope: ShownFilesListRuntimeScope = {
+    getAbortController: () => globalThis.AbortController,
+    getClearTimeout: () => globalThis.clearTimeout,
+    getDocument: () => globalThis.document,
+    getEventTarget: () => globalThis,
+    getSetTimeout: () => globalThis.setTimeout,
+    getViewport: () => ({
+        height: globalThis.innerHeight,
+        width: globalThis.innerWidth,
+    }),
+};
 
 export function getShownFilesListRuntime(
     scope: ShownFilesListRuntimeScope = defaultShownFilesListRuntimeScope
@@ -57,16 +83,15 @@ export function getShownFilesListRuntime(
     return {
         addBodyThemeChangeListener(
             listener: EventListener,
-            options: AddEventListenerOptions & { readonly signal: AbortSignal }
+            options: ShownFilesListListenerOptions
         ): void {
-            const body = scope.document?.body;
+            const body = scope.getDocument?.()?.body;
             if (!body) {
                 throw new TypeError(
                     "shownFilesList requires a document body runtime"
                 );
             }
 
-            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
             body.addEventListener("themechange", listener, {
                 ...options,
                 signal: options.signal,
@@ -74,22 +99,22 @@ export function getShownFilesListRuntime(
         },
         addMouseMoveListener(
             listener: ShownFilesListMouseMoveListener,
-            options: AddEventListenerOptions & { readonly signal: AbortSignal }
+            options: ShownFilesListListenerOptions
         ): void {
-            if (typeof scope.addEventListener !== "function") {
+            const eventTarget = scope.getEventTarget?.();
+            if (!eventTarget) {
                 throw new TypeError(
                     "shownFilesList requires an event target runtime"
                 );
             }
 
-            // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
-            scope.addEventListener("mousemove", listener, {
+            eventTarget.addEventListener("mousemove", listener, {
                 ...options,
                 signal: options.signal,
             });
         },
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.clearTimeout;
+            const clearTimeoutRef = scope.getClearTimeout?.();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError(
                     "shownFilesList requires a clearTimeout runtime"
@@ -98,7 +123,7 @@ export function getShownFilesListRuntime(
             clearTimeoutRef(handle);
         },
         createAbortController(): AbortController {
-            const AbortControllerConstructor = scope.AbortController;
+            const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
                 throw new TypeError(
                     "shownFilesList requires an AbortController runtime"
@@ -108,8 +133,9 @@ export function getShownFilesListRuntime(
             return new AbortControllerConstructor();
         },
         getViewport(): ShownFilesListViewport {
-            const width = scope.innerWidth;
-            const height = scope.innerHeight;
+            const viewport = scope.getViewport?.();
+            const width = viewport?.width;
+            const height = viewport?.height;
             if (typeof width !== "number" || typeof height !== "number") {
                 throw new TypeError(
                     "shownFilesList requires a viewport runtime"
@@ -119,7 +145,7 @@ export function getShownFilesListRuntime(
             return { height, width };
         },
         setTimeout(callback, timeout): ShownFilesListTimerHandle {
-            const setTimeoutRef = scope.setTimeout;
+            const setTimeoutRef = scope.getSetTimeout?.();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError(
                     "shownFilesList requires a setTimeout runtime"

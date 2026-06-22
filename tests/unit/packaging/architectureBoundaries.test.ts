@@ -1287,7 +1287,7 @@ const directQuickColorSwitcherRuntimeAmbientTimerFallbackPattern =
 const directShownFilesListRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\b|\bdocument\.body\.addEventListener\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directShownFilesListRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout)\s*\?\?\s*globalThis(?:\.(?:addEventListener|clearTimeout|innerHeight|innerWidth|setTimeout))?\b|\bglobalThis\.(?:addEventListener|clearTimeout|setTimeout)\s*\(/u;
+    /\bscope\.(?:AbortController|addEventListener|clearTimeout|document|innerHeight|innerWidth|setTimeout)\b|\bscope:\s*ShownFilesListRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultShownFilesListRuntimeScope:\s*ShownFilesListRuntimeScope\s*=\s*globalThis\b|\?\?\s*globalThis\b|\bglobalThis\.(?:addEventListener|clearTimeout|setTimeout)\s*\(/u;
 const directCreditsMarqueeRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|querySelectorAll|removeEventListener)\b|\btypeof\s+ResizeObserver\b|\bnew\s+(?:AbortController|MutationObserver|ResizeObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:requestAnimationFrame|cancelAnimationFrame)\(/u;
 const directCreditsMarqueeRuntimeAmbientFallbackPattern =
@@ -12595,7 +12595,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(28);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -12617,7 +12617,7 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(sourcesMissingRuntime).toStrictEqual([]);
         expect(shownFilesListRuntimeSource).toContain(
-            "const body = scope.document?.body;"
+            "const body = scope.getDocument?.()?.body;"
         );
         expect(shownFilesListRuntimeSource).toContain(
             "defaultShownFilesListRuntimeScope"
@@ -12626,10 +12626,48 @@ describe("architecture boundaries", () => {
             "scope: ShownFilesListRuntimeScope = globalThis"
         );
         expect(shownFilesListRuntimeSource).not.toContain(
-            "globalThis.document"
+            "const defaultShownFilesListRuntimeScope: ShownFilesListRuntimeScope =\n    globalThis"
         );
         expect(shownFilesListRuntimeSource).not.toMatch(
             directShownFilesListRuntimeAmbientFallbackPattern
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly addEventListener?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly innerHeight?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly innerWidth?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain(
+            "scope.addEventListener"
+        );
+        expect(shownFilesListRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(shownFilesListRuntimeSource).not.toContain("scope.document");
+        expect(shownFilesListRuntimeSource).not.toContain("scope.innerHeight");
+        expect(shownFilesListRuntimeSource).not.toContain("scope.innerWidth");
+        expect(shownFilesListRuntimeSource).not.toContain("scope.setTimeout");
+        expect(shownFilesListRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "getEventTarget: () => globalThis"
         );
         expect(shownFilesListRuntimeSource).toContain(
             "shownFilesList requires a setTimeout runtime"
