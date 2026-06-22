@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { OpenZoneColorPickerRuntimeScope } from "../../../../../electron-app/utils/ui/modals/openZoneColorPickerRuntime.js";
 import { getOpenZoneColorPickerRuntime } from "../../../../../electron-app/utils/ui/modals/openZoneColorPickerRuntime.js";
 
 describe("openZoneColorPickerRuntime", () => {
@@ -8,8 +9,8 @@ describe("openZoneColorPickerRuntime", () => {
 
         const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
         const runtime = getOpenZoneColorPickerRuntime({
-            CustomEvent,
-            dispatchEvent,
+            getCustomEvent: () => CustomEvent,
+            getDispatchEvent: () => dispatchEvent,
         });
 
         const event = runtime.createCustomEvent("ffv:request-render-charts", {
@@ -22,19 +23,19 @@ describe("openZoneColorPickerRuntime", () => {
         expect(dispatchEvent).toHaveBeenCalledWith(event);
     });
 
-    it("resolves browser constructors from the document default view", () => {
-        expect.assertions(2);
+    it("creates and dispatches custom events through the default production scope", () => {
+        expect.assertions(3);
 
-        const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
-        const runtime = getOpenZoneColorPickerRuntime({
-            document,
-            dispatchEvent,
-        });
+        const dispatchEvent = vi.spyOn(window, "dispatchEvent");
+        const runtime = getOpenZoneColorPickerRuntime();
 
         const event = runtime.createCustomEvent("ffv:request-render-charts");
 
         expect(event).toBeInstanceOf(CustomEvent);
         expect(runtime.dispatchEvent(event)).toBe(true);
+        expect(dispatchEvent).toHaveBeenCalledWith(event);
+
+        dispatchEvent.mockRestore();
     });
 
     it("fails clearly when event primitives are unavailable", () => {
@@ -42,13 +43,31 @@ describe("openZoneColorPickerRuntime", () => {
 
         expect(() =>
             getOpenZoneColorPickerRuntime({
-                dispatchEvent: () => true,
+                getDispatchEvent: () => () => true,
             }).createCustomEvent("ffv:request-render-charts")
         ).toThrow("openZoneColorPicker requires a CustomEvent runtime");
         expect(() =>
-            getOpenZoneColorPickerRuntime({ CustomEvent }).dispatchEvent(
-                new Event("ffv:request-render-charts")
-            )
+            getOpenZoneColorPickerRuntime({
+                getCustomEvent: () => CustomEvent,
+            }).dispatchEvent(new Event("ffv:request-render-charts"))
+        ).toThrow("openZoneColorPicker requires a dispatchEvent runtime");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(2);
+
+        const legacyScope = {
+            CustomEvent,
+            dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
+            document,
+        } as unknown as OpenZoneColorPickerRuntimeScope;
+        const runtime = getOpenZoneColorPickerRuntime(legacyScope);
+
+        expect(() =>
+            runtime.createCustomEvent("ffv:request-render-charts")
+        ).toThrow("openZoneColorPicker requires a CustomEvent runtime");
+        expect(() =>
+            runtime.dispatchEvent(new Event("ffv:request-render-charts"))
         ).toThrow("openZoneColorPicker requires a dispatchEvent runtime");
     });
 });

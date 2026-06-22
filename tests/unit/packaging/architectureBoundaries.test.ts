@@ -1305,7 +1305,7 @@ const directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern =
 const directOpenZoneColorPickerRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.dispatchEvent\b|\bnew\s+CustomEvent\b/u;
 const directOpenZoneColorPickerRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:CustomEvent|dispatchEvent)\s*\?\?\s*globalThis\.(?:CustomEvent|dispatchEvent)\b|\bglobalThis\.(?:CustomEvent|dispatchEvent)\b/u;
+    /\bscope\.(?:CustomEvent|dispatchEvent|document)\b|\bscope:\s*OpenZoneColorPickerRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultOpenZoneColorPickerRuntimeScope:\s*OpenZoneColorPickerRuntimeScope\s*=\s*globalThis\b/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b|\bnew\s+AbortController\b/u;
 const directCopyTableAsCSVRuntimeGlobalPattern =
@@ -4801,7 +4801,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps zone color picker event APIs behind the runtime facade", () => {
-        expect.assertions(6);
+        expect.assertions(15);
 
         const violations = migratedOpenZoneColorPickerRuntimeFiles
             .filter((relativeFile) =>
@@ -4833,6 +4833,29 @@ describe("architecture boundaries", () => {
         );
         expect(zoneColorPickerRuntimeSource).not.toContain(
             "scope: OpenZoneColorPickerRuntimeScope = globalThis"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "const defaultOpenZoneColorPickerRuntimeScope: OpenZoneColorPickerRuntimeScope = globalThis"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly CustomEvent?:"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly dispatchEvent?:"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain("scope.CustomEvent");
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "scope.dispatchEvent"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain("scope.document");
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(zoneColorPickerRuntimeSource).toContain(
+            "getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis)"
         );
         expect(zoneColorPickerRuntimeSource).toContain(
             "openZoneColorPicker requires a dispatchEvent runtime"

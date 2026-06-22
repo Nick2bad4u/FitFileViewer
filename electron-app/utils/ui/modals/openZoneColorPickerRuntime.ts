@@ -1,7 +1,10 @@
 export interface OpenZoneColorPickerRuntimeScope {
-    readonly CustomEvent?: typeof CustomEvent | undefined;
-    readonly dispatchEvent?: ((event: Event) => boolean) | undefined;
-    readonly document?: Document | undefined;
+    readonly getCustomEvent?:
+        | (() => typeof globalThis.CustomEvent | undefined)
+        | undefined;
+    readonly getDispatchEvent?:
+        | (() => ((event: Event) => boolean) | undefined)
+        | undefined;
 }
 
 export interface OpenZoneColorPickerRuntime {
@@ -14,9 +17,8 @@ export interface OpenZoneColorPickerRuntime {
 
 function getCustomEventConstructor(
     scope: OpenZoneColorPickerRuntimeScope
-): typeof CustomEvent {
-    const CustomEventConstructor =
-        scope.CustomEvent ?? scope.document?.defaultView?.CustomEvent;
+): typeof globalThis.CustomEvent {
+    const CustomEventConstructor = scope.getCustomEvent?.();
     if (typeof CustomEventConstructor !== "function") {
         throw new TypeError(
             "openZoneColorPicker requires a CustomEvent runtime"
@@ -29,11 +31,7 @@ function getCustomEventConstructor(
 function getDispatchEvent(
     scope: OpenZoneColorPickerRuntimeScope
 ): (event: Event) => boolean {
-    const dispatchEvent =
-        scope.dispatchEvent ??
-        scope.document?.defaultView?.dispatchEvent?.bind(
-            scope.document.defaultView
-        );
+    const dispatchEvent = scope.getDispatchEvent?.();
     if (typeof dispatchEvent !== "function") {
         throw new TypeError(
             "openZoneColorPicker requires a dispatchEvent runtime"
@@ -44,7 +42,10 @@ function getDispatchEvent(
 }
 
 const defaultOpenZoneColorPickerRuntimeScope: OpenZoneColorPickerRuntimeScope =
-    globalThis;
+    {
+        getCustomEvent: () => globalThis.CustomEvent,
+        getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis),
+    };
 
 export function getOpenZoneColorPickerRuntime(
     scope: OpenZoneColorPickerRuntimeScope = defaultOpenZoneColorPickerRuntimeScope

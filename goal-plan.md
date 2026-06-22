@@ -328,6 +328,10 @@ timers now route through `createFieldTogglesSectionRuntime.ts`; production defau
 use named provider functions instead of a broad `globalThis` default scope, direct scope properties, or
 document-window fallbacks, with focused runtime coverage and architecture guardrails blocking those ambient
 fallbacks from returning.
+Zone color picker render-request event construction and dispatch now route through `openZoneColorPickerRuntime.ts`;
+production defaults and explicit runtime scopes now use named provider functions instead of a broad `globalThis`
+default scope, direct scope properties, or document-window fallbacks, with focused runtime coverage and
+architecture guardrails blocking those ambient fallbacks from returning.
 Quick color switcher delayed dropdown close scheduling and cleanup now route through
 `quickColorSwitcherRuntime.ts` instead of calling timer globals directly inside `quickColorSwitcher.ts`, with
 focused runtime coverage and architecture guardrails blocking those direct timer globals from returning. Quick
