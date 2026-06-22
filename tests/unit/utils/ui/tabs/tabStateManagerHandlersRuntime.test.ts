@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -71,6 +72,24 @@ describe("getTabStateManagerHandlersRuntime", () => {
         ).not.toThrow();
     });
 
+    it("creates DOM nodes through the injected document provider", () => {
+        expect.assertions(3);
+
+        const runtimeDocument = {
+            createElement: document.createElement.bind(document),
+            createTextNode: document.createTextNode.bind(document),
+        } as unknown as Document;
+        const runtime = getTabStateManagerHandlersRuntime({
+            getDocument: () => runtimeDocument,
+        });
+        const iframe = runtime.createElement("iframe");
+        const textNode = runtime.createTextNode("ZwiftMap did not load.");
+
+        expect(iframe).toBeInstanceOf(HTMLIFrameElement);
+        expect(textNode.textContent).toBe("ZwiftMap did not load.");
+        expect(textNode.nodeType).toBe(Node.TEXT_NODE);
+    });
+
     it("schedules and clears fallback timers through the injected runtime scope", () => {
         expect.assertions(4);
 
@@ -93,7 +112,7 @@ describe("getTabStateManagerHandlersRuntime", () => {
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const runtime = getTabStateManagerHandlersRuntime({});
 
@@ -106,10 +125,16 @@ describe("getTabStateManagerHandlersRuntime", () => {
         expect(() => runtime.clearTimeout(0)).toThrow(
             "tabStateManagerHandlers requires a clearTimeout runtime"
         );
+        expect(() => runtime.createElement("div")).toThrow(
+            "tabStateManagerHandlers requires a document runtime"
+        );
+        expect(() => runtime.createTextNode("ZwiftMap")).toThrow(
+            "tabStateManagerHandlers requires a document runtime"
+        );
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(10);
+        expect.assertions(14);
 
         const callback = vi.fn<FrameRequestCallback>();
         const AbortControllerConstructor = vi.fn(
@@ -123,10 +148,15 @@ describe("getTabStateManagerHandlersRuntime", () => {
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 53);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
+        const runtimeDocument = {
+            createElement: vi.fn(document.createElement.bind(document)),
+            createTextNode: vi.fn(document.createTextNode.bind(document)),
+        };
         const runtime = getTabStateManagerHandlersRuntime({
             AbortController: AbortControllerConstructor,
             cancelAnimationFrame,
             clearTimeout,
+            document: runtimeDocument,
             requestAnimationFrame,
             setTimeout,
         } as unknown as TabStateManagerHandlersRuntimeScope);
@@ -142,10 +172,18 @@ describe("getTabStateManagerHandlersRuntime", () => {
         expect(() => runtime.clearTimeout(53)).toThrow(
             "tabStateManagerHandlers requires a clearTimeout runtime"
         );
+        expect(() => runtime.createElement("iframe")).toThrow(
+            "tabStateManagerHandlers requires a document runtime"
+        );
+        expect(() => runtime.createTextNode("ZwiftMap")).toThrow(
+            "tabStateManagerHandlers requires a document runtime"
+        );
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(cancelAnimationFrame).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
+        expect(runtimeDocument.createElement).not.toHaveBeenCalled();
+        expect(runtimeDocument.createTextNode).not.toHaveBeenCalled();
     });
 });

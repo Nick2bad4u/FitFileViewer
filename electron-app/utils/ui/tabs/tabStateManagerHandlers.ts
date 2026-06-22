@@ -415,7 +415,7 @@ function hashData(data: ActivityData | null | undefined): string {
 }
 
 function createZwiftIframe(): HTMLIFrameElement {
-    const iframe = document.createElement("iframe");
+    const iframe = tabStateManagerHandlersRuntime.createElement("iframe");
     iframe.id = "zwift_iframe";
     iframe.className = "fullsize-container no-border";
     iframe.setAttribute("allow", "geolocation");
@@ -445,7 +445,7 @@ function clearPendingZwiftFallback(): void {
 }
 
 function createZwiftStatus(): HTMLElement {
-    const status = document.createElement("div");
+    const status = tabStateManagerHandlersRuntime.createElement("div");
     status.className = "zwift-map-status zwift-map-status--loading";
     status.id = "zwift_map_status";
     status.setAttribute("aria-live", "polite");
@@ -466,13 +466,15 @@ function markZwiftStatusFailed(status: HTMLElement): void {
     status.classList.add("zwift-map-status--error");
     status.hidden = false;
     status.replaceChildren(
-        document.createTextNode("ZwiftMap did not load. "),
+        tabStateManagerHandlersRuntime.createTextNode(
+            "ZwiftMap did not load. "
+        ),
         createZwiftFallbackLink()
     );
 }
 
 function createZwiftFallbackLink(): HTMLAnchorElement {
-    const link = document.createElement("a");
+    const link = tabStateManagerHandlersRuntime.createElement("a");
     link.dataset["externalLink"] = "true";
     link.href = ZWIFT_MAP_URL;
     link.rel = "noopener noreferrer";

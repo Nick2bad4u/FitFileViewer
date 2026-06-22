@@ -876,11 +876,12 @@ and virtualized lap-row cleanup abort-controller creation now also routes throug
 of constructing `AbortController` directly inside `renderSummaryHelpers.ts`, with focused runtime coverage and
 architecture coverage blocking that direct controller construction from returning.
 Tab-state map invalidation scheduling now routes frame scheduling, frame cancellation, fallback timers, timer
-clearing, and Zwift iframe load-listener cleanup through `tabStateManagerHandlersRuntime.ts` instead of calling those
-globals or constructing `AbortController` directly in `tabStateManagerHandlers.ts`; explicit runtime scopes must provide
-fallback timer and controller primitives instead of falling back to `globalThis`, with adapter tests and architecture
-coverage blocking direct map-tab timing globals, direct controller construction, and ambient timer/controller fallbacks
-from returning.
+clearing, Zwift iframe/status DOM construction, and Zwift iframe load-listener cleanup through
+`tabStateManagerHandlersRuntime.ts` instead of calling those globals, constructing `AbortController`, or creating
+Zwift DOM nodes directly in `tabStateManagerHandlers.ts`; explicit runtime scopes must provide document, fallback
+timer, and controller primitives instead of falling back to `globalThis`, with adapter tests and architecture coverage
+blocking direct map-tab timing globals, direct controller construction, direct Zwift DOM creation, and ambient
+timer/controller fallbacks from returning.
 Renderer application startup listener cleanup and update-check scheduling now route the startup abort controller,
 production update-check timer, and before-unload timer clearing through `applicationStartupRuntime.ts` instead of
 calling those browser primitives directly in `applicationStartup.ts`, with adapter tests, startup behavior coverage,

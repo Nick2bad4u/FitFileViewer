@@ -1279,7 +1279,7 @@ const directUpdateTabVisibilityRuntimeGlobalPattern =
 const directUpdateTabVisibilityRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|document|requestAnimationFrame|setTimeout)\b|\bscope:\s*UpdateTabVisibilityRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultUpdateTabVisibilityRuntimeScope:\s*UpdateTabVisibilityRuntimeScope\s*=\s*globalThis\b/u;
 const directTabStateManagerHandlersRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+    /\bnew\s+AbortController\b|\bdocument\.(?:createElement|createTextNode)\b|\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directUnifiedControlBarRuntimeGlobalPattern =
@@ -12770,7 +12770,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-state map invalidation timing behind the runtime facade", () => {
-        expect.assertions(29);
+        expect.assertions(34);
 
         const violations = migratedTabStateManagerHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -12821,6 +12821,9 @@ describe("architecture boundaries", () => {
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "tabStateManagerHandlers requires a setTimeout runtime"
         );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "tabStateManagerHandlers requires a document runtime"
+        );
         expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
             "readonly AbortController?:"
         );
@@ -12829,6 +12832,9 @@ describe("architecture boundaries", () => {
         );
         expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
             "readonly clearTimeout?:"
+        );
+        expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
+            "readonly document?:"
         );
         expect(tabStateManagerHandlersRuntimeScopeSource).not.toContain(
             "readonly requestAnimationFrame?:"
@@ -12846,6 +12852,9 @@ describe("architecture boundaries", () => {
             "scope.clearTimeout"
         );
         expect(tabStateManagerHandlersRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).not.toContain(
             "scope.requestAnimationFrame"
         );
         expect(tabStateManagerHandlersRuntimeSource).not.toContain(
@@ -12859,6 +12868,9 @@ describe("architecture boundaries", () => {
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
@@ -12883,6 +12895,9 @@ describe("architecture boundaries", () => {
         );
         expect(tabStateManagerHandlersRuntimeSource).toContain(
             "const setTimeoutRef = scope.getSetTimeout?.();"
+        );
+        expect(tabStateManagerHandlersRuntimeSource).toContain(
+            "return getRequiredDocument(scope).createElement(tagName);"
         );
     });
 

@@ -12,6 +12,7 @@ export interface TabStateManagerHandlersRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
@@ -24,6 +25,10 @@ export interface TabStateManagerHandlersRuntime {
     readonly cancelAnimationFrame: (handle: number) => void;
     readonly clearTimeout: (handle: TabStateManagerHandlersTimerHandle) => void;
     readonly createAbortController: () => AbortController;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
+    readonly createTextNode: (data: string) => Text;
     readonly requestAnimationFrame: (
         callback: FrameRequestCallback
     ) => number | undefined;
@@ -38,9 +43,23 @@ const defaultTabStateManagerHandlersRuntimeScope: TabStateManagerHandlersRuntime
         getAbortController: () => globalThis.AbortController,
         getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
         getClearTimeout: () => globalThis.clearTimeout,
+        getDocument: () => globalThis.document,
         getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
         getSetTimeout: () => globalThis.setTimeout,
     };
+
+function getRequiredDocument(
+    scope: TabStateManagerHandlersRuntimeScope
+): Document {
+    const runtimeDocument = scope.getDocument?.();
+    if (!runtimeDocument) {
+        throw new TypeError(
+            "tabStateManagerHandlers requires a document runtime"
+        );
+    }
+
+    return runtimeDocument;
+}
 
 export function getTabStateManagerHandlersRuntime(
     scope: TabStateManagerHandlersRuntimeScope = defaultTabStateManagerHandlersRuntimeScope
@@ -66,6 +85,14 @@ export function getTabStateManagerHandlersRuntime(
                 );
             }
             return new AbortControllerConstructor();
+        },
+        createElement<K extends keyof HTMLElementTagNameMap>(
+            tagName: K
+        ): HTMLElementTagNameMap[K] {
+            return getRequiredDocument(scope).createElement(tagName);
+        },
+        createTextNode(data: string): Text {
+            return getRequiredDocument(scope).createTextNode(data);
         },
         requestAnimationFrame(
             callback: FrameRequestCallback
