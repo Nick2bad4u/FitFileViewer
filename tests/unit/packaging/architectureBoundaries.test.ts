@@ -1311,7 +1311,7 @@ const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
 const directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|document|setTimeout)\b|\bscope:\s*CreateInlineZoneColorSelectorRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultCreateInlineZoneColorSelectorRuntimeScope:\s*CreateInlineZoneColorSelectorRuntimeScope\s*=\s*globalThis\b/u;
 const directOpenZoneColorPickerRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.dispatchEvent\b|\bnew\s+CustomEvent\b/u;
+    /\b(?:globalThis|window)\.dispatchEvent\b|\bdocument\.(?:activeElement|addEventListener|body|createElement)\b|\bnew\s+CustomEvent\b/u;
 const directOpenZoneColorPickerRuntimeAmbientFallbackPattern =
     /\bscope\.(?:CustomEvent|dispatchEvent|document)\b|\bscope:\s*OpenZoneColorPickerRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultOpenZoneColorPickerRuntimeScope:\s*OpenZoneColorPickerRuntimeScope\s*=\s*globalThis\b/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
@@ -4890,7 +4890,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps zone color picker event APIs behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(27);
 
         const violations = migratedOpenZoneColorPickerRuntimeFiles
             .filter((relativeFile) =>
@@ -4913,6 +4913,22 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(zoneColorPickerSource).toContain(
             "openZoneColorPickerRuntime.js"
+        );
+        expect(zoneColorPickerSource).toContain("addDocumentKeydownListener");
+        expect(zoneColorPickerSource).toContain("appendToBody");
+        expect(zoneColorPickerSource).toContain("bodyContains");
+        expect(zoneColorPickerSource).toContain("createElement");
+        expect(zoneColorPickerSource).toContain("getActiveElement");
+        expect(zoneColorPickerSource).toContain("getBody");
+        expect(zoneColorPickerSource).toContain("getDocument");
+        expect(zoneColorPickerSource).not.toContain(
+            "addEventListenerWithCleanup(document"
+        );
+        expect(zoneColorPickerSource).not.toContain("document.activeElement");
+        expect(zoneColorPickerSource).not.toContain("document.body");
+        expect(zoneColorPickerSource).not.toContain("document.createElement");
+        expect(zoneColorPickerSource).not.toContain(
+            "getChartSettingsWrapper(document)"
         );
         expect(zoneColorPickerRuntimeSource).not.toMatch(
             directOpenZoneColorPickerRuntimeAmbientFallbackPattern

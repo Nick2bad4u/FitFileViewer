@@ -97,6 +97,7 @@ function requestDirectChartRender(
 export function openZoneColorPicker(field: string): void {
     try {
         console.log(`[ChartJS] Opening zone color picker for field: ${field}`);
+        const runtime = getOpenZoneColorPickerRuntime();
 
         // Determine zone type, data source, and chart-specific details
         let chartType = "",
@@ -183,7 +184,7 @@ export function openZoneColorPicker(field: string): void {
         zoneData = applyZoneColors(zoneData, zoneType.toLowerCase());
 
         // Create modal overlay
-        const overlay = document.createElement("div");
+        const overlay = runtime.createElement("div");
         overlay.id = "zone-color-picker-overlay";
         overlay.className = "zone-color-picker-overlay";
         overlay.style.cssText = `
@@ -202,13 +203,12 @@ export function openZoneColorPicker(field: string): void {
 
         let escapeCleanup: (() => void) | undefined,
             focusTrapCleanup: (() => void) | undefined;
+        const activeElement = runtime.getActiveElement();
         const previouslyFocusedElement =
-            document.activeElement instanceof HTMLElement
-                ? document.activeElement
-                : null;
+            activeElement instanceof HTMLElement ? activeElement : null;
 
         const closeModal = (): void => {
-            if (document.body.contains(overlay)) {
+            if (runtime.bodyContains(overlay)) {
                 overlay.remove();
             }
             escapeCleanup?.();
@@ -224,14 +224,14 @@ export function openZoneColorPicker(field: string): void {
             if (
                 event instanceof KeyboardEvent &&
                 event.key === "Escape" &&
-                document.body.contains(overlay)
+                runtime.bodyContains(overlay)
             ) {
                 closeModal();
             }
         };
 
         // Create modal content
-        const modal = document.createElement("div");
+        const modal = runtime.createElement("div");
         modal.className = "zone-color-picker-modal";
         modal.setAttribute("aria-labelledby", "zone-color-picker-title");
         modal.setAttribute("aria-modal", "true");
@@ -250,7 +250,7 @@ export function openZoneColorPicker(field: string): void {
 					`;
 
         // Modal header
-        const header = document.createElement("div");
+        const header = runtime.createElement("div");
         header.style.cssText = `
 						display: flex;
 						justify-content: space-between;
@@ -260,7 +260,7 @@ export function openZoneColorPicker(field: string): void {
 						border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 					`;
 
-        const title = document.createElement("h3");
+        const title = runtime.createElement("h3");
         title.id = "zone-color-picker-title";
         title.className = "zone-color-picker-title";
         title.textContent = `${zoneType} Zone Colors - ${chartType}`;
@@ -271,7 +271,7 @@ export function openZoneColorPicker(field: string): void {
 						font-weight: 600;
 					`;
 
-        const closeButton = document.createElement("button");
+        const closeButton = runtime.createElement("button");
         closeButton.type = "button";
         closeButton.textContent = "✕";
         closeButton.setAttribute("aria-label", "Close zone color picker");
@@ -306,7 +306,7 @@ export function openZoneColorPicker(field: string): void {
         header.append(closeButton);
 
         // Zone color controls container
-        const zoneControls = document.createElement("div");
+        const zoneControls = runtime.createElement("div");
         zoneControls.className = "zone-color-controls";
         zoneControls.style.cssText = `
 						display: flex;
@@ -317,7 +317,7 @@ export function openZoneColorPicker(field: string): void {
 
         // Create color picker for each zone
         for (const [index, zone] of zoneData.entries()) {
-            const zoneControl = document.createElement("div");
+            const zoneControl = runtime.createElement("div");
             zoneControl.className = "zone-color-control";
             zoneControl.style.cssText = `
 							display: flex;
@@ -331,14 +331,14 @@ export function openZoneColorPicker(field: string): void {
 						`;
 
             // Zone info
-            const zoneInfo = document.createElement("div");
+            const zoneInfo = runtime.createElement("div");
             zoneInfo.className = "zone-color-info";
             zoneInfo.style.cssText = `
 							flex: 1;
 							color: #ffffff;
 						`;
 
-            const zoneLabel = document.createElement("div");
+            const zoneLabel = runtime.createElement("div");
             zoneLabel.className = "zone-color-label";
             zoneLabel.textContent =
                 zone.label || `Zone ${zone.zone || index + 1}`;
@@ -348,7 +348,7 @@ export function openZoneColorPicker(field: string): void {
 							margin-bottom: 4px;
 						`;
 
-            const zoneTime = document.createElement("div");
+            const zoneTime = runtime.createElement("div");
             zoneTime.className = "zone-color-time";
             zoneTime.textContent = `Time: ${formatTime(zone.time || 0, true)}`;
             zoneTime.style.cssText = `
@@ -360,7 +360,7 @@ export function openZoneColorPicker(field: string): void {
             zoneInfo.append(zoneTime);
 
             // Color preview
-            const colorPreview = document.createElement("div"),
+            const colorPreview = runtime.createElement("div"),
                 zoneIndex = (zone.zone || index + 1) - 1, // Convert to 0-based index
                 currentColor = getChartSpecificZoneColor(field, zoneIndex);
             colorPreview.className = "zone-color-preview";
@@ -416,7 +416,7 @@ export function openZoneColorPicker(field: string): void {
             };
 
             // Color picker input (hidden)
-            const colorPicker = document.createElement("input");
+            const colorPicker = runtime.createElement("input");
             colorPicker.className = "zone-color-input";
             colorPicker.setAttribute(
                 "aria-label",
@@ -452,7 +452,7 @@ export function openZoneColorPicker(field: string): void {
                 updateZoneColorPreview(field, zoneIndex, newColor);
 
                 // Update the inline zone color selector UIs to show the scheme changed to custom
-                updateInlineZoneColorSelectors(document.body);
+                updateInlineZoneColorSelectors(runtime.getBody());
             });
 
             // Click handler for color preview
@@ -481,7 +481,7 @@ export function openZoneColorPicker(field: string): void {
             });
 
             // Reset button for this zone
-            const resetButton = document.createElement("button");
+            const resetButton = runtime.createElement("button");
             resetButton.className = "zone-color-reset-btn";
             resetButton.textContent = "↻";
             resetButton.title = "Reset to default color";
@@ -517,7 +517,7 @@ export function openZoneColorPicker(field: string): void {
                 }
 
                 // Update the inline zone color selector UIs to show the scheme changed to custom
-                updateInlineZoneColorSelectors(document.body);
+                updateInlineZoneColorSelectors(runtime.getBody());
             });
 
             addEventListenerWithCleanup(resetButton, "mouseenter", () => {
@@ -536,7 +536,7 @@ export function openZoneColorPicker(field: string): void {
         }
 
         // Action buttons
-        const actions = document.createElement("div");
+        const actions = runtime.createElement("div");
         actions.className = "zone-color-actions";
         actions.style.cssText = `
 						display: flex;
@@ -547,7 +547,7 @@ export function openZoneColorPicker(field: string): void {
 					`;
 
         // Reset all button
-        const resetAllButton = document.createElement("button");
+        const resetAllButton = runtime.createElement("button");
         resetAllButton.textContent = "Reset All";
         resetAllButton.type = "button";
         resetAllButton.title =
@@ -594,7 +594,9 @@ export function openZoneColorPicker(field: string): void {
                 clearZoneColorData(field, zoneData.length);
 
                 // Enable all chart fields (set all toggles to visible)
-                const settingsWrapper = getChartSettingsWrapper(document);
+                const settingsWrapper = getChartSettingsWrapper(
+                    runtime.getDocument()
+                );
                 if (settingsWrapper) {
                     const fieldToggles = settingsWrapper.querySelectorAll(
                         '.field-toggle input[type="checkbox"]'
@@ -609,13 +611,13 @@ export function openZoneColorPicker(field: string): void {
                 resetAllSettings();
 
                 // Update UI and chart to reflect reset state
-                updateInlineZoneColorSelectors(document.body);
+                updateInlineZoneColorSelectors(runtime.getBody());
 
                 // Trigger chart re-render through state management instead of direct call
                 if (chartStateManager) {
                     chartStateManager.debouncedRender("Zone colors reset");
                 } else {
-                    requestDirectChartRender("zone-colors-reset");
+                    requestDirectChartRender("zone-colors-reset", runtime);
                 }
 
                 showNotification(
@@ -631,7 +633,7 @@ export function openZoneColorPicker(field: string): void {
             }
         });
         // Apply button
-        const applyButton = document.createElement("button");
+        const applyButton = runtime.createElement("button");
         applyButton.className = "zone-color-apply-btn";
         applyButton.textContent = "Apply & Close";
         applyButton.type = "button";
@@ -664,7 +666,7 @@ export function openZoneColorPicker(field: string): void {
             if (chartStateManager) {
                 chartStateManager.debouncedRender("Zone colors applied");
             } else {
-                requestDirectChartRender("zone-colors-applied");
+                requestDirectChartRender("zone-colors-applied", runtime);
             }
 
             showNotification(`${zoneType} zone colors updated`, "success");
@@ -679,21 +681,17 @@ export function openZoneColorPicker(field: string): void {
         modal.append(actions);
         overlay.append(modal);
 
-        escapeCleanup = addEventListenerWithCleanup(
-            document,
-            "keydown",
-            handleEscape
-        );
+        escapeCleanup = runtime.addDocumentKeydownListener(handleEscape);
 
         // Click outside to close
         addEventListenerWithCleanup(overlay, "click", (e) => {
-            if (e.target === overlay && document.body.contains(overlay)) {
+            if (e.target === overlay && runtime.bodyContains(overlay)) {
                 closeModal();
             }
         });
 
         // Add to DOM
-        document.body.append(overlay);
+        runtime.appendToBody(overlay);
         focusTrapCleanup = createModalFocusTrap(modal, closeButton);
 
         console.log(`[ChartJS] Zone color picker opened for ${zoneType} zones`);
