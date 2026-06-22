@@ -1015,6 +1015,8 @@ const directRendererDevelopmentDebugToolsRuntimeGlobalPattern =
     /\bReflect\.get\(\s*globalThis\s*,\s*["'](?:location|navigator|performance)["']\s*\)|\bglobalThis\.(?:location|navigator|performance)\b|\b(?:navigator|performance)\.(?:cookieEnabled|hardwareConcurrency|language|memory|onLine|platform|userAgent)\b/u;
 const directRendererDevelopmentDebugToolsRuntimeAmbientGetterPattern =
     /\breturn\s+globalThis\.(?:location|navigator|performance)\b/u;
+const directRendererDevelopmentDebugToolsRuntimeAmbientScopePattern =
+    /\bscope\.(?:location|navigator|performance)\b|\bReflect\.get\(\s*scope\s*,\s*["'](?:location|navigator|performance)["']\s*\)|\bscope:\s*RendererDevelopmentDebugToolsRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultRendererDevelopmentDebugToolsRuntimeScope:\s*RendererDevelopmentDebugToolsRuntimeScope\s*=\s*globalThis\b/u;
 const rendererDevelopmentDebugGlobalMutationPattern =
     /\bReflect\.(?:set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)["']\s*\)|\b(?:window|globalThis)\.(?:__renderer_dev|__renderer_debug|__sensorDebug|__debugChartFormatting)\s*=/u;
 const rawGlobalThisAnyCastPattern = /\(\s*globalThis\s+as\s+any\s*\)/u;
@@ -7506,7 +7508,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer development debug runtime metadata behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(14);
 
         const violations = migratedRendererDevelopmentDebugToolsRuntimeFiles
             .filter((relativeFile) =>
@@ -7533,6 +7535,36 @@ describe("architecture boundaries", () => {
         );
         expect(developmentDebugToolsRuntimeSource).not.toMatch(
             directRendererDevelopmentDebugToolsRuntimeAmbientGetterPattern
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toMatch(
+            directRendererDevelopmentDebugToolsRuntimeAmbientScopePattern
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
+            "readonly location?:"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
+            "readonly navigator?:"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
+            "readonly performance?:"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
+            "scope.location"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
+            "scope.navigator"
+        );
+        expect(developmentDebugToolsRuntimeSource).not.toContain(
+            "scope.performance"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "getLocation: () => globalThis.location"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "getNavigator: () => globalThis.navigator"
+        );
+        expect(developmentDebugToolsRuntimeSource).toContain(
+            "getPerformance: () => globalThis.performance"
         );
     });
 

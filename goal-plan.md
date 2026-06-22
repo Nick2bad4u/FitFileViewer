@@ -547,7 +547,9 @@ mutating those names, and architecture coverage blocks those mutations from retu
 Renderer development debug runtime metadata now resolves location, navigator, and performance-memory records
 through `developmentDebugToolsRuntime.ts` instead of probing `globalThis` directly inside
 `developmentDebugTools.ts`, with focused runtime coverage and architecture guardrails blocking those direct
-metadata lookups from returning.
+metadata lookups from returning. Renderer development debug production defaults now live in an explicit provider
+object instead of a broad `globalThis` default scope, and explicit scopes use named providers instead of direct
+metadata properties.
 Shared error handling no longer probes `globalRef.performanceMonitor` for ambient telemetry, and global
 error-listener abort-controller creation now routes through `errorHandlingRuntime.ts` instead of constructing
 `AbortController` directly inside `errorHandling.ts`; its tests no longer install or delete a temporary

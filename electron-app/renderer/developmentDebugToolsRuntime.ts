@@ -1,7 +1,7 @@
 export interface RendererDevelopmentDebugToolsRuntimeScope {
-    readonly location?: unknown;
-    readonly navigator?: unknown;
-    readonly performance?: unknown;
+    readonly getLocation?: (() => unknown) | undefined;
+    readonly getNavigator?: (() => unknown) | undefined;
+    readonly getPerformance?: (() => unknown) | undefined;
 }
 
 export interface RendererDevelopmentDebugToolsRuntime {
@@ -10,12 +10,9 @@ export interface RendererDevelopmentDebugToolsRuntime {
     getPerformanceMemoryRecord: () => Record<string, unknown>;
 }
 
-function readScopeProperty(
-    scope: RendererDevelopmentDebugToolsRuntimeScope,
-    property: keyof RendererDevelopmentDebugToolsRuntimeScope
-): unknown {
+function readScopeValue(getValue: (() => unknown) | undefined): unknown {
     try {
-        return Reflect.get(scope, property);
+        return getValue?.();
     } catch {
         return undefined;
     }
@@ -23,28 +20,30 @@ function readScopeProperty(
 
 function toRuntimeRecord(value: unknown): Record<string, unknown> {
     return typeof value === "object" && value !== null
-        ? (value as Record<string, unknown>)
+        ? Object.fromEntries(Object.entries(value))
         : {};
 }
 
 const defaultRendererDevelopmentDebugToolsRuntimeScope: RendererDevelopmentDebugToolsRuntimeScope =
-    globalThis;
+    {
+        getLocation: () => globalThis.location,
+        getNavigator: () => globalThis.navigator,
+        getPerformance: () => globalThis.performance,
+    };
 
 export function getRendererDevelopmentDebugToolsRuntime(
     scope: RendererDevelopmentDebugToolsRuntimeScope = defaultRendererDevelopmentDebugToolsRuntimeScope
 ): RendererDevelopmentDebugToolsRuntime {
     return {
         getLocationRecord(): Record<string, unknown> {
-            return toRuntimeRecord(readScopeProperty(scope, "location"));
+            return toRuntimeRecord(readScopeValue(scope.getLocation));
         },
         getNavigatorRecord(): Record<string, unknown> {
-            return toRuntimeRecord(readScopeProperty(scope, "navigator"));
+            return toRuntimeRecord(readScopeValue(scope.getNavigator));
         },
         getPerformanceMemoryRecord(): Record<string, unknown> {
             return toRuntimeRecord(
-                toRuntimeRecord(readScopeProperty(scope, "performance"))[
-                    "memory"
-                ]
+                toRuntimeRecord(readScopeValue(scope.getPerformance))["memory"]
             );
         },
     };
