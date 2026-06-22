@@ -9,6 +9,9 @@ export type ShowNotificationRuntimeScope = {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDocument?:
+        | (() => ShowNotificationDocument | undefined)
+        | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
@@ -20,6 +23,12 @@ export type ShowNotificationRuntimeScope = {
 export type ShowNotificationRuntime = {
     readonly cancelAnimationFrame: (frame: number) => void;
     readonly clearTimeout: (timer: ShowNotificationTimerHandle) => void;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
+    readonly queryElement: <TElement extends Element = Element>(
+        selector: string
+    ) => TElement | null;
     readonly requestAnimationFrame: (
         onFrame: FrameRequestCallback
     ) => null | number;
@@ -28,6 +37,11 @@ export type ShowNotificationRuntime = {
         duration: number
     ) => ShowNotificationTimerHandle;
 };
+
+type ShowNotificationDocument = Pick<
+    Document,
+    "createElement" | "querySelector"
+>;
 
 function getDefaultCancelAnimationFrame():
     | typeof globalThis.cancelAnimationFrame
@@ -54,6 +68,7 @@ function getDefaultRequestAnimationFrame():
 const defaultShowNotificationRuntimeScope: ShowNotificationRuntimeScope = {
     getCancelAnimationFrame: getDefaultCancelAnimationFrame,
     getClearTimeout: () => globalThis.clearTimeout,
+    getDocument: () => globalThis.document,
     getRequestAnimationFrame: getDefaultRequestAnimationFrame,
     getSetTimeout: () => globalThis.setTimeout,
 };
@@ -68,6 +83,17 @@ function getClearTimeout(
     scope: ShowNotificationRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
     return scope.getClearTimeout?.();
+}
+
+function getRequiredDocument(
+    scope: ShowNotificationRuntimeScope
+): ShowNotificationDocument {
+    const runtimeDocument = scope.getDocument?.();
+    if (!runtimeDocument) {
+        throw new TypeError("show notification runtime requires document");
+    }
+
+    return runtimeDocument;
 }
 
 function getRequestAnimationFrame(
@@ -101,6 +127,12 @@ export function getShowNotificationRuntime(
                 );
             }
             clearTimer(timer);
+        },
+        createElement(tagName) {
+            return getRequiredDocument(scope).createElement(tagName);
+        },
+        queryElement(selector) {
+            return getRequiredDocument(scope).querySelector(selector);
         },
         requestAnimationFrame(onFrame) {
             const requestFrame = getRequestAnimationFrame(scope);

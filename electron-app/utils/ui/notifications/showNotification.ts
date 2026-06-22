@@ -79,7 +79,10 @@ export function __testResetNotifications(): void {
     isShowingNotification = false;
     notificationDisplayToken = 0;
     clearScheduledWork();
-    const el = document.querySelector<NotificationElement>("#notification");
+    const el =
+        showNotificationRuntime.queryElement<NotificationElement>(
+            "#notification"
+        );
     if (el) {
         clearNotificationElementListeners(el);
         // Clear any pending timers and hide immediately
@@ -103,7 +106,9 @@ export function clearAllNotifications(): void {
     notificationQueue.length = 0;
     clearScheduledWork();
     const notificationElement =
-        document.querySelector<NotificationElement>("#notification");
+        showNotificationRuntime.queryElement<NotificationElement>(
+            "#notification"
+        );
     if (notificationElement) {
         hideNotification(notificationElement);
     }
@@ -199,14 +204,14 @@ function buildNotificationContent(
     element.setAttribute("aria-live", "polite");
 
     // Create main content container
-    const contentContainer = document.createElement("div");
+    const contentContainer = showNotificationRuntime.createElement("div");
     contentContainer.className = "notification-content";
     contentContainer.style.cssText =
         "display: flex; align-items: center; gap: 12px; flex: 1;";
 
     // Add icon if provided
     if (notification.icon) {
-        const iconElement = document.createElement("span");
+        const iconElement = showNotificationRuntime.createElement("span");
         iconElement.className = "notification-icon";
         iconElement.setAttribute("aria-hidden", "true");
         iconElement.textContent = notification.icon;
@@ -215,7 +220,7 @@ function buildNotificationContent(
     }
 
     // Add message
-    const messageElement = document.createElement("span");
+    const messageElement = showNotificationRuntime.createElement("span");
     messageElement.className = "notification-message";
     messageElement.textContent = notification.message;
     messageElement.style.cssText = "flex: 1; text-align: left;";
@@ -225,13 +230,13 @@ function buildNotificationContent(
 
     // Add action buttons if provided
     if (notification.actions.length > 0) {
-        const actionsContainer = document.createElement("div");
+        const actionsContainer = showNotificationRuntime.createElement("div");
         actionsContainer.className = "notification-actions";
         actionsContainer.style.cssText =
             "display: flex; gap: 8px; margin-left: 12px;";
 
         for (const action of notification.actions) {
-            const button = document.createElement("button");
+            const button = showNotificationRuntime.createElement("button");
             button.textContent = action.text;
             button.className = action.className || "themed-btn";
             button.style.cssText = "font-size: 0.9rem; padding: 6px 12px;";
@@ -283,7 +288,7 @@ function buildNotificationContent(
 
     // Add close button for persistent notifications
     if (!notification.duration) {
-        const closeButton = document.createElement("button");
+        const closeButton = showNotificationRuntime.createElement("button");
         closeButton.type = "button";
         closeButton.textContent = "×";
         closeButton.setAttribute("aria-label", "Close notification");
@@ -320,11 +325,11 @@ function buildNotificationContent(
 }
 
 /** Displays a single notification with animations. */
-function displayNotification(
-    notification: QueuedNotification
-): Promise<void> {
+function displayNotification(notification: QueuedNotification): Promise<void> {
     const notificationElement =
-        document.querySelector<NotificationElement>("#notification");
+        showNotificationRuntime.queryElement<NotificationElement>(
+            "#notification"
+        );
     if (!notificationElement) {
         // Resolve shown even if the element is missing so callers don't hang
         if (typeof notification.resolveShown === "function") {
@@ -534,9 +539,7 @@ function addNotificationEventListener(
     owner.listenerCleanups.push(cleanup);
 }
 
-function clearNotificationElementListeners(
-    element: NotificationElement
-): void {
+function clearNotificationElementListeners(element: NotificationElement): void {
     const cleanups = element.listenerCleanups;
     if (!cleanups) {
         return;
@@ -593,9 +596,7 @@ function isNotificationType(value: string): value is NotificationType {
     return Object.hasOwn(NOTIFICATION_TYPES, value);
 }
 
-function scheduleAnimationFrame(
-    callback: FrameRequestCallback
-): null | number {
+function scheduleAnimationFrame(callback: FrameRequestCallback): null | number {
     let completedSynchronously = false;
     const frameReference: { current?: number } = {};
 

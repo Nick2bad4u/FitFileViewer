@@ -981,6 +981,10 @@ display timers through `showNotificationRuntime.ts` instead of calling timing gl
 with adapter tests and architecture coverage blocking direct notification timing globals from returning. Default browser
 frame helpers now bind animation-frame calls to `globalThis` without a module-level `browserGlobal` alias or direct
 optional browser-global shapes.
+Renderer notification host lookup, reset/clear lookup, content container creation, icon/message element creation,
+action button creation, and persistent close-button creation now route through `showNotificationRuntime.ts` instead
+of querying or creating through `document` directly inside `showNotification.ts`, with focused runtime coverage and
+architecture coverage blocking those direct document calls from returning.
 Update notification auto-hide timers and renderer-state synced notification hide timers now route through
 `notificationTimerRuntime.ts` instead of calling timer globals directly in their notification modules, with adapter tests
 and architecture coverage blocking direct timer globals from returning.

@@ -952,6 +952,8 @@ const directShowNotificationTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directShowNotificationRuntimeAmbientGetterPattern =
     /\bget\s+(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout|window)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout|window)\b/u;
+const directShowNotificationDomRuntimeGlobalPattern =
+    /\bdocument\.(?:createElement|querySelector)\b/u;
 const directNotificationTimerRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directNotificationTimerRuntimeAmbientGetterPattern =
@@ -5771,7 +5773,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer notification timing APIs behind the runtime facade", () => {
-        expect.assertions(21);
+        expect.assertions(22);
 
         const violations = migratedShowNotificationRuntimeFiles
             .filter((relativeFile) =>
@@ -5801,6 +5803,9 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(notificationSource).toContain("showNotificationRuntime.js");
+        expect(notificationSource).not.toMatch(
+            directShowNotificationDomRuntimeGlobalPattern
+        );
         expect(notificationRuntimeSource).not.toMatch(
             directShowNotificationRuntimeAmbientGetterPattern
         );
@@ -5847,6 +5852,66 @@ describe("architecture boundaries", () => {
         expect(notificationRuntimeSource).not.toContain("getWindow");
         expect(notificationRuntimeSource).not.toContain(
             "ShowNotificationWindowRuntime"
+        );
+    });
+
+    it("keeps renderer notification DOM access behind the runtime facade", () => {
+        expect.assertions(13);
+
+        const violations = migratedShowNotificationRuntimeFiles
+            .filter((relativeFile) =>
+                directShowNotificationDomRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const notificationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/showNotification.ts"
+            )
+        );
+        const notificationRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/showNotificationRuntime.ts"
+            )
+        );
+        const notificationRuntimeScopeSource = notificationRuntimeSource.slice(
+            notificationRuntimeSource.indexOf(
+                "export type ShowNotificationRuntimeScope = {"
+            ),
+            notificationRuntimeSource.indexOf(
+                "export type ShowNotificationRuntime = {"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(notificationSource).toContain("showNotificationRuntime.js");
+        expect(notificationSource).toContain("queryElement");
+        expect(notificationSource).toContain("createElement");
+        expect(notificationSource).not.toMatch(
+            directShowNotificationDomRuntimeGlobalPattern
+        );
+        expect(notificationRuntimeSource).toContain(
+            "defaultShowNotificationRuntimeScope"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(notificationRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(notificationRuntimeSource).not.toContain("scope.document");
+        expect(notificationRuntimeSource).not.toContain(
+            "scope: ShowNotificationRuntimeScope = globalThis"
+        );
+        expect(notificationRuntimeSource).not.toMatch(
+            /\bscope\.document\s*\?\?\s*globalThis\.document\b/u
+        );
+        expect(notificationRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(notificationRuntimeSource).toContain(
+            "show notification runtime requires document"
         );
     });
 

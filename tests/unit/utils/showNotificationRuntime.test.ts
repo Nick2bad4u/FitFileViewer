@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { getShowNotificationRuntime } from "../../../electron-app/utils/ui/notifications/showNotificationRuntime.js";
+import {
+    getShowNotificationRuntime,
+    type ShowNotificationRuntimeScope,
+} from "../../../electron-app/utils/ui/notifications/showNotificationRuntime.js";
 
 describe("showNotificationRuntime", () => {
     afterEach(() => {
@@ -98,6 +101,40 @@ describe("showNotificationRuntime", () => {
         expect(callback).not.toHaveBeenCalled();
     });
 
+    it("queries and creates notification elements through the scoped document provider", () => {
+        expect.assertions(4);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("notification");
+        const host = documentRef.createElement("div");
+        host.id = "notification";
+        documentRef.body.append(host);
+        const utils = getShowNotificationRuntime({
+            getDocument: () => documentRef,
+        });
+
+        const queried = utils.queryElement("#notification");
+        const button = utils.createElement("button");
+
+        expect(queried).toBe(host);
+        expect(button).toBeInstanceOf(HTMLButtonElement);
+        expect(button.ownerDocument).toBe(documentRef);
+        expect(button.tagName).toBe("BUTTON");
+    });
+
+    it("fails clearly when notification document access is unavailable", () => {
+        expect.assertions(2);
+
+        const utils = getShowNotificationRuntime({});
+
+        expect(() => utils.queryElement("#notification")).toThrow(
+            "show notification runtime requires document"
+        );
+        expect(() => utils.createElement("button")).toThrow(
+            "show notification runtime requires document"
+        );
+    });
+
     it("ignores legacy direct timing runtime properties", () => {
         expect.assertions(9);
 
@@ -129,6 +166,25 @@ describe("showNotificationRuntime", () => {
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(cancelAnimationFrame).not.toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("ignores legacy direct document runtime properties", () => {
+        expect.assertions(4);
+
+        const querySelector = vi.fn<Document["querySelector"]>();
+        const createElement = vi.fn<Document["createElement"]>();
+        const utils = getShowNotificationRuntime({
+            document: { createElement, querySelector },
+        } as unknown as ShowNotificationRuntimeScope);
+
+        expect(() => utils.queryElement("#notification")).toThrow(
+            "show notification runtime requires document"
+        );
+        expect(() => utils.createElement("button")).toThrow(
+            "show notification runtime requires document"
+        );
+        expect(querySelector).not.toHaveBeenCalled();
+        expect(createElement).not.toHaveBeenCalled();
     });
 
     it("resolves default browser timers when notification operations run", () => {
