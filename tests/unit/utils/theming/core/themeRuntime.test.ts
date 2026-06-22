@@ -139,6 +139,32 @@ describe("getThemeRuntime", () => {
         expect(getThemeRuntime({}).getSystemThemeMediaQuery()).toBeNull();
     });
 
+    it("binds default system theme media queries to globalThis", () => {
+        expect.assertions(3);
+
+        const mediaQuery = { matches: true } as MediaQueryList;
+        const matchMedia = vi.fn(function defaultMatchMedia(
+            this: typeof globalThis,
+            query: string
+        ) {
+            void query;
+            return mediaQuery;
+        });
+
+        vi.stubGlobal("matchMedia", matchMedia);
+        try {
+            expect(getThemeRuntime().getSystemThemeMediaQuery()).toBe(
+                mediaQuery
+            );
+            expect(matchMedia).toHaveBeenCalledWith(
+                "(prefers-color-scheme: dark)"
+            );
+            expect(matchMedia.mock.contexts[0]).toBe(globalThis);
+        } finally {
+            vi.unstubAllGlobals();
+        }
+    });
+
     it("exposes the scoped theme global event target", () => {
         expect.assertions(1);
 

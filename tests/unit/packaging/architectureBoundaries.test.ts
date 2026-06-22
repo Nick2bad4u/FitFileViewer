@@ -10504,7 +10504,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps core theme transition timers behind the runtime facade", () => {
-        expect.assertions(34);
+        expect.assertions(37);
 
         const violations = migratedThemeCoreRuntimeFiles
             .filter((relativeFile) =>
@@ -10560,6 +10560,9 @@ describe("architecture boundaries", () => {
         expect(themeRuntimeSource).not.toContain("readonly matchMedia?:");
         expect(themeRuntimeSource).not.toContain("readonly setTimeout?:");
         expect(themeRuntimeSource).not.toContain("typeof globalThis &");
+        expect(themeRuntimeSource).not.toContain("globalThis as Partial");
+        expect(themeRuntimeSource).not.toContain("Pick<typeof globalThis");
+        expect(themeRuntimeSource).not.toContain("browserGlobal");
         expect(themeRuntimeSource).not.toContain("scope.AbortController");
         expect(themeRuntimeSource).not.toContain("scope.clearTimeout");
         expect(themeRuntimeSource).not.toContain("scope.globalEventTarget");

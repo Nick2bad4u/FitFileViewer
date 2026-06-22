@@ -27,10 +27,6 @@ export interface ThemeRuntime {
     ) => ThemeRuntimeTimer;
 }
 
-const browserGlobal = globalThis as Partial<
-    Pick<typeof globalThis, "matchMedia">
->;
-
 function isEventTarget(candidate: unknown): candidate is EventTarget {
     return (
         candidate !== null &&
@@ -47,12 +43,12 @@ function getDefaultEventTarget(): EventTarget | undefined {
 }
 
 function getDefaultMatchMedia(): typeof globalThis.matchMedia | undefined {
-    const matchMedia = browserGlobal.matchMedia;
+    const matchMedia = globalThis.matchMedia;
     if (typeof matchMedia !== "function") {
         return undefined;
     }
 
-    return (query) => matchMedia.call(browserGlobal, query);
+    return (query) => matchMedia.call(globalThis, query);
 }
 
 const defaultThemeRuntimeScope: ThemeRuntimeScope = {

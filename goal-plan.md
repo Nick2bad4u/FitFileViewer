@@ -367,7 +367,8 @@ directly inside `theme.ts`, with focused runtime coverage and architecture guard
 browser/timer/controller globals from returning. Explicit core theme runtime scopes must now provide timer
 primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture coverage blocking
 those fallbacks from returning. Default media-query helpers now use typed provider picks instead of direct optional
-browser-global shapes.
+browser-global shapes, and the default media-query provider now binds `matchMedia` to `globalThis` without a
+module-level `browserGlobal` alias.
 Show FIT data post-load scroll availability checks, reduced-motion media queries, microtask scheduling, and scroll
 calls now route through `showFitDataRuntime.ts` instead of probing `globalThis.scrollTo`,
 `globalThis.matchMedia`, or `queueMicrotask` directly inside `showFitData.ts`, with focused runtime coverage and
