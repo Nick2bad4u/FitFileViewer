@@ -206,9 +206,6 @@ function ensureObserverInstalled(): void {
         };
 
         const observer = runtime.createMutationObserver(callback);
-        // Preserve test coverage hooks that capture the callback through a
-        // mocked window.MutationObserver constructor.
-        runtime.createCompatibilityMutationObserver(callback);
         tabButtonObserver = observer;
     }
 

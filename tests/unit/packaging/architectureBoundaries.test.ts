@@ -11722,7 +11722,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab-button state browser APIs behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(28);
 
         const violations = migratedEnableTabButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -11786,6 +11786,9 @@ describe("architecture boundaries", () => {
             "readonly compatibilityMutationObserver?:"
         );
         expect(enableTabButtonsRuntimeScopeSource).not.toContain(
+            "readonly getCompatibilityMutationObserver?:"
+        );
+        expect(enableTabButtonsRuntimeScopeSource).not.toContain(
             "readonly MutationObserver?:"
         );
         expect(enableTabButtonsRuntimeScopeSource).not.toContain(
@@ -11798,12 +11801,21 @@ describe("architecture boundaries", () => {
             "scope.compatibilityMutationObserver"
         );
         expect(enableTabButtonsRuntimeSource).not.toContain(
+            "scope.getCompatibilityMutationObserver"
+        );
+        expect(enableTabButtonsRuntimeSource).not.toContain(
             "scope.MutationObserver"
         );
         expect(enableTabButtonsRuntimeSource).not.toContain(
             "scope.clearTimeout"
         );
         expect(enableTabButtonsRuntimeSource).not.toContain("scope.setTimeout");
+        expect(enableTabButtonsRuntimeSource).not.toContain(
+            "createCompatibilityMutationObserver"
+        );
+        expect(enableTabButtonsSource).not.toContain(
+            "runtime.createCompatibilityMutationObserver"
+        );
         expect(enableTabButtonsRuntimeSource).toContain(
             "const candidate = scope.getMutationObserver?.();"
         );
