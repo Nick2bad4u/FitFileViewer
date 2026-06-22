@@ -8,7 +8,7 @@ describe("showNotificationRuntime", () => {
     });
 
     it("resolves default browser animation frame wrappers when notification operations run", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const callback = vi.fn();
         const requestAnimationFrame = vi.fn(() => 13);
@@ -22,7 +22,9 @@ describe("showNotificationRuntime", () => {
 
         expect(frame).toBe(13);
         expect(requestAnimationFrame).toHaveBeenCalledWith(callback);
+        expect(requestAnimationFrame.mock.contexts[0]).toBe(globalThis);
         expect(cancelAnimationFrame).toHaveBeenCalledWith(13);
+        expect(cancelAnimationFrame.mock.contexts[0]).toBe(globalThis);
         expect(callback).not.toHaveBeenCalled();
     });
 

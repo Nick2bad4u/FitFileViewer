@@ -29,30 +29,26 @@ export type ShowNotificationRuntime = {
     ) => ShowNotificationTimerHandle;
 };
 
-const browserGlobal = globalThis as Partial<
-    Pick<typeof globalThis, "cancelAnimationFrame" | "requestAnimationFrame">
->;
-
 function getDefaultCancelAnimationFrame():
     | typeof globalThis.cancelAnimationFrame
     | undefined {
-    const cancelAnimationFrame = browserGlobal.cancelAnimationFrame;
+    const cancelAnimationFrame = globalThis.cancelAnimationFrame;
     if (typeof cancelAnimationFrame !== "function") {
         return undefined;
     }
 
-    return (frame) => cancelAnimationFrame(frame);
+    return (frame) => cancelAnimationFrame.call(globalThis, frame);
 }
 
 function getDefaultRequestAnimationFrame():
     | typeof globalThis.requestAnimationFrame
     | undefined {
-    const requestAnimationFrame = browserGlobal.requestAnimationFrame;
+    const requestAnimationFrame = globalThis.requestAnimationFrame;
     if (typeof requestAnimationFrame !== "function") {
         return undefined;
     }
 
-    return (onFrame) => requestAnimationFrame(onFrame);
+    return (onFrame) => requestAnimationFrame.call(globalThis, onFrame);
 }
 
 const defaultShowNotificationRuntimeScope: ShowNotificationRuntimeScope = {
