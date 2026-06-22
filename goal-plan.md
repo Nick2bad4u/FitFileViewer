@@ -985,6 +985,9 @@ Renderer notification host lookup, reset/clear lookup, content container creatio
 action button creation, and persistent close-button creation now route through `showNotificationRuntime.ts` instead
 of querying or creating through `document` directly inside `showNotification.ts`, with focused runtime coverage and
 architecture coverage blocking those direct document calls from returning.
+Modal focus-trap keydown listener target lookup, active-element lookup, and keyboard-event checks now route through
+`modalFocusTrapRuntime.ts` instead of reading `document` or `KeyboardEvent` directly inside `modalFocusTrap.ts`, with
+focused runtime/behavior coverage and architecture coverage blocking those direct browser calls from returning.
 Update notification auto-hide timers and renderer-state synced notification hide timers now route through
 `notificationTimerRuntime.ts` instead of calling timer globals directly in their notification modules, with adapter tests
 and architecture coverage blocking direct timer globals from returning.

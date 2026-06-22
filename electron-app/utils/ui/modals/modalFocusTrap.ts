@@ -1,4 +1,8 @@
 import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
+import {
+    getModalFocusTrapRuntime,
+    type ModalFocusTrapRuntime,
+} from "./modalFocusTrapRuntime.js";
 
 const FOCUSABLE_SELECTOR = [
     "a[href]",
@@ -11,17 +15,18 @@ const FOCUSABLE_SELECTOR = [
 
 export function createModalFocusTrap(
     modal: HTMLElement,
-    initialFocusElement?: HTMLElement | null
+    initialFocusElement?: HTMLElement | null,
+    runtime: ModalFocusTrapRuntime = getModalFocusTrapRuntime()
 ): () => void {
     focusModalElement(
         initialFocusElement ?? getFocusableElements(modal)[0] ?? modal
     );
 
     return addEventListenerWithCleanup(
-        document,
+        runtime.getDocumentEventTarget(),
         "keydown",
         (event: Event) => {
-            if (!(event instanceof KeyboardEvent) || event.key !== "Tab") {
+            if (!runtime.isKeyboardEvent(event) || event.key !== "Tab") {
                 return;
             }
 
@@ -38,10 +43,11 @@ export function createModalFocusTrap(
                 return;
             }
 
-            const activeElement = document.activeElement;
+            const activeElement = runtime.getActiveElement();
             if (event.shiftKey) {
                 if (
                     activeElement === firstElement ||
+                    !activeElement ||
                     !modal.contains(activeElement)
                 ) {
                     event.preventDefault();
@@ -52,6 +58,7 @@ export function createModalFocusTrap(
 
             if (
                 activeElement === lastElement ||
+                !activeElement ||
                 !modal.contains(activeElement)
             ) {
                 event.preventDefault();

@@ -1103,6 +1103,10 @@ const directEventListenerManagerRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\bglobalThis\.window\b/u;
 const directEventListenerManagerRuntimeAmbientGetterPattern =
     /\breturn\s+globalThis\.(?:AbortController|window)\b/u;
+const directModalFocusTrapRuntimeGlobalPattern =
+    /\bdocument\.(?:activeElement|addEventListener)\b|\binstanceof\s+KeyboardEvent\b/u;
+const directModalFocusTrapRuntimeAmbientGetterPattern =
+    /\bget\s+(?:document|KeyboardEvent)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:document|KeyboardEvent)\b/u;
 const preloadTestDirectElectronApiGlobalFixturePattern =
     /\b(?:Object\.defineProperty|Reflect\.deleteProperty)\(\s*globalThis\s*,/u;
 const directExternalLinkHandlersRuntimeGlobalPattern =
@@ -16352,6 +16356,67 @@ describe("architecture boundaries", () => {
         );
         expect(eventListenerManagerRuntimeSource).not.toContain(
             "scope.eventTarget"
+        );
+    });
+
+    it("keeps modal focus-trap browser APIs behind the runtime facade", () => {
+        expect.assertions(16);
+
+        const modalFocusTrapSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/modals/modalFocusTrap.ts")
+        );
+        const modalFocusTrapRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/modals/modalFocusTrapRuntime.ts"
+            )
+        );
+        const modalFocusTrapRuntimeScopeSource =
+            modalFocusTrapRuntimeSource.slice(
+                modalFocusTrapRuntimeSource.indexOf(
+                    "export interface ModalFocusTrapRuntimeScope"
+                ),
+                modalFocusTrapRuntimeSource.indexOf(
+                    "export interface ModalFocusTrapRuntime"
+                )
+            );
+
+        expect(
+            directModalFocusTrapRuntimeGlobalPattern.test(modalFocusTrapSource)
+        ).toBe(false);
+        expect(modalFocusTrapSource).toContain("modalFocusTrapRuntime.js");
+        expect(modalFocusTrapSource).toContain("getDocumentEventTarget");
+        expect(modalFocusTrapSource).toContain("getActiveElement");
+        expect(modalFocusTrapSource).toContain("isKeyboardEvent");
+        expect(modalFocusTrapRuntimeSource).toContain(
+            "defaultModalFocusTrapRuntimeScope"
+        );
+        expect(modalFocusTrapRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(modalFocusTrapRuntimeSource).toContain(
+            "getKeyboardEvent: () => globalThis.KeyboardEvent"
+        );
+        expect(modalFocusTrapRuntimeSource).not.toMatch(
+            directModalFocusTrapRuntimeAmbientGetterPattern
+        );
+        expect(modalFocusTrapRuntimeSource).not.toContain(
+            "ModalFocusTrapRuntimeScope = globalThis"
+        );
+        expect(modalFocusTrapRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(modalFocusTrapRuntimeScopeSource).not.toContain(
+            "readonly KeyboardEvent?:"
+        );
+        expect(modalFocusTrapRuntimeSource).not.toContain("scope.document");
+        expect(modalFocusTrapRuntimeSource).not.toContain(
+            "scope.KeyboardEvent"
+        );
+        expect(modalFocusTrapRuntimeSource).toContain(
+            "return scope.getDocument?.();"
+        );
+        expect(modalFocusTrapRuntimeSource).toContain(
+            "return scope.getKeyboardEvent?.();"
         );
     });
 });
