@@ -51,8 +51,12 @@ function getStatusPresentation(
           };
 }
 
-function createStyledSpan(text: string, color: string): HTMLSpanElement {
-    const span = document.createElement("span");
+function createStyledSpan(
+    text: string,
+    color: string,
+    runtime: ChartStatusIndicatorRuntime
+): HTMLSpanElement {
+    const span = runtime.createElement("span");
     span.textContent = text;
     span.style.color = color;
     return span;
@@ -61,7 +65,8 @@ function createStyledSpan(text: string, color: string): HTMLSpanElement {
 function appendStatusText(
     statusText: HTMLSpanElement,
     counts: ChartCounts,
-    valueColor: string
+    valueColor: string,
+    runtime: ChartStatusIndicatorRuntime
 ): void {
     if (counts.available === 0) {
         statusText.textContent = "No charts available";
@@ -70,19 +75,20 @@ function appendStatusText(
     }
 
     statusText.append(
-        createStyledSpan(String(counts.visible), valueColor),
-        createStyledSpan(" / ", "var(--color-fg-muted)"),
-        createStyledSpan(String(counts.available), "var(--color-fg)"),
-        createStyledSpan(" charts visible", "var(--color-fg-muted)")
+        createStyledSpan(String(counts.visible), valueColor, runtime),
+        createStyledSpan(" / ", "var(--color-fg-muted)", runtime),
+        createStyledSpan(String(counts.available), "var(--color-fg)", runtime),
+        createStyledSpan(" charts visible", "var(--color-fg-muted)", runtime)
     );
 }
 
 function createCategoryRow(
     icon: string,
     label: string,
-    counts: ChartCategoryCounts
+    counts: ChartCategoryCounts,
+    runtime: ChartStatusIndicatorRuntime
 ): HTMLDivElement {
-    const row = document.createElement("div");
+    const row = runtime.createElement("div");
     row.style.color = "var(--color-fg)";
     row.textContent = `${icon} ${label}: ${counts.visible}/${counts.available}`;
     return row;
@@ -90,9 +96,10 @@ function createCategoryRow(
 
 function createBreakdown(
     counts: ChartCounts,
-    hasHiddenCharts: boolean
+    hasHiddenCharts: boolean,
+    runtime: ChartStatusIndicatorRuntime
 ): HTMLDivElement {
-    const breakdown = document.createElement("div");
+    const breakdown = runtime.createElement("div");
     breakdown.className = "status-breakdown";
     breakdown.id = BREAKDOWN_ID;
     breakdown.style.cssText = `
@@ -111,7 +118,7 @@ function createBreakdown(
         max-width: 250px;
     `;
 
-    const title = document.createElement("div");
+    const title = runtime.createElement("div");
     title.textContent = "Chart Categories";
     title.style.cssText = `
         font-size: 12px;
@@ -120,7 +127,7 @@ function createBreakdown(
         margin-bottom: 8px;
     `;
 
-    const grid = document.createElement("div");
+    const grid = runtime.createElement("div");
     grid.style.cssText = `
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -128,16 +135,21 @@ function createBreakdown(
         font-size: 11px;
     `;
     grid.append(
-        createCategoryRow("📊", "Metrics", counts.categories.metrics),
-        createCategoryRow("📈", "Analysis", counts.categories.analysis),
-        createCategoryRow("🎯", "Zones", counts.categories.zones),
-        createCategoryRow("🗺️", "GPS", counts.categories.gps)
+        createCategoryRow("📊", "Metrics", counts.categories.metrics, runtime),
+        createCategoryRow(
+            "📈",
+            "Analysis",
+            counts.categories.analysis,
+            runtime
+        ),
+        createCategoryRow("🎯", "Zones", counts.categories.zones, runtime),
+        createCategoryRow("🗺️", "GPS", counts.categories.gps, runtime)
     );
 
     breakdown.append(title, grid);
 
     if (hasHiddenCharts) {
-        const hint = document.createElement("div");
+        const hint = runtime.createElement("div");
         hint.textContent = '💡 Enable more charts in "Visible Metrics" below';
         hint.style.cssText = `
             margin-top: 8px;
@@ -211,7 +223,7 @@ export function createChartStatusIndicatorFromCounts(
 ): HTMLElement | null {
     try {
         const runtime = getChartStatusIndicatorRuntime();
-        const indicator = document.createElement("div");
+        const indicator = runtime.createElement("div");
         indicator.className = "chart-status-indicator";
         indicator.id = "chart-status-indicator";
         indicator.style.cssText = `
@@ -236,23 +248,23 @@ export function createChartStatusIndicatorFromCounts(
             isAllVisible
         );
 
-        const statusIcon = document.createElement("span");
+        const statusIcon = runtime.createElement("span");
         statusIcon.className = "status-icon";
         statusIcon.textContent = presentation.icon;
         statusIcon.title = presentation.title;
         statusIcon.style.fontSize = "16px";
 
-        const statusText = document.createElement("span");
+        const statusText = runtime.createElement("span");
         statusText.className = "status-text";
         statusText.style.cssText = `
             color: var(--color-fg);
             font-weight: 600;
             font-size: 14px;
         `;
-        appendStatusText(statusText, counts, presentation.valueColor);
+        appendStatusText(statusText, counts, presentation.valueColor, runtime);
 
         removeExistingBreakdown(runtime);
-        const breakdown = createBreakdown(counts, hasHiddenCharts);
+        const breakdown = createBreakdown(counts, hasHiddenCharts, runtime);
 
         indicator.style.position = "relative";
         indicator.style.cursor = "pointer";
@@ -338,7 +350,7 @@ export function createChartStatusIndicatorFromCounts(
         );
 
         indicator.append(statusIcon, statusText);
-        document.body.append(breakdown);
+        runtime.getBody().append(breakdown);
 
         return indicator;
     } catch (error) {
@@ -347,7 +359,7 @@ export function createChartStatusIndicatorFromCounts(
             error
         );
 
-        const fallback = document.createElement("div");
+        const fallback = getChartStatusIndicatorRuntime().createElement("div");
         fallback.className = "chart-status-indicator";
         fallback.id = "chart-status-indicator";
         fallback.textContent = "Chart status unavailable";

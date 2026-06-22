@@ -58,9 +58,10 @@ function getStatusPresentation(
 function createCategoryRow(
     icon: string,
     label: string,
-    counts: ChartCategoryCounts
+    counts: ChartCategoryCounts,
+    runtime: ChartStatusIndicatorRuntime
 ): HTMLDivElement {
-    const row = document.createElement("div");
+    const row = runtime.createElement("div");
     row.style.color = "var(--color-fg)";
     row.textContent = `${icon} ${label}: ${counts.visible}/${counts.available}`;
     return row;
@@ -69,7 +70,8 @@ function createCategoryRow(
 function appendStatusText(
     statusText: HTMLSpanElement,
     counts: ChartCounts,
-    valueColor: string
+    valueColor: string,
+    runtime: ChartStatusIndicatorRuntime
 ): void {
     if (counts.available === 0) {
         statusText.textContent = "No chart data available in this FIT file";
@@ -77,14 +79,14 @@ function appendStatusText(
         return;
     }
 
-    const countSpan = document.createElement("span");
+    const countSpan = runtime.createElement("span");
     countSpan.style.color = valueColor;
     countSpan.textContent = String(counts.visible);
 
     statusText.append(
-        document.createTextNode("Showing "),
+        runtime.createTextNode("Showing "),
         countSpan,
-        document.createTextNode(` of ${counts.available} available charts`)
+        runtime.createTextNode(` of ${counts.available} available charts`)
     );
     statusText.style.color = "var(--color-fg)";
 }
@@ -92,9 +94,10 @@ function appendStatusText(
 function createQuickAction(
     counts: ChartCounts,
     hasHiddenCharts: boolean,
-    isAllVisible: boolean
+    isAllVisible: boolean,
+    runtime: ChartStatusIndicatorRuntime
 ): HTMLButtonElement {
-    const quickAction = document.createElement("button");
+    const quickAction = runtime.createElement("button");
     quickAction.style.cssText = `
         padding: 4px 8px;
         border: 1px solid var(--color-border);
@@ -128,9 +131,10 @@ function createQuickAction(
 
 function createBreakdown(
     counts: ChartCounts,
-    hasHiddenCharts: boolean
+    hasHiddenCharts: boolean,
+    runtime: ChartStatusIndicatorRuntime
 ): HTMLDivElement {
-    const globalBreakdown = document.createElement("div");
+    const globalBreakdown = runtime.createElement("div");
     globalBreakdown.className = "status-breakdown global-breakdown";
     globalBreakdown.style.cssText = `
         position: absolute;
@@ -151,7 +155,7 @@ function createBreakdown(
         pointer-events: none;
     `;
 
-    const title = document.createElement("div");
+    const title = runtime.createElement("div");
     title.textContent = "Chart Categories";
     title.style.cssText = `
         font-size: 12px;
@@ -160,7 +164,7 @@ function createBreakdown(
         margin-bottom: 8px;
     `;
 
-    const grid = document.createElement("div");
+    const grid = runtime.createElement("div");
     grid.style.cssText = `
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -168,16 +172,21 @@ function createBreakdown(
         font-size: 11px;
     `;
     grid.append(
-        createCategoryRow("📊", "Metrics", counts.categories.metrics),
-        createCategoryRow("📈", "Analysis", counts.categories.analysis),
-        createCategoryRow("🎯", "Zones", counts.categories.zones),
-        createCategoryRow("🗺️", "GPS", counts.categories.gps)
+        createCategoryRow("📊", "Metrics", counts.categories.metrics, runtime),
+        createCategoryRow(
+            "📈",
+            "Analysis",
+            counts.categories.analysis,
+            runtime
+        ),
+        createCategoryRow("🎯", "Zones", counts.categories.zones, runtime),
+        createCategoryRow("🗺️", "GPS", counts.categories.gps, runtime)
     );
 
     globalBreakdown.append(title, grid);
 
     if (hasHiddenCharts) {
-        const hint = document.createElement("div");
+        const hint = runtime.createElement("div");
         hint.textContent = "💡 Use settings panel below to enable more charts";
         hint.style.cssText = `
             margin-top: 8px;
@@ -242,13 +251,14 @@ export function createGlobalChartStatusIndicatorFromCounts(
 ): HTMLElement | null {
     try {
         const runtime = getChartStatusIndicatorRuntime();
-        const chartTabContent = getChartContentContainer(document);
+        const runtimeDocument = runtime.getDocument();
+        const chartTabContent = getChartContentContainer(runtimeDocument);
         if (!chartTabContent) {
             console.warn("[ChartStatus] Chart tab content not found");
             return null;
         }
 
-        const globalIndicator = document.createElement("div");
+        const globalIndicator = runtime.createElement("div");
         globalIndicator.id = "global-chart-status";
         globalIndicator.className = "global-chart-status";
         globalIndicator.style.cssText = `
@@ -276,31 +286,36 @@ export function createGlobalChartStatusIndicatorFromCounts(
             isAllVisible
         );
 
-        const statusInfo = document.createElement("div");
+        const statusInfo = runtime.createElement("div");
         statusInfo.style.cssText = `
             display: flex;
             align-items: center;
             gap: 12px;
         `;
 
-        const statusIcon = document.createElement("span");
+        const statusIcon = runtime.createElement("span");
         statusIcon.style.fontSize = "18px";
         statusIcon.textContent = presentation.icon;
         statusIcon.title = presentation.title;
 
-        const statusText = document.createElement("span");
+        const statusText = runtime.createElement("span");
         statusText.style.cssText = `
             font-weight: 600;
             font-size: 14px;
         `;
-        appendStatusText(statusText, counts, presentation.valueColor);
+        appendStatusText(statusText, counts, presentation.valueColor, runtime);
 
         const quickAction = createQuickAction(
             counts,
             hasHiddenCharts,
-            isAllVisible
+            isAllVisible,
+            runtime
         );
-        const globalBreakdown = createBreakdown(counts, hasHiddenCharts);
+        const globalBreakdown = createBreakdown(
+            counts,
+            hasHiddenCharts,
+            runtime
+        );
         const controller = runtime.createAbortController();
         const { signal } = controller;
         const pendingTimers = new Set<ChartStatusIndicatorTimerHandle>();
@@ -317,8 +332,9 @@ export function createGlobalChartStatusIndicatorFromCounts(
             quickAction.addEventListener(
                 "click",
                 () => {
-                    const toggleButton = getChartControlsToggle(document);
-                    const wrapper = getChartSettingsWrapper(document);
+                    const toggleButton =
+                        getChartControlsToggle(runtimeDocument);
+                    const wrapper = getChartSettingsWrapper(runtimeDocument);
                     if (
                         !runtime.isHTMLElement(wrapper) ||
                         !runtime.isHTMLElement(toggleButton)

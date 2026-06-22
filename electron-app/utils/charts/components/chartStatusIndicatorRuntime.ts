@@ -53,7 +53,12 @@ export interface ChartStatusIndicatorRuntime {
     ) => void;
     readonly clearTimeout: (handle: ChartStatusIndicatorTimerHandle) => void;
     readonly createAbortController: () => AbortController;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
+    readonly createTextNode: (data: string) => Text;
     readonly getBody: () => HTMLElement;
+    readonly getDocument: () => Document;
     readonly getViewport: () => ChartStatusIndicatorViewport;
     readonly isHTMLElement: (value: unknown) => value is HTMLElement;
     readonly querySelector: (selector: string) => HTMLElement | null;
@@ -178,8 +183,19 @@ export function getChartStatusIndicatorRuntime(
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
         },
+        createElement<K extends keyof HTMLElementTagNameMap>(
+            tagName: K
+        ): HTMLElementTagNameMap[K] {
+            return getDocument(scope).createElement(tagName);
+        },
+        createTextNode(data: string): Text {
+            return getDocument(scope).createTextNode(data);
+        },
         getBody(): HTMLElement {
             return getDocument(scope).body;
+        },
+        getDocument(): Document {
+            return getDocument(scope);
         },
         getViewport(): ChartStatusIndicatorViewport {
             return scope.getViewport?.() ?? { height: 0, width: 0 };

@@ -1,8 +1,9 @@
 import { getChartCounts } from "../core/getChartCounts.js";
+import { getChartStatusIndicatorRuntime } from "./chartStatusIndicatorRuntime.js";
 import { createChartStatusIndicatorFromCounts } from "./createChartStatusIndicatorFromCounts.js";
 
 function createFallbackIndicator(): HTMLElement {
-    const fallback = document.createElement("div");
+    const fallback = getChartStatusIndicatorRuntime().createElement("div");
     fallback.className = "chart-status-indicator";
     fallback.id = "chart-status-indicator";
     fallback.textContent = "Chart status unavailable";

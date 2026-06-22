@@ -737,8 +737,9 @@ storage-method fixture mutation.
 Chart status indicator tests now install and restore temporary document, window, constructor, timer, and
 event-listener fixtures through captured descriptors instead of assigning browser globals, assigning event
 handlers, or deleting globals during cleanup, with architecture coverage blocking that fixture mutation pattern.
-Chart status indicator DOM, event-listener, viewport, timer, and constructor access now uses named runtime provider
-functions instead of a broad `globalThis` default scope or legacy direct scope properties.
+Chart status indicator DOM lookup, element/text-node creation, body appends, event-listener, viewport, timer, and
+constructor access now uses named runtime provider functions instead of a broad `globalThis` default scope or legacy
+direct scope properties.
 Main UI startup tests no longer delete retired renderer globals such as `devCleanup`, `injectMenu`,
 `showFitData`, `renderChartJS`, or `cleanupEventListeners` while proving those globals stay absent, and
 architecture coverage blocks those mutations from returning.

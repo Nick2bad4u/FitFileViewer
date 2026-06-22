@@ -487,6 +487,7 @@ const migratedCreateChartCanvasRuntimeFiles = [
     "electron-app/utils/charts/components/createChartCanvas.ts",
 ] as const;
 const migratedChartStatusCountsRuntimeFiles = [
+    "electron-app/utils/charts/components/createChartStatusIndicator.ts",
     "electron-app/utils/charts/components/createChartStatusIndicatorFromCounts.ts",
     "electron-app/utils/charts/components/createGlobalChartStatusIndicatorFromCounts.ts",
 ] as const;
@@ -1176,7 +1177,7 @@ const directCreateChartCanvasRuntimeGlobalPattern =
 const directCreateChartCanvasRuntimeAmbientFallbackPattern =
     /\bscope\.document\b|\bscope:\s*CreateChartCanvasRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultCreateChartCanvasRuntimeScope:\s*CreateChartCanvasRuntimeScope\s*=\s*globalThis\b/u;
 const directChartStatusCountsRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bdocument\.querySelector\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\b(?:globalThis|window)\.inner(?:Height|Width)\b|\bdocument\.(?:body|createElement|createTextNode|querySelector)\b|\bnew\s+AbortController\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directChartStatusIndicatorRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|HTMLElement|addEventListener|clearTimeout|document|innerHeight|innerWidth|setTimeout)\b|\bscope\.(?:AbortController|HTMLElement|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:AbortController|HTMLElement|clearTimeout|setTimeout)\b/u;
 const directGlobalChartStatusRuntimeGlobalPattern =
@@ -11061,7 +11062,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
-        expect.assertions(36);
+        expect.assertions(40);
 
         const violations = migratedChartStatusCountsRuntimeFiles
             .filter((relativeFile) =>
@@ -11184,6 +11185,18 @@ describe("architecture boundaries", () => {
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
             "return scope.getViewport?.() ?? { height: 0, width: 0 };"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "createElement<K extends keyof HTMLElementTagNameMap>"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "return getDocument(scope).createElement(tagName);"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "return getDocument(scope).createTextNode(data);"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "getDocument(): Document"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
             "chartStatusIndicator requires a setTimeout runtime"

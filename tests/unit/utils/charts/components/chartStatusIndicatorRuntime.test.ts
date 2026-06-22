@@ -71,21 +71,28 @@ describe("getChartStatusIndicatorRuntime", () => {
         expect(runtime.createAbortController()).toBeInstanceOf(AbortController);
     });
 
-    it("queries html elements through the injected document and constructor", () => {
-        expect.assertions(4);
+    it("creates and queries DOM nodes through the injected document and constructor", () => {
+        expect.assertions(7);
 
         const body = document.createElement("body");
         const element = document.createElement("div");
+        const runtimeDocument = {
+            body,
+            createElement: document.createElement.bind(document),
+            createTextNode: document.createTextNode.bind(document),
+            querySelector: (selector: string) =>
+                selector === ".status" ? element : document,
+        } as unknown as Document;
         const runtime = getChartStatusIndicatorRuntime({
-            getDocument: () =>
-                ({
-                    body,
-                    querySelector: (selector: string) =>
-                        selector === ".status" ? element : document,
-                }) as unknown as Document,
+            getDocument: () => runtimeDocument,
             getHTMLElement: () => HTMLElement,
         });
+        const createdElement = runtime.createElement("span");
+        const textNode = runtime.createTextNode("Chart status");
 
+        expect(runtime.getDocument()).toBe(runtimeDocument);
+        expect(createdElement).toBeInstanceOf(HTMLSpanElement);
+        expect(textNode.textContent).toBe("Chart status");
         expect(runtime.getBody()).toBe(body);
         expect(runtime.querySelector(".status")).toBe(element);
         expect(runtime.querySelector(".missing")).toBeNull();
@@ -187,7 +194,7 @@ describe("getChartStatusIndicatorRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(7);
+        expect.assertions(10);
 
         const target = new EventTarget();
         const element = document.createElement("div");
@@ -214,6 +221,15 @@ describe("getChartStatusIndicatorRuntime", () => {
             "chartStatusIndicator requires an AbortController"
         );
         expect(() => runtime.getBody()).toThrow(
+            "chartStatusIndicator requires a document"
+        );
+        expect(() => runtime.getDocument()).toThrow(
+            "chartStatusIndicator requires a document"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
+            "chartStatusIndicator requires a document"
+        );
+        expect(() => runtime.createTextNode("Chart status")).toThrow(
             "chartStatusIndicator requires a document"
         );
         expect(runtime.getViewport()).toStrictEqual({ height: 0, width: 0 });
