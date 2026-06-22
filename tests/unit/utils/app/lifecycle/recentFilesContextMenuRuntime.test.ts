@@ -95,7 +95,7 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("routes runtime dependencies through provider functions", () => {
-        expect.assertions(6);
+        expect.assertions(12);
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("25");
@@ -135,6 +135,24 @@ describe("recentFilesContextMenuRuntime", () => {
         runtime.clearTimeout(timer);
         expect(clearTimeout).toHaveBeenCalledWith(timer);
         expect(mousedownCount).toBe(1);
+        const menu = runtime.createMenuElement();
+        menu.id = "recent-files-menu";
+        runtime.appendToBody(menu);
+        expect(runtime.bodyContains(menu)).toBe(true);
+        expect(runtime.isBodyParent(menu)).toBe(true);
+        expect(runtime.findRecentFilesMenu()).toBe(menu);
+        expect(runtime.hasRecentFilesMenu()).toBe(true);
+        const firstMenu = runtime.createMenuElement();
+        firstMenu.id = "first-menu";
+        runtime.insertBeforeBodyFirstChild(firstMenu);
+        expect(documentEventTarget.body.firstChild).toBe(firstMenu);
+        expect(runtime.getBodyDebugInfo()).toMatchObject({
+            canAppend: true,
+            childElementCount: 2,
+            childNodeCount: 2,
+            constructorName: "HTMLBodyElement",
+            present: true,
+        });
         expect(runtime.getViewport()).toStrictEqual({
             height: 900,
             width: 1440,
@@ -142,9 +160,10 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(3);
+        expect.assertions(11);
 
         const runtime = getRecentFilesContextMenuRuntime({});
+        const element = document.createElement("div");
 
         expect(() => runtime.setTimeout(() => {}, 0)).toThrow(
             "recent files context menu requires a setTimeout runtime"
@@ -157,6 +176,30 @@ describe("recentFilesContextMenuRuntime", () => {
         expect(() =>
             runtime.addDocumentMousedownListener(() => undefined, {})
         ).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.appendToBody(element)).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.bodyContains(element)).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.createMenuElement()).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.findRecentFilesMenu()).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.getBodyDebugInfo()).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.hasRecentFilesMenu()).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.insertBeforeBodyFirstChild(element)).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.isBodyParent(element)).toThrow(
             "recent files context menu requires a document event-target runtime"
         );
     });
@@ -192,7 +235,7 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(11);
+        expect.assertions(21);
 
         const AbortControllerConstructor = vi.fn();
         const callback = vi.fn<() => void>();
@@ -204,6 +247,8 @@ describe("recentFilesContextMenuRuntime", () => {
             documentEventTarget,
             "addEventListener"
         );
+        const createElement = vi.spyOn(documentEventTarget, "createElement");
+        const querySelector = vi.spyOn(documentEventTarget, "querySelector");
         const runtime = getRecentFilesContextMenuRuntime({
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
@@ -230,9 +275,35 @@ describe("recentFilesContextMenuRuntime", () => {
         expect(() =>
             runtime.clearTimeout(31 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("recent files context menu requires a clearTimeout runtime");
+        expect(() => runtime.appendToBody(document.body)).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.bodyContains(document.body)).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.createMenuElement()).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.findRecentFilesMenu()).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.getBodyDebugInfo()).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.hasRecentFilesMenu()).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.insertBeforeBodyFirstChild(document.body)).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.isBodyParent(document.body)).toThrow(
+            "recent files context menu requires a document event-target runtime"
+        );
         expect(runtime.getViewport()).toStrictEqual({ height: 0, width: 0 });
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();
+        expect(createElement).not.toHaveBeenCalled();
+        expect(querySelector).not.toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();

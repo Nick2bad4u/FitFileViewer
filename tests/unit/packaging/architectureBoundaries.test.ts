@@ -7334,7 +7334,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(30);
+        expect.assertions(41);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -7366,9 +7366,26 @@ describe("architecture boundaries", () => {
         expect(recentFilesContextMenuSource).toContain(
             "addDocumentMousedownListener"
         );
+        expect(recentFilesContextMenuSource).toContain("appendToBody");
+        expect(recentFilesContextMenuSource).toContain("bodyContains");
+        expect(recentFilesContextMenuSource).toContain("createMenuElement");
+        expect(recentFilesContextMenuSource).toContain("findRecentFilesMenu");
+        expect(recentFilesContextMenuSource).toContain("getBodyDebugInfo");
+        expect(recentFilesContextMenuSource).toContain("hasRecentFilesMenu");
+        expect(recentFilesContextMenuSource).toContain(
+            "insertBeforeBodyFirstChild"
+        );
+        expect(recentFilesContextMenuSource).toContain("isBodyParent");
         expect(recentFilesContextMenuSource).not.toContain(
             "document.addEventListener"
         );
+        expect(recentFilesContextMenuSource).not.toContain(
+            "document.querySelector"
+        );
+        expect(recentFilesContextMenuSource).not.toContain(
+            "document.createElement"
+        );
+        expect(recentFilesContextMenuSource).not.toContain("document.body");
         expect(recentFilesContextMenuSource).not.toContain("globalThis.window");
         expect(recentFilesContextMenuSource).not.toContain("window.innerWidth");
         expect(recentFilesContextMenuSource).not.toContain(

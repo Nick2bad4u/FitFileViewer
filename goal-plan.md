@@ -620,13 +620,13 @@ constructing `AbortController`, or calling `clearTimeout` directly inside `resou
 runtime coverage and architecture guardrails blocking those direct operations from returning. Explicit resource
 manager runtime scopes must now provide timer cleanup primitives instead of falling back to `globalThis`, with
 focused runtime coverage and architecture coverage blocking that fallback from returning.
-Recent-files context-menu viewport clamping, focus-delay scheduling/cleanup, and listener abort-controller creation now go through the scoped
+Recent-files context-menu viewport clamping, focus-delay scheduling/cleanup, listener abort-controller creation, menu lookup/creation/body attachment, attachment verification, and body debug reads now go through the scoped
 `recentFilesContextMenuRuntime.ts` adapter instead of probing `globalThis.window`, `window.innerWidth`, or
-`window.innerHeight`, calling timer globals, or constructing `AbortController` directly inside
+`window.innerHeight`, calling timer globals, constructing `AbortController`, querying/creating through `document`, or reading `document.body` directly inside
 `recentFilesContextMenu.ts`, with focused runtime coverage and architecture guardrails blocking those direct
-viewport, timer, and controller globals from returning. Explicit recent-files context-menu runtime scopes must now
-provide timer primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture
-coverage blocking those fallbacks from returning.
+viewport, timer, controller, and document globals from returning. Explicit recent-files context-menu runtime scopes must now
+provide timer and document primitives instead of falling back to `globalThis`, with focused runtime coverage and
+architecture coverage blocking those fallbacks from returning.
 State integration unit tests no longer seed or delete retired AppState, chart-controls, globalData,
 render-state, timer, development, or state-debug globals while proving initialization leaves them absent;
 architecture coverage now blocks those retired state-integration global mutations from returning.

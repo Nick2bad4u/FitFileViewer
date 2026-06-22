@@ -28,6 +28,14 @@ export interface RecentFilesContextMenuViewportSource {
     readonly width?: number | undefined;
 }
 
+export interface RecentFilesContextMenuBodyDebugInfo {
+    readonly canAppend: boolean;
+    readonly childElementCount: number;
+    readonly childNodeCount: number;
+    readonly constructorName: string;
+    readonly present: boolean;
+}
+
 type RecentFilesContextMenuMousedownListener = (
     event: Readonly<MouseEvent>
 ) => void;
@@ -37,9 +45,17 @@ export interface RecentFilesContextMenuRuntime {
         listener: RecentFilesContextMenuMousedownListener,
         options: Readonly<AddEventListenerOptions>
     ) => void;
+    appendToBody: (element: Element) => void;
+    bodyContains: (element: Element) => boolean;
     clearTimeout: (handle: RecentFilesContextMenuTimer) => void;
     createAbortController: () => AbortController;
+    createMenuElement: () => HTMLDivElement;
+    findRecentFilesMenu: () => Element | null;
+    getBodyDebugInfo: () => RecentFilesContextMenuBodyDebugInfo;
     getViewport: () => RecentFilesContextMenuViewport;
+    hasRecentFilesMenu: () => boolean;
+    insertBeforeBodyFirstChild: (element: Element) => void;
+    isBodyParent: (element: Element) => boolean;
     setTimeout: (
         callback: () => void,
         delayMs: number
@@ -80,6 +96,19 @@ function getDocumentEventTarget(
     return scope.getDocumentEventTarget?.();
 }
 
+function getRuntimeDocument(
+    scope: RecentFilesContextMenuRuntimeScope
+): Document {
+    const documentRef = getDocumentEventTarget(scope);
+    if (!documentRef) {
+        throw new TypeError(
+            "recent files context menu requires a document event-target runtime"
+        );
+    }
+
+    return documentRef;
+}
+
 function getSetTimeout(
     scope: RecentFilesContextMenuRuntimeScope
 ): typeof globalThis.setTimeout | undefined {
@@ -111,6 +140,12 @@ export function getRecentFilesContextMenuRuntime(
                 options
             );
         },
+        appendToBody(element): void {
+            getRuntimeDocument(scope).body.append(element);
+        },
+        bodyContains(element): boolean {
+            return getRuntimeDocument(scope).body.contains(element);
+        },
         clearTimeout(handle): void {
             const clearTimeoutRef = getClearTimeout(scope);
             if (typeof clearTimeoutRef !== "function") {
@@ -131,6 +166,25 @@ export function getRecentFilesContextMenuRuntime(
 
             return new AbortControllerConstructor();
         },
+        createMenuElement(): HTMLDivElement {
+            return getRuntimeDocument(scope).createElement("div");
+        },
+        findRecentFilesMenu(): Element | null {
+            return getRuntimeDocument(scope).querySelector(
+                "#recent-files-menu"
+            );
+        },
+        getBodyDebugInfo(): RecentFilesContextMenuBodyDebugInfo {
+            const { body } = getRuntimeDocument(scope);
+
+            return {
+                canAppend: typeof body.append === "function",
+                childElementCount: body.children.length,
+                childNodeCount: body.childNodes.length,
+                constructorName: body.constructor.name,
+                present: Boolean(body),
+            };
+        },
         getViewport(): RecentFilesContextMenuViewport {
             const viewport = getViewport(scope);
 
@@ -138,6 +192,20 @@ export function getRecentFilesContextMenuRuntime(
                 height: normalizeDimension(viewport?.height),
                 width: normalizeDimension(viewport?.width),
             };
+        },
+        hasRecentFilesMenu(): boolean {
+            return (
+                getRuntimeDocument(scope).querySelector(
+                    "#recent-files-menu"
+                ) !== null
+            );
+        },
+        insertBeforeBodyFirstChild(element): void {
+            const { body } = getRuntimeDocument(scope);
+            body.insertBefore(element, body.firstChild);
+        },
+        isBodyParent(element): boolean {
+            return element.parentNode === getRuntimeDocument(scope).body;
         },
         setTimeout(callback, delayMs): RecentFilesContextMenuTimer {
             const setTimeoutRef = getSetTimeout(scope);

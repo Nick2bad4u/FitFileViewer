@@ -128,21 +128,22 @@ export function attachRecentFilesContextMenu({
                 showNotification("No recent files found.", "info", 2000);
                 return;
             }
-            const oldMenu = document.querySelector("#recent-files-menu");
+            const oldMenu = runtime.findRecentFilesMenu();
             if (oldMenu) {
                 oldMenu.remove();
             }
-            const menu = document.createElement("div");
+            const menu = runtime.createMenuElement();
             const menuAbortController = runtime.createAbortController();
             const { signal: menuSignal } = menuAbortController;
             let focusTimer: RecentFilesContextMenuTimer | undefined;
             menu.id = "recent-files-menu";
+            const initialBodyDebugInfo = runtime.getBodyDebugInfo();
 
             debugLog(
                 "DEBUG: About to append menu. Document:",
-                Boolean(document),
+                initialBodyDebugInfo.present,
                 "Body:",
-                Boolean(document.body),
+                initialBodyDebugInfo.present,
                 "Menu:",
                 Boolean(menu),
                 "Menu ID:",
@@ -220,9 +221,9 @@ export function attachRecentFilesContextMenu({
 
             debugLog(
                 "DEBUG: Document.body type:",
-                typeof document.body,
+                initialBodyDebugInfo.present ? "object" : "undefined",
                 "Document.body constructor:",
-                document.body.constructor.name
+                initialBodyDebugInfo.constructorName
             );
             menu.setAttribute("aria-label", "Recent files");
             let focusedIndex = 0;
@@ -298,7 +299,7 @@ export function attachRecentFilesContextMenu({
             }
 
             for (const [idx, file] of recentFiles.entries()) {
-                const item = document.createElement("div"),
+                const item = runtime.createMenuElement(),
                     parts = file.split(/\\|\//g),
                     shortName =
                         parts.length >= 2
@@ -379,11 +380,12 @@ export function attachRecentFilesContextMenu({
                 focusItem(0);
             }, 0);
 
+            const preAppendBodyDebugInfo = runtime.getBodyDebugInfo();
             debugLog(
                 "DEBUG: About to append menu. Document:",
-                Boolean(document),
+                preAppendBodyDebugInfo.present,
                 "Body:",
-                Boolean(document.body),
+                preAppendBodyDebugInfo.present,
                 "Menu:",
                 Boolean(menu),
                 "Menu ID:",
@@ -399,15 +401,18 @@ export function attachRecentFilesContextMenu({
             );
             debugLog(
                 "DEBUG: Document.body type:",
-                typeof document.body,
+                preAppendBodyDebugInfo.present ? "object" : "undefined",
                 "Document.body constructor:",
-                document.body.constructor.name
+                preAppendBodyDebugInfo.constructorName
             );
             // Log a safe property instead of comparing an object to itself
-            debugLog("DEBUG: Document.body present:", Boolean(document.body));
+            debugLog(
+                "DEBUG: Document.body present:",
+                preAppendBodyDebugInfo.present
+            );
             debugLog(
                 "DEBUG: Document.body can append?",
-                typeof document.body.append === "function"
+                preAppendBodyDebugInfo.canAppend
             );
 
             // Robust menu attachment with verification and retry
@@ -421,16 +426,14 @@ export function attachRecentFilesContextMenu({
                 );
 
                 try {
-                    document.body.append(menu);
+                    runtime.appendToBody(menu);
                     debugLog("DEBUG: append call succeeded");
 
                     // Immediately verify the menu is properly attached
                     const isAttached =
-                        document.body.contains(menu) &&
-                        menu.parentNode === document.body;
-                    const canBeFound = Boolean(
-                        document.querySelector("#recent-files-menu")
-                    );
+                        runtime.bodyContains(menu) &&
+                        runtime.isBodyParent(menu);
+                    const canBeFound = runtime.hasRecentFilesMenu();
 
                     debugLog(
                         "DEBUG: Verification - isAttached:",
@@ -442,7 +445,7 @@ export function attachRecentFilesContextMenu({
                         "DEBUG: Menu parentNode:",
                         menu.parentNode,
                         "parentNode === body:",
-                        menu.parentNode === document.body
+                        runtime.isBodyParent(menu)
                     );
 
                     if (isAttached && canBeFound) {
@@ -467,15 +470,12 @@ export function attachRecentFilesContextMenu({
                             debugLog(
                                 "DEBUG: Trying append with different approach"
                             );
-                            document.body.append(menu);
+                            runtime.appendToBody(menu);
                         } else if (attachmentAttempts === 3) {
                             debugLog(
                                 "DEBUG: Trying insertBefore as last resort"
                             );
-                            document.body.insertBefore(
-                                menu,
-                                document.body.firstChild
-                            );
+                            runtime.insertBeforeBodyFirstChild(menu);
                         }
                     }
                 } catch (error) {
@@ -491,8 +491,7 @@ export function attachRecentFilesContextMenu({
 
             // Final verification
             const finalCheck =
-                document.body.contains(menu) &&
-                Boolean(document.querySelector("#recent-files-menu"));
+                runtime.bodyContains(menu) && runtime.hasRecentFilesMenu();
             if (!finalCheck) {
                 debugLog(
                     "DEBUG: CRITICAL - Menu attachment failed after all attempts"
@@ -506,21 +505,22 @@ export function attachRecentFilesContextMenu({
             debugLog("DEBUG: Final verification - Menu successfully attached");
             debugLog(
                 "DEBUG: Document body contains menu:",
-                document.body.contains(menu),
+                runtime.bodyContains(menu),
                 "Document contains menu:",
-                Boolean(document.querySelector("#recent-files-menu"))
+                runtime.hasRecentFilesMenu()
             );
             debugLog(
                 "DEBUG: QuerySelector test:",
-                Boolean(document.querySelector("#recent-files-menu")),
+                runtime.hasRecentFilesMenu(),
                 "Body querySelector test:",
-                Boolean(document.body.querySelector("#recent-files-menu"))
+                runtime.bodyContains(menu)
             );
+            const finalBodyDebugInfo = runtime.getBodyDebugInfo();
             debugLog(
                 "DEBUG: Document body children count:",
-                document.body.children.length,
+                finalBodyDebugInfo.childElementCount,
                 "Body childNodes count:",
-                document.body.childNodes.length
+                finalBodyDebugInfo.childNodeCount
             );
             const menuCreatedAt = Date.now(); // Track when menu was created
 
@@ -580,7 +580,7 @@ export function attachRecentFilesContextMenu({
                     runtime.clearTimeout(focusTimer);
                     focusTimer = undefined;
                 }
-                if (document.body.contains(menu)) {
+                if (runtime.bodyContains(menu)) {
                     menu.remove();
                 }
                 menuAbortController.abort();
