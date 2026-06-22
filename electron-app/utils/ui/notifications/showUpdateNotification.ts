@@ -8,6 +8,7 @@ import {
     getNotificationTimerRuntime,
     type NotificationTimerHandle,
 } from "./notificationTimerRuntime.js";
+import { getShowUpdateNotificationRuntime } from "./showUpdateNotificationRuntime.js";
 
 type UpdateNotificationAction = boolean | string;
 
@@ -30,8 +31,12 @@ const BUTTON_TEXTS = {
 
 const log = createRendererLogger(LOG_SCOPE);
 const notificationTimerRuntime = getNotificationTimerRuntime();
+const showUpdateNotificationRuntime = getShowUpdateNotificationRuntime();
 
-const activeAutoHideTimers = new WeakMap<HTMLElement, NotificationTimerHandle>();
+const activeAutoHideTimers = new WeakMap<
+    HTMLElement,
+    NotificationTimerHandle
+>();
 
 /**
  * Shows update notifications with enhanced features and error handling.
@@ -79,7 +84,7 @@ export function showUpdateNotification(
         notification.style.display = "block";
 
         // Create message span
-        const msgSpan = document.createElement("span");
+        const msgSpan = showUpdateNotificationRuntime.createElement("span");
         msgSpan.textContent = message;
         notification.append(msgSpan);
 
@@ -131,7 +136,7 @@ function createThemedButton(
     styles: Partial<CSSStyleDeclaration> = {}
 ): HTMLElement | null {
     try {
-        const button = document.createElement("button");
+        const button = showUpdateNotificationRuntime.createElement("button");
         button.textContent = text;
         button.className = NOTIFICATION_CONSTANTS.BUTTON_CLASS;
         addEventListenerWithCleanup(button, "click", clickHandler);
@@ -201,7 +206,7 @@ function createUpdateDownloadedButtons(notification: HTMLElement): void {
  * @returns Notification element or null if not found.
  */
 function getNotificationElement(): HTMLElement | null {
-    const notification = document.querySelector<HTMLElement>(
+    const notification = showUpdateNotificationRuntime.queryNotificationElement(
         `#${NOTIFICATION_CONSTANTS.NOTIFICATION_ID}`
     );
     if (!notification) {

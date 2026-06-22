@@ -984,6 +984,10 @@ optional browser-global shapes.
 Update notification auto-hide timers and renderer-state synced notification hide timers now route through
 `notificationTimerRuntime.ts` instead of calling timer globals directly in their notification modules, with adapter tests
 and architecture coverage blocking direct timer globals from returning.
+Update notification element lookup and action/message element creation now route through
+`showUpdateNotificationRuntime.ts` instead of querying or creating through `document` directly inside
+`showUpdateNotification.ts`, with focused runtime coverage and architecture coverage blocking those direct document
+calls from returning.
 Runtime facade lint cleanup now keeps resource-manager unload registration, render-summary scheduling, master-state event
 forwarding, modal timing adapters, and tab document runtime helpers aligned with the app lint gate by removing stale bound-call
 patterns, naming animation-frame fallback callbacks explicitly, documenting caller-owned listener cleanup contracts, and dropping

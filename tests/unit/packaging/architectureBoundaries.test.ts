@@ -407,6 +407,9 @@ const migratedNotificationTimerRuntimeFiles = [
     "electron-app/utils/ui/notifications/showUpdateNotification.ts",
     "electron-app/utils/ui/notifications/syncRendererNotifications.ts",
 ] as const;
+const migratedShowUpdateNotificationDomRuntimeFiles = [
+    "electron-app/utils/ui/notifications/showUpdateNotification.ts",
+] as const;
 const migratedAltFitSenderRuntimeFiles = [
     "electron-app/utils/files/import/sendFitFileToAltFitReader.ts",
 ] as const;
@@ -953,6 +956,8 @@ const directNotificationTimerRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directNotificationTimerRuntimeAmbientGetterPattern =
     /\breturn\s+globalThis\.(?:clearTimeout|setTimeout)\b/u;
+const directShowUpdateNotificationDomRuntimeGlobalPattern =
+    /\bdocument\.(?:createElement|querySelector)\b/u;
 const directAboutModalDevHelperGlobalPattern =
     /\b(?:window|globalThis|aboutGlobal)\.aboutModalDevHelpers\b|["']aboutModalDevHelpers["']/u;
 const aboutModalTestDirectRequestAnimationFrameAssignmentPattern =
@@ -5902,6 +5907,73 @@ describe("architecture boundaries", () => {
         );
         expect(notificationTimerRuntimeSource).toContain(
             "const scheduleTimer = scope.getSetTimeout?.();"
+        );
+    });
+
+    it("keeps update notification DOM access behind the runtime facade", () => {
+        expect.assertions(13);
+
+        const violations = migratedShowUpdateNotificationDomRuntimeFiles
+            .filter((relativeFile) =>
+                directShowUpdateNotificationDomRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const showUpdateNotificationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/showUpdateNotification.ts"
+            )
+        );
+        const showUpdateNotificationRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/notifications/showUpdateNotificationRuntime.ts"
+            )
+        );
+        const showUpdateNotificationRuntimeScopeSource =
+            showUpdateNotificationRuntimeSource.slice(
+                showUpdateNotificationRuntimeSource.indexOf(
+                    "export interface ShowUpdateNotificationRuntimeScope"
+                ),
+                showUpdateNotificationRuntimeSource.indexOf(
+                    "export interface ShowUpdateNotificationRuntime {"
+                )
+            );
+
+        expect(violations).toStrictEqual([]);
+        expect(showUpdateNotificationSource).toContain(
+            "showUpdateNotificationRuntime.js"
+        );
+        expect(showUpdateNotificationSource).toContain(
+            "queryNotificationElement"
+        );
+        expect(showUpdateNotificationSource).toContain("createElement");
+        expect(showUpdateNotificationSource).not.toMatch(
+            directShowUpdateNotificationDomRuntimeGlobalPattern
+        );
+        expect(showUpdateNotificationRuntimeSource).toContain(
+            "defaultShowUpdateNotificationRuntimeScope"
+        );
+        expect(showUpdateNotificationRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(showUpdateNotificationRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(showUpdateNotificationRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(showUpdateNotificationRuntimeSource).not.toContain(
+            "scope: ShowUpdateNotificationRuntimeScope = globalThis"
+        );
+        expect(showUpdateNotificationRuntimeSource).not.toMatch(
+            /\bscope\.document\s*\?\?\s*globalThis\.document\b/u
+        );
+        expect(showUpdateNotificationRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(showUpdateNotificationRuntimeSource).toContain(
+            "showUpdateNotification requires a document runtime"
         );
     });
 

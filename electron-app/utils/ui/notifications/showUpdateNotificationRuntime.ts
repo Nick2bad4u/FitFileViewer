@@ -1,0 +1,50 @@
+type ShowUpdateNotificationDocument = Pick<
+    Document,
+    "createElement" | "querySelector"
+>;
+
+export interface ShowUpdateNotificationRuntimeScope {
+    readonly getDocument?:
+        | (() => ShowUpdateNotificationDocument | undefined)
+        | undefined;
+}
+
+export interface ShowUpdateNotificationRuntime {
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
+    readonly queryNotificationElement: (selector: string) => HTMLElement | null;
+}
+
+const defaultShowUpdateNotificationRuntimeScope: ShowUpdateNotificationRuntimeScope =
+    {
+        getDocument: () => globalThis.document,
+    };
+
+function getRequiredDocument(
+    scope: ShowUpdateNotificationRuntimeScope
+): ShowUpdateNotificationDocument {
+    const runtimeDocument = scope.getDocument?.();
+    if (!runtimeDocument) {
+        throw new TypeError(
+            "showUpdateNotification requires a document runtime"
+        );
+    }
+
+    return runtimeDocument;
+}
+
+export function getShowUpdateNotificationRuntime(
+    scope: ShowUpdateNotificationRuntimeScope = defaultShowUpdateNotificationRuntimeScope
+): ShowUpdateNotificationRuntime {
+    return {
+        createElement(tagName) {
+            return getRequiredDocument(scope).createElement(tagName);
+        },
+        queryNotificationElement(selector): HTMLElement | null {
+            return getRequiredDocument(scope).querySelector<HTMLElement>(
+                selector
+            );
+        },
+    };
+}
