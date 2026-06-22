@@ -302,8 +302,9 @@ architecture guardrails blocking those direct browser clipboard paths from retur
 App performance debounce, throttle, batch, and idle-callback helpers now route timeout scheduling/clearing,
 idle-callback scheduling/cancellation, and clock reads through `performanceUtilsRuntime.ts` instead of calling
 timer, idle-callback, or `Date.now` globals directly inside `performanceUtils.ts`, with focused behavior/runtime
-coverage and architecture guardrails blocking those direct scheduling globals from returning. Explicit performance
-runtime scopes must now provide timer/clock primitives instead of falling back to `globalThis` or `Date.now`, with
+coverage and architecture guardrails blocking those direct scheduling globals from returning. Performance runtime
+production defaults now live behind named provider functions, and explicit runtime scopes must now provide timer,
+idle-callback, and clock providers instead of direct properties or falling back to `globalThis` or `Date.now`, with
 focused coverage blocking those ambient fallbacks from returning.
 Lazy-rendering timeout fallback scheduling now routes through `lazyRenderingRuntime.ts`, and explicit runtime
 scopes must provide `setTimeout` instead of falling back to `globalThis`, with focused coverage blocking that

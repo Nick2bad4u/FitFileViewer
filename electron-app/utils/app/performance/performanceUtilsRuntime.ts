@@ -3,44 +3,79 @@ export type PerformanceUtilsTimerHandle =
     | number;
 export type PerformanceUtilsIdleCallbackHandle = PerformanceUtilsTimerHandle;
 
+type PerformanceUtilsCancelIdleCallback = (handle: number) => void;
+type PerformanceUtilsClearTimeout = typeof globalThis.clearTimeout;
+type PerformanceUtilsDateNow = () => number;
+type PerformanceUtilsRequestIdleCallback = (
+    callback: () => void,
+    options?: Readonly<IdleRequestOptions>
+) => number;
+type PerformanceUtilsSetTimeout = (
+    callback: () => void,
+    timeout?: number
+) => PerformanceUtilsTimerHandle;
+
 export interface PerformanceUtilsRuntimeScope {
-    readonly cancelIdleCallback?:
-        | ((handle: number) => void)
+    readonly getCancelIdleCallback?:
+        | (() => PerformanceUtilsCancelIdleCallback | undefined)
         | undefined;
-    readonly clearTimeout?: typeof globalThis.clearTimeout | undefined;
-    readonly dateNow?: (() => number) | undefined;
-    readonly requestIdleCallback?:
-        | ((callback: () => void, options?: IdleRequestOptions) => number)
+    readonly getClearTimeout?:
+        | (() => PerformanceUtilsClearTimeout | undefined)
         | undefined;
-    readonly setTimeout?:
-        | ((
-              callback: () => void,
-              timeout?: number
-          ) => PerformanceUtilsTimerHandle)
+    readonly getDateNow?:
+        | (() => PerformanceUtilsDateNow | undefined)
+        | undefined;
+    readonly getRequestIdleCallback?:
+        | (() => PerformanceUtilsRequestIdleCallback | undefined)
+        | undefined;
+    readonly getSetTimeout?:
+        | (() => PerformanceUtilsSetTimeout | undefined)
         | undefined;
 }
 
 export interface PerformanceUtilsRuntime {
-    cancelIdleCallback(handle: PerformanceUtilsIdleCallbackHandle): void;
-    clearTimeout(handle: PerformanceUtilsTimerHandle): void;
-    now(): number;
-    requestIdleCallback(
+    readonly cancelIdleCallback: (
+        handle: PerformanceUtilsIdleCallbackHandle
+    ) => void;
+    readonly clearTimeout: (handle: PerformanceUtilsTimerHandle) => void;
+    readonly now: () => number;
+    readonly requestIdleCallback: (
         callback: () => void,
-        options?: IdleRequestOptions
-    ): PerformanceUtilsIdleCallbackHandle;
-    setTimeout(
+        options?: Readonly<IdleRequestOptions>
+    ) => PerformanceUtilsIdleCallbackHandle;
+    readonly setTimeout: (
         callback: () => void,
         timeout: number
-    ): PerformanceUtilsTimerHandle;
+    ) => PerformanceUtilsTimerHandle;
+}
+
+function getDefaultCancelIdleCallback():
+    | PerformanceUtilsCancelIdleCallback
+    | undefined {
+    if (typeof globalThis.cancelIdleCallback !== "function") {
+        return undefined;
+    }
+
+    return globalThis.cancelIdleCallback.bind(globalThis);
+}
+
+function getDefaultRequestIdleCallback():
+    | PerformanceUtilsRequestIdleCallback
+    | undefined {
+    if (typeof globalThis.requestIdleCallback !== "function") {
+        return undefined;
+    }
+
+    return globalThis.requestIdleCallback.bind(globalThis);
 }
 
 function getDefaultPerformanceUtilsRuntimeScope(): PerformanceUtilsRuntimeScope {
     return {
-        cancelIdleCallback: globalThis.cancelIdleCallback?.bind(globalThis),
-        clearTimeout: globalThis.clearTimeout,
-        dateNow: Date.now,
-        requestIdleCallback: globalThis.requestIdleCallback?.bind(globalThis),
-        setTimeout: globalThis.setTimeout,
+        getCancelIdleCallback: getDefaultCancelIdleCallback,
+        getClearTimeout: () => globalThis.clearTimeout,
+        getDateNow: () => Date.now,
+        getRequestIdleCallback: getDefaultRequestIdleCallback,
+        getSetTimeout: () => globalThis.setTimeout,
     };
 }
 
@@ -49,7 +84,7 @@ export function getPerformanceUtilsRuntime(
 ): PerformanceUtilsRuntime {
     return {
         cancelIdleCallback(handle): void {
-            const cancelIdleCallback = scope.cancelIdleCallback;
+            const cancelIdleCallback = scope.getCancelIdleCallback?.();
             if (
                 typeof handle === "number" &&
                 typeof cancelIdleCallback === "function"
@@ -61,7 +96,7 @@ export function getPerformanceUtilsRuntime(
             this.clearTimeout(handle);
         },
         clearTimeout(handle): void {
-            const clearTimeoutRef = scope.clearTimeout;
+            const clearTimeoutRef = scope.getClearTimeout?.();
             if (typeof clearTimeoutRef !== "function") {
                 throw new TypeError("performanceUtils requires clearTimeout");
             }
@@ -69,15 +104,18 @@ export function getPerformanceUtilsRuntime(
             clearTimeoutRef(handle);
         },
         now(): number {
-            const dateNow = scope.dateNow;
+            const dateNow = scope.getDateNow?.();
             if (typeof dateNow !== "function") {
                 throw new TypeError("performanceUtils requires dateNow");
             }
 
             return dateNow();
         },
-        requestIdleCallback(callback, options): PerformanceUtilsIdleCallbackHandle {
-            const requestIdleCallback = scope.requestIdleCallback;
+        requestIdleCallback(
+            callback,
+            options
+        ): PerformanceUtilsIdleCallbackHandle {
+            const requestIdleCallback = scope.getRequestIdleCallback?.();
             if (typeof requestIdleCallback === "function") {
                 return requestIdleCallback(callback, options);
             }
@@ -85,7 +123,7 @@ export function getPerformanceUtilsRuntime(
             return this.setTimeout(callback, options?.timeout ?? 1);
         },
         setTimeout(callback, timeout): PerformanceUtilsTimerHandle {
-            const setTimeoutRef = scope.setTimeout;
+            const setTimeoutRef = scope.getSetTimeout?.();
             if (typeof setTimeoutRef !== "function") {
                 throw new TypeError("performanceUtils requires setTimeout");
             }

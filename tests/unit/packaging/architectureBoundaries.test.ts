@@ -1235,7 +1235,7 @@ const directNetworkUtilsRuntimeAmbientFallbackPattern =
 const directPerformanceUtilsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\b|(?<!function\s)(?<![\w.])(?:cancelIdleCallback|clearTimeout|requestIdleCallback|setTimeout)\(|\bDate\.now\(/u;
 const directPerformanceUtilsRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:clearTimeout|dateNow|setTimeout)(?:\?\.\(\))?\s*\?\?\s*(?:globalThis\.(?:clearTimeout|setTimeout)|Date\.now\(\))/u;
+    /\bscope\.(?:cancelIdleCallback|clearTimeout|dateNow|requestIdleCallback|setTimeout)\b|\bscope:\s*PerformanceUtilsRuntimeScope\s*=\s*globalThis\b|\bPerformanceUtilsRuntimeScope\s*=\s*globalThis\b|\?\?\s*globalThis\b/u;
 const directCancellationTokenRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCancellationTokenRuntimeAmbientFallbackPattern =
@@ -12241,7 +12241,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps app performance scheduling APIs behind the runtime facade", () => {
-        expect.assertions(4);
+        expect.assertions(17);
 
         const violations = migratedPerformanceUtilsRuntimeFiles
             .filter((relativeFile) =>
@@ -12266,7 +12266,44 @@ describe("architecture boundaries", () => {
         expect(performanceUtilsRuntimeSource).not.toMatch(
             directPerformanceUtilsRuntimeAmbientFallbackPattern
         );
-        expect(performanceUtilsRuntimeSource).toContain("dateNow: Date.now");
+        expect(performanceUtilsRuntimeSource).not.toContain(
+            "readonly cancelIdleCallback?:"
+        );
+        expect(performanceUtilsRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(performanceUtilsRuntimeSource).not.toContain(
+            "readonly dateNow?:"
+        );
+        expect(performanceUtilsRuntimeSource).not.toContain(
+            "readonly requestIdleCallback?:"
+        );
+        expect(performanceUtilsRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(performanceUtilsRuntimeSource).not.toContain(
+            "scope.cancelIdleCallback"
+        );
+        expect(performanceUtilsRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(performanceUtilsRuntimeSource).not.toContain("scope.dateNow");
+        expect(performanceUtilsRuntimeSource).not.toContain(
+            "scope.requestIdleCallback"
+        );
+        expect(performanceUtilsRuntimeSource).not.toContain("scope.setTimeout");
+        expect(performanceUtilsRuntimeSource).toContain(
+            "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "getDateNow: () => Date.now"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "getRequestIdleCallback: getDefaultRequestIdleCallback"
+        );
+        expect(performanceUtilsRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
     });
 
     it("keeps async cancellation timers behind the runtime facade", () => {

@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getPerformanceUtilsRuntime } from "../../../../../electron-app/utils/app/performance/performanceUtilsRuntime.js";
+import {
+    getPerformanceUtilsRuntime,
+    type PerformanceUtilsRuntimeScope,
+} from "../../../../../electron-app/utils/app/performance/performanceUtilsRuntime.js";
 
 describe("getPerformanceUtilsRuntime", () => {
     it("schedules and clears timers through the injected runtime scope", () => {
@@ -11,10 +14,10 @@ describe("getPerformanceUtilsRuntime", () => {
         const clearedHandles: unknown[] = [];
         const timeoutMs = Number("25");
         const runtime = getPerformanceUtilsRuntime({
-            clearTimeout: (handle) => {
+            getClearTimeout: () => (handle) => {
                 clearedHandles.push(handle);
             },
-            setTimeout: (scheduledCallback, timeout) => {
+            getSetTimeout: () => (scheduledCallback, timeout) => {
                 scheduledCalls.push({
                     callback: scheduledCallback,
                     timeout,
@@ -38,7 +41,7 @@ describe("getPerformanceUtilsRuntime", () => {
 
         const canceledHandles: number[] = [];
         const runtime = getPerformanceUtilsRuntime({
-            cancelIdleCallback: (handle) => {
+            getCancelIdleCallback: () => (handle) => {
                 canceledHandles.push(handle);
             },
         });
@@ -53,7 +56,7 @@ describe("getPerformanceUtilsRuntime", () => {
 
         const clearedHandles: unknown[] = [];
         const runtime = getPerformanceUtilsRuntime({
-            clearTimeout: (handle) => {
+            getClearTimeout: () => (handle) => {
                 clearedHandles.push(handle);
             },
         });
@@ -73,7 +76,7 @@ describe("getPerformanceUtilsRuntime", () => {
             options?: IdleRequestOptions;
         }[] = [];
         const runtime = getPerformanceUtilsRuntime({
-            requestIdleCallback: (scheduledCallback, options) => {
+            getRequestIdleCallback: () => (scheduledCallback, options) => {
                 idleRequests.push({ callback: scheduledCallback, options });
                 return 17;
             },
@@ -94,7 +97,7 @@ describe("getPerformanceUtilsRuntime", () => {
         const timeoutMs = Number("75");
         const scheduledCalls: { callback: () => void; timeout?: number }[] = [];
         const runtime = getPerformanceUtilsRuntime({
-            setTimeout: (scheduledCallback, timeout) => {
+            getSetTimeout: () => (scheduledCallback, timeout) => {
                 scheduledCalls.push({
                     callback: scheduledCallback,
                     timeout,
@@ -114,9 +117,9 @@ describe("getPerformanceUtilsRuntime", () => {
     it("reads time from the injected clock", () => {
         expect.assertions(1);
 
-        expect(getPerformanceUtilsRuntime({ dateNow: () => 123 }).now()).toBe(
-            123
-        );
+        expect(
+            getPerformanceUtilsRuntime({ getDateNow: () => () => 123 }).now()
+        ).toBe(123);
     });
 
     it("does not borrow ambient timers or clocks for explicit scopes", () => {
@@ -132,6 +135,32 @@ describe("getPerformanceUtilsRuntime", () => {
         );
         expect(() => runtime.now()).toThrow(
             "performanceUtils requires dateNow"
+        );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(4);
+
+        const legacyScope = {
+            cancelIdleCallback: vi.fn(),
+            clearTimeout: vi.fn(),
+            dateNow: vi.fn(() => 123),
+            requestIdleCallback: vi.fn(() => 17),
+            setTimeout: vi.fn(() => 42),
+        } as unknown as PerformanceUtilsRuntimeScope;
+        const runtime = getPerformanceUtilsRuntime(legacyScope);
+
+        expect(() => runtime.setTimeout(() => undefined, 1)).toThrow(
+            "performanceUtils requires setTimeout"
+        );
+        expect(() => runtime.clearTimeout(1)).toThrow(
+            "performanceUtils requires clearTimeout"
+        );
+        expect(() => runtime.now()).toThrow(
+            "performanceUtils requires dateNow"
+        );
+        expect(() => runtime.requestIdleCallback(() => undefined)).toThrow(
+            "performanceUtils requires setTimeout"
         );
     });
 });
