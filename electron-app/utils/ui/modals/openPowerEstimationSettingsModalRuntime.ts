@@ -14,7 +14,12 @@ export interface OpenPowerEstimationSettingsModalRuntime {
         listener: PowerEstimationSettingsModalKeydownListener,
         options: Readonly<AddEventListenerOptions>
     ) => void;
+    readonly appendToBody: (element: Element) => void;
+    readonly bodyContains: (element: Element) => boolean;
     readonly createAbortController: () => AbortController;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
 }
 
 function getAbortControllerConstructor(
@@ -27,6 +32,19 @@ function getDocumentEventTarget(
     scope: OpenPowerEstimationSettingsModalRuntimeScope
 ): Document | undefined {
     return scope.getDocumentEventTarget?.();
+}
+
+function getRuntimeDocument(
+    scope: OpenPowerEstimationSettingsModalRuntimeScope
+): Document {
+    const documentRef = getDocumentEventTarget(scope);
+    if (!documentRef) {
+        throw new TypeError(
+            "openPowerEstimationSettingsModal requires a document event-target runtime"
+        );
+    }
+
+    return documentRef;
 }
 
 const defaultOpenPowerEstimationSettingsModalRuntimeScope: OpenPowerEstimationSettingsModalRuntimeScope =
@@ -50,6 +68,12 @@ export function getOpenPowerEstimationSettingsModalRuntime(
             // eslint-disable-next-line runtime-cleanup/no-unmanaged-event-listeners -- The listener is tied to the caller-provided AbortSignal.
             documentEventTarget.addEventListener("keydown", listener, options);
         },
+        appendToBody(element): void {
+            getRuntimeDocument(scope).body.append(element);
+        },
+        bodyContains(element): boolean {
+            return getRuntimeDocument(scope).body.contains(element);
+        },
         createAbortController(): AbortController {
             const AbortControllerConstructor =
                 getAbortControllerConstructor(scope);
@@ -60,6 +84,9 @@ export function getOpenPowerEstimationSettingsModalRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createElement(tagName) {
+            return getRuntimeDocument(scope).createElement(tagName);
         },
     };
 }

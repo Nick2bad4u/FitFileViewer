@@ -1347,7 +1347,7 @@ const directCreatePowerEstimationButtonRuntimeAmbientFallbackPattern =
 const directCreatePowerEstimationButtonRuntimeAmbientGetterPattern =
     /\bget\s+(?:AbortController|document)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|document)\b/u;
 const directOpenPowerEstimationSettingsModalRuntimeGlobalPattern =
-    /\bnew\s+AbortController\b/u;
+    /\bdocument\.(?:addEventListener|body|createElement)\b|\bnew\s+AbortController\b/u;
 const directCreateMarkerCountSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+(?:AbortController|Event)\(/u;
 const directCreateMarkerCountSelectorRuntimeAmbientFallbackPattern =
@@ -8470,7 +8470,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps power-estimation settings modal listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(16);
+        expect.assertions(21);
 
         const violations = migratedOpenPowerEstimationSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -8509,8 +8509,17 @@ describe("architecture boundaries", () => {
         expect(powerEstimationSettingsModalSource).toContain(
             "addDocumentKeydownListener"
         );
+        expect(powerEstimationSettingsModalSource).toContain("appendToBody");
+        expect(powerEstimationSettingsModalSource).toContain("bodyContains");
+        expect(powerEstimationSettingsModalSource).toContain("createElement");
         expect(powerEstimationSettingsModalSource).not.toContain(
             "document.addEventListener"
+        );
+        expect(powerEstimationSettingsModalSource).not.toContain(
+            "document.createElement"
+        );
+        expect(powerEstimationSettingsModalSource).not.toContain(
+            "document.body"
         );
         expect(powerEstimationSettingsModalRuntimeSource).toContain(
             "defaultOpenPowerEstimationSettingsModalRuntimeScope"

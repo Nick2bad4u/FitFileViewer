@@ -22,9 +22,10 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const runtime = getOpenPowerEstimationSettingsModalRuntime({});
+        const element = document.createElement("div");
 
         expect(() => runtime.createAbortController()).toThrow(
             "openPowerEstimationSettingsModal requires an AbortController runtime"
@@ -32,6 +33,15 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         expect(() =>
             runtime.addDocumentKeydownListener(() => undefined, {})
         ).toThrow(
+            "openPowerEstimationSettingsModal requires a document event-target runtime"
+        );
+        expect(() => runtime.appendToBody(element)).toThrow(
+            "openPowerEstimationSettingsModal requires a document event-target runtime"
+        );
+        expect(() => runtime.bodyContains(element)).toThrow(
+            "openPowerEstimationSettingsModal requires a document event-target runtime"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
             "openPowerEstimationSettingsModal requires a document event-target runtime"
         );
     });
@@ -67,7 +77,7 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
     });
 
     it("routes all defaults through provider functions", () => {
-        expect.assertions(5);
+        expect.assertions(8);
 
         let keydownCount = 0;
         const documentEventTarget =
@@ -95,16 +105,22 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
             signal: controller.signal,
         });
         documentEventTarget.dispatchEvent(new KeyboardEvent("keydown"));
+        const overlay = runtime.createElement("div");
+        overlay.className = "power-estimation-settings-overlay";
+        runtime.appendToBody(overlay);
 
         expect(runtime.createAbortController()).toBe(controller);
-        expect(getDocumentEventTarget).toHaveBeenCalledOnce();
+        expect(runtime.bodyContains(overlay)).toBe(true);
+        expect(documentEventTarget.body.firstElementChild).toBe(overlay);
+        expect(overlay).toBeInstanceOf(HTMLDivElement);
+        expect(getDocumentEventTarget).toHaveBeenCalledTimes(4);
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
         expect(keydownCount).toBe(1);
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(4);
+        expect.assertions(9);
 
         const AbortControllerConstructor = vi.fn();
         const documentEventTarget =
@@ -113,6 +129,7 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
             documentEventTarget,
             "addEventListener"
         );
+        const createElement = vi.spyOn(documentEventTarget, "createElement");
         const runtime = getOpenPowerEstimationSettingsModalRuntime({
             AbortController:
                 AbortControllerConstructor as unknown as typeof AbortController,
@@ -120,6 +137,7 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         } as unknown as Parameters<
             typeof getOpenPowerEstimationSettingsModalRuntime
         >[0]);
+        const element = document.createElement("div");
 
         expect(() => runtime.createAbortController()).toThrow(
             "openPowerEstimationSettingsModal requires an AbortController runtime"
@@ -129,7 +147,18 @@ describe("getOpenPowerEstimationSettingsModalRuntime", () => {
         ).toThrow(
             "openPowerEstimationSettingsModal requires a document event-target runtime"
         );
+        expect(() => runtime.appendToBody(element)).toThrow(
+            "openPowerEstimationSettingsModal requires a document event-target runtime"
+        );
+        expect(() => runtime.bodyContains(element)).toThrow(
+            "openPowerEstimationSettingsModal requires a document event-target runtime"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
+            "openPowerEstimationSettingsModal requires a document event-target runtime"
+        );
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();
+        expect(createElement).not.toHaveBeenCalled();
+        expect(documentEventTarget.body.childElementCount).toBe(0);
     });
 });

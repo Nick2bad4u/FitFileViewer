@@ -39,7 +39,8 @@ export function openPowerEstimationSettingsModal({
 }: OpenPowerEstimationSettingsModalParams): void {
     const current = getPowerEstimationSettings();
 
-    const overlay = document.createElement("div");
+    const overlay =
+        openPowerEstimationSettingsModalRuntime.createElement("div");
     overlay.className = "power-estimation-settings-overlay";
     overlay.style.cssText = `
         position: fixed;
@@ -62,7 +63,9 @@ export function openPowerEstimationSettingsModal({
         eventListeners.abort();
         focusTrapCleanup?.();
         focusTrapCleanup = undefined;
-        overlay.remove();
+        if (openPowerEstimationSettingsModalRuntime.bodyContains(overlay)) {
+            overlay.remove();
+        }
     }
 
     function handleEscape(e: KeyboardEvent): void {
@@ -78,7 +81,7 @@ export function openPowerEstimationSettingsModal({
         }
     );
 
-    const modal = document.createElement("div");
+    const modal = openPowerEstimationSettingsModalRuntime.createElement("div");
     modal.className = "power-estimation-settings-modal";
     modal.setAttribute("aria-describedby", "power-estimation-settings-note");
     modal.setAttribute("aria-labelledby", "power-estimation-settings-title");
@@ -95,13 +98,13 @@ export function openPowerEstimationSettingsModal({
         color: var(--color-fg);
     `;
 
-    const title = document.createElement("div");
+    const title = openPowerEstimationSettingsModalRuntime.createElement("div");
     title.id = "power-estimation-settings-title";
     title.textContent = "⚡ Estimated Power (Experimental)";
     title.style.cssText =
         "font-size: 1.1rem; font-weight: 800; margin-bottom: 8px;";
 
-    const note = document.createElement("div");
+    const note = openPowerEstimationSettingsModalRuntime.createElement("div");
     note.id = "power-estimation-settings-note";
     note.style.cssText =
         "color: var(--color-fg-muted); font-size: 0.9rem; margin-bottom: 12px; line-height: 1.4;";
@@ -109,7 +112,7 @@ export function openPowerEstimationSettingsModal({
         ? "This file contains real power data. Estimated power will not be applied."
         : "This estimates power from speed + elevation/grade using a physics-based model (virtual power). Results are approximate.";
 
-    const form = document.createElement("div");
+    const form = openPowerEstimationSettingsModalRuntime.createElement("div");
     form.style.cssText =
         "display: grid; grid-template-columns: 1fr 1fr; gap: 10px;";
 
@@ -117,9 +120,11 @@ export function openPowerEstimationSettingsModal({
         labelText: string,
         inputEl: HTMLElement
     ): HTMLLabelElement => {
-        const wrap = document.createElement("label");
+        const wrap =
+            openPowerEstimationSettingsModalRuntime.createElement("label");
         wrap.style.cssText = "display:flex; flex-direction:column; gap:6px;";
-        const label = document.createElement("span");
+        const label =
+            openPowerEstimationSettingsModalRuntime.createElement("span");
         label.textContent = labelText;
         label.style.cssText =
             "font-size: 0.85rem; color: var(--color-fg-muted);";
@@ -131,7 +136,8 @@ export function openPowerEstimationSettingsModal({
         value: number,
         { max, min, name, step }: NumberInputBounds
     ): HTMLInputElement => {
-        const input = document.createElement("input");
+        const input =
+            openPowerEstimationSettingsModalRuntime.createElement("input");
         input.type = "number";
         input.name = name;
         input.value = String(value);
@@ -148,15 +154,18 @@ export function openPowerEstimationSettingsModal({
         return input;
     };
 
-    const enabledInput = document.createElement("input");
+    const enabledInput =
+        openPowerEstimationSettingsModalRuntime.createElement("input");
     enabledInput.type = "checkbox";
     enabledInput.name = "enabled";
     enabledInput.checked = current.enabled;
 
-    const enabledWrap = document.createElement("label");
+    const enabledWrap =
+        openPowerEstimationSettingsModalRuntime.createElement("label");
     enabledWrap.style.cssText =
         "grid-column: 1 / -1; display:flex; align-items:center; gap:10px; margin-bottom: 4px;";
-    const enabledText = document.createElement("span");
+    const enabledText =
+        openPowerEstimationSettingsModalRuntime.createElement("span");
     enabledText.textContent = "Enable estimated power for files without power";
     enabledWrap.append(enabledInput, enabledText);
 
@@ -220,16 +229,19 @@ export function openPowerEstimationSettingsModal({
         makeField("Max power clamp (W)", maxPower)
     );
 
-    const actions = document.createElement("div");
+    const actions =
+        openPowerEstimationSettingsModalRuntime.createElement("div");
     actions.style.cssText =
         "display:flex; justify-content:flex-end; gap:10px; margin-top: 14px;";
 
-    const cancel = document.createElement("button");
+    const cancel =
+        openPowerEstimationSettingsModalRuntime.createElement("button");
     cancel.className = "themed-btn";
     cancel.textContent = "Cancel";
     cancel.type = "button";
 
-    const apply = document.createElement("button");
+    const apply =
+        openPowerEstimationSettingsModalRuntime.createElement("button");
     apply.className = "themed-btn";
     apply.textContent = "Apply";
     apply.type = "button";
@@ -377,6 +389,6 @@ export function openPowerEstimationSettingsModal({
         { signal: eventListeners.signal }
     );
 
-    document.body.append(overlay);
+    openPowerEstimationSettingsModalRuntime.appendToBody(overlay);
     focusTrapCleanup = createModalFocusTrap(modal, cancel);
 }
