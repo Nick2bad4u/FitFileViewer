@@ -249,18 +249,14 @@ export { newFunction } from "./newModule.js";
 ### State Management Patterns
 
 ```javascript
-// Use unified state manager
-import { unifiedStateManager } from "../state/core/unifiedStateManager.js";
+// Use the state manager or a typed domain state service.
+import { getState, setState, subscribe } from "../state/core/stateManager.js";
 
 // Standard state operations
 export class FeatureManager {
- constructor() {
-  this.state = unifiedStateManager;
- }
-
  // Get state
  getFeatureData() {
-  return this.state.get("feature.data", []);
+  return getState("feature.data") ?? [];
  }
 
  // Set state with validation
@@ -269,13 +265,15 @@ export class FeatureManager {
    throw new ValidationError("Feature data must be an array");
   }
 
-  this.state.set("feature.data", data);
-  this.state.set("feature.lastUpdated", Date.now());
+  setState("feature.data", data, { source: "feature-manager" });
+  setState("feature.lastUpdated", Date.now(), {
+   source: "feature-manager",
+  });
  }
 
  // Subscribe to changes
  onFeatureChange(callback) {
-  return this.state.subscribe("feature", callback);
+  return subscribe("feature", callback);
  }
 }
 ```

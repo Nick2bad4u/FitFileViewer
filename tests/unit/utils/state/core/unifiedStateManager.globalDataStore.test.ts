@@ -27,11 +27,30 @@ describe("unifiedStateManager retired globalData path", () => {
             source: "test",
         });
 
-        expect(unifiedState.isLegacyPath("globalData")).toBe(false);
         expect(Reflect.has(globalThis, "globalData")).toBe(false);
+        expect("isLegacyPath" in unifiedState).toBe(false);
         expect(getState("fitFile.rawData")).toBeNull();
         expect(getState("globalData")).toBeUndefined();
         expect(getState("globalData.recordMesgs")).toBeUndefined();
         expect(get("globalData", fallback)).toBe(fallback);
+    });
+
+    it("does not expose legacy path routing or synchronization state", () => {
+        expect.assertions(5);
+
+        const loadedFilePath = "C:/activities/direct.fit";
+
+        set("loadedFitFilePath", loadedFilePath, {
+            source: "test",
+            syncLegacy: false,
+        } as Parameters<typeof set>[2]);
+
+        const snapshot = unifiedState.getSnapshot();
+
+        expect(getState("loadedFitFilePath")).toBe(loadedFilePath);
+        expect("isLegacyPath" in unifiedState).toBe(false);
+        expect("setSyncEnabled" in unifiedState).toBe(false);
+        expect("legacyPaths" in snapshot).toBe(false);
+        expect("syncEnabled" in snapshot).toBe(false);
     });
 });

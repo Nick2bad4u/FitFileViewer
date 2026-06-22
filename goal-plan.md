@@ -944,6 +944,9 @@ patterns, naming animation-frame fallback callbacks explicitly, documenting call
 duplicate optional `undefined` type constituents.
 The setup-level `global.HTMLElement = window.HTMLElement` bridge has also been removed; jsdom-backed suites now
 use the environment's native element constructors without another shared global assignment.
+Unified state facade legacy-path synchronization has been removed; `unifiedStateManager.ts` now only guards retired
+state paths such as `globalData` and otherwise routes directly through the modern state manager, with focused coverage
+and architecture coverage blocking `LEGACY_PATHS`, `syncLegacy`, `legacy-sync`, and `setSyncEnabled` from returning.
 Setup console hardening now uses the existing `ensureConsoleAlive()` path instead of separately patching
 `window.console.group`, `window.console.groupEnd`, and `window.console.groupCollapsed` in another global block.
 Vitest setup now aligns `window.console` through the descriptor-scoped `setConsoleObject()` helper instead of

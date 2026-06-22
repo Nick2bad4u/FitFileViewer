@@ -8,63 +8,29 @@ import {
 type UnifiedStateOptions = {
     readonly silent?: boolean;
     readonly source?: string;
-    readonly syncLegacy?: boolean;
 };
 
 type UnifiedStateInitOptions = {
     readonly enableDebug?: boolean;
-    readonly enableSync?: boolean;
-};
-
-type ConsistencyIssue = {
-    readonly legacyValue: unknown;
-    readonly newValue: unknown;
-    readonly path: string;
-    readonly type: "value_mismatch";
-};
-
-type ConsistencyWarning = {
-    readonly error: string;
-    readonly path: string;
-    readonly type: "access_error";
-};
-
-type ConsistencyValidationResult = {
-    readonly isValid: boolean;
-    readonly issues: ConsistencyIssue[];
-    readonly timestamp: number;
-    readonly warnings: ConsistencyWarning[];
 };
 
 type UnifiedStateSnapshot = {
     readonly debugMode: boolean;
-    readonly legacyPaths: string[];
     readonly newState: unknown;
-    readonly syncEnabled: boolean;
     readonly timestamp: number;
 };
 
 type Unsubscribe = () => void;
 
-const LEGACY_PATHS = new Set([
-    "autoUpdaterInitialized",
-    "loadedFitFilePath",
-    "mainWindow",
-]);
 const BLOCKED_STATE_PATHS = new Set(["globalData"]);
 
 /**
- * Single interface for routing state access during the legacy-to-modern state
- * migration.
+ * Single interface for guarded state access during the state migration.
  */
 export class UnifiedStateManager {
     private debugMode = false;
 
     private readonly blockedWarningsShown = new Set<string>();
-
-    private readonly legacyWarningsShown = new Set<string>();
-
-    private syncEnabled = true;
 
     /** Disables verbose state-routing diagnostics. */
     public disableDebugMode(): void {
@@ -85,10 +51,6 @@ export class UnifiedStateManager {
                 return defaultValue;
             }
 
-            if (this.isLegacyPath(path)) {
-                return this.getLegacyState(path, defaultValue);
-            }
-
             return getNewState(path) ?? defaultValue;
         } catch (error) {
             if (this.debugMode) {
@@ -106,17 +68,9 @@ export class UnifiedStateManager {
     public getSnapshot(): UnifiedStateSnapshot {
         return {
             debugMode: this.debugMode,
-            legacyPaths: [...LEGACY_PATHS],
             newState: getNewState(""),
-            syncEnabled: this.syncEnabled,
             timestamp: Date.now(),
         };
-    }
-
-    /** Returns whether a path is still routed through a legacy state boundary. */
-    public isLegacyPath(path: string): boolean {
-        const [rootPath] = path.split(".");
-        return typeof rootPath === "string" && LEGACY_PATHS.has(rootPath);
     }
 
     /**
@@ -132,7 +86,6 @@ export class UnifiedStateManager {
         const opts = {
             silent: false,
             source: "unified",
-            syncLegacy: true,
             ...options,
         } satisfies Required<UnifiedStateOptions>;
 
@@ -142,21 +95,10 @@ export class UnifiedStateManager {
                 return;
             }
 
-            if (this.isLegacyPath(path)) {
-                this.setLegacyState(path);
-
-                if (opts.syncLegacy && this.syncEnabled) {
-                    setNewState(path, value, {
-                        source: `${opts.source}-legacy-sync`,
-                        silent: opts.silent,
-                    } satisfies StateUpdateOptions);
-                }
-            } else {
-                setNewState(path, value, {
-                    source: opts.source,
-                    silent: opts.silent,
-                } satisfies StateUpdateOptions);
-            }
+            setNewState(path, value, {
+                source: opts.source,
+                silent: opts.silent,
+            } satisfies StateUpdateOptions);
 
             if (this.debugMode) {
                 console.log(`[UnifiedState] Set "${path}" =`, value, opts);
@@ -170,18 +112,8 @@ export class UnifiedStateManager {
         }
     }
 
-    /** Enables or disables syncing writes from legacy paths into modern state. */
-    public setSyncEnabled(enabled: boolean): void {
-        this.syncEnabled = enabled;
-        if (this.debugMode) {
-            console.log(
-                `[UnifiedState] Legacy sync ${enabled ? "enabled" : "disabled"}`
-            );
-        }
-    }
-
     /**
-     * Subscribes to modern state changes while guarding unsupported legacy
+     * Subscribes to modern state changes while guarding unsupported retired
      * subscriptions.
      */
     public subscribe(
@@ -195,65 +127,7 @@ export class UnifiedStateManager {
             };
         }
 
-        if (this.isLegacyPath(path)) {
-            console.warn(
-                `[UnifiedState] Legacy path "${path}" subscriptions not fully supported`
-            );
-            return () => {
-                // Legacy subscriptions are intentionally unsupported.
-            };
-        }
-
         return subscribeNew(path, callback);
-    }
-
-    /** Checks for value mismatches between legacy and modern state boundaries. */
-    public validateConsistency(): ConsistencyValidationResult {
-        const issues: ConsistencyIssue[] = [];
-        const warnings: ConsistencyWarning[] = [];
-
-        for (const legacyPath of LEGACY_PATHS) {
-            try {
-                const legacyValue = this.getLegacyState(legacyPath);
-                const newValue = getNewState(legacyPath);
-
-                if (
-                    legacyValue !== undefined &&
-                    newValue !== undefined &&
-                    legacyValue !== newValue
-                ) {
-                    issues.push({
-                        legacyValue,
-                        newValue,
-                        path: legacyPath,
-                        type: "value_mismatch",
-                    });
-                }
-            } catch (error) {
-                warnings.push({
-                    error:
-                        error instanceof Error ? error.message : String(error),
-                    path: legacyPath,
-                    type: "access_error",
-                });
-            }
-        }
-
-        return {
-            isValid: issues.length === 0,
-            issues,
-            timestamp: Date.now(),
-            warnings,
-        };
-    }
-
-    private getLegacyState(path: string, defaultValue?: unknown): unknown {
-        this.warnLegacyPathOnce(path, "Accessing");
-        return getNewState(path) ?? defaultValue;
-    }
-
-    private setLegacyState(path: string): void {
-        this.warnLegacyPathOnce(path, "Setting");
     }
 
     private isBlockedStatePath(path: string): boolean {
@@ -275,20 +149,6 @@ export class UnifiedStateManager {
             `[UnifiedState] ${action} retired state path "${path}". Use the explicit FIT state slices instead.`
         );
         this.blockedWarningsShown.add(path);
-    }
-
-    private warnLegacyPathOnce(
-        path: string,
-        action: "Accessing" | "Setting"
-    ): void {
-        if (this.legacyWarningsShown.has(path)) {
-            return;
-        }
-
-        console.warn(
-            `[UnifiedState] ${action} legacy state path "${path}". Consider migrating to new state system.`
-        );
-        this.legacyWarningsShown.add(path);
     }
 }
 
@@ -324,27 +184,10 @@ export function subscribe(
 export function initializeUnifiedState(
     options: UnifiedStateInitOptions = {}
 ): UnifiedStateManager {
-    const { enableDebug = false, enableSync = true } = options;
+    const { enableDebug = false } = options;
 
     if (enableDebug) {
         unifiedState.enableDebugMode();
-    }
-
-    unifiedState.setSyncEnabled(enableSync);
-
-    const validation = unifiedState.validateConsistency();
-    if (!validation.isValid) {
-        console.warn(
-            "[UnifiedState] State consistency issues detected:",
-            validation.issues
-        );
-    }
-
-    if (validation.warnings.length > 0) {
-        console.warn(
-            "[UnifiedState] State access warnings:",
-            validation.warnings
-        );
     }
 
     console.log("[UnifiedState] Unified state management initialized");

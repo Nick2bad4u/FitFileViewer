@@ -6278,6 +6278,25 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps the unified state facade free of legacy path synchronization", () => {
+        expect.assertions(8);
+
+        const unifiedStateManagerSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/state/core/unifiedStateManager.ts"
+            )
+        );
+
+        expect(unifiedStateManagerSource).not.toContain("LEGACY_PATHS");
+        expect(unifiedStateManagerSource).not.toContain("legacyPaths");
+        expect(unifiedStateManagerSource).not.toContain("syncLegacy");
+        expect(unifiedStateManagerSource).not.toContain("syncEnabled");
+        expect(unifiedStateManagerSource).not.toContain("setSyncEnabled");
+        expect(unifiedStateManagerSource).not.toContain("isLegacyPath");
+        expect(unifiedStateManagerSource).not.toContain("legacy-sync");
+        expect(unifiedStateManagerSource).not.toContain("validateConsistency");
+    });
+
     it("keeps state-manager defaults on scoped runtime access", () => {
         expect.assertions(13);
 
