@@ -788,10 +788,12 @@ Credits marquee resize-listener fallback cleanup now creates abort controllers t
 marquee abort-controller construction from returning. Credits marquee runtime defaults now live in an explicit
 provider object instead of a broad `globalThis` default scope, and explicit scopes use named providers instead of
 direct controller/document/event-target/constructor/frame properties.
-Filename auto-scroll resize-listener registration, cleanup timers, and cleanup abort-controller creation now route
-through `unifiedControlBarRuntime.ts`; explicit runtime scopes must provide resize event-target and timer
-primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture coverage
-blocking direct unified-control-bar browser primitives and ambient fallback restoration from returning.
+Filename auto-scroll resize-listener registration, cleanup timers, cleanup abort-controller creation, document
+access, element checks, and mutation-observer creation now route through `unifiedControlBarRuntime.ts`; production
+defaults now live behind named provider functions, and explicit runtime scopes must provide controller, document,
+event-target, element-constructor, observer, and timer providers instead of direct properties or `globalThis`
+fallbacks, with focused runtime coverage and architecture coverage blocking direct unified-control-bar browser
+primitives and ambient fallback restoration from returning.
 Strict about modal tests now install their immediate `requestAnimationFrame` fixture through a Vitest-scoped
 global stub instead of assigning, defining, or deleting `globalThis.requestAnimationFrame` directly, with
 architecture coverage blocking that fixture mutation pattern.

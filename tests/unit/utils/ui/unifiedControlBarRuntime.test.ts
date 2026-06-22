@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getUnifiedControlBarRuntime } from "../../../../electron-app/utils/ui/unifiedControlBarRuntime.js";
+import {
+    getUnifiedControlBarRuntime,
+    type UnifiedControlBarRuntimeScope,
+} from "../../../../electron-app/utils/ui/unifiedControlBarRuntime.js";
 
 describe("getUnifiedControlBarRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -20,7 +23,7 @@ describe("getUnifiedControlBarRuntime", () => {
             }
         }
         const runtime = getUnifiedControlBarRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -42,7 +45,9 @@ describe("getUnifiedControlBarRuntime", () => {
     it("creates elements and exposes the injected body", () => {
         expect.assertions(2);
 
-        const runtime = getUnifiedControlBarRuntime({ document });
+        const runtime = getUnifiedControlBarRuntime({
+            getDocument: () => document,
+        });
         const element = runtime.createElement("div");
 
         expect(element).toBeInstanceOf(HTMLDivElement);
@@ -57,8 +62,8 @@ describe("getUnifiedControlBarRuntime", () => {
             target.className = "target";
             document.body.append(target);
             const runtime = getUnifiedControlBarRuntime({
-                document,
-                HTMLElement,
+                getDocument: () => document,
+                getHTMLElement: () => HTMLElement,
             });
 
             expect(runtime.querySelector(".target")).toBe(target);
@@ -78,7 +83,7 @@ describe("getUnifiedControlBarRuntime", () => {
         };
         const options = { passive: true };
         const runtime = getUnifiedControlBarRuntime({
-            eventTarget,
+            getEventTarget: () => eventTarget,
         });
 
         runtime.addResizeListener(listener, options);
@@ -131,7 +136,7 @@ describe("getUnifiedControlBarRuntime", () => {
 
         const callback = vi.fn<MutationCallback>();
         const runtime = getUnifiedControlBarRuntime({
-            MutationObserver: MutationObserverMock,
+            getMutationObserver: () => MutationObserverMock,
         });
 
         const observer = runtime.createMutationObserver(callback);
@@ -151,8 +156,8 @@ describe("getUnifiedControlBarRuntime", () => {
         >(() => 13);
         const clearTimeout = vi.fn<(handle: number) => void>();
         const runtime = getUnifiedControlBarRuntime({
-            clearTimeout,
-            setTimeout,
+            getClearTimeout: () => clearTimeout,
+            getSetTimeout: () => setTimeout,
         });
         const timeoutMs = Number.parseInt("200", 10);
 
@@ -176,5 +181,51 @@ describe("getUnifiedControlBarRuntime", () => {
         expect(() => runtime.clearTimeout(0)).toThrow(
             "unifiedControlBar requires a clearTimeout runtime"
         );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(8);
+
+        const controller = new AbortController();
+        const AbortControllerConstructor = vi.fn(
+            function FakeAbortController() {
+                return controller;
+            }
+        );
+        const clearTimeout = vi.fn<(handle: number) => void>();
+        const eventTarget = new EventTarget();
+        const setTimeout = vi.fn(() => 13);
+        const legacyScope = {
+            AbortController:
+                AbortControllerConstructor as unknown as typeof AbortController,
+            clearTimeout,
+            document,
+            eventTarget,
+            HTMLElement,
+            MutationObserver: "MutationObserver",
+            setTimeout,
+        } as unknown as UnifiedControlBarRuntimeScope;
+        const runtime = getUnifiedControlBarRuntime(legacyScope);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "unifiedControlBar requires an AbortController runtime"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
+            "unifiedControlBar requires a document-like runtime"
+        );
+        expect(() => runtime.addResizeListener(() => {}, {})).toThrow(
+            "unifiedControlBar requires an event-target runtime"
+        );
+        expect(() => runtime.createMutationObserver(() => {})).toThrow(
+            "unifiedControlBar requires a MutationObserver runtime"
+        );
+        expect(runtime.isHTMLElement(document.body)).toBe(false);
+        expect(() => runtime.setTimeout(() => undefined, 0)).toThrow(
+            "unifiedControlBar requires a setTimeout runtime"
+        );
+        expect(() => runtime.clearTimeout(0)).toThrow(
+            "unifiedControlBar requires a clearTimeout runtime"
+        );
+        expect(AbortControllerConstructor).not.toHaveBeenCalled();
     });
 });

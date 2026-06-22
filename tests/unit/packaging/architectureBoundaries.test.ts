@@ -1277,7 +1277,7 @@ const directTabStateManagerHandlersRuntimeAmbientTimerFallbackPattern =
 const directUnifiedControlBarRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|createElement|querySelector|removeEventListener|setTimeout)\b|\bnew\s+(?:AbortController|MutationObserver)\b|\binstanceof\s+HTMLElement\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directUnifiedControlBarRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:clearTimeout|eventTarget|setTimeout)\s*\?\?\s*globalThis(?:\.(?:clearTimeout|setTimeout))?\b/u;
+    /\bscope\.(?:AbortController|clearTimeout|document|eventTarget|HTMLElement|MutationObserver|setTimeout)\b|\bscope:\s*UnifiedControlBarRuntimeScope\s*=\s*globalThis\b|\bUnifiedControlBarRuntimeScope\s*=\s*globalThis\b|\?\?\s*globalThis\b/u;
 const directQuickColorSwitcherRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directQuickColorSwitcherRuntimeAmbientGetterPattern =
@@ -12544,7 +12544,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps unified control-bar browser APIs behind the runtime facade", () => {
-        expect.assertions(5);
+        expect.assertions(24);
 
         const violations = migratedUnifiedControlBarRuntimeFiles
             .filter((relativeFile) =>
@@ -12569,6 +12569,61 @@ describe("architecture boundaries", () => {
         expect(unifiedControlBarSource).toContain("createAbortController");
         expect(unifiedControlBarRuntimeSource).not.toMatch(
             directUnifiedControlBarRuntimeAmbientFallbackPattern
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "readonly clearTimeout?:"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "readonly eventTarget?:"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "readonly MutationObserver?:"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "scope.clearTimeout"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain("scope.document");
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "scope.eventTarget"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "scope.HTMLElement"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "scope.MutationObserver"
+        );
+        expect(unifiedControlBarRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "getEventTarget: () => globalThis"
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "getMutationObserver: () => globalThis.MutationObserver"
+        );
+        expect(unifiedControlBarRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(unifiedControlBarRuntimeSource).toContain(
             "unifiedControlBar requires a setTimeout runtime"
