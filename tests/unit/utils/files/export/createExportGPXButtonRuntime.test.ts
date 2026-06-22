@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getCreateExportGPXButtonRuntime } from "../../../../../electron-app/utils/files/export/createExportGPXButtonRuntime.js";
+import {
+    getCreateExportGPXButtonRuntime,
+    type CreateExportGPXButtonRuntimeScope,
+} from "../../../../../electron-app/utils/files/export/createExportGPXButtonRuntime.js";
 
 describe("getCreateExportGPXButtonRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -20,7 +23,7 @@ describe("getCreateExportGPXButtonRuntime", () => {
             }
         }
         const runtime = getCreateExportGPXButtonRuntime({
-            AbortController: TestAbortController,
+            getAbortController: () => TestAbortController,
         });
 
         expect(runtime.createAbortController()).toBeInstanceOf(
@@ -32,7 +35,9 @@ describe("getCreateExportGPXButtonRuntime", () => {
     it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(3);
 
-        const runtime = getCreateExportGPXButtonRuntime({ document });
+        const runtime = getCreateExportGPXButtonRuntime({
+            getDocument: () => document,
+        });
 
         expect(runtime.createButton()).toBeInstanceOf(HTMLButtonElement);
         expect(runtime.createElement("a")).toBeInstanceOf(HTMLAnchorElement);
@@ -42,7 +47,9 @@ describe("getCreateExportGPXButtonRuntime", () => {
     it("appends elements to the injected document body", () => {
         expect.assertions(2);
 
-        const runtime = getCreateExportGPXButtonRuntime({ document });
+        const runtime = getCreateExportGPXButtonRuntime({
+            getDocument: () => document,
+        });
         const link = runtime.createElement("a");
 
         runtime.appendToBody(link);
@@ -59,7 +66,7 @@ describe("getCreateExportGPXButtonRuntime", () => {
         let createdBlob: Blob | undefined;
         let revokedUrl = "";
         const runtime = getCreateExportGPXButtonRuntime({
-            URL: {
+            getURL: () => ({
                 createObjectURL(blob): string {
                     createdBlob = blob;
                     return "blob:track";
@@ -67,7 +74,7 @@ describe("getCreateExportGPXButtonRuntime", () => {
                 revokeObjectURL(url): void {
                     revokedUrl = url;
                 },
-            },
+            }),
         });
         const blob = new Blob(["track"]);
 
@@ -85,11 +92,13 @@ describe("getCreateExportGPXButtonRuntime", () => {
         let callbackRan = false;
         let scheduledTimeout = 0;
         const runtime = getCreateExportGPXButtonRuntime({
-            setTimeout(callback, timeout): ReturnType<typeof setTimeout> {
-                scheduledTimeout = timeout;
-                callback();
-                return 42 as ReturnType<typeof setTimeout>;
-            },
+            getSetTimeout:
+                () =>
+                (callback, timeout): ReturnType<typeof setTimeout> => {
+                    scheduledTimeout = timeout;
+                    callback();
+                    return 42 as ReturnType<typeof setTimeout>;
+                },
         });
         const cleanupDelayMs = Number.parseInt("100", 10);
 
@@ -126,5 +135,41 @@ describe("getCreateExportGPXButtonRuntime", () => {
         expect(() => runtime.createObjectURL(new Blob(["track"]))).toThrow(
             "createExportGPXButton requires a URL runtime"
         );
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(4);
+
+        let controllerCount = 0;
+        const signal = Symbol("legacy-create-export-gpx-button-signal");
+        class TestAbortController implements AbortController {
+            public readonly signal = signal as unknown as AbortSignal;
+
+            public constructor() {
+                controllerCount += 1;
+            }
+
+            public abort(): void {
+                /* Test double */
+            }
+        }
+        const legacyScope = {
+            AbortController: TestAbortController,
+            document,
+            setTimeout,
+            URL,
+        } as unknown as CreateExportGPXButtonRuntimeScope;
+        const runtime = getCreateExportGPXButtonRuntime(legacyScope);
+
+        expect(() => runtime.createAbortController()).toThrow(
+            "createExportGPXButton requires an AbortController runtime"
+        );
+        expect(() => runtime.createButton()).toThrow(
+            "createExportGPXButton requires a document runtime"
+        );
+        expect(() => runtime.setTimeout(() => {}, 1)).toThrow(
+            "createExportGPXButton requires a setTimeout runtime"
+        );
+        expect(controllerCount).toBe(0);
     });
 });

@@ -1319,7 +1319,7 @@ const directCopyTableAsCSVRuntimeGlobalPattern =
 const directCreateExportGPXButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|createElement|createElementNS|setTimeout)\b|\bURL\.(?:createObjectURL|revokeObjectURL)\b|\bnew\s+AbortController\b/u;
 const directCreateExportGPXButtonRuntimeAmbientFallbackPattern =
-    /\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
+    /\bscope\.(?:AbortController|document|setTimeout|URL)\b|\bscope:\s*CreateExportGPXButtonRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultCreateExportGPXButtonRuntimeScope:\s*CreateExportGPXButtonRuntimeScope\s*=\s*globalThis\b/u;
 const directCreateAddFitFileToMapButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS)\b|\bnew\s+AbortController\b/u;
 const directCreateAddFitFileToMapButtonRuntimeAmbientFallbackPattern =
@@ -8037,7 +8037,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {
-        expect.assertions(7);
+        expect.assertions(19);
 
         const violations = migratedCreateExportGPXButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -8071,8 +8071,42 @@ describe("architecture boundaries", () => {
         expect(createExportGPXButtonRuntimeSource).not.toContain(
             "scope: CreateExportGPXButtonRuntimeScope = globalThis"
         );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "const defaultCreateExportGPXButtonRuntimeScope: CreateExportGPXButtonRuntimeScope = globalThis"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "readonly AbortController?:"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "readonly setTimeout?:"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "readonly URL?:"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "scope.AbortController"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "scope.setTimeout"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain("scope.URL");
         expect(createExportGPXButtonRuntimeSource).toContain(
-            "const setTimeoutRef = scope.setTimeout;"
+            "getAbortController: () => globalThis.AbortController"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "getURL: () => globalThis.URL"
         );
     });
 

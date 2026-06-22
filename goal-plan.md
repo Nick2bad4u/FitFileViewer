@@ -469,7 +469,9 @@ Map GPX export button listener cleanup now creates abort controllers through `cr
 instead of constructing `AbortController` directly inside `createExportGPXButton.ts`, and object-URL cleanup
 scheduling now uses that same runtime instead of falling back to `globalThis`; explicit runtime scopes must now
 provide timer primitives, with focused runtime coverage and architecture guardrails blocking direct controller
-construction and ambient timer fallbacks from returning.
+construction and ambient timer fallbacks from returning. Map GPX export runtime defaults now live in an explicit
+provider object instead of a broad `globalThis` default scope, and explicit scopes use named providers instead of
+direct controller/document/timer/URL properties.
 State integration persistence debounce, performance-monitoring interval, storage lookup, performance-memory read,
 and clock reads now route through `stateIntegrationRuntime.ts` instead of calling runtime globals directly inside
 `stateIntegration.ts`, with focused runtime coverage and architecture guardrails blocking those direct runtime
