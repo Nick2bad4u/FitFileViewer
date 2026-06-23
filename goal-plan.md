@@ -356,6 +356,8 @@ map export/print controls, loading overlay, add-FIT-to-map control, marker-count
 elevation-profile button, map fullscreen control, and map measurement toolbar instead of calling
 `document.createElementNS` directly, with architecture coverage blocking raw SVG DOM creation from returning to
 Electron app source.
+Elevation-profile popup and chart-overlay palette defaults now resolve through focused global-property helpers in
+`createElevationProfileButtonRuntime.ts` instead of casting `globalThis` to a feature-specific runtime scope.
 Field-toggle DOM construction, custom event dispatch, listener abort-controller creation, input checks, and fallback
 timers now route through `createFieldTogglesSectionRuntime.ts`; production defaults and explicit runtime scopes now
 use named provider functions instead of a broad `globalThis` default scope, direct scope properties, or

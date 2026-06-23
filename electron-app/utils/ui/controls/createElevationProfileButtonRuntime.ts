@@ -2,11 +2,6 @@ import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
 
 type ElevationProfilePopupWindow = Window | null;
 
-interface ElevationProfileButtonGlobalScope {
-    readonly chartOverlayColorPalette?: unknown;
-    readonly open?: CreateElevationProfileOpen | undefined;
-}
-
 type CreateElevationProfileOpen =
     | ((
           url?: string,
@@ -45,18 +40,21 @@ export interface CreateElevationProfileButtonRuntime {
 const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileButtonRuntimeScope =
     {
         getAbortController: () => globalThis.AbortController,
-        getChartOverlayColorPalette: () =>
-            (globalThis as ElevationProfileButtonGlobalScope)
-                .chartOverlayColorPalette,
+        getChartOverlayColorPalette: getGlobalChartOverlayColorPalette,
         getDocument: () => globalThis.document,
-        getOpen: () => {
-            const openRef = (globalThis as ElevationProfileButtonGlobalScope)
-                .open;
-            return typeof openRef === "function"
-                ? openRef.bind(globalThis)
-                : undefined;
-        },
+        getOpen: getGlobalOpen,
     };
+
+function getGlobalChartOverlayColorPalette(): unknown {
+    return Reflect.get(globalThis, "chartOverlayColorPalette");
+}
+
+function getGlobalOpen(): CreateElevationProfileOpen {
+    const openRef = Reflect.get(globalThis, "open");
+    return typeof openRef === "function"
+        ? (openRef as NonNullable<CreateElevationProfileOpen>).bind(globalThis)
+        : undefined;
+}
 
 function getAbortControllerConstructor(
     scope: CreateElevationProfileButtonRuntimeScope
