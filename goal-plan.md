@@ -773,7 +773,9 @@ globals from returning. Explicit lifecycle listener runtime scopes must now prov
 falling back to `globalThis`, with focused runtime coverage and architecture coverage blocking those fallbacks from
 returning. Lifecycle listener production defaults now live in an explicit provider object instead of a broad
 `globalThis` default scope, and explicit scopes use named providers instead of direct scope properties for
-AbortController, timer, print, and process access.
+AbortController, timer, print, and process access. The default process and print providers now read
+`globalThis.process` and `globalThis.print` explicitly instead of using generic `Reflect.get(globalThis, ...)`
+probes.
 GPX export button, chart theme listener, and user/device info tests no longer type or clean retired
 `globalData`/`loadedFitFiles` globals; they rely on typed state resets and active FIT data fixtures, and
 architecture coverage blocks those cleanup patterns from returning.

@@ -44,14 +44,14 @@ export interface LifecycleListenersRuntime {
 }
 
 function getGlobalProcess(): LifecycleListenersProcess | undefined {
-    const processRef: unknown = Reflect.get(globalThis, "process");
+    const processRef: unknown = globalThis.process;
     return typeof processRef === "object" && processRef !== null
         ? processRef
         : undefined;
 }
 
 function getGlobalPrint(): LifecycleListenersPrint | undefined {
-    const printRef = Reflect.get(globalThis, "print");
+    const printRef = globalThis.print;
     return typeof printRef === "function"
         ? () => {
               printRef.call(globalThis);
