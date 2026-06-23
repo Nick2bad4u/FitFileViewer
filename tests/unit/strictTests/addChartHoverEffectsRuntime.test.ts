@@ -2,7 +2,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { ChartHoverEffectsRuntimeScope } from "../../../electron-app/utils/charts/plugins/addChartHoverEffectsRuntime.js";
-import { getChartHoverEffectsRuntime } from "../../../electron-app/utils/charts/plugins/addChartHoverEffectsRuntime.js";
+import {
+    CHART_HOVER_EFFECTS_SVG_NAMESPACE,
+    getChartHoverEffectsRuntime,
+} from "../../../electron-app/utils/charts/plugins/addChartHoverEffectsRuntime.js";
 
 describe("getChartHoverEffectsRuntime", () => {
     it("creates abort controllers through the injected runtime scope", () => {
@@ -154,6 +157,28 @@ describe("getChartHoverEffectsRuntime", () => {
         expect(documentEventTarget.body.childElementCount).toBe(0);
     });
 
+    it("creates SVG elements through the injected document runtime", () => {
+        expect.assertions(4);
+
+        const documentRef = document.implementation.createHTMLDocument(
+            "chart hover svg runtime"
+        );
+        const createElementNS = vi.spyOn(documentRef, "createElementNS");
+        const runtime = getChartHoverEffectsRuntime({
+            getDocument: () => documentRef,
+        });
+
+        const svg = runtime.createSvgElement("svg");
+
+        expect(svg.tagName.toLowerCase()).toBe("svg");
+        expect(svg.namespaceURI).toBe(CHART_HOVER_EFFECTS_SVG_NAMESPACE);
+        expect(createElementNS).toHaveBeenCalledWith(
+            CHART_HOVER_EFFECTS_SVG_NAMESPACE,
+            "svg"
+        );
+        expect(() => runtime.createSvgElement("path")).not.toThrow();
+    });
+
     it("throws when document listener registration is unavailable", () => {
         expect.assertions(3);
 
@@ -233,7 +258,7 @@ describe("getChartHoverEffectsRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", async () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const documentEventTarget =
             document.implementation.createHTMLDocument();
@@ -258,6 +283,9 @@ describe("getChartHoverEffectsRuntime", () => {
             runtime.addDocumentKeydownListener(() => undefined, {})
         ).toThrow(
             "chart hover effects require a document event-target runtime"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "chart hover effects require a document runtime"
         );
         expect(runtime.requestAnimationFrame(vi.fn())).toBeNull();
         await expect(runtime.waitForAnimationFrame()).rejects.toThrow(

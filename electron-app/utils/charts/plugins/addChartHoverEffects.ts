@@ -19,7 +19,6 @@ const FULLSCREEN_EVENTS = [
     "MSFullscreenChange",
 ];
 const DEFAULT_CHART_HEIGHT = "400px";
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 let chartFullscreenTraceCounter = 0;
 
 interface ChartHoverColors {
@@ -76,7 +75,7 @@ function isPromiseLike(value: unknown): value is PromiseLike<void> {
 }
 
 function createSvgPath(pathData: string): SVGPathElement {
-    const path = document.createElementNS(SVG_NAMESPACE, "path");
+    const path = chartHoverEffectsRuntime.createSvgElement("path");
     path.setAttribute("d", pathData);
     path.setAttribute("fill", "none");
     path.setAttribute("stroke", "currentColor");
@@ -86,7 +85,7 @@ function createSvgPath(pathData: string): SVGPathElement {
 }
 
 function createFullscreenIcon(mode: "enter" | "exit"): SVGSVGElement {
-    const svg = document.createElementNS(SVG_NAMESPACE, "svg");
+    const svg = chartHoverEffectsRuntime.createSvgElement("svg");
     svg.setAttribute("viewBox", "0 0 24 24");
     svg.setAttribute("aria-hidden", "true");
 
@@ -113,7 +112,7 @@ function createFullscreenIcon(mode: "enter" | "exit"): SVGSVGElement {
 }
 
 function createTitleIcon(iconName: AppIconName): SVGSVGElement {
-    const svg = document.createElementNS(SVG_NAMESPACE, "svg");
+    const svg = chartHoverEffectsRuntime.createSvgElement("svg");
     svg.setAttribute("class", "chart-title-overlay__icon");
     svg.setAttribute("width", "12");
     svg.setAttribute("height", "12");

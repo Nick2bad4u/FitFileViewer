@@ -17,6 +17,9 @@ export interface ChartHoverEffectsRuntimeScope {
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
+    readonly getDocument?:
+        | (() => Pick<Document, "createElementNS"> | undefined)
+        | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
@@ -37,6 +40,9 @@ export interface ChartHoverEffectsRuntime {
         options: Readonly<AddEventListenerOptions>
     ) => void;
     readonly createAbortController: () => AbortController;
+    readonly createSvgElement: <K extends keyof SVGElementTagNameMap>(
+        tagName: K
+    ) => SVGElementTagNameMap[K];
     readonly removeDocumentKeydownListener: (
         listener: ChartHoverEffectsKeydownListener
     ) => void;
@@ -50,8 +56,12 @@ export interface ChartHoverEffectsRuntime {
     readonly waitForAnimationFrame: () => Promise<void>;
 }
 
+export const CHART_HOVER_EFFECTS_SVG_NAMESPACE =
+    "http://www.w3.org/2000/svg";
+
 const defaultChartHoverEffectsRuntimeScope: ChartHoverEffectsRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
+    getDocument: () => globalThis.document,
     getDocumentEventTarget: () => globalThis.document,
     getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
     getSetTimeout: () => globalThis.setTimeout,
@@ -66,6 +76,17 @@ function getRequiredSetTimeout(
     }
 
     return setTimeoutRef;
+}
+
+function getRequiredDocument(
+    scope: ChartHoverEffectsRuntimeScope
+): Pick<Document, "createElementNS"> {
+    const runtimeDocument = scope.getDocument?.();
+    if (!runtimeDocument) {
+        throw new TypeError("chart hover effects require a document runtime");
+    }
+
+    return runtimeDocument;
 }
 
 function getDocumentEventTarget(
@@ -116,6 +137,14 @@ export function getChartHoverEffectsRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createSvgElement<K extends keyof SVGElementTagNameMap>(
+            tagName: K
+        ): SVGElementTagNameMap[K] {
+            return getRequiredDocument(scope).createElementNS(
+                CHART_HOVER_EFFECTS_SVG_NAMESPACE,
+                tagName
+            );
         },
         removeDocumentKeydownListener(listener): void {
             getRequiredDocumentEventTarget(scope).removeEventListener(

@@ -1317,6 +1317,8 @@ const directCancellationTokenRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\breturn\s+globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directChartHoverEffectsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:requestAnimationFrame|setTimeout)\b|(?<![\w.])(?:requestAnimationFrame|setTimeout)\(|\bnew\s+AbortController\b/u;
+const directChartHoverEffectsSvgGlobalPattern =
+    /\bdocument\.createElementNS\b/u;
 const directChartHoverEffectsRuntimeAmbientFallbackPattern =
     /\bglobalThis\.setTimeout\s*\(|\bscope\.setTimeout\s*\?\?\s*globalThis\.setTimeout\b/u;
 const directChartStateManagerRuntimeGlobalPattern =
@@ -14852,11 +14854,18 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart hover effect scheduling behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(37);
 
         const violations = migratedChartHoverEffectsRuntimeFiles
             .filter((relativeFile) =>
                 directChartHoverEffectsRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const svgViolations = migratedChartHoverEffectsRuntimeFiles
+            .filter((relativeFile) =>
+                directChartHoverEffectsSvgGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -14873,12 +14882,17 @@ describe("architecture boundaries", () => {
         );
 
         expect(violations).toStrictEqual([]);
+        expect(svgViolations).toStrictEqual([]);
         expect(chartHoverEffectsSource).toContain(
             "addChartHoverEffectsRuntime.js"
         );
         expect(chartHoverEffectsSource).toContain("createAbortController");
+        expect(chartHoverEffectsSource).toContain("createSvgElement");
         expect(chartHoverEffectsSource).toContain("addDocumentKeydownListener");
         expect(chartHoverEffectsSource).toContain("addDocumentEventListener");
+        expect(chartHoverEffectsSource).not.toContain(
+            "document.createElementNS"
+        );
         expect(chartHoverEffectsSource).not.toContain(
             "document.addEventListener"
         );
@@ -14895,7 +14909,13 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
             "getDocumentEventTarget: () => globalThis.document"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "CHART_HOVER_EFFECTS_SVG_NAMESPACE"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
@@ -14951,6 +14971,9 @@ describe("architecture boundaries", () => {
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "chart hover effects require a setTimeout runtime"
+        );
+        expect(chartHoverEffectsRuntimeSource).toContain(
+            "chart hover effects require a document runtime"
         );
         expect(chartHoverEffectsRuntimeSource).toContain(
             "chart hover effects require a document event-target runtime"
