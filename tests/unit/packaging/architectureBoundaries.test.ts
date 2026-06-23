@@ -3424,12 +3424,15 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload state leaf modules on native imports", () => {
-        expect.assertions(5);
+        expect.assertions(8);
 
         const stateModuleLoaderSource = stripComments(
             readRepositoryFile(
                 "electron-app/preload/preloadStateModuleLoader.ts"
             )
+        );
+        const mainStateBridgeSource = stripComments(
+            readRepositoryFile("electron-app/preload/mainStateBridge.ts")
         );
         const moduleLoaderSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadModuleLoader.ts")
@@ -3442,6 +3445,11 @@ describe("architecture boundaries", () => {
             'import { createMainStateBridge } from "./mainStateBridge.js";'
         );
         expect(stateModuleLoaderSource).not.toContain("requireModule");
+        expect(mainStateBridgeSource).toContain('from "../shared/ipc.js";');
+        expect(mainStateBridgeSource).toContain("MainStateListenRequest");
+        expect(mainStateBridgeSource).not.toContain(
+            "interface MainStateChange"
+        );
         expect(moduleLoaderSource).toContain("loadPreloadStateModules()");
         expect(moduleLoaderSource).not.toContain(
             "loadPreloadStateModules({ requireModule })"

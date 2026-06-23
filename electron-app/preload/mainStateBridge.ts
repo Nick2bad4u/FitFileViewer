@@ -1,4 +1,11 @@
-type MainStateCallback = (change: MainStateChange) => void;
+import type {
+    MainStateChange,
+    MainStateListenRequest,
+    MainStateListenResponse,
+    MainStateListener,
+    MainStateUnlistenRequest,
+    MainStateUnlistenResponse,
+} from "../shared/ipc.js";
 
 interface IpcRendererLike {
     invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
@@ -10,13 +17,13 @@ interface IpcRendererLike {
 
 interface MainStateBridge {
     listenToMainState: (
-        path: string,
-        callback: MainStateCallback
-    ) => Promise<boolean>;
+        path: MainStateListenRequest,
+        callback: MainStateListener
+    ) => Promise<MainStateListenResponse>;
     unlistenFromMainState: (
-        path: string,
-        callback: MainStateCallback
-    ) => Promise<boolean>;
+        path: MainStateUnlistenRequest,
+        callback: MainStateListener
+    ) => Promise<MainStateUnlistenResponse>;
 }
 
 interface MainStateBridgeOptions {
@@ -26,11 +33,6 @@ interface MainStateBridgeOptions {
         channel: string,
         handler: (event: object, change: MainStateChange) => void
     ) => void;
-}
-
-interface MainStateChange {
-    path?: unknown;
-    [key: string]: unknown;
 }
 
 type PreloadLog = (
@@ -44,7 +46,7 @@ export function createMainStateBridge({
     preloadLog,
     removeIpcListener,
 }: MainStateBridgeOptions): MainStateBridge {
-    const callbacksByPath = new Map<string, Set<MainStateCallback>>();
+    const callbacksByPath = new Map<string, Set<MainStateListener>>();
     let dispatcher:
         | ((event: object, change: MainStateChange) => void)
         | undefined;
@@ -91,9 +93,9 @@ export function createMainStateBridge({
     }
 
     async function listenToMainState(
-        path: string,
-        callback: MainStateCallback
-    ): Promise<boolean> {
+        path: MainStateListenRequest,
+        callback: MainStateListener
+    ): Promise<MainStateListenResponse> {
         const existing = callbacksByPath.get(path);
         if (existing) {
             existing.add(callback);
@@ -107,7 +109,7 @@ export function createMainStateBridge({
             return false;
         }
 
-        const callbacks = new Set<MainStateCallback>([callback]);
+        const callbacks = new Set<MainStateListener>([callback]);
         callbacksByPath.set(path, callbacks);
         ensureDispatcher();
 
@@ -115,9 +117,9 @@ export function createMainStateBridge({
     }
 
     async function unlistenFromMainState(
-        path: string,
-        callback: MainStateCallback
-    ): Promise<boolean> {
+        path: MainStateUnlistenRequest,
+        callback: MainStateListener
+    ): Promise<MainStateUnlistenResponse> {
         const callbacks = callbacksByPath.get(path);
         if (!callbacks || !callbacks.has(callback)) {
             return false;
