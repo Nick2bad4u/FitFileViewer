@@ -4980,7 +4980,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps field-toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(20);
+        expect.assertions(24);
 
         const violations = migratedCreateFieldTogglesSectionRuntimeFiles
             .filter((relativeFile) =>
@@ -5003,6 +5003,14 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(fieldTogglesSource).toContain(
             "createFieldTogglesSectionRuntime.js"
+        );
+        expect(fieldTogglesSource).toContain("chartStateManagerRegistry.js");
+        expect(fieldTogglesSource).toContain("getRegisteredChartStateManager");
+        expect(fieldTogglesSource).not.toContain(
+            "../../charts/core/chartStateManager.js"
+        );
+        expect(fieldTogglesSource).not.toContain(
+            "import { chartStateManager }"
         );
         expect(fieldTogglesRuntimeSource).not.toMatch(
             directCreateFieldTogglesSectionRuntimeAmbientFallbackPattern

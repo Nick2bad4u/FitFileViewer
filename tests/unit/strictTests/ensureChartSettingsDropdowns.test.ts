@@ -234,13 +234,6 @@ vi.mock(
 );
 
 vi.mock(
-    import("../../../electron-app/utils/charts/core/chartStateManager.js"),
-    () => ({
-        chartStateManager: { debouncedRender: h.spies.debouncedRender },
-    })
-);
-
-vi.mock(
     import("../../../electron-app/utils/data/processing/extractDeveloperFieldsList.js"),
     () => ({
         extractDeveloperFieldsList: () => ["dev_field1"],
@@ -252,6 +245,10 @@ import { ensureChartSettingsDropdowns } from "../../../electron-app/utils/ui/com
 import { getChartFieldVisibility } from "../../../electron-app/utils/state/domain/settingsStateManager.js";
 import { fieldLabels } from "../../../electron-app/utils/formatting/display/formatChartFields.js";
 import { exportUtils } from "../../../electron-app/utils/files/export/exportUtils.js";
+import {
+    registerChartStateManager,
+    resetChartStateManagerRegistryForTests,
+} from "../../../electron-app/utils/charts/core/chartStateManagerRegistry.js";
 
 function setupDOM(withContainer = false) {
     document.body.replaceChildren();
@@ -386,10 +383,13 @@ beforeEach(() => {
         localStorage.clear();
     }
     clearChartInstanceRegistryForTests();
+    resetChartStateManagerRegistryForTests();
+    registerChartStateManager({ debouncedRender: spies.debouncedRender });
 });
 
 afterEach(() => {
     clearChartInstanceRegistryForTests();
+    resetChartStateManagerRegistryForTests();
     document.body.replaceChildren();
 });
 

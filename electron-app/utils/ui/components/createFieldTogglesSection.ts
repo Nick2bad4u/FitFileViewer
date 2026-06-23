@@ -1,7 +1,7 @@
 import { reRenderChartsAfterSettingChange } from "../../app/initialization/getCurrentSettings.js";
 import { getRegisteredChartActions } from "../../charts/core/chartActionsRegistry.js";
+import { getRegisteredChartStateManager } from "../../charts/core/chartStateManagerRegistry.js";
 import { updateAllChartStatusIndicators } from "../../charts/components/chartStatusIndicator.js";
-import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { extractDeveloperFieldsList } from "../../data/processing/extractDeveloperFieldsList.js";
 import {
     fieldColors,
@@ -60,6 +60,26 @@ function getManagedFieldToggleFitData(): FieldToggleFitData {
 
 function requestChartRerenderFallback(reason: string): void {
     getRegisteredChartActions()?.requestRerender?.(reason);
+}
+
+function requestManagedChartRerender(
+    reason: string,
+    fallbackReason: string,
+    eventReason: string,
+    runtime: CreateFieldTogglesSectionRuntime
+): void {
+    const registeredChartStateManager = getRegisteredChartStateManager();
+    if (typeof registeredChartStateManager?.debouncedRender === "function") {
+        registeredChartStateManager.debouncedRender(reason);
+        return;
+    }
+
+    requestChartRerenderFallback(fallbackReason);
+    runtime.dispatchEvent(
+        runtime.createCustomEvent("ffv:request-render-charts", {
+            detail: { reason: eventReason },
+        })
+    );
 }
 
 function parseFiniteNumber(value: unknown): number | null {
@@ -257,10 +277,7 @@ export function createFieldTogglesSection(wrapper: HTMLElement): void {
         runtime
     );
     fieldsGrid.append(altitudeProfileToggle); // HR zone toggles will be moved to the HR zone controls section
-    const hrZoneDoughnutToggle = createFieldToggle(
-        "hr_zone_doughnut",
-        runtime
-    );
+    const hrZoneDoughnutToggle = createFieldToggle("hr_zone_doughnut", runtime);
     fieldsGrid.append(hrZoneDoughnutToggle);
 
     // Power zone toggles are created separately and moved to the dedicated power zone section
@@ -546,18 +563,12 @@ function createFieldToggle(
                 })
             );
 
-            // Trigger chart re-render through modern state management
-            if (chartStateManager) {
-                chartStateManager.debouncedRender(`Field toggle: ${field}`);
-            } else {
-                // Fallback without importing renderChartJS to avoid circular deps
-                requestChartRerenderFallback("Field toggle fallback");
-                runtime.dispatchEvent(
-                    runtime.createCustomEvent("ffv:request-render-charts", {
-                        detail: { reason: "field-toggle" },
-                    })
-                );
-            }
+            requestManagedChartRerender(
+                `Field toggle: ${field}`,
+                "Field toggle fallback",
+                "field-toggle",
+                runtime
+            );
 
             // Update status indicators after a short delay to allow charts to render
             if (statusUpdateTimer) {
@@ -648,17 +659,12 @@ function toggleAllFields(
         const action = enable ? "enabled" : "disabled";
         void showNotification(`All charts ${action}`, "success");
 
-        // Re-render charts and update status indicators through modern state management
-        if (chartStateManager) {
-            chartStateManager.debouncedRender(`All fields ${action}`);
-        } else {
-            requestChartRerenderFallback("Settings change fallback");
-            runtime.dispatchEvent(
-                runtime.createCustomEvent("ffv:request-render-charts", {
-                    detail: { reason: "settings-change" },
-                })
-            );
-        }
+        requestManagedChartRerender(
+            `All fields ${action}`,
+            "Settings change fallback",
+            "settings-change",
+            runtime
+        );
 
         const statusTimer = runtime.setTimeout(() => {
             updateAllChartStatusIndicators();

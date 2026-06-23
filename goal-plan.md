@@ -345,6 +345,9 @@ timers now route through `createFieldTogglesSectionRuntime.ts`; production defau
 use named provider functions instead of a broad `globalThis` default scope, direct scope properties, or
 document-window fallbacks, with focused runtime coverage and architecture guardrails blocking those ambient
 fallbacks from returning.
+Field-toggle individual and bulk chart re-render requests now resolve the chart state manager through
+`chartStateManagerRegistry.ts` instead of importing the concrete singleton directly, with fallback requests still
+going through the chart-actions registry and render-request event path.
 Zone color picker render-request event construction/dispatch, modal element creation, active-element reads, body
 attachment/containment, document lookup for chart settings, body access for inline selector refreshes, Escape-key
 document listener registration, and element/keyboard-event type checks now route through
@@ -866,6 +869,8 @@ default scope or legacy direct scope properties.
 Chart updater status/update/theme-change paths and chart theme listener handoff now resolve the chart state
 manager through `chartStateManagerRegistry.ts` instead of importing the concrete singleton directly, with
 architecture coverage blocking direct singleton imports from returning in those update entrypoints.
+Field-toggle chart re-render requests now also use `chartStateManagerRegistry.ts`, so chart settings UI no longer
+imports the concrete chart-state singleton for individual or bulk toggle updates.
 State devtools tests no longer delete the retired `__stateDebug` debug global around cleanup or initialization;
 they now assert typed debug utilities stay off `globalThis`, and architecture coverage blocks that mutation
 from returning.
