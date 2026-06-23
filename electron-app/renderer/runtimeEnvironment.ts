@@ -54,16 +54,14 @@ const defaultRendererRuntimeEnvironmentScope: RendererRuntimeEnvironmentScope =
     };
 
 function getDefaultElectronApiCandidate(): unknown {
-    return Reflect.get(getDefaultRendererObject(), "electronAPI");
+    const rendererScope = globalThis as Record<PropertyKey, unknown>;
+
+    return rendererScope["electronAPI"];
 }
 
 function getDefaultRendererEventTarget():
     | RendererRuntimeEventTarget
     | undefined {
-    return getDefaultRendererObject();
-}
-
-function getDefaultRendererObject(): typeof globalThis {
     return globalThis;
 }
 
