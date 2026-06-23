@@ -7,6 +7,7 @@ type MasterStateGlobalEventMap = WindowEventMap & {
 };
 
 type MasterStateEventTarget = Pick<EventTarget, "addEventListener">;
+type MasterStateQueryScope = Pick<Document, "querySelectorAll">;
 
 export interface MasterStateRuntimeScope {
     readonly getAbortController?:
@@ -18,6 +19,9 @@ export interface MasterStateRuntimeScope {
     readonly getDevelopmentFlag?: (() => boolean | undefined) | undefined;
     readonly getDocumentEventTarget?:
         | (() => MasterStateEventTarget | undefined)
+        | undefined;
+    readonly getDocumentQueryScope?:
+        | (() => MasterStateQueryScope | undefined)
         | undefined;
     readonly getDispatchEvent?:
         | (() => typeof globalThis.dispatchEvent | undefined)
@@ -51,6 +55,7 @@ export interface MasterStateRuntime {
     ) => void;
     createAbortController: () => AbortController;
     dispatchGlobalEvent: (event: Readonly<Event>) => boolean;
+    getLoadingSensitiveElements: () => Iterable<HTMLElement>;
     isDevelopmentScope: (
         options?: Readonly<MasterStateDevelopmentOptions>
     ) => boolean;
@@ -71,6 +76,7 @@ const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getDevelopmentFlag: () =>
         Reflect.get(globalThis, "__DEVELOPMENT__") === true,
     getDocumentEventTarget: () => globalThis.document,
+    getDocumentQueryScope: () => globalThis.document,
     getDispatchEvent: () => globalThis.dispatchEvent,
     getEventTarget: () => globalThis,
     getLocation: () => globalThis.location,
@@ -98,6 +104,12 @@ function getScopeDocumentEventTarget(
     scope: MasterStateRuntimeScope
 ): MasterStateEventTarget | undefined {
     return scope.getDocumentEventTarget?.();
+}
+
+function getScopeDocumentQueryScope(
+    scope: MasterStateRuntimeScope
+): MasterStateQueryScope | undefined {
+    return scope.getDocumentQueryScope?.();
 }
 
 function getRequiredDocumentEventTarget(
@@ -182,6 +194,13 @@ export function getMasterStateRuntime(
         },
         dispatchGlobalEvent(event): boolean {
             return getScopeDispatchEvent(scope)?.call(scope, event) ?? false;
+        },
+        getLoadingSensitiveElements(): Iterable<HTMLElement> {
+            return (
+                getScopeDocumentQueryScope(
+                    scope
+                )?.querySelectorAll<HTMLElement>(".loading-sensitive") ?? []
+            );
         },
         isDevelopmentScope(options = {}): boolean {
             const location = getLocation();

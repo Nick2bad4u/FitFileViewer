@@ -7409,7 +7409,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(39);
+        expect.assertions(45);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -7425,6 +7425,9 @@ describe("architecture boundaries", () => {
         expect(masterStateManagerSource).toContain("masterStateRuntime.js");
         expect(masterStateManagerSource).toContain("createAbortController");
         expect(masterStateManagerSource).toContain("addDocumentEventListener");
+        expect(masterStateManagerSource).toContain(
+            "getLoadingSensitiveElements"
+        );
         expect(masterStateManagerSource).not.toMatch(
             /\bnew\s+AbortController\b/u
         );
@@ -7441,6 +7444,9 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateManagerSource).not.toContain(
             "document.addEventListener"
+        );
+        expect(masterStateManagerSource).not.toContain(
+            "document.querySelectorAll"
         );
         expect(masterStateManagerSource).toContain("stateStorageRuntime.js");
         expect(masterStateManagerSource).not.toContain("localStorage.");
@@ -7461,6 +7467,9 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateRuntimeSource).toContain(
             "getDocumentEventTarget: () => globalThis.document"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getDocumentQueryScope: () => globalThis.document"
         );
         expect(masterStateRuntimeSource).toContain(
             'Reflect.get(globalThis, "__DEVELOPMENT__") === true'
@@ -7492,6 +7501,9 @@ describe("architecture boundaries", () => {
             "readonly documentEventTarget?:"
         );
         expect(masterStateRuntimeSource).not.toContain(
+            "readonly documentQueryScope?:"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
             "readonly dispatchEvent?:"
         );
         expect(masterStateRuntimeSource).not.toContain(
@@ -7505,6 +7517,12 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateRuntimeSource).not.toContain(
             "scope.documentEventTarget"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "scope.documentQueryScope"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "querySelectorAll<HTMLElement>"
         );
         expect(masterStateRuntimeSource).not.toContain("scope.dispatchEvent");
         expect(masterStateRuntimeSource).not.toContain("scope.eventTarget");

@@ -786,8 +786,7 @@ export class MasterStateManager {
         // Integrate loading state with UI
         stateAPI.subscribe("isLoading", (isLoading: unknown) => {
             // Update UI elements based on loading state
-            const elements =
-                document.querySelectorAll<HTMLElement>(".loading-sensitive");
+            const elements = masterStateRuntime.getLoadingSensitiveElements();
             for (const el of elements) {
                 const isLoadingActive = Boolean(isLoading);
                 el.style.pointerEvents = isLoadingActive ? "none" : "auto";

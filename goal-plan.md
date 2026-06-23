@@ -659,6 +659,9 @@ listeners, and listener abort-controller creation now go through the scoped `mas
 `globalThis.window`, `globalThis.location`, `globalThis.addEventListener`, `globalThis.dispatchEvent`, or
 registering on `window.addEventListener`, or constructing `AbortController` directly, with focused adapter coverage and architecture guardrails blocking those direct runtime
 operations from returning.
+Master state manager loading-sensitive element lookup now also routes through `masterStateRuntime.ts` instead of
+querying `document` directly inside `masterStateManager.ts`, with runtime coverage and architecture guardrails
+blocking direct `document.querySelectorAll` access and legacy direct query-scope properties from returning.
 Resource-manager unload cleanup listener registration and registered timer cleanup now go through the scoped
 `resourceManagerRuntime.ts` adapter instead of probing `globalThis.window`, calling `window.addEventListener`,
 constructing `AbortController`, or calling `clearTimeout` directly inside `resourceManager.ts`, with focused

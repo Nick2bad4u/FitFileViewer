@@ -160,6 +160,33 @@ describe("masterStateRuntime", () => {
         expect(dispatchGlobalEvent).toHaveBeenCalledWith(event);
     });
 
+    it("routes loading-sensitive element lookups through scoped query providers", () => {
+        expect.assertions(4);
+
+        const loadingElement = document.createElement("button");
+        const queryScope = {
+            querySelectorAll: vi.fn<Document["querySelectorAll"]>((selector) =>
+                selector === ".loading-sensitive"
+                    ? ([loadingElement] as unknown as NodeListOf<Element>)
+                    : ([] as unknown as NodeListOf<Element>)
+            ),
+        };
+        const runtime = getMasterStateRuntime({
+            getDocumentQueryScope: () => queryScope,
+        });
+
+        expect(Array.from(runtime.getLoadingSensitiveElements())).toStrictEqual(
+            [loadingElement]
+        );
+        expect(queryScope.querySelectorAll).toHaveBeenCalledExactlyOnceWith(
+            ".loading-sensitive"
+        );
+        expect(queryScope.querySelectorAll.mock.contexts[0]).toBe(queryScope);
+        expect(getMasterStateRuntime({}).getLoadingSensitiveElements()).toEqual(
+            []
+        );
+    });
+
     it("routes browser state dependencies through provider functions", () => {
         expect.assertions(21);
 
@@ -287,7 +314,7 @@ describe("masterStateRuntime", () => {
     });
 
     it("ignores legacy direct browser and development runtime properties", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -300,12 +327,19 @@ describe("masterStateRuntime", () => {
         const addGlobalEventListener = vi.fn();
         const addWindowEventListener = vi.fn();
         const dispatchGlobalEvent = vi.fn(() => true);
+        const querySelectorAll = vi.fn<Document["querySelectorAll"]>(
+            () =>
+                [
+                    document.createElement("button"),
+                ] as unknown as NodeListOf<Element>
+        );
         const runtime = getMasterStateRuntime({
             __DEVELOPMENT__: true,
             AbortController:
                 TestAbortController as unknown as typeof AbortController,
             addEventListener: addGlobalEventListener,
             documentEventTarget: { addEventListener: addDocumentEventListener },
+            documentQueryScope: { querySelectorAll },
             dispatchEvent: dispatchGlobalEvent,
             eventTarget: { addEventListener: addWindowEventListener },
             location: { hostname: "localhost", protocol: "file:" },
@@ -316,6 +350,9 @@ describe("masterStateRuntime", () => {
         expect(runtime.isDevelopmentScope()).toBe(false);
         expect(runtime.location).toStrictEqual({});
         expect(runtime.dispatchGlobalEvent(event)).toBe(false);
+        expect(Array.from(runtime.getLoadingSensitiveElements())).toStrictEqual(
+            []
+        );
         runtime.addGlobalEventListener("error", listener);
         runtime.addWindowEventListener("resize", listener);
         expect(() =>
@@ -331,6 +368,7 @@ describe("masterStateRuntime", () => {
         expect(addWindowEventListener).not.toHaveBeenCalled();
         expect(addDocumentEventListener).not.toHaveBeenCalled();
         expect(dispatchGlobalEvent).not.toHaveBeenCalled();
+        expect(querySelectorAll).not.toHaveBeenCalled();
     });
 
     it("throws when abort controllers are unavailable", () => {
