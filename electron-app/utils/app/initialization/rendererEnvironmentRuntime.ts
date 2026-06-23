@@ -1,28 +1,40 @@
+export interface RendererEnvironmentInput {
+    readonly developmentFlag?: unknown;
+    readonly document?: unknown;
+    readonly electronAPI?: unknown;
+    readonly location?: unknown;
+}
+
 export interface RendererEnvironmentRuntimeScope {
-    readonly getGlobalScope?: (() => object | undefined) | undefined;
+    readonly getDevelopmentFlag?: (() => unknown) | undefined;
+    readonly getDocument?: (() => unknown) | undefined;
+    readonly getElectronAPI?: (() => unknown) | undefined;
+    readonly getLocation?: (() => unknown) | undefined;
 }
 
 export interface RendererEnvironmentRuntime {
-    getDefaultRendererEnvironmentScope: () => object;
+    getDefaultRendererEnvironmentInput: () => RendererEnvironmentInput;
 }
 
 const defaultRendererEnvironmentRuntimeScope: RendererEnvironmentRuntimeScope =
     {
-        getGlobalScope: () => globalThis,
+        getDevelopmentFlag: () => Reflect.get(globalThis, "__DEVELOPMENT__"),
+        getDocument: () => globalThis.document,
+        getElectronAPI: () => Reflect.get(globalThis, "electronAPI"),
+        getLocation: () => globalThis.location,
     };
-
-function getScopeGlobal(
-    scope: RendererEnvironmentRuntimeScope
-): object | undefined {
-    return scope.getGlobalScope?.();
-}
 
 export function getRendererEnvironmentRuntime(
     scope: RendererEnvironmentRuntimeScope = defaultRendererEnvironmentRuntimeScope
 ): RendererEnvironmentRuntime {
     return {
-        getDefaultRendererEnvironmentScope(): object {
-            return getScopeGlobal(scope) ?? {};
+        getDefaultRendererEnvironmentInput(): RendererEnvironmentInput {
+            return {
+                developmentFlag: scope.getDevelopmentFlag?.(),
+                document: scope.getDocument?.(),
+                electronAPI: scope.getElectronAPI?.(),
+                location: scope.getLocation?.(),
+            };
         },
     };
 }

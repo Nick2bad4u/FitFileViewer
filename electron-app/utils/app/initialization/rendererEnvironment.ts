@@ -1,6 +1,9 @@
 /** Runtime environment names used by the renderer bootstrap. */
 import { getRendererElectronApi } from "../../runtime/electronApiRuntime.js";
-import { getRendererEnvironmentRuntime } from "./rendererEnvironmentRuntime.js";
+import {
+    getRendererEnvironmentRuntime,
+    type RendererEnvironmentInput,
+} from "./rendererEnvironmentRuntime.js";
 
 export type RendererEnvironmentName = "development" | "production";
 
@@ -11,14 +14,12 @@ interface RendererLocationParts {
     search: string;
 }
 
-function getGlobalBooleanFlag(globalScope: object, flagName: string): unknown {
-    return Reflect.get(globalScope, flagName);
-}
-
 const rendererEnvironmentRuntime = getRendererEnvironmentRuntime();
 
-function getRendererLocationParts(globalScope: object): RendererLocationParts {
-    const locationRecord = toRecord(Reflect.get(globalScope, "location"));
+function getRendererLocationParts(
+    environmentInput: RendererEnvironmentInput
+): RendererLocationParts {
+    const locationRecord = toRecord(environmentInput.location);
 
     return {
         hostname: getStringProperty(locationRecord, "hostname"),
@@ -37,19 +38,24 @@ function getStringProperty(
     return typeof value === "string" ? value : "";
 }
 
-function hasDocumentDevModeFlag(globalScope: object): boolean {
-    const documentRecord = toRecord(Reflect.get(globalScope, "document"));
+function hasDocumentDevModeFlag(
+    environmentInput: RendererEnvironmentInput
+): boolean {
+    const documentRecord = toRecord(environmentInput.document);
     const documentElement = toRecord(documentRecord["documentElement"]);
     const dataset = toRecord(documentElement["dataset"]);
 
     return Object.hasOwn(dataset, "devMode");
 }
 
-function hasElectronDevModeFlag(globalScope: object): boolean {
+function hasElectronDevModeFlag(
+    environmentInput: RendererEnvironmentInput
+): boolean {
+    const environmentInputRecord = toRecord(environmentInput);
+
     return (
-        getRendererElectronApi(isElectronDevModeApi, {
-            getElectronAPI: () => Reflect.get(globalScope, "electronAPI"),
-        }) !== null
+        getRendererElectronApi(isElectronDevModeApi) !== null ||
+        isElectronDevModeApi(environmentInputRecord["electronAPI"])
     );
 }
 
@@ -83,6 +89,22 @@ function isElectronDevModeApi(value: unknown): value is {
     return Reflect.get(toRecord(value), "__devMode") !== undefined;
 }
 
+function toRendererEnvironmentInput(
+    input: RendererEnvironmentInput | object
+): RendererEnvironmentInput {
+    const inputRecord = toRecord(input);
+
+    return {
+        developmentFlag:
+            "developmentFlag" in inputRecord
+                ? inputRecord["developmentFlag"]
+                : inputRecord["__DEVELOPMENT__"],
+        document: inputRecord["document"],
+        electronAPI: inputRecord["electronAPI"],
+        location: inputRecord["location"],
+    };
+}
+
 /**
  * Gets the renderer environment name from the current global runtime markers.
  *
@@ -92,9 +114,9 @@ function isElectronDevModeApi(value: unknown): value is {
  * @returns The detected renderer environment name.
  */
 export function getEnvironment(
-    globalScope: object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentScope()
+    environmentInput: RendererEnvironmentInput | object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentInput()
 ): RendererEnvironmentName {
-    return isDevelopmentMode(globalScope) ? "development" : "production";
+    return isDevelopmentMode(environmentInput) ? "development" : "production";
 }
 
 /**
@@ -106,17 +128,19 @@ export function getEnvironment(
  * @returns Whether the renderer should use development-mode behavior.
  */
 export function isDevelopmentMode(
-    globalScope: object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentScope()
+    environmentInput: RendererEnvironmentInput | object = rendererEnvironmentRuntime.getDefaultRendererEnvironmentInput()
 ): boolean {
     try {
-        const locationParts = getRendererLocationParts(globalScope);
+        const resolvedEnvironmentInput =
+            toRendererEnvironmentInput(environmentInput);
+        const locationParts = getRendererLocationParts(resolvedEnvironmentInput);
 
         return (
             isLocalDevelopmentHost(locationParts.hostname) ||
             isDebugRendererLocation(locationParts) ||
-            getGlobalBooleanFlag(globalScope, "__DEVELOPMENT__") === true ||
-            hasDocumentDevModeFlag(globalScope) ||
-            hasElectronDevModeFlag(globalScope)
+            resolvedEnvironmentInput.developmentFlag === true ||
+            hasDocumentDevModeFlag(resolvedEnvironmentInput) ||
+            hasElectronDevModeFlag(resolvedEnvironmentInput)
         );
     } catch {
         return false;

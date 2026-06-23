@@ -3,27 +3,38 @@ import { describe, expect, it } from "vitest";
 import { getRendererEnvironmentRuntime } from "../../../../../electron-app/utils/app/initialization/rendererEnvironmentRuntime.js";
 
 describe("rendererEnvironmentRuntime", () => {
-    it("returns the injected global scope", () => {
+    it("returns the injected focused environment input", () => {
         expect.assertions(1);
 
-        const globalScope = {
-            location: {
-                hostname: "localhost",
-            },
+        const environmentInput = {
+            developmentFlag: true,
+            document: { documentElement: { dataset: {} } },
+            electronAPI: { __devMode: false },
+            location: { hostname: "localhost" },
         };
         const utils = getRendererEnvironmentRuntime({
-            getGlobalScope: () => globalScope,
+            getDevelopmentFlag: () => environmentInput.developmentFlag,
+            getDocument: () => environmentInput.document,
+            getElectronAPI: () => environmentInput.electronAPI,
+            getLocation: () => environmentInput.location,
         });
 
-        expect(utils.getDefaultRendererEnvironmentScope()).toBe(globalScope);
+        expect(utils.getDefaultRendererEnvironmentInput()).toStrictEqual(
+            environmentInput
+        );
     });
 
-    it("falls back to an empty scope when no global scope is available", () => {
+    it("falls back to an empty input when no providers are available", () => {
         expect.assertions(1);
 
         const utils = getRendererEnvironmentRuntime({});
 
-        expect(utils.getDefaultRendererEnvironmentScope()).toStrictEqual({});
+        expect(utils.getDefaultRendererEnvironmentInput()).toStrictEqual({
+            developmentFlag: undefined,
+            document: undefined,
+            electronAPI: undefined,
+            location: undefined,
+        });
     });
 
     it("ignores legacy direct global scope properties", () => {
@@ -38,6 +49,11 @@ describe("rendererEnvironmentRuntime", () => {
             globalScope,
         } as unknown as Parameters<typeof getRendererEnvironmentRuntime>[0]);
 
-        expect(utils.getDefaultRendererEnvironmentScope()).toStrictEqual({});
+        expect(utils.getDefaultRendererEnvironmentInput()).toStrictEqual({
+            developmentFlag: undefined,
+            document: undefined,
+            electronAPI: undefined,
+            location: undefined,
+        });
     });
 });
