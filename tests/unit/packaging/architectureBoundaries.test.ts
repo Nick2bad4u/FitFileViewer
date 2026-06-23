@@ -6113,7 +6113,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings modal browser APIs behind the runtime facade", () => {
-        expect.assertions(46);
+        expect.assertions(49);
 
         const timingViolations = migratedSettingsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -6175,6 +6175,11 @@ describe("architecture boundaries", () => {
         expect(settingsModalRuntimeSource).toContain(
             "defaultSettingsModalRuntimeScope"
         );
+        expect(settingsModalRuntimeSource).toContain("iconFactoryRuntime.js");
+        expect(settingsModalRuntimeSource).toContain(
+            "return createSvgElement(scope, tagName);"
+        );
+        expect(settingsModalRuntimeSource).not.toContain("createElementNS");
         expect(settingsModalRuntimeSource).not.toContain(
             "scope: SettingsModalRuntimeScope = globalThis"
         );

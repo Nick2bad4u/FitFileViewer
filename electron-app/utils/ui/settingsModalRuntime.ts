@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "./icons/iconFactoryRuntime.js";
+
 export type SettingsModalTimerHandle = ReturnType<typeof globalThis.setTimeout>;
 
 export interface SettingsModalRuntimeScope {
@@ -126,6 +128,16 @@ function getScopeSetTimeout(
     return scope.getSetTimeout?.();
 }
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: SettingsModalRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getScopeDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getSettingsModalRuntime(
     scope: SettingsModalRuntimeScope = defaultSettingsModalRuntimeScope
 ): SettingsModalRuntime {
@@ -156,10 +168,7 @@ export function getSettingsModalRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getScopeDocument(scope).createElementNS(
-                "http://www.w3.org/2000/svg",
-                tagName
-            );
+            return createSvgElement(scope, tagName);
         },
         getActiveHTMLElement(): HTMLElement | undefined {
             const activeElement = getScopeDocument(scope).activeElement;
