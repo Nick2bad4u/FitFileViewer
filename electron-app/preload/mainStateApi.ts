@@ -2,6 +2,7 @@ type MainStateErrorsRequest = import("../shared/ipc").MainStateErrorsRequest;
 type MainStateErrorsResponse = import("../shared/ipc").MainStateErrorsResponse;
 type MainStateGetRequest = import("../shared/ipc").MainStateGetRequest;
 type MainStateGetResponse = import("../shared/ipc").MainStateGetResponse;
+type MainStateInvokeChannel = import("../shared/ipc").MainStateInvokeChannel;
 type MainStateListener = import("../shared/ipc").MainStateListener;
 type MainStateListenRequest = import("../shared/ipc").MainStateListenRequest;
 type MainStateListenResponse = import("../shared/ipc").MainStateListenResponse;
@@ -21,6 +22,10 @@ type MainStateUnlistenRequest =
     import("../shared/ipc").MainStateUnlistenRequest;
 type MainStateUnlistenResponse =
     import("../shared/ipc").MainStateUnlistenResponse;
+type InvokeRequestArgs<Channel extends MainStateInvokeChannel> =
+    import("../shared/ipc").InvokeRequestArgs<Channel>;
+type InvokeResponsePayloadForChannel<Channel extends MainStateInvokeChannel> =
+    import("../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
 
 type PreloadLog = (
     level: "error" | "info" | "warn",
@@ -29,9 +34,12 @@ type PreloadLog = (
 ) => void;
 type UnknownCallback = (...args: unknown[]) => unknown;
 
-interface IpcRendererLike {
-    invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
-}
+type CreateMainStateInvokeHandler = <Channel extends MainStateInvokeChannel>(
+    channel: Channel,
+    methodName: string
+) => (
+    ...args: InvokeRequestArgs<Channel>
+) => Promise<InvokeResponsePayloadForChannel<Channel>>;
 
 interface MainStateBridgeLike {
     listenToMainState: (
@@ -74,7 +82,7 @@ interface MainStateApi {
 }
 
 interface MainStateApiOptions {
-    ipcRenderer: IpcRendererLike;
+    createSafeInvokeHandler: CreateMainStateInvokeHandler;
     mainStateBridge: MainStateBridgeLike;
     preloadLog: PreloadLog;
     validateCallback: (
@@ -89,20 +97,42 @@ interface MainStateApiOptions {
 }
 
 export function createMainStateApi({
-    ipcRenderer,
+    createSafeInvokeHandler,
     mainStateBridge,
     preloadLog,
     validateCallback,
     validateRequiredNonEmptyString,
 }: MainStateApiOptions): MainStateApi {
+    const getErrorsFromMain = createSafeInvokeHandler(
+        "main-state:errors",
+        "getErrors"
+    );
+    const getMainStateFromMain = createSafeInvokeHandler(
+        "main-state:get",
+        "getMainState"
+    );
+    const getMetricsFromMain = createSafeInvokeHandler(
+        "main-state:metrics",
+        "getMetrics"
+    );
+    const getOperationFromMain = createSafeInvokeHandler(
+        "main-state:operation",
+        "getOperation"
+    );
+    const getOperationsFromMain = createSafeInvokeHandler(
+        "main-state:operations",
+        "getOperations"
+    );
+    const setMainStateInMain = createSafeInvokeHandler(
+        "main-state:set",
+        "setMainState"
+    );
+
     async function getErrors(
         limit: MainStateErrorsRequest = 50
     ): Promise<MainStateErrorsResponse> {
         try {
-            return (await ipcRenderer.invoke(
-                "main-state:errors",
-                limit
-            )) as MainStateErrorsResponse;
+            return await getErrorsFromMain(limit);
         } catch (error) {
             preloadLog("error", "[preload.js] Error in getErrors:", error);
             throw error;
@@ -113,10 +143,7 @@ export function createMainStateApi({
         path?: MainStateGetRequest
     ): Promise<MainStateGetResponse> {
         try {
-            return (await ipcRenderer.invoke(
-                "main-state:get",
-                path
-            )) as MainStateGetResponse;
+            return await getMainStateFromMain(path);
         } catch (error) {
             preloadLog(
                 "error",
@@ -129,9 +156,7 @@ export function createMainStateApi({
 
     async function getMetrics(): Promise<MainStateMetricsResponse> {
         try {
-            return (await ipcRenderer.invoke(
-                "main-state:metrics"
-            )) as MainStateMetricsResponse;
+            return await getMetricsFromMain();
         } catch (error) {
             preloadLog("error", "[preload.js] Error in getMetrics:", error);
             throw error;
@@ -152,10 +177,7 @@ export function createMainStateApi({
         }
 
         try {
-            return (await ipcRenderer.invoke(
-                "main-state:operation",
-                operationId
-            )) as MainStateOperationResponse;
+            return await getOperationFromMain(operationId);
         } catch (error) {
             preloadLog(
                 "error",
@@ -168,9 +190,7 @@ export function createMainStateApi({
 
     async function getOperations(): Promise<MainStateOperationsResponse> {
         try {
-            return (await ipcRenderer.invoke(
-                "main-state:operations"
-            )) as MainStateOperationsResponse;
+            return await getOperationsFromMain();
         } catch (error) {
             preloadLog("error", "[preload.js] Error in getOperations:", error);
             throw error;
@@ -212,12 +232,7 @@ export function createMainStateApi({
         }
 
         try {
-            return (await ipcRenderer.invoke(
-                "main-state:set",
-                path,
-                value,
-                options
-            )) as MainStateSetResponse;
+            return await setMainStateInMain(path, value, options);
         } catch (error) {
             preloadLog(
                 "error",

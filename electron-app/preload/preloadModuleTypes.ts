@@ -26,7 +26,15 @@ export type ElectronThemeApi = import("../shared/preloadApi").ElectronThemeApi;
 export type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
 export type IpcRequestPayload = import("../shared/ipc").IpcRequestPayload;
 export type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
-export type MainStateChange = import("../shared/ipc").MainStateChange;
+export type MainStateListenRequest =
+    import("../shared/ipc").MainStateListenRequest;
+export type MainStateListenResponse =
+    import("../shared/ipc").MainStateListenResponse;
+export type MainStateListener = import("../shared/ipc").MainStateListener;
+export type MainStateUnlistenRequest =
+    import("../shared/ipc").MainStateUnlistenRequest;
+export type MainStateUnlistenResponse =
+    import("../shared/ipc").MainStateUnlistenResponse;
 export type UpdateEventName = import("../shared/ipc").UpdateEventName;
 export type DevtoolsInjectMenuFitFilePath =
     import("../shared/ipc").DevtoolsInjectMenuFitFilePath;
@@ -234,13 +242,13 @@ export interface PreloadModuleRegistry {
     createMainStateApi: PreloadApiFactory<ElectronMainStateApi>;
     createMainStateBridge: (options: Record<string, unknown>) => {
         listenToMainState: (
-            path: string,
-            callback: (change: MainStateChange) => void
-        ) => Promise<boolean>;
+            path: MainStateListenRequest,
+            callback: MainStateListener
+        ) => Promise<MainStateListenResponse>;
         unlistenFromMainState: (
-            path: string,
-            callback: (change: MainStateChange) => void
-        ) => Promise<boolean>;
+            path: MainStateUnlistenRequest,
+            callback: MainStateListener
+        ) => Promise<MainStateUnlistenResponse>;
     };
     createMenuEventApi: PreloadApiFactory<ElectronMenuEventApi>;
     createPreloadIpcHelpers: (options: Record<string, unknown>) => {

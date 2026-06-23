@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type {
+    GenericInvokeChannel,
+    InvokeRequestArgs,
+    InvokeResponsePayloadForChannel,
     MainStateChange,
     MainStateListener,
     MainStateSetOptions,
@@ -11,6 +14,18 @@ import { createMainStateApi } from "../../electron-app/preload/mainStateApi.js";
 function createApi() {
     const invoke =
         vi.fn<(channel: string, ...args: unknown[]) => Promise<unknown>>();
+    const createSafeInvokeHandler = vi.fn(
+        <Channel extends GenericInvokeChannel>(
+            channel: Channel,
+            _methodName: string
+        ) =>
+            (
+                ...args: InvokeRequestArgs<Channel>
+            ): Promise<InvokeResponsePayloadForChannel<Channel>> =>
+                invoke(channel, ...args) as Promise<
+                    InvokeResponsePayloadForChannel<Channel>
+                >
+    );
     const preloadLog =
         vi.fn<
             (
@@ -30,7 +45,7 @@ function createApi() {
 
     return {
         api: createMainStateApi({
-            ipcRenderer: { invoke },
+            createSafeInvokeHandler,
             mainStateBridge: {
                 listenToMainState,
                 unlistenFromMainState,
@@ -43,6 +58,7 @@ function createApi() {
             validateRequiredNonEmptyString: (value: unknown): value is string =>
                 typeof value === "string" && value.trim().length > 0,
         }),
+        createSafeInvokeHandler,
         invoke,
         listenToMainState,
         preloadLog,
