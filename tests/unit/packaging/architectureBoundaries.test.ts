@@ -1895,7 +1895,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload shell and Gyazo external APIs split in external assembly", () => {
-        expect.assertions(19);
+        expect.assertions(23);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -1908,6 +1908,11 @@ describe("architecture boundaries", () => {
         );
         const electronApiDomainsSource = stripComments(
             readRepositoryFile("electron-app/preload/electronApiDomains.ts")
+        );
+        const electronApiExternalDomainSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/electronApiExternalDomain.ts"
+            )
         );
         const moduleTypesSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
@@ -1928,10 +1933,22 @@ describe("architecture boundaries", () => {
         expect(electronApiFactorySource).toContain("gyazoExternalApi");
         expect(electronApiFactorySource).toContain("shellExternalApi");
         expect(electronApiFactorySource).toContain("electronApiDomains.js");
+        expect(electronApiFactorySource).toContain(
+            "electronApiExternalDomain.js"
+        );
         expect(electronApiFactorySource).not.toContain(
             "function createElectronApiExternalDomain"
         );
-        expect(electronApiDomainsSource).toContain(
+        expect(electronApiExternalDomainSource).toContain(
+            "createElectronApiExternalDomain"
+        );
+        expect(electronApiExternalDomainSource).toContain(
+            "ElectronGyazoExternalApi"
+        );
+        expect(electronApiExternalDomainSource).toContain(
+            "ElectronShellExternalApi"
+        );
+        expect(electronApiDomainsSource).not.toContain(
             "createElectronApiExternalDomain"
         );
         expect(electronApiDomainsSource).toContain(
@@ -2110,7 +2127,7 @@ describe("architecture boundaries", () => {
                 "function",
             ],
             [
-                "electron-app/preload/electronApiDomains.ts",
+                "electron-app/preload/electronApiExternalDomain.ts",
                 "createElectronApiExternalDomain",
                 "function",
             ],

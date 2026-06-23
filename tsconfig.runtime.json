@@ -37,6 +37,7 @@
         "electron-app/preload/diagnosticsApiDomain.ts",
         "electron-app/preload/devtoolsMenuApi.ts",
         "electron-app/preload/electronApiDomains.ts",
+        "electron-app/preload/electronApiExternalDomain.ts",
         "electron-app/preload/electronApiExposure.ts",
         "electron-app/preload/electronApiFactory.ts",
         "electron-app/preload/electronBridge.ts",

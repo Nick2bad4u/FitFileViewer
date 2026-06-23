@@ -5,12 +5,12 @@ import {
     createElectronApiClipboardDomain,
     createElectronApiDeveloperDomain,
     createElectronApiDiagnosticsDomain,
-    createElectronApiExternalDomain,
     createElectronApiFileDomain,
     createElectronApiMenuDomain,
     createElectronApiStateDomain,
     type ElectronApiFactoryOptions,
 } from "./electronApiDomains.js";
+import { createElectronApiExternalDomain } from "./electronApiExternalDomain.js";
 
 export function createElectronApi({
     apiDiagnostics,
