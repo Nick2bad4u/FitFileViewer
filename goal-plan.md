@@ -274,7 +274,8 @@ prompts now route through the same runtime instead of probing `globalThis.window
 `exportUtils.ts`; default export browser helpers now bind confirm/open calls to `globalThis` without a module-level
 `browserGlobal` alias, with focused runtime coverage and architecture guardrails blocking direct export utility
 browser-runtime access from returning. Default export browser helpers no longer use ad hoc optional browser-global
-fields. The
+fields, and export modal Escape-key document event targeting now uses `getGlobalDocument()` instead of repeating
+`globalThis.document` in the default provider table. The
 fullscreen control startup path no longer exports the deprecated `setupDOMContentLoaded` alias; callers must
 use `setupFullscreenListeners`, and fullscreen button listener abort-controller creation now routes through
 `addFullScreenButtonRuntime.ts` instead of constructing `AbortController` directly inside
