@@ -87,13 +87,17 @@ function getLocationText(
     return typeof value === "string" ? value : "";
 }
 
+function getGlobalDocument(): Document {
+    return globalThis.document;
+}
+
 const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getAddEventListener: () => globalThis.addEventListener,
-    getDocumentBody: () => globalThis.document.body,
-    getDocumentElement: () => globalThis.document.documentElement,
-    getDocumentEventTarget: () => globalThis.document,
-    getDocumentQueryScope: () => globalThis.document,
+    getDocumentBody: () => getGlobalDocument().body,
+    getDocumentElement: () => getGlobalDocument().documentElement,
+    getDocumentEventTarget: () => getGlobalDocument(),
+    getDocumentQueryScope: () => getGlobalDocument(),
     getDispatchEvent: () => globalThis.dispatchEvent,
     getEventTarget: () => globalThis,
     getLocation: () => globalThis.location,
