@@ -1367,7 +1367,7 @@ const directEnsureChartSettingsDropdownsRuntimeGlobalPattern =
 const directEnsureChartSettingsDropdownsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|document|HTMLElement|setTimeout)\b|\bscope:\s*EnsureChartSettingsDropdownsRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultEnsureChartSettingsDropdownsRuntimeScope:\s*EnsureChartSettingsDropdownsRuntimeScope\s*=\s*globalThis\b/u;
 const directCreateSettingsHeaderRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|head|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directCreateSettingsHeaderRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directCreateFieldTogglesSectionRuntimeGlobalPattern =
@@ -4723,7 +4723,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps settings-header timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(35);
 
         const violations = migratedCreateSettingsHeaderRuntimeFiles
             .filter((relativeFile) =>
@@ -4749,7 +4749,19 @@ describe("architecture boundaries", () => {
         );
         expect(settingsHeaderSource).toContain("createAbortController");
         expect(settingsHeaderSource).toContain("addDocumentKeydownListener");
+        expect(settingsHeaderSource).toContain(
+            "createSettingsHeaderRuntime.createElement"
+        );
+        expect(settingsHeaderSource).toContain(
+            "createSettingsHeaderRuntime.appendToBody"
+        );
+        expect(settingsHeaderSource).toContain(
+            "createSettingsHeaderRuntime.appendToHead"
+        );
         expect(settingsHeaderSource).not.toContain("document.addEventListener");
+        expect(settingsHeaderSource).not.toContain("document.createElement");
+        expect(settingsHeaderSource).not.toContain("document.body");
+        expect(settingsHeaderSource).not.toContain("document.head");
         expect(settingsHeaderRuntimeSource).not.toMatch(
             directCreateSettingsHeaderRuntimeAmbientFallbackPattern
         );
@@ -4769,6 +4781,9 @@ describe("architecture boundaries", () => {
             "readonly clearTimeout?:"
         );
         expect(settingsHeaderRuntimeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(settingsHeaderRuntimeSource).not.toContain(
             "readonly documentEventTarget?:"
         );
         expect(settingsHeaderRuntimeSource).not.toContain(
@@ -4778,6 +4793,7 @@ describe("architecture boundaries", () => {
             "scope.AbortController"
         );
         expect(settingsHeaderRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(settingsHeaderRuntimeSource).not.toContain("scope.document");
         expect(settingsHeaderRuntimeSource).not.toContain(
             "scope.documentEventTarget"
         );
@@ -4792,10 +4808,25 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(settingsHeaderRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(settingsHeaderRuntimeSource).toContain(
+            "createSettingsHeader requires a document runtime"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
             "createSettingsHeader requires a document event-target runtime"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "getDocument(scope).body.append(node)"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "getDocument(scope).head.append(node)"
+        );
+        expect(settingsHeaderRuntimeSource).toContain(
+            "getDocument(scope).createElement(tagName)"
         );
     });
 
