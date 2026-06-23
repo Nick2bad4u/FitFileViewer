@@ -4,6 +4,26 @@ import { createElectronConf } from "../runtime/electronConfAccess.js";
 
 type StateUpdateOptions = Record<string, unknown>;
 
+export type MainAppStateValueByPath = {
+    appIsQuitting: boolean;
+    "autoUpdater.status":
+        | "available"
+        | "checking"
+        | "downloaded"
+        | "downloading"
+        | "error"
+        | "idle";
+    "autoUpdater.updateDownloaded": boolean;
+    autoUpdaterInitialized: boolean;
+    gyazoServer: unknown;
+    gyazoServerPort: null | number;
+    loadedFitFilePath: null | string;
+    mainWindow: unknown;
+    "permissions.geolocation.allowed": boolean;
+};
+
+export type MainAppStateKnownPath = keyof MainAppStateValueByPath;
+
 interface FitParserSettingsConf {
     get: (key: string) => unknown;
     set: (key: string, value: unknown) => void;
@@ -27,6 +47,10 @@ export function cleanupEventHandlers(): void {
  *
  * @returns Stored state value.
  */
+export function getAppState<Path extends MainAppStateKnownPath>(
+    statePath: Path
+): MainAppStateValueByPath[Path];
+export function getAppState(statePath: string): unknown;
 export function getAppState(statePath: string): unknown {
     return runtimeMainProcessState.get(statePath);
 }
@@ -61,6 +85,16 @@ export function resolveFitParserSettingsConf(): FitParserSettingsConf | null {
  * @param value - Value to persist.
  * @param options - Additional metadata forwarded to the state manager.
  */
+export function setAppState<Path extends MainAppStateKnownPath>(
+    statePath: Path,
+    value: MainAppStateValueByPath[Path],
+    options?: StateUpdateOptions
+): void;
+export function setAppState(
+    statePath: string,
+    value: unknown,
+    options?: StateUpdateOptions
+): void;
 export function setAppState(
     statePath: string,
     value: unknown,
