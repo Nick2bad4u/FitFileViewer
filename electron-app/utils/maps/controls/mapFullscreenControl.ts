@@ -3,7 +3,6 @@ import {
     type MapFullscreenControlTimer,
 } from "./mapFullscreenControlRuntime.js";
 
-const SVG_NS = "http://www.w3.org/2000/svg";
 const mapFullscreenControlRuntime = getMapFullscreenControlRuntime();
 
 interface LeafletMap {
@@ -12,7 +11,7 @@ interface LeafletMap {
 }
 
 function createFullscreenIcon(state: "enter" | "exit"): SVGSVGElement {
-    const icon = document.createElementNS(SVG_NS, "svg");
+    const icon = mapFullscreenControlRuntime.createSvgElement("svg");
     icon.setAttribute("width", "22");
     icon.setAttribute("height", "22");
     icon.setAttribute("viewBox", "0 0 22 22");
@@ -134,7 +133,7 @@ function createFullscreenIcon(state: "enter" | "exit"): SVGSVGElement {
         width,
         height,
     ] of rects) {
-        const rect = document.createElementNS(SVG_NS, "rect");
+        const rect = mapFullscreenControlRuntime.createSvgElement("rect");
         rect.setAttribute("x", x);
         rect.setAttribute("y", y);
         rect.setAttribute("width", width);
@@ -156,12 +155,12 @@ function setFullscreenButtonIcon(
 
 /** Adds a custom fullscreen control to a Leaflet map. */
 export function addFullscreenControl(map: LeafletMap): void {
-    const fullscreenControl = document.createElement("div");
+    const fullscreenControl = mapFullscreenControlRuntime.createElement("div");
     fullscreenControl.className =
         "custom-fullscreen-control leaflet-top leaflet-left";
-    const bar = document.createElement("div");
+    const bar = mapFullscreenControlRuntime.createElement("div");
     bar.className = "leaflet-bar custom-fullscreen-bar";
-    const button = document.createElement("button");
+    const button = mapFullscreenControlRuntime.createElement("button");
     button.id = "fullscreen-btn";
     button.type = "button";
     button.title = "Toggle Fullscreen";

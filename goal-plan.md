@@ -488,7 +488,10 @@ architecture guardrails blocking those direct browser APIs from returning. Expli
 map-container lookup, fullscreen state reads, fullscreen exit, document body containment, and old-button cleanup now
 also route through `mapFullscreenControlRuntime.ts` instead of querying or reading `document` directly inside
 `mapFullscreenControl.ts`, with focused runtime coverage and architecture coverage blocking those direct browser APIs
-from returning. Explicit custom map fullscreen-control runtime scopes must now provide their document and timer
+from returning. Custom map fullscreen-control button/container/SVG creation now also routes through
+`mapFullscreenControlRuntime.ts` instead of calling `document.createElement` or `document.createElementNS` directly
+inside `mapFullscreenControl.ts`, with focused runtime coverage and architecture coverage blocking those direct
+creation APIs from returning. Explicit custom map fullscreen-control runtime scopes must now provide their document and timer
 primitives instead of falling back to `globalThis`, with focused runtime coverage and architecture coverage blocking
 those fallbacks from returning. Production defaults now stay behind named provider scope functions, and explicit
 runtime scopes no longer accept legacy direct document, timer, or abort-controller properties.

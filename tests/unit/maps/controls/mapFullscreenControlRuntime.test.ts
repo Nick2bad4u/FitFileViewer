@@ -100,8 +100,34 @@ describe("getMapFullscreenControlRuntime", () => {
         await expect(runtime.exitFullscreen()).resolves.toBeUndefined();
     });
 
-    it("fails clearly when the document runtime is unavailable", () => {
+    it("creates HTML and SVG elements through the injected document", () => {
         expect.assertions(6);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("fullscreen control");
+        const createElement = vi.spyOn(documentRef, "createElement");
+        const createElementNS = vi.spyOn(documentRef, "createElementNS");
+        const runtime = getMapFullscreenControlRuntime({
+            getDocument: () => documentRef,
+        });
+
+        const button = runtime.createElement("button");
+        const svg = runtime.createSvgElement("svg");
+        const rect = runtime.createSvgElement("rect");
+
+        expect(button).toBeInstanceOf(HTMLButtonElement);
+        expect(svg.nodeName).toBe("svg");
+        expect(rect.nodeName).toBe("rect");
+        expect(rect.namespaceURI).toBe("http://www.w3.org/2000/svg");
+        expect(createElement).toHaveBeenCalledWith("button");
+        expect(createElementNS).toHaveBeenCalledWith(
+            "http://www.w3.org/2000/svg",
+            "rect"
+        );
+    });
+
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(8);
 
         const runtime = getMapFullscreenControlRuntime({});
         const controller = new AbortController();
@@ -115,6 +141,12 @@ describe("getMapFullscreenControlRuntime", () => {
             "mapFullscreenControl requires a document runtime"
         );
         expect(() => runtime.getLegacyFullscreenButton()).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
             "mapFullscreenControl requires a document runtime"
         );
         expect(() => runtime.isFullscreenElement(document.body)).toThrow(
@@ -163,7 +195,7 @@ describe("getMapFullscreenControlRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const addEventListener = vi.fn();
         const querySelector = vi.fn();
@@ -176,6 +208,8 @@ describe("getMapFullscreenControlRuntime", () => {
             document: {
                 addEventListener,
                 body: document.body,
+                createElement: document.createElement.bind(document),
+                createElementNS: document.createElementNS.bind(document),
                 exitFullscreen,
                 fullscreenElement: document.body,
                 querySelector,
@@ -204,6 +238,12 @@ describe("getMapFullscreenControlRuntime", () => {
             "mapFullscreenControl requires a document runtime"
         );
         expect(() => runtime.getLegacyFullscreenButton()).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
+            "mapFullscreenControl requires a document runtime"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
             "mapFullscreenControl requires a document runtime"
         );
         expect(() => runtime.isFullscreenElement(document.body)).toThrow(

@@ -6,6 +6,8 @@ type MapFullscreenControlDocument = Pick<
     Document,
     | "addEventListener"
     | "body"
+    | "createElement"
+    | "createElementNS"
     | "exitFullscreen"
     | "fullscreenElement"
     | "querySelector"
@@ -33,6 +35,12 @@ export interface MapFullscreenControlRuntime {
     ) => void;
     readonly clearTimeout: (timer: MapFullscreenControlTimer) => void;
     readonly createAbortController: () => AbortController;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
+    readonly createSvgElement: <K extends keyof SVGElementTagNameMap>(
+        tagName: K
+    ) => SVGElementTagNameMap[K];
     readonly documentBodyContains: (element: Element) => boolean;
     readonly exitFullscreen: () => Promise<void> | void;
     readonly getLegacyFullscreenButton: () => Element | null;
@@ -96,6 +104,15 @@ export function getMapFullscreenControlRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createElement(tagName) {
+            return getRuntimeDocument(scope).createElement(tagName);
+        },
+        createSvgElement(tagName) {
+            return getRuntimeDocument(scope).createElementNS(
+                "http://www.w3.org/2000/svg",
+                tagName
+            );
         },
         documentBodyContains(element): boolean {
             return getRuntimeDocument(scope).body.contains(element);

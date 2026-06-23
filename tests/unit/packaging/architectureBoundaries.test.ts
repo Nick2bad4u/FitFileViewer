@@ -10362,7 +10362,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(36);
 
         const violations = migratedMapFullscreenControlRuntimeFiles
             .filter((relativeFile) =>
@@ -10392,8 +10392,20 @@ describe("architecture boundaries", () => {
         expect(mapFullscreenControlSource).toContain(
             "getLegacyFullscreenButton()"
         );
+        expect(mapFullscreenControlSource).toContain(
+            'mapFullscreenControlRuntime.createElement("div")'
+        );
+        expect(mapFullscreenControlSource).toContain(
+            'mapFullscreenControlRuntime.createSvgElement("svg")'
+        );
         expect(mapFullscreenControlSource).not.toContain(
             "document.querySelector"
+        );
+        expect(mapFullscreenControlSource).not.toContain(
+            "document.createElement"
+        );
+        expect(mapFullscreenControlSource).not.toContain(
+            "document.createElementNS"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
             "defaultMapFullscreenControlRuntimeScope"
@@ -10427,6 +10439,18 @@ describe("architecture boundaries", () => {
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
             "const AbortControllerConstructor = scope.getAbortController?.();"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "createElement: <K extends keyof HTMLElementTagNameMap>"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "createSvgElement: <K extends keyof SVGElementTagNameMap>"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "getRuntimeDocument(scope).createElement(tagName)"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "getRuntimeDocument(scope).createElementNS("
         );
         expect(mapFullscreenControlRuntimeSource).not.toContain(
             "readonly AbortController?:"
