@@ -14161,7 +14161,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shown-files list browser APIs behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(36);
 
         const violations = migratedShownFilesListRuntimeFiles
             .filter((relativeFile) =>
@@ -14233,6 +14233,15 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(shownFilesListRuntimeSource).toContain(
+            "getRequiredDocument(scope).createElement"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "getRequiredDocument(scope).querySelectorAll"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
+            "getRequiredDocument(scope).body.append"
+        );
+        expect(shownFilesListRuntimeSource).toContain(
             "getEventTarget: () => globalThis"
         );
         expect(shownFilesListRuntimeSource).toContain(
@@ -14245,6 +14254,21 @@ describe("architecture boundaries", () => {
         );
         expect(shownFilesItemHandlerSource).toContain("createAbortController");
         expect(shownFilesItemHandlerSource).toContain("getViewport");
+        expect(shownFilesItemHandlerSource).toContain(
+            "shownFilesListRuntime.createElement"
+        );
+        expect(shownFilesItemHandlerSource).toContain(
+            "shownFilesListRuntime.querySelectorAll"
+        );
+        expect(shownFilesItemHandlerSource).toContain(
+            "shownFilesListRuntime.appendToBody"
+        );
+        expect(shownFilesItemHandlerSource).not.toContain(
+            "document.createElement"
+        );
+        expect(shownFilesItemHandlerSource).not.toContain(
+            "document.querySelectorAll"
+        );
         const createShownFilesListSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/rendering/components/createShownFilesList.ts"

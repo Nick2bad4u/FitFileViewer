@@ -78,7 +78,9 @@ function isCircleMarkerLeafletRuntime(
 }
 
 function removeOverlayFilenameTooltips(): void {
-    const tooltips = document.querySelectorAll(".overlay-filename-tooltip");
+    const tooltips = shownFilesListRuntime.querySelectorAll(
+        ".overlay-filename-tooltip"
+    );
     for (const tooltip of tooltips) {
         tooltip.parentNode?.removeChild(tooltip);
     }
@@ -162,7 +164,7 @@ function showOverlayTooltip({
         return;
     }
 
-    const tooltip = document.createElement("div");
+    const tooltip = shownFilesListRuntime.createElement("div");
     tooltip.className = "overlay-filename-tooltip";
     tooltip.style.position = "fixed";
     tooltip.style.zIndex = "9999";
@@ -178,7 +180,7 @@ function showOverlayTooltip({
 
     // Avoid innerHTML because file paths are user-controlled.
     tooltip.textContent = `File: ${String(fullPath)}${showWarning ? "\n⚠️ This color may be hard to read in this theme." : ""}`;
-    document.body.append(tooltip);
+    shownFilesListRuntime.appendToBody(tooltip);
 
     const tooltipMovement = shownFilesListRuntime.createAbortController();
     const moveTooltip = (event: MouseEvent): void => {

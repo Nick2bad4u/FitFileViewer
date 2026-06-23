@@ -58,7 +58,12 @@ export interface ShownFilesListRuntime {
     ) => void;
     readonly clearTimeout: (handle: ShownFilesListTimerHandle) => void;
     readonly createAbortController: () => AbortController;
+    readonly appendToBody: (element: HTMLElement) => void;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
     readonly getViewport: () => ShownFilesListViewport;
+    readonly querySelectorAll: (selector: string) => Iterable<Element>;
     readonly setTimeout: (
         callback: () => void,
         timeout: number
@@ -76,6 +81,15 @@ const defaultShownFilesListRuntimeScope: ShownFilesListRuntimeScope = {
         width: globalThis.innerWidth,
     }),
 };
+
+function getRequiredDocument(scope: ShownFilesListRuntimeScope): Document {
+    const documentRef = scope.getDocument?.();
+    if (!documentRef) {
+        throw new TypeError("shownFilesList requires a document runtime");
+    }
+
+    return documentRef;
+}
 
 export function getShownFilesListRuntime(
     scope: ShownFilesListRuntimeScope = defaultShownFilesListRuntimeScope
@@ -122,6 +136,9 @@ export function getShownFilesListRuntime(
             }
             clearTimeoutRef(handle);
         },
+        appendToBody(element): void {
+            getRequiredDocument(scope).body.append(element);
+        },
         createAbortController(): AbortController {
             const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
@@ -131,6 +148,9 @@ export function getShownFilesListRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createElement(tagName) {
+            return getRequiredDocument(scope).createElement(tagName);
         },
         getViewport(): ShownFilesListViewport {
             const viewport = scope.getViewport?.();
@@ -143,6 +163,9 @@ export function getShownFilesListRuntime(
             }
 
             return { height, width };
+        },
+        querySelectorAll(selector): Iterable<Element> {
+            return getRequiredDocument(scope).querySelectorAll(selector);
         },
         setTimeout(callback, timeout): ShownFilesListTimerHandle {
             const setTimeoutRef = scope.getSetTimeout?.();

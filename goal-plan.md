@@ -431,6 +431,9 @@ list runtime scopes must now provide document body, mousemove event-target, view
 of falling back to `globalThis`; production defaults now live in an explicit provider object instead of a broad
 `globalThis` default scope, with focused runtime coverage and architecture coverage blocking those fallbacks
 from returning.
+Shown-files overlay tooltip element creation, body append, and existing-tooltip queries now also route through
+`shownFilesListRuntime.ts` instead of touching `document` directly inside `shownFilesListItemHandlers.ts`, with
+runtime coverage and architecture guardrails blocking those direct tooltip DOM calls from returning.
 Fallback map measurement button re-enable scheduling and cleanup now route through `mapMeasureToolRuntime.ts`
 instead of calling timer globals directly inside `mapMeasureTool.ts`, with focused runtime coverage and
 architecture guardrails blocking those direct timer globals from returning. Map measurement Escape-key listener

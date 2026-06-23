@@ -79,6 +79,45 @@ describe("getShownFilesListRuntime", () => {
         controller.abort();
     });
 
+    it("creates, appends, and queries elements through the injected document runtime", () => {
+        expect.assertions(4);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("shown files");
+        const runtime = getShownFilesListRuntime({
+            getDocument: () => documentRef,
+        });
+
+        const tooltip = runtime.createElement("div");
+        tooltip.className = "overlay-filename-tooltip";
+        runtime.appendToBody(tooltip);
+
+        expect(tooltip).toBeInstanceOf(HTMLDivElement);
+        expect(documentRef.body.contains(tooltip)).toBe(true);
+        expect(
+            Array.from(runtime.querySelectorAll(".overlay-filename-tooltip"))
+        ).toStrictEqual([tooltip]);
+        expect(Array.from(runtime.querySelectorAll(".missing"))).toStrictEqual(
+            []
+        );
+    });
+
+    it("does not borrow ambient documents for explicit DOM scopes", () => {
+        expect.assertions(3);
+
+        const runtime = getShownFilesListRuntime({});
+
+        expect(() => runtime.createElement("div")).toThrow(
+            "shownFilesList requires a document runtime"
+        );
+        expect(() =>
+            runtime.appendToBody(document.createElement("div"))
+        ).toThrow("shownFilesList requires a document runtime");
+        expect(() =>
+            runtime.querySelectorAll(".overlay-filename-tooltip")
+        ).toThrow("shownFilesList requires a document runtime");
+    });
+
     it("registers mousemove listeners through the injected runtime scope", () => {
         expect.assertions(3);
 
@@ -194,7 +233,7 @@ describe("getShownFilesListRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(6);
+        expect.assertions(9);
 
         const TestAbortController = vi.fn(function TestAbortController() {
             return new AbortController();
@@ -223,6 +262,15 @@ describe("getShownFilesListRuntime", () => {
                 signal: controller.signal,
             })
         ).toThrow("shownFilesList requires a document body runtime");
+        expect(() => runtime.createElement("div")).toThrow(
+            "shownFilesList requires a document runtime"
+        );
+        expect(() =>
+            runtime.appendToBody(document.createElement("div"))
+        ).toThrow("shownFilesList requires a document runtime");
+        expect(() =>
+            runtime.querySelectorAll(".overlay-filename-tooltip")
+        ).toThrow("shownFilesList requires a document runtime");
         expect(() =>
             runtime.addMouseMoveListener(() => undefined, {
                 signal: controller.signal,
