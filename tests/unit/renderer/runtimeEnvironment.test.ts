@@ -4,7 +4,7 @@ import { createRendererRuntimeEnvironment as createRuntimeEnvironment } from "..
 
 describe("renderer runtime environment", () => {
     it("captures browser globals through named providers", () => {
-        expect.assertions(19);
+        expect.assertions(20);
 
         const electronApiCandidate = {};
         const legacyRendererGlobalElectronApiCandidate = {};
@@ -42,6 +42,7 @@ describe("renderer runtime environment", () => {
         const getRemoveEventListener = vi.fn(() =>
             rendererGlobal.removeEventListener.bind(rendererGlobal)
         );
+        const getRendererEventTarget = vi.fn(() => rendererGlobal);
         const getRendererScope = vi.fn(() => rendererGlobal);
         const getSetInterval = vi.fn(() =>
             rendererGlobal.setInterval.bind(rendererGlobal)
@@ -57,7 +58,7 @@ describe("renderer runtime environment", () => {
             getDocument,
             getElectronApiCandidate,
             getRemoveEventListener,
-            getRendererScope,
+            getRendererEventTarget,
             getSetInterval,
             getSetTimeout,
         });
@@ -68,7 +69,7 @@ describe("renderer runtime environment", () => {
         expect(environment.electronApiCandidate).not.toBe(
             legacyRendererGlobalElectronApiCandidate
         );
-        expect(environment.rendererGlobal).toBe(rendererGlobal);
+        expect(environment.rendererEventTarget).toBe(rendererGlobal);
         expect(environment.addEventListener("load", vi.fn())).toBe(
             rendererGlobal
         );
@@ -84,7 +85,8 @@ describe("renderer runtime environment", () => {
         expect(getDocument).toHaveBeenCalledOnce();
         expect(getElectronApiCandidate).toHaveBeenCalledOnce();
         expect(getRemoveEventListener).toHaveBeenCalledOnce();
-        expect(getRendererScope).toHaveBeenCalledOnce();
+        expect(getRendererEventTarget).toHaveBeenCalledOnce();
+        expect(getRendererScope).not.toHaveBeenCalled();
         expect(getSetInterval).toHaveBeenCalledOnce();
         expect(getSetTimeout).toHaveBeenCalledOnce();
     });
@@ -93,13 +95,21 @@ describe("renderer runtime environment", () => {
         expect.assertions(2);
 
         expect(() => createRuntimeEnvironment({})).toThrow(
-            "renderer runtime environment requires a renderer scope"
+            "renderer runtime environment requires addEventListener"
         );
         expect(() =>
             createRuntimeEnvironment({
-                getRendererScope: () => ({}) as Window & typeof globalThis,
+                getAddEventListener: () => vi.fn(),
+                getClearInterval: () => vi.fn(),
+                getConsole: () => console,
+                getDocument: () => document,
+                getRemoveEventListener: () => vi.fn(),
+                getSetInterval: () => vi.fn(),
+                getSetTimeout: () => vi.fn(),
             })
-        ).toThrow("renderer runtime environment requires addEventListener");
+        ).toThrow(
+            "renderer runtime environment requires a renderer event target"
+        );
     });
 
     it("ignores legacy direct scoped timer and DOM providers", () => {
@@ -149,7 +159,7 @@ describe("renderer runtime environment", () => {
                     typeof createRuntimeEnvironment
                 >[0]
             )
-        ).toThrow("renderer runtime environment requires a renderer scope");
+        ).toThrow("renderer runtime environment requires addEventListener");
 
         const environment = createRuntimeEnvironment({
             ...legacyDirectScope,
@@ -162,13 +172,13 @@ describe("renderer runtime environment", () => {
             getElectronApiCandidate: () => electronApiCandidate,
             getRemoveEventListener: () =>
                 rendererGlobal.removeEventListener.bind(rendererGlobal),
-            getRendererScope: () => rendererGlobal,
+            getRendererEventTarget: () => rendererGlobal,
             getSetInterval: () =>
                 rendererGlobal.setInterval.bind(rendererGlobal),
             getSetTimeout: () => rendererGlobal.setTimeout.bind(rendererGlobal),
         } as unknown as Parameters<typeof createRuntimeEnvironment>[0]);
 
-        expect(environment.rendererGlobal).toBe(rendererGlobal);
+        expect(environment.rendererEventTarget).toBe(rendererGlobal);
         expect(
             environment.addEventListener("load", vi.fn(), {
                 signal: listenerController.signal,

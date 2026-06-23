@@ -1,3 +1,8 @@
+type RendererRuntimeEventTarget = Pick<
+    EventTarget,
+    "addEventListener" | "removeEventListener"
+>;
+
 export type RendererRuntimeEnvironment = {
     readonly addEventListener: typeof globalThis.addEventListener;
     readonly clearInterval: typeof globalThis.clearInterval;
@@ -5,7 +10,7 @@ export type RendererRuntimeEnvironment = {
     readonly documentTarget: Document;
     readonly electronApiCandidate: unknown;
     readonly removeEventListener: typeof globalThis.removeEventListener;
-    readonly rendererGlobal: Window & typeof globalThis;
+    readonly rendererEventTarget: RendererRuntimeEventTarget;
     readonly setInterval: typeof globalThis.setInterval;
     readonly setTimeout: typeof globalThis.setTimeout;
 };
@@ -24,6 +29,9 @@ export type RendererRuntimeEnvironmentScope = {
     readonly getElectronApiCandidate?: (() => unknown) | undefined;
     readonly getRemoveEventListener?:
         | (() => typeof globalThis.removeEventListener | undefined)
+        | undefined;
+    readonly getRendererEventTarget?:
+        | (() => RendererRuntimeEventTarget | undefined)
         | undefined;
     readonly getRendererScope?:
         | (() => RendererRuntimeScope | undefined)
@@ -45,6 +53,7 @@ const defaultRendererRuntimeEnvironmentScope: RendererRuntimeEnvironmentScope =
         getElectronApiCandidate: getDefaultElectronApiCandidate,
         getRemoveEventListener: () =>
             globalThis.removeEventListener.bind(globalThis),
+        getRendererEventTarget: getDefaultRendererEventTarget,
         getRendererScope: () => globalThis as RendererRuntimeScope,
         getSetInterval: () => globalThis.setInterval.bind(globalThis),
         getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
@@ -58,6 +67,12 @@ function getDefaultElectronApiCandidate(): unknown {
         : Reflect.get(rendererScope, "electronAPI");
 }
 
+function getDefaultRendererEventTarget():
+    | RendererRuntimeEventTarget
+    | undefined {
+    return defaultRendererRuntimeEnvironmentScope.getRendererScope?.();
+}
+
 function getRequiredRuntimeValue<T>(value: T | undefined, message: string): T {
     if (value === undefined) {
         throw new TypeError(message);
@@ -69,11 +84,6 @@ function getRequiredRuntimeValue<T>(value: T | undefined, message: string): T {
 export function createRendererRuntimeEnvironment(
     scope: RendererRuntimeEnvironmentScope = defaultRendererRuntimeEnvironmentScope
 ): RendererRuntimeEnvironment {
-    const rendererGlobal = getRequiredRuntimeValue(
-        scope.getRendererScope?.(),
-        "renderer runtime environment requires a renderer scope"
-    );
-
     return {
         addEventListener: getRequiredRuntimeValue(
             scope.getAddEventListener?.(),
@@ -96,7 +106,10 @@ export function createRendererRuntimeEnvironment(
             scope.getRemoveEventListener?.(),
             "renderer runtime environment requires removeEventListener"
         ),
-        rendererGlobal,
+        rendererEventTarget: getRequiredRuntimeValue(
+            scope.getRendererEventTarget?.(),
+            "renderer runtime environment requires a renderer event target"
+        ),
         setInterval: getRequiredRuntimeValue(
             scope.getSetInterval?.(),
             "renderer runtime environment requires setInterval"

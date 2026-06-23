@@ -183,7 +183,7 @@ const cleanup = createRendererLifecycleCleanup({
 registerRendererApplicationLifecycle({
     cleanup,
     documentTarget: runtimeEnvironment.documentTarget,
-    globalEventTarget: runtimeEnvironment.rendererGlobal,
+    globalEventTarget: runtimeEnvironment.rendererEventTarget,
     initializeApplication,
     setTimeout: runtimeEnvironment.setTimeout,
 });
@@ -204,7 +204,7 @@ initializeRendererDiagnostics({
 
 runRendererImportTimeBootstrap(importTimeBootstrap);
 fileInputWiring.registerImportTimeFileInputChangeHandler(
-    runtimeEnvironment.rendererGlobal
+    runtimeEnvironment.rendererEventTarget
 );
 
 installRendererElectronApiWiring({
@@ -218,11 +218,11 @@ installRendererElectronApiWiring({
 
 registerRendererTestOnlyBootstrap(testOnlyBootstrapOptions, {
     documentTarget: runtimeEnvironment.documentTarget,
-    globalEventTarget: runtimeEnvironment.rendererGlobal,
-    unloadTarget: runtimeEnvironment.rendererGlobal,
+    globalEventTarget: runtimeEnvironment.rendererEventTarget,
+    unloadTarget: runtimeEnvironment.rendererEventTarget,
 });
 
 fileInputWiring.registerDelegatedFileInputChangeListener(
     runtimeEnvironment.documentTarget,
-    runtimeEnvironment.rendererGlobal
+    runtimeEnvironment.rendererEventTarget
 );

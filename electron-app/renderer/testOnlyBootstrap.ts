@@ -20,6 +20,11 @@ interface RendererTestOnlyBootstrapOptions {
     setLoading: (loading: boolean) => void;
 }
 
+type RendererTestOnlyBootstrapEventTarget = Pick<
+    EventTarget,
+    "addEventListener"
+>;
+
 export function createTestDOMContentLoadedSetupHandler(
     options: RendererTestOnlyBootstrapOptions
 ): () => void {
@@ -98,7 +103,7 @@ export function createTestWindowLoadThemeSetupHandler(
 
 export function registerTestDOMContentLoadedSetupListener(
     documentTarget: Document,
-    unloadTarget: EventTarget,
+    unloadTarget: RendererTestOnlyBootstrapEventTarget,
     onTestDOMContentLoadedSetupListeners: () => void,
     runtime: RendererTestOnlyBootstrapRuntime = getRendererTestOnlyBootstrapRuntime()
 ): void {
@@ -121,8 +126,8 @@ export function registerTestDOMContentLoadedSetupListener(
 }
 
 export function registerTestWindowLoadThemeSetupListener(
-    globalEventTarget: EventTarget,
-    unloadTarget: EventTarget,
+    globalEventTarget: RendererTestOnlyBootstrapEventTarget,
+    unloadTarget: RendererTestOnlyBootstrapEventTarget,
     onTestWindowLoadSetupTheme: () => void,
     runtime: RendererTestOnlyBootstrapRuntime = getRendererTestOnlyBootstrapRuntime()
 ): void {
@@ -146,8 +151,8 @@ export function registerRendererTestOnlyBootstrap(
     options: RendererTestOnlyBootstrapOptions,
     targets: {
         readonly documentTarget: Document;
-        readonly globalEventTarget: EventTarget;
-        readonly unloadTarget: EventTarget;
+        readonly globalEventTarget: RendererTestOnlyBootstrapEventTarget;
+        readonly unloadTarget: RendererTestOnlyBootstrapEventTarget;
     }
 ): void {
     try {

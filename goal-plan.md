@@ -1164,6 +1164,9 @@ blocking those compatibility shapes from returning.
 Renderer runtime environment startup now captures the preload API candidate through the named
 `getElectronApiCandidate` provider instead of reading `electronAPI` inline from `rendererGlobal` while assembling
 the runtime environment object, with unit and architecture coverage blocking the direct probe from returning.
+Renderer runtime environment startup now also returns a narrow `rendererEventTarget` instead of exporting the broad
+`rendererGlobal` object to the renderer entrypoint; lifecycle, test bootstrap, and file-input wiring receive only
+the event target they use, with architecture coverage blocking the broad handoff from returning.
 Main UI DOM utility tests now use registered Electron API candidates for validation coverage instead of ambient
 `electronAPI` stubs or defining/deleting `globalThis.electronAPI` directly, with architecture coverage blocking
 that direct fixture mutation.

@@ -4366,7 +4366,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(49);
+        expect.assertions(54);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4406,6 +4406,12 @@ describe("architecture boundaries", () => {
         expect(rendererEntrypointSource).toContain("runtimeEnvironment.js");
         expect(rendererEntrypointSource).not.toContain("globalThis.");
         expect(rendererEntrypointSource).not.toContain("document,");
+        expect(rendererEntrypointSource).toContain(
+            "runtimeEnvironment.rendererEventTarget"
+        );
+        expect(rendererEntrypointSource).not.toContain(
+            "runtimeEnvironment.rendererGlobal"
+        );
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             "scope: Window & typeof globalThis = globalThis.window"
         );
@@ -4430,6 +4436,9 @@ describe("architecture boundaries", () => {
         expect(rendererRuntimeEnvironmentSource).toContain(
             "getElectronApiCandidate"
         );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "getRendererEventTarget"
+        );
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             'Reflect.get(globalThis, "electronAPI")'
         );
@@ -4448,8 +4457,14 @@ describe("architecture boundaries", () => {
         expect(rendererRuntimeEnvironmentSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout.bind(globalThis)"
         );
-        expect(rendererRuntimeEnvironmentSource).toContain(
+        expect(rendererRuntimeEnvironmentSource).not.toContain(
             "readonly rendererGlobal: Window & typeof globalThis"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "type RendererRuntimeEventTarget = Pick<"
+        );
+        expect(rendererRuntimeEnvironmentSource).toContain(
+            "readonly rendererEventTarget: RendererRuntimeEventTarget"
         );
         expect(rendererRuntimeEnvironmentSource).not.toContain(
             "type RendererRuntimeEnvironmentScope =\n    | RendererRuntimeScope"
@@ -4466,7 +4481,7 @@ describe("architecture boundaries", () => {
         );
         expect(rendererRuntimeEnvironmentSource).not.toContain("getWindow: ()");
         expect(rendererRuntimeEnvironmentSource).toContain(
-            "renderer runtime environment requires a renderer scope"
+            "renderer runtime environment requires a renderer event target"
         );
         expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
