@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
+
 export type MapThemeToggleTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
     | number;
@@ -78,6 +80,16 @@ const defaultMapThemeToggleRuntimeScope: MapThemeToggleRuntimeScope = {
     getSetTimeout: () => globalThis.setTimeout,
 };
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: MapThemeToggleRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getMapThemeToggleRuntime(
     scope: MapThemeToggleRuntimeScope = defaultMapThemeToggleRuntimeScope
 ): MapThemeToggleRuntime {
@@ -125,10 +137,7 @@ export function getMapThemeToggleRuntime(
             });
         },
         createSvgElement(tagName) {
-            return getDocument(scope).createElementNS(
-                "http://www.w3.org/2000/svg",
-                tagName
-            );
+            return createSvgElement(scope, tagName);
         },
         dispatchDocumentEvent(event: Event): boolean {
             return getDocument(scope).dispatchEvent(event);

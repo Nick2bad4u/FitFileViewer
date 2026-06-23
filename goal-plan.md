@@ -342,8 +342,9 @@ Chart hover effects scheduling, abort-controller creation, and document listener
 functions instead of a broad `globalThis` default scope or legacy direct scope properties.
 Inline SVG creation now routes through focused runtime facades for the app icon factory, fullscreen controls, chart
 hover overlays, keyboard-shortcuts modal, map export/print controls, loading overlay, add-FIT-to-map control,
-marker-count selector, and data-point filter icons instead of calling `document.createElementNS` directly, with
-architecture coverage blocking raw SVG DOM creation from returning to Electron app source.
+marker-count selector, data-point filter icons, render-summary controls, map theme toggle, and elevation-profile
+button instead of calling `document.createElementNS` directly, with architecture coverage blocking raw SVG DOM creation
+from returning to Electron app source.
 Field-toggle DOM construction, custom event dispatch, listener abort-controller creation, input checks, and fallback
 timers now route through `createFieldTogglesSectionRuntime.ts`; production defaults and explicit runtime scopes now
 use named provider functions instead of a broad `globalThis` default scope, direct scope properties, or

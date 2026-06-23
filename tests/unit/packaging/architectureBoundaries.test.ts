@@ -11863,7 +11863,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps elevation profile button browser APIs behind the runtime facade", () => {
-        expect.assertions(15);
+        expect.assertions(17);
 
         const violations = migratedCreateElevationProfileButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -11898,6 +11898,12 @@ describe("architecture boundaries", () => {
         );
         expect(createElevationProfileButtonRuntimeSource).not.toMatch(
             directCreateElevationProfileButtonRuntimeAmbientGetterPattern
+        );
+        expect(createElevationProfileButtonRuntimeSource).toContain(
+            "iconFactoryRuntime.js"
+        );
+        expect(createElevationProfileButtonRuntimeSource).not.toContain(
+            "createElementNS"
         );
         expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
         expect(runtimeScopeSource).not.toContain(
@@ -12869,7 +12875,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(42);
+        expect.assertions(44);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -12977,9 +12983,11 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleRuntimeSource).toContain(
             "getDocument(scope).createElement(tagName)"
         );
+        expect(mapThemeToggleRuntimeSource).toContain("iconFactoryRuntime.js");
         expect(mapThemeToggleRuntimeSource).toContain(
-            "getDocument(scope).createElementNS("
+            "return createSvgElement(scope, tagName);"
         );
+        expect(mapThemeToggleRuntimeSource).not.toContain("createElementNS");
         expect(mapThemeToggleRuntimeSource).not.toMatch(
             directMapThemeToggleRuntimeAmbientFallbackPattern
         );
@@ -13892,7 +13900,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(37);
+        expect.assertions(39);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -14004,9 +14012,11 @@ describe("architecture boundaries", () => {
         expect(renderSummaryRuntimeSource).toContain(
             "getScopeDocument(scope).createDocumentFragment()"
         );
+        expect(renderSummaryRuntimeSource).toContain("iconFactoryRuntime.js");
         expect(renderSummaryRuntimeSource).toContain(
-            "getScopeDocument(scope).createElementNS("
+            "return createSvgElement(scope, tagName);"
         );
+        expect(renderSummaryRuntimeSource).not.toContain("createElementNS");
         expect(renderSummaryRuntimeSource).toContain("getElementByIdFlexible(");
     });
 

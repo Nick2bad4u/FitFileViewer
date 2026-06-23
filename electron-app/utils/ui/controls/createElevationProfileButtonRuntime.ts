@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
+
 type ElevationProfilePopupWindow = Window | null;
 
 interface ElevationProfileButtonGlobalScope {
@@ -39,8 +41,6 @@ export interface CreateElevationProfileButtonRuntime {
         features: string
     ) => ElevationProfilePopupWindow;
 }
-
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileButtonRuntimeScope =
     {
@@ -98,6 +98,16 @@ function getScopeOpen(
     return scope.getOpen?.();
 }
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: CreateElevationProfileButtonRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getCreateElevationProfileButtonRuntime(
     scope: CreateElevationProfileButtonRuntimeScope = defaultCreateElevationProfileButtonRuntimeScope
 ): CreateElevationProfileButtonRuntime {
@@ -116,7 +126,7 @@ export function getCreateElevationProfileButtonRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
+            return createSvgElement(scope, tagName);
         },
         getChartOverlayColorPalette(): unknown {
             return scope.getChartOverlayColorPalette?.();

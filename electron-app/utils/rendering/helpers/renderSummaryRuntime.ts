@@ -1,4 +1,5 @@
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
+import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
 
 export interface RenderSummaryRuntimeScope {
     readonly getAbortController?:
@@ -77,6 +78,16 @@ function getScopeRequestAnimationFrame(
     return scope.getRequestAnimationFrame?.();
 }
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: RenderSummaryRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getScopeDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getRenderSummaryRuntime(
     scope: RenderSummaryRuntimeScope = defaultRenderSummaryRuntimeScope
 ): RenderSummaryRuntime {
@@ -114,10 +125,7 @@ export function getRenderSummaryRuntime(
             return getScopeDocument(scope).createDocumentFragment();
         },
         createSvgElement(tagName) {
-            return getScopeDocument(scope).createElementNS(
-                "http://www.w3.org/2000/svg",
-                tagName
-            );
+            return createSvgElement(scope, tagName);
         },
         getSummaryContainer(): HTMLElement | null {
             return getElementByIdFlexible(
