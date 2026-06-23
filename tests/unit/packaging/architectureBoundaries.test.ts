@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(67);
+        expect.assertions(73);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6610,6 +6610,7 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain(
             "getMeasurementModeToggleElement"
         );
+        expect(uiStateManagerSource).toContain("getSidebarElement");
         expect(uiStateManagerSource).toContain("setAppHasFileState");
         expect(uiStateManagerSource).toContain("setBodyCursor");
         expect(uiStateManagerSource).toContain("setDocumentTitle");
@@ -6628,10 +6629,16 @@ describe("architecture boundaries", () => {
             'document.querySelector<HTMLElement>("#main-content")'
         );
         expect(uiStateManagerSource).not.toContain(
+            'document.querySelector("#main-content")'
+        );
+        expect(uiStateManagerSource).not.toContain(
             'document.querySelector("#measurement-mode-toggle")'
         );
         expect(uiStateManagerSource).not.toContain(
             'document.querySelector("#map-container")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'document.querySelector("#sidebar")'
         );
         expect(
             directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
@@ -6668,6 +6675,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             '"#measurement-mode-toggle"'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'globalThis.document.querySelector<HTMLElement>("#sidebar")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getSetBodyCursor: () => (cursor) =>"
@@ -6711,6 +6721,9 @@ describe("architecture boundaries", () => {
             "readonly measurementModeToggleElement?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly sidebarElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly eventTarget?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
@@ -6748,6 +6761,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.measurementModeToggleElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.sidebarElement"
         );
         expect(uiStateManagerRuntimeSource).not.toContain("scope.eventTarget");
         expect(uiStateManagerRuntimeSource).not.toContain(

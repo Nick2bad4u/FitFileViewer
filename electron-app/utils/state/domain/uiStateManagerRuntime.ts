@@ -50,6 +50,7 @@ export interface UIStateManagerRuntimeScope {
     readonly getMeasurementModeToggleElement?:
         | UIStateManagerElementProvider
         | undefined;
+    readonly getSidebarElement?: UIStateManagerElementProvider | undefined;
     readonly getMatchMedia?:
         | (() => typeof globalThis.matchMedia | undefined)
         | undefined;
@@ -77,6 +78,7 @@ export interface UIStateManagerRuntime {
     getMainContentElement: () => HTMLElement | null;
     getMapContainerElement: () => HTMLElement | null;
     getMeasurementModeToggleElement: () => HTMLElement | null;
+    getSidebarElement: () => HTMLElement | null;
     getSystemThemeMediaQuery: () => MediaQueryList | null;
     getWindowState: () => UIStateWindowStateSnapshot | null;
     hasWindow: () => boolean;
@@ -107,6 +109,8 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
         globalThis.document.querySelector<HTMLElement>(
             "#measurement-mode-toggle"
         ),
+    getSidebarElement: () =>
+        globalThis.document.querySelector<HTMLElement>("#sidebar"),
     getMatchMedia: () => globalThis.matchMedia,
     getSetBodyCursor: () => (cursor) => {
         globalThis.document.body.style.cursor = cursor;
@@ -170,6 +174,12 @@ function getMeasurementModeToggleElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
     return scope.getMeasurementModeToggleElement?.() ?? null;
+}
+
+function getSidebarElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getSidebarElement?.() ?? null;
 }
 
 function getMatchMedia(
@@ -259,6 +269,9 @@ export function getUIStateManagerRuntime(
         },
         getMeasurementModeToggleElement(): HTMLElement | null {
             return getMeasurementModeToggleElement(scope);
+        },
+        getSidebarElement(): HTMLElement | null {
+            return getSidebarElement(scope);
         },
         getSystemThemeMediaQuery(): MediaQueryList | null {
             const matchMedia = getMatchMedia(scope);

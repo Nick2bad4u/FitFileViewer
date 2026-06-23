@@ -429,8 +429,20 @@ export class UIStateManager {
             source: "UIStateManager.toggleSidebar",
         });
 
-        const mainContent = document.querySelector("#main-content"),
-            sidebar = document.querySelector("#sidebar");
+        const mainContent = (() => {
+            try {
+                return uiStateManagerRuntime.getMainContentElement();
+            } catch {
+                return null;
+            }
+        })();
+        const sidebar = (() => {
+            try {
+                return uiStateManagerRuntime.getSidebarElement();
+            } catch {
+                return null;
+            }
+        })();
 
         if (sidebar) {
             sidebar.classList.toggle("collapsed", newState);
