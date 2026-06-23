@@ -1132,7 +1132,7 @@ const directExternalLinkHandlersRuntimeGlobalPattern =
 const directExternalLinkHandlersRuntimeAmbientGetterPattern =
     /\bget\s+(?:Element|HTMLAnchorElement|KeyboardEvent|open)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:Element|HTMLAnchorElement|KeyboardEvent|open)\b|\bscope\.(?:Element|HTMLAnchorElement|KeyboardEvent|open)\b/u;
 const directMapActionButtonsRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\bdocument\b|\binstanceof\s+HTMLElement\b|\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapActionButtonsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directMapDocumentListenersRuntimeGlobalPattern =
@@ -10210,8 +10210,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps map action timers behind the runtime facade", () => {
-        expect.assertions(13);
+    it("keeps map action timers and document access behind the runtime facade", () => {
+        expect.assertions(25);
 
         const violations = migratedMapActionButtonsRuntimeFiles
             .filter((relativeFile) =>
@@ -10242,6 +10242,13 @@ describe("architecture boundaries", () => {
 
         expect(violations).toStrictEqual([]);
         expect(mapActionButtonsSource).toContain("mapActionButtonsRuntime.js");
+        expect(mapActionButtonsSource).toContain(
+            "getMapActionButtonsRuntime().clearTimeout"
+        );
+        expect(mapActionButtonsSource).toContain("runtime.getDocument()");
+        expect(mapActionButtonsSource).toContain("runtime.isHTMLElement");
+        expect(mapActionButtonsSource).not.toContain("document");
+        expect(mapActionButtonsSource).not.toContain("instanceof HTMLElement");
         expect(mapActionButtonsRuntimeSource).toContain(
             "defaultMapActionButtonsRuntimeScope"
         );
@@ -10249,10 +10256,20 @@ describe("architecture boundaries", () => {
             "readonly clearTimeout?:"
         );
         expect(mapActionButtonsRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(mapActionButtonsRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(mapActionButtonsRuntimeScopeSource).not.toContain(
             "readonly setTimeout?:"
         );
         expect(mapActionButtonsRuntimeSource).not.toContain(
             "scope.clearTimeout"
+        );
+        expect(mapActionButtonsRuntimeSource).not.toContain("scope.document");
+        expect(mapActionButtonsRuntimeSource).not.toContain(
+            "scope.HTMLElement"
         );
         expect(mapActionButtonsRuntimeSource).not.toContain("scope.setTimeout");
         expect(mapActionButtonsRuntimeSource).not.toContain(
@@ -10268,10 +10285,19 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(mapActionButtonsRuntimeSource).toContain(
             "const setTimeoutRef = scope.getSetTimeout?.();"
+        );
+        expect(mapActionButtonsRuntimeSource).toContain(
+            "mapActionButtonsRuntime requires document"
         );
     });
 

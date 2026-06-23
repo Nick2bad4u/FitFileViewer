@@ -372,8 +372,10 @@ function _centerMapOnMainFile(): void {
  */
 export function setupActiveFileNameMapActions(): void {
     try {
+        const runtime = getMapActionButtonsRuntime();
+        const runtimeDocument = runtime.getDocument();
         const activeFileName = querySelectorByIdFlexible(
-            document,
+            runtimeDocument,
             "#active_file_name"
         );
         if (!activeFileName) {
@@ -399,10 +401,10 @@ export function setupActiveFileNameMapActions(): void {
 
                 // Always switch to map tab (even if already active, to ensure map is visible)
                 const mapTabBtn = querySelectorByIdFlexible(
-                    document,
+                    runtimeDocument,
                     "#tab_map"
                 );
-                if (mapTabBtn instanceof HTMLElement) {
+                if (runtime.isHTMLElement(mapTabBtn)) {
                     console.log("[mapActionButtons] Switching to map tab");
                     mapTabBtn.click();
 
@@ -490,8 +492,10 @@ export function setupActiveFileNameMapActions(): void {
 // Initialize active filename functionality with mutation observer
 (function initializeActiveFileName(): void {
     try {
+        const runtime = getMapActionButtonsRuntime();
+        const runtimeDocument = runtime.getDocument();
         const targetElement = querySelectorByIdFlexible(
-                document,
+                runtimeDocument,
                 "#active_file_name"
             ),
             parent = targetElement?.parentNode;
@@ -501,9 +505,9 @@ export function setupActiveFileNameMapActions(): void {
                 "[mapActionButtons] Active filename parent not found for observer"
             );
             // Try again after DOM loads
-            if (document.readyState === "loading") {
+            if (runtimeDocument.readyState === "loading") {
                 addEventListenerWithCleanup(
-                    document,
+                    runtimeDocument,
                     "DOMContentLoaded",
                     () => {
                         initializeActiveFileName();

@@ -50,8 +50,23 @@ describe("getMapActionButtonsRuntime", () => {
         expect(clearedTimer).toBe(timer);
     });
 
+    it("uses the injected document and HTMLElement providers", () => {
+        expect.assertions(3);
+
+        const documentRef = document;
+        const element = documentRef.createElement("button");
+        const runtime = getMapActionButtonsRuntime({
+            getDocument: () => documentRef,
+            getHTMLElement: () => HTMLElement,
+        });
+
+        expect(runtime.getDocument()).toBe(documentRef);
+        expect(runtime.isHTMLElement(element)).toBe(true);
+        expect(runtime.isHTMLElement({})).toBe(false);
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const runtime = getMapActionButtonsRuntime({});
 
@@ -61,15 +76,23 @@ describe("getMapActionButtonsRuntime", () => {
         expect(() =>
             runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("mapActionButtonsRuntime requires clearTimeout");
+        expect(() => runtime.getDocument()).toThrow(
+            "mapActionButtonsRuntime requires document"
+        );
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
+            false
+        );
     });
 
     it("ignores legacy direct timer scope properties", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const runtime = getMapActionButtonsRuntime({
             clearTimeout() {
                 throw new Error("legacy clearTimeout should not run");
             },
+            document,
+            HTMLElement,
             setTimeout() {
                 throw new Error("legacy setTimeout should not run");
             },
@@ -81,5 +104,11 @@ describe("getMapActionButtonsRuntime", () => {
         expect(() =>
             runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("mapActionButtonsRuntime requires clearTimeout");
+        expect(() => runtime.getDocument()).toThrow(
+            "mapActionButtonsRuntime requires document"
+        );
+        expect(runtime.isHTMLElement(document.createElement("div"))).toBe(
+            false
+        );
     });
 });
