@@ -951,6 +951,8 @@ const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directAboutModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directAboutModalBrowserRuntimeGlobalPattern =
+    /\bdocument\.(?:activeElement|addEventListener|body|createDocumentFragment|createElement|createElementNS|createTreeWalker|head|querySelector|querySelectorAll)\b|\bnew\s+DOMParser\b|\bNodeFilter\.SHOW_ELEMENT\b|\binstanceof\s+(?:Element|HTMLElement|KeyboardEvent)\b/u;
 const directAboutModalHelperDocumentRuntimeGlobalPattern =
     /\bdocument\.(?:body|createElement|head|querySelector)\b/u;
 const directShowNotificationTimingRuntimeGlobalPattern =
@@ -5529,12 +5531,19 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps about modal timing APIs behind the runtime facade", () => {
-        expect.assertions(25);
+    it("keeps about modal browser APIs behind the runtime facade", () => {
+        expect.assertions(56);
 
-        const violations = migratedAboutModalRuntimeFiles
+        const timingViolations = migratedAboutModalRuntimeFiles
             .filter((relativeFile) =>
                 directAboutModalTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const browserViolations = migratedAboutModalRuntimeFiles
+            .filter((relativeFile) =>
+                directAboutModalBrowserRuntimeGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -5548,9 +5557,34 @@ describe("architecture boundaries", () => {
             )
         );
 
-        expect(violations).toStrictEqual([]);
+        expect(timingViolations).toStrictEqual([]);
+        expect(browserViolations).toStrictEqual([]);
         expect(aboutModalSource).toContain("aboutModalRuntime.js");
         expect(aboutModalSource).toContain("aboutModalRuntime.getDocument()");
+        expect(aboutModalSource).toContain("aboutModalRuntime.queryElement");
+        expect(aboutModalSource).toContain("aboutModalRuntime.queryElements");
+        expect(aboutModalSource).toContain("aboutModalRuntime.createElement");
+        expect(aboutModalSource).toContain(
+            "aboutModalRuntime.createSvgElement"
+        );
+        expect(aboutModalSource).toContain(
+            "aboutModalRuntime.createDocumentFragment"
+        );
+        expect(aboutModalSource).toContain(
+            "aboutModalRuntime.createElementTreeWalker"
+        );
+        expect(aboutModalSource).toContain(
+            "aboutModalRuntime.parseHtmlDocument"
+        );
+        expect(aboutModalSource).toContain(
+            "aboutModalRuntime.getActiveHTMLElement"
+        );
+        expect(aboutModalSource).toContain(
+            "aboutModalRuntime.getDocumentEventTarget"
+        );
+        expect(aboutModalSource).toContain("aboutModalRuntime.isElement");
+        expect(aboutModalSource).toContain("aboutModalRuntime.isHTMLElement");
+        expect(aboutModalSource).toContain("aboutModalRuntime.isKeyboardEvent");
         expect(aboutModalSource).not.toMatch(
             /\baddEventListenerWithCleanup\(\s*document\s*,\s*["']DOMContentLoaded["']/u
         );
@@ -5576,6 +5610,13 @@ describe("architecture boundaries", () => {
             "readonly clearTimeout?:"
         );
         expect(aboutModalRuntimeSource).not.toContain("readonly document?:");
+        expect(aboutModalRuntimeSource).not.toContain("readonly DOMParser?:");
+        expect(aboutModalRuntimeSource).not.toContain("readonly Element?:");
+        expect(aboutModalRuntimeSource).not.toContain("readonly HTMLElement?:");
+        expect(aboutModalRuntimeSource).not.toContain(
+            "readonly KeyboardEvent?:"
+        );
+        expect(aboutModalRuntimeSource).not.toContain("readonly NodeFilter?:");
         expect(aboutModalRuntimeSource).not.toContain(
             "readonly requestAnimationFrame?:"
         );
@@ -5585,6 +5626,11 @@ describe("architecture boundaries", () => {
         );
         expect(aboutModalRuntimeSource).not.toContain("scope.clearTimeout");
         expect(aboutModalRuntimeSource).not.toContain("scope.document");
+        expect(aboutModalRuntimeSource).not.toContain("scope.DOMParser");
+        expect(aboutModalRuntimeSource).not.toContain("scope.Element");
+        expect(aboutModalRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(aboutModalRuntimeSource).not.toContain("scope.KeyboardEvent");
+        expect(aboutModalRuntimeSource).not.toContain("scope.NodeFilter");
         expect(aboutModalRuntimeSource).not.toContain(
             "scope.requestAnimationFrame"
         );
@@ -5599,6 +5645,21 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(aboutModalRuntimeSource).toContain(
+            "getDOMParser: () => globalThis.DOMParser"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "getElement: () => globalThis.Element"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "getKeyboardEvent: () => globalThis.KeyboardEvent"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "getNodeFilter: () => globalThis.NodeFilter"
+        );
+        expect(aboutModalRuntimeSource).toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(aboutModalRuntimeSource).toContain(
@@ -5606,6 +5667,15 @@ describe("architecture boundaries", () => {
         );
         expect(aboutModalRuntimeSource).toContain(
             "aboutModalRuntime requires a setTimeout runtime"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "aboutModalRuntime requires a document runtime"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "aboutModalRuntime requires a DOMParser runtime"
+        );
+        expect(aboutModalRuntimeSource).toContain(
+            "aboutModalRuntime requires a NodeFilter runtime"
         );
     });
 

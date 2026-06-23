@@ -87,6 +87,96 @@ describe("getAboutModalRuntime", () => {
         );
     });
 
+    it("routes document operations through injected providers", () => {
+        expect.assertions(17);
+
+        document.body.replaceChildren();
+        document.head.replaceChildren();
+
+        const getDocument = vi.fn(() => document);
+        const runtime = getAboutModalRuntime({
+            getDocument,
+            getDOMParser: () => DOMParser,
+            getElement: () => Element,
+            getHTMLElement: () => HTMLElement,
+            getKeyboardEvent: () => KeyboardEvent,
+            getNodeFilter: () => NodeFilter,
+        });
+
+        const bodyNode = runtime.createElement("div");
+        bodyNode.id = "about-modal-runtime-body";
+        bodyNode.tabIndex = 0;
+        runtime.getDocumentEventTarget().body.append(bodyNode);
+
+        const svgPath = runtime.createSvgElement("path");
+        const fragment = runtime.createDocumentFragment();
+        fragment.append(
+            runtime.parseHtmlDocument("<p>Safe</p>").body.firstChild!
+        );
+        const walker = runtime.createElementTreeWalker(fragment);
+        const input = runtime.createElement("input");
+        const keydown = new KeyboardEvent("keydown", { key: "Escape" });
+
+        expect(runtime.queryElement("#about-modal-runtime-body")).toBe(
+            bodyNode
+        );
+        expect(runtime.queryElements("#about-modal-runtime-body")).toHaveLength(
+            1
+        );
+        expect(bodyNode.tagName).toBe("DIV");
+        expect(svgPath.namespaceURI).toBe("http://www.w3.org/2000/svg");
+        expect(svgPath.tagName).toBe("path");
+        expect(fragment.textContent).toBe("Safe");
+        expect(walker.nextNode()).toBeInstanceOf(HTMLParagraphElement);
+        expect(runtime.isElement(input)).toBe(true);
+        expect(runtime.isElement({})).toBe(false);
+        expect(runtime.isHTMLElement(input)).toBe(true);
+        expect(runtime.isHTMLElement(fragment)).toBe(false);
+        expect(runtime.isKeyboardEvent(keydown)).toBe(true);
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+        expect(runtime.getActiveHTMLElement()).toBe(document.body);
+        expect(getDocument).toHaveBeenCalledTimes(9);
+
+        document.body.replaceChildren(bodyNode);
+        bodyNode.focus();
+
+        expect(runtime.getActiveHTMLElement()).toBe(bodyNode);
+        expect(getDocument).toHaveBeenCalledTimes(10);
+
+        document.body.replaceChildren();
+    });
+
+    it("fails clearly when document-backed providers are unavailable", () => {
+        expect.assertions(8);
+
+        const runtime = getAboutModalRuntime({});
+
+        expect(() => runtime.createDocumentFragment()).toThrow(
+            "aboutModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.createElement("div")).toThrow(
+            "aboutModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.createElementTreeWalker(document.body)).toThrow(
+            "aboutModalRuntime requires a NodeFilter runtime"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "aboutModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.getActiveHTMLElement()).toThrow(
+            "aboutModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.getDocumentEventTarget()).toThrow(
+            "aboutModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.parseHtmlDocument("<p>x</p>")).toThrow(
+            "aboutModalRuntime requires a DOMParser runtime"
+        );
+        expect(() => runtime.queryElement("#about-modal")).toThrow(
+            "aboutModalRuntime requires a document runtime"
+        );
+    });
+
     it("schedules animation frames through the injected runtime provider", () => {
         expect.assertions(3);
 
@@ -153,7 +243,7 @@ describe("getAboutModalRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(10);
+        expect.assertions(15);
 
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
@@ -168,6 +258,11 @@ describe("getAboutModalRuntime", () => {
             cancelAnimationFrame,
             clearTimeout,
             document: documentTarget,
+            DOMParser,
+            Element,
+            HTMLElement,
+            KeyboardEvent,
+            NodeFilter,
             requestAnimationFrame,
             setTimeout,
         } as unknown as Parameters<typeof getAboutModalRuntime>[0]);
@@ -188,5 +283,16 @@ describe("getAboutModalRuntime", () => {
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(cancelAnimationFrame).not.toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
+        expect(() => runtime.createElement("div")).toThrow(
+            "aboutModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.parseHtmlDocument("<p>x</p>")).toThrow(
+            "aboutModalRuntime requires a DOMParser runtime"
+        );
+        expect(runtime.isElement(document.body)).toBe(false);
+        expect(runtime.isHTMLElement(document.body)).toBe(false);
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+            false
+        );
     });
 });

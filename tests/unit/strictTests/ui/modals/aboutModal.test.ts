@@ -18,7 +18,56 @@ const aboutModalRuntimeMocks = vi.hoisted(() => ({
     clearTimeout: vi.fn<typeof globalThis.clearTimeout>((handle) =>
         globalThis.clearTimeout(handle)
     ),
+    createDocumentFragment: vi.fn(() =>
+        globalThis.document.createDocumentFragment()
+    ),
+    createElement: vi.fn(
+        <K extends keyof HTMLElementTagNameMap>(
+            tagName: K
+        ): HTMLElementTagNameMap[K] =>
+            globalThis.document.createElement(tagName)
+    ),
+    createElementTreeWalker: vi.fn((root: Node) =>
+        globalThis.document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT)
+    ),
+    createSvgElement: vi.fn(
+        <K extends keyof SVGElementTagNameMap>(
+            tagName: K
+        ): SVGElementTagNameMap[K] =>
+            globalThis.document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                tagName
+            )
+    ),
+    getActiveHTMLElement: vi.fn(() =>
+        globalThis.document.activeElement instanceof HTMLElement
+            ? globalThis.document.activeElement
+            : null
+    ),
     getDocument: vi.fn<() => Document | undefined>(() => globalThis.document),
+    getDocumentEventTarget: vi.fn(() => globalThis.document),
+    isElement: vi.fn(
+        (value: unknown): value is Element => value instanceof Element
+    ),
+    isHTMLElement: vi.fn(
+        (value: unknown): value is HTMLElement => value instanceof HTMLElement
+    ),
+    isKeyboardEvent: vi.fn(
+        (value: unknown): value is KeyboardEvent =>
+            value instanceof KeyboardEvent
+    ),
+    parseHtmlDocument: vi.fn((html: string) =>
+        // eslint-disable-next-line sdl/no-domparser-html-without-sanitization -- Mirrors aboutModalRuntime; production sanitizer runs immediately after parsing.
+        new DOMParser().parseFromString(html, "text/html")
+    ),
+    queryElement: vi.fn(
+        <TElement extends Element = Element>(selector: string) =>
+            globalThis.document.querySelector<TElement>(selector)
+    ),
+    queryElements: vi.fn(
+        <TElement extends Element = Element>(selector: string) =>
+            globalThis.document.querySelectorAll<TElement>(selector)
+    ),
     requestAnimationFrame: vi.fn<(callback: FrameRequestCallback) => number>(
         (callback) => {
             callback(0);
@@ -117,11 +166,9 @@ describe("about modal UI behaviors", () => {
 
         aboutElectronAPI = registerAboutElectronApi();
 
-        aboutModalRuntimeMocks.cancelAnimationFrame.mockClear();
-        aboutModalRuntimeMocks.clearTimeout.mockClear();
-        aboutModalRuntimeMocks.getDocument.mockClear();
-        aboutModalRuntimeMocks.requestAnimationFrame.mockClear();
-        aboutModalRuntimeMocks.setTimeout.mockClear();
+        for (const mock of Object.values(aboutModalRuntimeMocks)) {
+            mock.mockClear();
+        }
     });
 
     afterEach(() => {
