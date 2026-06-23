@@ -7,6 +7,7 @@
 
 import { getFitFileBufferValidationError } from "./fitFileValidation.js";
 import { unwrapFitParseMessages } from "./fitParsePayload.js";
+import { getOpenFitFileFromPathRuntime } from "./openFitFileFromPathRuntime.js";
 import { sendFitFileToAltFitReader } from "./sendFitFileToAltFitReader.js";
 import type { ElectronAPI } from "../../../shared/preloadApi.js";
 import { renderDecodedFitData } from "../../rendering/core/loadShowFitData.js";
@@ -64,15 +65,16 @@ export async function openFitFileFromPath({
         showNotification("Electron file API unavailable.", "error");
         return false;
     }
+    const runtime = getOpenFitFileFromPathRuntime();
 
     const disableBtn = (): void => {
-        if (openFileBtn instanceof HTMLElement) {
+        if (runtime.isHTMLElement(openFileBtn)) {
             openFileBtn.setAttribute("disabled", "true");
         }
     };
 
     const enableBtn = (): void => {
-        if (openFileBtn instanceof HTMLElement) {
+        if (runtime.isHTMLElement(openFileBtn)) {
             openFileBtn.removeAttribute("disabled");
         }
     };

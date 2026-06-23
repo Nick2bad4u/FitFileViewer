@@ -454,6 +454,9 @@ const mapLapSelectorRuntimeSourceFile =
 const migratedMapDrawLapsRuntimeFiles = [
     "electron-app/utils/maps/layers/mapDrawLaps.ts",
 ] as const;
+const migratedOpenFitFileFromPathRuntimeFiles = [
+    "electron-app/utils/files/import/openFitFileFromPath.ts",
+] as const;
 const migratedOpenFileSelectorRuntimeFiles = [
     "electron-app/utils/files/import/openFileSelector.ts",
 ] as const;
@@ -1140,6 +1143,8 @@ const directMapDrawLapsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapDrawLapsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
+const directOpenFitFileFromPathRuntimeGlobalPattern =
+    /\binstanceof\s+HTMLElement\b/u;
 const directOpenFileSelectorRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|clearTimeout|createElement|queueMicrotask|setTimeout)\b|\bnew\s+AbortController\b|\bnavigator\.userAgent\b|(?:^|[^\w.])(?:queueMicrotask|setTimeout|clearTimeout)\(/u;
 const directOpenFileSelectorRuntimeAmbientFallbackPattern =
@@ -10557,6 +10562,66 @@ describe("architecture boundaries", () => {
         expect(mapDrawLapsRuntimeSource).not.toContain("scope.setTimeout");
         expect(mapDrawLapsRuntimeSource).toContain(
             "const setTimeoutRef = getScopeSetTimeout(scope);"
+        );
+    });
+
+    it("keeps open FIT file path button checks behind the runtime facade", () => {
+        expect.assertions(10);
+
+        const violations = migratedOpenFitFileFromPathRuntimeFiles
+            .filter((relativeFile) =>
+                directOpenFitFileFromPathRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const openFitFileFromPathSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/openFitFileFromPath.ts"
+            )
+        );
+        const openFitFileFromPathRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/files/import/openFitFileFromPathRuntime.ts"
+            )
+        );
+        const openFitFileFromPathRuntimeScopeSource =
+            openFitFileFromPathRuntimeSource.slice(
+                openFitFileFromPathRuntimeSource.indexOf(
+                    "export interface OpenFitFileFromPathRuntimeScope"
+                ),
+                openFitFileFromPathRuntimeSource.indexOf(
+                    "export interface OpenFitFileFromPathRuntime {"
+                )
+            );
+
+        expect(violations).toStrictEqual([]);
+        expect(openFitFileFromPathSource).toContain(
+            "openFitFileFromPathRuntime.js"
+        );
+        expect(openFitFileFromPathSource).toContain(
+            "runtime.isHTMLElement(openFileBtn)"
+        );
+        expect(openFitFileFromPathSource).not.toContain(
+            "instanceof HTMLElement"
+        );
+        expect(openFitFileFromPathRuntimeSource).toContain(
+            "defaultOpenFitFileFromPathRuntimeScope"
+        );
+        expect(openFitFileFromPathRuntimeSource).not.toContain(
+            "scope: OpenFitFileFromPathRuntimeScope = globalThis"
+        );
+        expect(openFitFileFromPathRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(openFitFileFromPathRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(openFitFileFromPathRuntimeSource).not.toContain(
+            "scope.HTMLElement"
+        );
+        expect(openFitFileFromPathRuntimeSource).toContain(
+            "openFitFileFromPath requires an HTMLElement runtime"
         );
     });
 

@@ -1086,6 +1086,10 @@ architecture coverage blocking that popup-fixture mutation.
 Tab-button helper element filtering now resolves the HTMLElement constructor through
 `enableTabButtonsHelpersRuntime.ts` instead of checking the ambient constructor directly, with focused runtime
 coverage and architecture coverage blocking direct helper constructor access from returning.
+Open-FIT-file path button disable/enable checks now resolve the HTMLElement constructor through
+`openFitFileFromPathRuntime.ts` instead of checking the ambient constructor directly in `openFitFileFromPath.ts`,
+with focused runtime coverage and architecture coverage blocking direct constructor access and legacy direct
+runtime-scope properties from returning.
 
 Long-term target: move from global test environment mutation toward per-test explicit runtime objects,
 module-local test overrides, and focused fixtures. The recent createAppMenu cleanup is the right pattern.
