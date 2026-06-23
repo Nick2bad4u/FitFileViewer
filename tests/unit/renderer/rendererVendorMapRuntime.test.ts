@@ -22,20 +22,25 @@ describe("rendererVendorMapRuntime", () => {
         expect(setProperty).toHaveBeenCalledTimes(1);
     });
 
-    it("deletes Leaflet compatibility globals through the scoped global object", () => {
-        expect.assertions(2);
+    it("deletes Leaflet compatibility globals through the focused delete provider", () => {
+        expect.assertions(4);
 
         const globalScope = {
                 L: {},
                 Leaflet: {},
             },
+            deleteGlobalProperty = vi.fn((property: "L" | "Leaflet") =>
+                Reflect.deleteProperty(globalScope, property)
+            ),
             utils = getRendererVendorMapRuntime({
-                getGlobalScope: () => globalScope,
+                deleteGlobalProperty,
             });
 
         utils.deleteCompatibilityGlobal("L");
         utils.deleteCompatibilityGlobal("Leaflet");
 
+        expect(deleteGlobalProperty).toHaveBeenNthCalledWith(1, "L");
+        expect(deleteGlobalProperty).toHaveBeenNthCalledWith(2, "Leaflet");
         expect(Reflect.has(globalScope, "L")).toBe(false);
         expect(Reflect.has(globalScope, "Leaflet")).toBe(false);
     });

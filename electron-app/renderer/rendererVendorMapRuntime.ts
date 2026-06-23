@@ -1,8 +1,10 @@
 export interface RendererVendorMapRuntimeScope {
+    readonly deleteGlobalProperty?:
+        | ((property: "L" | "Leaflet") => boolean)
+        | undefined;
     readonly getDocument?:
         | (() => Pick<Document, "documentElement"> | undefined)
         | undefined;
-    readonly getGlobalScope?: (() => object | undefined) | undefined;
 }
 
 export interface RendererVendorMapRuntime {
@@ -12,8 +14,9 @@ export interface RendererVendorMapRuntime {
 }
 
 const defaultRendererVendorMapRuntimeScope: RendererVendorMapRuntimeScope = {
+    deleteGlobalProperty: (property) =>
+        Reflect.deleteProperty(globalThis, property),
     getDocument: () => globalThis.document,
-    getGlobalScope: () => globalThis,
 };
 
 function getDocument(
@@ -22,19 +25,12 @@ function getDocument(
     return scope.getDocument?.();
 }
 
-function getGlobalScope(scope: RendererVendorMapRuntimeScope): object | null {
-    return scope.getGlobalScope?.() ?? null;
-}
-
 export function getRendererVendorMapRuntime(
     scope: RendererVendorMapRuntimeScope = defaultRendererVendorMapRuntimeScope
 ): RendererVendorMapRuntime {
     return {
         deleteCompatibilityGlobal(property: "L" | "Leaflet"): void {
-            const globalScope = getGlobalScope(scope);
-            if (globalScope !== null) {
-                Reflect.deleteProperty(globalScope, property);
-            }
+            scope.deleteGlobalProperty?.(property);
         },
 
         hasDocumentElement(): boolean {

@@ -217,6 +217,9 @@ vendor-loader browser globals from returning.
 Renderer vendor map minimap toggle icon document-element style writes now route through
 `rendererVendorMapRuntime.ts` instead of probing `globalThis.document` directly inside `rendererVendorMap.ts`,
 with focused runtime coverage and architecture guardrails blocking direct document probes from returning.
+Renderer vendor map package-created `L`/`Leaflet` alias cleanup now also uses a focused
+`deleteGlobalProperty` provider instead of a broad `getGlobalScope` provider, with runtime and architecture
+coverage blocking that whole-global handoff from returning.
 The installed `leaflet-draw` package still exposes only `dist/leaflet.draw.js` through `main` and has no
 `module` or `exports` entry, so the remaining virtual runtime wrapper is now covered as an explicit package
 surface constraint instead of an untracked cleanup candidate.
