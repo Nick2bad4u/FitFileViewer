@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
+
 export interface CreateAddFitFileToMapButtonRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -15,8 +17,6 @@ export interface CreateAddFitFileToMapButtonRuntime {
         tagName: K
     ) => SVGElementTagNameMap[K];
 }
-
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 const defaultCreateAddFitFileToMapButtonRuntimeScope: CreateAddFitFileToMapButtonRuntimeScope =
     {
@@ -56,6 +56,16 @@ function getDocument(scope: CreateAddFitFileToMapButtonRuntimeScope): Document {
     return runtimeDocument;
 }
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: CreateAddFitFileToMapButtonRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getCreateAddFitFileToMapButtonRuntime(
     scope: CreateAddFitFileToMapButtonRuntimeScope = defaultCreateAddFitFileToMapButtonRuntimeScope
 ): CreateAddFitFileToMapButtonRuntime {
@@ -74,7 +84,7 @@ export function getCreateAddFitFileToMapButtonRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
+            return createSvgElement(scope, tagName);
         },
     };
 }

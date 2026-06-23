@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
+
 export interface LoadingOverlayRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
 }
@@ -13,8 +15,6 @@ export interface LoadingOverlayRuntime {
     querySelector: <E extends Element = Element>(selector: string) => E | null;
 }
 
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-
 const defaultLoadingOverlayRuntimeScope: LoadingOverlayRuntimeScope = {
     getDocument: () => globalThis.document,
 };
@@ -26,6 +26,16 @@ function getDocument(scope: LoadingOverlayRuntimeScope): Document {
     }
 
     return runtimeDocument;
+}
+
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: LoadingOverlayRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
 }
 
 export function getLoadingOverlayRuntime(
@@ -43,7 +53,7 @@ export function getLoadingOverlayRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
+            return createSvgElement(scope, tagName);
         },
         querySelector<E extends Element = Element>(selector: string): E | null {
             return getDocument(scope).querySelector<E>(selector);

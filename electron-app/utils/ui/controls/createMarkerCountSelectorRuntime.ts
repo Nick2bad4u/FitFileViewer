@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
+
 export interface CreateMarkerCountSelectorRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -16,8 +18,6 @@ export interface CreateMarkerCountSelectorRuntime {
         tagName: K
     ) => SVGElementTagNameMap[K];
 }
-
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 const defaultCreateMarkerCountSelectorRuntimeScope: CreateMarkerCountSelectorRuntimeScope =
     {
@@ -72,6 +72,16 @@ function getEventConstructor(
     return EventConstructor;
 }
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: CreateMarkerCountSelectorRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getCreateMarkerCountSelectorRuntime(
     scope: CreateMarkerCountSelectorRuntimeScope = defaultCreateMarkerCountSelectorRuntimeScope
 ): CreateMarkerCountSelectorRuntime {
@@ -95,7 +105,7 @@ export function getCreateMarkerCountSelectorRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
+            return createSvgElement(scope, tagName);
         },
     };
 }

@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "../../icons/iconFactoryRuntime.js";
+
 export interface DataPointFilterElementFactoryRuntimeScope {
     readonly getDocument?: (() => Document | undefined) | undefined;
 }
@@ -10,8 +12,6 @@ export interface DataPointFilterElementFactoryRuntime {
         tagName: K
     ) => SVGElementTagNameMap[K];
 }
-
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 function getDocument(
     scope: DataPointFilterElementFactoryRuntimeScope
@@ -31,6 +31,16 @@ const defaultDataPointFilterElementFactoryRuntimeScope: DataPointFilterElementFa
         getDocument: () => globalThis.document,
     };
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: DataPointFilterElementFactoryRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getDataPointFilterElementFactoryRuntime(
     scope: DataPointFilterElementFactoryRuntimeScope = defaultDataPointFilterElementFactoryRuntimeScope
 ): DataPointFilterElementFactoryRuntime {
@@ -43,7 +53,7 @@ export function getDataPointFilterElementFactoryRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
+            return createSvgElement(scope, tagName);
         },
     };
 }

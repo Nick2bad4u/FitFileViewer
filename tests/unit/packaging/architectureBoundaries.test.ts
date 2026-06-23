@@ -9825,7 +9825,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps add-FIT-map button browser APIs behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const violations = migratedCreateAddFitFileToMapButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -9854,6 +9854,12 @@ describe("architecture boundaries", () => {
         );
         expect(createAddFitFileToMapButtonSource).toContain(
             "createAddFitFileToMapButtonRuntime.js"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).toContain(
+            "iconFactoryRuntime.js"
+        );
+        expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
+            "createElementNS"
         );
         expect(createAddFitFileToMapButtonRuntimeSource).not.toContain(
             "readonly AbortController?:"
@@ -10114,7 +10120,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps marker-count selector browser APIs behind the runtime facade", () => {
-        expect.assertions(14);
+        expect.assertions(16);
 
         const violations = migratedCreateMarkerCountSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -10146,6 +10152,12 @@ describe("architecture boundaries", () => {
         );
         expect(createMarkerCountSelectorRuntimeSource).toContain(
             "defaultCreateMarkerCountSelectorRuntimeScope"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).toContain(
+            "iconFactoryRuntime.js"
+        );
+        expect(createMarkerCountSelectorRuntimeSource).not.toContain(
+            "createElementNS"
         );
         expect(createMarkerCountSelectorRuntimeSource).not.toContain(
             "readonly AbortController?:"
@@ -10426,7 +10438,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps data-point filter element creation behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const violations = migratedDataPointFilterElementFactoryRuntimeFiles
             .filter((relativeFile) =>
@@ -10451,6 +10463,8 @@ describe("architecture boundaries", () => {
         expect(elementFactoryRuntimeSource).toContain(
             "defaultDataPointFilterElementFactoryRuntimeScope"
         );
+        expect(elementFactoryRuntimeSource).toContain("iconFactoryRuntime.js");
+        expect(elementFactoryRuntimeSource).not.toContain("createElementNS");
         expect(elementFactoryRuntimeSource).not.toMatch(
             directDataPointFilterElementFactoryRuntimeAmbientFallbackPattern
         );
@@ -10552,7 +10566,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps loading overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const violations = migratedLoadingOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -10586,6 +10600,8 @@ describe("architecture boundaries", () => {
         expect(loadingOverlayRuntimeSource).toContain(
             "defaultLoadingOverlayRuntimeScope"
         );
+        expect(loadingOverlayRuntimeSource).toContain("iconFactoryRuntime.js");
+        expect(loadingOverlayRuntimeSource).not.toContain("createElementNS");
         expect(loadingOverlayRuntimeSource).not.toMatch(
             directLoadingOverlayRuntimeAmbientGetterPattern
         );
