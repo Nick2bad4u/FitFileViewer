@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { MainStateChange } from "../../electron-app/shared/ipc";
+import type { IpcEventListener } from "../../electron-app/preload/preloadModuleTypes";
 import { createMainStateBridge } from "../../electron-app/preload/mainStateBridge.js";
 
 interface IpcRendererMock {
@@ -8,12 +9,7 @@ interface IpcRendererMock {
         typeof vi.fn<(channel: string, ...args: unknown[]) => Promise<unknown>>
     >;
     on: ReturnType<
-        typeof vi.fn<
-            (
-                channel: string,
-                listener: (event: object, change: MainStateChange) => void
-            ) => void
-        >
+        typeof vi.fn<(channel: string, listener: IpcEventListener) => void>
     >;
 }
 type PreloadLogMock = ReturnType<
@@ -27,12 +23,7 @@ type PreloadLogMock = ReturnType<
 >;
 
 type RemoveIpcListenerMock = ReturnType<
-    typeof vi.fn<
-        (
-            channel: string,
-            listener: (event: object, change: MainStateChange) => void
-        ) => void
-    >
+    typeof vi.fn<(channel: string, listener: IpcEventListener) => void>
 >;
 
 function createBridge() {
@@ -40,12 +31,7 @@ function createBridge() {
         invoke: vi.fn<
             (channel: string, ...args: unknown[]) => Promise<unknown>
         >(),
-        on: vi.fn<
-            (
-                channel: string,
-                listener: (event: object, change: MainStateChange) => void
-            ) => void
-        >(),
+        on: vi.fn<(channel: string, listener: IpcEventListener) => void>(),
     };
     const preloadLog: PreloadLogMock =
         vi.fn<
@@ -56,12 +42,7 @@ function createBridge() {
             ) => void
         >();
     const removeIpcListener: RemoveIpcListenerMock =
-        vi.fn<
-            (
-                channel: string,
-                listener: (event: object, change: MainStateChange) => void
-            ) => void
-        >();
+        vi.fn<(channel: string, listener: IpcEventListener) => void>();
 
     return {
         bridge: createMainStateBridge({
@@ -115,6 +96,26 @@ describe("preload main-state bridge", () => {
             "loadedFitFilePath"
         );
         expect(ipcRenderer.on).toHaveBeenCalledTimes(1);
+    });
+
+    it("ignores malformed main-state change payloads", async () => {
+        expect.assertions(2);
+
+        const { bridge, ipcRenderer } = createBridge();
+        const callback = vi.fn<(change: MainStateChange) => void>();
+        ipcRenderer.invoke.mockResolvedValueOnce(true);
+
+        await expect(
+            bridge.listenToMainState("loadedFitFilePath", callback)
+        ).resolves.toBe(true);
+        getMainStateDispatcher(ipcRenderer)(
+            {},
+            {
+                path: "loadedFitFilePath",
+            }
+        );
+
+        expect(callback).not.toHaveBeenCalled();
     });
 
     it("does not retain callbacks when main rejects a subscription", async () => {

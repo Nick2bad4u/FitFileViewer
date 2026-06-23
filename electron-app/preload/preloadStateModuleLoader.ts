@@ -8,12 +8,9 @@ type PreloadStateModules = Pick<
     "createMainStateApi" | "createMainStateBridge"
 >;
 
-const createMainStateBridgeModule =
-    createMainStateBridge as unknown as PreloadModuleRegistry["createMainStateBridge"];
-
 export function loadPreloadStateModules(): PreloadStateModules {
     return {
         createMainStateApi,
-        createMainStateBridge: createMainStateBridgeModule,
+        createMainStateBridge,
     };
 }

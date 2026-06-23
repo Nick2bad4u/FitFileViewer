@@ -7,65 +7,72 @@ import type {
     MainStateUnlistenResponse,
 } from "../shared/ipc.js";
 
-interface IpcRendererLike {
-    invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
-    on: (
-        channel: string,
-        listener: (event: object, change: MainStateChange) => void
-    ) => void;
-}
+import type {
+    CreateMainStateBridgeOptions,
+    IpcEventListener,
+    MainStateBridgeIpcRenderer,
+    PreloadMainStateBridge,
+} from "./preloadModuleTypes.js";
 
-interface MainStateBridge {
-    listenToMainState: (
-        path: MainStateListenRequest,
-        callback: MainStateListener
-    ) => Promise<MainStateListenResponse>;
-    unlistenFromMainState: (
-        path: MainStateUnlistenRequest,
-        callback: MainStateListener
-    ) => Promise<MainStateUnlistenResponse>;
-}
-
-interface MainStateBridgeOptions {
-    ipcRenderer: IpcRendererLike;
-    preloadLog: PreloadLog;
-    removeIpcListener: (
-        channel: string,
-        handler: (event: object, change: MainStateChange) => void
-    ) => void;
-}
-
-type PreloadLog = (
-    level: "error" | "info" | "warn",
-    message: string,
-    ...details: unknown[]
-) => void;
+type AvailableMainStateBridgeIpcRenderer = {
+    invoke: NonNullable<MainStateBridgeIpcRenderer["invoke"]>;
+    on: NonNullable<MainStateBridgeIpcRenderer["on"]>;
+};
 
 export function createMainStateBridge({
     ipcRenderer,
     preloadLog,
     removeIpcListener,
-}: MainStateBridgeOptions): MainStateBridge {
+}: CreateMainStateBridgeOptions): PreloadMainStateBridge {
     const callbacksByPath = new Map<string, Set<MainStateListener>>();
-    let dispatcher:
-        | ((event: object, change: MainStateChange) => void)
-        | undefined;
+    let dispatcher: IpcEventListener | undefined;
+
+    function getIpcRenderer(): AvailableMainStateBridgeIpcRenderer | undefined {
+        if (
+            ipcRenderer &&
+            typeof ipcRenderer.invoke === "function" &&
+            typeof ipcRenderer.on === "function"
+        ) {
+            return {
+                invoke: ipcRenderer.invoke,
+                on: ipcRenderer.on,
+            };
+        }
+
+        preloadLog(
+            "warn",
+            "[preload.js] main-state bridge IPC renderer unavailable"
+        );
+        return undefined;
+    }
+
+    function isMainStateChange(value: unknown): value is MainStateChange {
+        return (
+            value !== null &&
+            typeof value === "object" &&
+            "path" in value &&
+            typeof value.path === "string" &&
+            value.path.length > 0 &&
+            "value" in value
+        );
+    }
 
     function ensureDispatcher(): void {
         if (dispatcher) {
             return;
         }
 
+        const bridgeIpcRenderer = getIpcRenderer();
+        if (!bridgeIpcRenderer) {
+            return;
+        }
+
         dispatcher = (_event, change) => {
-            const path =
-                typeof change.path === "string" && change.path.length > 0
-                    ? change.path
-                    : undefined;
-            if (path === undefined) {
+            if (!isMainStateChange(change)) {
                 return;
             }
 
-            const callbacks = callbacksByPath.get(path);
+            const callbacks = callbacksByPath.get(change.path);
             if (callbacks === undefined || callbacks.size === 0) {
                 return;
             }
@@ -82,7 +89,7 @@ export function createMainStateBridge({
                 }
             }
         };
-        ipcRenderer.on("main-state-change", dispatcher);
+        bridgeIpcRenderer.on("main-state-change", dispatcher);
     }
 
     function removeDispatcherIfIdle(): void {
@@ -103,7 +110,15 @@ export function createMainStateBridge({
             return true;
         }
 
-        const accepted = await ipcRenderer.invoke("main-state:listen", path);
+        const bridgeIpcRenderer = getIpcRenderer();
+        if (!bridgeIpcRenderer) {
+            return false;
+        }
+
+        const accepted = await bridgeIpcRenderer.invoke(
+            "main-state:listen",
+            path
+        );
         if (accepted !== true) {
             removeDispatcherIfIdle();
             return false;
@@ -130,7 +145,15 @@ export function createMainStateBridge({
             return true;
         }
 
-        const accepted = await ipcRenderer.invoke("main-state:unlisten", path);
+        const bridgeIpcRenderer = getIpcRenderer();
+        if (!bridgeIpcRenderer) {
+            return false;
+        }
+
+        const accepted = await bridgeIpcRenderer.invoke(
+            "main-state:unlisten",
+            path
+        );
         if (accepted !== true) {
             return false;
         }
