@@ -1,15 +1,13 @@
 type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
 
-import {
-    createElectronApiAppInfoDomain,
-    createElectronApiClipboardDomain,
-    createElectronApiDeveloperDomain,
-    createElectronApiDiagnosticsDomain,
-    createElectronApiFileDomain,
-    createElectronApiMenuDomain,
-    type ElectronApiFactoryOptions,
-} from "./electronApiDomains.js";
+import { createElectronApiAppInfoDomain } from "./electronApiAppInfoDomain.js";
+import { createElectronApiClipboardDomain } from "./electronApiClipboardDomain.js";
+import { createElectronApiDeveloperDomain } from "./electronApiDeveloperDomain.js";
+import { createElectronApiDiagnosticsDomain } from "./electronApiDiagnosticsDomain.js";
 import { createElectronApiExternalDomain } from "./electronApiExternalDomain.js";
+import { type ElectronApiFactoryOptions } from "./electronApiFactoryOptions.js";
+import { createElectronApiFileDomain } from "./electronApiFileDomain.js";
+import { createElectronApiMenuDomain } from "./electronApiMenuDomain.js";
 import { createElectronApiStateDomain } from "./electronApiStateDomain.js";
 
 export function createElectronApi({

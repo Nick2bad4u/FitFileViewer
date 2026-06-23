@@ -3,7 +3,7 @@ type ElectronGyazoExternalApi =
 type ElectronShellExternalApi =
     import("../shared/preloadApi").ElectronShellExternalApi;
 type ElectronApiFactoryOptions =
-    import("./electronApiDomains").ElectronApiFactoryOptions;
+    import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
 
 export function createElectronApiExternalDomain({
     gyazoExternalApi,

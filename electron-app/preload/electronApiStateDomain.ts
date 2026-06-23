@@ -1,6 +1,6 @@
 type ElectronMainStateApi = import("../shared/preloadApi").ElectronMainStateApi;
 type ElectronApiFactoryOptions =
-    import("./electronApiDomains").ElectronApiFactoryOptions;
+    import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
 
 export function createElectronApiStateDomain({
     mainStateApi,
