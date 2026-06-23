@@ -13,8 +13,12 @@ export type IconFactoryRuntime = {
 };
 
 const defaultIconFactoryRuntimeScope: IconFactoryRuntimeScope = {
-    getDocument: () => globalThis.document,
+    getDocument: () => getGlobalDocument(),
 };
+
+function getGlobalDocument(): Document {
+    return globalThis.document;
+}
 
 function getRequiredDocument(
     scope: IconFactoryRuntimeScope

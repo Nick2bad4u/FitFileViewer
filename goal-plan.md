@@ -357,7 +357,8 @@ quick color switcher icons, settings modal icons, about modal icons,
 map export/print controls, loading overlay, add-FIT-to-map control, marker-count selector, data-point filter icons, render-summary controls, map theme toggle,
 elevation-profile button, map fullscreen control, and map measurement toolbar instead of calling
 `document.createElementNS` directly, with architecture coverage blocking raw SVG DOM creation from returning to
-Electron app source.
+Electron app source. Icon factory default document access now centralizes through `getGlobalDocument()` instead
+of repeating `globalThis.document` in the default provider table.
 Elevation-profile popup and chart-overlay palette defaults now resolve through focused global-property helpers in
 `createElevationProfileButtonRuntime.ts` instead of casting `globalThis` to a feature-specific runtime scope or
 using generic `Reflect.get(globalThis, ...)` probes.
