@@ -10,6 +10,10 @@ type CreateElevationProfileOpen =
       ) => ElevationProfilePopupWindow)
     | undefined;
 
+interface CreateElevationProfileButtonGlobalScope {
+    readonly chartOverlayColorPalette?: unknown;
+}
+
 export interface CreateElevationProfileButtonRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -46,11 +50,13 @@ const defaultCreateElevationProfileButtonRuntimeScope: CreateElevationProfileBut
     };
 
 function getGlobalChartOverlayColorPalette(): unknown {
-    return Reflect.get(globalThis, "chartOverlayColorPalette");
+    const elevationProfileGlobal =
+        globalThis as CreateElevationProfileButtonGlobalScope;
+    return elevationProfileGlobal.chartOverlayColorPalette;
 }
 
 function getGlobalOpen(): CreateElevationProfileOpen {
-    const openRef = Reflect.get(globalThis, "open");
+    const openRef = globalThis.open;
     return typeof openRef === "function"
         ? (openRef as NonNullable<CreateElevationProfileOpen>).bind(globalThis)
         : undefined;
