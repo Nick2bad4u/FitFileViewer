@@ -1,5 +1,6 @@
 import { addEventListenerWithCleanup } from "../utils/ui/mainUiDomUtils.js";
 import { setupExternalLinkHandlers } from "../utils/ui/setupExternalLinkHandlers.js";
+import { getMainUiRuntimeEnvironment } from "./mainUiRuntimeEnvironment.js";
 
 export interface MainUiExternalLinkLifecycle {
     cleanup: () => void;
@@ -10,8 +11,10 @@ export interface MainUiExternalLinkLifecycleOptions {
     readonly documentRef?: Document;
 }
 
+const mainUiRuntimeEnvironment = getMainUiRuntimeEnvironment();
+
 export function createMainUiExternalLinkLifecycle({
-    documentRef = document,
+    documentRef = mainUiRuntimeEnvironment.documentRef,
 }: MainUiExternalLinkLifecycleOptions = {}): MainUiExternalLinkLifecycle {
     let cleanupExternalLinkHandlers: (() => void) | null = null;
 

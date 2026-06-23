@@ -7,25 +7,30 @@ import {
 
 describe("main UI runtime environment", () => {
     it("uses injected runtime primitives for main-ui orchestration", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const runtimeConsole = {
             ...console,
             info: vi.fn<typeof console.info>(),
         } as Console;
+        const documentRef = {
+            readyState: "complete",
+        } as unknown as Document;
         const dateNow = vi.fn<() => number>(() => 1234);
         const runtimeEnvironment = getMainUiRuntimeEnvironment({
             dateNow,
             getConsole: () => runtimeConsole,
+            getDocument: () => documentRef,
         });
 
         expect(runtimeEnvironment.consoleRef).toBe(runtimeConsole);
         expect(runtimeEnvironment.dateNow()).toBe(1234);
+        expect(runtimeEnvironment.documentRef).toBe(documentRef);
         expect(dateNow).toHaveBeenCalledOnce();
     });
 
     it("fails clearly when an explicit runtime scope omits required primitives", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         expect(() => getMainUiRuntimeEnvironment({ dateNow: () => 1 })).toThrow(
             "main UI runtime environment requires a console reference"
@@ -33,18 +38,35 @@ describe("main UI runtime environment", () => {
         expect(() =>
             getMainUiRuntimeEnvironment({ getConsole: () => console })
         ).toThrow("main UI runtime environment requires a clock");
+        expect(() =>
+            getMainUiRuntimeEnvironment({
+                dateNow: () => 1,
+                getConsole: () => console,
+            })
+        ).toThrow("main UI runtime environment requires a document reference");
     });
 
     it("ignores legacy direct console runtime properties", () => {
-        expect.assertions(1);
+        expect.assertions(2);
 
+        const documentRef = {
+            readyState: "complete",
+        } as unknown as Document;
         const legacyScope = {
             consoleRef: console,
             dateNow: () => 1,
         } as unknown as MainUiRuntimeEnvironmentScope;
+        const legacyDocumentScope = {
+            dateNow: () => 1,
+            documentRef,
+            getConsole: () => console,
+        } as unknown as MainUiRuntimeEnvironmentScope;
 
         expect(() => getMainUiRuntimeEnvironment(legacyScope)).toThrow(
             "main UI runtime environment requires a console reference"
+        );
+        expect(() => getMainUiRuntimeEnvironment(legacyDocumentScope)).toThrow(
+            "main UI runtime environment requires a document reference"
         );
     });
 });

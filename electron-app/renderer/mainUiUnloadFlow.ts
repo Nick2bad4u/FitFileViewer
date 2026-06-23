@@ -76,7 +76,7 @@ function clearFitFileDomainState(
 
 export function createMainUiUnloadFitFile({
     contentIds,
-    documentRef = document,
+    documentRef = mainUiRuntimeEnvironment.documentRef,
     getElectronAPI,
     logMainUi,
 }: MainUiUnloadFlowOptions): () => void {

@@ -4233,7 +4233,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer runtime globals behind the runtime environment facade", () => {
-        expect.assertions(26);
+        expect.assertions(36);
 
         const rendererEntrypointSource = stripComments(
             readRepositoryFile("electron-app/renderer.ts")
@@ -4246,6 +4246,9 @@ describe("architecture boundaries", () => {
         );
         const mainUiStartupSource = stripComments(
             readRepositoryFile("electron-app/renderer/mainUiStartup.ts")
+        );
+        const mainUiExternalLinksSource = stripComments(
+            readRepositoryFile("electron-app/renderer/mainUiExternalLinks.ts")
         );
         const mainUiRuntimeGlobalPattern = /\bglobalThis\.console\b/u;
         const mainUiUnloadRuntimeGlobalPattern = /\bDate\.now\b/u;
@@ -4298,7 +4301,20 @@ describe("architecture boundaries", () => {
         expect(mainUiSource).toContain("renderer/mainUiStartup.js");
         expect(mainUiSource).not.toMatch(mainUiRuntimeGlobalPattern);
         expect(mainUiStartupSource).toContain("mainUiRuntimeEnvironment.js");
+        expect(mainUiExternalLinksSource).toContain(
+            "mainUiRuntimeEnvironment.js"
+        );
+        expect(mainUiExternalLinksSource).toContain(
+            "documentRef = mainUiRuntimeEnvironment.documentRef"
+        );
+        expect(mainUiExternalLinksSource).not.toContain(
+            "documentRef = document"
+        );
         expect(mainUiUnloadFlowSource).toContain("mainUiRuntimeEnvironment.js");
+        expect(mainUiUnloadFlowSource).toContain(
+            "documentRef = mainUiRuntimeEnvironment.documentRef"
+        );
+        expect(mainUiUnloadFlowSource).not.toContain("documentRef = document");
         expect(mainUiUnloadFlowSource).not.toMatch(
             mainUiUnloadRuntimeGlobalPattern
         );
@@ -4328,6 +4344,13 @@ describe("architecture boundaries", () => {
         ).toBe(true);
         expect(
             rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
+                stripComments(readRepositoryFile(relativeFile)).includes(
+                    "getDocument: () => globalThis.document"
+                )
+            )
+        ).toBe(true);
+        expect(
+            rendererMainUiRuntimeEnvironmentFiles.every((relativeFile) =>
                 mainUiRuntimeGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
@@ -4341,13 +4364,25 @@ describe("architecture boundaries", () => {
             )
         ).toBe(true);
         expect(mainUiRuntimeEnvironmentScopeSource).not.toContain(
+            "readonly documentRef?:"
+        );
+        expect(mainUiRuntimeEnvironmentScopeSource).not.toContain(
             "readonly consoleRef?:"
         );
         expect(mainUiRuntimeEnvironmentSource).not.toContain(
             "scope.consoleRef"
         );
+        expect(mainUiRuntimeEnvironmentSource).not.toContain(
+            "scope.documentRef"
+        );
         expect(mainUiRuntimeEnvironmentSource).toContain(
             "const consoleRef = scope.getConsole?.();"
+        );
+        expect(mainUiRuntimeEnvironmentSource).toContain(
+            "const documentRef = scope.getDocument?.();"
+        );
+        expect(mainUiRuntimeEnvironmentSource).toContain(
+            "main UI runtime environment requires a document reference"
         );
     });
 

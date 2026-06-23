@@ -491,6 +491,9 @@ Controls-state chart settings DOM lookups and computed-style reads now route thr
 Shared DOM helper omitted-root queries now resolve their default document through `domHelpersRuntime.ts`
 instead of using `document` as a default parameter, with focused runtime/helper coverage and architecture
 guardrails blocking direct helper document roots from returning.
+Main-UI external-link and unload flows now resolve default documents through `mainUiRuntimeEnvironment.ts`
+instead of defaulting function parameters to `document`, with runtime and architecture coverage blocking
+direct main-UI document defaults and legacy direct document runtime-scope properties from returning.
 Custom map fullscreen-control delayed Leaflet map size invalidation now routes through
 `mapFullscreenControlRuntime.ts` instead of calling timer globals directly inside `mapFullscreenControl.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.
