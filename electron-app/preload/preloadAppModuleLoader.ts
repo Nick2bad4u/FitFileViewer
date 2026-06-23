@@ -31,10 +31,6 @@ const createClipboardBridgeModule =
     createClipboardBridge as unknown as PreloadModuleRegistry["createClipboardBridge"];
 const createDevtoolsMenuApiModule =
     createDevtoolsMenuApi as unknown as PreloadModuleRegistry["createDevtoolsMenuApi"];
-const createGyazoExternalApiModule =
-    createGyazoExternalApi as unknown as PreloadModuleRegistry["createGyazoExternalApi"];
-const createShellExternalApiModule =
-    createShellExternalApi as unknown as PreloadModuleRegistry["createShellExternalApi"];
 const exposeDevelopmentToolsGlobalModule =
     exposeDevelopmentToolsGlobal as unknown as PreloadModuleRegistry["exposeDevelopmentToolsGlobal"];
 const isPreloadDevelopmentModeModule =
@@ -48,8 +44,8 @@ export function loadPreloadAppModules(): PreloadAppModules {
         createAppInfoApi,
         createClipboardBridge: createClipboardBridgeModule,
         createDevtoolsMenuApi: createDevtoolsMenuApiModule,
-        createGyazoExternalApi: createGyazoExternalApiModule,
-        createShellExternalApi: createShellExternalApiModule,
+        createGyazoExternalApi,
+        createShellExternalApi,
         createThemeApi,
         exposeDevelopmentToolsGlobal: exposeDevelopmentToolsGlobalModule,
         isPreloadDevelopmentMode: isPreloadDevelopmentModeModule,

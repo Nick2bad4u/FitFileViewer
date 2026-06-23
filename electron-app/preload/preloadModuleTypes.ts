@@ -23,6 +23,8 @@ export type ElectronPreloadEventApi =
 export type ElectronShellExternalApi =
     import("../shared/preloadApi").ElectronShellExternalApi;
 export type ElectronThemeApi = import("../shared/preloadApi").ElectronThemeApi;
+export type ExternalInvokeChannel =
+    import("../shared/ipc").ExternalInvokeChannel;
 export type GenericInvokeChannel = import("../shared/ipc").GenericInvokeChannel;
 export type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
 export type FitBrowserInvokeChannel =
@@ -149,6 +151,12 @@ export type CreateFileApi = (options: CreateFileApiOptions) => ElectronFileApi;
 export type CreateFitBrowserApi = (
     options: CreateFitBrowserApiOptions
 ) => ElectronFitBrowserApi;
+export type CreateGyazoExternalApi = (
+    options: CreateGyazoExternalApiOptions
+) => ElectronGyazoExternalApi;
+export type CreateShellExternalApi = (
+    options: CreateShellExternalApiOptions
+) => ElectronShellExternalApi;
 export type AssemblePreloadApi = (options: {
     constants: PreloadConstants;
     contextBridge: null | PreloadContextBridge | undefined;
@@ -370,6 +378,27 @@ export interface CreateFitBrowserApiOptions {
     createSafeInvokeHandler: CreateSafeInvokeHandler;
 }
 
+export interface GyazoExternalApiChannels {
+    GYAZO_OAUTH_CALLBACK: PreloadEvents["GYAZO_OAUTH_CALLBACK"];
+    GYAZO_SERVER_START: Extract<ExternalInvokeChannel, "gyazo:server:start">;
+    GYAZO_SERVER_STOP: Extract<ExternalInvokeChannel, "gyazo:server:stop">;
+}
+
+export interface CreateGyazoExternalApiOptions {
+    channels: GyazoExternalApiChannels;
+    createSafeEventHandler: CreateSafeEventHandler;
+    createSafeInvokeHandler: CreateSafeInvokeHandler;
+}
+
+export interface ShellExternalApiChannels {
+    SHELL_OPEN_EXTERNAL: Extract<ExternalInvokeChannel, "shell:openExternal">;
+}
+
+export interface CreateShellExternalApiOptions {
+    channels: ShellExternalApiChannels;
+    createSafeInvokeHandler: CreateSafeInvokeHandler;
+}
+
 export interface PreloadModuleRegistry {
     createApiDiagnostics: PreloadApiFactory<ElectronApiDiagnosticsApi>;
     createAppInfoApi: CreateAppInfoApi;
@@ -377,7 +406,7 @@ export interface PreloadModuleRegistry {
     createDevtoolsMenuApi: PreloadApiFactory<ElectronDevtoolsMenuApi>;
     createFileApi: CreateFileApi;
     createFitBrowserApi: CreateFitBrowserApi;
-    createGyazoExternalApi: PreloadApiFactory<ElectronGyazoExternalApi>;
+    createGyazoExternalApi: CreateGyazoExternalApi;
     createPreloadEventApi: PreloadApiFactory<ElectronPreloadEventApi>;
     createPreloadApiAssemblyContext: CreatePreloadApiAssemblyContext;
     createPreloadClipboardApiDomain: CreatePreloadClipboardApiDomain;
@@ -423,7 +452,7 @@ export interface PreloadModuleRegistry {
             methodName: string
         ) => value is string;
     };
-    createShellExternalApi: PreloadApiFactory<ElectronShellExternalApi>;
+    createShellExternalApi: CreateShellExternalApi;
     createThemeApi: CreateThemeApi;
     exposeDevelopmentToolsGlobal: (options: Record<string, unknown>) => boolean;
     exposeElectronApi: (options: Record<string, unknown>) => boolean;
