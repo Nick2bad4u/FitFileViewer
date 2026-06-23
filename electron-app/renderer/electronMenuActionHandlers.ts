@@ -1,3 +1,5 @@
+import type { RendererCoreModules } from "./coreModuleResolution.js";
+
 type RendererElectronMenuLogLevel = "warn";
 
 type RendererElectronMenuLogger = (
@@ -5,12 +7,12 @@ type RendererElectronMenuLogger = (
     ...args: unknown[]
 ) => void;
 
+type RendererElectronMenuCoreModules = Readonly<
+    Partial<Pick<RendererCoreModules, "applyTheme" | "showAboutModal">>
+>;
+
 type RendererElectronMenuActionHandlersOptions = {
-    readonly callUnknownFunction: (
-        target: unknown,
-        args?: unknown[]
-    ) => unknown;
-    readonly ensureCoreModules: () => Promise<Record<string, unknown>>;
+    readonly ensureCoreModules: () => Promise<RendererElectronMenuCoreModules>;
     readonly getFileInput: () => HTMLInputElement | null;
     readonly logRenderer: RendererElectronMenuLogger;
 };
@@ -40,7 +42,7 @@ async function applyElectronThemeChange(
 ): Promise<void> {
     try {
         const { applyTheme } = await options.ensureCoreModules();
-        options.callUnknownFunction(applyTheme, [theme]);
+        applyTheme?.(theme);
     } catch (error) {
         options.logRenderer("warn", "[Renderer] Failed to apply theme:", error);
     }
@@ -66,7 +68,7 @@ async function showElectronAboutModal(
 ): Promise<void> {
     try {
         const { showAboutModal } = await options.ensureCoreModules();
-        options.callUnknownFunction(showAboutModal);
+        showAboutModal?.();
     } catch (error) {
         options.logRenderer(
             "warn",

@@ -10,9 +10,7 @@ describe("electronMenuActionHandlers", () => {
         } as unknown as HTMLInputElement;
         const { onMenuAction, onThemeChanged } =
             createRendererElectronMenuActionHandlers({
-                callUnknownFunction: vi.fn<(target: unknown) => unknown>(),
-                ensureCoreModules:
-                    vi.fn<() => Promise<Record<string, unknown>>>(),
+                ensureCoreModules: vi.fn(async () => ({})),
                 getFileInput: vi.fn<() => HTMLInputElement | null>(
                     () => fileInput
                 ),
@@ -32,13 +30,7 @@ describe("electronMenuActionHandlers", () => {
         const showAboutModal = (): void => {
             aboutModalOpened = true;
         };
-        const callUnknownFunction = (
-            target: unknown,
-            args: unknown[] = []
-        ): unknown =>
-            typeof target === "function" ? target(...args) : undefined;
         const { onMenuAction } = createRendererElectronMenuActionHandlers({
-            callUnknownFunction,
             ensureCoreModules: vi.fn(async () => ({ showAboutModal })),
             getFileInput: vi.fn<() => HTMLInputElement | null>(() => null),
             logRenderer: vi.fn<(level: "warn", ...args: unknown[]) => void>(),
@@ -56,13 +48,7 @@ describe("electronMenuActionHandlers", () => {
         const applyTheme = (theme: string): void => {
             appliedTheme = theme;
         };
-        const callUnknownFunction = (
-            target: unknown,
-            args: unknown[] = []
-        ): unknown =>
-            typeof target === "function" ? target(...args) : undefined;
         const { onThemeChanged } = createRendererElectronMenuActionHandlers({
-            callUnknownFunction,
             ensureCoreModules: vi.fn(async () => ({ applyTheme })),
             getFileInput: vi.fn<() => HTMLInputElement | null>(() => null),
             logRenderer: vi.fn<(level: "warn", ...args: unknown[]) => void>(),
@@ -83,7 +69,6 @@ describe("electronMenuActionHandlers", () => {
         };
         const { onMenuAction, onThemeChanged } =
             createRendererElectronMenuActionHandlers({
-                callUnknownFunction: vi.fn<(target: unknown) => unknown>(),
                 ensureCoreModules: vi.fn<
                     () => Promise<Record<string, unknown>>
                 >(async () => {

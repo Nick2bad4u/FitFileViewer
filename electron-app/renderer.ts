@@ -208,7 +208,6 @@ fileInputWiring.registerImportTimeFileInputChangeHandler(
 );
 
 installRendererElectronApiWiring({
-    callUnknownFunction,
     electronApiCandidate: runtimeEnvironment.electronApiCandidate,
     ensureCoreModules,
     getFileInput: fileInputWiring.getFileInput,

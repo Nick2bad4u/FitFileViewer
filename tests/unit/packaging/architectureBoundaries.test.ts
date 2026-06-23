@@ -11493,6 +11493,36 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps renderer Electron menu actions off the generic function bridge", () => {
+        expect.assertions(8);
+
+        const wiringSource = stripComments(
+            readRepositoryFile("electron-app/renderer/electronApiWiring.ts")
+        );
+        const menuActionSource = stripComments(
+            readRepositoryFile(
+                "electron-app/renderer/electronMenuActionHandlers.ts"
+            )
+        );
+
+        expect(wiringSource).not.toContain("callUnknownFunction");
+        expect(menuActionSource).not.toContain("callUnknownFunction");
+        expect(wiringSource).toContain(
+            'import type { RendererCoreModules } from "./coreModuleResolution.js";'
+        );
+        expect(menuActionSource).toContain(
+            'import type { RendererCoreModules } from "./coreModuleResolution.js";'
+        );
+        expect(menuActionSource).toContain("applyTheme?.(theme)");
+        expect(menuActionSource).toContain("showAboutModal?.()");
+        expect(wiringSource).toContain(
+            'Partial<Pick<RendererCoreModules, "applyTheme" | "showAboutModal">>'
+        );
+        expect(menuActionSource).toContain(
+            'Partial<Pick<RendererCoreModules, "applyTheme" | "showAboutModal">>'
+        );
+    });
+
     it("keeps external link browser fallbacks behind the runtime facade", () => {
         expect.assertions(22);
 

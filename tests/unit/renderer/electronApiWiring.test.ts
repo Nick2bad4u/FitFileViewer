@@ -25,10 +25,6 @@ function createElectronApi() {
     };
 }
 
-function callUnknownFunction(target: unknown, args: unknown[] = []): unknown {
-    return typeof target === "function" ? target(...args) : undefined;
-}
-
 describe("renderer Electron API wiring", () => {
     afterEach(() => {
         vi.restoreAllMocks();
@@ -45,7 +41,6 @@ describe("renderer Electron API wiring", () => {
         const scheduleStateInitialization = vi.fn();
 
         installRendererElectronApiWiring({
-            callUnknownFunction,
             electronApiCandidate: api,
             ensureCoreModules: async () => ({ applyTheme }),
             getFileInput: () => fileInput,
