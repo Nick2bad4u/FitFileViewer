@@ -6299,7 +6299,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps active-tab updates on typed state access and runtime document resolution", () => {
-        expect.assertions(14);
+        expect.assertions(21);
 
         const updateActiveTabSource = stripComments(
             readRepositoryFile("electron-app/utils/ui/tabs/updateActiveTab.ts")
@@ -6314,9 +6314,13 @@ describe("architecture boundaries", () => {
             "rendererStateManagerAccess.js"
         );
         expect(updateActiveTabSource).toContain("updateActiveTabRuntime.js");
+        expect(updateActiveTabSource).toContain(
+            "activeTabRuntime.isKeyboardEvent"
+        );
         expect(updateActiveTabSource).not.toContain(
             "state/core/stateManager.js"
         );
+        expect(updateActiveTabSource).not.toContain("instanceof KeyboardEvent");
         expect(updateActiveTabSource).not.toContain("globalThis.document");
         expect(updateActiveTabSource).not.toContain("globalThis.window");
         expect(updateActiveTabRuntimeSource).toContain(
@@ -6324,6 +6328,9 @@ describe("architecture boundaries", () => {
         );
         expect(updateActiveTabRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
+        );
+        expect(updateActiveTabRuntimeSource).toContain(
+            "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(updateActiveTabRuntimeSource).not.toContain(
             "scope: UpdateActiveTabRuntimeScope = globalThis"
@@ -6334,10 +6341,22 @@ describe("architecture boundaries", () => {
         expect(updateActiveTabRuntimeSource).not.toContain(
             "readonly document?:"
         );
+        expect(updateActiveTabRuntimeSource).not.toContain(
+            "readonly KeyboardEvent?:"
+        );
         expect(updateActiveTabRuntimeSource).not.toContain("scope.document");
+        expect(updateActiveTabRuntimeSource).not.toContain(
+            "scope.KeyboardEvent"
+        );
         expect(updateActiveTabRuntimeSource).not.toContain("getScopeDocument");
         expect(updateActiveTabRuntimeSource).not.toContain("scope.window");
         expect(updateActiveTabRuntimeSource).not.toContain("window?:");
+        expect(updateActiveTabRuntimeSource).toContain(
+            "updateActiveTab requires a KeyboardEvent runtime"
+        );
+        expect(updateActiveTabRuntimeSource).toContain(
+            "return value instanceof getKeyboardEventConstructor(scope)"
+        );
     });
 
     it("keeps active-tab fallback tests on descriptor-scoped browser fixtures", () => {

@@ -1,9 +1,13 @@
 export interface UpdateActiveTabRuntimeScope {
     readonly getDocument?: (() => unknown) | undefined;
+    readonly getKeyboardEvent?:
+        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | undefined;
 }
 
 export interface UpdateActiveTabRuntime {
     getDocument: (testDocument?: Readonly<Document>) => Document | undefined;
+    isKeyboardEvent: (value: unknown) => value is KeyboardEvent;
 }
 
 function isDocumentLike(candidate: unknown): candidate is Document {
@@ -19,6 +23,7 @@ function isDocumentLike(candidate: unknown): candidate is Document {
 
 const defaultUpdateActiveTabRuntimeScope: UpdateActiveTabRuntimeScope = {
     getDocument: () => globalThis.document,
+    getKeyboardEvent: () => globalThis.KeyboardEvent,
 };
 
 function getProviderDocument(
@@ -33,6 +38,17 @@ function getProviderDocument(
     }
 }
 
+function getKeyboardEventConstructor(
+    scope: UpdateActiveTabRuntimeScope
+): typeof globalThis.KeyboardEvent {
+    const KeyboardEventConstructor = scope.getKeyboardEvent?.();
+    if (typeof KeyboardEventConstructor !== "function") {
+        throw new TypeError("updateActiveTab requires a KeyboardEvent runtime");
+    }
+
+    return KeyboardEventConstructor;
+}
+
 export function getUpdateActiveTabRuntime(
     scope: UpdateActiveTabRuntimeScope = defaultUpdateActiveTabRuntimeScope
 ): UpdateActiveTabRuntime {
@@ -44,6 +60,9 @@ export function getUpdateActiveTabRuntime(
             ];
 
             return candidates.find(isDocumentLike);
+        },
+        isKeyboardEvent(value: unknown): value is KeyboardEvent {
+            return value instanceof getKeyboardEventConstructor(scope);
         },
     };
 }

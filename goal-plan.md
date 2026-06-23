@@ -575,7 +575,10 @@ direct runtime lookup from returning.
 Active-tab updates now resolve tab documents through the scoped `updateActiveTabRuntime.ts` adapter instead of
 probing `globalThis.document` or `globalThis.window` inside the feature module, with architecture coverage
 blocking those direct runtime lookups from returning to `updateActiveTab.ts`. Explicit active-tab runtime scopes
-now provide documents through named providers instead of direct `document` properties.
+now provide documents through named providers instead of direct `document` properties. Active-tab keyboard
+navigation also checks keydown events through `updateActiveTabRuntime.ts` instead of checking the ambient
+`KeyboardEvent` constructor inside `updateActiveTab.ts`, with focused runtime coverage and architecture
+guardrails blocking direct event-constructor checks from returning.
 Active-tab content helper lookup now routes tab-content queries, active class/ARIA fallbacks, active tab-button
 lookup, and flexible content ID lookup through `getActiveTabContentRuntime.ts` instead of querying `document`
 directly inside `getActiveTabContent.ts`, with focused runtime coverage and architecture coverage blocking those

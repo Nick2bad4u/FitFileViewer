@@ -33,6 +33,22 @@ describe("updateActiveTabRuntime", () => {
         expect(runtime.getDocument()).toBe(providerDocument);
     });
 
+    it("checks keyboard events through the runtime provider", () => {
+        expect.assertions(3);
+
+        const runtime = getUpdateActiveTabRuntime({
+            getKeyboardEvent: () => KeyboardEvent,
+        });
+
+        expect(
+            runtime.isKeyboardEvent(
+                new KeyboardEvent("keydown", { key: "ArrowRight" })
+            )
+        ).toBe(true);
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+        expect(runtime.isKeyboardEvent({ key: "ArrowRight" })).toBe(false);
+    });
+
     it("ignores invalid document candidates", () => {
         expect.assertions(1);
 
@@ -43,21 +59,31 @@ describe("updateActiveTabRuntime", () => {
         expect(runtime.getDocument()).toBeUndefined();
     });
 
-    it("ignores legacy direct runtime scope documents", () => {
-        expect.assertions(1);
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(3);
 
         const legacyScope = {
             document: createDocument(),
+            KeyboardEvent,
         } as unknown as UpdateActiveTabRuntimeScope;
+        const runtime = getUpdateActiveTabRuntime(legacyScope);
 
+        expect(runtime.getDocument()).toBeUndefined();
+        expect(() =>
+            runtime.isKeyboardEvent(new KeyboardEvent("keydown"))
+        ).toThrow("updateActiveTab requires a KeyboardEvent runtime");
         expect(
-            getUpdateActiveTabRuntime(legacyScope).getDocument()
+            (runtime as unknown as { KeyboardEvent?: unknown }).KeyboardEvent
         ).toBeUndefined();
     });
 
     it("does not borrow ambient documents for explicit empty scopes", () => {
-        expect.assertions(1);
+        expect.assertions(2);
+        const runtime = getUpdateActiveTabRuntime({});
 
-        expect(getUpdateActiveTabRuntime({}).getDocument()).toBeUndefined();
+        expect(runtime.getDocument()).toBeUndefined();
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "updateActiveTab requires a KeyboardEvent runtime"
+        );
     });
 });

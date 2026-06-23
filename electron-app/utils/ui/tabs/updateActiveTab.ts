@@ -289,7 +289,7 @@ export function initializeActiveTabState(): void {
 
                 addEventListenerWithCleanup(button, "click", onClick);
                 addEventListenerWithCleanup(button, "keydown", (event) => {
-                    if (event instanceof KeyboardEvent) {
+                    if (activeTabRuntime.isKeyboardEvent(event)) {
                         handleTabKeyboardNavigation(event, button);
                     }
                 });
