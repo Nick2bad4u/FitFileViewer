@@ -3,6 +3,7 @@ import {
     browserWindowRef as runtimeBrowserWindowRef,
 } from "./electronAccess.js";
 import { setupBlockedRequests } from "../security/setupBlockedRequests.js";
+import type { MainAppStateWindowLike } from "../state/appState.js";
 
 type AppLike = {
     whenReady?: () => Promise<unknown>;
@@ -24,7 +25,7 @@ type LifecycleDependencies = {
     appRef: () => AppLike | undefined;
     browserWindowRef: () => BrowserWindowLike | undefined;
     exposeDevHelpers: () => unknown;
-    getAppState: (key: string) => unknown;
+    getAppState: (key: "mainWindow") => MainAppStateWindowLike | null;
     initializeApplication: () =>
         | Promise<WindowLike | undefined>
         | WindowLike
@@ -262,7 +263,7 @@ export function setupMainLifecycle(deps: LifecycleDependencies): void {
         primeBrowserWindowMocks();
         ignoreSettledPromise(safeCall(() => initializeApplication()));
 
-        const mainWindow = getAppState("mainWindow") as WindowLike | undefined;
+        const mainWindow = getAppState("mainWindow") ?? undefined;
         wireHandlers(mainWindow);
 
         const fallbackWindow = mainWindow || {
