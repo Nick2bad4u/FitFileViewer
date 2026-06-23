@@ -5,6 +5,12 @@ const runtimeMocks = vi.hoisted(() => ({
     clearTimeout: vi.fn<typeof globalThis.clearTimeout>((handle) =>
         globalThis.clearTimeout(handle)
     ),
+    createSvgElement: vi.fn(
+        <K extends keyof SVGElementTagNameMap>(
+            tagName: K
+        ): SVGElementTagNameMap[K] =>
+            document.createElementNS("http://www.w3.org/2000/svg", tagName)
+    ),
     requestAnimationFrame: vi.fn<(callback: FrameRequestCallback) => number>(
         (callback) => {
             callback(0);
@@ -20,6 +26,7 @@ vi.mock(
     import("../../../../../electron-app/utils/ui/modals/keyboardShortcutsModalRuntime.js"),
     () => ({
         getKeyboardShortcutsModalRuntime: () => runtimeMocks,
+        KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE: "http://www.w3.org/2000/svg",
     })
 );
 
@@ -115,6 +122,7 @@ describe("keyboardShortcutsModal", () => {
         await resetRegisteredElectronApi();
         runtimeMocks.cancelAnimationFrame.mockClear();
         runtimeMocks.clearTimeout.mockClear();
+        runtimeMocks.createSvgElement.mockClear();
         runtimeMocks.requestAnimationFrame.mockClear();
         runtimeMocks.setTimeout.mockClear();
         vi.useRealTimers();

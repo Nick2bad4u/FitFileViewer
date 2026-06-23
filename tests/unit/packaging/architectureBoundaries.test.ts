@@ -962,6 +962,8 @@ const directDragDropHandlerRuntimeAmbientGetterPattern =
     /\bget\s+(?:AbortController|cancelAnimationFrame|requestAnimationFrame)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:AbortController|cancelAnimationFrame|requestAnimationFrame)\b/u;
 const directKeyboardShortcutsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directKeyboardShortcutsModalSvgGlobalPattern =
+    /\bdocument\.createElementNS\b/u;
 const directAboutModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
 const directAboutModalBrowserRuntimeGlobalPattern =
@@ -5816,11 +5818,18 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(25);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
                 directKeyboardShortcutsModalTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const svgViolations = migratedKeyboardShortcutsModalRuntimeFiles
+            .filter((relativeFile) =>
+                directKeyboardShortcutsModalSvgGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -5837,8 +5846,13 @@ describe("architecture boundaries", () => {
         );
 
         expect(violations).toStrictEqual([]);
+        expect(svgViolations).toStrictEqual([]);
         expect(keyboardShortcutsModalSource).toContain(
             "keyboardShortcutsModalRuntime.js"
+        );
+        expect(keyboardShortcutsModalSource).toContain("createSvgElement");
+        expect(keyboardShortcutsModalSource).not.toContain(
+            "document.createElementNS"
         );
         expect(keyboardShortcutsModalRuntimeSource).not.toMatch(
             directModalRuntimeAmbientTimerFallbackPattern
@@ -5883,6 +5897,12 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
@@ -5890,6 +5910,9 @@ describe("architecture boundaries", () => {
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
             "keyboardShortcutsModalRuntime requires a setTimeout runtime"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "keyboardShortcutsModalRuntime requires a document runtime"
         );
     });
 

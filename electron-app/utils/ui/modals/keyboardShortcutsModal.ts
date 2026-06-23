@@ -4,6 +4,7 @@ import { addEventListenerWithCleanup } from "../events/eventListenerManager.js";
 import { attachExternalLinkHandlers } from "../links/externalLinkHandlers.js";
 import {
     getKeyboardShortcutsModalRuntime,
+    KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE,
     type KeyboardShortcutsModalTimerHandle,
 } from "./keyboardShortcutsModalRuntime.js";
 import { createModalFocusTrap } from "./modalFocusTrap.js";
@@ -26,7 +27,6 @@ let focusTrapCleanup: (() => void) | undefined;
 let lastFocusedElement: HTMLElement | null = null;
 let showAnimationFrame: number | null = null;
 const modalAnimationDuration = 300; // Animation duration in milliseconds
-const SVG_NS = "http://www.w3.org/2000/svg";
 const SHORTCUT_CATEGORIES: ShortcutCategory[] = [
     {
         category: "File Operations",
@@ -229,7 +229,8 @@ function createKeyboardShortcutsModalContent(): HTMLElement {
 function createKeyboardIcon(): SVGSVGElement {
     const icon = createSvgIcon("keyboard-icon");
 
-    const keyboardBody = document.createElementNS(SVG_NS, "rect");
+    const keyboardBody =
+        keyboardShortcutsModalRuntime.createSvgElement("rect");
     keyboardBody.setAttribute("x", "2");
     keyboardBody.setAttribute("y", "4");
     keyboardBody.setAttribute("width", "20");
@@ -238,7 +239,7 @@ function createKeyboardIcon(): SVGSVGElement {
     keyboardBody.setAttribute("stroke", "currentColor");
     keyboardBody.setAttribute("stroke-width", "2");
 
-    const keys = document.createElementNS(SVG_NS, "path");
+    const keys = keyboardShortcutsModalRuntime.createSvgElement("path");
     keys.setAttribute(
         "d",
         "M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"
@@ -254,7 +255,7 @@ function createKeyboardIcon(): SVGSVGElement {
 
 function createCloseIcon(): SVGSVGElement {
     const icon = createSvgIcon();
-    const closePath = document.createElementNS(SVG_NS, "path");
+    const closePath = keyboardShortcutsModalRuntime.createSvgElement("path");
     closePath.setAttribute("d", "M18 6L6 18M6 6l12 12");
     closePath.setAttribute("stroke", "currentColor");
     closePath.setAttribute("stroke-width", "2");
@@ -266,10 +267,10 @@ function createCloseIcon(): SVGSVGElement {
 }
 
 function createSvgIcon(className = ""): SVGSVGElement {
-    const icon = document.createElementNS(SVG_NS, "svg");
+    const icon = keyboardShortcutsModalRuntime.createSvgElement("svg");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
-    icon.setAttribute("xmlns", SVG_NS);
+    icon.setAttribute("xmlns", KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE);
     if (className) {
         icon.classList.add(className);
     }

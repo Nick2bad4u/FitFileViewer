@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getKeyboardShortcutsModalRuntime } from "../../../../../electron-app/utils/ui/modals/keyboardShortcutsModalRuntime.js";
+import {
+    getKeyboardShortcutsModalRuntime,
+    KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE,
+} from "../../../../../electron-app/utils/ui/modals/keyboardShortcutsModalRuntime.js";
 
 describe("getKeyboardShortcutsModalRuntime", () => {
     it("schedules and clears timers through the injected runtime providers", () => {
@@ -86,11 +89,37 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         expect(cancelAnimationFrame.mock.contexts[0]).toBe(scope);
     });
 
+    it("creates SVG elements through the injected document runtime", () => {
+        expect.assertions(4);
+
+        const documentRef = document.implementation.createHTMLDocument(
+            "keyboard shortcuts modal svg runtime"
+        );
+        const createElementNS = vi.spyOn(documentRef, "createElementNS");
+        const runtime = getKeyboardShortcutsModalRuntime({
+            getDocument: () => documentRef,
+        });
+
+        const icon = runtime.createSvgElement("svg");
+
+        expect(icon.tagName.toLowerCase()).toBe("svg");
+        expect(icon.namespaceURI).toBe(KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE);
+        expect(createElementNS).toHaveBeenCalledWith(
+            KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE,
+            "svg"
+        );
+        expect(() => runtime.createSvgElement("path")).not.toThrow();
+    });
+
     it("ignores legacy direct timing runtime properties", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
+        const documentRef = document.implementation.createHTMLDocument(
+            "legacy keyboard shortcuts modal runtime"
+        );
+        const createElementNS = vi.spyOn(documentRef, "createElementNS");
         const setTimeout = vi.fn<typeof globalThis.setTimeout>(() => 37);
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const requestAnimationFrame = vi.fn<
@@ -100,6 +129,7 @@ describe("getKeyboardShortcutsModalRuntime", () => {
         const runtime = getKeyboardShortcutsModalRuntime({
             cancelAnimationFrame,
             clearTimeout,
+            document: documentRef,
             requestAnimationFrame,
             setTimeout,
         } as unknown as Parameters<typeof getKeyboardShortcutsModalRuntime>[0]);
@@ -111,9 +141,13 @@ describe("getKeyboardShortcutsModalRuntime", () => {
             "keyboardShortcutsModalRuntime requires a clearTimeout runtime"
         );
         expect(runtime.requestAnimationFrame(frameCallback)).toBe(null);
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "keyboardShortcutsModalRuntime requires a document runtime"
+        );
         runtime.cancelAnimationFrame(41);
 
         expect(frameCallback).not.toHaveBeenCalled();
+        expect(createElementNS).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
         expect(requestAnimationFrame).not.toHaveBeenCalled();

@@ -9,6 +9,9 @@ export interface KeyboardShortcutsModalRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDocument?:
+        | (() => Pick<Document, "createElementNS"> | undefined)
+        | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
@@ -20,6 +23,9 @@ export interface KeyboardShortcutsModalRuntimeScope {
 export interface KeyboardShortcutsModalRuntime {
     readonly cancelAnimationFrame: (handle: number) => void;
     readonly clearTimeout: (handle: KeyboardShortcutsModalTimerHandle) => void;
+    readonly createSvgElement: <K extends keyof SVGElementTagNameMap>(
+        tagName: K
+    ) => SVGElementTagNameMap[K];
     readonly requestAnimationFrame: (
         callback: FrameRequestCallback
     ) => null | number;
@@ -29,10 +35,14 @@ export interface KeyboardShortcutsModalRuntime {
     ) => KeyboardShortcutsModalTimerHandle;
 }
 
+export const KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE =
+    "http://www.w3.org/2000/svg";
+
 const defaultKeyboardShortcutsModalRuntimeScope: KeyboardShortcutsModalRuntimeScope =
     {
         getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
         getClearTimeout: () => globalThis.clearTimeout,
+        getDocument: () => globalThis.document,
         getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
         getSetTimeout: () => globalThis.setTimeout,
     };
@@ -47,6 +57,19 @@ function getScopeClearTimeout(
     scope: KeyboardShortcutsModalRuntimeScope
 ): typeof globalThis.clearTimeout | undefined {
     return scope.getClearTimeout?.();
+}
+
+function getScopeDocument(
+    scope: KeyboardShortcutsModalRuntimeScope
+): Pick<Document, "createElementNS"> {
+    const runtimeDocument = scope.getDocument?.();
+    if (!runtimeDocument) {
+        throw new TypeError(
+            "keyboardShortcutsModalRuntime requires a document runtime"
+        );
+    }
+
+    return runtimeDocument;
 }
 
 function getScopeRequestAnimationFrame(
@@ -76,6 +99,14 @@ export function getKeyboardShortcutsModalRuntime(
                 );
             }
             clearTimeoutRef.call(scope, handle);
+        },
+        createSvgElement<K extends keyof SVGElementTagNameMap>(
+            tagName: K
+        ): SVGElementTagNameMap[K] {
+            return getScopeDocument(scope).createElementNS(
+                KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE,
+                tagName
+            );
         },
         requestAnimationFrame(callback: FrameRequestCallback): null | number {
             const requestAnimationFrameRef =
