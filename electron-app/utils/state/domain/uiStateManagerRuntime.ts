@@ -14,6 +14,7 @@ export interface UIStateWindowStateSnapshot extends Record<string, unknown> {
 
 type UIStateManagerEventTarget = Pick<Window, "addEventListener">;
 type UIStateManagerElementProvider = () => HTMLElement | null | undefined;
+type UIStateManagerElementListProvider = () => readonly Element[] | undefined;
 
 type UIStateManagerViewportState = Partial<
     Pick<
@@ -54,6 +55,9 @@ export interface UIStateManagerRuntimeScope {
     readonly getEventTarget?:
         | (() => UIStateManagerEventTarget | undefined)
         | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
     readonly getAltFitIframeElement?:
         | UIStateManagerElementProvider
         | undefined;
@@ -74,6 +78,12 @@ export interface UIStateManagerRuntimeScope {
         | UIStateManagerElementProvider
         | undefined;
     readonly getSidebarElement?: UIStateManagerElementProvider | undefined;
+    readonly getTabButtonElements?:
+        | UIStateManagerElementListProvider
+        | undefined;
+    readonly getTabContentElements?:
+        | UIStateManagerElementListProvider
+        | undefined;
     readonly getUnloadFileButtonElement?:
         | UIStateManagerElementProvider
         | undefined;
@@ -116,10 +126,13 @@ export interface UIStateManagerRuntime {
     getMeasurementModeToggleElement: () => HTMLElement | null;
     getSidebarElement: () => HTMLElement | null;
     getSystemThemeMediaQuery: () => MediaQueryList | null;
+    getTabButtonElements: () => readonly Element[];
+    getTabContentElements: () => readonly Element[];
     getUnloadFileButtonElement: () => HTMLElement | null;
     getWindowState: () => UIStateWindowStateSnapshot | null;
     getZwiftIframeElement: () => HTMLElement | null;
     hasWindow: () => boolean;
+    isHTMLElement: (value: unknown) => value is HTMLElement;
     setAppHasFileState: (hasFile: boolean) => void;
     setBodyCursor: (cursor: string) => void;
     setDocumentTitle: (title: string) => void;
@@ -134,6 +147,7 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
         typeof globalThis.addEventListener === "function"
             ? globalThis
             : undefined,
+    getHTMLElement: () => globalThis.HTMLElement,
     getActiveFileNameContainerElement: () =>
         getElementByIdFlexible(
             globalThis.document,
@@ -165,6 +179,12 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
         ),
     getSidebarElement: () =>
         globalThis.document.querySelector<HTMLElement>("#sidebar"),
+    getTabButtonElements: () => [
+        ...globalThis.document.querySelectorAll("[data-tab]"),
+    ],
+    getTabContentElements: () => [
+        ...globalThis.document.querySelectorAll(".tab-content"),
+    ],
     getUnloadFileButtonElement: () =>
         getElementByIdFlexible(globalThis.document, "unload_file_btn"),
     getZwiftIframeElement: () =>
@@ -207,6 +227,28 @@ function getEventTarget(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerEventTarget | undefined {
     return scope.getEventTarget?.();
+}
+
+function getHTMLElementConstructor(
+    scope: UIStateManagerRuntimeScope
+): typeof HTMLElement | undefined {
+    const HTMLElementConstructor = scope.getHTMLElement?.();
+
+    return typeof HTMLElementConstructor === "function"
+        ? HTMLElementConstructor
+        : undefined;
+}
+
+function isHTMLElement(
+    scope: UIStateManagerRuntimeScope,
+    value: unknown
+): value is HTMLElement {
+    const HTMLElementConstructor = getHTMLElementConstructor(scope);
+
+    return (
+        HTMLElementConstructor !== undefined &&
+        value instanceof HTMLElementConstructor
+    );
 }
 
 function getActiveFileNameContainerElement(
@@ -285,6 +327,26 @@ function getSidebarElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
     return scope.getSidebarElement?.() ?? null;
+}
+
+function getTabButtonElements(
+    scope: UIStateManagerRuntimeScope
+): readonly Element[] {
+    try {
+        return scope.getTabButtonElements?.() ?? [];
+    } catch {
+        return [];
+    }
+}
+
+function getTabContentElements(
+    scope: UIStateManagerRuntimeScope
+): readonly Element[] {
+    try {
+        return scope.getTabContentElements?.() ?? [];
+    } catch {
+        return [];
+    }
 }
 
 function getUnloadFileButtonElement(
@@ -418,6 +480,12 @@ export function getUIStateManagerRuntime(
                 ? matchMedia("(prefers-color-scheme: dark)")
                 : null;
         },
+        getTabButtonElements(): readonly Element[] {
+            return getTabButtonElements(scope);
+        },
+        getTabContentElements(): readonly Element[] {
+            return getTabContentElements(scope);
+        },
         getUnloadFileButtonElement(): HTMLElement | null {
             return getUnloadFileButtonElement(scope);
         },
@@ -452,6 +520,9 @@ export function getUIStateManagerRuntime(
         },
         hasWindow(): boolean {
             return getEventTarget(scope) !== undefined;
+        },
+        isHTMLElement(value): value is HTMLElement {
+            return isHTMLElement(scope, value);
         },
         setAppHasFileState(hasFile): void {
             const body = getFileStateBody(scope);

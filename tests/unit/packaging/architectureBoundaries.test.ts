@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(116);
+        expect.assertions(130);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6622,8 +6622,11 @@ describe("architecture boundaries", () => {
             "getMeasurementModeToggleElement"
         );
         expect(uiStateManagerSource).toContain("getSidebarElement");
+        expect(uiStateManagerSource).toContain("getTabButtonElements");
+        expect(uiStateManagerSource).toContain("getTabContentElements");
         expect(uiStateManagerSource).toContain("getUnloadFileButtonElement");
         expect(uiStateManagerSource).toContain("getZwiftIframeElement");
+        expect(uiStateManagerSource).toContain("isHTMLElement");
         expect(uiStateManagerSource).toContain("setAppHasFileState");
         expect(uiStateManagerSource).toContain("setBodyCursor");
         expect(uiStateManagerSource).toContain("setDocumentTitle");
@@ -6680,6 +6683,18 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).not.toContain(
             'document.createElement("span")'
         );
+        expect(uiStateManagerSource).not.toContain(
+            'const tabButtons = safeQuerySelectorAll("[data-tab]")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'const tabContents = safeQuerySelectorAll(".tab-content")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'button instanceof HTMLElement\n                        ? button.dataset["tab"]'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'content instanceof HTMLElement\n                        ? content.dataset["tabContent"]'
+        );
         expect(
             directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
         ).toBe(false);
@@ -6691,6 +6706,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             'createSpanElement: () => globalThis.document.createElement("span")'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getFileStateBody: () => globalThis.document.body"
@@ -6745,6 +6763,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             'globalThis.document.querySelector<HTMLElement>("#sidebar")'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'globalThis.document.querySelectorAll("[data-tab]")'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'globalThis.document.querySelectorAll(".tab-content")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getSetBodyCursor: () => (cursor) =>"
@@ -6807,6 +6831,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly sidebarElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly tabButtonElements?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly tabContentElements?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly unloadFileButtonElement?:"
@@ -6873,6 +6903,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.sidebarElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.tabButtonElements"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.tabContentElements"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.unloadFileButtonElement"

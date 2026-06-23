@@ -304,10 +304,10 @@ export class UIStateManager {
         };
 
         // Tab switching
-        const tabButtons = safeQuerySelectorAll("[data-tab]");
+        const tabButtons = uiStateManagerRuntime.getTabButtonElements();
         for (const button of tabButtons) {
             const tabName =
-                button instanceof HTMLElement
+                uiStateManagerRuntime.isHTMLElement(button)
                     ? button.dataset["tab"]
                     : undefined;
             safeAddClickListener(button, () => {
@@ -701,23 +701,11 @@ export class UIStateManager {
      * Update tab button states
      */
     updateTabButtons(activeTab: string) {
-        /**/
-        const safeQuerySelectorAll = (selector: string): Element[] => {
-            try {
-                const doc = document;
-                if (doc && typeof doc.querySelectorAll === "function") {
-                    return [...(doc.querySelectorAll(selector) || [])];
-                }
-            } catch {
-                /* Ignore errors */
-            }
-            return [];
-        };
-        const tabButtons = safeQuerySelectorAll("[data-tab]");
+        const tabButtons = uiStateManagerRuntime.getTabButtonElements();
 
         for (const button of tabButtons) {
             const tabName =
-                    button instanceof HTMLElement
+                    uiStateManagerRuntime.isHTMLElement(button)
                         ? button.dataset["tab"]
                         : undefined,
                 isActive = tabName === activeTab;
@@ -731,28 +719,16 @@ export class UIStateManager {
      * Update tab visibility based on active tab
      */
     updateTabVisibility(activeTab: string) {
-        /**/
-        const safeQuerySelectorAll = (selector: string): Element[] => {
-            try {
-                const doc = document;
-                if (doc && typeof doc.querySelectorAll === "function") {
-                    return [...(doc.querySelectorAll(selector) || [])];
-                }
-            } catch {
-                /* Ignore errors */
-            }
-            return [];
-        };
-        const tabContents = safeQuerySelectorAll(".tab-content");
+        const tabContents = uiStateManagerRuntime.getTabContentElements();
 
         for (const content of tabContents) {
             const tabName =
-                    content instanceof HTMLElement
+                    uiStateManagerRuntime.isHTMLElement(content)
                         ? content.dataset["tabContent"]
                         : undefined,
                 isActive = tabName === activeTab;
 
-            if (content instanceof HTMLElement) {
+            if (uiStateManagerRuntime.isHTMLElement(content)) {
                 content.style.display = isActive ? "block" : "none";
             }
             content.setAttribute("aria-hidden", (!isActive).toString());

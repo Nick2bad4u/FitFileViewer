@@ -140,7 +140,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("routes chart, loading, sidebar, and measurement element lookups through scoped providers", () => {
-        expect.assertions(45);
+        expect.assertions(53);
 
         const activeFileName = document.createElement("span");
         const activeFileNameContainer = document.createElement("div");
@@ -155,6 +155,8 @@ describe("uiStateManagerRuntime", () => {
         const mapContainer = document.createElement("section");
         const measurementToggle = document.createElement("button");
         const sidebar = document.createElement("aside");
+        const tabButton = document.createElement("button");
+        const tabContent = document.createElement("section");
         const unloadButton = document.createElement("button");
         const zwiftIframe = document.createElement("iframe");
         const createSpanElement = vi.fn(() => createdSpan);
@@ -174,6 +176,8 @@ describe("uiStateManagerRuntime", () => {
         const getMapContainerElement = vi.fn(() => mapContainer);
         const getMeasurementModeToggleElement = vi.fn(() => measurementToggle);
         const getSidebarElement = vi.fn(() => sidebar);
+        const getTabButtonElements = vi.fn(() => [tabButton]);
+        const getTabContentElements = vi.fn(() => [tabContent]);
         const getUnloadFileButtonElement = vi.fn(() => unloadButton);
         const getZwiftIframeElement = vi.fn(() => zwiftIframe);
         const runtime = getUIStateManagerRuntime({
@@ -190,6 +194,9 @@ describe("uiStateManagerRuntime", () => {
             getMapContainerElement,
             getMeasurementModeToggleElement,
             getSidebarElement,
+            getHTMLElement: () => HTMLElement,
+            getTabButtonElements,
+            getTabContentElements,
             getUnloadFileButtonElement,
             getZwiftIframeElement,
         });
@@ -217,8 +224,11 @@ describe("uiStateManagerRuntime", () => {
             measurementToggle
         );
         expect(runtime.getSidebarElement()).toBe(sidebar);
+        expect(runtime.getTabButtonElements()).toStrictEqual([tabButton]);
+        expect(runtime.getTabContentElements()).toStrictEqual([tabContent]);
         expect(runtime.getUnloadFileButtonElement()).toBe(unloadButton);
         expect(runtime.getZwiftIframeElement()).toBe(zwiftIframe);
+        expect(runtime.isHTMLElement(tabButton)).toBe(true);
         expect(createSpanElement).toHaveBeenCalledOnce();
         expect(getActiveFileNameContainerElement).toHaveBeenCalledOnce();
         expect(getActiveFileNameElement).toHaveBeenCalledOnce();
@@ -232,6 +242,8 @@ describe("uiStateManagerRuntime", () => {
         expect(getMapContainerElement).toHaveBeenCalledOnce();
         expect(getMeasurementModeToggleElement).toHaveBeenCalledOnce();
         expect(getSidebarElement).toHaveBeenCalledOnce();
+        expect(getTabButtonElements).toHaveBeenCalledOnce();
+        expect(getTabContentElements).toHaveBeenCalledOnce();
         expect(getUnloadFileButtonElement).toHaveBeenCalledOnce();
         expect(getZwiftIframeElement).toHaveBeenCalledOnce();
         expect(
@@ -267,10 +279,33 @@ describe("uiStateManagerRuntime", () => {
             getUIStateManagerRuntime({}).getMeasurementModeToggleElement()
         ).toBeNull();
         expect(getUIStateManagerRuntime({}).getSidebarElement()).toBeNull();
+        expect(getUIStateManagerRuntime({}).getTabButtonElements()).toEqual([]);
+        expect(getUIStateManagerRuntime({}).getTabContentElements()).toEqual(
+            []
+        );
+        expect(getUIStateManagerRuntime({}).isHTMLElement(tabButton)).toBe(
+            false
+        );
         expect(
             getUIStateManagerRuntime({}).getUnloadFileButtonElement()
         ).toBeNull();
         expect(getUIStateManagerRuntime({}).getZwiftIframeElement()).toBeNull();
+    });
+
+    it("falls back to empty tab element lists when scoped providers throw", () => {
+        expect.assertions(2);
+
+        const runtime = getUIStateManagerRuntime({
+            getTabButtonElements: () => {
+                throw new Error("tab buttons unavailable");
+            },
+            getTabContentElements: () => {
+                throw new Error("tab contents unavailable");
+            },
+        });
+
+        expect(runtime.getTabButtonElements()).toStrictEqual([]);
+        expect(runtime.getTabContentElements()).toStrictEqual([]);
     });
 
     it("ignores direct scoped matchMedia when no provider is scoped", () => {
@@ -373,7 +408,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(45);
+        expect.assertions(50);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -396,6 +431,8 @@ describe("uiStateManagerRuntime", () => {
         const mapContainerElement = document.createElement("section");
         const measurementModeToggleElement = document.createElement("button");
         const sidebarElement = document.createElement("aside");
+        const tabButtonElement = document.createElement("button");
+        const tabContentElement = document.createElement("section");
         const unloadFileButtonElement = document.createElement("button");
         const zwiftIframeElement = document.createElement("iframe");
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
@@ -422,6 +459,8 @@ describe("uiStateManagerRuntime", () => {
             mapContainerElement,
             measurementModeToggleElement,
             sidebarElement,
+            tabButtonElements: [tabButtonElement],
+            tabContentElements: [tabContentElement],
             unloadFileButtonElement,
             zwiftIframeElement,
             matchMedia,
@@ -461,6 +500,8 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getMapContainerElement()).toBeNull();
         expect(runtime.getMeasurementModeToggleElement()).toBeNull();
         expect(runtime.getSidebarElement()).toBeNull();
+        expect(runtime.getTabButtonElements()).toStrictEqual([]);
+        expect(runtime.getTabContentElements()).toStrictEqual([]);
         expect(runtime.getUnloadFileButtonElement()).toBeNull();
         expect(runtime.getZwiftIframeElement()).toBeNull();
         expect(runtime.getWindowState()).toBeNull();
@@ -497,6 +538,13 @@ describe("uiStateManagerRuntime", () => {
             measurementModeToggleElement
         );
         expect(runtime.getSidebarElement()).not.toBe(sidebarElement);
+        expect(runtime.getTabButtonElements()).not.toStrictEqual([
+            tabButtonElement,
+        ]);
+        expect(runtime.getTabContentElements()).not.toStrictEqual([
+            tabContentElement,
+        ]);
+        expect(runtime.isHTMLElement(tabButtonElement)).toBe(false);
         expect(runtime.getUnloadFileButtonElement()).not.toBe(
             unloadFileButtonElement
         );
