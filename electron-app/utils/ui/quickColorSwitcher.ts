@@ -40,20 +40,20 @@ const quickColorSwitcherRuntime = getQuickColorSwitcherRuntime();
 const trackedQuickColorSwitcherElements = new Set<HTMLDivElement>();
 
 function createPaletteIcon(): SVGSVGElement {
-    const icon = quickColorSwitcherRuntime.createElementNS(SVG_NS, "svg");
+    const icon = quickColorSwitcherRuntime.createSvgElement("svg");
     icon.classList.add("switcher-icon");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
     icon.setAttribute("xmlns", SVG_NS);
 
-    const path = quickColorSwitcherRuntime.createElementNS(SVG_NS, "path");
+    const path = quickColorSwitcherRuntime.createSvgElement("path");
     path.setAttribute(
         "d",
         "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
     );
     path.setAttribute("fill", "currentColor");
 
-    const circle = quickColorSwitcherRuntime.createElementNS(SVG_NS, "circle");
+    const circle = quickColorSwitcherRuntime.createSvgElement("circle");
     circle.setAttribute("cx", "12");
     circle.setAttribute("cy", "12");
     circle.setAttribute("r", "5");
@@ -65,27 +65,21 @@ function createPaletteIcon(): SVGSVGElement {
 }
 
 function createSettingsIcon(): SVGSVGElement {
-    const icon = quickColorSwitcherRuntime.createElementNS(SVG_NS, "svg");
+    const icon = quickColorSwitcherRuntime.createSvgElement("svg");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
     icon.setAttribute("xmlns", SVG_NS);
     icon.setAttribute("width", "16");
     icon.setAttribute("height", "16");
 
-    const circlePath = quickColorSwitcherRuntime.createElementNS(
-        SVG_NS,
-        "path"
-    );
+    const circlePath = quickColorSwitcherRuntime.createSvgElement("path");
     circlePath.setAttribute("d", "M12 15a3 3 0 100-6 3 3 0 000 6z");
     circlePath.setAttribute("stroke", "currentColor");
     circlePath.setAttribute("stroke-width", "2");
     circlePath.setAttribute("stroke-linecap", "round");
     circlePath.setAttribute("stroke-linejoin", "round");
 
-    const gearPath = quickColorSwitcherRuntime.createElementNS(
-        SVG_NS,
-        "path"
-    );
+    const gearPath = quickColorSwitcherRuntime.createSvgElement("path");
     gearPath.setAttribute(
         "d",
         "M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"

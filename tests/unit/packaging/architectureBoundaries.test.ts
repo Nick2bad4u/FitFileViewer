@@ -15314,7 +15314,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps quick color switcher browser APIs behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(31);
 
         const violations = migratedQuickColorSwitcherRuntimeFiles
             .filter((relativeFile) =>
@@ -15337,7 +15337,8 @@ describe("architecture boundaries", () => {
         expect(quickColorSwitcherSource).toContain("createAbortController");
         expect(quickColorSwitcherSource).toContain("addDocumentClickListener");
         expect(quickColorSwitcherSource).toContain("createElement");
-        expect(quickColorSwitcherSource).toContain("createElementNS");
+        expect(quickColorSwitcherSource).toContain("createSvgElement");
+        expect(quickColorSwitcherSource).not.toContain("createElementNS");
         expect(quickColorSwitcherSource).toContain("createTextNode");
         expect(quickColorSwitcherSource).toContain("appendToBody");
         expect(quickColorSwitcherSource).toContain("appendToHead");
@@ -15348,6 +15349,15 @@ describe("architecture boundaries", () => {
         );
         expect(quickColorSwitcherRuntimeSource).toContain(
             "defaultQuickColorSwitcherRuntimeScope"
+        );
+        expect(quickColorSwitcherRuntimeSource).toContain(
+            "iconFactoryRuntime.js"
+        );
+        expect(quickColorSwitcherRuntimeSource).toContain(
+            "return createSvgElement(scope, tagName);"
+        );
+        expect(quickColorSwitcherRuntimeSource).not.toContain(
+            "createElementNS"
         );
         expect(quickColorSwitcherRuntimeSource).not.toMatch(
             directQuickColorSwitcherRuntimeAmbientGetterPattern

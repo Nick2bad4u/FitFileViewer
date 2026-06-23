@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "./icons/iconFactoryRuntime.js";
+
 export type QuickColorSwitcherTimerHandle =
     | ReturnType<typeof globalThis.setTimeout>
     | number;
@@ -36,9 +38,8 @@ export interface QuickColorSwitcherRuntime {
     createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
-    createElementNS: <K extends keyof SVGElementTagNameMap>(
-        namespaceURI: string,
-        qualifiedName: K
+    createSvgElement: <K extends keyof SVGElementTagNameMap>(
+        tagName: K
     ) => SVGElementTagNameMap[K];
     createAbortController: () => AbortController;
     createTextNode: (data: string) => Text;
@@ -101,6 +102,16 @@ function getSetTimeout(
     return scope.getSetTimeout?.();
 }
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: QuickColorSwitcherRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getRequiredDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getQuickColorSwitcherRuntime(
     scope: QuickColorSwitcherRuntimeScope = defaultQuickColorSwitcherRuntimeScope
 ): QuickColorSwitcherRuntime {
@@ -135,14 +146,10 @@ export function getQuickColorSwitcherRuntime(
         ): HTMLElementTagNameMap[K] {
             return getRequiredDocument(scope).createElement(tagName);
         },
-        createElementNS<K extends keyof SVGElementTagNameMap>(
-            namespaceURI: string,
-            qualifiedName: K
+        createSvgElement<K extends keyof SVGElementTagNameMap>(
+            tagName: K
         ): SVGElementTagNameMap[K] {
-            return getRequiredDocument(scope).createElementNS(
-                namespaceURI,
-                qualifiedName
-            ) as SVGElementTagNameMap[K];
+            return createSvgElement(scope, tagName);
         },
         createAbortController(): AbortController {
             const AbortControllerConstructor =

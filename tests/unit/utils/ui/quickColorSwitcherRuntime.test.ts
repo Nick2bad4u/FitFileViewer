@@ -78,10 +78,7 @@ describe("getQuickColorSwitcherRuntime", () => {
             getNode: () => Node,
         });
         const switcher = runtime.createElement("div");
-        const icon = runtime.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "svg"
-        );
+        const icon = runtime.createSvgElement("svg");
         const textNode = runtime.createTextNode("More Options");
         const style = runtime.createElement("style");
 
@@ -118,9 +115,9 @@ describe("getQuickColorSwitcherRuntime", () => {
         expect(() => utils.createElement("div")).toThrow(
             "quickColorSwitcher requires a document runtime"
         );
-        expect(() =>
-            utils.createElementNS("http://www.w3.org/2000/svg", "svg")
-        ).toThrow("quickColorSwitcher requires a document runtime");
+        expect(() => utils.createSvgElement("svg")).toThrow(
+            "quickColorSwitcher requires a document runtime"
+        );
         expect(() => utils.createTextNode("More Options")).toThrow(
             "quickColorSwitcher requires a document runtime"
         );
@@ -197,9 +194,9 @@ describe("getQuickColorSwitcherRuntime", () => {
         expect(() => runtime.createElement("div")).toThrow(
             "quickColorSwitcher requires a document runtime"
         );
-        expect(() =>
-            runtime.createElementNS("http://www.w3.org/2000/svg", "svg")
-        ).toThrow("quickColorSwitcher requires a document runtime");
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "quickColorSwitcher requires a document runtime"
+        );
         expect(() => runtime.createTextNode("More Options")).toThrow(
             "quickColorSwitcher requires a document runtime"
         );
@@ -266,10 +263,7 @@ describe("getQuickColorSwitcherRuntime", () => {
         runtime.clearTimeout(timer);
         const switcher = runtime.createElement("div");
         switcher.id = "quick-color-switcher";
-        const icon = runtime.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "svg"
-        );
+        const icon = runtime.createSvgElement("svg");
         const label = runtime.createTextNode("More Options");
         runtime.appendToBody(switcher);
 
