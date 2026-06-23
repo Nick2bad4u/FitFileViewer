@@ -92,13 +92,14 @@ describe("preload event API", () => {
     });
 
     it("blocks non-allowlisted update events while enforcement is enabled", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const { api, ipcMock, preloadLog } = createApi();
 
         const unsubscribe = api.onUpdateEvent("update-downloaded", vi.fn());
 
-        expect(unsubscribe).toBeUndefined();
+        expect(unsubscribe).toBeTypeOf("function");
+        expect(unsubscribe()).toBeUndefined();
         expect(ipcMock.on).not.toHaveBeenCalled();
         expect(preloadLog.mock.calls).toStrictEqual([
             [
@@ -174,5 +175,60 @@ describe("preload event API", () => {
             listener
         );
         expect(preloadLog).not.toHaveBeenCalled();
+    });
+
+    it("returns a noop unsubscribe when update IPC is unavailable", () => {
+        expect.assertions(3);
+
+        const preloadLog =
+            vi.fn<
+                (
+                    level: "error" | "info" | "warn",
+                    message: string,
+                    ...details: unknown[]
+                ) => void
+            >();
+        const api = createPreloadEventApi({
+            fitFileLoadedChannel: "fit-file-loaded",
+            ipcRenderer: null,
+            isAllowedUpdateEventName: (
+                eventName: unknown
+            ): eventName is UpdateEventName => eventName === "update-checking",
+            preloadLog,
+            removeIpcListener: vi.fn(),
+            shouldEnforceGenericIpcAllowlist: false,
+            validateCallback: (
+                callback: unknown
+            ): callback is (...args: unknown[]) => unknown =>
+                typeof callback === "function",
+            validateChannelName: (value: unknown): value is string =>
+                typeof value === "string" && value.length > 0,
+        });
+
+        const unsubscribe = api.onUpdateEvent("update-checking", vi.fn());
+
+        expect(unsubscribe).toBeTypeOf("function");
+        expect(unsubscribe()).toBeUndefined();
+        expect(
+            preloadLog.mock.calls.map(
+                ([
+                    level,
+                    message,
+                    error,
+                ]) => ({
+                    errorMessage:
+                        error instanceof Error ? error.message : undefined,
+                    level,
+                    message,
+                })
+            )
+        ).toStrictEqual([
+            {
+                errorMessage: "ipcRenderer.on unavailable",
+                level: "error",
+                message:
+                    "[preload.js] Error setting up onUpdateEvent(update-checking):",
+            },
+        ]);
     });
 });

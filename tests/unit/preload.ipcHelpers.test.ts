@@ -56,7 +56,9 @@ function createIpcRendererMock(): IpcRendererMock {
     };
 }
 
-function createHelpers(ipcRenderer = createIpcRendererMock()) {
+function createHelpers(
+    ipcRenderer: IpcRendererMock | null = createIpcRendererMock()
+) {
     const preloadLog =
         vi.fn<
             (
@@ -156,6 +158,55 @@ describe("preload IPC helpers", () => {
             ["file:read", "C:/rides/coded-missing.fit"],
         ]);
         expect(preloadLog).not.toHaveBeenCalled();
+    });
+
+    it("logs unavailable IPC renderer operations through safe wrappers", async () => {
+        expect.assertions(4);
+
+        const { helpers, preloadLog } = createHelpers(null);
+
+        await expect(
+            helpers.createSafeInvokeHandler("theme:get", "getTheme")()
+        ).rejects.toThrow("ipcRenderer.invoke unavailable");
+        helpers.createSafeSendHandler("menu-export", "requestExport")();
+        const unsubscribe = helpers.createSafeEventHandler(
+            "menu-open-file",
+            "onMenuOpenFile"
+        )(vi.fn());
+
+        expect(unsubscribe()).toBeUndefined();
+        expect(preloadLog).toHaveBeenCalledTimes(3);
+        expect(
+            preloadLog.mock.calls.map(
+                ([
+                    level,
+                    message,
+                    error,
+                ]) => ({
+                    errorMessage:
+                        error instanceof Error ? error.message : undefined,
+                    level,
+                    message,
+                })
+            )
+        ).toStrictEqual([
+            {
+                errorMessage: "ipcRenderer.invoke unavailable",
+                level: "error",
+                message: "[preload.js] Error in getTheme:",
+            },
+            {
+                errorMessage: "ipcRenderer.send unavailable",
+                level: "error",
+                message: "[preload.js] Error in requestExport:",
+            },
+            {
+                errorMessage: "ipcRenderer.on unavailable",
+                level: "error",
+                message:
+                    "[preload.js] Error setting up onMenuOpenFile event handler:",
+            },
+        ]);
     });
 
     it("allows browser root folder listings with an empty relative path", async () => {

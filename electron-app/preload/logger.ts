@@ -1,17 +1,8 @@
-type PreloadLog = (
-    level: "error" | "info" | "warn",
-    message: string,
-    ...details: unknown[]
-) => void;
-
-interface ConsoleLike {
-    error?: (...args: unknown[]) => void;
-    log?: (...args: unknown[]) => void;
-    warn?: (...args: unknown[]) => void;
-}
+type PreloadConsole = import("./preloadModuleTypes").PreloadConsole;
+type PreloadLog = import("./preloadModuleTypes").PreloadLog;
 
 export function createPreloadLogger(
-    consoleRef: ConsoleLike | undefined = console
+    consoleRef: PreloadConsole | undefined = console
 ): PreloadLog {
     return (level, message, ...details) => {
         if (!isPreloadObjectRecord(consoleRef)) {

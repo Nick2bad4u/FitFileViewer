@@ -1,83 +1,13 @@
-type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
-type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
-type IpcRequestPayload = import("../shared/ipc").IpcRequestPayload;
 type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
-
-interface MenuEventApiChannels {
-    DECODER_OPTIONS_CHANGED: string;
-    EXPORT_FILE: string;
-    INSTALL_UPDATE: Extract<GenericSendChannel, "install-update">;
-    MENU_ABOUT: string;
-    MENU_CHECK_FOR_UPDATES: Extract<
-        GenericSendChannel,
-        "menu-check-for-updates"
-    >;
-    MENU_EXPORT: Extract<GenericSendChannel, "menu-export">;
-    MENU_KEYBOARD_SHORTCUTS: string;
-    MENU_OPEN_FILE: string;
-    MENU_OPEN_OVERLAY: string;
-    MENU_PRINT: string;
-    MENU_RESTART_UPDATE: string;
-    MENU_SAVE_AS: Extract<GenericSendChannel, "menu-save-as">;
-    OPEN_ACCENT_COLOR_PICKER: string;
-    OPEN_RECENT_FILE: string;
-    OPEN_SUMMARY_COLUMN_SELECTOR: string;
-    SET_FONT_SIZE: string;
-    SET_FULLSCREEN: Extract<GenericSendChannel, "set-fullscreen">;
-    SET_HIGH_CONTRAST: string;
-    SET_THEME: string;
-    SHOW_NOTIFICATION: string;
-    THEME_CHANGED: Extract<GenericSendChannel, "theme-changed">;
-    UNLOAD_FIT_FILE: string;
-}
-
-interface MenuEventApiOptions {
-    channels: MenuEventApiChannels;
-    createSafeEventHandler: <Callback>(
-        channel: string,
-        methodName: string,
-        transform?: (...args: IpcResponsePayload[]) => IpcResponsePayload | null
-    ) => (callback: Callback) => () => void;
-    createSafeSendHandler: (
-        channel: GenericSendChannel,
-        methodName: string
-    ) => (...args: IpcRequestPayload[]) => void;
-}
-
-type MenuEventPreloadApi = Pick<
-    ElectronAPI,
-    | "checkForUpdates"
-    | "installUpdate"
-    | "onDecoderOptionsChanged"
-    | "onExportFile"
-    | "onMenuAbout"
-    | "onMenuCheckForUpdates"
-    | "onMenuExport"
-    | "onMenuKeyboardShortcuts"
-    | "onMenuOpenFile"
-    | "onMenuOpenOverlay"
-    | "onMenuPrint"
-    | "onMenuRestartUpdate"
-    | "onMenuSaveAs"
-    | "onOpenAccentColorPicker"
-    | "onOpenRecentFile"
-    | "onOpenSummaryColumnSelector"
-    | "onSetFontSize"
-    | "onSetHighContrast"
-    | "onSetTheme"
-    | "onShowNotification"
-    | "onUnloadFitFile"
-    | "requestExport"
-    | "requestSaveAs"
-    | "sendThemeChanged"
-    | "setFullScreen"
->;
+type CreateMenuEventApiOptions =
+    import("./preloadModuleTypes").CreateMenuEventApiOptions;
+type MenuEventPreloadApi = import("../shared/preloadApi").ElectronMenuEventApi;
 
 export function createMenuEventApi({
     channels,
     createSafeEventHandler,
     createSafeSendHandler,
-}: MenuEventApiOptions): MenuEventPreloadApi {
+}: CreateMenuEventApiOptions): MenuEventPreloadApi {
     return {
         checkForUpdates: createSafeSendHandler(
             channels.MENU_CHECK_FOR_UPDATES,

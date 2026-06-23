@@ -1,41 +1,11 @@
 import * as electronModule from "electron";
 
-interface PreloadContextBridge {
-    exposeInMainWorld?: (key: string, api: unknown) => void;
-}
-
-interface PreloadElectronBridge {
-    contextBridge?: null | PreloadContextBridge;
-    default?: null | PreloadElectronBridge;
-    ipcRenderer?: null | PreloadIpcRenderer;
-}
-
-interface PreloadElectronBridgeResolution {
-    contextBridge: null | PreloadContextBridge | undefined;
-    ipcRenderer: null | PreloadIpcRenderer | undefined;
-}
-
-interface PreloadIpcRenderer {
-    invoke?: (channel: string, ...args: unknown[]) => Promise<unknown>;
-    off?: (
-        channel: string,
-        listener: (event: object, ...args: unknown[]) => void
-    ) => void;
-    on?: (
-        channel: string,
-        listener: (event: object, ...args: unknown[]) => void
-    ) => void;
-    removeAllListeners?: (channel: string) => void;
-    removeListener?: (
-        channel: string,
-        listener: (event: object, ...args: unknown[]) => void
-    ) => void;
-    send?: (channel: string, ...args: unknown[]) => void;
-}
-
-interface ResolvePreloadElectronBridgeOptions {
-    electronBridgeOverride?: null | PreloadElectronBridge;
-}
+type PreloadElectronBridge =
+    import("./preloadModuleTypes").PreloadElectronBridge;
+type PreloadElectronBridgeResolution =
+    import("./preloadModuleTypes").PreloadElectronBridgeResolution;
+type ResolvePreloadElectronBridgeOptions =
+    import("./preloadModuleTypes").ResolvePreloadElectronBridgeOptions;
 
 function getModuleLoadError(error: unknown): Error {
     return error instanceof Error ? error : new Error("Module loading failed");

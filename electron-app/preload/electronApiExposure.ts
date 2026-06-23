@@ -1,21 +1,6 @@
 type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
-
-type PreloadLog = (
-    level: "error" | "info" | "warn",
-    message: string,
-    ...details: unknown[]
-) => void;
-
-interface ContextBridgeLike {
-    exposeInMainWorld?: (key: string, api: unknown) => void;
-}
-
-interface ElectronApiExposureOptions {
-    api: ElectronAPI;
-    contextBridge: ContextBridgeLike | null | undefined;
-    isDevelopmentMode: () => boolean;
-    preloadLog: PreloadLog;
-}
+type ExposeElectronApiOptions =
+    import("./preloadModuleTypes").ExposeElectronApiOptions;
 
 export function getApiStructure(api: ElectronAPI): {
     methods: string[];
@@ -41,7 +26,7 @@ export function exposeElectronApi({
     contextBridge,
     isDevelopmentMode,
     preloadLog,
-}: ElectronApiExposureOptions): boolean {
+}: ExposeElectronApiOptions): boolean {
     try {
         if (!api.validateAPI()) {
             preloadLog(

@@ -1,32 +1,6 @@
-type PreloadLog = (
-    level: "error" | "info" | "warn",
-    message: string,
-    ...details: unknown[]
-) => void;
-
-type UnknownCallback = (...args: unknown[]) => unknown;
-
-interface PreloadValidators {
-    validateCallback: (
-        callback: unknown,
-        methodName: string
-    ) => callback is UnknownCallback;
-    validateChannelName: (
-        value: unknown,
-        paramName: string,
-        methodName: string
-    ) => value is string;
-    validateOptionalNonEmptyString: (
-        value: unknown,
-        paramName: string,
-        methodName: string
-    ) => value is null | string | undefined;
-    validateRequiredNonEmptyString: (
-        value: unknown,
-        paramName: string,
-        methodName: string
-    ) => value is string;
-}
+type PreloadLog = import("./preloadModuleTypes").PreloadLog;
+type PreloadValidators = import("./preloadModuleTypes").PreloadValidators;
+type UnknownCallback = import("./preloadModuleTypes").UnknownCallback;
 
 export function createPreloadValidators(
     preloadLog: PreloadLog

@@ -3627,7 +3627,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload IPC modules on native imports", () => {
-        expect.assertions(12);
+        expect.assertions(21);
 
         const ipcModuleLoaderSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadIpcModuleLoader.ts")
@@ -3664,6 +3664,33 @@ describe("architecture boundaries", () => {
             'import { createPreloadValidators } from "./validators.js";'
         );
         expect(ipcModuleLoaderSource).not.toContain("requireModule");
+        expect(ipcModuleLoaderSource).not.toContain(
+            "createMenuEventApi as unknown"
+        );
+        expect(ipcModuleLoaderSource).not.toContain(
+            "createPreloadEventApi as unknown"
+        );
+        expect(ipcModuleLoaderSource).not.toContain(
+            "createPreloadIpcHelpers as unknown"
+        );
+        expect(ipcModuleLoaderSource).not.toContain(
+            "createPreloadLogger as unknown"
+        );
+        expect(ipcModuleLoaderSource).not.toContain(
+            "createPreloadValidators as unknown"
+        );
+        expect(ipcModuleLoaderSource).not.toContain(
+            "exposeElectronApi as unknown"
+        );
+        expect(ipcModuleLoaderSource).not.toContain(
+            "ipcBridgeCatalog as unknown"
+        );
+        expect(ipcModuleLoaderSource).not.toContain(
+            "resolvePreloadElectronBridge as unknown"
+        );
+        expect(ipcModuleLoaderSource).not.toContain(
+            "shouldEnforceGenericIpcAllowlist as PreloadModuleRegistry"
+        );
         expect(moduleLoaderSource).toContain("loadPreloadIpcModules()");
         expect(moduleLoaderSource).not.toContain(
             "loadPreloadIpcModules({ requireModule })"

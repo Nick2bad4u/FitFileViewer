@@ -1,48 +1,9 @@
-type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
-type IpcRequestPayload = import("../shared/ipc").IpcRequestPayload;
 type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
 type UpdateEventName = import("../shared/ipc").UpdateEventName;
-
-type IpcListener = (event: object, ...args: IpcResponsePayload[]) => void;
-type PreloadLog = (
-    level: "error" | "info" | "warn",
-    message: string,
-    ...details: unknown[]
-) => void;
-type UnknownCallback = (...args: unknown[]) => unknown;
-
-interface IpcRendererLike {
-    on: (channel: string, listener: IpcListener) => void;
-    send: (channel: string, ...args: IpcRequestPayload[]) => void;
-}
-
-interface PreloadEventApi {
-    notifyFitFileLoaded: (filePath: null | string) => void;
-    onUpdateEvent: (
-        eventName: UpdateEventName,
-        callback: (...args: IpcResponsePayload[]) => unknown
-    ) => (() => void) | undefined;
-}
-
-interface PreloadEventApiOptions {
-    fitFileLoadedChannel: GenericSendChannel;
-    ipcRenderer: IpcRendererLike;
-    isAllowedUpdateEventName: (
-        eventName: unknown
-    ) => eventName is UpdateEventName;
-    preloadLog: PreloadLog;
-    removeIpcListener: (channel: string, handler: IpcListener) => void;
-    shouldEnforceGenericIpcAllowlist: boolean;
-    validateCallback: (
-        callback: unknown,
-        methodName: string
-    ) => callback is UnknownCallback;
-    validateChannelName: (
-        value: unknown,
-        paramName: string,
-        methodName: string
-    ) => value is string;
-}
+type CreatePreloadEventApiOptions =
+    import("./preloadModuleTypes").CreatePreloadEventApiOptions;
+type IpcEventListener = import("./preloadModuleTypes").IpcEventListener;
+type PreloadEventApi = import("../shared/preloadApi").ElectronPreloadEventApi;
 
 export function createPreloadEventApi({
     fitFileLoadedChannel,
@@ -53,7 +14,11 @@ export function createPreloadEventApi({
     shouldEnforceGenericIpcAllowlist,
     validateCallback,
     validateChannelName,
-}: PreloadEventApiOptions): PreloadEventApi {
+}: CreatePreloadEventApiOptions): PreloadEventApi {
+    function noopUnsubscribe(): void {
+        return undefined;
+    }
+
     function notifyFitFileLoaded(filePath: null | string): void {
         if (filePath !== null && typeof filePath !== "string") {
             preloadLog(
@@ -69,7 +34,11 @@ export function createPreloadEventApi({
                 : null;
 
         try {
-            ipcRenderer.send(fitFileLoadedChannel, normalizedPath);
+            const send = ipcRenderer?.send;
+            if (typeof send !== "function") {
+                throw new TypeError("ipcRenderer.send unavailable");
+            }
+            send(fitFileLoadedChannel, normalizedPath);
         } catch (error) {
             preloadLog(
                 "error",
@@ -82,13 +51,13 @@ export function createPreloadEventApi({
     function onUpdateEvent(
         eventName: UpdateEventName,
         callback: (...args: IpcResponsePayload[]) => unknown
-    ): (() => void) | undefined {
+    ): () => void {
         const eventLabel = String(eventName);
         if (!validateCallback(callback, "onUpdateEvent")) {
-            return undefined;
+            return noopUnsubscribe;
         }
         if (!validateChannelName(eventName, "eventName", "onUpdateEvent")) {
-            return undefined;
+            return noopUnsubscribe;
         }
 
         if (
@@ -99,13 +68,17 @@ export function createPreloadEventApi({
                 "warn",
                 `[preload.js] Blocked onUpdateEvent() subscription to non-allowlisted event: ${eventLabel}`
             );
-            return undefined;
+            return noopUnsubscribe;
         }
 
         try {
-            const handler: IpcListener = (_event, ...args) => {
+            const on = ipcRenderer?.on;
+            if (typeof on !== "function") {
+                throw new TypeError("ipcRenderer.on unavailable");
+            }
+            const handler: IpcEventListener = (_event, ...args) => {
                 try {
-                    return callback(...args);
+                    return callback(...(args as IpcResponsePayload[]));
                 } catch (error) {
                     preloadLog(
                         "error",
@@ -116,7 +89,7 @@ export function createPreloadEventApi({
                 }
             };
 
-            ipcRenderer.on(eventName, handler);
+            on(eventName, handler);
 
             return () => {
                 try {
@@ -133,7 +106,7 @@ export function createPreloadEventApi({
                 `[preload.js] Error setting up onUpdateEvent(${eventLabel}):`,
                 error
             );
-            return undefined;
+            return noopUnsubscribe;
         }
     }
 

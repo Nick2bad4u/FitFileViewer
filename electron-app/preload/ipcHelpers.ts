@@ -22,63 +22,15 @@ type ValidateMainStateOperationIdInput =
 type ValidateMainStatePathInput =
     import("./preloadModuleTypes").ValidateMainStatePathInput;
 
-type IpcListener = (event: object, ...args: IpcResponsePayload[]) => void;
-type PreloadLog = (
-    level: "error" | "info" | "warn",
-    message: string,
-    ...details: unknown[]
-) => void;
-type UnknownCallback = (...args: unknown[]) => unknown;
+type CreatePreloadIpcHelpersOptions =
+    import("./preloadModuleTypes").CreatePreloadIpcHelpersOptions;
+type IpcEventListener = import("./preloadModuleTypes").IpcEventListener;
+type PreloadIpcHelpers = import("./preloadModuleTypes").PreloadIpcHelpers;
 
 type ValidateDevtoolsInjectMenuPayload = (
     theme: unknown,
     fitFilePath: unknown
 ) => ValidatedDevtoolsInjectMenuPayload;
-
-interface IpcRendererLike {
-    invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
-    off?: (channel: string, listener: IpcListener) => void;
-    on: (channel: string, listener: IpcListener) => void;
-    removeAllListeners?: (channel: string) => void;
-    removeListener?: (channel: string, listener: IpcListener) => void;
-    send: (channel: string, ...args: unknown[]) => void;
-}
-
-interface PreloadIpcHelpers {
-    createNoopUnsubscribe: () => () => void;
-    createSafeEventHandler: (
-        channel: string,
-        methodName: string,
-        transform?: (...args: IpcResponsePayload[]) => IpcResponsePayload | null
-    ) => (callback: UnknownCallback) => () => void;
-    createSafeInvokeHandler: <Channel extends GenericInvokeChannel>(
-        channel: Channel,
-        methodName: string
-    ) => (
-        ...args: InvokeRequestArgs<Channel>
-    ) => Promise<InvokeResponsePayloadForChannel<Channel>>;
-    createSafeSendHandler: (
-        channel: GenericSendChannel,
-        methodName: string
-    ) => (...args: IpcRequestPayload[]) => void;
-    removeIpcListener: (channel: string, handler: IpcListener) => void;
-}
-
-interface PreloadIpcHelpersOptions {
-    ipcRenderer: IpcRendererLike;
-    preloadLog: PreloadLog;
-    validateDevtoolsInjectMenuPayload: ValidateDevtoolsInjectMenuPayload;
-    validateExternalUrl: ValidateExternalUrl;
-    validateFitBrowserRelativePath: ValidateFitBrowserRelativePath;
-    validateFitBrowserRootFolderPath: ValidateFitBrowserRootFolderPath;
-    validateFitFilePathInput: ValidateFitFilePathInput;
-    validateMainStateOperationIdInput: ValidateMainStateOperationIdInput;
-    validateMainStatePathInput: ValidateMainStatePathInput;
-    validateCallback: (
-        callback: unknown,
-        methodName: string
-    ) => callback is UnknownCallback;
-}
 
 interface PreloadInvokeValidationPolicy {
     validateDevtoolsInjectMenuPayload: ValidateDevtoolsInjectMenuPayload;
@@ -402,7 +354,7 @@ export function createPreloadIpcHelpers({
     validateMainStateOperationIdInput,
     validateMainStatePathInput,
     validateCallback,
-}: PreloadIpcHelpersOptions): PreloadIpcHelpers {
+}: CreatePreloadIpcHelpersOptions): PreloadIpcHelpers {
     const validationPolicy = {
         validateDevtoolsInjectMenuPayload,
         validateExternalUrl,
@@ -413,21 +365,27 @@ export function createPreloadIpcHelpers({
         validateMainStatePathInput,
     };
 
-    function createSafeEventHandler(
+    function createSafeEventHandler<Callback>(
         channel: string,
         methodName: string,
-        transform?: (...args: IpcResponsePayload[]) => IpcResponsePayload | null
-    ): (callback: UnknownCallback) => () => void {
+        transform?: (...args: IpcResponsePayload[]) => unknown
+    ): (callback: Callback) => () => void {
         return (callback) => {
             if (!validateCallback(callback, methodName)) {
                 return createNoopUnsubscribe();
             }
 
             try {
-                const handler: IpcListener = (_event, ...args) => {
+                const on = ipcRenderer?.on;
+                if (typeof on !== "function") {
+                    throw new TypeError("ipcRenderer.on unavailable");
+                }
+                const handler: IpcEventListener = (_event, ...args) => {
                     try {
                         if (transform) {
-                            return callback(transform(...args));
+                            return callback(
+                                transform(...(args as IpcResponsePayload[]))
+                            );
                         }
 
                         return callback(...args);
@@ -441,7 +399,7 @@ export function createPreloadIpcHelpers({
                     }
                 };
 
-                ipcRenderer.on(channel, handler);
+                on(channel, handler);
 
                 return () => {
                     try {
@@ -472,7 +430,11 @@ export function createPreloadIpcHelpers({
         return async (...args) => {
             try {
                 validateInvokeArgs(channel, args, validationPolicy);
-                return (await ipcRenderer.invoke(
+                const invoke = ipcRenderer?.invoke;
+                if (typeof invoke !== "function") {
+                    throw new TypeError("ipcRenderer.invoke unavailable");
+                }
+                return (await invoke(
                     channel,
                     ...args
                 )) as InvokeResponsePayloadForChannel<Channel>;
@@ -495,7 +457,11 @@ export function createPreloadIpcHelpers({
     ): (...args: IpcRequestPayload[]) => void {
         return (...args) => {
             try {
-                ipcRenderer.send(channel, ...args);
+                const send = ipcRenderer?.send;
+                if (typeof send !== "function") {
+                    throw new TypeError("ipcRenderer.send unavailable");
+                }
+                send(channel, ...args);
             } catch (error) {
                 preloadLog(
                     "error",
@@ -506,18 +472,21 @@ export function createPreloadIpcHelpers({
         };
     }
 
-    function removeIpcListener(channel: string, handler: IpcListener): void {
-        if (typeof ipcRenderer.removeListener === "function") {
+    function removeIpcListener(
+        channel: string,
+        handler: IpcEventListener
+    ): void {
+        if (typeof ipcRenderer?.removeListener === "function") {
             ipcRenderer.removeListener(channel, handler);
             return;
         }
 
-        if (typeof ipcRenderer.off === "function") {
+        if (typeof ipcRenderer?.off === "function") {
             ipcRenderer.off(channel, handler);
             return;
         }
 
-        if (typeof ipcRenderer.removeAllListeners === "function") {
+        if (typeof ipcRenderer?.removeAllListeners === "function") {
             ipcRenderer.removeAllListeners(channel);
         }
     }

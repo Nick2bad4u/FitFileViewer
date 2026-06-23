@@ -38,6 +38,8 @@ export type DevtoolsInvokeChannel =
     import("../shared/ipc").DevtoolsInvokeChannel;
 export type IpcRequestPayload = import("../shared/ipc").IpcRequestPayload;
 export type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
+export type RendererIpcEventChannel =
+    import("../shared/ipc").RendererIpcEventChannel;
 export type InvokeRequestArgs<Channel extends GenericInvokeChannel> =
     import("../shared/ipc").InvokeRequestArgs<Channel>;
 export type InvokeResponsePayloadForChannel<
@@ -179,6 +181,26 @@ export type ExposeDevelopmentToolsGlobal = (
 export type RegisterPreloadBeforeExitHandler = (
     options: RegisterPreloadBeforeExitHandlerOptions
 ) => void;
+export type CreateMenuEventApi = (
+    options: CreateMenuEventApiOptions
+) => ElectronMenuEventApi;
+export type CreatePreloadEventApi = (
+    options: CreatePreloadEventApiOptions
+) => ElectronPreloadEventApi;
+export type CreatePreloadIpcHelpers = (
+    options: CreatePreloadIpcHelpersOptions
+) => PreloadIpcHelpers;
+export type CreatePreloadLogger = (consoleRef?: PreloadConsole) => PreloadLog;
+export type CreatePreloadValidators = (
+    preloadLog: PreloadLog
+) => PreloadValidators;
+export type ExposeElectronApi = (options: ExposeElectronApiOptions) => boolean;
+export type ResolvePreloadElectronBridge = (
+    options: ResolvePreloadElectronBridgeOptions
+) => PreloadElectronBridgeResolution;
+export type ShouldEnforceGenericIpcAllowlist = (
+    processRef?: NodeJS.Process
+) => boolean;
 export type AssemblePreloadApi = (options: {
     constants: PreloadConstants;
     contextBridge: null | PreloadContextBridge | undefined;
@@ -212,19 +234,34 @@ export interface PreloadContextBridge {
 export interface PreloadIpcRenderer {
     invoke?: (
         channel: string,
-        ...args: IpcRequestPayload[]
+        ...args: unknown[]
     ) => Promise<IpcResponsePayload>;
     off?: (channel: string, listener: IpcEventListener) => void;
     on?: (channel: string, listener: IpcEventListener) => void;
     removeAllListeners?: (channel: string) => void;
     removeListener?: (channel: string, listener: IpcEventListener) => void;
-    send?: (channel: string, ...args: IpcRequestPayload[]) => void;
+    send?: (channel: string, ...args: unknown[]) => void;
 }
 
 export interface PreloadElectronBridge {
     contextBridge?: null | PreloadContextBridge;
     default?: null | PreloadElectronBridge;
     ipcRenderer?: null | PreloadIpcRenderer;
+}
+
+export interface PreloadElectronBridgeResolution {
+    contextBridge: null | PreloadContextBridge | undefined;
+    ipcRenderer: null | PreloadIpcRenderer | undefined;
+}
+
+export interface ResolvePreloadElectronBridgeOptions {
+    electronBridgeOverride?: null | PreloadElectronBridge;
+}
+
+export interface PreloadConsole {
+    error?: (...args: unknown[]) => void;
+    log?: (...args: unknown[]) => void;
+    warn?: (...args: unknown[]) => void;
 }
 
 export interface PreloadChannels {
@@ -408,7 +445,7 @@ export interface CreateDevtoolsMenuApiOptions {
         value: unknown,
         paramName: string,
         methodName: string
-    ) => null | string | undefined;
+    ) => value is null | string | undefined;
 }
 
 export interface FileApiChannels {
@@ -490,6 +527,118 @@ export interface RegisterPreloadBeforeExitHandlerOptions {
     processRef?: NodeJS.Process;
 }
 
+export interface MenuEventApiChannels {
+    DECODER_OPTIONS_CHANGED: PreloadEvents["DECODER_OPTIONS_CHANGED"];
+    EXPORT_FILE: PreloadEvents["EXPORT_FILE"];
+    INSTALL_UPDATE: Extract<GenericSendChannel, "install-update">;
+    MENU_ABOUT: PreloadEvents["MENU_ABOUT"];
+    MENU_CHECK_FOR_UPDATES: Extract<
+        GenericSendChannel,
+        "menu-check-for-updates"
+    >;
+    MENU_EXPORT: Extract<GenericSendChannel, "menu-export">;
+    MENU_KEYBOARD_SHORTCUTS: PreloadEvents["MENU_KEYBOARD_SHORTCUTS"];
+    MENU_OPEN_FILE: PreloadEvents["MENU_OPEN_FILE"];
+    MENU_OPEN_OVERLAY: PreloadEvents["MENU_OPEN_OVERLAY"];
+    MENU_PRINT: PreloadEvents["MENU_PRINT"];
+    MENU_RESTART_UPDATE: PreloadEvents["MENU_RESTART_UPDATE"];
+    MENU_SAVE_AS: Extract<GenericSendChannel, "menu-save-as">;
+    OPEN_ACCENT_COLOR_PICKER: PreloadEvents["OPEN_ACCENT_COLOR_PICKER"];
+    OPEN_RECENT_FILE: PreloadEvents["OPEN_RECENT_FILE"];
+    OPEN_SUMMARY_COLUMN_SELECTOR: PreloadEvents["OPEN_SUMMARY_COLUMN_SELECTOR"];
+    SET_FONT_SIZE: PreloadEvents["SET_FONT_SIZE"];
+    SET_FULLSCREEN: Extract<GenericSendChannel, "set-fullscreen">;
+    SET_HIGH_CONTRAST: PreloadEvents["SET_HIGH_CONTRAST"];
+    SET_THEME: PreloadEvents["SET_THEME"];
+    SHOW_NOTIFICATION: PreloadEvents["SHOW_NOTIFICATION"];
+    THEME_CHANGED: Extract<GenericSendChannel, "theme-changed">;
+    UNLOAD_FIT_FILE: PreloadEvents["UNLOAD_FIT_FILE"];
+}
+
+export interface CreateMenuEventApiOptions {
+    channels: MenuEventApiChannels;
+    createSafeEventHandler: CreateSafeEventHandler;
+    createSafeSendHandler: CreateSafeSendHandler;
+}
+
+export interface CreatePreloadEventApiOptions {
+    fitFileLoadedChannel: PreloadEvents["FIT_FILE_LOADED"];
+    ipcRenderer: null | PreloadIpcRenderer | undefined;
+    isAllowedUpdateEventName: (
+        eventName: unknown
+    ) => eventName is UpdateEventName;
+    preloadLog: PreloadLog;
+    removeIpcListener: (channel: string, handler: IpcEventListener) => void;
+    shouldEnforceGenericIpcAllowlist: boolean;
+    validateCallback: (
+        callback: unknown,
+        methodName: string
+    ) => callback is UnknownCallback;
+    validateChannelName: (
+        value: unknown,
+        paramName: string,
+        methodName: string
+    ) => value is string;
+}
+
+export interface CreatePreloadIpcHelpersOptions {
+    ipcRenderer: null | PreloadIpcRenderer | undefined;
+    preloadLog: PreloadLog;
+    validateCallback: (
+        callback: unknown,
+        methodName: string
+    ) => callback is UnknownCallback;
+    validateDevtoolsInjectMenuPayload: ValidateDevtoolsInjectMenuPayload;
+    validateExternalUrl: ValidateExternalUrl;
+    validateFitBrowserRelativePath: ValidateFitBrowserRelativePath;
+    validateFitBrowserRootFolderPath: ValidateFitBrowserRootFolderPath;
+    validateFitFilePathInput: ValidateFitFilePathInput;
+    validateMainStateOperationIdInput: ValidateMainStateOperationIdInput;
+    validateMainStatePathInput: ValidateMainStatePathInput;
+}
+
+export type CreateSafeSendHandler = (
+    channel: GenericSendChannel,
+    methodName: string
+) => (...args: IpcRequestPayload[]) => void;
+
+export interface PreloadIpcHelpers {
+    createNoopUnsubscribe: () => () => void;
+    createSafeEventHandler: CreateSafeEventHandler;
+    createSafeInvokeHandler: CreateSafeInvokeHandler;
+    createSafeSendHandler: CreateSafeSendHandler;
+    removeIpcListener: (channel: string, handler: IpcEventListener) => void;
+}
+
+export interface PreloadValidators {
+    validateCallback: (
+        callback: unknown,
+        methodName: string
+    ) => callback is UnknownCallback;
+    validateChannelName: (
+        value: unknown,
+        paramName: string,
+        methodName: string
+    ) => value is string;
+    validateOptionalNonEmptyString: (
+        value: unknown,
+        paramName: string,
+        methodName: string
+    ) => value is null | string | undefined;
+    validateRequiredNonEmptyString: (
+        value: unknown,
+        paramName: string,
+        methodName: string
+    ) => value is string;
+}
+
+export interface ExposeElectronApiOptions {
+    api: ElectronAPI;
+    contextBridge: null | PreloadContextBridge | undefined;
+    isDevelopmentMode: () => boolean;
+    preloadLog: PreloadLog;
+}
+
 export interface PreloadModuleRegistry {
     createApiDiagnostics: CreateApiDiagnostics;
     createAppInfoApi: CreateAppInfoApi;
@@ -498,7 +647,7 @@ export interface PreloadModuleRegistry {
     createFileApi: CreateFileApi;
     createFitBrowserApi: CreateFitBrowserApi;
     createGyazoExternalApi: CreateGyazoExternalApi;
-    createPreloadEventApi: PreloadApiFactory<ElectronPreloadEventApi>;
+    createPreloadEventApi: CreatePreloadEventApi;
     createPreloadApiAssemblyContext: CreatePreloadApiAssemblyContext;
     createPreloadClipboardApiDomain: CreatePreloadClipboardApiDomain;
     createPreloadDeveloperApiDomain: CreatePreloadDeveloperApiDomain;
@@ -511,52 +660,19 @@ export interface PreloadModuleRegistry {
     createPreloadSystemApiDomain: CreatePreloadSystemApiDomain;
     createMainStateApi: CreateMainStateApi;
     createMainStateBridge: CreateMainStateBridge;
-    createMenuEventApi: PreloadApiFactory<ElectronMenuEventApi>;
-    createPreloadIpcHelpers: (options: Record<string, unknown>) => {
-        createSafeEventHandler: CreateSafeEventHandler;
-        createSafeInvokeHandler: CreateSafeInvokeHandler;
-        createSafeSendHandler: (
-            channel: GenericSendChannel,
-            methodName: string
-        ) => (...args: IpcRequestPayload[]) => void;
-        removeIpcListener: (channel: string, handler: IpcEventListener) => void;
-    };
-    createPreloadLogger: (consoleRef?: Console) => PreloadLog;
-    createPreloadValidators: (preloadLog: PreloadLog) => {
-        validateCallback: (
-            callback: unknown,
-            methodName: string
-        ) => callback is UnknownCallback;
-        validateChannelName: (
-            value: unknown,
-            paramName: string,
-            methodName: string
-        ) => value is string;
-        validateOptionalNonEmptyString: (
-            value: unknown,
-            paramName: string,
-            methodName: string
-        ) => null | string | undefined;
-        validateRequiredNonEmptyString: (
-            value: unknown,
-            paramName: string,
-            methodName: string
-        ) => value is string;
-    };
+    createMenuEventApi: CreateMenuEventApi;
+    createPreloadIpcHelpers: CreatePreloadIpcHelpers;
+    createPreloadLogger: CreatePreloadLogger;
+    createPreloadValidators: CreatePreloadValidators;
     createShellExternalApi: CreateShellExternalApi;
     createThemeApi: CreateThemeApi;
     exposeDevelopmentToolsGlobal: ExposeDevelopmentToolsGlobal;
-    exposeElectronApi: (options: Record<string, unknown>) => boolean;
+    exposeElectronApi: ExposeElectronApi;
     ipcBridgeCatalog: IpcBridgeCatalog;
     isPreloadDevelopmentMode: (processRef?: NodeJS.Process) => boolean;
     registerPreloadBeforeExitHandler: RegisterPreloadBeforeExitHandler;
-    resolvePreloadElectronBridge: (options: {
-        electronBridgeOverride?: null | PreloadElectronBridge;
-    }) => {
-        contextBridge: null | PreloadContextBridge | undefined;
-        ipcRenderer: null | PreloadIpcRenderer | undefined;
-    };
-    shouldEnforceGenericIpcAllowlist: (processRef?: NodeJS.Process) => boolean;
+    resolvePreloadElectronBridge: ResolvePreloadElectronBridge;
+    shouldEnforceGenericIpcAllowlist: ShouldEnforceGenericIpcAllowlist;
     validateDevtoolsInjectMenuPayload: ValidateDevtoolsInjectMenuPayload;
     validateExternalUrl: ValidateExternalUrl;
     validateFitBrowserRelativePath: ValidateFitBrowserRelativePath;
@@ -565,13 +681,6 @@ export interface PreloadModuleRegistry {
     validateMainStateOperationIdInput: ValidateMainStateOperationIdInput;
     validateMainStatePathInput: ValidateMainStatePathInput;
 }
-
-export type PreloadIpcHelpers = ReturnType<
-    PreloadModuleRegistry["createPreloadIpcHelpers"]
->;
-export type PreloadValidators = ReturnType<
-    PreloadModuleRegistry["createPreloadValidators"]
->;
 
 export interface PreloadApiAssemblyContext {
     constants: PreloadConstants;
