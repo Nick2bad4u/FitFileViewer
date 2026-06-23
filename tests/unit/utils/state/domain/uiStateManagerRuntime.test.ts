@@ -139,6 +139,28 @@ describe("uiStateManagerRuntime", () => {
         expect(body.dataset).toStrictEqual({ hasFitFile: "true" });
     });
 
+    it("routes loading indicator element lookups through scoped providers", () => {
+        expect.assertions(6);
+
+        const loadingIndicator = document.createElement("div");
+        const mainContent = document.createElement("main");
+        const getLoadingIndicatorElement = vi.fn(() => loadingIndicator);
+        const getMainContentElement = vi.fn(() => mainContent);
+        const runtime = getUIStateManagerRuntime({
+            getLoadingIndicatorElement,
+            getMainContentElement,
+        });
+
+        expect(runtime.getLoadingIndicatorElement()).toBe(loadingIndicator);
+        expect(runtime.getMainContentElement()).toBe(mainContent);
+        expect(getLoadingIndicatorElement).toHaveBeenCalledOnce();
+        expect(getMainContentElement).toHaveBeenCalledOnce();
+        expect(
+            getUIStateManagerRuntime({}).getLoadingIndicatorElement()
+        ).toBeNull();
+        expect(getUIStateManagerRuntime({}).getMainContentElement()).toBeNull();
+    });
+
     it("ignores direct scoped matchMedia when no provider is scoped", () => {
         expect.assertions(2);
 
@@ -239,7 +261,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(17);
+        expect.assertions(21);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -250,6 +272,8 @@ describe("uiStateManagerRuntime", () => {
         }
         const addEventListener = vi.fn();
         const fileStateToggle = vi.fn();
+        const loadingIndicatorElement = document.createElement("div");
+        const mainContentElement = document.createElement("main");
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
         const setBodyCursor = vi.fn();
         const setDocumentTitle = vi.fn();
@@ -262,6 +286,8 @@ describe("uiStateManagerRuntime", () => {
                 classList: { toggle: fileStateToggle },
                 dataset: {},
             },
+            loadingIndicatorElement,
+            mainContentElement,
             matchMedia,
             setBodyCursor,
             setDocumentTitle,
@@ -287,6 +313,8 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getDefaultDocumentTitle("Fit File Viewer")).toBe(
             "Fit File Viewer"
         );
+        expect(runtime.getLoadingIndicatorElement()).toBeNull();
+        expect(runtime.getMainContentElement()).toBeNull();
         expect(runtime.getWindowState()).toBeNull();
         expect(runtime.hasWindow()).toBe(false);
         expect(() => runtime.setAppHasFileState(true)).not.toThrow();
@@ -295,6 +323,10 @@ describe("uiStateManagerRuntime", () => {
         expect(() => runtime.setDocumentTitle("Ignored")).not.toThrow();
         expect(created).toBe(false);
         expect(fileStateToggle).not.toHaveBeenCalled();
+        expect(runtime.getLoadingIndicatorElement()).not.toBe(
+            loadingIndicatorElement
+        );
+        expect(runtime.getMainContentElement()).not.toBe(mainContentElement);
         expect(matchMedia).not.toHaveBeenCalled();
         expect(setBodyCursor).not.toHaveBeenCalled();
         expect(setDocumentTitle).not.toHaveBeenCalled();

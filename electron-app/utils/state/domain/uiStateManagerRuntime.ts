@@ -7,6 +7,7 @@ export interface UIStateWindowStateSnapshot extends Record<string, unknown> {
 }
 
 type UIStateManagerEventTarget = Pick<Window, "addEventListener">;
+type UIStateManagerElementProvider = () => HTMLElement | null | undefined;
 
 type UIStateManagerViewportState = Partial<
     Pick<
@@ -40,6 +41,8 @@ export interface UIStateManagerRuntimeScope {
     readonly getEventTarget?:
         | (() => UIStateManagerEventTarget | undefined)
         | undefined;
+    readonly getLoadingIndicatorElement?: UIStateManagerElementProvider | undefined;
+    readonly getMainContentElement?: UIStateManagerElementProvider | undefined;
     readonly getMatchMedia?:
         | (() => typeof globalThis.matchMedia | undefined)
         | undefined;
@@ -62,6 +65,8 @@ export interface UIStateManagerRuntime {
     ) => void;
     createAbortController: () => AbortController;
     getDefaultDocumentTitle: (fallbackTitle: string) => string;
+    getLoadingIndicatorElement: () => HTMLElement | null;
+    getMainContentElement: () => HTMLElement | null;
     getSystemThemeMediaQuery: () => MediaQueryList | null;
     getWindowState: () => UIStateWindowStateSnapshot | null;
     hasWindow: () => boolean;
@@ -78,6 +83,10 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
         typeof globalThis.addEventListener === "function"
             ? globalThis
             : undefined,
+    getLoadingIndicatorElement: () =>
+        globalThis.document.querySelector<HTMLElement>("#loading-indicator"),
+    getMainContentElement: () =>
+        globalThis.document.querySelector<HTMLElement>("#main-content"),
     getMatchMedia: () => globalThis.matchMedia,
     getSetBodyCursor: () => (cursor) => {
         globalThis.document.body.style.cursor = cursor;
@@ -111,6 +120,18 @@ function getFileStateBody(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerFileStateBody | undefined {
     return scope.getFileStateBody?.();
+}
+
+function getLoadingIndicatorElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getLoadingIndicatorElement?.() ?? null;
+}
+
+function getMainContentElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getMainContentElement?.() ?? null;
 }
 
 function getMatchMedia(
@@ -185,6 +206,12 @@ export function getUIStateManagerRuntime(
         },
         getDefaultDocumentTitle(fallbackTitle): string {
             return getDocumentTitle(scope) ?? fallbackTitle;
+        },
+        getLoadingIndicatorElement(): HTMLElement | null {
+            return getLoadingIndicatorElement(scope);
+        },
+        getMainContentElement(): HTMLElement | null {
+            return getMainContentElement(scope);
         },
         getSystemThemeMediaQuery(): MediaQueryList | null {
             const matchMedia = getMatchMedia(scope);

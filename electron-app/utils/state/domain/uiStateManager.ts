@@ -583,16 +583,14 @@ export class UIStateManager {
     updateLoadingIndicator(isLoading: boolean) {
         const loadingIndicator = (() => {
             try {
-                return document.querySelector<HTMLElement>(
-                    "#loading-indicator"
-                );
+                return uiStateManagerRuntime.getLoadingIndicatorElement();
             } catch {
                 return null;
             }
         })();
         const mainContent = (() => {
             try {
-                return document.querySelector<HTMLElement>("#main-content");
+                return uiStateManagerRuntime.getMainContentElement();
             } catch {
                 return null;
             }

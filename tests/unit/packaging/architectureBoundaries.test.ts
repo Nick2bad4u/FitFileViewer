@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(42);
+        expect.assertions(52);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6603,6 +6603,8 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("createAbortController");
         expect(uiStateManagerSource).toContain("addWindowEventListener");
         expect(uiStateManagerSource).toContain("getDefaultDocumentTitle");
+        expect(uiStateManagerSource).toContain("getLoadingIndicatorElement");
+        expect(uiStateManagerSource).toContain("getMainContentElement");
         expect(uiStateManagerSource).toContain("setAppHasFileState");
         expect(uiStateManagerSource).toContain("setBodyCursor");
         expect(uiStateManagerSource).toContain("setDocumentTitle");
@@ -6611,6 +6613,12 @@ describe("architecture boundaries", () => {
             'classList.toggle("app-has-file"'
         );
         expect(uiStateManagerSource).not.toContain('datasetRef["hasFitFile"]');
+        expect(uiStateManagerSource).not.toContain(
+            'document.querySelector<HTMLElement>(\n                    "#loading-indicator"'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'document.querySelector<HTMLElement>("#main-content")'
+        );
         expect(
             directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
         ).toBe(false);
@@ -6631,6 +6639,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getMatchMedia: () => globalThis.matchMedia"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'globalThis.document.querySelector<HTMLElement>("#loading-indicator")'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'globalThis.document.querySelector<HTMLElement>("#main-content")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getSetBodyCursor: () => (cursor) =>"
@@ -6659,6 +6673,12 @@ describe("architecture boundaries", () => {
             "readonly fileStateBody?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly loadingIndicatorElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly mainContentElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly eventTarget?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
@@ -6681,6 +6701,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.fileStateBody"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.loadingIndicatorElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.mainContentElement"
         );
         expect(uiStateManagerRuntimeSource).not.toContain("scope.eventTarget");
         expect(uiStateManagerRuntimeSource).not.toContain(
