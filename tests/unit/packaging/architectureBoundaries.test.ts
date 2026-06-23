@@ -1463,6 +1463,8 @@ const directSyncRendererLoadingRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:body|querySelector|querySelectorAll)\b|\binstanceof\s+(?:HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b/u;
 const directSyncRendererLoadingRuntimeAmbientFallbackPattern =
     /\bscope:\s*SyncRendererLoadingRuntimeScope\s*=\s*globalThis\b|\bglobalThis\s*\[\s*name\s*\]|\bscope\.(?:document|HTMLButtonElement|HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement)\b|\bscope\.document\?\.defaultView\b/u;
+const directDocumentSvgElementCreationPattern =
+    /\bdocument\.createElementNS\b/u;
 
 function normalizeRepositoryPath(filePath: string): string {
     return filePath.replaceAll(path.sep, "/");
@@ -15716,6 +15718,21 @@ describe("architecture boundaries", () => {
                     bundledBrowserVendorImportPattern.test(
                         stripComments(readRepositoryFile(relativeFile))
                     )
+            )
+            .sort();
+
+        expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps direct SVG element creation behind focused runtime facades", () => {
+        expect.assertions(1);
+
+        const violations = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter((relativeFile) =>
+                directDocumentSvgElementCreationPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
             )
             .sort();
 
