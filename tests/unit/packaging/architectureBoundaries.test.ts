@@ -1149,7 +1149,7 @@ const directMapMeasureToolRuntimeAmbientFallbackPattern =
 const directMapLapSelectorRuntimeGlobalPattern =
     /\bdocument\.(?:addEventListener|removeEventListener)\b|\bnew\s+AbortController\b/u;
 const directMapDrawLapsRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
+    /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|\bdocument\.(?:createElement|createTextNode)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapDrawLapsRuntimeAmbientFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b/u;
 const directOpenFitFileFromPathRuntimeGlobalPattern =
@@ -11386,7 +11386,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map draw-laps timers behind the runtime facade", () => {
-        expect.assertions(13);
+        expect.assertions(18);
 
         const violations = migratedMapDrawLapsRuntimeFiles
             .filter((relativeFile) =>
@@ -11419,6 +11419,9 @@ describe("architecture boundaries", () => {
             "getClearTimeout: () => globalThis.clearTimeout"
         );
         expect(mapDrawLapsRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(mapDrawLapsRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(mapDrawLapsRuntimeSource).not.toMatch(
@@ -11427,12 +11430,16 @@ describe("architecture boundaries", () => {
         expect(mapDrawLapsRuntimeSource).not.toContain(
             "readonly clearTimeout?:"
         );
+        expect(mapDrawLapsRuntimeSource).not.toContain("readonly document?:");
         expect(mapDrawLapsRuntimeSource).not.toContain("readonly setTimeout?:");
         expect(mapDrawLapsRuntimeSource).not.toContain("scope.clearTimeout");
+        expect(mapDrawLapsRuntimeSource).not.toContain("scope.document");
         expect(mapDrawLapsRuntimeSource).not.toContain("scope.setTimeout");
         expect(mapDrawLapsRuntimeSource).toContain(
             "const setTimeoutRef = getScopeSetTimeout(scope);"
         );
+        expect(mapDrawLapsSource).not.toContain("document.createElement");
+        expect(mapDrawLapsSource).not.toContain("document.createTextNode");
     });
 
     it("keeps open FIT file path button checks behind the runtime facade", () => {

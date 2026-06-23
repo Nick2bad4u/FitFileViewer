@@ -48,8 +48,30 @@ describe("getMapDrawLapsRuntime", () => {
         expect(callback).not.toHaveBeenCalled();
     });
 
+    it("creates DOM nodes through the injected document provider", () => {
+        expect.assertions(6);
+
+        const getDocument = vi.fn(() => document);
+        const runtime = getMapDrawLapsRuntime({
+            getClearTimeout: () => vi.fn<typeof globalThis.clearTimeout>(),
+            getDocument,
+            getSetTimeout: () => vi.fn<typeof globalThis.setTimeout>(),
+        });
+
+        const paragraph = runtime.createElement("p");
+        const breakElement = runtime.createElement("br");
+        const text = runtime.createTextNode("Lap 1");
+
+        expect(paragraph.tagName).toBe("P");
+        expect(breakElement.tagName).toBe("BR");
+        expect(text.nodeType).toBe(Node.TEXT_NODE);
+        expect(text.textContent).toBe("Lap 1");
+        expect(getDocument).toHaveBeenCalledTimes(3);
+        expect(paragraph.ownerDocument).toBe(document);
+    });
+
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(2);
+        expect.assertions(4);
 
         const runtime = getMapDrawLapsRuntime({});
 
@@ -59,10 +81,16 @@ describe("getMapDrawLapsRuntime", () => {
         expect(() =>
             runtime.clearTimeout(1 as ReturnType<typeof globalThis.setTimeout>)
         ).toThrow("mapDrawLapsRuntime requires clearTimeout");
+        expect(() => runtime.createElement("p")).toThrow(
+            "mapDrawLapsRuntime requires document"
+        );
+        expect(() => runtime.createTextNode("Lap 1")).toThrow(
+            "mapDrawLapsRuntime requires document"
+        );
     });
 
     it("ignores legacy direct runtime scope timer properties", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const callback = vi.fn<() => void>();
         const timer = 83 as ReturnType<typeof globalThis.setTimeout>;
@@ -70,6 +98,7 @@ describe("getMapDrawLapsRuntime", () => {
         const clearTimeout = vi.fn<typeof globalThis.clearTimeout>();
         const runtime = getMapDrawLapsRuntime({
             clearTimeout,
+            document,
             setTimeout,
         } as unknown as Parameters<typeof getMapDrawLapsRuntime>[0]);
 
@@ -78,6 +107,12 @@ describe("getMapDrawLapsRuntime", () => {
         );
         expect(() => runtime.clearTimeout(timer)).toThrow(
             "mapDrawLapsRuntime requires clearTimeout"
+        );
+        expect(() => runtime.createElement("p")).toThrow(
+            "mapDrawLapsRuntime requires document"
+        );
+        expect(() => runtime.createTextNode("Lap 1")).toThrow(
+            "mapDrawLapsRuntime requires document"
         );
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();

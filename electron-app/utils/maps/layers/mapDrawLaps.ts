@@ -1473,11 +1473,11 @@ function renderMapInfoMessage(
     title: string,
     lines: Array<[string, string]>
 ): void {
-    const p = document.createElement("p");
-    p.append(document.createTextNode(title));
+    const p = mapDrawLapsRuntime.createElement("p");
+    p.append(mapDrawLapsRuntime.createTextNode(title));
     for (const [label, value] of lines) {
-        p.append(document.createElement("br"));
-        p.append(document.createTextNode(`${label}: ${value}`));
+        p.append(mapDrawLapsRuntime.createElement("br"));
+        p.append(mapDrawLapsRuntime.createTextNode(`${label}: ${value}`));
     }
     mapContainer.replaceChildren(p);
 }
