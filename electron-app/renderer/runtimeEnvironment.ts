@@ -21,6 +21,7 @@ export type RendererRuntimeEnvironmentScope = {
         | undefined;
     readonly getConsole?: (() => Console | undefined) | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getElectronApiCandidate?: (() => unknown) | undefined;
     readonly getRemoveEventListener?:
         | (() => typeof globalThis.removeEventListener | undefined)
         | undefined;
@@ -41,12 +42,21 @@ const defaultRendererRuntimeEnvironmentScope: RendererRuntimeEnvironmentScope =
         getClearInterval: () => globalThis.clearInterval.bind(globalThis),
         getConsole: () => globalThis.console,
         getDocument: () => globalThis.document,
+        getElectronApiCandidate: getDefaultElectronApiCandidate,
         getRemoveEventListener: () =>
             globalThis.removeEventListener.bind(globalThis),
         getRendererScope: () => globalThis as RendererRuntimeScope,
         getSetInterval: () => globalThis.setInterval.bind(globalThis),
         getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
     };
+
+function getDefaultElectronApiCandidate(): unknown {
+    const rendererScope =
+        defaultRendererRuntimeEnvironmentScope.getRendererScope?.();
+    return rendererScope === undefined
+        ? undefined
+        : Reflect.get(rendererScope, "electronAPI");
+}
 
 function getRequiredRuntimeValue<T>(value: T | undefined, message: string): T {
     if (value === undefined) {
@@ -81,7 +91,7 @@ export function createRendererRuntimeEnvironment(
             scope.getDocument?.(),
             "renderer runtime environment requires a document reference"
         ),
-        electronApiCandidate: Reflect.get(rendererGlobal, "electronAPI"),
+        electronApiCandidate: scope.getElectronApiCandidate?.(),
         removeEventListener: getRequiredRuntimeValue(
             scope.getRemoveEventListener?.(),
             "renderer runtime environment requires removeEventListener"
