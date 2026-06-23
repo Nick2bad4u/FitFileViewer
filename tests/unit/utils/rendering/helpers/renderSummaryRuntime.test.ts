@@ -28,7 +28,7 @@ describe("getRenderSummaryRuntime", () => {
     });
 
     it("routes scheduling dependencies through provider functions", () => {
-        expect.assertions(15);
+        expect.assertions(22);
 
         let controllerCount = 0;
         class TestAbortController implements AbortController {
@@ -56,17 +56,26 @@ describe("getRenderSummaryRuntime", () => {
                 ) => void
             >();
         const cancelAnimationFrame = vi.fn<(handle: number) => void>();
+        const documentRef =
+            document.implementation.createHTMLDocument("render summary");
+        const summaryContainer = documentRef.createElement("section");
+        summaryContainer.id = "content-summary";
+        documentRef.body.append(summaryContainer);
+        const createElement = vi.spyOn(documentRef, "createElement");
+        const createElementNS = vi.spyOn(documentRef, "createElementNS");
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
         >(() => 44);
         const getAbortController = vi.fn(() => TestAbortController);
         const getAddEventListener = vi.fn(() => addEventListener);
         const getCancelAnimationFrame = vi.fn(() => cancelAnimationFrame);
+        const getDocument = vi.fn(() => documentRef);
         const getRequestAnimationFrame = vi.fn(() => requestAnimationFrame);
         const scope = {
             getAbortController,
             getAddEventListener,
             getCancelAnimationFrame,
+            getDocument,
             getRequestAnimationFrame,
         };
         const utils = getRenderSummaryRuntime(scope);
@@ -74,15 +83,26 @@ describe("getRenderSummaryRuntime", () => {
         expect(utils.createAbortController()).toBeInstanceOf(
             TestAbortController
         );
+        expect(utils.createElement("button")).toBeInstanceOf(HTMLButtonElement);
+        const svg = utils.createSvgElement("svg");
+        expect(svg.nodeName).toBe("svg");
+        expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
+        expect(utils.getSummaryContainer()).toBe(summaryContainer);
         utils.addResizeListener(listener, options);
         expect(utils.requestAnimationFrame(frameCallback)).toBe(44);
         utils.cancelAnimationFrame(44);
 
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getAddEventListener).toHaveBeenCalledOnce();
+        expect(getDocument).toHaveBeenCalledTimes(3);
         expect(getRequestAnimationFrame).toHaveBeenCalledOnce();
         expect(getCancelAnimationFrame).toHaveBeenCalledOnce();
         expect(controllerCount).toBe(1);
+        expect(createElement).toHaveBeenCalledWith("button");
+        expect(createElementNS).toHaveBeenCalledWith(
+            "http://www.w3.org/2000/svg",
+            "svg"
+        );
         expect(addEventListener).toHaveBeenCalledWith(
             "resize",
             listener,
@@ -105,6 +125,22 @@ describe("getRenderSummaryRuntime", () => {
         expect(() => {
             createAbortController();
         }).toThrow("renderSummary requires an AbortController runtime");
+    });
+
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(3);
+
+        const utils = getRenderSummaryRuntime({});
+
+        expect(() => utils.createElement("button")).toThrow(
+            "renderSummary requires a document runtime"
+        );
+        expect(() => utils.createSvgElement("svg")).toThrow(
+            "renderSummary requires a document runtime"
+        );
+        expect(() => utils.getSummaryContainer()).toThrow(
+            "renderSummary requires a document runtime"
+        );
     });
 
     it("schedules animation frames through the injected runtime provider", () => {
@@ -194,7 +230,7 @@ describe("getRenderSummaryRuntime", () => {
     });
 
     it("ignores legacy direct scheduling runtime properties", () => {
-        expect.assertions(11);
+        expect.assertions(14);
 
         let controllerCount = 0;
         class TestAbortController implements AbortController {
@@ -221,11 +257,21 @@ describe("getRenderSummaryRuntime", () => {
             AbortController: TestAbortController,
             addEventListener,
             cancelAnimationFrame,
+            document,
             requestAnimationFrame,
         } as unknown as Parameters<typeof getRenderSummaryRuntime>[0]);
 
         expect(() => utils.createAbortController()).toThrow(
             "renderSummary requires an AbortController runtime"
+        );
+        expect(() => utils.createElement("button")).toThrow(
+            "renderSummary requires a document runtime"
+        );
+        expect(() => utils.createSvgElement("svg")).toThrow(
+            "renderSummary requires a document runtime"
+        );
+        expect(() => utils.getSummaryContainer()).toThrow(
+            "renderSummary requires a document runtime"
         );
         utils.addResizeListener(listener);
         expect(utils.requestAnimationFrame(frameCallback)).toBe(null);

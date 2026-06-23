@@ -930,7 +930,11 @@ registration through `renderSummaryRuntime.ts` instead of direct `globalThis` pr
 with adapter tests and architecture coverage blocking those direct scheduling globals from returning. Summary render
 and virtualized lap-row cleanup abort-controller creation now also routes through `renderSummaryRuntime.ts` instead
 of constructing `AbortController` directly inside `renderSummaryHelpers.ts`, with focused runtime coverage and
-architecture coverage blocking that direct controller construction from returning.
+architecture coverage blocking that direct controller construction from returning. Summary container lookup and
+summary gear-button/SVG creation now also route through `renderSummaryRuntime.ts` instead of calling
+`getElementByIdFlexible(document, ...)`, `document.createElement`, or `document.createElementNS` directly inside
+`renderSummary.ts`, with focused runtime coverage and architecture coverage blocking those direct document APIs from
+returning.
 Tab-state map invalidation scheduling now routes frame scheduling, frame cancellation, fallback timers, timer
 clearing, Zwift iframe/status DOM construction, and Zwift iframe load-listener cleanup through
 `tabStateManagerHandlersRuntime.ts` instead of calling those globals, constructing `AbortController`, or creating

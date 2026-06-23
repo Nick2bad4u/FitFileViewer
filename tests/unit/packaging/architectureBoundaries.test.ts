@@ -60,6 +60,7 @@ const migratedRendererVendorBundleLoaderRuntimeFiles = [
     "electron-app/renderer/vendorBundleLoader.ts",
 ] as const;
 const migratedRenderSummaryRuntimeFiles = [
+    "electron-app/utils/rendering/core/renderSummary.ts",
     "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts",
 ] as const;
 const migratedGetActiveTabContentRuntimeFiles = [
@@ -12958,7 +12959,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(32);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -12972,6 +12973,11 @@ describe("architecture boundaries", () => {
                 "electron-app/utils/rendering/helpers/renderSummaryHelpers.ts"
             )
         );
+        const renderSummaryCoreSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/core/renderSummary.ts"
+            )
+        );
         const renderSummaryRuntimeSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/rendering/helpers/renderSummaryRuntime.ts"
@@ -12981,6 +12987,21 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(renderSummarySource).toContain("renderSummaryRuntime.js");
         expect(renderSummarySource).toContain("createAbortController");
+        expect(renderSummaryCoreSource).toContain("renderSummaryRuntime.js");
+        expect(renderSummaryCoreSource).toContain("getSummaryContainer()");
+        expect(renderSummaryCoreSource).toContain(
+            'renderSummaryRuntime.createElement("button")'
+        );
+        expect(renderSummaryCoreSource).toContain(
+            'renderSummaryRuntime.createSvgElement("svg")'
+        );
+        expect(renderSummaryCoreSource).not.toContain("document.createElement");
+        expect(renderSummaryCoreSource).not.toContain(
+            "document.createElementNS"
+        );
+        expect(renderSummaryCoreSource).not.toContain(
+            "getElementByIdFlexible(document"
+        );
         expect(renderSummaryRuntimeSource).toContain(
             "defaultRenderSummaryRuntimeScope"
         );
@@ -12999,6 +13020,7 @@ describe("architecture boundaries", () => {
         expect(renderSummaryRuntimeSource).not.toContain(
             "readonly cancelAnimationFrame?:"
         );
+        expect(renderSummaryRuntimeSource).not.toContain("readonly document?:");
         expect(renderSummaryRuntimeSource).not.toContain(
             "readonly requestAnimationFrame?:"
         );
@@ -13011,6 +13033,7 @@ describe("architecture boundaries", () => {
         expect(renderSummaryRuntimeSource).not.toContain(
             "scope.cancelAnimationFrame"
         );
+        expect(renderSummaryRuntimeSource).not.toContain("scope.document");
         expect(renderSummaryRuntimeSource).not.toContain(
             "scope.requestAnimationFrame"
         );
@@ -13024,8 +13047,21 @@ describe("architecture boundaries", () => {
             "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
         );
         expect(renderSummaryRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
+        expect(renderSummaryRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "getScopeDocument(scope).createElement(tagName)"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "getScopeDocument(scope).createElementNS("
+        );
+        expect(renderSummaryRuntimeSource).toContain("getElementByIdFlexible(");
     });
 
     it("keeps controls-state computed style reads behind the runtime facade", () => {

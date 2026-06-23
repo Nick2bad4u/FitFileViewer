@@ -1,3 +1,5 @@
+import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
+
 export interface RenderSummaryRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -8,6 +10,7 @@ export interface RenderSummaryRuntimeScope {
     readonly getCancelAnimationFrame?:
         | (() => typeof globalThis.cancelAnimationFrame | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
         | undefined;
@@ -20,6 +23,13 @@ export interface RenderSummaryRuntime {
     ) => void;
     readonly cancelAnimationFrame: (handle: number) => void;
     readonly createAbortController: () => AbortController;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
+    readonly createSvgElement: <K extends keyof SVGElementTagNameMap>(
+        tagName: K
+    ) => SVGElementTagNameMap[K];
+    readonly getSummaryContainer: () => HTMLElement | null;
     readonly requestAnimationFrame: (
         callback: FrameRequestCallback
     ) => null | number;
@@ -29,6 +39,7 @@ const defaultRenderSummaryRuntimeScope: RenderSummaryRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getAddEventListener: () => globalThis.addEventListener,
     getCancelAnimationFrame: () => globalThis.cancelAnimationFrame,
+    getDocument: () => globalThis.document,
     getRequestAnimationFrame: () => globalThis.requestAnimationFrame,
 };
 
@@ -48,6 +59,15 @@ function getScopeCancelAnimationFrame(
     scope: RenderSummaryRuntimeScope
 ): typeof globalThis.cancelAnimationFrame | undefined {
     return scope.getCancelAnimationFrame?.();
+}
+
+function getScopeDocument(scope: RenderSummaryRuntimeScope): Document {
+    const runtimeDocument = scope.getDocument?.();
+    if (!runtimeDocument) {
+        throw new TypeError("renderSummary requires a document runtime");
+    }
+
+    return runtimeDocument;
 }
 
 function getScopeRequestAnimationFrame(
@@ -85,6 +105,21 @@ export function getRenderSummaryRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createElement(tagName) {
+            return getScopeDocument(scope).createElement(tagName);
+        },
+        createSvgElement(tagName) {
+            return getScopeDocument(scope).createElementNS(
+                "http://www.w3.org/2000/svg",
+                tagName
+            );
+        },
+        getSummaryContainer(): HTMLElement | null {
+            return getElementByIdFlexible(
+                getScopeDocument(scope),
+                "content_summary"
+            );
         },
         requestAnimationFrame(callback: FrameRequestCallback): null | number {
             const requestAnimationFrameRef =
