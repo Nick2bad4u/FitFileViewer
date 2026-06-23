@@ -58,27 +58,24 @@ export function showColModal({
     const modalController = runtime.createAbortController();
     const { signal } = modalController;
     let focusTrapCleanup: (() => void) | undefined;
-    const previouslyFocusedElement =
-        document.activeElement instanceof HTMLElement
-            ? document.activeElement
-            : null;
+    const previouslyFocusedElement = runtime.getActiveElement();
 
-    const overlay = document.createElement("div");
+    const overlay = runtime.createElement("div");
     overlay.className = "summary-col-modal-overlay";
-    const modal = document.createElement("div");
+    const modal = runtime.createElement("div");
     modal.className = "summary-col-modal";
     modal.setAttribute("aria-labelledby", "summary-col-modal-title");
     modal.setAttribute("aria-modal", "true");
     modal.setAttribute("role", "dialog");
 
     // Header (title + close)
-    const header = document.createElement("div");
+    const header = runtime.createElement("div");
     header.className = "summary-col-modal-header";
-    const title = document.createElement("h2");
+    const title = runtime.createElement("h2");
     title.id = "summary-col-modal-title";
     title.textContent = "Select Summary Columns";
 
-    const closeBtn = document.createElement("button");
+    const closeBtn = runtime.createElement("button");
     closeBtn.className = "summary-col-modal-close";
     closeBtn.type = "button";
     closeBtn.textContent = "×";
@@ -107,18 +104,18 @@ export function showColModal({
         setVisibleColumns(cols);
     };
 
-    const metaBar = document.createElement("div");
+    const metaBar = runtime.createElement("div");
     metaBar.className = "summary-col-meta";
-    const selectedCount = document.createElement("div");
+    const selectedCount = runtime.createElement("div");
     selectedCount.className = "summary-col-selected-count";
     const updateSelectedCount = (): void => {
         selectedCount.textContent = `Selected ${visibleColumns.length} / ${allKeys.length}`;
     };
     updateSelectedCount();
 
-    const searchWrap = document.createElement("div");
+    const searchWrap = runtime.createElement("div");
     searchWrap.className = "summary-col-search-wrap";
-    const searchInput = document.createElement("input");
+    const searchInput = runtime.createElement("input");
     searchInput.className = "summary-col-search";
     searchInput.type = "search";
     searchInput.placeholder = "Filter columns…";
@@ -138,13 +135,13 @@ export function showColModal({
     modal.append(metaBar);
 
     // Default preset actions (global + per-file)
-    const presetsBar = document.createElement("div");
+    const presetsBar = runtime.createElement("div");
     presetsBar.className = "summary-col-presets";
 
-    const badges = document.createElement("div");
+    const badges = runtime.createElement("div");
     badges.className = "summary-col-badges";
 
-    const tooltip = document.createElement("div");
+    const tooltip = runtime.createElement("div");
     tooltip.className = "summary-col-tooltip";
     tooltip.style.display = "none";
     overlay.append(tooltip);
@@ -154,7 +151,7 @@ export function showColModal({
         variant,
         columns,
     }: BadgeOptions): HTMLButtonElement => {
-        const b = document.createElement("button");
+        const b = runtime.createElement("button");
         b.type = "button";
         b.className = `summary-col-badge summary-col-badge--${variant}`;
         b.textContent = label;
@@ -172,15 +169,15 @@ export function showColModal({
         if (!cols || cols.length === 0) return;
 
         tooltip.replaceChildren();
-        const h = document.createElement("div");
+        const h = runtime.createElement("div");
         h.className = "summary-col-tooltip-title";
         h.textContent = `${titleText} (${cols.length})`;
         tooltip.append(h);
 
-        const list = document.createElement("div");
+        const list = runtime.createElement("div");
         list.className = "summary-col-tooltip-list";
         for (const c of cols) {
-            const item = document.createElement("div");
+            const item = runtime.createElement("div");
             item.className = "summary-col-tooltip-item";
             item.textContent = c;
             list.append(item);
@@ -191,10 +188,7 @@ export function showColModal({
         const top = rect.bottom + 8;
         const { height: viewportHeight, width: viewportWidth } =
             runtime.getViewport();
-        const left = Math.min(
-            rect.left,
-            Math.max(8, viewportWidth - 420)
-        );
+        const left = Math.min(rect.left, Math.max(8, viewportWidth - 420));
         tooltip.style.top = `${Math.min(top, viewportHeight - 320)}px`;
         tooltip.style.left = `${left}px`;
         tooltip.style.display = "block";
@@ -308,11 +302,11 @@ export function showColModal({
     };
 
     // Status line (helps users understand if they're on defaults or a custom selection)
-    const statusBar = document.createElement("div");
+    const statusBar = runtime.createElement("div");
     statusBar.className = "summary-col-status";
-    const statusText = document.createElement("div");
+    const statusText = runtime.createElement("div");
     statusText.className = "summary-col-status-text";
-    const statusHint = document.createElement("div");
+    const statusHint = runtime.createElement("div");
     statusHint.className = "summary-col-status-hint";
     statusBar.append(statusText, statusHint);
     modal.append(statusBar);
@@ -419,18 +413,18 @@ export function showColModal({
     badges.append(globalBadge, fileBadge);
 
     // Help text + simplified actions
-    const help = document.createElement("div");
+    const help = runtime.createElement("div");
     help.className = "summary-col-presets-help";
     help.append(
-        document.createTextNode(
+        runtime.createTextNode(
             "How this works: your Global default is used for files with no saved selection. Any changes you make here are saved for this file automatically."
         )
     );
 
-    const actionsWrap = document.createElement("div");
+    const actionsWrap = runtime.createElement("div");
     actionsWrap.className = "summary-col-presets-actions-wrap";
 
-    const resetBtn = document.createElement("button");
+    const resetBtn = runtime.createElement("button");
     resetBtn.className = "themed-btn";
     resetBtn.textContent = "Reset to Default";
     resetBtn.title =
@@ -450,7 +444,7 @@ export function showColModal({
         { signal }
     );
 
-    const makeGlobalDefaultBtn = document.createElement("button");
+    const makeGlobalDefaultBtn = runtime.createElement("button");
     makeGlobalDefaultBtn.className = "themed-btn";
     makeGlobalDefaultBtn.textContent = "Make Global Default";
     makeGlobalDefaultBtn.title =
@@ -470,7 +464,7 @@ export function showColModal({
         { signal }
     );
 
-    const clearGlobalDefaultBtn = document.createElement("button");
+    const clearGlobalDefaultBtn = runtime.createElement("button");
     clearGlobalDefaultBtn.className = "themed-btn";
     clearGlobalDefaultBtn.textContent = "Clear Global Default";
     clearGlobalDefaultBtn.title = "Remove the saved global default";
@@ -498,11 +492,11 @@ export function showColModal({
     presetsBar.append(badges, help, actionsWrap);
     modal.append(presetsBar);
 
-    const colList = document.createElement("div");
+    const colList = runtime.createElement("div");
     colList.className = "col-list";
     modal.append(colList);
 
-    const selectAllBtn = document.createElement("button");
+    const selectAllBtn = runtime.createElement("button");
     selectAllBtn.className = "themed-btn summary-col-selectall-btn";
     selectAllBtn.textContent = "Select All";
 
@@ -593,25 +587,25 @@ export function showColModal({
                 : [...displayKeys];
 
         // Always show label column as checked and disabled
-        const checkbox = document.createElement("input");
-        const label = document.createElement("label");
+        const checkbox = runtime.createElement("input");
+        const label = runtime.createElement("label");
         checkbox.type = "checkbox";
         checkbox.checked = true;
         checkbox.disabled = true;
         label.append(checkbox);
-        label.append(document.createTextNode("Type"));
+        label.append(runtime.createTextNode("Type"));
         colList.append(label);
 
         if (displayedKeys.length === 0) {
-            const empty = document.createElement("div");
+            const empty = runtime.createElement("div");
             empty.className = "summary-col-empty";
             empty.textContent = "No matching columns";
             colList.append(empty);
         }
 
         for (const [idx, key] of displayedKeys.entries()) {
-            const loopCheckbox = document.createElement("input");
-            const loopLabel = document.createElement("label");
+            const loopCheckbox = runtime.createElement("input");
+            const loopLabel = runtime.createElement("label");
             loopCheckbox.type = "checkbox";
             loopCheckbox.checked = visibleColumns.includes(key);
             loopCheckbox.tabIndex = 0;
@@ -626,7 +620,7 @@ export function showColModal({
                 { signal }
             );
             loopLabel.append(loopCheckbox);
-            loopLabel.append(document.createTextNode(key));
+            loopLabel.append(runtime.createTextNode(key));
             colList.append(loopLabel);
         }
 
@@ -662,7 +656,7 @@ export function showColModal({
         { signal }
     );
 
-    const selectAllWrap = document.createElement("div");
+    const selectAllWrap = runtime.createElement("div");
     selectAllWrap.className = "summary-col-selectall";
     selectAllWrap.append(selectAllBtn);
     modal.append(selectAllWrap);
@@ -670,9 +664,9 @@ export function showColModal({
     updateColList();
 
     // Actions
-    const actions = document.createElement("div");
+    const actions = runtime.createElement("div");
     actions.className = "modal-actions";
-    const closeActionBtn = document.createElement("button");
+    const closeActionBtn = runtime.createElement("button");
     closeActionBtn.className = "themed-btn";
     closeActionBtn.textContent = "Close";
     closeActionBtn.title = "Changes are saved automatically";
@@ -680,6 +674,6 @@ export function showColModal({
     actions.append(closeActionBtn);
     modal.append(actions);
     overlay.append(modal);
-    document.body.append(overlay);
+    runtime.appendToBody(overlay);
     focusTrapCleanup = createModalFocusTrap(modal, searchInput);
 }

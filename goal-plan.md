@@ -522,6 +522,9 @@ Summary column modal tooltip viewport reads and modal listener abort-controller 
 `summaryColModalRuntime.ts` instead of reading viewport globals or constructing `AbortController` directly inside
 `summaryColModal.ts`, with focused runtime coverage and architecture guardrails blocking those direct runtime
 globals from returning.
+Summary column modal active-element lookup, body append, DOM element creation, and text-node creation now also route
+through `summaryColModalRuntime.ts`, with focused runtime coverage and architecture guardrails blocking direct
+`document` and `HTMLElement` access from returning to `summaryColModal.ts`.
 User/device info box listener cleanup now creates abort controllers through `createUserDeviceInfoBoxRuntime.ts`
 instead of constructing `AbortController` directly inside `createUserDeviceInfoBox.ts`, with focused runtime
 coverage and architecture guardrails blocking direct controller construction from returning. User/device info box

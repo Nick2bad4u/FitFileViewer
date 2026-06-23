@@ -12820,8 +12820,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps summary column modal viewport reads behind the runtime facade", () => {
-        expect.assertions(16);
+    it("keeps summary column modal document and viewport reads behind the runtime facade", () => {
+        expect.assertions(31);
 
         const violations = migratedSummaryColModalViewportRuntimeFiles
             .filter((relativeFile) =>
@@ -12853,6 +12853,12 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(summaryColModalSource).toContain("summaryColModalRuntime.js");
         expect(summaryColModalSource).toContain("createAbortController");
+        expect(summaryColModalSource).toContain("runtime.createElement");
+        expect(summaryColModalSource).toContain("runtime.createTextNode");
+        expect(summaryColModalSource).toContain("runtime.appendToBody");
+        expect(summaryColModalSource).toContain("runtime.getActiveElement");
+        expect(summaryColModalSource).not.toContain("document.");
+        expect(summaryColModalSource).not.toContain("instanceof HTMLElement");
         expect(summaryColModalRuntimeSource).toContain(
             "defaultSummaryColModalRuntimeScope"
         );
@@ -12866,6 +12872,12 @@ describe("architecture boundaries", () => {
             "readonly AbortController?:"
         );
         expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(summaryColModalRuntimeScopeSource).not.toContain(
             "readonly innerHeight?:"
         );
         expect(summaryColModalRuntimeScopeSource).not.toContain(
@@ -12874,10 +12886,18 @@ describe("architecture boundaries", () => {
         expect(summaryColModalRuntimeSource).not.toContain(
             "scope.AbortController"
         );
+        expect(summaryColModalRuntimeSource).not.toContain("scope.document");
+        expect(summaryColModalRuntimeSource).not.toContain("scope.HTMLElement");
         expect(summaryColModalRuntimeSource).not.toContain("scope.innerHeight");
         expect(summaryColModalRuntimeSource).not.toContain("scope.innerWidth");
         expect(summaryColModalRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
         );
         expect(summaryColModalRuntimeSource).toContain(
             "height: globalThis.innerHeight"
@@ -12887,6 +12907,15 @@ describe("architecture boundaries", () => {
         );
         expect(summaryColModalRuntimeSource).toContain(
             "const AbortControllerConstructor = scope.getAbortController?.();"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "getRuntimeDocument(scope).body.append(node)"
+        );
+        expect(summaryColModalRuntimeSource).toContain(
+            "getRuntimeDocument(scope).createTextNode(data)"
         );
     });
 

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
     getSummaryColModalRuntime,
@@ -58,6 +58,64 @@ describe("getSummaryColModalRuntime", () => {
         });
     });
 
+    it("routes document operations through the injected document", () => {
+        expect.assertions(7);
+
+        const documentRef = document;
+        const button = documentRef.createElement("button");
+        documentRef.body.append(button);
+        button.focus();
+        const createElement = vi.spyOn(documentRef, "createElement");
+        const createTextNode = vi.spyOn(documentRef, "createTextNode");
+        const bodyAppend = vi.spyOn(documentRef.body, "append");
+        const runtime = getSummaryColModalRuntime({
+            getDocument: () => documentRef,
+            getHTMLElement: () => HTMLElement,
+        });
+
+        const div = runtime.createElement("div");
+        const text = runtime.createTextNode("Modal text");
+        runtime.appendToBody(div);
+
+        expect(div).toBeInstanceOf(HTMLDivElement);
+        expect(text.data).toBe("Modal text");
+        expect(runtime.getActiveElement()).toBe(button);
+        expect(createElement).toHaveBeenCalledWith("div");
+        expect(createTextNode).toHaveBeenCalledWith("Modal text");
+        expect(bodyAppend).toHaveBeenCalledWith(div);
+        expect(documentRef.body.contains(div)).toBe(true);
+    });
+
+    it("returns null when active element type checks are unavailable", () => {
+        expect.assertions(1);
+
+        expect(
+            getSummaryColModalRuntime({
+                getDocument: () =>
+                    document.implementation.createHTMLDocument("summary modal"),
+            }).getActiveElement()
+        ).toBeNull();
+    });
+
+    it("fails clearly when the document runtime is unavailable", () => {
+        expect.assertions(4);
+
+        const runtime = getSummaryColModalRuntime({});
+
+        expect(() =>
+            runtime.appendToBody(document.createElement("div"))
+        ).toThrow("summaryColModal requires a document runtime");
+        expect(() => runtime.createElement("div")).toThrow(
+            "summaryColModal requires a document runtime"
+        );
+        expect(() => runtime.createTextNode("Modal text")).toThrow(
+            "summaryColModal requires a document runtime"
+        );
+        expect(() => runtime.getActiveElement()).toThrow(
+            "summaryColModal requires a document runtime"
+        );
+    });
+
     it("uses zero dimensions when viewport values are unavailable", () => {
         expect.assertions(1);
 
@@ -68,10 +126,12 @@ describe("getSummaryColModalRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(2);
+        expect.assertions(6);
 
         const legacyScope = {
             AbortController,
+            document,
+            HTMLElement,
             innerHeight: 900,
             innerWidth: 1440,
         } as unknown as SummaryColModalRuntimeScope;
@@ -84,5 +144,17 @@ describe("getSummaryColModalRuntime", () => {
             height: 0,
             width: 0,
         });
+        expect(() =>
+            runtime.appendToBody(document.createElement("div"))
+        ).toThrow("summaryColModal requires a document runtime");
+        expect(() => runtime.createElement("div")).toThrow(
+            "summaryColModal requires a document runtime"
+        );
+        expect(() => runtime.createTextNode("Modal text")).toThrow(
+            "summaryColModal requires a document runtime"
+        );
+        expect(() => runtime.getActiveElement()).toThrow(
+            "summaryColModal requires a document runtime"
+        );
     });
 });

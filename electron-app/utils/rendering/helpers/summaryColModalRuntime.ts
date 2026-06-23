@@ -2,6 +2,10 @@ export interface SummaryColModalRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof HTMLElement | undefined)
+        | undefined;
     readonly getViewport?:
         | (() => SummaryColModalViewport | undefined)
         | undefined;
@@ -13,12 +17,20 @@ export interface SummaryColModalViewport {
 }
 
 export interface SummaryColModalRuntime {
+    readonly appendToBody: (node: Node) => void;
     readonly createAbortController: () => AbortController;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
+    readonly createTextNode: (data: string) => Text;
+    readonly getActiveElement: () => HTMLElement | null;
     readonly getViewport: () => SummaryColModalViewport;
 }
 
 const defaultSummaryColModalRuntimeScope: SummaryColModalRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
+    getDocument: () => globalThis.document,
+    getHTMLElement: () => globalThis.HTMLElement,
     getViewport: () => ({
         height: globalThis.innerHeight,
         width: globalThis.innerWidth,
@@ -29,6 +41,9 @@ export function getSummaryColModalRuntime(
     scope: SummaryColModalRuntimeScope = defaultSummaryColModalRuntimeScope
 ): SummaryColModalRuntime {
     return {
+        appendToBody(node): void {
+            getRuntimeDocument(scope).body.append(node);
+        },
         createAbortController(): AbortController {
             const AbortControllerConstructor = scope.getAbortController?.();
             if (typeof AbortControllerConstructor !== "function") {
@@ -39,8 +54,35 @@ export function getSummaryColModalRuntime(
 
             return new AbortControllerConstructor();
         },
+        createElement(tagName) {
+            return getRuntimeDocument(scope).createElement(tagName);
+        },
+        createTextNode(data) {
+            return getRuntimeDocument(scope).createTextNode(data);
+        },
+        getActiveElement(): HTMLElement | null {
+            const activeElement = getRuntimeDocument(scope).activeElement;
+            const HTMLElementConstructor = scope.getHTMLElement?.();
+            if (
+                typeof HTMLElementConstructor !== "function" ||
+                !(activeElement instanceof HTMLElementConstructor)
+            ) {
+                return null;
+            }
+
+            return activeElement;
+        },
         getViewport(): SummaryColModalViewport {
             return scope.getViewport?.() ?? { height: 0, width: 0 };
         },
     };
+}
+
+function getRuntimeDocument(scope: SummaryColModalRuntimeScope): Document {
+    const runtimeDocument = scope.getDocument?.();
+    if (!runtimeDocument) {
+        throw new TypeError("summaryColModal requires a document runtime");
+    }
+
+    return runtimeDocument;
 }
