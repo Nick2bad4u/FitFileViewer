@@ -15,8 +15,6 @@ export type RendererRuntimeEnvironment = {
     readonly setTimeout: typeof globalThis.setTimeout;
 };
 
-type RendererRuntimeScope = Window & typeof globalThis;
-
 export type RendererRuntimeEnvironmentScope = {
     readonly getAddEventListener?:
         | (() => typeof globalThis.addEventListener | undefined)
@@ -32,9 +30,6 @@ export type RendererRuntimeEnvironmentScope = {
         | undefined;
     readonly getRendererEventTarget?:
         | (() => RendererRuntimeEventTarget | undefined)
-        | undefined;
-    readonly getRendererScope?:
-        | (() => RendererRuntimeScope | undefined)
         | undefined;
     readonly getSetInterval?:
         | (() => typeof globalThis.setInterval | undefined)
@@ -54,23 +49,22 @@ const defaultRendererRuntimeEnvironmentScope: RendererRuntimeEnvironmentScope =
         getRemoveEventListener: () =>
             globalThis.removeEventListener.bind(globalThis),
         getRendererEventTarget: getDefaultRendererEventTarget,
-        getRendererScope: () => globalThis as RendererRuntimeScope,
         getSetInterval: () => globalThis.setInterval.bind(globalThis),
         getSetTimeout: () => globalThis.setTimeout.bind(globalThis),
     };
 
 function getDefaultElectronApiCandidate(): unknown {
-    const rendererScope =
-        defaultRendererRuntimeEnvironmentScope.getRendererScope?.();
-    return rendererScope === undefined
-        ? undefined
-        : Reflect.get(rendererScope, "electronAPI");
+    return Reflect.get(getDefaultRendererObject(), "electronAPI");
 }
 
 function getDefaultRendererEventTarget():
     | RendererRuntimeEventTarget
     | undefined {
-    return defaultRendererRuntimeEnvironmentScope.getRendererScope?.();
+    return getDefaultRendererObject();
+}
+
+function getDefaultRendererObject(): typeof globalThis {
+    return globalThis;
 }
 
 function getRequiredRuntimeValue<T>(value: T | undefined, message: string): T {

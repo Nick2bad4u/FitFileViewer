@@ -4,7 +4,7 @@ import { createRendererRuntimeEnvironment as createRuntimeEnvironment } from "..
 
 describe("renderer runtime environment", () => {
     it("captures browser globals through named providers", () => {
-        expect.assertions(20);
+        expect.assertions(19);
 
         const electronApiCandidate = {};
         const legacyRendererGlobalElectronApiCandidate = {};
@@ -43,7 +43,6 @@ describe("renderer runtime environment", () => {
             rendererGlobal.removeEventListener.bind(rendererGlobal)
         );
         const getRendererEventTarget = vi.fn(() => rendererGlobal);
-        const getRendererScope = vi.fn(() => rendererGlobal);
         const getSetInterval = vi.fn(() =>
             rendererGlobal.setInterval.bind(rendererGlobal)
         );
@@ -86,7 +85,6 @@ describe("renderer runtime environment", () => {
         expect(getElectronApiCandidate).toHaveBeenCalledOnce();
         expect(getRemoveEventListener).toHaveBeenCalledOnce();
         expect(getRendererEventTarget).toHaveBeenCalledOnce();
-        expect(getRendererScope).not.toHaveBeenCalled();
         expect(getSetInterval).toHaveBeenCalledOnce();
         expect(getSetTimeout).toHaveBeenCalledOnce();
     });

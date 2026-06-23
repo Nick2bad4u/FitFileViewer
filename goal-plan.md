@@ -1167,6 +1167,9 @@ the runtime environment object, with unit and architecture coverage blocking the
 Renderer runtime environment startup now also returns a narrow `rendererEventTarget` instead of exporting the broad
 `rendererGlobal` object to the renderer entrypoint; lifecycle, test bootstrap, and file-input wiring receive only
 the event target they use, with architecture coverage blocking the broad handoff from returning.
+The runtime-environment scope contract no longer exposes `getRendererScope` or `RendererRuntimeScope`; default
+ambient lookup stays private to `runtimeEnvironment.ts`, and callers can provide only focused providers such as
+`getElectronApiCandidate` and `getRendererEventTarget`.
 Main UI DOM utility tests now use registered Electron API candidates for validation coverage instead of ambient
 `electronAPI` stubs or defining/deleting `globalThis.electronAPI` directly, with architecture coverage blocking
 that direct fixture mutation.
