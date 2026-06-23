@@ -3,6 +3,7 @@ import {
     browserWindowRef as electronBrowserWindowRef,
 } from "../runtime/electronAccess.js";
 import { createWindow } from "../../windowStateUtils.js";
+import type { MainAppStateWindowLike } from "../state/appState.js";
 
 type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
@@ -31,7 +32,14 @@ interface ElectronAppLike {
 }
 
 type BrowserWindowConstructor = new (...args: never[]) => MainWindowLike;
-type AppStateValue = boolean | MainWindowLike | null | string | undefined;
+type InitializeMainWindowGetAppState = {
+    (key: "autoUpdaterInitialized"): boolean;
+    (key: "loadedFitFilePath"): null | string;
+};
+type InitializeMainWindowSetAppState = {
+    (key: "autoUpdaterInitialized", value: boolean): void;
+    (key: "mainWindow", value: MainAppStateWindowLike): void;
+};
 
 interface AutoUpdaterLike {
     checkForUpdatesAndNotify?: () => unknown;
@@ -50,7 +58,7 @@ interface InitializeMainWindowOptions {
         | null
         | undefined;
     CONSTANTS: { DEFAULT_THEME: string };
-    getAppState: (key: string) => AppStateValue;
+    getAppState: InitializeMainWindowGetAppState;
     getThemeFromRenderer: (win: MainWindowLike) => Promise<string>;
     logWithContext: LogWithContext;
     resolveAutoUpdater: () => Promise<AutoUpdaterLike | null>;
@@ -64,7 +72,7 @@ interface InitializeMainWindowOptions {
         channel: RendererIpcEventChannel,
         ...args: unknown[]
     ) => void;
-    setAppState: (key: string, value: AppStateValue) => void;
+    setAppState: InitializeMainWindowSetAppState;
     setupAutoUpdater: (
         mainWindow: MainWindowLike,
         autoUpdater: AutoUpdaterLike | null
@@ -199,7 +207,7 @@ export function initializeMainWindow({
     safeCreateAppMenu(
         mainWindow,
         CONSTANTS.DEFAULT_THEME,
-        getAppState("loadedFitFilePath") as null | string | undefined
+        getAppState("loadedFitFilePath")
     );
 
     if (typeof mainWindow.webContents?.on === "function") {
@@ -236,10 +244,7 @@ export function initializeMainWindow({
                 safeCreateAppMenu(
                     mainWindow,
                     theme,
-                    getAppState("loadedFitFilePath") as
-                        | null
-                        | string
-                        | undefined
+                    getAppState("loadedFitFilePath")
                 );
                 sendToRenderer(mainWindow, "set-theme", theme);
             } catch (error) {
@@ -253,10 +258,7 @@ export function initializeMainWindow({
                 safeCreateAppMenu(
                     mainWindow,
                     CONSTANTS.DEFAULT_THEME,
-                    getAppState("loadedFitFilePath") as
-                        | null
-                        | string
-                        | undefined
+                    getAppState("loadedFitFilePath")
                 );
                 sendToRenderer(
                     mainWindow,

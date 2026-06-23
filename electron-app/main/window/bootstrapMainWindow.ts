@@ -3,6 +3,7 @@ import {
     browserWindowRef as electronBrowserWindowRef,
 } from "../runtime/electronAccess.js";
 import { createWindow } from "../../windowStateUtils.js";
+import type { MainAppStateWindowLike } from "../state/appState.js";
 
 type RendererIpcEventChannel =
     import("../../shared/ipc").RendererIpcEventChannel;
@@ -31,7 +32,14 @@ interface ElectronAppLike {
 }
 
 type BrowserWindowConstructor = new (...args: never[]) => MainWindowLike;
-type AppStateValue = boolean | MainWindowLike | null | string | undefined;
+type BootstrapMainWindowGetAppState = {
+    (key: "autoUpdaterInitialized"): boolean;
+    (key: "loadedFitFilePath"): null | string;
+};
+type BootstrapMainWindowSetAppState = {
+    (key: "autoUpdaterInitialized", value: boolean): void;
+    (key: "mainWindow", value: MainAppStateWindowLike): void;
+};
 
 interface AutoUpdaterLike {
     checkForUpdatesAndNotify?: () => unknown;
@@ -50,7 +58,7 @@ interface BootstrapMainWindowOptions {
         | null
         | undefined;
     CONSTANTS: { DEFAULT_THEME: string };
-    getAppState: (key: string) => AppStateValue;
+    getAppState: BootstrapMainWindowGetAppState;
     getThemeFromRenderer: (win: MainWindowLike) => Promise<string>;
     logWithContext: LogWithContext;
     resolveAutoUpdaterAsync: () => Promise<AutoUpdaterLike | null>;
@@ -64,7 +72,7 @@ interface BootstrapMainWindowOptions {
         channel: RendererIpcEventChannel,
         ...args: unknown[]
     ) => void;
-    setAppState: (key: string, value: AppStateValue) => void;
+    setAppState: BootstrapMainWindowSetAppState;
     setupAutoUpdater: (
         mainWindow: MainWindowLike,
         autoUpdater: AutoUpdaterLike | null
@@ -198,7 +206,7 @@ export function bootstrapMainWindow({
     safeCreateAppMenu(
         mainWindow,
         CONSTANTS.DEFAULT_THEME,
-        getAppState("loadedFitFilePath") as null | string | undefined
+        getAppState("loadedFitFilePath")
     );
 
     mainWindow.webContents.on("did-finish-load", async () => {
@@ -230,7 +238,7 @@ export function bootstrapMainWindow({
             safeCreateAppMenu(
                 mainWindow,
                 theme,
-                getAppState("loadedFitFilePath") as null | string | undefined
+                getAppState("loadedFitFilePath")
             );
             sendToRenderer(mainWindow, "set-theme", theme);
         } catch (error) {
@@ -244,7 +252,7 @@ export function bootstrapMainWindow({
             safeCreateAppMenu(
                 mainWindow,
                 CONSTANTS.DEFAULT_THEME,
-                getAppState("loadedFitFilePath") as null | string | undefined
+                getAppState("loadedFitFilePath")
             );
             sendToRenderer(mainWindow, "set-theme", CONSTANTS.DEFAULT_THEME);
         }

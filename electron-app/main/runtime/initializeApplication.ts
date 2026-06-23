@@ -22,8 +22,7 @@ export async function initializeApplication(): Promise<unknown> {
     return bootstrapMainWindow({
         browserWindowRef,
         CONSTANTS,
-        getAppState:
-            getAppState as BootstrapMainWindowDependencies["getAppState"],
+        getAppState,
         getThemeFromRenderer:
             getThemeFromRenderer as BootstrapMainWindowDependencies["getThemeFromRenderer"],
         logWithContext,

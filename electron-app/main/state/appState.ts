@@ -1,8 +1,17 @@
 import { mainProcessState as runtimeMainProcessState } from "../../utils/state/integration/mainProcessStateManager.js";
+import type { RendererIpcEventChannel } from "../../shared/ipc.js";
 import { CONSTANTS } from "../constants.js";
 import { createElectronConf } from "../runtime/electronConfAccess.js";
 
 type StateUpdateOptions = Record<string, unknown>;
+
+export type MainAppStateWindowLike = {
+    isDestroyed?: () => boolean;
+    webContents?: {
+        isDestroyed?: () => boolean;
+        send?: (channel: RendererIpcEventChannel, ...args: unknown[]) => void;
+    };
+};
 
 export type MainAppStateValueByPath = {
     appIsQuitting: boolean;
@@ -18,7 +27,7 @@ export type MainAppStateValueByPath = {
     gyazoServer: unknown;
     gyazoServerPort: null | number;
     loadedFitFilePath: null | string;
-    mainWindow: unknown;
+    mainWindow: MainAppStateWindowLike | null;
     "permissions.geolocation.allowed": boolean;
 };
 
