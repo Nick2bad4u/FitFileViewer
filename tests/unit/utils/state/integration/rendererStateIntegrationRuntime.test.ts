@@ -32,7 +32,7 @@ describe("getRendererStateIntegrationRuntime", () => {
     });
 
     it("does not borrow ambient browser primitives for explicit scopes", () => {
-        expect.assertions(4);
+        expect.assertions(6);
 
         const utils = getRendererStateIntegrationRuntime({});
 
@@ -50,6 +50,12 @@ describe("getRendererStateIntegrationRuntime", () => {
         expect(() => utils.getDocument()).toThrow(
             "rendererStateIntegration requires a document runtime"
         );
+        expect(() => utils.isElement(document.createElement("button"))).toThrow(
+            "rendererStateIntegration requires an Element runtime"
+        );
+        expect(() =>
+            utils.isHTMLElement(document.createElement("button"))
+        ).toThrow("rendererStateIntegration requires an HTMLElement runtime");
     });
 
     it("creates abort controllers through the injected runtime", () => {
@@ -121,8 +127,24 @@ describe("getRendererStateIntegrationRuntime", () => {
         expect(utils.getDocument()).toBe(documentRef);
     });
 
+    it("checks DOM element types through injected constructors", () => {
+        expect.assertions(4);
+
+        const element = document.createElement("span");
+        const textNode = document.createTextNode("not an element");
+        const utils = getRendererStateIntegrationRuntime({
+            getElement: () => Element,
+            getHTMLElement: () => HTMLElement,
+        });
+
+        expect(utils.isElement(element)).toBe(true);
+        expect(utils.isElement(textNode)).toBe(false);
+        expect(utils.isHTMLElement(element)).toBe(true);
+        expect(utils.isHTMLElement(textNode)).toBe(false);
+    });
+
     it("ignores legacy direct browser primitive runtime properties", () => {
-        expect.assertions(11);
+        expect.assertions(13);
 
         const callback = vi.fn<() => void>();
         const timer = 79 as ReturnType<typeof globalThis.setTimeout>;
@@ -146,6 +168,8 @@ describe("getRendererStateIntegrationRuntime", () => {
             clearTimeout,
             document: documentEventTarget,
             documentEventTarget,
+            Element,
+            HTMLElement,
             setTimeout,
         } as unknown as Parameters<
             typeof getRendererStateIntegrationRuntime
@@ -168,6 +192,12 @@ describe("getRendererStateIntegrationRuntime", () => {
         expect(() => utils.getDocument()).toThrow(
             "rendererStateIntegration requires a document runtime"
         );
+        expect(() => utils.isElement(document.createElement("button"))).toThrow(
+            "rendererStateIntegration requires an Element runtime"
+        );
+        expect(() =>
+            utils.isHTMLElement(document.createElement("button"))
+        ).toThrow("rendererStateIntegration requires an HTMLElement runtime");
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
         expect(setTimeout).not.toHaveBeenCalled();
         expect(clearTimeout).not.toHaveBeenCalled();
@@ -200,7 +230,7 @@ describe("getRendererStateIntegrationRuntime", () => {
     });
 
     it("resolves default browser primitives when runtime operations run", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const callback = vi.fn<() => void>();
         let clickCount = 0;
@@ -222,6 +252,10 @@ describe("getRendererStateIntegrationRuntime", () => {
 
         expect(utils.createAbortController()).toBe(controller);
         expect(utils.getDocument()).toBe(document);
+        expect(utils.isElement(document.createTextNode("no"))).toBe(false);
+        expect(utils.isHTMLElement(document.createElement("button"))).toBe(
+            true
+        );
         utils.addDocumentClickListener(
             () => {
                 clickCount += 1;

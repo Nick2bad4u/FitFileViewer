@@ -791,7 +791,7 @@ const directStateDevToolsRuntimeGlobalPattern =
 const directStateDevToolsRuntimeAmbientIntervalFallbackPattern =
     /\bscope\.(?:clearInterval|setInterval)\s*\?\?\s*globalThis\.(?:clearInterval|setInterval)\b|\bglobalThis\.(?:clearInterval|setInterval)\s*\(/u;
 const directRendererStateIntegrationRuntimeGlobalPattern =
-    /\bdocument\.(?:documentElement|querySelectorAll)\b|\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\bdocument\.(?:documentElement|querySelectorAll)\b|\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|\bnew\s+AbortController\b|\binstanceof\s+(?:Element|HTMLElement)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 const directRendererStateIntegrationRuntimeAmbientGetterPattern =
@@ -7675,7 +7675,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps renderer state integration timers and abort controllers behind the runtime facade", () => {
-        expect.assertions(26);
+        expect.assertions(37);
 
         const violations = migratedRendererStateIntegrationRuntimeFiles
             .filter((relativeFile) =>
@@ -7706,6 +7706,8 @@ describe("architecture boundaries", () => {
             "addDocumentClickListener"
         );
         expect(rendererStateIntegrationSource).toContain("getDocument()");
+        expect(rendererStateIntegrationSource).toContain("isElement(");
+        expect(rendererStateIntegrationSource).toContain("isHTMLElement(");
         expect(rendererStateIntegrationSource).not.toContain(
             "document.addEventListener"
         );
@@ -7714,6 +7716,9 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationSource).not.toContain(
             "document.documentElement"
+        );
+        expect(rendererStateIntegrationSource).not.toMatch(
+            /\binstanceof\s+(?:Element|HTMLElement)\b/u
         );
         expect(rendererStateIntegrationRuntimeSource).not.toMatch(
             directRendererStateIntegrationRuntimeAmbientTimerFallbackPattern
@@ -7731,10 +7736,22 @@ describe("architecture boundaries", () => {
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
+            "getElement: () => globalThis.Element"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
             "rendererStateIntegration requires a document runtime"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "rendererStateIntegration requires a document event-target runtime"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "rendererStateIntegration requires an Element runtime"
+        );
+        expect(rendererStateIntegrationRuntimeSource).toContain(
+            "rendererStateIntegration requires an HTMLElement runtime"
         );
         expect(rendererStateIntegrationRuntimeSource).toContain(
             "rendererStateIntegration requires a setTimeout runtime"
@@ -7752,6 +7769,12 @@ describe("architecture boundaries", () => {
             "readonly documentEventTarget?:"
         );
         expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "readonly Element?:"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
             "readonly setTimeout?:"
         );
         expect(rendererStateIntegrationRuntimeSource).not.toContain(
@@ -7765,6 +7788,12 @@ describe("architecture boundaries", () => {
         );
         expect(rendererStateIntegrationRuntimeSource).not.toContain(
             "scope.documentEventTarget"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "scope.Element"
+        );
+        expect(rendererStateIntegrationRuntimeSource).not.toContain(
+            "scope.HTMLElement"
         );
         expect(rendererStateIntegrationRuntimeSource).not.toContain(
             "scope.setTimeout"

@@ -304,7 +304,7 @@ function setupReactiveUI(): void {
 
         const tabContents = documentRef.querySelectorAll(".tab-content");
         for (const content of tabContents) {
-            if (content instanceof HTMLElement) {
+            if (rendererStateIntegrationRuntime.isHTMLElement(content)) {
                 const tabName = content.dataset["tabContent"];
                 content.style.display =
                     tabName === activeTab ? "block" : "none";
@@ -349,13 +349,16 @@ function setupStateAwareEventHandlers(): void {
     // Tab switching (if not handled by UIStateManager)
     rendererStateIntegrationRuntime.addDocumentClickListener(
         (event) => {
-            const target =
-                event.target instanceof Element ? event.target : null;
+            const target = rendererStateIntegrationRuntime.isElement(
+                event.target
+            )
+                ? event.target
+                : null;
             if (!target) {
                 return;
             }
             const tabButton = target.closest("[data-tab]");
-            if (tabButton instanceof HTMLElement) {
+            if (rendererStateIntegrationRuntime.isHTMLElement(tabButton)) {
                 const tabName = tabButton.dataset["tab"];
                 if (tabName) {
                     AppActions.switchTab(tabName);
@@ -368,13 +371,16 @@ function setupStateAwareEventHandlers(): void {
     // Theme switching
     rendererStateIntegrationRuntime.addDocumentClickListener(
         (event) => {
-            const target =
-                event.target instanceof Element ? event.target : null;
+            const target = rendererStateIntegrationRuntime.isElement(
+                event.target
+            )
+                ? event.target
+                : null;
             if (!target) {
                 return;
             }
             const themeButton = target.closest("[data-theme]");
-            if (themeButton instanceof HTMLElement) {
+            if (rendererStateIntegrationRuntime.isHTMLElement(themeButton)) {
                 const theme = themeButton.dataset["theme"];
                 if (theme) {
                     AppActions.switchTheme(theme);

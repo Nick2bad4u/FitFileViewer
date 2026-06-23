@@ -15,6 +15,12 @@ export interface RendererStateIntegrationRuntimeScope {
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
+    readonly getElement?:
+        | (() => typeof globalThis.Element | undefined)
+        | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
@@ -28,6 +34,8 @@ export interface RendererStateIntegrationRuntime {
     clearTimeout: (timer: RendererStateIntegrationTimer) => void;
     createAbortController: () => AbortController;
     getDocument: () => Document;
+    isElement: (value: unknown) => value is Element;
+    isHTMLElement: (value: unknown) => value is HTMLElement;
     setTimeout: (
         callback: () => void,
         delayMs: number
@@ -40,6 +48,8 @@ const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRunti
         getClearTimeout: () => globalThis.clearTimeout,
         getDocument: () => globalThis.document,
         getDocumentEventTarget: () => globalThis.document,
+        getElement: () => globalThis.Element,
+        getHTMLElement: () => globalThis.HTMLElement,
         getSetTimeout: () => globalThis.setTimeout,
     };
 
@@ -62,7 +72,35 @@ function getDocumentEventTarget(
     return scope.getDocumentEventTarget?.();
 }
 
-function requireDocument(scope: RendererStateIntegrationRuntimeScope): Document {
+function getElementConstructor(
+    scope: RendererStateIntegrationRuntimeScope
+): typeof globalThis.Element {
+    const ElementConstructor = scope.getElement?.();
+    if (typeof ElementConstructor !== "function") {
+        throw new TypeError(
+            "rendererStateIntegration requires an Element runtime"
+        );
+    }
+
+    return ElementConstructor;
+}
+
+function getHTMLElementConstructor(
+    scope: RendererStateIntegrationRuntimeScope
+): typeof globalThis.HTMLElement {
+    const HTMLElementConstructor = scope.getHTMLElement?.();
+    if (typeof HTMLElementConstructor !== "function") {
+        throw new TypeError(
+            "rendererStateIntegration requires an HTMLElement runtime"
+        );
+    }
+
+    return HTMLElementConstructor;
+}
+
+function requireDocument(
+    scope: RendererStateIntegrationRuntimeScope
+): Document {
     const documentRef = scope.getDocument?.();
     if (!documentRef) {
         throw new TypeError(
@@ -103,6 +141,12 @@ export function getRendererStateIntegrationRuntime(
         },
         getDocument(): Document {
             return requireDocument(scope);
+        },
+        isElement(value): value is Element {
+            return value instanceof getElementConstructor(scope);
+        },
+        isHTMLElement(value): value is HTMLElement {
+            return value instanceof getHTMLElementConstructor(scope);
         },
         setTimeout(callback, delayMs): RendererStateIntegrationTimer {
             const setTimeoutRef = scope.getSetTimeout?.();
