@@ -24,20 +24,25 @@ describe("showFitDataRuntime", () => {
     });
 
     it("routes browser APIs through provider functions", () => {
-        expect.assertions(17);
+        expect.assertions(21);
 
         const callback = vi.fn<() => void>();
         const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
         const queueMicrotask = vi.fn<(callback: () => void) => void>();
+        const querySelector = vi.fn<ParentNode["querySelector"]>(() =>
+            document.createElement("div")
+        );
         const scrollTo = vi.fn<(options: ScrollToOptions) => void>();
         const getCustomEvent = vi.fn(() => CustomEvent);
+        const getDocument = vi.fn(() => ({ querySelector }));
         const getDispatchEvent = vi.fn(() => dispatchEvent);
         const getMatchMedia = vi.fn(() => matchMedia);
         const getQueueMicrotask = vi.fn(() => queueMicrotask);
         const getScrollTo = vi.fn(() => scrollTo);
         const runtime = getShowFitDataRuntime({
             getCustomEvent,
+            getDocument,
             getDispatchEvent,
             getMatchMedia,
             getQueueMicrotask,
@@ -52,14 +57,17 @@ describe("showFitDataRuntime", () => {
         expect(event).toBeInstanceOf(CustomEvent);
         expect(event.detail).toStrictEqual({ filePath: "provider.fit" });
         expect(runtime.dispatchEvent(event)).toBe(true);
+        expect(runtime.hasRenderedMapContainer()).toBe(true);
         runtime.queueMicrotask(callback);
         runtime.scrollTo({ behavior: "smooth", top: 12 });
 
         expect(getScrollTo).toHaveBeenCalledTimes(2);
         expect(getMatchMedia).toHaveBeenCalledOnce();
         expect(getCustomEvent).toHaveBeenCalledOnce();
+        expect(getDocument).toHaveBeenCalledOnce();
         expect(getDispatchEvent).toHaveBeenCalledOnce();
         expect(getQueueMicrotask).toHaveBeenCalledOnce();
+        expect(querySelector).toHaveBeenCalledWith("#leaflet-map");
         expect(matchMedia).toHaveBeenCalledWith(
             "(prefers-reduced-motion: reduce)"
         );
@@ -69,16 +77,20 @@ describe("showFitDataRuntime", () => {
         expect(queueMicrotask.mock.contexts[0]).toMatchObject({
             getQueueMicrotask,
         });
+        expect(querySelector.mock.contexts[0]).toMatchObject({
+            querySelector,
+        });
         expect(scrollTo.mock.contexts[0]).toMatchObject({ getScrollTo });
         expect(callback).not.toHaveBeenCalled();
     });
 
     it("falls back when optional browser APIs are unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const runtime = getShowFitDataRuntime({});
 
         expect(runtime.canScrollTo()).toBe(false);
+        expect(runtime.hasRenderedMapContainer()).toBe(false);
         expect(runtime.prefersReducedMotion()).toBe(false);
     });
 
@@ -140,15 +152,19 @@ describe("showFitDataRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(9);
+        expect.assertions(11);
 
         const callback = vi.fn<() => void>();
         const dispatchEvent = vi.fn<(event: Event) => boolean>(() => true);
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
         const queueMicrotask = vi.fn<(callback: () => void) => void>();
+        const querySelector = vi.fn<ParentNode["querySelector"]>(() =>
+            document.createElement("div")
+        );
         const scrollTo = vi.fn<(options: ScrollToOptions) => void>();
         const runtime = getShowFitDataRuntime({
             CustomEvent,
+            document: { querySelector },
             dispatchEvent,
             matchMedia,
             queueMicrotask,
@@ -156,6 +172,7 @@ describe("showFitDataRuntime", () => {
         } as unknown as Parameters<typeof getShowFitDataRuntime>[0]);
 
         expect(runtime.canScrollTo()).toBe(false);
+        expect(runtime.hasRenderedMapContainer()).toBe(false);
         expect(runtime.prefersReducedMotion()).toBe(false);
         expect(() => runtime.createCustomEvent("fitfile-loaded")).toThrow(
             "showFitData requires a CustomEvent runtime"
@@ -169,8 +186,26 @@ describe("showFitDataRuntime", () => {
         expect(dispatchEvent).not.toHaveBeenCalled();
         expect(matchMedia).not.toHaveBeenCalled();
         expect(queueMicrotask).not.toHaveBeenCalled();
+        expect(querySelector).not.toHaveBeenCalled();
         expect(scrollTo).not.toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
+    });
+
+    it("detects the rendered map container through the scoped document provider", () => {
+        expect.assertions(3);
+
+        const querySelector = vi.fn<ParentNode["querySelector"]>((selector) =>
+            selector === "#leaflet-map" ? document.createElement("div") : null
+        );
+        const runtime = getShowFitDataRuntime({
+            getDocument: () => ({ querySelector }),
+        });
+
+        expect(runtime.hasRenderedMapContainer()).toBe(true);
+        expect(querySelector).toHaveBeenCalledExactlyOnceWith("#leaflet-map");
+        expect(querySelector.mock.contexts[0]).toMatchObject({
+            querySelector,
+        });
     });
 
     it("uses a promise microtask fallback when queueMicrotask is unavailable", async () => {

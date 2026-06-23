@@ -6574,7 +6574,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps FIT data display on renderer state facades and runtime adapters", () => {
-        expect.assertions(29);
+        expect.assertions(36);
 
         const showFitDataSource = stripComments(
             readRepositoryFile(
@@ -6607,7 +6607,11 @@ describe("architecture boundaries", () => {
         expect(showFitDataSource).not.toMatch(
             /\bglobalThis\.dispatchEvent\b|\bnew\s+CustomEvent\b/u
         );
+        expect(showFitDataSource).not.toMatch(/\bdocument\.querySelector\b/u);
         expect(showFitDataSource).toContain("showFitDataRuntime.dispatchEvent");
+        expect(showFitDataSource).toContain(
+            "showFitDataRuntime.hasRenderedMapContainer()"
+        );
         expect(showFitDataRuntimeSource).toContain(
             "defaultShowFitDataRuntimeScope"
         );
@@ -6619,6 +6623,9 @@ describe("architecture boundaries", () => {
         );
         expect(showFitDataRuntimeSource).toContain(
             "getCustomEvent: () => globalThis.CustomEvent"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(showFitDataRuntimeSource).toContain(
             "getDispatchEvent: () => globalThis.dispatchEvent"
@@ -6633,15 +6640,23 @@ describe("architecture boundaries", () => {
             "getScrollTo: () => globalThis.scrollTo"
         );
         expect(runtimeScopeSource).not.toContain("readonly CustomEvent?:");
+        expect(runtimeScopeSource).not.toContain("readonly document?:");
         expect(runtimeScopeSource).not.toContain("readonly dispatchEvent?:");
         expect(runtimeScopeSource).not.toContain("readonly matchMedia?:");
         expect(runtimeScopeSource).not.toContain("readonly queueMicrotask?:");
         expect(runtimeScopeSource).not.toContain("readonly scrollTo?:");
         expect(showFitDataRuntimeSource).not.toContain("scope.CustomEvent");
+        expect(showFitDataRuntimeSource).not.toContain("scope.document");
         expect(showFitDataRuntimeSource).not.toContain("scope.dispatchEvent");
         expect(showFitDataRuntimeSource).not.toContain("scope.matchMedia");
         expect(showFitDataRuntimeSource).not.toContain("scope.queueMicrotask");
         expect(showFitDataRuntimeSource).not.toContain("scope.scrollTo");
+        expect(showFitDataRuntimeSource).toContain(
+            "return scope.getDocument?.();"
+        );
+        expect(showFitDataRuntimeSource).toContain(
+            'querySelector("#leaflet-map")'
+        );
         expect(showFitDataRuntimeSource).toContain(
             "return scope.getMatchMedia?.();"
         );

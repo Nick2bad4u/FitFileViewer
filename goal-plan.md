@@ -389,10 +389,10 @@ module-level `browserGlobal` alias.
 Accent color target lookup and persisted color storage access now route through `accentColorRuntime.ts` instead of
 probing `document`, `HTMLElement`, or `localStorage` directly inside `accentColor.ts`, with focused runtime/behavior
 coverage and architecture coverage blocking those direct browser/storage calls from returning.
-Show FIT data post-load scroll availability checks, reduced-motion media queries, microtask scheduling, and scroll
-calls now route through `showFitDataRuntime.ts` instead of probing `globalThis.scrollTo`,
-`globalThis.matchMedia`, or `queueMicrotask` directly inside `showFitData.ts`, with focused runtime coverage and
-architecture guardrails blocking those direct browser scheduling APIs from returning.
+Show FIT data post-load map-container detection, scroll availability checks, reduced-motion media queries,
+microtask scheduling, and scroll calls now route through `showFitDataRuntime.ts` instead of probing `document`,
+`globalThis.scrollTo`, `globalThis.matchMedia`, or `queueMicrotask` directly inside `showFitData.ts`, with
+focused runtime/behavior coverage and architecture guardrails blocking those direct browser APIs from returning.
 Setup theme main-process fetch timeout scheduling and cleanup now route through `setupThemeRuntime.ts` instead
 of calling timer globals directly inside `setupTheme.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning. Explicit setup-theme runtime scopes must now

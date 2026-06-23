@@ -230,6 +230,49 @@ describe("showFitData", () => {
         expect(rendererDependencyMocks.renderMap).not.toHaveBeenCalled();
     });
 
+    it("marks the map rendered without rerendering when the map container already exists", async () => {
+        expect.assertions(5);
+
+        const { showFitData } = await loadModule();
+        const data: Record<string, unknown> = {};
+        const filePath = "C:/tmp/file.fit";
+        const mapContainer = document.createElement("div");
+        mapContainer.id = "leaflet-map";
+        document.body.append(mapContainer);
+
+        showFitData(data, filePath);
+
+        await vi.waitFor(() => {
+            const renderedStateCall =
+                stateManagerMocks.setState.mock.calls.find(
+                    ([path, value]) =>
+                        path === "map.isRendered" && value === true
+                );
+            if (!renderedStateCall) {
+                throw new Error("Expected map render state update");
+            }
+        });
+
+        expect(
+            rendererDependencyMocks.ensureRendererVendorBundle
+        ).toHaveBeenCalledWith("map");
+        expect(
+            rendererDependencyMocks.waitForMapLeafletRuntime
+        ).toHaveBeenCalledWith();
+        expect(data).toMatchObject({
+            cachedFileName: "file.fit",
+            cachedFilePath: filePath,
+        });
+        expect(stateManagerMocks.setState).toHaveBeenCalledWith(
+            "map.isRendered",
+            true,
+            expect.objectContaining({
+                source: "showFitData.renderMapIfReady",
+            })
+        );
+        expect(rendererDependencyMocks.renderMap).not.toHaveBeenCalled();
+    });
+
     it("throws on invalid data and writes error state", async () => {
         expect.assertions(1);
 

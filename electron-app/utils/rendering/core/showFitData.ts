@@ -269,7 +269,7 @@ async function renderMapIfReady(): Promise<void> {
         if (!(await waitForMapLeafletRuntime())) {
             throw new Error("Leaflet runtime is unavailable");
         }
-        if (document.querySelector("#leaflet-map")) {
+        if (showFitDataRuntime.hasRenderedMapContainer()) {
             setMapRenderedFlag(true);
             return;
         }

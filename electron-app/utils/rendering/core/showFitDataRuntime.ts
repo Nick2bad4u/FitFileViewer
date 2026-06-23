@@ -1,9 +1,11 @@
 type ShowFitDataScrollTo = (options: Readonly<ScrollToOptions>) => void;
+type ShowFitDataDocument = Pick<Document, "querySelector">;
 
 export interface ShowFitDataRuntimeScope {
     readonly getCustomEvent?:
         | (() => typeof globalThis.CustomEvent | undefined)
         | undefined;
+    readonly getDocument?: (() => ShowFitDataDocument | undefined) | undefined;
     readonly getDispatchEvent?:
         | (() => typeof globalThis.dispatchEvent | undefined)
         | undefined;
@@ -23,6 +25,7 @@ export interface ShowFitDataRuntime {
         eventInitDict?: Readonly<CustomEventInit<T>>
     ) => CustomEvent<T>;
     dispatchEvent: (event: Readonly<Event>) => boolean;
+    hasRenderedMapContainer: () => boolean;
     prefersReducedMotion: () => boolean;
     queueMicrotask: (callback: () => void) => void;
     scrollTo: (options: Readonly<ScrollToOptions>) => void;
@@ -55,6 +58,12 @@ function getDispatchEvent(
     return dispatchEvent;
 }
 
+function getScopeDocument(
+    scope: ShowFitDataRuntimeScope
+): ShowFitDataDocument | undefined {
+    return scope.getDocument?.();
+}
+
 function getScopeMatchMedia(
     scope: ShowFitDataRuntimeScope
 ): typeof globalThis.matchMedia | undefined {
@@ -75,6 +84,7 @@ function getScopeScrollTo(
 
 const defaultShowFitDataRuntimeScope: ShowFitDataRuntimeScope = {
     getCustomEvent: () => globalThis.CustomEvent,
+    getDocument: () => globalThis.document,
     getDispatchEvent: () => globalThis.dispatchEvent,
     getMatchMedia: () => globalThis.matchMedia,
     getQueueMicrotask: () => globalThis.queueMicrotask,
@@ -101,6 +111,12 @@ export function getShowFitDataRuntime(
 
         dispatchEvent(event: Readonly<Event>): boolean {
             return getDispatchEvent(scope).call(scope, event);
+        },
+
+        hasRenderedMapContainer(): boolean {
+            const mapContainer =
+                getScopeDocument(scope)?.querySelector("#leaflet-map");
+            return mapContainer !== null && mapContainer !== undefined;
         },
 
         prefersReducedMotion(): boolean {
