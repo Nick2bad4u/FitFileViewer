@@ -83,6 +83,36 @@ describe("dom helpers", () => {
         });
     });
 
+    it("queries omitted roots through the injected document runtime", () => {
+        expect.assertions(4);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("dom helpers");
+        const primaryButton = documentRef.createElement("button");
+        const secondaryButton = documentRef.createElement("button");
+        const getDocument = vi.fn(() => documentRef);
+        const runtime = {
+            createAbortController: () => new AbortController(),
+            getDocument,
+        };
+        primaryButton.className = "action";
+        primaryButton.id = "primary";
+        primaryButton.textContent = "Primary";
+        secondaryButton.className = "action";
+        secondaryButton.textContent = "Secondary";
+        documentRef.body.append(primaryButton, secondaryButton);
+
+        expect(query("#primary", undefined, runtime)).toBe(primaryButton);
+        expect(queryAll(".action", undefined, runtime)).toStrictEqual([
+            primaryButton,
+            secondaryButton,
+        ]);
+        expect(requireElement("#primary", undefined, runtime)).toBe(
+            primaryButton
+        );
+        expect(getDocument).toHaveBeenCalledTimes(3);
+    });
+
     it("throws consistent errors for missing required elements and empty selectors", () => {
         expect.assertions(3);
 

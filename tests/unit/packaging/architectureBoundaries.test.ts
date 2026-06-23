@@ -1078,9 +1078,10 @@ const directDomPurifyGlobalPattern =
     /\b(?:window|globalThis|globalRef|testGlobal)\.DOMPurify\b|\bReflect\.get\(\s*globalThis\s*,\s*["']DOMPurify["']\s*\)|\{\s*DOMPurify\?:\s*unknown\s*\}\)\.DOMPurify/u;
 const directSanitizeHtmlAllowlistRuntimeGlobalPattern =
     /\bdocument\.(?:createDocumentFragment|createTextNode|createTreeWalker)\b|\bnew\s+DOMParser\b|\bNodeFilter\.SHOW_ELEMENT\b|\binstanceof\s+Element\b/u;
-const directDomHelpersRuntimeGlobalPattern = /\bnew\s+AbortController\b/u;
+const directDomHelpersRuntimeGlobalPattern =
+    /\bnew\s+AbortController\b|\broot:\s*ParentNode\s*=\s*document\b|\bdocument\.(?:querySelector|querySelectorAll)\b/u;
 const directDomHelpersRuntimeAmbientGetterPattern =
-    /\breturn\s+globalThis\.AbortController\b/u;
+    /\breturn\s+globalThis\.(?:AbortController|document)\b/u;
 const directArqueroGlobalPattern =
     /\b(?:window|globalThis|summaryGlobal|testGlobal)\.(?:aq|arquero)\b|\{\s*(?:aq|arquero)\?:\s*unknown\s*\}\)\.(?:aq|arquero)/u;
 const directJSZipGlobalPattern =
@@ -8793,8 +8794,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps DOM helper listener cleanup behind the runtime facade", () => {
-        expect.assertions(8);
+    it("keeps DOM helper listener cleanup and default document roots behind the runtime facade", () => {
+        expect.assertions(15);
 
         const domHelpersSource = stripComments(
             readRepositoryFile("electron-app/utils/dom/domHelpers.ts")
@@ -8816,13 +8817,24 @@ describe("architecture boundaries", () => {
         expect(domHelpersRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
         );
+        expect(domHelpersRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(domHelpersRuntimeSource).toContain(
+            "dom helpers require a document runtime"
+        );
         expect(domHelpersRuntimeSource).not.toMatch(
             directDomHelpersRuntimeAmbientGetterPattern
         );
         expect(domHelpersRuntimeSource).not.toContain(
             "readonly AbortController?:"
         );
+        expect(domHelpersRuntimeSource).not.toContain("readonly document?:");
         expect(domHelpersRuntimeSource).not.toContain("scope.AbortController");
+        expect(domHelpersRuntimeSource).not.toContain("scope.document");
+        expect(domHelpersSource).toContain("runtime.getDocument()");
+        expect(domHelpersSource).not.toContain("root: ParentNode = document");
+        expect(domHelpersSource).not.toContain("document.querySelector");
     });
 
     it("keeps DOMPurify wired through the runtime adapter instead of a renderer global", () => {

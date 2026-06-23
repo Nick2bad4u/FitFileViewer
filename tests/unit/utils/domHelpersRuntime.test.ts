@@ -60,6 +60,24 @@ describe("getDomHelpersRuntime", () => {
         expect(controllerCount).toBe(1);
     });
 
+    it("reads documents through provider functions", () => {
+        expect.assertions(2);
+
+        const documentRef = {
+            querySelector: () => null,
+        } as unknown as Document;
+        let providerCount = 0;
+        const runtime = getDomHelpersRuntime({
+            getDocument: () => {
+                providerCount += 1;
+                return documentRef;
+            },
+        });
+
+        expect(runtime.getDocument()).toBe(documentRef);
+        expect(providerCount).toBe(1);
+    });
+
     it("fails clearly when the AbortController runtime is unavailable", () => {
         expect.assertions(1);
 
@@ -70,9 +88,22 @@ describe("getDomHelpersRuntime", () => {
         }).toThrow("dom helpers require an AbortController runtime");
     });
 
-    it("ignores legacy direct runtime scope properties", () => {
+    it("fails clearly when the document runtime is unavailable", () => {
         expect.assertions(1);
 
+        const runtime = getDomHelpersRuntime({});
+
+        expect(() => {
+            runtime.getDocument();
+        }).toThrow("dom helpers require a document runtime");
+    });
+
+    it("ignores legacy direct runtime scope properties", () => {
+        expect.assertions(2);
+
+        const documentRef = {
+            querySelector: () => null,
+        } as unknown as Document;
         const signal = Symbol("legacy-dom-helpers-signal");
         class LegacyAbortController implements AbortController {
             public readonly signal = signal as unknown as AbortSignal;
@@ -83,10 +114,14 @@ describe("getDomHelpersRuntime", () => {
         }
         const runtime = getDomHelpersRuntime({
             AbortController: LegacyAbortController,
+            document: documentRef,
         } as unknown as Parameters<typeof getDomHelpersRuntime>[0]);
 
         expect(() => {
             runtime.createAbortController();
         }).toThrow("dom helpers require an AbortController runtime");
+        expect(() => {
+            runtime.getDocument();
+        }).toThrow("dom helpers require a document runtime");
     });
 });

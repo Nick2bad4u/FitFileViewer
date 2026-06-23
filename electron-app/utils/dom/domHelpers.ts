@@ -107,7 +107,8 @@ export function on(
  */
 export function query(
     selector: string,
-    root: ParentNode = document
+    root?: ParentNode,
+    runtime: DomHelpersRuntime = getDomHelpersRuntime()
 ): HTMLElement | null {
     if (typeof selector !== "string" || selector.length === 0) {
         // Match native behavior: throw on empty/invalid selector input.
@@ -115,7 +116,8 @@ export function query(
             'Failed to execute "querySelector" on "Document": The provided selector is empty.'
         );
     }
-    const el = root.querySelector(selector);
+    const queryRoot = root ?? runtime.getDocument();
+    const el = queryRoot.querySelector(selector);
     return isHTMLElement(el) ? el : null;
 }
 
@@ -126,7 +128,8 @@ export function query(
  */
 export function queryAll(
     selector: string,
-    root: ParentNode = document
+    root?: ParentNode,
+    runtime: DomHelpersRuntime = getDomHelpersRuntime()
 ): HTMLElement[] {
     if (typeof selector !== "string" || selector.length === 0) {
         // Match native behavior and test expectation to throw on invalid selectors.
@@ -135,7 +138,8 @@ export function queryAll(
         );
     }
 
-    const list = queryAllSafely(root, selector);
+    const queryRoot = root ?? runtime.getDocument();
+    const list = queryAllSafely(queryRoot, selector);
     if (!list) {
         return [];
     }
@@ -180,9 +184,10 @@ export function removeClass(el: unknown, className: string): void {
  */
 export function requireElement(
     selector: string,
-    root: ParentNode = document
+    root?: ParentNode,
+    runtime: DomHelpersRuntime = getDomHelpersRuntime()
 ): HTMLElement {
-    const el = query(selector, root);
+    const el = query(selector, root, runtime);
     if (!el) {
         throw new Error(`Required element not found: ${selector}`);
     }
