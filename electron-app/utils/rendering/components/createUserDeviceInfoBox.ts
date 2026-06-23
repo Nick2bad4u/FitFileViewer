@@ -130,11 +130,10 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
                 deviceInfos: FitDeviceInfo[];
                 userProfile: FitUserProfileData;
             } = getActiveFitUserDeviceData(),
-            infoBox = document.createElement("div"),
+            infoBox = userDeviceInfoBoxRuntime.createElement("div"),
             themeConfig = getThemeConfig(),
             colors = getInfoBoxThemeColors(themeConfig.colors);
-        const { signal } =
-            userDeviceInfoBoxRuntime.createAbortController();
+        const { signal } = userDeviceInfoBoxRuntime.createAbortController();
 
         // Create info box container with theme-aware styling and hover effects.
         infoBox.className = "user-device-info-box chart-info-section";
@@ -179,7 +178,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
         );
 
         // Add animated border glow effect
-        const glowOverlay = document.createElement("div");
+        const glowOverlay = userDeviceInfoBoxRuntime.createElement("div");
         glowOverlay.style.cssText = `
             position: absolute;
             top: -2px;
@@ -208,7 +207,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
             },
             { signal }
         ); // User Profile Section with enhanced styling
-        const userSection = document.createElement("div");
+        const userSection = userDeviceInfoBoxRuntime.createElement("div");
         userSection.className = "user-profile-section";
         userSection.style.cssText = `
             flex: 1;
@@ -285,7 +284,7 @@ export function createUserDeviceInfoBox(container: HTMLElement): void {
         // Security: sanitize HTML because FIT-derived strings can contain markup.
         // Also strips inline onmouseenter/onmouseleave attributes used in the template string.
         userSection.replaceChildren(sanitizeInfoBoxHtml(rawUserSectionHtml));
-        const deviceSection = document.createElement("div");
+        const deviceSection = userDeviceInfoBoxRuntime.createElement("div");
         deviceSection.className = "device-info-section";
         deviceSection.style.cssText = `
             flex: 1;

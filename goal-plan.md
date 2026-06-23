@@ -518,7 +518,10 @@ Summary column modal tooltip viewport reads and modal listener abort-controller 
 globals from returning.
 User/device info box listener cleanup now creates abort controllers through `createUserDeviceInfoBoxRuntime.ts`
 instead of constructing `AbortController` directly inside `createUserDeviceInfoBox.ts`, with focused runtime
-coverage and architecture guardrails blocking direct controller construction from returning.
+coverage and architecture guardrails blocking direct controller construction from returning. User/device info box
+top-level DOM element creation now also routes through `createUserDeviceInfoBoxRuntime.ts` instead of calling
+`document.createElement` directly inside `createUserDeviceInfoBox.ts`, with focused runtime coverage and
+architecture guardrails blocking those direct creation APIs from returning.
 Map print button listener cleanup, DOM creation, and print dispatch now route through
 `createPrintButtonRuntime.ts` instead of constructing `AbortController` directly inside `createPrintButton.ts`
 or reading document/print globals in the feature module. Production defaults and explicit runtime scopes now use

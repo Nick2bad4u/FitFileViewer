@@ -12859,7 +12859,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps user/device info box listener cleanup behind the runtime facade", () => {
-        expect.assertions(10);
+        expect.assertions(17);
 
         const violations = migratedUserDeviceInfoBoxRuntimeFiles
             .filter((relativeFile) =>
@@ -12893,15 +12893,23 @@ describe("architecture boundaries", () => {
             "createUserDeviceInfoBoxRuntime.js"
         );
         expect(userDeviceInfoBoxSource).toContain("createAbortController");
+        expect(userDeviceInfoBoxSource).toContain(
+            'userDeviceInfoBoxRuntime.createElement("div")'
+        );
+        expect(userDeviceInfoBoxSource).not.toContain("document.createElement");
         expect(userDeviceInfoBoxRuntimeSource).toContain(
             "defaultUserDeviceInfoBoxRuntimeScope"
         );
         expect(userDeviceInfoBoxRuntimeScopeSource).not.toContain(
             "readonly AbortController?:"
         );
+        expect(userDeviceInfoBoxRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
         expect(userDeviceInfoBoxRuntimeSource).not.toContain(
             "scope.AbortController"
         );
+        expect(userDeviceInfoBoxRuntimeSource).not.toContain("scope.document");
         expect(userDeviceInfoBoxRuntimeSource).not.toContain(
             "scope: UserDeviceInfoBoxRuntimeScope = globalThis"
         );
@@ -12912,7 +12920,16 @@ describe("architecture boundaries", () => {
             "getAbortController: () => globalThis.AbortController"
         );
         expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).toContain(
             "const AbortControllerConstructor = scope.getAbortController?.();"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(userDeviceInfoBoxRuntimeSource).toContain(
+            "return runtimeDocument.createElement(tagName);"
         );
     });
 
