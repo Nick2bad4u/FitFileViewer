@@ -52,6 +52,7 @@ type RegisterCleanupTimer = (
 ) => LifecycleListenersTimer;
 
 type ExportDownloadDependencies = {
+    lifecycleRuntime: LifecycleListenersRuntime;
     registerCleanupTimer: RegisterCleanupTimer;
     safePath: string;
 };
@@ -63,6 +64,7 @@ type DecoderReloadDependencies = {
 };
 
 type ExportFileDependencies = {
+    lifecycleRuntime: LifecycleListenersRuntime;
     registerCleanupTimer: RegisterCleanupTimer;
     showNotification: ShowNotification;
 };
@@ -217,16 +219,20 @@ function getRecentFilePath(filePath: RecentFileCandidate): string | null {
 
 function downloadBlob(
     blob: Blob,
-    { registerCleanupTimer, safePath }: ExportDownloadDependencies,
+    {
+        lifecycleRuntime,
+        registerCleanupTimer,
+        safePath,
+    }: ExportDownloadDependencies,
     options: ExportDownloadOptions
 ): void {
-    const anchor = document.createElement("a");
-    anchor.href = URL.createObjectURL(blob);
+    const anchor = lifecycleRuntime.createDownloadAnchor();
+    anchor.href = lifecycleRuntime.createObjectURL(blob);
     anchor.download = buildDownloadFilename(safePath, options);
-    document.body.append(anchor);
+    lifecycleRuntime.appendToBody(anchor);
     anchor.click();
     registerCleanupTimer(() => {
-        URL.revokeObjectURL(anchor.href);
+        lifecycleRuntime.revokeObjectURL(anchor.href);
         anchor.remove();
     }, 100);
 }
@@ -293,7 +299,7 @@ function getHtmlTableRows(table: HTMLTableElement): Record<string, unknown>[] {
 
 function exportGpxFile(
     data: FitData,
-    { registerCleanupTimer, safePath }: ExportDownloadDependencies,
+    dependencies: ExportDownloadDependencies,
     showNotification: ShowNotification
 ): void {
     const records = Array.isArray(data.recordMesgs) ? data.recordMesgs : null;
@@ -323,7 +329,7 @@ function exportGpxFile(
         new Blob([gpx], {
             type: "application/gpx+xml;charset=utf-8",
         }),
-        { registerCleanupTimer, safePath },
+        dependencies,
         {
             defaultExtension: "gpx",
             fallbackBase: trackName || "export",
@@ -333,7 +339,11 @@ function exportGpxFile(
 
 function handleExportFileRequest(
     filePath: unknown,
-    { registerCleanupTimer, showNotification }: ExportFileDependencies
+    {
+        lifecycleRuntime,
+        registerCleanupTimer,
+        showNotification,
+    }: ExportFileDependencies
 ): void {
     const data = getManagedFitData();
     if (!data) {
@@ -342,7 +352,11 @@ function handleExportFileRequest(
 
     const safePath = typeof filePath === "string" ? filePath : "";
     const ext = sanitizeFileExtension(safePath.split(".").pop() ?? "");
-    const downloadDependencies = { registerCleanupTimer, safePath };
+    const downloadDependencies = {
+        lifecycleRuntime,
+        registerCleanupTimer,
+        safePath,
+    };
 
     if (ext === "csv") {
         exportCsvFile(data, downloadDependencies);
@@ -496,6 +510,7 @@ function registerNamedLifecycleIpcListeners({
     trackUnsubscribe(
         electronAPI.onExportFile?.((filePath: unknown) => {
             handleExportFileRequest(filePath, {
+                lifecycleRuntime,
                 registerCleanupTimer,
                 showNotification,
             });

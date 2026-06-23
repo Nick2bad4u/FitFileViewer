@@ -85,6 +85,45 @@ describe("getLifecycleListenersRuntime", () => {
         expect(runtime.isTestEnvironment()).toBe(true);
     });
 
+    it("routes download DOM and URL helpers through injected runtime providers", () => {
+        expect.assertions(8);
+
+        const anchor = document.createElement("a");
+        const append = vi.spyOn(document.body, "append");
+        const createElement = vi.fn<typeof document.createElement>(
+            () => anchor
+        );
+        const blobUrl = "blob:lifecycle-listeners-test";
+        const createObjectURL = vi.fn<(blob: Blob) => string>(() => blobUrl);
+        const revokeObjectURL = vi.fn<(url: string) => void>();
+        const runtime = getLifecycleListenersRuntime({
+            getDocument: () => ({
+                body: document.body,
+                createElement,
+            }),
+            getURL: () => ({
+                createObjectURL,
+                revokeObjectURL,
+            }),
+        });
+        const blob = new Blob(["test"]);
+
+        expect(runtime.createDownloadAnchor()).toBe(anchor);
+        runtime.appendToBody(anchor);
+        expect(runtime.createObjectURL(blob)).toBe(blobUrl);
+        runtime.revokeObjectURL(blobUrl);
+
+        expect(createElement).toHaveBeenCalledWith("a");
+        expect(append).toHaveBeenCalledWith(anchor);
+        expect(createObjectURL).toHaveBeenCalledWith(blob);
+        expect(revokeObjectURL).toHaveBeenCalledWith(blobUrl);
+        expect(anchor.parentElement).toBe(document.body);
+        expect(anchor.tagName).toBe("A");
+
+        anchor.remove();
+        append.mockRestore();
+    });
+
     it("throws when print is unavailable", () => {
         expect.assertions(1);
 
@@ -96,7 +135,7 @@ describe("getLifecycleListenersRuntime", () => {
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(2);
+        expect.assertions(6);
 
         const runtime = getLifecycleListenersRuntime({});
 
@@ -108,10 +147,22 @@ describe("getLifecycleListenersRuntime", () => {
                 23 as ReturnType<typeof globalThis.setTimeout>
             );
         }).toThrow("lifecycle listeners require a clearTimeout runtime");
+        expect(() => runtime.createDownloadAnchor()).toThrow(
+            "lifecycle listeners require a document runtime"
+        );
+        expect(() => runtime.appendToBody(document.createElement("a"))).toThrow(
+            "lifecycle listeners require a document runtime"
+        );
+        expect(() => runtime.createObjectURL(new Blob(["test"]))).toThrow(
+            "lifecycle listeners require a URL runtime"
+        );
+        expect(() => runtime.revokeObjectURL("blob:test")).toThrow(
+            "lifecycle listeners require a URL runtime"
+        );
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(5);
+        expect.assertions(9);
 
         const controller = new AbortController();
         const AbortControllerConstructor = vi.fn(
@@ -132,6 +183,13 @@ describe("getLifecycleListenersRuntime", () => {
                 },
             },
             setTimeout: vi.fn<typeof globalThis.setTimeout>(() => timer),
+            URL: {
+                createObjectURL: vi.fn<(blob: Blob) => string>(
+                    () => "blob:legacy"
+                ),
+                revokeObjectURL: vi.fn<(url: string) => void>(),
+            },
+            document,
         } as unknown as LifecycleListenersRuntimeScope;
         const runtime = getLifecycleListenersRuntime(legacyScope);
 
@@ -143,6 +201,18 @@ describe("getLifecycleListenersRuntime", () => {
         );
         expect(() => runtime.print()).toThrow(
             "lifecycle listeners require a print runtime"
+        );
+        expect(() => runtime.createDownloadAnchor()).toThrow(
+            "lifecycle listeners require a document runtime"
+        );
+        expect(() => runtime.appendToBody(document.createElement("a"))).toThrow(
+            "lifecycle listeners require a document runtime"
+        );
+        expect(() => runtime.createObjectURL(new Blob(["test"]))).toThrow(
+            "lifecycle listeners require a URL runtime"
+        );
+        expect(() => runtime.revokeObjectURL("blob:legacy")).toThrow(
+            "lifecycle listeners require a URL runtime"
         );
         expect(runtime.isTestEnvironment()).toBe(false);
         expect(AbortControllerConstructor).not.toHaveBeenCalled();

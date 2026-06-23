@@ -1,6 +1,8 @@
 export type LifecycleListenersTimer = ReturnType<typeof globalThis.setTimeout>;
 
+type LifecycleListenersDocument = Pick<Document, "body" | "createElement">;
 type LifecycleListenersPrint = () => void;
+type LifecycleListenersURL = Pick<typeof URL, "createObjectURL" | "revokeObjectURL">;
 
 interface LifecycleListenersProcess {
     readonly env?: Readonly<Record<string, string | undefined>>;
@@ -13,6 +15,9 @@ export interface LifecycleListenersRuntimeScope {
     readonly getClearTimeout?:
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
+    readonly getDocument?:
+        | (() => LifecycleListenersDocument | undefined)
+        | undefined;
     readonly getPrint?: (() => LifecycleListenersPrint | undefined) | undefined;
     readonly getProcess?:
         | (() => LifecycleListenersProcess | undefined)
@@ -20,13 +25,18 @@ export interface LifecycleListenersRuntimeScope {
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
+    readonly getURL?: (() => LifecycleListenersURL | undefined) | undefined;
 }
 
 export interface LifecycleListenersRuntime {
+    readonly appendToBody: (element: HTMLElement) => void;
     readonly clearTimeout: (handle: LifecycleListenersTimer) => void;
     readonly createAbortController: () => AbortController;
+    readonly createDownloadAnchor: () => HTMLAnchorElement;
+    readonly createObjectURL: (blob: Blob) => string;
     readonly isTestEnvironment: () => boolean;
     readonly print: () => void;
+    readonly revokeObjectURL: (url: string) => void;
     readonly setTimeout: (
         callback: () => void,
         delayMs: number
@@ -52,15 +62,45 @@ function getGlobalPrint(): LifecycleListenersPrint | undefined {
 const defaultLifecycleListenersRuntimeScope: LifecycleListenersRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getClearTimeout: () => globalThis.clearTimeout,
+    getDocument: () => globalThis.document,
     getPrint: getGlobalPrint,
     getProcess: getGlobalProcess,
     getSetTimeout: () => globalThis.setTimeout,
+    getURL: () => globalThis.URL,
 };
+
+function getRequiredDocument(
+    scope: LifecycleListenersRuntimeScope
+): LifecycleListenersDocument {
+    const documentRef = scope.getDocument?.();
+    if (!documentRef) {
+        throw new TypeError("lifecycle listeners require a document runtime");
+    }
+
+    return documentRef;
+}
+
+function getRequiredURL(
+    scope: LifecycleListenersRuntimeScope
+): LifecycleListenersURL {
+    const URLRef = scope.getURL?.();
+    if (
+        typeof URLRef?.createObjectURL !== "function" ||
+        typeof URLRef.revokeObjectURL !== "function"
+    ) {
+        throw new TypeError("lifecycle listeners require a URL runtime");
+    }
+
+    return URLRef;
+}
 
 export function getLifecycleListenersRuntime(
     scope: LifecycleListenersRuntimeScope = defaultLifecycleListenersRuntimeScope
 ): LifecycleListenersRuntime {
     return {
+        appendToBody(element): void {
+            getRequiredDocument(scope).body.append(element);
+        },
         clearTimeout(handle): void {
             const clearTimeoutRef = scope.getClearTimeout?.();
             if (typeof clearTimeoutRef !== "function") {
@@ -81,6 +121,12 @@ export function getLifecycleListenersRuntime(
 
             return new AbortControllerConstructor();
         },
+        createDownloadAnchor(): HTMLAnchorElement {
+            return getRequiredDocument(scope).createElement("a");
+        },
+        createObjectURL(blob): string {
+            return getRequiredURL(scope).createObjectURL(blob);
+        },
         isTestEnvironment(): boolean {
             return scope.getProcess?.()?.env?.["NODE_ENV"] === "test";
         },
@@ -93,6 +139,9 @@ export function getLifecycleListenersRuntime(
             }
 
             printRef();
+        },
+        revokeObjectURL(url): void {
+            getRequiredURL(scope).revokeObjectURL(url);
         },
         setTimeout(callback, delayMs): LifecycleListenersTimer {
             const setTimeoutRef = scope.getSetTimeout?.();

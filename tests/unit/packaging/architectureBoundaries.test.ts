@@ -8742,7 +8742,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps lifecycle listener cleanup timers and abort controllers behind the runtime adapter", () => {
-        expect.assertions(26);
+        expect.assertions(37);
 
         const lifecycleListenersSource = stripComments(
             readRepositoryFile("electron-app/utils/app/lifecycle/listeners.ts")
@@ -8754,13 +8754,19 @@ describe("architecture boundaries", () => {
         );
         const directLifecycleListenersTimerGlobalPattern =
             /\b(?:globalThis|window)\.(?:clearTimeout|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+        const directLifecycleListenersDownloadGlobalPattern =
+            /\bURL\.(?:createObjectURL|revokeObjectURL)\b|\bdocument\.createElement\(\s*["']a["']\s*\)|\bdocument\.body\.append\b/u;
         const directLifecycleListenersAmbientTimerFallbackPattern =
             /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
         const directLifecycleListenersAmbientScopePattern =
-            /\bscope\.(?:AbortController|clearTimeout|print|process|setTimeout)\b|\bscope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultLifecycleListenersRuntimeScope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b/u;
+            /\bscope\.(?:AbortController|clearTimeout|document|print|process|setTimeout|URL)\b|\bscope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultLifecycleListenersRuntimeScope:\s*LifecycleListenersRuntimeScope\s*=\s*globalThis\b/u;
 
         expect(lifecycleListenersSource).toContain("listenersRuntime.js");
         expect(lifecycleListenersSource).toContain("createAbortController");
+        expect(lifecycleListenersSource).toContain("createDownloadAnchor");
+        expect(lifecycleListenersSource).toContain(
+            "lifecycleRuntime.createObjectURL"
+        );
         expect(lifecycleListenersSource).not.toContain("lifecycleGlobal");
         expect(lifecycleListenersSource).toContain(
             "runtime.isTestEnvironment()"
@@ -8768,6 +8774,11 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersSource).toContain("lifecycleRuntime.print()");
         expect(
             directLifecycleListenersTimerGlobalPattern.test(
+                lifecycleListenersSource
+            )
+        ).toBe(false);
+        expect(
+            directLifecycleListenersDownloadGlobalPattern.test(
                 lifecycleListenersSource
             )
         ).toBe(false);
@@ -8786,11 +8797,20 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersRuntimeSource).toContain(
             "lifecycle listeners require a setTimeout runtime"
         );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "lifecycle listeners require a document runtime"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "lifecycle listeners require a URL runtime"
+        );
         expect(lifecycleListenersRuntimeSource).not.toContain(
             "readonly AbortController?:"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
             "readonly clearTimeout?:"
+        );
+        expect(lifecycleListenersRuntimeSource).not.toContain(
+            "readonly document?:"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
             "readonly print?:"
@@ -8801,22 +8821,28 @@ describe("architecture boundaries", () => {
         expect(lifecycleListenersRuntimeSource).not.toContain(
             "readonly setTimeout?:"
         );
+        expect(lifecycleListenersRuntimeSource).not.toContain("readonly URL?:");
         expect(lifecycleListenersRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(lifecycleListenersRuntimeSource).not.toContain(
             "scope.clearTimeout"
         );
+        expect(lifecycleListenersRuntimeSource).not.toContain("scope.document");
         expect(lifecycleListenersRuntimeSource).not.toContain("scope.print");
         expect(lifecycleListenersRuntimeSource).not.toContain("scope.process");
         expect(lifecycleListenersRuntimeSource).not.toContain(
             "scope.setTimeout"
         );
+        expect(lifecycleListenersRuntimeSource).not.toContain("scope.URL");
         expect(lifecycleListenersRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(lifecycleListenersRuntimeSource).toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
         );
         expect(lifecycleListenersRuntimeSource).toContain(
             "getPrint: getGlobalPrint"
@@ -8826,6 +8852,9 @@ describe("architecture boundaries", () => {
         );
         expect(lifecycleListenersRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
+        );
+        expect(lifecycleListenersRuntimeSource).toContain(
+            "getURL: () => globalThis.URL"
         );
     });
 
