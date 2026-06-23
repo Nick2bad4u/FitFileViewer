@@ -75,7 +75,7 @@ export function addLapSelector(
     }
     const availableLapMesgs = lapMesgs;
 
-    const lapControl = document.createElement("div");
+    const lapControl = mapLapSelectorRuntime.createElement("div");
     lapControl.className =
         "custom-lap-control-container leaflet-bottom leaflet-left";
     const eventController = mapLapSelectorRuntime.createAbortController();
@@ -107,7 +107,7 @@ export function addLapSelector(
         iconName: LapControlIconName,
         size = 16
     ): HTMLElement => {
-        const icon = document.createElement("span");
+        const icon = mapLapSelectorRuntime.createElement("span");
         icon.className = "icon";
         icon.append(
             createAppIconElement(iconName, {
@@ -119,58 +119,58 @@ export function addLapSelector(
         return icon;
     };
 
-    const bar = document.createElement("div");
+    const bar = mapLapSelectorRuntime.createElement("div");
     bar.className = "custom-lap-control leaflet-bar";
 
-    const multiLapToggle = document.createElement("button");
+    const multiLapToggle = mapLapSelectorRuntime.createElement("button");
     multiLapToggle.id = "multi-lap-toggle";
     multiLapToggle.className = "multi-lap-toggle";
     multiLapToggle.type = "button";
     multiLapToggle.title =
         "Enable multi-lap mode: select multiple laps by clicking or dragging. Click again to return to single-lap mode.";
     multiLapToggle.append(createControlIcon("timer"));
-    const lapsText = document.createElement("span");
+    const lapsText = mapLapSelectorRuntime.createElement("span");
     lapsText.textContent = "Laps:";
     lapsText.style.color = safeColors.text;
     lapsText.style.marginLeft = "4px";
     multiLapToggle.append(lapsText);
 
-    const deselectAllBtn = document.createElement("button");
+    const deselectAllBtn = mapLapSelectorRuntime.createElement("button");
     deselectAllBtn.id = "deselect-all-btn";
     deselectAllBtn.className = "deselect-all-btn";
     deselectAllBtn.title = "Deselect all laps (Esc)";
     deselectAllBtn.append(createControlIcon("circleX"));
 
-    const label = document.createElement("label");
+    const label = mapLapSelectorRuntime.createElement("label");
     // Avoid redundant "Laps: Lap:" UI (multiLapToggle already indicates purpose).
     // Keep a label for accessibility but hide it visually.
     label.className = "lap-label visually-hidden";
     label.htmlFor = "lap-select";
     label.textContent = "Lap selection";
 
-    const lapSelect = document.createElement("select");
+    const lapSelect = mapLapSelectorRuntime.createElement("select");
     lapSelect.id = "lap-select";
     lapSelect.setAttribute("aria-label", "Lap selection");
-    const allOption = document.createElement("option");
+    const allOption = mapLapSelectorRuntime.createElement("option");
     allOption.value = "all";
     allOption.textContent = "All";
     lapSelect.append(allOption);
     for (let i = 0; i < availableLapMesgs.length; i += 1) {
-        const opt = document.createElement("option");
+        const opt = mapLapSelectorRuntime.createElement("option");
         opt.value = String(i);
         opt.textContent = `Lap ${i + 1}`;
         lapSelect.append(opt);
     }
 
     // Help tooltip (themed) for lap selector usage
-    const helpBtn = document.createElement("button");
+    const helpBtn = mapLapSelectorRuntime.createElement("button");
     helpBtn.type = "button";
     helpBtn.className = "lap-help-btn";
     helpBtn.setAttribute("aria-label", "Lap selection help");
     helpBtn.setAttribute("aria-expanded", "false");
     helpBtn.append(createControlIcon("circleHelp"));
 
-    const helpTooltip = document.createElement("div");
+    const helpTooltip = mapLapSelectorRuntime.createElement("div");
     helpTooltip.id = "lap-help-tooltip";
     helpTooltip.className = "ffv-map-tooltip";
     helpTooltip.setAttribute("role", "tooltip");

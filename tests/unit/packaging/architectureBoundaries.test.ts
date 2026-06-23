@@ -10575,8 +10575,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps map lap-selector document listeners behind the runtime facade", () => {
-        expect.assertions(17);
+    it("keeps map lap-selector document access behind the runtime facade", () => {
+        expect.assertions(20);
 
         const violations = migratedMapLapSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -10597,6 +10597,10 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(mapLapSelectorSource).toContain("mapLapSelectorRuntime.js");
         expect(mapLapSelectorSource).toContain("createAbortController");
+        expect(mapLapSelectorSource).toContain(
+            "mapLapSelectorRuntime.createElement"
+        );
+        expect(mapLapSelectorSource).not.toContain("document.createElement");
         expect(mapLapSelectorRuntimeSource).toContain(
             "defaultMapLapSelectorRuntimeScope"
         );
@@ -10624,6 +10628,9 @@ describe("architecture boundaries", () => {
         expect(mapLapSelectorRuntimeSource).not.toContain("scope.document");
         expect(mapLapSelectorRuntimeSource).toContain(
             "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(mapLapSelectorRuntimeSource).toContain(
+            "return runtimeDocument.createElement(tagName);"
         );
         expect(mapLapSelectorRuntimeSource).toContain(
             "const AbortControllerConstructor = scope.getAbortController?.();"

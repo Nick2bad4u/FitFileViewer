@@ -38,6 +38,24 @@ describe("getMapLapSelectorRuntime", () => {
         }).toThrow("mapLapSelector requires an AbortController runtime");
     });
 
+    it("creates elements through the injected document", () => {
+        expect.assertions(2);
+
+        const element = document.createElement("button");
+        const runtime = getMapLapSelectorRuntime({
+            getDocument: () =>
+                ({
+                    createElement: (tagName: string) => {
+                        expect(tagName).toBe("button");
+
+                        return element;
+                    },
+                }) as Pick<Document, "createElement">,
+        });
+
+        expect(runtime.createElement("button")).toBe(element);
+    });
+
     it("registers and removes document mouseup listeners through the injected document", () => {
         expect.assertions(2);
 
@@ -100,7 +118,7 @@ describe("getMapLapSelectorRuntime", () => {
     });
 
     it("fails clearly when the document runtime is unavailable", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const runtime = getMapLapSelectorRuntime({});
         const controller = new AbortController();
@@ -123,6 +141,9 @@ describe("getMapLapSelectorRuntime", () => {
             });
         }).toThrow("mapLapSelector requires a document runtime");
         expect(() => {
+            runtime.createElement("div");
+        }).toThrow("mapLapSelector requires a document runtime");
+        expect(() => {
             runtime.removeDocumentKeydownListener(keydownListener);
         }).toThrow("mapLapSelector requires a document runtime");
         expect(() => {
@@ -135,7 +156,7 @@ describe("getMapLapSelectorRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const eventTarget = new EventTarget();
         const documentRef = createDocumentRuntime(eventTarget);
@@ -151,14 +172,24 @@ describe("getMapLapSelectorRuntime", () => {
         expect(() => {
             runtime.addDocumentMouseupListener(() => undefined, {});
         }).toThrow("mapLapSelector requires a document runtime");
+        expect(() => {
+            runtime.createElement("div");
+        }).toThrow("mapLapSelector requires a document runtime");
     });
 });
 
 function createDocumentRuntime(
     eventTarget: EventTarget
-): Pick<Document, "addEventListener" | "removeEventListener"> {
+): Pick<
+    Document,
+    "addEventListener" | "createElement" | "removeEventListener"
+> {
     return {
         addEventListener: eventTarget.addEventListener.bind(eventTarget),
+        createElement: document.createElement.bind(document),
         removeEventListener: eventTarget.removeEventListener.bind(eventTarget),
-    } as Pick<Document, "addEventListener" | "removeEventListener">;
+    } as Pick<
+        Document,
+        "addEventListener" | "createElement" | "removeEventListener"
+    >;
 }

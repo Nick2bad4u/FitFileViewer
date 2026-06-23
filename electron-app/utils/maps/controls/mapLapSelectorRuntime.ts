@@ -1,6 +1,6 @@
 type MapLapSelectorDocument = Pick<
     Document,
-    "addEventListener" | "removeEventListener"
+    "addEventListener" | "createElement" | "removeEventListener"
 >;
 type MapLapSelectorKeydownListener = (event: Readonly<KeyboardEvent>) => void;
 type MapLapSelectorMouseListener = (event: Readonly<MouseEvent>) => void;
@@ -28,6 +28,9 @@ export interface MapLapSelectorRuntime {
         options: Readonly<AddEventListenerOptions>
     ) => void;
     readonly createAbortController: () => AbortController;
+    readonly createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
     readonly removeDocumentKeydownListener: (
         listener: MapLapSelectorKeydownListener
     ) => void;
@@ -86,6 +89,11 @@ export function getMapLapSelectorRuntime(
             }
 
             return new AbortControllerConstructor();
+        },
+        createElement(tagName) {
+            const runtimeDocument = getRuntimeDocument(scope);
+
+            return runtimeDocument.createElement(tagName);
         },
         removeDocumentKeydownListener(listener): void {
             const runtimeDocument = getRuntimeDocument(scope);
