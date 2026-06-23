@@ -320,7 +320,7 @@ function applyColor(color: string): void {
 }
 
 function createModal(): HTMLDivElement {
-    const modal = document.createElement("div");
+    const modal = accentColorPickerRuntime.createElement("div");
     modal.id = "accent-color-modal";
     modal.className = "accent-picker-modal";
     modal.setAttribute("aria-hidden", "true");
@@ -338,7 +338,7 @@ function createModal(): HTMLDivElement {
 }
 
 function createModalContent(): HTMLDivElement {
-    const content = document.createElement("div");
+    const content = accentColorPickerRuntime.createElement("div");
     content.className = "accent-picker-content";
     content.append(createModalHeader(), createModalBody(), createModalFooter());
 
@@ -346,14 +346,14 @@ function createModalContent(): HTMLDivElement {
 }
 
 function createModalHeader(): HTMLDivElement {
-    const header = document.createElement("div");
+    const header = accentColorPickerRuntime.createElement("div");
     header.className = "accent-picker-header";
 
-    const title = document.createElement("h2");
+    const title = accentColorPickerRuntime.createElement("h2");
     title.id = "accent-picker-title";
     title.textContent = "Customize Accent Color";
 
-    const close = document.createElement("button");
+    const close = accentColorPickerRuntime.createElement("button");
     close.setAttribute("aria-label", "Close accent color picker");
     close.className = "close-btn";
     close.id = "accent-picker-close";
@@ -366,7 +366,7 @@ function createModalHeader(): HTMLDivElement {
 }
 
 function createModalBody(): HTMLDivElement {
-    const body = document.createElement("div");
+    const body = accentColorPickerRuntime.createElement("div");
     body.className = "accent-picker-body";
     body.append(
         createCurrentThemeSection(),
@@ -379,33 +379,33 @@ function createModalBody(): HTMLDivElement {
 }
 
 function createCurrentThemeSection(): HTMLDivElement {
-    const section = document.createElement("div");
+    const section = accentColorPickerRuntime.createElement("div");
     section.className = "current-theme-info";
 
-    const label = document.createElement("strong");
+    const label = accentColorPickerRuntime.createElement("strong");
     label.textContent = "Current Theme:";
 
-    const themeName = document.createElement("span");
+    const themeName = accentColorPickerRuntime.createElement("span");
     themeName.id = "current-theme-name";
 
-    section.append(label, document.createTextNode(" "), themeName);
+    section.append(label, accentColorPickerRuntime.createTextNode(" "), themeName);
 
     return section;
 }
 
 function createColorPreviewSection(): HTMLDivElement {
-    const section = document.createElement("div");
+    const section = accentColorPickerRuntime.createElement("div");
     section.className = "color-preview-section";
 
-    const label = document.createElement("div");
+    const label = accentColorPickerRuntime.createElement("div");
     label.className = "preview-label";
     label.textContent = "Current Accent Color:";
 
-    const preview = document.createElement("div");
+    const preview = accentColorPickerRuntime.createElement("div");
     preview.className = "color-preview";
     preview.id = "accent-color-preview";
 
-    const hex = document.createElement("div");
+    const hex = accentColorPickerRuntime.createElement("div");
     hex.className = "preview-hex";
     hex.id = "accent-color-hex";
 
@@ -415,7 +415,7 @@ function createColorPreviewSection(): HTMLDivElement {
 }
 
 function createPresetColorSection(): HTMLDivElement {
-    const section = document.createElement("div");
+    const section = accentColorPickerRuntime.createElement("div");
     section.className = "preset-colors-section";
     section.append(
         createSectionTitle("Preset Colors"),
@@ -426,21 +426,21 @@ function createPresetColorSection(): HTMLDivElement {
 }
 
 function createCustomColorSection(): HTMLDivElement {
-    const section = document.createElement("div");
+    const section = accentColorPickerRuntime.createElement("div");
     section.className = "custom-color-section";
 
-    const inputRow = document.createElement("div");
+    const inputRow = accentColorPickerRuntime.createElement("div");
     inputRow.className = "custom-color-input";
 
-    const label = document.createElement("label");
+    const label = accentColorPickerRuntime.createElement("label");
     label.htmlFor = "custom-color-picker";
     label.textContent = "Pick a color:";
 
-    const picker = document.createElement("input");
+    const picker = accentColorPickerRuntime.createElement("input");
     picker.type = "color";
     picker.id = "custom-color-picker";
 
-    const text = document.createElement("input");
+    const text = accentColorPickerRuntime.createElement("input");
     text.type = "text";
     text.id = "custom-color-text";
     text.placeholder = "#3b82f6";
@@ -453,16 +453,16 @@ function createCustomColorSection(): HTMLDivElement {
 }
 
 function createModalFooter(): HTMLDivElement {
-    const footer = document.createElement("div");
+    const footer = accentColorPickerRuntime.createElement("div");
     footer.className = "accent-picker-footer";
 
-    const reset = document.createElement("button");
+    const reset = accentColorPickerRuntime.createElement("button");
     reset.className = "btn-reset";
     reset.id = "accent-color-reset";
     reset.type = "button";
     reset.textContent = "Reset to Default";
 
-    const apply = document.createElement("button");
+    const apply = accentColorPickerRuntime.createElement("button");
     apply.className = "btn-apply";
     apply.id = "accent-color-apply";
     apply.type = "button";
@@ -474,7 +474,7 @@ function createModalFooter(): HTMLDivElement {
 }
 
 function createSectionTitle(text: string): HTMLDivElement {
-    const title = document.createElement("div");
+    const title = accentColorPickerRuntime.createElement("div");
     title.className = "section-title";
     title.textContent = text;
 
@@ -482,7 +482,7 @@ function createSectionTitle(text: string): HTMLDivElement {
 }
 
 function createEmptyContainer(className: string, id: string): HTMLDivElement {
-    const container = document.createElement("div");
+    const container = accentColorPickerRuntime.createElement("div");
     container.className = className;
     container.id = id;
 
@@ -498,7 +498,7 @@ function renderPresetColors(modal: HTMLElement, signal: AbortSignal): void {
     container.replaceChildren();
 
     for (const preset of PRESET_COLORS) {
-        const button = document.createElement("button");
+        const button = accentColorPickerRuntime.createElement("button");
         button.type = "button";
         button.className = "preset-color";
         button.dataset["hex"] = preset.hex;

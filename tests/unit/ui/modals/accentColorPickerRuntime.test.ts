@@ -57,8 +57,8 @@ describe("getAccentColorPickerRuntime", () => {
         expect(documentEventTarget.head.childElementCount).toBe(0);
     });
 
-    it("routes modal and style DOM access through the injected document", () => {
-        expect.assertions(15);
+    it("routes modal, style, and element creation through the injected document", () => {
+        expect.assertions(19);
 
         const documentRef = document.implementation.createHTMLDocument();
         const runtime = getAccentColorPickerRuntime({
@@ -74,11 +74,17 @@ describe("getAccentColorPickerRuntime", () => {
         input.tabIndex = 0;
         const button = documentRef.createElement("button");
         button.className = "preset-color";
+        const createdButton = runtime.createElement("button");
+        const textNode = runtime.createTextNode("accent");
         const style = runtime.createStyleElement();
         style.id = "accent-picker-styles";
 
         expect(runtime.getModalElement()).toBeNull();
         expect(runtime.hasStyleElement()).toBe(false);
+        expect(createdButton.tagName).toBe("BUTTON");
+        expect(textNode.textContent).toBe("accent");
+        expect(createdButton.ownerDocument).toBe(documentRef);
+        expect(textNode.ownerDocument).toBe(documentRef);
         expect(style.tagName).toBe("STYLE");
         expect(runtime.getElement("#accent-input")).toBeNull();
 
@@ -101,7 +107,7 @@ describe("getAccentColorPickerRuntime", () => {
     });
 
     it("fails clearly when explicit runtime dependencies are unavailable", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         const runtime = getAccentColorPickerRuntime({});
 
@@ -117,7 +123,13 @@ describe("getAccentColorPickerRuntime", () => {
         expect(() => runtime.hasStyleElement()).toThrow(
             "accentColorPicker requires a document runtime"
         );
+        expect(() => runtime.createElement("div")).toThrow(
+            "accentColorPicker requires a document runtime"
+        );
         expect(() => runtime.createStyleElement()).toThrow(
+            "accentColorPicker requires a document runtime"
+        );
+        expect(() => runtime.createTextNode("accent")).toThrow(
             "accentColorPicker requires a document runtime"
         );
         expect(() => runtime.getActiveElement()).toThrow(
@@ -164,7 +176,7 @@ describe("getAccentColorPickerRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(8);
+        expect.assertions(10);
 
         class LegacyAbortController implements AbortController {
             public readonly signal = Symbol(
@@ -195,7 +207,13 @@ describe("getAccentColorPickerRuntime", () => {
         expect(() =>
             runtime.appendModal(document.createElement("div"))
         ).toThrow("accentColorPicker requires a document runtime");
+        expect(() => runtime.createElement("div")).toThrow(
+            "accentColorPicker requires a document runtime"
+        );
         expect(() => runtime.createStyleElement()).toThrow(
+            "accentColorPicker requires a document runtime"
+        );
+        expect(() => runtime.createTextNode("accent")).toThrow(
             "accentColorPicker requires a document runtime"
         );
         expect(() => runtime.getElement("#accent-color-modal")).toThrow(

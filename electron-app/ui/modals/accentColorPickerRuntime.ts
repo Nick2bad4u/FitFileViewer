@@ -23,7 +23,11 @@ export interface AccentColorPickerRuntime {
     appendModal: (modal: HTMLElement) => void;
     appendStyle: (style: HTMLStyleElement) => void;
     createAbortController: () => AbortController;
+    createElement: <K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ) => HTMLElementTagNameMap[K];
     createStyleElement: () => HTMLStyleElement;
+    createTextNode: (data: string) => Text;
     getActiveElement: () => HTMLElement | undefined;
     getElement: <TElement extends Element = Element>(
         selector: string
@@ -114,8 +118,16 @@ export function getAccentColorPickerRuntime(
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
         },
+        createElement<K extends keyof HTMLElementTagNameMap>(
+            tagName: K
+        ): HTMLElementTagNameMap[K] {
+            return getRequiredDocument(scope).createElement(tagName);
+        },
         createStyleElement(): HTMLStyleElement {
             return getRequiredDocument(scope).createElement("style");
+        },
+        createTextNode(data): Text {
+            return getRequiredDocument(scope).createTextNode(data);
         },
         getActiveElement(): HTMLElement | undefined {
             const activeElement = getRequiredDocument(scope).activeElement;

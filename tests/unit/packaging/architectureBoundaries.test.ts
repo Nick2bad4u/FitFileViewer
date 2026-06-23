@@ -7821,8 +7821,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps accent color picker listener and open/style browser access behind the runtime facade", () => {
-        expect.assertions(52);
+    it("keeps accent color picker browser access behind the runtime facade", () => {
+        expect.assertions(58);
 
         const accentColorPickerSource = stripComments(
             readRepositoryFile("electron-app/ui/modals/accentColorPicker.ts")
@@ -7846,7 +7846,9 @@ describe("architecture boundaries", () => {
         expect(accentColorPickerSource).toContain("getModalElement");
         expect(accentColorPickerSource).toContain("appendModal");
         expect(accentColorPickerSource).toContain("hasStyleElement");
+        expect(accentColorPickerSource).toContain("createElement");
         expect(accentColorPickerSource).toContain("createStyleElement");
+        expect(accentColorPickerSource).toContain("createTextNode");
         expect(accentColorPickerSource).toContain("appendStyle");
         expect(accentColorPickerSource).toContain("getActiveElement");
         expect(accentColorPickerSource).toContain("getElement");
@@ -7872,6 +7874,10 @@ describe("architecture boundaries", () => {
         );
         expect(accentColorPickerSource).not.toContain(
             'document.createElement("style")'
+        );
+        expect(accentColorPickerSource).not.toContain("document.createElement");
+        expect(accentColorPickerSource).not.toContain(
+            "document.createTextNode"
         );
         expect(accentColorPickerSource).not.toContain(
             "document.body.append(modal)"
@@ -7912,6 +7918,12 @@ describe("architecture boundaries", () => {
         );
         expect(accentColorPickerRuntimeSource).toContain(
             "accentColorPicker requires a document runtime"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "getRequiredDocument(scope).createElement(tagName)"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "getRequiredDocument(scope).createTextNode(data)"
         );
         expect(accentColorPickerRuntimeSource).toContain(
             "accentColorPicker requires an HTMLElement runtime"
