@@ -91,7 +91,7 @@ describe("electronApiRuntime", () => {
         ).toBeNull();
     });
 
-    it("uses globalThis as the default scope", () => {
+    it("does not read ambient globals from the default scope", () => {
         expect.assertions(1);
 
         const api = {
@@ -99,10 +99,10 @@ describe("electronApiRuntime", () => {
         };
         vi.stubGlobal("electronAPI", api);
 
-        expect(getRendererElectronApi(isExternalOpenApi)).toBe(api);
+        expect(getRendererElectronApi(isExternalOpenApi)).toBeNull();
     });
 
-    it("prefers a registered API candidate over ambient globals", () => {
+    it("uses a registered API candidate instead of ambient globals", () => {
         expect.assertions(2);
 
         const ambientApi = {
@@ -117,6 +117,6 @@ describe("electronApiRuntime", () => {
         expect(getRendererElectronApi(isExternalOpenApi)).toBe(registeredApi);
 
         resetRendererElectronApiCandidate();
-        expect(getRendererElectronApi(isExternalOpenApi)).toBe(ambientApi);
+        expect(getRendererElectronApi(isExternalOpenApi)).toBeNull();
     });
 });

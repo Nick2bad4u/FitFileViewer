@@ -17755,7 +17755,7 @@ describe("architecture boundaries", () => {
         expect(electronApiRuntimeSource).toContain(
             "defaultRendererElectronApiScope"
         );
-        expect(electronApiRuntimeSource).toContain(
+        expect(electronApiRuntimeSource).not.toContain(
             'getElectronAPI: () => Reflect.get(globalThis, "electronAPI")'
         );
         expect(electronApiRuntimeSource).not.toContain(

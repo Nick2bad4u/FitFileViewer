@@ -6,6 +6,10 @@ import {
     validateElectronAPI,
     validateElement,
 } from "../../../../electron-app/utils/ui/mainUiDomUtils.js";
+import {
+    registerRendererElectronApiCandidate,
+    resetRendererElectronApiCandidate,
+} from "../../../../electron-app/utils/runtime/electronApiRuntime.js";
 
 function getRequiredMockCall<T extends unknown[]>(calls: T[], index = 0): T {
     const call = calls[index];
@@ -19,6 +23,7 @@ function getRequiredMockCall<T extends unknown[]>(calls: T[], index = 0): T {
 
 function resetTestState(): void {
     cleanupEventListeners();
+    resetRendererElectronApiCandidate();
     document.body.replaceChildren();
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
@@ -131,7 +136,9 @@ describe("mainUiDomUtils", () => {
 
         resetTestState();
 
-        vi.stubGlobal("electronAPI", { decodeFitFile: "not-a-function" });
+        registerRendererElectronApiCandidate({
+            decodeFitFile: "not-a-function",
+        });
 
         expect({ isValid: validateElectronAPI() }).toStrictEqual({
             isValid: false,
@@ -145,7 +152,7 @@ describe("mainUiDomUtils", () => {
 
         resetTestState();
 
-        vi.stubGlobal("electronAPI", {
+        registerRendererElectronApiCandidate({
             decodeFitFile: vi.fn<(buffer: ArrayBuffer) => unknown>(),
         });
 

@@ -1123,12 +1123,12 @@ Chart status indicator tests now restore error capture through a scoped Vitest s
 Preload development-mode and edge-case tests now capture mocked `contextBridge.exposeInMainWorld` calls in
 module-local exposure maps instead of clearing or restoring `electronAPI`/`devTools` globals, with architecture
 coverage blocking global fixture definitions or cleanup in those source tests.
-Electron API runtime tests now use Vitest-scoped ambient `electronAPI` stubs when exercising default global
-fallback behavior instead of defining or deleting `globalThis.electronAPI` directly, with architecture coverage
-blocking that direct fixture mutation.
-Main UI DOM utility tests now use Vitest-scoped ambient `electronAPI` stubs for validation coverage instead of
-defining or deleting `globalThis.electronAPI` directly, with architecture coverage blocking that direct fixture
-mutation.
+Electron API runtime tests now prove the default runtime ignores ambient `electronAPI` globals and relies on a
+registered startup candidate or explicit scoped provider instead of defining or deleting `globalThis.electronAPI`
+directly, with architecture coverage blocking that direct fixture mutation and the retired default global lookup.
+Main UI DOM utility tests now use registered Electron API candidates for validation coverage instead of ambient
+`electronAPI` stubs or defining/deleting `globalThis.electronAPI` directly, with architecture coverage blocking
+that direct fixture mutation.
 Main UI DOM utility listener cleanup now creates abort controllers through `mainUiDomUtilsRuntime.ts` instead of
 constructing `AbortController` directly in `mainUiDomUtils.ts`, with focused runtime coverage and architecture
 coverage blocking direct main UI DOM utility abort-controller construction from returning.

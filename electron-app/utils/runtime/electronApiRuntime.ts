@@ -9,9 +9,7 @@ export type RendererElectronApiCandidate = object;
 let registeredRendererElectronApi: unknown;
 let hasRegisteredRendererElectronApi = false;
 
-const defaultRendererElectronApiScope: RendererElectronApiScope = {
-    getElectronAPI: () => Reflect.get(globalThis, "electronAPI"),
-};
+const defaultRendererElectronApiScope: RendererElectronApiScope = {};
 
 export function registerRendererElectronApiCandidate(api: unknown): void {
     if (api === undefined) {
