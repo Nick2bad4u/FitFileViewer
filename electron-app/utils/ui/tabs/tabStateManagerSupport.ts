@@ -32,6 +32,14 @@ export function getDoc(): Document {
     );
 }
 
+export function isTabElement(value: unknown): value is Element {
+    return tabDocumentRuntime.isElement(value);
+}
+
+export function isTabHTMLElement(value: unknown): value is HTMLElement {
+    return tabDocumentRuntime.isHTMLElement(value);
+}
+
 /**
  * Retrieve state manager functions.
  */

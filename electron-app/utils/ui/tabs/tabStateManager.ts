@@ -22,7 +22,12 @@ import {
     handleSummaryTab as handleSummaryTabImpl,
     handleZwiftTab as handleZwiftTabImpl,
 } from "./tabStateManagerHandlers.js";
-import { getDoc, getStateMgr } from "./tabStateManagerSupport.js";
+import {
+    getDoc,
+    getStateMgr,
+    isTabElement,
+    isTabHTMLElement,
+} from "./tabStateManagerSupport.js";
 
 const TAB_CONFIG = TAB_CONFIG_DEFINITIONS;
 
@@ -130,10 +135,9 @@ export class TabStateManager {
         // Stable click handler reference to prevent accumulating listeners
         this._buttonClickHandler = (event) => {
             try {
-                const target =
-                    event.currentTarget instanceof Element
-                        ? event.currentTarget
-                        : null;
+                const target = isTabElement(event.currentTarget)
+                    ? event.currentTarget
+                    : null;
                 console.log(
                     `[TabStateManager] Click detected on button: ${target?.id || ""}`,
                     event
@@ -296,10 +300,9 @@ export class TabStateManager {
      * @param event - Click event.
      */
     handleTabButtonClick = (event: Event): void => {
-        const button =
-                event.currentTarget instanceof HTMLElement
-                    ? event.currentTarget
-                    : null,
+        const button = isTabHTMLElement(event.currentTarget)
+                ? event.currentTarget
+                : null,
             tabId = button?.id || "";
 
         // Check if button is disabled

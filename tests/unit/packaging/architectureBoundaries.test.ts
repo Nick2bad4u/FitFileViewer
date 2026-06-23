@@ -6239,8 +6239,11 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps tab state-manager support on typed state and document access", () => {
-        expect.assertions(13);
+        expect.assertions(27);
 
+        const tabStateManagerSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/tabs/tabStateManager.ts")
+        );
         const tabStateManagerSupportSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/ui/tabs/tabStateManagerSupport.ts"
@@ -6268,7 +6271,13 @@ describe("architecture boundaries", () => {
         expect(tabStateManagerSupportSource).toContain(
             "rendererStateManagerAccess.js"
         );
+        expect(tabStateManagerSource).toContain("isTabElement");
+        expect(tabStateManagerSource).toContain("isTabHTMLElement");
+        expect(tabStateManagerSource).not.toContain("instanceof Element");
+        expect(tabStateManagerSource).not.toContain("instanceof HTMLElement");
         expect(tabStateManagerSupportSource).toContain("tabDocumentRuntime.js");
+        expect(tabStateManagerSupportSource).toContain("isTabElement");
+        expect(tabStateManagerSupportSource).toContain("isTabHTMLElement");
         expect(tabStateManagerDocSource).toContain("tabDocumentRuntime.js");
         expect(tabStateManagerSupportSource).not.toContain(
             "state/core/stateManager.js"
@@ -6289,12 +6298,32 @@ describe("architecture boundaries", () => {
         expect(tabDocumentRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
+        expect(tabDocumentRuntimeSource).toContain(
+            "getElement: () => globalThis.Element"
+        );
+        expect(tabDocumentRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
         expect(tabDocumentRuntimeScopeSource).not.toContain(
             "readonly document?:"
         );
+        expect(tabDocumentRuntimeScopeSource).not.toContain(
+            "readonly Element?:"
+        );
+        expect(tabDocumentRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
         expect(tabDocumentRuntimeSource).not.toContain("scope.document");
+        expect(tabDocumentRuntimeSource).not.toContain("scope.Element");
+        expect(tabDocumentRuntimeSource).not.toContain("scope.HTMLElement");
         expect(tabDocumentRuntimeSource).toContain(
             "const candidate = scope.getDocument?.();"
+        );
+        expect(tabDocumentRuntimeSource).toContain(
+            "tabDocumentRuntime requires an Element runtime"
+        );
+        expect(tabDocumentRuntimeSource).toContain(
+            "tabDocumentRuntime requires an HTMLElement runtime"
         );
     });
 
