@@ -3,7 +3,7 @@
  * management and remove hardcoded logic
  */
 
-import { chartStateManager } from "../../charts/core/chartStateManager.js";
+import { getRegisteredChartStateManager } from "../../charts/core/chartStateManagerRegistry.js";
 import { chartTabIntegration } from "../../charts/core/chartTabIntegration.js";
 import { setupTheme } from "../../theming/core/setupTheme.js";
 import { applyTheme, listenForThemeChange } from "../../theming/core/theme.js";
@@ -15,7 +15,7 @@ import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
  */
 export function cleanup(): void {
     try {
-        chartStateManager.destroy();
+        getRegisteredChartStateManager()?.destroy?.();
         tabStateManager.cleanup();
         chartTabIntegration.destroy();
         console.log("[setupWindow] Cleanup completed");

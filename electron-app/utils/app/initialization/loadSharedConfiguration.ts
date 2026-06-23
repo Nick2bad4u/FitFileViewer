@@ -1,4 +1,4 @@
-import { chartStateManager } from "../../charts/core/chartStateManager.js";
+import { getRegisteredChartStateManager } from "../../charts/core/chartStateManagerRegistry.js";
 import { renderChartJS } from "../../charts/core/renderChartJS.js";
 import {
     type ChartFieldVisibility,
@@ -66,7 +66,8 @@ function scheduleChartRefresh(): void {
     sharedConfigurationRefreshTimeout = runtime.setTimeout(() => {
         sharedConfigurationRefreshTimeout = undefined;
 
-        if (chartStateManager) {
+        const chartStateManager = getRegisteredChartStateManager();
+        if (typeof chartStateManager?.debouncedRender === "function") {
             chartStateManager.debouncedRender("Configuration loaded from URL");
             return;
         }

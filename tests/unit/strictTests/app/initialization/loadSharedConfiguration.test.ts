@@ -10,11 +10,11 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock(
-    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
+    import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
     () => ({
-        chartStateManager: {
+        getRegisteredChartStateManager: () => ({
             debouncedRender: h.debouncedRender,
-        },
+        }),
     })
 );
 

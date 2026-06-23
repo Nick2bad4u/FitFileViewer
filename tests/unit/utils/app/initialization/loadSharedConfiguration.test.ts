@@ -18,6 +18,8 @@ const mockShowNotification = vi.fn<ShowNotification>();
 const mockChartStateManager = {
     debouncedRender: vi.fn<DebouncedRender>(),
 };
+let registeredChartStateManager: null | typeof mockChartStateManager =
+    mockChartStateManager;
 const mockSetChartSetting = vi.fn<SetChartSetting>();
 const mockSetChartFieldVisibility = vi.fn<SetChartFieldVisibility>();
 const originalGlobalDescriptors = new Map<
@@ -66,9 +68,9 @@ vi.mock(
 );
 
 vi.mock(
-    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
+    import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
     () => ({
-        chartStateManager: mockChartStateManager,
+        getRegisteredChartStateManager: () => registeredChartStateManager,
     })
 );
 
@@ -94,6 +96,8 @@ describe("loadSharedConfiguration.js", () => {
         mockSetChartFieldVisibility.mockClear();
         mockShowNotification.mockClear();
         mockRenderChartJS.mockClear();
+        mockChartStateManager.debouncedRender.mockClear();
+        registeredChartStateManager = mockChartStateManager;
 
         // Mock localStorage
         mockLocalStorage = {};
@@ -155,16 +159,10 @@ describe("loadSharedConfiguration.js", () => {
             writable: true,
         });
 
-        // Re-setup mocks for this specific test
         const localChartStateManager = {
             debouncedRender: vi.fn<DebouncedRender>(),
         };
-        vi.doMock(
-            import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
-            () => ({
-                chartStateManager: localChartStateManager,
-            })
-        );
+        registeredChartStateManager = localChartStateManager;
 
         vi.doMock(
             import("../../../../../electron-app/utils/charts/core/renderChartJS.js"),
@@ -230,13 +228,7 @@ describe("loadSharedConfiguration.js", () => {
             writable: true,
         });
 
-        // Ensure chartStateManager import resolves to undefined
-        vi.doMock(
-            import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
-            () => ({
-                chartStateManager: undefined,
-            })
-        );
+        registeredChartStateManager = null;
 
         // Keep renderChartJS mock to observe fallback
         vi.doMock(

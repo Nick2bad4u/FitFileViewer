@@ -5434,7 +5434,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart update entrypoints on the chart state manager registry", () => {
-        expect.assertions(6);
+        expect.assertions(15);
 
         const chartUpdaterSource = stripComments(
             readRepositoryFile("electron-app/utils/charts/core/chartUpdater.ts")
@@ -5442,6 +5442,21 @@ describe("architecture boundaries", () => {
         const chartThemeListenerSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/theming/chartThemeListener.ts"
+            )
+        );
+        const chartSettingsRenderSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/chartSettingsRender.ts"
+            )
+        );
+        const loadSharedConfigurationSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/loadSharedConfiguration.ts"
+            )
+        );
+        const setupWindowSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/app/initialization/setupWindow.ts"
             )
         );
 
@@ -5456,6 +5471,29 @@ describe("architecture boundaries", () => {
         );
         expect(chartThemeListenerSource).not.toContain(
             "../core/chartStateManager.js"
+        );
+        expect(chartSettingsRenderSource).toContain(
+            "chartStateManagerRegistry.js"
+        );
+        expect(chartSettingsRenderSource).toContain(
+            "getRegisteredChartStateManager"
+        );
+        expect(chartSettingsRenderSource).not.toContain(
+            "../../charts/core/chartStateManager.js"
+        );
+        expect(loadSharedConfigurationSource).toContain(
+            "chartStateManagerRegistry.js"
+        );
+        expect(loadSharedConfigurationSource).toContain(
+            "getRegisteredChartStateManager"
+        );
+        expect(loadSharedConfigurationSource).not.toContain(
+            "../../charts/core/chartStateManager.js"
+        );
+        expect(setupWindowSource).toContain("chartStateManagerRegistry.js");
+        expect(setupWindowSource).toContain("getRegisteredChartStateManager");
+        expect(setupWindowSource).not.toContain(
+            "../../charts/core/chartStateManager.js"
         );
     });
 

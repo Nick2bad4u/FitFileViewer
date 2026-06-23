@@ -101,9 +101,11 @@ vi.mock(
 );
 
 vi.mock(
-    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
+    import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
     () => ({
-        chartStateManager: { debouncedRender: mocks.debouncedRender },
+        getRegisteredChartStateManager: () => ({
+            debouncedRender: mocks.debouncedRender,
+        }),
     })
 );
 

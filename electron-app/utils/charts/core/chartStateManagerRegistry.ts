@@ -1,5 +1,6 @@
 export interface RegisteredChartStateManager {
     debouncedRender(reason: string): void;
+    destroy?: (() => void) | undefined;
     handleThemeChange?: ((theme?: string) => void) | undefined;
     readonly isInitialized?: boolean | undefined;
 }

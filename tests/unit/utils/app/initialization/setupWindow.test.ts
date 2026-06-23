@@ -30,9 +30,9 @@ const chartStateManagerMock = {
         vi.fn<(callback: (theme: unknown) => void) => void>();
 
 vi.mock(
-    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
+    import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
     () => ({
-        chartStateManager: chartStateManagerMock,
+        getRegisteredChartStateManager: () => chartStateManagerMock,
     })
 );
 

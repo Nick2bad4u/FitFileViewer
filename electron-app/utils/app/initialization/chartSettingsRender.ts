@@ -1,4 +1,4 @@
-import { chartStateManager } from "../../charts/core/chartStateManager.js";
+import { getRegisteredChartStateManager } from "../../charts/core/chartStateManagerRegistry.js";
 import {
     destroyRegisteredChartInstances,
     getRegisteredChartInstanceCount,
@@ -74,7 +74,7 @@ function hasFunctionProperty(value: object, key: "debouncedRender"): boolean {
 }
 
 function getPreferredRenderManager(): ChartRenderManagerLike | undefined {
-    const managerCandidate: unknown = chartStateManager;
+    const managerCandidate: unknown = getRegisteredChartStateManager();
 
     return isChartRenderManagerLike(managerCandidate)
         ? managerCandidate
@@ -242,14 +242,14 @@ export function reRenderChartsAfterReset(): void {
         });
 
         // Force a complete re-render through modern state management
-        if (isChartRenderManagerLike(chartStateManager)) {
-            chartStateManager.debouncedRender("Settings reset");
+        const manager = getPreferredRenderManager();
+        if (manager) {
+            manager.debouncedRender("Settings reset");
         } else {
             runDirectRenderFallback(
                 runtime,
                 "settings-reset",
-                chartsContainer ||
-                    getChartRenderContainer(runtime.documentRef)
+                chartsContainer || getChartRenderContainer(runtime.documentRef)
             );
         }
     } catch (error) {
