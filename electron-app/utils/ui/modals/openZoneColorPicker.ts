@@ -204,8 +204,9 @@ export function openZoneColorPicker(field: string): void {
         let escapeCleanup: (() => void) | undefined,
             focusTrapCleanup: (() => void) | undefined;
         const activeElement = runtime.getActiveElement();
-        const previouslyFocusedElement =
-            activeElement instanceof HTMLElement ? activeElement : null;
+        const previouslyFocusedElement = runtime.isHTMLElement(activeElement)
+            ? activeElement
+            : null;
 
         const closeModal = (): void => {
             if (runtime.bodyContains(overlay)) {
@@ -222,7 +223,7 @@ export function openZoneColorPicker(field: string): void {
 
         const handleEscape = (event: Event): void => {
             if (
-                event instanceof KeyboardEvent &&
+                runtime.isKeyboardEvent(event) &&
                 event.key === "Escape" &&
                 runtime.bodyContains(overlay)
             ) {
@@ -436,7 +437,7 @@ export function openZoneColorPicker(field: string): void {
 
             // Color picker change handler
             addEventListenerWithCleanup(colorPicker, "change", (e) => {
-                if (!(e.target instanceof HTMLInputElement)) {
+                if (!runtime.isHTMLInputElement(e.target)) {
                     return;
                 }
 
@@ -462,7 +463,7 @@ export function openZoneColorPicker(field: string): void {
 
             addEventListenerWithCleanup(colorPreview, "keydown", (event) => {
                 if (
-                    event instanceof KeyboardEvent &&
+                    runtime.isKeyboardEvent(event) &&
                     (event.key === "Enter" || event.key === " ")
                 ) {
                     event.preventDefault();
@@ -602,7 +603,7 @@ export function openZoneColorPicker(field: string): void {
                         '.field-toggle input[type="checkbox"]'
                     );
                     for (const toggle of fieldToggles) {
-                        if (toggle instanceof HTMLInputElement) {
+                        if (runtime.isHTMLInputElement(toggle)) {
                             toggle.checked = true;
                         }
                     }

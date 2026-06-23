@@ -6,6 +6,15 @@ export interface OpenZoneColorPickerRuntimeScope {
     readonly getDispatchEvent?:
         | (() => ((event: Event) => boolean) | undefined)
         | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof globalThis.HTMLElement | undefined)
+        | undefined;
+    readonly getHTMLInputElement?:
+        | (() => typeof globalThis.HTMLInputElement | undefined)
+        | undefined;
+    readonly getKeyboardEvent?:
+        | (() => typeof globalThis.KeyboardEvent | undefined)
+        | undefined;
 }
 
 export interface OpenZoneColorPickerRuntime {
@@ -25,6 +34,9 @@ export interface OpenZoneColorPickerRuntime {
     getActiveElement: () => Element | null;
     getBody: () => HTMLElement;
     getDocument: () => Document;
+    isHTMLElement: (value: unknown) => value is HTMLElement;
+    isHTMLInputElement: (value: unknown) => value is HTMLInputElement;
+    isKeyboardEvent: (value: unknown) => value is KeyboardEvent;
 }
 
 function getCustomEventConstructor(
@@ -62,11 +74,53 @@ function getRuntimeDocument(scope: OpenZoneColorPickerRuntimeScope): Document {
     return documentRef;
 }
 
+function getHTMLElementConstructor(
+    scope: OpenZoneColorPickerRuntimeScope
+): typeof globalThis.HTMLElement {
+    const HTMLElementConstructor = scope.getHTMLElement?.();
+    if (typeof HTMLElementConstructor !== "function") {
+        throw new TypeError(
+            "openZoneColorPicker requires an HTMLElement runtime"
+        );
+    }
+
+    return HTMLElementConstructor;
+}
+
+function getHTMLInputElementConstructor(
+    scope: OpenZoneColorPickerRuntimeScope
+): typeof globalThis.HTMLInputElement {
+    const HTMLInputElementConstructor = scope.getHTMLInputElement?.();
+    if (typeof HTMLInputElementConstructor !== "function") {
+        throw new TypeError(
+            "openZoneColorPicker requires an HTMLInputElement runtime"
+        );
+    }
+
+    return HTMLInputElementConstructor;
+}
+
+function getKeyboardEventConstructor(
+    scope: OpenZoneColorPickerRuntimeScope
+): typeof globalThis.KeyboardEvent {
+    const KeyboardEventConstructor = scope.getKeyboardEvent?.();
+    if (typeof KeyboardEventConstructor !== "function") {
+        throw new TypeError(
+            "openZoneColorPicker requires a KeyboardEvent runtime"
+        );
+    }
+
+    return KeyboardEventConstructor;
+}
+
 const defaultOpenZoneColorPickerRuntimeScope: OpenZoneColorPickerRuntimeScope =
     {
         getCustomEvent: () => globalThis.CustomEvent,
         getDocument: () => globalThis.document,
         getDispatchEvent: () => globalThis.dispatchEvent.bind(globalThis),
+        getHTMLElement: () => globalThis.HTMLElement,
+        getHTMLInputElement: () => globalThis.HTMLInputElement,
+        getKeyboardEvent: () => globalThis.KeyboardEvent,
     };
 
 export function getOpenZoneColorPickerRuntime(
@@ -112,6 +166,15 @@ export function getOpenZoneColorPickerRuntime(
         },
         getDocument(): Document {
             return getRuntimeDocument(scope);
+        },
+        isHTMLElement(value: unknown): value is HTMLElement {
+            return value instanceof getHTMLElementConstructor(scope);
+        },
+        isHTMLInputElement(value: unknown): value is HTMLInputElement {
+            return value instanceof getHTMLInputElementConstructor(scope);
+        },
+        isKeyboardEvent(value: unknown): value is KeyboardEvent {
+            return value instanceof getKeyboardEventConstructor(scope);
         },
     };
 }

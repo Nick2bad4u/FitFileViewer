@@ -55,6 +55,28 @@ describe("openZoneColorPickerRuntime", () => {
         expect(documentRef.body.childElementCount).toBe(1);
     });
 
+    it("routes element and keyboard event checks through the provided scope", () => {
+        expect.assertions(6);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("zone color picker");
+        const button = documentRef.createElement("button");
+        const input = documentRef.createElement("input");
+        const keyboardEvent = new KeyboardEvent("keydown", { key: "Escape" });
+        const runtime = getOpenZoneColorPickerRuntime({
+            getHTMLElement: () => HTMLElement,
+            getHTMLInputElement: () => HTMLInputElement,
+            getKeyboardEvent: () => KeyboardEvent,
+        });
+
+        expect(runtime.isHTMLElement(button)).toBe(true);
+        expect(runtime.isHTMLElement({})).toBe(false);
+        expect(runtime.isHTMLInputElement(input)).toBe(true);
+        expect(runtime.isHTMLInputElement(button)).toBe(false);
+        expect(runtime.isKeyboardEvent(keyboardEvent)).toBe(true);
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+    });
+
     it("creates and dispatches custom events through the default production scope", () => {
         expect.assertions(3);
 
@@ -71,7 +93,7 @@ describe("openZoneColorPickerRuntime", () => {
     });
 
     it("fails clearly when event primitives are unavailable", () => {
-        expect.assertions(8);
+        expect.assertions(11);
 
         expect(() =>
             getOpenZoneColorPickerRuntime({
@@ -103,10 +125,19 @@ describe("openZoneColorPickerRuntime", () => {
         expect(() => runtime.getBody()).toThrow(
             "openZoneColorPicker requires a document runtime"
         );
+        expect(() => runtime.isHTMLElement(element)).toThrow(
+            "openZoneColorPicker requires an HTMLElement runtime"
+        );
+        expect(() => runtime.isHTMLInputElement(element)).toThrow(
+            "openZoneColorPicker requires an HTMLInputElement runtime"
+        );
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "openZoneColorPicker requires a KeyboardEvent runtime"
+        );
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(12);
+        expect.assertions(18);
 
         const documentRef =
             document.implementation.createHTMLDocument("legacy scope");
@@ -116,6 +147,9 @@ describe("openZoneColorPickerRuntime", () => {
             CustomEvent,
             dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
             document: documentRef,
+            HTMLElement,
+            HTMLInputElement,
+            KeyboardEvent,
         } as unknown as OpenZoneColorPickerRuntimeScope;
         const runtime = getOpenZoneColorPickerRuntime(legacyScope);
         const element = document.createElement("div");
@@ -144,9 +178,27 @@ describe("openZoneColorPickerRuntime", () => {
         expect(() => runtime.getBody()).toThrow(
             "openZoneColorPicker requires a document runtime"
         );
+        expect(() => runtime.isHTMLElement(element)).toThrow(
+            "openZoneColorPicker requires an HTMLElement runtime"
+        );
+        expect(() => runtime.isHTMLInputElement(element)).toThrow(
+            "openZoneColorPicker requires an HTMLInputElement runtime"
+        );
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "openZoneColorPicker requires a KeyboardEvent runtime"
+        );
         expect(addEventListener).not.toHaveBeenCalled();
         expect(createElement).not.toHaveBeenCalled();
         expect(legacyScope.dispatchEvent).not.toHaveBeenCalled();
         expect(documentRef.body.childElementCount).toBe(0);
+        expect((legacyScope as { HTMLElement?: unknown }).HTMLElement).toBe(
+            HTMLElement
+        );
+        expect(
+            (legacyScope as { HTMLInputElement?: unknown }).HTMLInputElement
+        ).toBe(HTMLInputElement);
+        expect((legacyScope as { KeyboardEvent?: unknown }).KeyboardEvent).toBe(
+            KeyboardEvent
+        );
     });
 });

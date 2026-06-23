@@ -340,11 +340,12 @@ use named provider functions instead of a broad `globalThis` default scope, dire
 document-window fallbacks, with focused runtime coverage and architecture guardrails blocking those ambient
 fallbacks from returning.
 Zone color picker render-request event construction/dispatch, modal element creation, active-element reads, body
-attachment/containment, document lookup for chart settings, body access for inline selector refreshes, and
-Escape-key document listener registration now route through `openZoneColorPickerRuntime.ts`; production defaults
-and explicit runtime scopes now use named provider functions instead of a broad `globalThis` default scope, direct
-scope properties, or document-window fallbacks, with focused runtime coverage and architecture guardrails blocking
-those ambient fallbacks and direct picker document access from returning.
+attachment/containment, document lookup for chart settings, body access for inline selector refreshes, Escape-key
+document listener registration, and element/keyboard-event type checks now route through
+`openZoneColorPickerRuntime.ts`; production defaults and explicit runtime scopes now use named provider functions
+instead of a broad `globalThis` default scope, direct scope properties, document-window fallbacks, or ambient DOM
+constructor checks in the picker, with focused runtime coverage and architecture guardrails blocking those direct
+dependencies from returning.
 Quick color switcher delayed dropdown close scheduling and cleanup now route through
 `quickColorSwitcherRuntime.ts` instead of calling timer globals directly inside `quickColorSwitcher.ts`, with
 focused runtime coverage and architecture guardrails blocking those direct timer globals from returning. Quick

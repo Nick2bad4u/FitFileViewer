@@ -1364,9 +1364,9 @@ const directCreateInlineZoneColorSelectorRuntimeGlobalPattern =
 const directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|CustomEvent|HTMLElement|HTMLInputElement|HTMLSelectElement|dispatchEvent|document|setTimeout)\b|\bscope:\s*CreateInlineZoneColorSelectorRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultCreateInlineZoneColorSelectorRuntimeScope:\s*CreateInlineZoneColorSelectorRuntimeScope\s*=\s*globalThis\b/u;
 const directOpenZoneColorPickerRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.dispatchEvent\b|\bdocument\.(?:activeElement|addEventListener|body|createElement)\b|\bnew\s+CustomEvent\b/u;
+    /\b(?:globalThis|window)\.dispatchEvent\b|\bdocument\.(?:activeElement|addEventListener|body|createElement)\b|\bnew\s+CustomEvent\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|KeyboardEvent)\b/u;
 const directOpenZoneColorPickerRuntimeAmbientFallbackPattern =
-    /\bscope\.(?:CustomEvent|dispatchEvent|document)\b|\bscope:\s*OpenZoneColorPickerRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultOpenZoneColorPickerRuntimeScope:\s*OpenZoneColorPickerRuntimeScope\s*=\s*globalThis\b/u;
+    /\bscope\.(?:CustomEvent|HTMLElement|HTMLInputElement|KeyboardEvent|dispatchEvent|document)\b|\bscope:\s*OpenZoneColorPickerRuntimeScope\s*=\s*globalThis\b|\bconst\s+defaultOpenZoneColorPickerRuntimeScope:\s*OpenZoneColorPickerRuntimeScope\s*=\s*globalThis\b/u;
 const directCreatePrintButtonRuntimeGlobalPattern =
     /\b(?:document|globalThis|window)\.(?:createElement|createElementNS|print)\b|\bnew\s+AbortController\b/u;
 const directCopyTableAsCSVRuntimeGlobalPattern =
@@ -4943,7 +4943,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps zone color picker event APIs behind the runtime facade", () => {
-        expect.assertions(27);
+        expect.assertions(39);
 
         const violations = migratedOpenZoneColorPickerRuntimeFiles
             .filter((relativeFile) =>
@@ -4974,6 +4974,9 @@ describe("architecture boundaries", () => {
         expect(zoneColorPickerSource).toContain("getActiveElement");
         expect(zoneColorPickerSource).toContain("getBody");
         expect(zoneColorPickerSource).toContain("getDocument");
+        expect(zoneColorPickerSource).toContain("isHTMLElement");
+        expect(zoneColorPickerSource).toContain("isHTMLInputElement");
+        expect(zoneColorPickerSource).toContain("isKeyboardEvent");
         expect(zoneColorPickerSource).not.toContain(
             "addEventListenerWithCleanup(document"
         );
@@ -4983,6 +4986,11 @@ describe("architecture boundaries", () => {
         expect(zoneColorPickerSource).not.toContain(
             "getChartSettingsWrapper(document)"
         );
+        expect(zoneColorPickerSource).not.toContain("instanceof HTMLElement");
+        expect(zoneColorPickerSource).not.toContain(
+            "instanceof HTMLInputElement"
+        );
+        expect(zoneColorPickerSource).not.toContain("instanceof KeyboardEvent");
         expect(zoneColorPickerRuntimeSource).not.toMatch(
             directOpenZoneColorPickerRuntimeAmbientFallbackPattern
         );
@@ -5004,11 +5012,27 @@ describe("architecture boundaries", () => {
         expect(zoneColorPickerRuntimeSource).not.toContain(
             "readonly document?:"
         );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly HTMLInputElement?:"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "readonly KeyboardEvent?:"
+        );
         expect(zoneColorPickerRuntimeSource).not.toContain("scope.CustomEvent");
         expect(zoneColorPickerRuntimeSource).not.toContain(
             "scope.dispatchEvent"
         );
         expect(zoneColorPickerRuntimeSource).not.toContain("scope.document");
+        expect(zoneColorPickerRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "scope.HTMLInputElement"
+        );
+        expect(zoneColorPickerRuntimeSource).not.toContain(
+            "scope.KeyboardEvent"
+        );
         expect(zoneColorPickerRuntimeSource).toContain(
             "getCustomEvent: () => globalThis.CustomEvent"
         );
