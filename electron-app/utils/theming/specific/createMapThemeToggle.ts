@@ -60,17 +60,17 @@ export function createMapThemeToggle(): HTMLElement {
 
         const runningInTest = isTestEnvironment();
 
-        const button = document.createElement("button");
+        const button = mapThemeToggleRuntime.createElement("button");
         button.className = "map-action-btn map-theme-toggle";
         button.title = "Toggle map theme (independent of UI theme)";
         button.setAttribute("aria-label", "Toggle map theme");
 
         // Create icon container
-        const iconContainer = document.createElement("span");
+        const iconContainer = mapThemeToggleRuntime.createElement("span");
         iconContainer.className = "icon";
 
         // Create label
-        const label = document.createElement("span");
+        const label = mapThemeToggleRuntime.createElement("span");
         label.textContent = "Map Theme";
 
         button.append(iconContainer);
@@ -86,10 +86,7 @@ export function createMapThemeToggle(): HTMLElement {
                 const createIcon = (
                     variant: MapThemeIconVariant
                 ): SVGElement => {
-                    const svg = document.createElementNS(
-                        "http://www.w3.org/2000/svg",
-                        "svg"
-                    );
+                    const svg = mapThemeToggleRuntime.createSvgElement("svg");
                     svg.setAttribute("viewBox", "0 0 20 20");
                     svg.setAttribute("width", "18");
                     svg.setAttribute("height", "18");
@@ -107,10 +104,8 @@ export function createMapThemeToggle(): HTMLElement {
                     );
 
                     if (variant === "moon") {
-                        const path = document.createElementNS(
-                            "http://www.w3.org/2000/svg",
-                            "path"
-                        );
+                        const path =
+                            mapThemeToggleRuntime.createSvgElement("path");
                         path.setAttribute(
                             "d",
                             "M17 12.5A7.5 7.5 0 1 1 10 2.5a6 6 0 0 0 7 10z"
@@ -123,10 +118,8 @@ export function createMapThemeToggle(): HTMLElement {
                     }
 
                     // Sun icon
-                    const circle = document.createElementNS(
-                        "http://www.w3.org/2000/svg",
-                        "circle"
-                    );
+                    const circle =
+                        mapThemeToggleRuntime.createSvgElement("circle");
                     circle.setAttribute("cx", "10");
                     circle.setAttribute("cy", "10");
                     circle.setAttribute("r", "5");
@@ -191,10 +184,8 @@ export function createMapThemeToggle(): HTMLElement {
                         x2,
                         y2,
                     ] of rays) {
-                        const line = document.createElementNS(
-                            "http://www.w3.org/2000/svg",
-                            "line"
-                        );
+                        const line =
+                            mapThemeToggleRuntime.createSvgElement("line");
                         line.setAttribute("x1", x1);
                         line.setAttribute("y1", y1);
                         line.setAttribute("x2", x2);
@@ -277,7 +268,7 @@ export function createMapThemeToggle(): HTMLElement {
             error
         );
         showNotification("Failed to create map theme toggle", "error");
-        return document.createElement("div"); // Return empty div as fallback
+        return mapThemeToggleRuntime.createElement("div"); // Return empty div as fallback
     }
 }
 

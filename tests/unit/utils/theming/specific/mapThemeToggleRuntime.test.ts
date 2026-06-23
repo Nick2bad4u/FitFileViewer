@@ -77,6 +77,32 @@ describe("getMapThemeToggleRuntime", () => {
         expect(runtime.findExistingToggle()).toBe(button);
     });
 
+    it("creates HTML and SVG elements through the injected document runtime", () => {
+        expect.assertions(6);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("map theme toggle");
+        const createElement = vi.spyOn(documentRef, "createElement");
+        const createElementNS = vi.spyOn(documentRef, "createElementNS");
+        const runtime = getMapThemeToggleRuntime({
+            getDocument: () => documentRef,
+        });
+
+        const button = runtime.createElement("button");
+        const svg = runtime.createSvgElement("svg");
+        const path = runtime.createSvgElement("path");
+
+        expect(button).toBeInstanceOf(HTMLButtonElement);
+        expect(svg).toBeInstanceOf(SVGSVGElement);
+        expect(path.nodeName).toBe("path");
+        expect(path.namespaceURI).toBe("http://www.w3.org/2000/svg");
+        expect(createElement).toHaveBeenCalledWith("button");
+        expect(createElementNS).toHaveBeenCalledWith(
+            "http://www.w3.org/2000/svg",
+            "path"
+        );
+    });
+
     it("creates and dispatches map theme change events through scoped runtimes", () => {
         expect.assertions(4);
 
@@ -172,7 +198,7 @@ describe("getMapThemeToggleRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         let controllerCount = 0;
         class TestAbortController extends AbortController {
@@ -212,6 +238,12 @@ describe("getMapThemeToggleRuntime", () => {
             runtime.dispatchDocumentEvent(new Event("mapThemeChanged"))
         ).toThrow("mapThemeToggle requires a document runtime");
         expect(() => runtime.findExistingToggle()).toThrow(
+            "mapThemeToggle requires a document runtime"
+        );
+        expect(() => runtime.createElement("button")).toThrow(
+            "mapThemeToggle requires a document runtime"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
             "mapThemeToggle requires a document runtime"
         );
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(

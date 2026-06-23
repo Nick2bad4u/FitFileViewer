@@ -31,10 +31,16 @@ export interface MapThemeToggleRuntime {
     ): void;
     clearTimeout(handle: MapThemeToggleTimerHandle): void;
     createAbortController(): AbortController;
+    createElement<K extends keyof HTMLElementTagNameMap>(
+        tagName: K
+    ): HTMLElementTagNameMap[K];
     createMapThemeChangedEvent(
         eventName: string,
         inverted: boolean
     ): CustomEvent<{ inverted: boolean }>;
+    createSvgElement<K extends keyof SVGElementTagNameMap>(
+        tagName: K
+    ): SVGElementTagNameMap[K];
     dispatchDocumentEvent(event: Event): boolean;
     findExistingToggle(): HTMLElement | null;
     setTimeout(
@@ -105,6 +111,9 @@ export function getMapThemeToggleRuntime(
 
             return new AbortControllerConstructor();
         },
+        createElement(tagName) {
+            return getDocument(scope).createElement(tagName);
+        },
         createMapThemeChangedEvent(
             eventName: string,
             inverted: boolean
@@ -113,6 +122,12 @@ export function getMapThemeToggleRuntime(
                 bubbles: true,
                 detail: { inverted },
             });
+        },
+        createSvgElement(tagName) {
+            return getDocument(scope).createElementNS(
+                "http://www.w3.org/2000/svg",
+                tagName
+            );
         },
         dispatchDocumentEvent(event: Event): boolean {
             return getDocument(scope).dispatchEvent(event);

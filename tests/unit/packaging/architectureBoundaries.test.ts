@@ -11947,7 +11947,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(31);
+        expect.assertions(39);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -11977,9 +11977,23 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleSource).toContain("createMapThemeChangedEvent");
         expect(mapThemeToggleSource).toContain("dispatchDocumentEvent");
         expect(mapThemeToggleSource).toContain("findExistingToggle()");
+        expect(mapThemeToggleSource).toContain(
+            'mapThemeToggleRuntime.createElement("button")'
+        );
+        expect(mapThemeToggleSource).toContain(
+            'mapThemeToggleRuntime.createSvgElement("svg")'
+        );
         expect(mapThemeToggleSource).not.toContain("document.querySelector");
+        expect(mapThemeToggleSource).not.toContain("document.createElement");
+        expect(mapThemeToggleSource).not.toContain("document.createElementNS");
         expect(mapThemeToggleRuntimeSource).toContain(
             "createMapThemeChangedEvent"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "createElement<K extends keyof HTMLElementTagNameMap>"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "createSvgElement<K extends keyof SVGElementTagNameMap>"
         );
         expect(mapThemeToggleRuntimeSource).toContain("findExistingToggle");
         expect(mapThemeToggleRuntimeSource).toContain(
@@ -12030,6 +12044,12 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleRuntimeSource).not.toContain("scope.setTimeout");
         expect(mapThemeToggleRuntimeSource).toContain(
             "const runtimeDocument = scope.getDocument?.();"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "getDocument(scope).createElement(tagName)"
+        );
+        expect(mapThemeToggleRuntimeSource).toContain(
+            "getDocument(scope).createElementNS("
         );
         expect(mapThemeToggleRuntimeSource).not.toMatch(
             directMapThemeToggleRuntimeAmbientFallbackPattern
