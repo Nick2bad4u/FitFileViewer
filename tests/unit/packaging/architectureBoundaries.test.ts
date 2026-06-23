@@ -1093,6 +1093,8 @@ const directScreenfullGlobalPattern =
     /\b(?:window|globalThis|testGlobal|getFullscreenGlobal\(\))\.screenfull\b|\{\s*screenfull\?:\s*unknown\s*\}\)\.screenfull/u;
 const directAddFullScreenButtonRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\b(?:document|globalThis|window)\.(?:addEventListener|removeEventListener)\(/u;
+const directAddFullScreenButtonSvgGlobalPattern =
+    /\bdocument\.createElementNS\b/u;
 const directIconFactoryRuntimeGlobalPattern = /\bdocument\.createElementNS\b/u;
 const directLeafletGlobalPattern =
     /\b(?:window|globalThis|windowExt|w|win|getWin\(\))\.L\b|\bReflect\.get\(\s*globalThis\s*,\s*["']L["']\s*\)|\{\s*L\?:\s*unknown\s*\}\)\.L/u;
@@ -10690,11 +10692,18 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(24);
+        expect.assertions(28);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
                 directAddFullScreenButtonRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const svgViolations = migratedAddFullScreenButtonRuntimeFiles
+            .filter((relativeFile) =>
+                directAddFullScreenButtonSvgGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -10711,10 +10720,14 @@ describe("architecture boundaries", () => {
         );
 
         expect(violations).toStrictEqual([]);
+        expect(svgViolations).toStrictEqual([]);
         expect(fullscreenButtonSource).toContain(
             "addFullScreenButtonRuntime.js"
         );
         expect(fullscreenButtonSource).toContain("createAbortController");
+        expect(fullscreenButtonSource).toContain(
+            "addFullScreenButtonRuntime.createSvgElement("
+        );
         expect(fullscreenButtonSource).toContain(
             "addFullScreenButtonRuntime.getElementById("
         );
@@ -10736,6 +10749,10 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonRuntimeSource).toContain(
             "getDocument: () => globalThis.document"
         );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "FULLSCREEN_BUTTON_SVG_NAMESPACE"
+        );
+        expect(fullscreenButtonRuntimeSource).toContain("createSvgElement");
         expect(fullscreenButtonRuntimeSource).toContain(
             "getDocumentEventTarget: () => globalThis.document"
         );

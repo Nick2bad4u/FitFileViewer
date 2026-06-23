@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getAddFullScreenButtonRuntime } from "../../../../../electron-app/utils/ui/controls/addFullScreenButtonRuntime.js";
+import {
+    FULLSCREEN_BUTTON_SVG_NAMESPACE,
+    getAddFullScreenButtonRuntime,
+} from "../../../../../electron-app/utils/ui/controls/addFullScreenButtonRuntime.js";
 
 describe("getAddFullScreenButtonRuntime", () => {
     it("routes window and document listeners through injected providers", () => {
@@ -57,7 +60,7 @@ describe("getAddFullScreenButtonRuntime", () => {
     });
 
     it("ignores legacy direct scope properties", () => {
-        expect.assertions(5);
+        expect.assertions(6);
 
         const staleDocument = document.implementation.createHTMLDocument(
             "stale fullscreen button runtime"
@@ -106,6 +109,9 @@ describe("getAddFullScreenButtonRuntime", () => {
         expect(() => runtime.hasBodyClass("app-has-file")).toThrow(
             "addFullScreenButton requires a document runtime"
         );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "addFullScreenButton requires a document runtime"
+        );
         expect(staleDocumentAddEventListener).not.toHaveBeenCalled();
         expect(staleWindowAddEventListener).not.toHaveBeenCalled();
     });
@@ -145,6 +151,28 @@ describe("getAddFullScreenButtonRuntime", () => {
 
         expect(runtime.createAbortController()).toBe(controller);
         expect(AbortControllerConstructor).toHaveBeenCalledOnce();
+    });
+
+    it("creates fullscreen SVG elements through the injected document runtime", () => {
+        expect.assertions(4);
+
+        const documentRef = document.implementation.createHTMLDocument(
+            "fullscreen button svg runtime"
+        );
+        const createElementNS = vi.spyOn(documentRef, "createElementNS");
+        const runtime = getAddFullScreenButtonRuntime({
+            getDocument: () => documentRef,
+        });
+
+        const icon = runtime.createSvgElement("svg");
+
+        expect(icon.tagName.toLowerCase()).toBe("svg");
+        expect(icon.namespaceURI).toBe(FULLSCREEN_BUTTON_SVG_NAMESPACE);
+        expect(createElementNS).toHaveBeenCalledWith(
+            FULLSCREEN_BUTTON_SVG_NAMESPACE,
+            "svg"
+        );
+        expect(() => runtime.createSvgElement("path")).not.toThrow();
     });
 
     it("fails clearly when the AbortController runtime is unavailable", () => {

@@ -16,6 +16,8 @@ type AddFullScreenButtonEventTarget = Pick<
     "addEventListener" | "removeEventListener"
 >;
 
+export const FULLSCREEN_BUTTON_SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+
 export interface AddFullScreenButtonRuntime {
     addDocumentEventListener: (
         type: string,
@@ -28,6 +30,9 @@ export interface AddFullScreenButtonRuntime {
         options?: Readonly<AddEventListenerOptions>
     ) => void;
     createAbortController: () => AbortController;
+    createSvgElement: <K extends keyof SVGElementTagNameMap>(
+        tagName: K
+    ) => SVGElementTagNameMap[K];
     getElementById: (id: string) => HTMLElement | null;
     hasBodyClass: (className: string) => boolean;
     removeDocumentEventListener: (
@@ -116,6 +121,14 @@ export function getAddFullScreenButtonRuntime(
         },
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
+        },
+        createSvgElement<K extends keyof SVGElementTagNameMap>(
+            tagName: K
+        ): SVGElementTagNameMap[K] {
+            return getDocument(scope).createElementNS(
+                FULLSCREEN_BUTTON_SVG_NAMESPACE,
+                tagName
+            );
         },
         getElementById(id): HTMLElement | null {
             return getDocument(scope).getElementById(id);

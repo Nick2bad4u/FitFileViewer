@@ -38,7 +38,6 @@ const NATIVE_FULLSCREEN_EVENTS = [
     "mozfullscreenchange",
     "MSFullscreenChange",
 ];
-const SVG_NS = "http://www.w3.org/2000/svg";
 let isWindowFullscreenRequested = false;
 let fullscreenKeydownHandler: null | StoredEventHandler = null;
 let nativeFullscreenChangeHandler: null | StoredEventHandler = null;
@@ -348,19 +347,19 @@ function createFullscreenSvg(
     titleText: string,
     paths: string[]
 ): SVGSVGElement {
-    const svg = document.createElementNS(SVG_NS, "svg");
+    const svg = addFullScreenButtonRuntime.createSvgElement("svg");
     svg.classList.add("inline-svg");
     svg.setAttribute("width", "28");
     svg.setAttribute("height", "28");
     svg.setAttribute("viewBox", "0 0 28 28");
     svg.setAttribute("fill", "none");
 
-    const title = document.createElementNS(SVG_NS, "title");
+    const title = addFullScreenButtonRuntime.createSvgElement("title");
     title.textContent = titleText;
     svg.append(title);
 
     for (const d of paths) {
-        const path = document.createElementNS(SVG_NS, "path");
+        const path = addFullScreenButtonRuntime.createSvgElement("path");
         path.setAttribute("d", d);
         path.setAttribute("stroke", "currentColor");
         path.setAttribute("stroke-width", "2");
