@@ -4,6 +4,15 @@ export interface AccentColorPickerRuntimeScope {
         | undefined;
     readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
+    readonly getHTMLButtonElement?:
+        | (() => typeof HTMLButtonElement | undefined)
+        | undefined;
+    readonly getHTMLElement?:
+        | (() => typeof HTMLElement | undefined)
+        | undefined;
+    readonly getHTMLInputElement?:
+        | (() => typeof HTMLInputElement | undefined)
+        | undefined;
 }
 
 export interface AccentColorPickerRuntime {
@@ -15,8 +24,18 @@ export interface AccentColorPickerRuntime {
     appendStyle: (style: HTMLStyleElement) => void;
     createAbortController: () => AbortController;
     createStyleElement: () => HTMLStyleElement;
+    getActiveElement: () => HTMLElement | undefined;
+    getElement: <TElement extends Element = Element>(
+        selector: string
+    ) => TElement | null;
+    getElements: <TElement extends Element = Element>(
+        selector: string
+    ) => TElement[];
     getModalElement: () => HTMLElement | null;
     hasStyleElement: () => boolean;
+    isHTMLButtonElement: (value: unknown) => value is HTMLButtonElement;
+    isHTMLElement: (value: unknown) => value is HTMLElement;
+    isHTMLInputElement: (value: unknown) => value is HTMLInputElement;
 }
 
 function getAbortControllerConstructor(
@@ -47,11 +66,28 @@ function getRequiredDocument(scope: AccentColorPickerRuntimeScope): Document {
     return documentRef;
 }
 
+function getElementConstructor<TElement extends Element>(
+    getConstructor:
+        | (() => (new (...args: unknown[]) => TElement) | undefined)
+        | undefined,
+    errorMessage: string
+): new (...args: unknown[]) => TElement {
+    const ElementConstructor = getConstructor?.();
+    if (typeof ElementConstructor !== "function") {
+        throw new TypeError(errorMessage);
+    }
+
+    return ElementConstructor;
+}
+
 const defaultAccentColorPickerRuntimeScope: AccentColorPickerRuntimeScope =
     Object.freeze({
         getAbortController: () => globalThis.AbortController,
         getDocument: () => globalThis.document,
         getDocumentEventTarget: () => globalThis.document,
+        getHTMLButtonElement: () => globalThis.HTMLButtonElement,
+        getHTMLElement: () => globalThis.HTMLElement,
+        getHTMLInputElement: () => globalThis.HTMLInputElement,
     });
 
 export function getAccentColorPickerRuntime(
@@ -81,6 +117,24 @@ export function getAccentColorPickerRuntime(
         createStyleElement(): HTMLStyleElement {
             return getRequiredDocument(scope).createElement("style");
         },
+        getActiveElement(): HTMLElement | undefined {
+            const activeElement = getRequiredDocument(scope).activeElement;
+            return this.isHTMLElement(activeElement) ? activeElement : undefined;
+        },
+        getElement<TElement extends Element = Element>(
+            selector: string
+        ): TElement | null {
+            return getRequiredDocument(scope).querySelector<TElement>(selector);
+        },
+        getElements<TElement extends Element = Element>(
+            selector: string
+        ): TElement[] {
+            return [
+                ...getRequiredDocument(scope).querySelectorAll<TElement>(
+                    selector
+                ),
+            ];
+        },
         getModalElement(): HTMLElement | null {
             return getRequiredDocument(scope).querySelector<HTMLElement>(
                 "#accent-color-modal"
@@ -90,6 +144,33 @@ export function getAccentColorPickerRuntime(
             return Boolean(
                 getRequiredDocument(scope).querySelector(
                     "#accent-picker-styles"
+                )
+            );
+        },
+        isHTMLButtonElement(value): value is HTMLButtonElement {
+            return (
+                value instanceof
+                getElementConstructor(
+                    scope.getHTMLButtonElement,
+                    "accentColorPicker requires an HTMLButtonElement runtime"
+                )
+            );
+        },
+        isHTMLElement(value): value is HTMLElement {
+            return (
+                value instanceof
+                getElementConstructor(
+                    scope.getHTMLElement,
+                    "accentColorPicker requires an HTMLElement runtime"
+                )
+            );
+        },
+        isHTMLInputElement(value): value is HTMLInputElement {
+            return (
+                value instanceof
+                getElementConstructor(
+                    scope.getHTMLInputElement,
+                    "accentColorPicker requires an HTMLInputElement runtime"
                 )
             );
         },

@@ -491,7 +491,7 @@ function createEmptyContainer(className: string, id: string): HTMLDivElement {
 
 function renderPresetColors(modal: HTMLElement, signal: AbortSignal): void {
     const container = modal.querySelector("#preset-colors");
-    if (!(container instanceof HTMLElement)) {
+    if (!accentColorPickerRuntime.isHTMLElement(container)) {
         return;
     }
 
@@ -570,8 +570,8 @@ function setupEventListeners(modal: HTMLElement): void {
     );
 
     if (
-        customPicker instanceof HTMLInputElement &&
-        customText instanceof HTMLInputElement
+        accentColorPickerRuntime.isHTMLInputElement(customPicker) &&
+        accentColorPickerRuntime.isHTMLInputElement(customText)
     ) {
         customPicker.addEventListener(
             "input",
@@ -638,23 +638,26 @@ function handleDialogKeydown(event: KeyboardEvent, modal: HTMLElement): void {
         return;
     }
 
-    if (event.shiftKey && document.activeElement === firstElement) {
+    if (
+        event.shiftKey &&
+        accentColorPickerRuntime.getActiveElement() === firstElement
+    ) {
         event.preventDefault();
         lastElement.focus();
         return;
     }
 
-    if (!event.shiftKey && document.activeElement === lastElement) {
+    if (
+        !event.shiftKey &&
+        accentColorPickerRuntime.getActiveElement() === lastElement
+    ) {
         event.preventDefault();
         firstElement.focus();
     }
 }
 
 function showModal(modal: HTMLElement): void {
-    restoreFocusTarget =
-        document.activeElement instanceof HTMLElement
-            ? document.activeElement
-            : undefined;
+    restoreFocusTarget = accentColorPickerRuntime.getActiveElement();
     modal.style.display = "block";
     modal.setAttribute("aria-hidden", "false");
     updatePreview();
@@ -670,42 +673,52 @@ function updatePreview(): void {
     const defaultColor = getDefaultAccentColor(theme);
     const normalizedColor = color.toLowerCase();
 
-    const themeName = document.querySelector("#current-theme-name");
+    const themeName = accentColorPickerRuntime.getElement(
+        "#current-theme-name"
+    );
     if (themeName) {
         themeName.textContent = theme;
     }
 
-    const preview = document.querySelector("#accent-color-preview");
-    if (preview instanceof HTMLElement) {
+    const preview = accentColorPickerRuntime.getElement(
+        "#accent-color-preview"
+    );
+    if (accentColorPickerRuntime.isHTMLElement(preview)) {
         preview.style.backgroundColor = color;
     }
 
-    const hex = document.querySelector("#accent-color-hex");
+    const hex = accentColorPickerRuntime.getElement("#accent-color-hex");
     if (hex) {
         hex.textContent = color.toUpperCase();
     }
 
-    const customPicker = document.querySelector("#custom-color-picker");
-    if (customPicker instanceof HTMLInputElement) {
+    const customPicker = accentColorPickerRuntime.getElement(
+        "#custom-color-picker"
+    );
+    if (accentColorPickerRuntime.isHTMLInputElement(customPicker)) {
         customPicker.value = color;
     }
 
-    const customText = document.querySelector("#custom-color-text");
-    if (customText instanceof HTMLInputElement) {
+    const customText = accentColorPickerRuntime.getElement(
+        "#custom-color-text"
+    );
+    if (accentColorPickerRuntime.isHTMLInputElement(customText)) {
         customText.value = color;
     }
 
-    const presetButtons = document.querySelectorAll(".preset-color");
+    const presetButtons = accentColorPickerRuntime.getElements(".preset-color");
     for (const button of presetButtons) {
         const selected =
-            button instanceof HTMLElement &&
+            accentColorPickerRuntime.isHTMLElement(button) &&
             button.dataset["hex"] === normalizedColor;
         button.classList.toggle("selected", selected);
         button.setAttribute("aria-pressed", String(selected));
     }
 
-    const resetBtn = document.querySelector("#accent-color-reset");
-    if (resetBtn instanceof HTMLButtonElement) {
+    const resetBtn = accentColorPickerRuntime.getElement(
+        "#accent-color-reset"
+    );
+    if (accentColorPickerRuntime.isHTMLButtonElement(resetBtn)) {
         resetBtn.disabled = color === defaultColor;
     }
 }

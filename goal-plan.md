@@ -677,10 +677,11 @@ error-listener abort-controller creation now routes through `errorHandlingRuntim
 `AbortController` directly inside `errorHandling.ts`; its tests no longer install or delete a temporary
 performance-monitor global fixture; architecture coverage blocks the source fallback, direct controller
 construction, and test-global mutation pattern from returning.
-Accent color picker modal lookup/body append, style element creation/head append, listener abort-controller creation,
-and Escape-key document listener registration now route through `accentColorPickerRuntime.ts` instead of using ambient
-document access or constructing `AbortController` directly inside `accentColorPicker.ts`, with focused runtime coverage
-and architecture guardrails blocking direct accent picker open/style/controller access from returning.
+Accent color picker modal lookup/body append, style element creation/head append, focus tracking, preview DOM queries,
+element-list queries, element constructor checks, listener abort-controller creation, and Escape-key document listener
+registration now route through `accentColorPickerRuntime.ts` instead of using ambient document open/style/focus/preview
+access or constructing `AbortController` directly inside `accentColorPicker.ts`, with focused runtime coverage and
+architecture guardrails blocking direct accent picker open/style/focus/preview/controller access from returning.
 State development tools now check development-scope availability through the scoped `stateDevToolsRuntime.ts`
 adapter instead of probing `globalThis.window` or `globalThis.location` directly, with architecture coverage
 blocking those runtime-global lookups from returning.

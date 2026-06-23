@@ -7822,7 +7822,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps accent color picker listener and open/style browser access behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(52);
 
         const accentColorPickerSource = stripComments(
             readRepositoryFile("electron-app/ui/modals/accentColorPicker.ts")
@@ -7848,14 +7848,27 @@ describe("architecture boundaries", () => {
         expect(accentColorPickerSource).toContain("hasStyleElement");
         expect(accentColorPickerSource).toContain("createStyleElement");
         expect(accentColorPickerSource).toContain("appendStyle");
+        expect(accentColorPickerSource).toContain("getActiveElement");
+        expect(accentColorPickerSource).toContain("getElement");
+        expect(accentColorPickerSource).toContain("getElements");
+        expect(accentColorPickerSource).toContain("isHTMLElement");
+        expect(accentColorPickerSource).toContain("isHTMLInputElement");
+        expect(accentColorPickerSource).toContain("isHTMLButtonElement");
         expect(accentColorPickerSource).not.toContain(
             "document.addEventListener"
         );
+        expect(accentColorPickerSource).not.toContain("document.activeElement");
         expect(accentColorPickerSource).not.toContain(
             'document.querySelector<HTMLElement>("#accent-color-modal")'
         );
         expect(accentColorPickerSource).not.toContain(
             'document.querySelector("#accent-picker-styles")'
+        );
+        expect(accentColorPickerSource).not.toContain(
+            'document.querySelector("#current-theme-name")'
+        );
+        expect(accentColorPickerSource).not.toContain(
+            'document.querySelectorAll(".preset-color")'
         );
         expect(accentColorPickerSource).not.toContain(
             'document.createElement("style")'
@@ -7866,6 +7879,13 @@ describe("architecture boundaries", () => {
         expect(accentColorPickerSource).not.toContain(
             "document.head.append(style)"
         );
+        expect(accentColorPickerSource).not.toContain(
+            "instanceof HTMLInputElement"
+        );
+        expect(accentColorPickerSource).not.toContain(
+            "instanceof HTMLButtonElement"
+        );
+        expect(accentColorPickerSource).not.toContain("instanceof HTMLElement");
         expect(accentColorPickerRuntimeSource).toContain(
             "defaultAccentColorPickerRuntimeScope"
         );
@@ -7879,10 +7899,28 @@ describe("architecture boundaries", () => {
             "getDocument: () => globalThis.document"
         );
         expect(accentColorPickerRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "getHTMLInputElement: () => globalThis.HTMLInputElement"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "getHTMLButtonElement: () => globalThis.HTMLButtonElement"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
             "accentColorPicker requires a document event-target runtime"
         );
         expect(accentColorPickerRuntimeSource).toContain(
             "accentColorPicker requires a document runtime"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "accentColorPicker requires an HTMLElement runtime"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "accentColorPicker requires an HTMLInputElement runtime"
+        );
+        expect(accentColorPickerRuntimeSource).toContain(
+            "accentColorPicker requires an HTMLButtonElement runtime"
         );
         expect(accentColorPickerRuntimeSource).not.toContain(
             "scope: AccentColorPickerRuntimeScope = globalThis"
@@ -7897,12 +7935,30 @@ describe("architecture boundaries", () => {
             "readonly document?:"
         );
         expect(accentColorPickerRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "readonly HTMLInputElement?:"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "readonly HTMLButtonElement?:"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
             "scope.AbortController"
         );
         expect(accentColorPickerRuntimeSource).not.toContain(
             "scope.documentEventTarget"
         );
         expect(accentColorPickerRuntimeSource).not.toContain("scope.document");
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope.HTMLElement"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope.HTMLInputElement"
+        );
+        expect(accentColorPickerRuntimeSource).not.toContain(
+            "scope.HTMLButtonElement"
+        );
     });
 
     it("keeps error handling tests off ambient performance monitor fixtures", () => {
