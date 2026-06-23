@@ -247,6 +247,9 @@ const rendererVendorBrowserPackageImportAllowedFiles = [
 const migratedDataTableImportFiles = [
     "electron-app/utils/rendering/core/renderTable.ts",
 ] as const;
+const migratedCreateTablesRuntimeFiles = [
+    "electron-app/utils/rendering/components/createTables.ts",
+] as const;
 const migratedRenderTableRuntimeFiles = [
     "electron-app/utils/rendering/core/renderTable.ts",
 ] as const;
@@ -1058,6 +1061,7 @@ const rendererDevelopmentDebugGlobalMutationPattern =
 const rawGlobalThisAnyCastPattern = /\(\s*globalThis\s+as\s+any\s*\)/u;
 const directDataTableGlobalPattern =
     /\b(?:window|globalThis|tableGlobal|renderTableGlobal)\.(?:\$|jQuery|DataTable)\b|\.jQuery\b/u;
+const directCreateTablesRuntimeGlobalPattern = /\bdocument\.querySelector\b/u;
 const directRenderTableRuntimeGlobalPattern =
     /\b(?:document|globalThis)\.(?:createElement|getElementById|getComputedStyle|requestAnimationFrame)\b|(?:^|[^\w.])setTimeout\(|\binstanceof\s+(?:HTMLElement|HTMLTableCellElement)\b/u;
 const directRenderTableRuntimeAmbientTimerFallbackPattern =
@@ -8237,6 +8241,63 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(violations).toStrictEqual([]);
+    });
+
+    it("keeps table creation container lookup behind the runtime facade", () => {
+        expect.assertions(12);
+
+        const violations = migratedCreateTablesRuntimeFiles
+            .filter((relativeFile) =>
+                directCreateTablesRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const createTablesSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/components/createTables.ts"
+            )
+        );
+        const createTablesRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/rendering/components/createTablesRuntime.ts"
+            )
+        );
+        const createTablesRuntimeScopeSource = createTablesRuntimeSource.slice(
+            createTablesRuntimeSource.indexOf(
+                "export interface CreateTablesRuntimeScope"
+            ),
+            createTablesRuntimeSource.indexOf(
+                "export interface CreateTablesRuntime {"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(createTablesSource).toContain("createTablesRuntime.js");
+        expect(createTablesSource).toContain(
+            "createTablesRuntime.getDefaultContainer()"
+        );
+        expect(createTablesSource).not.toContain("document.querySelector");
+        expect(createTablesRuntimeSource).toContain(
+            "defaultCreateTablesRuntimeScope"
+        );
+        expect(createTablesRuntimeSource).not.toContain(
+            "scope: CreateTablesRuntimeScope = globalThis"
+        );
+        expect(createTablesRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(createTablesRuntimeScopeSource).not.toContain(
+            "readonly document?:"
+        );
+        expect(createTablesRuntimeSource).not.toContain("scope.document");
+        expect(createTablesRuntimeSource).toContain(
+            "return scope.getDocument?.();"
+        );
+        expect(createTablesRuntimeSource).toContain(
+            "querySelector<HTMLElement>"
+        );
+        expect(createTablesRuntimeSource).toContain('"#content_data"');
     });
 
     it("keeps renderer development debug runtime metadata behind the runtime facade", () => {

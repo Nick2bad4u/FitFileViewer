@@ -393,6 +393,9 @@ Show FIT data post-load map-container detection, scroll availability checks, red
 microtask scheduling, and scroll calls now route through `showFitDataRuntime.ts` instead of probing `document`,
 `globalThis.scrollTo`, `globalThis.matchMedia`, or `queueMicrotask` directly inside `showFitData.ts`, with
 focused runtime/behavior coverage and architecture guardrails blocking those direct browser APIs from returning.
+Data tab table container lookup now routes through `createTablesRuntime.ts` instead of querying `document` directly
+inside `createTables.ts`, with focused runtime/behavior coverage and architecture guardrails blocking direct
+container queries and legacy direct document runtime-scope properties from returning.
 Setup theme main-process fetch timeout scheduling and cleanup now route through `setupThemeRuntime.ts` instead
 of calling timer globals directly inside `setupTheme.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct timer globals from returning. Explicit setup-theme runtime scopes must now

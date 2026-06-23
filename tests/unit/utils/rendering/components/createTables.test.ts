@@ -50,6 +50,22 @@ describe(createTables, () => {
         ).toBeInstanceOf(HTMLElement);
     });
 
+    it("renders into the default data-tab container when no override is provided", () => {
+        expect.assertions(3);
+
+        const container = document.createElement("div");
+        container.id = "content_data";
+        document.body.replaceChildren(container);
+
+        createTables({ recordMesgs: [{ a: 1 }] });
+
+        expect(renderTable).toHaveBeenCalledOnce();
+        expect(vi.mocked(renderTable).mock.calls[0]?.[0]).toBe(container);
+        expect(
+            container.querySelector("[data-table-name='recordMesgs']")
+        ).toBeInstanceOf(HTMLElement);
+    });
+
     it("returns early when container not found and no override provided", () => {
         expect.assertions(4);
 

@@ -1,9 +1,12 @@
 import { renderTable } from "../core/renderTable.js";
+import { getCreateTablesRuntime } from "./createTablesRuntime.js";
 import {
     getFitTableEntries,
     isFitTableEntry,
     type FitTableEntry,
 } from "../../state/domain/fitTableDataState.js";
+
+const createTablesRuntime = getCreateTablesRuntime();
 
 function getErrorMessage(error: unknown): string {
     return error instanceof Error ? error.message : String(error);
@@ -27,8 +30,7 @@ export function createTables(
     containerOverride?: HTMLElement
 ): void {
     const container =
-        containerOverride ??
-        document.querySelector<HTMLElement>("#content_data");
+        containerOverride ?? createTablesRuntime.getDefaultContainer();
     if (!container) {
         console.error(
             '[ERROR] Container element with id "content_data" not found. Please ensure the element exists in the DOM or provide a valid containerOverride.'
