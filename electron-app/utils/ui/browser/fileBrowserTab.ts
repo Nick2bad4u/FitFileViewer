@@ -27,7 +27,6 @@ import {
     setBrowserScanState,
     setBrowserView,
 } from "../../state/domain/browserState.js";
-import { getElementByIdFlexible } from "../dom/elementIdUtils.js";
 import {
     type FitBrowserLibraryCachePayload,
     readFitBrowserLibraryCache,
@@ -146,7 +145,7 @@ function addManagedEventListener<K extends keyof HTMLElementEventMap>(
  * Render or refresh the Browser tab UI.
  */
 export async function renderFileBrowserTab(): Promise<void> {
-    const container = getElementByIdFlexible(document, "content_browser");
+    const container = fileBrowserTabRuntime.getElementById("content_browser");
     if (!container) {
         return;
     }
@@ -156,7 +155,7 @@ export async function renderFileBrowserTab(): Promise<void> {
         container.dataset["ffvBrowserInitialized"] = "true";
         container.replaceChildren(createFileBrowserScaffold());
 
-        const pickBtn = document.querySelector<HTMLElement>(
+        const pickBtn = fileBrowserTabRuntime.getElement<HTMLElement>(
             "#fit-browser-pick-folder"
         );
         if (pickBtn) {
@@ -180,13 +179,13 @@ export async function renderFileBrowserTab(): Promise<void> {
             });
         }
 
-        const filesBtn = document.querySelector<HTMLElement>(
+        const filesBtn = fileBrowserTabRuntime.getElement<HTMLElement>(
             "#fit-browser-view-files"
         );
-        const libraryBtn = document.querySelector<HTMLElement>(
+        const libraryBtn = fileBrowserTabRuntime.getElement<HTMLElement>(
             "#fit-browser-view-library"
         );
-        const calendarBtn = document.querySelector<HTMLElement>(
+        const calendarBtn = fileBrowserTabRuntime.getElement<HTMLElement>(
             "#fit-browser-view-calendar"
         );
 
@@ -216,49 +215,49 @@ export async function renderFileBrowserTab(): Promise<void> {
 }
 
 function createFileBrowserScaffold(): HTMLElement {
-    const root = document.createElement("div");
+    const root = fileBrowserTabRuntime.createElement("div");
     root.className = "file-browser";
 
-    const notice = document.createElement("div");
+    const notice = fileBrowserTabRuntime.createElement("div");
     notice.className = "file-browser__notice";
     notice.setAttribute("role", "note");
     notice.textContent =
         "Experimental feature — folder scanning and calendar may change.";
 
-    const header = document.createElement("div");
+    const header = fileBrowserTabRuntime.createElement("div");
     header.className = "file-browser__header";
 
-    const controls = document.createElement("div");
+    const controls = fileBrowserTabRuntime.createElement("div");
     controls.className = "file-browser__controls";
     controls.append(createPickFolderButton(), createViewSegmentedControl());
 
-    const currentPath = document.createElement("div");
+    const currentPath = fileBrowserTabRuntime.createElement("div");
     currentPath.className = "file-browser__path";
     currentPath.id = "fit-browser-current-path";
 
     header.append(controls, currentPath);
 
-    const status = document.createElement("div");
+    const status = fileBrowserTabRuntime.createElement("div");
     status.className = "file-browser__status";
     status.id = "fit-browser-status";
     status.setAttribute("aria-live", "polite");
     status.setAttribute("role", "status");
     status.hidden = true;
 
-    const body = document.createElement("div");
+    const body = fileBrowserTabRuntime.createElement("div");
     body.className = "file-browser__body";
 
-    const list = document.createElement("div");
+    const list = fileBrowserTabRuntime.createElement("div");
     list.className = "file-browser__list";
     list.id = "fit-browser-list";
     list.setAttribute("role", "list");
 
-    const library = document.createElement("div");
+    const library = fileBrowserTabRuntime.createElement("div");
     library.className = "file-browser__library";
     library.id = "fit-browser-library";
     library.hidden = true;
 
-    const calendar = document.createElement("div");
+    const calendar = fileBrowserTabRuntime.createElement("div");
     calendar.className = "file-browser__calendar";
     calendar.id = "fit-browser-calendar";
     calendar.hidden = true;
@@ -270,7 +269,7 @@ function createFileBrowserScaffold(): HTMLElement {
 }
 
 function createPickFolderButton(): HTMLButtonElement {
-    const button = document.createElement("button");
+    const button = fileBrowserTabRuntime.createElement("button");
     button.type = "button";
     button.className = "file-browser__btn";
     button.id = "fit-browser-pick-folder";
@@ -287,7 +286,7 @@ function createPickFolderButton(): HTMLButtonElement {
 }
 
 function createViewSegmentedControl(): HTMLElement {
-    const segmented = document.createElement("div");
+    const segmented = fileBrowserTabRuntime.createElement("div");
     segmented.className = "file-browser__segmented";
     segmented.setAttribute("role", "group");
     segmented.setAttribute("aria-label", "Browser view");
@@ -321,7 +320,7 @@ function createViewSegmentButton(
     label: string,
     selected: boolean
 ): HTMLButtonElement {
-    const button = document.createElement("button");
+    const button = fileBrowserTabRuntime.createElement("button");
     button.type = "button";
     button.className = "file-browser__seg-btn";
     button.id = id;
@@ -346,7 +345,7 @@ function appendIconLabel(
     labelClass: string,
     size: number
 ): void {
-    const label = document.createElement("span");
+    const label = fileBrowserTabRuntime.createElement("span");
     if (labelClass) {
         label.className = labelClass;
     }
@@ -361,7 +360,7 @@ function createEmptyMessage(
     text: string,
     className = "file-browser__empty"
 ): HTMLElement {
-    const empty = document.createElement("div");
+    const empty = fileBrowserTabRuntime.createElement("div");
     empty.className = className;
     empty.textContent = text;
 
@@ -377,8 +376,9 @@ function formatLoadedAt(): string {
 }
 
 function setBrowserStatus(message: string, loading = false): void {
-    const statusEl = document.querySelector<HTMLElement>("#fit-browser-status");
-    if (statusEl instanceof HTMLElement) {
+    const statusEl =
+        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-browser-status");
+    if (fileBrowserTabRuntime.isHTMLElement(statusEl)) {
         statusEl.hidden = message.length === 0;
         statusEl.classList.toggle("file-browser__status--loading", loading);
         statusEl.textContent = message;
@@ -995,20 +995,22 @@ function persistLibraryPrefs(prefs: FitLibraryPrefs): void {
 
 async function refreshActiveView(): Promise<void> {
     const view = getBrowserView();
-    const filesBtn = document.querySelector<HTMLElement>(
+    const filesBtn = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-view-files"
     );
-    const libraryBtn = document.querySelector<HTMLElement>(
+    const libraryBtn = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-view-library"
     );
-    const calendarBtn = document.querySelector<HTMLElement>(
+    const calendarBtn = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-view-calendar"
     );
-    const listEl = document.querySelector<HTMLElement>("#fit-browser-list");
-    const libraryEl = document.querySelector<HTMLElement>(
+    const listEl = fileBrowserTabRuntime.getElement<HTMLElement>(
+        "#fit-browser-list"
+    );
+    const libraryEl = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-library"
     );
-    const calendarEl = document.querySelector<HTMLElement>(
+    const calendarEl = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-calendar"
     );
 
@@ -1044,15 +1046,15 @@ async function refreshActiveView(): Promise<void> {
     }
 
     setElementVisible(
-        listEl instanceof HTMLElement ? listEl : null,
+        fileBrowserTabRuntime.isHTMLElement(listEl) ? listEl : null,
         view === "files"
     );
     setElementVisible(
-        libraryEl instanceof HTMLElement ? libraryEl : null,
+        fileBrowserTabRuntime.isHTMLElement(libraryEl) ? libraryEl : null,
         view === "library"
     );
     setElementVisible(
-        calendarEl instanceof HTMLElement ? calendarEl : null,
+        fileBrowserTabRuntime.isHTMLElement(calendarEl) ? calendarEl : null,
         view === "calendar"
     );
 

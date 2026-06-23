@@ -4743,8 +4743,8 @@ describe("architecture boundaries", () => {
         );
     });
 
-    it("keeps Browser tab listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(10);
+    it("keeps Browser tab entry browser access behind the runtime facade", () => {
+        expect.assertions(25);
 
         const violations = migratedFileBrowserTabRuntimeFiles
             .filter((relativeFile) =>
@@ -4767,6 +4767,24 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(browserTabSource).toContain("fileBrowserTabRuntime.js");
         expect(browserTabSource).toContain("createAbortController");
+        expect(browserTabSource).toContain(
+            "fileBrowserTabRuntime.getElementById"
+        );
+        expect(browserTabSource).toContain(
+            "fileBrowserTabRuntime.getElement<HTMLElement>"
+        );
+        expect(browserTabSource).toContain(
+            "fileBrowserTabRuntime.createElement"
+        );
+        expect(browserTabSource).toContain(
+            "fileBrowserTabRuntime.isHTMLElement"
+        );
+        expect(browserTabSource).not.toContain(
+            "getElementByIdFlexible(document"
+        );
+        expect(browserTabSource).not.toMatch(
+            /document\.querySelector<HTMLElement>\(\s*"#fit-browser-(?:pick-folder|status|view-calendar|view-files|view-library)"/u
+        );
         expect(browserTabRuntimeSource).toContain(
             "defaultFileBrowserTabRuntimeScope"
         );
@@ -4776,15 +4794,34 @@ describe("architecture boundaries", () => {
         expect(browserTabRuntimeSource).not.toContain(
             "readonly AbortController?:"
         );
+        expect(browserTabRuntimeSource).not.toContain("readonly document?:");
+        expect(browserTabRuntimeSource).not.toContain("readonly HTMLElement?:");
         expect(browserTabRuntimeSource).not.toContain(
             "FileBrowserTabRuntimeScope = globalThis"
         );
         expect(browserTabRuntimeSource).not.toContain("scope.AbortController");
+        expect(browserTabRuntimeSource).not.toContain("scope.document");
+        expect(browserTabRuntimeSource).not.toContain("scope.HTMLElement");
         expect(browserTabRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
         );
         expect(browserTabRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(browserTabRuntimeSource).toContain(
             "scope.getAbortController?.()"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "getRequiredDocument(scope).createElement(tagName)"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "getElementByIdFlexible(getRequiredDocument(scope), id)"
+        );
+        expect(browserTabRuntimeSource).toContain(
+            "value instanceof getHTMLElementConstructor(scope)"
         );
     });
 

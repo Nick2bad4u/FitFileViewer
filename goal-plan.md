@@ -301,9 +301,10 @@ Open-file selector hidden input creation, jsdom detection, microtask fallback, t
 abort-controller creation now route through `openFileSelectorRuntime.ts` instead of calling browser primitives or
 constructing controllers directly inside `openFileSelector.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct selector runtime primitives from returning.
-Browser tab managed listener abort-controller creation now routes through `fileBrowserTabRuntime.ts` instead
-of constructing `AbortController` directly inside `fileBrowserTab.ts`, with focused runtime coverage and
-architecture guardrails blocking direct Browser tab controller construction from returning.
+Browser tab container/status/view-button lookups, initial scaffold element creation, HTMLElement checks, and managed
+listener abort-controller creation now route through `fileBrowserTabRuntime.ts` instead of reading those entry/scaffold
+DOM primitives or constructing `AbortController` directly inside `fileBrowserTab.ts`, with focused runtime coverage and
+architecture guardrails blocking those direct Browser tab entry/scaffold primitives from returning.
 Power-estimation settings modal listener abort-controller creation, Escape-key document listener registration,
 modal element creation, body attachment, and body containment checks now route through
 `openPowerEstimationSettingsModalRuntime.ts` instead of constructing `AbortController`, registering document
