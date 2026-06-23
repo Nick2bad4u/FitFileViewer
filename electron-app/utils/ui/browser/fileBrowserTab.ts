@@ -1221,11 +1221,17 @@ function renderCalendarResults(
     root: string,
     payload: FitLibraryCachePayload | null
 ): void {
-    const titleEl = document.querySelector<HTMLElement>("#fit-calendar-title");
-    const gridEl = document.querySelector<HTMLElement>("#fit-calendar-grid");
-    const panelEl = document.querySelector<HTMLElement>("#fit-calendar-panel");
+    const titleEl =
+        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-calendar-title");
+    const gridEl =
+        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-calendar-grid");
+    const panelEl =
+        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-calendar-panel");
 
-    if (!(gridEl instanceof HTMLElement) || !(panelEl instanceof HTMLElement)) {
+    if (
+        !fileBrowserTabRuntime.isHTMLElement(gridEl) ||
+        !fileBrowserTabRuntime.isHTMLElement(panelEl)
+    ) {
         return;
     }
 
@@ -1286,7 +1292,7 @@ function renderCalendarResults(
 
     const gridItems = [];
     for (const wd of weekdayLabels) {
-        const weekday = document.createElement("div");
+        const weekday = fileBrowserTabRuntime.createElement("div");
         weekday.className = "file-calendar__weekday";
         weekday.textContent = wd;
         gridItems.push(weekday);
@@ -1367,7 +1373,7 @@ function createCalendarDayButton({
     isToday: boolean;
     unitLabel: DistanceUnit;
 }): HTMLButtonElement {
-    const button = document.createElement("button");
+    const button = fileBrowserTabRuntime.createElement("button");
     button.type = "button";
     button.className = "file-calendar__day";
     button.dataset["day"] = dayKey;
@@ -1384,18 +1390,18 @@ function createCalendarDayButton({
     }
     if (dayItems.length > 1) button.classList.add("file-calendar__day--multi");
 
-    const dayNumber = document.createElement("div");
+    const dayNumber = fileBrowserTabRuntime.createElement("div");
     dayNumber.className = "file-calendar__dayNumber";
     dayNumber.textContent = String(day.getDate());
 
-    const dayMeta = document.createElement("div");
+    const dayMeta = fileBrowserTabRuntime.createElement("div");
     dayMeta.className = "file-calendar__dayMeta";
     if (dayItems.length > 0) {
-        const distance = document.createElement("div");
+        const distance = fileBrowserTabRuntime.createElement("div");
         distance.className = "file-calendar__dayDistance";
         distance.textContent = `${formatDistance(dayDistance)} ${unitLabel}`;
 
-        const count = document.createElement("div");
+        const count = fileBrowserTabRuntime.createElement("div");
         count.className = "file-calendar__dayCount";
         count.textContent = formatActivityLabel(dayItems.length);
 
@@ -1408,7 +1414,7 @@ function createCalendarDayButton({
 }
 
 function createCalendarDayIconRow(items: FitLibraryItem[]): HTMLElement {
-    const iconRow = document.createElement("div");
+    const iconRow = fileBrowserTabRuntime.createElement("div");
     iconRow.className = "file-calendar__dayIcons";
     iconRow.setAttribute("aria-hidden", "true");
 
@@ -1417,7 +1423,7 @@ function createCalendarDayIconRow(items: FitLibraryItem[]): HTMLElement {
     const remainder = Math.max(0, badges.length - shown.length);
 
     for (const badge of shown) {
-        const icon = document.createElement("span");
+        const icon = fileBrowserTabRuntime.createElement("span");
         icon.className = "file-calendar__dayIcon";
         icon.dataset["sport"] = badge.key;
         icon.dataset["count"] = String(badge.count);
@@ -1428,7 +1434,7 @@ function createCalendarDayIconRow(items: FitLibraryItem[]): HTMLElement {
     }
 
     if (remainder > 0) {
-        const more = document.createElement("span");
+        const more = fileBrowserTabRuntime.createElement("span");
         more.className = "file-calendar__dayIconMore";
         more.textContent = `+${remainder}`;
         iconRow.append(more);
@@ -1453,7 +1459,7 @@ function createSportBadgeCounts(items: FitLibraryItem[]): SportBadgeCount[] {
 }
 
 function createCalendarPanelTitle(dayKey: string): HTMLElement {
-    const title = document.createElement("div");
+    const title = fileBrowserTabRuntime.createElement("div");
     title.className = "file-calendar__panelTitle";
     title.textContent = dayKey;
 
@@ -1495,17 +1501,17 @@ function getSportBadge(sport: string | undefined): SportBadge {
 }
 
 function createCalendarScaffold(): HTMLElement {
-    const calendar = document.createElement("div");
+    const calendar = fileBrowserTabRuntime.createElement("div");
     calendar.className = "file-calendar";
 
-    const header = document.createElement("div");
+    const header = fileBrowserTabRuntime.createElement("div");
     header.className = "file-calendar__header";
 
-    const title = document.createElement("div");
+    const title = fileBrowserTabRuntime.createElement("div");
     title.className = "file-calendar__title";
     title.id = "fit-calendar-title";
 
-    const nav = document.createElement("div");
+    const nav = fileBrowserTabRuntime.createElement("div");
     nav.className = "file-calendar__nav";
     nav.append(
         createBrowserActionButton({
@@ -1536,11 +1542,11 @@ function createCalendarScaffold(): HTMLElement {
 
     header.append(title, nav);
 
-    const grid = document.createElement("div");
+    const grid = fileBrowserTabRuntime.createElement("div");
     grid.className = "file-calendar__grid";
     grid.id = "fit-calendar-grid";
 
-    const panel = document.createElement("div");
+    const panel = fileBrowserTabRuntime.createElement("div");
     panel.className = "file-calendar__panel";
     panel.id = "fit-calendar-panel";
 
@@ -1560,7 +1566,7 @@ function createBrowserActionButton({
     label: string;
     tooltip?: string;
 }): HTMLButtonElement {
-    const button = document.createElement("button");
+    const button = fileBrowserTabRuntime.createElement("button");
     button.type = "button";
     button.className = "file-browser__btn";
     button.id = id;
@@ -1577,15 +1583,15 @@ function createBrowserActionButton({
  */
 async function renderCalendarView(): Promise<void> {
     const api = getElectronAPI();
-    const pathEl = document.querySelector<HTMLElement>(
+    const pathEl = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-current-path"
     );
-    const calendarEl = document.querySelector<HTMLElement>(
+    const calendarEl = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-calendar"
     );
     if (
-        !(calendarEl instanceof HTMLElement) ||
-        !(pathEl instanceof HTMLElement)
+        !fileBrowserTabRuntime.isHTMLElement(calendarEl) ||
+        !fileBrowserTabRuntime.isHTMLElement(pathEl)
     ) {
         return;
     }
@@ -1624,14 +1630,14 @@ async function renderCalendarView(): Promise<void> {
         calendarEl.replaceChildren(createCalendarScaffold());
 
         const prevBtn =
-            document.querySelector<HTMLElement>("#fit-calendar-prev");
+            fileBrowserTabRuntime.getElement<HTMLElement>("#fit-calendar-prev");
         const nextBtn =
-            document.querySelector<HTMLElement>("#fit-calendar-next");
-        const todayBtn = document.querySelector<HTMLElement>(
+            fileBrowserTabRuntime.getElement<HTMLElement>("#fit-calendar-next");
+        const todayBtn = fileBrowserTabRuntime.getElement<HTMLElement>(
             "#fit-calendar-today"
         );
         const scanBtn =
-            document.querySelector<HTMLElement>("#fit-calendar-scan");
+            fileBrowserTabRuntime.getElement<HTMLElement>("#fit-calendar-scan");
 
         if (prevBtn) {
             addManagedEventListener(prevBtn, "click", () => {
@@ -1701,10 +1707,10 @@ function createLibraryCard(
     label: string,
     value: string
 ): HTMLElement {
-    const card = document.createElement("div");
+    const card = fileBrowserTabRuntime.createElement("div");
     card.className = "file-library__card";
 
-    const cardLabel = document.createElement("div");
+    const cardLabel = fileBrowserTabRuntime.createElement("div");
     cardLabel.className = "file-library__cardLabel";
     appendIconLabel(
         cardLabel,
@@ -1715,7 +1721,7 @@ function createLibraryCard(
         13
     );
 
-    const cardValue = document.createElement("div");
+    const cardValue = fileBrowserTabRuntime.createElement("div");
     cardValue.className = "file-library__cardValue";
     cardValue.textContent = value;
 
@@ -1730,11 +1736,11 @@ function createLibraryRows(
     formatDistance: (meters: number) => string,
     options: LibraryRowOptions
 ): HTMLElement {
-    const rows = document.createElement("div");
+    const rows = fileBrowserTabRuntime.createElement("div");
     rows.className = "file-library__rows";
 
     for (const item of items) {
-        const row = document.createElement("button");
+        const row = fileBrowserTabRuntime.createElement("button");
         row.type = "button";
         row.className = "file-library__row";
         row.dataset["fullpath"] = item.fullPath;
@@ -1742,19 +1748,22 @@ function createLibraryRows(
             await openBrowserFile(item.fullPath);
         });
 
-        const main = document.createElement("span");
+        const main = fileBrowserTabRuntime.createElement("span");
         main.className = "file-library__rowMain";
 
         if (options.includeSportBadge) {
             const badge = getSportBadge(item.sport);
-            const icon = document.createElement("span");
+            const icon = fileBrowserTabRuntime.createElement("span");
             icon.className = "file-calendar__rowIcon";
             icon.dataset["tooltip"] = badge.label;
             icon.setAttribute("aria-hidden", "true");
             icon.textContent = badge.emoji;
-            main.append(icon, document.createTextNode(` ${item.fileName}`));
+            main.append(
+                icon,
+                fileBrowserTabRuntime.createTextNode(` ${item.fileName}`)
+            );
         } else {
-            const fileName = document.createElement("span");
+            const fileName = fileBrowserTabRuntime.createElement("span");
             fileName.textContent = item.fileName;
             main.append(
                 createAppIconElement("file", {
@@ -1772,7 +1781,7 @@ function createLibraryRows(
               })
             : item.startTime.toLocaleString();
         const sport = item.sport ? ` — ${item.sport}` : "";
-        const meta = document.createElement("span");
+        const meta = fileBrowserTabRuntime.createElement("span");
         meta.className = "file-library__rowMeta";
         meta.textContent = `${when} • ${formatDistance(item.totalDistanceM)} ${unitLabel}${sport}`;
 
@@ -1784,13 +1793,13 @@ function createLibraryRows(
 }
 
 function createLibraryScaffold(): HTMLElement {
-    const library = document.createElement("div");
+    const library = fileBrowserTabRuntime.createElement("div");
     library.className = "file-library";
 
-    const header = document.createElement("div");
+    const header = fileBrowserTabRuntime.createElement("div");
     header.className = "file-library__header";
 
-    const title = document.createElement("div");
+    const title = fileBrowserTabRuntime.createElement("div");
     title.className = "file-library__title";
     appendIconLabel(
         title,
@@ -1801,7 +1810,7 @@ function createLibraryScaffold(): HTMLElement {
         16
     );
 
-    const controls = document.createElement("div");
+    const controls = fileBrowserTabRuntime.createElement("div");
     controls.className = "file-library__controls";
     controls.append(
         createLibraryDaysControl(),
@@ -1815,15 +1824,15 @@ function createLibraryScaffold(): HTMLElement {
 
     header.append(title, controls);
 
-    const status = document.createElement("div");
+    const status = fileBrowserTabRuntime.createElement("div");
     status.className = "file-library__status";
     status.id = "fit-library-status";
 
-    const cards = document.createElement("div");
+    const cards = fileBrowserTabRuntime.createElement("div");
     cards.className = "file-library__grid";
     cards.id = "fit-library-cards";
 
-    const activities = document.createElement("div");
+    const activities = fileBrowserTabRuntime.createElement("div");
     activities.className = "file-library__list";
     activities.id = "fit-library-activities";
 
@@ -1833,10 +1842,10 @@ function createLibraryScaffold(): HTMLElement {
 }
 
 function createLibraryDaysControl(): HTMLLabelElement {
-    const label = document.createElement("label");
+    const label = fileBrowserTabRuntime.createElement("label");
     label.className = "file-library__control";
 
-    const intro = document.createElement("span");
+    const intro = fileBrowserTabRuntime.createElement("span");
     intro.className = "file-library__controlLabel";
     appendIconLabel(
         intro,
@@ -1847,7 +1856,7 @@ function createLibraryDaysControl(): HTMLLabelElement {
         12
     );
 
-    const input = document.createElement("input");
+    const input = fileBrowserTabRuntime.createElement("input");
     input.type = "number";
     input.min = "1";
     input.max = "3650";
@@ -1855,7 +1864,7 @@ function createLibraryDaysControl(): HTMLLabelElement {
     input.className = "file-library__daysInput";
     input.id = "fit-library-days";
 
-    const suffix = document.createElement("span");
+    const suffix = fileBrowserTabRuntime.createElement("span");
     suffix.className = "file-library__controlLabel";
     suffix.textContent = "days";
 
@@ -1865,10 +1874,10 @@ function createLibraryDaysControl(): HTMLLabelElement {
 }
 
 function createLibraryUnitControl(): HTMLLabelElement {
-    const label = document.createElement("label");
+    const label = fileBrowserTabRuntime.createElement("label");
     label.className = "file-library__control";
 
-    const intro = document.createElement("span");
+    const intro = fileBrowserTabRuntime.createElement("span");
     intro.className = "file-library__controlLabel";
     appendIconLabel(
         intro,
@@ -1879,12 +1888,12 @@ function createLibraryUnitControl(): HTMLLabelElement {
         12
     );
 
-    const select = document.createElement("select");
+    const select = fileBrowserTabRuntime.createElement("select");
     select.className = "file-library__unitSelect";
     select.id = "fit-library-unit";
 
     for (const value of ["km", "mi"]) {
-        const option = document.createElement("option");
+        const option = fileBrowserTabRuntime.createElement("option");
         option.value = value;
         option.textContent = value;
         select.append(option);
@@ -1899,9 +1908,11 @@ function renderLibraryResults(
     root: string,
     payload: FitLibraryCachePayload
 ): void {
-    const statusEl = document.querySelector<HTMLElement>("#fit-library-status");
-    const cardsEl = document.querySelector<HTMLElement>("#fit-library-cards");
-    const listEl = document.querySelector<HTMLElement>(
+    const statusEl =
+        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-library-status");
+    const cardsEl =
+        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-library-cards");
+    const listEl = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-library-activities"
     );
 
@@ -1964,16 +1975,16 @@ function renderLibraryResults(
 
 async function renderLibraryView(): Promise<void> {
     const api = getElectronAPI();
-    const pathEl = document.querySelector<HTMLElement>(
+    const pathEl = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-current-path"
     );
-    const libraryEl = document.querySelector<HTMLElement>(
+    const libraryEl = fileBrowserTabRuntime.getElement<HTMLElement>(
         "#fit-browser-library"
     );
 
     if (
-        !(libraryEl instanceof HTMLElement) ||
-        !(pathEl instanceof HTMLElement)
+        !fileBrowserTabRuntime.isHTMLElement(libraryEl) ||
+        !fileBrowserTabRuntime.isHTMLElement(pathEl)
     ) {
         return;
     }
@@ -2009,7 +2020,7 @@ async function renderLibraryView(): Promise<void> {
         libraryEl.replaceChildren(createLibraryScaffold());
 
         const scanBtn =
-            document.querySelector<HTMLElement>("#fit-library-scan");
+            fileBrowserTabRuntime.getElement<HTMLElement>("#fit-library-scan");
         if (scanBtn) {
             addManagedEventListener(scanBtn, "click", async () => {
                 await scanAndRenderLibrary(root);
@@ -2019,11 +2030,15 @@ async function renderLibraryView(): Promise<void> {
         // Initialize controls from persisted prefs.
         const prefs = getLibraryPrefs();
         const daysInput =
-            document.querySelector<HTMLInputElement>("#fit-library-days");
+            fileBrowserTabRuntime.getElement<HTMLInputElement>(
+                "#fit-library-days"
+            );
         const unitSelect =
-            document.querySelector<HTMLSelectElement>("#fit-library-unit");
+            fileBrowserTabRuntime.getElement<HTMLSelectElement>(
+                "#fit-library-unit"
+            );
 
-        if (daysInput instanceof HTMLInputElement) {
+        if (fileBrowserTabRuntime.isHTMLInputElement(daysInput)) {
             daysInput.value = String(prefs.lastDays);
             addManagedEventListener(daysInput, "change", () => {
                 const next = Number(daysInput.value);
@@ -2044,7 +2059,7 @@ async function renderLibraryView(): Promise<void> {
             });
         }
 
-        if (unitSelect instanceof HTMLSelectElement) {
+        if (fileBrowserTabRuntime.isHTMLSelectElement(unitSelect)) {
             unitSelect.value = prefs.unit;
             addManagedEventListener(unitSelect, "change", () => {
                 const nextUnit = unitSelect.value === "mi" ? "mi" : "km";
@@ -2074,7 +2089,8 @@ async function renderLibraryView(): Promise<void> {
     setBrowserStatus(
         `Loaded folder at ${formatLoadedAt()}. Scan folder to compute totals.`
     );
-    const statusEl = document.querySelector<HTMLElement>("#fit-library-status");
+    const statusEl =
+        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-library-status");
     if (statusEl) {
         statusEl.textContent =
             "Click ‘Scan folder’ to compute weekly/monthly totals.";
@@ -2083,7 +2099,8 @@ async function renderLibraryView(): Promise<void> {
 
 async function scanAndRenderLibrary(root: string): Promise<void> {
     const api = getElectronAPI();
-    const statusEl = document.querySelector<HTMLElement>("#fit-library-status");
+    const statusEl =
+        fileBrowserTabRuntime.getElement<HTMLElement>("#fit-library-status");
     if (
         !api ||
         typeof api.listFitBrowserFolder !== "function" ||

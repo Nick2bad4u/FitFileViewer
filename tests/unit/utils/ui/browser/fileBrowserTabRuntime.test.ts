@@ -23,31 +23,41 @@ describe("getFileBrowserTabRuntime", () => {
     });
 
     it("routes DOM helpers through the injected document", () => {
-        expect.assertions(7);
+        expect.assertions(12);
 
         const documentRef = document.implementation.createHTMLDocument();
         const runtime = getFileBrowserTabRuntime({
             getDocument: () => documentRef,
             getHTMLElement: () => HTMLElement,
+            getHTMLInputElement: () => HTMLInputElement,
+            getHTMLSelectElement: () => HTMLSelectElement,
         });
         const container = runtime.createElement("div");
         container.id = "content_browser";
         const status = runtime.createElement("div");
         status.id = "fit-browser-status";
-        container.append(status);
+        const text = runtime.createTextNode("Status");
+        const input = runtime.createElement("input");
+        const select = runtime.createElement("select");
+        container.append(status, text, input, select);
         documentRef.body.append(container);
 
         expect(container.ownerDocument).toBe(documentRef);
         expect(status.ownerDocument).toBe(documentRef);
+        expect(text.ownerDocument).toBe(documentRef);
         expect(runtime.getElementById("content_browser")).toBe(container);
         expect(runtime.getElement("#fit-browser-status")).toBe(status);
         expect(runtime.isHTMLElement(status)).toBe(true);
+        expect(runtime.isHTMLInputElement(input)).toBe(true);
+        expect(runtime.isHTMLInputElement(select)).toBe(false);
+        expect(runtime.isHTMLSelectElement(select)).toBe(true);
+        expect(runtime.isHTMLSelectElement(input)).toBe(false);
         expect(runtime.getElement("#missing")).toBeNull();
         expect(document.getElementById("content_browser")).toBeNull();
     });
 
     it("fails clearly when explicit runtime dependencies are unavailable", () => {
-        expect.assertions(4);
+        expect.assertions(7);
 
         const runtime = getFileBrowserTabRuntime({});
 
@@ -57,16 +67,25 @@ describe("getFileBrowserTabRuntime", () => {
         expect(() => runtime.createElement("div")).toThrow(
             "fileBrowserTab requires a document runtime"
         );
+        expect(() => runtime.createTextNode("text")).toThrow(
+            "fileBrowserTab requires a document runtime"
+        );
         expect(() => runtime.getElement("#content_browser")).toThrow(
             "fileBrowserTab requires a document runtime"
         );
         expect(() => runtime.isHTMLElement(document.body)).toThrow(
             "fileBrowserTab requires an HTMLElement runtime"
         );
+        expect(() => runtime.isHTMLInputElement(document.body)).toThrow(
+            "fileBrowserTab requires an HTMLInputElement runtime"
+        );
+        expect(() => runtime.isHTMLSelectElement(document.body)).toThrow(
+            "fileBrowserTab requires an HTMLSelectElement runtime"
+        );
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(5);
+        expect.assertions(8);
 
         const AbortControllerConstructor = vi.fn();
         const runtime = getFileBrowserTabRuntime({
@@ -74,6 +93,8 @@ describe("getFileBrowserTabRuntime", () => {
                 AbortControllerConstructor as unknown as typeof AbortController,
             document,
             HTMLElement,
+            HTMLInputElement,
+            HTMLSelectElement,
         } as unknown as Parameters<typeof getFileBrowserTabRuntime>[0]);
 
         expect(() => runtime.createAbortController()).toThrow(
@@ -82,11 +103,20 @@ describe("getFileBrowserTabRuntime", () => {
         expect(() => runtime.createElement("div")).toThrow(
             "fileBrowserTab requires a document runtime"
         );
+        expect(() => runtime.createTextNode("text")).toThrow(
+            "fileBrowserTab requires a document runtime"
+        );
         expect(() => runtime.getElementById("content_browser")).toThrow(
             "fileBrowserTab requires a document runtime"
         );
         expect(() => runtime.isHTMLElement(document.body)).toThrow(
             "fileBrowserTab requires an HTMLElement runtime"
+        );
+        expect(() => runtime.isHTMLInputElement(document.body)).toThrow(
+            "fileBrowserTab requires an HTMLInputElement runtime"
+        );
+        expect(() => runtime.isHTMLSelectElement(document.body)).toThrow(
+            "fileBrowserTab requires an HTMLSelectElement runtime"
         );
         expect(AbortControllerConstructor).not.toHaveBeenCalled();
     });

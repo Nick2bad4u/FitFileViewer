@@ -301,11 +301,11 @@ Open-file selector hidden input creation, jsdom detection, microtask fallback, t
 abort-controller creation now route through `openFileSelectorRuntime.ts` instead of calling browser primitives or
 constructing controllers directly inside `openFileSelector.ts`, with focused runtime coverage and architecture
 guardrails blocking those direct selector runtime primitives from returning.
-Browser tab container/status/view-button lookups, Files view path/list lookups, open-file button lookup, initial scaffold
-and Files view item-button element creation, HTMLElement checks, and managed listener abort-controller creation now route
-through `fileBrowserTabRuntime.ts` instead of reading those entry/scaffold/Files view DOM primitives or constructing
-`AbortController` directly inside `fileBrowserTab.ts`, with focused runtime coverage and architecture guardrails blocking
-those direct Browser tab entry/scaffold/Files view primitives from returning.
+Browser tab container/status/view-button lookups, Files/Calendar/Library view path/content/control lookups, open-file
+button lookup, Browser tab scaffold/row/card/control element and text-node creation, HTMLElement/input/select checks, and
+managed listener abort-controller creation now route through `fileBrowserTabRuntime.ts` instead of reading those Browser
+tab DOM primitives or constructing `AbortController` directly inside `fileBrowserTab.ts`, with focused runtime coverage
+and architecture guardrails blocking those direct Browser tab DOM primitives from returning.
 Power-estimation settings modal listener abort-controller creation, Escape-key document listener registration,
 modal element creation, body attachment, and body containment checks now route through
 `openPowerEstimationSettingsModalRuntime.ts` instead of constructing `AbortController`, registering document
