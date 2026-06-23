@@ -25,7 +25,7 @@ const defaultStorageUtilsRuntimeScope: StorageUtilsRuntimeScope = {
 };
 
 function getDefaultLocalStorage(): null | StorageLike {
-    const localStorageValue = Reflect.get(globalThis, "localStorage") as
+    const localStorageValue = globalThis.localStorage as
         | null
         | StorageLike
         | undefined;

@@ -706,6 +706,8 @@ construction from returning. Settings state-core runtime scopes now also resolve
 abort-controller creation, and localStorage access through named provider functions instead of a broad `globalThis`
 default scope or direct scope properties, with focused coverage and architecture coverage blocking those legacy
 runtime shapes from returning.
+Generic storage helpers now keep default `localStorage` access inside `storageUtilsRuntime.ts` and use an explicit
+`globalThis.localStorage` provider instead of a generic `Reflect.get(globalThis, "localStorage")` probe.
 State development tools also route performance-monitor interval scheduling and clearing through that runtime
 adapter instead of calling interval globals directly, with focused runtime coverage and architecture guardrails
 blocking those direct timer calls from returning. Explicit state devtools runtime scopes must now provide interval
