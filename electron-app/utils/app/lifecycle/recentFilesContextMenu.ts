@@ -539,7 +539,7 @@ export function attachRecentFilesContextMenu({
                 );
                 const { target, isTrusted, which, button } = e;
                 if (
-                    target instanceof Node &&
+                    runtime.isNode(target) &&
                     !menu.contains(target) &&
                     target !== menu
                 ) {

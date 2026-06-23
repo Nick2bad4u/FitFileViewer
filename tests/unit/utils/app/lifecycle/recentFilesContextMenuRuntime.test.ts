@@ -95,7 +95,7 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("routes runtime dependencies through provider functions", () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const callback = vi.fn<() => void>();
         const delayMs = Number("25");
@@ -119,6 +119,7 @@ describe("recentFilesContextMenuRuntime", () => {
             getAbortController: () => TestAbortController,
             getClearTimeout: () => clearTimeout,
             getDocumentEventTarget: () => documentEventTarget,
+            getNode: () => Node,
             getSetTimeout: () => setTimeout,
             getViewport: () => ({ height: 900, width: 1440 }),
         });
@@ -138,6 +139,8 @@ describe("recentFilesContextMenuRuntime", () => {
         const menu = runtime.createMenuElement();
         menu.id = "recent-files-menu";
         runtime.appendToBody(menu);
+        expect(runtime.isNode(menu)).toBe(true);
+        expect(runtime.isNode({})).toBe(false);
         expect(runtime.bodyContains(menu)).toBe(true);
         expect(runtime.isBodyParent(menu)).toBe(true);
         expect(runtime.findRecentFilesMenu()).toBe(menu);
@@ -160,7 +163,7 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("does not borrow ambient timers for explicit scopes", () => {
-        expect.assertions(11);
+        expect.assertions(12);
 
         const runtime = getRecentFilesContextMenuRuntime({});
         const element = document.createElement("div");
@@ -202,6 +205,9 @@ describe("recentFilesContextMenuRuntime", () => {
         expect(() => runtime.isBodyParent(element)).toThrow(
             "recent files context menu requires a document event-target runtime"
         );
+        expect(() => runtime.isNode(element)).toThrow(
+            "recent files context menu requires a Node runtime"
+        );
     });
 
     it("registers document mousedown listeners through the injected event target", () => {
@@ -235,7 +241,7 @@ describe("recentFilesContextMenuRuntime", () => {
     });
 
     it("ignores legacy direct runtime properties", () => {
-        expect.assertions(21);
+        expect.assertions(22);
 
         const AbortControllerConstructor = vi.fn();
         const callback = vi.fn<() => void>();
@@ -254,6 +260,7 @@ describe("recentFilesContextMenuRuntime", () => {
                 AbortControllerConstructor as unknown as typeof AbortController,
             clearTimeout,
             documentEventTarget,
+            Node,
             setTimeout,
             viewport: {
                 height: 720,
@@ -298,6 +305,9 @@ describe("recentFilesContextMenuRuntime", () => {
         );
         expect(() => runtime.isBodyParent(document.body)).toThrow(
             "recent files context menu requires a document event-target runtime"
+        );
+        expect(() => runtime.isNode(document.body)).toThrow(
+            "recent files context menu requires a Node runtime"
         );
         expect(runtime.getViewport()).toStrictEqual({ height: 0, width: 0 });
         expect(AbortControllerConstructor).not.toHaveBeenCalled();

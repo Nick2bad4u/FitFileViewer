@@ -6,6 +6,7 @@ export interface RecentFilesContextMenuRuntimeScope {
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
     readonly getDocumentEventTarget?: (() => Document | undefined) | undefined;
+    readonly getNode?: (() => typeof globalThis.Node | undefined) | undefined;
     readonly getSetTimeout?:
         | (() => typeof globalThis.setTimeout | undefined)
         | undefined;
@@ -56,6 +57,7 @@ export interface RecentFilesContextMenuRuntime {
     hasRecentFilesMenu: () => boolean;
     insertBeforeBodyFirstChild: (element: Element) => void;
     isBodyParent: (element: Element) => boolean;
+    isNode: (value: unknown) => value is Node;
     setTimeout: (
         callback: () => void,
         delayMs: number
@@ -71,6 +73,7 @@ const defaultRecentFilesContextMenuRuntimeScope: RecentFilesContextMenuRuntimeSc
         getAbortController: () => globalThis.AbortController,
         getClearTimeout: () => globalThis.clearTimeout,
         getDocumentEventTarget: () => globalThis.document,
+        getNode: () => globalThis.Node,
         getSetTimeout: () => globalThis.setTimeout,
         getViewport: () => ({
             height: globalThis.innerHeight,
@@ -94,6 +97,19 @@ function getDocumentEventTarget(
     scope: RecentFilesContextMenuRuntimeScope
 ): Document | undefined {
     return scope.getDocumentEventTarget?.();
+}
+
+function getNodeConstructor(
+    scope: RecentFilesContextMenuRuntimeScope
+): typeof globalThis.Node {
+    const NodeConstructor = scope.getNode?.();
+    if (typeof NodeConstructor !== "function") {
+        throw new TypeError(
+            "recent files context menu requires a Node runtime"
+        );
+    }
+
+    return NodeConstructor;
 }
 
 function getRuntimeDocument(
@@ -206,6 +222,9 @@ export function getRecentFilesContextMenuRuntime(
         },
         isBodyParent(element): boolean {
             return element.parentNode === getRuntimeDocument(scope).body;
+        },
+        isNode(value): value is Node {
+            return value instanceof getNodeConstructor(scope);
         },
         setTimeout(callback, delayMs): RecentFilesContextMenuTimer {
             const setTimeoutRef = getSetTimeout(scope);

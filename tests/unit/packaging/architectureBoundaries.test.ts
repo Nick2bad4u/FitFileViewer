@@ -7879,7 +7879,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps recent-files context-menu viewport, focus timers, and abort controllers behind the runtime adapter", () => {
-        expect.assertions(41);
+        expect.assertions(47);
 
         const recentFilesContextMenuSource = stripComments(
             readRepositoryFile(
@@ -7900,7 +7900,7 @@ describe("architecture boundaries", () => {
             )
         );
         const directRecentFilesContextMenuRuntimeGlobalPattern =
-            /\b(?:globalThis|window)\.(?:clearTimeout|innerHeight|innerWidth|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b/u;
+            /\b(?:globalThis|window)\.(?:clearTimeout|innerHeight|innerWidth|setTimeout)\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(|\bnew\s+AbortController\b|\binstanceof\s+Node\b/u;
         const directRecentFilesContextMenuAmbientTimerFallbackPattern =
             /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\s*\(/u;
 
@@ -7921,6 +7921,7 @@ describe("architecture boundaries", () => {
             "insertBeforeBodyFirstChild"
         );
         expect(recentFilesContextMenuSource).toContain("isBodyParent");
+        expect(recentFilesContextMenuSource).toContain("isNode(target)");
         expect(recentFilesContextMenuSource).not.toContain(
             "document.addEventListener"
         );
@@ -7935,6 +7936,9 @@ describe("architecture boundaries", () => {
         expect(recentFilesContextMenuSource).not.toContain("window.innerWidth");
         expect(recentFilesContextMenuSource).not.toContain(
             "window.innerHeight"
+        );
+        expect(recentFilesContextMenuSource).not.toMatch(
+            /\binstanceof\s+Node\b/u
         );
         expect(
             directRecentFilesContextMenuRuntimeGlobalPattern.test(
@@ -7957,6 +7961,9 @@ describe("architecture boundaries", () => {
             "getDocumentEventTarget: () => globalThis.document"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
+            "getNode: () => globalThis.Node"
+        );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(recentFilesContextMenuRuntimeSource).toContain(
@@ -7977,11 +7984,15 @@ describe("architecture boundaries", () => {
         expect(recentFilesContextMenuRuntimeSource).toContain(
             "recent files context menu requires a setTimeout runtime"
         );
+        expect(recentFilesContextMenuRuntimeSource).toContain(
+            "recent files context menu requires a Node runtime"
+        );
         expect(runtimeScopeSource).not.toContain("readonly AbortController?:");
         expect(runtimeScopeSource).not.toContain("readonly clearTimeout?:");
         expect(runtimeScopeSource).not.toContain(
             "readonly documentEventTarget?:"
         );
+        expect(runtimeScopeSource).not.toContain("readonly Node?:");
         expect(runtimeScopeSource).not.toContain("readonly setTimeout?:");
         expect(runtimeScopeSource).not.toContain("readonly viewport?:");
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
@@ -7993,6 +8004,7 @@ describe("architecture boundaries", () => {
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "scope.documentEventTarget"
         );
+        expect(recentFilesContextMenuRuntimeSource).not.toContain("scope.Node");
         expect(recentFilesContextMenuRuntimeSource).not.toContain(
             "scope.setTimeout"
         );
