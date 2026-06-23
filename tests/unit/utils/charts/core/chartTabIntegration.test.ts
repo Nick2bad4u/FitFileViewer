@@ -89,14 +89,14 @@ vi.mock(
 );
 
 vi.mock(
-    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
+    import("../../../../../electron-app/utils/charts/core/chartStateManagerBootstrap.js"),
     () => ({
-        chartStateManager: {
+        ensureChartStateManagerRegistered: () => ({
             clearChartState: clearChartStateMock,
             debouncedRender: debouncedRenderMock,
             forceRender: forceRenderMock,
             getChartInfo: getChartInfoMock,
-        },
+        }),
     })
 );
 

@@ -5302,11 +5302,16 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart tab integration on renderer state facades", () => {
-        expect.assertions(20);
+        expect.assertions(26);
 
         const chartTabIntegrationSource = stripComments(
             readRepositoryFile(
                 "electron-app/utils/charts/core/chartTabIntegration.ts"
+            )
+        );
+        const chartStateManagerBootstrapSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/chartStateManagerBootstrap.ts"
             )
         );
         const chartTabIntegrationRuntimeSource = stripComments(
@@ -5331,6 +5336,24 @@ describe("architecture boundaries", () => {
         );
         expect(chartTabIntegrationSource).toContain(
             "chartTabIntegrationRuntime.js"
+        );
+        expect(chartTabIntegrationSource).toContain(
+            "chartStateManagerBootstrap.js"
+        );
+        expect(chartTabIntegrationSource).toContain(
+            "ensureChartStateManagerRegistered"
+        );
+        expect(chartTabIntegrationSource).not.toContain(
+            "./chartStateManager.js"
+        );
+        expect(chartStateManagerBootstrapSource).toContain(
+            "./chartStateManager.js"
+        );
+        expect(chartStateManagerBootstrapSource).toContain(
+            "registerChartStateManager"
+        );
+        expect(chartStateManagerBootstrapSource).toContain(
+            "getRegisteredChartStateManager"
         );
         expect(chartTabIntegrationSource).not.toContain(
             "state/core/stateManager.js"

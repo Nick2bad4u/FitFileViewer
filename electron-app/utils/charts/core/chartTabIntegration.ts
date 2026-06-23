@@ -7,7 +7,8 @@ import { subscribeAppDomainPath } from "../../state/domain/appDomainState.js";
 import { getRendererActiveTab } from "../../state/domain/rendererActiveTabState.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import { tabStateManager } from "../../ui/tabs/tabStateManager.js";
-import { chartStateManager } from "./chartStateManager.js";
+import { ensureChartStateManagerRegistered } from "./chartStateManagerBootstrap.js";
+import type { RegisteredChartStateManager } from "./chartStateManagerRegistry.js";
 import {
     getChartTabIntegrationRuntime,
     type ChartTabIntegrationRuntime,
@@ -18,7 +19,7 @@ type DisableableTabButton = HTMLElement & {
 };
 
 type ChartTabIntegrationStatus = {
-    readonly chartState: ReturnType<typeof chartStateManager.getChartInfo>;
+    readonly chartState: unknown;
     readonly chartTabActive: boolean;
     readonly hasData: boolean;
     readonly isInitialized: boolean;
@@ -52,7 +53,7 @@ export class ChartTabIntegration {
             console.log(
                 "[ChartTabIntegration] Chart tab is active, requesting render"
             );
-            chartStateManager.debouncedRender(
+            getChartStateManagerForIntegration().debouncedRender(
                 "Integration check after file load"
             );
         } else {
@@ -109,8 +110,13 @@ export class ChartTabIntegration {
      * Get integration status information.
      */
     getStatus(): ChartTabIntegrationStatus {
+        const chartStateManager = getChartStateManagerForIntegration();
+
         return {
-            chartState: chartStateManager.getChartInfo(),
+            chartState:
+                typeof chartStateManager.getChartInfo === "function"
+                    ? chartStateManager.getChartInfo()
+                    : {},
             chartTabActive: this.isChartTabActive(),
             hasData: hasActiveFitChartData(),
             isInitialized: this.isInitialized,
@@ -132,13 +138,13 @@ export class ChartTabIntegration {
             this.enableChartTab();
 
             if (this.isChartTabActive()) {
-                chartStateManager.debouncedRender(
+                getChartStateManagerForIntegration().debouncedRender(
                     "New data loaded via integration"
                 );
             }
         } else {
             this.disableChartTab();
-            chartStateManager.clearChartState();
+            getChartStateManagerForIntegration().clearChartState?.();
         }
     }
 
@@ -179,7 +185,12 @@ export class ChartTabIntegration {
             return false;
         }
 
-        chartStateManager.forceRender(reason);
+        const chartStateManager = getChartStateManagerForIntegration();
+        if (typeof chartStateManager.forceRender === "function") {
+            chartStateManager.forceRender(reason);
+        } else {
+            chartStateManager.debouncedRender(reason);
+        }
         return true;
     }
 
@@ -214,6 +225,10 @@ export class ChartTabIntegration {
             tabStateManager.switchToTab("chart")
         );
     }
+}
+
+function getChartStateManagerForIntegration(): RegisteredChartStateManager {
+    return ensureChartStateManagerRegistered();
 }
 
 function asDisableableTabButton(
