@@ -350,8 +350,9 @@ attachment/containment, document lookup for chart settings, body access for inli
 document listener registration, and element/keyboard-event type checks now route through
 `openZoneColorPickerRuntime.ts`; production defaults and explicit runtime scopes now use named provider functions
 instead of a broad `globalThis` default scope, direct scope properties, document-window fallbacks, or ambient DOM
-constructor checks in the picker, with focused runtime coverage and architecture guardrails blocking those direct
-dependencies from returning.
+constructor checks in the picker, and zone-color reset/apply rerender requests now resolve the chart state manager
+through `chartStateManagerRegistry.ts` instead of importing the concrete singleton directly, with focused runtime
+coverage and architecture guardrails blocking those direct dependencies from returning.
 Quick color switcher delayed dropdown close scheduling and cleanup now route through
 `quickColorSwitcherRuntime.ts` instead of calling timer globals directly inside `quickColorSwitcher.ts`, with
 focused runtime coverage and architecture guardrails blocking those direct timer globals from returning. Quick

@@ -1,5 +1,5 @@
-import { chartStateManager } from "../../charts/core/chartStateManager.js";
 import { getRegisteredChartInstances } from "../../charts/core/chartInstanceRegistry.js";
+import { getRegisteredChartStateManager } from "../../charts/core/chartStateManagerRegistry.js";
 import { getChartSettingsWrapper } from "../../charts/dom/chartDomUtils.js";
 import { resetAllSettings } from "../../app/initialization/getCurrentSettings.js";
 // Avoid direct import to prevent circular dependency during SSR; use event-based request
@@ -87,6 +87,20 @@ function requestDirectChartRender(
             );
             dispatchChartRenderRequest(reason, runtime);
         });
+}
+
+function requestManagedChartRender(
+    reason: string,
+    fallbackReason: string,
+    runtime: OpenZoneColorPickerRuntime
+): void {
+    const registeredChartStateManager = getRegisteredChartStateManager();
+    if (typeof registeredChartStateManager?.debouncedRender === "function") {
+        registeredChartStateManager.debouncedRender(reason);
+        return;
+    }
+
+    requestDirectChartRender(fallbackReason, runtime);
 }
 
 /**
@@ -614,12 +628,11 @@ export function openZoneColorPicker(field: string): void {
                 // Update UI and chart to reflect reset state
                 updateInlineZoneColorSelectors(runtime.getBody());
 
-                // Trigger chart re-render through state management instead of direct call
-                if (chartStateManager) {
-                    chartStateManager.debouncedRender("Zone colors reset");
-                } else {
-                    requestDirectChartRender("zone-colors-reset", runtime);
-                }
+                requestManagedChartRender(
+                    "Zone colors reset",
+                    "zone-colors-reset",
+                    runtime
+                );
 
                 showNotification(
                     "Zone colors and settings reset to defaults",
@@ -663,12 +676,11 @@ export function openZoneColorPicker(field: string): void {
         addEventListenerWithCleanup(applyButton, "click", () => {
             closeModal();
 
-            // Trigger chart re-render through state management instead of direct call
-            if (chartStateManager) {
-                chartStateManager.debouncedRender("Zone colors applied");
-            } else {
-                requestDirectChartRender("zone-colors-applied", runtime);
-            }
+            requestManagedChartRender(
+                "Zone colors applied",
+                "zone-colors-applied",
+                runtime
+            );
 
             showNotification(`${zoneType} zone colors updated`, "success");
         });

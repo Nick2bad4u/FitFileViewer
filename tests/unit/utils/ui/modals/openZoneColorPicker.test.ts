@@ -38,6 +38,9 @@ const chartStateManagerRef: {
 } = {
     current: { debouncedRender: debouncedRenderMock },
 };
+const getRegisteredChartStateManagerMock = vi.fn(
+    () => chartStateManagerRef.current
+);
 let chartInstanceRegistryModule: ChartInstanceRegistryModule | undefined;
 
 function clearChartInstanceRegistryForTests(): void {
@@ -55,11 +58,9 @@ function setRegisteredChartInstances(charts: readonly unknown[]): unknown[] {
 }
 
 vi.mock(
-    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
+    import("../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js"),
     () => ({
-        get chartStateManager() {
-            return chartStateManagerRef.current;
-        },
+        getRegisteredChartStateManager: getRegisteredChartStateManagerMock,
     })
 );
 
@@ -210,6 +211,7 @@ describe("openZoneColorPicker", () => {
         clearChartInstanceRegistryForTests();
 
         chartStateManagerRef.current = { debouncedRender: debouncedRenderMock };
+        getRegisteredChartStateManagerMock.mockClear();
 
         debouncedRenderMock.mockClear();
         applyZoneColorsMock.mockClear();

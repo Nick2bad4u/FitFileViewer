@@ -5138,7 +5138,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps zone color picker event APIs behind the runtime facade", () => {
-        expect.assertions(39);
+        expect.assertions(43);
 
         const violations = migratedOpenZoneColorPickerRuntimeFiles
             .filter((relativeFile) =>
@@ -5161,6 +5161,13 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(zoneColorPickerSource).toContain(
             "openZoneColorPickerRuntime.js"
+        );
+        expect(zoneColorPickerSource).toContain("chartStateManagerRegistry.js");
+        expect(zoneColorPickerSource).toContain(
+            "getRegisteredChartStateManager"
+        );
+        expect(zoneColorPickerSource).not.toContain(
+            "../../charts/core/chartStateManager.js"
         );
         expect(zoneColorPickerSource).toContain("addDocumentKeydownListener");
         expect(zoneColorPickerSource).toContain("appendToBody");
@@ -5186,6 +5193,7 @@ describe("architecture boundaries", () => {
             "instanceof HTMLInputElement"
         );
         expect(zoneColorPickerSource).not.toContain("instanceof KeyboardEvent");
+        expect(zoneColorPickerSource).not.toContain("chartStateManager.");
         expect(zoneColorPickerRuntimeSource).not.toMatch(
             directOpenZoneColorPickerRuntimeAmbientFallbackPattern
         );
