@@ -77,6 +77,20 @@ describe("getMapThemeToggleRuntime", () => {
         expect(runtime.findExistingToggle()).toBe(button);
     });
 
+    it("reads body theme state through the injected document runtime", () => {
+        expect.assertions(2);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("map theme toggle");
+        const runtime = getMapThemeToggleRuntime({
+            getDocument: () => documentRef,
+        });
+
+        expect(runtime.isBodyThemeDark()).toBe(false);
+        documentRef.body.classList.add("theme-dark");
+        expect(runtime.isBodyThemeDark()).toBe(true);
+    });
+
     it("creates HTML and SVG elements through the injected document runtime", () => {
         expect.assertions(6);
 
@@ -198,7 +212,7 @@ describe("getMapThemeToggleRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(14);
+        expect.assertions(15);
 
         let controllerCount = 0;
         class TestAbortController extends AbortController {
@@ -244,6 +258,9 @@ describe("getMapThemeToggleRuntime", () => {
             "mapThemeToggle requires a document runtime"
         );
         expect(() => runtime.createSvgElement("svg")).toThrow(
+            "mapThemeToggle requires a document runtime"
+        );
+        expect(() => runtime.isBodyThemeDark()).toThrow(
             "mapThemeToggle requires a document runtime"
         );
         expect(() => runtime.setTimeout(vi.fn(), 1)).toThrow(

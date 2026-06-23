@@ -79,8 +79,7 @@ export function createMapThemeToggle(): HTMLElement {
         // Update button appearance based on current state
         const updateButtonState = (): void => {
             try {
-                const isDarkMode =
-                    document.body.classList.contains("theme-dark");
+                const isDarkMode = mapThemeToggleRuntime.isBodyThemeDark();
                 const isInverted = getMapThemeInverted();
                 const themeColors = getThemeColors();
                 const createIcon = (

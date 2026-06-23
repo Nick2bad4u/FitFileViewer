@@ -43,6 +43,7 @@ export interface MapThemeToggleRuntime {
     ): SVGElementTagNameMap[K];
     dispatchDocumentEvent(event: Event): boolean;
     findExistingToggle(): HTMLElement | null;
+    isBodyThemeDark(): boolean;
     setTimeout(
         callback: () => void,
         timeout: number
@@ -136,6 +137,9 @@ export function getMapThemeToggleRuntime(
             return getDocument(scope).querySelector<HTMLElement>(
                 ".map-theme-toggle"
             );
+        },
+        isBodyThemeDark(): boolean {
+            return getDocument(scope).body.classList.contains("theme-dark");
         },
         setTimeout(callback, timeout): MapThemeToggleTimerHandle {
             const setTimeoutRef = scope.getSetTimeout?.();

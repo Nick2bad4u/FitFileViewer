@@ -381,7 +381,9 @@ from returning. Existing map theme toggle lookup now also goes through `mapTheme
 that direct selector from returning. Map theme toggle button/span/SVG/fallback DOM creation now also routes through
 `mapThemeToggleRuntime.ts` instead of calling `document.createElement` or `document.createElementNS` directly inside
 `createMapThemeToggle.ts`, with focused runtime coverage and architecture coverage blocking those direct creation APIs
-from returning. Map theme update listener cleanup now creates its abort controller through
+from returning. Map theme toggle body dark-theme reads now also route through `mapThemeToggleRuntime.ts`
+instead of reading `document.body.classList` inside `createMapThemeToggle.ts`, with focused runtime coverage
+and architecture coverage blocking that direct body read from returning. Map theme update listener cleanup now creates its abort controller through
 `updateMapThemeRuntime.ts` instead of constructing `AbortController` directly inside `updateMapTheme.ts`, with
 focused runtime coverage and architecture coverage blocking that direct controller construction from returning.
 Core theme transition-class removal scheduling, system-theme media-query lookup, theme-change window target access,

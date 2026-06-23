@@ -1226,7 +1226,7 @@ const directChartThemeListenerRuntimeGlobalPattern =
 const directChartThemeListenerRuntimeAmbientFallbackPattern =
     /\bscope\.(?:AbortController|CustomEvent|clearTimeout|setTimeout)[^;\n]*\?\?\s*globalThis\.(?:AbortController|CustomEvent|clearTimeout|setTimeout)\b/u;
 const directMapThemeToggleRuntimeGlobalPattern =
-    /\b(?:document|globalThis|window)\.(?:addEventListener|clearTimeout|dispatchEvent|querySelector|setTimeout)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
+    /\b(?:document|globalThis|window)\.(?:addEventListener|body|clearTimeout|dispatchEvent|querySelector|setTimeout)\b|\bnew\s+(?:AbortController|CustomEvent)\b|\btypeof\s+document\b|(?:^|[^\w.])(?:clearTimeout|setTimeout)\(/u;
 const directMapThemeToggleRuntimeAmbientFallbackPattern =
     /\bscope\.(?:CustomEvent|clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:CustomEvent|clearTimeout|setTimeout)\b/u;
 const directUpdateMapThemeRuntimeGlobalPattern =
@@ -12103,7 +12103,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map theme toggle browser APIs behind the runtime facade", () => {
-        expect.assertions(39);
+        expect.assertions(42);
 
         const violations = migratedMapThemeToggleRuntimeFiles
             .filter((relativeFile) =>
@@ -12139,7 +12139,11 @@ describe("architecture boundaries", () => {
         expect(mapThemeToggleSource).toContain(
             'mapThemeToggleRuntime.createSvgElement("svg")'
         );
+        expect(mapThemeToggleSource).toContain(
+            "mapThemeToggleRuntime.isBodyThemeDark()"
+        );
         expect(mapThemeToggleSource).not.toContain("document.querySelector");
+        expect(mapThemeToggleSource).not.toContain("document.body");
         expect(mapThemeToggleSource).not.toContain("document.createElement");
         expect(mapThemeToggleSource).not.toContain("document.createElementNS");
         expect(mapThemeToggleRuntimeSource).toContain(
@@ -12152,6 +12156,9 @@ describe("architecture boundaries", () => {
             "createSvgElement<K extends keyof SVGElementTagNameMap>"
         );
         expect(mapThemeToggleRuntimeSource).toContain("findExistingToggle");
+        expect(mapThemeToggleRuntimeSource).toContain(
+            'body.classList.contains("theme-dark")'
+        );
         expect(mapThemeToggleRuntimeSource).toContain(
             "defaultMapThemeToggleRuntimeScope"
         );
