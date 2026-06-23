@@ -148,4 +148,47 @@ describe("preload devtools menu API", () => {
             null
         );
     });
+
+    it("logs unavailable devtools IPC and resolves false", async () => {
+        expect.assertions(2);
+
+        const preloadLog =
+            vi.fn<
+                (
+                    level: "error" | "info" | "warn",
+                    message: string,
+                    ...details: unknown[]
+                ) => void
+            >();
+        const api = createDevtoolsMenuApi({
+            defaultFitFilePath: null,
+            defaultTheme: null,
+            devtoolsInjectMenuChannel: "devtools-inject-menu",
+            ipcRenderer: null,
+            preloadLog,
+            validateDevtoolsInjectMenuPayload,
+        });
+
+        await expect(api.injectMenu("dark", null)).resolves.toBe(false);
+        expect(
+            preloadLog.mock.calls.map(
+                ([
+                    level,
+                    message,
+                    error,
+                ]) => ({
+                    errorMessage:
+                        error instanceof Error ? error.message : undefined,
+                    level,
+                    message,
+                })
+            )
+        ).toStrictEqual([
+            {
+                errorMessage: "ipcRenderer.invoke unavailable",
+                level: "error",
+                message: "[preload.js] Error in injectMenu:",
+            },
+        ]);
+    });
 });

@@ -3,46 +3,13 @@ type DevtoolsInjectMenuFitFilePath =
 type DevtoolsInjectMenuResponse =
     import("../shared/ipc").DevtoolsInjectMenuResponse;
 type DevtoolsInjectMenuTheme = import("../shared/ipc").DevtoolsInjectMenuTheme;
-type DevtoolsInvokeChannel = import("../shared/ipc").DevtoolsInvokeChannel;
 type ValidatedDevtoolsInjectMenuPayload = {
     fitFilePath: DevtoolsInjectMenuFitFilePath;
     theme: DevtoolsInjectMenuTheme;
 };
-type ValidateDevtoolsInjectMenuPayload =
-    import("./preloadModuleTypes").ValidateDevtoolsInjectMenuPayload;
-
-type PreloadLog = (
-    level: "error" | "info" | "warn",
-    message: string,
-    ...details: unknown[]
-) => void;
-
-interface DevtoolsMenuApi {
-    injectMenu: (
-        theme?: DevtoolsInjectMenuTheme,
-        fitFilePath?: DevtoolsInjectMenuFitFilePath
-    ) => Promise<DevtoolsInjectMenuResponse>;
-}
-
-interface DevtoolsMenuApiOptions {
-    defaultFitFilePath: DevtoolsInjectMenuFitFilePath;
-    defaultTheme: DevtoolsInjectMenuTheme;
-    devtoolsInjectMenuChannel: DevtoolsInvokeChannel;
-    ipcRenderer: {
-        invoke: (
-            channel: DevtoolsInvokeChannel,
-            theme: DevtoolsInjectMenuTheme,
-            fitFilePath: DevtoolsInjectMenuFitFilePath
-        ) => Promise<unknown>;
-    };
-    preloadLog: PreloadLog;
-    validateDevtoolsInjectMenuPayload: ValidateDevtoolsInjectMenuPayload;
-    validateOptionalNonEmptyString?: (
-        value: unknown,
-        paramName: string,
-        methodName: string
-    ) => value is null | string | undefined;
-}
+type DevtoolsMenuApi = import("../shared/preloadApi").ElectronDevtoolsMenuApi;
+type CreateDevtoolsMenuApiOptions =
+    import("./preloadModuleTypes").CreateDevtoolsMenuApiOptions;
 
 export function createDevtoolsMenuApi({
     defaultFitFilePath,
@@ -51,7 +18,7 @@ export function createDevtoolsMenuApi({
     ipcRenderer,
     preloadLog,
     validateDevtoolsInjectMenuPayload,
-}: DevtoolsMenuApiOptions): DevtoolsMenuApi {
+}: CreateDevtoolsMenuApiOptions): DevtoolsMenuApi {
     async function injectMenu(
         theme: DevtoolsInjectMenuTheme = defaultTheme,
         fitFilePath: DevtoolsInjectMenuFitFilePath = defaultFitFilePath
@@ -64,7 +31,11 @@ export function createDevtoolsMenuApi({
         }
 
         try {
-            return (await ipcRenderer.invoke(
+            const invoke = ipcRenderer?.invoke;
+            if (typeof invoke !== "function") {
+                throw new TypeError("ipcRenderer.invoke unavailable");
+            }
+            return (await invoke(
                 devtoolsInjectMenuChannel,
                 payload.theme,
                 payload.fitFilePath

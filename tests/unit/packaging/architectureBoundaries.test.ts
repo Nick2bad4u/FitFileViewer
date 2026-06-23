@@ -3504,7 +3504,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload app leaf modules on native imports", () => {
-        expect.assertions(17);
+        expect.assertions(22);
 
         const appModuleLoaderSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadAppModuleLoader.ts")
@@ -3545,7 +3545,16 @@ describe("architecture boundaries", () => {
         );
         expect(appModuleLoaderSource).not.toContain("requireModule");
         expect(appModuleLoaderSource).not.toContain(
+            "createApiDiagnostics as unknown"
+        );
+        expect(appModuleLoaderSource).not.toContain(
             "createAppInfoApi as unknown"
+        );
+        expect(appModuleLoaderSource).not.toContain(
+            "createClipboardBridge as unknown"
+        );
+        expect(appModuleLoaderSource).not.toContain(
+            "createDevtoolsMenuApi as unknown"
         );
         expect(appModuleLoaderSource).not.toContain(
             "createThemeApi as unknown"
@@ -3555,6 +3564,12 @@ describe("architecture boundaries", () => {
         );
         expect(appModuleLoaderSource).not.toContain(
             "createShellExternalApi as unknown"
+        );
+        expect(appModuleLoaderSource).not.toContain(
+            "exposeDevelopmentToolsGlobal as unknown"
+        );
+        expect(appModuleLoaderSource).not.toContain(
+            "registerPreloadBeforeExitHandler as unknown"
         );
         expect(moduleLoaderSource).toContain("loadPreloadAppModules()");
         expect(moduleLoaderSource).not.toContain(

@@ -1,22 +1,5 @@
-type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
-
-type PreloadLog = (
-    level: "error" | "info" | "warn",
-    message: string,
-    ...details: unknown[]
-) => void;
-
-interface ContextBridgeLike {
-    exposeInMainWorld?: (key: string, api: unknown) => void;
-}
-
-interface DevelopmentToolsGlobalOptions {
-    api: ElectronAPI;
-    constants: unknown;
-    contextBridge: ContextBridgeLike | null | undefined;
-    isDevelopmentMode: () => boolean;
-    preloadLog: PreloadLog;
-}
+type ExposeDevelopmentToolsGlobalOptions =
+    import("./preloadModuleTypes").ExposeDevelopmentToolsGlobalOptions;
 
 export const DEVELOPMENT_TOOLS_GLOBAL_NAME = ["dev", "Tools"].join("");
 
@@ -26,7 +9,7 @@ export function exposeDevelopmentToolsGlobal({
     contextBridge,
     isDevelopmentMode,
     preloadLog,
-}: DevelopmentToolsGlobalOptions): boolean {
+}: ExposeDevelopmentToolsGlobalOptions): boolean {
     if (!isDevelopmentMode()) {
         return false;
     }

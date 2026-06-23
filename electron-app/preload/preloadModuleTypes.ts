@@ -23,12 +23,19 @@ export type ElectronPreloadEventApi =
 export type ElectronShellExternalApi =
     import("../shared/preloadApi").ElectronShellExternalApi;
 export type ElectronThemeApi = import("../shared/preloadApi").ElectronThemeApi;
+export type ChannelInfo = import("../shared/ipc").ChannelInfo;
+export type ClipboardInvokeChannel =
+    import("../shared/ipc").ClipboardInvokeChannel;
+export type ClipboardRequestPayload =
+    import("../shared/ipc").ClipboardRequestPayload;
 export type ExternalInvokeChannel =
     import("../shared/ipc").ExternalInvokeChannel;
 export type GenericInvokeChannel = import("../shared/ipc").GenericInvokeChannel;
 export type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
 export type FitBrowserInvokeChannel =
     import("../shared/ipc").FitBrowserInvokeChannel;
+export type DevtoolsInvokeChannel =
+    import("../shared/ipc").DevtoolsInvokeChannel;
 export type IpcRequestPayload = import("../shared/ipc").IpcRequestPayload;
 export type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
 export type InvokeRequestArgs<Channel extends GenericInvokeChannel> =
@@ -147,6 +154,15 @@ export type CreateAppInfoApi = (
 export type CreateThemeApi = (
     options: CreateThemeApiOptions
 ) => ElectronThemeApi;
+export type CreateApiDiagnostics = (
+    options: CreateApiDiagnosticsOptions
+) => ElectronApiDiagnosticsApi;
+export type CreateClipboardBridge = (
+    options: CreateClipboardBridgeOptions
+) => ElectronClipboardApi;
+export type CreateDevtoolsMenuApi = (
+    options: CreateDevtoolsMenuApiOptions
+) => ElectronDevtoolsMenuApi;
 export type CreateFileApi = (options: CreateFileApiOptions) => ElectronFileApi;
 export type CreateFitBrowserApi = (
     options: CreateFitBrowserApiOptions
@@ -157,6 +173,12 @@ export type CreateGyazoExternalApi = (
 export type CreateShellExternalApi = (
     options: CreateShellExternalApiOptions
 ) => ElectronShellExternalApi;
+export type ExposeDevelopmentToolsGlobal = (
+    options: ExposeDevelopmentToolsGlobalOptions
+) => boolean;
+export type RegisterPreloadBeforeExitHandler = (
+    options: RegisterPreloadBeforeExitHandlerOptions
+) => void;
 export type AssemblePreloadApi = (options: {
     constants: PreloadConstants;
     contextBridge: null | PreloadContextBridge | undefined;
@@ -334,6 +356,61 @@ export interface CreateThemeApiOptions {
     createSafeInvokeHandler: CreateSafeInvokeHandler;
 }
 
+export interface CreateApiDiagnosticsOptions {
+    channels: Partial<PreloadChannels>;
+    contextBridge: null | PreloadContextBridge | undefined;
+    events: Partial<PreloadEvents>;
+    ipcRenderer: null | PreloadIpcRenderer | undefined;
+    isDevelopmentMode: () => boolean;
+    preloadLog: PreloadLog;
+}
+
+export interface ClipboardBridgeChannels {
+    CLIPBOARD_WRITE_PNG_DATA_URL: Extract<
+        ClipboardInvokeChannel,
+        "clipboard:writePngDataUrl"
+    >;
+    CLIPBOARD_WRITE_TEXT: Extract<
+        ClipboardInvokeChannel,
+        "clipboard:writeText"
+    >;
+}
+
+export interface ClipboardBridgeIpcRenderer {
+    invoke?: (
+        channel: ClipboardInvokeChannel,
+        payload: ClipboardRequestPayload
+    ) => Promise<unknown>;
+}
+
+export interface CreateClipboardBridgeOptions {
+    channels: ClipboardBridgeChannels;
+    ipcRenderer: ClipboardBridgeIpcRenderer | null | undefined;
+    preloadLog: PreloadLog;
+}
+
+export interface DevtoolsMenuIpcRenderer {
+    invoke?: (
+        channel: DevtoolsInvokeChannel,
+        theme: DevtoolsInjectMenuTheme,
+        fitFilePath: DevtoolsInjectMenuFitFilePath
+    ) => Promise<unknown>;
+}
+
+export interface CreateDevtoolsMenuApiOptions {
+    defaultFitFilePath: DevtoolsInjectMenuFitFilePath;
+    defaultTheme: DevtoolsInjectMenuTheme;
+    devtoolsInjectMenuChannel: DevtoolsInvokeChannel;
+    ipcRenderer: DevtoolsMenuIpcRenderer | null | undefined;
+    preloadLog: PreloadLog;
+    validateDevtoolsInjectMenuPayload: ValidateDevtoolsInjectMenuPayload;
+    validateOptionalNonEmptyString?: (
+        value: unknown,
+        paramName: string,
+        methodName: string
+    ) => null | string | undefined;
+}
+
 export interface FileApiChannels {
     FILE_READ: Extract<GenericInvokeChannel, "file:read">;
     FIT_DECODE: Extract<GenericInvokeChannel, "fit:decode">;
@@ -399,11 +476,25 @@ export interface CreateShellExternalApiOptions {
     createSafeInvokeHandler: CreateSafeInvokeHandler;
 }
 
+export interface ExposeDevelopmentToolsGlobalOptions {
+    api: ElectronAPI;
+    constants: unknown;
+    contextBridge: null | PreloadContextBridge | undefined;
+    isDevelopmentMode: () => boolean;
+    preloadLog: PreloadLog;
+}
+
+export interface RegisterPreloadBeforeExitHandlerOptions {
+    isDevelopmentMode: () => boolean;
+    preloadLog: PreloadLog;
+    processRef?: NodeJS.Process;
+}
+
 export interface PreloadModuleRegistry {
-    createApiDiagnostics: PreloadApiFactory<ElectronApiDiagnosticsApi>;
+    createApiDiagnostics: CreateApiDiagnostics;
     createAppInfoApi: CreateAppInfoApi;
-    createClipboardBridge: PreloadApiFactory<ElectronClipboardApi>;
-    createDevtoolsMenuApi: PreloadApiFactory<ElectronDevtoolsMenuApi>;
+    createClipboardBridge: CreateClipboardBridge;
+    createDevtoolsMenuApi: CreateDevtoolsMenuApi;
     createFileApi: CreateFileApi;
     createFitBrowserApi: CreateFitBrowserApi;
     createGyazoExternalApi: CreateGyazoExternalApi;
@@ -454,13 +545,11 @@ export interface PreloadModuleRegistry {
     };
     createShellExternalApi: CreateShellExternalApi;
     createThemeApi: CreateThemeApi;
-    exposeDevelopmentToolsGlobal: (options: Record<string, unknown>) => boolean;
+    exposeDevelopmentToolsGlobal: ExposeDevelopmentToolsGlobal;
     exposeElectronApi: (options: Record<string, unknown>) => boolean;
     ipcBridgeCatalog: IpcBridgeCatalog;
     isPreloadDevelopmentMode: (processRef?: NodeJS.Process) => boolean;
-    registerPreloadBeforeExitHandler: (
-        options: Record<string, unknown>
-    ) => void;
+    registerPreloadBeforeExitHandler: RegisterPreloadBeforeExitHandler;
     resolvePreloadElectronBridge: (options: {
         electronBridgeOverride?: null | PreloadElectronBridge;
     }) => {

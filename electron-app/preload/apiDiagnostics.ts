@@ -1,33 +1,7 @@
+type ApiDiagnostics = import("../shared/preloadApi").ElectronApiDiagnosticsApi;
 type ChannelInfo = import("../shared/ipc").ChannelInfo;
-type PreloadLog = (
-    level: "error" | "info" | "warn",
-    message: string,
-    ...details: unknown[]
-) => void;
-
-interface ContextBridgeLike {
-    exposeInMainWorld?: (key: string, api: unknown) => void;
-}
-
-interface IpcRendererLike {
-    invoke?: (...args: unknown[]) => Promise<unknown>;
-    on?: (...args: unknown[]) => void;
-    send?: (...args: unknown[]) => void;
-}
-
-interface ApiDiagnostics {
-    getChannelInfo: () => ChannelInfo;
-    validateAPI: () => boolean;
-}
-
-interface ApiDiagnosticsOptions {
-    channels: Record<string, string>;
-    contextBridge: ContextBridgeLike | null | undefined;
-    events: Record<string, string>;
-    ipcRenderer: IpcRendererLike | null | undefined;
-    isDevelopmentMode: () => boolean;
-    preloadLog: PreloadLog;
-}
+type CreateApiDiagnosticsOptions =
+    import("./preloadModuleTypes").CreateApiDiagnosticsOptions;
 
 export function createApiDiagnostics({
     channels,
@@ -36,7 +10,7 @@ export function createApiDiagnostics({
     ipcRenderer,
     isDevelopmentMode,
     preloadLog,
-}: ApiDiagnosticsOptions): ApiDiagnostics {
+}: CreateApiDiagnosticsOptions): ApiDiagnostics {
     function getChannelInfo(): ChannelInfo {
         return {
             channels,

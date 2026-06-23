@@ -1,8 +1,6 @@
-type PreloadLog = (
-    level: "error" | "info" | "warn",
-    message: string,
-    ...details: unknown[]
-) => void;
+type PreloadLog = import("./preloadModuleTypes").PreloadLog;
+type RegisterPreloadBeforeExitHandlerOptions =
+    import("./preloadModuleTypes").RegisterPreloadBeforeExitHandlerOptions;
 
 type BeforeExitCallback = (
     ...args: import("node:process").ProcessEventMap["beforeExit"]
@@ -12,12 +10,6 @@ type BeforeExitListener = BeforeExitCallback & {
     listener?: unknown;
     readonly [key: symbol]: unknown;
 };
-
-interface RegisterPreloadBeforeExitHandlerOptions {
-    isDevelopmentMode: () => boolean;
-    preloadLog: PreloadLog;
-    processRef?: NodeJS.Process;
-}
 
 const BEFORE_EXIT_LISTENER_SYMBOL = Symbol("ffv.preload.beforeExitListener");
 const beforeExitRegistry = new WeakMap<NodeJS.Process, BeforeExitCallback>();

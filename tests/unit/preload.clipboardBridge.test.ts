@@ -144,4 +144,52 @@ describe("preload clipboard bridge", () => {
             result: false,
         });
     });
+
+    it("logs unavailable clipboard IPC and resolves false", async () => {
+        expect.assertions(1);
+
+        const preloadLog =
+            vi.fn<
+                (
+                    level: "error" | "info" | "warn",
+                    message: string,
+                    ...details: unknown[]
+                ) => void
+            >();
+        const bridge = createClipboardBridge({
+            channels: {
+                CLIPBOARD_WRITE_PNG_DATA_URL: "clipboard:writePngDataUrl",
+                CLIPBOARD_WRITE_TEXT: "clipboard:writeText",
+            },
+            ipcRenderer: null,
+            preloadLog,
+        });
+
+        const result = await bridge.writeClipboardText("hello");
+
+        expect({
+            preloadLogCalls: preloadLog.mock.calls.map(
+                ([
+                    level,
+                    message,
+                    error,
+                ]) => ({
+                    errorMessage:
+                        error instanceof Error ? error.message : undefined,
+                    level,
+                    message,
+                })
+            ),
+            result,
+        }).toStrictEqual({
+            preloadLogCalls: [
+                {
+                    errorMessage: "ipcRenderer.invoke unavailable",
+                    level: "error",
+                    message: "[preload.js] writeClipboardText failed:",
+                },
+            ],
+            result: false,
+        });
+    });
 });
