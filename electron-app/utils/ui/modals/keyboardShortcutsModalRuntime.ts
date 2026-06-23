@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
+
 export type KeyboardShortcutsModalTimerHandle = ReturnType<
     typeof globalThis.setTimeout
 >;
@@ -10,7 +12,7 @@ export interface KeyboardShortcutsModalRuntimeScope {
         | (() => typeof globalThis.clearTimeout | undefined)
         | undefined;
     readonly getDocument?:
-        | (() => Pick<Document, "createElementNS"> | undefined)
+        | (() => Document | undefined)
         | undefined;
     readonly getRequestAnimationFrame?:
         | (() => typeof globalThis.requestAnimationFrame | undefined)
@@ -61,7 +63,7 @@ function getScopeClearTimeout(
 
 function getScopeDocument(
     scope: KeyboardShortcutsModalRuntimeScope
-): Pick<Document, "createElementNS"> {
+): Document {
     const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
         throw new TypeError(
@@ -84,6 +86,16 @@ function getScopeSetTimeout(
     return scope.getSetTimeout?.();
 }
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: KeyboardShortcutsModalRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getScopeDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getKeyboardShortcutsModalRuntime(
     scope: KeyboardShortcutsModalRuntimeScope = defaultKeyboardShortcutsModalRuntimeScope
 ): KeyboardShortcutsModalRuntime {
@@ -103,10 +115,7 @@ export function getKeyboardShortcutsModalRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getScopeDocument(scope).createElementNS(
-                KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE,
-                tagName
-            );
+            return createSvgElement(scope, tagName);
         },
         requestAnimationFrame(callback: FrameRequestCallback): null | number {
             const requestAnimationFrameRef =

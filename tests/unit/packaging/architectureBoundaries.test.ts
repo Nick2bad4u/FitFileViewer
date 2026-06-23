@@ -5820,7 +5820,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps keyboard-shortcuts modal timing APIs behind the runtime facade", () => {
-        expect.assertions(25);
+        expect.assertions(29);
 
         const violations = migratedKeyboardShortcutsModalRuntimeFiles
             .filter((relativeFile) =>
@@ -5905,6 +5905,18 @@ describe("architecture boundaries", () => {
             "KEYBOARD_SHORTCUTS_MODAL_SVG_NAMESPACE"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "iconFactoryRuntime.js"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
+            "return createSvgElement(scope, tagName);"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            "createElementNS"
+        );
+        expect(keyboardShortcutsModalRuntimeSource).not.toContain(
+            'Pick<Document, "createElementNS">'
+        );
+        expect(keyboardShortcutsModalRuntimeSource).toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
         );
         expect(keyboardShortcutsModalRuntimeSource).toContain(
@@ -5919,7 +5931,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps about modal browser APIs behind the runtime facade", () => {
-        expect.assertions(56);
+        expect.assertions(59);
 
         const timingViolations = migratedAboutModalRuntimeFiles
             .filter((relativeFile) =>
@@ -5984,6 +5996,11 @@ describe("architecture boundaries", () => {
         expect(aboutModalRuntimeSource).toContain(
             "defaultAboutModalRuntimeScope"
         );
+        expect(aboutModalRuntimeSource).toContain("iconFactoryRuntime.js");
+        expect(aboutModalRuntimeSource).toContain(
+            "return createSvgElement(scope, tagName);"
+        );
+        expect(aboutModalRuntimeSource).not.toContain("createElementNS");
         expect(aboutModalRuntimeSource).not.toContain(
             "scope: AboutModalRuntimeScope = globalThis"
         );
