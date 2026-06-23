@@ -76,14 +76,17 @@ const defaultChartStatusIndicatorRuntimeScope: ChartStatusIndicatorRuntimeScope 
         getDocument: () => globalThis.document,
         getHTMLElement: () => globalThis.HTMLElement,
         getSetTimeout: () => globalThis.setTimeout,
-        getViewport: () => ({
-            height: getGlobalViewportNumber("innerHeight"),
-            width: getGlobalViewportNumber("innerWidth"),
-        }),
+        getViewport: getGlobalViewport,
     };
 
-function getGlobalViewportNumber(key: "innerHeight" | "innerWidth"): number {
-    const value = Reflect.get(globalThis, key);
+function getGlobalViewport(): ChartStatusIndicatorViewport {
+    return {
+        height: getViewportNumber(globalThis.innerHeight),
+        width: getViewportNumber(globalThis.innerWidth),
+    };
+}
+
+function getViewportNumber(value: unknown): number {
     return typeof value === "number" ? value : 0;
 }
 

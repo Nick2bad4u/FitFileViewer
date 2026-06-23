@@ -13482,7 +13482,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart status counts browser APIs behind the runtime facade", () => {
-        expect.assertions(40);
+        expect.assertions(43);
 
         const violations = migratedChartStatusCountsRuntimeFiles
             .filter((relativeFile) =>
@@ -13532,7 +13532,16 @@ describe("architecture boundaries", () => {
             "getSetTimeout: () => globalThis.setTimeout"
         );
         expect(chartStatusIndicatorRuntimeSource).toContain(
-            "getViewport: () => ({"
+            "getViewport: getGlobalViewport"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "height: getViewportNumber(globalThis.innerHeight)"
+        );
+        expect(chartStatusIndicatorRuntimeSource).toContain(
+            "width: getViewportNumber(globalThis.innerWidth)"
+        );
+        expect(chartStatusIndicatorRuntimeSource).not.toContain(
+            "Reflect.get(globalThis, key)"
         );
         expect(chartStatusIndicatorRuntimeSource).not.toContain(
             "scope: ChartStatusIndicatorRuntimeScope = globalThis"
