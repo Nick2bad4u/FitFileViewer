@@ -225,6 +225,9 @@ describe("uiStateManager - comprehensive coverage", () => {
             }),
             createElementWithAttributes("div", { id: "measurement-buttons" }),
             createElementWithAttributes("div", { id: "map-container" }),
+            createElementWithAttributes("div", { id: "drop_overlay" }),
+            createElementWithAttributes("iframe", { id: "altfit_iframe" }),
+            createElementWithAttributes("iframe", { id: "zwift_iframe" }),
             createElementWithAttributes(
                 "button",
                 { "data-tab": "charts", id: "tab-button-charts" },
@@ -1140,6 +1143,68 @@ describe("uiStateManager - comprehensive coverage", () => {
                 expect(document.getElementById("loading-indicator")).toBeNull();
                 expect(document.getElementById("main-content")).toBeNull();
                 expect(document.body.style.cursor).toBe("wait");
+            });
+        });
+
+        describe("updateDropOverlayVisibility", () => {
+            it("should show the drop overlay and disable iframe pointer events", () => {
+                expect.assertions(3);
+
+                const manager = new UIStateManager();
+                const dropOverlay = document.getElementById(
+                    "drop_overlay"
+                ) as HTMLElement;
+                const altFitIframe = document.getElementById(
+                    "altfit_iframe"
+                ) as HTMLElement;
+                const zwiftIframe = document.getElementById(
+                    "zwift_iframe"
+                ) as HTMLElement;
+
+                manager.updateDropOverlayVisibility(true);
+
+                expect(dropOverlay.style.display).toBe("flex");
+                expect(altFitIframe.style.pointerEvents).toBe("none");
+                expect(zwiftIframe.style.pointerEvents).toBe("none");
+            });
+
+            it("should hide the drop overlay and restore iframe pointer events", () => {
+                expect.assertions(3);
+
+                const manager = new UIStateManager();
+                const dropOverlay = document.getElementById(
+                    "drop_overlay"
+                ) as HTMLElement;
+                const altFitIframe = document.getElementById(
+                    "altfit_iframe"
+                ) as HTMLElement;
+                const zwiftIframe = document.getElementById(
+                    "zwift_iframe"
+                ) as HTMLElement;
+
+                altFitIframe.style.pointerEvents = "none";
+                zwiftIframe.style.pointerEvents = "none";
+
+                manager.updateDropOverlayVisibility(false);
+
+                expect(dropOverlay.style.display).toBe("none");
+                expect(altFitIframe.style.pointerEvents).toBe("");
+                expect(zwiftIframe.style.pointerEvents).toBe("");
+            });
+
+            it("should handle missing drop overlay elements gracefully", () => {
+                expect.assertions(3);
+
+                const manager = new UIStateManager();
+                removeElementIfPresent("drop_overlay");
+                removeElementIfPresent("altfit_iframe");
+                removeElementIfPresent("zwift_iframe");
+
+                manager.updateDropOverlayVisibility(true);
+
+                expect(document.getElementById("drop_overlay")).toBeNull();
+                expect(document.getElementById("altfit_iframe")).toBeNull();
+                expect(document.getElementById("zwift_iframe")).toBeNull();
             });
         });
 

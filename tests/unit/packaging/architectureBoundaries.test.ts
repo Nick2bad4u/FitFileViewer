@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(83);
+        expect.assertions(98);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6603,10 +6603,12 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("createAbortController");
         expect(uiStateManagerSource).toContain("addWindowEventListener");
         expect(uiStateManagerSource).toContain("getDefaultDocumentTitle");
+        expect(uiStateManagerSource).toContain("getAltFitIframeElement");
         expect(uiStateManagerSource).toContain("getChartControlsToggleElement");
         expect(uiStateManagerSource).toContain(
             "getChartSettingsWrapperElement"
         );
+        expect(uiStateManagerSource).toContain("getDropOverlayElement");
         expect(uiStateManagerSource).toContain("getFileLoadingProgressElement");
         expect(uiStateManagerSource).toContain("getLoadingIndicatorElement");
         expect(uiStateManagerSource).toContain("getMainContentElement");
@@ -6615,6 +6617,7 @@ describe("architecture boundaries", () => {
             "getMeasurementModeToggleElement"
         );
         expect(uiStateManagerSource).toContain("getSidebarElement");
+        expect(uiStateManagerSource).toContain("getZwiftIframeElement");
         expect(uiStateManagerSource).toContain("setAppHasFileState");
         expect(uiStateManagerSource).toContain("setBodyCursor");
         expect(uiStateManagerSource).toContain("setDocumentTitle");
@@ -6650,6 +6653,15 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).not.toContain(
             "getChartSettingsWrapper(document)"
         );
+        expect(uiStateManagerSource).not.toContain(
+            'getElementByIdFlexible(document, "altfit_iframe")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'getElementByIdFlexible(document, "drop_overlay")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'getElementByIdFlexible(document, "zwift_iframe")'
+        );
         expect(
             directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
         ).toBe(false);
@@ -6676,6 +6688,15 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getChartSettingsWrapper(globalThis.document)"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'getElementByIdFlexible(globalThis.document, "altfit_iframe")'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'getElementByIdFlexible(globalThis.document, "drop_overlay")'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'getElementByIdFlexible(globalThis.document, "zwift_iframe")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             '"#file-loading-progress"'
@@ -6719,10 +6740,16 @@ describe("architecture boundaries", () => {
             "readonly documentTitle?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly altFitIframeElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly chartControlsToggleElement?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly chartSettingsWrapperElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly dropOverlayElement?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly fileStateBody?:"
@@ -6746,6 +6773,9 @@ describe("architecture boundaries", () => {
             "readonly sidebarElement?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly zwiftIframeElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly eventTarget?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
@@ -6767,10 +6797,16 @@ describe("architecture boundaries", () => {
             "scope.documentTitle"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.altFitIframeElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.chartControlsToggleElement"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.chartSettingsWrapperElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.dropOverlayElement"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.fileStateBody"
@@ -6792,6 +6828,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.sidebarElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.zwiftIframeElement"
         );
         expect(uiStateManagerRuntimeSource).not.toContain("scope.eventTarget");
         expect(uiStateManagerRuntimeSource).not.toContain(

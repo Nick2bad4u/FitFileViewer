@@ -889,10 +889,10 @@ globals during cleanup, with architecture coverage blocking that fixture mutatio
 UI state manager theme tests now install and restore temporary `matchMedia` fixtures through a descriptor-scoped
 helper instead of defining or deleting `globalThis.matchMedia` directly, with architecture coverage blocking
 that fixture mutation pattern.
-UI state manager system-theme media-query lookup, document title reads/writes, active-file body state updates, chart-controls element lookup, loading indicator/main-content/progress lookup, sidebar element lookup, measurement-mode element lookup, loading cursor updates, listener abort-controller creation, and module-level window
+UI state manager system-theme media-query lookup, document title reads/writes, active-file body state updates, chart-controls element lookup, drop-overlay element lookup, loading indicator/main-content/progress lookup, sidebar element lookup, measurement-mode element lookup, loading cursor updates, listener abort-controller creation, and module-level window
 resize/beforeunload listener registration now route through `uiStateManagerRuntime.ts` instead of probing
 `globalThis.window`, probing `globalThis.matchMedia`, reading or writing `document.title`, toggling
-`document.body` file-state classes/dataset fields, querying chart-controls, loading-state, sidebar, or measurement-mode DOM elements directly, writing
+`document.body` file-state classes/dataset fields, querying chart-controls, drop-overlay, loading-state, sidebar, or measurement-mode DOM elements directly, writing
 `document.body.style.cursor`, registering on `window.addEventListener`, or constructing `AbortController` directly inside `uiStateManager.ts`, with focused runtime coverage and architecture guardrails
 blocking those direct browser/controller operations from returning.
 Credits marquee tests now pass explicit observer and animation runtimes into `setupCreditsMarquee` instead of

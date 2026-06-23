@@ -489,7 +489,7 @@ export class UIStateManager {
     updateDropOverlayVisibility(isVisible: boolean) {
         const dropOverlay = (() => {
             try {
-                return getElementByIdFlexible(document, "drop_overlay");
+                return uiStateManagerRuntime.getDropOverlayElement();
             } catch {
                 return null;
             }
@@ -501,7 +501,7 @@ export class UIStateManager {
 
         const altFitIframe = (() => {
             try {
-                return getElementByIdFlexible(document, "altfit_iframe");
+                return uiStateManagerRuntime.getAltFitIframeElement();
             } catch {
                 return null;
             }
@@ -513,7 +513,7 @@ export class UIStateManager {
 
         const zwiftIframe = (() => {
             try {
-                return getElementByIdFlexible(document, "zwift_iframe");
+                return uiStateManagerRuntime.getZwiftIframeElement();
             } catch {
                 return null;
             }

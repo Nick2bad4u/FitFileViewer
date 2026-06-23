@@ -2,6 +2,7 @@ import {
     getChartControlsToggle,
     getChartSettingsWrapper,
 } from "../../charts/dom/chartDomUtils.js";
+import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 
 export interface UIStateWindowStateSnapshot extends Record<string, unknown> {
     readonly height: number;
@@ -46,12 +47,16 @@ export interface UIStateManagerRuntimeScope {
     readonly getEventTarget?:
         | (() => UIStateManagerEventTarget | undefined)
         | undefined;
+    readonly getAltFitIframeElement?:
+        | UIStateManagerElementProvider
+        | undefined;
     readonly getChartControlsToggleElement?:
         | UIStateManagerElementProvider
         | undefined;
     readonly getChartSettingsWrapperElement?:
         | UIStateManagerElementProvider
         | undefined;
+    readonly getDropOverlayElement?: UIStateManagerElementProvider | undefined;
     readonly getFileLoadingProgressElement?:
         | UIStateManagerElementProvider
         | undefined;
@@ -62,6 +67,9 @@ export interface UIStateManagerRuntimeScope {
         | UIStateManagerElementProvider
         | undefined;
     readonly getSidebarElement?: UIStateManagerElementProvider | undefined;
+    readonly getZwiftIframeElement?:
+        | UIStateManagerElementProvider
+        | undefined;
     readonly getMatchMedia?:
         | (() => typeof globalThis.matchMedia | undefined)
         | undefined;
@@ -84,8 +92,10 @@ export interface UIStateManagerRuntime {
     ) => void;
     createAbortController: () => AbortController;
     getDefaultDocumentTitle: (fallbackTitle: string) => string;
+    getAltFitIframeElement: () => HTMLElement | null;
     getChartControlsToggleElement: () => HTMLElement | null;
     getChartSettingsWrapperElement: () => HTMLElement | null;
+    getDropOverlayElement: () => HTMLElement | null;
     getFileLoadingProgressElement: () => HTMLElement | null;
     getLoadingIndicatorElement: () => HTMLElement | null;
     getMainContentElement: () => HTMLElement | null;
@@ -94,6 +104,7 @@ export interface UIStateManagerRuntime {
     getSidebarElement: () => HTMLElement | null;
     getSystemThemeMediaQuery: () => MediaQueryList | null;
     getWindowState: () => UIStateWindowStateSnapshot | null;
+    getZwiftIframeElement: () => HTMLElement | null;
     hasWindow: () => boolean;
     setAppHasFileState: (hasFile: boolean) => void;
     setBodyCursor: (cursor: string) => void;
@@ -108,10 +119,14 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
         typeof globalThis.addEventListener === "function"
             ? globalThis
             : undefined,
+    getAltFitIframeElement: () =>
+        getElementByIdFlexible(globalThis.document, "altfit_iframe"),
     getChartControlsToggleElement: () =>
         getChartControlsToggle(globalThis.document),
     getChartSettingsWrapperElement: () =>
         getChartSettingsWrapper(globalThis.document),
+    getDropOverlayElement: () =>
+        getElementByIdFlexible(globalThis.document, "drop_overlay"),
     getFileLoadingProgressElement: () =>
         globalThis.document.querySelector<HTMLElement>(
             "#file-loading-progress"
@@ -128,6 +143,8 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
         ),
     getSidebarElement: () =>
         globalThis.document.querySelector<HTMLElement>("#sidebar"),
+    getZwiftIframeElement: () =>
+        getElementByIdFlexible(globalThis.document, "zwift_iframe"),
     getMatchMedia: () => globalThis.matchMedia,
     getSetBodyCursor: () => (cursor) => {
         globalThis.document.body.style.cursor = cursor;
@@ -157,6 +174,12 @@ function getEventTarget(
     return scope.getEventTarget?.();
 }
 
+function getAltFitIframeElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getAltFitIframeElement?.() ?? null;
+}
+
 function getChartControlsToggleElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
@@ -167,6 +190,12 @@ function getChartSettingsWrapperElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
     return scope.getChartSettingsWrapperElement?.() ?? null;
+}
+
+function getDropOverlayElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getDropOverlayElement?.() ?? null;
 }
 
 function getFileStateBody(
@@ -209,6 +238,12 @@ function getSidebarElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
     return scope.getSidebarElement?.() ?? null;
+}
+
+function getZwiftIframeElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getZwiftIframeElement?.() ?? null;
 }
 
 function getMatchMedia(
@@ -284,11 +319,17 @@ export function getUIStateManagerRuntime(
         getDefaultDocumentTitle(fallbackTitle): string {
             return getDocumentTitle(scope) ?? fallbackTitle;
         },
+        getAltFitIframeElement(): HTMLElement | null {
+            return getAltFitIframeElement(scope);
+        },
         getChartControlsToggleElement(): HTMLElement | null {
             return getChartControlsToggleElement(scope);
         },
         getChartSettingsWrapperElement(): HTMLElement | null {
             return getChartSettingsWrapperElement(scope);
+        },
+        getDropOverlayElement(): HTMLElement | null {
+            return getDropOverlayElement(scope);
         },
         getFileLoadingProgressElement(): HTMLElement | null {
             return getFileLoadingProgressElement(scope);
@@ -340,6 +381,9 @@ export function getUIStateManagerRuntime(
                 x: screenX,
                 y: screenY,
             };
+        },
+        getZwiftIframeElement(): HTMLElement | null {
+            return getZwiftIframeElement(scope);
         },
         hasWindow(): boolean {
             return getEventTarget(scope) !== undefined;

@@ -140,37 +140,47 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("routes chart, loading, sidebar, and measurement element lookups through scoped providers", () => {
-        expect.assertions(24);
+        expect.assertions(33);
 
+        const altFitIframe = document.createElement("iframe");
         const chartControlsToggle = document.createElement("button");
         const chartSettingsWrapper = document.createElement("section");
+        const dropOverlay = document.createElement("div");
         const fileLoadingProgress = document.createElement("progress");
         const loadingIndicator = document.createElement("div");
         const mainContent = document.createElement("main");
         const mapContainer = document.createElement("section");
         const measurementToggle = document.createElement("button");
         const sidebar = document.createElement("aside");
+        const zwiftIframe = document.createElement("iframe");
+        const getAltFitIframeElement = vi.fn(() => altFitIframe);
         const getChartControlsToggleElement = vi.fn(() => chartControlsToggle);
         const getChartSettingsWrapperElement = vi.fn(
             () => chartSettingsWrapper
         );
+        const getDropOverlayElement = vi.fn(() => dropOverlay);
         const getFileLoadingProgressElement = vi.fn(() => fileLoadingProgress);
         const getLoadingIndicatorElement = vi.fn(() => loadingIndicator);
         const getMainContentElement = vi.fn(() => mainContent);
         const getMapContainerElement = vi.fn(() => mapContainer);
         const getMeasurementModeToggleElement = vi.fn(() => measurementToggle);
         const getSidebarElement = vi.fn(() => sidebar);
+        const getZwiftIframeElement = vi.fn(() => zwiftIframe);
         const runtime = getUIStateManagerRuntime({
+            getAltFitIframeElement,
             getChartControlsToggleElement,
             getChartSettingsWrapperElement,
+            getDropOverlayElement,
             getFileLoadingProgressElement,
             getLoadingIndicatorElement,
             getMainContentElement,
             getMapContainerElement,
             getMeasurementModeToggleElement,
             getSidebarElement,
+            getZwiftIframeElement,
         });
 
+        expect(runtime.getAltFitIframeElement()).toBe(altFitIframe);
         expect(runtime.getFileLoadingProgressElement()).toBe(
             fileLoadingProgress
         );
@@ -180,6 +190,7 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getChartSettingsWrapperElement()).toBe(
             chartSettingsWrapper
         );
+        expect(runtime.getDropOverlayElement()).toBe(dropOverlay);
         expect(runtime.getLoadingIndicatorElement()).toBe(loadingIndicator);
         expect(runtime.getMainContentElement()).toBe(mainContent);
         expect(runtime.getMapContainerElement()).toBe(mapContainer);
@@ -187,20 +198,28 @@ describe("uiStateManagerRuntime", () => {
             measurementToggle
         );
         expect(runtime.getSidebarElement()).toBe(sidebar);
+        expect(runtime.getZwiftIframeElement()).toBe(zwiftIframe);
+        expect(getAltFitIframeElement).toHaveBeenCalledOnce();
         expect(getChartControlsToggleElement).toHaveBeenCalledOnce();
         expect(getChartSettingsWrapperElement).toHaveBeenCalledOnce();
+        expect(getDropOverlayElement).toHaveBeenCalledOnce();
         expect(getFileLoadingProgressElement).toHaveBeenCalledOnce();
         expect(getLoadingIndicatorElement).toHaveBeenCalledOnce();
         expect(getMainContentElement).toHaveBeenCalledOnce();
         expect(getMapContainerElement).toHaveBeenCalledOnce();
         expect(getMeasurementModeToggleElement).toHaveBeenCalledOnce();
         expect(getSidebarElement).toHaveBeenCalledOnce();
+        expect(getZwiftIframeElement).toHaveBeenCalledOnce();
+        expect(
+            getUIStateManagerRuntime({}).getAltFitIframeElement()
+        ).toBeNull();
         expect(
             getUIStateManagerRuntime({}).getChartControlsToggleElement()
         ).toBeNull();
         expect(
             getUIStateManagerRuntime({}).getChartSettingsWrapperElement()
         ).toBeNull();
+        expect(getUIStateManagerRuntime({}).getDropOverlayElement()).toBeNull();
         expect(
             getUIStateManagerRuntime({}).getFileLoadingProgressElement()
         ).toBeNull();
@@ -215,6 +234,7 @@ describe("uiStateManagerRuntime", () => {
             getUIStateManagerRuntime({}).getMeasurementModeToggleElement()
         ).toBeNull();
         expect(getUIStateManagerRuntime({}).getSidebarElement()).toBeNull();
+        expect(getUIStateManagerRuntime({}).getZwiftIframeElement()).toBeNull();
     });
 
     it("ignores direct scoped matchMedia when no provider is scoped", () => {
@@ -317,7 +337,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(33);
+        expect.assertions(39);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -327,8 +347,10 @@ describe("uiStateManagerRuntime", () => {
             }
         }
         const addEventListener = vi.fn();
+        const altFitIframeElement = document.createElement("iframe");
         const chartControlsToggleElement = document.createElement("button");
         const chartSettingsWrapperElement = document.createElement("section");
+        const dropOverlayElement = document.createElement("div");
         const fileStateToggle = vi.fn();
         const fileLoadingProgressElement = document.createElement("progress");
         const loadingIndicatorElement = document.createElement("div");
@@ -336,16 +358,19 @@ describe("uiStateManagerRuntime", () => {
         const mapContainerElement = document.createElement("section");
         const measurementModeToggleElement = document.createElement("button");
         const sidebarElement = document.createElement("aside");
+        const zwiftIframeElement = document.createElement("iframe");
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
         const setBodyCursor = vi.fn();
         const setDocumentTitle = vi.fn();
         const runtime = getUIStateManagerRuntime({
             AbortController:
                 TestAbortController as unknown as typeof AbortController,
+            altFitIframeElement,
             documentTitle: "Legacy title",
             eventTarget: { addEventListener },
             chartControlsToggleElement,
             chartSettingsWrapperElement,
+            dropOverlayElement,
             fileLoadingProgressElement,
             fileStateBody: {
                 classList: { toggle: fileStateToggle },
@@ -356,6 +381,7 @@ describe("uiStateManagerRuntime", () => {
             mapContainerElement,
             measurementModeToggleElement,
             sidebarElement,
+            zwiftIframeElement,
             matchMedia,
             setBodyCursor,
             setDocumentTitle,
@@ -381,14 +407,17 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getDefaultDocumentTitle("Fit File Viewer")).toBe(
             "Fit File Viewer"
         );
+        expect(runtime.getAltFitIframeElement()).toBeNull();
         expect(runtime.getChartControlsToggleElement()).toBeNull();
         expect(runtime.getChartSettingsWrapperElement()).toBeNull();
+        expect(runtime.getDropOverlayElement()).toBeNull();
         expect(runtime.getFileLoadingProgressElement()).toBeNull();
         expect(runtime.getLoadingIndicatorElement()).toBeNull();
         expect(runtime.getMainContentElement()).toBeNull();
         expect(runtime.getMapContainerElement()).toBeNull();
         expect(runtime.getMeasurementModeToggleElement()).toBeNull();
         expect(runtime.getSidebarElement()).toBeNull();
+        expect(runtime.getZwiftIframeElement()).toBeNull();
         expect(runtime.getWindowState()).toBeNull();
         expect(runtime.hasWindow()).toBe(false);
         expect(() => runtime.setAppHasFileState(true)).not.toThrow();
@@ -397,12 +426,14 @@ describe("uiStateManagerRuntime", () => {
         expect(() => runtime.setDocumentTitle("Ignored")).not.toThrow();
         expect(created).toBe(false);
         expect(fileStateToggle).not.toHaveBeenCalled();
+        expect(runtime.getAltFitIframeElement()).not.toBe(altFitIframeElement);
         expect(runtime.getChartControlsToggleElement()).not.toBe(
             chartControlsToggleElement
         );
         expect(runtime.getChartSettingsWrapperElement()).not.toBe(
             chartSettingsWrapperElement
         );
+        expect(runtime.getDropOverlayElement()).not.toBe(dropOverlayElement);
         expect(runtime.getFileLoadingProgressElement()).not.toBe(
             fileLoadingProgressElement
         );
@@ -415,6 +446,7 @@ describe("uiStateManagerRuntime", () => {
             measurementModeToggleElement
         );
         expect(runtime.getSidebarElement()).not.toBe(sidebarElement);
+        expect(runtime.getZwiftIframeElement()).not.toBe(zwiftIframeElement);
         expect(matchMedia).not.toHaveBeenCalled();
         expect(setBodyCursor).not.toHaveBeenCalled();
         expect(setDocumentTitle).not.toHaveBeenCalled();
