@@ -3473,7 +3473,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload file leaf modules on native imports", () => {
-        expect.assertions(5);
+        expect.assertions(7);
 
         const fileModuleLoaderSource = stripComments(
             readRepositoryFile(
@@ -3491,6 +3491,12 @@ describe("architecture boundaries", () => {
             'import { createFitBrowserApi } from "./fitBrowserApi.js";'
         );
         expect(fileModuleLoaderSource).not.toContain("requireModule");
+        expect(fileModuleLoaderSource).not.toContain(
+            "createFileApi as unknown"
+        );
+        expect(fileModuleLoaderSource).not.toContain(
+            "createFitBrowserApi as unknown"
+        );
         expect(moduleLoaderSource).toContain("loadPreloadFileModules()");
         expect(moduleLoaderSource).not.toContain(
             "loadPreloadFileModules({ requireModule })"

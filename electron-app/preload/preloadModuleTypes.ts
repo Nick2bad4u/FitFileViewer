@@ -25,6 +25,8 @@ export type ElectronShellExternalApi =
 export type ElectronThemeApi = import("../shared/preloadApi").ElectronThemeApi;
 export type GenericInvokeChannel = import("../shared/ipc").GenericInvokeChannel;
 export type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
+export type FitBrowserInvokeChannel =
+    import("../shared/ipc").FitBrowserInvokeChannel;
 export type IpcRequestPayload = import("../shared/ipc").IpcRequestPayload;
 export type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
 export type InvokeRequestArgs<Channel extends GenericInvokeChannel> =
@@ -62,6 +64,11 @@ export type CreateSafeInvokeHandler = <Channel extends GenericInvokeChannel>(
 ) => (
     ...args: InvokeRequestArgs<Channel>
 ) => Promise<InvokeResponsePayloadForChannel<Channel>>;
+export type CreateSafeEventHandler = <Callback>(
+    channel: string,
+    methodName: string,
+    transform?: (...args: IpcResponsePayload[]) => unknown
+) => (callback: Callback) => () => void;
 export type CreateMainStateInvokeHandler = <
     Channel extends MainStateInvokeChannel,
 >(
@@ -138,6 +145,10 @@ export type CreateAppInfoApi = (
 export type CreateThemeApi = (
     options: CreateThemeApiOptions
 ) => ElectronThemeApi;
+export type CreateFileApi = (options: CreateFileApiOptions) => ElectronFileApi;
+export type CreateFitBrowserApi = (
+    options: CreateFitBrowserApiOptions
+) => ElectronFitBrowserApi;
 export type AssemblePreloadApi = (options: {
     constants: PreloadConstants;
     contextBridge: null | PreloadContextBridge | undefined;
@@ -315,13 +326,57 @@ export interface CreateThemeApiOptions {
     createSafeInvokeHandler: CreateSafeInvokeHandler;
 }
 
+export interface FileApiChannels {
+    FILE_READ: Extract<GenericInvokeChannel, "file:read">;
+    FIT_DECODE: Extract<GenericInvokeChannel, "fit:decode">;
+    FIT_PARSE: Extract<GenericInvokeChannel, "fit:parse">;
+    RECENT_FILES_ADD: Extract<GenericInvokeChannel, "recentFiles:add">;
+    RECENT_FILES_APPROVE: Extract<GenericInvokeChannel, "recentFiles:approve">;
+    RECENT_FILES_GET: Extract<GenericInvokeChannel, "recentFiles:get">;
+}
+
+export interface CreateFileApiOptions {
+    channels: FileApiChannels;
+    createSafeInvokeHandler: CreateSafeInvokeHandler;
+}
+
+export interface FitBrowserApiChannels {
+    FIT_BROWSER_ENABLED_CHANGED: PreloadEvents["FIT_BROWSER_ENABLED_CHANGED"];
+    FIT_BROWSER_GET_FOLDER: Extract<
+        FitBrowserInvokeChannel,
+        "browser:getFolder"
+    >;
+    FIT_BROWSER_IS_ENABLED: Extract<
+        FitBrowserInvokeChannel,
+        "browser:isEnabled"
+    >;
+    FIT_BROWSER_LIST_FOLDER: Extract<
+        FitBrowserInvokeChannel,
+        "browser:listFolder"
+    >;
+    FIT_BROWSER_SET_ENABLED: Extract<
+        FitBrowserInvokeChannel,
+        "browser:setEnabled"
+    >;
+    FIT_BROWSER_SET_FOLDER: Extract<
+        FitBrowserInvokeChannel,
+        "browser:setFolder"
+    >;
+}
+
+export interface CreateFitBrowserApiOptions {
+    channels: FitBrowserApiChannels;
+    createSafeEventHandler: CreateSafeEventHandler;
+    createSafeInvokeHandler: CreateSafeInvokeHandler;
+}
+
 export interface PreloadModuleRegistry {
     createApiDiagnostics: PreloadApiFactory<ElectronApiDiagnosticsApi>;
     createAppInfoApi: CreateAppInfoApi;
     createClipboardBridge: PreloadApiFactory<ElectronClipboardApi>;
     createDevtoolsMenuApi: PreloadApiFactory<ElectronDevtoolsMenuApi>;
-    createFileApi: PreloadApiFactory<ElectronFileApi>;
-    createFitBrowserApi: PreloadApiFactory<ElectronFitBrowserApi>;
+    createFileApi: CreateFileApi;
+    createFitBrowserApi: CreateFitBrowserApi;
     createGyazoExternalApi: PreloadApiFactory<ElectronGyazoExternalApi>;
     createPreloadEventApi: PreloadApiFactory<ElectronPreloadEventApi>;
     createPreloadApiAssemblyContext: CreatePreloadApiAssemblyContext;
@@ -338,11 +393,7 @@ export interface PreloadModuleRegistry {
     createMainStateBridge: CreateMainStateBridge;
     createMenuEventApi: PreloadApiFactory<ElectronMenuEventApi>;
     createPreloadIpcHelpers: (options: Record<string, unknown>) => {
-        createSafeEventHandler: <Callback>(
-            channel: string,
-            methodName: string,
-            transform?: (...args: IpcResponsePayload[]) => unknown
-        ) => (callback: Callback) => () => void;
+        createSafeEventHandler: CreateSafeEventHandler;
         createSafeInvokeHandler: CreateSafeInvokeHandler;
         createSafeSendHandler: (
             channel: GenericSendChannel,

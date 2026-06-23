@@ -1,67 +1,14 @@
-type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
-type FitBrowserInvokeChannel = import("../shared/ipc").FitBrowserInvokeChannel;
 type FitBrowserListFolderRequest =
     import("../shared/ipc").FitBrowserListFolderRequest;
-type FitBrowserListFolderResponse =
-    import("../shared/ipc").FitBrowserListFolderResponse;
 type FitBrowserSetEnabledRequest =
     import("../shared/ipc").FitBrowserSetEnabledRequest;
-type FitBrowserSetEnabledResponse =
-    import("../shared/ipc").FitBrowserEnabledResponse;
 type FitBrowserSetFolderRequest =
     import("../shared/ipc").FitBrowserSetFolderRequest;
-type FitBrowserSetFolderResponse =
-    import("../shared/ipc").FitBrowserSetFolderResponse;
 type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
-
-type UnknownCallback = (...args: unknown[]) => unknown;
-
-interface FitBrowserApiChannels {
-    FIT_BROWSER_ENABLED_CHANGED: string;
-    FIT_BROWSER_GET_FOLDER: Extract<
-        FitBrowserInvokeChannel,
-        "browser:getFolder"
-    >;
-    FIT_BROWSER_IS_ENABLED: Extract<
-        FitBrowserInvokeChannel,
-        "browser:isEnabled"
-    >;
-    FIT_BROWSER_LIST_FOLDER: Extract<
-        FitBrowserInvokeChannel,
-        "browser:listFolder"
-    >;
-    FIT_BROWSER_SET_ENABLED: Extract<
-        FitBrowserInvokeChannel,
-        "browser:setEnabled"
-    >;
-    FIT_BROWSER_SET_FOLDER: Extract<
-        FitBrowserInvokeChannel,
-        "browser:setFolder"
-    >;
-}
-
-interface FitBrowserApiOptions {
-    channels: FitBrowserApiChannels;
-    createSafeEventHandler: (
-        channel: string,
-        methodName: string,
-        transform?: (...args: IpcResponsePayload[]) => boolean
-    ) => (callback: UnknownCallback) => () => void;
-    createSafeInvokeHandler: (
-        channel: FitBrowserInvokeChannel,
-        methodName: string
-    ) => (...args: unknown[]) => Promise<unknown>;
-}
-
-type FitBrowserPreloadApi = Pick<
-    ElectronAPI,
-    | "getFitBrowserFolder"
-    | "isFitBrowserEnabled"
-    | "listFitBrowserFolder"
-    | "onFitBrowserEnabledChanged"
-    | "setFitBrowserEnabled"
-    | "setFitBrowserFolder"
->;
+type CreateFitBrowserApiOptions =
+    import("./preloadModuleTypes").CreateFitBrowserApiOptions;
+type FitBrowserPreloadApi =
+    import("../shared/preloadApi").ElectronFitBrowserApi;
 
 function rejectInvalidArgument(
     methodName: string,
@@ -74,7 +21,7 @@ export function createFitBrowserApi({
     channels,
     createSafeEventHandler,
     createSafeInvokeHandler,
-}: FitBrowserApiOptions): FitBrowserPreloadApi {
+}: CreateFitBrowserApiOptions): FitBrowserPreloadApi {
     const listFitBrowserFolder = createSafeInvokeHandler(
         channels.FIT_BROWSER_LIST_FOLDER,
         "listFitBrowserFolder"
@@ -97,11 +44,9 @@ export function createFitBrowserApi({
     );
 
     return {
-        getFitBrowserFolder:
-            getFitBrowserFolder as ElectronAPI["getFitBrowserFolder"],
-        isFitBrowserEnabled:
-            isFitBrowserEnabled as ElectronAPI["isFitBrowserEnabled"],
-        listFitBrowserFolder: ((relPath?: FitBrowserListFolderRequest) => {
+        getFitBrowserFolder,
+        isFitBrowserEnabled,
+        listFitBrowserFolder: (relPath?: FitBrowserListFolderRequest) => {
             if (relPath === undefined) {
                 return listFitBrowserFolder("");
             }
@@ -112,15 +57,13 @@ export function createFitBrowserApi({
                 );
             }
             return listFitBrowserFolder(relPath);
-        }) as (
-            relPath?: FitBrowserListFolderRequest
-        ) => Promise<FitBrowserListFolderResponse>,
+        },
         onFitBrowserEnabledChanged: createSafeEventHandler(
             channels.FIT_BROWSER_ENABLED_CHANGED,
             "onFitBrowserEnabledChanged",
             (enabled: IpcResponsePayload) => enabled === true
-        ) as ElectronAPI["onFitBrowserEnabledChanged"],
-        setFitBrowserEnabled: ((enabled: FitBrowserSetEnabledRequest) => {
+        ),
+        setFitBrowserEnabled: (enabled: FitBrowserSetEnabledRequest) => {
             if (typeof enabled !== "boolean") {
                 return rejectInvalidArgument(
                     "setFitBrowserEnabled",
@@ -128,10 +71,8 @@ export function createFitBrowserApi({
                 );
             }
             return setFitBrowserEnabled(enabled);
-        }) as (
-            enabled: FitBrowserSetEnabledRequest
-        ) => Promise<FitBrowserSetEnabledResponse>,
-        setFitBrowserFolder: ((folder: FitBrowserSetFolderRequest) => {
+        },
+        setFitBrowserFolder: (folder: FitBrowserSetFolderRequest) => {
             if (typeof folder !== "string" || folder.trim().length === 0) {
                 return rejectInvalidArgument(
                     "setFitBrowserFolder",
@@ -139,8 +80,6 @@ export function createFitBrowserApi({
                 );
             }
             return setFitBrowserFolder(folder);
-        }) as (
-            folder: FitBrowserSetFolderRequest
-        ) => Promise<FitBrowserSetFolderResponse>,
+        },
     };
 }

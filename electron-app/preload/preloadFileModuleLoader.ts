@@ -8,14 +8,9 @@ type PreloadFileModules = Pick<
     "createFileApi" | "createFitBrowserApi"
 >;
 
-const createFileApiModule =
-    createFileApi as unknown as PreloadModuleRegistry["createFileApi"];
-const createFitBrowserApiModule =
-    createFitBrowserApi as unknown as PreloadModuleRegistry["createFitBrowserApi"];
-
 export function loadPreloadFileModules(): PreloadFileModules {
     return {
-        createFileApi: createFileApiModule,
-        createFitBrowserApi: createFitBrowserApiModule,
+        createFileApi,
+        createFitBrowserApi,
     };
 }
