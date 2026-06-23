@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(133);
+        expect.assertions(146);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6624,6 +6624,9 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("getSidebarElement");
         expect(uiStateManagerSource).toContain("getTabButtonElements");
         expect(uiStateManagerSource).toContain("getTabContentElements");
+        expect(uiStateManagerSource).toContain("getThemeRootElement");
+        expect(uiStateManagerSource).toContain("getThemeStateElements");
+        expect(uiStateManagerSource).toContain("getThemeToggleElements");
         expect(uiStateManagerSource).toContain("getUnloadFileButtonElement");
         expect(uiStateManagerSource).toContain("getZwiftIframeElement");
         expect(uiStateManagerSource).toContain("isHTMLElement");
@@ -6688,6 +6691,16 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerSource).not.toContain(
             '"../../ui/dom/elementIdUtils.js"'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            "document.documentElement || document.body"
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'document.querySelectorAll("[data-theme]")'
+        );
+        expect(uiStateManagerSource).not.toContain("safeQuerySelectorAll(");
+        expect(uiStateManagerSource).not.toContain(
+            "button instanceof HTMLElement"
         );
         expect(uiStateManagerSource).not.toContain(
             'document.createElement("span")'
@@ -6780,6 +6793,15 @@ describe("architecture boundaries", () => {
             'globalThis.document.querySelectorAll(".tab-content")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
+            "globalThis.document.documentElement || globalThis.document.body"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'globalThis.document.querySelectorAll("[data-theme]")'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "'button[data-theme], [role=\"button\"][data-theme]'"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
             "getSetBodyCursor: () => (cursor) =>"
         );
         expect(uiStateManagerRuntimeSource).toContain(
@@ -6846,6 +6868,15 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly tabContentElements?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly themeRootElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly themeStateElements?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly themeToggleElements?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly unloadFileButtonElement?:"

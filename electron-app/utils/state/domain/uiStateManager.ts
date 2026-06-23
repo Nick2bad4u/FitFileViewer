@@ -71,24 +71,30 @@ export class UIStateManager {
      * Apply theme to the UI
      */
     applyTheme(theme: string) {
-        const root = document.documentElement || document.body || {};
+        const root = uiStateManagerRuntime.getThemeRootElement();
 
         if (theme === "system") {
             // Remove explicit theme and use system preference
-            delete root.dataset["theme"];
+            if (root) {
+                delete root.dataset["theme"];
+            }
 
             // Listen for system theme changes if supported
             const mediaQuery =
                 uiStateManagerRuntime.getSystemThemeMediaQuery();
             if (mediaQuery) {
                 const systemTheme = mediaQuery.matches ? "dark" : "light";
-                root.dataset["theme"] = systemTheme;
+                if (root) {
+                    root.dataset["theme"] = systemTheme;
+                }
 
                 // Update on system theme change
                 if (!this.systemThemeListener) {
                     this.systemThemeListener = (e: MediaQueryListEvent) => {
                         const newSystemTheme = e.matches ? "dark" : "light";
-                        root.dataset["theme"] = newSystemTheme;
+                        if (root) {
+                            root.dataset["theme"] = newSystemTheme;
+                        }
                     };
                     if (typeof mediaQuery.addEventListener === "function") {
                         mediaQuery.addEventListener(
@@ -104,13 +110,15 @@ export class UIStateManager {
                         mediaQuery.addListener(this.systemThemeListener);
                     }
                 }
-            } else {
+            } else if (root) {
                 // Fallback when matchMedia is not available (e.g., jsdom)
                 root.dataset["theme"] = "light";
             }
         } else {
             // Apply explicit theme
-            root.dataset["theme"] = theme;
+            if (root) {
+                root.dataset["theme"] = theme;
+            }
 
             // Remove system theme listener if it exists
             if (this.systemThemeListener) {
@@ -133,16 +141,10 @@ export class UIStateManager {
         }
 
         // Update theme toggle buttons
-        const themeButtons = (() => {
-            try {
-                return [...(document.querySelectorAll("[data-theme]") || [])];
-            } catch {
-                return [];
-            }
-        })();
+        const themeButtons = uiStateManagerRuntime.getThemeStateElements();
         for (const button of themeButtons) {
             const buttonTheme =
-                button instanceof HTMLElement
+                uiStateManagerRuntime.isHTMLElement(button)
                     ? button.dataset["theme"]
                     : undefined;
             button.classList.toggle("active", buttonTheme === theme);
@@ -264,19 +266,6 @@ export class UIStateManager {
      * Set up DOM event listeners that sync with state
      */
     setupEventListeners() {
-        // Safe helpers to guard against jsdom brand-check errors or replaced globals
-        const safeQuerySelectorAll = (selector: string): Element[] => {
-            try {
-                const doc = document;
-                if (doc && typeof doc.querySelectorAll === "function") {
-                    // Array.from guards non-iterables
-                    return [...(doc.querySelectorAll(selector) || [])];
-                }
-            } catch {
-                // Swallow to keep tests stable if document was swapped or methods are from another realm
-            }
-            return [];
-        };
         /**
          * Safely attach a click handler.
          *
@@ -317,12 +306,10 @@ export class UIStateManager {
         // previous theme and effectively "undo" a user change.
         //
         // Only treat explicit UI controls as theme toggles.
-        const themeButtons = safeQuerySelectorAll(
-            'button[data-theme], [role="button"][data-theme]'
-        );
+        const themeButtons = uiStateManagerRuntime.getThemeToggleElements();
         for (const button of themeButtons) {
             const theme =
-                button instanceof HTMLElement
+                uiStateManagerRuntime.isHTMLElement(button)
                     ? button.dataset["theme"]
                     : undefined;
             safeAddClickListener(button, () => {

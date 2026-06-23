@@ -84,6 +84,13 @@ export interface UIStateManagerRuntimeScope {
     readonly getTabContentElements?:
         | UIStateManagerElementListProvider
         | undefined;
+    readonly getThemeRootElement?: UIStateManagerElementProvider | undefined;
+    readonly getThemeStateElements?:
+        | UIStateManagerElementListProvider
+        | undefined;
+    readonly getThemeToggleElements?:
+        | UIStateManagerElementListProvider
+        | undefined;
     readonly getUnloadFileButtonElement?:
         | UIStateManagerElementProvider
         | undefined;
@@ -128,6 +135,9 @@ export interface UIStateManagerRuntime {
     getSystemThemeMediaQuery: () => MediaQueryList | null;
     getTabButtonElements: () => readonly Element[];
     getTabContentElements: () => readonly Element[];
+    getThemeRootElement: () => HTMLElement | null;
+    getThemeStateElements: () => readonly Element[];
+    getThemeToggleElements: () => readonly Element[];
     getUnloadFileButtonElement: () => HTMLElement | null;
     getWindowState: () => UIStateWindowStateSnapshot | null;
     getZwiftIframeElement: () => HTMLElement | null;
@@ -184,6 +194,16 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
     ],
     getTabContentElements: () => [
         ...globalThis.document.querySelectorAll(".tab-content"),
+    ],
+    getThemeRootElement: () =>
+        globalThis.document.documentElement || globalThis.document.body,
+    getThemeStateElements: () => [
+        ...globalThis.document.querySelectorAll("[data-theme]"),
+    ],
+    getThemeToggleElements: () => [
+        ...globalThis.document.querySelectorAll(
+            'button[data-theme], [role="button"][data-theme]'
+        ),
     ],
     getUnloadFileButtonElement: () =>
         getElementByIdFlexible(globalThis.document, "unload_file_btn"),
@@ -349,6 +369,32 @@ function getTabContentElements(
     }
 }
 
+function getThemeRootElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getThemeRootElement?.() ?? null;
+}
+
+function getThemeStateElements(
+    scope: UIStateManagerRuntimeScope
+): readonly Element[] {
+    try {
+        return scope.getThemeStateElements?.() ?? [];
+    } catch {
+        return [];
+    }
+}
+
+function getThemeToggleElements(
+    scope: UIStateManagerRuntimeScope
+): readonly Element[] {
+    try {
+        return scope.getThemeToggleElements?.() ?? [];
+    } catch {
+        return [];
+    }
+}
+
 function getUnloadFileButtonElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
@@ -485,6 +531,15 @@ export function getUIStateManagerRuntime(
         },
         getTabContentElements(): readonly Element[] {
             return getTabContentElements(scope);
+        },
+        getThemeRootElement(): HTMLElement | null {
+            return getThemeRootElement(scope);
+        },
+        getThemeStateElements(): readonly Element[] {
+            return getThemeStateElements(scope);
+        },
+        getThemeToggleElements(): readonly Element[] {
+            return getThemeToggleElements(scope);
         },
         getUnloadFileButtonElement(): HTMLElement | null {
             return getUnloadFileButtonElement(scope);
