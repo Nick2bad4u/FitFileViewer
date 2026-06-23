@@ -530,38 +530,7 @@ export class UIStateManager {
             fileNameContainer.classList.toggle("has-file", hasRenderableFile);
         }
 
-        if (typeof document !== "undefined" && document.body) {
-            const { body } = document,
-                { classList, dataset } = body,
-                hasToggle = Boolean(
-                    classList && typeof classList.toggle === "function"
-                );
-
-            if (hasToggle) {
-                classList.toggle("app-has-file", hasRenderableFile);
-            } else {
-                const { className } = body,
-                    classes =
-                        typeof className === "string"
-                            ? className.split(/\s+/)
-                            : [],
-                    filtered = classes.filter(
-                        (cls) => cls && cls !== "app-has-file"
-                    );
-                if (hasRenderableFile) {
-                    filtered.push("app-has-file");
-                }
-                body.className = filtered.join(" ").trim();
-            }
-
-            // In runtime Electron, `HTMLBodyElement.dataset` exists.
-            // In some tests, `document.body` can be a partial mock without dataset.
-            const datasetRef =
-                dataset && typeof dataset === "object" ? dataset : null;
-            if (datasetRef) {
-                datasetRef["hasFitFile"] = hasRenderableFile ? "true" : "false";
-            }
-        }
+        uiStateManagerRuntime.setAppHasFileState(hasRenderableFile);
 
         const fileSpan = (() => {
             try {

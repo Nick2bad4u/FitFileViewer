@@ -22,9 +22,19 @@ type UIStateManagerViewportState = Partial<
     readonly screen?: Pick<Screen, "availHeight" | "availWidth">;
 };
 
+type UIStateManagerBodyClassList = Partial<Pick<DOMTokenList, "toggle">>;
+type UIStateManagerFileStateBody = {
+    classList?: UIStateManagerBodyClassList | undefined;
+    className?: string | undefined;
+    dataset?: Record<string, string | undefined> | undefined;
+};
+
 export interface UIStateManagerRuntimeScope {
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
+        | undefined;
+    readonly getFileStateBody?:
+        | (() => UIStateManagerFileStateBody | undefined)
         | undefined;
     readonly getDocumentTitle?: (() => string | undefined) | undefined;
     readonly getEventTarget?:
@@ -55,12 +65,14 @@ export interface UIStateManagerRuntime {
     getSystemThemeMediaQuery: () => MediaQueryList | null;
     getWindowState: () => UIStateWindowStateSnapshot | null;
     hasWindow: () => boolean;
+    setAppHasFileState: (hasFile: boolean) => void;
     setBodyCursor: (cursor: string) => void;
     setDocumentTitle: (title: string) => void;
 }
 
 const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
+    getFileStateBody: () => globalThis.document.body,
     getDocumentTitle: () => globalThis.document.title,
     getEventTarget: () =>
         typeof globalThis.addEventListener === "function"
@@ -95,6 +107,12 @@ function getEventTarget(
     return scope.getEventTarget?.();
 }
 
+function getFileStateBody(
+    scope: UIStateManagerRuntimeScope
+): UIStateManagerFileStateBody | undefined {
+    return scope.getFileStateBody?.();
+}
+
 function getMatchMedia(
     scope: UIStateManagerRuntimeScope
 ): typeof matchMedia | undefined {
@@ -127,6 +145,25 @@ function getViewportState(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerViewportState | undefined {
     return scope.getViewportState?.();
+}
+
+function setAppHasFileClass(
+    body: UIStateManagerFileStateBody,
+    hasFile: boolean
+): void {
+    const toggle = body.classList?.toggle;
+    if (typeof toggle === "function") {
+        toggle.call(body.classList, "app-has-file", hasFile);
+        return;
+    }
+
+    const classes =
+        typeof body.className === "string" ? body.className.split(/\s+/) : [];
+    const filtered = classes.filter((cls) => cls && cls !== "app-has-file");
+    if (hasFile) {
+        filtered.push("app-has-file");
+    }
+    body.className = filtered.join(" ").trim();
 }
 
 export function getUIStateManagerRuntime(
@@ -184,6 +221,17 @@ export function getUIStateManagerRuntime(
         },
         hasWindow(): boolean {
             return getEventTarget(scope) !== undefined;
+        },
+        setAppHasFileState(hasFile): void {
+            const body = getFileStateBody(scope);
+            if (body === undefined) {
+                return;
+            }
+
+            setAppHasFileClass(body, hasFile);
+            if (body.dataset && typeof body.dataset === "object") {
+                body.dataset["hasFitFile"] = hasFile ? "true" : "false";
+            }
         },
         setBodyCursor(cursor): void {
             getSetBodyCursor(scope)?.(cursor);

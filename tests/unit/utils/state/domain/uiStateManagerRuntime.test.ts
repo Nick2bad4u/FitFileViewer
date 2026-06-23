@@ -95,6 +95,50 @@ describe("uiStateManagerRuntime", () => {
         expect(setBodyCursor).not.toHaveBeenCalledWith("default");
     });
 
+    it("routes active file body state through scoped providers", () => {
+        expect.assertions(4);
+
+        const toggle = vi.fn();
+        const dataset: Record<string, string> = {};
+        const runtime = getUIStateManagerRuntime({
+            getFileStateBody: () => ({
+                classList: { toggle },
+                dataset,
+            }),
+        });
+
+        runtime.setAppHasFileState(true);
+
+        expect(toggle).toHaveBeenCalledExactlyOnceWith("app-has-file", true);
+        expect(dataset).toStrictEqual({ hasFitFile: "true" });
+        expect(() =>
+            getUIStateManagerRuntime({}).setAppHasFileState(false)
+        ).not.toThrow();
+        expect(toggle).not.toHaveBeenCalledWith("app-has-file", false);
+    });
+
+    it("keeps active file body class updates working without DOMTokenList support", () => {
+        expect.assertions(4);
+
+        const body = {
+            className: "existing app-has-file",
+            dataset: {} as Record<string, string>,
+        };
+        const runtime = getUIStateManagerRuntime({
+            getFileStateBody: () => body,
+        });
+
+        runtime.setAppHasFileState(false);
+
+        expect(body.className).toBe("existing");
+        expect(body.dataset).toStrictEqual({ hasFitFile: "false" });
+
+        runtime.setAppHasFileState(true);
+
+        expect(body.className).toBe("existing app-has-file");
+        expect(body.dataset).toStrictEqual({ hasFitFile: "true" });
+    });
+
     it("ignores direct scoped matchMedia when no provider is scoped", () => {
         expect.assertions(2);
 
@@ -195,7 +239,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(15);
+        expect.assertions(17);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -205,6 +249,7 @@ describe("uiStateManagerRuntime", () => {
             }
         }
         const addEventListener = vi.fn();
+        const fileStateToggle = vi.fn();
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
         const setBodyCursor = vi.fn();
         const setDocumentTitle = vi.fn();
@@ -213,6 +258,10 @@ describe("uiStateManagerRuntime", () => {
                 TestAbortController as unknown as typeof AbortController,
             documentTitle: "Legacy title",
             eventTarget: { addEventListener },
+            fileStateBody: {
+                classList: { toggle: fileStateToggle },
+                dataset: {},
+            },
             matchMedia,
             setBodyCursor,
             setDocumentTitle,
@@ -240,10 +289,12 @@ describe("uiStateManagerRuntime", () => {
         );
         expect(runtime.getWindowState()).toBeNull();
         expect(runtime.hasWindow()).toBe(false);
+        expect(() => runtime.setAppHasFileState(true)).not.toThrow();
         runtime.addWindowEventListener("resize", listener);
         expect(() => runtime.setBodyCursor("wait")).not.toThrow();
         expect(() => runtime.setDocumentTitle("Ignored")).not.toThrow();
         expect(created).toBe(false);
+        expect(fileStateToggle).not.toHaveBeenCalled();
         expect(matchMedia).not.toHaveBeenCalled();
         expect(setBodyCursor).not.toHaveBeenCalled();
         expect(setDocumentTitle).not.toHaveBeenCalled();

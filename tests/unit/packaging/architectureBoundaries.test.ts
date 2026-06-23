@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(34);
+        expect.assertions(42);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6603,9 +6603,14 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("createAbortController");
         expect(uiStateManagerSource).toContain("addWindowEventListener");
         expect(uiStateManagerSource).toContain("getDefaultDocumentTitle");
+        expect(uiStateManagerSource).toContain("setAppHasFileState");
         expect(uiStateManagerSource).toContain("setBodyCursor");
         expect(uiStateManagerSource).toContain("setDocumentTitle");
         expect(uiStateManagerSource).toContain("getSystemThemeMediaQuery");
+        expect(uiStateManagerSource).not.toContain(
+            'classList.toggle("app-has-file"'
+        );
+        expect(uiStateManagerSource).not.toContain('datasetRef["hasFitFile"]');
         expect(
             directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
         ).toBe(false);
@@ -6614,6 +6619,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getFileStateBody: () => globalThis.document.body"
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getDocumentTitle: () => globalThis.document.title"
@@ -6648,6 +6656,9 @@ describe("architecture boundaries", () => {
             "readonly documentTitle?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly fileStateBody?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly eventTarget?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
@@ -6668,6 +6679,9 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.documentTitle"
         );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.fileStateBody"
+        );
         expect(uiStateManagerRuntimeSource).not.toContain("scope.eventTarget");
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.matchMedia ??"
@@ -6680,6 +6694,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.viewportState"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'body.dataset["hasFitFile"]'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            '"app-has-file", hasFile'
         );
     });
 
