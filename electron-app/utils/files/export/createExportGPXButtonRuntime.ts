@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
+
 export type CreateExportGPXButtonTimer = ReturnType<
     typeof globalThis.setTimeout
 >;
@@ -37,8 +39,6 @@ export interface CreateExportGPXButtonRuntime {
     ) => CreateExportGPXButtonTimer;
 }
 
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-
 function getDocument(scope: CreateExportGPXButtonRuntimeScope): Document {
     const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
@@ -63,6 +63,16 @@ function getURLRuntime(
     }
 
     return urlRuntime;
+}
+
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: CreateExportGPXButtonRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
 }
 
 const defaultCreateExportGPXButtonRuntimeScope: CreateExportGPXButtonRuntimeScope =
@@ -104,7 +114,7 @@ export function getCreateExportGPXButtonRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
+            return createSvgElement(scope, tagName);
         },
         revokeObjectURL(url): void {
             getURLRuntime(scope).revokeObjectURL(url);

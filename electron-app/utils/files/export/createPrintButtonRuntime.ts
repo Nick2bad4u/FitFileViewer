@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
+
 export interface CreatePrintButtonRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -18,8 +20,6 @@ export interface CreatePrintButtonRuntime {
     print: () => void;
 }
 
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
-
 function getDocument(scope: CreatePrintButtonRuntimeScope): Document {
     const runtimeDocument = scope.getDocument?.();
     if (!runtimeDocument) {
@@ -27,6 +27,16 @@ function getDocument(scope: CreatePrintButtonRuntimeScope): Document {
     }
 
     return runtimeDocument;
+}
+
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: CreatePrintButtonRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
 }
 
 const defaultCreatePrintButtonRuntimeScope: CreatePrintButtonRuntimeScope = {
@@ -60,7 +70,7 @@ export function getCreatePrintButtonRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
+            return createSvgElement(scope, tagName);
         },
         print(): void {
             scope.getPrint?.()?.();

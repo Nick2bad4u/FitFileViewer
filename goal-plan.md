@@ -340,7 +340,7 @@ runtime scopes must provide their controller instead of falling back to `globalT
 runtime coverage and architecture guardrails blocking the ambient controller fallback from returning.
 Chart hover effects scheduling, abort-controller creation, and document listener wiring now use named runtime provider
 functions instead of a broad `globalThis` default scope or legacy direct scope properties.
-Inline SVG creation for the app icon factory, fullscreen controls, chart hover overlays, and keyboard-shortcuts modal
+Inline SVG creation for the app icon factory, fullscreen controls, chart hover overlays, keyboard-shortcuts modal, and map export/print controls
 now routes through focused runtime facades instead of calling `document.createElementNS` directly, with architecture
 coverage blocking raw SVG DOM creation from returning to Electron app source.
 Field-toggle DOM construction, custom event dispatch, listener abort-controller creation, input checks, and fallback

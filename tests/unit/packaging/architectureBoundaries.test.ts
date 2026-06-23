@@ -9612,7 +9612,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps print button browser APIs behind the runtime facade", () => {
-        expect.assertions(18);
+        expect.assertions(20);
 
         const violations = migratedCreatePrintButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -9645,6 +9645,10 @@ describe("architecture boundaries", () => {
             "createPrintButtonRuntime.js"
         );
         expect(createPrintButtonSource).toContain("createAbortController");
+        expect(createPrintButtonRuntimeSource).toContain(
+            "iconFactoryRuntime.js"
+        );
+        expect(createPrintButtonRuntimeSource).not.toContain("createElementNS");
         expect(createPrintButtonRuntimeSource).toContain(
             "defaultCreatePrintButtonRuntimeScope"
         );
@@ -9741,7 +9745,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps GPX export button browser APIs behind the runtime facade", () => {
-        expect.assertions(19);
+        expect.assertions(21);
 
         const violations = migratedCreateExportGPXButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -9766,6 +9770,12 @@ describe("architecture boundaries", () => {
             "createExportGPXButtonRuntime.js"
         );
         expect(createExportGPXButtonSource).toContain("createAbortController");
+        expect(createExportGPXButtonRuntimeSource).toContain(
+            "iconFactoryRuntime.js"
+        );
+        expect(createExportGPXButtonRuntimeSource).not.toContain(
+            "createElementNS"
+        );
         expect(createExportGPXButtonRuntimeSource).not.toMatch(
             directCreateExportGPXButtonRuntimeAmbientFallbackPattern
         );
