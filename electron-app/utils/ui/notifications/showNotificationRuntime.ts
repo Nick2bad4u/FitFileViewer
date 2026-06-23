@@ -43,33 +43,13 @@ type ShowNotificationDocument = Pick<
     "createElement" | "querySelector"
 >;
 
-function getDefaultCancelAnimationFrame():
-    | typeof globalThis.cancelAnimationFrame
-    | undefined {
-    const cancelAnimationFrame = globalThis.cancelAnimationFrame;
-    if (typeof cancelAnimationFrame !== "function") {
-        return undefined;
-    }
-
-    return (frame) => cancelAnimationFrame.call(globalThis, frame);
-}
-
-function getDefaultRequestAnimationFrame():
-    | typeof globalThis.requestAnimationFrame
-    | undefined {
-    const requestAnimationFrame = globalThis.requestAnimationFrame;
-    if (typeof requestAnimationFrame !== "function") {
-        return undefined;
-    }
-
-    return (onFrame) => requestAnimationFrame.call(globalThis, onFrame);
-}
-
 const defaultShowNotificationRuntimeScope: ShowNotificationRuntimeScope = {
-    getCancelAnimationFrame: getDefaultCancelAnimationFrame,
+    getCancelAnimationFrame: () =>
+        globalThis.cancelAnimationFrame?.bind(globalThis),
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
-    getRequestAnimationFrame: getDefaultRequestAnimationFrame,
+    getRequestAnimationFrame: () =>
+        globalThis.requestAnimationFrame?.bind(globalThis),
     getSetTimeout: () => globalThis.setTimeout,
 };
 
@@ -117,7 +97,7 @@ export function getShowNotificationRuntime(
             if (typeof cancelFrame !== "function") {
                 return;
             }
-            cancelFrame(frame);
+            cancelFrame.call(scope, frame);
         },
         clearTimeout(timer) {
             const clearTimer = getClearTimeout(scope);
@@ -126,7 +106,7 @@ export function getShowNotificationRuntime(
                     "show notification runtime requires clearTimeout"
                 );
             }
-            clearTimer(timer);
+            clearTimer.call(scope, timer);
         },
         createElement(tagName) {
             return getRequiredDocument(scope).createElement(tagName);
@@ -140,7 +120,7 @@ export function getShowNotificationRuntime(
                 onFrame(0);
                 return null;
             }
-            return requestFrame(onFrame);
+            return requestFrame.call(scope, onFrame);
         },
         setTimeout(callback, duration) {
             const setTimer = getSetTimeout(scope);
@@ -149,7 +129,7 @@ export function getShowNotificationRuntime(
                     "show notification runtime requires setTimeout"
                 );
             }
-            return setTimer(callback, duration);
+            return setTimer.call(scope, callback, duration);
         },
     };
 }
