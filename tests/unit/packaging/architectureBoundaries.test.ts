@@ -9435,7 +9435,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps table creation container lookup behind the runtime facade", () => {
-        expect.assertions(12);
+        expect.assertions(13);
 
         const violations = migratedCreateTablesRuntimeFiles
             .filter((relativeFile) =>
@@ -9476,7 +9476,10 @@ describe("architecture boundaries", () => {
             "scope: CreateTablesRuntimeScope = globalThis"
         );
         expect(createTablesRuntimeSource).toContain(
-            "getDocument: () => globalThis.document"
+            "function getGlobalDocument(): Document"
+        );
+        expect(createTablesRuntimeSource).toContain(
+            "getDocument: () => getGlobalDocument()"
         );
         expect(createTablesRuntimeScopeSource).not.toContain(
             "readonly document?:"
