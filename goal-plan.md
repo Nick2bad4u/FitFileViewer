@@ -290,6 +290,8 @@ imports instead of probing CJS module caches through `node:module`.
 Chart canvas element creation now routes through `createChartCanvasRuntime.ts` instead of calling
 `document.createElement` directly inside `createChartCanvas.ts`, with focused runtime coverage and architecture
 guardrails blocking direct canvas document access and legacy direct runtime scope properties from returning.
+Startup initializer document targeting now keeps its default `document` lookup behind `getGlobalDocument()` in
+`initStartupRuntime.ts` instead of repeating `globalThis.document` in the default provider table.
 Chart no-data message element creation now routes through `renderChartDomHelpersRuntime.ts` instead of calling
 `document.createElement` directly inside `renderChartDomHelpers.ts`, with focused runtime/behavior coverage and
 architecture guardrails blocking direct chart DOM-helper document access and legacy direct runtime scope properties

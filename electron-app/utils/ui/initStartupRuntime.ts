@@ -7,8 +7,12 @@ export interface InitStartupRuntime {
 }
 
 const defaultInitStartupRuntimeScope: InitStartupRuntimeScope = {
-    getDocumentTarget: () => globalThis.document,
+    getDocumentTarget: () => getGlobalDocument(),
 };
+
+function getGlobalDocument(): Document {
+    return globalThis.document;
+}
 
 function getDocumentTarget(
     scope: InitStartupRuntimeScope
