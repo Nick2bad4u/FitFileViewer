@@ -61,6 +61,8 @@ The preload devtools menu, IPC helper, Electron API factory, and Electron bridge
 source exports too.
 The remaining preload API assembly, runtime, bootstrap, and module-loader files now use named source exports;
 `electron-app/preload/*.ts` no longer contains source-level `module.exports` wrappers.
+The preload runtime environment, bootstrap, entrypoint, and preload source tests no longer carry a generic
+`globalScope` option; preload startup now resolves only the console and process references it actually consumes.
 Direct preload module unit tests now import named source exports natively; the regular preload source behavior
 test and preload source-execution test now use the native preload module-mock registry, and the old
 `createPreloadSourceRequire` CommonJS-in-ESM test bridge has been removed.

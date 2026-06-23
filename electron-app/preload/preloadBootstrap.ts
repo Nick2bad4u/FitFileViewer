@@ -7,32 +7,27 @@ type PreloadElectronBridge =
 
 interface PreloadRuntimeEnvironment {
     consoleRef: Console;
-    globalScope: object;
     processRef: NodeJS.Process;
 }
 
 interface StartPreloadScriptOptions {
     consoleRef?: Console;
     electronBridgeOverride?: null | PreloadElectronBridge;
-    globalScope?: object;
     processRef?: NodeJS.Process;
 }
 
 interface ResolvePreloadRuntimeEnvironmentOptions {
     consoleRef: Console | undefined;
-    globalScope: object | undefined;
     processRef: NodeJS.Process | undefined;
 }
 
 export function startPreloadScript({
     consoleRef,
     electronBridgeOverride,
-    globalScope,
     processRef,
 }: StartPreloadScriptOptions): ElectronAPI {
     const runtimeEnvironment = resolvePreloadRuntimeEnvironment({
         consoleRef,
-        globalScope,
         processRef,
     });
     const runtime = createPreloadRuntime();
@@ -103,14 +98,12 @@ export function startPreloadScript({
 
 function resolvePreloadRuntimeEnvironment({
     consoleRef,
-    globalScope,
     processRef,
 }: ResolvePreloadRuntimeEnvironmentOptions): PreloadRuntimeEnvironment {
     const defaults = getDefaultPreloadRuntimeEnvironment();
 
     return {
         consoleRef: consoleRef ?? defaults.consoleRef,
-        globalScope: globalScope ?? defaults.globalScope,
         processRef: processRef ?? defaults.processRef,
     };
 }

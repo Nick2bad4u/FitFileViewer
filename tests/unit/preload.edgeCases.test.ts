@@ -90,7 +90,6 @@ describe("preload edge cases", () => {
         startPreloadEntrypoint({
             consoleRef: console,
             electronBridgeOverride: electronBridge as never,
-            globalScope: globalThis,
             processRef: process,
         });
     }

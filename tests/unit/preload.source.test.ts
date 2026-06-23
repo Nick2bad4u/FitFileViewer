@@ -149,7 +149,6 @@ const importPreloadFresh = async (
     return startPreloadEntrypoint({
         consoleRef: console,
         electronBridgeOverride,
-        globalScope: globalThis,
         processRef: process,
     });
 };

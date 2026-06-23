@@ -6,7 +6,6 @@ type PreloadElectronBridge =
 interface StartPreloadEntrypointOptions {
     consoleRef?: Console;
     electronBridgeOverride?: null | PreloadElectronBridge;
-    globalScope?: object;
     processRef?: NodeJS.Process;
 }
 
@@ -19,7 +18,6 @@ export function startPreloadEntrypoint(
     {
         consoleRef,
         electronBridgeOverride,
-        globalScope,
         processRef,
     }: StartPreloadEntrypointOptions = {}
 ): void {
@@ -28,7 +26,6 @@ export function startPreloadEntrypoint(
         ...(electronBridgeOverride === undefined
             ? {}
             : { electronBridgeOverride }),
-        ...(globalScope === undefined ? {} : { globalScope }),
         ...(processRef === undefined ? {} : { processRef }),
     });
 }

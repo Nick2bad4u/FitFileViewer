@@ -3663,7 +3663,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the preload bootstrap on native runtime imports", () => {
-        expect.assertions(9);
+        expect.assertions(10);
 
         const bootstrapSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadBootstrap.ts")
@@ -3687,6 +3687,7 @@ describe("architecture boundaries", () => {
         expect(bootstrapSource).not.toContain(
             "const { getDefaultPreloadRuntimeEnvironment } = requireModule"
         );
+        expect(bootstrapSource).not.toContain("globalScope");
         expect(bootstrapSource).not.toContain(
             "resolvePreloadRuntimeEnvironment({\n        consoleRef,\n        globalScope,\n        processRef,\n        requireModule,"
         );
@@ -3755,7 +3756,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps the preload entrypoint on native bootstrap imports", () => {
-        expect.assertions(7);
+        expect.assertions(8);
 
         const preloadEntrypointSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadEntrypoint.ts")
@@ -3776,6 +3777,7 @@ describe("architecture boundaries", () => {
         expect(preloadEntrypointSource).not.toContain(
             "isCannotFindModuleError"
         );
+        expect(preloadEntrypointSource).not.toContain("globalScope");
     });
 
     it("keeps preload source free of ambient require calls", () => {
@@ -3795,7 +3797,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload entry/bootstrap runtime globals behind the preload runtime environment facade", () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const runtimeGlobalPattern = /\b(?:console|globalThis|process)\b/u;
         const wiringFiles = [
@@ -3814,6 +3816,20 @@ describe("architecture boundaries", () => {
         expect(preloadRuntimeEnvironmentFiles).toStrictEqual([
             "electron-app/preload/preloadRuntimeEnvironment.ts",
         ]);
+        expect(
+            stripComments(
+                readRepositoryFile(
+                    "electron-app/preload/preloadRuntimeEnvironment.ts"
+                )
+            )
+        ).not.toContain("globalScope");
+        expect(
+            stripComments(
+                readRepositoryFile(
+                    "electron-app/preload/preloadRuntimeEnvironment.ts"
+                )
+            )
+        ).not.toContain("globalThis");
         expect(
             preloadRuntimeEnvironmentFiles.every((relativeFile) =>
                 runtimeGlobalPattern.test(

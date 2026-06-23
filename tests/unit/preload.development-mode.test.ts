@@ -44,7 +44,6 @@ async function startPreloadWithElectronBridge(
     startPreloadEntrypoint({
         consoleRef: console,
         electronBridgeOverride: electronBridge,
-        globalScope: globalThis,
         processRef: process,
     });
 }

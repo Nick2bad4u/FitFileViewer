@@ -22,7 +22,6 @@ describe("preload runtime environment", () => {
         try {
             expect(getDefaultPreloadRuntimeEnvironment()).toStrictEqual({
                 consoleRef: runtimeConsole,
-                globalScope: globalThis,
                 processRef: process,
             });
         } finally {

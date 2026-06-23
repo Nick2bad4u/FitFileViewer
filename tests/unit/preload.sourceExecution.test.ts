@@ -87,7 +87,6 @@ async function startPreloadWithElectronBridge(): Promise<void> {
     startPreloadEntrypoint({
         consoleRef: console,
         electronBridgeOverride: preloadElectronBridgeMock,
-        globalScope: globalThis,
         processRef: process,
     });
 }
