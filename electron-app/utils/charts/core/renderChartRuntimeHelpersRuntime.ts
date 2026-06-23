@@ -3,38 +3,54 @@ export interface ProcessShim {
     nextTick?: unknown;
 }
 
-export interface RenderChartRuntimeEnvironment {
-    getThemeConfig?: unknown;
-    process?: ProcessShim;
-}
-
 export interface RenderChartRuntimeHelpersRuntimeScope {
-    readonly getChartRuntimeEnvironment?:
-        | (() => RenderChartRuntimeEnvironment | undefined)
-        | undefined;
+    readonly getProcess?: (() => unknown) | undefined;
+    readonly setProcess?: ((processShim: ProcessShim) => void) | undefined;
 }
 
 export interface RenderChartRuntimeHelpersRuntime {
-    readonly getMutableChartRuntimeEnvironment: () => RenderChartRuntimeEnvironment;
+    readonly ensureProcessShim: () => ProcessShim;
+    readonly getProcessShim: () => ProcessShim | null;
 }
 
 const defaultRenderChartRuntimeHelpersRuntimeScope: RenderChartRuntimeHelpersRuntimeScope =
     {
-        getChartRuntimeEnvironment: () => globalThis,
+        getProcess: () => Reflect.get(globalThis, "process"),
+        setProcess: (processShim) => {
+            Reflect.set(globalThis, "process", processShim);
+        },
     };
 
-function getScopeChartRuntimeEnvironment(
+function getScopeProcess(
     scope: RenderChartRuntimeHelpersRuntimeScope
-): RenderChartRuntimeEnvironment | undefined {
-    return scope.getChartRuntimeEnvironment?.();
+): ProcessShim | null {
+    const processShim = scope.getProcess?.();
+
+    return isProcessShim(processShim) ? processShim : null;
+}
+
+function isProcessShim(value: unknown): value is ProcessShim {
+    return typeof value === "object" && value !== null;
 }
 
 export function getRenderChartRuntimeHelpersRuntime(
     scope: RenderChartRuntimeHelpersRuntimeScope = defaultRenderChartRuntimeHelpersRuntimeScope
 ): RenderChartRuntimeHelpersRuntime {
     return {
-        getMutableChartRuntimeEnvironment(): RenderChartRuntimeEnvironment {
-            return getScopeChartRuntimeEnvironment(scope) ?? {};
+        ensureProcessShim(): ProcessShim {
+            const processShim = getScopeProcess(scope);
+            if (processShim !== null) {
+                return processShim;
+            }
+
+            const nextProcessShim: ProcessShim = {};
+            scope.setProcess?.(nextProcessShim);
+
+            return nextProcessShim;
+        },
+
+        getProcessShim(): ProcessShim | null {
+            return getScopeProcess(scope);
         },
     };
 }

@@ -19,8 +19,6 @@ interface ChartLike extends Record<string, unknown> {
     register?: (...plugins: unknown[]) => void;
 }
 
-type ChartPluginGlobal = Record<string, unknown>;
-
 const registeredChartPluginRuntimes = new WeakSet<ChartLike>();
 
 function isChartRegistered(chart: unknown): boolean {
@@ -104,12 +102,8 @@ function registerPluginsForChart(chart: ChartLike | undefined): void {
 
 /**
  * Registers Chart.js plugins for the bundled Chart.js runtime.
- *
- * @param chartGlobal - Mutable chart runtime global object.
  */
-export function registerChartJsPlugins(chartGlobal: ChartPluginGlobal): void {
-    void chartGlobal;
-
+export function registerChartJsPlugins(): void {
     try {
         const chart = resolveChartRuntime(isChartLike);
         if (!isChartRegistered(chart)) {

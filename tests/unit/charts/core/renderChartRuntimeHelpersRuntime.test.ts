@@ -2,46 +2,49 @@ import { describe, expect, it } from "vitest";
 
 import {
     getRenderChartRuntimeHelpersRuntime,
-    type RenderChartRuntimeEnvironment,
+    type ProcessShim,
     type RenderChartRuntimeHelpersRuntimeScope,
 } from "../../../../electron-app/utils/charts/core/renderChartRuntimeHelpersRuntime.js";
 
 describe("render chart runtime helpers runtime", () => {
-    it("returns an injected mutable chart runtime environment", () => {
+    it("returns an injected process shim", () => {
         expect.assertions(1);
 
-        const chartRuntimeEnvironment: RenderChartRuntimeEnvironment = {
-                process: { env: { NODE_ENV: "test" } },
-            },
+        const processShim: ProcessShim = { env: { NODE_ENV: "test" } },
             utils = getRenderChartRuntimeHelpersRuntime({
-                getChartRuntimeEnvironment: () => chartRuntimeEnvironment,
+                getProcess: () => processShim,
             });
 
-        expect(utils.getMutableChartRuntimeEnvironment()).toBe(
-            chartRuntimeEnvironment
-        );
+        expect(utils.getProcessShim()).toBe(processShim);
     });
 
-    it("returns an empty environment when the scoped provider has no runtime object", () => {
-        expect.assertions(1);
+    it("creates a process shim when the scoped provider has no process object", () => {
+        expect.assertions(3);
 
+        let processShim: ProcessShim | undefined;
         const utils = getRenderChartRuntimeHelpersRuntime({
-            getChartRuntimeEnvironment: () => undefined,
+            getProcess: () => undefined,
+            setProcess: (nextProcessShim) => {
+                processShim = nextProcessShim;
+            },
         });
+        const ensuredProcessShim = utils.ensureProcessShim();
 
-        expect(utils.getMutableChartRuntimeEnvironment()).toStrictEqual({});
+        expect(ensuredProcessShim).toStrictEqual({});
+        expect(processShim).toBe(ensuredProcessShim);
+        expect(utils.getProcessShim()).toBeNull();
     });
 
     it("ignores legacy direct runtime environment properties", () => {
         expect.assertions(1);
 
-        const legacyEnvironment: RenderChartRuntimeEnvironment = {
-                process: { env: { NODE_ENV: "development" } },
+        const legacyProcessShim: ProcessShim = {
+                env: { NODE_ENV: "development" },
             },
             utils = getRenderChartRuntimeHelpersRuntime({
-                chartRuntimeEnvironment: legacyEnvironment,
+                chartRuntimeEnvironment: { process: legacyProcessShim },
             } as unknown as RenderChartRuntimeHelpersRuntimeScope);
 
-        expect(utils.getMutableChartRuntimeEnvironment()).toStrictEqual({});
+        expect(utils.getProcessShim()).toBeNull();
     });
 });

@@ -10,7 +10,7 @@ import {
 } from "../../runtime/processEnvironment.js";
 import {
     getRenderChartRuntimeHelpersRuntime,
-    type RenderChartRuntimeEnvironment,
+    type ProcessShim,
 } from "./renderChartRuntimeHelpersRuntime.js";
 
 type UnknownFunction = (...args: unknown[]) => unknown;
@@ -57,26 +57,19 @@ function isChartRenderCompleteNotifier(
 }
 
 /**
- * Returns the mutable environment object used for chart dependency shims.
- */
-export function getMutableChartRuntimeEnvironment(): RenderChartRuntimeEnvironment {
-    return renderChartRuntimeHelpersRuntime.getMutableChartRuntimeEnvironment();
-}
-
-/**
  * Ensures Vitest/jsdom environments expose the process.nextTick shape expected
  * by renderer dependencies without spreading untyped global casts through the
  * renderer.
  */
 export function ensureProcessNextTick(): void {
-    const chartEnvironment = getMutableChartRuntimeEnvironment();
-    chartEnvironment.process ??= {};
+    const processShim: ProcessShim =
+        renderChartRuntimeHelpersRuntime.ensureProcessShim();
 
-    if (typeof chartEnvironment.process.nextTick === "function") {
+    if (typeof processShim.nextTick === "function") {
         return;
     }
 
-    chartEnvironment.process.nextTick = (
+    processShim.nextTick = (
         callback: UnknownFunction,
         ...args: unknown[]
     ): void => {
