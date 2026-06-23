@@ -1,6 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { clearChartInstanceRegistryForTests } from "../../../../../electron-app/utils/charts/core/chartInstanceRegistry.js";
 import {
+    registerChartStateManager,
+    resetChartStateManagerRegistryForTests,
+} from "../../../../../electron-app/utils/charts/core/chartStateManagerRegistry.js";
+import {
     clearZoneDataState,
     setZoneDataByType,
 } from "../../../../../electron-app/utils/data/zones/zoneDataState.js";
@@ -158,12 +162,6 @@ vi.mock(
     })
 );
 vi.mock(
-    import("../../../../../electron-app/utils/charts/core/chartStateManager.js"),
-    () => ({
-        chartStateManager: { debouncedRender: hoisted.debouncedRender },
-    })
-);
-vi.mock(
     import("../../../../../electron-app/utils/data/zones/chartZoneColorUtils.js"),
     () => ({
         DEFAULT_HR_ZONE_COLORS: hoisted.DEFAULT_HR_ZONE_COLORS,
@@ -202,6 +200,10 @@ describe(createInlineZoneColorSelector, () => {
         vi.clearAllMocks();
         document.body.replaceChildren();
         clearChartInstanceRegistryForTests();
+        resetChartStateManagerRegistryForTests();
+        registerChartStateManager({
+            debouncedRender: hoisted.debouncedRender,
+        });
         clearZoneDataState();
         localStorage.clear();
         setZoneDataByType("hr", [
@@ -220,6 +222,7 @@ describe(createInlineZoneColorSelector, () => {
     afterEach(() => {
         vi.useRealTimers();
         document.body.replaceChildren();
+        resetChartStateManagerRegistryForTests();
     });
 
     it("creates HR zone selector and applies initial scheme when none customized", () => {
@@ -267,7 +270,7 @@ describe(createInlineZoneColorSelector, () => {
     });
 
     it("changing a color switches scheme to custom and updates storages and preview", () => {
-        expect.assertions(6);
+        expect.assertions(7);
 
         const container = document.createElement("div");
         document.body.appendChild(container);
@@ -296,6 +299,9 @@ describe(createInlineZoneColorSelector, () => {
             "#ff0000"
         );
         expect(hoisted.saveZoneColor).toHaveBeenCalledWith("hr", 0, "#ff0000");
+        expect(hoisted.debouncedRender).toHaveBeenCalledWith(
+            "Zone color change: zone 0"
+        );
         const bg = getComputedStyle(preview).backgroundColor;
         expect(
             bg === "#ff0000" || /rgb\(\s*255\s*,\s*0\s*,\s*0\s*\)/i.test(bg)

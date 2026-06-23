@@ -965,6 +965,9 @@ The inline zone color selector runtime facade now resolves DOM access, event con
 constructors, abort-controller creation, and delayed updates through named provider functions instead of a broad
 `globalThis` default scope, direct scope properties, or document-window fallbacks, with focused coverage and
 architecture coverage blocking those legacy runtime shapes from returning.
+Inline zone color selector scheme changes, resets, and color changes now also resolve the chart state manager
+through `chartStateManagerRegistry.ts` instead of importing the concrete singleton directly, with focused selector
+coverage and architecture guardrails blocking that direct dependency from returning.
 Render-summary virtualized lap-row scheduling now routes request/cancel animation-frame access and resize listener
 registration through `renderSummaryRuntime.ts` instead of direct `globalThis` probes in `renderSummaryHelpers.ts`,
 with adapter tests and architecture coverage blocking those direct scheduling globals from returning. Summary render

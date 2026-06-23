@@ -5061,7 +5061,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps inline zone selector browser APIs behind the runtime facade", () => {
-        expect.assertions(22);
+        expect.assertions(26);
 
         const violations = migratedCreateInlineZoneColorSelectorRuntimeFiles
             .filter((relativeFile) =>
@@ -5084,6 +5084,18 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(inlineZoneSelectorSource).toContain(
             "createInlineZoneColorSelectorRuntime.js"
+        );
+        expect(inlineZoneSelectorSource).toContain(
+            "chartStateManagerRegistry.js"
+        );
+        expect(inlineZoneSelectorSource).toContain(
+            "getRegisteredChartStateManager"
+        );
+        expect(inlineZoneSelectorSource).not.toContain(
+            "../../charts/core/chartStateManager.js"
+        );
+        expect(inlineZoneSelectorSource).not.toContain(
+            "import { chartStateManager }"
         );
         expect(inlineZoneSelectorRuntimeSource).not.toMatch(
             directCreateInlineZoneColorSelectorRuntimeAmbientFallbackPattern
