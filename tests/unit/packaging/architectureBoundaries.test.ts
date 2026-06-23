@@ -3424,7 +3424,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload state leaf modules on native imports", () => {
-        expect.assertions(12);
+        expect.assertions(13);
 
         const stateModuleLoaderSource = stripComments(
             readRepositoryFile(
@@ -3451,6 +3451,9 @@ describe("architecture boundaries", () => {
             'import { createMainStateBridge } from "./mainStateBridge.js";'
         );
         expect(stateModuleLoaderSource).not.toContain("requireModule");
+        expect(stateModuleLoaderSource).not.toContain(
+            "createMainStateApi as unknown"
+        );
         expect(mainStateBridgeSource).toContain('from "../shared/ipc.js";');
         expect(mainStateBridgeSource).toContain("MainStateListenRequest");
         expect(mainStateBridgeSource).not.toContain(

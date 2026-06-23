@@ -2,7 +2,6 @@ type MainStateErrorsRequest = import("../shared/ipc").MainStateErrorsRequest;
 type MainStateErrorsResponse = import("../shared/ipc").MainStateErrorsResponse;
 type MainStateGetRequest = import("../shared/ipc").MainStateGetRequest;
 type MainStateGetResponse = import("../shared/ipc").MainStateGetResponse;
-type MainStateInvokeChannel = import("../shared/ipc").MainStateInvokeChannel;
 type MainStateListener = import("../shared/ipc").MainStateListener;
 type MainStateListenRequest = import("../shared/ipc").MainStateListenRequest;
 type MainStateListenResponse = import("../shared/ipc").MainStateListenResponse;
@@ -22,35 +21,8 @@ type MainStateUnlistenRequest =
     import("../shared/ipc").MainStateUnlistenRequest;
 type MainStateUnlistenResponse =
     import("../shared/ipc").MainStateUnlistenResponse;
-type InvokeRequestArgs<Channel extends MainStateInvokeChannel> =
-    import("../shared/ipc").InvokeRequestArgs<Channel>;
-type InvokeResponsePayloadForChannel<Channel extends MainStateInvokeChannel> =
-    import("../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
-
-type PreloadLog = (
-    level: "error" | "info" | "warn",
-    message: string,
-    ...details: unknown[]
-) => void;
-type UnknownCallback = (...args: unknown[]) => unknown;
-
-type CreateMainStateInvokeHandler = <Channel extends MainStateInvokeChannel>(
-    channel: Channel,
-    methodName: string
-) => (
-    ...args: InvokeRequestArgs<Channel>
-) => Promise<InvokeResponsePayloadForChannel<Channel>>;
-
-interface MainStateBridgeLike {
-    listenToMainState: (
-        path: MainStateListenRequest,
-        callback: MainStateListener
-    ) => Promise<MainStateListenResponse>;
-    unlistenFromMainState: (
-        path: MainStateUnlistenRequest,
-        callback: MainStateListener
-    ) => Promise<MainStateUnlistenResponse>;
-}
+type CreateMainStateApiOptions =
+    import("./preloadModuleTypes").CreateMainStateApiOptions;
 
 interface MainStateApi {
     getErrors: (
@@ -81,28 +53,13 @@ interface MainStateApi {
     ) => Promise<MainStateUnlistenResponse>;
 }
 
-interface MainStateApiOptions {
-    createSafeInvokeHandler: CreateMainStateInvokeHandler;
-    mainStateBridge: MainStateBridgeLike;
-    preloadLog: PreloadLog;
-    validateCallback: (
-        callback: unknown,
-        methodName: string
-    ) => callback is UnknownCallback;
-    validateRequiredNonEmptyString: (
-        value: unknown,
-        paramName: string,
-        methodName: string
-    ) => value is string;
-}
-
 export function createMainStateApi({
     createSafeInvokeHandler,
     mainStateBridge,
     preloadLog,
     validateCallback,
     validateRequiredNonEmptyString,
-}: MainStateApiOptions): MainStateApi {
+}: CreateMainStateApiOptions): MainStateApi {
     const getErrorsFromMain = createSafeInvokeHandler(
         "main-state:errors",
         "getErrors"

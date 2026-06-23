@@ -22,7 +22,6 @@ export function createPreloadStateApiDomain({
     return {
         mainStateApi: createMainStateApi({
             createSafeInvokeHandler,
-            ipcRenderer,
             mainStateBridge,
             preloadLog,
             validateCallback,

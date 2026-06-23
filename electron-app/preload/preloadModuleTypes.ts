@@ -23,9 +23,17 @@ export type ElectronPreloadEventApi =
 export type ElectronShellExternalApi =
     import("../shared/preloadApi").ElectronShellExternalApi;
 export type ElectronThemeApi = import("../shared/preloadApi").ElectronThemeApi;
+export type GenericInvokeChannel = import("../shared/ipc").GenericInvokeChannel;
 export type GenericSendChannel = import("../shared/ipc").GenericSendChannel;
 export type IpcRequestPayload = import("../shared/ipc").IpcRequestPayload;
 export type IpcResponsePayload = import("../shared/ipc").IpcResponsePayload;
+export type InvokeRequestArgs<Channel extends GenericInvokeChannel> =
+    import("../shared/ipc").InvokeRequestArgs<Channel>;
+export type InvokeResponsePayloadForChannel<
+    Channel extends GenericInvokeChannel,
+> = import("../shared/ipc").InvokeResponsePayloadForChannel<Channel>;
+export type MainStateInvokeChannel =
+    import("../shared/ipc").MainStateInvokeChannel;
 export type MainStateListenRequest =
     import("../shared/ipc").MainStateListenRequest;
 export type MainStateListenResponse =
@@ -47,6 +55,20 @@ export type PreloadLog = (
     ...details: unknown[]
 ) => void;
 export type UnknownCallback = (...args: unknown[]) => unknown;
+export type CreateSafeInvokeHandler = <Channel extends GenericInvokeChannel>(
+    channel: Channel,
+    methodName: string
+) => (
+    ...args: InvokeRequestArgs<Channel>
+) => Promise<InvokeResponsePayloadForChannel<Channel>>;
+export type CreateMainStateInvokeHandler = <
+    Channel extends MainStateInvokeChannel,
+>(
+    channel: Channel,
+    methodName: string
+) => (
+    ...args: InvokeRequestArgs<Channel>
+) => Promise<InvokeResponsePayloadForChannel<Channel>>;
 export type IpcEventListener = (
     event: object,
     ...args: IpcResponsePayload[]
@@ -106,6 +128,9 @@ export type CreatePreloadStateApiDomain = (
 export type CreatePreloadSystemApiDomain = (
     context: PreloadApiAssemblyContext
 ) => PreloadSystemApiDomain;
+export type CreateMainStateApi = (
+    options: CreateMainStateApiOptions
+) => ElectronMainStateApi;
 export type AssemblePreloadApi = (options: {
     constants: PreloadConstants;
     contextBridge: null | PreloadContextBridge | undefined;
@@ -220,6 +245,32 @@ export interface IpcBridgeCatalog {
     ) => eventName is UpdateEventName;
 }
 
+export interface PreloadMainStateBridge {
+    listenToMainState: (
+        path: MainStateListenRequest,
+        callback: MainStateListener
+    ) => Promise<MainStateListenResponse>;
+    unlistenFromMainState: (
+        path: MainStateUnlistenRequest,
+        callback: MainStateListener
+    ) => Promise<MainStateUnlistenResponse>;
+}
+
+export interface CreateMainStateApiOptions {
+    createSafeInvokeHandler: CreateMainStateInvokeHandler;
+    mainStateBridge: PreloadMainStateBridge;
+    preloadLog: PreloadLog;
+    validateCallback: (
+        callback: unknown,
+        methodName: string
+    ) => callback is UnknownCallback;
+    validateRequiredNonEmptyString: (
+        value: unknown,
+        paramName: string,
+        methodName: string
+    ) => value is string;
+}
+
 export interface PreloadModuleRegistry {
     createApiDiagnostics: PreloadApiFactory<ElectronApiDiagnosticsApi>;
     createAppInfoApi: PreloadApiFactory<ElectronAppInfoApi>;
@@ -239,17 +290,10 @@ export interface PreloadModuleRegistry {
     createPreloadIpcEventApiDomain: CreatePreloadIpcEventApiDomain;
     createPreloadStateApiDomain: CreatePreloadStateApiDomain;
     createPreloadSystemApiDomain: CreatePreloadSystemApiDomain;
-    createMainStateApi: PreloadApiFactory<ElectronMainStateApi>;
-    createMainStateBridge: (options: Record<string, unknown>) => {
-        listenToMainState: (
-            path: MainStateListenRequest,
-            callback: MainStateListener
-        ) => Promise<MainStateListenResponse>;
-        unlistenFromMainState: (
-            path: MainStateUnlistenRequest,
-            callback: MainStateListener
-        ) => Promise<MainStateUnlistenResponse>;
-    };
+    createMainStateApi: CreateMainStateApi;
+    createMainStateBridge: (
+        options: Record<string, unknown>
+    ) => PreloadMainStateBridge;
     createMenuEventApi: PreloadApiFactory<ElectronMenuEventApi>;
     createPreloadIpcHelpers: (options: Record<string, unknown>) => {
         createSafeEventHandler: <Callback>(
@@ -257,10 +301,7 @@ export interface PreloadModuleRegistry {
             methodName: string,
             transform?: (...args: IpcResponsePayload[]) => unknown
         ) => (callback: Callback) => () => void;
-        createSafeInvokeHandler: (
-            channel: string,
-            methodName: string
-        ) => (...args: unknown[]) => Promise<unknown>;
+        createSafeInvokeHandler: CreateSafeInvokeHandler;
         createSafeSendHandler: (
             channel: GenericSendChannel,
             methodName: string
