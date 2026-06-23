@@ -1,7 +1,9 @@
 import { clearElement } from "../../dom/index.js";
 import { isObjectRecord } from "./renderChartModuleHelpers.js";
+import { getRenderChartDomHelpersRuntime } from "./renderChartDomHelpersRuntime.js";
 
 const ELEMENT_NODE = 1;
+const renderChartDomHelpersRuntime = getRenderChartDomHelpersRuntime();
 
 /**
  * Type guard for element-like DOM nodes that works across jsdom and renderer
@@ -51,7 +53,7 @@ export function renderNoDataMessage(
 ): void {
     clearElement(container);
 
-    const messageElement = document.createElement("div");
+    const messageElement = renderChartDomHelpersRuntime.createElement("div");
     messageElement.className = "no-data-message";
     messageElement.textContent = message;
 

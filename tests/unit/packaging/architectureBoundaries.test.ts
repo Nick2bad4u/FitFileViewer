@@ -531,6 +531,9 @@ const migratedChartListenerStateRuntimeFiles = [
 const migratedRenderChartDirectRerenderRuntimeFiles = [
     "electron-app/utils/charts/core/renderChartDirectRerender.ts",
 ] as const;
+const migratedRenderChartDomHelpersRuntimeFiles = [
+    "electron-app/utils/charts/core/renderChartDomHelpers.ts",
+] as const;
 const migratedRenderChartRequestListenerRuntimeFiles = [
     "electron-app/utils/charts/core/renderChartRequestListener.ts",
 ] as const;
@@ -1248,6 +1251,8 @@ const directChartListenerStateRuntimeAmbientControllerPattern =
     /\breturn\s+globalThis\.AbortController\b/u;
 const directRenderChartDirectRerenderRuntimeGlobalPattern =
     /\bdocument\.querySelector\b|\btypeof\s+document\b|\binstanceof\s+HTMLElement\b/u;
+const directRenderChartDomHelpersRuntimeGlobalPattern =
+    /\bdocument\.createElement\b/u;
 const directRenderChartRequestListenerRuntimeGlobalPattern =
     /\bdocument\.(?:body|querySelector)\b|\bglobalThis\.(?:addEventListener|CustomEvent|HTMLElement)\b|\binstanceof\s+CustomEvent\b/u;
 const directRenderChartStartupRuntimeGlobalPattern =
@@ -12482,6 +12487,71 @@ describe("architecture boundaries", () => {
         );
         expect(runtimeSource).toContain(
             "const runtimeDocument = scope.getDocument?.();"
+        );
+    });
+
+    it("keeps render-chart DOM helper creation behind the runtime facade", () => {
+        expect.assertions(12);
+
+        const violations = migratedRenderChartDomHelpersRuntimeFiles
+            .filter((relativeFile) =>
+                directRenderChartDomHelpersRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const sourcesMissingRuntime = migratedRenderChartDomHelpersRuntimeFiles
+            .filter(
+                (relativeFile) =>
+                    !stripComments(readRepositoryFile(relativeFile)).includes(
+                        "renderChartDomHelpersRuntime.js"
+                    )
+            )
+            .sort();
+        const renderChartDomHelpersSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartDomHelpers.ts"
+            )
+        );
+        const runtimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/charts/core/renderChartDomHelpersRuntime.ts"
+            )
+        );
+        const runtimeScopeSource = runtimeSource.slice(
+            runtimeSource.indexOf(
+                "export interface RenderChartDomHelpersRuntimeScope"
+            ),
+            runtimeSource.indexOf(
+                "export interface RenderChartDomHelpersRuntime"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(sourcesMissingRuntime).toStrictEqual([]);
+        expect(renderChartDomHelpersSource).toContain(
+            "renderChartDomHelpersRuntime.createElement"
+        );
+        expect(renderChartDomHelpersSource).not.toContain(
+            "document.createElement"
+        );
+        expect(runtimeSource).toContain(
+            "defaultRenderChartDomHelpersRuntimeScope"
+        );
+        expect(runtimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(runtimeSource).not.toContain(
+            "scope: RenderChartDomHelpersRuntimeScope = globalThis"
+        );
+        expect(runtimeSource).not.toContain(
+            "RenderChartDomHelpersRuntimeScope = globalThis"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly document?:");
+        expect(runtimeSource).not.toContain("scope.document");
+        expect(runtimeSource).toContain("scope.getDocument?.()");
+        expect(runtimeSource).toContain(
+            "renderChartDomHelpers requires a document runtime"
         );
     });
 
