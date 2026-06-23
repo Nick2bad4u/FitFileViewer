@@ -13,13 +13,25 @@ export interface RenderChartRuntimeHelpersRuntime {
     readonly getProcessShim: () => ProcessShim | null;
 }
 
+interface RenderChartRuntimeGlobalScope {
+    process?: ProcessShim;
+}
+
 const defaultRenderChartRuntimeHelpersRuntimeScope: RenderChartRuntimeHelpersRuntimeScope =
     {
-        getProcess: () => Reflect.get(globalThis, "process"),
-        setProcess: (processShim) => {
-            Reflect.set(globalThis, "process", processShim);
-        },
+        getProcess: getGlobalProcessShim,
+        setProcess: setGlobalProcessShim,
     };
+
+function getGlobalProcessShim(): ProcessShim | undefined {
+    const chartRuntimeGlobal = globalThis as RenderChartRuntimeGlobalScope;
+    return chartRuntimeGlobal.process;
+}
+
+function setGlobalProcessShim(processShim: ProcessShim): void {
+    const chartRuntimeGlobal = globalThis as RenderChartRuntimeGlobalScope;
+    chartRuntimeGlobal.process = processShim;
+}
 
 function getScopeProcess(
     scope: RenderChartRuntimeHelpersRuntimeScope

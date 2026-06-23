@@ -832,7 +832,8 @@ devtools window availability now route through `renderChartJSRuntime.ts` instead
 architecture guardrails blocking those direct chart-render runtime probes from returning.
 Render chart runtime helper bootstrap now registers plugins without passing a mutable global-like chart
 environment, and `process.nextTick` shimming goes through focused process providers instead of returning
-`globalThis` from `renderChartRuntimeHelpersRuntime.ts`.
+`globalThis` from `renderChartRuntimeHelpersRuntime.ts`. The default process shim provider now uses explicit
+named get/set helpers instead of generic `Reflect.get`/`Reflect.set` process probes.
 Chart zoom reset plugin tests now use Vitest-scoped `CanvasRenderingContext2D` stubs when exercising the
 roundRect polyfill instead of defining or deleting `globalThis.CanvasRenderingContext2D` directly, with
 architecture coverage blocking that fixture mutation.
