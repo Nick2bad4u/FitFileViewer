@@ -45,21 +45,12 @@ function getDefaultEventTarget(): EventTarget | undefined {
     return isEventTarget(globalThis) ? globalThis : undefined;
 }
 
-function getDefaultMatchMedia(): typeof globalThis.matchMedia | undefined {
-    const matchMedia = globalThis.matchMedia;
-    if (typeof matchMedia !== "function") {
-        return undefined;
-    }
-
-    return (query) => matchMedia.call(globalThis, query);
-}
-
 const defaultThemeRuntimeScope: ThemeRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getClearTimeout: () => globalThis.clearTimeout,
     getDocument: () => globalThis.document,
     getGlobalEventTarget: getDefaultEventTarget,
-    getMatchMedia: getDefaultMatchMedia,
+    getMatchMedia: () => globalThis.matchMedia?.bind(globalThis),
     getSetTimeout: () => globalThis.setTimeout,
 };
 
