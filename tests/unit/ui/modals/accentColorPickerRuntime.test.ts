@@ -57,8 +57,34 @@ describe("getAccentColorPickerRuntime", () => {
         expect(documentEventTarget.head.childElementCount).toBe(0);
     });
 
+    it("routes modal and style DOM access through the injected document", () => {
+        expect.assertions(8);
+
+        const documentRef = document.implementation.createHTMLDocument();
+        const runtime = getAccentColorPickerRuntime({
+            getDocument: () => documentRef,
+        });
+        const modal = documentRef.createElement("div");
+        modal.id = "accent-color-modal";
+        const style = runtime.createStyleElement();
+        style.id = "accent-picker-styles";
+
+        expect(runtime.getModalElement()).toBeNull();
+        expect(runtime.hasStyleElement()).toBe(false);
+        expect(style.tagName).toBe("STYLE");
+
+        runtime.appendModal(modal);
+        runtime.appendStyle(style);
+
+        expect(runtime.getModalElement()).toBe(modal);
+        expect(runtime.hasStyleElement()).toBe(true);
+        expect(documentRef.body.firstElementChild).toBe(modal);
+        expect(documentRef.head.firstElementChild).toBe(style);
+        expect(document.body.querySelector("#accent-color-modal")).toBeNull();
+    });
+
     it("fails clearly when explicit runtime dependencies are unavailable", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         const runtime = getAccentColorPickerRuntime({});
 
@@ -68,6 +94,15 @@ describe("getAccentColorPickerRuntime", () => {
         expect(() =>
             runtime.addDocumentKeydownListener(() => undefined, {})
         ).toThrow("accentColorPicker requires a document event-target runtime");
+        expect(() => runtime.getModalElement()).toThrow(
+            "accentColorPicker requires a document runtime"
+        );
+        expect(() => runtime.hasStyleElement()).toThrow(
+            "accentColorPicker requires a document runtime"
+        );
+        expect(() => runtime.createStyleElement()).toThrow(
+            "accentColorPicker requires a document runtime"
+        );
     });
 
     it("registers document keydown listeners through the injected event target", () => {
@@ -103,7 +138,7 @@ describe("getAccentColorPickerRuntime", () => {
     });
 
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(2);
+        expect.assertions(5);
 
         class LegacyAbortController implements AbortController {
             public readonly signal = Symbol(
@@ -118,6 +153,7 @@ describe("getAccentColorPickerRuntime", () => {
             document.implementation.createHTMLDocument();
         const runtime = getAccentColorPickerRuntime({
             AbortController: LegacyAbortController,
+            document: documentEventTarget,
             documentEventTarget,
         } as unknown as Parameters<typeof getAccentColorPickerRuntime>[0]);
 
@@ -127,5 +163,14 @@ describe("getAccentColorPickerRuntime", () => {
         expect(() =>
             runtime.addDocumentKeydownListener(() => undefined, {})
         ).toThrow("accentColorPicker requires a document event-target runtime");
+        expect(() => runtime.getModalElement()).toThrow(
+            "accentColorPicker requires a document runtime"
+        );
+        expect(() =>
+            runtime.appendModal(document.createElement("div"))
+        ).toThrow("accentColorPicker requires a document runtime");
+        expect(() => runtime.createStyleElement()).toThrow(
+            "accentColorPicker requires a document runtime"
+        );
     });
 });

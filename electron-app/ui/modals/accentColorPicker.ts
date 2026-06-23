@@ -33,24 +33,24 @@ const accentColorPickerRuntime = getAccentColorPickerRuntime();
  * Opens the accent color picker modal, creating it on first use.
  */
 export function openAccentColorPicker(): void {
-    let modal = document.querySelector<HTMLElement>("#accent-color-modal");
+    let modal = accentColorPickerRuntime.getModalElement();
     if (modal) {
         showModal(modal);
         return;
     }
 
     modal = createModal();
-    document.body.append(modal);
+    accentColorPickerRuntime.appendModal(modal);
 
     showModal(modal);
 }
 
 function addModalStyles(): void {
-    if (document.querySelector("#accent-picker-styles")) {
+    if (accentColorPickerRuntime.hasStyleElement()) {
         return;
     }
 
-    const style = document.createElement("style");
+    const style = accentColorPickerRuntime.createStyleElement();
     style.id = "accent-picker-styles";
     style.textContent = `
 		.accent-picker-modal {
@@ -308,7 +308,7 @@ function addModalStyles(): void {
 			background: var(--color-btn-hover);
 		}
 	`;
-    document.head.append(style);
+    accentColorPickerRuntime.appendStyle(style);
 }
 
 function applyColor(color: string): void {
