@@ -4,7 +4,7 @@ import { createRendererRuntimeEnvironment as createRuntimeEnvironment } from "..
 
 describe("renderer runtime environment", () => {
     it("captures browser globals through named providers", () => {
-        expect.assertions(18);
+        expect.assertions(17);
 
         const electronApiCandidate = {};
         const rendererGlobal = {
@@ -37,7 +37,6 @@ describe("renderer runtime environment", () => {
         );
         const getConsole = vi.fn(() => console);
         const getDocument = vi.fn(() => document);
-        const getElectronApiCandidate = vi.fn(() => electronApiCandidate);
         const getRemoveEventListener = vi.fn(() =>
             rendererGlobal.removeEventListener.bind(rendererGlobal)
         );
@@ -54,7 +53,6 @@ describe("renderer runtime environment", () => {
             getClearInterval,
             getConsole,
             getDocument,
-            getElectronApiCandidate,
             getRemoveEventListener,
             getRendererScope,
             getSetInterval,
@@ -78,7 +76,6 @@ describe("renderer runtime environment", () => {
         expect(getClearInterval).toHaveBeenCalledOnce();
         expect(getConsole).toHaveBeenCalledOnce();
         expect(getDocument).toHaveBeenCalledOnce();
-        expect(getElectronApiCandidate).toHaveBeenCalledOnce();
         expect(getRemoveEventListener).toHaveBeenCalledOnce();
         expect(getRendererScope).toHaveBeenCalledOnce();
         expect(getSetInterval).toHaveBeenCalledOnce();
@@ -98,7 +95,7 @@ describe("renderer runtime environment", () => {
         ).toThrow("renderer runtime environment requires addEventListener");
     });
 
-    it("ignores legacy direct scoped runtime properties", () => {
+    it("ignores legacy direct scoped timer and DOM providers", () => {
         expect.assertions(14);
 
         const electronApiCandidate = {};
@@ -124,12 +121,13 @@ describe("renderer runtime environment", () => {
                 return this;
             }),
         } as unknown as Window & typeof globalThis;
+        const legacyDirectElectronApiCandidate = {};
         const legacyDirectScope = {
             addEventListener: rendererGlobal.addEventListener,
             clearInterval: rendererGlobal.clearInterval,
             console,
             document,
-            electronAPI: electronApiCandidate,
+            electronAPI: legacyDirectElectronApiCandidate,
             removeEventListener: rendererGlobal.removeEventListener,
             rendererGlobal,
             setInterval: rendererGlobal.setInterval,
@@ -153,7 +151,6 @@ describe("renderer runtime environment", () => {
                 rendererGlobal.clearInterval.bind(rendererGlobal),
             getConsole: () => console,
             getDocument: () => document,
-            getElectronApiCandidate: () => undefined,
             getRemoveEventListener: () =>
                 rendererGlobal.removeEventListener.bind(rendererGlobal),
             getRendererScope: () => rendererGlobal,
@@ -163,7 +160,6 @@ describe("renderer runtime environment", () => {
         } as unknown as Parameters<typeof createRuntimeEnvironment>[0]);
 
         expect(environment.rendererGlobal).toBe(rendererGlobal);
-        expect(environment.electronApiCandidate).toBeUndefined();
         expect(
             environment.addEventListener("load", vi.fn(), {
                 signal: listenerController.signal,
@@ -180,7 +176,10 @@ describe("renderer runtime environment", () => {
         expect(rendererGlobal.setTimeout).toHaveBeenCalledOnce();
         expect(rendererGlobal.setInterval).toHaveBeenCalledOnce();
         expect(rendererGlobal.clearInterval).toHaveBeenCalledOnce();
-        expect(environment.electronApiCandidate).not.toBe(electronApiCandidate);
+        expect(environment.electronApiCandidate).toBe(electronApiCandidate);
+        expect(environment.electronApiCandidate).not.toBe(
+            legacyDirectElectronApiCandidate
+        );
         listenerController.abort();
     });
 });
