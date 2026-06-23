@@ -3,9 +3,18 @@ type ElectronApiFactoryOptions =
     import("./electronApiFactoryOptions").ElectronApiFactoryOptions;
 
 export function createElectronApiDialogDomain({
+    openFile,
+    openFileDialog,
     openFolderDialog,
-}: Pick<ElectronApiFactoryOptions, "openFolderDialog">): ElectronDialogApi {
+    openOverlayDialog,
+}: Pick<
+    ElectronApiFactoryOptions,
+    "openFile" | "openFileDialog" | "openFolderDialog" | "openOverlayDialog"
+>): ElectronDialogApi {
     return {
+        openFile,
+        openFileDialog,
         openFolderDialog,
+        openOverlayDialog,
     };
 }

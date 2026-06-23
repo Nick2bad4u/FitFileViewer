@@ -32,8 +32,9 @@ passes a preload `requireModule` into the Electron bridge resolver.
 resolving entrypoint dependencies through fallback `requireModule` path rewriting; it no longer accepts or
 passes Electron's packaged `require`.
 The small preload API assembly-domain factory modules now use named source exports instead of `module.exports`,
-while the runtime build still emits CommonJS-compatible package output. Folder-picker access now flows through
-explicit dialog assembly and final electron API domains instead of being carried by the file/browser domain.
+while the runtime build still emits CommonJS-compatible package output. Native open-file, open-folder, and overlay
+dialog access now flows through explicit dialog assembly and final electron API domains instead of being carried by the
+file/browser domain.
 The first preload app API leaf factories (`apiDiagnostics.ts`, `appInfoApi.ts`, `gyazoExternalApi.ts`,
 `shellExternalApi.ts`, and `themeApi.ts`) now use named source exports too, with direct unit tests importing
 those named source exports natively, and `preloadAppModuleLoader.ts` now imports app, clipboard, devtools,

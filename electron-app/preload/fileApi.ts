@@ -2,11 +2,6 @@ type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
 type GenericInvokeChannel = import("../shared/ipc").GenericInvokeChannel;
 
 interface FileApiChannels {
-    DIALOG_OPEN_FILE: Extract<GenericInvokeChannel, "dialog:openFile">;
-    DIALOG_OPEN_OVERLAY_FILES: Extract<
-        GenericInvokeChannel,
-        "dialog:openOverlayFiles"
-    >;
     FILE_READ: Extract<GenericInvokeChannel, "file:read">;
     FIT_DECODE: Extract<GenericInvokeChannel, "fit:decode">;
     FIT_PARSE: Extract<GenericInvokeChannel, "fit:parse">;
@@ -28,9 +23,6 @@ type FilePreloadApi = Pick<
     | "addRecentFile"
     | "approveRecentFile"
     | "decodeFitFile"
-    | "openFile"
-    | "openFileDialog"
-    | "openOverlayDialog"
     | "parseFitFile"
     | "readFile"
     | "recentFiles"
@@ -40,11 +32,6 @@ export function createFileApi({
     channels,
     createSafeInvokeHandler,
 }: FileApiOptions): FilePreloadApi {
-    const openFile = createSafeInvokeHandler(
-        channels.DIALOG_OPEN_FILE,
-        "openFile"
-    ) as ElectronAPI["openFile"];
-
     return {
         addRecentFile: createSafeInvokeHandler(
             channels.RECENT_FILES_ADD,
@@ -58,12 +45,6 @@ export function createFileApi({
             channels.FIT_DECODE,
             "decodeFitFile"
         ) as ElectronAPI["decodeFitFile"],
-        openFile,
-        openFileDialog: openFile,
-        openOverlayDialog: createSafeInvokeHandler(
-            channels.DIALOG_OPEN_OVERLAY_FILES,
-            "openOverlayDialog"
-        ) as ElectronAPI["openOverlayDialog"],
         parseFitFile: createSafeInvokeHandler(
             channels.FIT_PARSE,
             "parseFitFile"

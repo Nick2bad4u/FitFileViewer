@@ -1908,7 +1908,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exposed preload electronAPI shapers split by domain", () => {
-        expect.assertions(45);
+        expect.assertions(53);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -1953,6 +1953,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/preload/electronApiFactoryOptions.ts"
             )
+        );
+        const preloadFileApiSource = stripComments(
+            readRepositoryFile("electron-app/preload/fileApi.ts")
         );
         const electronApiFileDomainSource = stripComments(
             readRepositoryFile("electron-app/preload/electronApiFileDomain.ts")
@@ -2029,11 +2032,19 @@ describe("architecture boundaries", () => {
             "createElectronApiDialogDomain"
         );
         expect(electronApiDialogDomainSource).toContain("ElectronDialogApi");
+        expect(electronApiDialogDomainSource).toContain("openFile");
+        expect(electronApiDialogDomainSource).toContain("openFileDialog");
         expect(electronApiDialogDomainSource).toContain("openFolderDialog");
+        expect(electronApiDialogDomainSource).toContain("openOverlayDialog");
         expect(electronApiFileDomainSource).toContain(
             "createElectronApiFileDomain"
         );
+        expect(preloadFileApiSource).not.toContain("DIALOG_OPEN_FILE");
+        expect(preloadFileApiSource).not.toContain("DIALOG_OPEN_OVERLAY_FILES");
+        expect(electronApiFileDomainSource).not.toContain("openFile");
+        expect(electronApiFileDomainSource).not.toContain("openFileDialog");
         expect(electronApiFileDomainSource).not.toContain("openFolderDialog");
+        expect(electronApiFileDomainSource).not.toContain("openOverlayDialog");
         expect(electronApiMenuDomainSource).toContain(
             "createElectronApiMenuDomain"
         );

@@ -5,8 +5,8 @@ import { createPreloadDialogApiDomain } from "../../electron-app/preload/dialogA
 import { createElectronApiDialogDomain } from "../../electron-app/preload/electronApiDialogDomain.js";
 
 describe("preload dialog API", () => {
-    it("routes folder selection through the dialog preload domain", async () => {
-        expect.assertions(2);
+    it("routes native dialogs through the dialog preload domain", async () => {
+        expect.assertions(3);
 
         const invokeCalls: Array<{
             args: unknown[];
@@ -17,40 +17,74 @@ describe("preload dialog API", () => {
             (channel: GenericInvokeChannel, methodName: string) =>
                 async (...args: unknown[]) => {
                     invokeCalls.push({ args, channel, methodName });
-                    return "openFolderDialog:result";
+                    return `${methodName}:result`;
                 }
         );
-        const { openFolderDialog } = createPreloadDialogApiDomain({
+        const dialogApi = createPreloadDialogApiDomain({
             constants: {
                 CHANNELS: {
+                    DIALOG_OPEN_FILE: "dialog:openFile",
                     DIALOG_OPEN_FOLDER: "dialog:openFolder",
+                    DIALOG_OPEN_OVERLAY_FILES: "dialog:openOverlayFiles",
                 },
             },
             createSafeInvokeHandler,
         });
 
-        await openFolderDialog();
+        await dialogApi.openFile();
+        await dialogApi.openFileDialog();
+        await dialogApi.openFolderDialog();
+        await dialogApi.openOverlayDialog();
 
-        expect(createSafeInvokeHandler).toHaveBeenCalledWith(
-            "dialog:openFolder",
-            "openFolderDialog"
-        );
+        expect(dialogApi.openFileDialog).toBe(dialogApi.openFile);
+        expect(createSafeInvokeHandler.mock.calls).toEqual([
+            ["dialog:openFile", "openFile"],
+            ["dialog:openFolder", "openFolderDialog"],
+            ["dialog:openOverlayFiles", "openOverlayDialog"],
+        ]);
         expect(invokeCalls).toStrictEqual([
+            {
+                args: [],
+                channel: "dialog:openFile",
+                methodName: "openFile",
+            },
+            {
+                args: [],
+                channel: "dialog:openFile",
+                methodName: "openFile",
+            },
             {
                 args: [],
                 channel: "dialog:openFolder",
                 methodName: "openFolderDialog",
             },
+            {
+                args: [],
+                channel: "dialog:openOverlayFiles",
+                methodName: "openOverlayDialog",
+            },
         ]);
     });
 
-    it("maps folder selection through the final electron dialog domain", () => {
+    it("maps native dialogs through the final electron dialog domain", () => {
         expect.assertions(1);
 
+        const openFile = vi.fn();
         const openFolderDialog = vi.fn();
+        const openOverlayDialog = vi.fn();
 
         expect(
-            createElectronApiDialogDomain({ openFolderDialog }).openFolderDialog
-        ).toBe(openFolderDialog);
+            createElectronApiDialogDomain({
+                openFile,
+                openFileDialog: openFile,
+                openFolderDialog,
+                openOverlayDialog,
+            })
+        ).toStrictEqual({
+            openFile,
+            openFileDialog: openFile,
+            openFolderDialog,
+            openOverlayDialog,
+        });
     });
 });

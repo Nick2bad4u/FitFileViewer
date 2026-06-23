@@ -13,9 +13,6 @@ export function createPreloadFileApiDomain({
     return {
         fileApi: createFileApi({
             channels: {
-                DIALOG_OPEN_FILE: constants.CHANNELS.DIALOG_OPEN_FILE,
-                DIALOG_OPEN_OVERLAY_FILES:
-                    constants.CHANNELS.DIALOG_OPEN_OVERLAY_FILES,
                 FILE_READ: constants.CHANNELS.FILE_READ,
                 FIT_DECODE: constants.CHANNELS.FIT_DECODE,
                 FIT_PARSE: constants.CHANNELS.FIT_PARSE,

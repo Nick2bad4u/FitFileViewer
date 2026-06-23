@@ -21,7 +21,10 @@ export function createElectronApi({
     gyazoExternalApi,
     mainStateApi,
     menuEventApi,
+    openFile,
+    openFileDialog,
     openFolderDialog,
+    openOverlayDialog,
     preloadEventApi,
     shellExternalApi,
     themeApi,
@@ -40,7 +43,10 @@ export function createElectronApi({
         apiDiagnostics,
     });
     const dialogDomain = createElectronApiDialogDomain({
+        openFile,
+        openFileDialog,
         openFolderDialog,
+        openOverlayDialog,
     });
     const externalDomain = createElectronApiExternalDomain({
         gyazoExternalApi,
@@ -106,10 +112,10 @@ export function createElectronApi({
         requestExport: menuDomain.requestExport,
         requestSaveAs: menuDomain.requestSaveAs,
         openExternal: externalDomain.openExternal,
-        openFile: fileDomain.openFile,
-        openFileDialog: fileDomain.openFileDialog,
+        openFile: dialogDomain.openFile,
+        openFileDialog: dialogDomain.openFileDialog,
         openFolderDialog: dialogDomain.openFolderDialog,
-        openOverlayDialog: fileDomain.openOverlayDialog,
+        openOverlayDialog: dialogDomain.openOverlayDialog,
         parseFitFile: fileDomain.parseFitFile,
         readFile: fileDomain.readFile,
         recentFiles: fileDomain.recentFiles,

@@ -344,7 +344,10 @@ export interface PreloadDiagnosticsApiDomain {
 }
 
 export interface PreloadDialogApiDomain {
+    openFile: ElectronDialogApi["openFile"];
+    openFileDialog: ElectronDialogApi["openFileDialog"];
     openFolderDialog: ElectronDialogApi["openFolderDialog"];
+    openOverlayDialog: ElectronDialogApi["openOverlayDialog"];
 }
 
 export interface PreloadExternalApiDomain {

@@ -232,7 +232,10 @@ export type ElectronClipboardApi = Pick<
 
 export type ElectronDevtoolsMenuApi = Pick<ElectronAPI, "injectMenu">;
 
-export type ElectronDialogApi = Pick<ElectronAPI, "openFolderDialog">;
+export type ElectronDialogApi = Pick<
+    ElectronAPI,
+    "openFile" | "openFileDialog" | "openFolderDialog" | "openOverlayDialog"
+>;
 
 export type ElectronGyazoExternalApi = Pick<
     ElectronAPI,
@@ -246,9 +249,6 @@ export type ElectronFileApi = Pick<
     | "addRecentFile"
     | "approveRecentFile"
     | "decodeFitFile"
-    | "openFile"
-    | "openFileDialog"
-    | "openOverlayDialog"
     | "parseFitFile"
     | "readFile"
     | "recentFiles"

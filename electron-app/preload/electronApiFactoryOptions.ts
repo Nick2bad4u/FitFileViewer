@@ -28,7 +28,10 @@ export interface ElectronApiFactoryOptions {
     gyazoExternalApi: ElectronGyazoExternalApi;
     mainStateApi: ElectronMainStateApi;
     menuEventApi: ElectronMenuEventApi;
+    openFile: ElectronDialogApi["openFile"];
+    openFileDialog: ElectronDialogApi["openFileDialog"];
     openFolderDialog: ElectronDialogApi["openFolderDialog"];
+    openOverlayDialog: ElectronDialogApi["openOverlayDialog"];
     preloadEventApi: ElectronPreloadEventApi;
     shellExternalApi: ElectronShellExternalApi;
     themeApi: ElectronThemeApi;
