@@ -557,7 +557,8 @@ reading/writing the document, or checking ambient DOM constructors directly insi
 focused runtime coverage and architecture guardrails blocking those direct timer/controller/document/constructor
 globals from returning. Explicit renderer state integration runtime scopes must now provide timer, document, document
 event-target, Element, and HTMLElement primitives instead of falling back to `globalThis`, with focused runtime coverage
-and architecture coverage blocking those fallbacks from returning.
+and architecture coverage blocking those fallbacks from returning. Default document and document event-target access
+now centralizes through `getGlobalDocument()` instead of repeating `globalThis.document` across providers.
 Main UI summary selector tab lookup, gear-button lookup, and delayed gear-button scheduling now route through
 `mainUiSummaryColumnSelectorRuntime.ts` instead of keeping DOM and timer globals inside
 `mainUiSummaryColumnSelector.ts`, with focused runtime coverage and architecture guardrails blocking those direct

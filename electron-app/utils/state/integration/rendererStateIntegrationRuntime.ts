@@ -46,12 +46,16 @@ const defaultRendererStateIntegrationRuntimeScope: RendererStateIntegrationRunti
     {
         getAbortController: () => globalThis.AbortController,
         getClearTimeout: () => globalThis.clearTimeout,
-        getDocument: () => globalThis.document,
-        getDocumentEventTarget: () => globalThis.document,
+        getDocument: () => getGlobalDocument(),
+        getDocumentEventTarget: () => getGlobalDocument(),
         getElement: () => globalThis.Element,
         getHTMLElement: () => globalThis.HTMLElement,
         getSetTimeout: () => globalThis.setTimeout,
     };
+
+function getGlobalDocument(): Document {
+    return globalThis.document;
+}
 
 function getAbortControllerConstructor(
     scope: RendererStateIntegrationRuntimeScope
