@@ -5454,7 +5454,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps chart settings rerender cache invalidation on the settings facade", () => {
-        expect.assertions(16);
+        expect.assertions(24);
 
         const chartSettingsRenderSource = stripComments(
             readRepositoryFile(
@@ -5484,10 +5484,18 @@ describe("architecture boundaries", () => {
             "state/core/stateManager.js"
         );
         expect(chartSettingsRenderSource).not.toContain("globalThis");
+        expect(chartSettingsRenderSource).not.toContain(
+            "getChartRenderContainer(document)"
+        );
+        expect(chartSettingsRenderSource).not.toContain("document.body");
         expect(chartSettingsRenderSource).not.toContain("new CustomEvent");
         expect(chartSettingsRenderSource).toContain("createRenderRequestEvent");
+        expect(chartSettingsRenderSource).toContain("runtime.documentRef");
         expect(chartSettingsRenderRuntimeSource).toContain(
             "defaultChartSettingsRenderRuntimeScope"
+        );
+        expect(chartSettingsRenderRuntimeScopeSource).not.toContain(
+            "readonly document?:"
         );
         expect(chartSettingsRenderRuntimeScopeSource).not.toContain(
             "readonly CustomEvent?:"
@@ -5499,6 +5507,9 @@ describe("architecture boundaries", () => {
             "scope.CustomEvent"
         );
         expect(chartSettingsRenderRuntimeSource).not.toContain(
+            "scope.document"
+        );
+        expect(chartSettingsRenderRuntimeSource).not.toContain(
             "eventTarget: scope"
         );
         expect(chartSettingsRenderRuntimeSource).not.toContain(
@@ -5508,13 +5519,22 @@ describe("architecture boundaries", () => {
             "getCustomEvent: () => globalThis.CustomEvent"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
             "getEventTarget: () => globalThis"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
             "const CustomEventConstructor = scope.getCustomEvent?.();"
         );
         expect(chartSettingsRenderRuntimeSource).toContain(
+            "const documentRef = scope.getDocument?.();"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
             "const eventTarget = scope.getEventTarget?.();"
+        );
+        expect(chartSettingsRenderRuntimeSource).toContain(
+            "chartSettingsRender requires a document runtime"
         );
     });
 

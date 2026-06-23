@@ -494,6 +494,9 @@ guardrails blocking direct helper document roots from returning.
 Main-UI external-link and unload flows now resolve default documents through `mainUiRuntimeEnvironment.ts`
 instead of defaulting function parameters to `document`, with runtime and architecture coverage blocking
 direct main-UI document defaults and legacy direct document runtime-scope properties from returning.
+Chart settings fallback rerender paths now resolve chart container and body fallback documents through
+`chartSettingsRenderRuntime.ts` instead of calling `getChartRenderContainer(document)` or using
+`document.body` directly, with runtime and architecture coverage blocking those document fallbacks from returning.
 Custom map fullscreen-control delayed Leaflet map size invalidation now routes through
 `mapFullscreenControlRuntime.ts` instead of calling timer globals directly inside `mapFullscreenControl.ts`,
 with focused runtime coverage and architecture guardrails blocking those direct timer globals from returning.

@@ -2,6 +2,7 @@ export interface ChartSettingsRenderRuntime {
     readonly createRenderRequestEvent: (
         reason: string
     ) => CustomEvent<{ reason: string }>;
+    readonly documentRef: Document;
     readonly eventTarget: Pick<EventTarget, "dispatchEvent">;
 }
 
@@ -9,6 +10,7 @@ export interface ChartSettingsRenderRuntimeScope {
     readonly getCustomEvent?:
         | (() => typeof CustomEvent | undefined)
         | undefined;
+    readonly getDocument?: (() => Document | undefined) | undefined;
     readonly getEventTarget?:
         | (() => Pick<EventTarget, "dispatchEvent"> | undefined)
         | undefined;
@@ -40,9 +42,19 @@ function getEventTarget(
     return eventTarget;
 }
 
+function getDocument(scope: ChartSettingsRenderRuntimeScope): Document {
+    const documentRef = scope.getDocument?.();
+    if (!documentRef) {
+        throw new TypeError("chartSettingsRender requires a document runtime");
+    }
+
+    return documentRef;
+}
+
 const defaultChartSettingsRenderRuntimeScope: ChartSettingsRenderRuntimeScope =
     {
         getCustomEvent: () => globalThis.CustomEvent,
+        getDocument: () => globalThis.document,
         getEventTarget: () => globalThis,
     };
 
@@ -59,6 +71,9 @@ export function getChartSettingsRenderRuntime(
                     detail: { reason },
                 }
             );
+        },
+        get documentRef(): Document {
+            return getDocument(scope);
         },
         get eventTarget(): Pick<EventTarget, "dispatchEvent"> {
             return getEventTarget(scope);

@@ -130,7 +130,8 @@ function runDirectRenderFallback(
     reason: string,
     target?: Element | null
 ): void {
-    const container = getChartRenderContainer(document);
+    const runtimeDocument = runtime.documentRef;
+    const container = getChartRenderContainer(runtimeDocument);
     console.log(
         `${LOG_PREFIX} Using container: ${container ? container.id : "none found"}`
     );
@@ -138,8 +139,8 @@ function runDirectRenderFallback(
     const renderTarget =
         target ||
         container ||
-        getChartRenderContainer(document) ||
-        document.body;
+        getChartRenderContainer(runtimeDocument) ||
+        runtimeDocument.body;
     void import("../../charts/core/renderChartJS.js")
         .then(({ renderChartJS }) => {
             void renderChartJS(renderTarget);
@@ -230,7 +231,7 @@ export function reRenderChartsAfterReset(): void {
         });
 
         // Get the charts container
-        const chartsContainer = getChartRenderContainer(document);
+        const chartsContainer = getChartRenderContainer(runtime.documentRef);
 
         // Clear existing chart instances
         destroyRegisteredChartInstances((index, error) => {
@@ -247,7 +248,8 @@ export function reRenderChartsAfterReset(): void {
             runDirectRenderFallback(
                 runtime,
                 "settings-reset",
-                chartsContainer || getChartRenderContainer(document)
+                chartsContainer ||
+                    getChartRenderContainer(runtime.documentRef)
             );
         }
     } catch (error) {

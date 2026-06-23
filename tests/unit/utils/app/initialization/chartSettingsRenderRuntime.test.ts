@@ -13,6 +13,20 @@ describe("chartSettingsRenderRuntime", () => {
         expect(getChartSettingsRenderRuntime().eventTarget).toBe(globalThis);
     });
 
+    it("resolves documents through the scoped runtime", () => {
+        expect.assertions(2);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("chart settings");
+        const getDocument = vi.fn(() => documentRef);
+        const chartSettingsApi = getChartSettingsRenderRuntime({
+            getDocument,
+        });
+
+        expect(chartSettingsApi.documentRef).toBe(documentRef);
+        expect(getDocument).toHaveBeenCalledOnce();
+    });
+
     it("centralizes the event target used by chart settings render fallbacks", () => {
         expect.assertions(2);
 
@@ -70,11 +84,22 @@ describe("chartSettingsRenderRuntime", () => {
         );
     });
 
+    it("fails clearly when document access is unavailable", () => {
+        expect.assertions(1);
+
+        expect(() => getChartSettingsRenderRuntime({}).documentRef).toThrow(
+            "chartSettingsRender requires a document runtime"
+        );
+    });
+
     it("ignores legacy direct runtime scope properties", () => {
-        expect.assertions(2);
+        expect.assertions(3);
 
         const legacyScope = {
             CustomEvent,
+            document: document.implementation.createHTMLDocument(
+                "legacy chart settings"
+            ),
             dispatchEvent: vi.fn<(event: Event) => boolean>(() => true),
         } as unknown as ChartSettingsRenderRuntimeScope;
         const chartSettingsApi = getChartSettingsRenderRuntime(legacyScope);
@@ -82,6 +107,9 @@ describe("chartSettingsRenderRuntime", () => {
         expect(() =>
             chartSettingsApi.createRenderRequestEvent("settings-reset")
         ).toThrow("chartSettingsRender requires a CustomEvent runtime");
+        expect(() => chartSettingsApi.documentRef).toThrow(
+            "chartSettingsRender requires a document runtime"
+        );
         expect(() => chartSettingsApi.eventTarget).toThrow(
             "chartSettingsRender requires an event target runtime"
         );
