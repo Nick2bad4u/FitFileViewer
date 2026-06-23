@@ -7502,7 +7502,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps master state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(45);
+        expect.assertions(58);
 
         const masterStateManagerSource = stripComments(
             readRepositoryFile(
@@ -7518,6 +7518,11 @@ describe("architecture boundaries", () => {
         expect(masterStateManagerSource).toContain("masterStateRuntime.js");
         expect(masterStateManagerSource).toContain("createAbortController");
         expect(masterStateManagerSource).toContain("addDocumentEventListener");
+        expect(masterStateManagerSource).toContain("addBodyClass");
+        expect(masterStateManagerSource).toContain("removeBodyClass");
+        expect(masterStateManagerSource).toContain(
+            "hasDevelopmentModeAttribute"
+        );
         expect(masterStateManagerSource).toContain(
             "getLoadingSensitiveElements"
         );
@@ -7541,6 +7546,10 @@ describe("architecture boundaries", () => {
         expect(masterStateManagerSource).not.toContain(
             "document.querySelectorAll"
         );
+        expect(masterStateManagerSource).not.toContain("document.body");
+        expect(masterStateManagerSource).not.toContain(
+            "document.documentElement"
+        );
         expect(masterStateManagerSource).toContain("stateStorageRuntime.js");
         expect(masterStateManagerSource).not.toContain("localStorage.");
         expect(masterStateRuntimeSource).toContain(
@@ -7554,6 +7563,12 @@ describe("architecture boundaries", () => {
         );
         expect(masterStateRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getDocumentBody: () => globalThis.document.body"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            "getDocumentElement: () => globalThis.document.documentElement"
         );
         expect(masterStateRuntimeSource).toContain(
             "getAddEventListener: () => globalThis.addEventListener"
@@ -7591,6 +7606,12 @@ describe("architecture boundaries", () => {
             "readonly addEventListener?:"
         );
         expect(masterStateRuntimeSource).not.toContain(
+            "readonly documentBody?:"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
+            "readonly documentElement?:"
+        );
+        expect(masterStateRuntimeSource).not.toContain(
             "readonly documentEventTarget?:"
         );
         expect(masterStateRuntimeSource).not.toContain(
@@ -7608,6 +7629,8 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).not.toContain(
             "scope.addEventListener"
         );
+        expect(masterStateRuntimeSource).not.toContain("scope.documentBody");
+        expect(masterStateRuntimeSource).not.toContain("scope.documentElement");
         expect(masterStateRuntimeSource).not.toContain(
             "scope.documentEventTarget"
         );
@@ -7620,6 +7643,12 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).not.toContain("scope.dispatchEvent");
         expect(masterStateRuntimeSource).not.toContain("scope.eventTarget");
         expect(masterStateRuntimeSource).not.toContain("scope.location");
+        expect(masterStateRuntimeSource).toContain(
+            "master state manager requires a document body runtime"
+        );
+        expect(masterStateRuntimeSource).toContain(
+            'Object.hasOwn(documentElement.dataset, "devMode")'
+        );
     });
 
     it("keeps computed state manager theme media reads behind the runtime adapter", () => {

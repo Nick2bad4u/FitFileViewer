@@ -6,6 +6,14 @@ type MasterStateGlobalEventMap = WindowEventMap & {
     unhandledrejection: PromiseRejectionEvent;
 };
 
+type MasterStateBodyClassList = Pick<DOMTokenList, "add" | "remove">;
+type MasterStateDocumentBody = {
+    readonly classList: MasterStateBodyClassList;
+};
+type MasterStateDocumentElement = {
+    readonly dataset: DOMStringMap;
+    readonly hasAttribute?: Element["hasAttribute"] | undefined;
+};
 type MasterStateEventTarget = Pick<EventTarget, "addEventListener">;
 type MasterStateQueryScope = Pick<Document, "querySelectorAll">;
 
@@ -19,6 +27,12 @@ export interface MasterStateRuntimeScope {
     readonly getDevelopmentFlag?: (() => boolean | undefined) | undefined;
     readonly getDocumentEventTarget?:
         | (() => MasterStateEventTarget | undefined)
+        | undefined;
+    readonly getDocumentBody?:
+        | (() => MasterStateDocumentBody | undefined)
+        | undefined;
+    readonly getDocumentElement?:
+        | (() => MasterStateDocumentElement | undefined)
         | undefined;
     readonly getDocumentQueryScope?:
         | (() => MasterStateQueryScope | undefined)
@@ -53,6 +67,7 @@ export interface MasterStateRuntime {
         listener: (event: Readonly<WindowEventMap[K]>) => void,
         options?: Readonly<AddEventListenerOptions>
     ) => void;
+    addBodyClass: (className: string) => void;
     createAbortController: () => AbortController;
     dispatchGlobalEvent: (event: Readonly<Event>) => boolean;
     getLoadingSensitiveElements: () => Iterable<HTMLElement>;
@@ -60,6 +75,8 @@ export interface MasterStateRuntime {
         options?: Readonly<MasterStateDevelopmentOptions>
     ) => boolean;
     readonly location: LocationLike;
+    hasDevelopmentModeAttribute: () => boolean;
+    removeBodyClass: (className: string) => void;
 }
 
 function getLocationText(
@@ -75,6 +92,8 @@ const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getAddEventListener: () => globalThis.addEventListener,
     getDevelopmentFlag: () =>
         Reflect.get(globalThis, "__DEVELOPMENT__") === true,
+    getDocumentBody: () => globalThis.document.body,
+    getDocumentElement: () => globalThis.document.documentElement,
     getDocumentEventTarget: () => globalThis.document,
     getDocumentQueryScope: () => globalThis.document,
     getDispatchEvent: () => globalThis.dispatchEvent,
@@ -106,10 +125,35 @@ function getScopeDocumentEventTarget(
     return scope.getDocumentEventTarget?.();
 }
 
+function getScopeDocumentBody(
+    scope: MasterStateRuntimeScope
+): MasterStateDocumentBody | undefined {
+    return scope.getDocumentBody?.();
+}
+
+function getScopeDocumentElement(
+    scope: MasterStateRuntimeScope
+): MasterStateDocumentElement | undefined {
+    return scope.getDocumentElement?.();
+}
+
 function getScopeDocumentQueryScope(
     scope: MasterStateRuntimeScope
 ): MasterStateQueryScope | undefined {
     return scope.getDocumentQueryScope?.();
+}
+
+function getRequiredDocumentBody(
+    scope: MasterStateRuntimeScope
+): MasterStateDocumentBody {
+    const documentBody = getScopeDocumentBody(scope);
+    if (documentBody === undefined) {
+        throw new TypeError(
+            "master state manager requires a document body runtime"
+        );
+    }
+
+    return documentBody;
 }
 
 function getRequiredDocumentEventTarget(
@@ -161,6 +205,9 @@ export function getMasterStateRuntime(
                 listener as EventListener,
                 options
             );
+        },
+        addBodyClass(className): void {
+            getRequiredDocumentBody(scope).classList.add(className);
         },
         addGlobalEventListener(type, listener, options): void {
             const addEventListenerRef = getScopeAddEventListener(scope);
@@ -227,6 +274,16 @@ export function getMasterStateRuntime(
         },
         get location(): LocationLike {
             return getLocation();
+        },
+        hasDevelopmentModeAttribute(): boolean {
+            const documentElement = getScopeDocumentElement(scope);
+            return (
+                typeof documentElement?.hasAttribute === "function" &&
+                Object.hasOwn(documentElement.dataset, "devMode")
+            );
+        },
+        removeBodyClass(className): void {
+            getRequiredDocumentBody(scope).classList.remove(className);
         },
     };
 }

@@ -161,11 +161,11 @@ function preventDragDefaults(event: Event): void {
 }
 
 function highlightDropTarget(): void {
-    document.body.classList.add("drag-over");
+    masterStateRuntime.addBodyClass("drag-over");
 }
 
 function unhighlightDropTarget(): void {
-    document.body.classList.remove("drag-over");
+    masterStateRuntime.removeBodyClass("drag-over");
 }
 
 function handleFitFileDrop(event: DragEvent): void {
@@ -181,11 +181,7 @@ function handleFitFileDrop(event: DragEvent): void {
 }
 
 function hasDevelopmentModeAttribute(): boolean {
-    return (
-        typeof document !== "undefined" &&
-        typeof document.documentElement?.hasAttribute === "function" &&
-        Object.hasOwn(document.documentElement.dataset, "devMode")
-    );
+    return masterStateRuntime.hasDevelopmentModeAttribute();
 }
 
 function getElectronDevelopmentFlag(): boolean | undefined {

@@ -187,6 +187,36 @@ describe("masterStateRuntime", () => {
         );
     });
 
+    it("routes body class and development attribute reads through scoped providers", () => {
+        expect.assertions(6);
+
+        const add = vi.fn();
+        const remove = vi.fn();
+        const documentBody = {
+            classList: { add, remove },
+        };
+        const documentElement = {
+            dataset: { devMode: "true" } as DOMStringMap,
+            hasAttribute: vi.fn(() => true),
+        };
+        const getDocumentBody = vi.fn(() => documentBody);
+        const getDocumentElement = vi.fn(() => documentElement);
+        const runtime = getMasterStateRuntime({
+            getDocumentBody,
+            getDocumentElement,
+        });
+
+        runtime.addBodyClass("drag-over");
+        runtime.removeBodyClass("drag-over");
+
+        expect(runtime.hasDevelopmentModeAttribute()).toBe(true);
+        expect(add).toHaveBeenCalledExactlyOnceWith("drag-over");
+        expect(remove).toHaveBeenCalledExactlyOnceWith("drag-over");
+        expect(getDocumentBody).toHaveBeenCalledTimes(2);
+        expect(getDocumentElement).toHaveBeenCalledOnce();
+        expect(documentElement.hasAttribute).not.toHaveBeenCalled();
+    });
+
     it("routes browser state dependencies through provider functions", () => {
         expect.assertions(21);
 
@@ -314,7 +344,7 @@ describe("masterStateRuntime", () => {
     });
 
     it("ignores legacy direct browser and development runtime properties", () => {
-        expect.assertions(12);
+        expect.assertions(17);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -333,11 +363,23 @@ describe("masterStateRuntime", () => {
                     document.createElement("button"),
                 ] as unknown as NodeListOf<Element>
         );
+        const addBodyClass = vi.fn();
+        const removeBodyClass = vi.fn();
         const runtime = getMasterStateRuntime({
             __DEVELOPMENT__: true,
             AbortController:
                 TestAbortController as unknown as typeof AbortController,
             addEventListener: addGlobalEventListener,
+            documentBody: {
+                classList: {
+                    add: addBodyClass,
+                    remove: removeBodyClass,
+                },
+            },
+            documentElement: {
+                dataset: { devMode: "true" },
+                hasAttribute: vi.fn(() => true),
+            },
             documentEventTarget: { addEventListener: addDocumentEventListener },
             documentQueryScope: { querySelectorAll },
             dispatchEvent: dispatchGlobalEvent,
@@ -350,11 +392,18 @@ describe("masterStateRuntime", () => {
         expect(runtime.isDevelopmentScope()).toBe(false);
         expect(runtime.location).toStrictEqual({});
         expect(runtime.dispatchGlobalEvent(event)).toBe(false);
+        expect(runtime.hasDevelopmentModeAttribute()).toBe(false);
         expect(Array.from(runtime.getLoadingSensitiveElements())).toStrictEqual(
             []
         );
         runtime.addGlobalEventListener("error", listener);
         runtime.addWindowEventListener("resize", listener);
+        expect(() => runtime.addBodyClass("drag-over")).toThrow(
+            "master state manager requires a document body runtime"
+        );
+        expect(() => runtime.removeBodyClass("drag-over")).toThrow(
+            "master state manager requires a document body runtime"
+        );
         expect(() =>
             runtime.addDocumentEventListener("keydown", listener)
         ).toThrow(
@@ -369,6 +418,8 @@ describe("masterStateRuntime", () => {
         expect(addDocumentEventListener).not.toHaveBeenCalled();
         expect(dispatchGlobalEvent).not.toHaveBeenCalled();
         expect(querySelectorAll).not.toHaveBeenCalled();
+        expect(addBodyClass).not.toHaveBeenCalled();
+        expect(removeBodyClass).not.toHaveBeenCalled();
     });
 
     it("throws when abort controllers are unavailable", () => {
