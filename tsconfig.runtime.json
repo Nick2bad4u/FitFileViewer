@@ -41,6 +41,7 @@
         "electron-app/preload/electronApiExposure.ts",
         "electron-app/preload/electronApiFactory.ts",
         "electron-app/preload/electronBridge.ts",
+        "electron-app/preload/electronApiStateDomain.ts",
         "electron-app/preload/environment.ts",
         "electron-app/preload/externalApiDomain.ts",
         "electron-app/preload/fileApi.ts",

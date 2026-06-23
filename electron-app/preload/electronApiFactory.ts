@@ -7,10 +7,10 @@ import {
     createElectronApiDiagnosticsDomain,
     createElectronApiFileDomain,
     createElectronApiMenuDomain,
-    createElectronApiStateDomain,
     type ElectronApiFactoryOptions,
 } from "./electronApiDomains.js";
 import { createElectronApiExternalDomain } from "./electronApiExternalDomain.js";
+import { createElectronApiStateDomain } from "./electronApiStateDomain.js";
 
 export function createElectronApi({
     apiDiagnostics,

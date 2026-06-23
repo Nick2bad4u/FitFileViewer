@@ -1895,7 +1895,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload shell and Gyazo external APIs split in external assembly", () => {
-        expect.assertions(23);
+        expect.assertions(26);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -1913,6 +1913,9 @@ describe("architecture boundaries", () => {
             readRepositoryFile(
                 "electron-app/preload/electronApiExternalDomain.ts"
             )
+        );
+        const electronApiStateDomainSource = stripComments(
+            readRepositoryFile("electron-app/preload/electronApiStateDomain.ts")
         );
         const moduleTypesSource = stripComments(
             readRepositoryFile("electron-app/preload/preloadModuleTypes.ts")
@@ -1936,6 +1939,7 @@ describe("architecture boundaries", () => {
         expect(electronApiFactorySource).toContain(
             "electronApiExternalDomain.js"
         );
+        expect(electronApiFactorySource).toContain("electronApiStateDomain.js");
         expect(electronApiFactorySource).not.toContain(
             "function createElectronApiExternalDomain"
         );
@@ -1957,7 +1961,11 @@ describe("architecture boundaries", () => {
         expect(electronApiDomainsSource).toContain(
             "createElectronApiMenuDomain"
         );
-        expect(electronApiDomainsSource).toContain(
+        expect(electronApiStateDomainSource).toContain(
+            "createElectronApiStateDomain"
+        );
+        expect(electronApiStateDomainSource).toContain("ElectronMainStateApi");
+        expect(electronApiDomainsSource).not.toContain(
             "createElectronApiStateDomain"
         );
         expect(electronApiDomainsSource).toContain(
@@ -2142,7 +2150,7 @@ describe("architecture boundaries", () => {
                 "function",
             ],
             [
-                "electron-app/preload/electronApiDomains.ts",
+                "electron-app/preload/electronApiStateDomain.ts",
                 "createElectronApiStateDomain",
                 "function",
             ],
