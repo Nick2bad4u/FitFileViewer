@@ -709,7 +709,8 @@ querying `document` directly inside `masterStateManager.ts`; drag-over body clas
 document-element checks now also route through that runtime instead of reading `document.body` or
 `document.documentElement` directly, with runtime coverage and architecture guardrails blocking direct
 `document.querySelectorAll`, `document.body`, and `document.documentElement` access plus legacy direct scope
-properties from returning.
+properties from returning. The default master-state runtime no longer reads ambient `globalThis.__DEVELOPMENT__`;
+development flag checks now require an explicit runtime provider or the existing location/DOM/options signals.
 Resource-manager unload cleanup listener registration and registered timer cleanup now go through the scoped
 `resourceManagerRuntime.ts` adapter instead of probing `globalThis.window`, calling `window.addEventListener`,
 constructing `AbortController`, or calling `clearTimeout` directly inside `resourceManager.ts`, with focused

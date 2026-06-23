@@ -90,8 +90,6 @@ function getLocationText(
 const defaultMasterStateRuntimeScope: MasterStateRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
     getAddEventListener: () => globalThis.addEventListener,
-    getDevelopmentFlag: () =>
-        Reflect.get(globalThis, "__DEVELOPMENT__") === true,
     getDocumentBody: () => globalThis.document.body,
     getDocumentElement: () => globalThis.document.documentElement,
     getDocumentEventTarget: () => globalThis.document,

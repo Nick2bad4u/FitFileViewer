@@ -8028,8 +8028,8 @@ describe("architecture boundaries", () => {
         expect(masterStateRuntimeSource).toContain(
             "getDocumentQueryScope: () => globalThis.document"
         );
-        expect(masterStateRuntimeSource).toContain(
-            'Reflect.get(globalThis, "__DEVELOPMENT__") === true'
+        expect(masterStateRuntimeSource).not.toContain(
+            'Reflect.get(globalThis, "__DEVELOPMENT__")'
         );
         expect(masterStateRuntimeSource).toContain(
             "getDispatchEvent: () => globalThis.dispatchEvent"
