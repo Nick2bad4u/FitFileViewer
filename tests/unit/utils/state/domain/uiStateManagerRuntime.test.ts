@@ -139,19 +139,25 @@ describe("uiStateManagerRuntime", () => {
         expect(body.dataset).toStrictEqual({ hasFitFile: "true" });
     });
 
-    it("routes loading element lookups through scoped providers", () => {
-        expect.assertions(9);
+    it("routes loading and measurement element lookups through scoped providers", () => {
+        expect.assertions(15);
 
         const fileLoadingProgress = document.createElement("progress");
         const loadingIndicator = document.createElement("div");
         const mainContent = document.createElement("main");
+        const mapContainer = document.createElement("section");
+        const measurementToggle = document.createElement("button");
         const getFileLoadingProgressElement = vi.fn(() => fileLoadingProgress);
         const getLoadingIndicatorElement = vi.fn(() => loadingIndicator);
         const getMainContentElement = vi.fn(() => mainContent);
+        const getMapContainerElement = vi.fn(() => mapContainer);
+        const getMeasurementModeToggleElement = vi.fn(() => measurementToggle);
         const runtime = getUIStateManagerRuntime({
             getFileLoadingProgressElement,
             getLoadingIndicatorElement,
             getMainContentElement,
+            getMapContainerElement,
+            getMeasurementModeToggleElement,
         });
 
         expect(runtime.getFileLoadingProgressElement()).toBe(
@@ -159,9 +165,15 @@ describe("uiStateManagerRuntime", () => {
         );
         expect(runtime.getLoadingIndicatorElement()).toBe(loadingIndicator);
         expect(runtime.getMainContentElement()).toBe(mainContent);
+        expect(runtime.getMapContainerElement()).toBe(mapContainer);
+        expect(runtime.getMeasurementModeToggleElement()).toBe(
+            measurementToggle
+        );
         expect(getFileLoadingProgressElement).toHaveBeenCalledOnce();
         expect(getLoadingIndicatorElement).toHaveBeenCalledOnce();
         expect(getMainContentElement).toHaveBeenCalledOnce();
+        expect(getMapContainerElement).toHaveBeenCalledOnce();
+        expect(getMeasurementModeToggleElement).toHaveBeenCalledOnce();
         expect(
             getUIStateManagerRuntime({}).getFileLoadingProgressElement()
         ).toBeNull();
@@ -169,6 +181,12 @@ describe("uiStateManagerRuntime", () => {
             getUIStateManagerRuntime({}).getLoadingIndicatorElement()
         ).toBeNull();
         expect(getUIStateManagerRuntime({}).getMainContentElement()).toBeNull();
+        expect(
+            getUIStateManagerRuntime({}).getMapContainerElement()
+        ).toBeNull();
+        expect(
+            getUIStateManagerRuntime({}).getMeasurementModeToggleElement()
+        ).toBeNull();
     });
 
     it("ignores direct scoped matchMedia when no provider is scoped", () => {
@@ -271,7 +289,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(23);
+        expect.assertions(27);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -285,6 +303,8 @@ describe("uiStateManagerRuntime", () => {
         const fileLoadingProgressElement = document.createElement("progress");
         const loadingIndicatorElement = document.createElement("div");
         const mainContentElement = document.createElement("main");
+        const mapContainerElement = document.createElement("section");
+        const measurementModeToggleElement = document.createElement("button");
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
         const setBodyCursor = vi.fn();
         const setDocumentTitle = vi.fn();
@@ -300,6 +320,8 @@ describe("uiStateManagerRuntime", () => {
             },
             loadingIndicatorElement,
             mainContentElement,
+            mapContainerElement,
+            measurementModeToggleElement,
             matchMedia,
             setBodyCursor,
             setDocumentTitle,
@@ -328,6 +350,8 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getFileLoadingProgressElement()).toBeNull();
         expect(runtime.getLoadingIndicatorElement()).toBeNull();
         expect(runtime.getMainContentElement()).toBeNull();
+        expect(runtime.getMapContainerElement()).toBeNull();
+        expect(runtime.getMeasurementModeToggleElement()).toBeNull();
         expect(runtime.getWindowState()).toBeNull();
         expect(runtime.hasWindow()).toBe(false);
         expect(() => runtime.setAppHasFileState(true)).not.toThrow();
@@ -343,6 +367,10 @@ describe("uiStateManagerRuntime", () => {
             loadingIndicatorElement
         );
         expect(runtime.getMainContentElement()).not.toBe(mainContentElement);
+        expect(runtime.getMapContainerElement()).not.toBe(mapContainerElement);
+        expect(runtime.getMeasurementModeToggleElement()).not.toBe(
+            measurementModeToggleElement
+        );
         expect(matchMedia).not.toHaveBeenCalled();
         expect(setBodyCursor).not.toHaveBeenCalled();
         expect(setDocumentTitle).not.toHaveBeenCalled();

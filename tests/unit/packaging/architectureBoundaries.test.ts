@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(57);
+        expect.assertions(67);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6606,6 +6606,10 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("getFileLoadingProgressElement");
         expect(uiStateManagerSource).toContain("getLoadingIndicatorElement");
         expect(uiStateManagerSource).toContain("getMainContentElement");
+        expect(uiStateManagerSource).toContain("getMapContainerElement");
+        expect(uiStateManagerSource).toContain(
+            "getMeasurementModeToggleElement"
+        );
         expect(uiStateManagerSource).toContain("setAppHasFileState");
         expect(uiStateManagerSource).toContain("setBodyCursor");
         expect(uiStateManagerSource).toContain("setDocumentTitle");
@@ -6622,6 +6626,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerSource).not.toContain(
             'document.querySelector<HTMLElement>("#main-content")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'document.querySelector("#measurement-mode-toggle")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'document.querySelector("#map-container")'
         );
         expect(
             directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
@@ -6652,6 +6662,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             'globalThis.document.querySelector<HTMLElement>("#main-content")'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'globalThis.document.querySelector<HTMLElement>("#map-container")'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            '"#measurement-mode-toggle"'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getSetBodyCursor: () => (cursor) =>"
@@ -6689,6 +6705,12 @@ describe("architecture boundaries", () => {
             "readonly mainContentElement?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly mapContainerElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly measurementModeToggleElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly eventTarget?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
@@ -6720,6 +6742,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.mainContentElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.mapContainerElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.measurementModeToggleElement"
         );
         expect(uiStateManagerRuntimeSource).not.toContain("scope.eventTarget");
         expect(uiStateManagerRuntimeSource).not.toContain(

@@ -651,14 +651,14 @@ export class UIStateManager {
     updateMeasurementModeUI(isActive: boolean) {
         const toggleBtn = (() => {
             try {
-                return document.querySelector("#measurement-mode-toggle");
+                return uiStateManagerRuntime.getMeasurementModeToggleElement();
             } catch {
                 return null;
             }
         })();
         const mapContainer = (() => {
             try {
-                return document.querySelector("#map-container");
+                return uiStateManagerRuntime.getMapContainerElement();
             } catch {
                 return null;
             }

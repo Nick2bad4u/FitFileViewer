@@ -46,6 +46,10 @@ export interface UIStateManagerRuntimeScope {
         | undefined;
     readonly getLoadingIndicatorElement?: UIStateManagerElementProvider | undefined;
     readonly getMainContentElement?: UIStateManagerElementProvider | undefined;
+    readonly getMapContainerElement?: UIStateManagerElementProvider | undefined;
+    readonly getMeasurementModeToggleElement?:
+        | UIStateManagerElementProvider
+        | undefined;
     readonly getMatchMedia?:
         | (() => typeof globalThis.matchMedia | undefined)
         | undefined;
@@ -71,6 +75,8 @@ export interface UIStateManagerRuntime {
     getFileLoadingProgressElement: () => HTMLElement | null;
     getLoadingIndicatorElement: () => HTMLElement | null;
     getMainContentElement: () => HTMLElement | null;
+    getMapContainerElement: () => HTMLElement | null;
+    getMeasurementModeToggleElement: () => HTMLElement | null;
     getSystemThemeMediaQuery: () => MediaQueryList | null;
     getWindowState: () => UIStateWindowStateSnapshot | null;
     hasWindow: () => boolean;
@@ -95,6 +101,12 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
         globalThis.document.querySelector<HTMLElement>("#loading-indicator"),
     getMainContentElement: () =>
         globalThis.document.querySelector<HTMLElement>("#main-content"),
+    getMapContainerElement: () =>
+        globalThis.document.querySelector<HTMLElement>("#map-container"),
+    getMeasurementModeToggleElement: () =>
+        globalThis.document.querySelector<HTMLElement>(
+            "#measurement-mode-toggle"
+        ),
     getMatchMedia: () => globalThis.matchMedia,
     getSetBodyCursor: () => (cursor) => {
         globalThis.document.body.style.cursor = cursor;
@@ -146,6 +158,18 @@ function getMainContentElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
     return scope.getMainContentElement?.() ?? null;
+}
+
+function getMapContainerElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getMapContainerElement?.() ?? null;
+}
+
+function getMeasurementModeToggleElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getMeasurementModeToggleElement?.() ?? null;
 }
 
 function getMatchMedia(
@@ -229,6 +253,12 @@ export function getUIStateManagerRuntime(
         },
         getMainContentElement(): HTMLElement | null {
             return getMainContentElement(scope);
+        },
+        getMapContainerElement(): HTMLElement | null {
+            return getMapContainerElement(scope);
+        },
+        getMeasurementModeToggleElement(): HTMLElement | null {
+            return getMeasurementModeToggleElement(scope);
         },
         getSystemThemeMediaQuery(): MediaQueryList | null {
             const matchMedia = getMatchMedia(scope);
