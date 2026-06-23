@@ -9882,7 +9882,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exit-fullscreen overlay browser APIs behind the runtime facade", () => {
-        expect.assertions(11);
+        expect.assertions(13);
 
         const violations = migratedAddExitFullscreenOverlayRuntimeFiles
             .filter((relativeFile) =>
@@ -9914,6 +9914,12 @@ describe("architecture boundaries", () => {
         );
         expect(addExitFullscreenOverlayRuntimeSource).toContain(
             "defaultAddExitFullscreenOverlayRuntimeScope"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).toContain(
+            "iconFactoryRuntime.js"
+        );
+        expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
+            "createElementNS"
         );
         expect(addExitFullscreenOverlayRuntimeSource).not.toContain(
             "readonly AbortController?:"
@@ -10745,7 +10751,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps fullscreen button listener abort-controller creation behind the runtime facade", () => {
-        expect.assertions(28);
+        expect.assertions(30);
 
         const violations = migratedAddFullScreenButtonRuntimeFiles
             .filter((relativeFile) =>
@@ -10805,6 +10811,10 @@ describe("architecture boundaries", () => {
         expect(fullscreenButtonRuntimeSource).toContain(
             "FULLSCREEN_BUTTON_SVG_NAMESPACE"
         );
+        expect(fullscreenButtonRuntimeSource).toContain(
+            "iconFactoryRuntime.js"
+        );
+        expect(fullscreenButtonRuntimeSource).not.toContain("createElementNS");
         expect(fullscreenButtonRuntimeSource).toContain("createSvgElement");
         expect(fullscreenButtonRuntimeSource).toContain(
             "getDocumentEventTarget: () => globalThis.document"

@@ -1,3 +1,5 @@
+import { getIconFactoryRuntime } from "../icons/iconFactoryRuntime.js";
+
 export interface AddExitFullscreenOverlayRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -18,8 +20,6 @@ export interface AddExitFullscreenOverlayRuntime {
     getFullscreenElement: () => Element | null;
     isHTMLElement: (value: unknown) => value is HTMLElement;
 }
-
-const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 const defaultAddExitFullscreenOverlayRuntimeScope: AddExitFullscreenOverlayRuntimeScope =
     {
@@ -65,6 +65,16 @@ function getHTMLElementConstructor(
     return runtimeDocument.defaultView?.HTMLElement;
 }
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: AddExitFullscreenOverlayRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getAddExitFullscreenOverlayRuntime(
     scope: AddExitFullscreenOverlayRuntimeScope = defaultAddExitFullscreenOverlayRuntimeScope
 ): AddExitFullscreenOverlayRuntime {
@@ -83,7 +93,7 @@ export function getAddExitFullscreenOverlayRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(SVG_NAMESPACE, tagName);
+            return createSvgElement(scope, tagName);
         },
         async exitFullscreen(): Promise<void> {
             await getDocument(scope).exitFullscreen();

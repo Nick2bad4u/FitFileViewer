@@ -1,3 +1,11 @@
+import {
+    getIconFactoryRuntime,
+} from "../icons/iconFactoryRuntime.js";
+
+export {
+    SVG_NAMESPACE as FULLSCREEN_BUTTON_SVG_NAMESPACE,
+} from "../icons/iconFactoryRuntime.js";
+
 export interface AddFullScreenButtonRuntimeScope {
     readonly getAbortController?:
         | (() => typeof AbortController | undefined)
@@ -15,8 +23,6 @@ type AddFullScreenButtonEventTarget = Pick<
     EventTarget,
     "addEventListener" | "removeEventListener"
 >;
-
-export const FULLSCREEN_BUTTON_SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 
 export interface AddFullScreenButtonRuntime {
     addDocumentEventListener: (
@@ -103,6 +109,16 @@ const defaultAddFullScreenButtonRuntimeScope: AddFullScreenButtonRuntimeScope =
                 : undefined,
     };
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: AddFullScreenButtonRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getAddFullScreenButtonRuntime(
     scope: AddFullScreenButtonRuntimeScope = defaultAddFullScreenButtonRuntimeScope
 ): AddFullScreenButtonRuntime {
@@ -125,10 +141,7 @@ export function getAddFullScreenButtonRuntime(
         createSvgElement<K extends keyof SVGElementTagNameMap>(
             tagName: K
         ): SVGElementTagNameMap[K] {
-            return getDocument(scope).createElementNS(
-                FULLSCREEN_BUTTON_SVG_NAMESPACE,
-                tagName
-            );
+            return createSvgElement(scope, tagName);
         },
         getElementById(id): HTMLElement | null {
             return getDocument(scope).getElementById(id);
