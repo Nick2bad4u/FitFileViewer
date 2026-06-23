@@ -91,7 +91,9 @@ function isSettingsModalElectronApi(
  * Closes the settings modal.
  */
 export function closeSettingsModal(): void {
-    const modal = document.querySelector<HTMLElement>(`#${SETTINGS_MODAL_ID}`);
+    const modal = settingsModalRuntime.queryElement<HTMLElement>(
+        `#${SETTINGS_MODAL_ID}`
+    );
     if (modal) {
         cleanupFocusTrap();
         modal.classList.remove("show");
@@ -107,18 +109,20 @@ function handleCloseSettingsModal(): void {
  * Shows the settings modal.
  */
 export async function showSettingsModal(): Promise<void> {
-    let modal = document.querySelector<HTMLElement>(`#${SETTINGS_MODAL_ID}`);
+    let modal = settingsModalRuntime.queryElement<HTMLElement>(
+        `#${SETTINGS_MODAL_ID}`
+    );
 
     // Create modal if it doesn't exist
     if (!modal) {
-        modal = document.createElement("div");
+        modal = settingsModalRuntime.createElement("div");
         modal.id = SETTINGS_MODAL_ID;
         modal.className = "modal fancy-modal";
         modal.setAttribute("aria-labelledby", "settings-modal-title");
         modal.setAttribute("aria-modal", "true");
         modal.setAttribute("role", "dialog");
         modal.style.display = "none";
-        document.body.append(modal);
+        settingsModalRuntime.appendToBody(modal);
 
         // Inject styles (from aboutModal styles)
         const { injectModalStyles } =
@@ -142,10 +146,7 @@ export async function showSettingsModal(): Promise<void> {
 
     // Set modal content
     modal.replaceChildren(createSettingsModalContent(safeTheme, safeAccent));
-    lastFocusedElement =
-        document.activeElement instanceof HTMLElement
-            ? document.activeElement
-            : undefined;
+    lastFocusedElement = settingsModalRuntime.getActiveHTMLElement();
 
     // Show modal with animation
     modal.style.display = "flex";
@@ -173,21 +174,21 @@ function createSettingsModalContent(
     currentTheme: string,
     currentAccent: string
 ): HTMLElement {
-    const backdrop = document.createElement("div");
+    const backdrop = settingsModalRuntime.createElement("div");
     backdrop.className = "modal-backdrop";
 
-    const content = document.createElement("div");
+    const content = settingsModalRuntime.createElement("div");
     content.className = "modal-content";
     content.style.maxWidth = "600px";
 
-    const header = document.createElement("div");
+    const header = settingsModalRuntime.createElement("div");
     header.className = "modal-header";
 
-    const iconWrapper = document.createElement("div");
+    const iconWrapper = settingsModalRuntime.createElement("div");
     iconWrapper.className = "modal-icon";
     iconWrapper.append(createAppIconElement("settings", { size: 32 }));
 
-    const closeButton = document.createElement("button");
+    const closeButton = settingsModalRuntime.createElement("button");
     closeButton.id = "settings-modal-close";
     closeButton.className = "modal-close";
     closeButton.type = "button";
@@ -197,22 +198,22 @@ function createSettingsModalContent(
 
     header.append(iconWrapper, closeButton);
 
-    const body = document.createElement("div");
+    const body = settingsModalRuntime.createElement("div");
     body.className = "modal-body";
 
-    const title = document.createElement("h2");
+    const title = settingsModalRuntime.createElement("h2");
     title.id = "settings-modal-title";
     title.className = "modal-title";
     title.textContent = "Settings";
 
-    const subtitle = document.createElement("p");
+    const subtitle = settingsModalRuntime.createElement("p");
     subtitle.className = "modal-subtitle";
     subtitle.textContent = "Customize your FitFileViewer experience";
 
-    const settingsSection = document.createElement("div");
+    const settingsSection = settingsModalRuntime.createElement("div");
     settingsSection.className = "settings-section";
 
-    const sectionTitle = document.createElement("h3");
+    const sectionTitle = settingsModalRuntime.createElement("h3");
     sectionTitle.className = "settings-section-title";
     sectionTitle.textContent = "🎨 Appearance";
 
@@ -222,9 +223,9 @@ function createSettingsModalContent(
         createAccentSetting(currentAccent)
     );
 
-    const footer = document.createElement("div");
+    const footer = settingsModalRuntime.createElement("div");
     footer.className = "settings-footer";
-    const footerCloseButton = document.createElement("button");
+    const footerCloseButton = settingsModalRuntime.createElement("button");
     footerCloseButton.id = "settings-close-btn";
     footerCloseButton.className = "themed-btn";
     footerCloseButton.type = "button";
@@ -240,7 +241,7 @@ function createSettingsModalContent(
 
 function createCloseIcon(): SVGSVGElement {
     const icon = createSvgIcon();
-    const path = document.createElementNS(SVG_NS, "path");
+    const path = settingsModalRuntime.createSvgElement("path");
     path.setAttribute("d", "M18 6L6 18M6 6l12 12");
     path.setAttribute("stroke", "currentColor");
     path.setAttribute("stroke-width", "2");
@@ -256,9 +257,9 @@ function createResetIcon(): SVGSVGElement {
     icon.setAttribute("width", "18");
     icon.setAttribute("height", "18");
 
-    const firstPath = document.createElementNS(SVG_NS, "path");
+    const firstPath = settingsModalRuntime.createSvgElement("path");
     firstPath.setAttribute("d", "M1 4v6h6M23 20v-6h-6");
-    const secondPath = document.createElementNS(SVG_NS, "path");
+    const secondPath = settingsModalRuntime.createSvgElement("path");
     secondPath.setAttribute(
         "d",
         "M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"
@@ -276,7 +277,7 @@ function createResetIcon(): SVGSVGElement {
 }
 
 function createSvgIcon(): SVGSVGElement {
-    const icon = document.createElementNS(SVG_NS, "svg");
+    const icon = settingsModalRuntime.createSvgElement("svg");
     icon.setAttribute("viewBox", "0 0 24 24");
     icon.setAttribute("fill", "none");
     icon.setAttribute("xmlns", SVG_NS);
@@ -284,15 +285,15 @@ function createSvgIcon(): SVGSVGElement {
 }
 
 function createThemeSetting(currentTheme: string): HTMLElement {
-    const item = document.createElement("div");
+    const item = settingsModalRuntime.createElement("div");
     item.className = "setting-item";
 
-    const label = document.createElement("label");
+    const label = settingsModalRuntime.createElement("label");
     label.className = "setting-label";
     label.htmlFor = "theme-select";
     label.textContent = "Theme";
 
-    const select = document.createElement("select");
+    const select = settingsModalRuntime.createElement("select");
     select.id = "theme-select";
     select.className = "setting-select";
     select.append(
@@ -315,7 +316,7 @@ function createThemeOption(
     label: string,
     currentTheme: string
 ): HTMLOptionElement {
-    const option = document.createElement("option");
+    const option = settingsModalRuntime.createElement("option");
     option.value = value;
     option.selected = currentTheme === value;
     option.textContent = label;
@@ -324,15 +325,15 @@ function createThemeOption(
 }
 
 function createAccentSetting(currentAccent: string): HTMLElement {
-    const item = document.createElement("div");
+    const item = settingsModalRuntime.createElement("div");
     item.className = "setting-item";
 
-    const label = document.createElement("label");
+    const label = settingsModalRuntime.createElement("label");
     label.className = "setting-label";
     label.htmlFor = "accent-color-picker";
     label.textContent = "Accent Color";
 
-    const controls = document.createElement("div");
+    const controls = settingsModalRuntime.createElement("div");
     controls.className = "accent-color-controls";
     controls.append(
         createAccentColorInput(currentAccent),
@@ -340,26 +341,26 @@ function createAccentSetting(currentAccent: string): HTMLElement {
         createResetButton()
     );
 
-    const preview = document.createElement("div");
+    const preview = settingsModalRuntime.createElement("div");
     preview.className = "accent-color-preview";
 
-    const previewLabel = document.createElement("div");
+    const previewLabel = settingsModalRuntime.createElement("div");
     previewLabel.className = "preview-label";
     previewLabel.textContent = "Preview:";
 
-    const previewSamples = document.createElement("div");
+    const previewSamples = settingsModalRuntime.createElement("div");
     previewSamples.className = "preview-samples";
 
-    const previewButton = document.createElement("button");
+    const previewButton = settingsModalRuntime.createElement("button");
     previewButton.className = "preview-button";
     previewButton.type = "button";
     previewButton.textContent = "Button";
 
-    const previewChip = document.createElement("div");
+    const previewChip = settingsModalRuntime.createElement("div");
     previewChip.className = "preview-chip";
     previewChip.textContent = "Chip";
 
-    const previewBadge = document.createElement("div");
+    const previewBadge = settingsModalRuntime.createElement("div");
     previewBadge.className = "preview-badge";
     previewBadge.textContent = "Badge";
 
@@ -371,7 +372,7 @@ function createAccentSetting(currentAccent: string): HTMLElement {
 }
 
 function createAccentColorInput(currentAccent: string): HTMLInputElement {
-    const input = document.createElement("input");
+    const input = settingsModalRuntime.createElement("input");
     input.id = "accent-color-picker";
     input.className = "accent-color-input";
     input.type = "color";
@@ -382,7 +383,7 @@ function createAccentColorInput(currentAccent: string): HTMLInputElement {
 }
 
 function createAccentTextInput(currentAccent: string): HTMLInputElement {
-    const input = document.createElement("input");
+    const input = settingsModalRuntime.createElement("input");
     input.id = "accent-color-text";
     input.className = "accent-color-text-input";
     input.type = "text";
@@ -395,7 +396,7 @@ function createAccentTextInput(currentAccent: string): HTMLInputElement {
 }
 
 function createResetButton(): HTMLButtonElement {
-    const button = document.createElement("button");
+    const button = settingsModalRuntime.createElement("button");
     button.id = "reset-accent-color";
     button.className = "reset-btn";
     button.type = "button";
@@ -409,11 +410,11 @@ function createResetButton(): HTMLButtonElement {
  * Injects CSS styles for the settings modal.
  */
 function injectSettingsModalStyles(): void {
-    if (document.querySelector("#settings-modal-styles")) {
+    if (settingsModalRuntime.queryElement("#settings-modal-styles")) {
         return;
     }
 
-    const style = document.createElement("style");
+    const style = settingsModalRuntime.createElement("style");
     style.id = "settings-modal-styles";
     style.textContent = `
 		#${SETTINGS_MODAL_ID} .settings-section {
@@ -620,7 +621,7 @@ function injectSettingsModalStyles(): void {
 		}
 	`;
 
-    document.head.append(style);
+    settingsModalRuntime.appendToHead(style);
 }
 
 /**
@@ -666,7 +667,10 @@ function setupSettingsModalHandlers(
     // Escape key to close
     let cleanupEscape: (() => void) | undefined;
     const handleEscape = (event: Event) => {
-        if (event instanceof KeyboardEvent && event.key === "Escape") {
+        if (
+            settingsModalRuntime.isKeyboardEvent(event) &&
+            event.key === "Escape"
+        ) {
             event.preventDefault();
             handleCloseSettingsModal();
             cleanupEscape?.();
@@ -674,7 +678,7 @@ function setupSettingsModalHandlers(
         }
     };
     cleanupEscape = addEventListenerWithCleanup(
-        document,
+        settingsModalRuntime.getDocumentEventTarget(),
         "keydown",
         handleEscape
     );
@@ -683,7 +687,7 @@ function setupSettingsModalHandlers(
     const themeSelect = modal.querySelector<HTMLSelectElement>("#theme-select");
     if (themeSelect) {
         addEventListenerWithCleanup(themeSelect, "change", (event: Event) => {
-            if (!(event.target instanceof HTMLSelectElement)) {
+            if (!settingsModalRuntime.isHTMLSelectElement(event.target)) {
                 return;
             }
             const newTheme = event.target.value;
@@ -742,7 +746,7 @@ function setupSettingsModalHandlers(
     if (colorPicker && colorText) {
         // Sync color picker and text input
         addEventListenerWithCleanup(colorPicker, "input", (event: Event) => {
-            if (!(event.target instanceof HTMLInputElement)) {
+            if (!settingsModalRuntime.isHTMLInputElement(event.target)) {
                 return;
             }
             const color = event.target.value;
@@ -754,7 +758,7 @@ function setupSettingsModalHandlers(
         });
 
         addEventListenerWithCleanup(colorText, "input", (event: Event) => {
-            if (!(event.target instanceof HTMLInputElement)) {
+            if (!settingsModalRuntime.isHTMLInputElement(event.target)) {
                 return;
             }
             let color = event.target.value.trim();

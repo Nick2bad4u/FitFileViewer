@@ -939,6 +939,8 @@ const directSettingsModalGlobalPattern =
     /\b(?:window|globalThis|settingsModalGlobal)\.(?:showSettingsModal|closeSettingsModal)\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["'](?:showSettingsModal|closeSettingsModal)["']\s*\)/u;
 const directSettingsModalTimingRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\b|(?:^|[^\w.])(?:cancelAnimationFrame|clearTimeout|requestAnimationFrame|setTimeout)\(/u;
+const directSettingsModalBrowserRuntimeGlobalPattern =
+    /\bdocument\.(?:activeElement|addEventListener|body|createElement|createElementNS|head|querySelector)\b|\binstanceof\s+(?:HTMLElement|HTMLInputElement|HTMLSelectElement|KeyboardEvent)\b/u;
 const directModalRuntimeAmbientTimerFallbackPattern =
     /\bscope\.(?:clearTimeout|setTimeout)\s*\?\?\s*globalThis\.(?:clearTimeout|setTimeout)\b|\bglobalThis\.(?:clearTimeout|setTimeout)\(/u;
 const directDragDropHandlerTimingRuntimeGlobalPattern =
@@ -5653,12 +5655,19 @@ describe("architecture boundaries", () => {
         expect(injectModalStylesSource).not.toContain("scope.document");
     });
 
-    it("keeps settings modal timing APIs behind the runtime facade", () => {
-        expect.assertions(19);
+    it("keeps settings modal browser APIs behind the runtime facade", () => {
+        expect.assertions(46);
 
-        const violations = migratedSettingsModalRuntimeFiles
+        const timingViolations = migratedSettingsModalRuntimeFiles
             .filter((relativeFile) =>
                 directSettingsModalTimingRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const browserViolations = migratedSettingsModalRuntimeFiles
+            .filter((relativeFile) =>
+                directSettingsModalBrowserRuntimeGlobalPattern.test(
                     stripComments(readRepositoryFile(relativeFile))
                 )
             )
@@ -5670,8 +5679,39 @@ describe("architecture boundaries", () => {
             readRepositoryFile("electron-app/utils/ui/settingsModalRuntime.ts")
         );
 
-        expect(violations).toStrictEqual([]);
+        expect(timingViolations).toStrictEqual([]);
+        expect(browserViolations).toStrictEqual([]);
         expect(settingsModalSource).toContain("settingsModalRuntime.js");
+        expect(settingsModalSource).toContain(
+            "settingsModalRuntime.queryElement"
+        );
+        expect(settingsModalSource).toContain(
+            "settingsModalRuntime.createElement"
+        );
+        expect(settingsModalSource).toContain(
+            "settingsModalRuntime.createSvgElement"
+        );
+        expect(settingsModalSource).toContain(
+            "settingsModalRuntime.appendToBody"
+        );
+        expect(settingsModalSource).toContain(
+            "settingsModalRuntime.appendToHead"
+        );
+        expect(settingsModalSource).toContain(
+            "settingsModalRuntime.getActiveHTMLElement"
+        );
+        expect(settingsModalSource).toContain(
+            "settingsModalRuntime.getDocumentEventTarget"
+        );
+        expect(settingsModalSource).toContain(
+            "settingsModalRuntime.isKeyboardEvent"
+        );
+        expect(settingsModalSource).toContain(
+            "settingsModalRuntime.isHTMLInputElement"
+        );
+        expect(settingsModalSource).toContain(
+            "settingsModalRuntime.isHTMLSelectElement"
+        );
         expect(settingsModalRuntimeSource).not.toMatch(
             directModalRuntimeAmbientTimerFallbackPattern
         );
@@ -5690,6 +5730,19 @@ describe("architecture boundaries", () => {
         expect(settingsModalRuntimeSource).not.toContain(
             "readonly clearTimeout?:"
         );
+        expect(settingsModalRuntimeSource).not.toContain("readonly document?:");
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly HTMLInputElement?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly HTMLSelectElement?:"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "readonly KeyboardEvent?:"
+        );
         expect(settingsModalRuntimeSource).not.toContain(
             "readonly requestAnimationFrame?:"
         );
@@ -5704,11 +5757,35 @@ describe("architecture boundaries", () => {
             "scope.requestAnimationFrame"
         );
         expect(settingsModalRuntimeSource).not.toContain("scope.setTimeout");
+        expect(settingsModalRuntimeSource).not.toContain("scope.document");
+        expect(settingsModalRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(settingsModalRuntimeSource).not.toContain(
+            "scope.HTMLInputElement"
+        );
+        expect(settingsModalRuntimeSource).not.toContain(
+            "scope.HTMLSelectElement"
+        );
+        expect(settingsModalRuntimeSource).not.toContain("scope.KeyboardEvent");
         expect(settingsModalRuntimeSource).toContain(
             "getCancelAnimationFrame: () => globalThis.cancelAnimationFrame"
         );
         expect(settingsModalRuntimeSource).toContain(
             "getClearTimeout: () => globalThis.clearTimeout"
+        );
+        expect(settingsModalRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(settingsModalRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(settingsModalRuntimeSource).toContain(
+            "getHTMLInputElement: () => globalThis.HTMLInputElement"
+        );
+        expect(settingsModalRuntimeSource).toContain(
+            "getHTMLSelectElement: () => globalThis.HTMLSelectElement"
+        );
+        expect(settingsModalRuntimeSource).toContain(
+            "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(settingsModalRuntimeSource).toContain(
             "getRequestAnimationFrame: () => globalThis.requestAnimationFrame"
@@ -5718,6 +5795,9 @@ describe("architecture boundaries", () => {
         );
         expect(settingsModalRuntimeSource).toContain(
             "settingsModalRuntime requires a setTimeout runtime"
+        );
+        expect(settingsModalRuntimeSource).toContain(
+            "settingsModalRuntime requires a document runtime"
         );
     });
 

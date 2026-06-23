@@ -941,6 +941,10 @@ cancellation through `settingsModalRuntime.ts` instead of calling those globals 
 with explicit runtime scopes now required to provide close-timer primitives instead of falling back to
 `globalThis`, and runtime adapter tests plus architecture coverage blocking direct timing globals and ambient
 timer fallbacks from returning.
+Settings modal browser access now also routes modal/style lookup, DOM and SVG element creation, body/head appends,
+active-element lookup, document keydown listener target lookup, and browser event/element constructor checks through
+`settingsModalRuntime.ts`, with runtime adapter tests plus architecture coverage blocking direct document and
+constructor access from returning to `settingsModal.ts`.
 Drag/drop overlay animation timing and file-reader listener cleanup now route animation-frame scheduling,
 cancellation, and abort-controller creation through `dragDropHandlerRuntime.ts` instead of calling those globals or
 constructing controllers directly in `dragDropHandler.ts`, with runtime adapter tests and architecture coverage

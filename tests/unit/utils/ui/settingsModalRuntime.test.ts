@@ -81,6 +81,113 @@ describe("getSettingsModalRuntime", () => {
         );
     });
 
+    it("routes document operations through the injected runtime provider", () => {
+        expect.assertions(12);
+
+        document.body.replaceChildren();
+        document.head.replaceChildren();
+
+        const getDocument = vi.fn(() => document);
+        const runtime = getSettingsModalRuntime({ getDocument });
+
+        const bodyNode = runtime.createElement("div");
+        bodyNode.id = "settings-modal-runtime-body";
+        runtime.appendToBody(bodyNode);
+
+        const headNode = runtime.createElement("style");
+        headNode.id = "settings-modal-runtime-style";
+        runtime.appendToHead(headNode);
+
+        const path = runtime.createSvgElement("path");
+
+        expect(runtime.queryElement("#settings-modal-runtime-body")).toBe(
+            bodyNode
+        );
+        expect(runtime.queryElement("#settings-modal-runtime-style")).toBe(
+            headNode
+        );
+        expect(bodyNode.tagName).toBe("DIV");
+        expect(headNode.tagName).toBe("STYLE");
+        expect(path.namespaceURI).toBe("http://www.w3.org/2000/svg");
+        expect(path.tagName).toBe("path");
+        expect(runtime.getDocumentEventTarget()).toBe(document);
+        expect(getDocument).toHaveBeenCalledTimes(8);
+        expect(document.body.contains(bodyNode)).toBe(true);
+        expect(document.head.contains(headNode)).toBe(true);
+
+        document.body.replaceChildren();
+        document.head.replaceChildren();
+
+        expect(document.querySelector("#settings-modal-runtime-body")).toBe(
+            null
+        );
+        expect(document.querySelector("#settings-modal-runtime-style")).toBe(
+            null
+        );
+    });
+
+    it("checks active elements and browser event targets through injected constructors", () => {
+        expect.assertions(8);
+
+        document.body.replaceChildren();
+
+        const button = document.createElement("button");
+        document.body.append(button);
+        button.focus();
+
+        const runtime = getSettingsModalRuntime({
+            getDocument: () => document,
+            getHTMLElement: () => HTMLElement,
+            getHTMLInputElement: () => HTMLInputElement,
+            getHTMLSelectElement: () => HTMLSelectElement,
+            getKeyboardEvent: () => KeyboardEvent,
+        });
+
+        const input = document.createElement("input");
+        const select = document.createElement("select");
+        const keyboardEvent = new KeyboardEvent("keydown", { key: "Escape" });
+
+        expect(runtime.getActiveHTMLElement()).toBe(button);
+        expect(runtime.isHTMLInputElement(input)).toBe(true);
+        expect(runtime.isHTMLInputElement(select)).toBe(false);
+        expect(runtime.isHTMLSelectElement(select)).toBe(true);
+        expect(runtime.isHTMLSelectElement(input)).toBe(false);
+        expect(runtime.isKeyboardEvent(keyboardEvent)).toBe(true);
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+        expect(
+            getSettingsModalRuntime({
+                getDocument: () => document,
+            }).getActiveHTMLElement()
+        ).toBeUndefined();
+
+        document.body.replaceChildren();
+    });
+
+    it("requires a document provider for document-backed operations", () => {
+        expect.assertions(6);
+
+        const runtime = getSettingsModalRuntime({});
+
+        expect(() =>
+            runtime.appendToBody(document.createElement("div"))
+        ).toThrow("settingsModalRuntime requires a document runtime");
+        expect(() =>
+            runtime.appendToHead(document.createElement("style"))
+        ).toThrow("settingsModalRuntime requires a document runtime");
+        expect(() => runtime.createElement("div")).toThrow(
+            "settingsModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.createSvgElement("svg")).toThrow(
+            "settingsModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.getDocumentEventTarget()).toThrow(
+            "settingsModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.queryElement("#settings-modal")).toThrow(
+            "settingsModalRuntime requires a document runtime"
+        );
+    });
+
     it("schedules animation frames through the injected runtime provider", () => {
         expect.assertions(3);
 
@@ -124,8 +231,8 @@ describe("getSettingsModalRuntime", () => {
         expect(cancelAnimationFrame.mock.contexts[0]).toBe(scope);
     });
 
-    it("ignores legacy direct timing runtime properties", () => {
-        expect.assertions(8);
+    it("ignores legacy direct runtime properties", () => {
+        expect.assertions(11);
 
         const callback = vi.fn<() => void>();
         const frameCallback = vi.fn<FrameRequestCallback>();
@@ -138,6 +245,8 @@ describe("getSettingsModalRuntime", () => {
         const runtime = getSettingsModalRuntime({
             cancelAnimationFrame,
             clearTimeout,
+            document,
+            HTMLElement,
             requestAnimationFrame,
             setTimeout,
         } as unknown as Parameters<typeof getSettingsModalRuntime>[0]);
@@ -156,6 +265,15 @@ describe("getSettingsModalRuntime", () => {
         expect(clearTimeout).not.toHaveBeenCalled();
         expect(requestAnimationFrame).not.toHaveBeenCalled();
         expect(cancelAnimationFrame).not.toHaveBeenCalled();
+        expect(() => runtime.createElement("div")).toThrow(
+            "settingsModalRuntime requires a document runtime"
+        );
+        expect(() => runtime.getActiveHTMLElement()).toThrow(
+            "settingsModalRuntime requires a document runtime"
+        );
+        expect(runtime.isKeyboardEvent(new KeyboardEvent("keydown"))).toBe(
+            false
+        );
     });
 
     it("ignores frame cancellation when the runtime scope cannot cancel", () => {
