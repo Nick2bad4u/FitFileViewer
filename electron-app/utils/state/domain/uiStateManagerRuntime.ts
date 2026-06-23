@@ -33,6 +33,9 @@ export interface UIStateManagerRuntimeScope {
     readonly getMatchMedia?:
         | (() => typeof globalThis.matchMedia | undefined)
         | undefined;
+    readonly getSetBodyCursor?:
+        | (() => ((cursor: string) => void) | undefined)
+        | undefined;
     readonly getSetDocumentTitle?:
         | (() => ((title: string) => void) | undefined)
         | undefined;
@@ -52,6 +55,7 @@ export interface UIStateManagerRuntime {
     getSystemThemeMediaQuery: () => MediaQueryList | null;
     getWindowState: () => UIStateWindowStateSnapshot | null;
     hasWindow: () => boolean;
+    setBodyCursor: (cursor: string) => void;
     setDocumentTitle: (title: string) => void;
 }
 
@@ -63,6 +67,9 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
             ? globalThis
             : undefined,
     getMatchMedia: () => globalThis.matchMedia,
+    getSetBodyCursor: () => (cursor) => {
+        globalThis.document.body.style.cursor = cursor;
+    },
     getViewportState: () => globalThis,
     getSetDocumentTitle: () => (title) => {
         globalThis.document.title = title;
@@ -102,6 +109,12 @@ function getDocumentTitle(
     const title = scope.getDocumentTitle?.();
 
     return typeof title === "string" && title.length > 0 ? title : undefined;
+}
+
+function getSetBodyCursor(
+    scope: UIStateManagerRuntimeScope
+): ((cursor: string) => void) | undefined {
+    return scope.getSetBodyCursor?.();
 }
 
 function getSetDocumentTitle(
@@ -171,6 +184,9 @@ export function getUIStateManagerRuntime(
         },
         hasWindow(): boolean {
             return getEventTarget(scope) !== undefined;
+        },
+        setBodyCursor(cursor): void {
+            getSetBodyCursor(scope)?.(cursor);
         },
         setDocumentTitle(title): void {
             getSetDocumentTitle(scope)?.(title);

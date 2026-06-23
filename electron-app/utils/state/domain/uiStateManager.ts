@@ -640,7 +640,9 @@ export class UIStateManager {
 
         // Update cursor
         try {
-            document.body.style.cursor = isLoading ? "wait" : "default";
+            uiStateManagerRuntime.setBodyCursor(
+                isLoading ? "wait" : "default"
+            );
         } catch {
             /* Ignore errors */
         }

@@ -1220,7 +1220,7 @@ const themeAdditionalTestDirectGlobalFixtureMutationPattern =
 const uiStateManagerTestDirectMatchMediaMutationPattern =
     /\bObject\.defineProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*,|\bReflect\.deleteProperty\(\s*globalThis\s*,\s*["']matchMedia["']\s*\)/u;
 const directUiStateManagerBrowserRuntimePattern =
-    /\bnew\s+AbortController\b|\bglobalThis\.(?:matchMedia|window)\b|\bwindow\.addEventListener\b|\bdocument\.title\b/u;
+    /\bnew\s+AbortController\b|\bglobalThis\.(?:matchMedia|window)\b|\bwindow\.addEventListener\b|\bdocument\.title\b|\bdocument\.body\.style\.cursor\b/u;
 const directChartThemeListenerRuntimeGlobalPattern =
     /\bdocument\.body\b|\binstanceof\s+CustomEvent\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directChartThemeListenerRuntimeAmbientFallbackPattern =
@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(30);
+        expect.assertions(34);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6603,6 +6603,7 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("createAbortController");
         expect(uiStateManagerSource).toContain("addWindowEventListener");
         expect(uiStateManagerSource).toContain("getDefaultDocumentTitle");
+        expect(uiStateManagerSource).toContain("setBodyCursor");
         expect(uiStateManagerSource).toContain("setDocumentTitle");
         expect(uiStateManagerSource).toContain("getSystemThemeMediaQuery");
         expect(
@@ -6622,6 +6623,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getMatchMedia: () => globalThis.matchMedia"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getSetBodyCursor: () => (cursor) =>"
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getSetDocumentTitle: () => (title) =>"
@@ -6653,6 +6657,9 @@ describe("architecture boundaries", () => {
             "readonly setDocumentTitle?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly setBodyCursor?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly viewportState?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
@@ -6667,6 +6674,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.setDocumentTitle"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.setBodyCursor"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.viewportState"

@@ -78,6 +78,23 @@ describe("uiStateManagerRuntime", () => {
         ).not.toThrow();
     });
 
+    it("routes body cursor updates through scoped providers", () => {
+        expect.assertions(3);
+
+        const setBodyCursor = vi.fn<(cursor: string) => void>();
+        const runtime = getUIStateManagerRuntime({
+            getSetBodyCursor: () => setBodyCursor,
+        });
+
+        runtime.setBodyCursor("wait");
+
+        expect(setBodyCursor).toHaveBeenCalledExactlyOnceWith("wait");
+        expect(() =>
+            getUIStateManagerRuntime({}).setBodyCursor("default")
+        ).not.toThrow();
+        expect(setBodyCursor).not.toHaveBeenCalledWith("default");
+    });
+
     it("ignores direct scoped matchMedia when no provider is scoped", () => {
         expect.assertions(2);
 
@@ -178,7 +195,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(13);
+        expect.assertions(15);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -189,6 +206,7 @@ describe("uiStateManagerRuntime", () => {
         }
         const addEventListener = vi.fn();
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
+        const setBodyCursor = vi.fn();
         const setDocumentTitle = vi.fn();
         const runtime = getUIStateManagerRuntime({
             AbortController:
@@ -196,6 +214,7 @@ describe("uiStateManagerRuntime", () => {
             documentTitle: "Legacy title",
             eventTarget: { addEventListener },
             matchMedia,
+            setBodyCursor,
             setDocumentTitle,
             viewportState: {
                 innerHeight: 800,
@@ -222,9 +241,11 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getWindowState()).toBeNull();
         expect(runtime.hasWindow()).toBe(false);
         runtime.addWindowEventListener("resize", listener);
+        expect(() => runtime.setBodyCursor("wait")).not.toThrow();
         expect(() => runtime.setDocumentTitle("Ignored")).not.toThrow();
         expect(created).toBe(false);
         expect(matchMedia).not.toHaveBeenCalled();
+        expect(setBodyCursor).not.toHaveBeenCalled();
         expect(setDocumentTitle).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();
         expect(listener).not.toHaveBeenCalled();
