@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(103);
+        expect.assertions(116);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6601,8 +6601,13 @@ describe("architecture boundaries", () => {
 
         expect(uiStateManagerSource).toContain("uiStateManagerRuntime.js");
         expect(uiStateManagerSource).toContain("createAbortController");
+        expect(uiStateManagerSource).toContain("createSpanElement");
         expect(uiStateManagerSource).toContain("addWindowEventListener");
         expect(uiStateManagerSource).toContain("getDefaultDocumentTitle");
+        expect(uiStateManagerSource).toContain(
+            "getActiveFileNameContainerElement"
+        );
+        expect(uiStateManagerSource).toContain("getActiveFileNameElement");
         expect(uiStateManagerSource).toContain("getAltFitIframeElement");
         expect(uiStateManagerSource).toContain("getChartControlsToggleElement");
         expect(uiStateManagerSource).toContain(
@@ -6666,6 +6671,15 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).not.toContain(
             'getElementByIdFlexible(document, "unload_file_btn")'
         );
+        expect(uiStateManagerSource).not.toContain(
+            'getElementByIdFlexible(\n                    document,\n                    "active_file_name_container"'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'getElementByIdFlexible(document, "active_file_name")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'document.createElement("span")'
+        );
         expect(
             directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
         ).toBe(false);
@@ -6674,6 +6688,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getAbortController: () => globalThis.AbortController"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'createSpanElement: () => globalThis.document.createElement("span")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getFileStateBody: () => globalThis.document.body"
@@ -6692,6 +6709,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getChartSettingsWrapper(globalThis.document)"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'getElementByIdFlexible(\n            globalThis.document,\n            "active_file_name_container"'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'getElementByIdFlexible(globalThis.document, "active_file_name")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             'getElementByIdFlexible(globalThis.document, "altfit_iframe")'
@@ -6745,6 +6768,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly documentTitle?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly activeFileNameContainerElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly activeFileNameElement?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly altFitIframeElement?:"
@@ -6805,6 +6834,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.documentTitle"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.activeFileNameContainerElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.activeFileNameElement"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.altFitIframeElement"

@@ -140,11 +140,14 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("routes chart, loading, sidebar, and measurement element lookups through scoped providers", () => {
-        expect.assertions(36);
+        expect.assertions(45);
 
+        const activeFileName = document.createElement("span");
+        const activeFileNameContainer = document.createElement("div");
         const altFitIframe = document.createElement("iframe");
         const chartControlsToggle = document.createElement("button");
         const chartSettingsWrapper = document.createElement("section");
+        const createdSpan = document.createElement("span");
         const dropOverlay = document.createElement("div");
         const fileLoadingProgress = document.createElement("progress");
         const loadingIndicator = document.createElement("div");
@@ -154,6 +157,11 @@ describe("uiStateManagerRuntime", () => {
         const sidebar = document.createElement("aside");
         const unloadButton = document.createElement("button");
         const zwiftIframe = document.createElement("iframe");
+        const createSpanElement = vi.fn(() => createdSpan);
+        const getActiveFileNameContainerElement = vi.fn(
+            () => activeFileNameContainer
+        );
+        const getActiveFileNameElement = vi.fn(() => activeFileName);
         const getAltFitIframeElement = vi.fn(() => altFitIframe);
         const getChartControlsToggleElement = vi.fn(() => chartControlsToggle);
         const getChartSettingsWrapperElement = vi.fn(
@@ -169,6 +177,9 @@ describe("uiStateManagerRuntime", () => {
         const getUnloadFileButtonElement = vi.fn(() => unloadButton);
         const getZwiftIframeElement = vi.fn(() => zwiftIframe);
         const runtime = getUIStateManagerRuntime({
+            createSpanElement,
+            getActiveFileNameContainerElement,
+            getActiveFileNameElement,
             getAltFitIframeElement,
             getChartControlsToggleElement,
             getChartSettingsWrapperElement,
@@ -183,6 +194,11 @@ describe("uiStateManagerRuntime", () => {
             getZwiftIframeElement,
         });
 
+        expect(runtime.createSpanElement()).toBe(createdSpan);
+        expect(runtime.getActiveFileNameContainerElement()).toBe(
+            activeFileNameContainer
+        );
+        expect(runtime.getActiveFileNameElement()).toBe(activeFileName);
         expect(runtime.getAltFitIframeElement()).toBe(altFitIframe);
         expect(runtime.getFileLoadingProgressElement()).toBe(
             fileLoadingProgress
@@ -203,6 +219,9 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getSidebarElement()).toBe(sidebar);
         expect(runtime.getUnloadFileButtonElement()).toBe(unloadButton);
         expect(runtime.getZwiftIframeElement()).toBe(zwiftIframe);
+        expect(createSpanElement).toHaveBeenCalledOnce();
+        expect(getActiveFileNameContainerElement).toHaveBeenCalledOnce();
+        expect(getActiveFileNameElement).toHaveBeenCalledOnce();
         expect(getAltFitIframeElement).toHaveBeenCalledOnce();
         expect(getChartControlsToggleElement).toHaveBeenCalledOnce();
         expect(getChartSettingsWrapperElement).toHaveBeenCalledOnce();
@@ -215,6 +234,15 @@ describe("uiStateManagerRuntime", () => {
         expect(getSidebarElement).toHaveBeenCalledOnce();
         expect(getUnloadFileButtonElement).toHaveBeenCalledOnce();
         expect(getZwiftIframeElement).toHaveBeenCalledOnce();
+        expect(
+            getUIStateManagerRuntime({}).getActiveFileNameContainerElement()
+        ).toBeNull();
+        expect(
+            getUIStateManagerRuntime({}).getActiveFileNameElement()
+        ).toBeNull();
+        expect(() => getUIStateManagerRuntime({}).createSpanElement()).toThrow(
+            "UI state manager requires a span element factory runtime"
+        );
         expect(
             getUIStateManagerRuntime({}).getAltFitIframeElement()
         ).toBeNull();
@@ -345,7 +373,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(41);
+        expect.assertions(45);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -355,6 +383,8 @@ describe("uiStateManagerRuntime", () => {
             }
         }
         const addEventListener = vi.fn();
+        const activeFileNameContainerElement = document.createElement("div");
+        const activeFileNameElement = document.createElement("span");
         const altFitIframeElement = document.createElement("iframe");
         const chartControlsToggleElement = document.createElement("button");
         const chartSettingsWrapperElement = document.createElement("section");
@@ -374,6 +404,8 @@ describe("uiStateManagerRuntime", () => {
         const runtime = getUIStateManagerRuntime({
             AbortController:
                 TestAbortController as unknown as typeof AbortController,
+            activeFileNameContainerElement,
+            activeFileNameElement,
             altFitIframeElement,
             documentTitle: "Legacy title",
             eventTarget: { addEventListener },
@@ -417,6 +449,8 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getDefaultDocumentTitle("Fit File Viewer")).toBe(
             "Fit File Viewer"
         );
+        expect(runtime.getActiveFileNameContainerElement()).toBeNull();
+        expect(runtime.getActiveFileNameElement()).toBeNull();
         expect(runtime.getAltFitIframeElement()).toBeNull();
         expect(runtime.getChartControlsToggleElement()).toBeNull();
         expect(runtime.getChartSettingsWrapperElement()).toBeNull();
@@ -437,6 +471,12 @@ describe("uiStateManagerRuntime", () => {
         expect(() => runtime.setDocumentTitle("Ignored")).not.toThrow();
         expect(created).toBe(false);
         expect(fileStateToggle).not.toHaveBeenCalled();
+        expect(runtime.getActiveFileNameContainerElement()).not.toBe(
+            activeFileNameContainerElement
+        );
+        expect(runtime.getActiveFileNameElement()).not.toBe(
+            activeFileNameElement
+        );
         expect(runtime.getAltFitIframeElement()).not.toBe(altFitIframeElement);
         expect(runtime.getChartControlsToggleElement()).not.toBe(
             chartControlsToggleElement

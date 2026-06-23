@@ -40,8 +40,15 @@ export interface UIStateManagerRuntimeScope {
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
+    readonly createSpanElement?: (() => HTMLSpanElement) | undefined;
     readonly getFileStateBody?:
         | (() => UIStateManagerFileStateBody | undefined)
+        | undefined;
+    readonly getActiveFileNameContainerElement?:
+        | UIStateManagerElementProvider
+        | undefined;
+    readonly getActiveFileNameElement?:
+        | UIStateManagerElementProvider
         | undefined;
     readonly getDocumentTitle?: (() => string | undefined) | undefined;
     readonly getEventTarget?:
@@ -94,7 +101,10 @@ export interface UIStateManagerRuntime {
         options?: AddEventListenerOptions
     ) => void;
     createAbortController: () => AbortController;
+    createSpanElement: () => HTMLSpanElement;
     getDefaultDocumentTitle: (fallbackTitle: string) => string;
+    getActiveFileNameContainerElement: () => HTMLElement | null;
+    getActiveFileNameElement: () => HTMLElement | null;
     getAltFitIframeElement: () => HTMLElement | null;
     getChartControlsToggleElement: () => HTMLElement | null;
     getChartSettingsWrapperElement: () => HTMLElement | null;
@@ -116,6 +126,7 @@ export interface UIStateManagerRuntime {
 }
 
 const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
+    createSpanElement: () => globalThis.document.createElement("span"),
     getAbortController: () => globalThis.AbortController,
     getFileStateBody: () => globalThis.document.body,
     getDocumentTitle: () => globalThis.document.title,
@@ -123,6 +134,13 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
         typeof globalThis.addEventListener === "function"
             ? globalThis
             : undefined,
+    getActiveFileNameContainerElement: () =>
+        getElementByIdFlexible(
+            globalThis.document,
+            "active_file_name_container"
+        ),
+    getActiveFileNameElement: () =>
+        getElementByIdFlexible(globalThis.document, "active_file_name"),
     getAltFitIframeElement: () =>
         getElementByIdFlexible(globalThis.document, "altfit_iframe"),
     getChartControlsToggleElement: () =>
@@ -174,10 +192,33 @@ function getAbortControllerConstructor(
     return AbortControllerConstructor;
 }
 
+function createSpanElement(scope: UIStateManagerRuntimeScope): HTMLSpanElement {
+    const createSpan = scope.createSpanElement;
+    if (typeof createSpan !== "function") {
+        throw new TypeError(
+            "UI state manager requires a span element factory runtime"
+        );
+    }
+
+    return createSpan();
+}
+
 function getEventTarget(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerEventTarget | undefined {
     return scope.getEventTarget?.();
+}
+
+function getActiveFileNameContainerElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getActiveFileNameContainerElement?.() ?? null;
+}
+
+function getActiveFileNameElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getActiveFileNameElement?.() ?? null;
 }
 
 function getAltFitIframeElement(
@@ -328,8 +369,17 @@ export function getUIStateManagerRuntime(
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
         },
+        createSpanElement(): HTMLSpanElement {
+            return createSpanElement(scope);
+        },
         getDefaultDocumentTitle(fallbackTitle): string {
             return getDocumentTitle(scope) ?? fallbackTitle;
+        },
+        getActiveFileNameContainerElement(): HTMLElement | null {
+            return getActiveFileNameContainerElement(scope);
+        },
+        getActiveFileNameElement(): HTMLElement | null {
+            return getActiveFileNameElement(scope);
         },
         getAltFitIframeElement(): HTMLElement | null {
             return getAltFitIframeElement(scope);

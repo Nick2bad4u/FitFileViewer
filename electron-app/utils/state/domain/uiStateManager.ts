@@ -542,10 +542,7 @@ export class UIStateManager {
 
         const fileNameContainer = (() => {
             try {
-                return getElementByIdFlexible(
-                    document,
-                    "active_file_name_container"
-                );
+                return uiStateManagerRuntime.getActiveFileNameContainerElement();
             } catch {
                 return null;
             }
@@ -558,7 +555,7 @@ export class UIStateManager {
 
         const fileSpan = (() => {
             try {
-                return getElementByIdFlexible(document, "active_file_name");
+                return uiStateManagerRuntime.getActiveFileNameElement();
             } catch {
                 return null;
             }
@@ -568,17 +565,17 @@ export class UIStateManager {
             if (hasRenderableFile) {
                 // Security: avoid `innerHTML` here. `displayName` can originate from user-controlled
                 // file paths and must never be interpreted as markup.
-                const labelSpan = document.createElement("span");
+                const labelSpan = uiStateManagerRuntime.createSpanElement();
                 labelSpan.className = "active-label";
                 labelSpan.textContent = "Active:";
 
-                const nameSpan = document.createElement("span");
+                const nameSpan = uiStateManagerRuntime.createSpanElement();
                 nameSpan.className = "filename-text";
                 nameSpan.textContent = displayName;
 
                 // Prevent long filenames (with auto-scroll animation) from rendering underneath the
                 // fixed "Active:" label. The viewport clips the scrolling text region.
-                const nameViewport = document.createElement("span");
+                const nameViewport = uiStateManagerRuntime.createSpanElement();
                 nameViewport.className = "filename-viewport";
                 nameViewport.append(nameSpan);
 
