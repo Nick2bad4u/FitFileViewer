@@ -1,13 +1,8 @@
+import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
+
 export type MapMeasureToolTimer = ReturnType<typeof globalThis.setTimeout>;
 
-type MapMeasureToolDocument = Pick<
-    Document,
-    | "addEventListener"
-    | "createElement"
-    | "createElementNS"
-    | "createTextNode"
-    | "removeEventListener"
->;
+type MapMeasureToolDocument = Document;
 type MapMeasureToolKeydownListener = (event: Readonly<KeyboardEvent>) => void;
 
 export interface MapMeasureToolRuntimeScope {
@@ -82,6 +77,16 @@ function getRequiredHTMLElement(
     return HTMLElementConstructor;
 }
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: MapMeasureToolRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getRequiredDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getMapMeasureToolRuntime(
     scope: MapMeasureToolRuntimeScope = defaultMapMeasureToolRuntimeScope
 ): MapMeasureToolRuntime {
@@ -116,10 +121,7 @@ export function getMapMeasureToolRuntime(
             return getRequiredDocument(scope).createElement(tagName);
         },
         createSvgElement(tagName) {
-            return getRequiredDocument(scope).createElementNS(
-                "http://www.w3.org/2000/svg",
-                tagName
-            );
+            return createSvgElement(scope, tagName);
         },
         createTextNode(data): Text {
             return getRequiredDocument(scope).createTextNode(data);

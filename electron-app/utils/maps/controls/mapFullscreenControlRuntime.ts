@@ -1,17 +1,10 @@
+import { getIconFactoryRuntime } from "../../ui/icons/iconFactoryRuntime.js";
+
 export type MapFullscreenControlTimer = ReturnType<
     typeof globalThis.setTimeout
 >;
 
-type MapFullscreenControlDocument = Pick<
-    Document,
-    | "addEventListener"
-    | "body"
-    | "createElement"
-    | "createElementNS"
-    | "exitFullscreen"
-    | "fullscreenElement"
-    | "querySelector"
->;
+type MapFullscreenControlDocument = Document;
 
 export interface MapFullscreenControlRuntimeScope {
     readonly getAbortController?:
@@ -71,6 +64,16 @@ function getRuntimeDocument(
     return runtimeDocument;
 }
 
+function createSvgElement<K extends keyof SVGElementTagNameMap>(
+    scope: MapFullscreenControlRuntimeScope,
+    tagName: K
+): SVGElementTagNameMap[K] {
+    const runtimeDocument = getRuntimeDocument(scope);
+    return getIconFactoryRuntime({
+        getDocument: () => runtimeDocument,
+    }).createSvgElement(tagName);
+}
+
 export function getMapFullscreenControlRuntime(
     scope: MapFullscreenControlRuntimeScope = defaultMapFullscreenControlRuntimeScope
 ): MapFullscreenControlRuntime {
@@ -109,10 +112,7 @@ export function getMapFullscreenControlRuntime(
             return getRuntimeDocument(scope).createElement(tagName);
         },
         createSvgElement(tagName) {
-            return getRuntimeDocument(scope).createElementNS(
-                "http://www.w3.org/2000/svg",
-                tagName
-            );
+            return createSvgElement(scope, tagName);
         },
         documentBodyContains(element): boolean {
             return getRuntimeDocument(scope).body.contains(element);

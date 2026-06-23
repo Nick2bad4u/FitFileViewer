@@ -11242,7 +11242,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map fullscreen-control timers behind the runtime facade", () => {
-        expect.assertions(36);
+        expect.assertions(38);
 
         const violations = migratedMapFullscreenControlRuntimeFiles
             .filter((relativeFile) =>
@@ -11330,7 +11330,13 @@ describe("architecture boundaries", () => {
             "getRuntimeDocument(scope).createElement(tagName)"
         );
         expect(mapFullscreenControlRuntimeSource).toContain(
-            "getRuntimeDocument(scope).createElementNS("
+            "iconFactoryRuntime.js"
+        );
+        expect(mapFullscreenControlRuntimeSource).toContain(
+            "return createSvgElement(scope, tagName);"
+        );
+        expect(mapFullscreenControlRuntimeSource).not.toContain(
+            "createElementNS"
         );
         expect(mapFullscreenControlRuntimeSource).not.toContain(
             "readonly AbortController?:"
@@ -11359,7 +11365,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps map measure-tool timers behind the runtime facade", () => {
-        expect.assertions(35);
+        expect.assertions(38);
 
         const violations = migratedMapMeasureToolRuntimeFiles
             .filter((relativeFile) =>
@@ -11437,6 +11443,11 @@ describe("architecture boundaries", () => {
         expect(mapMeasureToolRuntimeSource).toContain(
             "const runtimeDocument = scope.getDocument?.();"
         );
+        expect(mapMeasureToolRuntimeSource).toContain("iconFactoryRuntime.js");
+        expect(mapMeasureToolRuntimeSource).toContain(
+            "return createSvgElement(scope, tagName);"
+        );
+        expect(mapMeasureToolRuntimeSource).not.toContain("createElementNS");
         expect(mapMeasureToolRuntimeSource).not.toMatch(
             directMapMeasureToolRuntimeAmbientFallbackPattern
         );
