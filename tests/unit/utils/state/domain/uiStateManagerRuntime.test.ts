@@ -139,15 +139,21 @@ describe("uiStateManagerRuntime", () => {
         expect(body.dataset).toStrictEqual({ hasFitFile: "true" });
     });
 
-    it("routes loading, sidebar, and measurement element lookups through scoped providers", () => {
-        expect.assertions(18);
+    it("routes chart, loading, sidebar, and measurement element lookups through scoped providers", () => {
+        expect.assertions(24);
 
+        const chartControlsToggle = document.createElement("button");
+        const chartSettingsWrapper = document.createElement("section");
         const fileLoadingProgress = document.createElement("progress");
         const loadingIndicator = document.createElement("div");
         const mainContent = document.createElement("main");
         const mapContainer = document.createElement("section");
         const measurementToggle = document.createElement("button");
         const sidebar = document.createElement("aside");
+        const getChartControlsToggleElement = vi.fn(() => chartControlsToggle);
+        const getChartSettingsWrapperElement = vi.fn(
+            () => chartSettingsWrapper
+        );
         const getFileLoadingProgressElement = vi.fn(() => fileLoadingProgress);
         const getLoadingIndicatorElement = vi.fn(() => loadingIndicator);
         const getMainContentElement = vi.fn(() => mainContent);
@@ -155,6 +161,8 @@ describe("uiStateManagerRuntime", () => {
         const getMeasurementModeToggleElement = vi.fn(() => measurementToggle);
         const getSidebarElement = vi.fn(() => sidebar);
         const runtime = getUIStateManagerRuntime({
+            getChartControlsToggleElement,
+            getChartSettingsWrapperElement,
             getFileLoadingProgressElement,
             getLoadingIndicatorElement,
             getMainContentElement,
@@ -166,6 +174,12 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getFileLoadingProgressElement()).toBe(
             fileLoadingProgress
         );
+        expect(runtime.getChartControlsToggleElement()).toBe(
+            chartControlsToggle
+        );
+        expect(runtime.getChartSettingsWrapperElement()).toBe(
+            chartSettingsWrapper
+        );
         expect(runtime.getLoadingIndicatorElement()).toBe(loadingIndicator);
         expect(runtime.getMainContentElement()).toBe(mainContent);
         expect(runtime.getMapContainerElement()).toBe(mapContainer);
@@ -173,12 +187,20 @@ describe("uiStateManagerRuntime", () => {
             measurementToggle
         );
         expect(runtime.getSidebarElement()).toBe(sidebar);
+        expect(getChartControlsToggleElement).toHaveBeenCalledOnce();
+        expect(getChartSettingsWrapperElement).toHaveBeenCalledOnce();
         expect(getFileLoadingProgressElement).toHaveBeenCalledOnce();
         expect(getLoadingIndicatorElement).toHaveBeenCalledOnce();
         expect(getMainContentElement).toHaveBeenCalledOnce();
         expect(getMapContainerElement).toHaveBeenCalledOnce();
         expect(getMeasurementModeToggleElement).toHaveBeenCalledOnce();
         expect(getSidebarElement).toHaveBeenCalledOnce();
+        expect(
+            getUIStateManagerRuntime({}).getChartControlsToggleElement()
+        ).toBeNull();
+        expect(
+            getUIStateManagerRuntime({}).getChartSettingsWrapperElement()
+        ).toBeNull();
         expect(
             getUIStateManagerRuntime({}).getFileLoadingProgressElement()
         ).toBeNull();
@@ -295,7 +317,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(29);
+        expect.assertions(33);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -305,6 +327,8 @@ describe("uiStateManagerRuntime", () => {
             }
         }
         const addEventListener = vi.fn();
+        const chartControlsToggleElement = document.createElement("button");
+        const chartSettingsWrapperElement = document.createElement("section");
         const fileStateToggle = vi.fn();
         const fileLoadingProgressElement = document.createElement("progress");
         const loadingIndicatorElement = document.createElement("div");
@@ -320,6 +344,8 @@ describe("uiStateManagerRuntime", () => {
                 TestAbortController as unknown as typeof AbortController,
             documentTitle: "Legacy title",
             eventTarget: { addEventListener },
+            chartControlsToggleElement,
+            chartSettingsWrapperElement,
             fileLoadingProgressElement,
             fileStateBody: {
                 classList: { toggle: fileStateToggle },
@@ -355,6 +381,8 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getDefaultDocumentTitle("Fit File Viewer")).toBe(
             "Fit File Viewer"
         );
+        expect(runtime.getChartControlsToggleElement()).toBeNull();
+        expect(runtime.getChartSettingsWrapperElement()).toBeNull();
         expect(runtime.getFileLoadingProgressElement()).toBeNull();
         expect(runtime.getLoadingIndicatorElement()).toBeNull();
         expect(runtime.getMainContentElement()).toBeNull();
@@ -369,6 +397,12 @@ describe("uiStateManagerRuntime", () => {
         expect(() => runtime.setDocumentTitle("Ignored")).not.toThrow();
         expect(created).toBe(false);
         expect(fileStateToggle).not.toHaveBeenCalled();
+        expect(runtime.getChartControlsToggleElement()).not.toBe(
+            chartControlsToggleElement
+        );
+        expect(runtime.getChartSettingsWrapperElement()).not.toBe(
+            chartSettingsWrapperElement
+        );
         expect(runtime.getFileLoadingProgressElement()).not.toBe(
             fileLoadingProgressElement
         );

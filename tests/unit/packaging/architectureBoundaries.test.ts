@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(73);
+        expect.assertions(83);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6603,6 +6603,10 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).toContain("createAbortController");
         expect(uiStateManagerSource).toContain("addWindowEventListener");
         expect(uiStateManagerSource).toContain("getDefaultDocumentTitle");
+        expect(uiStateManagerSource).toContain("getChartControlsToggleElement");
+        expect(uiStateManagerSource).toContain(
+            "getChartSettingsWrapperElement"
+        );
         expect(uiStateManagerSource).toContain("getFileLoadingProgressElement");
         expect(uiStateManagerSource).toContain("getLoadingIndicatorElement");
         expect(uiStateManagerSource).toContain("getMainContentElement");
@@ -6640,6 +6644,12 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).not.toContain(
             'document.querySelector("#sidebar")'
         );
+        expect(uiStateManagerSource).not.toContain(
+            "getChartControlsToggle(document)"
+        );
+        expect(uiStateManagerSource).not.toContain(
+            "getChartSettingsWrapper(document)"
+        );
         expect(
             directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
         ).toBe(false);
@@ -6660,6 +6670,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             "getMatchMedia: () => globalThis.matchMedia"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getChartControlsToggle(globalThis.document)"
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            "getChartSettingsWrapper(globalThis.document)"
         );
         expect(uiStateManagerRuntimeSource).toContain(
             '"#file-loading-progress"'
@@ -6703,6 +6719,12 @@ describe("architecture boundaries", () => {
             "readonly documentTitle?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly chartControlsToggleElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly chartSettingsWrapperElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly fileStateBody?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
@@ -6743,6 +6765,12 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.documentTitle"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.chartControlsToggleElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.chartSettingsWrapperElement"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.fileStateBody"

@@ -4,10 +4,6 @@
  */
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
-import {
-    getChartControlsToggle,
-    getChartSettingsWrapper,
-} from "../../charts/dom/chartDomUtils.js";
 import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import {
@@ -346,9 +342,13 @@ export class UIStateManager {
         }
 
         // Chart controls toggle
-        const chartToggle =
-            getChartControlsToggle(document) ||
-            safeGetById("chart-controls-toggle");
+        const chartToggle = (() => {
+            try {
+                return uiStateManagerRuntime.getChartControlsToggleElement();
+            } catch {
+                return null;
+            }
+        })();
         safeAddClickListener(chartToggle, () => {
             AppActions.toggleChartControls();
         });
@@ -457,8 +457,20 @@ export class UIStateManager {
      * Update chart controls UI
      */
     updateChartControlsUI(isVisible: boolean) {
-        const wrapper = getChartSettingsWrapper(document);
-        const toggleBtn = getChartControlsToggle(document);
+        const wrapper = (() => {
+            try {
+                return uiStateManagerRuntime.getChartSettingsWrapperElement();
+            } catch {
+                return null;
+            }
+        })();
+        const toggleBtn = (() => {
+            try {
+                return uiStateManagerRuntime.getChartControlsToggleElement();
+            } catch {
+                return null;
+            }
+        })();
 
         if (wrapper) {
             wrapper.style.display = isVisible ? "block" : "none";

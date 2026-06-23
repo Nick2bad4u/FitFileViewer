@@ -1,3 +1,8 @@
+import {
+    getChartControlsToggle,
+    getChartSettingsWrapper,
+} from "../../charts/dom/chartDomUtils.js";
+
 export interface UIStateWindowStateSnapshot extends Record<string, unknown> {
     readonly height: number;
     readonly maximized: boolean;
@@ -41,6 +46,12 @@ export interface UIStateManagerRuntimeScope {
     readonly getEventTarget?:
         | (() => UIStateManagerEventTarget | undefined)
         | undefined;
+    readonly getChartControlsToggleElement?:
+        | UIStateManagerElementProvider
+        | undefined;
+    readonly getChartSettingsWrapperElement?:
+        | UIStateManagerElementProvider
+        | undefined;
     readonly getFileLoadingProgressElement?:
         | UIStateManagerElementProvider
         | undefined;
@@ -73,6 +84,8 @@ export interface UIStateManagerRuntime {
     ) => void;
     createAbortController: () => AbortController;
     getDefaultDocumentTitle: (fallbackTitle: string) => string;
+    getChartControlsToggleElement: () => HTMLElement | null;
+    getChartSettingsWrapperElement: () => HTMLElement | null;
     getFileLoadingProgressElement: () => HTMLElement | null;
     getLoadingIndicatorElement: () => HTMLElement | null;
     getMainContentElement: () => HTMLElement | null;
@@ -95,6 +108,10 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
         typeof globalThis.addEventListener === "function"
             ? globalThis
             : undefined,
+    getChartControlsToggleElement: () =>
+        getChartControlsToggle(globalThis.document),
+    getChartSettingsWrapperElement: () =>
+        getChartSettingsWrapper(globalThis.document),
     getFileLoadingProgressElement: () =>
         globalThis.document.querySelector<HTMLElement>(
             "#file-loading-progress"
@@ -138,6 +155,18 @@ function getEventTarget(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerEventTarget | undefined {
     return scope.getEventTarget?.();
+}
+
+function getChartControlsToggleElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getChartControlsToggleElement?.() ?? null;
+}
+
+function getChartSettingsWrapperElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getChartSettingsWrapperElement?.() ?? null;
 }
 
 function getFileStateBody(
@@ -254,6 +283,12 @@ export function getUIStateManagerRuntime(
         },
         getDefaultDocumentTitle(fallbackTitle): string {
             return getDocumentTitle(scope) ?? fallbackTitle;
+        },
+        getChartControlsToggleElement(): HTMLElement | null {
+            return getChartControlsToggleElement(scope);
+        },
+        getChartSettingsWrapperElement(): HTMLElement | null {
+            return getChartSettingsWrapperElement(scope);
         },
         getFileLoadingProgressElement(): HTMLElement | null {
             return getFileLoadingProgressElement(scope);
