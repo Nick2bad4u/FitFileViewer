@@ -361,6 +361,9 @@ const migratedAddFullScreenButtonRuntimeFiles = [
     "electron-app/utils/ui/controls/addFullScreenButton.ts",
     "electron-app/utils/ui/controls/addFullScreenButtonRuntime.ts",
 ] as const;
+const migratedIconFactoryRuntimeFiles = [
+    "electron-app/utils/ui/icons/iconFactory.ts",
+] as const;
 const migratedElectronApiAccessorFiles = [
     "electron-app/main-ui.ts",
     "electron-app/utils/app/initialization/loadVersionInfo.ts",
@@ -1090,6 +1093,7 @@ const directScreenfullGlobalPattern =
     /\b(?:window|globalThis|testGlobal|getFullscreenGlobal\(\))\.screenfull\b|\{\s*screenfull\?:\s*unknown\s*\}\)\.screenfull/u;
 const directAddFullScreenButtonRuntimeGlobalPattern =
     /\bnew\s+AbortController\b|\b(?:document|globalThis|window)\.(?:addEventListener|removeEventListener)\(/u;
+const directIconFactoryRuntimeGlobalPattern = /\bdocument\.createElementNS\b/u;
 const directLeafletGlobalPattern =
     /\b(?:window|globalThis|windowExt|w|win|getWin\(\))\.L\b|\bReflect\.get\(\s*globalThis\s*,\s*["']L["']\s*\)|\{\s*L\?:\s*unknown\s*\}\)\.L/u;
 const leafletCompatibilityGlobalDefinitionPattern =
@@ -10780,6 +10784,43 @@ describe("architecture boundaries", () => {
         expect(vendorCoreEntry).toContain("screenfullRuntime: screenfull");
         expect(vendorCoreEntry).not.toContain(
             'defineMissingGlobal("screenfull"'
+        );
+    });
+
+    it("keeps icon SVG element creation behind the icon factory runtime facade", () => {
+        expect.assertions(8);
+
+        const violations = migratedIconFactoryRuntimeFiles
+            .filter((relativeFile) =>
+                directIconFactoryRuntimeGlobalPattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+        const iconFactorySource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/icons/iconFactory.ts")
+        );
+        const iconFactoryRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/icons/iconFactoryRuntime.ts"
+            )
+        );
+
+        expect(violations).toStrictEqual([]);
+        expect(iconFactorySource).toContain("iconFactoryRuntime.js");
+        expect(iconFactorySource).toContain(
+            "iconFactoryRuntime.createSvgElement("
+        );
+        expect(iconFactoryRuntimeSource).toContain(
+            "getDocument: () => globalThis.document"
+        );
+        expect(iconFactoryRuntimeSource).toContain(
+            "icon factory requires a document runtime"
+        );
+        expect(iconFactoryRuntimeSource).not.toContain("readonly document?:");
+        expect(iconFactoryRuntimeSource).not.toContain("scope.document");
+        expect(iconFactoryRuntimeSource).not.toContain(
+            "scope: IconFactoryRuntimeScope = globalThis"
         );
     });
 

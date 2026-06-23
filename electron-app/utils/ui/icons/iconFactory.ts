@@ -5,6 +5,11 @@
  * existing theme colors without bespoke CSS.
  */
 
+import {
+    getIconFactoryRuntime,
+    SVG_NAMESPACE,
+} from "./iconFactoryRuntime.js";
+
 /** Known icon names supported by the legacy icon factory. */
 export type AppIconName =
     | "activity"
@@ -39,7 +44,7 @@ export type AppIconSvgOptions = {
     readonly title?: string;
 };
 
-const SVG_NS = "http://www.w3.org/2000/svg";
+const iconFactoryRuntime = getIconFactoryRuntime();
 
 type AppIconNodeTag =
     | "circle"
@@ -214,7 +219,7 @@ const ICON_NODE_SPECS: Record<AppIconName, readonly AppIconNodeSpec[]> = {
 };
 
 function createSvgChild(spec: AppIconNodeSpec): SVGElement {
-    const element = document.createElementNS(SVG_NS, spec.tag);
+    const element = iconFactoryRuntime.createSvgElement(spec.tag);
     for (const [name, value] of Object.entries(spec.attrs)) {
         element.setAttribute(name, value);
     }
@@ -299,7 +304,7 @@ export function createAppIconElement(
     name: AppIconName,
     options: AppIconSvgOptions = {}
 ): SVGSVGElement {
-    const icon = document.createElementNS(SVG_NS, "svg");
+    const icon = iconFactoryRuntime.createSvgElement("svg");
     const size = toBoundedNumber(options.size, 16, { min: 10, max: 48 });
     const strokeWidth = toBoundedNumber(options.strokeWidth, 2, {
         min: 1,
@@ -312,7 +317,7 @@ export function createAppIconElement(
     ) {
         icon.classList.add(...options.className.trim().split(/\s+/u));
     }
-    icon.setAttribute("xmlns", SVG_NS);
+    icon.setAttribute("xmlns", SVG_NAMESPACE);
     icon.setAttribute("width", String(size));
     icon.setAttribute("height", String(size));
     icon.setAttribute("viewBox", "0 0 24 24");
@@ -325,7 +330,7 @@ export function createAppIconElement(
     icon.setAttribute("focusable", "false");
 
     if (typeof options.title === "string" && options.title.trim().length > 0) {
-        const title = document.createElementNS(SVG_NS, "title");
+        const title = iconFactoryRuntime.createSvgElement("title");
         title.textContent = options.title;
         icon.append(title);
     }
