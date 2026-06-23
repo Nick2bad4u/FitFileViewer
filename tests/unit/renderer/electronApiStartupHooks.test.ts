@@ -49,7 +49,7 @@ describe("renderer Electron API startup hooks", () => {
         expect.assertions(2);
 
         expect(getElectronApiHooksFromValue(undefined)).toBeNull();
-        expect(getElectronApiStartupHooks({} as typeof globalThis)).toBeNull();
+        expect(getElectronApiStartupHooks({})).toBeNull();
     });
 
     it("reads startup hooks from the registered Electron API candidate", () => {
@@ -62,7 +62,7 @@ describe("renderer Electron API startup hooks", () => {
             recentFiles,
         });
 
-        expect(getElectronApiStartupHooks({} as typeof globalThis)).toEqual(
+        expect(getElectronApiStartupHooks({})).toEqual(
             expect.objectContaining({
                 checkForUpdates,
                 recentFiles,
@@ -104,6 +104,22 @@ describe("renderer Electron API startup hooks", () => {
         );
         expect(getElectronApiScope).toHaveBeenCalledOnce();
         expect(checkForUpdates).not.toHaveBeenCalled();
+    });
+
+    it("ignores direct Electron API provider scopes", () => {
+        expect.assertions(1);
+
+        const checkForUpdates = vi.fn<() => void>();
+        const recentFiles = vi.fn<() => Promise<string[]>>();
+
+        expect(
+            getElectronApiStartupHooks({
+                getElectronAPI: () => ({
+                    checkForUpdates,
+                    recentFiles,
+                }),
+            } as unknown as Parameters<typeof getElectronApiStartupHooks>[0])
+        ).toBeNull();
     });
 
     it("wires menu and theme callbacks while isolating callback failures", async () => {

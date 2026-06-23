@@ -20,7 +20,7 @@ export interface ElectronApiStartupHooks {
     recentFiles: (() => Promise<unknown>) | undefined;
 }
 
-export interface ElectronApiStartupHooksScope extends RendererElectronApiScope {
+export interface ElectronApiStartupHooksScope {
     readonly getElectronApiScope?:
         | (() => RendererElectronApiScope | undefined)
         | undefined;
@@ -77,7 +77,7 @@ export function getElectronApiHooksFromValue(
 export function getElectronApiStartupHooks(
     scope?: ElectronApiStartupHooksScope
 ): ElectronApiStartupHooks | null {
-    const electronApiScope = scope?.getElectronApiScope?.() ?? scope;
+    const electronApiScope = scope?.getElectronApiScope?.();
     const electronApi =
         electronApiScope === undefined
             ? getRendererElectronApi(isElectronApiStartupHookSource)

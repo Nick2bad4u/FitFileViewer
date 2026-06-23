@@ -1126,6 +1126,9 @@ coverage blocking global fixture definitions or cleanup in those source tests.
 Electron API runtime tests now prove the default runtime ignores ambient `electronAPI` globals and relies on a
 registered startup candidate or explicit scoped provider instead of defining or deleting `globalThis.electronAPI`
 directly, with architecture coverage blocking that direct fixture mutation and the retired default global lookup.
+Renderer startup hooks now accept explicit Electron API lookup only through `getElectronApiScope`, not raw
+`RendererElectronApiScope` arguments or ambient global fallbacks, with runtime coverage and architecture coverage
+blocking those compatibility shapes from returning.
 Main UI DOM utility tests now use registered Electron API candidates for validation coverage instead of ambient
 `electronAPI` stubs or defining/deleting `globalThis.electronAPI` directly, with architecture coverage blocking
 that direct fixture mutation.

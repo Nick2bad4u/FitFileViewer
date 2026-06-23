@@ -17694,7 +17694,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps migrated renderer source on the registered Electron API runtime", () => {
-        expect.assertions(6);
+        expect.assertions(8);
 
         const directElectronApiGlobals = rendererElectronApiRuntimeSourceFiles
             .filter((relativeFile) =>
@@ -17721,11 +17721,15 @@ describe("architecture boundaries", () => {
             "scope: typeof globalThis = globalThis"
         );
         expect(electronApiStartupHooksSource).not.toContain(
+            "extends RendererElectronApiScope"
+        );
+        expect(electronApiStartupHooksSource).not.toContain(
             "defaultElectronApiStartupHooksScope"
         );
         expect(electronApiStartupHooksSource).not.toContain(
             "getElectronApiScope: () => globalThis"
         );
+        expect(electronApiStartupHooksSource).not.toContain("?? scope");
         expect(electronApiStartupHooksSource).not.toContain(
             'getElectronAPI: () => Reflect.get(globalThis, "electronAPI")'
         );
