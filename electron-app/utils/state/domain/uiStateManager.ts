@@ -4,7 +4,6 @@
  */
 
 import { AppActions } from "../../app/lifecycle/appActions.js";
-import { getElementByIdFlexible } from "../../ui/dom/elementIdUtils.js";
 import { showNotification } from "../../ui/notifications/showNotification.js";
 import {
     getState,
@@ -278,14 +277,6 @@ export class UIStateManager {
             }
             return [];
         };
-        const safeGetById = (id: string): HTMLElement | null => {
-            try {
-                return getElementByIdFlexible(document, id);
-            } catch {
-                return null;
-            }
-        };
-
         /**
          * Safely attach a click handler.
          *
@@ -354,7 +345,13 @@ export class UIStateManager {
         });
 
         // Measurement mode toggle
-        const measureToggle = safeGetById("measurement-mode-toggle");
+        const measureToggle = (() => {
+            try {
+                return uiStateManagerRuntime.getMeasurementModeToggleElement();
+            } catch {
+                return null;
+            }
+        })();
         safeAddClickListener(measureToggle, () => {
             AppActions.toggleMeasurementMode();
         });

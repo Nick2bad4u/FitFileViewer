@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(130);
+        expect.assertions(133);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6679,6 +6679,15 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerSource).not.toContain(
             'getElementByIdFlexible(document, "active_file_name")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            'safeGetById("measurement-mode-toggle")'
+        );
+        expect(uiStateManagerSource).not.toContain(
+            "getElementByIdFlexible(document"
+        );
+        expect(uiStateManagerSource).not.toContain(
+            '"../../ui/dom/elementIdUtils.js"'
         );
         expect(uiStateManagerSource).not.toContain(
             'document.createElement("span")'
