@@ -228,6 +228,7 @@ describe("uiStateManager - comprehensive coverage", () => {
             createElementWithAttributes("div", { id: "drop_overlay" }),
             createElementWithAttributes("iframe", { id: "altfit_iframe" }),
             createElementWithAttributes("iframe", { id: "zwift_iframe" }),
+            createElementWithAttributes("button", { id: "unload_file_btn" }),
             createElementWithAttributes(
                 "button",
                 { "data-tab": "charts", id: "tab-button-charts" },
@@ -1259,6 +1260,47 @@ describe("uiStateManager - comprehensive coverage", () => {
                 expect([...mapContainer.classList]).not.toContain(
                     "measurement-mode"
                 );
+            });
+        });
+
+        describe("updateUnloadButtonVisibility", () => {
+            it("should show the unload button when visible", () => {
+                expect.assertions(1);
+
+                const manager = new UIStateManager();
+                const unloadButton = document.getElementById(
+                    "unload_file_btn"
+                ) as HTMLElement;
+
+                unloadButton.style.display = "none";
+
+                manager.updateUnloadButtonVisibility(true);
+
+                expect(unloadButton.style.display).toBe("");
+            });
+
+            it("should hide the unload button when not visible", () => {
+                expect.assertions(1);
+
+                const manager = new UIStateManager();
+                const unloadButton = document.getElementById(
+                    "unload_file_btn"
+                ) as HTMLElement;
+
+                manager.updateUnloadButtonVisibility(false);
+
+                expect(unloadButton.style.display).toBe("none");
+            });
+
+            it("should handle a missing unload button gracefully", () => {
+                expect.assertions(1);
+
+                const manager = new UIStateManager();
+                removeElementIfPresent("unload_file_btn");
+
+                manager.updateUnloadButtonVisibility(false);
+
+                expect(document.getElementById("unload_file_btn")).toBeNull();
             });
         });
 

@@ -140,7 +140,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("routes chart, loading, sidebar, and measurement element lookups through scoped providers", () => {
-        expect.assertions(33);
+        expect.assertions(36);
 
         const altFitIframe = document.createElement("iframe");
         const chartControlsToggle = document.createElement("button");
@@ -152,6 +152,7 @@ describe("uiStateManagerRuntime", () => {
         const mapContainer = document.createElement("section");
         const measurementToggle = document.createElement("button");
         const sidebar = document.createElement("aside");
+        const unloadButton = document.createElement("button");
         const zwiftIframe = document.createElement("iframe");
         const getAltFitIframeElement = vi.fn(() => altFitIframe);
         const getChartControlsToggleElement = vi.fn(() => chartControlsToggle);
@@ -165,6 +166,7 @@ describe("uiStateManagerRuntime", () => {
         const getMapContainerElement = vi.fn(() => mapContainer);
         const getMeasurementModeToggleElement = vi.fn(() => measurementToggle);
         const getSidebarElement = vi.fn(() => sidebar);
+        const getUnloadFileButtonElement = vi.fn(() => unloadButton);
         const getZwiftIframeElement = vi.fn(() => zwiftIframe);
         const runtime = getUIStateManagerRuntime({
             getAltFitIframeElement,
@@ -177,6 +179,7 @@ describe("uiStateManagerRuntime", () => {
             getMapContainerElement,
             getMeasurementModeToggleElement,
             getSidebarElement,
+            getUnloadFileButtonElement,
             getZwiftIframeElement,
         });
 
@@ -198,6 +201,7 @@ describe("uiStateManagerRuntime", () => {
             measurementToggle
         );
         expect(runtime.getSidebarElement()).toBe(sidebar);
+        expect(runtime.getUnloadFileButtonElement()).toBe(unloadButton);
         expect(runtime.getZwiftIframeElement()).toBe(zwiftIframe);
         expect(getAltFitIframeElement).toHaveBeenCalledOnce();
         expect(getChartControlsToggleElement).toHaveBeenCalledOnce();
@@ -209,6 +213,7 @@ describe("uiStateManagerRuntime", () => {
         expect(getMapContainerElement).toHaveBeenCalledOnce();
         expect(getMeasurementModeToggleElement).toHaveBeenCalledOnce();
         expect(getSidebarElement).toHaveBeenCalledOnce();
+        expect(getUnloadFileButtonElement).toHaveBeenCalledOnce();
         expect(getZwiftIframeElement).toHaveBeenCalledOnce();
         expect(
             getUIStateManagerRuntime({}).getAltFitIframeElement()
@@ -234,6 +239,9 @@ describe("uiStateManagerRuntime", () => {
             getUIStateManagerRuntime({}).getMeasurementModeToggleElement()
         ).toBeNull();
         expect(getUIStateManagerRuntime({}).getSidebarElement()).toBeNull();
+        expect(
+            getUIStateManagerRuntime({}).getUnloadFileButtonElement()
+        ).toBeNull();
         expect(getUIStateManagerRuntime({}).getZwiftIframeElement()).toBeNull();
     });
 
@@ -337,7 +345,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(39);
+        expect.assertions(41);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -358,6 +366,7 @@ describe("uiStateManagerRuntime", () => {
         const mapContainerElement = document.createElement("section");
         const measurementModeToggleElement = document.createElement("button");
         const sidebarElement = document.createElement("aside");
+        const unloadFileButtonElement = document.createElement("button");
         const zwiftIframeElement = document.createElement("iframe");
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
         const setBodyCursor = vi.fn();
@@ -381,6 +390,7 @@ describe("uiStateManagerRuntime", () => {
             mapContainerElement,
             measurementModeToggleElement,
             sidebarElement,
+            unloadFileButtonElement,
             zwiftIframeElement,
             matchMedia,
             setBodyCursor,
@@ -417,6 +427,7 @@ describe("uiStateManagerRuntime", () => {
         expect(runtime.getMapContainerElement()).toBeNull();
         expect(runtime.getMeasurementModeToggleElement()).toBeNull();
         expect(runtime.getSidebarElement()).toBeNull();
+        expect(runtime.getUnloadFileButtonElement()).toBeNull();
         expect(runtime.getZwiftIframeElement()).toBeNull();
         expect(runtime.getWindowState()).toBeNull();
         expect(runtime.hasWindow()).toBe(false);
@@ -446,6 +457,9 @@ describe("uiStateManagerRuntime", () => {
             measurementModeToggleElement
         );
         expect(runtime.getSidebarElement()).not.toBe(sidebarElement);
+        expect(runtime.getUnloadFileButtonElement()).not.toBe(
+            unloadFileButtonElement
+        );
         expect(runtime.getZwiftIframeElement()).not.toBe(zwiftIframeElement);
         expect(matchMedia).not.toHaveBeenCalled();
         expect(setBodyCursor).not.toHaveBeenCalled();

@@ -6586,7 +6586,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps UI state manager browser runtime access behind the runtime adapter", () => {
-        expect.assertions(98);
+        expect.assertions(103);
 
         const uiStateManagerSource = stripComments(
             readRepositoryFile(
@@ -6617,6 +6617,7 @@ describe("architecture boundaries", () => {
             "getMeasurementModeToggleElement"
         );
         expect(uiStateManagerSource).toContain("getSidebarElement");
+        expect(uiStateManagerSource).toContain("getUnloadFileButtonElement");
         expect(uiStateManagerSource).toContain("getZwiftIframeElement");
         expect(uiStateManagerSource).toContain("setAppHasFileState");
         expect(uiStateManagerSource).toContain("setBodyCursor");
@@ -6662,6 +6663,9 @@ describe("architecture boundaries", () => {
         expect(uiStateManagerSource).not.toContain(
             'getElementByIdFlexible(document, "zwift_iframe")'
         );
+        expect(uiStateManagerSource).not.toContain(
+            'getElementByIdFlexible(document, "unload_file_btn")'
+        );
         expect(
             directUiStateManagerBrowserRuntimePattern.test(uiStateManagerSource)
         ).toBe(false);
@@ -6697,6 +6701,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).toContain(
             'getElementByIdFlexible(globalThis.document, "zwift_iframe")'
+        );
+        expect(uiStateManagerRuntimeSource).toContain(
+            'getElementByIdFlexible(globalThis.document, "unload_file_btn")'
         );
         expect(uiStateManagerRuntimeSource).toContain(
             '"#file-loading-progress"'
@@ -6773,6 +6780,9 @@ describe("architecture boundaries", () => {
             "readonly sidebarElement?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
+            "readonly unloadFileButtonElement?:"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
             "readonly zwiftIframeElement?:"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
@@ -6828,6 +6838,9 @@ describe("architecture boundaries", () => {
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.sidebarElement"
+        );
+        expect(uiStateManagerRuntimeSource).not.toContain(
+            "scope.unloadFileButtonElement"
         );
         expect(uiStateManagerRuntimeSource).not.toContain(
             "scope.zwiftIframeElement"

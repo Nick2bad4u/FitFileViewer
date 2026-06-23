@@ -67,6 +67,9 @@ export interface UIStateManagerRuntimeScope {
         | UIStateManagerElementProvider
         | undefined;
     readonly getSidebarElement?: UIStateManagerElementProvider | undefined;
+    readonly getUnloadFileButtonElement?:
+        | UIStateManagerElementProvider
+        | undefined;
     readonly getZwiftIframeElement?:
         | UIStateManagerElementProvider
         | undefined;
@@ -103,6 +106,7 @@ export interface UIStateManagerRuntime {
     getMeasurementModeToggleElement: () => HTMLElement | null;
     getSidebarElement: () => HTMLElement | null;
     getSystemThemeMediaQuery: () => MediaQueryList | null;
+    getUnloadFileButtonElement: () => HTMLElement | null;
     getWindowState: () => UIStateWindowStateSnapshot | null;
     getZwiftIframeElement: () => HTMLElement | null;
     hasWindow: () => boolean;
@@ -143,6 +147,8 @@ const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
         ),
     getSidebarElement: () =>
         globalThis.document.querySelector<HTMLElement>("#sidebar"),
+    getUnloadFileButtonElement: () =>
+        getElementByIdFlexible(globalThis.document, "unload_file_btn"),
     getZwiftIframeElement: () =>
         getElementByIdFlexible(globalThis.document, "zwift_iframe"),
     getMatchMedia: () => globalThis.matchMedia,
@@ -238,6 +244,12 @@ function getSidebarElement(
     scope: UIStateManagerRuntimeScope
 ): HTMLElement | null {
     return scope.getSidebarElement?.() ?? null;
+}
+
+function getUnloadFileButtonElement(
+    scope: UIStateManagerRuntimeScope
+): HTMLElement | null {
+    return scope.getUnloadFileButtonElement?.() ?? null;
 }
 
 function getZwiftIframeElement(
@@ -355,6 +367,9 @@ export function getUIStateManagerRuntime(
             return typeof matchMedia === "function"
                 ? matchMedia("(prefers-color-scheme: dark)")
                 : null;
+        },
+        getUnloadFileButtonElement(): HTMLElement | null {
+            return getUnloadFileButtonElement(scope);
         },
         getWindowState(): UIStateWindowStateSnapshot | null {
             const viewportState = getViewportState(scope);

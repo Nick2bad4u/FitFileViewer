@@ -770,7 +770,7 @@ export class UIStateManager {
     updateUnloadButtonVisibility(isVisible: boolean) {
         const unloadBtn = (() => {
             try {
-                return getElementByIdFlexible(document, "unload_file_btn");
+                return uiStateManagerRuntime.getUnloadFileButtonElement();
             } catch {
                 return null;
             }
