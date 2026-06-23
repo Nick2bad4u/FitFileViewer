@@ -575,6 +575,9 @@ direct runtime lookup from returning. Tab-state click handling now also checks c
 `tabDocumentRuntime.ts` provider-backed `Element`/`HTMLElement` guards instead of using ambient DOM constructors
 inside `tabStateManager.ts`, with focused runtime coverage and architecture guardrails blocking direct
 constructor checks from returning.
+Flexible element ID lookup now checks DOM elements through `elementIdUtilsRuntime.ts` instead of using the
+ambient `HTMLElement` constructor inside `elementIdUtils.ts`, with focused runtime coverage and architecture
+guardrails blocking direct constructor checks from returning.
 Active-tab updates now resolve tab documents through the scoped `updateActiveTabRuntime.ts` adapter instead of
 probing `globalThis.document` or `globalThis.window` inside the feature module, with architecture coverage
 blocking those direct runtime lookups from returning to `updateActiveTab.ts`. Explicit active-tab runtime scopes

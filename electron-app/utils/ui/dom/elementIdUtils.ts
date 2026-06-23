@@ -2,7 +2,11 @@
  * Flexible DOM element lookup helpers.
  */
 
+import { getElementIdUtilsRuntime } from "./elementIdUtilsRuntime.js";
+
 type FlexibleLookupRoot = Document | ParentNode;
+
+const elementIdUtilsRuntime = getElementIdUtilsRuntime();
 
 /**
  * Build a list of ID variants for a given element ID.
@@ -20,8 +24,14 @@ export function buildIdVariants(id: string): string[] {
     addVariant(variants, raw.replaceAll("-", "_"));
 
     addVariant(variants, toCamelCaseVariant(raw));
-    addVariant(variants, raw.replaceAll(/(?<=[a-z0-9])(?=[A-Z])/gu, "_").toLowerCase());
-    addVariant(variants, raw.replaceAll(/(?<=[a-z0-9])(?=[A-Z])/gu, "-").toLowerCase());
+    addVariant(
+        variants,
+        raw.replaceAll(/(?<=[a-z0-9])(?=[A-Z])/gu, "_").toLowerCase()
+    );
+    addVariant(
+        variants,
+        raw.replaceAll(/(?<=[a-z0-9])(?=[A-Z])/gu, "-").toLowerCase()
+    );
 
     return [...variants];
 }
@@ -147,7 +157,7 @@ function escapeCssString(value: string): string {
 
     return value
         .replaceAll(backslash, `${backslash}${backslash}`)
-        .replaceAll("\"", `${backslash}"`);
+        .replaceAll('"', `${backslash}"`);
 }
 
 function toCamelCaseVariant(value: string): string {
@@ -171,10 +181,7 @@ function toExactIdSelector(id: string): string {
     return `[id="${escapeCssString(id)}"]`;
 }
 
-function queryIdVariants(
-    root: ParentNode,
-    id: string
-): HTMLElement | null {
+function queryIdVariants(root: ParentNode, id: string): HTMLElement | null {
     for (const variant of buildIdVariants(id)) {
         const element = toHTMLElement(
             root.querySelector(toExactIdSelector(variant))
@@ -193,7 +200,7 @@ function toHTMLElement(element: Element | null): HTMLElement | null {
         return null;
     }
 
-    if (element instanceof HTMLElement) {
+    if (elementIdUtilsRuntime.isHTMLElement(element)) {
         return element;
     }
 

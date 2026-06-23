@@ -6327,6 +6327,59 @@ describe("architecture boundaries", () => {
         );
     });
 
+    it("keeps flexible element-id HTMLElement checks behind the runtime facade", () => {
+        expect.assertions(12);
+
+        const elementIdUtilsSource = stripComments(
+            readRepositoryFile("electron-app/utils/ui/dom/elementIdUtils.ts")
+        );
+        const elementIdUtilsRuntimeSource = stripComments(
+            readRepositoryFile(
+                "electron-app/utils/ui/dom/elementIdUtilsRuntime.ts"
+            )
+        );
+        const elementIdUtilsRuntimeScopeSource =
+            elementIdUtilsRuntimeSource.slice(
+                elementIdUtilsRuntimeSource.indexOf(
+                    "export interface ElementIdUtilsRuntimeScope"
+                ),
+                elementIdUtilsRuntimeSource.indexOf(
+                    "export interface ElementIdUtilsRuntime"
+                )
+            );
+
+        expect(elementIdUtilsSource).toContain("elementIdUtilsRuntime.js");
+        expect(elementIdUtilsSource).toContain(
+            "elementIdUtilsRuntime.isHTMLElement"
+        );
+        expect(elementIdUtilsSource).not.toContain("instanceof HTMLElement");
+        expect(elementIdUtilsRuntimeSource).toContain(
+            "defaultElementIdUtilsRuntimeScope"
+        );
+        expect(elementIdUtilsRuntimeSource).toContain(
+            "getHTMLElement: () => globalThis.HTMLElement"
+        );
+        expect(elementIdUtilsRuntimeSource).not.toContain(
+            "scope: ElementIdUtilsRuntimeScope = globalThis"
+        );
+        expect(elementIdUtilsRuntimeSource).not.toContain(
+            "ElementIdUtilsRuntimeScope = globalThis"
+        );
+        expect(elementIdUtilsRuntimeScopeSource).not.toContain(
+            "readonly HTMLElement?:"
+        );
+        expect(elementIdUtilsRuntimeSource).not.toContain("scope.HTMLElement");
+        expect(elementIdUtilsRuntimeSource).toContain(
+            "elementIdUtils requires an HTMLElement runtime"
+        );
+        expect(elementIdUtilsRuntimeSource).toContain(
+            "return value instanceof getHTMLElementConstructor(scope)"
+        );
+        expect(elementIdUtilsRuntimeSource).toContain(
+            "const HTMLElementConstructor = scope.getHTMLElement?.();"
+        );
+    });
+
     it("keeps active-tab updates on typed state access and runtime document resolution", () => {
         expect.assertions(21);
 

@@ -22,6 +22,7 @@ This ledger tracks compatibility surfaces that are intentionally temporary. New 
   - Architecture tests block direct runtime `loadedFitFiles` global lookups outside `loadedFitFilesState`.
   - Migrated rendering helpers stay free of direct `window.globalData` reads.
   - Active-tab content lookup, active class/ARIA fallback queries, active tab-button lookup, and flexible content ID lookup now route through `electron-app/utils/rendering/helpers/getActiveTabContentRuntime.ts` instead of querying `document` directly inside `getActiveTabContent.ts`; production defaults stay behind a named document provider, and explicit runtime scopes must provide document access through that provider instead of direct properties or broad `globalThis` fallback scopes.
+  - Flexible element ID lookup now checks `HTMLElement` values through `electron-app/utils/ui/dom/elementIdUtilsRuntime.ts` instead of using the ambient constructor inside `elementIdUtils.ts`; production defaults stay behind a named provider, and explicit runtime scopes must provide the constructor through that provider instead of direct properties or broad `globalThis` fallback scopes.
   - No runtime `getGlobalData`/`setGlobalData` compatibility helper remains.
 
 ## Legacy AppState Global
