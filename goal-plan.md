@@ -687,7 +687,9 @@ Shared error handling no longer probes `globalRef.performanceMonitor` for ambien
 error-listener abort-controller creation now routes through `errorHandlingRuntime.ts` instead of constructing
 `AbortController` directly inside `errorHandling.ts`; its tests no longer install or delete a temporary
 performance-monitor global fixture; architecture coverage blocks the source fallback, direct controller
-construction, and test-global mutation pattern from returning.
+construction, and test-global mutation pattern from returning. Error-handling runtime defaults now read
+`AbortController` and `addEventListener` explicitly through focused helpers instead of generic
+`Reflect.get(globalThis, ...)` probes.
 Accent color picker modal lookup/body append, element and text-node creation, style element creation/head append, focus
 tracking, preview DOM queries, element-list queries, element constructor checks, listener abort-controller creation, and
 Escape-key document listener registration now route through `accentColorPickerRuntime.ts` instead of using ambient

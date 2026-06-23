@@ -22,10 +22,7 @@ const defaultErrorHandlingRuntimeScope: ErrorHandlingRuntimeScope = {
 };
 
 function getDefaultAbortController(): typeof AbortController | undefined {
-    const AbortControllerConstructor = Reflect.get(
-        globalThis,
-        "AbortController"
-    );
+    const AbortControllerConstructor = globalThis.AbortController;
 
     return typeof AbortControllerConstructor === "function"
         ? AbortControllerConstructor
@@ -33,7 +30,7 @@ function getDefaultAbortController(): typeof AbortController | undefined {
 }
 
 function getDefaultEventTarget(): ErrorHandlingEventTarget | undefined {
-    const addEventListener = Reflect.get(globalThis, "addEventListener");
+    const addEventListener = globalThis.addEventListener;
     if (typeof addEventListener !== "function") {
         return undefined;
     }

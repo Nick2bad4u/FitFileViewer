@@ -7985,7 +7985,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps shared error handling on explicit notification callbacks and typed telemetry", () => {
-        expect.assertions(13);
+        expect.assertions(17);
 
         const errorHandlingSource = stripComments(
             readRepositoryFile("electron-app/utils/errors/errorHandling.ts")
@@ -8017,6 +8017,18 @@ describe("architecture boundaries", () => {
         expect(errorHandlingRuntimeSource).toContain("getGlobalEventTarget");
         expect(errorHandlingRuntimeSource).not.toMatch(
             directErrorHandlingRuntimeAmbientGetterPattern
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "const AbortControllerConstructor = globalThis.AbortController;"
+        );
+        expect(errorHandlingRuntimeSource).toContain(
+            "const addEventListener = globalThis.addEventListener;"
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            'Reflect.get(globalThis, "AbortController")'
+        );
+        expect(errorHandlingRuntimeSource).not.toContain(
+            'Reflect.get(globalThis, "addEventListener")'
         );
         expect(errorHandlingRuntimeSource).not.toContain(
             "readonly AbortController?:"
