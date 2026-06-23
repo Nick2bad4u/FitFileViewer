@@ -52,12 +52,9 @@ function getNotificationMessage(notification: NotificationInput): string {
         : notification.message || "No message provided";
 }
 
-const DEFAULT_DOCUMENT_TITLE =
-    typeof document !== "undefined" && document?.title
-        ? document.title
-        : "Fit File Viewer";
-
 const uiStateManagerRuntime = getUIStateManagerRuntime();
+const DEFAULT_DOCUMENT_TITLE =
+    uiStateManagerRuntime.getDefaultDocumentTitle("Fit File Viewer");
 
 /**
  * UI State Manager - handles common UI state operations
@@ -606,7 +603,7 @@ export class UIStateManager {
         }
 
         try {
-            document.title = title;
+            uiStateManagerRuntime.setDocumentTitle(title);
         } catch {
             /* Ignore errors */
         }

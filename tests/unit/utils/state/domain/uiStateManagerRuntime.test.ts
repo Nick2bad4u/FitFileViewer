@@ -52,6 +52,32 @@ describe("uiStateManagerRuntime", () => {
         ).toBeNull();
     });
 
+    it("routes document title reads and writes through scoped providers", () => {
+        expect.assertions(5);
+
+        const getDocumentTitle = vi.fn(() => "Ride Analysis");
+        const setDocumentTitle = vi.fn<(title: string) => void>();
+        const runtime = getUIStateManagerRuntime({
+            getDocumentTitle,
+            getSetDocumentTitle: () => setDocumentTitle,
+        });
+
+        expect(runtime.getDefaultDocumentTitle("Fit File Viewer")).toBe(
+            "Ride Analysis"
+        );
+        runtime.setDocumentTitle("Race Recap");
+        expect(setDocumentTitle).toHaveBeenCalledExactlyOnceWith("Race Recap");
+        expect(getDocumentTitle).toHaveBeenCalledOnce();
+        expect(
+            getUIStateManagerRuntime({
+                getDocumentTitle: () => "",
+            }).getDefaultDocumentTitle("Fit File Viewer")
+        ).toBe("Fit File Viewer");
+        expect(() =>
+            getUIStateManagerRuntime({}).setDocumentTitle("Ignored")
+        ).not.toThrow();
+    });
+
     it("ignores direct scoped matchMedia when no provider is scoped", () => {
         expect.assertions(2);
 
@@ -152,7 +178,7 @@ describe("uiStateManagerRuntime", () => {
     });
 
     it("ignores legacy direct runtime primitive properties", () => {
-        expect.assertions(10);
+        expect.assertions(13);
 
         let created = false;
         class TestAbortController extends AbortController {
@@ -163,11 +189,14 @@ describe("uiStateManagerRuntime", () => {
         }
         const addEventListener = vi.fn();
         const matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList);
+        const setDocumentTitle = vi.fn();
         const runtime = getUIStateManagerRuntime({
             AbortController:
                 TestAbortController as unknown as typeof AbortController,
+            documentTitle: "Legacy title",
             eventTarget: { addEventListener },
             matchMedia,
+            setDocumentTitle,
             viewportState: {
                 innerHeight: 800,
                 innerWidth: 1200,
@@ -187,11 +216,16 @@ describe("uiStateManagerRuntime", () => {
             "UI state manager requires an AbortController runtime"
         );
         expect(runtime.getSystemThemeMediaQuery()).toBeNull();
+        expect(runtime.getDefaultDocumentTitle("Fit File Viewer")).toBe(
+            "Fit File Viewer"
+        );
         expect(runtime.getWindowState()).toBeNull();
         expect(runtime.hasWindow()).toBe(false);
         runtime.addWindowEventListener("resize", listener);
+        expect(() => runtime.setDocumentTitle("Ignored")).not.toThrow();
         expect(created).toBe(false);
         expect(matchMedia).not.toHaveBeenCalled();
+        expect(setDocumentTitle).not.toHaveBeenCalled();
         expect(addEventListener).not.toHaveBeenCalled();
         expect(listener).not.toHaveBeenCalled();
         expect(getUIStateManagerRuntime({}).hasWindow()).toBe(false);

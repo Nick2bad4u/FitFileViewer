@@ -26,11 +26,15 @@ export interface UIStateManagerRuntimeScope {
     readonly getAbortController?:
         | (() => typeof globalThis.AbortController | undefined)
         | undefined;
+    readonly getDocumentTitle?: (() => string | undefined) | undefined;
     readonly getEventTarget?:
         | (() => UIStateManagerEventTarget | undefined)
         | undefined;
     readonly getMatchMedia?:
         | (() => typeof globalThis.matchMedia | undefined)
+        | undefined;
+    readonly getSetDocumentTitle?:
+        | (() => ((title: string) => void) | undefined)
         | undefined;
     readonly getViewportState?:
         | (() => UIStateManagerViewportState | undefined)
@@ -44,19 +48,25 @@ export interface UIStateManagerRuntime {
         options?: AddEventListenerOptions
     ) => void;
     createAbortController: () => AbortController;
+    getDefaultDocumentTitle: (fallbackTitle: string) => string;
     getSystemThemeMediaQuery: () => MediaQueryList | null;
     getWindowState: () => UIStateWindowStateSnapshot | null;
     hasWindow: () => boolean;
+    setDocumentTitle: (title: string) => void;
 }
 
 const defaultUIStateManagerRuntimeScope: UIStateManagerRuntimeScope = {
     getAbortController: () => globalThis.AbortController,
+    getDocumentTitle: () => globalThis.document.title,
     getEventTarget: () =>
         typeof globalThis.addEventListener === "function"
             ? globalThis
             : undefined,
     getMatchMedia: () => globalThis.matchMedia,
     getViewportState: () => globalThis,
+    getSetDocumentTitle: () => (title) => {
+        globalThis.document.title = title;
+    },
 };
 
 function getAbortControllerConstructor(
@@ -86,6 +96,20 @@ function getMatchMedia(
     return typeof candidate === "function" ? candidate : undefined;
 }
 
+function getDocumentTitle(
+    scope: UIStateManagerRuntimeScope
+): string | undefined {
+    const title = scope.getDocumentTitle?.();
+
+    return typeof title === "string" && title.length > 0 ? title : undefined;
+}
+
+function getSetDocumentTitle(
+    scope: UIStateManagerRuntimeScope
+): ((title: string) => void) | undefined {
+    return scope.getSetDocumentTitle?.();
+}
+
 function getViewportState(
     scope: UIStateManagerRuntimeScope
 ): UIStateManagerViewportState | undefined {
@@ -108,6 +132,9 @@ export function getUIStateManagerRuntime(
         },
         createAbortController(): AbortController {
             return new (getAbortControllerConstructor(scope))();
+        },
+        getDefaultDocumentTitle(fallbackTitle): string {
+            return getDocumentTitle(scope) ?? fallbackTitle;
         },
         getSystemThemeMediaQuery(): MediaQueryList | null {
             const matchMedia = getMatchMedia(scope);
@@ -144,6 +171,9 @@ export function getUIStateManagerRuntime(
         },
         hasWindow(): boolean {
             return getEventTarget(scope) !== undefined;
+        },
+        setDocumentTitle(title): void {
+            getSetDocumentTitle(scope)?.(title);
         },
     };
 }
