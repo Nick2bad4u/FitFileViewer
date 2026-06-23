@@ -4,6 +4,7 @@ import { createElectronApiAppInfoDomain } from "./electronApiAppInfoDomain.js";
 import { createElectronApiClipboardDomain } from "./electronApiClipboardDomain.js";
 import { createElectronApiDeveloperDomain } from "./electronApiDeveloperDomain.js";
 import { createElectronApiDiagnosticsDomain } from "./electronApiDiagnosticsDomain.js";
+import { createElectronApiDialogDomain } from "./electronApiDialogDomain.js";
 import { createElectronApiExternalDomain } from "./electronApiExternalDomain.js";
 import { type ElectronApiFactoryOptions } from "./electronApiFactoryOptions.js";
 import { createElectronApiFileDomain } from "./electronApiFileDomain.js";
@@ -38,6 +39,9 @@ export function createElectronApi({
     const diagnosticsDomain = createElectronApiDiagnosticsDomain({
         apiDiagnostics,
     });
+    const dialogDomain = createElectronApiDialogDomain({
+        openFolderDialog,
+    });
     const externalDomain = createElectronApiExternalDomain({
         gyazoExternalApi,
         shellExternalApi,
@@ -45,7 +49,6 @@ export function createElectronApi({
     const fileDomain = createElectronApiFileDomain({
         fileApi,
         fitBrowserApi,
-        openFolderDialog,
     });
     const menuDomain = createElectronApiMenuDomain({
         menuEventApi,
@@ -105,7 +108,7 @@ export function createElectronApi({
         openExternal: externalDomain.openExternal,
         openFile: fileDomain.openFile,
         openFileDialog: fileDomain.openFileDialog,
-        openFolderDialog: fileDomain.openFolderDialog,
+        openFolderDialog: dialogDomain.openFolderDialog,
         openOverlayDialog: fileDomain.openOverlayDialog,
         parseFitFile: fileDomain.parseFitFile,
         readFile: fileDomain.readFile,

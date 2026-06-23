@@ -7,6 +7,8 @@ export type ElectronClipboardApi =
     import("../shared/preloadApi").ElectronClipboardApi;
 export type ElectronDevtoolsMenuApi =
     import("../shared/preloadApi").ElectronDevtoolsMenuApi;
+export type ElectronDialogApi =
+    import("../shared/preloadApi").ElectronDialogApi;
 export type ElectronFileApi = import("../shared/preloadApi").ElectronFileApi;
 export type ElectronFitBrowserApi =
     import("../shared/preloadApi").ElectronFitBrowserApi;
@@ -78,6 +80,9 @@ export type CreatePreloadDeveloperApiDomain = (
 export type CreatePreloadDiagnosticsApiDomain = (
     context: PreloadApiAssemblyContext
 ) => PreloadDiagnosticsApiDomain;
+export type CreatePreloadDialogApiDomain = (
+    context: PreloadApiAssemblyContext
+) => PreloadDialogApiDomain;
 export type CreatePreloadExternalApiDomain = (
     context: PreloadApiAssemblyContext
 ) => PreloadExternalApiDomain;
@@ -220,6 +225,7 @@ export interface PreloadModuleRegistry {
     createPreloadClipboardApiDomain: CreatePreloadClipboardApiDomain;
     createPreloadDeveloperApiDomain: CreatePreloadDeveloperApiDomain;
     createPreloadDiagnosticsApiDomain: CreatePreloadDiagnosticsApiDomain;
+    createPreloadDialogApiDomain: CreatePreloadDialogApiDomain;
     createPreloadExternalApiDomain: CreatePreloadExternalApiDomain;
     createPreloadFileApiDomain: CreatePreloadFileApiDomain;
     createPreloadIpcEventApiDomain: CreatePreloadIpcEventApiDomain;
@@ -337,6 +343,10 @@ export interface PreloadDiagnosticsApiDomain {
     apiDiagnostics: ElectronApiDiagnosticsApi;
 }
 
+export interface PreloadDialogApiDomain {
+    openFolderDialog: ElectronDialogApi["openFolderDialog"];
+}
+
 export interface PreloadExternalApiDomain {
     gyazoExternalApi: ElectronGyazoExternalApi;
     shellExternalApi: ElectronShellExternalApi;
@@ -350,7 +360,6 @@ export interface PreloadSystemApiDomain {
 export interface PreloadFileApiDomain {
     fileApi: ElectronFileApi;
     fitBrowserApi: ElectronFitBrowserApi;
-    openFolderDialog: ElectronAPI["openFolderDialog"];
 }
 
 export interface PreloadIpcEventApiDomain {

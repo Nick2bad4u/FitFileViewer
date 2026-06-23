@@ -1908,7 +1908,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps exposed preload electronAPI shapers split by domain", () => {
-        expect.assertions(36);
+        expect.assertions(45);
 
         const apiAssemblySource = stripComments(
             readRepositoryFile("electron-app/preload/apiAssembly.ts")
@@ -1937,6 +1937,11 @@ describe("architecture boundaries", () => {
         const electronApiDiagnosticsDomainSource = stripComments(
             readRepositoryFile(
                 "electron-app/preload/electronApiDiagnosticsDomain.ts"
+            )
+        );
+        const electronApiDialogDomainSource = stripComments(
+            readRepositoryFile(
+                "electron-app/preload/electronApiDialogDomain.ts"
             )
         );
         const electronApiExternalDomainSource = stripComments(
@@ -1973,6 +1978,7 @@ describe("architecture boundaries", () => {
         ).toBe(false);
         expect(apiAssemblySource).toContain("createPreloadExternalApiDomain");
         expect(apiAssemblySource).toContain("createPreloadClipboardApiDomain");
+        expect(apiAssemblySource).toContain("createPreloadDialogApiDomain");
         expect(apiAssemblySource).not.toContain("require(");
         expect(externalApiDomainSource).toContain("createGyazoExternalApi");
         expect(externalApiDomainSource).toContain("createShellExternalApi");
@@ -1991,6 +1997,9 @@ describe("architecture boundaries", () => {
         );
         expect(electronApiFactorySource).toContain(
             "electronApiDiagnosticsDomain.js"
+        );
+        expect(electronApiFactorySource).toContain(
+            "electronApiDialogDomain.js"
         );
         expect(electronApiFactorySource).toContain(
             "electronApiExternalDomain.js"
@@ -2016,9 +2025,15 @@ describe("architecture boundaries", () => {
         expect(electronApiDiagnosticsDomainSource).toContain(
             "createElectronApiDiagnosticsDomain"
         );
+        expect(electronApiDialogDomainSource).toContain(
+            "createElectronApiDialogDomain"
+        );
+        expect(electronApiDialogDomainSource).toContain("ElectronDialogApi");
+        expect(electronApiDialogDomainSource).toContain("openFolderDialog");
         expect(electronApiFileDomainSource).toContain(
             "createElectronApiFileDomain"
         );
+        expect(electronApiFileDomainSource).not.toContain("openFolderDialog");
         expect(electronApiMenuDomainSource).toContain(
             "createElectronApiMenuDomain"
         );
@@ -2038,7 +2053,10 @@ describe("architecture boundaries", () => {
         expect(electronApiFactoryOptionsSource).toContain(
             "export interface ElectronApiFactoryOptions"
         );
+        expect(electronApiFactoryOptionsSource).toContain("ElectronDialogApi");
         expect(moduleTypesSource).toContain("ElectronShellExternalApi");
+        expect(moduleTypesSource).toContain("PreloadDialogApiDomain");
+        expect(moduleTypesSource).toContain("createPreloadDialogApiDomain");
         expect(moduleTypesSource).toContain("createPreloadApiAssemblyContext");
     });
 
@@ -2055,6 +2073,10 @@ describe("architecture boundaries", () => {
             [
                 "electron-app/preload/diagnosticsApiDomain.ts",
                 "createPreloadDiagnosticsApiDomain",
+            ],
+            [
+                "electron-app/preload/dialogApiDomain.ts",
+                "createPreloadDialogApiDomain",
             ],
             [
                 "electron-app/preload/externalApiDomain.ts",
@@ -2199,6 +2221,11 @@ describe("architecture boundaries", () => {
             [
                 "electron-app/preload/electronApiDiagnosticsDomain.ts",
                 "createElectronApiDiagnosticsDomain",
+                "function",
+            ],
+            [
+                "electron-app/preload/electronApiDialogDomain.ts",
+                "createElectronApiDialogDomain",
                 "function",
             ],
             [
@@ -3464,7 +3491,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps preload API assembly modules on native imports", () => {
-        expect.assertions(12);
+        expect.assertions(13);
 
         const apiAssemblyModuleLoaderSource = stripComments(
             readRepositoryFile(
@@ -3486,6 +3513,9 @@ describe("architecture boundaries", () => {
         );
         expect(apiAssemblyModuleLoaderSource).toContain(
             'import { createPreloadDiagnosticsApiDomain } from "./diagnosticsApiDomain.js";'
+        );
+        expect(apiAssemblyModuleLoaderSource).toContain(
+            'import { createPreloadDialogApiDomain } from "./dialogApiDomain.js";'
         );
         expect(apiAssemblyModuleLoaderSource).toContain(
             'import { createPreloadExternalApiDomain } from "./externalApiDomain.js";'

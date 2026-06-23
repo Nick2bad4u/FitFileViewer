@@ -1,4 +1,3 @@
-type ElectronDialogApi = import("../shared/preloadApi").ElectronDialogApi;
 type ElectronFileApi = import("../shared/preloadApi").ElectronFileApi;
 type ElectronFitBrowserApi =
     import("../shared/preloadApi").ElectronFitBrowserApi;
@@ -8,11 +7,10 @@ type ElectronApiFactoryOptions =
 export function createElectronApiFileDomain({
     fileApi,
     fitBrowserApi,
-    openFolderDialog,
 }: Pick<
     ElectronApiFactoryOptions,
-    "fileApi" | "fitBrowserApi" | "openFolderDialog"
->): ElectronDialogApi & ElectronFileApi & ElectronFitBrowserApi {
+    "fileApi" | "fitBrowserApi"
+>): ElectronFileApi & ElectronFitBrowserApi {
     return {
         addRecentFile: fileApi.addRecentFile,
         approveRecentFile: fileApi.approveRecentFile,
@@ -23,7 +21,6 @@ export function createElectronApiFileDomain({
         onFitBrowserEnabledChanged: fitBrowserApi.onFitBrowserEnabledChanged,
         openFile: fileApi.openFile,
         openFileDialog: fileApi.openFileDialog,
-        openFolderDialog,
         openOverlayDialog: fileApi.openOverlayDialog,
         parseFitFile: fileApi.parseFitFile,
         readFile: fileApi.readFile,

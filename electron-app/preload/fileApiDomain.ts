@@ -1,4 +1,3 @@
-type ElectronAPI = import("../shared/preloadApi").ElectronAPI;
 type PreloadApiAssemblyContext =
     import("./preloadModuleTypes").PreloadApiAssemblyContext;
 type PreloadFileApiDomain = import("./preloadModuleTypes").PreloadFileApiDomain;
@@ -10,10 +9,6 @@ export function createPreloadFileApiDomain({
     modules,
 }: PreloadApiAssemblyContext): PreloadFileApiDomain {
     const { createFileApi, createFitBrowserApi } = modules;
-    const openFolderDialog = createSafeInvokeHandler(
-        constants.CHANNELS.DIALOG_OPEN_FOLDER,
-        "openFolderDialog"
-    ) as ElectronAPI["openFolderDialog"];
 
     return {
         fileApi: createFileApi({
@@ -48,6 +43,5 @@ export function createPreloadFileApiDomain({
             createSafeEventHandler,
             createSafeInvokeHandler,
         }),
-        openFolderDialog,
     };
 }

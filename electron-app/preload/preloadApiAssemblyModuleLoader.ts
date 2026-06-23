@@ -2,6 +2,7 @@ import { createPreloadApiAssemblyContext } from "./apiAssemblyContext.js";
 import { createPreloadClipboardApiDomain } from "./clipboardApiDomain.js";
 import { createPreloadDeveloperApiDomain } from "./developerApiDomain.js";
 import { createPreloadDiagnosticsApiDomain } from "./diagnosticsApiDomain.js";
+import { createPreloadDialogApiDomain } from "./dialogApiDomain.js";
 import { createPreloadExternalApiDomain } from "./externalApiDomain.js";
 import { createPreloadFileApiDomain } from "./fileApiDomain.js";
 import { createPreloadIpcEventApiDomain } from "./ipcEventApiDomain.js";
@@ -16,6 +17,7 @@ type PreloadApiAssemblyModules = Pick<
     | "createPreloadClipboardApiDomain"
     | "createPreloadDeveloperApiDomain"
     | "createPreloadDiagnosticsApiDomain"
+    | "createPreloadDialogApiDomain"
     | "createPreloadExternalApiDomain"
     | "createPreloadFileApiDomain"
     | "createPreloadIpcEventApiDomain"
@@ -30,6 +32,7 @@ export function loadPreloadApiAssemblyModules(): PreloadApiAssemblyModules {
         createPreloadDeveloperApiDomain,
         createPreloadDiagnosticsApiDomain:
             createPreloadDiagnosticsApiDomain,
+        createPreloadDialogApiDomain,
         createPreloadExternalApiDomain,
         createPreloadFileApiDomain,
         createPreloadIpcEventApiDomain,
