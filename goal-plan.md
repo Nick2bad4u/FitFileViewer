@@ -938,6 +938,9 @@ summary gear-button/SVG creation now also route through `renderSummaryRuntime.ts
 `getElementByIdFlexible(document, ...)`, `document.createElement`, or `document.createElementNS` directly inside
 `renderSummary.ts`, with focused runtime coverage and architecture coverage blocking those direct document APIs from
 returning.
+Render summary filter/table/virtual-row DOM creation and document-fragment creation now also route through
+`renderSummaryRuntime.ts`, with focused runtime coverage and architecture guardrails blocking direct
+`document.createElement` and `document.createDocumentFragment` calls from returning to `renderSummaryHelpers.ts`.
 Tab-state map invalidation scheduling now routes frame scheduling, frame cancellation, fallback timers, timer
 clearing, Zwift iframe/status DOM construction, and Zwift iframe load-listener cleanup through
 `tabStateManagerHandlersRuntime.ts` instead of calling those globals, constructing `AbortController`, or creating

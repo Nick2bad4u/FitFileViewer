@@ -28,7 +28,7 @@ describe("getRenderSummaryRuntime", () => {
     });
 
     it("routes scheduling dependencies through provider functions", () => {
-        expect.assertions(22);
+        expect.assertions(25);
 
         let controllerCount = 0;
         class TestAbortController implements AbortController {
@@ -62,6 +62,10 @@ describe("getRenderSummaryRuntime", () => {
         summaryContainer.id = "content-summary";
         documentRef.body.append(summaryContainer);
         const createElement = vi.spyOn(documentRef, "createElement");
+        const createDocumentFragment = vi.spyOn(
+            documentRef,
+            "createDocumentFragment"
+        );
         const createElementNS = vi.spyOn(documentRef, "createElementNS");
         const requestAnimationFrame = vi.fn<
             (callback: FrameRequestCallback) => number
@@ -84,6 +88,7 @@ describe("getRenderSummaryRuntime", () => {
             TestAbortController
         );
         expect(utils.createElement("button")).toBeInstanceOf(HTMLButtonElement);
+        expect(utils.createDocumentFragment()).toBeInstanceOf(DocumentFragment);
         const svg = utils.createSvgElement("svg");
         expect(svg.nodeName).toBe("svg");
         expect(svg.namespaceURI).toBe("http://www.w3.org/2000/svg");
@@ -94,11 +99,13 @@ describe("getRenderSummaryRuntime", () => {
 
         expect(getAbortController).toHaveBeenCalledOnce();
         expect(getAddEventListener).toHaveBeenCalledOnce();
-        expect(getDocument).toHaveBeenCalledTimes(3);
+        expect(getDocument).toHaveBeenCalledTimes(4);
         expect(getRequestAnimationFrame).toHaveBeenCalledOnce();
         expect(getCancelAnimationFrame).toHaveBeenCalledOnce();
         expect(controllerCount).toBe(1);
         expect(createElement).toHaveBeenCalledWith("button");
+        expect(createDocumentFragment).toHaveBeenCalledOnce();
+        expect(createDocumentFragment.mock.contexts[0]).toBe(documentRef);
         expect(createElementNS).toHaveBeenCalledWith(
             "http://www.w3.org/2000/svg",
             "svg"
@@ -128,11 +135,14 @@ describe("getRenderSummaryRuntime", () => {
     });
 
     it("fails clearly when the document runtime is unavailable", () => {
-        expect.assertions(3);
+        expect.assertions(4);
 
         const utils = getRenderSummaryRuntime({});
 
         expect(() => utils.createElement("button")).toThrow(
+            "renderSummary requires a document runtime"
+        );
+        expect(() => utils.createDocumentFragment()).toThrow(
             "renderSummary requires a document runtime"
         );
         expect(() => utils.createSvgElement("svg")).toThrow(
@@ -230,7 +240,7 @@ describe("getRenderSummaryRuntime", () => {
     });
 
     it("ignores legacy direct scheduling runtime properties", () => {
-        expect.assertions(14);
+        expect.assertions(15);
 
         let controllerCount = 0;
         class TestAbortController implements AbortController {
@@ -265,6 +275,9 @@ describe("getRenderSummaryRuntime", () => {
             "renderSummary requires an AbortController runtime"
         );
         expect(() => utils.createElement("button")).toThrow(
+            "renderSummary requires a document runtime"
+        );
+        expect(() => utils.createDocumentFragment()).toThrow(
             "renderSummary requires a document runtime"
         );
         expect(() => utils.createSvgElement("svg")).toThrow(

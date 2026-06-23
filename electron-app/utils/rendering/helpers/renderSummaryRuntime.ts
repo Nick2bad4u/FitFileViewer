@@ -26,6 +26,7 @@ export interface RenderSummaryRuntime {
     readonly createElement: <K extends keyof HTMLElementTagNameMap>(
         tagName: K
     ) => HTMLElementTagNameMap[K];
+    readonly createDocumentFragment: () => DocumentFragment;
     readonly createSvgElement: <K extends keyof SVGElementTagNameMap>(
         tagName: K
     ) => SVGElementTagNameMap[K];
@@ -108,6 +109,9 @@ export function getRenderSummaryRuntime(
         },
         createElement(tagName) {
             return getScopeDocument(scope).createElement(tagName);
+        },
+        createDocumentFragment() {
+            return getScopeDocument(scope).createDocumentFragment();
         },
         createSvgElement(tagName) {
             return getScopeDocument(scope).createElementNS(

@@ -174,23 +174,23 @@ export function renderTable({
 
     let section = container.querySelector(".summary-section");
     if (!section) {
-        section = document.createElement("div");
+        section = renderSummaryRuntime.createElement("div");
         section.classList.add("summary-section");
         container.append(section);
     }
     section.replaceChildren();
     // Filter bar with gear button and filter dropdown side by side
-    const filterBar = document.createElement("div");
+    const filterBar = renderSummaryRuntime.createElement("div");
     filterBar.className = "summary-filter-bar";
     // Gear button (column selector)
     filterBar.append(gearBtn);
     // Filter dropdown
-    const filterLabel = document.createElement("label");
+    const filterLabel = renderSummaryRuntime.createElement("label");
     filterLabel.textContent = "Show: ";
-    const filterSelect = document.createElement("select");
+    const filterSelect = renderSummaryRuntime.createElement("select");
 
     const addOption = (value: string, label: string): void => {
-        const opt = document.createElement("option");
+        const opt = renderSummaryRuntime.createElement("option");
         opt.value = value;
         opt.textContent = label;
         filterSelect.append(opt);
@@ -254,13 +254,13 @@ export function renderTable({
     filterBar.append(filterLabel);
     section.append(filterBar);
 
-    const headerBar = document.createElement("div");
+    const headerBar = renderSummaryRuntime.createElement("div");
     headerBar.className = "header-bar";
-    const title = document.createElement("h3");
+    const title = renderSummaryRuntime.createElement("h3");
     title.textContent = "Activity Summary";
     title.classList.add("summary-title");
     headerBar.append(title);
-    const copyBtn = document.createElement("button");
+    const copyBtn = renderSummaryRuntime.createElement("button");
     copyBtn.textContent = "Copy as CSV";
     copyBtn.className = "copy-btn";
     copyBtn.addEventListener(
@@ -340,30 +340,30 @@ export function renderTable({
     headerBar.append(copyBtn);
     section.append(headerBar);
 
-    const table = document.createElement("table");
+    const table = renderSummaryRuntime.createElement("table");
     table.classList.add("display");
-    const headerRow = document.createElement("tr"),
+    const headerRow = renderSummaryRuntime.createElement("tr"),
         orderedVisible = orderSummaryColumnsNamedFirst(visibleColumns),
         sortedVisible = [LABEL_COL, ...orderedVisible],
-        thead = document.createElement("thead");
+        thead = renderSummaryRuntime.createElement("thead");
     let virtualizerInit: (() => void) | null = null;
     for (const key of sortedVisible) {
-        const th = document.createElement("th");
+        const th = renderSummaryRuntime.createElement("th");
         th.textContent = key === LABEL_COL ? "Type" : key;
         headerRow.append(th);
     }
     thead.append(headerRow);
-    const summaryBody = document.createElement("tbody");
+    const summaryBody = renderSummaryRuntime.createElement("tbody");
     summaryBody.className = "summary-summary-body";
-    const lapBody = document.createElement("tbody");
+    const lapBody = renderSummaryRuntime.createElement("tbody");
     lapBody.className = "summary-lap-body";
     // Summary row
     if (filterValue === "All" || filterValue === "Summary") {
         const summaryRows = getSummaryRows(data),
             summaryRec = summaryRows[0] || {},
-            summaryRow = document.createElement("tr");
+            summaryRow = renderSummaryRuntime.createElement("tr");
         for (const [idx, key] of sortedVisible.entries()) {
-            const td = document.createElement("td");
+            const td = renderSummaryRuntime.createElement("td");
             td.textContent =
                 key === LABEL_COL
                     ? "Summary"
@@ -425,8 +425,8 @@ export function renderTable({
     section.append(table);
 
     if (typeof virtualizerInit === "function") {
-        const frameHandle = renderSummaryRuntime.requestAnimationFrame(
-            () => virtualizerInit?.()
+        const frameHandle = renderSummaryRuntime.requestAnimationFrame(() =>
+            virtualizerInit?.()
         );
         if (frameHandle === null) {
             virtualizerInit();
@@ -457,9 +457,9 @@ function createLapRowElement(
     lap: SummaryRecord,
     sortedVisible: readonly string[]
 ): HTMLTableRowElement {
-    const lapRow = document.createElement("tr");
+    const lapRow = renderSummaryRuntime.createElement("tr");
     for (const key of sortedVisible) {
-        const td = document.createElement("td");
+        const td = renderSummaryRuntime.createElement("td");
         if (key === LABEL_COL) {
             td.textContent = `Lap ${lapIndex + 1}`;
         } else if (key === "timestamp" && lap["startTime"]) {
@@ -480,9 +480,9 @@ function createSpacerRow(colSpan: number): {
     cell: HTMLTableCellElement;
     row: HTMLTableRowElement;
 } {
-    const row = document.createElement("tr");
+    const row = renderSummaryRuntime.createElement("tr");
     row.className = "summary-virtual-spacer";
-    const cell = document.createElement("td");
+    const cell = renderSummaryRuntime.createElement("td");
     cell.colSpan = colSpan;
     cell.style.padding = "0";
     cell.style.border = "none";
@@ -536,7 +536,7 @@ function setupVirtualizedLapRows({
         lastStart = start;
         lastEnd = end;
 
-        const fragment = document.createDocumentFragment();
+        const fragment = renderSummaryRuntime.createDocumentFragment();
         topCell.style.height = `${start * rowHeight}px`;
         bottomCell.style.height = `${(lapCount - end) * rowHeight}px`;
         fragment.append(topSpacer);

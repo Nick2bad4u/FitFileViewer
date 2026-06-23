@@ -12966,7 +12966,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps render-summary scheduling APIs behind the runtime facade", () => {
-        expect.assertions(32);
+        expect.assertions(37);
 
         const violations = migratedRenderSummaryRuntimeFiles
             .filter((relativeFile) =>
@@ -12994,6 +12994,16 @@ describe("architecture boundaries", () => {
         expect(violations).toStrictEqual([]);
         expect(renderSummarySource).toContain("renderSummaryRuntime.js");
         expect(renderSummarySource).toContain("createAbortController");
+        expect(renderSummarySource).toContain(
+            "renderSummaryRuntime.createElement"
+        );
+        expect(renderSummarySource).toContain(
+            "renderSummaryRuntime.createDocumentFragment"
+        );
+        expect(renderSummarySource).not.toContain("document.createElement");
+        expect(renderSummarySource).not.toContain(
+            "document.createDocumentFragment"
+        );
         expect(renderSummaryCoreSource).toContain("renderSummaryRuntime.js");
         expect(renderSummaryCoreSource).toContain("getSummaryContainer()");
         expect(renderSummaryCoreSource).toContain(
@@ -13064,6 +13074,9 @@ describe("architecture boundaries", () => {
         );
         expect(renderSummaryRuntimeSource).toContain(
             "getScopeDocument(scope).createElement(tagName)"
+        );
+        expect(renderSummaryRuntimeSource).toContain(
+            "getScopeDocument(scope).createDocumentFragment()"
         );
         expect(renderSummaryRuntimeSource).toContain(
             "getScopeDocument(scope).createElementNS("
