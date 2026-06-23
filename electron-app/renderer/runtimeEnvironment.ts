@@ -3,6 +3,10 @@ type RendererRuntimeEventTarget = Pick<
     "addEventListener" | "removeEventListener"
 >;
 
+type RendererRuntimeGlobalScope = typeof globalThis & {
+    readonly electronAPI?: unknown;
+};
+
 export type RendererRuntimeEnvironment = {
     readonly addEventListener: typeof globalThis.addEventListener;
     readonly clearInterval: typeof globalThis.clearInterval;
@@ -54,9 +58,9 @@ const defaultRendererRuntimeEnvironmentScope: RendererRuntimeEnvironmentScope =
     };
 
 function getDefaultElectronApiCandidate(): unknown {
-    const rendererScope = globalThis as Record<PropertyKey, unknown>;
+    const rendererScope = globalThis as RendererRuntimeGlobalScope;
 
-    return rendererScope["electronAPI"];
+    return rendererScope.electronAPI;
 }
 
 function getDefaultRendererEventTarget():

@@ -1190,7 +1190,9 @@ The runtime-environment scope contract no longer exposes `getRendererScope` or `
 ambient lookup stays private to `runtimeEnvironment.ts`, and callers can provide only focused providers such as
 `getElectronApiCandidate` and `getRendererEventTarget`.
 The runtime-environment default implementation no longer has a private whole-renderer-object helper; Electron API
-candidate capture and event-target capture stay on their focused default providers, with architecture coverage
+candidate capture and event-target capture stay on their focused default providers, and the default Electron API
+candidate reader now uses a focused `RendererRuntimeGlobalScope` instead of a generic `Record<PropertyKey, unknown>`
+cast, with architecture coverage
 blocking that broad helper from returning.
 Renderer environment detection now uses focused `RendererEnvironmentInput` values for location, document,
 development-flag, and Electron API dev-mode checks instead of receiving a broad renderer-global object through a
