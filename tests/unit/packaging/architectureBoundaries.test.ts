@@ -889,6 +889,7 @@ const directMainUiDragDropHandlerGlobalPattern =
     /\b(?:window|globalThis)\.dragDropHandler\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["']dragDropHandler["']\s*\)/u;
 const directDragDropEnableGlobalPattern =
     /\b(?:window|globalThis)\.enableDragAndDrop\b|\bReflect\.(?:get|set|deleteProperty)\(\s*(?:window|globalThis)\s*,\s*["']enableDragAndDrop["']\s*\)|\benableDragAndDrop\?:/u;
+const rendererAdHocWindowBridgeTypePattern = /\bWindow\s*&\s*\{/u;
 const retiredRendererAmbientGlobalPattern =
     /\b(?:__appState|__DEVELOPMENT__|__persistenceTimeout|__state_debug|_chartjsInstances|_mapThemeListener|aboutModalDevHelpers|AppState|areTabButtonsEnabled|Chart|chartControlsState|ChartUpdater|chartUpdater|chartStateManager|clearZoneColorData|closeKeyboardShortcutsModal|createTables|debugTabButtons|debugTabState|devCleanup|dragDropHandler|enableDragAndDrop|forceEnableTabButtons|forceFixTabButtons|globalData|heartRateZones|injectMenu|L|loadedFitFiles|mapMarkerCount|powerZones|rendererUtils|renderChartJS|renderMap|renderSummary|resetAllSettings|screenfull|setTabButtonsEnabled|showFitData|showKeyboardShortcutsModal|showNotification|tabStateManager|testTabButtonClicks|updateInlineZoneColorSelectors|updateMapTheme)\?:|\bvar\s+(?:__vitest_effective_document__|L)\b/u;
 const directMainUiDevelopmentHelperGlobalPattern =
@@ -17918,6 +17919,21 @@ describe("architecture boundaries", () => {
             .sort();
 
         expect(directRetiredRendererTestGlobals).toStrictEqual([]);
+    });
+
+    it("keeps runtime source from adding ad hoc Window bridge types", () => {
+        expect.assertions(1);
+
+        const adHocWindowBridgeTypes = sourceRoots
+            .flatMap(collectSourceFiles)
+            .filter((relativeFile) =>
+                rendererAdHocWindowBridgeTypePattern.test(
+                    stripComments(readRepositoryFile(relativeFile))
+                )
+            )
+            .sort();
+
+        expect(adHocWindowBridgeTypes).toStrictEqual([]);
     });
 
     it("keeps Leaflet-focused tests from mutating retired global adapters", () => {
