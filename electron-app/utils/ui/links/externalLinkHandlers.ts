@@ -28,9 +28,10 @@ export function attachExternalLinkHandlers({
         return () => {};
     }
 
+    const runtime = getExternalLinkHandlersRuntime();
     let cleanupFunctions: CleanupFunction[] = [
         addEventListenerWithCleanup(root, "click", (event) => {
-            const anchor = resolveExternalLinkAnchor(event.target);
+            const anchor = runtime.resolveExternalLinkAnchor(event.target);
 
             if (!anchor) {
                 return;
@@ -43,11 +44,11 @@ export function attachExternalLinkHandlers({
             event.stopPropagation();
 
             if (validated !== null) {
-                openExternal(validated, onOpenExternalError);
+                openExternal(validated, onOpenExternalError, runtime);
             }
         }),
         addEventListenerWithCleanup(root, "keydown", (event) => {
-            if (!(event instanceof KeyboardEvent)) {
+            if (!runtime.isKeyboardEvent(event)) {
                 return;
             }
 
@@ -55,7 +56,7 @@ export function attachExternalLinkHandlers({
                 return;
             }
 
-            const anchor = resolveExternalLinkAnchor(event.target);
+            const anchor = runtime.resolveExternalLinkAnchor(event.target);
 
             if (!anchor) {
                 return;
@@ -68,7 +69,7 @@ export function attachExternalLinkHandlers({
             event.stopPropagation();
 
             if (validated !== null) {
-                openExternal(validated, onOpenExternalError);
+                openExternal(validated, onOpenExternalError, runtime);
             }
         }),
     ];
@@ -89,7 +90,8 @@ export function attachExternalLinkHandlers({
 
 function openExternal(
     url: string,
-    onOpenExternalError: ((url: string, error: Error) => void) | undefined
+    onOpenExternalError: ((url: string, error: Error) => void) | undefined,
+    runtime = getExternalLinkHandlersRuntime()
 ): void {
     const api = getOpenExternalApi();
 
@@ -111,11 +113,7 @@ function openExternal(
     }
 
     try {
-        getExternalLinkHandlersRuntime().openBrowserWindow(
-            url,
-            "_blank",
-            "noopener,noreferrer"
-        );
+        runtime.openBrowserWindow(url, "_blank", "noopener,noreferrer");
     } catch {
         // Ignore fallback failures outside normal browser contexts.
     }
@@ -133,18 +131,6 @@ function isElectronApiWithExternalOpen(
     }
 
     return "openExternal" in value && typeof value.openExternal === "function";
-}
-
-function resolveExternalLinkAnchor(
-    target: EventTarget | null
-): HTMLAnchorElement | null {
-    if (!(target instanceof Element)) {
-        return null;
-    }
-
-    const anchor = target.closest("a[data-external-link]");
-
-    return anchor instanceof HTMLAnchorElement ? anchor : null;
 }
 
 function validateExternalHttpUrl(url: unknown): string | null {

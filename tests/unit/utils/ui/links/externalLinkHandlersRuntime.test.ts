@@ -36,13 +36,43 @@ describe("getExternalLinkHandlersRuntime", () => {
         expect(openedFeatures).toBe("noopener,noreferrer");
     });
 
+    it("resolves delegated anchors and keyboard events through injected constructors", () => {
+        expect.assertions(6);
+
+        const documentRef =
+            document.implementation.createHTMLDocument("external links");
+        const anchor = documentRef.createElement("a");
+        const child = documentRef.createElement("span");
+        const plainLink = documentRef.createElement("a");
+        const keyboardEvent = new KeyboardEvent("keydown", { key: "Enter" });
+        const runtime = getExternalLinkHandlersRuntime({
+            getElement: () => Element,
+            getHTMLAnchorElement: () => HTMLAnchorElement,
+            getKeyboardEvent: () => KeyboardEvent,
+        });
+
+        anchor.dataset.externalLink = "";
+        anchor.append(child);
+
+        expect(runtime.resolveExternalLinkAnchor(child)).toBe(anchor);
+        expect(runtime.resolveExternalLinkAnchor(plainLink)).toBeNull();
+        expect(runtime.resolveExternalLinkAnchor(null)).toBeNull();
+        expect(runtime.isKeyboardEvent(keyboardEvent)).toBe(true);
+        expect(runtime.isKeyboardEvent(new Event("keydown"))).toBe(false);
+        expect(runtime.isKeyboardEvent({ key: "Enter" })).toBe(false);
+    });
+
     it("ignores legacy direct opener properties", () => {
-        expect.assertions(2);
+        expect.assertions(8);
 
         const open = vi.fn(() => ({}) as WindowProxy);
         const runtime = getExternalLinkHandlersRuntime({
+            Element,
+            HTMLAnchorElement,
+            KeyboardEvent,
             open,
         } as unknown as Parameters<typeof getExternalLinkHandlersRuntime>[0]);
+        const target = document.createElement("span");
 
         expect(
             runtime.openBrowserWindow(
@@ -52,18 +82,43 @@ describe("getExternalLinkHandlersRuntime", () => {
             )
         ).toBeNull();
         expect(open).not.toHaveBeenCalled();
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "externalLinkHandlers requires a KeyboardEvent runtime"
+        );
+        expect(() => runtime.resolveExternalLinkAnchor(target)).toThrow(
+            "externalLinkHandlers requires an Element runtime"
+        );
+        expect(
+            (runtime as unknown as { Element?: unknown }).Element
+        ).toBeUndefined();
+        expect(
+            (runtime as unknown as { HTMLAnchorElement?: unknown })
+                .HTMLAnchorElement
+        ).toBeUndefined();
+        expect(
+            (runtime as unknown as { KeyboardEvent?: unknown }).KeyboardEvent
+        ).toBeUndefined();
+        expect(open).not.toHaveBeenCalled();
     });
 
     it("returns null when a browser opener is unavailable", () => {
-        expect.assertions(1);
+        expect.assertions(4);
+        const runtime = getExternalLinkHandlersRuntime({});
 
         expect(
-            getExternalLinkHandlersRuntime({}).openBrowserWindow(
+            runtime.openBrowserWindow(
                 "https://example.com",
                 "_blank",
                 "noopener,noreferrer"
             )
         ).toBeNull();
+        expect(() => runtime.isKeyboardEvent(new Event("keydown"))).toThrow(
+            "externalLinkHandlers requires a KeyboardEvent runtime"
+        );
+        expect(() =>
+            runtime.resolveExternalLinkAnchor(document.createElement("span"))
+        ).toThrow("externalLinkHandlers requires an Element runtime");
+        expect(runtime.resolveExternalLinkAnchor(null)).toBeNull();
     });
 
     it("resolves the default browser opener when links are opened", () => {

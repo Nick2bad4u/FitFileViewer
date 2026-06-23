@@ -1117,9 +1117,9 @@ const directModalFocusTrapRuntimeAmbientGetterPattern =
 const preloadTestDirectElectronApiGlobalFixturePattern =
     /\b(?:Object\.defineProperty|Reflect\.deleteProperty)\(\s*globalThis\s*,/u;
 const directExternalLinkHandlersRuntimeGlobalPattern =
-    /\b(?:globalThis|window)\.open\b/u;
+    /\b(?:globalThis|window)\.open\b|\binstanceof\s+(?:Element|HTMLAnchorElement|KeyboardEvent)\b/u;
 const directExternalLinkHandlersRuntimeAmbientGetterPattern =
-    /\bget\s+open\s*\(\)\s*\{|\breturn\s+globalThis\.open\b/u;
+    /\bget\s+(?:Element|HTMLAnchorElement|KeyboardEvent|open)\s*\(\)\s*\{|\breturn\s+globalThis\.(?:Element|HTMLAnchorElement|KeyboardEvent|open)\b|\bscope\.(?:Element|HTMLAnchorElement|KeyboardEvent|open)\b/u;
 const directMapActionButtonsRuntimeGlobalPattern =
     /\b(?:globalThis|window)\.(?:setTimeout|clearTimeout)\b|(?:^|[^\w.])(?:setTimeout|clearTimeout)\(/u;
 const directMapActionButtonsRuntimeAmbientFallbackPattern =
@@ -9850,7 +9850,7 @@ describe("architecture boundaries", () => {
     });
 
     it("keeps external link browser fallbacks behind the runtime facade", () => {
-        expect.assertions(8);
+        expect.assertions(22);
 
         const violations = migratedExternalLinkHandlersRuntimeFiles
             .filter((relativeFile) =>
@@ -9882,16 +9882,50 @@ describe("architecture boundaries", () => {
         expect(externalLinkHandlersSource).toContain(
             "externalLinkHandlersRuntime.js"
         );
+        expect(externalLinkHandlersSource).toContain("runtime.isKeyboardEvent");
+        expect(externalLinkHandlersSource).toContain(
+            "runtime.resolveExternalLinkAnchor"
+        );
+        expect(externalLinkHandlersSource).not.toContain(
+            "instanceof KeyboardEvent"
+        );
+        expect(externalLinkHandlersSource).not.toContain("instanceof Element");
+        expect(externalLinkHandlersSource).not.toContain(
+            "instanceof HTMLAnchorElement"
+        );
         expect(externalLinkHandlersRuntimeSource).not.toMatch(
             directExternalLinkHandlersRuntimeAmbientGetterPattern
         );
         expect(externalLinkHandlersRuntimeSource).toContain(
             "defaultExternalLinkHandlersRuntimeScope"
         );
+        expect(runtimeScopeSource).not.toContain("readonly Element?:");
+        expect(runtimeScopeSource).not.toContain(
+            "readonly HTMLAnchorElement?:"
+        );
+        expect(runtimeScopeSource).not.toContain("readonly KeyboardEvent?:");
         expect(runtimeScopeSource).not.toContain("readonly open?:");
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "scope.Element"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "scope.HTMLAnchorElement"
+        );
+        expect(externalLinkHandlersRuntimeSource).not.toContain(
+            "scope.KeyboardEvent"
+        );
         expect(externalLinkHandlersRuntimeSource).not.toContain("scope.open");
         expect(externalLinkHandlersRuntimeSource).toContain(
             "return scope.getOpen?.();"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "getElement: () => globalThis.Element"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "getHTMLAnchorElement: () => globalThis.HTMLAnchorElement"
+        );
+        expect(externalLinkHandlersRuntimeSource).toContain(
+            "getKeyboardEvent: () => globalThis.KeyboardEvent"
         );
         expect(externalLinkHandlersRuntimeSource).toContain(
             "getOpen: () => globalThis.open"
